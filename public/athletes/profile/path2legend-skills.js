@@ -6,6 +6,9 @@ import {
   httpsCallable,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
+import {
+  normalizeDisciplineId as normalizeDiscipline
+} from "/assets/js/discipline-policy.js";
 
 const container =
   document.getElementById("canonicalSkills");
@@ -34,13 +37,6 @@ if (container && lane) {
     MASTERED: "Mastered",
     REFINED: "Refined",
   });
-
-  function normalizeDiscipline(value) {
-    return String(value || "")
-      .trim()
-      .toLowerCase()
-      .replace(/[\s_]+/g, "-");
-  }
 
   function esc(value) {
     return String(value ?? "")
@@ -137,7 +133,7 @@ if (container && lane) {
         resolveActiveDiscipline(athlete);
 
       if (
-        !["wrestling", "boxing", "muay-thai", "kickboxing"].includes(
+        !["wrestling", "boxing", "muay-thai"].includes(
           activeDiscipline
         )
       ) {

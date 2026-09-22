@@ -40,8 +40,13 @@
           .trim()
           .toLowerCase();
 
-      if (raw.includes("kickbox")) {
-        return "kickboxing";
+      if (
+        raw.includes("kickbox") ||
+        raw === "muay thai" ||
+        raw === "muay-thai" ||
+        raw === "muaythai"
+      ) {
+        return "muay-thai";
       }
 
       if (raw.includes("wrest")) {
@@ -65,6 +70,7 @@
     const routes = {
       "wrestling": "/athletes/arsenal/combat/p2l/wrestling/index.html",
       "boxing": "/athletes/arsenal/combat/p2l/boxing/index.html",
+      "muay-thai": "/athletes/arsenal/combat/p2l/kickboxing/index.html",
       "mma": "/athletes/arsenal/combat/q2m/mma/index.html"
     };
 

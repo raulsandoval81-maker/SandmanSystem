@@ -1,4 +1,5 @@
 import { db } from './firebase-init.js';
+import { disciplineLabel } from './discipline-policy.js';
 // ---------- Element map ----------
 const els = {
   // top bar
@@ -86,7 +87,10 @@ function labelForSport(val) {
   switch (val) {
     case 'wrestling':  return 'Wrestling';
     case 'boxing':     return 'Boxing';
-    case 'kickboxing': return 'Kickboxing';
+    case 'kickboxing':
+    case 'kick-boxing':
+    case 'kick_boxing':
+    case 'muay-thai': return disciplineLabel(val);
     case 'submission': return 'Submission Grappling';
     case 'mma':        return 'MMA';
     default:           return val || '—';

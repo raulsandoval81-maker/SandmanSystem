@@ -4,6 +4,9 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
+import {
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 console.log("Combat lane loaded");
 
@@ -23,38 +26,17 @@ const athleteId = String(
 let activeDiscipline = "";
 
 function normalizeDiscipline(value = "") {
-  const raw = String(value || "")
-    .trim()
-    .toLowerCase();
+  const canonical = normalizeDisciplineId(value);
 
-  if (
-    raw.includes("kickbox") ||
-    raw === "muay thai" ||
-    raw === "muay-thai" ||
-    raw === "muaythai"
-  ) {
-    return "kickboxing";
-  }
-
-  if (raw.includes("wrest")) return "wrestling";
-
-  if (
-    raw.includes("submission") ||
-    raw.includes("grappling")
-  ) {
+  if (canonical.includes("wrest")) return "wrestling";
+  if (canonical.includes("kickbox")) return "muay-thai";
+  if (canonical.includes("box")) return "boxing";
+  if (canonical.includes("submission") || canonical.includes("grappling")) {
     return "submission-grappling";
   }
+  if (canonical.includes("mixed-martial")) return "mma";
 
-  if (
-    raw === "mma" ||
-    raw.includes("mixed martial")
-  ) {
-    return "mma";
-  }
-
-  if (raw.includes("box")) return "boxing";
-
-  return raw;
+  return canonical;
 }
 
 const DISCIPLINE_ROUTES = {
@@ -69,7 +51,7 @@ const DISCIPLINE_ROUTES = {
     teen: "/athletes/arsenal/combat/p2l/boxing/index.html"
   },
 
-  kickboxing: {
+  "muay-thai": {
     youth: "/athletes/arsenal/combat/z2h/kickboxing/index.html",
     teen: "/athletes/arsenal/combat/p2l/kickboxing/index.html"
   },
@@ -190,10 +172,25 @@ function combatForDiscipline(
   const normalized =
     normalizeDiscipline(discipline);
 
-  return (
-    athlete.disciplines?.[normalized] ||
-    athlete
+  const match = Object.entries(
+    athlete.disciplines || {}
+  ).find(([key]) =>
+    normalizeDiscipline(key) === normalized
   );
+
+  if (match) return match[1];
+
+  const primaryDiscipline = normalizeDiscipline(
+    athlete.primaryDiscipline ||
+    athlete.discipline ||
+    athlete.art ||
+    athlete.sport ||
+    ""
+  );
+
+  return normalized === primaryDiscipline
+    ? athlete
+    : {};
 }
 
 function getStripeCount(combat = {}) {
@@ -458,7 +455,7 @@ if (activeDiscipline !== "wrestling") {
 
   /*
     Existing ShadowTrainer content is wrestling-specific.
-    Never expose these links to boxing, kickboxing, or MMA.
+    Never expose these links to Boxing, Muay Thai, or MMA.
   */
   // Youth Wrestling begins at V0.
   if (athleteId.startsWith("F8_")) {

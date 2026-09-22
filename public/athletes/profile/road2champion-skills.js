@@ -6,6 +6,9 @@ import {
   httpsCallable,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
+import {
+  normalizeDisciplineId as normalizeDiscipline
+} from "/assets/js/discipline-policy.js";
 
 const container =
   document.getElementById("canonicalSkills");
@@ -39,40 +42,6 @@ if (container && lane) {
     MASTERED: "Mastered",
     REFINED: "Refined"
   });
-
-  function normalizeDiscipline(value = "") {
-    const raw = String(value || "")
-      .trim()
-      .toLowerCase();
-
-    if (
-      raw.includes("muay thai") ||
-      raw.includes("muay-thai") ||
-      raw.includes("muaythai") ||
-      raw.includes("kickbox")
-    ) {
-      return "muay-thai";
-    }
-
-    if (raw.includes("wrest")) return "wrestling";
-    if (raw.includes("box")) return "boxing";
-
-    if (
-      raw === "mma" ||
-      raw.includes("mixed martial")
-    ) {
-      return "mma";
-    }
-
-    if (
-      raw.includes("submission") ||
-      raw.includes("grappling")
-    ) {
-      return "submission-grappling";
-    }
-
-    return raw.replace(/[\s_]+/g, "-");
-  }
 
   function esc(value) {
     return String(value ?? "")
@@ -179,7 +148,7 @@ if (container && lane) {
         resolveActiveDiscipline(athlete);
 
       if (
-        !["wrestling", "boxing", "muay-thai", "kickboxing"].includes(
+        !["wrestling", "boxing", "muay-thai"].includes(
           activeDiscipline
         )
       ) {
@@ -187,9 +156,7 @@ if (container && lane) {
       }
 
       const canonicalDiscipline =
-        activeDiscipline === "kickboxing"
-          ? "muay-thai"
-          : activeDiscipline;
+        normalizeDiscipline(activeDiscipline);
 
       const disciplineTitles = {
         wrestling: "🤼 Wrestling · Technical progress",
@@ -213,7 +180,7 @@ if (container && lane) {
       const result =
         await getAthleteSkillsSummaryCall({
           athleteId,
-          discipline: activeDiscipline
+          discipline: canonicalDiscipline
         });
 
       const skills =

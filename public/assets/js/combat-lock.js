@@ -4,11 +4,12 @@ import {
   getDoc
 } from "/assets/js/firebase-init-para.js";
 import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
+import {
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 function normalizeDiscipline(value = "") {
-  const discipline = String(value)
-    .trim()
-    .toLowerCase();
+  const discipline = normalizeDisciplineId(value);
 
   if (
     discipline === "box" ||
@@ -25,13 +26,9 @@ function normalizeDiscipline(value = "") {
   }
 
   if (
-    discipline === "kickbox" ||
-    discipline === "kickboxing" ||
-    discipline === "muay thai" ||
-    discipline === "muay-thai" ||
-    discipline === "muaythai"
+    discipline === "muay-thai"
   ) {
-    return "kickboxing";
+    return "muay-thai";
   }
 
   if (
@@ -75,11 +72,27 @@ function getDisciplineProgress(
   athlete,
   discipline
 ) {
+  const canonical =
+    normalizeDiscipline(discipline);
+
+  const findProgress = (records) => {
+    if (!records || typeof records !== "object") {
+      return null;
+    }
+
+    const match = Object.entries(records)
+      .find(([key]) =>
+        normalizeDiscipline(key) === canonical
+      );
+
+    return match?.[1] || null;
+  };
+
   return (
-    athlete.disciplines?.[discipline] ||
-    athlete.combat?.[discipline] ||
-    athlete.progression?.[discipline] ||
-    athlete.disciplineProgress?.[discipline] ||
+    findProgress(athlete.disciplines) ||
+    findProgress(athlete.combat) ||
+    findProgress(athlete.progression) ||
+    findProgress(athlete.disciplineProgress) ||
     null
   );
 }

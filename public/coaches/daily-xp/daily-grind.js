@@ -17,6 +17,7 @@ import {
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
+import { normalizeDisciplineId } from "/assets/js/discipline-policy.js";
 
 console.log("XP_URL =", XP_URL);
 
@@ -336,15 +337,20 @@ function applyFilterAndRender() {
       ""
     ).toLowerCase();
 
-    const discipline = String(
+    const disciplineValue =
       a.discipline ||
       a.primaryDiscipline ||
       a.sport ||
       a.art ||
       a.track ||
       a.trackCode ||
-      ""
-    ).toLowerCase();
+      "";
+
+    const discipline = String(disciplineValue)
+      .toLowerCase()
+      .includes("kick")
+        ? "muay-thai"
+        : normalizeDisciplineId(disciplineValue);
 
     const athleteId = String(a.id || "").toUpperCase();
 
@@ -371,8 +377,8 @@ function applyFilterAndRender() {
     const isBoxing =
       discipline.includes("box");
 
-    const isKickboxing =
-      discipline.includes("kick");
+    const isMuayThai =
+      discipline === "muay-thai";
 
     const isMma =
       discipline.includes("mma") ||
@@ -383,7 +389,7 @@ function applyFilterAndRender() {
     }
 
     if (wantedJourney === "z2h-kickboxing") {
-      return isZ2H && isKickboxing;
+      return isZ2H && isMuayThai;
     }
 
     if (wantedJourney === "p2l-wrestling") {

@@ -48,7 +48,6 @@
           <select id="discipline">
             <option value="wrestling">Wrestling</option>
             <option value="striking">Striking</option>
-            <option value="kickboxing">Kickboxing</option>
             <option value="muay-thai">Muay Thai</option>
             <option value="submission-grappling">Submission Grappling</option>
             <option value="mma">MMA</option>
@@ -107,6 +106,12 @@
   <script>
     (function(){
       const $=s=>document.querySelector(s); const KEY="athleteLogs";
+      function normalizeDiscipline(value=""){
+        const raw=String(value).trim().toLowerCase().replaceAll("_","-").replaceAll(" ","-");
+        return ["kickbox","kickboxing","kick-boxing","muaythai","muay-thai"].includes(raw)
+          ? "muay-thai"
+          : raw;
+      }
       const f = {
         athlete:$("#athlete"), coach:$("#coach"), program:$("#program"),
         discipline:$("#discipline"), type:$("#type"), topic:$("#topic"),
@@ -114,6 +119,7 @@
       };
       $("#save").addEventListener("click", ()=>{
         const e = Object.fromEntries(Object.entries(f).map(([k,el])=>[k,(el.value||"").trim()]));
+        e.discipline = normalizeDiscipline(e.discipline);
         if(!e.athlete){ alert("Enter athlete."); return; }
         e.ts = Date.now();
         const list = JSON.parse(localStorage.getItem(KEY)||"[]");

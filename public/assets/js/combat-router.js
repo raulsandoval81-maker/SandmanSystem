@@ -1,20 +1,6 @@
-function normalizeDiscipline(value = "") {
-  const raw = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  if (
-    raw === "kickbox" ||
-    raw === "kickboxing" ||
-    raw === "muay thai" ||
-    raw === "muay-thai" ||
-    raw === "muaythai"
-  ) {
-    return "kickboxing";
-  }
-
-  return raw;
-}
+import {
+  normalizeDisciplineId as normalizeDiscipline
+} from "/assets/js/discipline-policy.js";
 
 export function routeCombat() {
   const params = new URLSearchParams(window.location.search);
@@ -47,14 +33,14 @@ export function routeCombat() {
       };
     }
 
-    if (discipline === "kickboxing") {
+    if (discipline === "muay-thai") {
       return {
         athleteId,
         discipline,
         path:
           `/athletes/arsenal/combat/p2l/kickboxing/index.html` +
           `?id=${encodeURIComponent(athleteId)}` +
-          `&discipline=kickboxing`
+          `&discipline=muay-thai`
       };
     }
 
@@ -69,14 +55,14 @@ export function routeCombat() {
   }
 
   if (athleteId.startsWith("F8_")) {
-    if (discipline === "kickboxing") {
+    if (discipline === "muay-thai") {
       return {
         athleteId,
         discipline,
         path:
           `/athletes/arsenal/combat/z2h/kickboxing/index.html` +
           `?id=${encodeURIComponent(athleteId)}` +
-          `&discipline=kickboxing`
+          `&discipline=muay-thai`
       };
     }
 

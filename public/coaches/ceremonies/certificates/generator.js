@@ -246,7 +246,7 @@ q2m: {
 const DISCIPLINE_OPTIONS = {
   f8: [
     { value: "wrestling", label: "Wrestling" },
-    { value: "kickboxing", label: "Kickboxing" }
+    { value: "muay-thai", label: "Muay Thai" }
   ],
 
   f4: [
@@ -256,7 +256,7 @@ const DISCIPLINE_OPTIONS = {
       label: "Submission Grappling"
     },
     { value: "boxing", label: "Boxing" },
-    { value: "kickboxing", label: "Kickboxing" }
+    { value: "muay-thai", label: "Muay Thai" }
   ],
 
   q2m: [
@@ -265,9 +265,21 @@ const DISCIPLINE_OPTIONS = {
 };
 
 function disciplineLabel(value = "") {
-  const key = String(value || "")
+  const raw = String(value || "")
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replaceAll("_", "-")
+    .replaceAll(" ", "-");
+
+  const key = [
+    "kickbox",
+    "kickboxing",
+    "kick-boxing",
+    "muaythai",
+    "muay-thai"
+  ].includes(raw)
+    ? "muay-thai"
+    : raw;
 
   const options =
     Object.values(DISCIPLINE_OPTIONS).flat();
@@ -293,15 +305,15 @@ function beltFamilyFor(foundryKey, discipline) {
     .trim()
     .toLowerCase();
 
-  const art = String(discipline || "")
-    .trim()
-    .toLowerCase();
+  const art = disciplineLabel(discipline) === "Muay Thai"
+    ? "muay-thai"
+    : String(discipline || "").trim().toLowerCase();
 
   if (journey !== "f4") {
     return journey;
   }
 
-  return ["boxing", "kickboxing"].includes(art)
+  return ["boxing", "muay-thai"].includes(art)
     ? "f4Striking"
     : "f4";
 }
@@ -570,13 +582,15 @@ function populateDisciplineOptions(preferred = "") {
   const options =
     DISCIPLINE_OPTIONS[foundryKey] || [];
 
-  const wanted = String(
+  const preferredValue = disciplineLabel(
     preferred ||
     fields.discipline.value ||
     ""
-  )
-    .trim()
-    .toLowerCase();
+  );
+
+  const wanted = preferredValue === "Muay Thai"
+    ? "muay-thai"
+    : String(preferredValue).trim().toLowerCase();
 
   fields.discipline.innerHTML = "";
 

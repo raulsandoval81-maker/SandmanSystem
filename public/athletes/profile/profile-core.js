@@ -2,6 +2,10 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import {
+  disciplineLabel,
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 const getAthleteProfileFeedCall =
   httpsCallable(functions, "getAthleteProfileFeed");
@@ -84,8 +88,14 @@ function activityLaneLabel(item = {}) {
     ""
   ).toLowerCase();
 
-  if (rawDiscipline.includes("kickbox")) {
-    return "Kickboxing";
+  const canonicalDiscipline =
+    normalizeDisciplineId(rawDiscipline);
+
+  if (
+    canonicalDiscipline === "muay-thai" ||
+    rawDiscipline.includes("kickbox")
+  ) {
+    return disciplineLabel(canonicalDiscipline);
   }
 
   if (rawDiscipline.includes("wrest")) {
