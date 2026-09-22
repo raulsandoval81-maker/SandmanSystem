@@ -1016,7 +1016,7 @@ async function walkInEnrollment(leadId) {
     );
 
 window.location.href =
-  `/connect/admissions/calculator/?appointmentId=${encodeURIComponent(
+  `/management/pricing/?appointmentId=${encodeURIComponent(
     leadId
   )}`;
   } catch (error) {

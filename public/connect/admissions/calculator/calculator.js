@@ -2169,6 +2169,40 @@ alert(
       );
     }
 
+    function applyManagementPricingHandoff() {
+      const key = "sandmanPricingProposalHandoff";
+      const raw = sessionStorage.getItem(key);
+      if (!raw) return;
+      sessionStorage.removeItem(key);
+      let handoff;
+      try { handoff = JSON.parse(raw); } catch { return; }
+      if (
+        handoff?.appointmentId !== appointmentId ||
+        !Number.isFinite(handoff.createdAt) ||
+        Date.now() - handoff.createdAt > 30 * 60 * 1000 ||
+        !Array.isArray(handoff.athletes) ||
+        handoff.athletes.length < 1
+      ) return;
+      el.athleteList.innerHTML = "";
+      handoff.athletes.forEach((athlete) => {
+        const plan = athlete.plan === "fitness" ? "fitness" : "standard";
+        addAthlete({
+          name: String(athlete.name || ""),
+          journey: athlete.journey,
+          enrollmentType: athlete.memberType,
+          plan,
+          trainingAccess: athlete.trainingAccess,
+          billingTerm: athlete.billingTerm,
+          credit: athlete.credit,
+          disciplines: plan === "fitness" ? [] : athlete.disciplines,
+        });
+      });
+      if (handoff.membershipStartDate && el.membershipStartDate) {
+        el.membershipStartDate.value = handoff.membershipStartDate;
+      }
+      calculate();
+    }
+
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -2675,6 +2709,7 @@ alert(
           prefillFromAppointment(
             appointment
           );
+          applyManagementPricingHandoff();
         })
         .catch((error) => {
           console.error(

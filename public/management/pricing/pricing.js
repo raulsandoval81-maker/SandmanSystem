@@ -10,6 +10,31 @@ import {
   calculateManagementEstimate
 } from "./pricing-estimate-model.js";
 
+import { db, doc, getDoc } from "/assets/js/firebase-init.js";
+import { requireManagement } from "/management/shared/guards/management-guard.js";
+
+const appointmentId = new URLSearchParams(window.location.search).get("appointmentId") || "";
+const continueProposalBtn = document.getElementById("continueProposalBtn");
+const pricingSourceStatus = document.getElementById("pricingSourceStatus");
+let sourceAppointment = null;
+
+function recommendationFromAppointment(appointment) {
+  const program = String(appointment.programInterest || "");
+  const discipline = ["wrestling", "boxing", "muay-thai"].find((value) =>
+    program.endsWith(`-${value}`)
+  ) || "wrestling";
+  const journey = ["zero2hero", "path2legend"].find((value) =>
+    program.startsWith(`${value}-`)
+  ) || "zero2hero";
+  return {
+    name: appointment.participantName || appointment.athleteName || "",
+    memberType: appointment.registrantRole === "adult-athlete" ? "adult" : "youth",
+    journey: appointment.recommendedJourney || journey,
+    plan: program === "fitness" ? "fitness" : "standard",
+    disciplines: program === "fitness" ? [] : [appointment.recommendedDiscipline || discipline],
+  };
+}
+
 const athleteList =
   document.getElementById("athleteList");
 
@@ -559,6 +584,8 @@ function addAthlete(defaults = {}) {
       "zero2hero";
   }
 
+  if (memberType) memberType.value = defaults.memberType || "youth";
+
   plan.value =
     defaults.plan ||
     "standard";
@@ -869,4 +896,37 @@ addAthlete({
   disciplines: [
     "wrestling"
   ]
+});
+
+async function loadPricingSource() {
+  await requireManagement();
+  if (!appointmentId) {
+    pricingSourceStatus.textContent = "Standalone estimate. Open a lead or appointment to continue into a proposal.";
+    return;
+  }
+  const snapshot = await getDoc(doc(db, "admissions_appointments", appointmentId));
+  if (!snapshot.exists()) throw new Error("The admissions appointment was not found or is not accessible.");
+  const appointment = snapshot.data();
+  if (!appointment.locationId) throw new Error("The appointment has no canonical locationId; proposal handoff is blocked.");
+  sourceAppointment = appointment;
+  athleteList.innerHTML = "";
+  addAthlete(recommendationFromAppointment(appointment));
+  pricingSourceStatus.textContent = `Admissions context loaded for ${appointment.participantName || appointment.athleteName || "this prospect"}.`;
+  continueProposalBtn.hidden = false;
+}
+
+continueProposalBtn?.addEventListener("click", () => {
+  if (!sourceAppointment || !appointmentId) return;
+  sessionStorage.setItem("sandmanPricingProposalHandoff", JSON.stringify({
+    appointmentId,
+    createdAt: Date.now(),
+    athletes: readAthletes(),
+    membershipStartDate: enrollmentStartDate?.value || "",
+  }));
+  window.location.href = `/connect/admissions/calculator/?appointmentId=${encodeURIComponent(appointmentId)}`;
+});
+
+loadPricingSource().catch((error) => {
+  pricingSourceStatus.textContent = error?.message || "Admissions context could not be loaded.";
+  continueProposalBtn.hidden = true;
 });
