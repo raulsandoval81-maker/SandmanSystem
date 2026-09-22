@@ -385,6 +385,10 @@
 <script type="module">
 import { LADDER_F8 } from "/assets/js/ladder.service.js";
 import {
+  normalizeDisciplineId,
+  resolveAthleteDisciplineContext,
+} from "/assets/js/discipline-policy.js";
+import {
   loadAthleteDashboard,
   renderAthleteDashboard,
   resolveSignedInAthlete,
@@ -458,10 +462,17 @@ async function load(){
     console.error("Athlete dashboard status failed:", error);
   }
 
-  const combat =
-    A.disciplines?.[A.activeDiscipline] ||
-    A.disciplines?.[A.primaryDiscipline] ||
-    A;
+  const selectedDiscipline = normalizeDisciplineId(
+    new URLSearchParams(location.search).get("discipline") ||
+    A.activeDiscipline ||
+    A.primaryDiscipline ||
+    A.discipline ||
+    ""
+  );
+  const disciplineContext = resolveAthleteDisciplineContext(A, selectedDiscipline);
+  const combat = disciplineContext.usesTopLevelXp
+    ? { ...disciplineContext.progression, xp: A.xp ?? disciplineContext.progression?.xp }
+    : disciplineContext.progression;
 
   const tierRaw = String(
     combat.tier ??

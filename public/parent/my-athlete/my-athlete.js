@@ -21,7 +21,8 @@ import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import {
   formatCombatDisciplineLabel,
   normalizeParentDiscipline,
-  resolveParentAthleteContext
+  resolveParentAthleteContext,
+  resolveParentDisciplineXp
 } from "/assets/js/parent-athlete-context.js";
 import {
   filterScheduleForAthlete,
@@ -456,12 +457,13 @@ function renderParentDisciplineSelector({
 }
 
 function renderAthlete(a = {}) {
+  const context = getParentCombatContext(a);
   const {
     athleteUid,
     disciplineIds,
     activeDiscipline,
     combat,
-  } = getParentCombatContext(a);
+  } = context;
 
   renderParentDisciplineSelector({
     athleteUid,
@@ -498,36 +500,9 @@ function renderAthlete(a = {}) {
     combat
   );
 
-  const storedActiveDiscipline =
-    normalizeParentDiscipline(
-      a.activeDiscipline ||
-      a.primaryDiscipline ||
-      a.discipline ||
-      a.art ||
-      ""
-    );
-
-  const isAuthoritativeDiscipline =
-    activeDiscipline === storedActiveDiscipline;
-
   const xpNow = Math.max(
     0,
-    Number(
-      isAuthoritativeDiscipline
-        ? (
-            a.xp ??
-            combat.xp ??
-            combat.currentTierXP ??
-            combat.xpCombat ??
-            0
-          )
-        : (
-            combat.xp ??
-            combat.currentTierXP ??
-            combat.xpCombat ??
-            0
-          )
-    )
+    resolveParentDisciplineXp(a, context)
   );
 
   // SCORING LAW:

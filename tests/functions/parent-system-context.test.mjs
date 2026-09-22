@@ -3,8 +3,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   getParentAthleteDisciplineIds,
-  resolveParentAthleteContext
+  normalizeParentDiscipline,
+  resolveParentAthleteContext,
+  resolveParentDisciplineXp
 } from "../../public/assets/js/parent-athlete-context.js";
+import {
+  resolveAthleteDisciplineContext
+} from "../../public/assets/js/discipline-policy.js";
 
 const athlete = (overrides = {}) => ({
   id: "F8_0001",
@@ -41,6 +46,69 @@ test("discipline candidates include nested and legacy athlete fields with normal
   assert.deepEqual(ids, ["wrestling", "boxing", "submission-grappling", "muay-thai"]);
   const bjj = { marker: "nested-bjj-record" };
   assert.equal(resolveParentAthleteContext({ id: "F4_0002", disciplines: { bjj } }).combat, bjj);
+});
+
+test("all legacy Kickboxing spellings canonicalize to Muay Thai", () => {
+  for (const value of ["kickboxing", "kick-boxing", "kick_boxing"]) {
+    assert.equal(normalizeParentDiscipline(value), "muay-thai");
+  }
+});
+
+test("legacy and canonical Muay Thai assignments render one canonical choice", () => {
+  const ids = getParentAthleteDisciplineIds(athlete({
+    disciplineIds: ["muay-thai", "kick_boxing"],
+    disciplines: { kickboxing: {}, "muay-thai": {} }
+  }));
+  assert.deepEqual([...ids].sort(), ["muay-thai", "wrestling"]);
+  assert.equal(ids.filter((id) => id === "muay-thai").length, 1);
+});
+
+test("canonical Muay Thai selection resolves a legacy nested progression", () => {
+  const muayThai = { xp: 35, tier: "T0" };
+  const context = resolveParentAthleteContext(athlete({
+    primaryDiscipline: "wrestling",
+    disciplineIds: ["wrestling", "muay-thai"],
+    disciplines: { kickboxing: muayThai },
+    xp: 900
+  }), { requestedDiscipline: "muay-thai" });
+  assert.equal(context.combat, muayThai);
+  assert.equal(context.usesTopLevelXp, false);
+  assert.equal(resolveParentDisciplineXp({ xp: 900 }, context), 35);
+});
+
+test("secondary progression fails closed and primary progression retains root XP authority", () => {
+  const record = athlete({
+    primaryDiscipline: "wrestling",
+    disciplineIds: ["wrestling", "muay-thai"],
+    disciplines: { wrestling: { xp: 700 } },
+    xp: 900
+  });
+  const secondary = resolveAthleteDisciplineContext(record, "muay-thai");
+  assert.deepEqual(secondary.progression, {});
+  assert.equal(secondary.usesTopLevelXp, false);
+  assert.equal(resolveParentDisciplineXp(record, {
+    ...secondary,
+    combat: secondary.progression
+  }), 0);
+  const primary = resolveAthleteDisciplineContext(record, "wrestling");
+  assert.equal(primary.progression.xp, 700);
+  assert.equal(primary.usesTopLevelXp, true);
+  assert.equal(resolveParentDisciplineXp(record, {
+    ...primary,
+    combat: primary.progression
+  }), 900);
+  assert.equal(record.xp, 900);
+});
+
+test("Parent and athlete hub runtime code contains no athlete-specific exception", () => {
+  for (const path of [
+    "public/assets/js/parent-athlete-context.js",
+    "public/parent/my-athlete/my-athlete.js",
+    "public/athletes/hub/mini-hub.html",
+    "public/athletes/hub/full-hub.html"
+  ]) {
+    assert.doesNotMatch(readFileSync(path, "utf8"), /F8_0001/);
+  }
 });
 
 test("unknown or missing discipline never defaults Parent System to Wrestling", () => {

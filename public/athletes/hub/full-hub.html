@@ -877,6 +877,10 @@
       renderAthleteDashboard,
       resolveSignedInAthlete,
     } from "/assets/js/athlete-dashboard-data.js";
+    import {
+      normalizeDisciplineId,
+      resolveAthleteDisciplineContext,
+    } from "/assets/js/discipline-policy.js";
 
     const $ = (id) => document.getElementById(id);
     const LAST_UID_KEY = "sandman_lastAthleteUid";
@@ -978,7 +982,7 @@ function setProfileLink(id, athlete = {}) {
 
       const A = resolved.athlete || {};
 
-      const disciplineIds = [
+      const disciplineIds = Array.from(new Set([
         ...(Array.isArray(A.disciplineIds) ? A.disciplineIds : []),
         ...Object.keys(A.disciplines || {}),
         A.activeDiscipline,
@@ -988,19 +992,21 @@ function setProfileLink(id, athlete = {}) {
         A.sport
       ]
         .filter(Boolean)
-        .map((x) => String(x).trim().toLowerCase());
+        .map(normalizeDisciplineId)));
 
       const activeDiscipline =
-        String(
+        normalizeDisciplineId(
+          new URLSearchParams(location.search).get("discipline") ||
           A.activeDiscipline ||
           A.primaryDiscipline ||
           disciplineIds[0] ||
           "wrestling"
-        ).toLowerCase();
+        );
 
-      const combat =
-        A.disciplines?.[activeDiscipline] ||
-        A;
+      const disciplineContext = resolveAthleteDisciplineContext(A, activeDiscipline);
+      const combat = disciplineContext.usesTopLevelXp
+        ? { ...disciplineContext.progression, xp: A.xp ?? disciplineContext.progression?.xp }
+        : disciplineContext.progression;
 
       const tierRaw = String(
         combat.tier ??

@@ -1,3 +1,8 @@
+import {
+  normalizeDisciplineId,
+  resolveAthleteDisciplineContext
+} from "./discipline-policy.js";
+
 const DISCIPLINE_ALIASES = Object.freeze({
   bjj: "submission-grappling",
   grappling: "submission-grappling",
@@ -7,7 +12,7 @@ const DISCIPLINE_ALIASES = Object.freeze({
 });
 
 export function normalizeParentDiscipline(value = "") {
-  const key = String(value).trim().toLowerCase().replaceAll("_", "-");
+  const key = normalizeDisciplineId(value);
   return DISCIPLINE_ALIASES[key] || key;
 }
 
@@ -50,14 +55,21 @@ export function resolveParentAthleteContext(athlete = {}, options = {}) {
   ].map(normalizeParentDiscipline).filter(Boolean);
   const activeDiscipline = candidates.find((candidate) => disciplineIds.includes(candidate))
     || normalizeParentDiscipline(options.fallbackDiscipline || "");
-  const disciplineRecordKey = Object.keys(athlete.disciplines || {})
-    .find((key) => normalizeParentDiscipline(key) === activeDiscipline);
+  const progression = resolveAthleteDisciplineContext(athlete, activeDiscipline);
   return {
     athleteUid,
     disciplineIds,
     activeDiscipline,
-    combat: activeDiscipline
-      ? (athlete.disciplines?.[disciplineRecordKey || activeDiscipline] || athlete)
-      : athlete
+    disciplineRecordKey: progression.recordKey,
+    usesTopLevelXp: progression.usesTopLevelXp,
+    combat: activeDiscipline ? progression.progression : athlete
   };
+}
+
+export function resolveParentDisciplineXp(athlete = {}, context = {}) {
+  const source = context.usesTopLevelXp ? athlete : (context.combat || {});
+  const value = Number(
+    source.xp ?? source.currentTierXP ?? source.xpCombat ?? 0
+  );
+  return Number.isFinite(value) && value >= 0 ? value : 0;
 }

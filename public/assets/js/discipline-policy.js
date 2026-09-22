@@ -17,13 +17,59 @@ export function normalizeDisciplineId(value = "") {
   if (
     raw === "kickbox" ||
     raw === "kickboxing" ||
+    raw === "kick-boxing" ||
     raw === "muaythai" ||
     raw === "muay-thai"
   ) {
     return "muay-thai";
   }
 
+  if (
+    raw === "bjj" ||
+    raw === "grappling" ||
+    raw === "submission" ||
+    raw === "submissiongrappling" ||
+    raw === "submission-grappling"
+  ) {
+    return "submission-grappling";
+  }
+
   return raw;
+}
+
+export function findCanonicalDisciplineRecord(athlete = {}, discipline = "") {
+  const canonical = normalizeDisciplineId(discipline);
+  const records = athlete.disciplines && typeof athlete.disciplines === "object"
+    ? athlete.disciplines
+    : {};
+  const match = Object.entries(records)
+    .find(([key]) => normalizeDisciplineId(key) === canonical);
+
+  return match ? { key: match[0], record: match[1] } : null;
+}
+
+export function resolveAthleteDisciplineContext(athlete = {}, discipline = "") {
+  const selectedDiscipline = normalizeDisciplineId(discipline);
+  const primaryDiscipline = normalizeDisciplineId(
+    athlete.primaryDiscipline ||
+    athlete.discipline ||
+    athlete.art ||
+    athlete.sport ||
+    athlete.activeDiscipline ||
+    ""
+  );
+  const nested = findCanonicalDisciplineRecord(athlete, selectedDiscipline);
+  const isPrimary = Boolean(selectedDiscipline) && selectedDiscipline === primaryDiscipline;
+
+  return Object.freeze({
+    discipline: selectedDiscipline,
+    primaryDiscipline,
+    isPrimary,
+    recordKey: nested?.key || "",
+    progression: nested?.record || (isPrimary ? athlete : {}),
+    hasNestedProgression: Boolean(nested),
+    usesTopLevelXp: isPrimary,
+  });
 }
 
 /*
