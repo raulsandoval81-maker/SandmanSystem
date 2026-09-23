@@ -184,6 +184,33 @@ function skillDocFamilyId(docId, data) {
 function normalizeState(value) {
     return clean(value).toUpperCase();
 }
+function optionalPracticeId(value) {
+    const practiceId = clean(value);
+    if (!practiceId)
+        return "";
+    if (practiceId.length > 160 || practiceId.includes("/") || practiceId === "." || practiceId === ".."
+        || /[\u0000-\u001f\u007f]/.test(practiceId)) {
+        throw new https_1.HttpsError("invalid-argument", "practiceId is invalid.");
+    }
+    return practiceId;
+}
+function requirePracticeVerificationAccess(actor, practice) {
+    if ((0, staffAuthorization_1.normalizeStaffRole)(actor.role) === "admin")
+        return;
+    const locationId = clean(practice.locationId || practice.academyId);
+    if (!locationId || !(0, staffAuthorization_1.staffHasLocation)(actor.staff, locationId)) {
+        throw new https_1.HttpsError("permission-denied", "Practice location is outside the Coach's authorized scope.");
+    }
+    if (clean(practice.coachUid) !== actor.uid) {
+        throw new https_1.HttpsError("permission-denied", "Only the Coach who opened this practice may attach Skill Check evidence.");
+    }
+}
+function attendanceIncludesAthlete(attendance, athleteId) {
+    const presentIds = Array.isArray(attendance.presentIds) ? attendance.presentIds : [];
+    const present = Array.isArray(attendance.present) ? attendance.present : [];
+    return presentIds.some((id) => clean(id).toUpperCase() === athleteId)
+        || present.some((athlete) => clean(athlete?.id || athlete?.uid).toUpperCase() === athleteId);
+}
 exports.skillCheckCoachCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
@@ -263,6 +290,7 @@ exports.skillCheckCoachCall = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("invalid-argument", `Unknown ${discipline} skill family.`);
     }
     const state = normalizeState(data.state);
+    const practiceId = optionalPracticeId(data.practiceId);
     if (!ALLOWED_STATES.includes(state)) {
         throw new https_1.HttpsError("invalid-argument", "Invalid development state.");
     }
@@ -281,7 +309,70 @@ exports.skillCheckCoachCall = (0, https_1.onCall)(async (req) => {
         coachNotes: clean(data.coachNotes),
         updatedAt: firestore_1.FieldValue.serverTimestamp(),
     };
-    await ref.set(record, { merge: true });
+    if (!practiceId) {
+        await ref.set(record, { merge: true });
+    }
+    else {
+        const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+        const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+        const athleteSessionRef = db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`);
+        const verificationRef = athleteSessionRef.collection("verifiedSkills").doc(`${discipline}__${familyId}`);
+        await db.runTransaction(async (tx) => {
+            const [practiceSnap, attendanceSnap, athleteSessionSnap, verificationSnap] = await Promise.all([
+                tx.get(practiceRef),
+                tx.get(attendanceRef),
+                tx.get(athleteSessionRef),
+                tx.get(verificationRef),
+            ]);
+            if (!practiceSnap.exists)
+                throw new https_1.HttpsError("not-found", "Practice not found.");
+            const practice = practiceSnap.data() || {};
+            requirePracticeVerificationAccess(actor, practice);
+            const practiceDiscipline = normalizeDiscipline(practice.discipline);
+            if (practiceDiscipline !== discipline) {
+                throw new https_1.HttpsError("failed-precondition", "Skill Check discipline must match the practice discipline.");
+            }
+            if (!attendanceSnap.exists)
+                throw new https_1.HttpsError("failed-precondition", "Finalized practice attendance is required.");
+            const attendance = attendanceSnap.data() || {};
+            if (clean(attendance.practiceId) !== practiceId
+                || clean(attendance.status).toLowerCase() !== "finalized"
+                || attendance.finalized !== true
+                || normalizeDiscipline(attendance.discipline) !== discipline
+                || !attendanceIncludesAthlete(attendance, athleteId)) {
+                throw new https_1.HttpsError("failed-precondition", "Athlete must be present in finalized attendance for this practice.");
+            }
+            if (!athleteSessionSnap.exists) {
+                throw new https_1.HttpsError("failed-precondition", "Finalized athlete-session memory is required.");
+            }
+            const athleteSession = athleteSessionSnap.data() || {};
+            if (clean(athleteSession.practiceId) !== practiceId
+                || clean(athleteSession.athleteId).toUpperCase() !== athleteId
+                || normalizeDiscipline(athleteSession.discipline) !== discipline
+                || clean(athleteSession.attendance?.status).toLowerCase() !== "present") {
+                throw new https_1.HttpsError("failed-precondition", "Athlete-session memory does not match this verification.");
+            }
+            tx.set(ref, record, { merge: true });
+            const existing = verificationSnap.data() || {};
+            const identical = verificationSnap.exists
+                && clean(existing.skillId) === familyId
+                && normalizeFamily(existing.familyId) === familyId
+                && normalizeDiscipline(existing.discipline) === discipline
+                && normalizeState(existing.state) === state
+                && clean(existing.coachUid) === actor.uid;
+            if (!identical) {
+                tx.set(verificationRef, {
+                    skillId: familyId,
+                    familyId,
+                    discipline,
+                    state,
+                    coachUid: actor.uid,
+                    verifiedAt: firestore_1.FieldValue.serverTimestamp(),
+                    sourceVersion: 1,
+                });
+            }
+        });
+    }
     return {
         ok: true,
         athleteId,
@@ -289,5 +380,6 @@ exports.skillCheckCoachCall = (0, https_1.onCall)(async (req) => {
         familyId,
         state,
         needsReview: record.needsReview,
+        ...(practiceId ? { practiceId } : {}),
     };
 });

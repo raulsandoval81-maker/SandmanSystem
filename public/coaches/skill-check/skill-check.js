@@ -19,6 +19,7 @@ const $ = (id) => document.getElementById(id);
 
 const params = new URLSearchParams(location.search);
 const athleteId = String(params.get("id") || "").trim().toUpperCase();
+const practiceId = String(params.get("practiceId") || "").trim();
 
 const requestedDisciplineRaw = String(
   params.get("discipline") || "wrestling"
@@ -182,6 +183,7 @@ async function saveFamily(button) {
       state,
       needsReview,
       coachNotes,
+      ...(practiceId ? { practiceId } : {}),
 
       lastJourney:
         loadedSkills.get(familyId)?.lastJourney || "",

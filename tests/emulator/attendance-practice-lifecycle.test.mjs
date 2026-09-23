@@ -40,6 +40,7 @@ async function callableClient(uid, staff = null) {
     get: httpsCallable(functions, "getPracticeSession"),
     close: httpsCallable(functions, "closePracticeSession"),
     saveMemory: httpsCallable(functions, "savePracticeSessionMemory"),
+    skillCheck: httpsCallable(functions, "skillCheckCoachCall"),
     listManagement: httpsCallable(functions, "listManagementAttendance"),
   };
 }
@@ -292,7 +293,7 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       present: [{ id: "F4_TEST_1", uid: "F4_TEST_1", program: "teen-p2l-wrestling", journey: "P2L", rank: "Warrior", tier: "T1" }],
       removedFromReviewIds: ["F4_TEST_2"],
     });
-    await adminDb.doc("athletes/F4_TEST_1").set({ rank: "Current Rank Before Close", tier: "CURRENT", xp: 999 });
+    await adminDb.doc("athletes/F4_TEST_1").set({ rank: "Current Rank Before Close", tier: "CURRENT", xp: 999, locationId: "lompoc" });
     const attendance = (await attendanceRef.get()).data();
     assert.equal(attendance.practiceId, practiceAId);
     assert.equal(attendance.sessionId, practiceAId);
@@ -355,6 +356,91 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(historical.rankSnapshot, "Warrior");
     assert.equal(historical.tierSnapshot, "T1");
     assert.equal((await adminDb.collection(`practiceSessions/${practiceAId}/athletes`).get()).size, 1);
+  });
+
+  await t.test("Skill Check preserves legacy behavior and adds compact session-linked verification", async () => {
+    const legacy = (await coach.skillCheck({
+      action: "save",
+      athleteId: "F4_TEST_1",
+      discipline: "wrestling",
+      familyId: "single_leg",
+      state: "LEARNED",
+    })).data;
+    assert.equal(legacy.ok, true);
+    assert.equal(legacy.practiceId, undefined);
+
+    const athleteSessionRef = adminDb.doc(`practiceSessions/${practiceAId}/athletes/F4_TEST_1`);
+    const before = (await athleteSessionRef.get()).data();
+    const verified = (await coach.skillCheck({
+      action: "save",
+      athleteId: "F4_TEST_1",
+      discipline: "wrestling",
+      familyId: "double_leg",
+      state: "LEARNED",
+      practiceId: practiceAId,
+    })).data;
+    assert.equal(verified.practiceId, practiceAId);
+    const verificationRef = athleteSessionRef.collection("verifiedSkills").doc("wrestling__double_leg");
+    const firstEvidence = (await verificationRef.get()).data();
+    assert.deepEqual(Object.keys(firstEvidence).sort(), ["coachUid", "discipline", "familyId", "skillId", "sourceVersion", "state", "verifiedAt"]);
+    assert.equal(firstEvidence.skillId, "double_leg");
+    assert.equal(firstEvidence.state, "LEARNED");
+    assert.equal((await adminDb.doc("athletes/F4_TEST_1/skills/wrestling__double_leg").get()).data().state, "LEARNED");
+
+    const retryAt = firstEvidence.verifiedAt.toMillis();
+    await coach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "wrestling", familyId: "double_leg", state: "LEARNED", practiceId: practiceAId });
+    assert.equal((await verificationRef.get()).data().verifiedAt.toMillis(), retryAt);
+    assert.equal((await verificationRef.parent.get()).size, 1);
+
+    await coach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "wrestling", familyId: "double_leg", state: "APPLIED", practiceId: practiceAId });
+    assert.equal((await verificationRef.get()).data().state, "APPLIED");
+    assert.equal((await verificationRef.parent.get()).size, 1);
+
+    const after = (await athleteSessionRef.get()).data();
+    assert.equal(after.rankSnapshot, before.rankSnapshot);
+    assert.equal(after.tierSnapshot, before.tierSnapshot);
+    assert.deepEqual(after.attendance, before.attendance);
+    assert.deepEqual(after.workedCards, before.workedCards);
+    assert.equal((await adminDb.doc("athletes/F4_TEST_1").get()).data().xp, 999);
+
+    await assert.rejects(
+      () => coach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "boxing", familyId: "jab_system", state: "LEARNED", practiceId: practiceAId }),
+      /discipline must match the practice discipline/i
+    );
+    await assert.rejects(
+      () => sameLocationCoach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "wrestling", familyId: "double_leg", state: "MASTERED", practiceId: practiceAId }),
+      /Only the Coach who opened this practice/i
+    );
+    await assert.rejects(
+      () => otherCoach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "wrestling", familyId: "double_leg", state: "MASTERED", practiceId: practiceAId }),
+      /outside the Coach's authorized training scope|outside the Coach's authorized scope/i
+    );
+    await assert.rejects(
+      () => management.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "wrestling", familyId: "double_leg", state: "MASTERED", practiceId: practiceAId }),
+      /permission-denied|Active Coach access required/i
+    );
+  });
+
+  await t.test("session-linked Skill Check rejects absent athletes and missing athlete-session memory", async () => {
+    await adminDb.doc("athletes/F4_TEST_2").set({ locationId: "lompoc", coachUid: "COACH_ATTENDANCE_V1" });
+    await assert.rejects(
+      () => coach.skillCheck({ action: "save", athleteId: "F4_TEST_2", discipline: "wrestling", familyId: "double_leg", state: "LEARNED", practiceId: practiceAId }),
+      /present in finalized attendance/i
+    );
+
+    const opened = (await coach.open(practiceInput({ liveSessionId: "lompoc-mat-skill-missing", roomId: "mat-skill-missing" }))).data;
+    await adminDb.doc("athletes/F4_MISSING_MEMORY").set({ locationId: "lompoc", coachUid: "COACH_ATTENDANCE_V1" });
+    await adminDb.doc(`attendance_sessions/${opened.practiceId}`).set({
+      practiceId: opened.practiceId,
+      status: "finalized",
+      finalized: true,
+      discipline: "wrestling",
+      presentIds: ["F4_MISSING_MEMORY"],
+    });
+    await assert.rejects(
+      () => coach.skillCheck({ action: "save", athleteId: "F4_MISSING_MEMORY", discipline: "wrestling", familyId: "double_leg", state: "LEARNED", practiceId: opened.practiceId }),
+      /athlete-session memory is required/i
+    );
   });
 
   await t.test("closed practice rejects plan/worked mutation but permits controlled final reflection", async () => {
@@ -476,6 +562,17 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(athleteSession.discipline, "muay-thai");
     assert.deepEqual(athleteSession.workedCards, []);
     assert.deepEqual(athleteSession.workedSkillRefs, []);
+    await adminDb.doc("athletes/F8_MUAY_1").set({ locationId: "lompoc", coachUid: "COACH_ATTENDANCE_V1" });
+    await coach.skillCheck({
+      action: "save",
+      athleteId: "F8_MUAY_1",
+      discipline: "kickboxing",
+      familyId: "kick_system",
+      state: "LEARNED",
+      practiceId: opened.practiceId,
+    });
+    const evidence = (await adminDb.doc(`practiceSessions/${opened.practiceId}/athletes/F8_MUAY_1/verifiedSkills/muay-thai__kick_system`).get()).data();
+    assert.equal(evidence.discipline, "muay-thai");
   });
 
   await t.test("invalid finalized participant fails close atomically", async () => {
