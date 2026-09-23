@@ -24,7 +24,8 @@ function compactWorkedCard(card, blockId, index) {
     title: item.title || "",
     href: item.href || "",
     skillId: item.skill || "",
-    familyId: item.family || ""
+    familyId: item.family || "",
+    discipline: item.discipline || ""
   };
 }
 

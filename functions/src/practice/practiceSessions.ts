@@ -6,6 +6,23 @@ import { staffLocationIds } from "../schedules/crossTrainingPolicy";
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["manual", "hybrid", "quick", "checked-in"]);
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
+const MAX_PLAN_VERSION = 10_000;
+
+function requireDocumentId(value: unknown, field: string): string {
+  const id = requiredString(value, field);
+  if (id.length > 160 || id.includes("/") || id === "." || id === ".." || /[\u0000-\u001f\u007f]/.test(id)) {
+    throw new HttpsError("invalid-argument", `${field} is invalid.`);
+  }
+  return id;
+}
+
+function requireBoundedNumber(value: unknown, field: string, minimum: number, maximum: number, integer = false): number {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < minimum || number > maximum || (integer && !Number.isInteger(number))) {
+    throw new HttpsError("invalid-argument", `${field} is invalid.`);
+  }
+  return number;
+}
 
 function requiredString(value: unknown, field: string): string {
   const normalized = String(value ?? "").trim();
@@ -26,29 +43,84 @@ function compactString(value: unknown, max = 240): string {
 
 function compactCards(value: unknown, blockId = "") {
   if (!Array.isArray(value)) return [];
-  return value.slice(0, 80).map((item: any, index) => {
+  if (value.length > 80) throw new HttpsError("invalid-argument", "Session memory cannot contain more than 80 cards.");
+  const cards = value.map((item: any) => {
     const title = compactString(item?.title, 160);
     const href = compactString(item?.href, 500);
     const skillId = compactString(item?.skillId || item?.skill, 120);
     const familyId = compactString(item?.familyId || item?.family, 120);
-    const cardId = compactString(item?.cardId || item?.id || href || skillId || familyId || title || `${blockId}-${index}`, 500);
+    const cardId = compactString(item?.cardId || item?.id || href || skillId || familyId, 500);
     if (!cardId) throw new HttpsError("invalid-argument", "Every session-memory card requires an identity.");
-    return { cardId, blockId: compactString(item?.blockId || blockId, 120), title, href, skillId, familyId };
+    return {
+      cardId,
+      blockId: compactString(item?.blockId || blockId, 120),
+      title,
+      href,
+      skillId,
+      familyId,
+      discipline: normalizePracticeDiscipline(item?.discipline),
+    };
   });
+  const byId = new Map<string, (typeof cards)[number]>();
+  cards.forEach((card) => byId.set(card.cardId, card));
+  return [...byId.values()];
+}
+
+function normalizePracticeDiscipline(value: unknown): string {
+  const discipline = compactString(value, 80).toLowerCase().replace(/[\s_]+/g, "-");
+  if (["kickboxing", "kick-boxing", "muaythai", "muay-thai"].includes(discipline)) return "muay-thai";
+  return discipline;
+}
+
+function finalizedParticipants(attendance: Record<string, any>) {
+  const present = Array.isArray(attendance.present) ? attendance.present : [];
+  const byId = new Map<string, Record<string, any>>();
+  present.forEach((athlete: any) => {
+    const athleteId = requireDocumentId(athlete?.id || athlete?.uid, "present athleteId");
+    byId.set(athleteId, athlete || {});
+  });
+  const presentIds = Array.isArray(attendance.presentIds) ? attendance.presentIds : [];
+  presentIds.forEach((value: unknown) => {
+    const athleteId = requireDocumentId(value, "present athleteId");
+    if (!byId.has(athleteId)) byId.set(athleteId, {});
+  });
+  return [...byId.entries()].map(([athleteId, athlete]) => ({ athleteId, athlete }));
+}
+
+function athleteSessionWorkedMemory(practice: Record<string, any>, discipline: string) {
+  const source = Array.isArray(practice?.sessionMemory?.workedCards)
+    ? practice.sessionMemory.workedCards
+    : [];
+  const cards = compactCards(source)
+    .filter((card) => !card.discipline || card.discipline === discipline)
+    .map(({ cardId, blockId, skillId, familyId, title }) => ({
+      cardId, blockId, skillId, familyId, title,
+    }));
+  const skillMap = new Map<string, { skillId: string; familyId: string }>();
+  cards.forEach(({ skillId, familyId }) => {
+    if (!skillId && !familyId) return;
+    const key = `${skillId}__${familyId}`;
+    if (!skillMap.has(key)) skillMap.set(key, { skillId, familyId });
+  });
+  return { workedCards: cards, workedSkillRefs: [...skillMap.values()] };
 }
 
 function compactBlocks(value: unknown) {
   if (!Array.isArray(value)) return [];
-  return value.slice(0, 20).map((item: any, index) => {
-    const blockId = compactString(item?.blockId || item?.id || item?.slot || `block-${index}`, 120);
+  if (value.length > 20) throw new HttpsError("invalid-argument", "Session memory cannot contain more than 20 blocks.");
+  const blocks = value.map((item: any) => {
+    const blockId = compactString(item?.blockId || item?.id || item?.slot, 120);
     if (!blockId) throw new HttpsError("invalid-argument", "Every session-memory block requires an identity.");
     return {
       blockId,
       title: compactString(item?.title || item?.label || item?.slot, 160),
-      minutes: Math.max(0, Math.min(240, Number(item?.minutes || 0))),
+      minutes: requireBoundedNumber(item?.minutes ?? 0, "block minutes", 0, 240),
       cardIds: compactCards(item?.cards, blockId).map((card) => card.cardId),
     };
   });
+  const byId = new Map<string, (typeof blocks)[number]>();
+  blocks.forEach((block) => byId.set(block.blockId, block));
+  return [...byId.values()];
 }
 
 function requirePracticeOwner(actor: Awaited<ReturnType<typeof requireActiveStaff>>, practice: Record<string, any>) {
@@ -71,8 +143,7 @@ export const openPracticeSession = onCall(async (request) => {
   const locationId = requiredString(input.locationId || input.academyId, "locationId");
   requirePracticeLocation(actor, locationId);
   const discipline = requiredString(input.discipline, "discipline").toLowerCase();
-  const requestedPracticeId = String(input.practiceId || "").trim();
-  if (requestedPracticeId.includes("/")) throw new HttpsError("invalid-argument", "practiceId is invalid.");
+  const requestedPracticeId = input.practiceId ? requireDocumentId(input.practiceId, "practiceId") : "";
   const executionModeInput = String(input.executionMode || "").trim().toLowerCase();
   if (executionModeInput && !EXECUTION_MODES.has(executionModeInput)) {
     throw new HttpsError("invalid-argument", "executionMode is invalid.");
@@ -147,7 +218,7 @@ export const openPracticeSession = onCall(async (request) => {
       track: String(input.track || "").trim(),
       tier: String(input.tier || "").trim(),
       schema: String(input.schema || "").trim(),
-      durationMinutes: Math.max(0, Number(input.durationMinutes || 0)),
+      durationMinutes: requireBoundedNumber(input.durationMinutes ?? 0, "durationMinutes", 0, 480),
       ...(executionMode ? { executionMode } : {}),
       ...(existing.exists ? {} : { openedAt: now }),
       updatedAt: now,
@@ -177,7 +248,7 @@ export const openPracticeSession = onCall(async (request) => {
 export const getPracticeSession = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or staff access required.");
-  const practiceId = requiredString(request.data?.practiceId, "practiceId");
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
   const snap = await getFirestore().doc(`practiceSessions/${practiceId}`).get();
   if (!snap.exists) throw new HttpsError("not-found", "Practice not found.");
   requirePracticeLocation(actor, requiredString(snap.data()?.locationId || snap.data()?.academyId, "practice locationId"));
@@ -192,8 +263,7 @@ export const savePracticeSessionMemory = onCall(async (request) => {
     "Active Coach or Admin access required."
   );
   const input = request.data || {};
-  const practiceId = requiredString(input.practiceId, "practiceId");
-  if (practiceId.includes("/")) throw new HttpsError("invalid-argument", "practiceId is invalid.");
+  const practiceId = requireDocumentId(input.practiceId, "practiceId");
   const operation = compactString(input.operation, 40).toLowerCase();
   if (!MEMORY_OPERATIONS.has(operation)) {
     throw new HttpsError("invalid-argument", "Unsupported session-memory operation.");
@@ -201,6 +271,7 @@ export const savePracticeSessionMemory = onCall(async (request) => {
 
   const db = getFirestore();
   const ref = db.doc(`practiceSessions/${practiceId}`);
+  let idempotent = false;
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists) throw new HttpsError("not-found", "Practice not found.");
@@ -216,10 +287,14 @@ export const savePracticeSessionMemory = onCall(async (request) => {
 
     const now = FieldValue.serverTimestamp();
     if (operation === "plan") {
+      if (practice.sessionMemory?.executionStartedAt) {
+        throw new HttpsError("failed-precondition", "The practice plan cannot change after execution starts.");
+      }
+      const planVersion = requireBoundedNumber(input.planVersion ?? 1, "planVersion", 1, MAX_PLAN_VERSION, true);
       const plannedBlocks = compactBlocks(input.plannedBlocks);
       const plannedCards = compactCards(input.plannedCards);
       tx.update(ref, {
-        "sessionMemory.planVersion": Math.max(1, Number(input.planVersion || 1)),
+        "sessionMemory.planVersion": planVersion,
         "sessionMemory.plannedBlocks": plannedBlocks,
         "sessionMemory.plannedCards": plannedCards,
         "sessionMemory.planSavedAt": now,
@@ -236,10 +311,24 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const priorCards = Array.isArray(memory.workedCards) ? memory.workedCards : [];
       const incomingBlocks = compactBlocks(input.workedBlocks);
       const incomingCards = compactCards(input.workedCards);
+      const plannedBlocks = new Set(
+        (Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : []).map((block: any) => String(block.blockId || ""))
+      );
+      const plannedCards = new Set(
+        (Array.isArray(memory.plannedCards) ? memory.plannedCards : []).map((card: any) => String(card.cardId || ""))
+      );
+      if (incomingBlocks.some((block) => !plannedBlocks.has(block.blockId))
+        || incomingCards.some((card) => !plannedCards.has(card.cardId))) {
+        throw new HttpsError("failed-precondition", "Worked memory must reference the saved practice plan.");
+      }
       const blockMap = new Map(priorBlocks.map((block: any) => [String(block.blockId || ""), block]));
-      incomingBlocks.forEach((block) => blockMap.set(block.blockId, { ...block, completedAt }));
+      incomingBlocks.forEach((block) => {
+        if (!blockMap.has(block.blockId)) blockMap.set(block.blockId, { ...block, completedAt });
+      });
       const cardMap = new Map(priorCards.map((card: any) => [String(card.cardId || ""), card]));
-      incomingCards.forEach((card) => cardMap.set(card.cardId, { ...card, completedAt }));
+      incomingCards.forEach((card) => {
+        if (!cardMap.has(card.cardId)) cardMap.set(card.cardId, { ...card, completedAt });
+      });
       const patch: Record<string, any> = {
         "sessionMemory.workedBlocks": [...blockMap.values()].slice(0, 20),
         "sessionMemory.workedCards": [...cardMap.values()].slice(0, 80),
@@ -249,34 +338,55 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       if (input.executionStarted === true && !memory.executionStartedAt) {
         patch["sessionMemory.executionStartedAt"] = now;
       }
-      if (input.executionCompleted === true) {
+      if (input.executionCompleted === true && !memory.executionCompletedAt) {
         patch["sessionMemory.executionCompletedAt"] = now;
       }
       tx.update(ref, patch);
       return;
     }
 
+    const memory: any = practice.sessionMemory || {};
+    const reflection = {
+      fearRating: compactString(input.reflection?.fearRating, 10),
+      worked: compactString(input.reflection?.worked, 4000),
+      needsWork: compactString(input.reflection?.needsWork, 4000),
+      standout: compactString(input.reflection?.standout, 4000),
+    };
+    if (status === "closed" && memory.reflectionFinalizedAt) {
+      const stored = memory.reflection || {};
+      const isExactRetry = stored.coachUid === actor.uid
+        && stored.fearRating === reflection.fearRating
+        && stored.worked === reflection.worked
+        && stored.needsWork === reflection.needsWork
+        && stored.standout === reflection.standout;
+      if (isExactRetry) {
+        idempotent = true;
+        return;
+      }
+      throw new HttpsError("failed-precondition", "The final closed-practice reflection has already been saved.");
+    }
     tx.update(ref, {
       "sessionMemory.reflection": {
-        fearRating: compactString(input.reflection?.fearRating, 10),
-        worked: compactString(input.reflection?.worked, 4000),
-        needsWork: compactString(input.reflection?.needsWork, 4000),
-        standout: compactString(input.reflection?.standout, 4000),
+        ...reflection,
         savedAt: now,
         coachUid: actor.uid,
       },
+      ...(status === "closed" ? { "sessionMemory.reflectionFinalizedAt": now } : {}),
       updatedAt: now,
     });
   });
 
-  return { ok: true, practiceId, operation };
+  return { ok: true, practiceId, operation, idempotent };
 });
 
 export const closePracticeSession = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or staff access required.");
-  const practiceId = requiredString(request.data?.practiceId, "practiceId");
-  const attendanceSessionId = requiredString(request.data?.attendanceSessionId, "attendanceSessionId");
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+  const attendanceSessionId = requireDocumentId(request.data?.attendanceSessionId, "attendanceSessionId");
+  if (attendanceSessionId !== practiceId) {
+    throw new HttpsError("invalid-argument", "attendanceSessionId must match the canonical practiceId.");
+  }
   const db = getFirestore();
   let idempotent = false;
   await db.runTransaction(async (tx) => {
@@ -288,27 +398,75 @@ export const closePracticeSession = onCall(async (request) => {
     const liveSessionId = String(practice.liveSessionId || "").trim();
     const liveRef = liveSessionId ? db.doc(`liveSessions/${liveSessionId}`) : null;
     const liveSnap = liveRef ? await tx.get(liveRef) : null;
+    const attendanceRef = db.doc(`attendance_sessions/${attendanceSessionId}`);
+    const attendanceSnap = await tx.get(attendanceRef);
+    const attendance: any = attendanceSnap.data() || {};
+    const attendanceDiscipline = normalizePracticeDiscipline(attendance.discipline);
+    const practiceDiscipline = normalizePracticeDiscipline(practice.discipline);
+    const canSeedAthleteMemory = attendanceSessionId === practiceId
+      && attendanceSnap.exists
+      && String(attendance.practiceId || "") === practiceId
+      && String(attendance.status || "").toLowerCase() === "finalized"
+      && attendance.finalized === true
+      && Boolean(attendanceDiscipline)
+      && attendanceDiscipline === practiceDiscipline;
+    if (attendanceSnap.exists && !canSeedAthleteMemory) {
+      throw new HttpsError("failed-precondition", "Matching finalized attendance is required before closing this practice.");
+    }
+    const participants = canSeedAthleteMemory ? finalizedParticipants(attendance) : [];
+    const athleteMemoryRefs = participants.map(({ athleteId }) =>
+      db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`)
+    );
+    const athleteMemorySnaps = await Promise.all(athleteMemoryRefs.map((athleteRef) => tx.get(athleteRef)));
     if (String(practice.status || "").toLowerCase() === "closed") {
       idempotent = true;
-      return;
-    }
-    const now = FieldValue.serverTimestamp();
-    tx.update(ref, {
-      status: "closed",
-      attendanceSessionId,
-      closedAt: now,
-      closedBy: actor.uid,
-      closedByRole: actor.role,
-      updatedAt: now,
-    });
-    if (liveRef && String(liveSnap?.data()?.practiceId || "") === practiceId) {
-      tx.set(liveRef, {
-        practiceId,
+    } else {
+      const now = FieldValue.serverTimestamp();
+      tx.update(ref, {
         status: "closed",
+        attendanceSessionId,
         closedAt: now,
+        closedBy: actor.uid,
+        closedByRole: actor.role,
         updatedAt: now,
-      }, { merge: true });
+      });
+      if (liveRef && String(liveSnap?.data()?.practiceId || "") === practiceId) {
+        tx.set(liveRef, {
+          practiceId,
+          status: "closed",
+          closedAt: now,
+          updatedAt: now,
+        }, { merge: true });
+      }
     }
+
+    if (!canSeedAthleteMemory) return;
+    const discipline = attendanceDiscipline;
+    const worked = athleteSessionWorkedMemory(practice, discipline);
+    participants.forEach(({ athleteId, athlete }, index) => {
+      if (athleteMemorySnaps[index].exists) return;
+      const now = FieldValue.serverTimestamp();
+      tx.create(athleteMemoryRefs[index], {
+        practiceId,
+        attendanceSessionId,
+        athleteId,
+        attendance: { status: "present", finalizedAt: attendance.finalizedAt || null },
+        sessionDate: compactString(attendance.sessionDateKey || attendance.sessionDateLabel, 80),
+        locationId: compactString(attendance.locationId || attendance.academyId, 160),
+        roomId: compactString(attendance.roomId, 160),
+        discipline,
+        journey: compactString(athlete.journey || attendance.journey, 120),
+        program: compactString(athlete.program || attendance.program, 160),
+        rankSnapshot: compactString(athlete.rank, 120),
+        tierSnapshot: compactString(athlete.tier, 120),
+        workedCards: worked.workedCards,
+        workedSkillRefs: worked.workedSkillRefs,
+        createdAt: now,
+        updatedAt: now,
+        finalizedAt: attendance.finalizedAt || null,
+        sourceVersion: 1,
+      });
+    });
   });
   return { ok: true, practiceId, status: "closed", idempotent };
 });

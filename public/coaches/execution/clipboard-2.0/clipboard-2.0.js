@@ -1063,7 +1063,8 @@ window.runPractice = async function () {
       title: card.title || "",
       href: card.href || "",
       skillId: card.skill || "",
-      familyId: card.family || ""
+      familyId: card.family || "",
+      discipline: card.discipline || session.discipline || ""
     })));
     await saveMemory({
       operation: "plan",
