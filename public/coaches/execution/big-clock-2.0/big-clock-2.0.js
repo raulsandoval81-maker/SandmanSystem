@@ -3,7 +3,9 @@ import {
   ensureSignedIn,
   doc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 const STATE_KEY = "sandman_run_state";
@@ -13,6 +15,42 @@ const TV_SCALE_KEY = "sandman_tv_scale";
 let authReady = false;
 let audioCtx = null;
 let lastBeepKey = "";
+
+function compactWorkedCard(card, blockId, index) {
+  const item = typeof card === "object" && card ? card : { title: String(card || "") };
+  return {
+    cardId: item.id || item.href || item.skill || item.family || `${blockId}-${index}-${item.title || "card"}`,
+    blockId,
+    title: item.title || "",
+    href: item.href || "",
+    skillId: item.skill || "",
+    familyId: item.family || ""
+  };
+}
+
+async function updateDurableWorkedMemory({ block = null, started = false, completed = false } = {}) {
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  if (!practiceId) return;
+  if (!authReady) {
+    await ensureSignedIn();
+    authReady = true;
+  }
+  const blockId = block ? String(block.slot || block.blockId || block.title || "").trim() : "";
+  const cards = block && Array.isArray(block.cards)
+    ? block.cards.map((card, index) => compactWorkedCard(card, blockId, index))
+    : [];
+  const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+  await saveMemory({
+    operation: "worked",
+    practiceId,
+    executionStarted: started,
+    executionCompleted: completed,
+    workedBlocks: block ? [{ blockId, title: block.title || blockId, minutes: Number(block.minutes || 0), cards }] : [],
+    workedCards: cards
+  });
+}
 
 ensureSignedIn()
   .then(() => {
@@ -230,6 +268,10 @@ const playlist = blocks
 
   if (!playlist.length) return;
 
+  updateDurableWorkedMemory({ started: true }).catch(error => {
+    console.warn("Execution start memory sync failed:", error);
+  });
+
   setState({
     running: true,
     paused: false,
@@ -364,6 +406,10 @@ if (actionEl) {
     if (nextBlock) {
       intersectionBeep(nextIndex);
 
+      updateDurableWorkedMemory({ block: current }).catch(error => {
+        console.warn("Worked block memory sync failed:", error);
+      });
+
       setState({
         ...data,
         index: nextIndex,
@@ -374,6 +420,10 @@ if (actionEl) {
       });
     } else {
       completeBeep();
+
+      updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
+        console.warn("Execution completion memory sync failed:", error);
+      });
 
       setState({
         ...data,

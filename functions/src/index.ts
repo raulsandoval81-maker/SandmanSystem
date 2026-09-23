@@ -218,6 +218,7 @@ export {
   openPracticeSession,
   getPracticeSession,
   closePracticeSession,
+  savePracticeSessionMemory,
 } from "./practice/practiceSessions";
 export { listManagementAttendance } from "./practice/listManagementAttendance";
 export { getAdminOversightSummary } from "./admin/getAdminOversightSummary";

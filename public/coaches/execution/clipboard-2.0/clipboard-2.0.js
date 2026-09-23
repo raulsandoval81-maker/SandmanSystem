@@ -1055,6 +1055,34 @@ window.runPractice = async function () {
     updatedAt: new Date().toISOString()
   };
 
+  try {
+    const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+    const plannedCards = blocks.flatMap(block => block.cards.map((card, index) => ({
+      cardId: card.id || card.href || card.skill || card.family || `${block.slot}-${index}-${card.title}`,
+      blockId: block.slot,
+      title: card.title || "",
+      href: card.href || "",
+      skillId: card.skill || "",
+      familyId: card.family || ""
+    })));
+    await saveMemory({
+      operation: "plan",
+      practiceId,
+      planVersion: 1,
+      plannedBlocks: blocks.map(block => ({
+        blockId: block.slot,
+        title: block.title,
+        minutes: block.minutes,
+        cards: block.cards
+      })),
+      plannedCards
+    });
+  } catch (error) {
+    console.error("Durable practice plan save failed", error);
+    setStatus(error?.message || "Could not save the canonical practice plan.");
+    return;
+  }
+
   localStorage.setItem(
     COACH_SESSION_KEY,
     JSON.stringify(coachSessionPayload)
@@ -1389,6 +1417,7 @@ window.endPractice = function endPractice() {
       schema: currentSchema,
 
       executionMode: session.executionMode,
+      practiceId: session.practiceId,
       sessionId: session.sessionId,
       academyId: session.academyId,
       roomId: session.roomId,

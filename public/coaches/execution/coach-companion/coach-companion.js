@@ -552,6 +552,7 @@ window.endPractice = function () {
     discipline: session?.discipline || "",
     journey: session?.journey || "",
     tier: session?.tier || "",
+    practiceId: session?.practiceId || "",
 
     focus:
       focusEl?.value.trim() ||

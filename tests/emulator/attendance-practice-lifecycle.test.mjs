@@ -39,6 +39,7 @@ async function callableClient(uid, staff = null) {
     open: httpsCallable(functions, "openPracticeSession"),
     get: httpsCallable(functions, "getPracticeSession"),
     close: httpsCallable(functions, "closePracticeSession"),
+    saveMemory: httpsCallable(functions, "savePracticeSessionMemory"),
     listManagement: httpsCallable(functions, "listManagementAttendance"),
   };
 }
@@ -76,7 +77,9 @@ after(async () => {
 
 test("authenticated canonical practice lifecycle and Attendance identity", async (t) => {
   const coach = await callableClient("COACH_ATTENDANCE_V1", { role: "coach", status: "active", locationId: "lompoc" });
+  const sameLocationCoach = await callableClient("COACH_SAME_LOCATION", { role: "coach", status: "active", locationId: "lompoc" });
   const otherCoach = await callableClient("COACH_OTHER_LOCATION", { role: "coach", status: "active", locationId: "elk-grove" });
+  const admin = await callableClient("ADMIN_ATTENDANCE_V1", { role: "admin", status: "active", locationIds: [] });
   const management = await callableClient("MANAGEMENT_ATTENDANCE_V1", { role: "management", status: "active", locationId: "lompoc" });
   const otherManagement = await callableClient("MANAGEMENT_OTHER_LOCATION", { role: "management", status: "active", locationId: "elk-grove" });
   const nonStaff = await callableClient("ATHLETE_NOT_STAFF");
@@ -90,6 +93,10 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       /not-found|supplied practiceId does not exist/i
     );
     assert.equal((await adminDb.doc("practiceSessions/client-selected-missing").get()).exists, false);
+    await assert.rejects(
+      () => coach.saveMemory({ operation: "reflection", reflection: { worked: "No identity" } }),
+      /practiceId is required/i
+    );
     await assert.rejects(() => coach.get({ practiceId: "missing-practice" }), /not-found|Practice not found/i);
     await assert.rejects(() => nonStaff.close({ practiceId: "missing-practice", attendanceSessionId: "missing" }), /permission-denied|Active Coach or staff access required/i);
   });
@@ -114,6 +121,63 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
     assert.equal(live.practiceId, practiceAId);
     assert.equal(live.roomId, "mat-1");
+  });
+
+  await t.test("session memory is scoped, compact, idempotent, and keeps planned distinct from worked", async () => {
+    await coach.saveMemory({
+      practiceId: practiceAId,
+      operation: "plan",
+      planVersion: 1,
+      plannedBlocks: [
+        { blockId: "technique", title: "Technique", minutes: 20, cards: [
+          { cardId: "double-leg", title: "Double Leg" },
+          { cardId: "single-leg", title: "Single Leg" },
+        ] },
+      ],
+      plannedCards: [
+        { cardId: "double-leg", blockId: "technique", title: "Double Leg" },
+        { cardId: "single-leg", blockId: "technique", title: "Single Leg" },
+      ],
+    });
+    await coach.saveMemory({
+      practiceId: practiceAId,
+      operation: "worked",
+      executionStarted: true,
+      workedBlocks: [{ blockId: "technique", title: "Technique", minutes: 20 }],
+      workedCards: [{ cardId: "double-leg", blockId: "technique", title: "Double Leg" }],
+    });
+    await coach.saveMemory({
+      practiceId: practiceAId,
+      operation: "worked",
+      executionCompleted: true,
+      workedBlocks: [{ blockId: "technique", title: "Technique", minutes: 20 }],
+      workedCards: [{ cardId: "double-leg", blockId: "technique", title: "Double Leg" }],
+    });
+    const memory = (await adminDb.doc(`practiceSessions/${practiceAId}`).get()).data().sessionMemory;
+    assert.deepEqual(memory.plannedCards.map((card) => card.cardId), ["double-leg", "single-leg"]);
+    assert.deepEqual(memory.workedCards.map((card) => card.cardId), ["double-leg"]);
+    assert.equal(memory.workedBlocks.length, 1);
+    assert.ok(memory.executionStartedAt);
+    assert.ok(memory.executionCompletedAt);
+
+    await assert.rejects(
+      () => otherCoach.saveMemory({ practiceId: practiceAId, operation: "worked", workedBlocks: [] }),
+      /outside the staff member's authorized scope|authorized scope/i
+    );
+    await assert.rejects(
+      () => sameLocationCoach.saveMemory({ practiceId: practiceAId, operation: "worked", workedBlocks: [] }),
+      /Only the Coach who opened this practice/i
+    );
+    const adminResult = (await admin.saveMemory({
+      practiceId: practiceAId,
+      operation: "reflection",
+      reflection: { worked: "Admin-reviewed session memory." },
+    })).data;
+    assert.equal(adminResult.ok, true);
+    await assert.rejects(
+      () => management.saveMemory({ practiceId: practiceAId, operation: "plan", plannedBlocks: [], plannedCards: [] }),
+      /permission-denied|Active Coach or Admin access required/i
+    );
   });
 
   await t.test("supplied canonical practice is reused without duplication", async () => {
@@ -207,6 +271,26 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(repeated.idempotent, true);
     const resolved = (await coach.get({ practiceId: practiceAId })).data;
     assert.equal(resolved.practice.status, "closed");
+  });
+
+  await t.test("closed practice rejects plan/worked mutation but permits controlled final reflection", async () => {
+    await assert.rejects(
+      () => coach.saveMemory({ practiceId: practiceAId, operation: "worked", workedBlocks: [] }),
+      /Closed practices cannot change plan or worked memory/i
+    );
+    await assert.rejects(
+      () => coach.saveMemory({ practiceId: practiceAId, operation: "plan", plannedBlocks: [], plannedCards: [] }),
+      /Closed practices cannot change plan or worked memory/i
+    );
+    await coach.saveMemory({
+      practiceId: practiceAId,
+      operation: "reflection",
+      reflection: { fearRating: "5", worked: "Chain wrestling", needsWork: "Finishes", standout: "Team effort" },
+    });
+    const reflection = (await adminDb.doc(`practiceSessions/${practiceAId}`).get()).data().sessionMemory.reflection;
+    assert.equal(reflection.fearRating, "5");
+    assert.equal(reflection.worked, "Chain wrestling");
+    assert.equal(reflection.coachUid, "COACH_ATTENDANCE_V1");
   });
 
   await t.test("closing current practice closes the matching room channel", async () => {
