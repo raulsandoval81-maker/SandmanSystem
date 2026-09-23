@@ -41,6 +41,8 @@ async function callableClient(uid, staff = null) {
     close: httpsCallable(functions, "closePracticeSession"),
     saveMemory: httpsCallable(functions, "savePracticeSessionMemory"),
     skillCheck: httpsCallable(functions, "skillCheckCoachCall"),
+    history: httpsCallable(functions, "getAthleteSessionHistory"),
+    award: httpsCallable(functions, "incrementXp"),
     listManagement: httpsCallable(functions, "listManagementAttendance"),
   };
 }
@@ -293,7 +295,10 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       present: [{ id: "F4_TEST_1", uid: "F4_TEST_1", program: "teen-p2l-wrestling", journey: "P2L", rank: "Warrior", tier: "T1" }],
       removedFromReviewIds: ["F4_TEST_2"],
     });
-    await adminDb.doc("athletes/F4_TEST_1").set({ rank: "Current Rank Before Close", tier: "CURRENT", xp: 999, locationId: "lompoc" });
+    await adminDb.doc("athletes/F4_TEST_1").set({
+      rank: "Current Rank Before Close", tier: "CURRENT", xp: 999,
+      locationId: "lompoc", disciplineIds: ["wrestling"],
+    });
     const attendance = (await attendanceRef.get()).data();
     assert.equal(attendance.practiceId, practiceAId);
     assert.equal(attendance.sessionId, practiceAId);
@@ -443,6 +448,77 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     );
   });
 
+  await t.test("athlete-session history joins only canonical attendance XP without writes", async () => {
+    const athleteSessionRef = adminDb.doc(`practiceSessions/${practiceAId}/athletes/F4_TEST_1`);
+    const before = (await athleteSessionRef.get()).data();
+    const awardPayload = {
+      uid: "F4_TEST_1",
+      kind: "ATTENDANCE",
+      amount: 10,
+      meta: { attendanceSessionId: practiceAId, sessionId: practiceAId },
+    };
+    const firstAward = (await coach.award(awardPayload)).data;
+    const retryAward = (await coach.award(awardPayload)).data;
+    assert.equal(firstAward.idempotent, false);
+    assert.equal(retryAward.idempotent, true);
+    assert.equal(retryAward.logId, firstAward.logId);
+    await Promise.all([
+      adminDb.doc("xpLogs/attendance-other-practice").set({
+        uid: "F4_TEST_1", kind: "ATTENDANCE", amount: 10,
+        meta: { attendanceSessionId: "another-practice" }, createdAt: new Date("2026-09-22T22:01:00.000Z"),
+      }),
+      adminDb.doc("xpLogs/arena-same-session-meta").set({
+        uid: "F4_TEST_1", kind: "ARENA/WEEKEND_BATTLE", amount: 15,
+        meta: { attendanceSessionId: practiceAId }, createdAt: new Date("2026-09-22T22:02:00.000Z"),
+      }),
+      adminDb.doc("xpLogs/strength-same-session-meta").set({
+        uid: "F4_TEST_1", kind: "STRENGTH", amount: 10,
+        meta: { attendanceSessionId: practiceAId }, createdAt: new Date("2026-09-22T22:03:00.000Z"),
+      }),
+      adminDb.doc("xpLogs/honor-same-session-meta").set({
+        uid: "F4_TEST_1", kind: "HONOR", amount: 5,
+        meta: { attendanceSessionId: practiceAId }, createdAt: new Date("2026-09-22T22:04:00.000Z"),
+      }),
+    ]);
+
+    const xpLogsBeforeRead = (await adminDb.collection("xpLogs").get()).size;
+    const xpMirrorsBeforeRead = (await adminDb.collection("xp_logs").get()).size;
+    const receiptsBeforeRead = (await adminDb.collection("xpAwardReceipts").get()).size;
+    const history = (await coach.history({ practiceId: practiceAId, athleteId: "F4_TEST_1" })).data;
+    assert.equal(history.ok, true);
+    assert.equal(history.session.rankSnapshot, "Warrior");
+    assert.deepEqual(history.session.workedCards, before.workedCards);
+    assert.deepEqual(history.session.workedSkillRefs, before.workedSkillRefs);
+    assert.equal(history.verifiedSkills.length, 1);
+    assert.equal(history.verifiedSkills[0].familyId, "double_leg");
+    assert.deepEqual(history.xp.awards.map((award) => award.logId), [firstAward.logId]);
+    assert.equal(history.xp.total, firstAward.delta);
+
+    const adminHistory = (await admin.history({ practiceId: practiceAId, athleteId: "F4_TEST_1" })).data;
+    assert.equal(adminHistory.xp.total, firstAward.delta);
+    await assert.rejects(
+      () => otherCoach.history({ practiceId: practiceAId, athleteId: "F4_TEST_1" }),
+      /outside the Coach's authorized scope/i
+    );
+    await assert.rejects(
+      () => sameLocationCoach.history({ practiceId: practiceAId, athleteId: "F4_TEST_1" }),
+      /Only the Coach who opened this practice/i
+    );
+    await assert.rejects(
+      () => management.history({ practiceId: practiceAId, athleteId: "F4_TEST_1" }),
+      /permission-denied|Active Coach or Admin access required/i
+    );
+    await assert.rejects(
+      () => coach.history({ practiceId: practiceAId, athleteId: "F4_MISSING_HISTORY" }),
+      /Athlete-session history not found/i
+    );
+
+    assert.deepEqual((await athleteSessionRef.get()).data(), before);
+    assert.equal((await adminDb.collection("xpLogs").get()).size, xpLogsBeforeRead);
+    assert.equal((await adminDb.collection("xp_logs").get()).size, xpMirrorsBeforeRead);
+    assert.equal((await adminDb.collection("xpAwardReceipts").get()).size, receiptsBeforeRead);
+  });
+
   await t.test("closed practice rejects plan/worked mutation but permits controlled final reflection", async () => {
     await assert.rejects(
       () => coach.saveMemory({ practiceId: practiceAId, operation: "worked", workedBlocks: [] }),
@@ -573,6 +649,9 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     });
     const evidence = (await adminDb.doc(`practiceSessions/${opened.practiceId}/athletes/F8_MUAY_1/verifiedSkills/muay-thai__kick_system`).get()).data();
     assert.equal(evidence.discipline, "muay-thai");
+    const history = (await coach.history({ practiceId: opened.practiceId, athleteId: "F8_MUAY_1" })).data;
+    assert.deepEqual(history.xp.awards, []);
+    assert.equal(history.xp.total, 0);
   });
 
   await t.test("invalid finalized participant fails close atomically", async () => {

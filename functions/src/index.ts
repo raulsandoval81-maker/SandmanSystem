@@ -221,6 +221,7 @@ export {
   savePracticeSessionMemory,
 } from "./practice/practiceSessions";
 export { listManagementAttendance } from "./practice/listManagementAttendance";
+export { getAthleteSessionHistory } from "./practice/getAthleteSessionHistory";
 export { getAdminOversightSummary } from "./admin/getAdminOversightSummary";
 export { updateStaffGovernance } from "./admin/updateStaffGovernance";
 
