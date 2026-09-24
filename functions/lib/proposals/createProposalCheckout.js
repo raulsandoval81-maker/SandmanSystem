@@ -7,6 +7,7 @@ const stripeClient_1 = require("../billing/stripeClient");
 const proposalAccess_1 = require("./proposalAccess");
 const proposalClientReview_1 = require("./proposalClientReview");
 const webhook_1 = require("../billing/webhook");
+const lockedRecurringPricing_1 = require("./lockedRecurringPricing");
 function cleanString(value) {
     return String(value ?? "").trim();
 }
@@ -163,9 +164,11 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     const lockedCatalogMonthlyTotal = catalogItems.reduce((total, item) => total +
         (item.expectedAmount *
             item.quantity), 0);
-    if (lockedCatalogMonthlyTotal !==
-        monthlyBalance) {
-        throw new https_1.HttpsError("failed-precondition", `The locked monthly balance does not match the approved Stripe catalog total. Expected ${lockedCatalogMonthlyTotal} cents but found ${monthlyBalance} cents.`);
+    try {
+        (0, lockedRecurringPricing_1.resolveLockedRecurringPricing)(pricing, lockedCatalogMonthlyTotal);
+    }
+    catch (error) {
+        throw new https_1.HttpsError("failed-precondition", error instanceof Error ? error.message : "Locked monthly pricing is invalid.");
     }
     try {
         const stripe = (0, stripeClient_1.getStripe)();
