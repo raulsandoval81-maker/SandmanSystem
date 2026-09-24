@@ -12,17 +12,19 @@ import {
   orderBy,
   limit,
   doc,
-  updateDoc,
-  ensureSignedIn
+  updateDoc
 } from "/assets/js/firebase-init.js";
 
+import {
+  coachLoginUrl,
+  isCoachAuthenticationError,
+  requireCoach
+} from "/assets/js/coach-guard.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 import { normalizeDisciplineId } from "/assets/js/discipline-policy.js";
 
 console.log("XP_URL =", XP_URL);
-
-await ensureSignedIn();
 
 window.addEventListener("error", (e) => {
   const el = document.getElementById("pageStatus");
@@ -120,6 +122,8 @@ let awardedCount = 0;
 let awardedXP = 0;
 let unsub = null;
 let isSaving = false;
+let verifiedCoachAccess = null;
+let coachLoginRedirectStarted = false;
 
 let activeAttendanceSession = {
   id: "",
@@ -244,6 +248,26 @@ function sessionDurationLabel() {
 
 function setStatus(msg) {
   if (pageStatusEl) pageStatusEl.textContent = msg;
+}
+
+function redirectToCoachLoginOnce() {
+  if (coachLoginRedirectStarted) return;
+  coachLoginRedirectStarted = true;
+  window.location.replace(coachLoginUrl());
+}
+
+async function requireDailyGrindCoach() {
+  try {
+    verifiedCoachAccess = await requireCoach();
+    return verifiedCoachAccess;
+  } catch (error) {
+    verifiedCoachAccess = null;
+    if (isCoachAuthenticationError(error)) {
+      setStatus("Coach sign-in required. Redirecting…");
+      redirectToCoachLoginOnce();
+    }
+    throw error;
+  }
 }
 
 function rosterStatusOf(a = {}) {
@@ -643,7 +667,10 @@ function subscribe() {
         return rosterStatusOf(a) === "current";
       });
 
-      initializeDailyGrind();
+      void initializeDailyGrind().catch((error) => {
+        console.error("[daily-grind] initialization failed:", error);
+        setStatus("Daily Grind could not load Coach data. Refresh after confirming access.");
+      });
     },
     (err) => {
       console.error(err);
@@ -869,11 +896,10 @@ async function issueAwardForSelection(award) {
     });
 
     try {
-      const user =
-        auth.currentUser ||
-        await ensureSignedIn();
+      const access = await requireDailyGrindCoach();
+      const user = access.user;
 
-      if (!user || user.isAnonymous) {
+      if (!user || user.isAnonymous || auth.currentUser?.uid !== user.uid) {
         throw new Error("Coach authentication required.");
       }
 
@@ -1001,17 +1027,30 @@ refreshBtn?.addEventListener("click", () => {
 
 laneEl?.addEventListener("change", syncPillsToLane);
 
-syncPillsToLane();
-subscribe();
+async function bootstrapDailyGrind() {
+  try {
+    await requireDailyGrindCoach();
 
-bindPill(btnGrind20);
-bindPill(btnGrind15);
-bindPill(btnGrind10);
-bindPill(btnGrind5);
-bindPill(btnStr10);
-bindPill(btnStr5);
-bindPill(btnHon10);
-bindPill(btnHon5);
+    syncPillsToLane();
+    subscribe();
 
-console.log("daily-grind.js loaded");
-window.__daily_loaded = true;
+    bindPill(btnGrind20);
+    bindPill(btnGrind15);
+    bindPill(btnGrind10);
+    bindPill(btnGrind5);
+    bindPill(btnStr10);
+    bindPill(btnStr5);
+    bindPill(btnHon10);
+    bindPill(btnHon5);
+
+    console.log("daily-grind.js loaded");
+    window.__daily_loaded = true;
+  } catch (error) {
+    console.error("[daily-grind] Coach access failed:", error);
+    if (!isCoachAuthenticationError(error)) {
+      setStatus(error?.message || "Active Coach access required.");
+    }
+  }
+}
+
+await bootstrapDailyGrind();
