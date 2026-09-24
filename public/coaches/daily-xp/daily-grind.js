@@ -21,7 +21,7 @@ import {
   requireCoach
 } from "/assets/js/coach-guard.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
+import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js?v=2";
 import { normalizeDisciplineId } from "/assets/js/discipline-policy.js";
 
 console.log("XP_URL =", XP_URL);
