@@ -54,6 +54,8 @@ const ARENA_AMOUNTS: Readonly<Record<string, number>> = Object.freeze({
   "ARENA/SPORTSMANSHIP": -5,
 });
 
+export const COACH_VERIFIED_PRACTICE_SOURCE = "coach-verified-practice";
+
 export type NormalizedXpRequest = {
   uid: string;
   kind: string;
@@ -259,6 +261,14 @@ export function isPracticeDayAllowed(dayKey: string): boolean {
   return date.getUTCDay() !== 0;
 }
 
+export function coachVerifiedPracticeKey(value: unknown): string {
+  const key = requiredString(value, "meta.practiceKey").toLowerCase();
+  if (!/^[a-z0-9][a-z0-9._:-]{0,79}$/.test(key)) {
+    throw new HttpsError("invalid-argument", "INVALID_COACH_VERIFIED_PRACTICE_KEY");
+  }
+  return key;
+}
+
 export function remainingChampionshipDelta(target: number, alreadyAwarded: number): number {
   return Math.max(0, Number(target) - Math.max(0, Number(alreadyAwarded) || 0));
 }
@@ -269,6 +279,15 @@ export function shouldEmitAwardSideEffects(result: { idempotent?: boolean }): bo
 
 export function requestAwardIdentity(request: NormalizedXpRequest): string {
   if (request.kind === "ATTENDANCE") {
+    if (String(request.meta.source ?? "") === COACH_VERIFIED_PRACTICE_SOURCE) {
+      return [
+        "coach-practice",
+        requiredString(request.meta.verifiedCoachUid, "verified coach identity"),
+        requiredString(request.meta.sessionDateKey, "meta.sessionDateKey"),
+        requiredString(request.meta.discipline, "meta.discipline"),
+        coachVerifiedPracticeKey(request.meta.practiceKey),
+      ].join(":");
+    }
     return `attendance:${requiredString(request.meta.attendanceSessionId, "meta.attendanceSessionId")}`;
   }
   if (request.kind === "STRENGTH" || request.kind === "HONOR") {
@@ -548,6 +567,12 @@ function stateKey(parts: unknown[]): string {
 export async function awardXpAuthoritatively(coachUid: string, input: any) {
   if (!String(coachUid ?? "").trim()) throw new HttpsError("unauthenticated", "coachUid required");
   const request = normalizeXpRequest(input);
+  if (request.kind === "ATTENDANCE"
+    && String(request.meta.source ?? "") === COACH_VERIFIED_PRACTICE_SOURCE) {
+    request.meta.verifiedCoachUid = requiredString(coachUid, "verified coach identity");
+  } else {
+    delete request.meta.verifiedCoachUid;
+  }
   const db = getFirestore();
   const now = Timestamp.now();
   const mk = monthKey(now);
@@ -569,33 +594,70 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
     let trustedDiscipline = "";
     let trustedPracticeDayKey = "";
     if (request.kind === "ATTENDANCE") {
-      const attendanceSessionId = requiredString(
-        request.meta.attendanceSessionId, "meta.attendanceSessionId"
-      );
-      const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${attendanceSessionId}`));
-      if (!attendanceSnap.exists) {
-        throw new HttpsError("failed-precondition", "TRUSTED_ATTENDANCE_SESSION_REQUIRED");
+      if (String(request.meta.source ?? "") === COACH_VERIFIED_PRACTICE_SOURCE) {
+        trustedPracticeDayKey = requiredString(
+          request.meta.sessionDateKey, "meta.sessionDateKey"
+        );
+        if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
+          throw new HttpsError(
+            "failed-precondition", "COACH_VERIFIED_PRACTICE_BLOCKED_SUNDAY"
+          );
+        }
+        if (trustedPracticeDayKey > pacificDayKey(now)) {
+          throw new HttpsError(
+            "invalid-argument", "COACH_VERIFIED_PRACTICE_DATE_IN_FUTURE"
+          );
+        }
+        try {
+          trustedDiscipline = normalizeLifetimeCombatDiscipline(
+            requiredString(request.meta.discipline, "meta.discipline")
+          );
+        } catch (error: any) {
+          throw new HttpsError(
+            "invalid-argument",
+            String(error?.message || "INVALID_COACH_VERIFIED_DISCIPLINE")
+          );
+        }
+        request.meta.practiceKey = coachVerifiedPracticeKey(
+          request.meta.practiceKey
+        );
+        delete request.meta.attendanceSessionId;
+        delete request.meta.sessionId;
+        delete request.meta.schema;
+        delete request.meta.academyId;
+        delete request.meta.roomId;
+        request.meta.discipline = trustedDiscipline;
+        request.meta.sessionDateKey = trustedPracticeDayKey;
+        request.meta.durationMinutes = 60;
+      } else {
+        const attendanceSessionId = requiredString(
+          request.meta.attendanceSessionId, "meta.attendanceSessionId"
+        );
+        const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${attendanceSessionId}`));
+        if (!attendanceSnap.exists) {
+          throw new HttpsError("failed-precondition", "TRUSTED_ATTENDANCE_SESSION_REQUIRED");
+        }
+        const session = attendanceSnap.data() || {};
+        if (String(session.status ?? "").toLowerCase() !== "finalized" || session.finalized !== true) {
+          throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_NOT_FINALIZED");
+        }
+        const presentIds = Array.isArray(session.presentIds) ? session.presentIds.map(String) : [];
+        if (!presentIds.includes(request.uid)) {
+          throw new HttpsError("failed-precondition", "ATHLETE_NOT_PRESENT_IN_ATTENDANCE_SESSION");
+        }
+        const trustedSessionId = String(session.sessionId || session.liveSessionId || attendanceSessionId);
+        if (requiredString(request.meta.sessionId, "meta.sessionId") !== trustedSessionId) {
+          throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_ID_MISMATCH");
+        }
+        trustedDiscipline = requiredString(session.discipline, "attendance discipline").toLowerCase();
+        trustedPracticeDayKey = requiredString(session.sessionDateKey, "attendance sessionDateKey");
+        if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
+          throw new HttpsError("failed-precondition", "ATTENDANCE_BLOCKED_SUNDAY");
+        }
+        request.meta.discipline = trustedDiscipline;
+        request.meta.sessionDateKey = trustedPracticeDayKey;
+        request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
       }
-      const session = attendanceSnap.data() || {};
-      if (String(session.status ?? "").toLowerCase() !== "finalized" || session.finalized !== true) {
-        throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_NOT_FINALIZED");
-      }
-      const presentIds = Array.isArray(session.presentIds) ? session.presentIds.map(String) : [];
-      if (!presentIds.includes(request.uid)) {
-        throw new HttpsError("failed-precondition", "ATHLETE_NOT_PRESENT_IN_ATTENDANCE_SESSION");
-      }
-      const trustedSessionId = String(session.sessionId || session.liveSessionId || attendanceSessionId);
-      if (requiredString(request.meta.sessionId, "meta.sessionId") !== trustedSessionId) {
-        throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_ID_MISMATCH");
-      }
-      trustedDiscipline = requiredString(session.discipline, "attendance discipline").toLowerCase();
-      trustedPracticeDayKey = requiredString(session.sessionDateKey, "attendance sessionDateKey");
-      if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
-        throw new HttpsError("failed-precondition", "ATTENDANCE_BLOCKED_SUNDAY");
-      }
-      request.meta.discipline = trustedDiscipline;
-      request.meta.sessionDateKey = trustedPracticeDayKey;
-      request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
     }
     if (request.kind === "STRENGTH" || request.kind === "HONOR") {
       const expectedSource = request.kind === "STRENGTH" ? "lane-review" : "honor_lane_review";

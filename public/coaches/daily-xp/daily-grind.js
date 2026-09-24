@@ -2,6 +2,7 @@
 
 import {
   db,
+  auth,
   collection,
   onSnapshot,
   getDocs,
@@ -130,6 +131,78 @@ let activeAttendanceSession = {
   sessionId: ""
 };
 
+const COACH_VERIFIED_PRACTICE_SOURCE = "coach-verified-practice";
+
+function pacificDateKey() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts.map((part) => [part.type, part.value])
+  );
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function selectedJourneyDiscipline() {
+  const journey = String(journeyFilterEl?.value || "").toLowerCase();
+  const disciplines = {
+    "z2h-wrestling": "wrestling",
+    "z2h-kickboxing": "muay-thai",
+    "p2l-wrestling": "wrestling",
+    "p2l-boxing": "boxing",
+    "q2m-mma": "mma"
+  };
+  return disciplines[journey] || "";
+}
+
+function requestCoachVerifiedPracticeEvidence() {
+  const discipline = normalizeDisciplineId(
+    selectedJourneyDiscipline()
+  );
+  if (!discipline) {
+    setStatus("Coach-Verified Practice requires a selected discipline.");
+    return null;
+  }
+
+  const enteredDate = window.prompt(
+    "Coach-Verified Practice date (YYYY-MM-DD)",
+    pacificDateKey()
+  );
+  if (enteredDate === null) return null;
+  const sessionDateKey = String(enteredDate).trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(sessionDateKey)) {
+    setStatus("Coach-Verified Practice requires a valid YYYY-MM-DD date.");
+    return null;
+  }
+
+  const enteredKey = window.prompt(
+    "Stable practice key (for example: morning or evening)",
+    "daily-grind"
+  );
+  if (enteredKey === null) return null;
+  const practiceKey = String(enteredKey).trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9._:-]{0,79}$/.test(practiceKey)) {
+    setStatus("Coach-Verified Practice requires a valid practice key.");
+    return null;
+  }
+
+  const confirmed = window.confirm(
+    "Confirm Coach-Verified Practice\n" +
+    `Date: ${sessionDateKey}\n` +
+    `Discipline: ${discipline}\n` +
+    `Practice: ${practiceKey}`
+  );
+  return confirmed ? {
+    source: COACH_VERIFIED_PRACTICE_SOURCE,
+    sessionDateKey,
+    discipline,
+    practiceKey
+  } : null;
+}
+
 function normalizeDurationMinutes(value, schema = "") {
   const direct = Number(value);
 
@@ -239,7 +312,9 @@ function updateSessionBar() {
   sessionBar.style.display = "flex";
 
   if (sbLoaded) {
-    sbLoaded.textContent = `Loaded: ${filtered.length}`;
+    sbLoaded.textContent = activeAttendanceSession.id
+      ? `Loaded: ${filtered.length}`
+      : `Coach-Verified Mode · ${filtered.length} available`;
   }
 
   if (sbAwarded) {
@@ -541,6 +616,9 @@ async function initializeDailyGrind() {
   }
 
   applyFilterAndRender();
+  if (String(journeyFilterEl?.value || "all") !== "all") {
+    setStatus("Coach-Verified Practice mode · confirm evidence before awarding Combat XP.");
+  }
 }
 
 function subscribe() {
@@ -720,6 +798,19 @@ async function issueAwardForSelection(award) {
   }
 
   if (isSaving) return;
+
+  const isAttendanceAward =
+    award.kind === "DAILY_GRIND" ||
+    award.kind === "ATTENDANCE";
+  const coachVerifiedEvidence =
+    isAttendanceAward && !activeAttendanceSession.id
+      ? requestCoachVerifiedPracticeEvidence()
+      : null;
+
+  if (isAttendanceAward && !activeAttendanceSession.id && !coachVerifiedEvidence) {
+    return;
+  }
+
   isSaving = true;
 
   const mode = String(modeEl?.value || "auto").toLowerCase();
@@ -746,6 +837,19 @@ async function issueAwardForSelection(award) {
 
     const lane = String(laneEl?.value || "combat").toLowerCase();
 
+    const attendanceMeta = activeAttendanceSession.id
+      ? {
+          source: "daily-grind",
+          attendanceSessionId: activeAttendanceSession.id,
+          sessionId: activeAttendanceSession.sessionId,
+          schema: activeAttendanceSession.schema,
+          durationMinutes: activeAttendanceSession.durationMinutes,
+          xpTimeScale: activeAttendanceSession.xpTimeScale,
+          academyId: activeAttendanceSession.academyId,
+          roomId: activeAttendanceSession.roomId
+        }
+      : coachVerifiedEvidence;
+
     const payload = {
       uid,
       kind: award.kind,
@@ -753,21 +857,7 @@ async function issueAwardForSelection(award) {
       lane,
       meta: {
         lane,
-        source: "daily-grind",
-        attendanceSessionId:
-          activeAttendanceSession.id,
-        sessionId:
-          activeAttendanceSession.sessionId,
-        schema:
-          activeAttendanceSession.schema,
-        durationMinutes:
-          activeAttendanceSession.durationMinutes,
-        xpTimeScale:
-          activeAttendanceSession.xpTimeScale,
-        academyId:
-          activeAttendanceSession.academyId,
-        roomId:
-          activeAttendanceSession.roomId
+        ...(isAttendanceAward ? attendanceMeta : {})
       }
     };
 
@@ -779,16 +869,22 @@ async function issueAwardForSelection(award) {
     });
 
     try {
-      const coachUid =
-        window.COACH_UID ||
-        localStorage.getItem("coachUid") ||
-        "DEV_COACH";
+      const user =
+        auth.currentUser ||
+        await ensureSignedIn();
+
+      if (!user || user.isAnonymous) {
+        throw new Error("Coach authentication required.");
+      }
+
+      const idToken =
+        await user.getIdToken();
 
       const res = await fetch(XP_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-coach-uid": String(coachUid).trim()
+          "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify({
           data: payload
