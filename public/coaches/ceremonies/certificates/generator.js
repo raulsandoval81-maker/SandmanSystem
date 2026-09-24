@@ -526,7 +526,13 @@ async function loadCertificatePayloadFromEngine(uid) {
   const url =
     `${ENGINE_ENDPOINTS.certificatePayload}?uid=${encodeURIComponent(uid)}`;
 
-  const response = await fetch(url);
+  const { requireCoach } = await import("/assets/js/coach-guard.js");
+  const { user } = await requireCoach();
+  const token = await user.getIdToken(true);
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
   if (!response.ok) {
     throw new Error(`Engine request failed: ${response.status}`);

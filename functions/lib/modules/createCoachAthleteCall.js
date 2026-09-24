@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCoachAthleteCall = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 function pad4(n) {
     return String(n).padStart(4, "0");
 }
@@ -95,9 +96,9 @@ function buildExperiencePlan(yearsRaw) {
 }
 exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
-        throw new Error("unauthenticated");
+        throw new https_1.HttpsError("unauthenticated", "Staff sign-in required.");
     }
-    const authenticatedCoachUid = req.auth.uid;
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Admin, Management, or Coach access required.");
     const db = (0, firestore_1.getFirestore)();
     const data = req.data || {};
     const { first, last, fullName, publicName, dob, birthYear, grade, track, trackCode, program, framework, journey, programTrack, art, discipline, primaryDiscipline, ladderKey, rosterIds, coachIds, locationId, profileType, beltSet, badgeSet, team, city, state, location, parent, parentName, parentEmail, parentPhoneDigits, emergency, emergencyName, emergencyPhoneDigits, medical, waiver, intakeMethod, paperIntakeVerified, source, notes, virtueName, virtueCode, mintVirtueTag, experience, placement, lifecycleDefaults, adjustment, } = data;
@@ -125,7 +126,17 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
     const cleanTeam = cleanString(location?.team ||
         team);
     const cleanLocationId = cleanString(location?.locationId ||
-        locationId) || "lompoc";
+        locationId);
+    if (!cleanLocationId) {
+        throw new https_1.HttpsError("invalid-argument", "A canonical locationId is required.");
+    }
+    (0, staffAuthorization_1.requireStaffLocation)(actor, cleanLocationId, "This location is outside the staff member's authorized scope.");
+    const xpAdjustment = Math.max(0, Number(adjustment?.amount ||
+        0));
+    if (xpAdjustment > 0 &&
+        actor.role === "coach") {
+        throw new https_1.HttpsError("permission-denied", "Starting XP adjustments require active Management or Admin authority.");
+    }
     const parentRecord = {
         name: cleanString(parent?.name ||
             parentName),
@@ -227,8 +238,6 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
             .collection("athletes")
             .doc(uid);
         const isF8 = cleanTrack === "F8";
-        const xpAdjustment = Math.max(0, Number(adjustment?.amount ||
-            0));
         const experienceYears = Number(experience?.years ||
             0);
         /*
@@ -375,8 +384,8 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
                 "coach_paper_intake",
             notes: cleanString(notes),
             status: "active",
-            createdBy: authenticatedCoachUid,
-            createdByRole: "coach",
+            createdBy: actor.uid,
+            createdByRole: actor.role,
             intakePath: cleanIntakeMethod ===
                 "paper"
                 ? "coach_paper_intake"

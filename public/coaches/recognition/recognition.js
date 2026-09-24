@@ -1,9 +1,20 @@
 const ENDPOINT =
 "/testRecognitionQueue";
 
+async function getCoachAuthorizationHeader() {
+  const { requireCoach } = await import("/assets/js/coach-guard.js");
+  const { user } = await requireCoach();
+  const token = await user.getIdToken(true);
+  return `Bearer ${token}`;
+}
+
 async function loadQueue(){
 
-const res = await fetch(ENDPOINT);
+const authorization = await getCoachAuthorizationHeader();
+
+const res = await fetch(ENDPOINT, {
+  headers: { Authorization: authorization }
+});
 
 const data = await res.json();
 

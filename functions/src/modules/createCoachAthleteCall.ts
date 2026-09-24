@@ -1,8 +1,13 @@
-import { onCall } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import {
   getFirestore,
   FieldValue,
 } from "firebase-admin/firestore";
+import {
+  OPERATIONAL_STAFF_ROLES,
+  requireActiveStaff,
+  requireStaffLocation,
+} from "../services/staffAuthorization";
 
 function pad4(n: number) {
   return String(n).padStart(4, "0");
@@ -128,11 +133,14 @@ function buildExperiencePlan(yearsRaw: unknown) {
 export const createCoachAthleteCall =
   onCall(async (req) => {
     if (!req.auth) {
-      throw new Error("unauthenticated");
+      throw new HttpsError("unauthenticated", "Staff sign-in required.");
     }
 
-    const authenticatedCoachUid =
-      req.auth.uid;
+    const actor = await requireActiveStaff(
+      req.auth.uid,
+      OPERATIONAL_STAFF_ROLES,
+      "Active Admin, Management, or Coach access required."
+    );
 
     const db = getFirestore();
     const data = req.data || {};
@@ -257,7 +265,39 @@ export const createCoachAthleteCall =
       cleanString(
         location?.locationId ||
         locationId
-      ) || "lompoc";
+      );
+
+    if (!cleanLocationId) {
+      throw new HttpsError(
+        "invalid-argument",
+        "A canonical locationId is required."
+      );
+    }
+
+    requireStaffLocation(
+      actor,
+      cleanLocationId,
+      "This location is outside the staff member's authorized scope."
+    );
+
+    const xpAdjustment =
+      Math.max(
+        0,
+        Number(
+          adjustment?.amount ||
+          0
+        )
+      );
+
+    if (
+      xpAdjustment > 0 &&
+      actor.role === "coach"
+    ) {
+      throw new HttpsError(
+        "permission-denied",
+        "Starting XP adjustments require active Management or Admin authority."
+      );
+    }
 
     const parentRecord = {
       name:
@@ -490,15 +530,6 @@ export const createCoachAthleteCall =
 
           const isF8 =
             cleanTrack === "F8";
-
-          const xpAdjustment =
-            Math.max(
-              0,
-              Number(
-                adjustment?.amount ||
-                0
-              )
-            );
 
           const experienceYears =
             Number(
@@ -828,10 +859,10 @@ export const createCoachAthleteCall =
               "active",
 
             createdBy:
-              authenticatedCoachUid,
+              actor.uid,
 
             createdByRole:
-              "coach",
+              actor.role,
 
             intakePath:
               cleanIntakeMethod ===

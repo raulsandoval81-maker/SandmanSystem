@@ -3,15 +3,46 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.testRecognitionQueue = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const auth_1 = require("firebase-admin/auth");
 const coachViews_1 = require("../engines/recognition-engine/coachViews");
 const athleteNormalizer_1 = require("../engines/athlete-engine/athleteNormalizer");
 const resolveAthleteStage_1 = require("../engines/recognition-engine/resolveAthleteStage");
 const recognitionQueue_1 = require("../engines/recognition-engine/recognitionQueue");
-exports.testRecognitionQueue = (0, https_1.onRequest)(async (_req, res) => {
+const staffAuthorization_1 = require("../services/staffAuthorization");
+exports.testRecognitionQueue = (0, https_1.onRequest)(async (req, res) => {
     try {
+        const bearer = String(req.headers.authorization || "")
+            .replace(/^Bearer\s+/i, "")
+            .trim();
+        if (!bearer) {
+            res.status(401).json({ ok: false, error: "Authentication required." });
+            return;
+        }
+        let callerUid = "";
+        try {
+            callerUid = (await (0, auth_1.getAuth)().verifyIdToken(bearer)).uid;
+        }
+        catch {
+            res.status(401).json({ ok: false, error: "Invalid authentication token." });
+            return;
+        }
+        const actor = await (0, staffAuthorization_1.requireActiveStaff)(callerUid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach or Admin access required.");
         const db = (0, firestore_1.getFirestore)();
         const snapshot = await db.collection("athletes").get();
         const athletes = snapshot.docs
+            .filter((doc) => {
+            if (actor.role === "admin")
+                return true;
+            try {
+                (0, staffAuthorization_1.requireCoachAthleteAccess)(actor, doc.data());
+                return true;
+            }
+            catch (error) {
+                if (String(error?.code || "") === "permission-denied")
+                    return false;
+                throw error;
+            }
+        })
             .map((doc) => (0, athleteNormalizer_1.normalizeAthlete)({
             uid: doc.id,
             ...doc.data()
@@ -91,6 +122,10 @@ exports.testRecognitionQueue = (0, https_1.onRequest)(async (_req, res) => {
         });
     }
     catch (err) {
+        if (String(err?.code || "") === "permission-denied") {
+            res.status(403).json({ ok: false, error: "Access denied." });
+            return;
+        }
         res.status(500).json({
             ok: false,
             error: err.message
