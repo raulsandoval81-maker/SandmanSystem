@@ -33,8 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteSkillsSummary = exports.getAthleteProfileFeed = exports.skillCheckCoachCall = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
-exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.markManagementMessageResponded = exports.sendManagementMessageEmail = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = exports.deleteTestProposal = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.updateStaffGovernance = exports.getAdminOversightSummary = exports.getAthleteSessionHistory = exports.listManagementAttendance = exports.savePracticeSessionMemory = exports.closePracticeSession = exports.getPracticeSession = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = exports.createAthleteOnboardingToken = exports.createProposalCheckout = void 0;
+exports.consumeAccessInvitation = exports.issueAccessInvitation = exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmailV2 = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteSkillsSummary = exports.getAthleteProfileFeed = exports.skillCheckCoachCall = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testAthleteNormalizer = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.ping = void 0;
+exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.markManagementMessageResponded = exports.sendManagementMessageEmail = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = exports.deleteTestProposal = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.updateStaffGovernance = exports.getAdminOversightSummary = exports.getAthleteSessionHistory = exports.listManagementAttendance = exports.savePracticeSessionMemory = exports.closePracticeSession = exports.getPracticeSession = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -42,8 +42,6 @@ admin.initializeApp();
 ========================= */
 var ping_1 = require("./modules/ping");
 Object.defineProperty(exports, "ping", { enumerable: true, get: function () { return ping_1.ping; } });
-var testXpWrite_1 = require("./modules/testXpWrite");
-Object.defineProperty(exports, "testXpWrite", { enumerable: true, get: function () { return testXpWrite_1.testXpWrite; } });
 var testAthleteXp_1 = require("./modules/testAthleteXp");
 Object.defineProperty(exports, "testAthleteXp", { enumerable: true, get: function () { return testAthleteXp_1.testAthleteXp; } });
 /* =========================
@@ -98,16 +96,8 @@ Object.defineProperty(exports, "linkParentToAthlete", { enumerable: true, get: f
 /* =========================
    ENGINE TESTING
 ========================= */
-var testAthleteLoader_1 = require("./modules/testAthleteLoader");
-Object.defineProperty(exports, "testAthleteLoader", { enumerable: true, get: function () { return testAthleteLoader_1.testAthleteLoader; } });
 var testAthleteNormalizer_1 = require("./modules/testAthleteNormalizer");
 Object.defineProperty(exports, "testAthleteNormalizer", { enumerable: true, get: function () { return testAthleteNormalizer_1.testAthleteNormalizer; } });
-var testStripeEngine_1 = require("./modules/testStripeEngine");
-Object.defineProperty(exports, "testStripeEngine", { enumerable: true, get: function () { return testStripeEngine_1.testStripeEngine; } });
-var testTestingEngine_1 = require("./modules/testTestingEngine");
-Object.defineProperty(exports, "testTestingEngine", { enumerable: true, get: function () { return testTestingEngine_1.testTestingEngine; } });
-var testPromotionEngine_1 = require("./modules/testPromotionEngine");
-Object.defineProperty(exports, "testPromotionEngine", { enumerable: true, get: function () { return testPromotionEngine_1.testPromotionEngine; } });
 var testCertificatePayloadEngine_1 = require("./modules/testCertificatePayloadEngine");
 Object.defineProperty(exports, "testCertificatePayloadEngine", { enumerable: true, get: function () { return testCertificatePayloadEngine_1.testCertificatePayloadEngine; } });
 var testProgressionEngine_1 = require("./modules/testProgressionEngine");
@@ -156,6 +146,7 @@ Object.defineProperty(exports, "submitContact", { enumerable: true, get: functio
 Object.defineProperty(exports, "submitVolunteer", { enumerable: true, get: function () { return forms_1.submitVolunteer; } });
 var sendGatekeeperEmail_1 = require("./modules/gatekeeper/sendGatekeeperEmail");
 Object.defineProperty(exports, "sendGatekeeperEmail", { enumerable: true, get: function () { return sendGatekeeperEmail_1.sendGatekeeperEmail; } });
+Object.defineProperty(exports, "sendGatekeeperEmailV2", { enumerable: true, get: function () { return sendGatekeeperEmail_1.sendGatekeeperEmailV2; } });
 var retestAthlete_1 = require("./modules/retestAthlete");
 Object.defineProperty(exports, "retestAthlete", { enumerable: true, get: function () { return retestAthlete_1.retestAthlete; } });
 /* =========================

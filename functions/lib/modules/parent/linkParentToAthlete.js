@@ -37,7 +37,12 @@ exports.linkParentToAthlete = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const admin = __importStar(require("firebase-admin"));
+const staffAuthorization_1 = require("../../services/staffAuthorization");
 exports.linkParentToAthlete = (0, https_1.onCall)(async (req) => {
+    if (!req.auth) {
+        throw new https_1.HttpsError("unauthenticated", "Staff sign-in required.");
+    }
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Admin, Management, or Coach access required.");
     const db = (0, firestore_1.getFirestore)();
     const athleteUid = String(req.data?.athleteUid || "").trim();
     const parentEmail = String(req.data?.parentEmail || "")
@@ -54,6 +59,19 @@ exports.linkParentToAthlete = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found.");
     }
     const athlete = athleteSnap.data() || {};
+    const athleteLocationId = String(athlete.locationId || "").trim();
+    if (!athleteLocationId) {
+        throw new https_1.HttpsError("failed-precondition", "Athlete is missing canonical location ownership.");
+    }
+    if (actor.role === "management") {
+        (0, staffAuthorization_1.requireStaffLocation)(actor, athleteLocationId, "This athlete is outside the Management staff member's authorized scope.");
+    }
+    else if (actor.role === "coach") {
+        (0, staffAuthorization_1.requireCoachAthleteAccess)(actor, athlete, "This athlete is outside the Coach's authorized training scope.");
+    }
+    else if (actor.role !== "admin") {
+        throw new https_1.HttpsError("permission-denied", "Active Admin, Management, or Coach access required.");
+    }
     let parentUid = null;
     try {
         const user = await admin.auth().getUserByEmail(parentEmail);

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PARENT_SIGNAL_TYPES = void 0;
+exports.parentInboxRetentionClass = parentInboxRetentionClass;
 exports.PARENT_SIGNAL_TYPES = {
     // Daily Activity
     ATTENDANCE_LOGGED: "ATTENDANCE_LOGGED", // legacy / tournament / manual attendance
@@ -37,3 +38,18 @@ exports.PARENT_SIGNAL_TYPES = {
     SEMI_MAJOR_INFRACTION: "SEMI_MAJOR_INFRACTION",
     MAJOR_INFRACTION: "MAJOR_INFRACTION",
 };
+const AUDIT_RETENTION_TYPES = new Set([
+    exports.PARENT_SIGNAL_TYPES.TEST_PASSED,
+    exports.PARENT_SIGNAL_TYPES.TEST_FAILED,
+    exports.PARENT_SIGNAL_TYPES.TEST_FREEZE,
+    exports.PARENT_SIGNAL_TYPES.PROMOTED,
+    exports.PARENT_SIGNAL_TYPES.PROGRAM_FROZEN,
+    exports.PARENT_SIGNAL_TYPES.MINOR_INFRACTION,
+    exports.PARENT_SIGNAL_TYPES.SEMI_MAJOR_INFRACTION,
+    exports.PARENT_SIGNAL_TYPES.MAJOR_INFRACTION,
+]);
+function parentInboxRetentionClass(type) {
+    return AUDIT_RETENTION_TYPES.has(String(type || "").trim())
+        ? "audit"
+        : "standard";
+}

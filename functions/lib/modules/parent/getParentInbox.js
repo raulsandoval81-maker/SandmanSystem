@@ -14,24 +14,14 @@ exports.getParentInbox = (0, https_1.onCall)(async (req) => {
         .where("parentUid", "==", parentUid)
         .orderBy("createdAt", "desc")
         .get();
-    const keepDocs = snap.docs.slice(0, 8);
-    const staleDocs = snap.docs.slice(8);
-    if (staleDocs.length) {
-        for (let i = 0; i < staleDocs.length; i += 400) {
-            const batch = db.batch();
-            staleDocs
-                .slice(i, i + 400)
-                .forEach((doc) => {
-                batch.delete(doc.ref);
-            });
-            await batch.commit();
-        }
-    }
-    const items = keepDocs.map((doc) => {
+    const items = snap.docs
+        .filter((doc) => doc.data().archived !== true)
+        .map((doc) => {
         const data = doc.data();
         return {
             id: doc.id,
             ...data,
+            archived: false,
             read: data.read === true,
             createdAt: data.createdAt?.toDate?.().toISOString?.() ?? null,
         };

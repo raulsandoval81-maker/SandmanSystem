@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RECOVERY_DAYS_REQUIRED = void 0;
+exports.RECOVERY_DAYS_REQUIRED = exports.DECAY_HIT_DAY_OFFSETS = void 0;
+exports.decayHitDueAt = decayHitDueAt;
 exports.calculateDecay = calculateDecay;
 exports.countsAsDecayRecoveryDay = countsAsDecayRecoveryDay;
 const DAY_MS = 1000 * 60 * 60 * 24;
@@ -10,6 +11,7 @@ const SECOND_DECAY_DAYS = 35;
 const DECAY_INTERVAL_AFTER_SECOND = 14;
 const DECAY_POINTS_PER_HIT = 25;
 const FREEZE_DECAY_TOTAL = 150;
+exports.DECAY_HIT_DAY_OFFSETS = Object.freeze([28, 35, 49, 63, 77, 91]);
 var decayRecoveryPolicy_1 = require("./decayRecoveryPolicy");
 Object.defineProperty(exports, "RECOVERY_DAYS_REQUIRED", { enumerable: true, get: function () { return decayRecoveryPolicy_1.RECOVERY_DAYS_REQUIRED; } });
 const decayRecoveryPolicy_2 = require("./decayRecoveryPolicy");
@@ -31,14 +33,13 @@ function getNextDecayAtDays(daysInactive) {
     if (decayPoints >= FREEZE_DECAY_TOTAL) {
         return null;
     }
-    if (daysInactive < FIRST_DECAY_DAYS) {
-        return FIRST_DECAY_DAYS;
-    }
-    if (daysInactive < SECOND_DECAY_DAYS) {
-        return SECOND_DECAY_DAYS;
-    }
-    return (SECOND_DECAY_DAYS +
-        hits * DECAY_INTERVAL_AFTER_SECOND);
+    return exports.DECAY_HIT_DAY_OFFSETS[hits] ?? null;
+}
+function decayHitDueAt(lastCombatActivityAt, completedHits) {
+    const offset = exports.DECAY_HIT_DAY_OFFSETS[completedHits];
+    if (offset === undefined)
+        return null;
+    return new Date(lastCombatActivityAt.getTime() + offset * DAY_MS);
 }
 function calculateDecay(lastCombatActivityAt, now = new Date()) {
     if (!lastCombatActivityAt) {

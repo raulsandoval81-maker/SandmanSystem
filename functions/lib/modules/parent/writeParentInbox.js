@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeParentInbox = writeParentInbox;
 const firestore_1 = require("firebase-admin/firestore");
+const parentSignalTypes_1 = require("./parentSignalTypes");
 async function writeParentInbox(payload) {
     const db = (0, firestore_1.getFirestore)();
     const { parentUid, athleteId, athleteName, type, title, message, source, sourceId, } = payload;
@@ -19,6 +20,9 @@ async function writeParentInbox(payload) {
         source: source || null,
         sourceId: sourceId || null,
         read: false,
+        archived: false,
+        archivedAt: null,
+        retentionClass: (0, parentSignalTypes_1.parentInboxRetentionClass)(type),
         createdAt: firestore_1.FieldValue.serverTimestamp(),
     });
     return docRef.id;

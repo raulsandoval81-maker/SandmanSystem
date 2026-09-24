@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.writeParentTestingPing = writeParentTestingPing;
 const firestore_1 = require("firebase-admin/firestore");
+const parentSignalTypes_1 = require("../parent/parentSignalTypes");
 async function writeParentTestingPing(payload) {
     const db = (0, firestore_1.getFirestore)();
     if (!payload.parentUid) {
@@ -44,6 +45,9 @@ async function writeParentTestingPing(payload) {
         title,
         message,
         read: false,
+        archived: false,
+        archivedAt: null,
+        retentionClass: (0, parentSignalTypes_1.parentInboxRetentionClass)(payload.type),
         createdAt: firestore_1.FieldValue.serverTimestamp()
     });
     return {

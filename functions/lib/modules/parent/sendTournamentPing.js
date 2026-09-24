@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendTournamentPing = void 0;
 const https_1 = require("firebase-functions/v2/https");
-const firestore_1 = require("firebase-admin/firestore");
 const createParentSignal_1 = require("./createParentSignal");
+const staffAuthorization_1 = require("../../services/staffAuthorization");
 const ALLOWED_TYPES = new Set([
     "TOURNAMENT_ADDED",
     "WEIGH_IN_REMINDER",
@@ -28,7 +28,7 @@ exports.sendTournamentPing = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
         throw new https_1.HttpsError("unauthenticated", "Coach authentication required.");
     }
-    const db = (0, firestore_1.getFirestore)();
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach or Admin access required.");
     const type = String(req.data?.type || "").trim();
     const athleteId = String(req.data?.athleteId || "").trim().toUpperCase();
     const tournamentId = String(req.data?.tournamentId || "").trim();
@@ -42,11 +42,7 @@ exports.sendTournamentPing = (0, https_1.onCall)(async (req) => {
     if (!eventName) {
         throw new https_1.HttpsError("invalid-argument", "Missing eventName.");
     }
-    const athleteSnap = await db.collection("athletes").doc(athleteId).get();
-    if (!athleteSnap.exists) {
-        throw new https_1.HttpsError("not-found", "Athlete not found.");
-    }
-    const athlete = athleteSnap.data() || {};
+    const athlete = await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, athleteId, "This athlete is outside the Coach's authorized training scope.");
     const athleteName = String(athlete.publicName ||
         athlete.fullName ||
         athleteId);
