@@ -1,6 +1,7 @@
 import { EngineAthlete } from "../athlete-engine/athleteNormalizer";
 import { evaluateProgression } from "../progression-engine/progressionEngine";
 import { evaluateRecognition } from "../recognition-engine/recognitionEngine";
+import { hasRecognition } from "../recognition-engine/recognitionHistory";
 
 function normalizeTierNumber(value: any): number {
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -11,11 +12,15 @@ function normalizeTierNumber(value: any): number {
   return match ? Number(match[0]) : 0;
 }
 
-function hasIssuedStripeCertificate(
+export function hasIssuedStripeCertificate(
   athlete: EngineAthlete,
   tier: number,
   stripe: number
 ): boolean {
+  if (hasRecognition(athlete, "STRIPE_AWARD", tier, stripe)) {
+    return true;
+  }
+
   return (athlete.certificates || []).some((cert: any) => {
     return (
       cert.type === "STRIPE" &&
@@ -23,6 +28,14 @@ function hasIssuedStripeCertificate(
       Number(cert.stripe) === Number(stripe)
     );
   });
+}
+
+function completedCertificate(athlete: EngineAthlete) {
+  return notReady(
+    athlete,
+    "This stripe certificate has already been issued.",
+    "CERTIFICATE_ALREADY_COMPLETED"
+  );
 }
 
 function getLegacyXp(athlete: any): number {
@@ -182,6 +195,10 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
       );
     }
 
+    if (hasIssuedStripeCertificate(athlete, currentTier, nextStripe)) {
+      return completedCertificate(athlete);
+    }
+
     return stripePayload(
       athlete,
       stripeDecision,
@@ -216,12 +233,8 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
       );
     }
 
-    if (recognition.stripeAward?.completed) {
-      return notReady(
-        athlete,
-        recognition.stripeAward.message,
-        "CERTIFICATE_ALREADY_COMPLETED"
-      );
+    if (recognition.stripeAward?.completed || alreadyIssued) {
+      return completedCertificate(athlete);
     }
 
     if (!alreadyIssued) {
@@ -249,6 +262,9 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
         "Legacy placement recognized. Testing recognition opens after deeper Sandman-earned progress is recorded.",
         "LEGACY_PLACEMENT"
       );
+    }
+    if (hasIssuedStripeCertificate(athlete, currentTier, nextStripe)) {
+      return completedCertificate(athlete);
     }
 
     return stripePayload(

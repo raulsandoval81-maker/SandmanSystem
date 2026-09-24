@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.hasIssuedStripeCertificate = hasIssuedStripeCertificate;
 exports.buildCertificatePayload = buildCertificatePayload;
 const progressionEngine_1 = require("../progression-engine/progressionEngine");
 const recognitionEngine_1 = require("../recognition-engine/recognitionEngine");
+const recognitionHistory_1 = require("../recognition-engine/recognitionHistory");
 function normalizeTierNumber(value) {
     if (typeof value === "number" && Number.isFinite(value)) {
         return Math.max(0, value);
@@ -11,11 +13,17 @@ function normalizeTierNumber(value) {
     return match ? Number(match[0]) : 0;
 }
 function hasIssuedStripeCertificate(athlete, tier, stripe) {
+    if ((0, recognitionHistory_1.hasRecognition)(athlete, "STRIPE_AWARD", tier, stripe)) {
+        return true;
+    }
     return (athlete.certificates || []).some((cert) => {
         return (cert.type === "STRIPE" &&
             normalizeTierNumber(cert.tier) === normalizeTierNumber(tier) &&
             Number(cert.stripe) === Number(stripe));
     });
+}
+function completedCertificate(athlete) {
+    return notReady(athlete, "This stripe certificate has already been issued.", "CERTIFICATE_ALREADY_COMPLETED");
 }
 function getLegacyXp(athlete) {
     return Number(athlete?.xpBreakdown?.legacyXp ??
@@ -114,6 +122,9 @@ function buildCertificatePayload(athlete) {
         if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
             return notReady(athlete, "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.", "LEGACY_PLACEMENT");
         }
+        if (hasIssuedStripeCertificate(athlete, currentTier, nextStripe)) {
+            return completedCertificate(athlete);
+        }
         return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${nextStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", nextStripe, stripeDecision?.message || "Stripe certificate ready.");
     }
     if (currentStripe > 0) {
@@ -124,8 +135,8 @@ function buildCertificatePayload(athlete) {
         if (!recognition.stripeAward?.eligible) {
             return notReady(athlete, recognition.nextAction, "RECOGNITION_NOT_ELIGIBLE");
         }
-        if (recognition.stripeAward?.completed) {
-            return notReady(athlete, recognition.stripeAward.message, "CERTIFICATE_ALREADY_COMPLETED");
+        if (recognition.stripeAward?.completed || alreadyIssued) {
+            return completedCertificate(athlete);
         }
         if (!alreadyIssued) {
             return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${currentStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", currentStripe, `${athlete.name} has earned Stripe ${currentStripe}.`);
@@ -136,6 +147,9 @@ function buildCertificatePayload(athlete) {
         const nextStripe = Number(stripeDecision?.nextStripe || 0);
         if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
             return notReady(athlete, "Legacy placement recognized. Testing recognition opens after deeper Sandman-earned progress is recorded.", "LEGACY_PLACEMENT");
+        }
+        if (hasIssuedStripeCertificate(athlete, currentTier, nextStripe)) {
+            return completedCertificate(athlete);
         }
         return stripePayload(athlete, stripeDecision, "TESTING_ELIGIBLE_STRIPE", `Stripe ${nextStripe}`, "Testing Eligible", nextStripe, stripeDecision?.message ||
             "Testing eligible stripe certificate ready.");

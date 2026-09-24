@@ -80,6 +80,9 @@ export { testCertificatePayloadEngine }
 export { testProgressionEngine }
   from "./modules/testProgressionEngine";
 
+export { markStripeCertificateIssued }
+  from "./modules/markStripeCertificateIssued";
+
 
 export { coachAction } from "./modules/coachAction";
 export { skillCheckCoachCall } from "./modules/skillCheckCoachCall";

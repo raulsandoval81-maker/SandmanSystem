@@ -52,6 +52,18 @@ function normalizeAthlete(doc) {
         isDev: doc.isDev === true,
         devMode: doc.devMode === true,
         isTest: doc.isTest === true,
-        certificates: doc.certificates ?? []
+        certificates: Array.isArray(doc.certificates) ? doc.certificates : [],
+        recognitionHistory: Array.isArray(doc.recognitionHistory)
+            ? doc.recognitionHistory
+            : [],
+        testing: doc.testing,
+        transition: doc.transition,
+        legacyAthlete: doc.legacyAthlete === true,
+        legacy: doc.legacy,
+        legacyXp: doc.legacyXp,
+        legacyEntryTier: doc.legacyEntryTier,
+        legacyEntryStripe: doc.legacyEntryStripe,
+        legacyRecognitionVeto: doc.legacyRecognitionVeto,
+        xpBreakdown: doc.xpBreakdown
     };
 }

@@ -358,8 +358,29 @@ let enginePayloadState = {
   printReady: true,
   ceremonyEligible: true,
   reason: null,
-  message: ""
+  message: "",
+  athleteId: "",
+  tier: null,
+  stripe: null,
+  issued: false
 };
+
+const markIssuedBtn = document.getElementById("markIssuedBtn");
+const issuanceStatus = document.getElementById("issuanceStatus");
+
+function renderIssuanceAction() {
+  const eligible =
+    enginePayloadState.loaded &&
+    enginePayloadState.printReady === true &&
+    enginePayloadState.ceremonyEligible !== false &&
+    Boolean(enginePayloadState.athleteId) &&
+    !enginePayloadState.issued &&
+    fields.mode.value !== "manual";
+
+  markIssuedBtn.hidden = !eligible && !enginePayloadState.issued;
+  markIssuedBtn.disabled = !eligible;
+  markIssuedBtn.textContent = enginePayloadState.issued ? "Issued" : "Mark Issued";
+}
 
 function romanToNumber(value) {
   const map = {
@@ -423,8 +444,13 @@ function applyCertificatePayload(payload) {
     printReady: payload?.printReady === true,
     ceremonyEligible: payload?.ceremonyEligible !== false,
     reason: payload?.reason || null,
-    message: payload?.message || ""
+    message: payload?.message || "",
+    athleteId: enginePayloadState.athleteId,
+    tier: Number(payload?.tier),
+    stripe: Number(payload?.stripe),
+    issued: payload?.reason === "CERTIFICATE_ALREADY_COMPLETED"
   };
+  renderIssuanceAction();
 
   if (
     !payload ||
@@ -544,12 +570,45 @@ async function loadCertificatePayloadFromEngine(uid) {
     throw new Error(data.error || "Engine returned failure.");
   }
 
+  enginePayloadState.athleteId = uid;
   const applied = applyCertificatePayload(data.payload);
 
   if (applied) {
     console.log("Loaded printable certificate payload:", data);
   } else {
     console.log("Certificate payload was not print eligible:", data);
+  }
+}
+
+async function markCertificateIssued() {
+  if (
+    !enginePayloadState.loaded ||
+    enginePayloadState.printReady !== true ||
+    !enginePayloadState.athleteId ||
+    fields.mode.value === "manual"
+  ) {
+    throw new Error("Only a server-verified stripe certificate can be marked issued.");
+  }
+
+  const { functions, httpsCallable } = await import("/assets/js/firebase-init.js");
+  const markIssued = httpsCallable(functions, "markStripeCertificateIssued");
+  markIssuedBtn.disabled = true;
+  issuanceStatus.textContent = "Saving issuance...";
+
+  try {
+    await markIssued({
+      athleteId: enginePayloadState.athleteId,
+      expectedTier: enginePayloadState.tier,
+      expectedStripe: enginePayloadState.stripe,
+    });
+    enginePayloadState.issued = true;
+    enginePayloadState.printReady = false;
+    issuanceStatus.textContent = "Certificate issued and completed.";
+    renderIssuanceAction();
+  } catch (error) {
+    issuanceStatus.textContent = error?.message || "Could not mark the certificate issued.";
+    renderIssuanceAction();
+    throw error;
   }
 }
 
@@ -838,6 +897,13 @@ fields.foundry.addEventListener("change", () => {
 fields.tier.addEventListener("change", () => {
   populateStripeOptions();
   updateCertificate();
+});
+
+fields.mode.addEventListener("change", renderIssuanceAction);
+markIssuedBtn.addEventListener("click", () => {
+  markCertificateIssued().catch((error) => {
+    console.error("Certificate issuance failed.", error);
+  });
 });
 
 Object.values(fields).forEach((field) => {
