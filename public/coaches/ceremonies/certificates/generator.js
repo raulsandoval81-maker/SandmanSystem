@@ -197,7 +197,7 @@ q2m: {
 
   f8: {
     label: "Foundry 8",
-    journey: "Zero2Hero™",
+    journey: "Road2Champion™",
     tiers: {
       0: {
         rank: "Shadow",
