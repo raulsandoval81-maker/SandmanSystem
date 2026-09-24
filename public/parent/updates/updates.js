@@ -22,7 +22,7 @@ const markParentInboxReadCall =
   httpsCallable(functions, "markParentInboxRead");
 
 const INITIAL_VISIBLE = 3;
-const MAX_VISIBLE = 8;
+const MAX_VISIBLE = 5;
 
 let currentItems = [];
 let showAll = false;

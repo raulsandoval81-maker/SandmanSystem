@@ -2,6 +2,7 @@ import {
   getFirestore,
   FieldValue
 } from "firebase-admin/firestore";
+import { parentInboxRetentionClass } from "./parentSignalTypes";
 
 export type ParentInboxPayload = {
   parentUid: string;
@@ -63,6 +64,10 @@ export async function writeParentInbox(
       sourceId || null,
 
     read: false,
+    archived: false,
+    archivedAt: null,
+    retentionClass:
+      parentInboxRetentionClass(type),
 
     createdAt:
       FieldValue.serverTimestamp(),

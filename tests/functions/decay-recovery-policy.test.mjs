@@ -104,14 +104,18 @@ test("non-qualifying activity does not advance recovery", () => {
   assert.equal(result.completedAfter, 1);
 });
 
-test("cleared athlete is excluded from active recovery and scheduler query remains exact", () => {
+test("cleared athlete is excluded and scheduler rechecks state transactionally", () => {
   assert.equal(shouldSuppressCombatAwardForRecovery({
     decay: { state: "CLEAR" }, awardKind: "ATTENDANCE", attendanceSessionId: "session-3",
   }), false);
   const schedulerSource = fs.readFileSync(
     new URL("../../functions/src/modules/decay/scheduledDecaySweep.ts", import.meta.url), "utf8"
   );
-  assert.match(schedulerSource, /where\("decay\.state",\s*"==",\s*"DECAY_ACTIVE"\)/);
+  assert.match(schedulerSource, /collection\("athletes"\)\.get\(\)/);
+  assert.match(schedulerSource, /runTransaction/);
+  assert.match(schedulerSource, /currentState === "FROZEN"/);
+  assert.match(schedulerSource, /hasCanonicalRecoveryEvidence\(decay\)/);
+  assert.match(schedulerSource, /action: "SKIPPED_RECOVERED"/);
 });
 
 test("F4 and F8 share the same recovery policy", () => {

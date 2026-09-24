@@ -4,13 +4,14 @@ import {
 } from "firebase-functions/v2/https";
 
 import {
-  getFirestore,
-} from "firebase-admin/firestore";
-
-import {
   createParentSignal,
   PARENT_SIGNAL_TYPES,
 } from "./createParentSignal";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccessById,
+} from "../../services/staffAuthorization";
 
 const ALLOWED_TYPES = new Set([
   "TOURNAMENT_ADDED",
@@ -38,7 +39,11 @@ export const sendTournamentPing = onCall(async (req) => {
     );
   }
 
-  const db = getFirestore();
+  const actor = await requireActiveStaff(
+    req.auth.uid,
+    COACH_STAFF_ROLES,
+    "Active Coach or Admin access required."
+  );
 
   const type = String(req.data?.type || "").trim();
   const athleteId = String(req.data?.athleteId || "").trim().toUpperCase();
@@ -66,17 +71,11 @@ export const sendTournamentPing = onCall(async (req) => {
     );
   }
 
-  const athleteSnap =
-    await db.collection("athletes").doc(athleteId).get();
-
-  if (!athleteSnap.exists) {
-    throw new HttpsError(
-      "not-found",
-      "Athlete not found."
-    );
-  }
-
-  const athlete = athleteSnap.data() || {};
+  const athlete = await requireCoachAthleteAccessById(
+    actor,
+    athleteId,
+    "This athlete is outside the Coach's authorized training scope."
+  );
 
   const athleteName = String(
     athlete.publicName ||

@@ -24,6 +24,8 @@ const DECAY_INTERVAL_AFTER_SECOND = 14;
 
 const DECAY_POINTS_PER_HIT = 25;
 const FREEZE_DECAY_TOTAL = 150;
+export const DECAY_HIT_DAY_OFFSETS =
+  Object.freeze([28, 35, 49, 63, 77, 91] as const);
 
 export { RECOVERY_DAYS_REQUIRED } from "./decayRecoveryPolicy";
 import { RECOVERY_DAYS_REQUIRED } from "./decayRecoveryPolicy";
@@ -58,18 +60,16 @@ function getNextDecayAtDays(daysInactive: number): number | null {
     return null;
   }
 
-  if (daysInactive < FIRST_DECAY_DAYS) {
-    return FIRST_DECAY_DAYS;
-  }
+  return DECAY_HIT_DAY_OFFSETS[hits] ?? null;
+}
 
-  if (daysInactive < SECOND_DECAY_DAYS) {
-    return SECOND_DECAY_DAYS;
-  }
-
-  return (
-    SECOND_DECAY_DAYS +
-    hits * DECAY_INTERVAL_AFTER_SECOND
-  );
+export function decayHitDueAt(
+  lastCombatActivityAt: Date,
+  completedHits: number
+): Date | null {
+  const offset = DECAY_HIT_DAY_OFFSETS[completedHits];
+  if (offset === undefined) return null;
+  return new Date(lastCombatActivityAt.getTime() + offset * DAY_MS);
 }
 
 export function calculateDecay(

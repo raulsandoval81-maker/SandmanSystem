@@ -1,7 +1,14 @@
+import { createHash, randomUUID } from "node:crypto";
 import * as functions from "firebase-functions";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { defineSecret } from "firebase-functions/params";
 
 import {
-  getFirestore
+  DocumentReference,
+  DocumentSnapshot,
+  FieldValue,
+  Timestamp,
+  getFirestore,
 } from "firebase-admin/firestore";
 
 import {
@@ -25,16 +32,177 @@ import {
   markConfirmationSent
 } from "./appointment/appointmentStatus";
 
-export const sendGatekeeperEmail =
-  functions.firestore
-    .document(
-      "interest_leads/{leadId}"
-    )
-    .onUpdate(
-      async (
-        change,
-        context
-      ) => {
+export const RESEND_API_KEY = defineSecret("RESEND_API_KEY");
+
+const CLAIM_LEASE_MS = 5 * 60 * 1000;
+const TRANSITION_MARKER = "appointment-confirmation-pending";
+
+type SendClaim =
+  | { state: "claimed"; claimId: string }
+  | { state: "completed"; emailId: string }
+  | { state: "busy" };
+
+export function gatekeeperTransitionIdentity(
+  leadId: string,
+  afterUpdateTime: string
+): string {
+  return [leadId, afterUpdateTime, TRANSITION_MARKER].join(":");
+}
+
+export function gatekeeperTransitionHash(identity: string): string {
+  return createHash("sha256").update(identity).digest("hex");
+}
+
+export function gatekeeperProviderIdempotencyKey(
+  transitionHash: string
+): string {
+  return `gatekeeper-${transitionHash}`;
+}
+
+async function claimSend(
+  deliveryRef: DocumentReference,
+  transitionIdentity: string,
+  transitionHash: string,
+  leadId: string
+): Promise<SendClaim> {
+  const db = getFirestore();
+  const claimId = randomUUID();
+
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(deliveryRef);
+    const existing = snap.data() || {};
+
+    if (existing.status === "completed") {
+      return {
+        state: "completed",
+        emailId: clean(existing.emailId),
+      };
+    }
+
+    const leaseUntil = existing.leaseUntil?.toDate?.();
+    if (
+      existing.status === "processing" &&
+      leaseUntil instanceof Date &&
+      leaseUntil.getTime() > Date.now()
+    ) {
+      return { state: "busy" };
+    }
+
+    tx.set(
+      deliveryRef,
+      {
+        transitionIdentity,
+        transitionHash,
+        transitionMarker: TRANSITION_MARKER,
+        leadId,
+        status: "processing",
+        claimId,
+        leaseUntil: Timestamp.fromMillis(Date.now() + CLAIM_LEASE_MS),
+        attemptCount: FieldValue.increment(1),
+        providerIdempotencyKey:
+          gatekeeperProviderIdempotencyKey(transitionHash),
+        updatedAt: FieldValue.serverTimestamp(),
+        createdAt: existing.createdAt || FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return { state: "claimed", claimId };
+  });
+}
+
+async function markDeliveryFailed(
+  deliveryRef: DocumentReference,
+  claimId: string,
+  message: string
+) {
+  const db = getFirestore();
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(deliveryRef);
+    const delivery = snap.data() || {};
+
+    if (
+      delivery.status !== "processing" ||
+      delivery.claimId !== claimId
+    ) {
+      return;
+    }
+
+    tx.set(
+      deliveryRef,
+      {
+        status: "failed",
+        lastError: message,
+        leaseUntil: null,
+        failedAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  });
+}
+
+async function markDeliveryCompleted(
+  deliveryRef: DocumentReference,
+  claimId: string,
+  emailId: string
+) {
+  const db = getFirestore();
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(deliveryRef);
+    const delivery = snap.data() || {};
+
+    if (delivery.status === "completed") {
+      return;
+    }
+
+    if (
+      delivery.status !== "processing" ||
+      delivery.claimId !== claimId
+    ) {
+      throw new Error(
+        "Gatekeeper delivery claim was lost before completion."
+      );
+    }
+
+    tx.set(
+      deliveryRef,
+      {
+        status: "completed",
+        emailId,
+        completedAt: FieldValue.serverTimestamp(),
+        leaseUntil: null,
+        lastError: "",
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+  });
+}
+
+async function syncConfirmationSent(
+  leadRef: DocumentReference,
+  appointmentRef: DocumentReference,
+  emailId: string
+) {
+  await markConfirmationSent(leadRef, emailId);
+  await markConfirmationSent(appointmentRef, emailId);
+}
+
+function snapshotUpdateTime(snapshot: DocumentSnapshot): string {
+  const updateTime = snapshot.updateTime;
+  if (!updateTime) {
+    throw new Error("Gatekeeper snapshot update time is missing.");
+  }
+
+  return `${updateTime.seconds}.${String(updateTime.nanoseconds).padStart(9, "0")}`;
+}
+
+export async function handleGatekeeperUpdate(
+  change: { before: DocumentSnapshot; after: DocumentSnapshot },
+  leadIdInput: string,
+  resendKey: string
+): Promise<void> {
         const before =
           change.before.data() as AppointmentLead;
 
@@ -76,19 +244,33 @@ export const sendGatekeeperEmail =
           return;
         }
 
-        const leadId =
-          clean(
-            context.params.leadId
+        const leadId = clean(leadIdInput);
+        if (!leadId) {
+          throw new Error("Gatekeeper lead identity is missing.");
+        }
+
+        const transitionIdentity =
+          gatekeeperTransitionIdentity(
+            leadId,
+            snapshotUpdateTime(change.after)
           );
+        const transitionHash =
+          gatekeeperTransitionHash(transitionIdentity);
+        const db = getFirestore();
 
         const appointmentRef =
-          getFirestore()
+          db
             .collection(
               "admissions_appointments"
             )
             .doc(
               leadId
             );
+
+        const deliveryRef =
+          db
+            .collection("gatekeeperEmailDeliveries")
+            .doc(transitionHash);
 
         const parentEmail =
           clean(
@@ -120,11 +302,6 @@ export const sendGatekeeperEmail =
           return;
         }
 
-        const resendKey =
-          functions
-            .config()
-            .resend?.key;
-
         /*
          * Missing Resend configuration
          */
@@ -149,6 +326,31 @@ export const sendGatekeeperEmail =
           return;
         }
 
+        const claim =
+          await claimSend(
+            deliveryRef,
+            transitionIdentity,
+            transitionHash,
+            leadId
+          );
+
+        if (claim.state === "completed") {
+          await syncConfirmationSent(
+            change.after.ref,
+            appointmentRef,
+            claim.emailId
+          );
+          return;
+        }
+
+        if (claim.state === "busy") {
+          throw new Error(
+            "Gatekeeper email event is already being processed."
+          );
+        }
+
+        let providerCompleted = false;
+
         try {
           const email =
             buildAppointmentEmail(
@@ -163,25 +365,31 @@ export const sendGatekeeperEmail =
           const result =
             await resend
               .emails
-              .send({
-                from:
-                  "Sandman Combat <join@sandmancombat.com>",
+              .send(
+                {
+                  from:
+                    "Sandman Combat <join@sandmancombat.com>",
 
-                replyTo:
-                  "joinsandmancombat@gmail.com",
+                  replyTo:
+                    "joinsandmancombat@gmail.com",
 
-                to:
-                  parentEmail,
+                  to:
+                    parentEmail,
 
-                subject:
-                  email.subject,
+                  subject:
+                    email.subject,
 
-                text:
-                  email.text,
+                  text:
+                    email.text,
 
-                html:
-                  email.html
-              });
+                  html:
+                    email.html
+                },
+                {
+                  idempotencyKey:
+                    gatekeeperProviderIdempotencyKey(transitionHash),
+                }
+              );
 
           if (result.error) {
             throw new Error(
@@ -193,6 +401,19 @@ export const sendGatekeeperEmail =
           const emailId =
             result.data?.id || "";
 
+          providerCompleted = true;
+
+          /*
+           * Record provider completion first.
+           * A retry can recover this email ID and
+           * finish either interrupted status write.
+           */
+          await markDeliveryCompleted(
+            deliveryRef,
+            claim.claimId,
+            emailId
+          );
+
           /*
            * Synchronize BOTH records.
            *
@@ -200,12 +421,8 @@ export const sendGatekeeperEmail =
            * admissions_appointments drives the
            * Management appointment workspace.
            */
-          await markConfirmationSent(
+          await syncConfirmationSent(
             change.after.ref,
-            emailId
-          );
-
-          await markConfirmationSent(
             appointmentRef,
             emailId
           );
@@ -245,19 +462,65 @@ export const sendGatekeeperEmail =
             error
           );
 
-          /*
-           * Keep Management and the lead
-           * record synchronized on failure too.
-           */
-          await markConfirmationFailed(
-            change.after.ref,
-            message
-          );
+          if (!providerCompleted) {
+            await markDeliveryFailed(
+              deliveryRef,
+              claim.claimId,
+              message
+            );
 
-          await markConfirmationFailed(
-            appointmentRef,
-            message
-          );
+            /*
+             * Preserve the existing failed status
+             * only when Resend has not completed.
+             */
+            await markConfirmationFailed(
+              change.after.ref,
+              message
+            );
+
+            await markConfirmationFailed(
+              appointmentRef,
+              message
+            );
+          }
+
+          /*
+           * retry:true redelivers the same event.
+           * The durable event record and Resend
+           * idempotency key prevent a new send.
+           */
+          throw error;
         }
-      }
+}
+
+export const sendGatekeeperEmail = functions
+  .runWith({
+    secrets: [RESEND_API_KEY],
+    failurePolicy: true,
+  })
+  .firestore.document("interest_leads/{leadId}")
+  .onUpdate(async (change, context) => {
+    await handleGatekeeperUpdate(
+      change,
+      clean(context.params.leadId),
+      RESEND_API_KEY.value()
     );
+  });
+
+export const sendGatekeeperEmailV2 = onDocumentUpdated(
+  {
+    document: "interest_leads/{leadId}",
+    secrets: [RESEND_API_KEY],
+    retry: true,
+  },
+  async (event) => {
+    const change = event.data;
+    if (!change) return;
+
+    await handleGatekeeperUpdate(
+      change,
+      clean(event.params.leadId),
+      RESEND_API_KEY.value()
+    );
+  }
+);

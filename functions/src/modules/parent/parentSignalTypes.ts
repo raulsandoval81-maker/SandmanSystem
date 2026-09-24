@@ -47,3 +47,24 @@ export type ParentSignalType =
   typeof PARENT_SIGNAL_TYPES[
     keyof typeof PARENT_SIGNAL_TYPES
   ];
+
+export type ParentInboxRetentionClass = "standard" | "audit";
+
+const AUDIT_RETENTION_TYPES = new Set<string>([
+  PARENT_SIGNAL_TYPES.TEST_PASSED,
+  PARENT_SIGNAL_TYPES.TEST_FAILED,
+  PARENT_SIGNAL_TYPES.TEST_FREEZE,
+  PARENT_SIGNAL_TYPES.PROMOTED,
+  PARENT_SIGNAL_TYPES.PROGRAM_FROZEN,
+  PARENT_SIGNAL_TYPES.MINOR_INFRACTION,
+  PARENT_SIGNAL_TYPES.SEMI_MAJOR_INFRACTION,
+  PARENT_SIGNAL_TYPES.MAJOR_INFRACTION,
+]);
+
+export function parentInboxRetentionClass(
+  type: unknown
+): ParentInboxRetentionClass {
+  return AUDIT_RETENTION_TYPES.has(String(type || "").trim())
+    ? "audit"
+    : "standard";
+}

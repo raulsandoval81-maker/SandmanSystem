@@ -7,7 +7,6 @@ admin.initializeApp();
 ========================= */
 
 export { ping } from "./modules/ping";
-export { testXpWrite } from "./modules/testXpWrite";
 export { testAthleteXp } from "./modules/testAthleteXp";
 
 /* =========================
@@ -73,15 +72,7 @@ export {
    ENGINE TESTING
 ========================= */
 
-export { testAthleteLoader } from "./modules/testAthleteLoader";
-
 export { testAthleteNormalizer } from "./modules/testAthleteNormalizer";
-
-export { testStripeEngine } from "./modules/testStripeEngine";
-
-export { testTestingEngine } from "./modules/testTestingEngine";
-
-export { testPromotionEngine } from "./modules/testPromotionEngine";
 
 export { testCertificatePayloadEngine }
   from "./modules/testCertificatePayloadEngine";
@@ -160,6 +151,7 @@ export {
 
 export {
   sendGatekeeperEmail,
+  sendGatekeeperEmailV2,
 } from "./modules/gatekeeper/sendGatekeeperEmail";
 
 export {

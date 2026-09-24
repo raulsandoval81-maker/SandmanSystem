@@ -1,5 +1,6 @@
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { TestingEventPayload } from "./testingEventTypes";
+import { parentInboxRetentionClass } from "../parent/parentSignalTypes";
 
 export async function writeParentTestingPing(
   payload: TestingEventPayload
@@ -57,6 +58,10 @@ export async function writeParentTestingPing(
     message,
 
     read: false,
+    archived: false,
+    archivedAt: null,
+    retentionClass:
+      parentInboxRetentionClass(payload.type),
 
     createdAt: FieldValue.serverTimestamp()
   });

@@ -1,8 +1,10 @@
+import { createHash } from "node:crypto";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 import {
   PARENT_SIGNAL_TYPES,
   ParentSignalType,
+  parentInboxRetentionClass,
 } from "./parentSignalTypes";
 
 import { buildParentMessage } from "./buildParentMessage";
@@ -17,6 +19,7 @@ type CreateParentSignalInput = {
 
   source?: string;
   sourceId?: string;
+  idempotencyKey?: string;
 
   tournamentId?: string;
   tournamentTitle?: string;
@@ -79,13 +82,10 @@ export async function createParentSignal(
     };
   }
 
-  const batch = db.batch();
+  const idempotencyKey =
+    String(input.idempotencyKey || "").trim();
 
-  parentUids.forEach((parentUid) => {
-    const ref =
-      db.collection("parentInbox").doc();
-
-    batch.set(ref, {
+  const signalPayload = (parentUid: string) => ({
       athleteId,
       athleteName:
         input.athleteName || athleteId,
@@ -100,6 +100,10 @@ export async function createParentSignal(
         input.note || null,
 
       read: false,
+      archived: false,
+      archivedAt: null,
+      retentionClass:
+        parentInboxRetentionClass(input.type),
 
       source:
         input.source || "system",
@@ -116,9 +120,37 @@ export async function createParentSignal(
       createdAt:
         FieldValue.serverTimestamp(),
     });
-  });
 
-  await batch.commit();
+  if (idempotencyKey) {
+    const refs = parentUids.map((parentUid) =>
+      db.collection("parentInbox").doc(
+        createHash("sha256")
+          .update(`${parentUid}|${idempotencyKey}`)
+          .digest("hex")
+      )
+    );
+
+    await db.runTransaction(async (tx) => {
+      const snapshots = [];
+      for (const ref of refs) {
+        snapshots.push(await tx.get(ref));
+      }
+      snapshots.forEach((snapshot, index) => {
+        if (!snapshot.exists) {
+          tx.create(refs[index], signalPayload(parentUids[index]));
+        }
+      });
+    });
+  } else {
+    const batch = db.batch();
+    parentUids.forEach((parentUid) => {
+      batch.set(
+        db.collection("parentInbox").doc(),
+        signalPayload(parentUid)
+      );
+    });
+    await batch.commit();
+  }
 
   return {
     ok: true,
