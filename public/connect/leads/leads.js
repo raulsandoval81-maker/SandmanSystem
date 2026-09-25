@@ -8,7 +8,6 @@ import {
   doc,
   updateDoc,
   setDoc,
-  deleteDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 
@@ -27,8 +26,8 @@ const refreshBtn = document.getElementById("refreshBtn");
 
 const countAll = document.getElementById("countAll");
 const countNew = document.getElementById("countNew");
-const countContacted = document.getElementById("countContacted");
-const countAppointments = document.getElementById("countAppointments");
+const countWaiting = document.getElementById("countWaiting");
+const countIssue = document.getElementById("countIssue");
 
 let leads = [];
 let managementContext = null;
@@ -66,18 +65,47 @@ function formatDate(value) {
     : "—";
 }
 
-function labelForStatus(status = "new") {
-  const labels = {
-    new: "New",
-    contacted: "Contacted",
-    appointment_scheduled: "Appointment Scheduled",
-    ready_for_proposal: "Ready for Proposal",
-    intake_started: "Intake Started",
-    converted: "Converted",
-    closed: "Closed"
-  };
+function timestampMillis(value) {
+  if (!value) return 0;
+  if (typeof value?.toMillis === "function") return value.toMillis();
+  const millis = new Date(value).getTime();
+  return Number.isFinite(millis) ? millis : 0;
+}
 
-  return labels[status] || status;
+function triageForLead(lead, now = Date.now()) {
+  const createdAt = timestampMillis(lead.createdAt);
+  if (!createdAt) return { key: "issue", label: "Issue", age: "Age unavailable" };
+
+  const ageHours = Math.max(0, (now - createdAt) / 3_600_000);
+  if (ageHours < 24) {
+    return { key: "new", label: "New", age: `${Math.floor(ageHours)}h old` };
+  }
+  if (ageHours < 72) {
+    return { key: "waiting", label: "Waiting", age: `${Math.floor(ageHours)}h old` };
+  }
+  return { key: "issue", label: "Issue", age: `${Math.floor(ageHours / 24)}d old` };
+}
+
+function isActiveLead(lead) {
+  const status = String(lead.leadStatus || lead.status || "new").trim();
+  const downstreamStatuses = new Set([
+    "appointment_scheduled",
+    "ready_for_proposal",
+    "ready_for_intake",
+    "ready_to_enroll",
+    "ready-to-enroll",
+    "intake_started",
+    "converted",
+    "closed"
+  ]);
+
+  return !(
+    downstreamStatuses.has(status) ||
+    lead.processedToAppointment === true ||
+    lead.appointmentStatus === "scheduled" ||
+    lead.appointment?.status === "scheduled" ||
+    lead.walkInEnrollment === true
+  );
 }
 
 function labelForProgram(program = "") {
@@ -87,6 +115,8 @@ function labelForProgram(program = "") {
 
     "zero2hero-kickboxing": "Road2Champion Muay Thai",
     "z2h-kickboxing": "Road2Champion Muay Thai",
+    "zero2hero-muay-thai": "Road2Champion Muay Thai",
+    "z2h-muay-thai": "Road2Champion Muay Thai",
 
     "path2legend-wrestling": "Path2Legend Wrestling",
     "p2l-wrestling": "Path2Legend Wrestling",
@@ -122,9 +152,20 @@ function labelForMeetingWindow(value = "") {
 function labelForPreferredPlan(value = "") {
   const labels = {
     "standard-2-3":
-      "Standard Plan — 2–3 days/week"
+      "Standard Plan — 2–3 days/week",
+    "plus-4-6":
+      "Plus Plan — 4–6 days/week"
   };
 
+  return labels[value] || value || "—";
+}
+
+function labelForLocation(value = "") {
+  const labels = {
+    "santa-ynez-valley": "Santa Ynez Valley",
+    lompoc: "Lompoc",
+    "elk-grove": "Elk Grove"
+  };
   return labels[value] || value || "—";
 }
 
@@ -176,26 +217,13 @@ function labelForClassTime(value = "") {
 
 function updateCounts() {
   if (countAll) countAll.textContent = leads.length;
-
-  if (countNew) {
-    countNew.textContent =
-      leads.filter((lead) => lead.status === "new").length;
-  }
-
-  if (countContacted) {
-    countContacted.textContent =
-      leads.filter((lead) => lead.status === "contacted").length;
-  }
-
-  if (countAppointments) {
-countAppointments.textContent =
-  leads.filter((lead) =>
-    lead.appointmentStatus === "scheduled" ||
-    lead.appointment?.status === "scheduled" ||
-    lead.status === "appointment_scheduled"
-  ).length;
-
-  }
+  const counts = { new: 0, waiting: 0, issue: 0 };
+  leads.forEach((lead) => {
+    counts[triageForLead(lead).key] += 1;
+  });
+  if (countNew) countNew.textContent = counts.new;
+  if (countWaiting) countWaiting.textContent = counts.waiting;
+  if (countIssue) countIssue.textContent = counts.issue;
 }
 
 function filteredLeads() {
@@ -211,17 +239,12 @@ function filteredLeads() {
     String(programFilter?.value || "all");
 
   return leads.filter((lead) => {
-const leadStatus =
-  lead.leadStatus ||
-  lead.status ||
-  "new";
-
-if (
-  wantedStatus !== "all" &&
-  leadStatus !== wantedStatus
-) {
-  return false;
-}
+    if (
+      wantedStatus !== "all" &&
+      triageForLead(lead).key !== wantedStatus
+    ) {
+      return false;
+    }
 
     if (
       wantedProgram !== "all" &&
@@ -247,32 +270,6 @@ if (
   });
 }
 
-function statusOptions(selected = "new") {
-  const values = [
-    "new",
-    "contacted",
-    "appointment_scheduled",
-    "ready_for_proposal",
-    "intake_started",
-    "converted",
-    "closed"
-  ];
-
-  return values
-    .map((value) => {
-      const isSelected =
-        value === selected
-          ? "selected"
-          : "";
-
-      return `
-        <option value="${value}" ${isSelected}>
-          ${labelForStatus(value)}
-        </option>
-      `;
-    })
-    .join("");
-}
 function labelForClaimedExperienceRange(value = "") {
   const labels = {
     "under-1": "Less than 1 year",
@@ -371,10 +368,7 @@ function render() {
 
   leadList.innerHTML = list
     .map((lead) => {
-        const status =
-        lead.leadStatus ||
-        lead.status ||
-        "new";
+      const triage = triageForLead(lead);
 
       return `
         <article class="lead-card" data-id="${esc(lead.id)}">
@@ -389,8 +383,8 @@ function render() {
               </div>
             </div>
 
-            <span class="status-badge status-${esc(status)}">
-              ${esc(labelForStatus(status))}
+            <span class="status-badge triage-${esc(triage.key)}">
+              ${esc(triage.label)} · ${esc(triage.age)}
             </span>
           </header>
 
@@ -413,7 +407,7 @@ function render() {
             <div>
               <span class="field-label">Preferred Academy</span>
               <div class="field-value">
-                ${esc(lead.locationId || "—")}
+                ${esc(labelForLocation(lead.locationId))}
               </div>
             </div>
 
@@ -475,17 +469,13 @@ function render() {
           </div>
 
 <div class="lead-actions">
-  <select data-status-select="${esc(lead.id)}">
-    ${statusOptions(status)}
-  </select>
-
-  <button
-    class="save-btn"
-    type="button"
-    data-save-status="${esc(lead.id)}"
-  >
-    Save Status
-  </button>
+  ${lead.contactedAt ? `
+    <span class="contacted-note">Contacted ${esc(formatDate(lead.contactedAt))}</span>
+  ` : `
+    <button class="save-btn" type="button" data-mark-contacted="${esc(lead.id)}">
+      Mark Contacted
+    </button>
+  `}
 
   <a
     class="save-btn"
@@ -503,11 +493,11 @@ function render() {
   </button>
 
   <button
-    class="save-btn delete-btn"
+    class="save-btn close-btn"
     type="button"
-    data-delete-lead="${esc(lead.id)}"
+    data-close-lead="${esc(lead.id)}"
   >
-    Delete Lead
+    Close Lead
   </button>
 </div>
 
@@ -654,21 +644,13 @@ async function loadLeads() {
       }
     }
 
-    leads = Array.from(
-      leadMap.values()
-    )
+    leads = Array.from(leadMap.values())
+      .filter(isActiveLead)
       .sort((a, b) => {
-        const aDate =
-          typeof a.createdAt?.toMillis === "function"
-            ? a.createdAt.toMillis()
-            : 0;
-
-        const bDate =
-          typeof b.createdAt?.toMillis === "function"
-            ? b.createdAt.toMillis()
-            : 0;
-
-        return bDate - aDate;
+        const priority = { issue: 0, waiting: 1, new: 2 };
+        const triageDifference =
+          priority[triageForLead(a).key] - priority[triageForLead(b).key];
+        return triageDifference || timestampMillis(a.createdAt) - timestampMillis(b.createdAt);
       });
 
     updateCounts();
@@ -684,154 +666,51 @@ async function loadLeads() {
     );
   }
 }
-async function deleteLead(leadId) {
-
-  const ok = confirm(
-    "Delete this lead permanently?\n\nThis cannot be undone."
-  );
-
-  if (!ok) return;
+async function markContacted(leadId) {
+  const lead = leads.find((item) => item.id === leadId);
+  if (!lead || lead.contactedAt) return;
 
   try {
-
-    await deleteDoc(
-      doc(db, "interest_leads", leadId)
-    );
-
-    alert("Lead deleted.");
-
-    loadLeads();
-
-  } catch (err) {
-
-    console.error(err);
-
-    alert("Unable to delete lead.");
+    setStatus("Marking lead contacted...");
+    await updateDoc(doc(db, "interest_leads", leadId), {
+      contactedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+    lead.contactedAt = new Date();
+    render();
+    setStatus("Lead marked contacted.");
+  } catch (error) {
+    console.error("[leads] contact update failed:", error);
+    setStatus("Unable to mark lead contacted.", true);
   }
-
 }
 
-async function saveStatus(leadId) {
-  const select =
-    document.querySelector(
-      `[data-status-select="${CSS.escape(leadId)}"]`
-    );
-
-  if (!select) return;
-
-  const nextStatus = select.value;
-
-  const lead =
-    leads.find((item) => item.id === leadId);
-
+async function closeLead(leadId) {
+  const lead = leads.find((item) => item.id === leadId);
   if (!lead) return;
 
+  const confirmed = window.confirm(
+    "Close this lead? It will remain available in Pipeline History."
+  );
+  if (!confirmed) return;
+
   try {
-    setStatus("Saving status...");
+    setStatus("Closing lead...");
+    const updates = {
+      leadStatus: "closed",
+      status: "closed",
+      updatedAt: serverTimestamp()
+    };
+    if (!lead.closedAt) updates.closedAt = serverTimestamp();
 
-  const updates = {
-     leadStatus: nextStatus,
-     status: nextStatus, // temporary compatibility
-     updatedAt: serverTimestamp()
-   };
-    if (
-      nextStatus === "contacted" &&
-      !lead.contactedAt
-    ) {
-      updates.contactedAt = serverTimestamp();
-    }
-
-    if (
-      nextStatus === "appointment_scheduled" &&
-      !lead.appointmentScheduledAt
-    ) {
-      updates.appointmentScheduledAt =
-        serverTimestamp();
-    }
-
-    if (
-      nextStatus === "intake_started" &&
-      !lead.intakeStartedAt
-    ) {
-      updates.intakeStartedAt =
-        serverTimestamp();
-    }
-
-    if (
-      nextStatus === "converted" &&
-      !lead.enrolledAt
-    ) {
-      updates.enrolledAt =
-        serverTimestamp();
-    }
-
-    if (
-      nextStatus === "closed" &&
-      !lead.closedAt
-    ) {
-      updates.closedAt =
-        serverTimestamp();
-    }
-
-
-
-    await updateDoc(
-      doc(db, "interest_leads", leadId),
-      updates
-    );
-
-     lead.leadStatus = nextStatus;
-     lead.status = nextStatus;
-
-    if (
-      nextStatus === "contacted" &&
-      !lead.contactedAt
-    ) {
-      lead.contactedAt = new Date();
-    }
-
-    if (
-      nextStatus === "appointment_scheduled" &&
-      !lead.appointmentScheduledAt
-    ) {
-      lead.appointmentScheduledAt = new Date();
-    }
-
-    if (
-      nextStatus === "intake_started" &&
-      !lead.intakeStartedAt
-    ) {
-      lead.intakeStartedAt = new Date();
-    }
-
-    if (
-      nextStatus === "converted" &&
-      !lead.enrolledAt
-    ) {
-      lead.enrolledAt = new Date();
-    }
-
-    if (
-      nextStatus === "closed" &&
-      !lead.closedAt
-    ) {
-      lead.closedAt = new Date();
-    }
-
+    await updateDoc(doc(db, "interest_leads", leadId), updates);
+    leads = leads.filter((item) => item.id !== leadId);
     updateCounts();
     render();
-
-    setStatus("Lead status updated.");
+    setStatus("Lead closed and retained in Pipeline History.");
   } catch (error) {
-    console.error(
-      "[leads] status update failed:",
-      error
-    );
-
-    setStatus(
-      "Unable to update lead status.",
-      true
-    );
+    console.error("[leads] close failed:", error);
+    setStatus("Unable to close lead.", true);
   }
 }
 
@@ -1039,11 +918,11 @@ refreshBtn?.addEventListener("click", loadLeads);
 
 leadList?.addEventListener("click", (event) => {
 
-  const saveButton =
-    event.target.closest("[data-save-status]");
+  const contactedButton =
+    event.target.closest("[data-mark-contacted]");
 
-  if (saveButton) {
-    saveStatus(saveButton.dataset.saveStatus);
+  if (contactedButton) {
+    markContacted(contactedButton.dataset.markContacted);
     return;
   }
 
@@ -1059,11 +938,11 @@ leadList?.addEventListener("click", (event) => {
     return;
   }
 
-  const deleteButton =
-    event.target.closest("[data-delete-lead]");
+  const closeButton =
+    event.target.closest("[data-close-lead]");
 
-  if (deleteButton) {
-    deleteLead(deleteButton.dataset.deleteLead);
+  if (closeButton) {
+    closeLead(closeButton.dataset.closeLead);
     return;
   }
 

@@ -266,10 +266,38 @@ textarea:focus{
   background:rgba(113,113,122,.16);
 }
 
+.triage-new{
+  color:#fde68a;
+  background:rgba(250,204,21,.13);
+}
+
+.triage-waiting{
+  color:#93c5fd;
+  background:rgba(59,130,246,.14);
+}
+
+.triage-issue{
+  color:#fca5a5;
+  background:rgba(239,68,68,.14);
+}
+
 .lead-actions{
   display:grid;
-  grid-template-columns:minmax(180px,240px) auto;
+  grid-template-columns:repeat(4,minmax(0,auto));
   gap:10px;
+  align-items:center;
+  justify-content:start;
+}
+
+.contacted-note{
+  color:var(--muted);
+  font-size:.86rem;
+  overflow-wrap:anywhere;
+}
+
+.close-btn{
+  border-color:#7f1d1d;
+  background:#3f1212;
 }
 
 .save-btn{

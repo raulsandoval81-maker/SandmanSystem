@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Pipeline History | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="./pipeline-history.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+</head>
+<body data-management-area="pipeline-history">
+  <main class="history-page">
+    <header class="history-header management-workspace-header">
+      <div>
+        <p class="eyebrow">Academy Management · Pipeline / Core</p>
+        <h1>Pipeline History</h1>
+        <p>Read-only history for every lead in your authorized academy scope.</p>
+      </div>
+    </header>
+
+    <section class="history-toolbar" aria-label="Pipeline history filters">
+      <label>
+        Search
+        <input id="historySearch" type="search" placeholder="Search athlete, parent, email, or lead ID">
+      </label>
+      <label>
+        Academy
+        <select id="academyFilter"><option value="all">All Academies</option></select>
+      </label>
+      <label>
+        Current Stage
+        <select id="stageFilter"><option value="all">All Stages</option></select>
+      </label>
+    </section>
+
+    <p id="historyStatus" class="history-status" role="status" aria-live="polite">Loading pipeline history…</p>
+    <section id="historyList" class="history-list" aria-label="Pipeline history"></section>
+  </main>
+
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="./pipeline-history.js"></script>
+</body>
+</html>

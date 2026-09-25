@@ -85,7 +85,7 @@
 
     <section class="summary-grid">
       <article class="summary-card">
-        <span>All Leads</span>
+        <span>All Active</span>
         <strong id="countAll">0</strong>
       </article>
 
@@ -95,13 +95,13 @@
       </article>
 
       <article class="summary-card">
-        <span>Contacted</span>
-        <strong id="countContacted">0</strong>
+        <span>Waiting</span>
+        <strong id="countWaiting">0</strong>
       </article>
 
       <article class="summary-card">
-        <span>Appointments</span>
-        <strong id="countAppointments">0</strong>
+        <span>Issue</span>
+        <strong id="countIssue">0</strong>
       </article>
     </section>
 
@@ -117,17 +117,13 @@
       </label>
 
       <label>
-        Status
+        Attention
 
         <select id="statusFilter">
-          <option value="all">All Statuses</option>
+          <option value="all">All Active</option>
           <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="appointment_scheduled">Appointment Scheduled</option>
-          <option value="ready_for_proposal">Ready for Proposal</option>
-          <option value="intake_started">Intake Started</option>
-          <option value="converted">Converted</option>
-          <option value="closed">Closed</option>
+          <option value="waiting">Waiting</option>
+          <option value="issue">Issue</option>
         </select>
       </label>
 
