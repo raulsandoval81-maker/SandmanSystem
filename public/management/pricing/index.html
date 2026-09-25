@@ -16,7 +16,7 @@
 
   <link
     rel="stylesheet"
-    href="./pricing.css"
+    href="./pricing.css?v=3"
   />
   <link rel="stylesheet" href="/management/hub/management.css" />
 </head>
@@ -300,14 +300,28 @@
         </button>
 
         <button
-          id="printBtn"
-          class="button button-primary"
+          id="sendEstimateBtn"
+          class="button"
           type="button"
         >
-          Print / Send Estimate
+          Send Estimate
         </button>
-        <button id="continueProposalBtn" class="button button-primary" type="button" hidden>
-          Continue to Proposal
+
+        <button
+          id="printBtn"
+          class="button"
+          type="button"
+        >
+          Print Estimate
+        </button>
+
+        <button
+          id="continueProposalBtn"
+          class="button button-primary"
+          type="button"
+          hidden
+        >
+          Proceed
         </button>
       </div>
 
@@ -321,6 +335,13 @@
 
 
 
+
+
+    <section
+      id="customerEstimate"
+      class="customer-estimate"
+      aria-label="Customer membership estimate"
+    ></section>
 
 
   </main>
@@ -521,7 +542,7 @@
 
   <script
     type="module"
-    src="./pricing.js"
+    src="./pricing.js?v=3"
   ></script>
 
 </body>

@@ -492,3 +492,154 @@ body {
     position: static;
   }
 }
+
+
+/* =========================================================
+   CUSTOMER ESTIMATE
+   Management builds it; customers receive only this view.
+   ========================================================= */
+
+.customer-estimate {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.55in;
+  }
+
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  .management-sidebar,
+  .management-header {
+    display: none !important;
+  }
+
+  .pricing-wrap {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .pricing-wrap > *:not(.customer-estimate) {
+    display: none !important;
+  }
+
+  .customer-estimate {
+    display: block !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    color: #111 !important;
+    background: #fff !important;
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+
+  .customer-estimate-brand {
+    padding-bottom: 12px;
+    border-bottom: 2px solid #111;
+    font-size: 12pt;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  .customer-estimate h1 {
+    margin: 24px 0 20px;
+    color: #111 !important;
+    font-size: 26pt;
+    line-height: 1.05;
+  }
+
+  .customer-estimate-members {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .customer-estimate-member {
+    display: grid;
+    gap: 3px;
+  }
+
+  .customer-estimate-member strong {
+    font-size: 13pt;
+  }
+
+  .customer-estimate-member span {
+    color: #444 !important;
+    font-size: 10.5pt;
+  }
+
+  .customer-estimate-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 22px;
+  }
+
+  .customer-estimate-table th,
+  .customer-estimate-table td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #ccc;
+    color: #111 !important;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .customer-estimate-table thead th {
+    border-bottom: 2px solid #111;
+    font-size: 9.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .customer-estimate-table tbody th {
+    font-size: 10.5pt;
+  }
+
+  .customer-estimate-table td {
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .customer-estimate-enrollment {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 10px;
+    border: 1px solid #bbb;
+    font-size: 11pt;
+  }
+
+  .customer-estimate-upgrade {
+    margin: 22px 0;
+    padding: 14px 16px;
+    border: 1px solid #bbb;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .customer-estimate-footer {
+    margin-top: 26px;
+    padding-top: 14px;
+    border-top: 1px solid #bbb;
+    color: #555 !important;
+    font-size: 9pt;
+    line-height: 1.45;
+  }
+
+  .customer-estimate-footer p {
+    margin: 4px 0;
+  }
+}

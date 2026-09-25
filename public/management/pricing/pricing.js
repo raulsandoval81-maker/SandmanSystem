@@ -50,6 +50,12 @@ const resetBtn =
 const printBtn =
   document.getElementById("printBtn");
 
+const sendEstimateBtn =
+  document.getElementById("sendEstimateBtn");
+
+const customerEstimate =
+  document.getElementById("customerEstimate");
+
 const combatMembershipRow =
   document.getElementById(
     "combatMembershipRow"
@@ -776,6 +782,307 @@ function addAthlete(defaults = {}) {
 }
 
 
+
+const BILLING_ESTIMATE_OPTIONS = [
+  {
+    value: "month-to-month",
+    label: "Month-to-month"
+  },
+  {
+    value: "six-month",
+    label: "6-month agreement + autopay"
+  },
+  {
+    value: "annual",
+    label: "12-month agreement + autopay"
+  }
+];
+
+const JOURNEY_LABELS = {
+  zero2hero: "Road2Champion",
+  path2legend: "Path2Legend",
+  quest2mastery: "Quest2Mastery"
+};
+
+const DISCIPLINE_LABELS = {
+  wrestling: "Wrestling",
+  boxing: "Boxing",
+  "muay-thai": "Muay Thai"
+};
+
+function estimateEscape(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function estimateAccessLabel(athlete) {
+  if (athlete.plan === "fitness") {
+    return `${athlete.trainingAccess} days/week`;
+  }
+
+  return (
+    SANDMAN_PRICING_CATALOG
+      .combat
+      .accessLevels[
+        athlete.trainingAccess
+      ]?.label ||
+    athlete.trainingAccess ||
+    "Combat"
+  );
+}
+
+function estimateMemberDescription(athlete) {
+  if (athlete.plan === "fitness") {
+    return `Fitness Only · ${estimateAccessLabel(athlete)}`;
+  }
+
+  const journey =
+    JOURNEY_LABELS[athlete.journey] ||
+    athlete.journey ||
+    "Combat";
+
+  const disciplines =
+    athlete.disciplines
+      .map(
+        (discipline) =>
+          DISCIPLINE_LABELS[discipline] ||
+          discipline
+      )
+      .join(" + ");
+
+  return [
+    journey,
+    disciplines,
+    estimateAccessLabel(athlete)
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function calculateEstimateForBillingTerm(
+  athletes,
+  billingTerm
+) {
+  const scenarioAthletes =
+    athletes.map(
+      (athlete) => ({
+        ...athlete,
+        billingTerm:
+          athlete.plan === "standard"
+            ? billingTerm
+            : athlete.billingTerm
+      })
+    );
+
+  return calculateManagementEstimate(
+    scenarioAthletes,
+    {
+      startDate:
+        enrollmentStartDate?.value,
+
+      enrollmentSupportPercent:
+        enrollmentSupport?.value,
+
+      monthlySponsorPercent:
+        monthlySponsor?.value,
+
+      promotionAmount:
+        appliedPromotion?.amount || 0
+    }
+  );
+}
+
+function buildCustomerEstimate() {
+  const athletes = readAthletes();
+
+  const comparisons =
+    BILLING_ESTIMATE_OPTIONS.map(
+      (option) => ({
+        ...option,
+        estimate:
+          calculateEstimateForBillingTerm(
+            athletes,
+            option.value
+          )
+      })
+    );
+
+  const annualEnrollment =
+    comparisons[0]?.estimate
+      ?.annualEnrollment || 0;
+
+  const memberHtml =
+    athletes
+      .map(
+        (athlete) => `
+          <div class="customer-estimate-member">
+            <strong>
+              ${estimateEscape(athlete.name)}
+            </strong>
+
+            <span>
+              ${estimateEscape(
+                estimateMemberDescription(
+                  athlete
+                )
+              )}
+            </span>
+          </div>
+        `
+      )
+      .join("");
+
+  const rowsHtml =
+    comparisons
+      .map(
+        ({ label, estimate }) => `
+          <tr>
+            <th scope="row">
+              ${estimateEscape(label)}
+            </th>
+
+            <td>
+              ${money(
+                estimate.monthlyMembership
+              )}
+            </td>
+
+            <td>
+              ${money(
+                estimate.dueAtEnrollment
+              )}
+            </td>
+          </tr>
+        `
+      )
+      .join("");
+
+  const html = `
+    <div class="customer-estimate-brand">
+      Sandman Academy of Combat &amp; Fitness™
+    </div>
+
+    <h1>
+      Membership Estimate
+    </h1>
+
+    <div class="customer-estimate-members">
+      ${memberHtml}
+    </div>
+
+    <table class="customer-estimate-table">
+      <thead>
+        <tr>
+          <th>
+            Billing option
+          </th>
+
+          <th>
+            Monthly
+          </th>
+
+          <th>
+            Due at enrollment
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+
+    <div class="customer-estimate-enrollment">
+      <span>
+        Annual Enrollment
+      </span>
+
+      <strong>
+        ${money(annualEnrollment)}
+      </strong>
+    </div>
+
+    <p class="customer-estimate-upgrade">
+      Want more training access?
+      Ask us how to upgrade your plan.
+    </p>
+
+    <div class="customer-estimate-footer">
+      <p>
+        Estimated pricing — not an enrollment agreement.
+      </p>
+
+      <p>
+        AAU or other governing-body membership is
+        purchased separately by the family.
+      </p>
+    </div>
+  `;
+
+  const memberText =
+    athletes
+      .map(
+        (athlete) =>
+          `${athlete.name}\n` +
+          `${estimateMemberDescription(athlete)}`
+      )
+      .join("\n\n");
+
+  const comparisonText =
+    comparisons
+      .map(
+        ({ label, estimate }) =>
+          `${label}\n` +
+          `Monthly: ${money(
+            estimate.monthlyMembership
+          )}\n` +
+          `Due at enrollment: ${money(
+            estimate.dueAtEnrollment
+          )}`
+      )
+      .join("\n\n");
+
+  const text = [
+    "Sandman Academy of Combat & Fitness™",
+    "Membership Estimate",
+    "",
+    memberText,
+    "",
+    comparisonText,
+    "",
+    `Annual Enrollment: ${money(
+      annualEnrollment
+    )}`,
+    "",
+    "Want more training access? Ask us how to upgrade your plan.",
+    "",
+    "Estimated pricing — not an enrollment agreement.",
+    "AAU or other governing-body membership is purchased separately by the family."
+  ].join("\n");
+
+  if (customerEstimate) {
+    customerEstimate.innerHTML = html;
+  }
+
+  return {
+    html,
+    text
+  };
+}
+
+function collectedEstimateEmail() {
+  return String(
+    sourceAppointment?.email ||
+    sourceAppointment?.parentEmail ||
+    ""
+  ).trim();
+}
+
+
 function resetEstimate() {
   athleteList.innerHTML = "";
 
@@ -884,9 +1191,40 @@ resetBtn?.addEventListener(
   }
 );
 
+sendEstimateBtn?.addEventListener(
+  "click",
+  () => {
+    const recipient =
+      collectedEstimateEmail();
+
+    if (!recipient) {
+      if (pricingSourceStatus) {
+        pricingSourceStatus.textContent =
+          "No email was collected for this admissions record.";
+      }
+      return;
+    }
+
+    const estimate =
+      buildCustomerEstimate();
+
+    const subject =
+      "Sandman Academy Membership Estimate";
+
+    const mailto =
+      `mailto:${recipient}` +
+      `?subject=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(estimate.text)}`;
+
+    window.location.href = mailto;
+  }
+);
+
 printBtn?.addEventListener(
   "click",
   () => {
+    buildCustomerEstimate();
+
     window.print();
   }
 );
