@@ -1978,3 +1978,42 @@ body.management-enrollment-page #invite-route-label{
     font-family:Inter,system-ui,sans-serif;
   }
 }
+
+
+/* === MANAGEMENT ENROLLMENT LIGHT SHELL ALIGNMENT === */
+/*
+ * Keeps Management Enrollment visually inside the same
+ * Management workspace as Leads, Appointments, Proposals, and Members.
+ * Presentation only — no workflow behavior.
+ */
+
+.management-enrollment-page .enrollment-inner {
+  color: var(--management-text, #172033);
+}
+
+.management-enrollment-page .enrollment-inner .card {
+  border-color: var(--management-border, #e3dac5);
+  background: var(--management-surface, #fffdf8);
+  color: var(--management-text, #172033);
+  box-shadow: var(--management-shadow, 0 12px 30px rgba(40,32,15,.07));
+}
+
+.management-enrollment-page .enrollment-inner .card::before {
+  display: none;
+}
+
+.management-enrollment-page .enrollment-inner .card h3,
+.management-enrollment-page .enrollment-inner .value {
+  color: var(--management-text, #172033);
+}
+
+.management-enrollment-page .enrollment-inner .muted,
+.management-enrollment-page .enrollment-inner .small.muted {
+  color: var(--management-muted, #667085);
+}
+
+.management-enrollment-page .enrollment-inner .row input {
+  border-color: var(--management-border-strong, #d2c5a8);
+  background: #fff;
+  color: var(--management-text, #172033);
+}
