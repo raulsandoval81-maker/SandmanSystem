@@ -709,3 +709,9 @@ body {
     font-size: 9pt !important;
   }
 }
+
+@media print {
+  .customer-estimate-confirmation {
+    display: none !important;
+  }
+}
