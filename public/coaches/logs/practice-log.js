@@ -2,7 +2,7 @@ const PAYLOAD_KEY = "sandman_last_practice_payload";
 const LOG_KEY = "sandman_last_practice_log";
 
 import { functions, httpsCallable } from "/assets/js/firebase-init.js";
-import { coachLoginUrl, isCoachAuthenticationError, requireCoach } from "/assets/js/coach-guard.js";
+import { coachLoginUrl, isCoachAuthenticationError, requireCoach } from "/assets/js/coach-guard.js?v=2";
 
 let payload = JSON.parse(
   localStorage.getItem(PAYLOAD_KEY) || "null"
