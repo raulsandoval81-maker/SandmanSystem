@@ -43,7 +43,7 @@ q2m: {
 
 const BELTS_V2 = {
   f8: {
-    0: "/assets/img/belts/whitegraybelt-v2.png",
+    0: "/assets/img/belts/sandman-combat-belt.png",
     1: "/assets/img/belts/yellowgraybelt-v2.png",
     2: "/assets/img/belts/orangegraybelt-v2.png",
     3: "/assets/img/belts/greengraybelt-v2.png",
@@ -525,11 +525,7 @@ function applyCertificatePayload(payload) {
     payload.athleteName || "";
 
   fields.academyName.value =
-    payload.academyName ||
-    payload.academy ||
-    payload.team ||
-    fields.academyName.value ||
-    "Sandman Academy";
+    "Sandman Academy of Combat™";
 
   fields.coach.value =
     payload.coach ||
