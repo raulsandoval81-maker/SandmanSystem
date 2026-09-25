@@ -911,9 +911,56 @@ function buildCustomerEstimate() {
       })
     );
 
+  const monthToMonth =
+    comparisons.find(
+      (item) =>
+        item.value === "month-to-month"
+    );
+
+  const sixMonth =
+    comparisons.find(
+      (item) =>
+        item.value === "six-month"
+    );
+
+  const annual =
+    comparisons.find(
+      (item) =>
+        item.value === "annual"
+    );
+
   const annualEnrollment =
     comparisons[0]?.estimate
       ?.annualEnrollment || 0;
+
+  const sixMonthSavings =
+    Math.max(
+      0,
+      Number(
+        monthToMonth?.estimate
+          ?.monthlyMembership || 0
+      ) -
+      Number(
+        sixMonth?.estimate
+          ?.monthlyMembership || 0
+      )
+    );
+
+  const annualMonthlySavings =
+    Math.max(
+      0,
+      Number(
+        monthToMonth?.estimate
+          ?.monthlyMembership || 0
+      ) -
+      Number(
+        annual?.estimate
+          ?.monthlyMembership || 0
+      )
+    );
+
+  const annualSavings =
+    annualMonthlySavings * 12;
 
   const memberHtml =
     athletes
@@ -948,24 +995,174 @@ function buildCustomerEstimate() {
             <td>
               ${money(
                 estimate.monthlyMembership
-              )}
-            </td>
-
-            <td>
-              ${money(
-                estimate.dueAtEnrollment
-              )}
-            </td>
-
-            <td>
-              ${money(
-                estimate.nextMonthlyPayment
-              )}
+              )}/month
             </td>
           </tr>
         `
       )
       .join("");
+
+  let recommendationHtml = "";
+  let recommendationText = "";
+
+  const combatAthletes =
+    athletes.filter(
+      (athlete) =>
+        athlete.plan === "standard"
+    );
+
+  if (combatAthletes.length === 1) {
+    const athlete = combatAthletes[0];
+
+    const accessOrder =
+      SANDMAN_PRICING_CATALOG
+        .combat
+        .accessOrder;
+
+    const currentIndex =
+      accessOrder.indexOf(
+        athlete.trainingAccess
+      );
+
+    const nextAccess =
+      currentIndex >= 0
+        ? accessOrder[currentIndex + 1]
+        : "";
+
+    if (nextAccess) {
+      const nextLevel =
+        SANDMAN_PRICING_CATALOG
+          .combat
+          .accessLevels[nextAccess];
+
+      const recommendationAthletes =
+        athletes.map(
+          (item) => ({
+            ...item,
+            trainingAccess:
+              item === athlete
+                ? nextAccess
+                : item.trainingAccess,
+            billingTerm:
+              item.plan === "standard"
+                ? "annual"
+                : item.billingTerm
+          })
+        );
+
+      const recommendationEstimate =
+        calculateManagementEstimate(
+          recommendationAthletes,
+          {
+            startDate:
+              enrollmentStartDate?.value,
+
+            enrollmentSupportPercent:
+              enrollmentSupport?.value,
+
+            monthlySponsorPercent:
+              monthlySponsor?.value,
+
+            promotionAmount:
+              appliedPromotion?.amount || 0
+          }
+        );
+
+      const recommendedMonthly =
+        Number(
+          recommendationEstimate
+            .monthlyMembership || 0
+        );
+
+      const currentMtm =
+        Number(
+          monthToMonth?.estimate
+            ?.monthlyMembership || 0
+        );
+
+      let comparisonLine = "";
+
+      if (
+        recommendedMonthly === currentMtm
+      ) {
+        comparisonLine = `
+          <p class="customer-estimate-highlight">
+            Same monthly price as
+            ${estimateEscape(
+              estimateAccessLabel(athlete)
+            )}
+            month-to-month, with additional
+            training access.
+          </p>
+        `;
+      }
+
+      const competitionNote =
+        nextAccess === "competition-3"
+          ? `
+            <p class="customer-estimate-competition-note">
+              <strong>Competition Note:</strong>
+              Hard sparring, sanctioned competition,
+              or certain competition-development
+              activities may require additional
+              governing-body membership, insurance,
+              or other eligibility requirements.
+              Management will confirm any additional
+              requirements before participation.
+            </p>
+          `
+          : "";
+
+      recommendationHtml = `
+        <section class="customer-estimate-recommendation">
+          <h2>
+            Recommended Next Step
+          </h2>
+
+          <h3>
+            ${estimateEscape(nextLevel.label)}
+          </h3>
+
+          <p class="customer-estimate-recommendation-price">
+            12-month agreement + autopay —
+            <strong>
+              ${money(recommendedMonthly)}/month
+            </strong>
+          </p>
+
+          <p>
+            ${estimateEscape(
+              nextLevel.description
+            )}
+          </p>
+
+          ${comparisonLine}
+
+          ${competitionNote}
+        </section>
+      `;
+
+      recommendationText = [
+        "",
+        "Recommended Next Step",
+        nextLevel.label,
+        `12-month agreement + autopay — ${money(
+          recommendedMonthly
+        )}/month`,
+        nextLevel.description,
+        recommendedMonthly === currentMtm
+          ? `Same monthly price as ${estimateAccessLabel(
+              athlete
+            )} month-to-month, with additional training access.`
+          : "",
+        nextAccess === "competition-3"
+          ? "Competition Note: Hard sparring, sanctioned competition, or certain competition-development activities may require additional governing-body membership, insurance, or other eligibility requirements. Management will confirm any additional requirements before participation."
+          : ""
+      ]
+        .filter(Boolean)
+        .join("\n");
+    }
+  }
 
   const html = `
     <div class="customer-estimate-brand">
@@ -980,55 +1177,74 @@ function buildCustomerEstimate() {
       ${memberHtml}
     </div>
 
-    <table class="customer-estimate-table">
-      <thead>
-        <tr>
-          <th>
-            Billing option
-          </th>
+    <section class="customer-estimate-pricing">
+      <h2>
+        Selected Plan Pricing
+      </h2>
 
-          <th>
-            Monthly
-          </th>
+      <table class="customer-estimate-table">
+        <thead>
+          <tr>
+            <th>
+              Billing option
+            </th>
 
-          <th>
-            Due at enrollment
-          </th>
+            <th>
+              Monthly
+            </th>
+          </tr>
+        </thead>
 
-          <th>
-            Next monthly payment
-          </th>
-        </tr>
-      </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
 
-      <tbody>
-        ${rowsHtml}
-      </tbody>
-    </table>
+      <div class="customer-estimate-enrollment">
+        <span>
+          Annual Enrollment
+        </span>
 
-    <div class="customer-estimate-enrollment">
-      <span>
-        Annual Enrollment
-      </span>
+        <strong>
+          ${money(annualEnrollment)}
+        </strong>
+      </div>
+    </section>
 
-      <strong>
-        ${money(annualEnrollment)}
-      </strong>
-    </div>
+    <section class="customer-estimate-savings">
+      <h2>
+        Savings
+      </h2>
 
-    <p class="customer-estimate-upgrade">
-      Want more training access?
-      Ask us how to upgrade your plan.
-    </p>
-
-    <div class="customer-estimate-footer">
       <p>
-        Membership plan proposal — not an enrollment agreement.
+        <strong>6-month:</strong>
+        Save ${money(sixMonthSavings)}/month
+        compared with month-to-month.
       </p>
 
       <p>
-        AAU or other governing-body membership is
-        purchased separately by the family.
+        <strong>12-month:</strong>
+        Save ${money(annualMonthlySavings)}/month
+        compared with month-to-month.
+      </p>
+
+      <p>
+        <strong>12-month annual savings:</strong>
+        ${money(annualSavings)}
+      </p>
+    </section>
+
+    ${recommendationHtml}
+
+    <div class="customer-estimate-footer">
+      <p>
+        Membership plan proposal —
+        not an enrollment agreement.
+      </p>
+
+      <p>
+        AAU or other governing-body membership
+        is purchased separately where required.
       </p>
     </div>
   `;
@@ -1042,22 +1258,15 @@ function buildCustomerEstimate() {
       )
       .join("\n\n");
 
-  const comparisonText =
+  const pricingText =
     comparisons
       .map(
         ({ label, estimate }) =>
-          `${label}\n` +
-          `Monthly: ${money(
+          `${label}: ${money(
             estimate.monthlyMembership
-          )}\n` +
-          `Due at enrollment: ${money(
-            estimate.dueAtEnrollment
-          )}\n` +
-          `Next monthly payment: ${money(
-            estimate.nextMonthlyPayment
-          )}`
+          )}/month`
       )
-      .join("\n\n");
+      .join("\n");
 
   const text = [
     "Sandman Academy of Combat & Fitness™",
@@ -1065,17 +1274,31 @@ function buildCustomerEstimate() {
     "",
     memberText,
     "",
-    comparisonText,
-    "",
+    "Selected Plan Pricing",
+    pricingText,
     `Annual Enrollment: ${money(
       annualEnrollment
     )}`,
     "",
-    "Want more training access? Ask us how to upgrade your plan.",
+    "Savings",
+    `6-month: Save ${money(
+      sixMonthSavings
+    )}/month compared with month-to-month.`,
+    `12-month: Save ${money(
+      annualMonthlySavings
+    )}/month compared with month-to-month.`,
+    `12-month annual savings: ${money(
+      annualSavings
+    )}`,
+    recommendationText,
     "",
     "Membership plan proposal — not an enrollment agreement.",
-    "AAU or other governing-body membership is purchased separately by the family."
-  ].join("\n");
+    "AAU or other governing-body membership is purchased separately where required."
+  ]
+    .filter(
+      (line) => line !== null
+    )
+    .join("\n");
 
   if (customerEstimate) {
     customerEstimate.innerHTML = html;
