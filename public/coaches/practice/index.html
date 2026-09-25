@@ -34,7 +34,7 @@
 
     .practice-hero{
       padding:24px;
-      margin-bottom:22px;
+      margin-bottom:18px;
       border:1px solid var(--practice-line);
       border-radius:18px;
       background:var(--practice-panel);
@@ -56,75 +56,219 @@
     }
 
     .practice-hero p{
-      max-width:720px;
+      max-width:780px;
       margin:10px 0 0;
       color:var(--practice-muted);
       line-height:1.55;
     }
 
-    .workflow{
+    .practice-doctrine{
       display:grid;
-      grid-template-columns:repeat(5,minmax(0,1fr));
-      gap:12px;
-      margin-bottom:26px;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:24px;
     }
 
-    .step{
-      display:flex;
-      flex-direction:column;
-      min-height:170px;
-      padding:17px;
+    .doctrine-item{
+      padding:14px 15px;
       border:1px solid var(--practice-line);
-      border-radius:16px;
+      border-radius:14px;
       background:var(--practice-card);
+    }
+
+    .doctrine-item strong{
+      display:block;
+      margin-bottom:4px;
       color:var(--practice-text);
-      text-decoration:none;
-      transition:.15s ease;
+      font-size:.92rem;
     }
 
-    .step:hover{
-      transform:translateY(-2px);
-      border-color:var(--practice-red);
-      box-shadow:0 10px 28px rgba(0,0,0,.3);
+    .doctrine-item span{
+      color:var(--practice-muted);
+      font-size:.82rem;
+      line-height:1.4;
     }
 
-    .step-number{
-      display:inline-flex;
-      width:32px;
-      height:32px;
-      align-items:center;
-      justify-content:center;
-      margin-bottom:16px;
+    .lanes{
+      display:grid;
+      gap:16px;
+    }
+
+    .lane{
+      padding:22px;
+      border:1px solid var(--practice-line);
+      border-radius:18px;
+      background:var(--practice-panel);
+    }
+
+    .lane--normal{
+      border-top:3px solid var(--practice-teal);
+    }
+
+    .lane--free{
+      border-top:3px solid var(--practice-gold);
+    }
+
+    .lane--rush{
+      border-top:3px solid var(--practice-red);
+    }
+
+    .lane-header{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      margin-bottom:18px;
+    }
+
+    .lane-kicker{
+      margin:0 0 5px;
+      color:var(--practice-muted);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .lane h2{
+      margin:0;
+      color:var(--practice-gold);
+      font-size:1.3rem;
+    }
+
+    .lane-description{
+      max-width:680px;
+      margin:6px 0 0;
+      color:var(--practice-muted);
+      font-size:.9rem;
+      line-height:1.5;
+    }
+
+    .lane-badge{
+      flex:0 0 auto;
+      padding:7px 10px;
+      border:1px solid var(--practice-line);
       border-radius:999px;
-      background:var(--practice-red);
-      color:#fff;
+      color:var(--practice-muted);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .lane-flow{
+      display:grid;
+      grid-template-columns:repeat(7,minmax(0,1fr));
+      gap:9px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+
+    .flow-step{
+      position:relative;
+      min-height:112px;
+      padding:13px;
+      border:1px solid var(--practice-line);
+      border-radius:13px;
+      background:var(--practice-card);
+    }
+
+    .flow-step::after{
+      content:"→";
+      position:absolute;
+      top:50%;
+      right:-9px;
+      z-index:2;
+      transform:translate(50%,-50%);
+      color:var(--practice-muted);
       font-weight:900;
     }
 
-    .step h2{
-      margin:0 0 8px;
-      color:var(--practice-gold);
-      font-size:1.05rem;
+    .flow-step:last-child::after{
+      display:none;
     }
 
-    .step p{
-      margin:0;
-      color:var(--practice-muted);
+    .flow-number{
+      display:flex;
+      width:25px;
+      height:25px;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:10px;
+      border-radius:999px;
+      background:var(--practice-red);
+      color:#fff;
+      font-size:.76rem;
+      font-weight:900;
+    }
+
+    .flow-step strong{
+      display:block;
+      color:var(--practice-text);
       font-size:.86rem;
-      line-height:1.45;
+      line-height:1.25;
     }
 
-    .step--xp{
-      border-color:rgba(255,221,72,.42);
+    .flow-step span{
+      display:block;
+      margin-top:5px;
+      color:var(--practice-muted);
+      font-size:.74rem;
+      line-height:1.35;
     }
 
-    .step--xp .step-number{
+    .flow-step--skip{
+      border-style:dashed;
+      opacity:.8;
+    }
+
+    .flow-step--xp{
+      border-color:rgba(255,221,72,.5);
+    }
+
+    .flow-step--xp .flow-number{
       background:var(--practice-gold);
       color:#111;
     }
 
+    .flow-step--close{
+      border-color:rgba(51,183,162,.5);
+    }
+
+    .lane-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:9px;
+      margin-top:18px;
+    }
+
+    .lane-action{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:9px 13px;
+      border:1px solid var(--practice-line);
+      border-radius:10px;
+      background:var(--practice-card);
+      color:var(--practice-text);
+      text-decoration:none;
+      font-size:.83rem;
+      font-weight:800;
+    }
+
+    .lane-action:hover{
+      border-color:var(--practice-teal);
+    }
+
+    .lane-action--primary{
+      border-color:var(--practice-red);
+      background:rgba(229,57,53,.12);
+    }
+
     .section-heading{
-      margin:28px 0 12px;
+      margin:30px 0 12px;
     }
 
     .section-heading h2{
@@ -179,13 +323,53 @@
       line-height:1.5;
     }
 
-    @media(max-width:900px){
-      .workflow{
-        grid-template-columns:repeat(2,minmax(0,1fr));
+    @media(max-width:1000px){
+      .lane-flow{
+        grid-template-columns:repeat(4,minmax(0,1fr));
       }
 
+      .flow-step::after{
+        display:none;
+      }
+    }
+
+    @media(max-width:900px){
+      .practice-doctrine,
       .support-grid{
         grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
+    @media(max-width:650px){
+      .lane-header{
+        display:block;
+      }
+
+      .lane-badge{
+        display:inline-block;
+        margin-top:12px;
+      }
+
+      .lane-flow{
+        grid-template-columns:1fr;
+      }
+
+      .flow-step{
+        min-height:0;
+      }
+
+      .flow-step::after{
+        display:block;
+        content:"↓";
+        top:auto;
+        left:50%;
+        right:auto;
+        bottom:-11px;
+        transform:translate(-50%,50%);
+      }
+
+      .flow-step:last-child::after{
+        display:none;
       }
     }
 
@@ -194,13 +378,9 @@
         width:min(100% - 22px,1120px);
       }
 
-      .workflow,
+      .practice-doctrine,
       .support-grid{
         grid-template-columns:1fr;
-      }
-
-      .step{
-        min-height:0;
       }
     }
   </style>
@@ -219,65 +399,308 @@
     <p class="practice-eyebrow">Today</p>
     <h1>Practice Operations</h1>
     <p>
-      Move through the coaching day in order. Build the session, run the room,
-      check athletes in for attendance, review and finalize attendance, then complete the day’s XP work.
+      Run the room the way the day requires. Use the full live workflow when possible,
+      coach the room without the Builder when needed, or reconstruct the practice afterward
+      when the day moves faster than the system.
     </p>
   </header>
 
-  <section class="workflow" aria-label="Daily practice workflow">
+  <section class="practice-doctrine" aria-label="Practice operating rules">
 
-    <a class="step" href="/coaches/execution/session-builder/">
-      <span class="step-number">1</span>
-      <h2>Build Session</h2>
-      <p>
-        Choose the room, discipline, rank, week, and session shell.
-      </p>
-    </a>
+    <div class="doctrine-item">
+      <strong>Check-In Is Optional</strong>
+      <span>Useful for live practice, but the practice does not depend on it.</span>
+    </div>
 
-    <a class="step" href="/coaches/execution/clipboard-2.0/">
-      <span class="step-number">2</span>
-      <h2>Run Practice</h2>
-      <p>
-        Build the practice in Clipboard and launch the active practice.
-      </p>
-    </a>
+    <div class="doctrine-item">
+      <strong>Builder Is Optional</strong>
+      <span>Use it when structure helps. Skip it when the coach needs to run the room directly.</span>
+    </div>
 
-    <a class="step" href="/coaches/attendance/session.html">
-      <span class="step-number">3</span>
-      <h2>Check In / Attendance</h2>
-      <p>
-        Load the active practice and record attendance as athletes check in.
-      </p>
-    </a>
+    <div class="doctrine-item">
+      <strong>Rush Days Are Supported</strong>
+      <span>Reconstruct who actually practiced afterward without creating fake live check-ins.</span>
+    </div>
 
-    <a class="step" href="/coaches/attendance/">
-      <span class="step-number">4</span>
-      <h2>Review &amp; Finalize Attendance</h2>
-      <p>
-        Verify check-ins, correct attendance if needed, then lock and close the practice.
-      </p>
-    </a>
+    <div class="doctrine-item">
+      <strong>Closeout Still Matters</strong>
+      <span>Verify attendance, complete XP and coach input, then close the practice.</span>
+    </div>
 
-    <a class="step step--xp" href="/coaches/daily-xp/daily-grind">
-      <span class="step-number">5</span>
-      <h2>Daily XP</h2>
-      <p>
-        Complete the verified coach-side XP work after attendance is final.
-      </p>
-    </a>
+  </section>
+
+  <section class="lanes" aria-label="Practice workflow lanes">
+
+    <article class="lane lane--normal">
+
+      <div class="lane-header">
+        <div>
+          <p class="lane-kicker">Full Live Workflow</p>
+          <h2>Normal Practice</h2>
+          <p class="lane-description">
+            Use the full live workflow when time allows. Check athletes in, build and run the session,
+            verify who actually participated, complete Daily Grind XP and coach input, then close.
+          </p>
+        </div>
+
+        <span class="lane-badge">Normal Day</span>
+      </div>
+
+      <ol class="lane-flow">
+
+        <li class="flow-step">
+          <span class="flow-number">1</span>
+          <strong>Check In</strong>
+          <span>Record athletes as they arrive.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">2</span>
+          <strong>Build Session</strong>
+          <span>Choose the practice structure.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">3</span>
+          <strong>Run Session</strong>
+          <span>Coach the active practice.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">4</span>
+          <strong>Finalize Attendance</strong>
+          <span>Verify who actually participated.</span>
+        </li>
+
+        <li class="flow-step flow-step--xp">
+          <span class="flow-number">5</span>
+          <strong>Daily Grind XP</strong>
+          <span>Award verified attendance XP.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">6</span>
+          <strong>Athlete + Practice Input</strong>
+          <span>Record coach observations and practice input.</span>
+        </li>
+
+        <li class="flow-step flow-step--close">
+          <span class="flow-number">7</span>
+          <strong>Notes / Close</strong>
+          <span>Finish the record and close the practice.</span>
+        </li>
+
+      </ol>
+
+      <div class="lane-actions">
+        <a class="lane-action lane-action--primary" href="/coaches/attendance/session.html">
+          Start Check-In
+        </a>
+
+        <a class="lane-action" href="/coaches/execution/session-builder/">
+          Session Builder
+        </a>
+
+        <a class="lane-action" href="/coaches/execution/clipboard-2.0/">
+          Run Practice
+        </a>
+
+        <a class="lane-action" href="/coaches/attendance/">
+          Finalize Attendance
+        </a>
+
+        <a class="lane-action" href="/coaches/daily-xp/daily-grind">
+          Daily Grind
+        </a>
+
+        <a class="lane-action" href="/coaches/logs/practice-log.html">
+          Practice Log
+        </a>
+      </div>
+
+    </article>
+
+    <article class="lane lane--free">
+
+      <div class="lane-header">
+        <div>
+          <p class="lane-kicker">Builder Bypass</p>
+          <h2>Coach-Directed / Free Day</h2>
+          <p class="lane-description">
+            Skip the Builder when the room needs a coach-led or unstructured practice.
+            Attendance, XP, coach input, and final close still converge on the same practice record.
+          </p>
+        </div>
+
+        <span class="lane-badge">Free Day</span>
+      </div>
+
+      <ol class="lane-flow">
+
+        <li class="flow-step">
+          <span class="flow-number">1</span>
+          <strong>Check In</strong>
+          <span>Record athletes as they arrive.</span>
+        </li>
+
+        <li class="flow-step flow-step--skip">
+          <span class="flow-number">2</span>
+          <strong>Skip Builder</strong>
+          <span>Intentional bypass.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">3</span>
+          <strong>Run Practice</strong>
+          <span>Coach the room directly.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">4</span>
+          <strong>Finalize Attendance</strong>
+          <span>Confirm the actual participants.</span>
+        </li>
+
+        <li class="flow-step flow-step--xp">
+          <span class="flow-number">5</span>
+          <strong>Daily Grind XP</strong>
+          <span>Award verified attendance XP.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">6</span>
+          <strong>Athlete + Practice Input</strong>
+          <span>Record what mattered from the room.</span>
+        </li>
+
+        <li class="flow-step flow-step--close">
+          <span class="flow-number">7</span>
+          <strong>Notes / Close</strong>
+          <span>Finish and close the practice.</span>
+        </li>
+
+      </ol>
+
+      <div class="lane-actions">
+        <a class="lane-action lane-action--primary" href="/coaches/attendance/session.html">
+          Start Check-In
+        </a>
+
+        <a class="lane-action" href="/coaches/attendance/">
+          Attendance
+        </a>
+
+        <a class="lane-action" href="/coaches/daily-xp/daily-grind">
+          Daily Grind
+        </a>
+
+        <a class="lane-action" href="/coaches/logs/practice-log.html">
+          Practice Log
+        </a>
+      </div>
+
+    </article>
+
+    <article class="lane lane--rush">
+
+      <div class="lane-header">
+        <div>
+          <p class="lane-kicker">After-The-Fact Reconstruction</p>
+          <h2>After-the-Fact / Rush Day</h2>
+          <p class="lane-description">
+            Use this when practice already happened. Skip live check-in and the Builder,
+            recover the actual practice, confirm the date and discipline, select who truly participated,
+            then finish attendance, XP, input, and closeout.
+          </p>
+        </div>
+
+        <span class="lane-badge">Rush Day</span>
+      </div>
+
+      <ol class="lane-flow">
+
+        <li class="flow-step flow-step--skip">
+          <span class="flow-number">1</span>
+          <strong>Skip Check-In</strong>
+          <span>No fake historical check-in.</span>
+        </li>
+
+        <li class="flow-step flow-step--skip">
+          <span class="flow-number">2</span>
+          <strong>Skip Builder</strong>
+          <span>The practice already happened.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">3</span>
+          <strong>Recover Practice</strong>
+          <span>Create or recover the canonical practice.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">4</span>
+          <strong>Confirm Participants</strong>
+          <span>Verify date, discipline, and who actually trained.</span>
+        </li>
+
+        <li class="flow-step">
+          <span class="flow-number">5</span>
+          <strong>Finalize Attendance</strong>
+          <span>Lock the verified participant list.</span>
+        </li>
+
+        <li class="flow-step flow-step--xp">
+          <span class="flow-number">6</span>
+          <strong>XP + Input</strong>
+          <span>Daily Grind XP, athlete input, and practice input.</span>
+        </li>
+
+        <li class="flow-step flow-step--close">
+          <span class="flow-number">7</span>
+          <strong>Notes / Close</strong>
+          <span>Complete the practice record and close.</span>
+        </li>
+
+      </ol>
+
+      <div class="lane-actions">
+        <a class="lane-action lane-action--primary" href="/coaches/attendance/">
+          Reconstruct Practice
+        </a>
+
+        <a class="lane-action" href="/coaches/daily-xp/daily-grind">
+          Daily Grind
+        </a>
+
+        <a class="lane-action" href="/coaches/logs/practice-log.html">
+          Practice Log
+        </a>
+      </div>
+
+    </article>
 
   </section>
 
   <div class="section-heading">
     <h2>Practice Support</h2>
-    <p>Open these when the room needs more than the normal daily flow.</p>
+    <p>Open these tools when the room needs more than the primary workflow.</p>
   </div>
 
   <section class="support-grid">
 
+    <a class="support-card" href="/coaches/execution/session-builder/">
+      <strong>Session Builder</strong>
+      <span>Build the planned structure for a normal practice.</span>
+    </a>
+
+    <a class="support-card" href="/coaches/attendance/">
+      <strong>Attendance</strong>
+      <span>Review, correct, and finalize verified participation.</span>
+    </a>
+
     <a class="support-card" href="/coaches/logs/practice-log.html">
       <strong>Practice Log</strong>
-      <span>Review recorded practice history.</span>
+      <span>Review recorded practice history and closeout information.</span>
     </a>
 
     <a class="support-card" href="/coaches/execution/big-clock-2.0/">
@@ -300,20 +723,26 @@
       <span>Open current strength and conditioning support.</span>
     </a>
 
-    <a class="support-card" href="https://cornerman-ai.vercel.app/" target="_blank" rel="noopener noreferrer">
+    <a
+      class="support-card"
+      href="https://cornerman-ai.vercel.app/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <strong>Open Cornerman AI ↗</strong>
-      <span>Optional external competition intelligence when match evidence informs practice.</span>
+      <span>Optional competition intelligence when match evidence informs practice.</span>
     </a>
 
   </section>
 
   <div class="practice-note">
-    The daily workflow is the primary path. Execution tools remain available
-    without becoming separate operating systems.
+    Live workflow when possible. After-the-fact reconstruction when necessary.
+    Every lane converges on verified attendance, Daily Grind XP, coach input, and final close.
   </div>
 
   <div class="practice-note">
-    FuelAI support can attach here in a later pass when a stable Coach destination is configured. Practice Operations does not require either external product.
+    FuelAI support can attach here in a later pass when a stable Coach destination is configured.
+    Practice Operations does not require either external product.
   </div>
 
 </main>
