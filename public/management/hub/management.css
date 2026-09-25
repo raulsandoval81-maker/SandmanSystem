@@ -211,7 +211,12 @@ a {
 
 .management-header h1 {
   margin-bottom: 4px;
+  color: var(--text);
   font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.management-header .eyebrow {
+  color: var(--gold);
 }
 
 .identity {
@@ -505,6 +510,10 @@ a {
     padding: 12px 14px;
   }
 
+  .management-header__identity {
+    overflow: hidden;
+  }
+
   .management-header h1 {
     font-size: 1.15rem;
   }
@@ -515,7 +524,7 @@ a {
   }
 
   .identity {
-    max-width: 58vw;
+    max-width: 100%;
     overflow: hidden;
 
     font-size: .72rem;

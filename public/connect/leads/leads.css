@@ -316,14 +316,47 @@ textarea:focus{
 
   .lead-grid{
     grid-template-columns:1fr;
+    gap:10px;
+    margin-bottom:12px;
   }
 
   .lead-card-head{
     flex-direction:column;
+    gap:8px;
+    margin-bottom:12px;
   }
 
   .lead-actions{
     grid-template-columns:1fr;
+    gap:8px;
+  }
+
+  .lead-card{
+    padding:14px;
+    border-radius:15px;
+  }
+
+  .lead-notes{
+    margin-bottom:12px;
+    padding:11px;
+  }
+
+  .toolbar{
+    gap:10px;
+    padding:14px;
+  }
+
+  .toolbar label,
+  .toolbar input,
+  .toolbar select,
+  .lead-actions > *{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .field-value,
+  .lead-sub{
+    overflow-wrap:anywhere;
   }
 
   .header-actions{

@@ -153,6 +153,35 @@ h1{
   .appointments-page{
     padding:22px 13px 50px;
   }
+
+  .appointments-header{
+    gap:12px;
+    margin-bottom:18px;
+  }
+
+  .appointments-header h1{
+    font-size:clamp(1.7rem,9vw,2.2rem);
+    line-height:1.05;
+  }
+
+  .appointment-card{
+    min-width:0;
+    padding:15px;
+    border-radius:15px;
+  }
+
+  .appointment-card p,
+  .appointment-sub,
+  .field-value,
+  #selectedLeadSummary,
+  #schedulePanel{
+    overflow-wrap:anywhere;
+  }
+
+  .header-actions,
+  .header-actions .btn{
+    width:100%;
+  }
 }
 /* ======================================
    Admissions Appointment Form

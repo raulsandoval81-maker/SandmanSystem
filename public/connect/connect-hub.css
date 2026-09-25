@@ -198,6 +198,40 @@ color:#facc15;
 
 @media(max-width:700px){
 
+.hub{
+  width:100%;
+  max-width:100%;
+  padding:24px 13px 44px;
+  overflow-x:hidden;
+}
+
+.hero{
+  margin-bottom:24px;
+}
+
+.hero h1{
+  font-size:clamp(1.75rem,9vw,2.35rem);
+  line-height:1.08;
+}
+
+.grid{
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  margin-bottom:28px;
+}
+
+.card,
+.pipeline,
+.card > *{
+  min-width:0;
+  max-width:100%;
+}
+
+.card{
+  padding:18px;
+  overflow-wrap:anywhere;
+}
+
 .flow{
 
 flex-direction:column;
