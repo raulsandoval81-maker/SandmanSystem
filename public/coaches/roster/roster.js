@@ -14,7 +14,7 @@ import {
   requireCoach
 } from "/assets/js/coach-guard.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
-import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
+import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js?v=2";
 
 import {
   DISCIPLINE_LABELS,
