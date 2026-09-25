@@ -3,14 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Practice Log</title>
+  <title>Practice Log | Sandman Coach</title>
 
-  <link rel="stylesheet" href="/coaches/logs/practice-log.css?v=1" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
+  <link rel="stylesheet" href="/coaches/logs/practice-log.css?v=2" />
 </head>
 
-<body>
+<body data-coach-context="practice-log">
 
-<main class="wrap">
+<main class="wrap practice-log">
 
   <h1>Practice Log</h1>
   <p class="muted">Post-practice memory capture.</p>
@@ -38,7 +39,9 @@
   <section class="card">
     <h2>Athlete Input</h2>
     <p class="muted">Individual observations are available only for verified participants.</p>
-    <div id="athleteInput"><p class="muted">Load a canonical practice to add athlete input.</p></div>
+    <div id="athleteInput">
+      <p class="muted">Load a canonical practice to add athlete input.</p>
+    </div>
   </section>
 
   <!-- COACH REFLECTION -->
@@ -46,7 +49,6 @@
 
     <h2>Coach Reflection</h2>
 
-    <!-- F.E.A.R. -->
     <h3>F.E.A.R.</h3>
 
     <label for="fear">Overall Class Rating</label>
@@ -64,7 +66,6 @@
       Focus • Effort • Attitude • Respect
     </p>
 
-    <!-- REFLECTION -->
     <label for="worked">Worked</label>
 
     <textarea
@@ -87,7 +88,10 @@
     ></textarea>
 
     <label for="coachNote">Coach Note</label>
-    <textarea id="coachNote" placeholder="Optional whole-practice context..."></textarea>
+    <textarea
+      id="coachNote"
+      placeholder="Optional whole-practice context..."
+    ></textarea>
 
     <button id="saveBtn">
       Save Practice Log
@@ -101,11 +105,15 @@
 
   <section class="card">
     <h2>Final Close</h2>
-    <p class="muted">Finalized attendance and completed Daily Grind are required. Notes are optional.</p>
+    <p class="muted">
+      Finalized attendance and completed Daily Grind are required. Notes are optional.
+    </p>
     <button id="closeBtn" type="button">Close Practice</button>
   </section>
 
 </main>
+
+<script src="/coaches/_ui/coach-shell.js?v=3"></script>
 
 <script
   type="module"

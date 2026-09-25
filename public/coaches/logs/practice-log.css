@@ -1,133 +1,158 @@
-:root{
-  --bg:#0b1120;
-  --panel:#121a2b;
-  --line:#27304a;
+.practice-log{
+  --practice-panel:var(--coach-shell-panel, #121a2b);
+  --practice-line:var(--coach-shell-line, #27304a);
+  --practice-text:var(--coach-shell-text, #f5f7fb);
+  --practice-muted:var(--coach-shell-muted, #9aa4b1);
+  --practice-gold:var(--coach-shell-gold, #d4af37);
+  --practice-red:var(--coach-shell-combat, #b52b2f);
 
-  --text:#f5f7fb;
-  --muted:#9aa4b1;
-
-  --gold:#ffdd48;
-  --red:#e63946;
-}
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-
-  font-family:
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Arial,
-    sans-serif;
-}
-
-.wrap{
+  width:100%;
   max-width:760px;
-  margin:auto;
-  padding:24px 16px 80px;
+  margin:0 auto;
+  color:var(--practice-text);
 }
 
-h1{
+.practice-log h1{
   margin:0 0 6px;
-  color:var(--gold);
+  color:var(--practice-gold);
 }
 
-h2{
+.practice-log h2{
   margin-top:0;
-  color:var(--gold);
+  color:var(--practice-gold);
 }
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--line);
+.practice-log h3{
+  color:var(--practice-text);
+}
+
+.practice-log .card{
+  margin-bottom:18px;
+  padding:18px;
+
+  border:1px solid var(--practice-line);
   border-radius:16px;
 
-  padding:18px;
-  margin-bottom:18px;
+  background:var(--practice-panel);
+  color:var(--practice-text);
 }
 
-#sessionSummary ul{
+.practice-log #sessionSummary ul{
   margin:12px 0 0;
   padding-left:18px;
 }
 
-#sessionSummary li{
+.practice-log #sessionSummary li{
   margin-bottom:10px;
   line-height:1.45;
 }
 
-.athlete-input{
-  border-top:1px solid var(--line);
+.practice-log .athlete-input{
   margin-top:16px;
   padding-top:14px;
+
+  border-top:1px solid var(--practice-line);
 }
 
-.athlete-input:first-child{
-  border-top:0;
+.practice-log .athlete-input:first-child{
   margin-top:0;
   padding-top:0;
+  border-top:0;
 }
 
-[hidden]{
+.practice-log .athlete-skills-worked{
+  margin:12px 0 16px;
+  padding:12px 14px;
+
+  border:1px solid var(--practice-line);
+  border-radius:12px;
+
+  background:rgba(255,255,255,.025);
+}
+
+.practice-log .athlete-skills-worked strong{
+  display:block;
+  margin-bottom:8px;
+  color:var(--practice-gold);
+}
+
+.practice-log .athlete-skills-worked ul{
+  margin:0;
+  padding-left:18px;
+}
+
+.practice-log .athlete-skills-worked li{
+  margin:5px 0;
+  line-height:1.4;
+}
+
+.practice-log [hidden]{
   display:none !important;
 }
 
-label{
+.practice-log label{
   display:block;
 
   margin-top:14px;
   margin-bottom:6px;
 
+  color:var(--practice-muted);
+
   font-size:.82rem;
   font-weight:700;
   letter-spacing:.04em;
-
-  color:var(--muted);
 }
 
-textarea,
-select{
+.practice-log textarea,
+.practice-log select,
+.practice-log input[type="number"]{
   width:100%;
 
-  border:1px solid var(--line);
+  padding:12px;
+
+  border:1px solid var(--practice-line);
   border-radius:12px;
 
-  background:#0b1120;
-  color:#fff;
-
-  padding:12px;
+  background:var(--coach-shell-page-bg, #0b1120);
+  color:var(--practice-text);
 
   font:inherit;
 }
 
-textarea{
+.practice-log textarea::placeholder,
+.practice-log input::placeholder{
+  color:var(--practice-muted);
+  opacity:.8;
+}
+
+.practice-log textarea{
   min-height:90px;
   resize:vertical;
 }
 
-select{
+.practice-log select{
   cursor:pointer;
 }
 
-button{
+.practice-log textarea:focus,
+.practice-log select:focus,
+.practice-log input[type="number"]:focus{
+  outline:2px solid rgba(212,175,55,.45);
+  outline-offset:2px;
+  border-color:var(--practice-gold);
+}
+
+.practice-log button{
   width:100%;
 
   margin-top:18px;
+  padding:14px;
 
-  border:0;
+  border:1px solid transparent;
   border-radius:14px;
 
-  background:var(--red);
+  background:var(--practice-red);
   color:#fff;
-
-  padding:14px;
 
   font-size:1rem;
   font-weight:800;
@@ -135,27 +160,54 @@ button{
   cursor:pointer;
 }
 
-button:hover{
+.practice-log button:hover{
   opacity:.94;
 }
 
-.muted{
-  color:var(--muted);
+.practice-log button:focus-visible{
+  outline:3px solid rgba(212,175,55,.48);
+  outline-offset:3px;
 }
 
-#status{
+.practice-log .muted{
+  color:var(--practice-muted);
+}
+
+.practice-log #status{
   margin-top:12px;
+
   text-align:center;
   font-size:.9rem;
 }
 
+
+/* -------------------------
+   LIGHT MODE
+------------------------- */
+
+html[data-theme="light"] .practice-log .athlete-skills-worked{
+  background:rgba(0,0,0,.025);
+}
+
+html[data-theme="light"] .practice-log textarea,
+html[data-theme="light"] .practice-log select,
+html[data-theme="light"] .practice-log input[type="number"]{
+  background:#fff;
+  color:var(--coach-shell-text, #171717);
+}
+
+
+/* -------------------------
+   MOBILE
+------------------------- */
+
 @media (max-width:700px){
 
-  .wrap{
-    padding:18px 12px 64px;
+  .practice-log{
+    max-width:none;
   }
 
-  .card{
+  .practice-log .card{
     padding:16px;
   }
 
