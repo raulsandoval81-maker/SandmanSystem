@@ -369,23 +369,73 @@ function setValue(id, next) {
 
 function renderAthleteInputs() {
   if (!athleteInputEl) return;
+
   const presentIds = Array.isArray(canonicalAttendance?.presentIds)
-    ? canonicalAttendance.presentIds.map(String) : [];
-  const roster = new Map(canonicalRoster.map((athlete) => [String(athlete.id), athlete]));
+    ? canonicalAttendance.presentIds.map(String)
+    : [];
+
+  const roster = new Map(
+    canonicalRoster.map((athlete) => [String(athlete.id), athlete])
+  );
+
+  const skillsWorked = getSkillsFromCards(
+    getCardsFromBlocks(getBlocks())
+  );
+
+  const skillLabels = skillsWorked
+    .map((item) => item.title || item.skill)
+    .filter(Boolean);
+
   if (!presentIds.length) {
-    athleteInputEl.innerHTML = `<p class="muted">No verified participants for this practice.</p>`;
+    athleteInputEl.innerHTML =
+      `<p class="muted">No verified participants for this practice.</p>`;
     return;
   }
+
   athleteInputEl.innerHTML = presentIds.map((athleteId) => {
     const athlete = roster.get(athleteId) || {};
     const input = canonicalAthleteInputs[athleteId] || {};
-    return `<article class="athlete-input" data-athlete-id="${escapeHtml(athleteId)}">
-      <h3>${escapeHtml(athlete.name || athlete.fullName || athlete.publicName || athleteId)}</h3>
-      <label>Coach Observation</label>
-      <textarea data-field="coachObservation" placeholder="Individual practice observation">${escapeHtml(input.coachObservation || "")}</textarea>
-      <label>Development Note</label>
-      <textarea data-field="developmentNote" placeholder="Optional next development focus">${escapeHtml(input.developmentNote || "")}</textarea>
-    </article>`;
+
+    const skillsHtml = skillLabels.length
+      ? skillLabels
+          .map((label) => `<li>${escapeHtml(label)}</li>`)
+          .join("")
+      : `<li class="muted">No session skills captured.</li>`;
+
+    return `
+      <article
+        class="athlete-input"
+        data-athlete-id="${escapeHtml(athleteId)}"
+      >
+        <h3>
+          ${escapeHtml(
+            athlete.name ||
+            athlete.fullName ||
+            athlete.publicName ||
+            athleteId
+          )}
+        </h3>
+
+        <div class="athlete-skills-worked">
+          <strong>Skills Worked Today</strong>
+          <ul>
+            ${skillsHtml}
+          </ul>
+        </div>
+
+        <label>Coach Observation</label>
+        <textarea
+          data-field="coachObservation"
+          placeholder="Individual practice observation"
+        >${escapeHtml(input.coachObservation || "")}</textarea>
+
+        <label>Development Note</label>
+        <textarea
+          data-field="developmentNote"
+          placeholder="Optional next development focus"
+        >${escapeHtml(input.developmentNote || "")}</textarea>
+      </article>
+    `;
   }).join("");
 }
 
