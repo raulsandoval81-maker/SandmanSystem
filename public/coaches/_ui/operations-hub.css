@@ -1,0 +1,15 @@
+:root{--operations-panel:var(--coach-shell-panel,#1a252e);--operations-line:var(--coach-shell-line,rgba(255,255,255,.11));--operations-text:var(--coach-shell-text,#f7f7f5);--operations-muted:var(--coach-shell-muted,#aeb3b7);--operations-gold:var(--coach-shell-gold,#d4af37);--operations-red:var(--coach-shell-combat,#b52b2f)}
+.operations-hub{width:min(1160px,100%);margin:0 auto;padding:0 0 64px;color:var(--operations-text)}
+.operations-hero{padding:clamp(20px,4vw,34px);border:1px solid var(--operations-line);border-radius:18px;background:linear-gradient(135deg,rgba(181,43,47,.13),transparent 55%),var(--operations-panel)}
+.operations-eyebrow,.operations-card>span{margin:0 0 7px;color:var(--operations-gold);font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+.operations-hero h1{margin:0;color:var(--operations-gold);font-size:clamp(1.8rem,4vw,2.65rem)}
+.operations-hero p{max-width:780px;margin:10px 0 0;color:var(--operations-muted);line-height:1.55}
+.operations-flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:18px 0;padding:14px 16px;border:1px solid var(--operations-line);border-radius:14px;background:var(--operations-panel);color:var(--operations-muted);font-size:.82rem;font-weight:850}
+.operations-flow b{color:var(--operations-gold)}
+.operations-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:14px}
+.operations-card{display:block;min-height:164px;padding:18px;border:1px solid var(--operations-line);border-radius:16px;background:var(--operations-panel);color:var(--operations-text);text-decoration:none}
+a.operations-card:hover{border-color:var(--operations-gold);transform:translateY(-2px)}
+.operations-card--primary{border-color:rgba(181,43,47,.65)}
+.operations-card h2{margin:0 0 8px;color:var(--operations-gold);font-size:1.08rem}
+.operations-card p{margin:0;color:var(--operations-muted);font-size:.88rem;line-height:1.5}
+@media(max-width:620px){.operations-hub{padding-bottom:44px}.operations-grid{grid-template-columns:1fr}.operations-card{min-height:0}.operations-flow{align-items:flex-start;flex-direction:column}.operations-flow b{transform:rotate(90deg)}}

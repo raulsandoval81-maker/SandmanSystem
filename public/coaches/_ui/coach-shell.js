@@ -6,16 +6,24 @@
   if (!content || document.querySelector(".coach-shell")) return;
 
   const pageName = body.dataset.coachPage || document.title || "Coach";
-  const activeArea = body.dataset.coachArea || "";
+  const currentPath = window.location.pathname.replace(/\/index\.html$/, "/");
+  const operationRoutes = [
+    ["today", ["/coaches/today/", "/coaches/command-center/", "/coaches/dashboard/"]],
+    ["practice", ["/coaches/practice/", "/coaches/execution/", "/coaches/attendance/", "/coaches/daily-xp/", "/coaches/cards/", "/coaches/curriculum/", "/coaches/conditioning/"]],
+    ["competition", ["/coaches/competition/", "/coaches/competition-schedule/", "/coaches/live/", "/coaches/arena-xp/"]],
+    ["athletes", ["/coaches/athletes/", "/coaches/roster/", "/coaches/assessments/", "/coaches/skill-check/", "/coaches/progression/", "/coaches/testing/", "/coaches/testing-history/", "/coaches/recognition/"]],
+    ["team", ["/coaches/team/"]],
+    ["emergency", ["/coaches/safety/"]],
+    ["system", ["/coaches/system/", "/coaches/schedule/", "/coaches/profiles/", "/coaches/forms/", "/coaches/support/", "/coaches/notes/", "/coaches/tools/"]],
+  ];
+  const routeArea = operationRoutes.find(([, routes]) => routes.some((route) => currentPath === route || currentPath.startsWith(route)))?.[0] || "";
+  const activeArea = routeArea || body.dataset.coachArea || "";
   const bilingual = body.hasAttribute("data-coach-bilingual");
   const navGroups = [
     { links: [["Coach Home", "/coaches/hub/", "home"]] },
-    { label: "Daily Work", links: [["Athletes", "/coaches/roster/", "athletes"], ["Skill Check", "/coaches/roster/", "skill-check"], ["Athlete Assessment", "/coaches/assessments/", "assessments"], ["Practice", "/coaches/practice/", "practice"], ["Curriculum", "/coaches/cards/", "curriculum"], ["XP & Progression", "/coaches/daily-xp/", "xp"], ["Competition", "/coaches/competition-schedule/", "competition"], ["Communications", "/communications/coach/hub.html", "communications"]] },
-    { label: "Team", links: [["Team", "/coaches/team/", "team"], ["Safety", "/coaches/safety/", "safety"]] },
-    { label: "Workspace", links: [["Operations Dashboard", "/coaches/dashboard/", "dashboard"], ["Command Center", "/coaches/command-center/", "command-center"], ["More Tools", "/coaches/index.html", "tools"]] }
+    { label: "Coach Operations", links: [["Daily Operations", "/coaches/today/", "today"], ["Practice Operations", "/coaches/practice/", "practice"], ["Competition Operations", "/coaches/competition/", "competition"], ["Athlete Operations", "/coaches/athletes/", "athletes"], ["Team Operations", "/coaches/team/", "team"], ["Emergency Operations", "/coaches/safety/", "emergency"], ["System Operations", "/coaches/system/", "system"]] }
   ];
   const practiceLinks = [["Session Builder", "/coaches/execution/session-builder/", "session-builder"], ["Attendance", "/coaches/attendance/", "attendance"], ["Practice Log", "/coaches/logs/practice-log.html", "practice-log"], ["Execution Tools", "/coaches/execution/", "execution-tools"]];
-  const currentPath = window.location.pathname.replace(/\/index\.html$/, "/");
   const declaredContext = String(body.dataset.coachContext || "").trim();
   const routeContext = practiceLinks.find(([, href]) => currentPath === href || currentPath.startsWith(href))?.[2] || "";
   const activePracticeContext = declaredContext || routeContext;
