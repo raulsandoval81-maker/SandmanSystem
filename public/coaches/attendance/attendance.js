@@ -2,19 +2,12 @@ import {
   db,
   collection,
   getDocs,
-  getDoc,
-  doc,
   query,
   where,
-  updateDoc,
-  serverTimestamp,
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
-import {
-  resolveQualifyingRecoveryPractice
-} from "/coaches/attendance/decay-recovery-policy.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
@@ -82,10 +75,6 @@ function updatePresentCount() {
   if (el) el.textContent = `${selectedIds.size} selected`;
 }
 
-function selectedProgram() {
-  return String($("practiceType")?.value || "").toLowerCase();
-}
-
 function timestampMillis(raw) {
   if (!raw) return 0;
   if (typeof raw.toMillis === "function") return raw.toMillis();
@@ -138,13 +127,27 @@ function renderPendingChoices(pendingDocs) {
   list.append(choices);
 }
 
-function loadSessionDocument(pickedDoc) {
-  pendingSessionRef = pickedDoc.ref;
-  pendingSessionId = pickedDoc.id;
-  pendingSession = pickedDoc.data() || {};
+async function loadPracticeReview(practiceId) {
+  const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
+  const response = await getReview({ practiceId });
+  const data = response.data || {};
+  pendingSessionRef = { id: practiceId };
+  pendingSessionId = practiceId;
+  pendingSession = data.attendance || {
+    practiceId,
+    sessionDateKey: data.practice?.sessionDateKey || "",
+    journey: data.practice?.journey || "",
+    discipline: data.practice?.discipline || "",
+    type: `${data.practice?.journey || "session"}-${data.practice?.discipline || "practice"}`,
+    checkedIn: [],
+    checkedInIds: []
+  };
 
-  reviewAthletes = Array.isArray(pendingSession.checkedIn) ? pendingSession.checkedIn : [];
-  selectedIds = new Set(reviewAthletes.map((a) => a.id || a.uid).filter(Boolean));
+  reviewAthletes = Array.isArray(data.roster) ? data.roster : [];
+  const initialPresent = Array.isArray(pendingSession.presentIds) && pendingSession.presentIds.length
+    ? pendingSession.presentIds
+    : (Array.isArray(pendingSession.checkedInIds) ? pendingSession.checkedInIds : []);
+  selectedIds = new Set(initialPresent.map(String).filter(Boolean));
 
   const journey = String(pendingSession.journey || pendingSession.type || "")
     .split("-")[0]
@@ -155,7 +158,7 @@ function loadSessionDocument(pickedDoc) {
   setReviewControlsEnabled(true);
 
   const dateLabel = pendingSession.sessionDateLabel || pendingSession.sessionDateKey || todayLabel();
-  setStatus(`Review loaded: ${dateLabel} · ${selectedIds.size} checked-in athlete(s). Uncheck anyone who was not present.`);
+  setStatus(`Review loaded: ${dateLabel} · ${selectedIds.size} selected. Add or remove athletes to match who actually trained.`);
 }
 
 function renderAthletes() {
@@ -218,7 +221,8 @@ async function loadPendingSession() {
 
   setStatus("Loading pending attendance…");
 
-  const requestedSessionId = new URLSearchParams(window.location.search).get("session")?.trim() || "";
+  const params = new URLSearchParams(window.location.search);
+  const requestedSessionId = String(params.get("session") || params.get("practice") || params.get("practiceId") || "").trim();
   if (requestedSessionId) {
     if (requestedSessionId.includes("/")) {
       clearPendingSession();
@@ -227,21 +231,7 @@ async function loadPendingSession() {
       return;
     }
 
-    const requestedSnap = await getDoc(doc(db, "attendance_sessions", requestedSessionId));
-    if (!requestedSnap.exists()) {
-      clearPendingSession();
-      renderAthletes();
-      setStatus("The requested attendance session was not found.", true);
-      return;
-    }
-    if (requestedSnap.data()?.status !== "pending_review") {
-      clearPendingSession();
-      renderAthletes();
-      setStatus("The requested attendance session is not awaiting Coach review.", true);
-      return;
-    }
-
-    loadSessionDocument(requestedSnap);
+    await loadPracticeReview(requestedSessionId);
     return;
   }
 
@@ -263,92 +253,7 @@ async function loadPendingSession() {
     return;
   }
 
-  loadSessionDocument(pendingDocs[0]);
-}
-
-function selectedAthletesPayload() {
-  return reviewAthletes
-    .filter((athlete) => selectedIds.has(athlete.id || athlete.uid))
-    .map((athlete) => ({
-      id: athlete.id || athlete.uid,
-      uid: athlete.uid || athlete.id,
-      name: athleteName(athlete),
-      publicName: athlete.publicName || "",
-      fullName: athlete.fullName || "",
-      program: athlete.program || "",
-      journey: athlete.journey || "",
-      profileType: athlete.profileType || "",
-      ladderKey: athlete.ladderKey || "",
-      tier: athlete.tier || "",
-      rank: athlete.rank || ""
-    }));
-}
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function countsAsDecayRecoveryDay(type = "") {
-  const t = String(type || "").toLowerCase();
-  return (
-    t.includes("attendance") ||
-    t.includes("combat") ||
-    t.includes("practice") ||
-    t.includes("open_mat") ||
-    t.includes("daily_grind") ||
-    t.includes("tournament") ||
-    t.includes("p2l") ||
-    t.includes("z2h") ||
-    t.includes("r2g") ||
-    t.includes("q2m")
-  );
-}
-
-async function updateAthleteAttendance(athlete, finalType, coach) {
-  const athleteId = athlete.id || athlete.uid;
-  if (!athleteId) return;
-
-  const ref = doc(db, "athletes", athleteId);
-  const snap = await getDoc(ref);
-  const current = snap.exists() ? snap.data() || {} : {};
-
-  const decay = current.decay || {};
-  const recoveryDateKey = todayKey();
-  const recoveryPracticeKey = pendingSessionId || recoveryDateKey;
-  const recovery = resolveQualifyingRecoveryPractice({
-    decay,
-    practiceKey: recoveryPracticeKey,
-    qualifies: countsAsDecayRecoveryDay(finalType)
-  });
-
-  const updatePayload = {
-    lastAttendanceAt: serverTimestamp(),
-    lastAttendanceType: finalType,
-    lastAttendanceCoach: coach,
-    lastAttendanceSessionId: pendingSessionId,
-    updatedAt: serverTimestamp()
-  };
-
-  if (recovery.counts) {
-    updatePayload["decay.recoveryDaysRequired"] = recovery.recoveryDaysRequired;
-    updatePayload["decay.recoveryDaysCompleted"] = recovery.completedAfter;
-    updatePayload["decay.recoveryLog"] = recovery.recoveryLogAfter;
-    updatePayload["decay.lastRecoveryAt"] = serverTimestamp();
-    updatePayload["decay.lastUpdatedAt"] = serverTimestamp();
-
-    if (recovery.clearsRecoveryLock) {
-      updatePayload["decay.state"] = "CLEAR";
-      updatePayload["decay.nextHitAt"] = null;
-      updatePayload["decay.clearedAt"] = serverTimestamp();
-      updatePayload["decay.resolutionStatus"] = "RECOVERY_REQUIREMENT_COMPLETED";
-      updatePayload["decay.resolutionReason"] =
-        "Recovered after 2 verified combat practices; historical decay retained.";
-      updatePayload["decay.recoveryCompletedAttendanceSessionId"] = pendingSessionId;
-      updatePayload["decay.recoveryCompletedDateKey"] = recoveryDateKey;
-    }
-  }
-
-  await updateDoc(ref, updatePayload);
+  await loadPracticeReview(pendingDocs[0].id);
 }
 
 async function saveAttendance() {
@@ -359,68 +264,24 @@ async function saveAttendance() {
     return;
   }
 
-  const present = selectedAthletesPayload();
-
-  if (!present.length) {
+  const presentIds = [...selectedIds];
+  if (!presentIds.length) {
     setStatus("At least one athlete must remain selected before finalizing.", true);
     return;
   }
 
-  const coach = $("coachName")?.value?.trim() || pendingSession.coach || "Coach";
   const notes = $("practiceNotes")?.value?.trim() || pendingSession.notes || "";
-
-  const finalJourney = pendingSession.journey || selectedProgram();
-  const finalDiscipline = pendingSession.discipline || "";
-  const finalType =
-    pendingSession.type ||
-    `${finalJourney || "session"}-${finalDiscipline || "practice"}`;
 
   try {
     if (saveBtn) saveBtn.disabled = true;
     setStatus("Finalizing attendance…");
 
-    const originalIds = Array.isArray(pendingSession.checkedInIds)
-      ? pendingSession.checkedInIds
-      : reviewAthletes.map((a) => a.id || a.uid).filter(Boolean);
-
-    await updateDoc(pendingSessionRef, {
-      type: finalType,
-      journey: finalJourney,
-      discipline: finalDiscipline,
-      coach,
-      notes,
-
-      status: "finalized",
-      readyForDailyGrind: true,
-      finalized: true,
-      finalizedAt: serverTimestamp(),
-      finalizedBy: coach,
-
-      present,
-      presentIds: present.map((a) => a.id),
-      presentCount: present.length,
-
-      removedFromReviewIds: originalIds.filter((id) => !selectedIds.has(id)),
-
-      updatedAt: serverTimestamp(),
-      source: "coach-attendance"
-    });
-
-    await Promise.all(
-      present.map((athlete) =>
-        updateAthleteAttendance(athlete, finalType, coach)
-      )
-    );
-
-    const practiceId = String(pendingSession.practiceId || "").trim();
-    if (practiceId) {
-      const closePractice = httpsCallable(functions, "closePracticeSession");
-      await closePractice({ practiceId, attendanceSessionId: pendingSessionId });
-    }
+    const finalizeAttendance = httpsCallable(functions, "finalizePracticeAttendance");
+    await finalizeAttendance({ practiceId: pendingSessionId, presentIds, notes });
 
     const finalizedSessionId = pendingSessionId;
 
-    setStatus(`Attendance finalized for ${present.length} athlete(s). Ready for Daily Grind.`);
+    setStatus(`Attendance finalized for ${presentIds.length} athlete(s). Ready for Daily Grind.`);
     showDailyGrindHandoff(finalizedSessionId);
 
     clearPendingSession();

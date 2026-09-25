@@ -4,9 +4,6 @@ import {
   getDocs,
   doc,
   getDoc,
-  setDoc,
-  updateDoc,
-  serverTimestamp,
   ensureSignedIn,
   functions,
   httpsCallable
@@ -21,10 +18,6 @@ let sessionRef = null;
 let sessionId = null;
 let sessionLocked = false;
 let activePractice = null;
-
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function setStatus(msg, isError = false) {
   const el = $("sessionStatus");
@@ -255,13 +248,6 @@ async function startSession() {
     return;
   }
 
-  const journey = String(activePractice?.journey || "").toLowerCase();
-  const discipline = String(activePractice?.discipline || "").toLowerCase();
-  const practiceType = getPracticeType();
-  const coach = $("coachName")?.value?.trim() || "Coach";
-  const notes = $("practiceNotes")?.value?.trim() || "";
-
-
   sessionRef = doc(db, "attendance_sessions", activePractice.practiceId);
   const existing = await getDoc(sessionRef);
   if (existing.exists()) {
@@ -274,30 +260,11 @@ async function startSession() {
     return;
   }
 
-  await setDoc(sessionRef, {
+  const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+  await updateCheckIn({
     practiceId: activePractice.practiceId,
-    sessionId: activePractice.practiceId,
-    liveSessionId: activePractice.liveSessionId || "",
-    locationId: activePractice.locationId || activePractice.academyId || "",
-    academyId: activePractice.academyId || activePractice.locationId || "",
-    roomId: activePractice.roomId || "",
-    sessionDateKey: todayKey(),
-    sessionDateLabel: todayLabel(),
-    journey,
-    discipline,
-    type: practiceType,
-    coach,
-    coachUid: activePractice.coachUid || "",
-    notes,
-    status: "draft",
-    readyForDailyGrind: false,
-    checkedIn: [],
-    checkedInIds: [],
-    checkedInCount: 0,
-    finalized: false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    source: "athlete-check-in"
+    action: "start",
+    notes: $("practiceNotes")?.value?.trim() || ""
   });
 
   sessionId = activePractice.practiceId;
@@ -336,15 +303,11 @@ async function checkInAthlete(id) {
     checkedInAt: new Date().toISOString()
   };
 
-  checkedIn.set(id, payload);
-
-  await updateDoc(sessionRef, {
-    status: "draft",
-    checkedIn: Array.from(checkedIn.values()),
-    checkedInIds: Array.from(checkedIn.keys()),
-    checkedInCount: checkedIn.size,
-    updatedAt: serverTimestamp()
-  });
+  const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+  const response = await updateCheckIn({ practiceId: activePractice.practiceId, action: "add", athleteId: id });
+  const attendance = response.data?.attendance || {};
+  checkedIn = new Map((Array.isArray(attendance.checkedIn) ? attendance.checkedIn : [])
+    .map((item) => [item.id || item.uid, item]));
 
   setStatus(`${payload.name} checked in.`);
   renderAthletes();
@@ -386,16 +349,11 @@ function renderCheckedIn() {
       if (sessionLocked) return;
 
       const id = btn.dataset.athleteId;
-      checkedIn.delete(id);
-
-      if (sessionRef) {
-        await updateDoc(sessionRef, {
-          checkedIn: Array.from(checkedIn.values()),
-          checkedInIds: Array.from(checkedIn.keys()),
-          checkedInCount: checkedIn.size,
-          updatedAt: serverTimestamp()
-        });
-      }
+      const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+      const response = await updateCheckIn({ practiceId: activePractice.practiceId, action: "remove", athleteId: id });
+      const attendance = response.data?.attendance || {};
+      checkedIn = new Map((Array.isArray(attendance.checkedIn) ? attendance.checkedIn : [])
+        .map((item) => [item.id || item.uid, item]));
 
       renderAthletes();
       renderCheckedIn();
@@ -420,28 +378,8 @@ async function submitForReview() {
     return;
   }
 
-  const journey = String(activePractice?.journey || "").toLowerCase();
-  const discipline = String(activePractice?.discipline || "").toLowerCase();
-  const practiceType = getPracticeType();
-  const coach = $("coachName")?.value?.trim() || "Coach";
-
-  await updateDoc(sessionRef, {
-    sessionDateKey: todayKey(),
-    sessionDateLabel: todayLabel(),
-
-    journey,
-    discipline,
-    type: practiceType,
-    status: "pending_review",
-    readyForDailyGrind: false,
-    finalized: false,
-    submittedAt: serverTimestamp(),
-    submittedBy: coach,
-    checkedIn: Array.from(checkedIn.values()),
-    checkedInIds: Array.from(checkedIn.keys()),
-    checkedInCount: checkedIn.size,
-    updatedAt: serverTimestamp()
-  });
+  const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+  await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
 
   sessionLocked = true;
 

@@ -1,0 +1,162 @@
+:root{
+  --bg:#0b1120;
+  --panel:#121a2b;
+  --line:#27304a;
+
+  --text:#f5f7fb;
+  --muted:#9aa4b1;
+
+  --gold:#ffdd48;
+  --red:#e63946;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+.wrap{
+  max-width:760px;
+  margin:auto;
+  padding:24px 16px 80px;
+}
+
+h1{
+  margin:0 0 6px;
+  color:var(--gold);
+}
+
+h2{
+  margin-top:0;
+  color:var(--gold);
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+
+  padding:18px;
+  margin-bottom:18px;
+}
+
+#sessionSummary ul{
+  margin:12px 0 0;
+  padding-left:18px;
+}
+
+#sessionSummary li{
+  margin-bottom:10px;
+  line-height:1.45;
+}
+
+.athlete-input{
+  border-top:1px solid var(--line);
+  margin-top:16px;
+  padding-top:14px;
+}
+
+.athlete-input:first-child{
+  border-top:0;
+  margin-top:0;
+  padding-top:0;
+}
+
+[hidden]{
+  display:none !important;
+}
+
+label{
+  display:block;
+
+  margin-top:14px;
+  margin-bottom:6px;
+
+  font-size:.82rem;
+  font-weight:700;
+  letter-spacing:.04em;
+
+  color:var(--muted);
+}
+
+textarea,
+select{
+  width:100%;
+
+  border:1px solid var(--line);
+  border-radius:12px;
+
+  background:#0b1120;
+  color:#fff;
+
+  padding:12px;
+
+  font:inherit;
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+select{
+  cursor:pointer;
+}
+
+button{
+  width:100%;
+
+  margin-top:18px;
+
+  border:0;
+  border-radius:14px;
+
+  background:var(--red);
+  color:#fff;
+
+  padding:14px;
+
+  font-size:1rem;
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+button:hover{
+  opacity:.94;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+#status{
+  margin-top:12px;
+  text-align:center;
+  font-size:.9rem;
+}
+
+@media (max-width:700px){
+
+  .wrap{
+    padding:18px 12px 64px;
+  }
+
+  .card{
+    padding:16px;
+  }
+
+}

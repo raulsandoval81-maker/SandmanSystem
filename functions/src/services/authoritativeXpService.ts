@@ -81,7 +81,7 @@ export type AwardPlan = {
   monthlyHonorAfter: number;
   championshipTarget: number | null;
   bucketField: string | null;
-  practiceStateAfter: { count: number; xp: number } | null;
+  practiceStateAfter: { count: number; xp: number; evidenceKeys: string[] } | null;
   arenaEventStateAfter: { xp: number; kinds: Record<string, boolean> } | null;
 };
 
@@ -308,6 +308,10 @@ export function requestAwardIdentity(request: NormalizedXpRequest): string {
   throw new HttpsError("invalid-argument", "STABLE_AWARD_IDENTITY_REQUIRED");
 }
 
+function attendancePracticeEvidenceKey(dayKey: string, discipline: string, practiceKey: string) {
+  return ["practice-evidence-v1", dayKey, discipline, practiceKey].join(":");
+}
+
 export function athleteTier(athlete: any, base?: AthleteBase): string {
   if (base === "F8") return resolveF8ProgressionTier(athlete);
   return String(athlete?.tier ?? athlete?.tierCode ?? athlete?.rank ?? "T0").toUpperCase();
@@ -430,7 +434,7 @@ export function buildAwardPlan(args: {
   request: NormalizedXpRequest;
   monthly: any;
   championshipAwarded?: number;
-  practiceState?: { count?: number; xp?: number };
+  practiceState?: { count?: number; xp?: number; evidenceKeys?: string[] };
   arenaEventState?: { xp?: number; kinds?: Record<string, boolean> };
 }): AwardPlan {
   const { athlete, athleteId, request } = args;
@@ -481,7 +485,14 @@ export function buildAwardPlan(args: {
       throw new HttpsError("failed-precondition",
         base === "F8" ? "F8_DAILY_PRACTICE_LIMIT_REACHED" : "DAILY_GRIND_XP_LIMIT");
     }
-    practiceStateAfter = { count: count + 1, xp: dailyXp + requestedDelta };
+    const evidenceKey = requiredString(request.meta.practiceEvidenceKey, "attendance practice evidence");
+    const priorEvidence = Array.isArray(args.practiceState?.evidenceKeys)
+      ? args.practiceState.evidenceKeys.map(String).filter(Boolean) : [];
+    practiceStateAfter = {
+      count: count + 1,
+      xp: dailyXp + requestedDelta,
+      evidenceKeys: [...new Set([...priorEvidence, evidenceKey])],
+    };
   } else if (lane === "arena") {
     monthlyField = "arena";
     monthlyAfter = Number(m.arena ?? 0) + requestedDelta;
@@ -593,6 +604,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       || `legacy:${athleteTier(athlete, provisionalBase)}`;
     let trustedDiscipline = "";
     let trustedPracticeDayKey = "";
+    let exactCoachVerifiedOverlap: Record<string, any> | null = null;
     if (request.kind === "ATTENDANCE") {
       if (String(request.meta.source ?? "") === COACH_VERIFIED_PRACTICE_SOURCE) {
         trustedPracticeDayKey = requiredString(
@@ -629,6 +641,9 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         request.meta.discipline = trustedDiscipline;
         request.meta.sessionDateKey = trustedPracticeDayKey;
         request.meta.durationMinutes = 60;
+        request.meta.practiceEvidenceKey = attendancePracticeEvidenceKey(
+          trustedPracticeDayKey, trustedDiscipline, request.meta.practiceKey
+        );
       } else {
         const attendanceSessionId = requiredString(
           request.meta.attendanceSessionId, "meta.attendanceSessionId"
@@ -657,6 +672,44 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         request.meta.discipline = trustedDiscipline;
         request.meta.sessionDateKey = trustedPracticeDayKey;
         request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
+        const canonicalPracticeId = String(session.practiceId || "").trim();
+        if (canonicalPracticeId && canonicalPracticeId !== attendanceSessionId) {
+          throw new HttpsError("failed-precondition", "ATTENDANCE_PRACTICE_ID_MISMATCH");
+        }
+        if (canonicalPracticeId) {
+          const practiceSnap = await tx.get(db.doc(`practiceSessions/${canonicalPracticeId}`));
+          if (!practiceSnap.exists) throw new HttpsError("failed-precondition", "CANONICAL_PRACTICE_REQUIRED");
+          const practice = practiceSnap.data() || {};
+          const practiceDiscipline = normalizeLifetimeCombatDiscipline(
+            requiredString(practice.discipline, "practice discipline")
+          );
+          const practiceDayKey = requiredString(practice.sessionDateKey || session.sessionDateKey, "practice sessionDateKey");
+          if (practiceDiscipline !== normalizeLifetimeCombatDiscipline(trustedDiscipline)
+            || practiceDayKey !== trustedPracticeDayKey) {
+            throw new HttpsError("failed-precondition", "ATTENDANCE_PRACTICE_CONTEXT_MISMATCH");
+          }
+          trustedDiscipline = practiceDiscipline;
+          request.meta.discipline = practiceDiscipline;
+          request.meta.canonicalEntryMode = String(practice.entryMode || "normal");
+          const practiceKey = String(practice.practiceKey || "").trim();
+          request.meta.practiceEvidenceKey = practiceKey
+            ? attendancePracticeEvidenceKey(trustedPracticeDayKey, trustedDiscipline, practiceKey)
+            : attendancePracticeEvidenceKey(trustedPracticeDayKey, trustedDiscipline, `attendance-${canonicalPracticeId}`);
+          if (practiceKey && String(practice.coachUid || "").trim()) {
+            const coachIdentity = [
+              "coach-practice", String(practice.coachUid), trustedPracticeDayKey,
+              trustedDiscipline, coachVerifiedPracticeKey(practiceKey),
+            ].join(":");
+            const overlapSnap = await tx.get(db.collection("xpAwardReceipts").doc(
+              awardReceiptKey(request.uid, coachIdentity)
+            ));
+            exactCoachVerifiedOverlap = overlapSnap.exists ? (overlapSnap.data()?.result || {}) : null;
+          }
+        } else {
+          request.meta.practiceEvidenceKey = attendancePracticeEvidenceKey(
+            trustedPracticeDayKey, normalizeLifetimeCombatDiscipline(trustedDiscipline), `attendance-${attendanceSessionId}`
+          );
+        }
       }
     }
     if (request.kind === "STRENGTH" || request.kind === "HONOR") {
@@ -702,6 +755,20 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
         delta: 0, amount: 0, lifetimeXpDelta: 0,
       };
+    }
+    if (exactCoachVerifiedOverlap) {
+      const prior = exactCoachVerifiedOverlap;
+      const aliasResult = {
+        ...prior, ok: true, idempotent: true, duplicate: true,
+        awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
+        delta: 0, amount: 0, lifetimeXpDelta: 0,
+      };
+      tx.create(receiptRef, {
+        uid: request.uid, awardIdentity, progressionCycleId,
+        kind: request.kind, source: "attendance-coach-verified-overlap",
+        createdAt: now, logId: prior.logId || "", result: aliasResult,
+      });
+      return aliasResult;
     }
 
     if (shouldSuppressCombatAwardForRecovery({
@@ -787,6 +854,16 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         stateKey([request.uid, trustedPracticeDayKey, trustedDiscipline])
       );
       practiceState = (await tx.get(practiceStateRef)).data() || {};
+      const evidenceKeys = Array.isArray(practiceState.evidenceKeys)
+        ? practiceState.evidenceKeys.map(String).filter(Boolean) : [];
+      const evidenceKey = requiredString(request.meta.practiceEvidenceKey, "attendance practice evidence");
+      if (evidenceKeys.includes(evidenceKey)) {
+        throw new HttpsError("already-exists", "ATTENDANCE_PRACTICE_ALREADY_AWARDED");
+      }
+      if (Number(practiceState.count || 0) > 0 && evidenceKeys.length === 0
+        && ["coach-directed", "after-the-fact"].includes(String(request.meta.canonicalEntryMode || ""))) {
+        throw new HttpsError("failed-precondition", "AMBIGUOUS_LEGACY_COACH_VERIFIED_PRACTICE_OVERLAP");
+      }
     }
     if (provisionalBase === "F8" && request.kind.startsWith("ARENA/")) {
       const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");

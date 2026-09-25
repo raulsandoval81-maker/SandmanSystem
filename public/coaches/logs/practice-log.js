@@ -1,13 +1,10 @@
 const PAYLOAD_KEY = "sandman_last_practice_payload";
 const LOG_KEY = "sandman_last_practice_log";
 
-import {
-  ensureSignedIn,
-  functions,
-  httpsCallable
-} from "/assets/js/firebase-init.js";
+import { functions, httpsCallable } from "/assets/js/firebase-init.js";
+import { coachLoginUrl, isCoachAuthenticationError, requireCoach } from "/assets/js/coach-guard.js";
 
-const payload = JSON.parse(
+let payload = JSON.parse(
   localStorage.getItem(PAYLOAD_KEY) || "null"
 );
 
@@ -18,11 +15,22 @@ const payload = JSON.parse(
    inside coachSession.
 ========================= */
 
-const sessionSource =
+let sessionSource =
   payload?.coachSession || payload || {};
+
+const params = new URLSearchParams(window.location.search);
+const requestedPracticeId = String(
+  params.get("practiceId") || params.get("practice") || sessionSource.practiceId || payload?.practiceId || ""
+).trim();
+let canonicalPractice = null;
+let canonicalAttendance = null;
+let canonicalRoster = [];
+let canonicalAthleteInputs = {};
 
 const summary = document.getElementById("sessionSummary");
 const statusEl = document.getElementById("status");
+const athleteInputEl = document.getElementById("athleteInput");
+const closeBtn = document.getElementById("closeBtn");
 
 function escapeHtml(value) {
   return String(value || "")
@@ -58,6 +66,10 @@ function getWeekKey(date = new Date()) {
 }
 
 function getBlocks() {
+  if (canonicalPractice) {
+    const memory = canonicalPractice.sessionMemory || {};
+    return Array.isArray(memory.workedBlocks) ? memory.workedBlocks : [];
+  }
   return Array.isArray(payload?.blocks)
     ? payload.blocks
     : [];
@@ -207,7 +219,7 @@ function renderSummary() {
 
   if (!summary) return;
 
-  if (!payload) {
+  if (!payload && !canonicalPractice) {
 
     summary.innerHTML = `
       <p class="muted">
@@ -230,12 +242,12 @@ function renderSummary() {
 
     <p>
       <strong>Source:</strong>
-      ${escapeHtml(payload.source || "unknown")}
+      ${escapeHtml(canonicalPractice ? "canonical practice" : payload.source || "unknown")}
     </p>
 
     <p>
       <strong>Schema:</strong>
-      ${escapeHtml(sessionSource.schema || "—")}
+      ${escapeHtml(sessionSource.schema || canonicalPractice?.entryMode || "—")}
     </p>
 
     <p>
@@ -269,6 +281,12 @@ function renderSummary() {
       <strong>Conditioning:</strong>
       ${structure.conditioningMinutes} min
     </p>
+
+    ${canonicalPractice ? `
+      <p><strong>Practice:</strong> ${escapeHtml(requestedPracticeId)}</p>
+      <p><strong>Date:</strong> ${escapeHtml(canonicalAttendance?.sessionDateKey || canonicalPractice.sessionDateKey || "—")}</p>
+      <p><strong>Status:</strong> ${escapeHtml(canonicalPractice.status || "—")} · <strong>Verified:</strong> ${Array.isArray(canonicalAttendance?.presentIds) ? canonicalAttendance.presentIds.length : 0}</p>
+    ` : ""}
 
     <h3>Blocks</h3>
 
@@ -344,6 +362,61 @@ function getValue(id) {
   return document.getElementById(id)?.value.trim() || "";
 }
 
+function setValue(id, next) {
+  const element = document.getElementById(id);
+  if (element) element.value = String(next || "");
+}
+
+function renderAthleteInputs() {
+  if (!athleteInputEl) return;
+  const presentIds = Array.isArray(canonicalAttendance?.presentIds)
+    ? canonicalAttendance.presentIds.map(String) : [];
+  const roster = new Map(canonicalRoster.map((athlete) => [String(athlete.id), athlete]));
+  if (!presentIds.length) {
+    athleteInputEl.innerHTML = `<p class="muted">No verified participants for this practice.</p>`;
+    return;
+  }
+  athleteInputEl.innerHTML = presentIds.map((athleteId) => {
+    const athlete = roster.get(athleteId) || {};
+    const input = canonicalAthleteInputs[athleteId] || {};
+    return `<article class="athlete-input" data-athlete-id="${escapeHtml(athleteId)}">
+      <h3>${escapeHtml(athlete.name || athlete.fullName || athlete.publicName || athleteId)}</h3>
+      <label>Coach Observation</label>
+      <textarea data-field="coachObservation" placeholder="Individual practice observation">${escapeHtml(input.coachObservation || "")}</textarea>
+      <label>Development Note</label>
+      <textarea data-field="developmentNote" placeholder="Optional next development focus">${escapeHtml(input.developmentNote || "")}</textarea>
+    </article>`;
+  }).join("");
+}
+
+async function loadCanonicalPractice() {
+  if (!requestedPracticeId || requestedPracticeId.includes("/")) return;
+  const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
+  const response = await getReview({ practiceId: requestedPracticeId });
+  canonicalPractice = response.data?.practice || null;
+  canonicalAttendance = response.data?.attendance || null;
+  canonicalRoster = Array.isArray(response.data?.roster) ? response.data.roster : [];
+  canonicalAthleteInputs = response.data?.athleteInputs || {};
+  if (!canonicalPractice) throw new Error("Canonical practice not found.");
+  payload = payload || { source: "canonical-practice", blocks: [] };
+  sessionSource = {
+    ...sessionSource,
+    practiceId: requestedPracticeId,
+    discipline: canonicalPractice.discipline || "",
+    journey: canonicalPractice.journey || "",
+    track: canonicalPractice.program || "",
+    schema: canonicalPractice.entryMode || "normal",
+  };
+  const reflection = canonicalPractice.sessionMemory?.reflection || {};
+  setValue("fear", reflection.fearRating);
+  setValue("worked", reflection.worked);
+  setValue("needs", reflection.needsWork);
+  setValue("standout", reflection.standout);
+  setValue("coachNote", reflection.coachNote);
+  renderAthleteInputs();
+  if (closeBtn) closeBtn.hidden = canonicalPractice.status === "closed";
+}
+
 async function saveLog() {
 
   const blocks = getBlocks();
@@ -407,7 +480,10 @@ async function saveLog() {
         getValue("needs"),
 
       standout:
-        getValue("standout")
+        getValue("standout"),
+
+      coachNote:
+        getValue("coachNote")
     },
 
     athleteFeedbackSeeds: {
@@ -438,10 +514,9 @@ async function saveLog() {
     JSON.stringify(log)
   );
 
-  const practiceId = String(sessionSource.practiceId || payload?.practiceId || "").trim();
+  const practiceId = String(requestedPracticeId || sessionSource.practiceId || payload?.practiceId || "").trim();
   if (practiceId) {
     try {
-      await ensureSignedIn();
       const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
       await saveMemory({
         operation: "reflection",
@@ -450,9 +525,20 @@ async function saveLog() {
           fearRating: log.coachReflection.fear,
           worked: log.coachReflection.worked,
           needsWork: log.coachReflection.needs,
-          standout: log.coachReflection.standout
+          standout: log.coachReflection.standout,
+          coachNote: log.coachReflection.coachNote
         }
       });
+      if (canonicalPractice) {
+        const saveAthleteInput = httpsCallable(functions, "savePracticeAthleteInput");
+        const cards = [...document.querySelectorAll("[data-athlete-id]")];
+        await Promise.all(cards.map((card) => saveAthleteInput({
+          practiceId,
+          athleteId: card.dataset.athleteId,
+          coachObservation: card.querySelector('[data-field="coachObservation"]')?.value.trim() || "",
+          developmentNote: card.querySelector('[data-field="developmentNote"]')?.value.trim() || "",
+        })));
+      }
     } catch (error) {
       console.error("Durable practice reflection save failed", error);
       if (statusEl) statusEl.textContent = error?.message || "Saved locally; durable save failed.";
@@ -461,12 +547,53 @@ async function saveLog() {
   }
 
   if (statusEl) {
-    statusEl.textContent = practiceId ? "Saved to practice memory." : "Saved locally (legacy session).";
+    statusEl.textContent = practiceId ? "Saved practice and athlete input." : "Saved locally (legacy session).";
   }
 }
 
-renderSummary();
+async function finalClose() {
+  if (!canonicalPractice || !requestedPracticeId) throw new Error("A canonical practice is required for final close.");
+  const closePractice = httpsCallable(functions, "closePracticeSession");
+  const response = await closePractice({
+    practiceId: requestedPracticeId,
+    attendanceSessionId: requestedPracticeId,
+  });
+  canonicalPractice.status = response.data?.status || "closed";
+  if (closeBtn) closeBtn.hidden = true;
+  renderSummary();
+  if (statusEl) statusEl.textContent = response.data?.idempotent ? "Practice was already closed." : "Practice closed.";
+}
+
+async function initializePracticeLog() {
+  try {
+    await requireCoach();
+    await loadCanonicalPractice();
+    renderSummary();
+    if (statusEl) statusEl.textContent = canonicalPractice ? "Canonical practice loaded." : "Legacy local practice loaded.";
+  } catch (error) {
+    console.error("Practice Log initialization failed", error);
+    if (isCoachAuthenticationError(error)) {
+      window.location.replace(coachLoginUrl());
+      return;
+    }
+    if (statusEl) statusEl.textContent = error?.message || "Unable to load practice.";
+  }
+}
 
 document
   .getElementById("saveBtn")
-  ?.addEventListener("click", saveLog);
+  ?.addEventListener("click", () => {
+    saveLog().catch((error) => {
+      console.error("Practice Log save failed", error);
+      if (statusEl) statusEl.textContent = error?.message || "Unable to save practice input.";
+    });
+  });
+
+closeBtn?.addEventListener("click", () => {
+  finalClose().catch((error) => {
+    console.error("Practice final close failed", error);
+    if (statusEl) statusEl.textContent = error?.message || "Unable to close practice.";
+  });
+});
+
+initializePracticeLog();

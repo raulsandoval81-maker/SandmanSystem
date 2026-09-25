@@ -12,7 +12,8 @@ import {
   orderBy,
   limit,
   doc,
-  updateDoc
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -529,9 +530,8 @@ setStatus(`Ready · ${journeyLabels[wantedJourney] || wantedJourney}`);
 }
 
 function requestedAttendanceSessionId() {
-  const id = new URLSearchParams(window.location.search)
-    .get("session")
-    ?.trim() || "";
+  const params = new URLSearchParams(window.location.search);
+  const id = String(params.get("session") || params.get("practice") || params.get("practiceId") || "").trim();
 
   return id && !id.includes("/") ? id : "";
 }
@@ -616,13 +616,6 @@ async function loadApprovedAttendance() {
   render(filtered);
 
   syncPillsToLane();
-
-  await updateDoc(
-    doc(db, "attendance_sessions", sessionDoc.id),
-    {
-      readyForDailyGrind: false
-    }
-  );
 
   setStatus(
     `Daily Grind loaded ${filtered.length} approved athlete(s) · ` +
@@ -850,6 +843,7 @@ async function issueAwardForSelection(award) {
 
   let okCount = 0;
   let xpTotal = 0;
+  let readinessStatus = "";
 
   for (const id of ids) {
     const a = athleteById(id);
@@ -984,9 +978,25 @@ async function issueAwardForSelection(award) {
   awardedCount += okCount;
   awardedXP += xpTotal;
 
+  if (isAttendanceAward && activeAttendanceSession.id && okCount === ids.length) {
+    try {
+      const completeDailyGrind = httpsCallable(functions, "completePracticeDailyGrind");
+      const completion = await completeDailyGrind({
+        practiceId: activeAttendanceSession.id,
+        athleteIds: ids
+      });
+      if (completion.data?.readyForDailyGrind === false) {
+        readinessStatus = " · Practice complete";
+      }
+    } catch (error) {
+      console.error("[daily-grind] readiness completion failed", error);
+      readinessStatus = " · Readiness update pending; reload to retry safely";
+    }
+  }
+
   updateSessionBar();
 
-  setStatus(`Done. Success: ${okCount}/${ids.length} · XP issued: ${xpTotal}`);
+  setStatus(`Done. Success: ${okCount}/${ids.length} · XP issued: ${xpTotal}${readinessStatus}`);
 
   ALL_PILLS.forEach((b) => {
     b.disabled = false;

@@ -211,6 +211,12 @@ export { setCompetitionPublication } from "./competitions/setCompetitionPublicat
 export { listMyCompetitionEvents } from "./competitions/listMyCompetitionEvents";
 export {
   openPracticeSession,
+  createOrRecoverCanonicalPractice,
+  getPracticeAttendanceReview,
+  updatePracticeCheckIn,
+  finalizePracticeAttendance,
+  completePracticeDailyGrind,
+  savePracticeAthleteInput,
   getPracticeSession,
   closePracticeSession,
   savePracticeSessionMemory,

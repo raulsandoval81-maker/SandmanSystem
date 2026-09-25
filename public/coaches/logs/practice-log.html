@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Practice Log</title>
+
+  <link rel="stylesheet" href="/coaches/logs/practice-log.css?v=1" />
+</head>
+
+<body>
+
+<main class="wrap">
+
+  <h1>Practice Log</h1>
+  <p class="muted">Post-practice memory capture.</p>
+
+  <!-- SESSION SUMMARY -->
+  <section class="card">
+
+    <h2>Session Summary</h2>
+
+    <div id="sessionSummary">
+      No session data.
+    </div>
+
+    <label for="tierWeek">Tier Week</label>
+
+    <input
+      id="tierWeek"
+      type="number"
+      min="1"
+      placeholder="Example: 2"
+    />
+
+  </section>
+
+  <section class="card">
+    <h2>Athlete Input</h2>
+    <p class="muted">Individual observations are available only for verified participants.</p>
+    <div id="athleteInput"><p class="muted">Load a canonical practice to add athlete input.</p></div>
+  </section>
+
+  <!-- COACH REFLECTION -->
+  <section class="card">
+
+    <h2>Coach Reflection</h2>
+
+    <!-- F.E.A.R. -->
+    <h3>F.E.A.R.</h3>
+
+    <label for="fear">Overall Class Rating</label>
+
+    <select id="fear">
+      <option value="">--</option>
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+      <option>5</option>
+    </select>
+
+    <p class="muted">
+      Focus • Effort • Attitude • Respect
+    </p>
+
+    <!-- REFLECTION -->
+    <label for="worked">Worked</label>
+
+    <textarea
+      id="worked"
+      placeholder="What worked well today?"
+    ></textarea>
+
+    <label for="needs">Needs Work</label>
+
+    <textarea
+      id="needs"
+      placeholder="What needs review or improvement?"
+    ></textarea>
+
+    <label for="standout">Standout</label>
+
+    <textarea
+      id="standout"
+      placeholder="Athlete, effort, moment, or observation..."
+    ></textarea>
+
+    <label for="coachNote">Coach Note</label>
+    <textarea id="coachNote" placeholder="Optional whole-practice context..."></textarea>
+
+    <button id="saveBtn">
+      Save Practice Log
+    </button>
+
+    <div id="status" class="muted">
+      Ready
+    </div>
+
+  </section>
+
+  <section class="card">
+    <h2>Final Close</h2>
+    <p class="muted">Finalized attendance and completed Daily Grind are required. Notes are optional.</p>
+    <button id="closeBtn" type="button">Close Practice</button>
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/coaches/logs/practice-log.js?v=2"
+></script>
+
+</body>
+</html>
