@@ -91,6 +91,7 @@
   themeToggle.addEventListener("click", () => setTheme(root.dataset.theme === "light" ? "dark" : "light"));
   languageToggles.forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.coachLanguage)));
   if (bilingual) setLanguage(localStorage.getItem("coachHubLanguage") === "es" ? "es" : "en");
-  setTheme(localStorage.getItem("coachHubTheme") === "light" ? "light" : "dark");
+  const savedTheme = localStorage.getItem("coachHubTheme");
+  setTheme(savedTheme === "dark" ? "dark" : "light");
   closeDrawer();
 })();
