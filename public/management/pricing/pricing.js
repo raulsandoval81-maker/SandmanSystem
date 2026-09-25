@@ -956,6 +956,12 @@ function buildCustomerEstimate() {
                 estimate.dueAtEnrollment
               )}
             </td>
+
+            <td>
+              ${money(
+                estimate.nextMonthlyPayment
+              )}
+            </td>
           </tr>
         `
       )
@@ -967,7 +973,7 @@ function buildCustomerEstimate() {
     </div>
 
     <h1>
-      Membership Estimate
+      Membership Plan Proposal
     </h1>
 
     <div class="customer-estimate-members">
@@ -987,6 +993,10 @@ function buildCustomerEstimate() {
 
           <th>
             Due at enrollment
+          </th>
+
+          <th>
+            Next monthly payment
           </th>
         </tr>
       </thead>
@@ -1013,7 +1023,7 @@ function buildCustomerEstimate() {
 
     <div class="customer-estimate-footer">
       <p>
-        Estimated pricing — not an enrollment agreement.
+        Membership plan proposal — not an enrollment agreement.
       </p>
 
       <p>
@@ -1042,13 +1052,16 @@ function buildCustomerEstimate() {
           )}\n` +
           `Due at enrollment: ${money(
             estimate.dueAtEnrollment
+          )}\n` +
+          `Next monthly payment: ${money(
+            estimate.nextMonthlyPayment
           )}`
       )
       .join("\n\n");
 
   const text = [
     "Sandman Academy of Combat & Fitness™",
-    "Membership Estimate",
+    "Membership Plan Proposal",
     "",
     memberText,
     "",
@@ -1060,7 +1073,7 @@ function buildCustomerEstimate() {
     "",
     "Want more training access? Ask us how to upgrade your plan.",
     "",
-    "Estimated pricing — not an enrollment agreement.",
+    "Membership plan proposal — not an enrollment agreement.",
     "AAU or other governing-body membership is purchased separately by the family."
   ].join("\n");
 
@@ -1209,7 +1222,7 @@ sendEstimateBtn?.addEventListener(
       buildCustomerEstimate();
 
     const subject =
-      "Sandman Academy Membership Estimate";
+      "Sandman Academy Membership Plan Proposal";
 
     const mailto =
       `mailto:${recipient}` +
