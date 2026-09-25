@@ -1247,6 +1247,13 @@ function buildCustomerEstimate() {
         is purchased separately where required.
       </p>
 
+      <p>
+        <strong>Youth Empowered Note:</strong>
+        Sandman Academy membership fees are separate
+        from any Youth Empowered program, facility,
+        or participation fees.
+      </p>
+
       <div class="customer-estimate-confirmation">
         <h2>
           Proposal Confirmation
@@ -1325,6 +1332,7 @@ function buildCustomerEstimate() {
     "",
     "Membership plan proposal — not an enrollment agreement.",
     "AAU or other governing-body membership is purchased separately where required.",
+    "Youth Empowered Note: Sandman Academy membership fees are separate from any Youth Empowered program, facility, or participation fees.",
     "",
     "Proposal Confirmation",
     "Please copy and return the section below with your preferred option.",
