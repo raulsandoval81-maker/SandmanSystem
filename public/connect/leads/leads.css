@@ -398,20 +398,20 @@ textarea:focus{
 }
 
 /* Lead triage urgency */
-.status-badge.triage-new{
-  color:#166534;
-  background:#dcfce7;
-  border-color:#86efac;
+.leads-page .status-badge.triage-new{
+  color:#166534 !important;
+  background:#dcfce7 !important;
+  border-color:#86efac !important;
 }
 
-.status-badge.triage-waiting{
-  color:#92400e;
-  background:#fef3c7;
-  border-color:#fcd34d;
+.leads-page .status-badge.triage-waiting{
+  color:#92400e !important;
+  background:#fef3c7 !important;
+  border-color:#fcd34d !important;
 }
 
-.status-badge.triage-issue{
-  color:#991b1b;
-  background:#fee2e2;
-  border-color:#fca5a5;
+.leads-page .status-badge.triage-issue{
+  color:#991b1b !important;
+  background:#fee2e2 !important;
+  border-color:#fca5a5 !important;
 }
