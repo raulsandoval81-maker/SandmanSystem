@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CHAMPIONSHIP_TOTALS = void 0;
+exports.COACH_VERIFIED_PRACTICE_SOURCE = exports.CHAMPIONSHIP_TOTALS = void 0;
 exports.buildLifetimeAwardUpdate = buildLifetimeAwardUpdate;
 exports.buildParentSignalInputs = buildParentSignalInputs;
 exports.emitParentSignalsBestEffort = emitParentSignalsBestEffort;
@@ -11,6 +11,7 @@ exports.awardReceiptKey = awardReceiptKey;
 exports.arenaLayerKey = arenaLayerKey;
 exports.conflictingArenaBonusKind = conflictingArenaBonusKind;
 exports.isPracticeDayAllowed = isPracticeDayAllowed;
+exports.coachVerifiedPracticeKey = coachVerifiedPracticeKey;
 exports.remainingChampionshipDelta = remainingChampionshipDelta;
 exports.shouldEmitAwardSideEffects = shouldEmitAwardSideEffects;
 exports.requestAwardIdentity = requestAwardIdentity;
@@ -52,6 +53,7 @@ const ARENA_AMOUNTS = Object.freeze({
     "ARENA/NO_OPP_DAY": 5,
     "ARENA/SPORTSMANSHIP": -5,
 });
+exports.COACH_VERIFIED_PRACTICE_SOURCE = "coach-verified-practice";
 function buildLifetimeAwardUpdate(athlete, plan, combatDiscipline) {
     const domain = (0, xpDomainPolicy_1.resolveLifetimeDomain)(plan.kind);
     const effects = (0, xpDomainPolicy_1.resolveLifetimeXpEffects)({
@@ -218,6 +220,13 @@ function isPracticeDayAllowed(dayKey) {
     }
     return date.getUTCDay() !== 0;
 }
+function coachVerifiedPracticeKey(value) {
+    const key = requiredString(value, "meta.practiceKey").toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._:-]{0,79}$/.test(key)) {
+        throw new https_1.HttpsError("invalid-argument", "INVALID_COACH_VERIFIED_PRACTICE_KEY");
+    }
+    return key;
+}
 function remainingChampionshipDelta(target, alreadyAwarded) {
     return Math.max(0, Number(target) - Math.max(0, Number(alreadyAwarded) || 0));
 }
@@ -226,6 +235,15 @@ function shouldEmitAwardSideEffects(result) {
 }
 function requestAwardIdentity(request) {
     if (request.kind === "ATTENDANCE") {
+        if (String(request.meta.source ?? "") === exports.COACH_VERIFIED_PRACTICE_SOURCE) {
+            return [
+                "coach-practice",
+                requiredString(request.meta.verifiedCoachUid, "verified coach identity"),
+                requiredString(request.meta.sessionDateKey, "meta.sessionDateKey"),
+                requiredString(request.meta.discipline, "meta.discipline"),
+                coachVerifiedPracticeKey(request.meta.practiceKey),
+            ].join(":");
+        }
         return `attendance:${requiredString(request.meta.attendanceSessionId, "meta.attendanceSessionId")}`;
     }
     if (request.kind === "STRENGTH" || request.kind === "HONOR") {
@@ -244,6 +262,9 @@ function requestAwardIdentity(request) {
         return `arena:${tournamentId}:${arenaLayerKey(request.kind)}`;
     }
     throw new https_1.HttpsError("invalid-argument", "STABLE_AWARD_IDENTITY_REQUIRED");
+}
+function attendancePracticeEvidenceKey(dayKey, discipline, practiceKey) {
+    return ["practice-evidence-v1", dayKey, discipline, practiceKey].join(":");
 }
 function athleteTier(athlete, base) {
     if (base === "F8")
@@ -413,7 +434,14 @@ function buildAwardPlan(args) {
         if (count >= 2 || dailyXp + requestedDelta > dailyLimit) {
             throw new https_1.HttpsError("failed-precondition", base === "F8" ? "F8_DAILY_PRACTICE_LIMIT_REACHED" : "DAILY_GRIND_XP_LIMIT");
         }
-        practiceStateAfter = { count: count + 1, xp: dailyXp + requestedDelta };
+        const evidenceKey = requiredString(request.meta.practiceEvidenceKey, "attendance practice evidence");
+        const priorEvidence = Array.isArray(args.practiceState?.evidenceKeys)
+            ? args.practiceState.evidenceKeys.map(String).filter(Boolean) : [];
+        practiceStateAfter = {
+            count: count + 1,
+            xp: dailyXp + requestedDelta,
+            evidenceKeys: [...new Set([...priorEvidence, evidenceKey])],
+        };
     }
     else if (lane === "arena") {
         monthlyField = "arena";
@@ -494,6 +522,13 @@ async function awardXpAuthoritatively(coachUid, input) {
     if (!String(coachUid ?? "").trim())
         throw new https_1.HttpsError("unauthenticated", "coachUid required");
     const request = normalizeXpRequest(input);
+    if (request.kind === "ATTENDANCE"
+        && String(request.meta.source ?? "") === exports.COACH_VERIFIED_PRACTICE_SOURCE) {
+        request.meta.verifiedCoachUid = requiredString(coachUid, "verified coach identity");
+    }
+    else {
+        delete request.meta.verifiedCoachUid;
+    }
     const db = (0, firestore_1.getFirestore)();
     const now = firestore_1.Timestamp.now();
     const mk = monthKey(now);
@@ -513,32 +548,94 @@ async function awardXpAuthoritatively(coachUid, input) {
             || `legacy:${athleteTier(athlete, provisionalBase)}`;
         let trustedDiscipline = "";
         let trustedPracticeDayKey = "";
+        let exactCoachVerifiedOverlap = null;
         if (request.kind === "ATTENDANCE") {
-            const attendanceSessionId = requiredString(request.meta.attendanceSessionId, "meta.attendanceSessionId");
-            const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${attendanceSessionId}`));
-            if (!attendanceSnap.exists) {
-                throw new https_1.HttpsError("failed-precondition", "TRUSTED_ATTENDANCE_SESSION_REQUIRED");
+            if (String(request.meta.source ?? "") === exports.COACH_VERIFIED_PRACTICE_SOURCE) {
+                trustedPracticeDayKey = requiredString(request.meta.sessionDateKey, "meta.sessionDateKey");
+                if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
+                    throw new https_1.HttpsError("failed-precondition", "COACH_VERIFIED_PRACTICE_BLOCKED_SUNDAY");
+                }
+                if (trustedPracticeDayKey > pacificDayKey(now)) {
+                    throw new https_1.HttpsError("invalid-argument", "COACH_VERIFIED_PRACTICE_DATE_IN_FUTURE");
+                }
+                try {
+                    trustedDiscipline = (0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(requiredString(request.meta.discipline, "meta.discipline"));
+                }
+                catch (error) {
+                    throw new https_1.HttpsError("invalid-argument", String(error?.message || "INVALID_COACH_VERIFIED_DISCIPLINE"));
+                }
+                request.meta.practiceKey = coachVerifiedPracticeKey(request.meta.practiceKey);
+                delete request.meta.attendanceSessionId;
+                delete request.meta.sessionId;
+                delete request.meta.schema;
+                delete request.meta.academyId;
+                delete request.meta.roomId;
+                request.meta.discipline = trustedDiscipline;
+                request.meta.sessionDateKey = trustedPracticeDayKey;
+                request.meta.durationMinutes = 60;
+                request.meta.practiceEvidenceKey = attendancePracticeEvidenceKey(trustedPracticeDayKey, trustedDiscipline, request.meta.practiceKey);
             }
-            const session = attendanceSnap.data() || {};
-            if (String(session.status ?? "").toLowerCase() !== "finalized" || session.finalized !== true) {
-                throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_SESSION_NOT_FINALIZED");
+            else {
+                const attendanceSessionId = requiredString(request.meta.attendanceSessionId, "meta.attendanceSessionId");
+                const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${attendanceSessionId}`));
+                if (!attendanceSnap.exists) {
+                    throw new https_1.HttpsError("failed-precondition", "TRUSTED_ATTENDANCE_SESSION_REQUIRED");
+                }
+                const session = attendanceSnap.data() || {};
+                if (String(session.status ?? "").toLowerCase() !== "finalized" || session.finalized !== true) {
+                    throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_SESSION_NOT_FINALIZED");
+                }
+                const presentIds = Array.isArray(session.presentIds) ? session.presentIds.map(String) : [];
+                if (!presentIds.includes(request.uid)) {
+                    throw new https_1.HttpsError("failed-precondition", "ATHLETE_NOT_PRESENT_IN_ATTENDANCE_SESSION");
+                }
+                const trustedSessionId = String(session.sessionId || session.liveSessionId || attendanceSessionId);
+                if (requiredString(request.meta.sessionId, "meta.sessionId") !== trustedSessionId) {
+                    throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_SESSION_ID_MISMATCH");
+                }
+                trustedDiscipline = requiredString(session.discipline, "attendance discipline").toLowerCase();
+                trustedPracticeDayKey = requiredString(session.sessionDateKey, "attendance sessionDateKey");
+                if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
+                    throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_BLOCKED_SUNDAY");
+                }
+                request.meta.discipline = trustedDiscipline;
+                request.meta.sessionDateKey = trustedPracticeDayKey;
+                request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
+                const canonicalPracticeId = String(session.practiceId || "").trim();
+                if (canonicalPracticeId && canonicalPracticeId !== attendanceSessionId) {
+                    throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_PRACTICE_ID_MISMATCH");
+                }
+                if (canonicalPracticeId) {
+                    const practiceSnap = await tx.get(db.doc(`practiceSessions/${canonicalPracticeId}`));
+                    if (!practiceSnap.exists)
+                        throw new https_1.HttpsError("failed-precondition", "CANONICAL_PRACTICE_REQUIRED");
+                    const practice = practiceSnap.data() || {};
+                    const practiceDiscipline = (0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(requiredString(practice.discipline, "practice discipline"));
+                    const practiceDayKey = requiredString(practice.sessionDateKey || session.sessionDateKey, "practice sessionDateKey");
+                    if (practiceDiscipline !== (0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(trustedDiscipline)
+                        || practiceDayKey !== trustedPracticeDayKey) {
+                        throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_PRACTICE_CONTEXT_MISMATCH");
+                    }
+                    trustedDiscipline = practiceDiscipline;
+                    request.meta.discipline = practiceDiscipline;
+                    request.meta.canonicalEntryMode = String(practice.entryMode || "normal");
+                    const practiceKey = String(practice.practiceKey || "").trim();
+                    request.meta.practiceEvidenceKey = practiceKey
+                        ? attendancePracticeEvidenceKey(trustedPracticeDayKey, trustedDiscipline, practiceKey)
+                        : attendancePracticeEvidenceKey(trustedPracticeDayKey, trustedDiscipline, `attendance-${canonicalPracticeId}`);
+                    if (practiceKey && String(practice.coachUid || "").trim()) {
+                        const coachIdentity = [
+                            "coach-practice", String(practice.coachUid), trustedPracticeDayKey,
+                            trustedDiscipline, coachVerifiedPracticeKey(practiceKey),
+                        ].join(":");
+                        const overlapSnap = await tx.get(db.collection("xpAwardReceipts").doc(awardReceiptKey(request.uid, coachIdentity)));
+                        exactCoachVerifiedOverlap = overlapSnap.exists ? (overlapSnap.data()?.result || {}) : null;
+                    }
+                }
+                else {
+                    request.meta.practiceEvidenceKey = attendancePracticeEvidenceKey(trustedPracticeDayKey, (0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(trustedDiscipline), `attendance-${attendanceSessionId}`);
+                }
             }
-            const presentIds = Array.isArray(session.presentIds) ? session.presentIds.map(String) : [];
-            if (!presentIds.includes(request.uid)) {
-                throw new https_1.HttpsError("failed-precondition", "ATHLETE_NOT_PRESENT_IN_ATTENDANCE_SESSION");
-            }
-            const trustedSessionId = String(session.sessionId || session.liveSessionId || attendanceSessionId);
-            if (requiredString(request.meta.sessionId, "meta.sessionId") !== trustedSessionId) {
-                throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_SESSION_ID_MISMATCH");
-            }
-            trustedDiscipline = requiredString(session.discipline, "attendance discipline").toLowerCase();
-            trustedPracticeDayKey = requiredString(session.sessionDateKey, "attendance sessionDateKey");
-            if (!isPracticeDayAllowed(trustedPracticeDayKey)) {
-                throw new https_1.HttpsError("failed-precondition", "ATTENDANCE_BLOCKED_SUNDAY");
-            }
-            request.meta.discipline = trustedDiscipline;
-            request.meta.sessionDateKey = trustedPracticeDayKey;
-            request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
         }
         if (request.kind === "STRENGTH" || request.kind === "HONOR") {
             const expectedSource = request.kind === "STRENGTH" ? "lane-review" : "honor_lane_review";
@@ -582,6 +679,20 @@ async function awardXpAuthoritatively(coachUid, input) {
                 awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
                 delta: 0, amount: 0, lifetimeXpDelta: 0,
             };
+        }
+        if (exactCoachVerifiedOverlap) {
+            const prior = exactCoachVerifiedOverlap;
+            const aliasResult = {
+                ...prior, ok: true, idempotent: true, duplicate: true,
+                awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
+                delta: 0, amount: 0, lifetimeXpDelta: 0,
+            };
+            tx.create(receiptRef, {
+                uid: request.uid, awardIdentity, progressionCycleId,
+                kind: request.kind, source: "attendance-coach-verified-overlap",
+                createdAt: now, logId: prior.logId || "", result: aliasResult,
+            });
+            return aliasResult;
         }
         if ((0, decayRecoveryPolicy_1.shouldSuppressCombatAwardForRecovery)({
             decay: athlete?.decay,
@@ -654,6 +765,16 @@ async function awardXpAuthoritatively(coachUid, input) {
         if (request.kind === "ATTENDANCE") {
             practiceStateRef = db.collection("f8PracticeDayState").doc(stateKey([request.uid, trustedPracticeDayKey, trustedDiscipline]));
             practiceState = (await tx.get(practiceStateRef)).data() || {};
+            const evidenceKeys = Array.isArray(practiceState.evidenceKeys)
+                ? practiceState.evidenceKeys.map(String).filter(Boolean) : [];
+            const evidenceKey = requiredString(request.meta.practiceEvidenceKey, "attendance practice evidence");
+            if (evidenceKeys.includes(evidenceKey)) {
+                throw new https_1.HttpsError("already-exists", "ATTENDANCE_PRACTICE_ALREADY_AWARDED");
+            }
+            if (Number(practiceState.count || 0) > 0 && evidenceKeys.length === 0
+                && ["coach-directed", "after-the-fact"].includes(String(request.meta.canonicalEntryMode || ""))) {
+                throw new https_1.HttpsError("failed-precondition", "AMBIGUOUS_LEGACY_COACH_VERIFIED_PRACTICE_OVERLAP");
+            }
         }
         if (provisionalBase === "F8" && request.kind.startsWith("ARENA/")) {
             const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");

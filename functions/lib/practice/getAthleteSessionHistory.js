@@ -110,6 +110,8 @@ exports.getAthleteSessionHistory = (0, https_1.onCall)(async (request) => {
             tierSnapshot: clean(athleteSession.tierSnapshot),
             workedCards: compactArray(athleteSession.workedCards),
             workedSkillRefs: compactArray(athleteSession.workedSkillRefs),
+            coachInput: athleteSession.coachInput || null,
+            practiceReflection: practice.sessionMemory?.reflection || null,
             finalizedAt: athleteSession.finalizedAt || null,
         },
         verifiedSkills,

@@ -1,14 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.closePracticeSession = exports.savePracticeSessionMemory = exports.getPracticeSession = exports.openPracticeSession = void 0;
+exports.closePracticeSession = exports.savePracticeSessionMemory = exports.getPracticeSession = exports.savePracticeAthleteInput = exports.completePracticeDailyGrind = exports.finalizePracticeAttendance = exports.updatePracticeCheckIn = exports.getPracticeAttendanceReview = exports.createOrRecoverCanonicalPractice = exports.openPracticeSession = void 0;
+const node_crypto_1 = require("node:crypto");
 const firestore_1 = require("firebase-admin/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const staffAuthorization_1 = require("../services/staffAuthorization");
 const crossTrainingPolicy_1 = require("../schedules/crossTrainingPolicy");
+const decayRecoveryPolicy_1 = require("../modules/decay/decayRecoveryPolicy");
+const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const PRACTICE_STAFF_ROLES = staffAuthorization_1.COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["manual", "hybrid", "quick", "checked-in"]);
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
 const MAX_PLAN_VERSION = 10000;
+const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
+const CANONICAL_PRACTICE_PROGRAMS = Object.freeze([
+    { program: "youth-z2h-wrestling", discipline: "wrestling", journey: "Z2H", locations: ["santa-ynez-valley"] },
+    { program: "youth-z2h-muay-thai", discipline: "muay-thai", journey: "Z2H", locations: ["santa-ynez-valley"] },
+    { program: "teen-p2l-wrestling", discipline: "wrestling", journey: "P2L", locations: ["santa-ynez-valley"] },
+    { program: "teen-p2l-boxing", discipline: "boxing", journey: "P2L", locations: ["santa-ynez-valley"] },
+    { program: "fitness-striking", discipline: "striking", journey: "", locations: ["santa-ynez-valley"] },
+]);
 function requireDocumentId(value, field) {
     const id = requiredString(value, field);
     if (id.length > 160 || id.includes("/") || id === "." || id === ".." || /[\u0000-\u001f\u007f]/.test(id)) {
@@ -35,6 +46,42 @@ function requirePracticeLocation(actor, locationId) {
     if (!(0, crossTrainingPolicy_1.staffLocationIds)(actor.staff).includes(locationId)) {
         throw new https_1.HttpsError("permission-denied", "Practice location is outside the staff member's authorized scope.");
     }
+}
+function requireSessionDateKey(value) {
+    const dateKey = requiredString(value, "sessionDateKey");
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateKey);
+    if (!match)
+        throw new https_1.HttpsError("invalid-argument", "sessionDateKey must use YYYY-MM-DD.");
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    if (parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) {
+        throw new https_1.HttpsError("invalid-argument", "sessionDateKey is not a valid calendar date.");
+    }
+    const todayParts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date());
+    const part = (type) => todayParts.find((item) => item.type === type)?.value || "";
+    const todayKey = `${part("year")}-${part("month")}-${part("day")}`;
+    if (dateKey > todayKey)
+        throw new https_1.HttpsError("invalid-argument", "sessionDateKey cannot be in the future.");
+    return dateKey;
+}
+function requireCanonicalPracticeProgram(program, disciplineValue, locationId) {
+    const programId = requiredString(program, "program");
+    const discipline = normalizePracticeDiscipline(requiredString(disciplineValue, "discipline"));
+    const policy = CANONICAL_PRACTICE_PROGRAMS.find((item) => item.program === programId);
+    if (!policy || policy.discipline !== discipline || !policy.locations.includes(locationId)) {
+        throw new https_1.HttpsError("failed-precondition", "This program and discipline are not available at the selected location.");
+    }
+    return { program: programId, discipline, journey: policy.journey };
+}
+function canonicalPracticeIdentity(input) {
+    return ["canonical-practice-v1", input.entryMode, input.sessionDateKey, input.locationId, input.discipline, input.program, input.practiceKey].join("|");
+}
+function canonicalPracticeId(identity) {
+    return `practice_${(0, node_crypto_1.createHash)("sha256").update(identity).digest("hex").slice(0, 32)}`;
 }
 function compactString(value, max = 240) {
     return String(value ?? "").trim().slice(0, max);
@@ -106,6 +153,41 @@ function athleteSessionWorkedMemory(practice, discipline) {
     });
     return { workedCards: cards, workedSkillRefs: [...skillMap.values()] };
 }
+function athleteSessionRecord(args) {
+    const discipline = normalizePracticeDiscipline(args.attendance.discipline || args.practice.discipline);
+    const worked = athleteSessionWorkedMemory(args.practice, discipline);
+    return {
+        practiceId: args.practiceId,
+        attendanceSessionId: args.practiceId,
+        athleteId: args.athleteId,
+        attendance: { status: "present", finalizedAt: args.attendance.finalizedAt || args.now },
+        sessionDate: compactString(args.attendance.sessionDateKey, 80),
+        locationId: compactString(args.practice.locationId || args.practice.academyId, 160),
+        roomId: compactString(args.practice.roomId, 160),
+        discipline,
+        journey: compactString(args.athlete.journey || args.practice.journey, 120),
+        program: compactString(args.athlete.program || args.practice.program, 160),
+        rankSnapshot: compactString(args.athlete.rank, 120),
+        tierSnapshot: compactString(args.athlete.tier, 120),
+        workedCards: worked.workedCards,
+        workedSkillRefs: worked.workedSkillRefs,
+        createdAt: args.now,
+        updatedAt: args.now,
+        finalizedAt: args.attendance.finalizedAt || args.now,
+        sourceVersion: 1,
+    };
+}
+function sameIds(left, right) {
+    const normalize = (value) => [...new Set((Array.isArray(value) ? value : []).map((item) => String(item || "").trim()).filter(Boolean))].sort();
+    const a = normalize(left);
+    const b = normalize(right);
+    return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+function qualifiesForDecayRecovery(practice) {
+    const type = `${practice.journey || ""}-${practice.discipline || "practice"}`.toLowerCase();
+    return ["attendance", "combat", "practice", "open_mat", "daily_grind", "tournament", "p2l", "z2h", "r2g", "q2m"]
+        .some((token) => type.includes(token));
+}
 function compactBlocks(value) {
     if (!Array.isArray(value))
         return [];
@@ -142,6 +224,7 @@ exports.openPracticeSession = (0, https_1.onCall)(async (request) => {
     const locationId = requiredString(input.locationId || input.academyId, "locationId");
     requirePracticeLocation(actor, locationId);
     const discipline = requiredString(input.discipline, "discipline").toLowerCase();
+    const sessionDateKey = input.sessionDateKey ? requireSessionDateKey(input.sessionDateKey) : "";
     const requestedPracticeId = input.practiceId ? requireDocumentId(input.practiceId, "practiceId") : "";
     const executionModeInput = String(input.executionMode || "").trim().toLowerCase();
     if (executionModeInput && !EXECUTION_MODES.has(executionModeInput)) {
@@ -208,6 +291,8 @@ exports.openPracticeSession = (0, https_1.onCall)(async (request) => {
             coachUid: existing.exists ? String(current.coachUid || actor.uid) : actor.uid,
             coachRole: existing.exists ? String(current.coachRole || actor.role) : actor.role,
             status: "active",
+            entryMode: "normal",
+            ...(sessionDateKey ? { sessionDateKey } : {}),
             discipline,
             journey: String(input.journey || "").trim(),
             program: String(input.program || "").trim(),
@@ -239,6 +324,409 @@ exports.openPracticeSession = (0, https_1.onCall)(async (request) => {
         }, { merge: true });
     });
     return { ok: true, practiceId: practiceRef.id, liveSessionId, status: "active", idempotent };
+});
+exports.createOrRecoverCanonicalPractice = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const input = request.data || {};
+    const entryMode = compactString(input.entryMode, 40).toLowerCase();
+    if (!PRACTICE_ENTRY_MODES.has(entryMode) || entryMode === "normal") {
+        throw new https_1.HttpsError("invalid-argument", "entryMode must be coach-directed or after-the-fact.");
+    }
+    const locationId = requiredString(input.locationId, "locationId");
+    requirePracticeLocation(actor, locationId);
+    const sessionDateKey = requireSessionDateKey(input.sessionDateKey);
+    const { program, discipline, journey } = requireCanonicalPracticeProgram(input.program, input.discipline, locationId);
+    const suppliedPracticeKey = compactString(input.practiceKey, 120);
+    if (entryMode === "after-the-fact" && !suppliedPracticeKey) {
+        throw new https_1.HttpsError("invalid-argument", "practiceKey is required for after-the-fact entry.");
+    }
+    if (suppliedPracticeKey && !/^[a-z0-9][a-z0-9._:-]{0,119}$/i.test(suppliedPracticeKey)) {
+        throw new https_1.HttpsError("invalid-argument", "practiceKey is invalid.");
+    }
+    const practiceKey = suppliedPracticeKey || "coach-directed";
+    const intendedSessionIdentity = canonicalPracticeIdentity({ entryMode, sessionDateKey, locationId, discipline, program, practiceKey });
+    const practiceId = canonicalPracticeId(intendedSessionIdentity);
+    const db = (0, firestore_1.getFirestore)();
+    const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+    let idempotent = false;
+    let status = "active";
+    await db.runTransaction(async (tx) => {
+        const existing = await tx.get(practiceRef);
+        if (existing.exists) {
+            const current = existing.data() || {};
+            if (String(current.intendedSessionIdentity || "") !== intendedSessionIdentity) {
+                throw new https_1.HttpsError("already-exists", "The deterministic practice identity is already in use.");
+            }
+            requirePracticeLocation(actor, requiredString(current.locationId, "practice locationId"));
+            status = requiredString(current.status, "practice status");
+            idempotent = true;
+            return;
+        }
+        const now = firestore_1.FieldValue.serverTimestamp();
+        tx.create(practiceRef, {
+            practiceId, intendedSessionIdentity, sessionDateKey, entryMode, practiceKey,
+            locationId, academyId: locationId, discipline, program,
+            journey,
+            roomId: compactString(input.roomId, 160),
+            coachUid: actor.uid, coachRole: actor.role,
+            status: "active", source: "practice-entry", openedAt: now, updatedAt: now,
+        });
+    });
+    return { ok: true, practiceId, status, entryMode, sessionDateKey, idempotent };
+});
+exports.getPracticeAttendanceReview = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+    const db = (0, firestore_1.getFirestore)();
+    const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
+    if (!practiceSnap.exists)
+        throw new https_1.HttpsError("not-found", "Practice not found.");
+    const practice = practiceSnap.data() || {};
+    const locationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
+    requirePracticeLocation(actor, locationId);
+    if (!["active", "closed"].includes(String(practice.status || "").toLowerCase())) {
+        throw new https_1.HttpsError("failed-precondition", "Practice attendance is not available in this state.");
+    }
+    const [attendanceSnap, rosterSnap, athleteInputSnap] = await Promise.all([
+        db.doc(`attendance_sessions/${practiceId}`).get(),
+        db.collection("athletes").where("locationId", "==", locationId).get(),
+        db.collection(`practiceSessions/${practiceId}/athletes`).get(),
+    ]);
+    const roster = rosterSnap.docs
+        .map((snap) => ({ athleteId: snap.id, ...(snap.data() || {}) }))
+        .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
+        .map((athlete) => ({
+        id: athlete.athleteId,
+        uid: athlete.uid || athlete.athleteId,
+        name: athlete.name || athlete.publicName || athlete.fullName || athlete.athleteId,
+        publicName: athlete.publicName || "",
+        fullName: athlete.fullName || "",
+        program: athlete.program || "",
+        journey: athlete.journey || "",
+        profileType: athlete.profileType || "",
+        ladderKey: athlete.ladderKey || "",
+        tier: athlete.tier || "",
+        rank: athlete.rank || "",
+    }));
+    const athleteInputs = athleteInputSnap.docs.reduce((result, snap) => {
+        const input = snap.data()?.coachInput;
+        if (input && typeof input === "object")
+            result[snap.id] = input;
+        return result;
+    }, {});
+    return { ok: true, practiceId, practice, attendance: attendanceSnap.data() || null, roster, athleteInputs };
+});
+exports.updatePracticeCheckIn = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+    const action = compactString(request.data?.action, 20).toLowerCase();
+    if (!new Set(["start", "add", "remove", "submit"]).has(action)) {
+        throw new https_1.HttpsError("invalid-argument", "Unsupported check-in action.");
+    }
+    const athleteId = ["add", "remove"].includes(action)
+        ? requireDocumentId(request.data?.athleteId, "athleteId") : "";
+    const db = (0, firestore_1.getFirestore)();
+    const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+    const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+    let result = {};
+    await db.runTransaction(async (tx) => {
+        const practiceSnap = await tx.get(practiceRef);
+        if (!practiceSnap.exists)
+            throw new https_1.HttpsError("not-found", "Practice not found.");
+        const practice = practiceSnap.data() || {};
+        const locationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
+        requirePracticeLocation(actor, locationId);
+        if (String(practice.status || "").toLowerCase() !== "active") {
+            throw new https_1.HttpsError("failed-precondition", "Check-in requires an active practice.");
+        }
+        if (String(practice.entryMode || "normal") === "after-the-fact") {
+            throw new https_1.HttpsError("failed-precondition", "After-the-fact attendance uses verified participants, not historical check-ins.");
+        }
+        const attendanceSnap = await tx.get(attendanceRef);
+        const existing = attendanceSnap.data() || {};
+        if (["pending_review", "finalized"].includes(String(existing.status || "").toLowerCase())) {
+            throw new https_1.HttpsError("failed-precondition", "This attendance record is already submitted.");
+        }
+        let athlete = null;
+        if (action === "add") {
+            const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
+            if (!athleteSnap.exists)
+                throw new https_1.HttpsError("not-found", "Athlete not found.");
+            athlete = athleteSnap.data() || {};
+            if (String(athlete.locationId || "") !== locationId) {
+                throw new https_1.HttpsError("permission-denied", "Athlete is outside the practice location.");
+            }
+        }
+        const checkedIn = new Map((Array.isArray(existing.checkedIn) ? existing.checkedIn : [])
+            .map((item) => [String(item.id || item.uid || ""), item])
+            .filter(([id]) => Boolean(id)));
+        const now = firestore_1.FieldValue.serverTimestamp();
+        if (action === "add" && athlete) {
+            checkedIn.set(athleteId, {
+                id: athleteId, uid: athlete.uid || athleteId,
+                name: athlete.name || athlete.publicName || athlete.fullName || athleteId,
+                publicName: athlete.publicName || "", fullName: athlete.fullName || "",
+                program: athlete.program || "", journey: athlete.journey || "",
+                profileType: athlete.profileType || "", tier: athlete.tier || "", rank: athlete.rank || "",
+                checkedInAt: firestore_1.Timestamp.now(),
+            });
+        }
+        if (action === "remove")
+            checkedIn.delete(athleteId);
+        if (action === "submit" && checkedIn.size === 0) {
+            throw new https_1.HttpsError("failed-precondition", "At least one athlete must be checked in before review.");
+        }
+        const sessionDateKey = practice.sessionDateKey || requireSessionDateKey(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()));
+        const values = [...checkedIn.values()];
+        const ids = [...checkedIn.keys()];
+        result = {
+            ...existing, practiceId, sessionId: practiceId,
+            liveSessionId: practice.liveSessionId || "", locationId, academyId: locationId,
+            roomId: practice.roomId || "", sessionDateKey,
+            journey: practice.journey || "", discipline: normalizePracticeDiscipline(practice.discipline),
+            type: `${practice.journey || "session"}-${practice.discipline || "practice"}`,
+            coach: existing.coach || actor.uid, coachUid: actor.uid,
+            notes: action === "start" ? compactString(request.data?.notes, 4000) : (existing.notes || ""),
+            status: action === "submit" ? "pending_review" : "draft",
+            readyForDailyGrind: false, finalized: false,
+            checkedIn: values, checkedInIds: ids, checkedInCount: ids.length,
+            updatedAt: now, source: "athlete-check-in",
+            ...(attendanceSnap.exists ? {} : { createdAt: now }),
+            ...(action === "submit" ? { submittedAt: now, submittedBy: actor.uid } : {}),
+        };
+        tx.set(attendanceRef, result, { merge: true });
+    });
+    return { ok: true, practiceId, attendance: result };
+});
+exports.finalizePracticeAttendance = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+    const requestedPresentIds = [...new Set((Array.isArray(request.data?.presentIds) ? request.data.presentIds : [])
+            .map((value) => requireDocumentId(value, "present athleteId")))];
+    if (!requestedPresentIds.length)
+        throw new https_1.HttpsError("invalid-argument", "At least one verified participant is required.");
+    const notes = compactString(request.data?.notes, 4000);
+    const db = (0, firestore_1.getFirestore)();
+    const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+    const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+    let idempotent = false;
+    await db.runTransaction(async (tx) => {
+        const [practiceSnap, attendanceSnap] = await Promise.all([tx.get(practiceRef), tx.get(attendanceRef)]);
+        if (!practiceSnap.exists)
+            throw new https_1.HttpsError("not-found", "Practice not found.");
+        const practice = practiceSnap.data() || {};
+        const locationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
+        requirePracticeLocation(actor, locationId);
+        const sessionDateKey = requireSessionDateKey(practice.sessionDateKey || attendanceSnap.data()?.sessionDateKey);
+        const existing = attendanceSnap.data() || {};
+        if (attendanceSnap.exists && String(existing.practiceId || practiceId) !== practiceId) {
+            throw new https_1.HttpsError("failed-precondition", "Attendance identity does not match the canonical practice.");
+        }
+        const alreadyFinalized = String(existing.status || "").toLowerCase() === "finalized";
+        if (alreadyFinalized && sameIds(existing.presentIds, requestedPresentIds) && String(existing.notes || "") === notes) {
+            idempotent = true;
+            return;
+        }
+        if (String(practice.status || "").toLowerCase() !== "active") {
+            throw new https_1.HttpsError("failed-precondition", "Attendance can only be finalized while the practice remains active.");
+        }
+        const xpEvidence = await tx.get(db.collection("xpLogs").where("meta.attendanceSessionId", "==", practiceId).limit(1));
+        if (!xpEvidence.empty) {
+            throw new https_1.HttpsError("failed-precondition", "Attendance cannot be corrected after attendance-linked XP has been awarded.");
+        }
+        if (alreadyFinalized) {
+            throw new https_1.HttpsError("failed-precondition", "Finalized attendance cannot be materially changed in this workflow.");
+        }
+        const athleteRefs = requestedPresentIds.map((athleteId) => db.doc(`athletes/${athleteId}`));
+        const athleteSnaps = await Promise.all(athleteRefs.map((ref) => tx.get(ref)));
+        const athleteSessionRefs = requestedPresentIds.map((athleteId) => db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`));
+        const athleteSessionSnaps = await Promise.all(athleteSessionRefs.map((ref) => tx.get(ref)));
+        const athletes = athleteSnaps.map((snap, index) => {
+            if (!snap.exists)
+                throw new https_1.HttpsError("not-found", `Athlete not found: ${requestedPresentIds[index]}`);
+            const athlete = snap.data() || {};
+            if (String(athlete.locationId || "") !== locationId) {
+                throw new https_1.HttpsError("permission-denied", `Athlete is outside the practice location: ${requestedPresentIds[index]}`);
+            }
+            if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
+                throw new https_1.HttpsError("failed-precondition", `Athlete is not on the current roster: ${requestedPresentIds[index]}`);
+            }
+            return athlete;
+        });
+        const now = firestore_1.FieldValue.serverTimestamp();
+        const discipline = normalizePracticeDiscipline(practice.discipline);
+        const present = athletes.map((athlete, index) => ({
+            id: requestedPresentIds[index], uid: athlete.uid || requestedPresentIds[index],
+            name: athlete.name || athlete.publicName || athlete.fullName || requestedPresentIds[index],
+            publicName: athlete.publicName || "", fullName: athlete.fullName || "",
+            program: athlete.program || "", journey: athlete.journey || "",
+            profileType: athlete.profileType || "", ladderKey: athlete.ladderKey || "",
+            tier: athlete.tier || "", rank: athlete.rank || "",
+        }));
+        const checkedIn = Array.isArray(existing.checkedIn) ? existing.checkedIn : [];
+        const checkedInIds = Array.isArray(existing.checkedInIds) ? existing.checkedInIds : [];
+        const removedFromReviewIds = checkedInIds.filter((id) => !requestedPresentIds.includes(String(id)));
+        const finalizedAttendance = {
+            ...existing,
+            practiceId, sessionId: practiceId, liveSessionId: practice.liveSessionId || existing.liveSessionId || "",
+            locationId, academyId: locationId, roomId: practice.roomId || existing.roomId || "",
+            sessionDateKey, journey: practice.journey || "", discipline,
+            type: existing.type || `${practice.journey || "session"}-${discipline || "practice"}`,
+            coach: existing.coach || actor.uid, coachUid: actor.uid, notes,
+            checkedIn, checkedInIds, checkedInCount: checkedInIds.length,
+            status: "finalized", readyForDailyGrind: true, finalized: true,
+            finalizedAt: now, finalizedBy: actor.uid,
+            present, presentIds: requestedPresentIds, presentCount: requestedPresentIds.length,
+            removedFromReviewIds, updatedAt: now, source: "coach-attendance",
+            ...(attendanceSnap.exists ? {} : { createdAt: now }),
+        };
+        tx.set(attendanceRef, finalizedAttendance, { merge: true });
+        athletes.forEach((athlete, index) => {
+            const recovery = (0, decayRecoveryPolicy_1.resolveQualifyingRecoveryPractice)({
+                decay: athlete.decay || {}, practiceKey: practiceId, qualifies: qualifiesForDecayRecovery(practice),
+            });
+            const athletePatch = {
+                lastAttendanceAt: now, lastAttendanceType: finalizedAttendance.type,
+                lastAttendanceCoach: actor.uid, lastAttendanceSessionId: practiceId, updatedAt: now,
+            };
+            if (recovery.counts) {
+                athletePatch["decay.recoveryDaysRequired"] = recovery.recoveryDaysRequired;
+                athletePatch["decay.recoveryDaysCompleted"] = recovery.completedAfter;
+                athletePatch["decay.recoveryLog"] = recovery.recoveryLogAfter;
+                athletePatch["decay.lastRecoveryAt"] = now;
+                athletePatch["decay.lastUpdatedAt"] = now;
+                if (recovery.clearsRecoveryLock) {
+                    athletePatch["decay.state"] = "CLEAR";
+                    athletePatch["decay.nextHitAt"] = null;
+                    athletePatch["decay.clearedAt"] = now;
+                    athletePatch["decay.resolutionStatus"] = "RECOVERY_REQUIREMENT_COMPLETED";
+                    athletePatch["decay.resolutionReason"] = "Recovered after 2 verified combat practices; historical decay retained.";
+                    athletePatch["decay.recoveryCompletedAttendanceSessionId"] = practiceId;
+                    athletePatch["decay.recoveryCompletedDateKey"] = sessionDateKey;
+                }
+            }
+            tx.update(athleteRefs[index], athletePatch);
+            if (!athleteSessionSnaps[index].exists) {
+                tx.create(athleteSessionRefs[index], athleteSessionRecord({
+                    practiceId, attendance: finalizedAttendance, practice,
+                    athleteId: requestedPresentIds[index], athlete, now,
+                }));
+            }
+        });
+    });
+    return { ok: true, practiceId, attendanceSessionId: practiceId, status: "finalized", idempotent };
+});
+exports.completePracticeDailyGrind = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+    const completedIds = [...new Set((Array.isArray(request.data?.athleteIds) ? request.data.athleteIds : [])
+            .map((value) => requireDocumentId(value, "athleteId")))];
+    if (!completedIds.length)
+        throw new https_1.HttpsError("invalid-argument", "At least one completed athlete is required.");
+    const db = (0, firestore_1.getFirestore)();
+    const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+    const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+    let remainingIds = [];
+    let idempotent = false;
+    await db.runTransaction(async (tx) => {
+        const [practiceSnap, attendanceSnap] = await Promise.all([tx.get(practiceRef), tx.get(attendanceRef)]);
+        if (!practiceSnap.exists)
+            throw new https_1.HttpsError("not-found", "Practice not found.");
+        const practice = practiceSnap.data() || {};
+        requirePracticeLocation(actor, requiredString(practice.locationId || practice.academyId, "practice locationId"));
+        if (!attendanceSnap.exists)
+            throw new https_1.HttpsError("not-found", "Finalized attendance not found.");
+        const attendance = attendanceSnap.data() || {};
+        if (String(attendance.status || "").toLowerCase() !== "finalized" || attendance.finalized !== true) {
+            throw new https_1.HttpsError("failed-precondition", "Attendance must be finalized before Daily Grind completion.");
+        }
+        const presentIds = Array.isArray(attendance.presentIds) ? attendance.presentIds.map(String) : [];
+        if (completedIds.some((athleteId) => !presentIds.includes(athleteId))) {
+            throw new https_1.HttpsError("failed-precondition", "Daily Grind completion includes an athlete not present in attendance.");
+        }
+        const receiptRefs = completedIds.map((athleteId) => db.doc(`xpAwardReceipts/${(0, authoritativeXpService_1.awardReceiptKey)(athleteId, `attendance:${practiceId}`)}`));
+        const receiptSnaps = await Promise.all(receiptRefs.map((ref) => tx.get(ref)));
+        if (receiptSnaps.some((snap) => !snap.exists || snap.get("result.ok") !== true)) {
+            throw new https_1.HttpsError("failed-precondition", "Verified attendance XP receipts are required before clearing readiness.");
+        }
+        const priorCompleted = Array.isArray(attendance.dailyGrindCompletedIds)
+            ? attendance.dailyGrindCompletedIds.map(String) : [];
+        const mergedCompleted = [...new Set([...priorCompleted, ...completedIds])];
+        remainingIds = presentIds.filter((athleteId) => !mergedCompleted.includes(athleteId));
+        const alreadyComplete = sameIds(priorCompleted, mergedCompleted)
+            && Boolean(attendance.readyForDailyGrind) === (remainingIds.length > 0);
+        if (alreadyComplete) {
+            idempotent = true;
+            return;
+        }
+        const now = firestore_1.FieldValue.serverTimestamp();
+        tx.update(attendanceRef, {
+            dailyGrindCompletedIds: mergedCompleted,
+            dailyGrindRemainingIds: remainingIds,
+            readyForDailyGrind: remainingIds.length > 0,
+            dailyGrindUpdatedAt: now,
+            ...(remainingIds.length === 0 ? { dailyGrindCompletedAt: now, dailyGrindCompletedBy: actor.uid } : {}),
+        });
+    });
+    return { ok: true, practiceId, readyForDailyGrind: remainingIds.length > 0, remainingIds, idempotent };
+});
+exports.savePracticeAthleteInput = (0, https_1.onCall)(async (request) => {
+    if (!request.auth)
+        throw new https_1.HttpsError("unauthenticated", "Staff authentication required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+    const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+    const athleteId = requireDocumentId(request.data?.athleteId, "athleteId");
+    const coachObservation = compactString(request.data?.coachObservation, 4000);
+    const developmentNote = compactString(request.data?.developmentNote, 4000);
+    const db = (0, firestore_1.getFirestore)();
+    const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+    const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+    const athleteSessionRef = practiceRef.collection("athletes").doc(athleteId);
+    await db.runTransaction(async (tx) => {
+        const [practiceSnap, attendanceSnap, athleteSessionSnap] = await Promise.all([
+            tx.get(practiceRef), tx.get(attendanceRef), tx.get(athleteSessionRef),
+        ]);
+        if (!practiceSnap.exists)
+            throw new https_1.HttpsError("not-found", "Practice not found.");
+        const practice = practiceSnap.data() || {};
+        requirePracticeOwner(actor, practice);
+        if (!attendanceSnap.exists)
+            throw new https_1.HttpsError("failed-precondition", "Finalized attendance is required before athlete input.");
+        const attendance = attendanceSnap.data() || {};
+        if (String(attendance.practiceId || "") !== practiceId
+            || String(attendance.status || "").toLowerCase() !== "finalized"
+            || attendance.finalized !== true) {
+            throw new https_1.HttpsError("failed-precondition", "Matching finalized attendance is required before athlete input.");
+        }
+        const presentIds = Array.isArray(attendance.presentIds) ? attendance.presentIds.map(String) : [];
+        if (!presentIds.includes(athleteId)) {
+            throw new https_1.HttpsError("failed-precondition", "Athlete input is limited to verified present athletes.");
+        }
+        if (!athleteSessionSnap.exists) {
+            throw new https_1.HttpsError("failed-precondition", "Canonical athlete-session memory is required before athlete input.");
+        }
+        const now = firestore_1.FieldValue.serverTimestamp();
+        tx.set(athleteSessionRef, {
+            coachInput: {
+                coachObservation,
+                developmentNote,
+                savedAt: now,
+                coachUid: actor.uid,
+            },
+            updatedAt: now,
+        }, { merge: true });
+    });
+    return { ok: true, practiceId, athleteId };
 });
 exports.getPracticeSession = (0, https_1.onCall)(async (request) => {
     if (!request.auth)
@@ -339,6 +827,7 @@ exports.savePracticeSessionMemory = (0, https_1.onCall)(async (request) => {
             worked: compactString(input.reflection?.worked, 4000),
             needsWork: compactString(input.reflection?.needsWork, 4000),
             standout: compactString(input.reflection?.standout, 4000),
+            coachNote: compactString(input.reflection?.coachNote, 4000),
         };
         if (status === "closed" && memory.reflectionFinalizedAt) {
             const stored = memory.reflection || {};
@@ -346,7 +835,8 @@ exports.savePracticeSessionMemory = (0, https_1.onCall)(async (request) => {
                 && stored.fearRating === reflection.fearRating
                 && stored.worked === reflection.worked
                 && stored.needsWork === reflection.needsWork
-                && stored.standout === reflection.standout;
+                && stored.standout === reflection.standout
+                && String(stored.coachNote || "") === reflection.coachNote;
             if (isExactRetry) {
                 idempotent = true;
                 return;
@@ -398,12 +888,24 @@ exports.closePracticeSession = (0, https_1.onCall)(async (request) => {
             && attendance.finalized === true
             && Boolean(attendanceDiscipline)
             && attendanceDiscipline === practiceDiscipline;
-        if (attendanceSnap.exists && !canSeedAthleteMemory) {
+        if (!attendanceSnap.exists || !canSeedAthleteMemory) {
             throw new https_1.HttpsError("failed-precondition", "Matching finalized attendance is required before closing this practice.");
         }
         const participants = canSeedAthleteMemory ? finalizedParticipants(attendance) : [];
         const athleteMemoryRefs = participants.map(({ athleteId }) => db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`));
-        const athleteMemorySnaps = await Promise.all(athleteMemoryRefs.map((athleteRef) => tx.get(athleteRef)));
+        const receiptRefs = participants.map(({ athleteId }) => db.doc(`xpAwardReceipts/${(0, authoritativeXpService_1.awardReceiptKey)(athleteId, `attendance:${practiceId}`)}`));
+        const [athleteMemorySnaps, receiptSnaps] = await Promise.all([
+            Promise.all(athleteMemoryRefs.map((athleteRef) => tx.get(athleteRef))),
+            Promise.all(receiptRefs.map((receiptRef) => tx.get(receiptRef))),
+        ]);
+        if (participants.length > 0) {
+            const unresolvedReadiness = attendance.readyForDailyGrind !== false
+                || (Array.isArray(attendance.dailyGrindRemainingIds) && attendance.dailyGrindRemainingIds.length > 0);
+            const missingReceipt = receiptSnaps.some((receiptSnap) => !receiptSnap.exists || receiptSnap.get("result.ok") !== true);
+            if (unresolvedReadiness || missingReceipt) {
+                throw new https_1.HttpsError("failed-precondition", "Daily Grind must be completed for every verified participant before final close.");
+            }
+        }
         if (String(practice.status || "").toLowerCase() === "closed") {
             idempotent = true;
         }
@@ -428,32 +930,18 @@ exports.closePracticeSession = (0, https_1.onCall)(async (request) => {
         }
         if (!canSeedAthleteMemory)
             return;
-        const discipline = attendanceDiscipline;
-        const worked = athleteSessionWorkedMemory(practice, discipline);
         participants.forEach(({ athleteId, athlete }, index) => {
             if (athleteMemorySnaps[index].exists)
                 return;
             const now = firestore_1.FieldValue.serverTimestamp();
-            tx.create(athleteMemoryRefs[index], {
+            tx.create(athleteMemoryRefs[index], athleteSessionRecord({
                 practiceId,
-                attendanceSessionId,
+                attendance,
+                practice,
                 athleteId,
-                attendance: { status: "present", finalizedAt: attendance.finalizedAt || null },
-                sessionDate: compactString(attendance.sessionDateKey || attendance.sessionDateLabel, 80),
-                locationId: compactString(attendance.locationId || attendance.academyId, 160),
-                roomId: compactString(attendance.roomId, 160),
-                discipline,
-                journey: compactString(athlete.journey || attendance.journey, 120),
-                program: compactString(athlete.program || attendance.program, 160),
-                rankSnapshot: compactString(athlete.rank, 120),
-                tierSnapshot: compactString(athlete.tier, 120),
-                workedCards: worked.workedCards,
-                workedSkillRefs: worked.workedSkillRefs,
-                createdAt: now,
-                updatedAt: now,
-                finalizedAt: attendance.finalizedAt || null,
-                sourceVersion: 1,
-            });
+                athlete,
+                now,
+            }));
         });
     });
     return { ok: true, practiceId, status: "closed", idempotent };
