@@ -396,3 +396,22 @@ textarea:focus{
     text-align:center;
   }
 }
+
+/* Lead triage urgency */
+.status-badge.triage-new{
+  color:#166534;
+  background:#dcfce7;
+  border-color:#86efac;
+}
+
+.status-badge.triage-waiting{
+  color:#92400e;
+  background:#fef3c7;
+  border-color:#fcd34d;
+}
+
+.status-badge.triage-issue{
+  color:#991b1b;
+  background:#fee2e2;
+  border-color:#fca5a5;
+}
