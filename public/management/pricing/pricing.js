@@ -1246,6 +1246,37 @@ function buildCustomerEstimate() {
         AAU or other governing-body membership
         is purchased separately where required.
       </p>
+
+      <div class="customer-estimate-confirmation">
+        <h2>
+          Proposal Confirmation
+        </h2>
+
+        <p>
+          Please copy and return the section below
+          with your preferred option.
+        </p>
+
+        <p>
+          <strong>Preferred Plan:</strong>
+          ______________________________________
+        </p>
+
+        <p>
+          <strong>Initials:</strong>
+          __________
+          &nbsp;&nbsp;
+          <strong>Date:</strong>
+          __________
+        </p>
+
+        <p>
+          Initials confirm your preferred membership
+          plan only. This proposal is not a final
+          enrollment agreement. Final enrollment is
+          completed through the next Management step.
+        </p>
+      </div>
     </div>
   `;
 
@@ -1293,7 +1324,15 @@ function buildCustomerEstimate() {
     recommendationText,
     "",
     "Membership plan proposal — not an enrollment agreement.",
-    "AAU or other governing-body membership is purchased separately where required."
+    "AAU or other governing-body membership is purchased separately where required.",
+    "",
+    "Proposal Confirmation",
+    "Please copy and return the section below with your preferred option.",
+    "",
+    "Preferred Plan: ______________________________________",
+    "Initials: __________    Date: __________",
+    "",
+    "Initials confirm your preferred membership plan only. This proposal is not a final enrollment agreement. Final enrollment is completed through the next Management step."
   ]
     .filter(
       (line) => line !== null
