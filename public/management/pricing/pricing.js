@@ -1306,7 +1306,30 @@ function buildCustomerEstimate() {
       )
       .join("\n");
 
+  const firstName =
+    String(athletes[0]?.name || "there")
+      .trim()
+      .split(/\s+/)[0];
+
   const text = [
+    `Hey ${firstName},`,
+    "",
+    "We’re switching over to digital payments here at Sandman Academy, and with that we’ve updated the membership payment structure.",
+    "",
+    "Below is your Membership Plan Proposal with the available payment options and the next training option available to you.",
+    "",
+    "Please review everything and send back the Proposal Confirmation section at the bottom with the option you’d like to move forward with.",
+    "",
+    "One additional note: your account is currently one month behind. As we move over to digital billing, we’ll also need to bring that balance current. Going forward, recurring membership payments will be processed on the 5th of each month.",
+    "",
+    "Once you send that back, I’ll handle the next step from there.",
+    "",
+    "Thanks,",
+    "Coach Sandoval",
+    "Sandman Academy of Combat & Fitness™",
+    "",
+    "------------------------------------------------------------",
+    "",
     "Sandman Academy of Combat & Fitness™",
     "Membership Plan Proposal",
     "",
