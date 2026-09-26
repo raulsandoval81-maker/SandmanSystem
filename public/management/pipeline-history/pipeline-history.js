@@ -159,6 +159,29 @@ function filteredRecords() {
   });
 }
 
+function renderRecoveryAction(record) {
+  const stage = currentStage(record);
+  const appointmentId = clean(record.appointmentId);
+
+  if (
+    stage === "ready_for_proposal" &&
+    appointmentId
+  ) {
+    return `
+      <div class="history-actions">
+        <a
+          class="history-resume-btn"
+          href="/management/pricing/?appointmentId=${encodeURIComponent(appointmentId)}"
+        >
+          Resume Pricing
+        </a>
+      </div>
+    `;
+  }
+
+  return "";
+}
+
 function render() {
   const visible = filteredRecords();
   if (!visible.length) {
@@ -189,6 +212,7 @@ function render() {
             <li><span>${esc(event.label)}</span><time>${esc(formatDate(event.value))}</time></li>
           `).join("") : '<li class="history-timeline__empty">No milestone timestamps recorded.</li>'}
         </ol>
+        ${renderRecoveryAction(record)}
       </article>
     `;
   }).join("");

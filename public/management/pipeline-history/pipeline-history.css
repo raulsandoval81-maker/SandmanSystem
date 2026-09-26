@@ -72,3 +72,37 @@
   .history-facts{grid-template-columns:1fr}
   .history-stage{max-width:100%}
 }
+
+
+.history-actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:14px;
+}
+
+.history-resume-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:10px 16px;
+  border-radius:10px;
+  background:var(--management-gold);
+  color:#111;
+  font-weight:850;
+  text-decoration:none;
+}
+
+.history-resume-btn:hover{
+  filter:brightness(1.04);
+}
+
+@media(max-width:600px){
+  .history-actions{
+    justify-content:stretch;
+  }
+
+  .history-resume-btn{
+    width:100%;
+  }
+}
