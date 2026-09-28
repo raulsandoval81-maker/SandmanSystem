@@ -398,6 +398,43 @@ const extras = {
         document.getElementById("proposalWorkflowRouteLink")
     };
 
+    const sendReviewButton =
+      document.createElement("button");
+
+    sendReviewButton.id =
+      "sendReviewButton";
+
+    sendReviewButton.type =
+      "button";
+
+    sendReviewButton.className =
+      "button secondary";
+
+    sendReviewButton.textContent =
+      "Send for Review — Remote";
+
+    sendReviewButton.title =
+      "Email the proposal for remote review and acceptance.";
+
+    if (
+      el.submitReviewButton?.parentElement
+    ) {
+      el.submitReviewButton
+        .insertAdjacentElement(
+          "afterend",
+          sendReviewButton
+        );
+    }
+
+    el.sendReviewButton =
+      sendReviewButton;
+
+    el.submitReviewButton.textContent =
+      "Submit for Review — In Person";
+
+    el.submitReviewButton.title =
+      "Review and accept the proposal together on this device.";
+
     if (pricingLabMode) {
       const banner =
         document.getElementById(
@@ -410,7 +447,8 @@ const extras = {
 
       [
         el.saveDraftButton,
-        el.submitReviewButton
+        el.submitReviewButton,
+        el.sendReviewButton
       ].forEach((button) => {
         if (!button) return;
 
@@ -1643,27 +1681,38 @@ alert(
       }
     }
 
-    async function submitForReview() {
-  if (pricingLabMode) {
-    console.warn(
-      "Pricing Lab blocked proposal write:",
-      "submitForReview"
-    );
+    async function beginProposalReview(
+      delivery
+    ) {
+      if (pricingLabMode) {
+        console.warn(
+          "Pricing Lab blocked proposal review."
+        );
 
-    return;
-  }
+        return;
+      }
+
+      const remote =
+        delivery === "email";
 
       if (!proposalId) {
         alert(
-          "Save the proposal draft before submitting it for review."
+          "Save the proposal draft before starting client review."
         );
         return;
       }
 
       const confirmed =
         window.confirm(
-          `Submit ${proposalId} for review? ` +
-          "The draft will no longer be editable."
+          remote
+            ? (
+                `Send ${proposalId} for remote review? ` +
+                "The proposal will be locked for client review and emailed to the client."
+              )
+            : (
+                `Open ${proposalId} for in-person review? ` +
+                "The proposal will be locked while the client reviews and accepts it on this device."
+              )
         );
 
       if (!confirmed) {
@@ -1677,21 +1726,38 @@ alert(
         return;
       }
 
-      const originalText =
-        el.submitReviewButton.textContent;
+      [
+        el.saveDraftButton,
+        el.submitReviewButton,
+        el.sendReviewButton
+      ].forEach((button) => {
+        if (button) {
+          button.disabled = true;
+        }
+      });
 
-      el.submitReviewButton.disabled = true;
-      el.submitReviewButton.textContent =
-        "Submitting…";
+      if (remote) {
+        el.sendReviewButton.textContent =
+          "Sending…";
+      } else {
+        el.submitReviewButton.textContent =
+          "Opening Review…";
+      }
+
+      let movedToReview = false;
 
       try {
+        /*
+         * Step 1:
+         * Advance the finished draft into REVIEW.
+         */
         const submitReview =
           httpsCallable(
             functions,
             "submitProposalForReview"
           );
 
-        const response =
+        const submitResponse =
           await submitReview({
             proposalId,
 
@@ -1701,41 +1767,154 @@ alert(
           });
 
         if (
-          response.data?.status !== "REVIEW"
+          submitResponse.data?.status !==
+          "REVIEW"
         ) {
           throw new Error(
             "REVIEW status was not returned."
           );
         }
 
-        el.saveDraftButton.disabled = true;
-        el.saveDraftButton.textContent =
-          `${proposalId} — REVIEW`;
+        movedToReview = true;
 
-        el.submitReviewButton.disabled = true;
-        el.submitReviewButton.textContent =
-          "Submitted for Review";
+        /*
+         * Step 2:
+         * Issue the same secure proposal review.
+         *
+         * Remote = delivery:"email"
+         * In-person = omit delivery, which is the
+         * existing backend contract for local review.
+         */
+        const issueReview =
+          httpsCallable(
+            functions,
+            "issueProposalClientReview"
+          );
 
-        renderProposalWorkflow(
-          "REVIEW"
-        );
+        const issuePayload =
+          remote
+            ? {
+                proposalId,
+                delivery: "email"
+              }
+            : {
+                proposalId
+              };
+
+        const issueResponse =
+          await issueReview(
+            issuePayload
+          );
+
+        if (
+          issueResponse.data?.status !==
+          "AWAITING_CLIENT_SIGNATURE"
+        ) {
+          throw new Error(
+            "Client review was not activated."
+          );
+        }
+
+        /*
+         * Remote:
+         * email has been sent. Return Management
+         * to Review & Approve so the case remains
+         * visible for follow-through.
+         */
+        if (remote) {
+          const recipient =
+            String(
+              issueResponse.data?.recipient ||
+              ""
+            ).trim();
+
+          alert(
+            recipient
+              ? `Proposal sent to ${recipient}.`
+              : "Proposal sent for remote review."
+          );
+
+          window.location.assign(
+            "/connect/proposals/" +
+            `?proposalId=${encodeURIComponent(
+              proposalId
+            )}`
+          );
+
+          return;
+        }
+
+        /*
+         * In person:
+         * open the exact same secure family-facing
+         * review/signature page on this device.
+         */
+        const reviewPath =
+          String(
+            issueResponse.data?.reviewPath ||
+            ""
+          ).trim();
+
+        if (!reviewPath) {
+          throw new Error(
+            "The in-person review link was not returned."
+          );
+        }
 
         window.location.assign(
-          "/connect/proposals/"
+          reviewPath
         );
       } catch (error) {
         console.error(
-          "Submit proposal for review failed:",
+          "[Prospect Builder] proposal review failed:",
           error
         );
 
-        el.submitReviewButton.disabled = false;
+        /*
+         * If DRAFT -> REVIEW already succeeded,
+         * never pretend the proposal is still a
+         * draft. Send Management to the canonical
+         * Review & Approve surface where either
+         * review method can be retried safely.
+         */
+        if (movedToReview) {
+          alert(
+            (
+              remote
+                ? "The proposal moved to Review, but the remote send did not finish. "
+                : "The proposal moved to Review, but the in-person review link did not open. "
+            ) +
+            "Open Review & Approve to continue without rebuilding the proposal."
+          );
+
+          window.location.assign(
+            "/connect/proposals/" +
+            `?proposalId=${encodeURIComponent(
+              proposalId
+            )}`
+          );
+
+          return;
+        }
+
+        el.saveDraftButton.disabled =
+          false;
+
+        el.submitReviewButton.disabled =
+          false;
+
+        el.sendReviewButton.disabled =
+          false;
+
         el.submitReviewButton.textContent =
-          originalText;
+          "Submit for Review — In Person";
+
+        el.sendReviewButton.textContent =
+          "Send for Review — Remote";
 
         alert(
           error?.message ||
-          "Unable to submit the proposal for review."
+          "Unable to begin proposal review."
         );
       }
     }
@@ -1766,7 +1945,7 @@ alert(
           "Save the proposal when the family configuration is ready.",
 
         DRAFT:
-          "Review the family configuration, then submit this proposal for review.",
+          "Choose In Person to review together now, or Remote to email the proposal for later review.",
 
         REVIEW:
           "Continue in Review & Approve to issue the client review.",
@@ -1927,9 +2106,11 @@ alert(
         ) {
           el.saveDraftButton.hidden = false;
           el.submitReviewButton.hidden = false;
+          el.sendReviewButton.hidden = false;
         } else {
           el.saveDraftButton.hidden = true;
           el.submitReviewButton.hidden = true;
+          el.sendReviewButton.hidden = true;
         }
       }
     }
@@ -2084,7 +2265,11 @@ alert(
 
         el.submitReviewButton.disabled = false;
         el.submitReviewButton.textContent =
-          "Submit for Review";
+          "Submit for Review — In Person";
+
+        el.sendReviewButton.disabled = false;
+        el.sendReviewButton.textContent =
+          "Send for Review — Remote";
       } else {
         document
           .querySelectorAll(
@@ -2727,8 +2912,20 @@ alert(
         window.print();
       }
     );
-    el.saveDraftButton.addEventListener("click",saveProposalDraft);
-    el.submitReviewButton.addEventListener("click",submitForReview);
+    el.saveDraftButton.addEventListener(
+      "click",
+      saveProposalDraft
+    );
+
+    el.submitReviewButton.addEventListener(
+      "click",
+      () => beginProposalReview("local")
+    );
+
+    el.sendReviewButton.addEventListener(
+      "click",
+      () => beginProposalReview("email")
+    );
 
     if (el.membershipStartDate) {
       el.membershipStartDate.addEventListener(
