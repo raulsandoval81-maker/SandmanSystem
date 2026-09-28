@@ -18,6 +18,8 @@ const academyFilter = document.getElementById("academyFilter");
 const stageFilter = document.getElementById("stageFilter");
 
 let records = [];
+let proposals = [];
+let proposalsById = new Map();
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -93,6 +95,23 @@ function labelForStage(value = "") {
   return labels[value] || value.replaceAll("_", " ") || "New Lead";
 }
 
+function proposalStatusLabel(value = "") {
+  const key = clean(value).toUpperCase();
+  return ({
+    BUILDING: "Building",
+    DRAFT: "Draft",
+    REVIEW: "Needs Review",
+    AWAITING_CLIENT_SIGNATURE: "Awaiting Client Signature",
+    CLIENT_CHANGES_REQUESTED: "Client Changes Requested",
+    CLIENT_SIGNED: "Client Signed",
+    READY_FOR_CHECKOUT: "Checkout Ready",
+    CHECKOUT_CREATED: "Checkout Created",
+    PAYMENT_PENDING: "Payment Pending",
+    PAID: "Paid",
+    VOID: "Void"
+  })[key] || key.replaceAll("_", " ") || "—";
+}
+
 function currentStage(record) {
   if (record.closedAt || record.leadStatus === "closed" || record.status === "closed") return "closed";
   if (record.enrolledAt) return "enrolled";
@@ -132,6 +151,47 @@ function setStatus(message, isError = false) {
   historyStatus.classList.toggle("error", isError);
 }
 
+function proposalKeys(proposal = {}) {
+  return [
+    proposal.proposalId,
+    proposal.id,
+    proposal.leadId,
+    proposal.interestLeadId,
+    proposal.appointmentId,
+    proposal.admissionsRequestId,
+    proposal.prospect?.leadId,
+    proposal.prospect?.interestLeadId,
+    proposal.prospect?.appointmentId,
+    proposal.prospect?.admissionsRequestId
+  ].map(clean).filter(Boolean);
+}
+
+function recordKeys(record = {}) {
+  return [
+    record.proposalId,
+    record.id,
+    record.leadId,
+    record.interestLeadId,
+    record.appointmentId,
+    record.admissionsRequestId,
+    record.requestId
+  ].map(clean).filter(Boolean);
+}
+
+function findProposal(record) {
+  const directId = clean(record.proposalId);
+  if (directId && proposalsById.has(directId)) {
+    return proposalsById.get(directId);
+  }
+
+  const recordKeySet = new Set(recordKeys(record));
+  if (!recordKeySet.size) return null;
+
+  return proposals.find((proposal) =>
+    proposalKeys(proposal).some((key) => recordKeySet.has(key))
+  ) || null;
+}
+
 function populateFilters() {
   const locations = [...new Set(records.map((record) => clean(record.locationId)).filter(Boolean))].sort();
   const stages = [...new Set(records.map(currentStage).filter(Boolean))].sort();
@@ -159,27 +219,66 @@ function filteredRecords() {
   });
 }
 
-function renderRecoveryAction(record) {
-  const stage = currentStage(record);
-  const appointmentId = clean(record.appointmentId);
+function resumeAction(record, proposal) {
+  if (proposal) {
+    const proposalId = clean(proposal.proposalId || proposal.id);
+    const status = clean(proposal.status).toUpperCase();
 
-  if (
-    stage === "ready_for_proposal" &&
-    appointmentId
-  ) {
-    return `
-      <div class="history-actions">
-        <a
-          class="history-resume-btn"
-          href="/management/pricing/?appointmentId=${encodeURIComponent(appointmentId)}"
-        >
-          Resume Pricing
-        </a>
-      </div>
-    `;
+    if (["BUILDING", "DRAFT"].includes(status)) {
+      return {
+        label: "Resume Pricing",
+        href: `/connect/admissions/calculator/?proposalId=${encodeURIComponent(proposalId)}`
+      };
+    }
+
+    if (status === "PAID") {
+      return {
+        label: "Continue Enrollment",
+        href: `/intake-management/?proposalId=${encodeURIComponent(proposalId)}`
+      };
+    }
+
+    if (status && status !== "VOID") {
+      return {
+        label: "Open Proposal",
+        href: `/connect/proposals/?proposalId=${encodeURIComponent(proposalId)}`
+      };
+    }
   }
 
-  return "";
+  const stage = currentStage(record);
+  const appointmentId = clean(record.appointmentId);
+  if (stage === "ready_for_proposal" && appointmentId) {
+    return {
+      label: "Resume Pricing",
+      href: `/management/pricing/?appointmentId=${encodeURIComponent(appointmentId)}`
+    };
+  }
+
+  return null;
+}
+
+function renderCaseNavigation(record) {
+  const proposal = findProposal(record);
+  const proposalId = clean(proposal?.proposalId || proposal?.id || record.proposalId);
+  const resume = resumeAction(record, proposal);
+
+  if (!proposalId && !resume) return "";
+
+  return `
+    <div class="history-case-nav" aria-label="Case navigation">
+      <span class="history-case-tab is-current">History</span>
+      ${proposalId ? `
+        <a
+          class="history-case-tab"
+          href="/management/pipeline-history/activity/?proposalId=${encodeURIComponent(proposalId)}&leadId=${encodeURIComponent(record.id)}"
+        >Activity</a>
+      ` : ""}
+      ${resume ? `
+        <a class="history-resume-btn" href="${esc(resume.href)}">${esc(resume.label)}</a>
+      ` : ""}
+    </div>
+  `;
 }
 
 function render() {
@@ -192,6 +291,7 @@ function render() {
 
   historyList.innerHTML = visible.map((record) => {
     const events = timelineEvents(record);
+    const proposal = findProposal(record);
     return `
       <article class="history-card">
         <header class="history-card__header">
@@ -206,35 +306,32 @@ function render() {
           <div><dt>Program / Journey</dt><dd>${esc(labelForProgram(record.programInterest))}</dd></div>
           <div><dt>Submitted</dt><dd>${esc(formatDate(record.createdAt))}</dd></div>
           <div><dt>Lead ID</dt><dd class="history-id">${esc(record.id)}</dd></div>
+          ${proposal ? `<div><dt>Proposal</dt><dd class="history-id">${esc(proposal.proposalId || proposal.id)}</dd></div>` : ""}
+          ${proposal ? `<div><dt>Proposal Status</dt><dd>${esc(proposalStatusLabel(proposal.status))}</dd></div>` : ""}
         </dl>
         <ol class="history-timeline">
           ${events.length ? events.map((event) => `
             <li><span>${esc(event.label)}</span><time>${esc(formatDate(event.value))}</time></li>
           `).join("") : '<li class="history-timeline__empty">No milestone timestamps recorded.</li>'}
         </ol>
-        ${renderRecoveryAction(record)}
+        ${renderCaseNavigation(record)}
       </article>
     `;
   }).join("");
   setStatus(`${visible.length} of ${records.length} records shown.`);
 }
 
-async function loadHistory(context) {
+async function loadScopedCollection(context, collectionName) {
   const snapshots = [];
   if (context.isSystemAdmin) {
-    snapshots.push(await getDocs(collection(db, "interest_leads")));
+    snapshots.push(await getDocs(collection(db, collectionName)));
   } else {
     const locationIds = context.scope?.locationIds || [];
-    if (!locationIds.length) {
-      records = [];
-      populateFilters();
-      render();
-      setStatus("No locations are assigned to this Management profile.");
-      return;
-    }
+    if (!locationIds.length) return [];
+
     for (let index = 0; index < locationIds.length; index += 10) {
       snapshots.push(await getDocs(query(
-        collection(db, "interest_leads"),
+        collection(db, collectionName),
         where("locationId", "in", locationIds.slice(index, index + 10))
       )));
     }
@@ -244,9 +341,37 @@ async function loadHistory(context) {
   snapshots.forEach((snapshot) => snapshot.docs.forEach((snapshotDoc) => {
     recordMap.set(snapshotDoc.id, { id: snapshotDoc.id, ...snapshotDoc.data() });
   }));
-  records = [...recordMap.values()].sort(
+  return [...recordMap.values()];
+}
+
+async function loadHistory(context) {
+  const locationIds = context.scope?.locationIds || [];
+  if (!context.isSystemAdmin && !locationIds.length) {
+    records = [];
+    proposals = [];
+    proposalsById = new Map();
+    populateFilters();
+    render();
+    setStatus("No locations are assigned to this Management profile.");
+    return;
+  }
+
+  const [leadRecords, proposalRecords] = await Promise.all([
+    loadScopedCollection(context, "interest_leads"),
+    loadScopedCollection(context, "proposals")
+  ]);
+
+  records = leadRecords.sort(
     (a, b) => timestampMillis(b.createdAt) - timestampMillis(a.createdAt)
   );
+
+  proposals = proposalRecords.sort(
+    (a, b) => timestampMillis(b.updatedAt || b.createdAt) - timestampMillis(a.updatedAt || a.createdAt)
+  );
+  proposalsById = new Map(
+    proposals.map((proposal) => [clean(proposal.proposalId || proposal.id), proposal])
+  );
+
   populateFilters();
   render();
 }
