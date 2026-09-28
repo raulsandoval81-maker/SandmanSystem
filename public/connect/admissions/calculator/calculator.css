@@ -1150,3 +1150,88 @@ textarea:focus {
   color: var(--text);
 }
 
+
+
+/* Admissions 3.0 proposal summary polish */
+
+.proposal-summary__name{
+  margin:0 0 14px !important;
+  font-size:1.08rem;
+}
+
+.proposal-summary__athletes{
+  display:grid;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.proposal-summary__athlete{
+  padding:11px 12px;
+  border:1px solid rgba(149,98,10,.18);
+  border-radius:11px;
+  background:rgba(255,255,255,.34);
+}
+
+.proposal-summary__athlete strong{
+  display:block;
+  color:var(--gold-dark);
+  font-size:.95rem;
+}
+
+.proposal-summary__athlete span{
+  display:block;
+  margin-top:3px;
+  color:#4d4a43;
+  font-size:.84rem;
+  line-height:1.4;
+}
+
+.proposal-summary__grid{
+  display:grid;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:12px;
+}
+
+.proposal-summary__item{
+  padding:11px 12px;
+  border:1px solid rgba(149,98,10,.18);
+  border-radius:11px;
+  background:rgba(255,255,255,.5);
+}
+
+.proposal-summary__item span{
+  display:block;
+  color:#716b60;
+  font-size:.72rem;
+  font-weight:750;
+  letter-spacing:.02em;
+}
+
+.proposal-summary__item strong{
+  display:block;
+  margin-top:3px;
+  color:#1d1d1d;
+  line-height:1.35;
+}
+
+.proposal-summary__item--wide{
+  grid-column:1 / -1;
+}
+
+.proposal-summary__recommendation{
+  margin-top:14px !important;
+  padding-top:13px;
+  border-top:1px solid rgba(149,98,10,.22);
+}
+
+@media(max-width:620px){
+  .proposal-summary__grid{
+    grid-template-columns:1fr;
+  }
+
+  .proposal-summary__item--wide{
+    grid-column:auto;
+  }
+}

@@ -1106,7 +1106,7 @@ const extras = {
         "Combat Memberships";
 
       el.unlimitedCompare.textContent =
-        "Family Combat — 12-Month Caps";
+        "Family Combat Pricing";
 
       el.breakdown.innerHTML="";
 
@@ -1217,55 +1217,98 @@ const extras = {
       d2.className="divider";
       el.breakdown.append(d2);
 
+      if (annualSponsor > 0) {
+        el.breakdown.append(
+          line(
+            renewalPackageName,
+            annualBase
+          )
+        );
+
+        el.breakdown.append(
+          line(
+            `Renewal sponsor support (${annualSponsorPercent}%)`,
+            annualSponsor,
+            { credit: true }
+          )
+        );
+      }
+
       el.breakdown.append(
         line(
           renewalPackageName,
-          annualBase
+          annualRenewal,
+          { total: true }
         )
       );
 
-      if(annualSponsor>0){
-        el.breakdown.append(line(
-          `Renewal sponsor support (${annualSponsorPercent}%)`,
-          annualSponsor,
-          {credit:true}
-        ));
-      }
+      const familyName =
+        el.familyName.value.trim();
 
-      el.breakdown.append(line(renewalPackageName,annualRenewal,{total:true}));
+      const intro =
+        familyName
+          ? `
+            <p class="proposal-summary__name">
+              <strong>${escapeHtml(familyName)}</strong>
+            </p>
+          `
+          : "";
 
-      const familyName=el.familyName.value.trim();
-      const intro=familyName?`<p><strong>${familyName}</strong></p>`:"";
+      const disciplineLabels = {
+        wrestling: "Wrestling",
+        boxing: "Boxing",
+        "muay-thai": "Muay Thai"
+      };
 
-      const athleteText=athletes.map(a=>{
-        const planLabel = {
-          standard:
-            "Combat",
+      const athleteCards =
+        athletes.map((a) => {
+          const planLabel = {
+            standard: "Combat",
+            fitness: "Fitness"
+          }[a.plan] || "Membership";
 
-          fitness:
-            "Fitness"
-        }[a.plan] || "Membership";
+          const disciplineText =
+            a.plan === "fitness"
+              ? "Fitness"
+              : a.disciplines.length
+                ? a.disciplines
+                    .map(
+                      (discipline) =>
+                        disciplineLabels[
+                          discipline
+                        ] ||
+                        discipline
+                    )
+                    .join(" + ")
+                : "No discipline selected";
 
-        const disciplineText =
-          a.plan === "fitness"
-            ? "fitness"
-            : a.disciplines.length
-              ? a.disciplines.join(", ")
-              : "no discipline selected";
+          const termLabel =
+            a.billingTerm === "annual"
+              ? "12-month agreement"
+              : (
+                  a.billingTerm ===
+                  "six-month"
+                    ? "6-month agreement"
+                    : "Month-to-month"
+                );
 
-        const termLabel =
-          a.billingTerm === "annual"
-            ? "12-month agreement"
-            : (
-                a.billingTerm === "six-month"
-                  ? "6-month agreement"
-                  : "month-to-month"
-              );
+          return `
+            <div class="proposal-summary__athlete">
+              <strong>
+                ${escapeHtml(a.name)}
+              </strong>
 
-        return `${a.name}: ${planLabel} — ${disciplineText} — ${termLabel}`;
-      }).join("<br>");
+              <span>
+                ${escapeHtml(
+                  `${planLabel} • ${disciplineText} • ${termLabel}`
+                )}
+              </span>
+            </div>
+          `;
+        }).join("");
 
-      const recommendation=el.coachRecommendation.value.trim();
+      const recommendation =
+        el.coachRecommendation.value.trim();
 
       const familySavings =
         projectedSavingsAnnual > 0
@@ -1282,54 +1325,78 @@ const extras = {
           `
           : "";
 
-      el.summary.innerHTML=`
+      const firstMonthSummary =
+        paymentStartMode === "start_now"
+          ? `${money(
+              proratedFirstMonth
+            )} (${prorationPercent}%)`
+          : "Deferred";
+
+      el.summary.innerHTML = `
         ${intro}
-        <p>${athleteText}</p>
 
-        <p>
-          <strong>Total due now:</strong>
-          ${money(dueNow)}.<br>
+        <div class="proposal-summary__athletes">
+          ${athleteCards}
+        </div>
 
-          ${enrollmentPackageName}:
-          <strong>${money(enrollmentDueNow)}</strong>.<br>
+        <div class="proposal-summary__grid">
+          <div class="proposal-summary__item">
+            <span>Due now</span>
+            <strong>${money(dueNow)}</strong>
+          </div>
 
-          ${
-            paymentStartMode === "start_now"
-              ? `
-                First-month membership:
-                <strong>
-                  ${money(proratedFirstMonth)}
-                  (${prorationPercent}%)
-                </strong>.<br>
-              `
-              : `
-                First-month membership:
-                <strong>Deferred</strong>.<br>
-              `
-          }
+          <div class="proposal-summary__item">
+            <span>Monthly membership</span>
+            <strong>${money(monthlyBalance)}/month</strong>
+          </div>
 
-          Regular monthly membership:
-          <strong>${money(monthlyBalance)}/month</strong>.<br>
+          <div class="proposal-summary__item proposal-summary__item--wide">
+            <span>Due-now breakdown</span>
+            <strong>
+              ${escapeHtml(enrollmentPackageName)}:
+              ${money(enrollmentDueNow)}
+              •
+              First-month membership:
+              ${firstMonthSummary}
+            </strong>
+          </div>
 
-          First recurring charge:
-          <strong>
-            ${formatProposalDate(
-              firstRecurringChargeDate
-            )}
-          </strong>.<br>
+          <div class="proposal-summary__item">
+            <span>First recurring charge</span>
+            <strong>
+              ${escapeHtml(
+                formatProposalDate(
+                  firstRecurringChargeDate
+                )
+              )}
+            </strong>
+          </div>
 
-          Recurring billing:
-          <strong>5th of each month</strong>.<br>
+          <div class="proposal-summary__item">
+            <span>Recurring billing</span>
+            <strong>5th of each month</strong>
+          </div>
 
-          ${renewalPackageName}:
-          <strong>${money(annualRenewal)}/year</strong>.
-        </p>
+          <div class="proposal-summary__item proposal-summary__item--wide">
+            <span>
+              ${escapeHtml(renewalPackageName)}
+            </span>
+            <strong>
+              ${money(annualRenewal)}/year
+            </strong>
+          </div>
+        </div>
 
         ${familySavings}
 
         ${
           recommendation
-            ? `<p><strong>Management recommendation:</strong> ${recommendation}</p>`
+            ? `
+              <p class="proposal-summary__recommendation">
+                <strong>Management recommendation</strong><br>
+                ${escapeHtml(recommendation)}
+              </p>
+            `
             : ""
         }
       `;
