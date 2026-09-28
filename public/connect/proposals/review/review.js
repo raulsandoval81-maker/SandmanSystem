@@ -1,3 +1,5 @@
+import "./auto-checkout.js";
+
 import {
   functions,
   httpsCallable
@@ -546,10 +548,10 @@ async function acceptProposal() {
       );
     }
 
-  showConfirmation(
-    "Proposal Accepted",
-    "Thank you. Your proposal has been accepted."
-   );
+    showConfirmation(
+      "Proposal Accepted",
+      "Thank you. Your proposal has been accepted."
+    );
   } catch (error) {
     console.error(
       "Proposal acceptance failed:",
