@@ -1,0 +1,407 @@
+/* =========================================================
+   MANAGEMENT ENROLLMENT — FINAL PRESENTATION LAYER
+   Scoped to /intake-management/ only.
+   Loaded last so legacy intake styles cannot fight the
+   current Academy Management visual system.
+   Presentation only: no workflow or Firebase behavior.
+========================================================= */
+
+body.management-enrollment-page {
+  --enrollment-gap: 16px;
+  background: var(--management-bg, #f6f3ea) !important;
+  color: var(--management-text, #172033) !important;
+}
+
+body.management-enrollment-page .management-main {
+  background: var(--management-bg, #f6f3ea) !important;
+}
+
+body.management-enrollment-page .management-wrap {
+  width: min(1220px, 100%) !important;
+  padding: 28px 24px 56px !important;
+}
+
+body.management-enrollment-page .workspace-heading {
+  align-items: flex-start;
+  margin-bottom: 18px;
+  color: var(--management-text, #172033) !important;
+}
+
+body.management-enrollment-page .workspace-heading h2 {
+  margin: 0 0 6px;
+  color: var(--management-text, #172033) !important;
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  line-height: 1.08;
+}
+
+body.management-enrollment-page .workspace-heading p:last-child {
+  margin: 0;
+  color: var(--management-muted, #667085) !important;
+}
+
+body.management-enrollment-page .enrollment-inner {
+  display: grid;
+  gap: var(--enrollment-gap);
+  width: 100%;
+  min-width: 0;
+  color: var(--management-text, #172033) !important;
+}
+
+/* Workflow orientation */
+body.management-enrollment-page .enrollment-workspace-header {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--management-border, #e3dac5) !important;
+  border-radius: 16px !important;
+  background: var(--management-surface, #fffdf8) !important;
+  box-shadow: var(--management-shadow, 0 12px 30px rgba(40,32,15,.07)) !important;
+}
+
+body.management-enrollment-page .enrollment-workflow {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border: 0 !important;
+  background: var(--management-surface-soft, #faf6ec) !important;
+}
+
+body.management-enrollment-page .enrollment-workflow__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--management-text, #172033) !important;
+  font-size: .78rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+body.management-enrollment-page .enrollment-workflow__step strong {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #d5be72 !important;
+  border-radius: 50%;
+  background: var(--management-gold-soft, #f3e8bd) !important;
+  color: #765b10 !important;
+  font-size: .72rem;
+}
+
+body.management-enrollment-page .enrollment-workflow__arrow {
+  color: #b9aa83 !important;
+}
+
+/* Selected case orientation + status */
+body.management-enrollment-page .management-lifecycle,
+body.management-enrollment-page #enrollmentCaseStatus {
+  margin: 0;
+}
+
+body.management-enrollment-page #enrollmentCaseStatus:not(:empty) {
+  padding: 10px 12px;
+  border: 1px solid var(--management-border, #e3dac5);
+  border-radius: 11px;
+  background: var(--management-surface-soft, #faf6ec);
+  color: var(--management-muted, #667085) !important;
+}
+
+body.management-enrollment-page #enrollmentCaseStatus.error {
+  border-color: #e2aaa6;
+  background: var(--management-danger-soft, #fcebea);
+  color: var(--management-danger, #b42318) !important;
+}
+
+/* Cards */
+body.management-enrollment-page .enrollment-inner .card {
+  position: relative;
+  margin: 0 !important;
+  padding: 20px !important;
+  overflow: hidden;
+  border: 1px solid var(--management-border, #e3dac5) !important;
+  border-radius: 16px !important;
+  background: var(--management-surface, #fffdf8) !important;
+  color: var(--management-text, #172033) !important;
+  box-shadow: var(--management-shadow, 0 12px 30px rgba(40,32,15,.07)) !important;
+}
+
+body.management-enrollment-page .enrollment-inner .card::before {
+  display: none !important;
+}
+
+body.management-enrollment-page .enrollment-inner .card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 14px !important;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--management-border, #e3dac5);
+}
+
+body.management-enrollment-page .enrollment-inner .card h3 {
+  margin: 0;
+  color: var(--management-text, #172033) !important;
+  font-size: 1.08rem;
+  line-height: 1.25;
+}
+
+body.management-enrollment-page .enrollment-inner .card p {
+  color: var(--management-muted, #667085) !important;
+  line-height: 1.5;
+}
+
+/* Clear but restrained phase accents */
+body.management-enrollment-page .enrollment-ready-card {
+  border-left: 4px solid var(--management-gold, #b38a16) !important;
+}
+
+body.management-enrollment-page .enrollment-start-card {
+  border-left: 4px solid var(--management-info, #28618f) !important;
+}
+
+body.management-enrollment-page .enrollment-queue-card {
+  border-left: 4px solid var(--management-warning, #95620a) !important;
+}
+
+body.management-enrollment-page .enrollment-recent-card {
+  border-left: 4px solid var(--management-success, #287a4b) !important;
+}
+
+/* Pills */
+body.management-enrollment-page .status-pill {
+  min-height: 28px !important;
+  margin: 0 !important;
+  padding: 5px 10px !important;
+  border: 1px solid var(--management-border-strong, #d2c5a8) !important;
+  border-radius: 999px !important;
+  background: var(--management-neutral-soft, #eef1f4) !important;
+  color: var(--management-neutral, #596273) !important;
+  font-size: .72rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .03em;
+}
+
+body.management-enrollment-page .enrollment-ready-card .status-pill {
+  border-color: #dcc77f !important;
+  background: var(--management-gold-soft, #f3e8bd) !important;
+  color: #765b10 !important;
+}
+
+/* Rows + fields */
+body.management-enrollment-page .enrollment-inner .row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+body.management-enrollment-page .enrollment-inner input,
+body.management-enrollment-page .enrollment-inner select,
+body.management-enrollment-page .enrollment-inner textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--management-border-strong, #d2c5a8) !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: var(--management-text, #172033) !important;
+  font: inherit;
+  box-shadow: none !important;
+}
+
+body.management-enrollment-page .enrollment-inner input:focus,
+body.management-enrollment-page .enrollment-inner select:focus,
+body.management-enrollment-page .enrollment-inner textarea:focus {
+  border-color: var(--management-gold, #b38a16) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(179,138,22,.16) !important;
+}
+
+body.management-enrollment-page #invite-link {
+  flex: 1 1 320px;
+}
+
+/* Buttons: remove legacy global margin + color fights */
+body.management-enrollment-page .enrollment-inner button,
+body.management-enrollment-page .enrollment-inner .outline-blue,
+body.management-enrollment-page .enrollment-inner .solid-blue,
+body.management-enrollment-page .enrollment-inner .pill {
+  min-width: 0;
+  min-height: 42px;
+  margin: 0 !important;
+  padding: 10px 15px !important;
+  border: 1px solid var(--management-border-strong, #d2c5a8) !important;
+  border-radius: 11px !important;
+  background: var(--management-surface-soft, #faf6ec) !important;
+  color: var(--management-text, #172033) !important;
+  font: inherit;
+  font-weight: 800 !important;
+  line-height: 1.2;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+body.management-enrollment-page .enrollment-inner .solid-blue {
+  border-color: var(--management-gold, #b38a16) !important;
+  background: var(--management-gold, #b38a16) !important;
+  color: #fffdf8 !important;
+}
+
+body.management-enrollment-page .enrollment-inner button:hover,
+body.management-enrollment-page .enrollment-inner button:focus-visible,
+body.management-enrollment-page .enrollment-inner .outline-blue:hover,
+body.management-enrollment-page .enrollment-inner .outline-blue:focus-visible {
+  border-color: var(--management-gold, #b38a16) !important;
+  background: #fffaf0 !important;
+  outline: 3px solid rgba(179,138,22,.14);
+  outline-offset: 1px;
+  opacity: 1 !important;
+}
+
+body.management-enrollment-page .enrollment-inner .solid-blue:hover,
+body.management-enrollment-page .enrollment-inner .solid-blue:focus-visible {
+  border-color: #95620a !important;
+  background: #95620a !important;
+  color: #fff !important;
+}
+
+body.management-enrollment-page .enrollment-inner button:disabled {
+  opacity: .5 !important;
+  cursor: not-allowed;
+}
+
+/* Queue records */
+body.management-enrollment-page #ready-intake-list,
+body.management-enrollment-page #pending-list,
+body.management-enrollment-page #approved-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif !important;
+}
+
+body.management-enrollment-page .pending-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 15px;
+  border: 1px solid var(--management-border, #e3dac5);
+  border-radius: 12px;
+  background: var(--management-surface-soft, #faf6ec);
+}
+
+body.management-enrollment-page .pending-card.is-selected-case {
+  border-color: var(--management-gold, #b38a16);
+  background: #fff8e8;
+  box-shadow: 0 0 0 3px rgba(179,138,22,.10);
+}
+
+body.management-enrollment-page .pending-card-head,
+body.management-enrollment-page .pending-card-head > div {
+  min-width: 0;
+}
+
+body.management-enrollment-page .pending-card-name {
+  color: var(--management-text, #172033);
+  font-weight: 850;
+  line-height: 1.3;
+}
+
+body.management-enrollment-page .pending-card-meta,
+body.management-enrollment-page .pending-card-id {
+  margin-top: 3px;
+  color: var(--management-muted, #667085) !important;
+  font-size: .8rem;
+  overflow-wrap: anywhere;
+}
+
+body.management-enrollment-page .pending-card-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .74rem;
+}
+
+body.management-enrollment-page .pending-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* Footer */
+body.management-enrollment-page .footer {
+  margin: 6px 0 0 !important;
+  padding: 18px 0 0 !important;
+  border-top: 1px solid var(--management-border, #e3dac5) !important;
+  color: var(--management-muted, #667085) !important;
+  text-align: center;
+  opacity: 1 !important;
+}
+
+@media (max-width: 760px) {
+  body.management-enrollment-page .management-wrap {
+    padding: 18px 12px 40px !important;
+  }
+
+  body.management-enrollment-page .workspace-heading h2 {
+    font-size: 1.55rem;
+  }
+
+  body.management-enrollment-page .enrollment-workflow {
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 7px;
+    padding: 12px 9px;
+  }
+
+  body.management-enrollment-page .enrollment-workflow__arrow {
+    display: none;
+  }
+
+  body.management-enrollment-page .enrollment-workflow__step {
+    justify-content: center;
+    gap: 4px;
+    font-size: .66rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  body.management-enrollment-page .enrollment-workflow__step strong {
+    width: 22px;
+    height: 22px;
+    font-size: .64rem;
+  }
+
+  body.management-enrollment-page .enrollment-inner .card {
+    padding: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  body.management-enrollment-page .enrollment-inner .card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.management-enrollment-page .enrollment-inner .row,
+  body.management-enrollment-page .pending-card,
+  body.management-enrollment-page .pending-card-actions {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    align-items: stretch;
+  }
+
+  body.management-enrollment-page .enrollment-inner .row > *,
+  body.management-enrollment-page .pending-card-actions > * {
+    width: 100%;
+    max-width: 100%;
+  }
+}
