@@ -13,11 +13,36 @@ const detail = $("memberDetail");
 let managementContext = null;
 
 function esc(value) {
-  return String(value ?? "").replace(/[&<>'\"]/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '\"':"&quot;" })[char]);
+  return String(value ?? "").replace(/[&<>'\"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    '\"': "&quot;"
+  })[char]);
 }
 
-function labelMode(mode) {
-  return ({ parent_managed:"Parent Managed", hybrid:"Hybrid", self_managed:"Self Managed", unclassified:"Mode Not Recorded" })[mode] || "Parent Managed";
+function hasParentRelationship(member) {
+  const status = String(member.parentLinkStatus || "").trim().toLowerCase();
+  return Boolean(status && status !== "none");
+}
+
+function isLegacyDirectAthlete(member) {
+  const pathway = String(member.pathway || member.trackBase || "").trim().toLowerCase();
+  return !hasParentRelationship(member) && ["path2legend", "f4", "foundry4", "foundry_4"].includes(pathway);
+}
+
+function displayAccessMode(member) {
+  if (isLegacyDirectAthlete(member) && member.accessMode === "parent_managed") {
+    return "Athlete Direct";
+  }
+
+  return ({
+    parent_managed: "Parent Managed",
+    hybrid: "Hybrid",
+    self_managed: "Self Managed",
+    unclassified: "Mode Not Recorded"
+  })[member.accessMode] || "Mode Not Recorded";
 }
 
 function setStatus(message, error = false) {
@@ -34,6 +59,13 @@ function recoveryState(member) {
   const email = String(member.athleteEmail || "").trim().toLowerCase();
 
   if (!active) {
+    if (isLegacyDirectAthlete(member)) {
+      return {
+        label: "Needs Direct Athlete Access",
+        message: "No direct Athlete login is bound and no Parent relationship is recorded. Set up Self Managed Athlete access; do not use Hybrid unless a real Parent relationship is established later."
+      };
+    }
+
     return {
       label: "Needs Access Setup",
       message: "No direct Athlete login is bound to this athlete record. Issue Athlete Access rather than sending a password reset."
@@ -63,6 +95,8 @@ function recoveryState(member) {
 function renderMember(member) {
   const active = member.directAccessActive === true;
   const recovery = recoveryState(member);
+  const directLegacy = isLegacyDirectAthlete(member);
+
   detail.hidden = false;
   detail.innerHTML = `
     <div class="member-card__head">
@@ -78,7 +112,7 @@ function renderMember(member) {
       ${renderSummaryItem("Pathway", member.pathway)}
       ${renderSummaryItem("Primary Discipline", member.primaryDiscipline)}
       ${renderSummaryItem("Location", member.locationId)}
-      ${renderSummaryItem("Access Mode", labelMode(member.accessMode))}
+      ${renderSummaryItem(directLegacy ? "Access Ownership" : "Access Mode", displayAccessMode(member))}
       ${renderSummaryItem("Parent Link", member.parentLinkStatus)}
     </div>
 
@@ -90,6 +124,7 @@ function renderMember(member) {
       <p class="muted-note">${esc(recovery.message)}</p>
       ${active ? renderActiveAccess(member) : renderInvitationForm(member)}
     </section>`;
+
   wireMemberActions(member);
 }
 
@@ -127,21 +162,32 @@ function renderActiveAccess(member) {
 }
 
 function renderInvitationForm(member) {
+  const parentLinked = hasParentRelationship(member);
+  const directLegacy = isLegacyDirectAthlete(member);
+
+  const modeField = directLegacy
+    ? `<input id="athleteAccessMode" type="hidden" value="self_managed">
+       <p class="muted-note"><strong>Access ownership:</strong> Athlete Direct · Self Managed</p>`
+    : `<label for="athleteAccessMode">Direct access mode</label>
+       <select id="athleteAccessMode">
+         ${parentLinked ? `<option value="hybrid">Hybrid</option>` : ""}
+         <option value="self_managed"${parentLinked ? "" : " selected"}>Self Managed</option>
+       </select>`;
+
+  const parentApproval = parentLinked
+    ? `<label id="parentApprovalRow" class="approval-row">
+        <input id="parentApproval" type="checkbox">
+        <span>Parent approval for hybrid direct access is recorded.</span>
+      </label>`
+    : "";
+
   return `
     <div class="access-form">
       <label for="athleteAccessEmail">Approved Athlete email</label>
       <input id="athleteAccessEmail" type="email" autocomplete="email" value="${esc(member.athleteEmail)}" placeholder="athlete@example.com">
 
-      <label for="athleteAccessMode">Direct access mode</label>
-      <select id="athleteAccessMode">
-        <option value="hybrid">Hybrid</option>
-        <option value="self_managed">Self Managed</option>
-      </select>
-
-      <label id="parentApprovalRow" class="approval-row">
-        <input id="parentApproval" type="checkbox">
-        <span>Parent approval for hybrid direct access is recorded.</span>
-      </label>
+      ${modeField}
+      ${parentApproval}
 
       <div class="action-row">
         <button id="issueAccessButton" class="button button-primary" type="button">Issue Athlete Access</button>
@@ -157,15 +203,19 @@ function wireMemberActions(member) {
   const syncApproval = () => {
     if (approvalRow) approvalRow.hidden = mode?.value !== "hybrid";
   };
+
   mode?.addEventListener("change", syncApproval);
   syncApproval();
 
   $("issueAccessButton")?.addEventListener("click", async () => {
     const email = String($("athleteAccessEmail")?.value || "").trim().toLowerCase();
-    const accessMode = mode?.value || "";
+    const accessMode = mode?.value || "self_managed";
     const parentApproved = accessMode === "hybrid" && $("parentApproval")?.checked === true;
 
     if (!email) return setStatus("Enter the approved Athlete email.", true);
+    if (accessMode === "hybrid" && !hasParentRelationship(member)) {
+      return setStatus("Hybrid access requires an existing Parent relationship.", true);
+    }
     if (accessMode === "hybrid" && !parentApproved) {
       return setStatus("Record Parent approval before issuing hybrid access.", true);
     }
@@ -224,6 +274,7 @@ function wireMemberActions(member) {
 
   $("transitionButton")?.addEventListener("click", async () => {
     if (!window.confirm("Transition this Athlete to self-managed access? Parent relationships will remain unchanged.")) return;
+
     const button = $("transitionButton");
     button.disabled = true;
 
