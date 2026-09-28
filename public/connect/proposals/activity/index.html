@@ -20,6 +20,24 @@
     .activity-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
     .activity-summary>div{padding:12px;border:1px solid var(--management-border);border-radius:11px;background:var(--management-surface-soft)}
     .activity-summary small{display:block;margin-bottom:4px;color:var(--management-muted);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    .activity-lifecycle{display:grid;gap:14px;padding-top:16px;border-top:1px solid var(--management-border)}
+    .activity-lifecycle-head h2{margin:0;font-size:1rem}
+    .activity-lifecycle-head p{margin:4px 0 0;color:var(--management-muted);font-size:.84rem;line-height:1.45}
+    .activity-lifecycle-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+    .activity-lifecycle-step{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:11px;align-items:center;padding:11px 12px;border:1px solid var(--management-border);border-radius:12px;background:var(--management-surface-soft)}
+    .activity-lifecycle-number{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;border:1px solid var(--management-border-strong);font-size:.75rem;font-weight:900}
+    .activity-lifecycle-step>div{display:grid;gap:2px;min-width:0}
+    .activity-lifecycle-step strong{font-size:.88rem}
+    .activity-lifecycle-step small{color:var(--management-muted);font-size:.76rem;line-height:1.35}
+    .activity-lifecycle-state{padding:5px 8px;border-radius:999px;border:1px solid var(--management-border);font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+    .activity-lifecycle-step.is-complete{border-color:#a9d0b7;background:var(--management-success-soft)}
+    .activity-lifecycle-step.is-complete .activity-lifecycle-number{border-color:#a9d0b7;background:#fff;color:var(--management-success)}
+    .activity-lifecycle-step.is-complete .activity-lifecycle-state{border-color:#a9d0b7;color:var(--management-success);background:#fff}
+    .activity-lifecycle-step.is-current{border-color:#dcc77f;background:var(--management-gold-soft)}
+    .activity-lifecycle-step.is-current .activity-lifecycle-number{border-color:#dcc77f;background:#fff;color:#59440b}
+    .activity-lifecycle-step.is-current .activity-lifecycle-state{border-color:#dcc77f;color:#59440b;background:#fff}
+    .activity-lifecycle-step.is-pending{opacity:.58;background:transparent}
+    .activity-lifecycle-step.is-pending .activity-lifecycle-state{color:var(--management-muted);background:transparent}
     .activity-phase{display:grid;gap:12px;padding-top:16px;border-top:1px solid var(--management-border)}
     .activity-phase-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
     .activity-phase-head h2{margin:0;font-size:1rem}
@@ -33,7 +51,7 @@
     .activity-item span,.activity-item small,.activity-empty{color:var(--management-muted)}
     .activity-item span{font-size:.8rem}.activity-item small{font-size:.78rem}
     .activity-empty{margin:0}
-    @media(max-width:760px){.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-lifecycle-step{grid-template-columns:30px minmax(0,1fr)}.activity-lifecycle-state{grid-column:2;justify-self:start}}
     @media(max-width:520px){.activity-summary{grid-template-columns:1fr}.activity-actions a{width:100%}}
   </style>
 </head>
