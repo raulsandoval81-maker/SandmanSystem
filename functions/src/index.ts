@@ -131,6 +131,13 @@ export {
   addDisciplineCoachCall,
 } from "./modules/addDisciplineCoachCall";
 
+export {
+  recordEnrollmentIntakeInvite,
+  recordEnrollmentIntakeSubmitted,
+  recordEnrollmentAthleteActivated,
+  getEnrollmentPlacementActivity,
+} from "./enrollment/enrollmentActivity";
+
 /* =========================
    ONBOARDING
 ========================= */
