@@ -29,6 +29,59 @@ const getPlacementActivity =
     "getEnrollmentPlacementActivity"
   );
 
+const lifecycle = [
+  {
+    key: "proposal",
+    label: "Proposal Created",
+    description: "Family proposal record exists."
+  },
+  {
+    key: "review",
+    label: "Client Review",
+    description: "Proposal is issued for family review."
+  },
+  {
+    key: "signature",
+    label: "Client Signature",
+    description: "Family accepts and signs the proposal."
+  },
+  {
+    key: "checkout",
+    label: "Checkout",
+    description: "Approved pricing moves into Stripe checkout."
+  },
+  {
+    key: "payment",
+    label: "Payment",
+    description: "Required enrollment payment is completed."
+  },
+  {
+    key: "intake",
+    label: "Intake",
+    description: "Secure athlete or parent intake is completed."
+  },
+  {
+    key: "activation",
+    label: "Athlete Activation",
+    description: "Athlete profile is activated by Management."
+  },
+  {
+    key: "coach_assessment",
+    label: "Coach Assessment",
+    description: "Athlete is sent to Coach for assessment."
+  },
+  {
+    key: "management_validation",
+    label: "Management Validation",
+    description: "Experience and returned assessment are reviewed."
+  },
+  {
+    key: "placement",
+    label: "Placement",
+    description: "Final placement is recorded."
+  }
+];
+
 function esc(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -82,6 +135,7 @@ function money(value) {
 function statusLabel(value = "") {
   const key = String(value || "").toUpperCase();
   return ({
+    BUILDING: "Building",
     DRAFT: "Draft",
     REVIEW: "Needs Review",
     AWAITING_CLIENT_SIGNATURE: "Awaiting Client Signature",
@@ -263,6 +317,168 @@ function phase(title, description, items) {
   `;
 }
 
+function lifecycleState(
+  proposal,
+  historyRecords,
+  placementRecords
+) {
+  const complete = new Set(["proposal"]);
+  const historyEvents = new Set(
+    historyRecords.map((item) =>
+      String(item.event || "").trim().toUpperCase()
+    )
+  );
+  const placementEvents = new Set(
+    placementRecords.map((item) =>
+      String(item.event || "").trim().toUpperCase()
+    )
+  );
+  const status = String(proposal.status || "")
+    .trim()
+    .toUpperCase();
+
+  if (
+    historyEvents.has("CLIENT_REVIEW_ISSUED") ||
+    historyEvents.has("CLIENT_REVIEW_EMAIL_SENT") ||
+    [
+      "AWAITING_CLIENT_SIGNATURE",
+      "CLIENT_SIGNED",
+      "READY_FOR_CHECKOUT",
+      "CHECKOUT_CREATED",
+      "PAYMENT_PENDING",
+      "PAID"
+    ].includes(status)
+  ) {
+    complete.add("review");
+  }
+
+  if (
+    historyEvents.has("CLIENT_SIGNED") ||
+    [
+      "CLIENT_SIGNED",
+      "READY_FOR_CHECKOUT",
+      "CHECKOUT_CREATED",
+      "PAYMENT_PENDING",
+      "PAID"
+    ].includes(status)
+  ) {
+    complete.add("signature");
+  }
+
+  if (
+    historyEvents.has("CHECKOUT_CREATED") ||
+    historyEvents.has("CHECKOUT_RESTARTED") ||
+    [
+      "CHECKOUT_CREATED",
+      "PAYMENT_PENDING",
+      "PAID"
+    ].includes(status)
+  ) {
+    complete.add("checkout");
+  }
+
+  if (
+    historyEvents.has("PAID") ||
+    status === "PAID"
+  ) {
+    complete.add("payment");
+  }
+
+  if (
+    historyEvents.has("INTAKE_SUBMITTED") ||
+    historyEvents.has("ATHLETE_ACTIVATED")
+  ) {
+    complete.add("intake");
+  }
+
+  if (historyEvents.has("ATHLETE_ACTIVATED")) {
+    complete.add("activation");
+  }
+
+  if (
+    placementEvents.has("COACH_ASSESSMENT_SENT") ||
+    placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
+    placementEvents.has("EXPERIENCE_VALIDATED") ||
+    placementEvents.has("PLACEMENT_RECORDED")
+  ) {
+    complete.add("coach_assessment");
+  }
+
+  if (
+    placementEvents.has("EXPERIENCE_VALIDATED") ||
+    placementEvents.has("PLACEMENT_RECORDED")
+  ) {
+    complete.add("management_validation");
+  }
+
+  if (placementEvents.has("PLACEMENT_RECORDED")) {
+    complete.add("placement");
+  }
+
+  const current = lifecycle.find(
+    (step) => !complete.has(step.key)
+  )?.key || "placement";
+
+  return {
+    complete,
+    current
+  };
+}
+
+function lifecycleHtml(
+  proposal,
+  historyRecords,
+  placementRecords
+) {
+  const state = lifecycleState(
+    proposal,
+    historyRecords,
+    placementRecords
+  );
+
+  return `
+    <section class="activity-lifecycle" aria-label="Case lifecycle">
+      <div class="activity-lifecycle-head">
+        <div>
+          <h2>Full Case Chain</h2>
+          <p>
+            Completed steps are active. The current step is highlighted.
+            Future steps stay visible but inactive until the system records them.
+          </p>
+        </div>
+      </div>
+
+      <ol class="activity-lifecycle-list">
+        ${lifecycle.map((step, index) => {
+          const isComplete = state.complete.has(step.key);
+          const isCurrent = state.current === step.key && !isComplete;
+          const className = isComplete
+            ? "is-complete"
+            : isCurrent
+              ? "is-current"
+              : "is-pending";
+          const stateLabel = isComplete
+            ? "Completed"
+            : isCurrent
+              ? "Current"
+              : "Waiting";
+
+          return `
+            <li class="activity-lifecycle-step ${className}">
+              <span class="activity-lifecycle-number">${index + 1}</span>
+              <div>
+                <strong>${esc(step.label)}</strong>
+                <small>${esc(step.description)}</small>
+              </div>
+              <span class="activity-lifecycle-state">${stateLabel}</span>
+            </li>
+          `;
+        }).join("")}
+      </ol>
+    </section>
+  `;
+}
+
 async function load() {
   if (!proposalId) {
     throw new Error("A proposalId is required.");
@@ -299,7 +515,7 @@ async function load() {
       getPlacementActivity({ proposalId })
     ]);
 
-  const proposalItems = historySnapshot.docs
+  const historyRecords = historySnapshot.docs
     .map((historyDoc) => ({
       id: historyDoc.id,
       ...historyDoc.data()
@@ -308,14 +524,9 @@ async function load() {
       (a, b) =>
         millis(eventTime(a)) -
         millis(eventTime(b))
-    )
-    .map((item) => ({
-      label: eventLabel(item),
-      detail: eventDetail(item),
-      createdAt: eventTime(item)
-    }));
+    );
 
-  const placementItems =
+  const placementRecords =
     Array.isArray(placementResult?.data?.activity)
       ? placementResult.data.activity
           .slice()
@@ -324,12 +535,21 @@ async function load() {
               millis(a.occurredAt) -
               millis(b.occurredAt)
           )
-          .map((item) => ({
-            label: placementLabel(item),
-            detail: placementDetail(item),
-            createdAt: item.occurredAt
-          }))
       : [];
+
+  const proposalItems = historyRecords
+    .map((item) => ({
+      label: eventLabel(item),
+      detail: eventDetail(item),
+      createdAt: eventTime(item)
+    }));
+
+  const placementItems = placementRecords
+    .map((item) => ({
+      label: placementLabel(item),
+      detail: placementDetail(item),
+      createdAt: item.occurredAt
+    }));
 
   subtitle.textContent =
     `${proposalId} · ${familyName}`;
@@ -353,6 +573,12 @@ async function load() {
         <strong>${esc(money(pricing.dueNow))}</strong>
       </div>
     </div>
+
+    ${lifecycleHtml(
+      proposal,
+      historyRecords,
+      placementRecords
+    )}
 
     ${phase(
       "Proposal & Enrollment",
