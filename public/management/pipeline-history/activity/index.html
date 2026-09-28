@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Case Activity | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/connect/connect-hub.css">
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+  <link rel="icon" href="data:,">
+  <style>
+    .activity-shell{display:grid;gap:20px;max-width:980px;margin:0 auto;padding:24px 18px 48px}
+    .activity-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+    .activity-head h1{margin:0}.activity-head p{margin:6px 0 0;color:var(--management-muted)}
+    .activity-actions{display:flex;gap:10px;flex-wrap:wrap}
+    .activity-card{display:grid;gap:18px;padding:20px;border:1px solid var(--management-border);border-radius:16px;background:var(--management-surface)}
+    .activity-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .activity-summary>div{padding:12px;border:1px solid var(--management-border);border-radius:11px;background:var(--management-surface-soft)}
+    .activity-summary small{display:block;margin-bottom:4px;color:var(--management-muted);font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    .activity-lifecycle{display:grid;gap:14px;padding-top:16px;border-top:1px solid var(--management-border)}
+    .activity-lifecycle-head h2{margin:0;font-size:1rem}.activity-lifecycle-head p{margin:4px 0 0;color:var(--management-muted);font-size:.84rem;line-height:1.45}
+    .activity-lifecycle-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+    .activity-lifecycle-step{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:11px;align-items:center;padding:11px 12px;border:1px solid var(--management-border);border-radius:12px;background:var(--management-surface-soft)}
+    .activity-lifecycle-number{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;border:1px solid var(--management-border-strong);font-size:.75rem;font-weight:900}
+    .activity-lifecycle-step>div{display:grid;gap:2px;min-width:0}.activity-lifecycle-step strong{font-size:.88rem}.activity-lifecycle-step small{color:var(--management-muted);font-size:.76rem;line-height:1.35}
+    .activity-lifecycle-state{padding:5px 8px;border-radius:999px;border:1px solid var(--management-border);font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+    .activity-lifecycle-step.is-complete{border-color:#a9d0b7;background:var(--management-success-soft)}
+    .activity-lifecycle-step.is-complete .activity-lifecycle-number{border-color:#a9d0b7;background:#fff;color:var(--management-success)}
+    .activity-lifecycle-step.is-complete .activity-lifecycle-state{border-color:#a9d0b7;color:var(--management-success);background:#fff}
+    .activity-lifecycle-step.is-current{border-color:#dcc77f;background:var(--management-gold-soft)}
+    .activity-lifecycle-step.is-current .activity-lifecycle-number{border-color:#dcc77f;background:#fff;color:#59440b}
+    .activity-lifecycle-step.is-current .activity-lifecycle-state{border-color:#dcc77f;color:#59440b;background:#fff}
+    .activity-lifecycle-step.is-pending{opacity:.58;background:transparent}.activity-lifecycle-step.is-pending .activity-lifecycle-state{color:var(--management-muted);background:transparent}
+    .activity-phase{display:grid;gap:12px;padding-top:16px;border-top:1px solid var(--management-border)}
+    .activity-phase-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.activity-phase-head h2{margin:0;font-size:1rem}.activity-phase-head p{margin:4px 0 0;color:var(--management-muted);font-size:.84rem}
+    .activity-count{min-width:30px;padding:5px 8px;border-radius:999px;background:var(--management-neutral-soft);text-align:center;font-weight:850}
+    .activity-list{display:grid;gap:0;margin:0;padding:0;list-style:none}.activity-item{position:relative;display:grid;grid-template-columns:18px 1fr;gap:10px;min-height:60px;padding:4px 0 13px}
+    .activity-item:not(:last-child)::before{content:"";position:absolute;left:7px;top:18px;bottom:-2px;width:2px;background:var(--management-border)}
+    .activity-dot{position:relative;z-index:1;width:16px;height:16px;margin-top:2px;border:3px solid var(--management-surface);border-radius:50%;background:var(--management-gold);box-shadow:0 0 0 1px var(--management-border-strong)}
+    .activity-item div{display:grid;gap:3px}.activity-item span,.activity-item small,.activity-empty{color:var(--management-muted)}.activity-item span{font-size:.8rem}.activity-item small{font-size:.78rem}.activity-empty{margin:0}
+    @media(max-width:760px){.activity-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-lifecycle-step{grid-template-columns:30px minmax(0,1fr)}.activity-lifecycle-state{grid-column:2;justify-self:start}}
+    @media(max-width:520px){.activity-summary{grid-template-columns:1fr}.activity-actions a{width:100%}}
+  </style>
+</head>
+<body data-management-area="pipeline-history">
+  <main class="activity-shell">
+    <header class="activity-head management-workspace-header">
+      <div>
+        <p class="eyebrow">Academy Management · Pipeline History</p>
+        <h1>Case Activity</h1>
+        <p id="activitySubtitle">Loading case history…</p>
+      </div>
+      <div class="activity-actions">
+        <a class="button button-secondary" href="/management/pipeline-history/">Back to Pipeline History</a>
+      </div>
+    </header>
+
+    <section id="activityCard" class="activity-card" aria-live="polite">
+      <p class="activity-empty">Loading activity…</p>
+    </section>
+  </main>
+
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="/connect/proposals/activity/activity.js"></script>
+</body>
+</html>
