@@ -50,7 +50,7 @@ function recoveryState(member) {
   if (!email) {
     return {
       label: "Needs Email Verification",
-      message: "A login is bound, but no Athlete email is stored on this member record. Verify the correct login email before attempting account recovery."
+      message: "A login is bound, but no Athlete email is stored on this member record. Verify the athlete's known login email before sending recovery."
     };
   }
 
@@ -95,27 +95,31 @@ function renderMember(member) {
 
 function renderActiveAccess(member) {
   const email = String(member.athleteEmail || "").trim().toLowerCase();
-  const emailLine = email
-    ? `<p class="muted-note"><strong>Athlete login email:</strong> ${esc(email)}</p>`
-    : `<p class="muted-note"><strong>Athlete login email:</strong> not recorded on the athlete profile.</p>`;
 
-  const recoveryActions = email
-    ? `<div class="action-row">
-        <button id="sendResetButton" class="button button-primary" type="button">Send Password Reset</button>
-        <a class="button" href="/athletes/auth/" target="_blank" rel="noopener">Open Athlete Login</a>
-      </div>`
-    : "";
+  const emailBlock = email
+    ? `<p class="muted-note"><strong>Athlete login email:</strong> ${esc(email)}</p>`
+    : `<div class="access-form">
+        <label for="recoveryEmail">Verified Athlete login email</label>
+        <input id="recoveryEmail" type="email" autocomplete="email" placeholder="athlete@example.com">
+        <p class="muted-note">Use the email the athlete says they used for Sandman. This does not change the athlete record; it only sends account recovery.</p>
+      </div>`;
+
+  const recoveryActions = `
+    <div class="action-row">
+      <button id="sendResetButton" class="button button-primary" type="button">Send Password Reset</button>
+      <a class="button" href="/athletes/auth/" target="_blank" rel="noopener">Open Athlete Login</a>
+    </div>`;
 
   const transitionAction = member.accessMode === "hybrid"
     ? `<div class="action-row"><button id="transitionButton" class="button" type="button">Transition to Self Managed</button></div>`
     : "";
 
   const classificationNote = member.accessMode === "unclassified"
-    ? `<p class="muted-note">The athlete has a bound login, but Management does not have a recorded lifecycle access mode. Password recovery can still be used when the stored Athlete email is correct; access-mode classification remains a separate repair.</p>`
+    ? `<p class="muted-note">The athlete has a bound login, but Management does not have a recorded lifecycle access mode. Password recovery can still be used when the Athlete login email is confirmed; access-mode classification remains a separate repair.</p>`
     : "";
 
   return `
-    ${emailLine}
+    ${emailBlock}
     ${classificationNote}
     ${recoveryActions}
     ${transitionAction}
@@ -191,8 +195,13 @@ function wireMemberActions(member) {
   });
 
   $("sendResetButton")?.addEventListener("click", async () => {
-    const email = String(member.athleteEmail || "").trim().toLowerCase();
-    if (!email) return setStatus("No Athlete login email is recorded for this member.", true);
+    const storedEmail = String(member.athleteEmail || "").trim().toLowerCase();
+    const verifiedEmail = String($("recoveryEmail")?.value || "").trim().toLowerCase();
+    const email = storedEmail || verifiedEmail;
+
+    if (!email) {
+      return setStatus("Enter the verified Athlete login email before sending recovery.", true);
+    }
 
     const button = $("sendResetButton");
     button.disabled = true;
@@ -207,7 +216,7 @@ function wireMemberActions(member) {
       setStatus("Password recovery email requested for the Athlete account.");
     } catch (error) {
       console.error("[management-members] password reset failed", error);
-      setStatus("Unable to request Athlete password recovery right now.", true);
+      setStatus("Unable to request Athlete password recovery right now. Confirm the login email and try again.", true);
     } finally {
       button.disabled = false;
     }
