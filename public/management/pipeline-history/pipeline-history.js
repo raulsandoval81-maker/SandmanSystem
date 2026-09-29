@@ -104,7 +104,7 @@ function stageFromProposalStatus(status = "") {
 }
 
 function currentStage(record) {
-  if (record.source === "proposal") return stageFromProposalStatus(record.proposalStatus);
+  if (record.proposalId) return stageFromProposalStatus(record.proposalStatus);
   if (record.closedAt || record.leadStatus === "closed" || record.status === "closed") return "closed";
   if (record.enrolledAt) return "enrolled";
   if (record.intakeStartedAt) return "intake_started";
@@ -199,30 +199,93 @@ function programFromProposal(proposal = {}) {
   return clean(proposal.programInterest || proposal.prospect?.programInterest);
 }
 
+function normalizedIdentity(value = "") {
+  return clean(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function caseDisplayName(record = {}) {
+  return clean(record.athleteName || record.participantName);
+}
+
+function canIdentityMatchProposal(caseRecord, proposal) {
+  const caseName = normalizedIdentity(caseDisplayName(caseRecord));
+  const proposalName = normalizedIdentity(athleteNameFromProposal(proposal));
+  if (!caseName || !proposalName || caseName !== proposalName) return false;
+
+  const caseLocation = clean(caseRecord.locationId || caseRecord.proposalLocationId);
+  const proposalLocation = clean(proposal.locationId);
+  if (!caseLocation || !proposalLocation || caseLocation !== proposalLocation) return false;
+
+  const caseProgram = normalizedIdentity(caseRecord.programInterest);
+  const proposalProgram = normalizedIdentity(programFromProposal(proposal));
+  if (caseProgram && proposalProgram && caseProgram !== proposalProgram) return false;
+
+  return true;
+}
+
+function proposalSortValue(proposal = {}) {
+  return timestampMillis(proposal.updatedAt || proposal.createdAt);
+}
+
+function finalizeCase(caseRecord) {
+  const proposalList = Array.isArray(caseRecord.proposals)
+    ? [...caseRecord.proposals].sort((a, b) => proposalSortValue(b) - proposalSortValue(a))
+    : [];
+
+  const currentProposal = proposalList[0] || null;
+
+  return {
+    ...caseRecord,
+    proposals: proposalList,
+    proposalId: clean(currentProposal?.proposalId || currentProposal?.id || caseRecord.proposalId),
+    proposalStatus: clean(currentProposal?.status || caseRecord.proposalStatus),
+    proposalUpdatedAt: currentProposal?.updatedAt || currentProposal?.createdAt || caseRecord.proposalUpdatedAt || null,
+    proposalLocationId: clean(currentProposal?.locationId || caseRecord.proposalLocationId)
+  };
+}
+
 function buildCaseRecords(leads, proposals) {
-  const usedProposalIds = new Set();
-  const cases = leads.map((lead) => {
-    const proposal = proposals.find((item) => proposalsMatchLead(item, lead));
-    if (proposal) usedProposalIds.add(clean(proposal.proposalId || proposal.id));
-    return {
-      ...lead,
-      source: "lead",
-      proposalId: clean(proposal?.proposalId || proposal?.id || lead.proposalId),
-      proposalStatus: clean(proposal?.status),
-      proposalUpdatedAt: proposal?.updatedAt || proposal?.createdAt || null,
-      proposalLocationId: clean(proposal?.locationId)
-    };
+  const orderedProposals = [...proposals].sort((a, b) => proposalSortValue(b) - proposalSortValue(a));
+  const cases = leads.map((lead) => ({
+    ...lead,
+    source: "lead",
+    proposals: []
+  }));
+
+  const unmatched = [];
+
+  orderedProposals.forEach((proposal) => {
+    const explicitMatches = cases.filter((caseRecord) =>
+      proposalsMatchLead(proposal, caseRecord)
+    );
+
+    if (explicitMatches.length === 1) {
+      explicitMatches[0].proposals.push(proposal);
+    } else {
+      unmatched.push(proposal);
+    }
   });
 
-  proposals.forEach((proposal) => {
+  unmatched.forEach((proposal) => {
+    const identityMatches = cases.filter((caseRecord) =>
+      canIdentityMatchProposal(caseRecord, proposal)
+    );
+
+    if (identityMatches.length === 1) {
+      identityMatches[0].proposals.push(proposal);
+      return;
+    }
+
     const proposalId = clean(proposal.proposalId || proposal.id);
-    if (!proposalId || usedProposalIds.has(proposalId)) return;
+    if (!proposalId) return;
 
     cases.push({
       id: `proposal:${proposalId}`,
       source: "proposal",
-      proposalId,
-      proposalStatus: clean(proposal.status),
+      proposals: [proposal],
       athleteName: athleteNameFromProposal(proposal),
       participantName: athleteNameFromProposal(proposal),
       parentName: familyNameFromProposal(proposal),
@@ -235,10 +298,12 @@ function buildCaseRecords(leads, proposals) {
     });
   });
 
-  return cases.sort((a, b) =>
-    timestampMillis(b.proposalUpdatedAt || b.updatedAt || b.createdAt) -
-    timestampMillis(a.proposalUpdatedAt || a.updatedAt || a.createdAt)
-  );
+  return cases
+    .map(finalizeCase)
+    .sort((a, b) =>
+      timestampMillis(b.proposalUpdatedAt || b.updatedAt || b.createdAt) -
+      timestampMillis(a.proposalUpdatedAt || a.updatedAt || a.createdAt)
+    );
 }
 
 function populateFilters() {
@@ -265,9 +330,13 @@ function filteredRecords() {
     if (stage !== "all" && currentStage(record) !== stage) return false;
     if (!needle) return true;
 
+    const proposalSearch = (record.proposals || [])
+      .map((proposal) => `${clean(proposal.proposalId || proposal.id)} ${clean(proposal.status)}`)
+      .join(" ");
+
     return [
       record.id,
-      record.proposalId,
+      proposalSearch,
       record.athleteName,
       record.participantName,
       record.parentName,
@@ -313,6 +382,32 @@ function resumeAction(record) {
   }
 
   return null;
+}
+
+function renderEarlierProposals(record) {
+  const earlier = Array.isArray(record.proposals)
+    ? record.proposals.slice(1)
+    : [];
+
+  if (!earlier.length) return "";
+
+  return `
+    <details class="history-earlier-proposals">
+      <summary>${earlier.length} earlier proposal${earlier.length === 1 ? "" : "s"}</summary>
+      <div class="history-earlier-proposals__list">
+        ${earlier.map((proposal) => {
+          const proposalId = clean(proposal.proposalId || proposal.id);
+          return `
+            <div class="history-earlier-proposal">
+              <span class="history-id">${esc(proposalId)}</span>
+              <span>${esc(proposalStatusLabel(proposal.status))}</span>
+              <a href="/management/pipeline-history/activity/?proposalId=${encodeURIComponent(proposalId)}">Activity</a>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </details>
+  `;
 }
 
 function renderActions(record) {
@@ -367,10 +462,11 @@ function render() {
           <div><dt>Program / Journey</dt><dd>${esc(labelForProgram(record.programInterest))}</dd></div>
           <div><dt>Case Started</dt><dd>${esc(formatDate(submitted))}</dd></div>
           ${record.source === "lead" ? `<div><dt>Lead ID</dt><dd class="history-id">${esc(record.id)}</dd></div>` : ""}
-          ${proposalId ? `<div><dt>Proposal</dt><dd class="history-id">${esc(proposalId)}</dd></div>` : ""}
+          ${proposalId ? `<div><dt>Current Proposal</dt><dd class="history-id">${esc(proposalId)}</dd></div>` : ""}
           ${proposalId ? `<div><dt>Proposal Status</dt><dd>${esc(proposalStatusLabel(record.proposalStatus))}</dd></div>` : ""}
         </dl>
 
+        ${renderEarlierProposals(record)}
         ${renderActions(record)}
       </article>
     `;
