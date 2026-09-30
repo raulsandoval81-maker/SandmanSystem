@@ -4,7 +4,7 @@ export const MANAGEMENT_LIFECYCLE_STAGES = Object.freeze([
   { id: "appointment", label: "Appointment" },
   { id: "outcome", label: "Outcome" },
   { id: "prospect-builder", label: "Prospect Builder" },
-  { id: "review-approve", label: "Proposal Signature" },
+  { id: "review-approve", label: "Final Confirmation" },
   { id: "checkout-enrollment", label: "Checkout & Enrollment" },
   { id: "intake-activation", label: "Intake & Activation" }
 ]);
@@ -93,7 +93,7 @@ function installProspectBuilderActions() {
   window.alert = (message) => {
     const text = String(message || "").trim();
     if (text === "Proposal sent for remote review.") {
-      originalAlert("Proposal sent. Awaiting confirmation receipt.");
+      originalAlert("Final confirmation sent. Awaiting confirmation receipt.");
       return;
     }
     if (/^Proposal sent to .+\.$/.test(text)) {
@@ -106,10 +106,15 @@ function installProspectBuilderActions() {
   const actions = document.querySelector(".workflow-actions");
   if (!actions) return;
 
+  actions.style.display = "grid";
+  actions.style.gridTemplateColumns = "repeat(2, minmax(0, 1fr))";
+  actions.style.gap = "10px";
+  actions.style.width = "100%";
+
   if (!actions.dataset.stepGuidanceInstalled) {
     const note = document.createElement("p");
     note.className = "proposal-action-guidance";
-    note.textContent = "Step 1: save the proposal draft. Step 2: choose how the family will sign — remote or in person.";
+    note.textContent = "Step 1: save the proposal draft. Step 2: choose the final confirmation path. After confirmation, the family continues directly to Stripe checkout.";
     note.style.cssText = "margin:0 0 10px;width:100%;font-size:.82rem;line-height:1.45;opacity:.75";
     actions.parentElement?.insertBefore(note, actions);
     actions.dataset.stepGuidanceInstalled = "true";
@@ -121,6 +126,8 @@ function installProspectBuilderActions() {
     const local = document.getElementById("submitReviewButton");
 
     if (save) {
+      save.style.gridColumn = "1 / -1";
+      save.style.width = "100%";
       const text = String(save.textContent || "").trim();
       if (text === "Save Draft") save.textContent = "1. Save Draft";
       else if (text === "Saving…") save.textContent = "1. Saving…";
@@ -128,15 +135,38 @@ function installProspectBuilderActions() {
     }
 
     if (remote) {
+      remote.style.gridColumn = "1";
+      remote.style.width = "100%";
       const text = String(remote.textContent || "").trim();
-      if (["Send for Review — Remote", "Send for Signature — Remote"].includes(text)) remote.textContent = "2A. Send for Signature — Remote";
-      else if (text === "Sending…") remote.textContent = "2A. Sending…";
+      if ([
+        "Send for Review — Remote",
+        "Send for Signature — Remote",
+        "2A. Send for Signature — Remote"
+      ].includes(text)) {
+        remote.textContent = "2A. Remote Confirm → Stripe";
+      } else if (text === "Sending…" || text === "2A. Sending…") {
+        remote.textContent = "2A. Sending Confirmation…";
+      }
+      remote.title = "Email the final confirmation. After the family confirms, Stripe checkout continues automatically.";
     }
 
     if (local) {
+      local.style.gridColumn = "2";
+      local.style.width = "100%";
       const text = String(local.textContent || "").trim();
-      if (["Submit for Review — In Person", "Open for Signature — In Person"].includes(text)) local.textContent = "2B. Open for Signature — In Person";
-      else if (text === "Opening Review…") local.textContent = "2B. Opening Signature…";
+      if ([
+        "Submit for Review — In Person",
+        "Open for Signature — In Person",
+        "2B. Open for Signature — In Person"
+      ].includes(text)) {
+        local.textContent = "2B. In-Person Confirm → Stripe";
+      } else if (
+        text === "Opening Review…" ||
+        text === "2B. Opening Signature…"
+      ) {
+        local.textContent = "2B. Opening Confirmation…";
+      }
+      local.title = "Complete final confirmation together on this device. After confirmation, Stripe checkout continues automatically.";
     }
 
     if (save && remote && local && !(save.nextElementSibling === remote && remote.nextElementSibling === local)) {
@@ -167,10 +197,10 @@ function installIssuedProposalReceipt() {
     const current = String(stage.textContent || "").trim();
     if (current !== "Awaiting Client Signature" && current !== "Remote Proposal Sent") return;
 
-    stage.textContent = "Remote Proposal Sent";
+    stage.textContent = "Remote Confirmation Sent";
 
     const next = document.getElementById("proposalWorkflowNext");
-    if (next) next.textContent = "Awaiting confirmation receipt. The family will sign and continue directly to checkout.";
+    if (next) next.textContent = "Awaiting confirmation receipt. The family will continue directly to checkout after confirming.";
 
     const route = document.getElementById("proposalWorkflowRoute");
     const routeLink = document.getElementById("proposalWorkflowRouteLink");
@@ -193,11 +223,11 @@ function installIssuedProposalReceipt() {
     receipt.style.cssText = "margin-top:18px;padding:20px;border:1px solid rgba(255,255,255,.10);border-radius:16px";
 
     const title = document.createElement("h2");
-    title.textContent = "Remote Send Receipt";
+    title.textContent = "Remote Confirmation Receipt";
     title.style.margin = "0 0 8px";
 
     const copy = document.createElement("p");
-    copy.textContent = "This proposal is already with the family. No resend or Builder action is required while confirmation is pending.";
+    copy.textContent = "This final confirmation is already with the family. No resend or Builder action is required while confirmation is pending.";
     copy.style.cssText = "margin:0 0 14px;line-height:1.5";
 
     const idLine = document.createElement("p");
