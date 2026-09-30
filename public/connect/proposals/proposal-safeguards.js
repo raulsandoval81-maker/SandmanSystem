@@ -53,17 +53,17 @@ function addSafeguards() {
             "true";
 
           issueButton.textContent =
-            "Resend Signature Request";
+            "Resend Remote Confirmation";
 
           issueButton.title =
-            "Use only when the family needs another signature request. The prior send remains in Activity.";
+            "Use only when the family needs another remote confirmation. The prior send remains in Activity.";
 
           issueButton.addEventListener(
             "click",
             (event) => {
               const confirmed =
                 window.confirm(
-                  `A signature request was already issued for ${proposalId}.\n\nSend another request?\n\nCancel is the safe choice unless the family actually needs a resend.`
+                  `A remote confirmation was already issued for ${proposalId}.\n\nSend another confirmation?\n\nCancel is the safe choice unless the family actually needs a resend.`
                 );
 
               if (!confirmed) {
@@ -90,7 +90,7 @@ function addSafeguards() {
             "proposal-action-note";
 
           note.textContent =
-            "Proposal issued ✓ Awaiting family signature.";
+            "Proposal issued ✓ Awaiting final confirmation.";
 
           actions.prepend(note);
         }
@@ -149,7 +149,7 @@ function addSafeguards() {
 
           const confirmed =
             window.confirm(
-              `Reopen ${proposalId} as a draft?\n\nThe current signature link will stop working. Existing history will be preserved.\n\nReason: ${reason}`
+              `Reopen ${proposalId} as a draft?\n\nThe current confirmation link will stop working. Existing history will be preserved.\n\nReason: ${reason}`
             );
 
           if (!confirmed) {
