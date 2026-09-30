@@ -141,6 +141,30 @@ function installProspectBuilderActionGuidance() {
     return;
   }
 
+  const originalAlert =
+    window.alert.bind(window);
+
+  window.alert = (message) => {
+    const current =
+      String(message || "").trim();
+
+    if (current === "Proposal sent for remote review.") {
+      originalAlert(
+        "Proposal sent. Awaiting confirmation receipt."
+      );
+      return;
+    }
+
+    if (/^Proposal sent to .+\.$/.test(current)) {
+      originalAlert(
+        `${current} Awaiting confirmation receipt.`
+      );
+      return;
+    }
+
+    originalAlert(message);
+  };
+
   const actions =
     document.querySelector(".workflow-actions");
 
