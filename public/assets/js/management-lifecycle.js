@@ -4,7 +4,7 @@ export const MANAGEMENT_LIFECYCLE_STAGES = Object.freeze([
   { id: "appointment", label: "Appointment" },
   { id: "outcome", label: "Outcome" },
   { id: "prospect-builder", label: "Prospect Builder" },
-  { id: "review-approve", label: "Review & Approve" },
+  { id: "review-approve", label: "Proposal Signature" },
   { id: "checkout-enrollment", label: "Checkout & Enrollment" },
   { id: "intake-activation", label: "Intake & Activation" }
 ]);
@@ -130,4 +130,143 @@ export function renderManagementLifecycle(
         : ""
     }
   `;
+}
+
+function installProspectBuilderActionGuidance() {
+  if (
+    !window.location.pathname.startsWith(
+      "/connect/admissions/calculator/"
+    )
+  ) {
+    return;
+  }
+
+  const actions =
+    document.querySelector(".workflow-actions");
+
+  if (!actions) {
+    return;
+  }
+
+  if (!actions.dataset.stepGuidanceInstalled) {
+    const note =
+      document.createElement("p");
+
+    note.className =
+      "proposal-action-guidance";
+
+    note.textContent =
+      "Step 1: save the proposal draft. Step 2: choose how the family will sign — remote or in person.";
+
+    note.style.margin =
+      "0 0 10px";
+    note.style.width =
+      "100%";
+    note.style.fontSize =
+      ".82rem";
+    note.style.lineHeight =
+      "1.45";
+    note.style.opacity =
+      ".75";
+
+    actions.parentElement?.insertBefore(
+      note,
+      actions
+    );
+
+    actions.dataset.stepGuidanceInstalled =
+      "true";
+  }
+
+  const normalizeButtons = () => {
+    const save =
+      document.getElementById("saveDraftButton");
+    const remote =
+      document.getElementById("sendReviewButton");
+    const local =
+      document.getElementById("submitReviewButton");
+
+    if (save) {
+      save.style.order = "1";
+
+      const text =
+        String(save.textContent || "").trim();
+
+      if (text === "Save Draft") {
+        save.textContent = "1. Save Draft";
+      } else if (text === "Saving…") {
+        save.textContent = "1. Saving…";
+      } else if (
+        text.startsWith("Saved ") &&
+        !text.startsWith("1. ")
+      ) {
+        save.textContent = `1. ${text}`;
+      }
+    }
+
+    if (remote) {
+      remote.style.order = "2";
+
+      const text =
+        String(remote.textContent || "").trim();
+
+      if (
+        text === "Send for Review — Remote" ||
+        text === "Send for Signature — Remote"
+      ) {
+        remote.textContent =
+          "2A. Send for Signature — Remote";
+      } else if (text === "Sending…") {
+        remote.textContent = "2A. Sending…";
+      }
+
+      remote.title =
+        "Email the finalized proposal for signature. After the family signs, checkout continues automatically.";
+    }
+
+    if (local) {
+      local.style.order = "3";
+
+      const text =
+        String(local.textContent || "").trim();
+
+      if (
+        text === "Submit for Review — In Person" ||
+        text === "Open for Signature — In Person"
+      ) {
+        local.textContent =
+          "2B. Open for Signature — In Person";
+      } else if (text === "Opening Review…") {
+        local.textContent =
+          "2B. Opening Signature…";
+      }
+
+      local.title =
+        "Open the finalized proposal for the family to sign on this device. After signature, checkout continues automatically.";
+    }
+  };
+
+  normalizeButtons();
+
+  const observer =
+    new MutationObserver(normalizeButtons);
+
+  observer.observe(
+    actions,
+    {
+      childList: true,
+      subtree: true,
+      characterData: true
+    }
+  );
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    installProspectBuilderActionGuidance,
+    { once: true }
+  );
+} else {
+  installProspectBuilderActionGuidance();
 }
