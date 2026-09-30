@@ -196,11 +196,9 @@ function installProspectBuilderActionGuidance() {
         save.textContent = "1. Save Draft";
       } else if (text === "Saving…") {
         save.textContent = "1. Saving…";
-      } else if (
-        text.startsWith("Saved ") &&
-        !text.startsWith("1. ")
-      ) {
-        save.textContent = `1. ${text}`;
+      } else if (text.startsWith("Saved ")) {
+        save.textContent =
+          `1. Draft Saved — ${text.slice(6)}`;
       }
     }
 
@@ -243,6 +241,18 @@ function installProspectBuilderActionGuidance() {
 
       local.title =
         "Open the finalized proposal for the family to sign on this device. After signature, checkout continues automatically.";
+    }
+
+    if (
+      save &&
+      remote &&
+      local &&
+      !(
+        save.nextElementSibling === remote &&
+        remote.nextElementSibling === local
+      )
+    ) {
+      actions.append(save, remote, local);
     }
   };
 
