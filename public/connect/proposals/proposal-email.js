@@ -5,8 +5,7 @@ import {
 
 const ELIGIBLE_STATUSES =
   new Set([
-    "REVIEW",
-    "AWAITING_CLIENT_SIGNATURE"
+    "REVIEW"
   ]);
 
 function ensureStyles() {
@@ -87,7 +86,7 @@ function addSendButtons() {
       button.dataset.sendClientReview =
         proposalId;
       button.textContent =
-        "Send Review to Client";
+        "Send Remote Confirmation";
 
       const deleteButton =
         actions.querySelector(
@@ -138,14 +137,14 @@ async function sendReview(button) {
 
     window.alert(
       recipient
-        ? `Client review sent to ${recipient}.`
-        : "Client review sent."
+        ? `Final confirmation sent to ${recipient}.`
+        : "Final confirmation sent."
     );
 
     window.location.reload();
   } catch (error) {
     console.error(
-      "[proposals] client review email failed:",
+      "[proposals] final confirmation email failed:",
       error
     );
 
@@ -155,7 +154,7 @@ async function sendReview(button) {
 
     window.alert(
       error?.message ||
-      "Unable to send the client review email."
+      "Unable to send the final confirmation email."
     );
   }
 }
