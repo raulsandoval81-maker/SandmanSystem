@@ -37,6 +37,12 @@ function addSafeguards() {
         return;
       }
 
+      // Destructive test deletion does not belong in the live workflow.
+      // Production mistakes use Correct Proposal so history is preserved.
+      actions
+        .querySelectorAll("[data-delete-test-proposal]")
+        .forEach((button) => button.remove());
+
       if (
         status === "AWAITING_CLIENT_SIGNATURE"
       ) {
