@@ -229,10 +229,50 @@ export const issueProposalClientReview =
               ? proposal.prospect as Record<string, unknown>
               : {};
 
-          const recipient =
+          const appointmentId =
+            cleanReviewString(
+              prospect.appointmentId
+            );
+
+          let recipient =
             cleanReviewString(
               prospect.email
             ).toLowerCase();
+
+          let recipientSource =
+            "proposal";
+
+          if (appointmentId) {
+            const appointmentRef =
+              db.collection(
+                "admissions_appointments"
+              ).doc(appointmentId);
+
+            const appointmentSnap =
+              await tx.get(
+                appointmentRef
+              );
+
+            if (!appointmentSnap.exists) {
+              throw new HttpsError(
+                "failed-precondition",
+                "The appointment connected to this proposal could not be found."
+              );
+            }
+
+            const appointmentEmail =
+              cleanReviewString(
+                appointmentSnap.get("email")
+              ).toLowerCase();
+
+            if (appointmentEmail) {
+              recipient =
+                appointmentEmail;
+
+              recipientSource =
+                "appointment";
+            }
+          }
 
           if (
             sendEmail &&
@@ -250,6 +290,14 @@ export const issueProposalClientReview =
               prospect.familyName
             );
 
+          const proposalForSnapshot = {
+            ...proposal,
+            prospect: {
+              ...prospect,
+              email: recipient,
+            },
+          };
+
           const existingSnapshot =
             proposal.clientReview?.snapshot;
 
@@ -257,7 +305,7 @@ export const issueProposalClientReview =
             existingSnapshot ||
             buildClientProposalSnapshot(
               proposalId,
-              proposal
+              proposalForSnapshot
             );
 
           const historyRef =
@@ -270,6 +318,12 @@ export const issueProposalClientReview =
             {
               status:
                 "AWAITING_CLIENT_SIGNATURE",
+
+              "prospect.email":
+                recipient || null,
+
+              "prospect.emailSource":
+                recipientSource,
 
               clientReview: {
                 tokenHash,
@@ -312,6 +366,13 @@ export const issueProposalClientReview =
                   ? "email"
                   : "local",
 
+              recipient:
+                sendEmail
+                  ? recipient
+                  : null,
+
+              recipientSource,
+
               createdBy:
                 req.auth!.uid,
 
@@ -324,6 +385,7 @@ export const issueProposalClientReview =
             status:
               "AWAITING_CLIENT_SIGNATURE",
             recipient,
+            recipientSource,
             contactName,
           };
         }
@@ -386,6 +448,8 @@ export const issueProposalClientReview =
           FieldValue.serverTimestamp(),
         "clientReview.emailRecipient":
           result.recipient,
+        "clientReview.emailRecipientSource":
+          result.recipientSource,
         "clientReview.emailProviderId":
           emailId,
         updatedAt:
@@ -400,6 +464,8 @@ export const issueProposalClientReview =
             "CLIENT_REVIEW_EMAIL_SENT",
           to:
             result.recipient,
+          recipientSource:
+            result.recipientSource,
           emailProviderId:
             emailId,
           createdBy:
