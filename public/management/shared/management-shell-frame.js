@@ -14,7 +14,7 @@ const NAV_GROUPS = Object.freeze([
   ["Tools", [
     ["experience-validation", "Experience Validation", "/management/experience-validation/"],
     ["xp-adjustments", "XP Adjustments", "/management/xp-adjustments/"],
-    ["pricing", "Pricing & Estimates", "/management/pricing/"],
+    ["pricing", "Pricing & Enrollment Setup", "/management/pricing/"],
     ["membership-tools", "Membership & Competition Tools", "/management/membership-tools/"],
   ]],
   ["Pipeline / Core", [
