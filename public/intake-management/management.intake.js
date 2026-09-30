@@ -60,6 +60,120 @@ function inviteUrlForToken(
   return `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
 
+function paintInviteHandoff(
+  tokenId,
+  intakeAudience,
+  { recovered = false } = {}
+) {
+  const normalizedAudience =
+    intakeAudience === "adult_athlete"
+      ? "adult_athlete"
+      : "parent_guardian";
+
+  const inviteUrl =
+    inviteUrlForToken(
+      tokenId,
+      normalizedAudience
+    );
+
+  if ($("invite-link")) {
+    $("invite-link").value = inviteUrl;
+  }
+
+  if ($("invite-route-label")) {
+    $("invite-route-label").textContent =
+      normalizedAudience === "adult_athlete"
+        ? "Adult Athlete Intake → /intake-athlete/"
+        : "Parent / Guardian Intake → /intake-parent/";
+  }
+
+  if ($("invite-status")) {
+    const audienceLabel =
+      normalizedAudience === "adult_athlete"
+        ? "Adult athlete"
+        : "Parent / guardian";
+
+    $("invite-status").textContent =
+      recovered
+        ? `✓ Existing ${audienceLabel.toLowerCase()} intake handoff recovered.`
+        : `✓ ${audienceLabel} intake created (${INVITE_HOURS}h).`;
+  }
+}
+
+async function findReusableEnrollmentInvite(
+  proposalId,
+  intakeAudience
+) {
+  if (!proposalId) return null;
+
+  const normalizedAudience =
+    intakeAudience === "adult_athlete"
+      ? "adult_athlete"
+      : "parent_guardian";
+
+  const snapshot =
+    await getDocs(
+      query(
+        collection(db, "intakeTokens"),
+        where("proposalId", "==", proposalId)
+      )
+    );
+
+  const candidates = snapshot.docs
+    .map((tokenDoc) => ({
+      id: tokenDoc.id,
+      data: tokenDoc.data() || {}
+    }))
+    .filter(({ data }) => {
+      const exp = Number(data.exp || 0);
+      const audience = String(
+        data.intakeAudience || ""
+      ).trim().toLowerCase();
+      const source = String(
+        data.source || ""
+      ).trim().toLowerCase();
+      const mode = String(
+        data.mode || "new_athlete"
+      ).trim().toLowerCase();
+
+      return (
+        audience === normalizedAudience &&
+        source === "management_enrollment" &&
+        mode === "new_athlete" &&
+        data.used !== true &&
+        (!exp || exp > Date.now())
+      );
+    })
+    .sort(
+      (a, b) =>
+        Number(b.data.exp || 0) -
+        Number(a.data.exp || 0)
+    );
+
+  for (const candidate of candidates) {
+    const intakeSnap =
+      await getDoc(
+        doc(db, "intakes", candidate.id)
+      );
+
+    if (!intakeSnap.exists()) {
+      return candidate;
+    }
+
+    const status = String(
+      intakeSnap.data()?.status || ""
+    ).trim().toLowerCase();
+
+    // Once the family has submitted, the same URL should not be
+    // presented as a fresh handoff even if the legacy token was not burned.
+    if (!status || status === "invited") {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
 function reviewUrlForIntake(intakeId) {
   return `/intake-management/review.html?token=${encodeURIComponent(intakeId)}`;
 }
@@ -457,9 +571,7 @@ async function loadReadyForIntake(
 }
 
 // ------------------------------------------------------
-// 1) Generate Intake Token (48 hours)
-//   Parent / Guardian and Adult Athlete share:
-//   token collection → intake collection → management review
+// 1) Generate or recover Intake Token (48 hours)
 // ------------------------------------------------------
 async function generateIntakeInvite(
   intakeAudience = "parent_guardian",
@@ -470,6 +582,34 @@ async function generateIntakeInvite(
       intakeAudience === "adult_athlete"
         ? "adult_athlete"
         : "parent_guardian";
+
+    const proposalId =
+      String(
+        enrollment?.proposalId ||
+        enrollment?.id ||
+        ""
+      ).trim();
+
+    if (!proposalId) {
+      throw new Error(
+        "Paid enrollment is missing its proposal ID."
+      );
+    }
+
+    const reusableInvite =
+      await findReusableEnrollmentInvite(
+        proposalId,
+        normalizedAudience
+      );
+
+    if (reusableInvite) {
+      paintInviteHandoff(
+        reusableInvite.id,
+        normalizedAudience,
+        { recovered: true }
+      );
+      return;
+    }
 
     const newTokenId =
       crypto.randomUUID()
@@ -527,10 +667,6 @@ async function generateIntakeInvite(
 
     let intakeLead = {};
 
-    // Older or partial proposals may not carry the original
-    // lead directly. Recover it through the authoritative
-    // admissions appointment so Intake can reuse information
-    // Sandman already collected.
     if (!connectLeadId && appointmentId) {
       try {
         const appointmentSnap =
@@ -553,8 +689,6 @@ async function generateIntakeInvite(
               appointmentId
             );
 
-          // Appointment itself may already contain the
-          // family identity/contact fields.
           intakeLead = appointment;
         }
       } catch (err) {
@@ -565,10 +699,6 @@ async function generateIntakeInvite(
       }
     }
 
-    // Management is authorized to read Admissions data.
-    // Resolve the original lead here and place only the safe
-    // enrollment fields into the intake token. Family clients
-    // should never need direct access to interest_leads.
     if (connectLeadId) {
       try {
         const leadSnap =
@@ -611,10 +741,6 @@ async function generateIntakeInvite(
         intakeLead.participantName
       );
 
-    // Convenience-only intake prefill.
-    // Ownership remains proposalId + locationId.
-    // Known enrollment information should carry forward
-    // so the family confirms data instead of re-entering it.
     const prefill = Object.fromEntries(
       Object.entries({
         athleteName,
@@ -713,7 +839,6 @@ async function generateIntakeInvite(
             ? "athlete"
             : "parent",
 
-        // Retained neutral fields for intake-token schema compatibility.
         existingAthleteUid: "",
         forTrack: null,
         forLane: null,
@@ -721,10 +846,7 @@ async function generateIntakeInvite(
         requestedDiscipline: null,
         existingAthleteName: null,
 
-        proposalId:
-          String(
-            enrollment?.proposalId || ""
-          ).trim() || null,
+        proposalId,
 
         connectLeadId:
           connectLeadId || null,
@@ -741,30 +863,10 @@ async function generateIntakeInvite(
       }
     );
 
-    const inviteUrl =
-      inviteUrlForToken(
-        newTokenId,
-        normalizedAudience
-      );
-
-    if ($("invite-link")) {
-      $("invite-link").value =
-        inviteUrl;
-    }
-
-    if ($("invite-route-label")) {
-      $("invite-route-label").textContent =
-        normalizedAudience === "adult_athlete"
-          ? "Adult Athlete Intake → /intake-athlete/"
-          : "Parent / Guardian Intake → /intake-parent/";
-    }
-
-    if ($("invite-status")) {
-      $("invite-status").textContent =
-        normalizedAudience === "adult_athlete"
-          ? `✓ Adult athlete intake created (${INVITE_HOURS}h).`
-          : `✓ Parent / guardian intake created (${INVITE_HOURS}h).`;
-    }
+    paintInviteHandoff(
+      newTokenId,
+      normalizedAudience
+    );
 
   } catch (err) {
     console.error(err);
@@ -811,8 +913,6 @@ $("btn-open-qr")?.addEventListener("click", () => {
 
 // ------------------------------------------------------
 // 4) Load Pending Intakes (Live)
-//   Reads from: intakes (submitted)
-//   Pending = approvedUid is null (not minted yet)
 // ------------------------------------------------------
 function wirePendingButtons() {
   document.querySelectorAll("[data-intake]").forEach((btn) => {
@@ -1140,8 +1240,6 @@ async function loadApproved(managementContext) {
   }
 }
 
-
-
 // ------------------------------------------------------
 // Boot: Management authority first, THEN query/list
 // ------------------------------------------------------
@@ -1180,7 +1278,6 @@ async function loadApproved(managementContext) {
     }
   }
 })();
-
 
 function isOperationalPaidProposal(proposal = {}) {
   const status =
