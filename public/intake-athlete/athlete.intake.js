@@ -15,14 +15,13 @@ import {
   getDoc,
   setDoc,
   serverTimestamp,
-  ensureSignedIn, // ✅ REQUIRED so request.auth != null on phones
+  ensureSignedIn,
 } from "../assets/js/firebase-init.js";
 
 import { getInviteFromURL, requireValidInvite } from "/intake-shared/token.js";
 import { digitsOnly, titleCase, splitFullName } from "/intake-shared/helpers.js";
 import { validateEmail, validateUSPhone10 } from "/intake-shared/validators.js";
 
-// -------------------- DOM helpers --------------------
 const $ = (id) => document.getElementById(id);
 const val = (id) => String($(id)?.value ?? "").trim();
 const setDisabled = (id, v) => {
@@ -36,8 +35,6 @@ function setWaiverStatusStrong(text, color = "") {
   const style = color ? ` style="color:${color}"` : "";
   el.innerHTML = `Status: <strong${style}>${text}</strong>`;
 }
-
-// -------------------- Waiver config --------------------
 
 const WAIVER_URL_EN =
   "/waiver/sandman-adult-participation-waiver-en.pdf";
@@ -75,7 +72,6 @@ function normalizeLanguagePreference(value = "") {
   return null;
 }
 
-// -------------------- Waiver gating --------------------
 function waiverAgreementOK() {
   return (
     waiverViewed &&
@@ -101,7 +97,7 @@ function markWaiverViewed() {
   if (dateEl) {
     dateEl.value = todayISO;
     dateEl.readOnly = true;
-    dateEl.disabled = true; // hard lock
+    dateEl.disabled = true;
   }
 
   maybeUnlockSubmit();
@@ -120,7 +116,6 @@ $("openWaiverBtnEs")?.addEventListener("click", () => {
   openWaiver(WAIVER_URL_ES);
 });
 
-// -------------------- Normalizers --------------------
 function normalizeState(s) {
   return String(s || "").trim().toUpperCase().slice(0, 2);
 }
@@ -129,7 +124,6 @@ function normalizePhoneDigits10(s) {
   return digitsOnly(s).slice(0, 10);
 }
 
-// -------------------- Validation --------------------
 function fail(msg, focusId) {
   setWaiverStatusStrong(`⚠ ${msg}`, "#fbbf24");
   if (focusId && $(focusId)) $(focusId).focus();
@@ -137,23 +131,18 @@ function fail(msg, focusId) {
 }
 
 function validateFormBasics() {
-  // athlete contact
   const email = val("athleteEmail");
   const phoneDigits = normalizePhoneDigits10(val("athletePhone"));
 
-  // athlete
   const full = val("athleteName");
   const dob = val("dob");
 
-  // location
   const city = val("city");
   const state = normalizeState(val("state"));
 
-  // emergency (split)
   const emerName = val("emergencyName");
   const emerPhoneDigits = normalizePhoneDigits10(val("emergencyPhone"));
 
-  // medical
   const medical = val("medical");
 
   if (!validateEmail(email)) fail("Enter a valid athlete email.", "athleteEmail");
@@ -166,8 +155,6 @@ function validateFormBasics() {
     fail("Athlete name must include first and last name.", "athleteName");
 
   if (!dob) fail("Enter date of birth.", "dob");
-
-  // if TEAM is required, uncomment:
 
   if (!city) fail("Enter city.", "city");
   if (!state || state.length !== 2) fail("Enter state (2 letters).", "state");
@@ -194,6 +181,44 @@ function validateFormBasics() {
   };
 }
 
+function setPrefillIfBlank(elementId, value) {
+  const element = $(elementId);
+
+  if (
+    !element ||
+    String(element.value || "").trim()
+  ) {
+    return;
+  }
+
+  const nextValue = String(value || "").trim();
+  if (nextValue) {
+    element.value = nextValue;
+  }
+}
+
+function prefillFromToken(prefill = {}) {
+  if (
+    !prefill ||
+    typeof prefill !== "object"
+  ) {
+    return;
+  }
+
+  setPrefillIfBlank("athleteName", prefill.athleteName);
+  setPrefillIfBlank("dob", prefill.dob);
+  setPrefillIfBlank("city", prefill.city);
+  setPrefillIfBlank("state", prefill.state);
+  setPrefillIfBlank("athleteEmail", prefill.email);
+  setPrefillIfBlank("athletePhone", prefill.phone);
+
+  leadLanguagePreference =
+    normalizeLanguagePreference(
+      prefill.languagePreference || ""
+    ) ||
+    leadLanguagePreference;
+}
+
 async function prefillFromLead(connectLeadId) {
   if (!connectLeadId) return;
 
@@ -205,37 +230,53 @@ async function prefillFromLead(connectLeadId) {
 
   const lead = snap.data();
 
-  leadLanguagePreference = normalizeLanguagePreference(
-    lead.languagePreference ||
-    lead.preferredLanguage ||
-    lead.language ||
-    ""
+  leadLanguagePreference =
+    leadLanguagePreference ||
+    normalizeLanguagePreference(
+      lead.languagePreference ||
+      lead.preferredLanguage ||
+      lead.language ||
+      ""
+    );
+
+  setPrefillIfBlank(
+    "athleteName",
+    lead.athleteName || lead.participantName
   );
-
-  $("athleteName").value = lead.athleteName || "";
-  $("athleteEmail").value = lead.email || "";
-  $("athletePhone").value = lead.phone || "";
-
-  // Optional if you collected these:
-  // $("city").value = lead.city || "";
-  // $("state").value = lead.state || "";
+  setPrefillIfBlank(
+    "dob",
+    lead.dob || lead.dateOfBirth
+  );
+  setPrefillIfBlank(
+    "athleteEmail",
+    lead.email
+  );
+  setPrefillIfBlank(
+    "athletePhone",
+    lead.phone
+  );
+  setPrefillIfBlank(
+    "city",
+    lead.city
+  );
+  setPrefillIfBlank(
+    "state",
+    lead.state
+  );
 }
 
-// -------------------- Firestore write --------------------
-// ✅ write to intakes/{tokenId} (canonical id from verifier)
 async function writeIntake(tokenId, payload) {
   const safe = {
     ...payload,
-    tokenId,                 // ✅ force correct
-    updatedAt: serverTimestamp(), // ✅ always refresh
+    tokenId,
+    updatedAt: serverTimestamp(),
   };
 
-  // Optional: only set createdAt once
   if (!safe.createdAt) safe.createdAt = serverTimestamp();
 
   await setDoc(doc(db, "intakes", tokenId), safe, { merge: true });
 }
-// -------------------- Submit handler --------------------
+
 async function handleSubmit(e) {
   e?.preventDefault?.();
 
@@ -243,8 +284,14 @@ async function handleSubmit(e) {
   btn?.setAttribute("disabled", "disabled");
 
   try {
-    // 0) token must be valid + not expired
-    const { token, tokenId, exp } = await requireValidInvite();
+    const { rawToken, token, tokenId, exp } = await requireValidInvite();
+
+    const intakeAudience =
+      String(token.intakeAudience || "").trim().toLowerCase();
+
+    if (intakeAudience !== "adult_athlete") {
+      fail("This invite is not an Adult Athlete intake.");
+    }
 
     const connectLeadId =
       token.connectLeadId || null;
@@ -274,34 +321,29 @@ async function handleSubmit(e) {
     }
 
     if (!tokenId)
-      fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
+      fail("Invite token missing canonical id (tokenId).", "openWaiverBtnEn");
 
-    // 1) waiver gate
     if (!waiverAgreementOK()) {
-      fail("Open waiver PDF, check the box, add signature + date.", "openWaiverBtn");
+      fail("Open waiver PDF, check the box, add signature + date.", "openWaiverBtnEn");
     }
 
-    // 2) validate fields
     const v = validateFormBasics();
 
-    // 3) signature
     const sign = titleCase(val("signatureAthlete"));
     const signDate = val("signatureDate");
     if (!sign) fail("Type your full name as signature.", "signatureAthlete");
     if (!signDate) fail("Select today’s date.", "signatureDate");
 
-    // 4) payload (canonical)
     const intake = {
-
       connectLeadId,
 
-      // Enrollment ownership is inherited from the verified
-      // invite token. The family does not choose these values.
       proposalId:
         String(token.proposalId || "").trim() || null,
 
       locationId:
         String(token.locationId || "").trim() || null,
+
+      intakeAudience: "adult_athlete",
 
       mode:
         intakeMode === "add_sport"
@@ -341,18 +383,15 @@ async function handleSubmit(e) {
       workflowVersion:
         String(token.workflowVersion || "v1"),
 
-      // ---- token + lifecycle ----
       tokenId,
       ownerUid: intakeOwnerUid,
-      tokenRaw: token,
+      tokenRaw: rawToken,
       exp: exp ?? null,
 
-      // ---- ROOT MIRRORS ----
       first: titleCase(v.first),
       last: titleCase(v.last),
       dob: v.dob,
 
-      // ---- structured ----
       athlete: {
         first: titleCase(v.first),
         last: titleCase(v.last),
@@ -364,6 +403,11 @@ async function handleSubmit(e) {
           normalizeLanguagePreference(token.languagePreference) ||
           null,
       },
+
+      athleteEmail: v.email,
+      email: v.email,
+      athletePhoneDigits: v.phoneDigits,
+      phoneDigits: v.phoneDigits,
 
       location: {
         city: v.city,
@@ -380,39 +424,31 @@ async function handleSubmit(e) {
       waiver: {
         viewed: true,
         agreed: true,
-
         signerType: "adult_athlete",
         signingAuthority: "self",
-
         signatureName: sign,
         signatureDate: signDate,
       },
 
-      // ---- management controlled later ----
-      status: "submitted", // invited → submitted → approved
+      status: "submitted",
       minted: false,
       approvedUid: null,
 
-      // ---- system ----
       source: "intake-athlete-ui",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
-    // 5) write
     await writeIntake(tokenId, intake);
 
-    // 6) success UX
     setWaiverStatusStrong("Submitted ✅", "#34d399");
 
-    // lock form inputs after submit
     document
       .querySelectorAll("#intakeForm input, #intakeForm textarea, #intakeForm button")
       .forEach((el) => {
         el.disabled = true;
       });
 
-    // allow opening waiver still (optional)
     if ($("openWaiverBtnEn")) {
       $("openWaiverBtnEn").disabled = false;
     }
@@ -430,7 +466,6 @@ async function handleSubmit(e) {
   }
 }
 
-// -------------------- Wiring --------------------
 function wireWaiver() {
   setDisabled("waiverCheck", true);
   setDisabled("signatureAthlete", true);
@@ -451,16 +486,14 @@ function wireWaiver() {
     maybeUnlockSubmit();
   });
 
-["signatureAthlete", "signatureDate"].forEach((id) => {
+  ["signatureAthlete", "signatureDate"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
 
-  const el = $(id);
-
-  if (!el) return;
-
-  ["input", "change"].forEach((evt) =>
-    el.addEventListener(evt, maybeUnlockSubmit)
-  );
-});
+    ["input", "change"].forEach((evt) =>
+      el.addEventListener(evt, maybeUnlockSubmit)
+    );
+  });
 }
 
 function wirePhoneSanitizer(id) {
@@ -471,7 +504,6 @@ function wirePhoneSanitizer(id) {
   });
 }
 
-// -------------------- Invite mode UI --------------------
 function formatDisciplineLabel(value = "") {
   const key = String(value || "")
     .trim()
@@ -547,12 +579,12 @@ async function applyInviteModeUI(invite) {
 
   if ($("placementNote")) {
     $("placementNote").innerHTML = `
-      Confirm your information below. The coach will attach
+      Confirm your information below. Management will attach
       <strong>${formatDisciplineLabel(discipline)}</strong>
       to the athlete's existing Sandman profile.
       <span class="lang-alt-block">
-        Confirme la información del atleta y del padre o tutor.
-        El entrenador agregará esta disciplina al perfil existente del atleta.
+        Confirme la información del atleta.
+        Administración agregará esta disciplina al perfil existente del atleta.
       </span>
     `;
   }
@@ -568,9 +600,7 @@ async function applyInviteModeUI(invite) {
   }
 }
 
-// -------------------- Boot --------------------
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ AUTH FIRST (phones)
   try {
     const signedInUser =
       await ensureSignedIn();
@@ -590,7 +620,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // status if missing token
   const tok = getInviteFromURL();
   if (!tok) {
     setWaiverStatusStrong(
@@ -598,16 +627,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       "#fbbf24"
     );
   } else {
-
-
     try {
       const invite = await requireValidInvite();
 
+      if (
+        String(invite.token.intakeAudience || "").trim().toLowerCase() !==
+        "adult_athlete"
+      ) {
+        throw new Error("This invite is not an Adult Athlete intake.");
+      }
+
       await applyInviteModeUI(invite);
 
-      await prefillFromLead(
-        invite.token.connectLeadId || null
+      prefillFromToken(
+        invite.token.prefill || {}
       );
+
+      if (
+        String(invite.token.workflowVersion || "") !== "intake-v2"
+      ) {
+        await prefillFromLead(
+          invite.token.connectLeadId || null
+        );
+      }
     } catch (err) {
       console.error(
         "[intake-athlete] invite mode UI failed:",
