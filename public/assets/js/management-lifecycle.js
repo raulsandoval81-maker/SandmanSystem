@@ -127,6 +127,7 @@ function installProspectBuilderActions() {
 
     if (save) {
       save.style.gridColumn = "1 / -1";
+      save.style.gridRow = "1";
       save.style.width = "100%";
       const text = String(save.textContent || "").trim();
       if (text === "Save Draft") save.textContent = "1. Save Draft";
@@ -136,6 +137,7 @@ function installProspectBuilderActions() {
 
     if (remote) {
       remote.style.gridColumn = "1";
+      remote.style.gridRow = "2";
       remote.style.width = "100%";
       const text = String(remote.textContent || "").trim();
       if ([
@@ -152,6 +154,7 @@ function installProspectBuilderActions() {
 
     if (local) {
       local.style.gridColumn = "2";
+      local.style.gridRow = "2";
       local.style.width = "100%";
       const text = String(local.textContent || "").trim();
       if ([
