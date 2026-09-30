@@ -25,19 +25,16 @@ import {
 const $ = (id) => document.getElementById(id);
 
 const requestedProposalId = String(
-  new URLSearchParams(location.search)
-    .get("proposalId") || ""
+  new URLSearchParams(location.search).get("proposalId") || ""
 ).trim();
 
-// ======================================
-// Configuration
-// ======================================
 const INVITE_HOURS = 48;
 const RECENT_APPROVED_LIMIT = 3;
 const PENDING_LIMIT = 8;
 
-// Management Enrollment owns new-member intake only.
-// Existing-athlete discipline changes remain Coach-owned.
+// Keep the just-resolved handoff in memory so rapid repeat clicks cannot
+// mint competing links while the proposal-history trigger is catching up.
+const handoffCache = new Map();
 
 function esc(value = "") {
   return String(value)
@@ -48,14 +45,22 @@ function esc(value = "") {
     .replaceAll("'", "&#39;");
 }
 
-function inviteUrlForToken(
-  tokenId,
-  intakeAudience = "parent_guardian"
-) {
-  const route =
-    intakeAudience === "adult_athlete"
-      ? "/intake-athlete/"
-      : "/intake-parent/";
+function handoffKey(proposalId, intakeAudience) {
+  return `${proposalId}:${intakeAudience}`;
+}
+
+function millis(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function inviteUrlForToken(tokenId, intakeAudience = "parent_guardian") {
+  const route = intakeAudience === "adult_athlete"
+    ? "/intake-athlete/"
+    : "/intake-parent/";
 
   return `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
@@ -65,109 +70,132 @@ function paintInviteHandoff(
   intakeAudience,
   { recovered = false } = {}
 ) {
-  const normalizedAudience =
-    intakeAudience === "adult_athlete"
-      ? "adult_athlete"
-      : "parent_guardian";
+  const audience = intakeAudience === "adult_athlete"
+    ? "adult_athlete"
+    : "parent_guardian";
 
-  const inviteUrl =
-    inviteUrlForToken(
-      tokenId,
-      normalizedAudience
-    );
+  const url = inviteUrlForToken(tokenId, audience);
 
-  if ($("invite-link")) {
-    $("invite-link").value = inviteUrl;
-  }
+  if ($("invite-link")) $("invite-link").value = url;
 
   if ($("invite-route-label")) {
-    $("invite-route-label").textContent =
-      normalizedAudience === "adult_athlete"
-        ? "Adult Athlete Intake → /intake-athlete/"
-        : "Parent / Guardian Intake → /intake-parent/";
+    $("invite-route-label").textContent = audience === "adult_athlete"
+      ? "Adult Athlete Intake → /intake-athlete/"
+      : "Parent / Guardian Intake → /intake-parent/";
   }
 
   if ($("invite-status")) {
-    const audienceLabel =
-      normalizedAudience === "adult_athlete"
-        ? "Adult athlete"
-        : "Parent / guardian";
+    const label = audience === "adult_athlete"
+      ? "Adult athlete"
+      : "Parent / guardian";
 
-    $("invite-status").textContent =
-      recovered
-        ? `✓ Existing ${audienceLabel.toLowerCase()} intake handoff recovered.`
-        : `✓ ${audienceLabel} intake created (${INVITE_HOURS}h).`;
+    $("invite-status").textContent = recovered
+      ? `✓ Existing ${label.toLowerCase()} intake handoff recovered.`
+      : `✓ ${label} intake created (${INVITE_HOURS}h).`;
   }
 }
 
-async function findReusableEnrollmentInvite(
+function paintSubmittedHandoff(intakeId, intakeAudience) {
+  const audience = intakeAudience === "adult_athlete"
+    ? "Adult athlete"
+    : "Parent / guardian";
+
+  if ($("invite-link")) $("invite-link").value = "";
+
+  if ($("invite-route-label")) {
+    $("invite-route-label").textContent =
+      `${audience} intake submitted → Management Review`;
+  }
+
+  if ($("invite-status")) {
+    $("invite-status").textContent =
+      "✓ This family intake has already been submitted. Open it from Pending Intakes to finalize enrollment.";
+  }
+
+  if (intakeId) {
+    const reviewButton = document.querySelector(
+      `[data-intake="${CSS.escape(intakeId)}"]`
+    );
+    reviewButton?.focus({ preventScroll: true });
+  }
+}
+
+async function resolveExistingEnrollmentHandoff(
   proposalId,
   intakeAudience
 ) {
-  if (!proposalId) return null;
+  const audience = intakeAudience === "adult_athlete"
+    ? "adult_athlete"
+    : "parent_guardian";
+  const key = handoffKey(proposalId, audience);
 
-  const normalizedAudience =
-    intakeAudience === "adult_athlete"
-      ? "adult_athlete"
-      : "parent_guardian";
+  const cached = handoffCache.get(key);
+  if (cached) return cached;
 
-  const snapshot =
-    await getDocs(
-      query(
-        collection(db, "intakeTokens"),
-        where("proposalId", "==", proposalId)
-      )
-    );
+  // Proposal history is already Management-readable and records the exact
+  // intake token id. This avoids listing bearer tokens, which Firestore
+  // intentionally forbids.
+  const historySnapshot = await getDocs(
+    collection(db, "proposals", proposalId, "history")
+  );
 
-  const candidates = snapshot.docs
-    .map((tokenDoc) => ({
-      id: tokenDoc.id,
-      data: tokenDoc.data() || {}
+  const records = historySnapshot.docs
+    .map((historyDoc) => ({
+      id: historyDoc.id,
+      ...historyDoc.data()
     }))
-    .filter(({ data }) => {
-      const exp = Number(data.exp || 0);
-      const audience = String(
-        data.intakeAudience || ""
-      ).trim().toLowerCase();
-      const source = String(
-        data.source || ""
-      ).trim().toLowerCase();
-      const mode = String(
-        data.mode || "new_athlete"
-      ).trim().toLowerCase();
-
-      return (
-        audience === normalizedAudience &&
-        source === "management_enrollment" &&
-        mode === "new_athlete" &&
-        data.used !== true &&
-        (!exp || exp > Date.now())
-      );
-    })
-    .sort(
-      (a, b) =>
-        Number(b.data.exp || 0) -
-        Number(a.data.exp || 0)
+    .filter((record) =>
+      String(record.event || "").trim().toUpperCase() === "INTAKE_INVITE_CREATED" &&
+      String(record.intakeAudience || "").trim().toLowerCase() === audience &&
+      String(record.intakeTokenId || "").trim()
+    )
+    .sort((a, b) =>
+      millis(b.occurredAt || b.createdAt) -
+      millis(a.occurredAt || a.createdAt)
     );
 
-  for (const candidate of candidates) {
-    const intakeSnap =
-      await getDoc(
-        doc(db, "intakes", candidate.id)
-      );
+  for (const record of records) {
+    const tokenId = String(record.intakeTokenId || "").trim();
+    if (!tokenId) continue;
 
-    if (!intakeSnap.exists()) {
-      return candidate;
+    const intakeSnap = await getDoc(doc(db, "intakes", tokenId));
+    if (intakeSnap.exists()) {
+      const intake = intakeSnap.data() || {};
+      const status = String(intake.status || "").trim().toLowerCase();
+
+      if (["submitted", "approved"].includes(status)) {
+        const result = {
+          state: "submitted",
+          tokenId,
+          intakeId: tokenId,
+          intakeAudience: audience,
+        };
+        handoffCache.set(key, result);
+        return result;
+      }
     }
 
-    const status = String(
-      intakeSnap.data()?.status || ""
-    ).trim().toLowerCase();
+    const tokenSnap = await getDoc(doc(db, "intakeTokens", tokenId));
+    if (!tokenSnap.exists()) continue;
 
-    // Once the family has submitted, the same URL should not be
-    // presented as a fresh handoff even if the legacy token was not burned.
-    if (!status || status === "invited") {
-      return candidate;
+    const token = tokenSnap.data() || {};
+    const exp = Number(token.exp || 0);
+
+    if (
+      String(token.proposalId || "").trim() === proposalId &&
+      String(token.intakeAudience || "").trim().toLowerCase() === audience &&
+      String(token.source || "").trim().toLowerCase() === "management_enrollment" &&
+      String(token.mode || "new_athlete").trim().toLowerCase() === "new_athlete" &&
+      token.used !== true &&
+      (!exp || exp > Date.now())
+    ) {
+      const result = {
+        state: "active",
+        tokenId,
+        intakeAudience: audience,
+      };
+      handoffCache.set(key, result);
+      return result;
     }
   }
 
@@ -190,11 +218,8 @@ function formatNameFromIntake(d = {}) {
 function formatCityState(city, state) {
   const c = String(city || "").trim();
   const s = String(state || "").trim();
-
   if (c && s) return `${c}, ${s}`;
-  if (c) return c;
-  if (s) return s;
-  return "—";
+  return c || s || "—";
 }
 
 function renderPendingCard({ intakeId, name, city, state }) {
@@ -207,7 +232,6 @@ function renderPendingCard({ intakeId, name, city, state }) {
           <div class="pending-card-id">(${esc(intakeId.slice(-6))})</div>
         </div>
       </div>
-
       <div class="pending-card-actions">
         <button class="small solid-blue" data-intake="${esc(intakeId)}">Review →</button>
       </div>
@@ -215,13 +239,28 @@ function renderPendingCard({ intakeId, name, city, state }) {
   `;
 }
 
-function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail, registrantRole, accessMode, authUid, disciplines }) {
-  const normalizedMode = String(accessMode || (authUid ? "" : "parent_managed")).trim().toLowerCase();
+function renderApprovedCard({
+  uid,
+  name,
+  city,
+  state,
+  parentEmail,
+  athleteEmail,
+  registrantRole,
+  accessMode,
+  authUid,
+  disciplines,
+}) {
+  const normalizedMode = String(
+    accessMode || (authUid ? "" : "parent_managed")
+  ).trim().toLowerCase();
+
   const athleteAccessAction = authUid
     ? normalizedMode === "hybrid"
       ? `<button class="small outline-blue" data-self-managed-uid="${esc(uid)}">Transition to Self-Managed</button>`
       : `<span class="pending-card-meta small">Direct Athlete access active${normalizedMode ? ` · ${esc(normalizedMode)}` : ""}</span>`
     : `<button class="small outline-blue" data-athlete-access-uid="${esc(uid)}" data-athlete-email="${esc(athleteEmail || "")}" data-registrant-role="${esc(registrantRole || "")}">Approve Direct Athlete Access</button>`;
+
   return `
     <div class="pending-card">
       <div class="pending-card-head">
@@ -229,14 +268,9 @@ function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail,
           <div class="pending-card-name">${esc(name)}</div>
           <div class="pending-card-meta">${esc(formatCityState(city, state))}</div>
           <div class="pending-card-id">${esc(uid)}</div>
-          ${
-            parentEmail
-              ? `<div class="pending-card-meta small">${esc(parentEmail)}</div>`
-              : ""
-          }
+          ${parentEmail ? `<div class="pending-card-meta small">${esc(parentEmail)}</div>` : ""}
         </div>
       </div>
-
       <div class="pending-card-actions">
         ${athleteAccessAction}
         <button class="small outline-blue" data-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail || "")}">Create Parent Access</button>
@@ -245,10 +279,6 @@ function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail,
     </div>
   `;
 }
-
-// ------------------------------------------------------
-// Paid Proposals → Ready for Intake
-// ------------------------------------------------------
 
 function paidProposalName(proposal = {}) {
   return (
@@ -261,104 +291,77 @@ function paidProposalName(proposal = {}) {
 }
 
 function renderReadyIntakeCard(proposal) {
-  const proposalId =
-    proposal.proposalId ||
-    proposal.id;
+  const proposalId = proposal.proposalId || proposal.id;
+  const locationId = String(proposal.locationId || "").trim();
+  const athletes = Array.isArray(
+    proposal.lockedSnapshot?.athletes
+  )
+    ? proposal.lockedSnapshot.athletes
+    : Array.isArray(proposal.athletes)
+      ? proposal.athletes
+      : [];
 
-  const locationId =
-    String(
-      proposal.locationId || ""
-    ).trim();
+  const athleteNames = athletes
+    .map((athlete) =>
+      String(
+        athlete?.name ||
+        athlete?.fullName ||
+        athlete?.athleteName ||
+        [athlete?.first, athlete?.last].filter(Boolean).join(" ") ||
+        ""
+      ).trim()
+    )
+    .filter(Boolean);
 
   return `
-    <div
-      class="pending-card"
-      data-ready-proposal="${esc(proposalId)}"
-    >
+    <div class="pending-card" data-ready-proposal="${esc(proposalId)}">
       <div class="pending-card-head">
         <div>
-          <div class="pending-card-name">
-            ${esc(
-              paidProposalName(
-                proposal
-              )
-            )}
-          </div>
-
-          <div class="pending-card-meta">
-            Paid · ${esc(locationId)}
-          </div>
-
-          <div class="pending-card-id">
-            ${esc(proposalId)}
-          </div>
+          <div class="pending-card-name">${esc(paidProposalName(proposal))}</div>
+          <div class="pending-card-meta">Paid · ${esc(locationId)}</div>
+          ${athleteNames.length
+            ? `<div class="pending-card-meta small">${esc(athleteNames.join(" · "))}</div>`
+            : ""}
+          <div class="pending-card-id">${esc(proposalId)}</div>
         </div>
       </div>
-
       <div class="pending-card-actions">
-        <button
-          class="small solid-blue"
-          data-ready-parent="${esc(proposalId)}"
-        >
-          Parent / Guardian
-        </button>
-
-        <button
-          class="small outline-blue"
-          data-ready-adult="${esc(proposalId)}"
-        >
-          Adult Athlete
-        </button>
+        <button class="small solid-blue" data-ready-parent="${esc(proposalId)}">Parent / Guardian</button>
+        <button class="small outline-blue" data-ready-adult="${esc(proposalId)}">Adult Athlete</button>
       </div>
     </div>
   `;
 }
 
-let readyProposalMap =
-  new Map();
+let readyProposalMap = new Map();
 
 function orientRequestedProposal() {
   if (!requestedProposalId) return;
 
-  const orientation =
-    $("enrollmentCaseOrientation");
-
-  const status =
-    $("enrollmentCaseStatus");
-
-  const proposal =
-    readyProposalMap.get(
-      requestedProposalId
-    );
+  const orientation = $("enrollmentCaseOrientation");
+  const status = $("enrollmentCaseStatus");
+  const proposal = readyProposalMap.get(requestedProposalId);
 
   if (!proposal) {
-    if (orientation) {
-      orientation.hidden = true;
-    }
-
+    if (orientation) orientation.hidden = true;
     if (status) {
       status.textContent =
         "The requested proposal is not available as an authorized paid enrollment. Showing the normal Enrollment queue.";
       status.classList.add("error");
     }
-
     return;
   }
 
   if (orientation) {
     orientation.hidden = false;
-
-    renderManagementLifecycle(
-      orientation,
-      {
-        currentStage: "checkout-enrollment",
-        completedThrough: "review-approve",
-        currentLabel: "Checkout & Enrollment",
-        caseLabel: requestedProposalId,
-        guidance:
-          "Choose who will complete Intake; opening this case does not create an invite."
-      }
-    );
+    renderManagementLifecycle(orientation, {
+      currentStage: "checkout-enrollment",
+      completedThrough: "review-approve",
+      currentLabel: "Checkout & Enrollment",
+      caseLabel: requestedProposalId,
+      guidance:
+        "Choose who will complete Intake; opening this case does not create an invite."
+    });
   }
 
   if (status) {
@@ -368,262 +371,155 @@ function orientRequestedProposal() {
   }
 
   const card = document.querySelector(
-    `[data-ready-proposal="${CSS.escape(
-      requestedProposalId
-    )}"]`
+    `[data-ready-proposal="${CSS.escape(requestedProposalId)}"]`
   );
 
   if (card) {
-    card.classList.add(
-      "is-selected-case"
-    );
-
+    card.classList.add("is-selected-case");
     card.setAttribute("tabindex", "-1");
     card.focus({ preventScroll: true });
-    card.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
+    card.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
 
 function wireReadyIntakeButtons() {
-  document
-    .querySelectorAll(
-      "[data-ready-parent]"
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const proposal =
-            readyProposalMap.get(
-              button.dataset.readyParent
-            );
+  document.querySelectorAll("[data-ready-parent]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const proposal = readyProposalMap.get(button.dataset.readyParent);
+      if (!proposal || button.disabled) return;
 
-          if (!proposal) return;
-
-          await generateIntakeInvite(
-            "parent_guardian",
-            proposal
-          );
-        }
-      );
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = "Opening…";
+      try {
+        await generateIntakeInvite("parent_guardian", proposal);
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
     });
+  });
 
-  document
-    .querySelectorAll(
-      "[data-ready-adult]"
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const proposal =
-            readyProposalMap.get(
-              button.dataset.readyAdult
-            );
+  document.querySelectorAll("[data-ready-adult]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const proposal = readyProposalMap.get(button.dataset.readyAdult);
+      if (!proposal || button.disabled) return;
 
-          if (!proposal) return;
-
-          await generateIntakeInvite(
-            "adult_athlete",
-            proposal
-          );
-        }
-      );
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = "Opening…";
+      try {
+        await generateIntakeInvite("adult_athlete", proposal);
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
     });
+  });
 }
 
-async function loadReadyForIntake(
-  managementContext
-) {
-  const box =
-    $("ready-intake-list");
-
-  const count =
-    $("ready-intake-count");
-
+async function loadReadyForIntake(managementContext) {
+  const box = $("ready-intake-list");
+  const count = $("ready-intake-count");
   if (!box) return;
 
   let proposalDocs = [];
 
-  if (
-    managementContext.isSystemAdmin
-  ) {
-    const snapshot =
-      await getDocs(
+  if (managementContext.isSystemAdmin) {
+    const snapshot = await getDocs(
+      query(collection(db, "proposals"), where("status", "==", "PAID"))
+    );
+    proposalDocs = snapshot.docs;
+  } else {
+    const locationIds = Array.isArray(managementContext.scope?.locationIds)
+      ? managementContext.scope.locationIds
+          .map((value) => String(value || "").trim())
+          .filter(Boolean)
+      : [];
+
+    for (let index = 0; index < locationIds.length; index += 10) {
+      const locationChunk = locationIds.slice(index, index + 10);
+      const snapshot = await getDocs(
         query(
-          collection(
-            db,
-            "proposals"
-          ),
-          where(
-            "status",
-            "==",
-            "PAID"
-          )
+          collection(db, "proposals"),
+          where("locationId", "in", locationChunk),
+          where("status", "==", "PAID")
         )
       );
-
-    proposalDocs =
-      snapshot.docs;
-  } else {
-    const locationIds =
-      Array.isArray(
-        managementContext.scope?.locationIds
-      )
-        ? managementContext.scope.locationIds
-            .map((value) =>
-              String(value || "").trim()
-            )
-            .filter(Boolean)
-        : [];
-
-    for (
-      let index = 0;
-      index < locationIds.length;
-      index += 10
-    ) {
-      const locationChunk =
-        locationIds.slice(
-          index,
-          index + 10
-        );
-
-      const snapshot =
-        await getDocs(
-          query(
-            collection(
-              db,
-              "proposals"
-            ),
-            where(
-              "locationId",
-              "in",
-              locationChunk
-            ),
-            where(
-              "status",
-              "==",
-              "PAID"
-            )
-          )
-        );
-
-      proposalDocs.push(
-        ...snapshot.docs
-      );
+      proposalDocs.push(...snapshot.docs);
     }
   }
 
-  readyProposalMap =
-    new Map();
+  readyProposalMap = new Map();
 
-  const proposals =
-    proposalDocs
-      .map(
-      (proposalDoc) => {
-        const proposal = {
-          id: proposalDoc.id,
-          ...proposalDoc.data()
-        };
+  const proposals = proposalDocs
+    .map((proposalDoc) => {
+      const proposal = { id: proposalDoc.id, ...proposalDoc.data() };
+      readyProposalMap.set(proposal.proposalId || proposal.id, proposal);
+      return proposal;
+    })
+    .filter(isOperationalPaidProposal);
 
-        readyProposalMap.set(
-          proposal.proposalId ||
-            proposal.id,
-          proposal
-        );
+  if (count) count.textContent = `${proposals.length} Ready`;
 
-        return proposal;
-      }
-    )
-    .filter(
-      isOperationalPaidProposal
-    );
-
-  if (count) {
-    count.textContent =
-      `${proposals.length} Ready`;
-  }
-
-  box.innerHTML =
-    proposals.length
-      ? `
-        <div class="pending-list">
-          ${
-            proposals
-              .map(
-                renderReadyIntakeCard
-              )
-              .join("")
-          }
-        </div>
-      `
-      : `
-        <div class="muted small">
-          No paid enrollments are waiting for intake.
-        </div>
-      `;
+  box.innerHTML = proposals.length
+    ? `<div class="pending-list">${proposals.map(renderReadyIntakeCard).join("")}</div>`
+    : `<div class="muted small">No paid enrollments are waiting for intake.</div>`;
 
   wireReadyIntakeButtons();
   orientRequestedProposal();
 }
 
-// ------------------------------------------------------
-// 1) Generate or recover Intake Token (48 hours)
-// ------------------------------------------------------
+function firstValue(...values) {
+  for (const value of values) {
+    const normalized = String(value ?? "").trim();
+    if (normalized) return normalized;
+  }
+  return null;
+}
+
 async function generateIntakeInvite(
   intakeAudience = "parent_guardian",
   enrollment = null
 ) {
   try {
-    const normalizedAudience =
-      intakeAudience === "adult_athlete"
-        ? "adult_athlete"
-        : "parent_guardian";
+    const normalizedAudience = intakeAudience === "adult_athlete"
+      ? "adult_athlete"
+      : "parent_guardian";
 
-    const proposalId =
-      String(
-        enrollment?.proposalId ||
-        enrollment?.id ||
-        ""
-      ).trim();
+    const proposalId = String(
+      enrollment?.proposalId || enrollment?.id || ""
+    ).trim();
 
     if (!proposalId) {
-      throw new Error(
-        "Paid enrollment is missing its proposal ID."
-      );
+      throw new Error("Paid enrollment is missing its proposal ID.");
     }
 
-    const reusableInvite =
-      await findReusableEnrollmentInvite(
-        proposalId,
-        normalizedAudience
-      );
+    const existing = await resolveExistingEnrollmentHandoff(
+      proposalId,
+      normalizedAudience
+    );
 
-    if (reusableInvite) {
-      paintInviteHandoff(
-        reusableInvite.id,
-        normalizedAudience,
-        { recovered: true }
-      );
+    if (existing?.state === "submitted") {
+      paintSubmittedHandoff(existing.intakeId, normalizedAudience);
       return;
     }
 
-    const newTokenId =
-      crypto.randomUUID()
-        .replace(/-/g, "")
-        .slice(0, 16);
+    if (existing?.state === "active") {
+      paintInviteHandoff(existing.tokenId, normalizedAudience, {
+        recovered: true
+      });
+      return;
+    }
 
-    const exp =
-      Date.now() +
-      INVITE_HOURS * 60 * 60 * 1000;
+    const newTokenId = crypto.randomUUID()
+      .replace(/-/g, "")
+      .slice(0, 16);
+
+    const exp = Date.now() + INVITE_HOURS * 60 * 60 * 1000;
 
     const proposalProspect =
-      enrollment?.lockedSnapshot?.prospect ||
-      enrollment?.prospect ||
-      {};
+      enrollment?.lockedSnapshot?.prospect || enrollment?.prospect || {};
 
     const proposalAthlete =
       enrollment?.lockedSnapshot?.athletes?.[0] ||
@@ -637,58 +533,34 @@ async function generateIntakeInvite(
       enrollment?.parent ||
       {};
 
-    function firstValue(...values) {
-      for (const value of values) {
-        const normalized =
-          String(value ?? "").trim();
+    const appointmentId = firstValue(
+      proposalProspect.appointmentId,
+      enrollment?.lockedSnapshot?.prospect?.appointmentId,
+      enrollment?.appointmentId
+    );
 
-        if (normalized) {
-          return normalized;
-        }
-      }
-
-      return null;
-    }
-
-    const appointmentId =
-      firstValue(
-        proposalProspect.appointmentId,
-        enrollment?.lockedSnapshot?.prospect?.appointmentId,
-        enrollment?.appointmentId
-      );
-
-    let connectLeadId =
-      firstValue(
-        proposalProspect.leadId,
-        enrollment?.lockedSnapshot?.prospect?.leadId,
-        enrollment?.leadId,
-        enrollment?.connectLeadId
-      );
+    let connectLeadId = firstValue(
+      proposalProspect.leadId,
+      enrollment?.lockedSnapshot?.prospect?.leadId,
+      enrollment?.leadId,
+      enrollment?.connectLeadId
+    );
 
     let intakeLead = {};
 
     if (!connectLeadId && appointmentId) {
       try {
-        const appointmentSnap =
-          await getDoc(
-            doc(
-              db,
-              "admissions_appointments",
-              appointmentId
-            )
-          );
+        const appointmentSnap = await getDoc(
+          doc(db, "admissions_appointments", appointmentId)
+        );
 
         if (appointmentSnap.exists()) {
-          const appointment =
-            appointmentSnap.data();
-
-          connectLeadId =
-            firstValue(
-              appointment.leadId,
-              appointment.appointmentId,
-              appointmentId
-            );
-
+          const appointment = appointmentSnap.data() || {};
+          connectLeadId = firstValue(
+            appointment.leadId,
+            appointment.appointmentId,
+            appointmentId
+          );
           intakeLead = appointment;
         }
       } catch (err) {
@@ -701,20 +573,9 @@ async function generateIntakeInvite(
 
     if (connectLeadId) {
       try {
-        const leadSnap =
-          await getDoc(
-            doc(
-              db,
-              "interest_leads",
-              connectLeadId
-            )
-          );
-
+        const leadSnap = await getDoc(doc(db, "interest_leads", connectLeadId));
         if (leadSnap.exists()) {
-          intakeLead = {
-            ...intakeLead,
-            ...leadSnap.data()
-          };
+          intakeLead = { ...intakeLead, ...leadSnap.data() };
         }
       } catch (err) {
         console.warn(
@@ -724,173 +585,127 @@ async function generateIntakeInvite(
       }
     }
 
-    const athleteName =
-      firstValue(
-        proposalAthlete.name,
-        proposalAthlete.fullName,
-        proposalAthlete.athleteName,
-        [
-          proposalAthlete.first,
-          proposalAthlete.last
-        ]
-          .filter(Boolean)
-          .join(" "),
-        proposalProspect.athleteName,
-        enrollment?.athleteName,
-        intakeLead.athleteName,
-        intakeLead.participantName
-      );
+    const athleteName = firstValue(
+      proposalAthlete.name,
+      proposalAthlete.fullName,
+      proposalAthlete.athleteName,
+      [proposalAthlete.first, proposalAthlete.last].filter(Boolean).join(" "),
+      proposalProspect.athleteName,
+      enrollment?.athleteName,
+      intakeLead.athleteName,
+      intakeLead.participantName
+    );
 
     const prefill = Object.fromEntries(
       Object.entries({
         athleteName,
-
-        parentName:
-          firstValue(
-            proposalProspect.primaryContactName,
-            proposalProspect.parentName,
-            proposalContact.name,
-            proposalContact.parentName,
-            enrollment?.parentName,
-            intakeLead.parentName,
-            intakeLead.guardianName
-          ),
-
-        dob:
-          firstValue(
-            proposalAthlete.dob,
-            proposalAthlete.dateOfBirth,
-            proposalProspect.dob,
-            proposalProspect.dateOfBirth,
-            enrollment?.dob,
-            enrollment?.dateOfBirth,
-            intakeLead.dob,
-            intakeLead.dateOfBirth
-          ),
-
-        city:
-          firstValue(
-            proposalProspect.city,
-            proposalContact.city,
-            enrollment?.city,
-            intakeLead.city
-          ),
-
-        state:
-          firstValue(
-            proposalProspect.state,
-            proposalContact.state,
-            enrollment?.state,
-            intakeLead.state
-          ),
-
-        email:
-          firstValue(
-            proposalProspect.email,
-            proposalProspect.parentEmail,
-            proposalProspect.primaryContactEmail,
-            proposalContact.email,
-            proposalContact.parentEmail,
-            enrollment?.email,
-            enrollment?.parentEmail,
-            intakeLead.email,
-            intakeLead.parentEmail
-          ),
-
-        phone:
-          firstValue(
-            proposalProspect.phone,
-            proposalProspect.parentPhone,
-            proposalProspect.primaryContactPhone,
-            proposalContact.phone,
-            proposalContact.parentPhone,
-            enrollment?.phone,
-            enrollment?.parentPhone,
-            intakeLead.phone,
-            intakeLead.parentPhone
-          ),
-
-        languagePreference:
-          firstValue(
-            proposalProspect.languagePreference,
-            proposalProspect.preferredLanguage,
-            proposalContact.languagePreference,
-            enrollment?.languagePreference
-          ),
+        parentName: firstValue(
+          proposalProspect.primaryContactName,
+          proposalProspect.parentName,
+          proposalContact.name,
+          proposalContact.parentName,
+          enrollment?.parentName,
+          intakeLead.parentName,
+          intakeLead.guardianName
+        ),
+        dob: firstValue(
+          proposalAthlete.dob,
+          proposalAthlete.dateOfBirth,
+          proposalProspect.dob,
+          proposalProspect.dateOfBirth,
+          enrollment?.dob,
+          enrollment?.dateOfBirth,
+          intakeLead.dob,
+          intakeLead.dateOfBirth
+        ),
+        city: firstValue(
+          proposalProspect.city,
+          proposalContact.city,
+          enrollment?.city,
+          intakeLead.city
+        ),
+        state: firstValue(
+          proposalProspect.state,
+          proposalContact.state,
+          enrollment?.state,
+          intakeLead.state
+        ),
+        email: firstValue(
+          proposalProspect.email,
+          proposalProspect.parentEmail,
+          proposalProspect.primaryContactEmail,
+          proposalContact.email,
+          proposalContact.parentEmail,
+          enrollment?.email,
+          enrollment?.parentEmail,
+          intakeLead.email,
+          intakeLead.parentEmail
+        ),
+        phone: firstValue(
+          proposalProspect.phone,
+          proposalProspect.parentPhone,
+          proposalProspect.primaryContactPhone,
+          proposalContact.phone,
+          proposalContact.parentPhone,
+          enrollment?.phone,
+          enrollment?.parentPhone,
+          intakeLead.phone,
+          intakeLead.parentPhone
+        ),
+        languagePreference: firstValue(
+          proposalProspect.languagePreference,
+          proposalProspect.preferredLanguage,
+          proposalContact.languagePreference,
+          enrollment?.languagePreference
+        ),
       }).filter(([, value]) => value)
     );
 
-    await setDoc(
-      doc(db, "intakeTokens", newTokenId),
-      {
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        exp,
-        used: false,
-        status: "invited",
+    await setDoc(doc(db, "intakeTokens", newTokenId), {
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      exp,
+      used: false,
+      status: "invited",
+      mode: "new_athlete",
+      intakeAudience: normalizedAudience,
+      intakeRoute: normalizedAudience === "adult_athlete" ? "athlete" : "parent",
+      existingAthleteUid: "",
+      forTrack: null,
+      forLane: null,
+      requestedTrackCode: null,
+      requestedDiscipline: null,
+      existingAthleteName: null,
+      proposalId,
+      connectLeadId: connectLeadId || null,
+      locationId: String(enrollment?.locationId || "").trim() || null,
+      prefill,
+      source: "management_enrollment",
+      workflowVersion: "intake-v2",
+    });
 
-        mode: "new_athlete",
+    const cached = {
+      state: "active",
+      tokenId: newTokenId,
+      intakeAudience: normalizedAudience,
+    };
+    handoffCache.set(handoffKey(proposalId, normalizedAudience), cached);
 
-        intakeAudience:
-          normalizedAudience,
-
-        intakeRoute:
-          normalizedAudience === "adult_athlete"
-            ? "athlete"
-            : "parent",
-
-        existingAthleteUid: "",
-        forTrack: null,
-        forLane: null,
-        requestedTrackCode: null,
-        requestedDiscipline: null,
-        existingAthleteName: null,
-
-        proposalId,
-
-        connectLeadId:
-          connectLeadId || null,
-
-        locationId:
-          String(
-            enrollment?.locationId || ""
-          ).trim() || null,
-
-        prefill,
-
-        source: "management_enrollment",
-        workflowVersion: "intake-v2",
-      }
-    );
-
-    paintInviteHandoff(
-      newTokenId,
-      normalizedAudience
-    );
-
+    paintInviteHandoff(newTokenId, normalizedAudience);
   } catch (err) {
     console.error(err);
-
     if ($("invite-status")) {
       $("invite-status").textContent =
-        `⚠ ${
-          err?.message ||
-          "Error creating intake invite."
-        }`;
+        `⚠ ${err?.message || "Error creating intake invite."}`;
     }
   }
 }
 
-// ------------------------------------------------------
-// 2) Copy Link
-// ------------------------------------------------------
 $("btn-copy-token")?.addEventListener("click", async () => {
   try {
     const url = $("invite-link")?.value;
     if (!url) return;
-
     await navigator.clipboard.writeText(url);
-
     if ($("invite-status")) {
       $("invite-status").textContent = "✓ Copied to clipboard.";
     }
@@ -902,18 +717,12 @@ $("btn-copy-token")?.addEventListener("click", async () => {
   }
 });
 
-// ------------------------------------------------------
-// 3) Open Generated Intake
-// ------------------------------------------------------
 $("btn-open-qr")?.addEventListener("click", () => {
   const url = $("invite-link")?.value;
   if (!url) return;
   window.open(url, "_blank", "noopener");
 });
 
-// ------------------------------------------------------
-// 4) Load Pending Intakes (Live)
-// ------------------------------------------------------
 function wirePendingButtons() {
   document.querySelectorAll("[data-intake]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -926,10 +735,17 @@ function wirePendingButtons() {
 
 function scopeLocationChunks(managementContext) {
   const ids = Array.isArray(managementContext?.scope?.locationIds)
-    ? [...new Set(managementContext.scope.locationIds.map((value) => String(value || "").trim()).filter(Boolean))]
+    ? [...new Set(
+        managementContext.scope.locationIds
+          .map((value) => String(value || "").trim())
+          .filter(Boolean)
+      )]
     : [];
+
   const chunks = [];
-  for (let index = 0; index < ids.length; index += 10) chunks.push(ids.slice(index, index + 10));
+  for (let index = 0; index < ids.length; index += 10) {
+    chunks.push(ids.slice(index, index + 10));
+  }
   return chunks;
 }
 
@@ -939,44 +755,51 @@ async function loadPendingLive(managementContext) {
 
   try {
     const snapshots = managementContext.isSystemAdmin
-      ? [await getDocs(query(
-          collection(db, "intakes"),
-          where("approvedUid", "==", null)
-        ))]
-      : await Promise.all(scopeLocationChunks(managementContext).map((locations) => getDocs(query(
-          collection(db, "intakes"),
-          where("locationId", "in", locations),
-          where("approvedUid", "==", null)
-        ))));
-    const docs = snapshots.flatMap((snapshot) => snapshot.docs)
-      .sort((a, b) => (b.data()?.createdAt?.toMillis?.() || 0) - (a.data()?.createdAt?.toMillis?.() || 0))
+      ? [await getDocs(
+          query(collection(db, "intakes"), where("approvedUid", "==", null))
+        )]
+      : await Promise.all(
+          scopeLocationChunks(managementContext).map((locations) =>
+            getDocs(
+              query(
+                collection(db, "intakes"),
+                where("locationId", "in", locations),
+                where("approvedUid", "==", null)
+              )
+            )
+          )
+        );
+
+    const docs = snapshots
+      .flatMap((snapshot) => snapshot.docs)
+      .sort(
+        (a, b) =>
+          (b.data()?.createdAt?.toMillis?.() || 0) -
+          (a.data()?.createdAt?.toMillis?.() || 0)
+      )
       .slice(0, PENDING_LIMIT);
-      let html = "";
-      let count = 0;
 
-      docs.forEach((snap) => {
-        const d = snap.data() || {};
-        const intakeId = snap.id;
+    let html = "";
+    let count = 0;
 
-        count += 1;
-
-        html += renderPendingCard({
-          intakeId,
-          name: formatNameFromIntake(d),
-          city: d.location?.city ?? "",
-          state: d.location?.state ?? "",
-        });
+    docs.forEach((snap) => {
+      const d = snap.data() || {};
+      count += 1;
+      html += renderPendingCard({
+        intakeId: snap.id,
+        name: formatNameFromIntake(d),
+        city: d.location?.city ?? "",
+        state: d.location?.state ?? "",
       });
+    });
 
-      if ($("pending-count")) {
-        $("pending-count").textContent = `${count} pending`;
-      }
+    if ($("pending-count")) $("pending-count").textContent = `${count} pending`;
 
-      box.innerHTML = html
-        ? `<div class="pending-list">${html}</div>`
-        : "<div class='muted small'>No pending intakes.</div>";
+    box.innerHTML = html
+      ? `<div class="pending-list">${html}</div>`
+      : "<div class='muted small'>No pending intakes.</div>";
 
-      wirePendingButtons();
+    wirePendingButtons();
   } catch (err) {
     console.error(err);
     box.innerHTML = "<div class='muted small'>Error loading pending intakes.</div>";
@@ -988,34 +811,34 @@ $("btn-find-intakes")?.addEventListener("click", async () => {
   await loadPendingLive(managementContext);
 });
 
-// ------------------------------------------------------
-// 5) Load Recently Approved Athletes
-// ------------------------------------------------------
 function wireApprovedButtons() {
   document.querySelectorAll("[data-assessment-uid]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const athleteUid = String(
-        btn.dataset.assessmentUid || ""
-      ).trim();
-
+      const athleteUid = String(btn.dataset.assessmentUid || "").trim();
       if (!athleteUid) return;
 
       const originalLabel = btn.textContent;
-
       let disciplines = [];
       try {
         disciplines = JSON.parse(btn.dataset.assessmentDisciplines || "[]");
       } catch {
         disciplines = [];
       }
-      const uniqueDisciplines = [...new Set(disciplines.map((value) =>
-        String(value || "").trim().toLowerCase()).filter(Boolean))];
+
+      const uniqueDisciplines = [...new Set(
+        disciplines
+          .map((value) => String(value || "").trim().toLowerCase())
+          .filter(Boolean)
+      )];
+
       let discipline = uniqueDisciplines[0] || "";
       if (uniqueDisciplines.length > 1) {
-        discipline = String(window.prompt(
-          `Assessment discipline (${uniqueDisciplines.join(", ")}):`,
-          uniqueDisciplines[0]
-        ) || "").trim().toLowerCase();
+        discipline = String(
+          window.prompt(
+            `Assessment discipline (${uniqueDisciplines.join(", ")}):`,
+            uniqueDisciplines[0]
+          ) || ""
+        ).trim().toLowerCase();
         if (!discipline) return;
       }
 
@@ -1023,40 +846,19 @@ function wireApprovedButtons() {
       btn.textContent = "Sending…";
 
       try {
-        const createPin = httpsCallable(
-          functions,
-          "createAthleteAssessmentPin"
-        );
-
+        const createPin = httpsCallable(functions, "createAthleteAssessmentPin");
         const response = await createPin({
           athleteUid,
           ...(discipline ? { discipline } : {})
         });
 
-        const status = String(
-          response?.data?.status || ""
-        ).trim();
-
-        if (response?.data?.duplicate) {
-          btn.textContent = "Assessment Already Sent";
-        } else if (status === "ASSESSMENT_NEEDED") {
-          btn.textContent = "Assessment Sent";
-        } else {
-          btn.textContent = "Assessment Sent";
-        }
-
+        btn.textContent = response?.data?.duplicate
+          ? "Assessment Already Sent"
+          : "Assessment Sent";
         btn.disabled = true;
       } catch (error) {
-        console.error(
-          "Coach assessment handoff failed:",
-          error
-        );
-
-        alert(
-          error?.message ||
-          "Unable to send Coach Assessment."
-        );
-
+        console.error("Coach assessment handoff failed:", error);
+        alert(error?.message || "Unable to send Coach Assessment.");
         btn.disabled = false;
         btn.textContent = originalLabel;
       }
@@ -1078,32 +880,37 @@ function wireApprovedButtons() {
           String(btn.dataset.athleteEmail || "").trim().toLowerCase()
         );
         if (!approvedEmail) throw new Error("Athlete login email is required.");
-        const defaultMode = btn.dataset.registrantRole === "adult_athlete" ? "self_managed" : "hybrid";
-        const accessMode = String(window.prompt(
-          "Direct access mode: hybrid or self_managed",
-          defaultMode
-        ) || "").trim().toLowerCase();
+
+        const defaultMode = btn.dataset.registrantRole === "adult_athlete"
+          ? "self_managed"
+          : "hybrid";
+
+        const accessMode = String(
+          window.prompt(
+            "Direct access mode: hybrid or self_managed",
+            defaultMode
+          ) || ""
+        ).trim().toLowerCase();
+
         const parentApproved = accessMode === "hybrid"
           ? window.confirm("Confirm that Parent approval for hybrid Athlete access is recorded.")
           : false;
+
         if (accessMode === "hybrid" && !parentApproved) {
           throw new Error("Hybrid Athlete access requires recorded Parent approval.");
         }
+
         const issue = httpsCallable(functions, "issueAccessInvitation");
         const response = await issue({
-          role: "athlete", athleteUid: uid, email: approvedEmail,
-          accessMode, parentApproved,
+          role: "athlete",
+          athleteUid: uid,
+          email: approvedEmail,
+          accessMode,
+          parentApproved,
         });
 
-        const tokenId = String(
-          response?.data?.tokenId || ""
-        ).trim();
-
-        if (!tokenId) {
-          throw new Error(
-            "Athlete access token was not returned."
-          );
-        }
+        const tokenId = String(response?.data?.tokenId || "").trim();
+        if (!tokenId) throw new Error("Athlete access token was not returned.");
 
         const onboardingUrl =
           `${location.origin}/access/first-time/?role=athlete` +
@@ -1111,21 +918,10 @@ function wireApprovedButtons() {
           `&token=${encodeURIComponent(tokenId)}` +
           `&email=${encodeURIComponent(approvedEmail.trim().toLowerCase())}`;
 
-        window.open(
-          onboardingUrl,
-          "_blank",
-          "noopener"
-        );
+        window.open(onboardingUrl, "_blank", "noopener");
       } catch (err) {
-        console.error(
-          "Create Athlete Access failed:",
-          err
-        );
-
-        alert(
-          err?.message ||
-          "Unable to create Athlete Access."
-        );
+        console.error("Create Athlete Access failed:", err);
+        alert(err?.message || "Unable to create Athlete Access.");
       } finally {
         btn.disabled = false;
         btn.textContent = originalLabel;
@@ -1136,10 +932,17 @@ function wireApprovedButtons() {
   document.querySelectorAll("[data-self-managed-uid]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const uid = btn.dataset.selfManagedUid;
-      if (!uid || !window.confirm("Transition this Athlete from hybrid to self-managed access? Parent relationships will remain unchanged.")) return;
+      if (
+        !uid ||
+        !window.confirm(
+          "Transition this Athlete from hybrid to self-managed access? Parent relationships will remain unchanged."
+        )
+      ) return;
+
       const originalLabel = btn.textContent;
       btn.disabled = true;
       btn.textContent = "Updating Access…";
+
       try {
         const transition = httpsCallable(functions, "transitionAthleteAccessMode");
         await transition({ athleteUid: uid, targetMode: "self_managed" });
@@ -1160,19 +963,27 @@ function wireApprovedButtons() {
     btn.addEventListener("click", async () => {
       const uid = btn.dataset.parentUid;
       const email = String(btn.dataset.parentEmail || "").trim().toLowerCase();
+
       if (!uid || !email) {
         alert("This athlete does not have an approved Parent email.");
         return;
       }
+
       const originalLabel = btn.textContent;
       btn.disabled = true;
       btn.textContent = "Creating Access…";
+
       try {
         const issue = httpsCallable(functions, "issueAccessInvitation");
         const response = await issue({ role: "parent", athleteUid: uid, email });
         const tokenId = String(response?.data?.tokenId || "").trim();
         if (!tokenId) throw new Error("Parent invitation token was not returned.");
-        const url = `${location.origin}/access/first-time/?role=parent&token=${encodeURIComponent(tokenId)}&email=${encodeURIComponent(email)}`;
+
+        const url =
+          `${location.origin}/access/first-time/?role=parent` +
+          `&token=${encodeURIComponent(tokenId)}` +
+          `&email=${encodeURIComponent(email)}`;
+
         window.open(url, "_blank", "noopener");
       } catch (error) {
         console.error("Create Parent Access failed:", error);
@@ -1191,13 +1002,31 @@ async function loadApproved(managementContext) {
 
   try {
     const snapshots = managementContext.isSystemAdmin
-      ? [await getDocs(query(collection(db, "athletes"), orderBy("createdAt", "desc"), limit(RECENT_APPROVED_LIMIT)))]
-      : await Promise.all(scopeLocationChunks(managementContext).map((locations) => getDocs(query(
-          collection(db, "athletes"),
-          where("locationId", "in", locations)
-        ))));
-    const docs = snapshots.flatMap((snapshot) => snapshot.docs)
-      .sort((a, b) => (b.data()?.createdAt?.toMillis?.() || 0) - (a.data()?.createdAt?.toMillis?.() || 0))
+      ? [await getDocs(
+          query(
+            collection(db, "athletes"),
+            orderBy("createdAt", "desc"),
+            limit(RECENT_APPROVED_LIMIT)
+          )
+        )]
+      : await Promise.all(
+          scopeLocationChunks(managementContext).map((locations) =>
+            getDocs(
+              query(
+                collection(db, "athletes"),
+                where("locationId", "in", locations)
+              )
+            )
+          )
+        );
+
+    const docs = snapshots
+      .flatMap((snapshot) => snapshot.docs)
+      .sort(
+        (a, b) =>
+          (b.data()?.createdAt?.toMillis?.() || 0) -
+          (a.data()?.createdAt?.toMillis?.() || 0)
+      )
       .slice(0, RECENT_APPROVED_LIMIT);
 
     let html = "";
@@ -1209,11 +1038,14 @@ async function loadApproved(managementContext) {
       const disciplines = [...new Set([
         ...(Array.isArray(a.disciplineIds) ? a.disciplineIds : []),
         ...(a.disciplines && typeof a.disciplines === "object" && !Array.isArray(a.disciplines)
-          ? Object.keys(a.disciplines) : []),
+          ? Object.keys(a.disciplines)
+          : []),
         a.primaryDiscipline,
         a.activeDiscipline,
         a.discipline,
-      ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))];
+      ]
+        .map((value) => String(value || "").trim().toLowerCase())
+        .filter(Boolean))];
 
       html += renderApprovedCard({
         uid,
@@ -1240,88 +1072,43 @@ async function loadApproved(managementContext) {
   }
 }
 
-// ------------------------------------------------------
-// Boot: Management authority first, THEN query/list
-// ------------------------------------------------------
 (async () => {
   try {
-    const managementContext =
-      await requireManagement();
-
-    await loadReadyForIntake(
-      managementContext
-    );
-
+    const managementContext = await requireManagement();
+    await loadReadyForIntake(managementContext);
     await loadPendingLive(managementContext);
     await loadApproved(managementContext);
   } catch (err) {
-    console.error(
-      "[management-enrollment] boot failed:",
-      err
-    );
+    console.error("[management-enrollment] boot failed:", err);
 
     if ($("ready-intake-list")) {
       $("ready-intake-list").textContent =
-        err?.message ||
-        "Unable to load enrollment workspace.";
+        err?.message || "Unable to load enrollment workspace.";
     }
 
-    if (
-      requestedProposalId &&
-      $("enrollmentCaseStatus")
-    ) {
+    if (requestedProposalId && $("enrollmentCaseStatus")) {
       $("enrollmentCaseStatus").textContent =
         "The requested enrollment case could not be loaded. The workspace remains unchanged.";
-      $("enrollmentCaseStatus").classList.add(
-        "error"
-      );
+      $("enrollmentCaseStatus").classList.add("error");
     }
   }
 })();
 
 function isOperationalPaidProposal(proposal = {}) {
-  const status =
-    String(
-      proposal.status || ""
-    )
-      .trim()
-      .toUpperCase();
+  const status = String(proposal.status || "").trim().toUpperCase();
+  const paymentStatus = String(proposal.paymentStatus || "").trim().toLowerCase();
+  const checkoutSessionId = String(
+    proposal.stripeCheckoutSessionId || ""
+  ).trim();
 
-  const paymentStatus =
-    String(
-      proposal.paymentStatus || ""
-    )
-      .trim()
-      .toLowerCase();
+  const explicitLivemode = typeof proposal.stripeLivemode === "boolean"
+    ? proposal.stripeLivemode
+    : null;
 
-  const checkoutSessionId =
-    String(
-      proposal.stripeCheckoutSessionId ||
-      ""
-    ).trim();
-
-  const explicitLivemode =
-    typeof proposal.stripeLivemode ===
-    "boolean"
-      ? proposal.stripeLivemode
-      : null;
-
-  const legacyTestSession =
-    checkoutSessionId.startsWith(
-      "cs_test_"
-    );
-
-  const legacyLiveSession =
-    checkoutSessionId.startsWith(
-      "cs_live_"
-    );
-
-  const isLiveStripePayment =
-    explicitLivemode === true ||
-    (
-      explicitLivemode === null &&
-      legacyLiveSession
-    );
+  const legacyTestSession = checkoutSessionId.startsWith("cs_test_");
+  const legacyLiveSession = checkoutSessionId.startsWith("cs_live_");
+  const isLiveStripePayment = explicitLivemode === true ||
+    (explicitLivemode === null && legacyLiveSession);
 
   return (
     status === "PAID" &&
