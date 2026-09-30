@@ -23,6 +23,7 @@ import {
 
 import {
   getResendClient,
+  RESEND_API_KEY,
 } from "../modules/email/resend";
 
 function escapeHtml(value: unknown): string {
@@ -120,388 +121,393 @@ function buildReviewEmail(input: {
 }
 
 export const issueProposalClientReview =
-  onCall(async (req) => {
-    if (!req.auth) {
-      throw new HttpsError(
-        "unauthenticated",
-        "You must be signed in to issue a client proposal review."
-      );
-    }
-
-    const staffAccess =
-      await requireProposalStaffAccess(
-        req.auth.uid
-      );
-
-    const proposalId =
-      cleanReviewString(
-        req.data?.proposalId
-      );
-
-    const delivery =
-      cleanReviewString(
-        req.data?.delivery
-      ).toLowerCase();
-
-    const sendEmail =
-      delivery === "email";
-
-    if (!proposalId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "proposalId is required."
-      );
-    }
-
-    if (
-      delivery &&
-      delivery !== "email"
-    ) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Unsupported client review delivery method."
-      );
-    }
-
-    const db =
-      getFirestore();
-
-    const proposalRef =
-      db.collection("proposals")
-        .doc(proposalId);
-
-    const rawToken =
-      createProposalReviewToken();
-
-    const tokenHash =
-      hashProposalReviewToken(
-        rawToken
-      );
-
-    const expiresAt =
-      Timestamp.fromMillis(
-        Date.now() +
-        7 * 24 * 60 * 60 * 1000
-      );
-
-    const result =
-      await db.runTransaction(
-        async (tx) => {
-          const snap =
-            await tx.get(
-              proposalRef
-            );
-
-          if (!snap.exists) {
-            throw new HttpsError(
-              "not-found",
-              `Proposal ${proposalId} was not found.`
-            );
-          }
-
-          const proposal =
-            snap.data() || {};
-
-          requireProposalLocationAccess(
-            staffAccess,
-            proposal.locationId
-          );
-
-          const status =
-            cleanReviewString(
-              proposal.status
-            );
-
-          if (
-            status !== "REVIEW" &&
-            status !==
-              "AWAITING_CLIENT_SIGNATURE"
-          ) {
-            throw new HttpsError(
-              "failed-precondition",
-              "Only REVIEW proposals may be sent to the client."
-            );
-          }
-
-          const prospect =
-            proposal.prospect &&
-            typeof proposal.prospect === "object"
-              ? proposal.prospect as Record<string, unknown>
-              : {};
-
-          const appointmentId =
-            cleanReviewString(
-              prospect.appointmentId
-            );
-
-          let recipient =
-            cleanReviewString(
-              prospect.email
-            ).toLowerCase();
-
-          let recipientSource =
-            "proposal";
-
-          if (appointmentId) {
-            const appointmentRef =
-              db.collection(
-                "admissions_appointments"
-              ).doc(appointmentId);
-
-            const appointmentSnap =
-              await tx.get(
-                appointmentRef
-              );
-
-            if (!appointmentSnap.exists) {
-              throw new HttpsError(
-                "failed-precondition",
-                "The appointment connected to this proposal could not be found."
-              );
-            }
-
-            const appointmentEmail =
-              cleanReviewString(
-                appointmentSnap.get("email")
-              ).toLowerCase();
-
-            if (appointmentEmail) {
-              recipient =
-                appointmentEmail;
-
-              recipientSource =
-                "appointment";
-            }
-          }
-
-          if (
-            sendEmail &&
-            !recipient
-          ) {
-            throw new HttpsError(
-              "failed-precondition",
-              "This proposal does not have a client email address."
-            );
-          }
-
-          const contactName =
-            cleanReviewString(
-              prospect.primaryContactName ||
-              prospect.familyName
-            );
-
-          const proposalForSnapshot = {
-            ...proposal,
-            prospect: {
-              ...prospect,
-              email: recipient,
-            },
-          };
-
-          const existingSnapshot =
-            proposal.clientReview?.snapshot;
-
-          const clientSnapshot =
-            existingSnapshot ||
-            buildClientProposalSnapshot(
-              proposalId,
-              proposalForSnapshot
-            );
-
-          const historyRef =
-            proposalRef
-              .collection("history")
-              .doc();
-
-          tx.update(
-            proposalRef,
-            {
-              status:
-                "AWAITING_CLIENT_SIGNATURE",
-
-              "prospect.email":
-                recipient || null,
-
-              "prospect.emailSource":
-                recipientSource,
-
-              clientReview: {
-                tokenHash,
-                expiresAt,
-                snapshotVersion: 1,
-                snapshot:
-                  clientSnapshot,
-
-                issuedBy:
-                  req.auth!.uid,
-
-                issuedAt:
-                  FieldValue.serverTimestamp(),
-              },
-
-              updatedBy:
-                req.auth!.uid,
-
-              updatedAt:
-                FieldValue.serverTimestamp(),
-            }
-          );
-
-          tx.create(
-            historyRef,
-            {
-              proposalId,
-
-              event:
-                "CLIENT_REVIEW_ISSUED",
-
-              fromStatus:
-                status,
-
-              toStatus:
-                "AWAITING_CLIENT_SIGNATURE",
-
-              delivery:
-                sendEmail
-                  ? "email"
-                  : "local",
-
-              recipient:
-                sendEmail
-                  ? recipient
-                  : null,
-
-              recipientSource,
-
-              createdBy:
-                req.auth!.uid,
-
-              createdAt:
-                FieldValue.serverTimestamp(),
-            }
-          );
-
-          return {
-            status:
-              "AWAITING_CLIENT_SIGNATURE",
-            recipient,
-            recipientSource,
-            contactName,
-          };
-        }
-      );
-
-    const reviewPath =
-      "/connect/proposals/review/" +
-      `?proposalId=${encodeURIComponent(
-        proposalId
-      )}` +
-      `&token=${encodeURIComponent(
-        rawToken
-      )}`;
-
-    let emailId = "";
-
-    if (sendEmail) {
-      const reviewUrl =
-        `https://sandmancombat.com${reviewPath}`;
-
-      const email =
-        buildReviewEmail({
-          contactName:
-            result.contactName,
-          reviewUrl,
-        });
-
-      const resend =
-        getResendClient();
-
-      const emailResult =
-        await resend.emails.send({
-          from:
-            "Sandman Combat <join@sandmancombat.com>",
-          replyTo:
-            "joinsandmancombat@gmail.com",
-          to:
-            result.recipient,
-          subject:
-            email.subject,
-          text:
-            email.text,
-          html:
-            email.html,
-        });
-
-      if (emailResult.error) {
+  onCall(
+    {
+      secrets: [RESEND_API_KEY],
+    },
+    async (req) => {
+      if (!req.auth) {
         throw new HttpsError(
-          "internal",
-          emailResult.error.message ||
-          "The email provider rejected the proposal review message."
+          "unauthenticated",
+          "You must be signed in to issue a client proposal review."
         );
       }
 
-      emailId =
-        emailResult.data?.id || "";
+      const staffAccess =
+        await requireProposalStaffAccess(
+          req.auth.uid
+        );
 
-      await proposalRef.update({
-        "clientReview.emailSentAt":
-          FieldValue.serverTimestamp(),
-        "clientReview.emailRecipient":
-          result.recipient,
-        "clientReview.emailRecipientSource":
-          result.recipientSource,
-        "clientReview.emailProviderId":
-          emailId,
-        updatedAt:
-          FieldValue.serverTimestamp(),
-      });
+      const proposalId =
+        cleanReviewString(
+          req.data?.proposalId
+        );
 
-      await proposalRef
-        .collection("history")
-        .add({
-          proposalId,
-          event:
-            "CLIENT_REVIEW_EMAIL_SENT",
-          to:
+      const delivery =
+        cleanReviewString(
+          req.data?.delivery
+        ).toLowerCase();
+
+      const sendEmail =
+        delivery === "email";
+
+      if (!proposalId) {
+        throw new HttpsError(
+          "invalid-argument",
+          "proposalId is required."
+        );
+      }
+
+      if (
+        delivery &&
+        delivery !== "email"
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Unsupported client review delivery method."
+        );
+      }
+
+      const db =
+        getFirestore();
+
+      const proposalRef =
+        db.collection("proposals")
+          .doc(proposalId);
+
+      const rawToken =
+        createProposalReviewToken();
+
+      const tokenHash =
+        hashProposalReviewToken(
+          rawToken
+        );
+
+      const expiresAt =
+        Timestamp.fromMillis(
+          Date.now() +
+          7 * 24 * 60 * 60 * 1000
+        );
+
+      const result =
+        await db.runTransaction(
+          async (tx) => {
+            const snap =
+              await tx.get(
+                proposalRef
+              );
+
+            if (!snap.exists) {
+              throw new HttpsError(
+                "not-found",
+                `Proposal ${proposalId} was not found.`
+              );
+            }
+
+            const proposal =
+              snap.data() || {};
+
+            requireProposalLocationAccess(
+              staffAccess,
+              proposal.locationId
+            );
+
+            const status =
+              cleanReviewString(
+                proposal.status
+              );
+
+            if (
+              status !== "REVIEW" &&
+              status !==
+                "AWAITING_CLIENT_SIGNATURE"
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                "Only REVIEW proposals may be sent to the client."
+              );
+            }
+
+            const prospect =
+              proposal.prospect &&
+              typeof proposal.prospect === "object"
+                ? proposal.prospect as Record<string, unknown>
+                : {};
+
+            const appointmentId =
+              cleanReviewString(
+                prospect.appointmentId
+              );
+
+            let recipient =
+              cleanReviewString(
+                prospect.email
+              ).toLowerCase();
+
+            let recipientSource =
+              "proposal";
+
+            if (appointmentId) {
+              const appointmentRef =
+                db.collection(
+                  "admissions_appointments"
+                ).doc(appointmentId);
+
+              const appointmentSnap =
+                await tx.get(
+                  appointmentRef
+                );
+
+              if (!appointmentSnap.exists) {
+                throw new HttpsError(
+                  "failed-precondition",
+                  "The appointment connected to this proposal could not be found."
+                );
+              }
+
+              const appointmentEmail =
+                cleanReviewString(
+                  appointmentSnap.get("email")
+                ).toLowerCase();
+
+              if (appointmentEmail) {
+                recipient =
+                  appointmentEmail;
+
+                recipientSource =
+                  "appointment";
+              }
+            }
+
+            if (
+              sendEmail &&
+              !recipient
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                "This proposal does not have a client email address."
+              );
+            }
+
+            const contactName =
+              cleanReviewString(
+                prospect.primaryContactName ||
+                prospect.familyName
+              );
+
+            const proposalForSnapshot = {
+              ...proposal,
+              prospect: {
+                ...prospect,
+                email: recipient,
+              },
+            };
+
+            const existingSnapshot =
+              proposal.clientReview?.snapshot;
+
+            const clientSnapshot =
+              existingSnapshot ||
+              buildClientProposalSnapshot(
+                proposalId,
+                proposalForSnapshot
+              );
+
+            const historyRef =
+              proposalRef
+                .collection("history")
+                .doc();
+
+            tx.update(
+              proposalRef,
+              {
+                status:
+                  "AWAITING_CLIENT_SIGNATURE",
+
+                "prospect.email":
+                  recipient || null,
+
+                "prospect.emailSource":
+                  recipientSource,
+
+                clientReview: {
+                  tokenHash,
+                  expiresAt,
+                  snapshotVersion: 1,
+                  snapshot:
+                    clientSnapshot,
+
+                  issuedBy:
+                    req.auth!.uid,
+
+                  issuedAt:
+                    FieldValue.serverTimestamp(),
+                },
+
+                updatedBy:
+                  req.auth!.uid,
+
+                updatedAt:
+                  FieldValue.serverTimestamp(),
+              }
+            );
+
+            tx.create(
+              historyRef,
+              {
+                proposalId,
+
+                event:
+                  "CLIENT_REVIEW_ISSUED",
+
+                fromStatus:
+                  status,
+
+                toStatus:
+                  "AWAITING_CLIENT_SIGNATURE",
+
+                delivery:
+                  sendEmail
+                    ? "email"
+                    : "local",
+
+                recipient:
+                  sendEmail
+                    ? recipient
+                    : null,
+
+                recipientSource,
+
+                createdBy:
+                  req.auth!.uid,
+
+                createdAt:
+                  FieldValue.serverTimestamp(),
+              }
+            );
+
+            return {
+              status:
+                "AWAITING_CLIENT_SIGNATURE",
+              recipient,
+              recipientSource,
+              contactName,
+            };
+          }
+        );
+
+      const reviewPath =
+        "/connect/proposals/review/" +
+        `?proposalId=${encodeURIComponent(
+          proposalId
+        )}` +
+        `&token=${encodeURIComponent(
+          rawToken
+        )}`;
+
+      let emailId = "";
+
+      if (sendEmail) {
+        const reviewUrl =
+          `https://sandmancombat.com${reviewPath}`;
+
+        const email =
+          buildReviewEmail({
+            contactName:
+              result.contactName,
+            reviewUrl,
+          });
+
+        const resend =
+          getResendClient();
+
+        const emailResult =
+          await resend.emails.send({
+            from:
+              "Sandman Combat <join@sandmancombat.com>",
+            replyTo:
+              "joinsandmancombat@gmail.com",
+            to:
+              result.recipient,
+            subject:
+              email.subject,
+            text:
+              email.text,
+            html:
+              email.html,
+          });
+
+        if (emailResult.error) {
+          throw new HttpsError(
+            "internal",
+            emailResult.error.message ||
+            "The email provider rejected the proposal review message."
+          );
+        }
+
+        emailId =
+          emailResult.data?.id || "";
+
+        await proposalRef.update({
+          "clientReview.emailSentAt":
+            FieldValue.serverTimestamp(),
+          "clientReview.emailRecipient":
             result.recipient,
-          recipientSource:
+          "clientReview.emailRecipientSource":
             result.recipientSource,
-          emailProviderId:
+          "clientReview.emailProviderId":
             emailId,
-          createdBy:
-            req.auth.uid,
-          createdAt:
+          updatedAt:
             FieldValue.serverTimestamp(),
         });
+
+        await proposalRef
+          .collection("history")
+          .add({
+            proposalId,
+            event:
+              "CLIENT_REVIEW_EMAIL_SENT",
+            to:
+              result.recipient,
+            recipientSource:
+              result.recipientSource,
+            emailProviderId:
+              emailId,
+            createdBy:
+              req.auth.uid,
+            createdAt:
+              FieldValue.serverTimestamp(),
+          });
+      }
+
+      return {
+        ok: true,
+
+        proposalId,
+
+        ...result,
+
+        delivery:
+          sendEmail
+            ? "email"
+            : "local",
+
+        recipient:
+          sendEmail
+            ? result.recipient
+            : undefined,
+
+        emailId:
+          sendEmail
+            ? emailId
+            : undefined,
+
+        reviewPath,
+
+        expiresAt:
+          expiresAt
+            .toDate()
+            .toISOString(),
+      };
     }
-
-    return {
-      ok: true,
-
-      proposalId,
-
-      ...result,
-
-      delivery:
-        sendEmail
-          ? "email"
-          : "local",
-
-      recipient:
-        sendEmail
-          ? result.recipient
-          : undefined,
-
-      emailId:
-        sendEmail
-          ? emailId
-          : undefined,
-
-      reviewPath,
-
-      expiresAt:
-        expiresAt
-          .toDate()
-          .toISOString(),
-    };
-  });
+  );
