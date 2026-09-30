@@ -32,6 +32,9 @@ export const returnProposalToDraft =
     const proposalId =
       cleanString(req.data?.proposalId);
 
+    const correctionReason =
+      cleanString(req.data?.reason);
+
     if (!proposalId) {
       throw new HttpsError(
         "invalid-argument",
@@ -59,10 +62,30 @@ export const returnProposalToDraft =
         proposal.locationId
       );
 
-      if (cleanString(proposal.status) !== "CLIENT_CHANGES_REQUESTED") {
+      const status =
+        cleanString(proposal.status).toUpperCase();
+
+      const clientRequestedChange =
+        status === "CLIENT_CHANGES_REQUESTED";
+
+      const managementCorrection =
+        status === "REVIEW" ||
+        status === "AWAITING_CLIENT_SIGNATURE";
+
+      if (!clientRequestedChange && !managementCorrection) {
         throw new HttpsError(
           "failed-precondition",
-          "Only a proposal with client-requested changes may return to draft."
+          "This proposal cannot be reopened from its current stage. Signed, checkout, payment, and enrollment stages require the appropriate downstream correction path."
+        );
+      }
+
+      if (
+        managementCorrection &&
+        correctionReason.length < 8
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          "A correction reason of at least 8 characters is required."
         );
       }
 
@@ -71,6 +94,12 @@ export const returnProposalToDraft =
       tx.update(proposalRef, {
         status: "DRAFT",
         clientReview: FieldValue.delete(),
+        clientAcceptance: FieldValue.delete(),
+        lockedSnapshot: FieldValue.delete(),
+        approvedAt: FieldValue.delete(),
+        approvedBy: FieldValue.delete(),
+        lockedAt: FieldValue.delete(),
+        lockedBy: FieldValue.delete(),
         updatedBy: req.auth!.uid,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -78,9 +107,14 @@ export const returnProposalToDraft =
       tx.create(historyRef, {
         proposalId,
         event: "STATUS_CHANGED",
-        fromStatus: "CLIENT_CHANGES_REQUESTED",
+        fromStatus: status,
         toStatus: "DRAFT",
-        reason: "CLIENT_REVISION_REQUESTED",
+        reason: clientRequestedChange
+          ? "CLIENT_REVISION_REQUESTED"
+          : "MANAGEMENT_CORRECTION",
+        correctionReason: managementCorrection
+          ? correctionReason
+          : "",
         createdBy: req.auth!.uid,
         createdByName: staffAccess.fullName,
         createdAt: FieldValue.serverTimestamp(),
@@ -90,6 +124,8 @@ export const returnProposalToDraft =
         ok: true,
         proposalId,
         status: "DRAFT" as const,
+        correction:
+          managementCorrection,
       };
     });
   });
