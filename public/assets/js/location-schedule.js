@@ -52,7 +52,7 @@ export function resolveScheduleLocation(record = {}, fallback = "") {
     record.disciplines &&
     typeof record.disciplines === "object" &&
     !Array.isArray(record.disciplines)
-      ? Object.keys(record.disciplines)
+      ? record.disciplines
       : {};
 
   const activeDiscipline =
