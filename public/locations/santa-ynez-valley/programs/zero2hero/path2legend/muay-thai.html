@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Path2Legend Muay Thai | Sandman Academy of Combat &amp; Fitness™</title>
+
+  <meta
+    name="description"
+    content="Learn about Path2Legend Muay Thai for athletes ages 14 and older, including its history, training focus, earned progression, competition preparation, and athlete-development purpose."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+      overflow:hidden;
+    }
+
+    .hidden-lang{display:none !important}
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid rgba(212,175,55,.22);
+      border-radius:24px;
+      background:
+        radial-gradient(circle at center top,rgba(212,175,55,.17),transparent 44%),
+        linear-gradient(180deg,#101010 0%,#050505 100%);
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+      text-align:center;
+    }
+
+    body.day-mode .hero{
+      border-color:#b89447;
+      background:
+        radial-gradient(circle at top right,rgba(173,123,35,.12),transparent 40%),
+        linear-gradient(180deg,#f7f1e5 0%,#e8dcc3 100%);
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+      text-align:center;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+      text-align:center;
+    }
+
+    .hero p{
+      max-width:790px;
+      margin:.75rem auto 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+      text-align:center;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{margin-top:28px}
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#b89447;
+      background:#f8f3e9;
+      box-shadow:0 10px 24px rgba(0,0,0,.12);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+      text-align:center;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{margin-bottom:0}
+
+    .discipline-heritage{
+      width:min(calc(100% - 2rem),1100px);
+      margin:1rem auto 2rem;
+      overflow:hidden;
+      border-radius:18px;
+    }
+
+    .discipline-heritage img{
+      display:block;
+      width:100%;
+      aspect-ratio:16 / 7;
+      object-fit:cover;
+      object-position:center;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#b89447;
+      background:#f8f3e9;
+      box-shadow:0 10px 24px rgba(0,0,0,.12);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      text-align:center;
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{color:var(--heading)}
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .visual-section{margin-top:28px}
+
+    .visual-heading{
+      margin-bottom:14px;
+      text-align:center;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      max-width:790px;
+      margin:0 auto;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .progression-top{
+      width:min(920px,100%);
+      margin:0 auto 28px;
+    }
+
+    .progression-top figure{
+      width:100%;
+      margin:0 auto;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      display:block;
+      width:min(100%,920px);
+      margin:0 auto;
+      object-fit:contain;
+      object-position:center;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#b89447;
+      background:#f4ecdc;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem,5vw,3.4rem) clamp(1.25rem,4vw,2.5rem);
+      text-align:center;
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+      background:
+        radial-gradient(circle at top,rgba(212,175,55,.14),transparent 42%),
+        linear-gradient(180deg,#171717 0%,#090909 100%);
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+      color:#fff;
+      font-size:clamp(1.85rem,4vw,2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+      margin:0 auto 1.45rem;
+      color:#d4d4d8;
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:50px;
+      padding:13px 24px;
+      color:#090909;
+      background:#d4af37;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+      background:
+        radial-gradient(circle at top,rgba(173,123,35,.12),transparent 42%),
+        linear-gradient(180deg,#f7f1e5 0%,#e8dcc3 100%);
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{color:#171717}
+    body.day-mode .marketing-connect-cta p{color:#4b5563}
+
+    body:not(.day-mode){
+      --bg:#080808;
+      --panel:#111113;
+      --panel-2:#18181b;
+      --heading:#f5f5f5;
+      --heading-accent:#d4af37;
+      --hero-muted:#d0d0d4;
+      --muted:rgba(255,255,255,.68);
+      --line:rgba(255,255,255,.14);
+      --text:#f5f5f5;
+      background:#080808;
+      color:#f5f5f5;
+    }
+
+    body:not(.day-mode) .panel,
+    body:not(.day-mode) .card,
+    body:not(.day-mode) .quote{
+      background:#111113;
+      border-color:rgba(255,255,255,.14);
+    }
+
+    body:not(.day-mode) .fact{
+      background:#18181b;
+      border-color:rgba(255,255,255,.12);
+    }
+
+    body:not(.day-mode) .panel p,
+    body:not(.day-mode) .card p,
+    body:not(.day-mode) .card li,
+    body:not(.day-mode) .fact span,
+    body:not(.day-mode) .hero p,
+    body:not(.day-mode) .availability{
+      color:#d0d0d4;
+    }
+
+    body:not(.day-mode) .section-title,
+    body:not(.day-mode) .card h2,
+    body:not(.day-mode) .card h3,
+    body:not(.day-mode) .quote strong{color:#f5f5f5}
+
+    body:not(.day-mode) .eyebrow,
+    body:not(.day-mode) .hero-subtitle,
+    body:not(.day-mode) .fact strong{color:#d4af37}
+
+    @media(max-width:780px){
+      .content-grid,
+      .facts{grid-template-columns:1fr}
+    }
+
+    @media(max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{border-radius:16px}
+      .card{padding:18px}
+
+      .discipline-heritage{
+        width:min(calc(100% - 1.25rem),1100px);
+        margin:.75rem auto 1.5rem;
+        border-radius:14px;
+      }
+
+      .discipline-heritage img{aspect-ratio:16 / 9}
+
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+  </style>
+
+  <link rel="canonical" href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/muay-thai.html">
+</head>
+
+<body>
+
+<div
+  id="navigation"
+  data-component="/locations/santa-ynez-valley/components/navigation.html"
+></div>
+
+<div class="site-hero-divider" aria-hidden="true"></div>
+
+<main>
+
+  <section class="hero">
+    <div data-lang-block="en">
+      <p class="eyebrow">Sandman Zero2Hero™ • Path2Legend™ • Ages 14+</p>
+      <h1>Muay Thai</h1>
+      <p class="hero-subtitle">Balance. Timing. Pressure. Composure.</p>
+      <p>Technical and tactical development for teen and adult athletes.</p>
+      <span class="availability">Offered at our Santa Ynez Valley academy</span>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">Sandman Zero2Hero™ • Path2Legend™ • Edades 14+</p>
+      <h1>Muay Thai</h1>
+      <p class="hero-subtitle">Equilibrio. Tiempo. Presión. Compostura.</p>
+      <p>Desarrollo técnico y táctico para atletas adolescentes y adultos.</p>
+      <span class="availability">Disponible en nuestra academia del Valle de Santa Ynez</span>
+    </div>
+  </section>
+
+  <section class="discipline-heritage" aria-label="Muay Thai heritage artwork">
+    <img
+      src="/assets/images/disciplines/heritage/ancient_fresco_of_muay_thai_history.png"
+      alt="Muay Thai heritage artwork"
+      decoding="async"
+    >
+  </section>
+
+  <section class="section panel">
+    <div data-lang-block="en">
+      <p class="eyebrow">Discipline</p>
+      <h2 class="section-title">Muay Thai</h2>
+      <p>
+        Muay Thai is a striking art from Thailand known for combining punches,
+        kicks, knees, elbows, movement, defense, and clinch control. It is often
+        called the art of eight limbs because athletes learn to connect multiple
+        striking tools while maintaining balance, timing, and composure.
+      </p>
+      <p>
+        Path2Legend™ Muay Thai develops those skills through structured technical
+        training, conditioning, controlled partner work, defensive responsibility,
+        and progressive preparation for athletes who want to train seriously and,
+        when appropriate, compete.
+      </p>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">Disciplina</p>
+      <h2 class="section-title">Muay Thai</h2>
+      <p>
+        El Muay Thai es un arte de golpeo originario de Tailandia conocido por
+        combinar puños, patadas, rodillas, codos, movimiento, defensa y control
+        en el clinch. Con frecuencia se le llama el arte de las ocho extremidades
+        porque conecta varias herramientas de golpeo manteniendo equilibrio,
+        tiempo y compostura.
+      </p>
+      <p>
+        Muay Thai Path2Legend™ desarrolla esas habilidades mediante entrenamiento
+        técnico estructurado, acondicionamiento, trabajo controlado con compañeros,
+        responsabilidad defensiva y preparación progresiva para atletas que desean
+        entrenar seriamente y, cuando corresponda, competir.
+      </p>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <div data-lang-block="en">
+      <p class="eyebrow">The Sandman Purpose</p>
+      <h2 class="section-title">Why Muay Thai</h2>
+      <p>
+        Muay Thai demands full-body coordination and clear decisions under pressure.
+        Athletes must manage distance, timing, balance, fatigue, and emotion while
+        staying accountable to their training partners and coach.
+      </p>
+      <p>
+        At the Path2Legend™ level, that makes Muay Thai a strong classroom for
+        responsibility. Power has to be controlled, pressure has to be managed,
+        corrections have to be accepted, and progress has to be earned. Those
+        lessons reinforce the Sandman pillars of Combat, Strength, and Honor.
+      </p>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">El Propósito Sandman</p>
+      <h2 class="section-title">Por Qué Enseñamos Muay Thai</h2>
+      <p>
+        El Muay Thai exige coordinación de todo el cuerpo y decisiones claras bajo
+        presión. Los atletas deben manejar distancia, tiempo, equilibrio, fatiga y
+        emoción mientras mantienen responsabilidad con sus compañeros y su coach.
+      </p>
+      <p>
+        En Path2Legend™, eso convierte al Muay Thai en una gran escuela de
+        responsabilidad. El poder debe controlarse, la presión debe manejarse,
+        las correcciones deben aceptarse y el progreso debe ganarse. Esas lecciones
+        refuerzan los pilares Sandman de Combate, Fuerza y Honor.
+      </p>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <div data-lang-block="en">
+      <p class="eyebrow">Short History</p>
+      <h2 class="section-title">The Story of Muay Thai</h2>
+      <p>
+        Muay Thai developed in Thailand from older battlefield and hand-to-hand
+        traditions. Over time, it evolved into a regulated national sport with
+        formal training camps, stadium competition, timed rounds, gloves, referees,
+        and established rules.
+      </p>
+      <p>
+        Modern Muay Thai is practiced around the world for competition, fitness,
+        self-development, and preparation for mixed martial arts. Its combination
+        of balance, rhythm, conditioning, defense, and full-body coordination makes
+        it one of the most complete striking systems in combat sports.
+      </p>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">Historia Breve</p>
+      <h2 class="section-title">La Historia Del Muay Thai</h2>
+      <p>
+        El Muay Thai se desarrolló en Tailandia a partir de antiguas tradiciones
+        de combate y defensa cuerpo a cuerpo. Con el tiempo, evolucionó hasta
+        convertirse en un deporte nacional regulado con campamentos formales,
+        competencia en estadios, asaltos, guantes, árbitros y reglas establecidas.
+      </p>
+      <p>
+        El Muay Thai moderno se practica en todo el mundo para competencia,
+        condición física, desarrollo personal y preparación para las artes
+        marciales mixtas. Su combinación de equilibrio, ritmo, acondicionamiento,
+        defensa y coordinación de todo el cuerpo lo convierte en uno de los
+        sistemas de golpeo más completos de los deportes de combate.
+      </p>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <div data-lang-block="en">
+      <p class="eyebrow">What Makes Muay Thai Different</p>
+      <h2 class="section-title">The Art of Eight Limbs</h2>
+      <div class="facts">
+        <div class="fact">
+          <strong>The Art of Eight Limbs</strong>
+          <span>Muay Thai connects punches, kicks, knees, and elbows within one striking system.</span>
+        </div>
+        <div class="fact">
+          <strong>Balance Creates Power</strong>
+          <span>Effective striking depends on posture, foot placement, timing, and recovery after every exchange.</span>
+        </div>
+        <div class="fact">
+          <strong>Respect Is Built In</strong>
+          <span>Traditional Muay Thai culture places strong value on respect for coaches, partners, opponents, and the discipline.</span>
+        </div>
+      </div>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">Qué Hace Diferente Al Muay Thai</p>
+      <h2 class="section-title">El Arte De Las Ocho Extremidades</h2>
+      <div class="facts">
+        <div class="fact">
+          <strong>El Arte De Las Ocho Extremidades</strong>
+          <span>El Muay Thai conecta puños, patadas, rodillas y codos dentro de un solo sistema de golpeo.</span>
+        </div>
+        <div class="fact">
+          <strong>El Equilibrio Crea Poder</strong>
+          <span>El golpeo eficaz depende de postura, colocación de los pies, tiempo y recuperación después de cada intercambio.</span>
+        </div>
+        <div class="fact">
+          <strong>El Respeto Es Parte Del Arte</strong>
+          <span>La cultura tradicional del Muay Thai valora el respeto por coaches, compañeros, oponentes y la disciplina.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content-grid">
+    <article class="card">
+      <div data-lang-block="en">
+        <h2>Skills You Build</h2>
+        <ul>
+          <li>Stance, posture, and balance</li>
+          <li>Footwork and distance management</li>
+          <li>Punching and kicking combinations</li>
+          <li>Knee and elbow fundamentals</li>
+          <li>Clinch positioning and control</li>
+          <li>Defense, counters, and controlled combinations</li>
+        </ul>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h2>Habilidades Técnicas</h2>
+        <ul>
+          <li>Postura, posición y equilibrio</li>
+          <li>Juego de pies y manejo de distancia</li>
+          <li>Combinaciones de puños y patadas</li>
+          <li>Fundamentos de rodillas y codos</li>
+          <li>Posición y control en el clinch</li>
+          <li>Defensa, contragolpes y combinaciones controladas</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="card">
+      <div data-lang-block="en">
+        <h2>Physical Development</h2>
+        <ul>
+          <li>Coordination</li>
+          <li>Balance</li>
+          <li>Agility and mobility</li>
+          <li>Conditioning</li>
+          <li>Work capacity</li>
+          <li>Full-body awareness</li>
+        </ul>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h2>Desarrollo Físico</h2>
+        <ul>
+          <li>Coordinación</li>
+          <li>Equilibrio</li>
+          <li>Agilidad y movilidad</li>
+          <li>Acondicionamiento</li>
+          <li>Capacidad de trabajo</li>
+          <li>Conciencia de todo el cuerpo</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="card">
+      <div data-lang-block="en">
+        <h2>Character Development</h2>
+        <ul>
+          <li>Confidence</li>
+          <li>Discipline</li>
+          <li>Respect</li>
+          <li>Composure under pressure</li>
+          <li>Self-control</li>
+          <li>Responsibility and leadership</li>
+        </ul>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h2>Desarrollo Del Carácter</h2>
+        <ul>
+          <li>Confianza</li>
+          <li>Disciplina</li>
+          <li>Respeto</li>
+          <li>Compostura bajo presión</li>
+          <li>Autocontrol</li>
+          <li>Responsabilidad y liderazgo</li>
+        </ul>
+      </div>
+    </article>
+
+    <article class="card">
+      <div data-lang-block="en">
+        <h2>How We Train</h2>
+        <ul>
+          <li>Movement, balance, and technical drilling</li>
+          <li>Shadowboxing</li>
+          <li>Bag and pad work</li>
+          <li>Defensive and reaction drills</li>
+          <li>Controlled partner work</li>
+          <li>Progressive competition preparation when appropriate</li>
+        </ul>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h2>Enfoque Del Entrenamiento</h2>
+        <ul>
+          <li>Movimiento, equilibrio y práctica técnica</li>
+          <li>Boxeo de sombra</li>
+          <li>Trabajo de saco y paos</li>
+          <li>Ejercicios defensivos y de reacción</li>
+          <li>Trabajo controlado con compañeros</li>
+          <li>Preparación progresiva para competencia cuando corresponda</li>
+        </ul>
+      </div>
+    </article>
+  </section>
+
+  <section class="visual-section">
+    <div class="visual-heading">
+      <div data-lang-block="en">
+        <h2>Path2Legend™ Progression</h2>
+        <p>
+          Athletes advance from Apprentice to Legend through consistent training,
+          coach evaluation, testing, technical development, accountability, and
+          demonstrated growth in Combat, Strength, and Honor.
+        </p>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h2>Progresión Path2Legend™</h2>
+        <p>
+          Los atletas avanzan de Apprentice a Legend mediante entrenamiento
+          constante, evaluación del coach, pruebas, desarrollo técnico,
+          responsabilidad y crecimiento demostrado en Combate, Fuerza y Honor.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="progression-top">
+    <figure>
+      <img
+        src="/assets/images/programs/shirt-progression/path2legend-muay-thai-shirt-progression.png"
+        alt="Path2Legend Muay Thai shirt progression from Apprentice to Legend"
+      />
+    </figure>
+  </section>
+
+  <section class="section panel">
+    <div data-lang-block="en">
+      <p class="eyebrow">Who It’s For</p>
+      <h2 class="section-title">Built for Teen and Adult Athletes</h2>
+      <p>
+        Path2Legend™ Muay Thai is built for athletes ages 14 and older, including
+        first-time martial artists, experienced combat athletes, multi-sport athletes,
+        and competitors who want a structured path for technical development,
+        conditioning, confidence, discipline, and responsible performance under pressure.
+      </p>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <p class="eyebrow">Perfil Del Atleta</p>
+      <h2 class="section-title">Diseñado Para Atletas Adolescentes Y Adultos</h2>
+      <p>
+        Muay Thai Path2Legend™ está diseñado para atletas de 14 años en adelante,
+        incluyendo principiantes, atletas de combate con experiencia, atletas de
+        varios deportes y competidores que buscan un camino estructurado para
+        desarrollar técnica, acondicionamiento, confianza, disciplina y desempeño
+        responsable bajo presión.
+      </p>
+    </div>
+  </section>
+
+  <section class="marketing-connect-cta">
+    <div data-lang-block="en">
+      <h2>Ready to Begin Muay Thai?</h2>
+      <p>
+        Build striking skill, conditioning, composure, and character through the
+        Path2Legend™ progression for athletes ages 14 and older.
+      </p>
+      <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
+        Connect With Our Academy
+      </a>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <h2>¿Listo Para Comenzar Muay Thai?</h2>
+      <p>
+        Desarrolla técnica de golpeo, acondicionamiento, compostura y carácter
+        mediante la progresión Path2Legend™ para atletas de 14 años en adelante.
+      </p>
+      <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
+        Conéctate Con Nuestra Academia
+      </a>
+    </div>
+  </section>
+
+  <div class="quote">
+    <span data-lang-block="en">
+      <strong>Every step is earned.</strong>
+      Train with purpose. Carry pressure with control. Build the habits of a legend.
+    </span>
+    <span data-lang-block="es" class="hidden-lang">
+      <strong>Cada paso se gana.</strong>
+      Entrena con propósito. Maneja la presión con control. Construye los hábitos de una leyenda.
+    </span>
+  </div>
+
+</main>
+
+<div id="footer" data-component="/components/footer.html"></div>
+
+<script src="/assets/js/component-loader.js" defer></script>
+<script src="/assets/js/language.js" defer></script>
+<script src="/assets/js/theme.js" defer></script>
+<script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>
