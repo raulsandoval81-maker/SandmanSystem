@@ -23,14 +23,11 @@ export const SANTA_YNEZ_VALLEY_SCHEDULE_SEED = Object.freeze({
   weekly: [
     { day: "Monday, Wednesday", title: "Kid Fit", category: "fitness", provider: "yesc", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "all", discipline: "", minAge: 7, maxAge: 12, details: "Ages 7–12." },
     { day: "Monday, Wednesday", title: "Teen Fit", category: "fitness", provider: "yesc", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "all", discipline: "", minAge: 13, maxAge: 17, details: "Ages 13–17." },
-    { day: "Monday, Wednesday", title: "Combat Youth Wrestling / Grappling", category: "combat", provider: "sandman", label: "6:00–7:00 PM", start: "18:00", end: "19:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7+." },
-    { day: "Monday, Wednesday", title: "Combat Teen Wrestling / Grappling", category: "combat", provider: "sandman", label: "7:00–8:00 PM", start: "19:00", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
-    { day: "Monday, Wednesday", title: "Combat Teen Boxing / Striking", category: "combat", provider: "sandman", label: "8:00–9:00 PM", start: "20:00", end: "21:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
+    { day: "Monday, Wednesday", title: "Combat Wrestling / Grappling", category: "combat", provider: "sandman", label: "6:00–7:00 PM", start: "18:00", end: "19:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", minAge: 7, details: "Ages 7+." },
+    { day: "Monday, Tuesday, Wednesday, Thursday", title: "Combat Teen Boxing / Striking", category: "combat", provider: "sandman", label: "7:00–8:00 PM", start: "19:00", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", minAge: 14, details: "Ages 14+." },
     { day: "Tuesday, Thursday", title: "Combat Youth Muay Thai / Striking", category: "combat", provider: "sandman", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "muay-thai", details: "Ages 7+." },
-    { day: "Tuesday, Thursday", title: "Combat Youth Wrestling / Grappling", category: "combat", provider: "sandman", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7+." },
-    { day: "Tuesday, Thursday", title: "HIIT Fit", category: "fitness", provider: "yesc", label: "6:05–6:50 PM", start: "18:05", end: "18:50", instructor: "Coach Sandoval", audience: "all", discipline: "", minAge: 18, details: "Ages 18+." },
-    { day: "Tuesday, Thursday", title: "Combat Teen Boxing / Striking", category: "combat", provider: "sandman", label: "7:00–8:00 PM", start: "19:00", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
-    { day: "Tuesday, Thursday", title: "Combat Teen Wrestling / Grappling", category: "combat", provider: "sandman", label: "8:00–9:00 PM", start: "20:00", end: "21:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
+    { day: "Tuesday, Thursday", title: "Combat Wrestling / Grappling", category: "combat", provider: "sandman", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", minAge: 7, details: "Ages 7+." },
+    { day: "Tuesday, Thursday", title: "HIIT Fit / Strength", category: "fitness", provider: "yesc", label: "6:10–6:55 PM", start: "18:10", end: "18:55", instructor: "Coach Sandoval", audience: "all", discipline: "", minAge: 14, details: "Ages 14+. (12+ with parent participation)" },
   ],
   events: [],
   banner: { active: false, text: "" },
@@ -55,7 +52,7 @@ export function resolveScheduleLocation(record = {}, fallback = "") {
     record.disciplines &&
     typeof record.disciplines === "object" &&
     !Array.isArray(record.disciplines)
-      ? record.disciplines
+      ? Object.keys(record.disciplines)
       : {};
 
   const activeDiscipline =
