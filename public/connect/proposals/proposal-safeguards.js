@@ -9,6 +9,12 @@ const reopenProposal =
     "returnProposalToDraft"
   );
 
+const issueProposalClientReview =
+  httpsCallable(
+    functions,
+    "issueProposalClientReview"
+  );
+
 function clean(value = "") {
   return String(value || "").trim();
 }
@@ -62,19 +68,63 @@ function addSafeguards() {
             "Resend Remote Confirmation";
 
           issueButton.title =
-            "Use only when the family needs another remote confirmation. The prior send remains in Activity.";
+            "Send another remote confirmation email to the proposal contact. The send is recorded in Activity.";
 
           issueButton.addEventListener(
             "click",
-            (event) => {
+            async (event) => {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+
               const confirmed =
                 window.confirm(
-                  `A remote confirmation was already issued for ${proposalId}.\n\nSend another confirmation?\n\nCancel is the safe choice unless the family actually needs a resend.`
+                  `Send another remote confirmation for ${proposalId}?\n\nThe email will be sent to the authoritative proposal contact and recorded in Activity.`
                 );
 
               if (!confirmed) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
+                return;
+              }
+
+              const originalText =
+                issueButton.textContent;
+
+              issueButton.disabled = true;
+              issueButton.textContent =
+                "Sending…";
+
+              try {
+                const response =
+                  await issueProposalClientReview({
+                    proposalId,
+                    delivery: "email"
+                  });
+
+                const recipient =
+                  clean(
+                    response.data?.recipient
+                  );
+
+                window.alert(
+                  recipient
+                    ? `Remote confirmation sent to ${recipient}.`
+                    : "Remote confirmation sent."
+                );
+
+                window.location.reload();
+              } catch (error) {
+                console.error(
+                  "Proposal resend failed:",
+                  error
+                );
+
+                window.alert(
+                  error?.message ||
+                  "The remote confirmation could not be sent."
+                );
+
+                issueButton.disabled = false;
+                issueButton.textContent =
+                  originalText;
               }
             },
             true
@@ -191,7 +241,7 @@ function addSafeguards() {
 
             correctButton.disabled = false;
             correctButton.textContent =
-              "Correct Proposal";
+              originalText;
           }
         }
       );
