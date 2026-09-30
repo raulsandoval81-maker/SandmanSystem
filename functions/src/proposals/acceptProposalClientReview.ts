@@ -167,6 +167,18 @@ export const acceptProposalClientReview =
             );
           }
 
+          const approvedBy =
+            cleanReviewString(
+              review.issuedBy
+            );
+
+          if (!approvedBy) {
+            throw new HttpsError(
+              "failed-precondition",
+              "The Management approval record is missing from this proposal."
+            );
+          }
+
           const historyRef =
             proposalRef
               .collection("history")
@@ -200,6 +212,19 @@ export const acceptProposalClientReview =
                   FieldValue.serverTimestamp(),
               },
 
+              approvedBy,
+
+              approvedAt:
+                review.issuedAt ||
+                FieldValue.serverTimestamp(),
+
+              lockedBy:
+                approvedBy,
+
+              lockedAt:
+                review.issuedAt ||
+                FieldValue.serverTimestamp(),
+
               updatedAt:
                 FieldValue.serverTimestamp(),
             }
@@ -222,6 +247,11 @@ export const acceptProposalClientReview =
               signerName,
 
               signerRole,
+
+              approvedBy,
+
+              approvalSource:
+                "proposal_signature_request",
 
               createdAt:
                 FieldValue.serverTimestamp(),
