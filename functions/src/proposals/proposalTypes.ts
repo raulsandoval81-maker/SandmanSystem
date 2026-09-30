@@ -19,7 +19,7 @@ export interface ProposalProspect {
   familyName: string | null;
   primaryContactName: string | null;
   email: string | null;
-  emailSource?: "appointment" | "proposal" | null;
+  emailSource?: "appointment" | "proposal_input" | null;
   phone: string | null;
   city: string | null;
   state: string | null;
