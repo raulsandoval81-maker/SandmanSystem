@@ -176,8 +176,6 @@ function validateFormBasics() {
 
   if (!dob) fail("Enter date of birth.", "dob");
 
-  // if TEAM is required, uncomment:
-
   if (!city) fail("Enter city.", "city");
   if (!state || state.length !== 2) fail("Enter state (2 letters).", "state");
 
@@ -335,19 +333,18 @@ async function prefillFromLead(connectLeadId) {
 }
 
 // -------------------- Firestore write --------------------
-// ✅ write to intakes/{tokenId} (canonical id from verifier)
 async function writeIntake(tokenId, payload) {
   const safe = {
     ...payload,
-    tokenId,                 // ✅ force correct
-    updatedAt: serverTimestamp(), // ✅ always refresh
+    tokenId,
+    updatedAt: serverTimestamp(),
   };
 
-  // Optional: only set createdAt once
   if (!safe.createdAt) safe.createdAt = serverTimestamp();
 
   await setDoc(doc(db, "intakes", tokenId), safe, { merge: true });
 }
+
 // -------------------- Submit handler --------------------
 async function handleSubmit(e) {
   e?.preventDefault?.();
@@ -356,9 +353,15 @@ async function handleSubmit(e) {
   btn?.setAttribute("disabled", "disabled");
 
   try {
-    // 0) token must be valid + not expired
     const { rawToken, token, tokenId, exp } =
       await requireValidInvite();
+
+    const intakeAudience =
+      String(token.intakeAudience || "").trim().toLowerCase();
+
+    if (intakeAudience !== "parent_guardian") {
+      fail("This invite is not a Parent / Guardian intake.");
+    }
 
     const connectLeadId =
       token.connectLeadId || null;
@@ -390,32 +393,27 @@ async function handleSubmit(e) {
     if (!tokenId)
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
-    // 1) waiver gate
     if (!waiverAgreementOK()) {
       fail("Open waiver PDF, check the box, add signature + date.", "openWaiverBtn");
     }
 
-    // 2) validate fields
     const v = validateFormBasics();
 
-    // 3) signature
     const sign = titleCase(val("signatureParent"));
     const signDate = val("signatureDate");
     if (!sign) fail("Type your full name as signature.", "signatureParent");
     if (!signDate) fail("Select today’s date.", "signatureDate");
 
-    // 4) payload (canonical)
     const intake = {
-
       connectLeadId,
 
-      // Enrollment ownership is inherited from the verified
-      // invite token. The family does not choose these values.
       proposalId:
         String(token.proposalId || "").trim() || null,
 
       locationId:
         String(token.locationId || "").trim() || null,
+
+      intakeAudience: "parent_guardian",
 
       mode:
         intakeMode === "add_sport"
@@ -455,18 +453,15 @@ async function handleSubmit(e) {
       workflowVersion:
         String(token.workflowVersion || "v1"),
 
-      // ---- token + lifecycle ----
       tokenId,
       ownerUid: intakeOwnerUid,
       tokenRaw: rawToken,
       exp: exp ?? null,
 
-      // ---- ROOT MIRRORS ----
       first: titleCase(v.first),
       last: titleCase(v.last),
       dob: v.dob,
 
-      // ---- structured ----
       athlete: {
         first: titleCase(v.first),
         last: titleCase(v.last),
@@ -501,39 +496,31 @@ async function handleSubmit(e) {
       waiver: {
         viewed: true,
         agreed: true,
-
         signerType: "parent_guardian",
         signingAuthority: "guardian_for_athlete",
-
         signatureName: sign,
         signatureDate: signDate,
       },
 
-      // ---- management controlled later ----
-      status: "submitted", // invited → submitted → approved
+      status: "submitted",
       minted: false,
       approvedUid: null,
 
-      // ---- system ----
       source: "intake-parent-ui",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
 
-    // 5) write
     await writeIntake(tokenId, intake);
 
-    // 6) success UX
     setWaiverStatusStrong("Submitted ✅", "#34d399");
 
-    // lock form inputs after submit
     document
       .querySelectorAll("#intakeForm input, #intakeForm textarea, #intakeForm button")
       .forEach((el) => {
         el.disabled = true;
       });
 
-    // allow opening waiver still (optional)
     if ($("openWaiverBtn")) {
       $("openWaiverBtn").disabled = false;
     }
@@ -568,16 +555,14 @@ function wireWaiver() {
     maybeUnlockSubmit();
   });
 
-["signatureParent", "signatureDate"].forEach((id) => {
+  ["signatureParent", "signatureDate"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
 
-  const el = $(id);
-
-  if (!el) return;
-
-  ["input", "change"].forEach((evt) =>
-    el.addEventListener(evt, maybeUnlockSubmit)
-  );
-});
+    ["input", "change"].forEach((evt) =>
+      el.addEventListener(evt, maybeUnlockSubmit)
+    );
+  });
 }
 
 function wirePhoneSanitizer(id) {
@@ -687,7 +672,6 @@ async function applyInviteModeUI(invite) {
 
 // -------------------- Boot --------------------
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ AUTH FIRST (phones)
   try {
     const signedInUser =
       await ensureSignedIn();
@@ -707,7 +691,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // status if missing token
   const tok = getInviteFromURL();
   if (!tok) {
     setWaiverStatusStrong(
@@ -715,21 +698,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       "#fbbf24"
     );
   } else {
-
-
     try {
       const invite = await requireValidInvite();
 
+      if (
+        String(invite.token.intakeAudience || "").trim().toLowerCase() !==
+        "parent_guardian"
+      ) {
+        throw new Error("This invite is not a Parent / Guardian intake.");
+      }
+
       await applyInviteModeUI(invite);
 
-      // New enrollment path: use the safe snapshot carried
-      // by the verified intake token.
       prefillFromToken(
         invite.token.prefill || {}
       );
 
-      // New enrollment tokens contain their safe prefill snapshot.
-      // Do not expose Admissions/interest_leads to family clients.
       if (
         String(invite.token.workflowVersion || "") !== "intake-v2"
       ) {
