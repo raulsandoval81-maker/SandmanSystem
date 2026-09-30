@@ -84,6 +84,29 @@ async function handleSignOut() {
 }
 
 
+async function installPageSpecificManagementGuards() {
+  if (
+    window.location.pathname.startsWith(
+      "/management/pricing/"
+    )
+  ) {
+    try {
+      const module =
+        await import(
+          "/management/pricing/pricing-issued-guard.js"
+        );
+
+      await module.guardIssuedPricingCase();
+    } catch (error) {
+      console.error(
+        "[management-shell] pricing proposal guard failed:",
+        error
+      );
+    }
+  }
+}
+
+
 async function startManagementShell() {
   try {
     const context =
@@ -105,6 +128,8 @@ async function startManagementShell() {
         scope: context.scope
       }
     );
+
+    await installPageSpecificManagementGuards();
 
   } catch (error) {
     console.error(
