@@ -77,7 +77,7 @@ export const createProposalDraft =
         data.primaryContactName
       );
 
-    const email =
+    const requestedEmail =
       nullableString(
         cleanEmail(
           data.prospect?.email ||
@@ -172,6 +172,24 @@ export const createProposalDraft =
       staffAccess,
       locationId
     );
+
+    const appointmentEmail =
+      nullableString(
+        cleanEmail(
+          appointmentProspect.email
+        )
+      );
+
+    const proposalEmail =
+      appointmentEmail ||
+      requestedEmail;
+
+    const proposalEmailSource =
+      appointmentEmail
+        ? "appointment"
+        : requestedEmail
+          ? "proposal_input"
+          : null;
 
     // Athlete identity data collected before Admissions should
     // survive into the Proposal. DOB belongs to the athlete,
@@ -269,12 +287,10 @@ export const createProposalDraft =
                     ),
 
                   email:
-                    email ||
-                    nullableString(
-                      cleanEmail(
-                        appointmentProspect.email
-                      )
-                    ),
+                    proposalEmail,
+
+                  emailSource:
+                    proposalEmailSource,
 
                   phone:
                     phone ||
