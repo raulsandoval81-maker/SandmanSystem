@@ -37,10 +37,10 @@ function setWaiverStatusStrong(text, color = "") {
 }
 
 const WAIVER_URL_EN =
-  "/waiver/sandman-adult-participation-waiver-en.pdf";
+  "/waiver/?audience=adult_athlete&lang=en";
 
 const WAIVER_URL_ES =
-  "/waiver/sandman-adult-participation-waiver-es.pdf";
+  "/waiver/?audience=adult_athlete&lang=es";
 let waiverViewed = false;
 
 let leadLanguagePreference = null;
@@ -324,7 +324,7 @@ async function handleSubmit(e) {
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtnEn");
 
     if (!waiverAgreementOK()) {
-      fail("Open waiver PDF, check the box, add signature + date.", "openWaiverBtnEn");
+      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtnEn");
     }
 
     const v = validateFormBasics();
