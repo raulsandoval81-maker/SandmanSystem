@@ -23,5 +23,5 @@ export function athleteActivationReturnUrl(context, origin = window.location.ori
 }
 
 export function athleteHomeUrl(athleteId) {
-  return `/athletes/hub/?id=${encodeURIComponent(athleteId)}`;
+  return `/athlete-onboarding/?id=${encodeURIComponent(athleteId)}`;
 }
