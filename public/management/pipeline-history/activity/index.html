@@ -29,6 +29,9 @@
     .activity-lifecycle-step.is-complete{border-color:#a9d0b7;background:var(--management-success-soft)}
     .activity-lifecycle-step.is-complete .activity-lifecycle-number{border-color:#a9d0b7;background:#fff;color:var(--management-success)}
     .activity-lifecycle-step.is-complete .activity-lifecycle-state{border-color:#a9d0b7;color:var(--management-success);background:#fff}
+    .activity-lifecycle-step.is-skipped{background:transparent;border-style:dashed;opacity:.78}
+    .activity-lifecycle-step.is-skipped .activity-lifecycle-number{background:var(--management-surface);color:var(--management-muted)}
+    .activity-lifecycle-step.is-skipped .activity-lifecycle-state{background:var(--management-neutral-soft);color:var(--management-muted)}
     .activity-lifecycle-step.is-current{border-color:#dcc77f;background:var(--management-gold-soft)}
     .activity-lifecycle-step.is-current .activity-lifecycle-number{border-color:#dcc77f;background:#fff;color:#59440b}
     .activity-lifecycle-step.is-current .activity-lifecycle-state{border-color:#dcc77f;color:#59440b;background:#fff}
@@ -63,7 +66,7 @@
   </main>
 
   <script type="module" src="/management/shared/management-shell.js"></script>
-  <script type="module" src="/connect/proposals/activity/activity.js"></script>
+  <script type="module" src="/connect/proposals/activity/activity.js?v=2"></script>
   <script type="module" src="/connect/proposals/activity/activity-corrections.js"></script>
 </body>
 </html>
