@@ -41,6 +41,7 @@ export const consumeAccessInvitation = onCall(async (req) => {
   if (!authEmail || req.auth.token.firebase?.sign_in_provider === "anonymous") {
     throw new HttpsError("permission-denied", "An email-backed account is required.");
   }
+
   const tokenId = String(req.data?.tokenId || "").trim();
   if (!tokenId) throw new HttpsError("invalid-argument", "Invitation token required.");
 
@@ -48,16 +49,20 @@ export const consumeAccessInvitation = onCall(async (req) => {
     const invitationRef = db.doc(`accessInvitations/${tokenId}`);
     const invitationSnap = await tx.get(invitationRef);
     if (!invitationSnap.exists) invitationError(new Error("INVITATION_NOT_FOUND"));
+
     const invitation = invitationSnap.data() || {};
+
     if (String(invitation.role || "") === "athlete") {
       const athleteUid = String(invitation.athleteUid || invitation.subjectId || "").trim().toUpperCase();
       const athleteRef = db.doc(`athletes/${athleteUid}`);
       const athleteSnap = await tx.get(athleteRef);
       if (!athleteSnap.exists) throw new HttpsError("failed-precondition", "Athlete record is unavailable.");
+
       const athlete = athleteSnap.data() || {};
       const existingBindings = await tx.get(
         db.collection("athletes").where("authUid", "==", callerUid).limit(2)
       );
+
       let decision;
       try {
         decision = assertConsumableAthleteInvitation({
@@ -81,6 +86,15 @@ export const consumeAccessInvitation = onCall(async (req) => {
       }
 
       const stamp = FieldValue.serverTimestamp();
+      const existingOnboarding =
+        athlete.onboarding && typeof athlete.onboarding === "object"
+          ? athlete.onboarding
+          : {};
+      const existingLocks =
+        existingOnboarding.locks && typeof existingOnboarding.locks === "object"
+          ? existingOnboarding.locks
+          : {};
+
       tx.update(athleteRef, {
         authUid: callerUid,
         access: {
@@ -90,10 +104,29 @@ export const consumeAccessInvitation = onCall(async (req) => {
           activatedAt: stamp,
           invitationId: tokenId,
         },
+        onboarding: {
+          ...existingOnboarding,
+          identityConfirmedAt: existingOnboarding.identityConfirmedAt || stamp,
+          locks: {
+            ...existingLocks,
+            step1: true,
+          },
+        },
         updatedAt: stamp,
       });
-      tx.update(invitationRef, { used: true, usedAt: stamp, usedBy: callerUid });
-      return { ok: true, role: "athlete", athleteUid: decision.athleteUid, accessMode: decision.accessMode };
+
+      tx.update(invitationRef, {
+        used: true,
+        usedAt: stamp,
+        usedBy: callerUid,
+      });
+
+      return {
+        ok: true,
+        role: "athlete",
+        athleteUid: decision.athleteUid,
+        accessMode: decision.accessMode,
+      };
     }
 
     const relationshipId = String(invitation.relationshipId || invitation.subjectId || "").trim();
@@ -102,9 +135,11 @@ export const consumeAccessInvitation = onCall(async (req) => {
     const athleteRef = db.doc(`athletes/${athleteUid}`);
     const relationshipSnap = await tx.get(relationshipRef);
     const athleteSnap = await tx.get(athleteRef);
+
     if (!relationshipSnap.exists || !athleteSnap.exists) {
       throw new HttpsError("failed-precondition", "Approved Parent relationship is unavailable.");
     }
+
     const relationship = relationshipSnap.data() || {};
     const athlete = athleteSnap.data() || {};
 
@@ -139,15 +174,31 @@ export const consumeAccessInvitation = onCall(async (req) => {
       activatedAt: relationship.activatedAt || stamp,
       updatedAt: stamp,
     });
-    tx.update(athleteRef, { parentUid: callerUid, updatedAt: stamp });
-    tx.set(db.doc(`parents/${callerUid}`), {
-      uid: callerUid,
-      email: decision.email,
-      athleteUid: decision.athleteUid,
-      primaryAthleteUid: decision.athleteUid,
+    tx.update(athleteRef, {
+      parentUid: callerUid,
       updatedAt: stamp,
-    }, { merge: true });
-    tx.update(invitationRef, { used: true, usedAt: stamp, usedBy: callerUid });
-    return { ok: true, role: "parent", athleteUid: decision.athleteUid };
+    });
+    tx.set(
+      db.doc(`parents/${callerUid}`),
+      {
+        uid: callerUid,
+        email: decision.email,
+        athleteUid: decision.athleteUid,
+        primaryAthleteUid: decision.athleteUid,
+        updatedAt: stamp,
+      },
+      { merge: true }
+    );
+    tx.update(invitationRef, {
+      used: true,
+      usedAt: stamp,
+      usedBy: callerUid,
+    });
+
+    return {
+      ok: true,
+      role: "parent",
+      athleteUid: decision.athleteUid,
+    };
   });
 });
