@@ -41,6 +41,14 @@ JOURNEY_BUTTON_IDS.forEach((id) => {
   button.setAttribute("aria-disabled", "true");
 });
 
+// UID does not exist until activation and padlock state is an internal
+// activation detail. Keep both out of the pre-activation review surface.
+const uidField = $("c-uid")?.closest(".uid-field");
+if (uidField) uidField.hidden = true;
+
+const padlockStat = $("m-padlock")?.closest(".stat");
+if (padlockStat) padlockStat.hidden = true;
+
 function normalize(value = "") {
   return String(value || "")
     .trim()
