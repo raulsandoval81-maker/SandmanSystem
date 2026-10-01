@@ -53,14 +53,20 @@ function syncActivationButton() {
 async function sendActivationEmail() {
   assertCompleteAthleteActivationContext(context);
   if (hasSignedInCollision(signedInUser)) return showCollision();
+
   activateButton.disabled = true;
   setStatus("Sending the secure Athlete sign-in email...");
+
   try {
     await sendSignInLinkToEmail(auth, context.email, {
       url: athleteActivationReturnUrl(context),
       handleCodeInApp: true
     });
-    setStatus(`Secure sign-in sent to ${context.email}. Open that email to continue.`, "ok");
+
+    setStatus(
+      `Secure sign-in sent to ${context.email}. Open that email to continue.`,
+      "ok"
+    );
   } catch (error) {
     console.error("[athlete-access-activate] email failed", error);
     activateButton.disabled = false;
@@ -71,6 +77,7 @@ async function sendActivationEmail() {
 async function completeActivation() {
   assertCompleteAthleteActivationContext(context);
   if (hasSignedInCollision(signedInUser)) return showCollision();
+
   const password = passwordInput.value;
   if (password.length < 8) {
     setStatus("Create a password with at least 8 characters.", "error");
@@ -78,24 +85,32 @@ async function completeActivation() {
   }
 
   activateButton.disabled = true;
+
   try {
     setStatus("Verifying the secure Athlete sign-in...");
     const credential = await signInWithEmailLink(auth, context.email, window.location.href);
     const user = credential.user;
-    if (!invitedEmailMatches(user)) throw new Error("The authenticated email does not match this invitation.");
+
+    if (!invitedEmailMatches(user)) {
+      throw new Error("The authenticated email does not match this invitation.");
+    }
 
     setStatus("Creating the Athlete password...");
     await updatePassword(user, password);
 
-    setStatus("Connecting the login to the existing Athlete profile...");
+    setStatus("Connecting this login to the existing Athlete profile...");
     const consume = httpsCallable(functions, "consumeAccessInvitation");
     const response = await consume({ tokenId: context.tokenId });
     const result = response?.data || {};
-    if (result.role !== "athlete" || String(result.athleteUid || "").trim().toUpperCase() !== context.athleteId) {
+
+    if (
+      result.role !== "athlete" ||
+      String(result.athleteUid || "").trim().toUpperCase() !== context.athleteId
+    ) {
       throw new Error("The activation response did not match this Athlete profile.");
     }
 
-    setStatus("Athlete access activated. Opening Athlete Home...", "ok");
+    setStatus("Athlete access activated. Continuing setup...", "ok");
     window.location.replace(athleteHomeUrl(context.athleteId));
   } catch (error) {
     console.error("[athlete-access-activate] activation failed", error);
@@ -104,8 +119,11 @@ async function completeActivation() {
   }
 }
 
-passwordInput.addEventListener("input", syncActivationButton);\n\nactivateButton.addEventListener("click", async () => {
+passwordInput.addEventListener("input", syncActivationButton);
+
+activateButton.addEventListener("click", async () => {
   if (!authReady) return;
+
   if (isSignInWithEmailLink(auth, window.location.href)) {
     await completeActivation();
   } else {
@@ -118,9 +136,12 @@ onAuthStateChanged(auth, (user) => {
   signedInUser = user;
   athleteIdEl.textContent = context.athleteId || "Missing";
   invitedEmailEl.textContent = context.email || "Missing";
+
   try {
     assertCompleteAthleteActivationContext(context);
+
     if (hasSignedInCollision(user)) return showCollision();
+
     if (isSignInWithEmailLink(auth, window.location.href)) {
       passwordField.hidden = false;
       activateButton.textContent = "Finish Athlete Activation";
