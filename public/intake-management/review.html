@@ -20,7 +20,7 @@
       <div>
         <p class="eyebrow">Sandman Enrollment</p>
         <h1 id="reviewPageTitle">Enrollment Review</h1>
-        <p id="reviewPageSubtitle" class="muted small">Review the intake, confirm placement, and activate the athlete.</p>
+        <p id="reviewPageSubtitle" class="muted small">Review the submitted intake, correct athlete details if needed, confirm placement, and activate the athlete.</p>
       </div>
     </header>
 
@@ -96,6 +96,22 @@
             <span class="status-pill">Management Editable</span>
           </div>
 
+          <p class="muted small">
+            The submitted intake above remains unchanged. These fields are the Management-confirmed values used to create the athlete profile.
+          </p>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="c-first">Athlete First Name</label>
+              <input id="c-first" autocomplete="given-name" placeholder="First name">
+            </div>
+
+            <div class="field">
+              <label for="c-legal-last">Athlete Last Name</label>
+              <input id="c-legal-last" autocomplete="family-name" placeholder="Last name">
+            </div>
+          </div>
+
           <div class="form-grid two">
             <div class="field">
               <label for="c-initial">Public Initial</label>
@@ -117,7 +133,7 @@
 
           <div class="form-grid two">
             <div class="field">
-              <label for="c-dob">Corrected DOB</label>
+              <label for="c-dob">Date of Birth</label>
               <input
                 id="c-dob"
                 type="date"
@@ -174,10 +190,7 @@
       <!-- RIGHT COLUMN -->
       <div class="review-stack">
 
-
         <!-- MANAGEMENT DECISION FLOW -->
-
-
 
         <section class="card mint-card" id="journeyPickerCard" aria-labelledby="mint-title">
           <div class="card-head">
@@ -199,38 +212,37 @@
               <span class="mint-track-sub">Foundry 4</span>
             </button>
 
-<button type="button" class="mint-track-btn" id="btn-mint-boxing">
-  <span class="mint-track-name">Path2Legend Boxing</span>
-  <span class="mint-track-meta">Ages 14+ • Boxing</span>
-  <span class="mint-track-sub">Foundry 4</span>
-</button>
+            <button type="button" class="mint-track-btn" id="btn-mint-boxing">
+              <span class="mint-track-name">Path2Legend Boxing</span>
+              <span class="mint-track-meta">Ages 14+ • Boxing</span>
+              <span class="mint-track-sub">Foundry 4</span>
+            </button>
 
-<button
-  type="button"
-  class="mint-track-btn"
-  id="btn-mint-z2h-muay-thai"
-  disabled
-  aria-disabled="true"
-  title="Placement option not wired yet"
->
-  <span class="mint-track-name">Road2Champion Muay Thai</span>
-  <span class="mint-track-meta">Ages 7–13 • Muay Thai</span>
-  <span class="mint-track-sub">Foundry 8 • Coming Soon</span>
-</button>
+            <button
+              type="button"
+              class="mint-track-btn"
+              id="btn-mint-z2h-muay-thai"
+              disabled
+              aria-disabled="true"
+              title="Placement option not wired yet"
+            >
+              <span class="mint-track-name">Road2Champion Muay Thai</span>
+              <span class="mint-track-meta">Ages 7–13 • Muay Thai</span>
+              <span class="mint-track-sub">Foundry 8 • Coming Soon</span>
+            </button>
 
-<button
-  type="button"
-  class="mint-track-btn"
-  id="btn-mint-p2l-muay-thai"
-  disabled
-  aria-disabled="true"
-  title="Placement option not wired yet"
->
-  <span class="mint-track-name">Path2Legend Muay Thai</span>
-  <span class="mint-track-meta">Ages 14+ • Muay Thai</span>
-  <span class="mint-track-sub">Foundry 4 • Coming Soon</span>
-</button>
-
+            <button
+              type="button"
+              class="mint-track-btn"
+              id="btn-mint-p2l-muay-thai"
+              disabled
+              aria-disabled="true"
+              title="Placement option not wired yet"
+            >
+              <span class="mint-track-name">Path2Legend Muay Thai</span>
+              <span class="mint-track-meta">Ages 14+ • Muay Thai</span>
+              <span class="mint-track-sub">Foundry 4 • Coming Soon</span>
+            </button>
 
           </div>
 
@@ -260,8 +272,6 @@
           </div>
         </section>
 
-
-
         <section class="card" id="mint-box" aria-labelledby="minttag-title">
           <div class="card-head">
             <h3 id="minttag-title">Athlete Identity</h3>
@@ -281,53 +291,42 @@
           </div>
         </section>
 
-
-
-
-
-
-
         <section class="card" id="parentConnectionCard" hidden aria-labelledby="legacy-title">
 
-  <div class="card-head">
-    <h3 id="legacy-title">Parent / Guardian Connection</h3>
-    <span class="status-pill gold">Optional Access</span>
-  </div>
+          <div class="card-head">
+            <h3 id="legacy-title">Parent / Guardian Connection</h3>
+            <span class="status-pill gold">Optional Access</span>
+          </div>
 
-  <p class="muted small">
-    Use only when parent or guardian access is added after activation. This adds authorized access without changing the athlete profile, journey, progression, XP, or enrollment status.
-  </p>
+          <p class="muted small">
+            Use only when parent or guardian access is added after activation. This adds authorized access without changing the athlete profile, journey, progression, XP, or enrollment status.
+          </p>
 
-  <div class="field">
-    <label for="existing-athlete-uid">
-      Existing Athlete UID
-    </label>
+          <div class="field">
+            <label for="existing-athlete-uid">Existing Athlete UID</label>
+            <input
+              id="existing-athlete-uid"
+              placeholder="F4_0004"
+              class="mono"
+            >
+          </div>
 
-    <input
-      id="existing-athlete-uid"
-      placeholder="F4_0004"
-      class="mono"
-    >
-  </div>
+          <div style="margin-top:12px;">
+            <button
+              type="button"
+              id="btn-link-existing"
+              class="outline-blue"
+            >
+              Connect Parent
+            </button>
+          </div>
 
-  <div style="margin-top:12px;">
-    <button
-      type="button"
-      id="btn-link-existing"
-      class="outline-blue"
-    >
-      Connect Parent
-    </button>
-  </div>
+          <span
+            id="link-existing-status"
+            class="small muted"
+          ></span>
 
-  <span
-    id="link-existing-status"
-    class="small muted"
-  ></span>
-
-</section>
-
-
+        </section>
 
         <section class="card approve-card" id="approveCard" aria-labelledby="approve-title">
           <h3 id="approve-title">Approve &amp; Activate</h3>
@@ -386,4 +385,4 @@
   <script type="module" src="./review.js"></script>
   <script type="module" src="./activation-success-watch.js"></script>
 </body>
-</html>\n
+</html>
