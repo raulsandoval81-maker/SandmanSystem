@@ -435,14 +435,31 @@ export const getEnrollmentPlacementActivity = onCall(async (req) => {
     data: pinDoc.data() || {}
   }));
 
-  // New pins are bound to the exact enrollment case. Never show a pin that
-  // explicitly belongs to another proposal/intake. Older unlinked pins are
-  // retained only as a compatibility fallback when no exact case-linked pin
-  // exists yet.
+  // Prefer exact case provenance. Historical pins may contain only one side
+  // of the enrollment link; accept those only when every populated case field
+  // agrees with the current proposal/intake. Fully unlinked legacy pins remain
+  // the last-resort compatibility path. Explicit conflicts are never selected.
   const exactPins = pinRecords.filter(({ data }) =>
     clean(data.proposalId) === proposalId &&
     clean(data.intakeId) === intakeId
   );
+
+  const compatiblePartialPins = pinRecords.filter(({ data }) => {
+    const pinProposalId = clean(data.proposalId);
+    const pinIntakeId = clean(data.intakeId);
+    const hasSomeCaseProvenance = Boolean(pinProposalId || pinIntakeId);
+    const proposalMatches =
+      !pinProposalId || pinProposalId === proposalId;
+    const intakeMatches =
+      !pinIntakeId || pinIntakeId === intakeId;
+
+    return (
+      hasSomeCaseProvenance &&
+      proposalMatches &&
+      intakeMatches &&
+      !(pinProposalId === proposalId && pinIntakeId === intakeId)
+    );
+  });
 
   const legacyPins = pinRecords.filter(({ data }) =>
     !clean(data.proposalId) &&
@@ -451,13 +468,17 @@ export const getEnrollmentPlacementActivity = onCall(async (req) => {
 
   const selectedPins = exactPins.length
     ? exactPins
-    : legacyPins;
+    : compatiblePartialPins.length
+      ? compatiblePartialPins
+      : legacyPins;
 
   const caseLink = exactPins.length
     ? "exact"
-    : legacyPins.length
-      ? "legacy_fallback"
-      : "none";
+    : compatiblePartialPins.length
+      ? "partial_fallback"
+      : legacyPins.length
+        ? "legacy_fallback"
+        : "none";
 
   const activity: Array<Record<string, unknown>> = [];
 
@@ -471,10 +492,10 @@ export const getEnrollmentPlacementActivity = onCall(async (req) => {
       pinId: pinRecord.id,
       proposalId:
         clean(pin.proposalId) ||
-        (caseLink === "legacy_fallback" ? proposalId : null),
+        (caseLink !== "exact" ? proposalId : null),
       intakeId:
         clean(pin.intakeId) ||
-        (caseLink === "legacy_fallback" ? intakeId : null),
+        (caseLink !== "exact" ? intakeId : null),
       discipline,
       caseLink
     };
