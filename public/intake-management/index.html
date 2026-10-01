@@ -311,7 +311,7 @@
 
   <p class="small muted">
     Enrollment was opened from Sandman Connect.
-    Confirm the family before generating the parent intake link.
+    Confirm the family before generating the intake handoff.
   </p>
 
   <div id="connectLeadSummary" class="small">
@@ -356,7 +356,7 @@
           <h3>Intake Handoff</h3>
 
           <p class="small muted">
-            Select Parent / Guardian or Adult Athlete from a paid enrollment above.
+            Select the enrollment above. Sandman will route the handoff to the correct Parent / Guardian or Adult Athlete intake.
             The secure 48-hour intake link will appear here.
           </p>
         </div>
@@ -398,7 +398,7 @@
           id="invite-route-label"
           class="small muted"
         >
-          Choose who will complete the intake.
+          Intake audience will be resolved automatically.
         </span>
 
       </div>
@@ -477,6 +477,11 @@
   <script
     type="module"
     src="/intake-management/management.intake.js"
+  ></script>
+
+  <script
+    type="module"
+    src="/intake-management/enrollment-handoff-audience.js"
   ></script>
 
   <script
