@@ -5,9 +5,8 @@
 // Updated:
 // - Keeps existing F8 / F4 mint flow intact
 // - Adds framework/programTrack/art placement bridge
-// - Adult F4 + age 18+ routes to Quest2Mastery / MMA
-// - Youth F8 routes to Zero2Hero / Wrestling
-// - Teen F4 routes to Path2Legend / Wrestling default
+// - Uses Management-confirmed athlete identity at activation
+// - Preserves the submitted intake as the read-only source record
 // - Does NOT rewrite XP engine
 // ======================================================
 
@@ -38,6 +37,7 @@ const params = new URLSearchParams(location.search);
 const tokenId = (params.get("token") || "").trim();
 const approveIntakeCall =
   httpsCallable(functions, "approveIntakeCall");
+
 if (!tokenId) {
   alert("Missing ?token= in URL");
   throw new Error("Missing ?token=");
@@ -69,7 +69,7 @@ function renderIntakeLifecycle(intake = {}) {
           currentLabel: "Intake Review",
           caseLabel: tokenId,
           guidance:
-            "Review the submitted intake, then approve and activate when ready."
+            "Review the submitted intake, correct athlete details if needed, then approve and activate."
         }
   );
 }
@@ -99,8 +99,6 @@ function setApprovedUI(on, uid = "") {
   const openBtn = $("open-link");
   const approveBtn = $("btn-approve");
 
-
-
   if (modal) modal.classList.toggle("hidden", !on);
 
   if (linkInput) {
@@ -118,7 +116,6 @@ setApprovedUI(false);
 setApproveEnabled(false);
 if ($("approve-status")) $("approve-status").textContent = "";
 hideApprovalModal();
-
 setPadlockStatus("—");
 
 if ($("copy-link")) $("copy-link").disabled = true;
@@ -144,6 +141,18 @@ function slugTeamId(s) {
   return out || null;
 }
 
+function cleanNamePart(value = "") {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function normalizeState(value = "") {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
+
 function isF8Uid(uid) {
   return String(uid || "").startsWith("F8_");
 }
@@ -153,16 +162,35 @@ function getDobFromIntake(s = {}) {
 }
 
 function getAgeFromDob(dob) {
-  if (!dob) return null;
+  const value = String(dob || "").trim();
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
 
-  const birth = new Date(dob);
-  if (Number.isNaN(birth.getTime())) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) {
+    return null;
+  }
 
   const today = new Date();
-  let age = today.getFullYear() - birth.getFullYear();
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
 
-  const monthDiff = today.getMonth() - birth.getMonth();
-  const dayDiff = today.getDate() - birth.getDate();
+  if (birth > todayStart) return null;
+
+  let age = today.getFullYear() - year;
+  const monthDiff = today.getMonth() - (month - 1);
+  const dayDiff = today.getDate() - day;
 
   if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
     age -= 1;
@@ -196,16 +224,12 @@ function getAgeFromIntake(s = {}) {
 
   return getAgeFromDob(getDobFromIntake(s));
 }
+
 function buildPlacementFromTrack(track, s = {}) {
   const t = String(track || "").trim().toUpperCase();
-  const age = getAgeFromIntake(s);
-
   const selectedProgramTrack =
     $("c-program-track")?.value || "";
 
-  // --------------------------------------------------
-  // Road2Champion Muay Thai
-  // --------------------------------------------------
   if (selectedProgramTrack === "zero2hero-kickboxing") {
     return {
       framework: "foundry8",
@@ -220,9 +244,6 @@ function buildPlacementFromTrack(track, s = {}) {
     };
   }
 
-  // --------------------------------------------------
-  // F8 → Youth Road2Champion Wrestling
-  // --------------------------------------------------
   if (t === "F8") {
     return {
       framework: "foundry8",
@@ -237,9 +258,6 @@ function buildPlacementFromTrack(track, s = {}) {
     };
   }
 
-  // --------------------------------------------------
-  // Path2Legend Boxing
-  // --------------------------------------------------
   if (selectedProgramTrack === "path2legend-boxing") {
     return {
       framework: "foundry4",
@@ -254,9 +272,6 @@ function buildPlacementFromTrack(track, s = {}) {
     };
   }
 
-  // --------------------------------------------------
-  // Quest2Mastery MMA
-  // --------------------------------------------------
   if (selectedProgramTrack === "quest2mastery") {
     return {
       framework: "foundry4",
@@ -271,9 +286,6 @@ function buildPlacementFromTrack(track, s = {}) {
     };
   }
 
-  // --------------------------------------------------
-  // Teen Path2Legend
-  // --------------------------------------------------
   return {
     framework: "foundry4",
     programTrack: "path2legend",
@@ -282,14 +294,23 @@ function buildPlacementFromTrack(track, s = {}) {
     rosterIds: ["teen-wrestling"],
     locationId: DEFAULT_LOCATION_ID,
     coachIds: DEFAULT_COACH_IDS,
+    track: "path2legend",
     trackCode: "path2legend-wrestling"
   };
 }
+
 // ------------------------------------------------------
 // Virtues by track
 // ------------------------------------------------------
-const F8_VIRTUES = ["FOCUS","EFFORT","ATTITUDE","RESPECT","SPEED","POWER","AGILITY","COMBAT"];
-const F4_VIRTUES = ["HONOR","COURAGE","DISCIPLINE","INTEGRITY","PATIENCE","WISDOM","STRENGTH","TENACITY"];
+const F8_VIRTUES = [
+  "FOCUS","EFFORT","ATTITUDE","RESPECT",
+  "SPEED","POWER","AGILITY","COMBAT"
+];
+
+const F4_VIRTUES = [
+  "HONOR","COURAGE","DISCIPLINE","INTEGRITY",
+  "PATIENCE","WISDOM","STRENGTH","TENACITY"
+];
 
 function setVirtuesForTrack(track) {
   const sel = $("mint-virtue");
@@ -370,7 +391,6 @@ $("mint-virtue")?.addEventListener("change", updateMintTagPreview);
 // ------------------------------------------------------
 // Paint Mint UI
 // ------------------------------------------------------
-
 function paintMintUI({
   track = "",
   tier = "",
@@ -378,7 +398,6 @@ function paintMintUI({
   uid = "",
   padlock = "—"
 }) {
-
   const trackDisplay = track || "—";
 
   const tierRankText =
@@ -393,7 +412,8 @@ function paintMintUI({
   if ($("m-padlock")) $("m-padlock").textContent = lock;
   if ($("c-uid")) $("c-uid").value = uid || "";
 }
-    // ------------------------------------------------------
+
+// ------------------------------------------------------
 // Management enrollment review
 // ------------------------------------------------------
 function applyReviewModeUI() {
@@ -424,32 +444,27 @@ async function loadSubmission() {
     if ($("approve-status")) $("approve-status").textContent = "✓ Already approved.";
     setApproveEnabled(false);
 
-    const track =
-      isF8Uid(uid) ? "F8" : "F4";
+    const track = isF8Uid(uid) ? "F8" : "F4";
+    const programTrack = String(s.programTrack || "").toLowerCase();
 
-const programTrack =
-  String(s.programTrack || "").toLowerCase();
+    let tier = "T0";
+    let rank = "Apprentice";
 
-let tier = "T0";
-let rank = "Apprentice";
+    if (isF8Uid(uid)) {
+      rank = "Shadow";
+    }
 
-if (isF8Uid(uid)) {
-  tier = "T0";
-  rank = "Shadow";
-}
+    if (programTrack === "quest2mastery") {
+      rank = "Apprentice";
+    }
 
-if (programTrack === "quest2mastery") {
-  tier = "T0";
-  rank = "Apprentice";
-}
-
-paintMintUI({
-  track,
-  tier,
-  rank,
-  uid,
-  padlock: "—"
-});
+    paintMintUI({
+      track,
+      tier,
+      rank,
+      uid,
+      padlock: "—"
+    });
 
     setPadlockStatus("READY");
 
@@ -466,16 +481,41 @@ paintMintUI({
     return;
   }
 
-  const athleteFirst = s.first ?? s.athlete?.first ?? "";
-  const athleteLast  = s.last  ?? s.athlete?.last  ?? "";
-  const dob          = s.dob   ?? s.athlete?.dob   ?? "—";
+  const athleteFirst = cleanNamePart(
+    s.managementCorrections?.athlete?.first ||
+    s.first ||
+    s.athlete?.first ||
+    ""
+  );
 
-  if ($("c-initial") && !$("c-initial").value) {
-    const first = String(athleteFirst || "").trim();
-    $("c-initial").value = first ? first[0].toUpperCase() : "";
+  const athleteLast = cleanNamePart(
+    s.managementCorrections?.athlete?.last ||
+    s.last ||
+    s.athlete?.last ||
+    ""
+  );
+
+  const dob = s.dob ?? s.athlete?.dob ?? "—";
+
+  if ($("c-first")) {
+    $("c-first").value = athleteFirst;
   }
 
-  const city  = s.location?.city ?? "—";
+  if ($("c-legal-last")) {
+    $("c-legal-last").value = athleteLast;
+  }
+
+  if ($("c-initial") && !$("c-initial").value) {
+    $("c-initial").value = athleteFirst
+      ? athleteFirst[0].toUpperCase()
+      : "";
+  }
+
+  if ($("c-last") && !$("c-last").value) {
+    $("c-last").value = athleteLast;
+  }
+
+  const city = s.location?.city ?? "—";
   const state = s.location?.state ?? "—";
 
   const contactEmail =
@@ -505,33 +545,47 @@ paintMintUI({
         ? "Parent / Guardian"
         : "—";
 
-  const emerName  = s.emergency?.name ?? "—";
+  const emerName = s.emergency?.name ?? "—";
   const emerPhone = s.emergency?.phoneDigits ?? "—";
-
   const medical = s.medical ?? "—";
 
-  if ($("s-firstlast")) $("s-firstlast").textContent = `${athleteFirst} ${athleteLast}`.trim() || "—";
-  if ($("s-dob")) $("s-dob").textContent = dob;
+  if ($("s-firstlast")) {
+    const submittedFirst = s.first ?? s.athlete?.first ?? "";
+    const submittedLast = s.last ?? s.athlete?.last ?? "";
+    $("s-firstlast").textContent =
+      `${submittedFirst} ${submittedLast}`.trim() || "—";
+  }
 
+  if ($("s-dob")) $("s-dob").textContent = dob;
   if ($("s-city")) $("s-city").textContent = city;
   if ($("s-state")) $("s-state").textContent = state;
-  if ($("s-email")) {
-    $("s-email").textContent = contactEmail;
-  }
-
-  if ($("s-phone")) {
-    $("s-phone").textContent = contactPhone;
-  }
+  if ($("s-email")) $("s-email").textContent = contactEmail;
+  if ($("s-phone")) $("s-phone").textContent = contactPhone;
 
   if ($("s-completed-by")) {
-    $("s-completed-by").textContent =
-      completedByLabel;
+    $("s-completed-by").textContent = completedByLabel;
   }
-  if ($("s-emer")) $("s-emer").textContent = `${emerName} (${emerPhone})`;
+
+  if ($("s-emer")) {
+    $("s-emer").textContent = `${emerName} (${emerPhone})`;
+  }
+
   if ($("s-med")) $("s-med").textContent = medical;
 
-  if ($("c-city")) $("c-city").value = s.location?.city ?? "";
-  if ($("c-state")) $("c-state").value = s.location?.state ?? "";
+  if ($("c-city")) {
+    $("c-city").value =
+      s.managementCorrections?.location?.city ||
+      s.location?.city ||
+      "";
+  }
+
+  if ($("c-state")) {
+    $("c-state").value = normalizeState(
+      s.managementCorrections?.location?.state ||
+      s.location?.state ||
+      ""
+    );
+  }
 
   const reviewDob =
     s.managementCorrections?.dob?.corrected ||
@@ -559,19 +613,13 @@ paintMintUI({
       $("c-team").value = "other";
 
       if ($("c-team-other")) {
-        $("c-team-other").value =
-          submittedTeam;
+        $("c-team-other").value = submittedTeam;
       }
 
       if ($("c-team-other-wrap")) {
-        $("c-team-other-wrap").hidden =
-          false;
+        $("c-team-other-wrap").hidden = false;
       }
     }
-  }
-
-  if ($("c-last") && !$("c-last").value) {
-    $("c-last").value = athleteLast || "";
   }
 
   hideApprovalModal();
@@ -585,6 +633,41 @@ paintMintUI({
 }
 
 loadSubmission().catch(console.error);
+
+// Keep public identity convenient while still independently editable.
+$("c-first")?.addEventListener("input", () => {
+  const first = cleanNamePart($("c-first")?.value || "");
+  const initial = $("c-initial");
+  if (initial && !String(initial.value || "").trim()) {
+    initial.value = first ? first[0].toUpperCase() : "";
+  }
+});
+
+$("c-legal-last")?.addEventListener("input", () => {
+  const legalLast = cleanNamePart($("c-legal-last")?.value || "");
+  const publicLast = $("c-last");
+  if (publicLast && !String(publicLast.value || "").trim()) {
+    publicLast.value = legalLast;
+  }
+});
+
+$("c-initial")?.addEventListener("input", () => {
+  const el = $("c-initial");
+  if (!el) return;
+  el.value = String(el.value || "")
+    .replace(/[^A-Za-z]/g, "")
+    .slice(0, 1)
+    .toUpperCase();
+});
+
+$("c-state")?.addEventListener("input", () => {
+  const el = $("c-state");
+  if (!el) return;
+  el.value = String(el.value || "")
+    .replace(/[^A-Za-z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+});
 
 $("c-dob")?.addEventListener(
   "change",
@@ -602,6 +685,7 @@ $("c-dob")?.addEventListener(
       padlock: "—"
     });
 
+    setMintButtonState("");
     setApproveEnabled(false);
     applyAgeGuardrails();
   }
@@ -614,8 +698,7 @@ $("c-team")?.addEventListener(
       $("c-team")?.value === "other";
 
     if ($("c-team-other-wrap")) {
-      $("c-team-other-wrap").hidden =
-        !isOther;
+      $("c-team-other-wrap").hidden = !isOther;
     }
 
     if (!isOther && $("c-team-other")) {
@@ -631,11 +714,6 @@ function applyAgeGuardrails() {
   const z2h = $("btn-mint-z2h");
   const p2l = $("btn-mint-p2l");
   const q2m = $("btn-mint-q2m");
-
-  if (q2m) {
-  q2m.hidden = true;
-  q2m.disabled = true;
-}
   const abox = $("btn-mint-boxing");
 
   [z2h, p2l, q2m, abox].forEach((btn) => {
@@ -644,14 +722,14 @@ function applyAgeGuardrails() {
     btn.disabled = true;
   });
 
-if (age === null) {
-  [z2h, p2l, abox].forEach((btn) => {
-    if (!btn) return;
-    btn.hidden = false;
-    btn.disabled = false;
-  });
-  return;
-}
+  if (age === null) {
+    [z2h, p2l, abox].forEach((btn) => {
+      if (!btn) return;
+      btn.hidden = false;
+      btn.disabled = false;
+    });
+    return;
+  }
 
   if (age < 14) {
     if (z2h) {
@@ -684,8 +762,8 @@ if (age === null) {
     abox.hidden = false;
     abox.disabled = false;
   }
-
 }
+
 // ------------------------------------------------------
 // Mint F8 / F4 (preview only)
 // ------------------------------------------------------
@@ -696,20 +774,16 @@ function mintTrack(track, programTrack = "") {
   let rank = "Apprentice";
 
   if (programTrack === "zero2hero") {
-    tier = "T0";
     rank = "Shadow";
   }
 
   if (programTrack === "path2legend") {
-    tier = "T0";
     rank = "Apprentice";
   }
 
-if (programTrack === "quest2mastery") {
-  tier = "T0";
-  rank = "Apprentice";
-}
-
+  if (programTrack === "quest2mastery") {
+    rank = "Apprentice";
+  }
 
   if ($("c-track")) $("c-track").value = t;
   if ($("c-tier")) $("c-tier").value = tier;
@@ -733,10 +807,10 @@ if (programTrack === "quest2mastery") {
   setApproveEnabled(true);
 
   if ($("approve-status")) {
-    $("approve-status").textContent = "Minted selection ready. Verify details, then Approve.";
+    $("approve-status").textContent =
+      "Selection ready. Verify the Management-confirmed athlete details, then Approve.";
   }
 }
-
 
 function setMintButtonState(activeId) {
   [
@@ -745,7 +819,6 @@ function setMintButtonState(activeId) {
     "btn-mint-q2m",
     "btn-mint-boxing"
   ].forEach((id) => {
-
     const btn = $(id);
     if (!btn) return;
 
@@ -770,6 +843,7 @@ $("btn-mint-q2m")?.addEventListener("click", () => {
   mintTrack("F4", "quest2mastery");
   setMintButtonState("btn-mint-q2m");
 });
+
 $("btn-mint-boxing")?.addEventListener("click", () => {
   mintTrack("F4", "path2legend-boxing");
   setMintButtonState("btn-mint-boxing");
@@ -822,8 +896,13 @@ async function approveAthlete() {
 
   const s = INTAKE_CACHE || {};
 
-  const initial = ($("c-initial")?.value || "").trim();
-  const last = ($("c-last")?.value || "").trim();
+  const athleteFirst = cleanNamePart($("c-first")?.value || "");
+  const athleteLast = cleanNamePart($("c-legal-last")?.value || "");
+  const initial = String($("c-initial")?.value || "")
+    .trim()
+    .toUpperCase();
+  const publicLast = cleanNamePart($("c-last")?.value || "");
+
   const selectedTeam =
     ($("c-team")?.value || "").trim();
 
@@ -832,15 +911,32 @@ async function approveAthlete() {
       ? ($("c-team-other")?.value || "").trim()
       : selectedTeam;
 
-  const dob =
-    ($("c-dob")?.value || "").trim();
+  const dob = ($("c-dob")?.value || "").trim();
+  const city = cleanNamePart($("c-city")?.value || "");
+  const state = normalizeState($("c-state")?.value || "");
 
-  const city = ($("c-city")?.value || "").trim();
-  const state = ($("c-state")?.value || "").trim();
-
-  if (!dob || getAgeFromDob(dob) === null) {
+  if (!athleteFirst || !athleteLast) {
     return stopApproval(
-      "A valid Date of Birth is required."
+      "Athlete first and last name are required before activation."
+    );
+  }
+
+  const age = getAgeFromDob(dob);
+  if (age === null) {
+    return stopApproval(
+      "A valid Date of Birth is required and cannot be in the future."
+    );
+  }
+
+  if (!city) {
+    return stopApproval(
+      "City is required before activation."
+    );
+  }
+
+  if (!/^[A-Z]{2}$/.test(state)) {
+    return stopApproval(
+      "State must be a valid 2-letter abbreviation."
     );
   }
 
@@ -850,9 +946,9 @@ async function approveAthlete() {
     );
   }
 
-  if (!initial || !last) {
+  if (!/^[A-Z]$/.test(initial) || !publicLast) {
     return stopApproval(
-      "Public Initial + Public Last required."
+      "Public Initial + Public Last are required."
     );
   }
 
@@ -875,17 +971,31 @@ async function approveAthlete() {
     );
   }
 
+  const confirmedFullName = `${athleteFirst} ${athleteLast}`.trim();
+  const publicName = `${initial}. ${publicLast}`.trim();
+
+  const confirmMessage = [
+    "Activate this athlete with the Management-confirmed record?",
+    "",
+    `Athlete: ${confirmedFullName}`,
+    `DOB: ${dob}`,
+    `Location: ${city}, ${state}`,
+    `Public identity: ${publicName}`
+  ].join("\n");
+
+  if (!window.confirm(confirmMessage)) {
+    return stopApproval("Activation cancelled. No athlete record was created.");
+  }
+
   setApproveEnabled(false);
-  if ($("approve-status")) $("approve-status").textContent = "Approving…";
+  if ($("approve-status")) {
+    $("approve-status").textContent = "Approving…";
+  }
 
   try {
     const approveAndActivate = httpsCallable(functions, "approveAndActivate");
-
     const placement = buildPlacementFromTrack(track, s);
-
     const foundry = track.toLowerCase();
-
-    const publicName = `${initial}. ${last}`.trim();
 
     const intakeAudience =
       s.intakeAudience ||
@@ -915,7 +1025,7 @@ async function approveAthlete() {
       String(
         s.parent?.name ??
         s.waiver?.signatureName ??
-        `${s.athlete?.first || s.first || ""} ${s.athlete?.last || s.last || ""}`
+        confirmedFullName
       ).trim();
 
     const contactLanguagePreference =
@@ -948,7 +1058,6 @@ async function approveAthlete() {
       track: placement.track,
       trackCode: placement.trackCode,
 
-      // New placement bridge.
       framework: placement.framework,
       programTrack: placement.programTrack,
       art: placement.art,
@@ -973,7 +1082,7 @@ async function approveAthlete() {
       virtueName: virtue,
       virtueCode: getVirtueCode(virtue),
 
-      fullName: ($("s-firstlast")?.textContent || "").trim(),
+      fullName: confirmedFullName,
       publicName,
       dob,
 
@@ -985,33 +1094,19 @@ async function approveAthlete() {
             ? "athlete"
             : "parent_guardian",
 
-        email:
-          contactEmail || null,
-
-        phoneDigits:
-          contactPhoneDigits || null,
-
-        name:
-          contactName || null,
-
-        languagePreference:
-          contactLanguagePreference,
+        email: contactEmail || null,
+        phoneDigits: contactPhoneDigits || null,
+        name: contactName || null,
+        languagePreference: contactLanguagePreference,
       },
 
       ...(intakeAudience === "parent_guardian"
         ? {
             parent: {
-              email:
-                contactEmail || null,
-
-              phoneDigits:
-                contactPhoneDigits || null,
-
-              name:
-                contactName || null,
-
-              languagePreference:
-                contactLanguagePreference,
+              email: contactEmail || null,
+              phoneDigits: contactPhoneDigits || null,
+              name: contactName || null,
+              languagePreference: contactLanguagePreference,
             },
           }
         : {}),
@@ -1026,14 +1121,9 @@ async function approveAthlete() {
       mint: {
         lane: "CB"
       },
-
     };
 
-
-
     const res = await approveAndActivate(payload);
-
-
     const data = res?.data || {};
     const uid = data.uid;
 
@@ -1041,25 +1131,22 @@ async function approveAthlete() {
 
     if ($("c-uid")) $("c-uid").value = uid;
     if ($("approve-status")) {
-      $("approve-status").textContent =
-        "✓ Approved!";
+      $("approve-status").textContent = "✓ Approved!";
     }
 
-const programTrack =
-  $("c-program-track")?.value || "";
+    const programTrack =
+      $("c-program-track")?.value || "";
 
-let tier = "T0";
-let rank = "Apprentice";
+    let tier = "T0";
+    let rank = "Apprentice";
 
-if (isF8Uid(uid)) {
-  tier = "T0";
-  rank = "Shadow";
-}
+    if (isF8Uid(uid)) {
+      rank = "Shadow";
+    }
 
-if (programTrack === "quest2mastery") {
-  tier = "T0";
-  rank = "Apprentice";
-}
+    if (programTrack === "quest2mastery") {
+      rank = "Apprentice";
+    }
 
     paintMintUI({
       track,
@@ -1092,7 +1179,8 @@ if (programTrack === "quest2mastery") {
     console.error("[approveAthlete] approveAndActivate failed:", err);
 
     if ($("approve-status")) {
-      $("approve-status").textContent = "⚠ Approve failed. Check console.";
+      $("approve-status").textContent =
+        "⚠ Approve failed. Check console.";
     }
 
     setApproveEnabled(true);
@@ -1103,8 +1191,12 @@ if (programTrack === "quest2mastery") {
 
 const approveBtn = $("btn-approve");
 if (approveBtn) {
-  approveBtn.addEventListener("click", preventDoubleTap(approveBtn, approveAthlete));
+  approveBtn.addEventListener(
+    "click",
+    preventDoubleTap(approveBtn, approveAthlete)
+  );
 }
+
 const linkExistingBtn = $("btn-link-existing");
 
 if (linkExistingBtn) {
@@ -1129,13 +1221,11 @@ if (linkExistingBtn) {
         return;
       }
 
-      const statusEl =
-        $("link-existing-status");
+      const statusEl = $("link-existing-status");
 
       try {
         if (statusEl) {
-          statusEl.textContent =
-            "Linking existing athlete…";
+          statusEl.textContent = "Linking existing athlete…";
         }
 
         await approveIntakeCall({
@@ -1155,8 +1245,7 @@ if (linkExistingBtn) {
         }
 
         if (statusEl) {
-          statusEl.textContent =
-            `✓ Linked to ${existingUid}`;
+          statusEl.textContent = `✓ Linked to ${existingUid}`;
         }
 
         setApprovedUI(true, existingUid);
@@ -1177,11 +1266,13 @@ if (linkExistingBtn) {
     })
   );
 }
+
 // ------------------------------------------------------
 // Onboarding modal
 // ------------------------------------------------------
 function openSuccessModal(uid) {
-  const onboarding = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+  const onboarding =
+    `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
   const parentLink = `${location.origin}/parent/`;
 
   if ($("approved-athlete-uid")) {
@@ -1194,12 +1285,14 @@ function openSuccessModal(uid) {
 
   if ($("copy-link")) {
     $("copy-link").disabled = false;
-    $("copy-link").onclick = () => navigator.clipboard.writeText(onboarding);
+    $("copy-link").onclick =
+      () => navigator.clipboard.writeText(onboarding);
   }
 
   if ($("open-link")) {
     $("open-link").disabled = false;
-    $("open-link").onclick = () => window.open(onboarding, "_blank", "noopener");
+    $("open-link").onclick =
+      () => window.open(onboarding, "_blank", "noopener");
   }
 
   if ($("parent-my-athlete-link")) {
@@ -1207,11 +1300,13 @@ function openSuccessModal(uid) {
   }
 
   if ($("copy-parent-link")) {
-    $("copy-parent-link").onclick = () => navigator.clipboard.writeText(parentLink);
+    $("copy-parent-link").onclick =
+      () => navigator.clipboard.writeText(parentLink);
   }
 
   if ($("open-parent-link")) {
-    $("open-parent-link").onclick = () => window.open(parentLink, "_blank", "noopener");
+    $("open-parent-link").onclick =
+      () => window.open(parentLink, "_blank", "noopener");
   }
 
   showApprovalModal();
