@@ -150,6 +150,10 @@ export {
   consumeSubmittedIntakeToken,
 } from "./enrollment/consumeSubmittedIntakeToken";
 
+export {
+  hydrateEnrollmentIntakePrefill,
+} from "./enrollment/hydrateEnrollmentIntakePrefill";
+
 /* =========================
    ONBOARDING
 ========================= */
