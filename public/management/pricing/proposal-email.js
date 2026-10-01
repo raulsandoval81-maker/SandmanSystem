@@ -353,6 +353,13 @@ function buildProposalEmail(athletes) {
         "Once your selection is received, Management will complete the next step."
       ];
 
+  const membershipNotes = [
+    "This Membership Plan Proposal is not a final enrollment agreement. Your reply confirms your preferred membership option only. Final enrollment is completed through the next Management step.",
+    "AAU or other governing-body membership is purchased separately where required.",
+    competitionNote,
+    "Sandman Academy membership fees are separate from any outside facility, program, or participation fees that may apply."
+  ].filter(Boolean);
+
   return [
     `Hey ${firstName},`,
     "",
@@ -392,13 +399,8 @@ function buildProposalEmail(athletes) {
     ...confirmationLines,
     "",
     "Membership Notes",
-    "This Membership Plan Proposal is not a final enrollment agreement. Your reply confirms your preferred membership option only. Final enrollment is completed through the next Management step.",
-    "AAU or other governing-body membership is purchased separately where required.",
-    competitionNote,
-    "Sandman Academy membership fees are separate from any outside facility, program, or participation fees that may apply."
-  ]
-    .filter((line) => line !== null && line !== "")
-    .join("\n");
+    ...membershipNotes
+  ].join("\n");
 }
 
 async function collectedEmail() {
