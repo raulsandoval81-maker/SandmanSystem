@@ -44,6 +44,7 @@ const WAIVER_URL_EN =
 const WAIVER_URL_ES =
   "/waiver/?audience=parent_guardian&lang=es";
 let waiverViewed = false;
+let inviteReady = false;
 
 let leadLanguagePreference = null;
 let intakeOwnerUid = null;
@@ -74,6 +75,60 @@ function normalizeLanguagePreference(value = "") {
   return null;
 }
 
+function localDateISO(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseISODate(value = "") {
+  const match = String(value || "")
+    .trim()
+    .match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const parsed = new Date(year, month - 1, day);
+
+  if (
+    parsed.getFullYear() !== year ||
+    parsed.getMonth() !== month - 1 ||
+    parsed.getDate() !== day
+  ) {
+    return null;
+  }
+
+  parsed.setHours(0, 0, 0, 0);
+  return parsed;
+}
+
+function calculateAge(dobDate, referenceDate = new Date()) {
+  let age = referenceDate.getFullYear() - dobDate.getFullYear();
+  const monthDelta = referenceDate.getMonth() - dobDate.getMonth();
+
+  if (
+    monthDelta < 0 ||
+    (monthDelta === 0 && referenceDate.getDate() < dobDate.getDate())
+  ) {
+    age -= 1;
+  }
+
+  return age;
+}
+
+function normalizeIdentityText(value = "") {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // -------------------- Waiver gating --------------------
 function waiverAgreementOK() {
   return (
@@ -85,7 +140,7 @@ function waiverAgreementOK() {
 }
 
 function maybeUnlockSubmit() {
-  setDisabled("submitBtn", !waiverAgreementOK());
+  setDisabled("submitBtn", !(inviteReady && waiverAgreementOK()));
 }
 
 function markWaiverViewed() {
@@ -95,7 +150,7 @@ function markWaiverViewed() {
   setDisabled("waiverCheck", false);
   setDisabled("signatureParent", false);
 
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const todayISO = localDateISO();
   const dateEl = $("signatureDate");
   if (dateEl) {
     dateEl.value = todayISO;
@@ -130,7 +185,13 @@ function normalizeState(s) {
 }
 
 function normalizePhoneDigits10(s) {
-  return digitsOnly(s).slice(0, 10);
+  const digits = digitsOnly(s);
+  const withoutCountryCode =
+    digits.length === 11 && digits.startsWith("1")
+      ? digits.slice(1)
+      : digits;
+
+  return withoutCountryCode.slice(0, 10);
 }
 
 // -------------------- Validation --------------------
@@ -138,6 +199,28 @@ function fail(msg, focusId) {
   setWaiverStatusStrong(`⚠ ${msg}`, "#fbbf24");
   if (focusId && $(focusId)) $(focusId).focus();
   throw new Error(msg);
+}
+
+function validateParentDob(dob) {
+  const dobDate = parseISODate(dob);
+  if (!dobDate) {
+    fail("Enter a valid date of birth.", "dob");
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (dobDate > today) {
+    fail("Date of birth cannot be in the future.", "dob");
+  }
+
+  const age = calculateAge(dobDate, today);
+  if (age >= 18) {
+    fail(
+      "Athletes age 18 or older must complete the Adult Athlete intake.",
+      "dob"
+    );
+  }
 }
 
 function validateFormBasics() {
@@ -164,6 +247,14 @@ function validateFormBasics() {
   if (!parentName)
     fail("Enter parent or guardian name.", "parentName");
 
+  const parentParts = splitFullName(parentName);
+  if (!parentParts.first || !parentParts.last) {
+    fail(
+      "Parent or guardian name must include first and last name.",
+      "parentName"
+    );
+  }
+
   if (!validateEmail(email)) fail("Enter a valid parent email.", "parentEmail");
   if (!validateUSPhone10(phoneDigits))
     fail("Enter a valid 10-digit parent phone.", "parentPhone");
@@ -174,9 +265,10 @@ function validateFormBasics() {
     fail("Athlete name must include first and last name.", "athleteName");
 
   if (!dob) fail("Enter date of birth.", "dob");
+  validateParentDob(dob);
 
   if (!city) fail("Enter city.", "city");
-  if (!state || state.length !== 2) fail("Enter state (2 letters).", "state");
+  if (!/^[A-Z]{2}$/.test(state)) fail("Enter state (2 letters).", "state");
 
   if (!emerName) fail("Enter emergency contact name.", "emergencyName");
   if (!validateUSPhone10(emerPhoneDigits))
@@ -366,7 +458,13 @@ async function handleSubmit(e) {
       token.connectLeadId || null;
 
     const intakeMode =
-      String(token.mode || "new_athlete").trim();
+      String(token.mode || "new_athlete").trim().toLowerCase();
+
+    if (!["new_athlete", "add_sport"].includes(intakeMode)) {
+      fail(
+        "This invite uses an unsupported intake mode. Contact Management for a new invite."
+      );
+    }
 
     const existingAthleteUid =
       String(token.existingAthleteUid || "").trim();
@@ -392,16 +490,61 @@ async function handleSubmit(e) {
     if (!tokenId)
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
+    if (!inviteReady) {
+      fail("This intake invite is not ready for submission.", "openWaiverBtn");
+    }
+
     if (!waiverAgreementOK()) {
       fail("Open the waiver, check the box, and add your signature.", "openWaiverBtn");
     }
 
     const v = validateFormBasics();
 
+    if (intakeMode === "add_sport") {
+      const expectedName =
+        String(token.existingAthleteName || "").trim();
+      const expectedDob =
+        String(
+          token.existingAthleteDob ||
+          token.prefill?.dob ||
+          ""
+        ).trim();
+      const submittedName = `${v.first} ${v.last}`;
+
+      if (
+        expectedName &&
+        normalizeIdentityText(submittedName) !== normalizeIdentityText(expectedName)
+      ) {
+        fail(
+          "This add-discipline invite is assigned to a different athlete. Athlete identity cannot be changed on this intake.",
+          "athleteName"
+        );
+      }
+
+      if (expectedDob && v.dob !== expectedDob) {
+        fail(
+          "Date of birth does not match the athlete assigned to this invite.",
+          "dob"
+        );
+      }
+    }
+
     const sign = titleCase(val("signatureParent"));
     const signDate = val("signatureDate");
     if (!sign) fail("Type your full name as signature.", "signatureParent");
+
+    const signatureParts = splitFullName(sign);
+    if (!signatureParts.first || !signatureParts.last) {
+      fail(
+        "Electronic signature must include first and last name.",
+        "signatureParent"
+      );
+    }
+
     if (!signDate) fail("Select today’s date.", "signatureDate");
+    if (signDate !== localDateISO()) {
+      fail("Signature date must be today.", "signatureDate");
+    }
 
     const intake = {
       connectLeadId,
@@ -530,6 +673,7 @@ async function handleSubmit(e) {
     console.error("[intake-parent] submit error:", err);
     btn?.removeAttribute("disabled");
     setWaiverStatusStrong(`⚠ ${err?.message || err}`, "#fbbf24");
+    maybeUnlockSubmit();
   }
 }
 
@@ -568,8 +712,15 @@ function wirePhoneSanitizer(id) {
   const el = $(id);
   if (!el) return;
   el.addEventListener("input", () => {
-    el.value = digitsOnly(el.value).slice(0, 10);
+    el.value = normalizePhoneDigits10(el.value);
   });
+}
+
+function configureDateInputs() {
+  const dobEl = $("dob");
+  if (dobEl) {
+    dobEl.max = localDateISO();
+  }
 }
 
 // -------------------- Invite mode UI --------------------
@@ -606,7 +757,13 @@ async function applyInviteModeUI(invite) {
   const athleteName =
     String(
       token.existingAthleteName ||
-      token.existingAthleteUid ||
+      ""
+    ).trim();
+
+  const athleteDob =
+    String(
+      token.existingAthleteDob ||
+      token.prefill?.dob ||
       ""
     ).trim();
 
@@ -646,6 +803,20 @@ async function applyInviteModeUI(invite) {
       formatDisciplineLabel(discipline);
   }
 
+  const athleteNameEl = $("athleteName");
+  if (athleteNameEl && athleteName) {
+    athleteNameEl.value = athleteName;
+    athleteNameEl.readOnly = true;
+    athleteNameEl.setAttribute("aria-readonly", "true");
+  }
+
+  const dobEl = $("dob");
+  if (dobEl && athleteDob) {
+    dobEl.value = athleteDob;
+    dobEl.readOnly = true;
+    dobEl.setAttribute("aria-readonly", "true");
+  }
+
   if ($("placementNote")) {
     $("placementNote").innerHTML = `
       Confirm the athlete and parent information below. The coach will attach
@@ -671,6 +842,8 @@ async function applyInviteModeUI(invite) {
 
 // -------------------- Boot --------------------
 document.addEventListener("DOMContentLoaded", async () => {
+  configureDateInputs();
+
   try {
     const signedInUser =
       await ensureSignedIn();
@@ -707,7 +880,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("This invite is not a Parent / Guardian intake.");
       }
 
-      await applyInviteModeUI(invite);
+      const intakeMode =
+        String(invite.token.mode || "new_athlete")
+          .trim()
+          .toLowerCase();
+
+      if (!["new_athlete", "add_sport"].includes(intakeMode)) {
+        throw new Error(
+          "This invite uses an unsupported intake mode. Contact Management for a new invite."
+        );
+      }
 
       prefillFromToken(
         invite.token.prefill || {}
@@ -720,12 +902,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           invite.token.connectLeadId || null
         );
       }
+
+      await applyInviteModeUI(invite);
+
+      inviteReady = true;
     } catch (err) {
       console.error(
         "[intake-parent] invite mode UI failed:",
         err
       );
 
+      inviteReady = false;
       setWaiverStatusStrong(
         `⚠ ${err?.message || "Invite could not be loaded."}`,
         "#fbbf24"
