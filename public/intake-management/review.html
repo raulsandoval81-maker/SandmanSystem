@@ -349,7 +349,44 @@
           <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
         </div>
 
-        <label class="small muted">Management / Athlete Onboarding</label>
+        <section id="athlete-access-invitation" style="margin-top:18px;">
+          <label class="small muted" for="athlete-access-email">Athlete Login Email</label>
+          <div class="modal-row">
+            <input
+              id="athlete-access-email"
+              type="email"
+              autocomplete="email"
+              placeholder="athlete@example.com"
+            />
+          </div>
+
+          <label class="small muted" for="athlete-access-mode">Athlete Access Mode</label>
+          <div class="modal-row">
+            <select id="athlete-access-mode">
+              <option value="hybrid">Hybrid — Parent approved + Athlete login</option>
+              <option value="self_managed">Self-managed — Athlete login</option>
+            </select>
+          </div>
+
+          <label id="athlete-parent-approval-row" class="small muted" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;">
+            <input id="athlete-parent-approved" type="checkbox" style="width:auto;margin-top:2px;" />
+            <span>Parent / guardian approval for direct Athlete access is recorded.</span>
+          </label>
+
+          <div class="modal-actions" style="margin-top:12px;">
+            <button type="button" class="pill" id="issue-athlete-access">Issue Athlete Access</button>
+          </div>
+
+          <div
+            id="athlete-access-status"
+            class="small muted"
+            role="status"
+            aria-live="polite"
+            style="margin-top:8px;"
+          ></div>
+        </section>
+
+        <label class="small muted">Athlete Onboarding Link</label>
         <div class="modal-row">
           <input id="onboarding-link" type="text" readonly />
         </div>
