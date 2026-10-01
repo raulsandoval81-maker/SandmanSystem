@@ -18,7 +18,6 @@ import {
   setPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
-
 const keepSignedIn =
   document.getElementById("keepSignedIn");
 
@@ -30,8 +29,6 @@ async function applyAuthPersistence() {
       : browserSessionPersistence
   );
 }
-
-
 
 const $ = (id) =>
   document.getElementById(id);
@@ -107,7 +104,43 @@ async function findAthleteId(
   return snapshot.docs[0].id;
 }
 
-function openAthleteHub(
+function athleteDestination(athleteId) {
+  const fallback = `/athletes/hub/?id=${encodeURIComponent(athleteId)}`;
+  const requested = String(
+    new URLSearchParams(window.location.search).get("next") || ""
+  ).trim();
+
+  if (
+    !requested.startsWith("/") ||
+    requested.startsWith("//") ||
+    !(
+      requested.startsWith("/athletes/") ||
+      requested.startsWith("/athlete-onboarding/")
+    )
+  ) {
+    return fallback;
+  }
+
+  try {
+    const url = new URL(requested, window.location.origin);
+    const requestedAthleteId = String(
+      url.searchParams.get("id") || url.searchParams.get("uid") || ""
+    ).trim().toUpperCase();
+
+    if (
+      requestedAthleteId &&
+      requestedAthleteId !== String(athleteId || "").trim().toUpperCase()
+    ) {
+      return fallback;
+    }
+
+    return url.pathname + url.search + url.hash;
+  } catch {
+    return fallback;
+  }
+}
+
+function openAthleteDestination(
   athleteId
 ) {
   if (
@@ -118,11 +151,8 @@ function openAthleteHub(
   }
 
   redirecting = true;
-
   window.location.replace(
-    `/athletes/hub/?id=${encodeURIComponent(
-      athleteId
-    )}`
+    athleteDestination(athleteId)
   );
 }
 
@@ -153,7 +183,7 @@ async function resolveSignedInAthlete(
       await signOut(auth);
 
       setStatus(
-        "No athlete profile is connected to this account. Use your coach-issued invitation or contact your coach.",
+        "No athlete profile is connected to this account. Use your Management-issued first-time invitation or contact Sandman Management.",
         "error"
       );
 
@@ -163,11 +193,11 @@ async function resolveSignedInAthlete(
     }
 
     setStatus(
-      "Profile found. Opening Athlete Hub...",
+      "Profile found. Opening Athlete access...",
       "ok"
     );
 
-    openAthleteHub(
+    openAthleteDestination(
       athleteId
     );
   } catch (error) {
