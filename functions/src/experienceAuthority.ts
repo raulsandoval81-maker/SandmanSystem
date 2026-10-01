@@ -10,8 +10,9 @@ export function resolveVerifiedExperienceYears(
       .trim()
       .toLowerCase();
 
-  // No completed Coach assessment means no legacy recognition.
-  // It does not prevent normal enrollment.
+  // No completed legacy Coach assessment means no legacy recognition.
+  // Normal enrollment must continue; current Coach assessment happens
+  // after athlete activation in the assessment pipeline.
   if (assessmentStatus !== "completed") {
     return 0;
   }
@@ -19,18 +20,25 @@ export function resolveVerifiedExperienceYears(
   const verifiedYearsRaw =
     appointmentData.verifiedExperienceYears;
 
-  // A completed assessment must contain an explicit
-  // numeric Coach decision. Do not allow null, missing,
-  // empty strings, or coercible values to become zero.
+  // Legacy appointment records can contain a completed status without a
+  // valid prior-experience value. Fail closed on recognition, not on
+  // athlete activation. A malformed legacy value earns 0 recognition and
+  // can be handled by the current post-activation Coach assessment flow.
   if (
     typeof verifiedYearsRaw !== "number" ||
     !Number.isInteger(verifiedYearsRaw) ||
     ![0, 1, 2, 3].includes(verifiedYearsRaw)
   ) {
-    throw new HttpsError(
-      "failed-precondition",
-      "Coach verification contains an invalid prior-experience value."
+    console.warn(
+      "[experienceAuthority] Ignoring invalid legacy prior-experience value during activation."
     );
+    return 0;
+  }
+
+  // Zero means Coach explicitly verified no prior-experience recognition.
+  // Do not make a zero-recognition record depend on legacy Coach UID fields.
+  if (verifiedYearsRaw === 0) {
+    return 0;
   }
 
   const assignedCoachUid =
