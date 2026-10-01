@@ -4,13 +4,21 @@ import {
   db,
   doc,
   getDoc,
-  onSnapshot
+  onSnapshot,
+  functions,
+  httpsCallable
 } from "../assets/js/firebase-init.js";
 
 const tokenId = String(
   new URLSearchParams(location.search)
     .get("token") || ""
 ).trim();
+
+const issueAccessInvitationCall =
+  httpsCallable(functions, "issueAccessInvitation");
+
+let issuedAthleteAccessToken = "";
+let issuedAthleteAccessUid = "";
 
 function buildMintTagFromUid(uid = "", virtue = "") {
   const safeUid = String(uid || "").trim().toUpperCase();
@@ -24,7 +32,16 @@ function buildMintTagFromUid(uid = "", virtue = "") {
   return `${prefix}_CB${serial}_${safeVirtue}`;
 }
 
-function getAthleteAccessToken(intake = {}) {
+function getAthleteAccessToken(intake = {}, uid = "") {
+  const approvedUid = String(uid || "").trim().toUpperCase();
+
+  if (
+    issuedAthleteAccessToken &&
+    issuedAthleteAccessUid === approvedUid
+  ) {
+    return issuedAthleteAccessToken;
+  }
+
   return String(
     intake.athleteAccessInvitationToken ||
     intake.athleteAccessToken ||
@@ -33,14 +50,71 @@ function getAthleteAccessToken(intake = {}) {
   ).trim();
 }
 
+function getDobFromIntake(intake = {}) {
+  return String(
+    intake.managementCorrections?.dob?.corrected ||
+    intake.dob ||
+    intake.athlete?.dob ||
+    ""
+  ).trim();
+}
+
+function getAgeFromDob(dob = "") {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dob).trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) {
+    return null;
+  }
+
+  const now = new Date();
+  let age = now.getFullYear() - year;
+  const monthDiff = now.getMonth() - (month - 1);
+  const dayDiff = now.getDate() - day;
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age -= 1;
+  }
+
+  return age;
+}
+
+function defaultAthleteAccessMode(uid = "", intake = {}) {
+  if (String(uid || "").toUpperCase().startsWith("F8_")) {
+    return "hybrid";
+  }
+
+  const age = getAgeFromDob(getDobFromIntake(intake));
+  if (age === null || age < 18) return "hybrid";
+  return "self_managed";
+}
+
+function buildAthleteOnboardingLink(uid = "", invitationToken = "") {
+  const approvedUid = String(uid || "").trim();
+  const token = String(invitationToken || "").trim();
+  if (!approvedUid || !token) return "";
+
+  return `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(approvedUid)}&token=${encodeURIComponent(token)}`;
+}
+
 function configureHandoffLinks(uid = "", intake = {}) {
   const approvedUid = String(uid || "").trim();
   if (!approvedUid) return;
 
-  const athleteAccessToken = getAthleteAccessToken(intake);
-  const onboarding = athleteAccessToken
-    ? `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(approvedUid)}&token=${encodeURIComponent(athleteAccessToken)}`
-    : "";
+  const athleteAccessToken = getAthleteAccessToken(intake, approvedUid);
+  const onboarding = buildAthleteOnboardingLink(
+    approvedUid,
+    athleteAccessToken
+  );
   const parentLink = `${location.origin}/parent/`;
 
   const modal = document.getElementById("approval-modal");
@@ -54,23 +128,22 @@ function configureHandoffLinks(uid = "", intake = {}) {
   const openOnboarding = document.getElementById("open-link");
   const copyParent = document.getElementById("copy-parent-link");
   const openParent = document.getElementById("open-parent-link");
+  const accessEmail = document.getElementById("athlete-access-email");
+  const accessMode = document.getElementById("athlete-access-mode");
+  const parentApproved = document.getElementById("athlete-parent-approved");
+  const parentApprovalRow = document.getElementById("athlete-parent-approval-row");
+  const issueAccessBtn = document.getElementById("issue-athlete-access");
+  const accessStatus = document.getElementById("athlete-access-status");
 
   if (modalTitle) modalTitle.textContent = "Athlete Activated";
   if (modalIntro) {
     modalIntro.textContent = athleteAccessToken
-      ? "Activation is complete. Continue athlete onboarding and provide parent access below."
-      : "Activation is complete. Parent access is ready. Direct Athlete onboarding requires a Management-issued Athlete access invitation first.";
+      ? "Activation is complete. Athlete onboarding and parent access are ready below."
+      : "Activation is complete. Issue secure Athlete access before using the onboarding link.";
   }
 
-  const labels = modal?.querySelectorAll("label.small.muted") || [];
-  labels.forEach((label) => {
-    const text = String(label.textContent || "").trim();
-    if (text === "Management / Athlete Onboarding") {
-      label.textContent = "Athlete Onboarding Link";
-    }
-  });
-
   if (approvedUidInput) approvedUidInput.value = approvedUid;
+
   if (onboardingInput) {
     onboardingInput.value = onboarding || "Issue Athlete access invitation before onboarding";
     onboardingInput.readOnly = true;
@@ -81,6 +154,7 @@ function configureHandoffLinks(uid = "", intake = {}) {
         : "Athlete onboarding unavailable until Management issues an Athlete access invitation"
     );
   }
+
   if (parentInput) parentInput.value = parentLink;
 
   if (copyUid) {
@@ -113,6 +187,131 @@ function configureHandoffLinks(uid = "", intake = {}) {
 
   if (openParent) {
     openParent.onclick = () => window.open(parentLink, "_blank", "noopener");
+  }
+
+  if (accessMode && !accessMode.dataset.initialized) {
+    accessMode.value = defaultAthleteAccessMode(approvedUid, intake);
+    accessMode.dataset.initialized = "true";
+  }
+
+  const syncParentApproval = () => {
+    const hybrid = accessMode?.value === "hybrid";
+    if (parentApprovalRow) parentApprovalRow.hidden = !hybrid;
+    if (parentApproved && !hybrid) parentApproved.checked = false;
+  };
+
+  if (accessMode) {
+    accessMode.onchange = syncParentApproval;
+    syncParentApproval();
+  }
+
+  if (athleteAccessToken) {
+    if (accessEmail) accessEmail.disabled = true;
+    if (accessMode) accessMode.disabled = true;
+    if (parentApproved) parentApproved.disabled = true;
+    if (issueAccessBtn) issueAccessBtn.disabled = true;
+    if (accessStatus) {
+      accessStatus.textContent =
+        "Athlete access invitation issued. Use the onboarding link below.";
+    }
+  } else {
+    if (accessEmail) accessEmail.disabled = false;
+    if (accessMode) accessMode.disabled = false;
+    if (parentApproved) parentApproved.disabled = false;
+    if (issueAccessBtn) issueAccessBtn.disabled = false;
+
+    if (issueAccessBtn) {
+      issueAccessBtn.onclick = async () => {
+        const email = String(accessEmail?.value || "")
+          .trim()
+          .toLowerCase();
+        const mode = String(accessMode?.value || "").trim();
+        const approvalRecorded = parentApproved?.checked === true;
+
+        if (!email || !email.includes("@")) {
+          if (accessStatus) {
+            accessStatus.textContent =
+              "Enter the Athlete login email before issuing access.";
+          }
+          accessEmail?.focus();
+          return;
+        }
+
+        if (mode === "hybrid" && !approvalRecorded) {
+          if (accessStatus) {
+            accessStatus.textContent =
+              "Record Parent / guardian approval before issuing Hybrid Athlete access.";
+          }
+          parentApproved?.focus();
+          return;
+        }
+
+        issueAccessBtn.disabled = true;
+        if (accessEmail) accessEmail.disabled = true;
+        if (accessMode) accessMode.disabled = true;
+        if (parentApproved) parentApproved.disabled = true;
+        if (accessStatus) accessStatus.textContent = "Issuing secure Athlete access…";
+
+        try {
+          const response = await issueAccessInvitationCall({
+            role: "athlete",
+            athleteUid: approvedUid,
+            email,
+            accessMode: mode,
+            parentApproved: mode === "hybrid" ? approvalRecorded : false
+          });
+
+          const result = response?.data || {};
+          const invitationToken = String(result.tokenId || "").trim();
+
+          if (!invitationToken) {
+            throw new Error("Invitation was created without a token.");
+          }
+
+          issuedAthleteAccessUid = approvedUid.toUpperCase();
+          issuedAthleteAccessToken = invitationToken;
+
+          const generatedLink = buildAthleteOnboardingLink(
+            approvedUid,
+            invitationToken
+          );
+
+          if (onboardingInput) onboardingInput.value = generatedLink;
+          if (copyOnboarding) {
+            copyOnboarding.disabled = false;
+            copyOnboarding.onclick = () => navigator.clipboard.writeText(generatedLink);
+          }
+          if (openOnboarding) {
+            openOnboarding.disabled = false;
+            openOnboarding.onclick = () => window.open(generatedLink, "_blank", "noopener");
+          }
+
+          if (accessStatus) {
+            const expires = Number(result.exp || 0);
+            accessStatus.textContent = expires
+              ? `Athlete access issued. Invitation expires ${new Date(expires).toLocaleString()}.`
+              : "Athlete access issued. Use the onboarding link below.";
+          }
+
+          if (modalIntro) {
+            modalIntro.textContent =
+              "Activation is complete. Athlete onboarding and parent access are ready below.";
+          }
+        } catch (error) {
+          console.error("[athlete-access] issue invitation failed:", error);
+
+          if (accessStatus) {
+            accessStatus.textContent =
+              error?.message || "Unable to issue Athlete access invitation.";
+          }
+
+          issueAccessBtn.disabled = false;
+          if (accessEmail) accessEmail.disabled = false;
+          if (accessMode) accessMode.disabled = false;
+          if (parentApproved) parentApproved.disabled = false;
+        }
+      };
+    }
   }
 
   modal?.classList.remove("hidden");
