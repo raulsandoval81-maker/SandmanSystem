@@ -10,7 +10,7 @@ const continueLink = document.getElementById("continueLink");
 const parentFields = document.getElementById("parentActivationFields");
 const parentToken = document.getElementById("parentToken");
 const parentEmail = document.getElementById("parentEmail");
-const parentError = document.getElementById("parentActivationError");
+const activationError = document.getElementById("activationError");
 
 const params = new URLSearchParams(window.location.search);
 const requestedRole = String(params.get("role") || "").trim().toLowerCase();
@@ -56,6 +56,10 @@ const roleConfig = {
   }
 };
 
+function setError(message = "") {
+  if (activationError) activationError.textContent = message;
+}
+
 function buildParentActivationUrl() {
   const token = String(parentToken?.value || invitationToken || "").trim();
   const email = String(parentEmail?.value || invitationEmail || "").trim().toLowerCase();
@@ -89,8 +93,7 @@ function selectRole(role) {
   continueLink.href = config.href;
   continueLink.textContent = config.title;
   parentFields.hidden = role !== "parent";
-  if (parentError) parentError.textContent = "";
-
+  setError("");
   panel.hidden = false;
 }
 
@@ -111,7 +114,7 @@ continueLink.addEventListener("click", (event) => {
     try {
       window.location.assign(buildParentActivationUrl());
     } catch (error) {
-      if (parentError) parentError.textContent = error.message;
+      setError(error.message);
     }
     return;
   }
@@ -121,8 +124,7 @@ continueLink.addEventListener("click", (event) => {
     try {
       window.location.assign(buildAthleteActivationUrl());
     } catch (error) {
-      if (parentError) parentError.textContent = error.message;
-      else window.alert(error.message);
+      setError(error.message);
     }
   }
 });
