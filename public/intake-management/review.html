@@ -287,43 +287,6 @@
           </div>
         </section>
 
-        <section class="card" id="parentConnectionCard" hidden aria-labelledby="legacy-title">
-
-          <div class="card-head">
-            <h3 id="legacy-title">Parent / Guardian Connection</h3>
-            <span class="status-pill gold">Optional Access</span>
-          </div>
-
-          <p class="muted small">
-            Use only when parent or guardian access is added after activation. This adds authorized access without changing the athlete profile, journey, progression, XP, or enrollment status.
-          </p>
-
-          <div class="field">
-            <label for="existing-athlete-uid">Existing Athlete UID</label>
-            <input
-              id="existing-athlete-uid"
-              placeholder="F4_0004"
-              class="mono"
-            >
-          </div>
-
-          <div style="margin-top:12px;">
-            <button
-              type="button"
-              id="btn-link-existing"
-              class="outline-blue"
-            >
-              Connect Parent
-            </button>
-          </div>
-
-          <span
-            id="link-existing-status"
-            class="small muted"
-          ></span>
-
-        </section>
-
         <section class="card approve-card" id="approveCard" aria-labelledby="approve-title">
           <h3 id="approve-title">Approve &amp; Activate</h3>
 
@@ -340,8 +303,10 @@
 
     <div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true">
       <div class="modal-box">
-        <h2>Athlete Approved!</h2>
-        <p class="muted small">Send links below to continue setup.</p>
+        <h2>Athlete Activated</h2>
+        <p class="muted small">
+          Enrollment activation is complete. Parent access, direct Athlete access, and optional Coach Assessment are managed from Recently Activated on the Enrollment page.
+        </p>
 
         <label class="small muted">Athlete UID</label>
         <div class="modal-row">
@@ -349,61 +314,8 @@
           <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
         </div>
 
-        <section id="athlete-access-invitation" style="margin-top:18px;">
-          <label class="small muted" for="athlete-access-email">Athlete Login Email</label>
-          <div class="modal-row">
-            <input
-              id="athlete-access-email"
-              type="email"
-              autocomplete="email"
-              placeholder="athlete@example.com"
-            />
-          </div>
-
-          <label class="small muted" for="athlete-access-mode">Athlete Access Mode</label>
-          <div class="modal-row">
-            <select id="athlete-access-mode">
-              <option value="hybrid">Hybrid — Parent approved + Athlete login</option>
-              <option value="self_managed">Self-managed — Athlete login</option>
-            </select>
-          </div>
-
-          <label id="athlete-parent-approval-row" class="small muted" style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;">
-            <input id="athlete-parent-approved" type="checkbox" style="width:auto;margin-top:2px;" />
-            <span>Parent / guardian approval for direct Athlete access is recorded.</span>
-          </label>
-
-          <div class="modal-actions" style="margin-top:12px;">
-            <button type="button" class="pill" id="issue-athlete-access">Issue Athlete Access</button>
-          </div>
-
-          <div
-            id="athlete-access-status"
-            class="small muted"
-            role="status"
-            aria-live="polite"
-            style="margin-top:8px;"
-          ></div>
-        </section>
-
-        <label class="small muted">Athlete Onboarding Link</label>
-        <div class="modal-row">
-          <input id="onboarding-link" type="text" readonly />
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="pill" id="copy-link">Copy</button>
-          <button type="button" class="pill" id="open-link">Open</button>
-        </div>
-
-        <label class="small muted">Parent My-Athlete Link</label>
-        <div class="modal-row">
-          <input id="parent-my-athlete-link" type="text" readonly />
-        </div>
-
-        <div class="modal-actions">
-          <button type="button" class="pill" id="copy-parent-link">Copy</button>
-          <button type="button" class="pill" id="open-parent-link">Open</button>
+        <div class="modal-actions" style="margin-top:18px;">
+          <a class="pill" href="/intake-management/">Return to Enrollment</a>
         </div>
       </div>
     </div>
