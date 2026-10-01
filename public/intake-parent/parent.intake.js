@@ -38,12 +38,11 @@ function setWaiverStatusStrong(text, color = "") {
 }
 
 // -------------------- Waiver config --------------------
-
 const WAIVER_URL_EN =
-  "/waiver/sandman-participation-waiver-en.pdf";
+  "/waiver/?audience=parent_guardian&lang=en";
 
 const WAIVER_URL_ES =
-  "/waiver/sandman-participation-waiver-es.pdf";
+  "/waiver/?audience=parent_guardian&lang=es";
 let waiverViewed = false;
 
 let leadLanguagePreference = null;
@@ -394,7 +393,7 @@ async function handleSubmit(e) {
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
     if (!waiverAgreementOK()) {
-      fail("Open waiver PDF, check the box, add signature + date.", "openWaiverBtn");
+      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtn");
     }
 
     const v = validateFormBasics();
