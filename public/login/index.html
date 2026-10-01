@@ -2,535 +2,92 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <title>Choose Your Login | Sandman</title>
+  <meta name="robots" content="noindex,nofollow" />
 
-  <meta
-    name="robots"
-    content="noindex,nofollow"
-  />
+  <link rel="stylesheet" href="/assets/css/site.css" />
 
-  <link
-    rel="stylesheet"
-    href="/assets/css/site.css"
-  />
-<style>
-    :root {
-      color-scheme: dark;
-
-      font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+  <style>
+    :root{
+      color-scheme:dark;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *{box-sizing:border-box}
 
-    body {
-      min-height: 100vh;
-      margin: 0;
-
+    body{
+      min-height:100vh;
+      margin:0;
       background:
-        radial-gradient(
-          circle at top,
-          #1f2937 0,
-          #0b1220 45%,
-          #020617 100%
-        );
-
-      color: #f8fafc;
+        radial-gradient(circle at top,rgba(212,175,55,.10),transparent 30%),
+        #050505;
+      color:#f4f4f5;
     }
 
-    .hidden-lang {
-      display: none !important;
+    .hidden-lang{display:none!important}
+
+    .login-page-main{
+      min-height:calc(100vh - 72px);
+      padding:clamp(2rem,6vw,4rem) 16px;
+      display:grid;
+      place-items:center;
     }
 
-    /* =========================================
-       MINIMAL SANDMAN HEADER
-    ========================================= */
+    .login-shell{width:min(900px,100%)}
 
-    .journey-minimal-header {
-      display: grid;
-
-      grid-template-columns:
-        52px minmax(0, 1fr) 52px;
-
-      align-items: center;
-      gap: 12px;
-
-      width: 100%;
-      min-height: 82px;
-
-      margin: 0;
-      padding: 12px 18px;
-
-      background:
-        var(--panel, #111113);
-
-      border-bottom:
-        1px solid rgba(212, 175, 55, 0.45);
+    .login-header{
+      margin-bottom:2rem;
+      text-align:center;
     }
 
-    .journey-header-title {
-      text-align: center;
-
-      color:
-        var(--heading, #ffffff);
-
-      font-size:
-        clamp(0.9rem, 2.5vw, 1.15rem);
-
-      font-weight: 900;
-      letter-spacing: 0.06em;
-      line-height: 1.15;
-      text-transform: uppercase;
+    .eyebrow{
+      margin:0 0 8px;
+      color:#d4af37;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
     }
 
-    .journey-header-control {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-
-      width: 48px;
-      height: 48px;
-
-      margin: 0;
-      padding: 0;
-
-      color:
-        var(--heading-accent, #d4af37);
-
-      background: transparent;
-
-      border:
-        1px solid rgba(212, 175, 55, 0.55);
-
-      border-radius: 50%;
-
-      font: inherit;
-      font-size: 0.9rem;
-      font-weight: 900;
-
-      cursor: pointer;
+    h1{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.3rem,6vw,4rem);
+      line-height:1.05;
+      letter-spacing:-.035em;
     }
 
-    .journey-header-control:hover,
-    .journey-header-control:focus-visible {
-      background:
-        rgba(212, 175, 55, 0.08);
-
-      outline: none;
+    .intro{
+      max-width:650px;
+      margin:14px auto 0;
+      color:#bfc0c5;
+      line-height:1.6;
     }
-
-    /* =========================================
-       LOGIN PAGE
-    ========================================= */
-
-    .login-page-main {
-      min-height: calc(100vh - 82px);
-
-      padding: 24px;
-
-      display: grid;
-      place-items: center;
-    }
-
-    .login-shell {
-      width: min(920px, 100%);
-    }
-
-    .login-header {
-      margin-bottom: 28px;
-      text-align: center;
-    }
-
-    .eyebrow {
-      margin: 0 0 8px;
-
-      color: #facc15;
-
-      font-size: 0.78rem;
-      font-weight: 900;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-
-      color: #f8fafc;
-
-      font-size:
-        clamp(2rem, 5vw, 3.5rem);
-
-      line-height: 1.05;
-    }
-
-    .intro {
-      max-width: 650px;
-
-      margin: 14px auto 0;
-
-      color: #cbd5e1;
-
-      line-height: 1.6;
-    }
-
-    .role-grid {
-      display: grid;
-
-      grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-      gap: 16px;
-    }
-
-    .role-card {
-      display: flex;
-      min-height: 178px;
-
-      padding: 24px;
-
-      flex-direction: column;
-      justify-content: space-between;
-
-      border: 1px solid #334155;
-      border-radius: 18px;
-
-      background:
-        rgba(15, 23, 42, 0.92);
-
-      color: inherit;
-      text-decoration: none;
-
-      transition:
-        transform 160ms ease,
-        border-color 160ms ease,
-        box-shadow 160ms ease;
-    }
-
-    .role-card:hover,
-    .role-card:focus-visible {
-      transform: translateY(-3px);
-
-      border-color: #facc15;
-
-      outline: none;
-
-      box-shadow:
-        0 18px 38px rgba(0, 0, 0, 0.34);
-    }
-
-    .role-label {
-      display: block;
-
-      margin-bottom: 9px;
-
-      color: #facc15;
-
-      font-size: 0.75rem;
-      font-weight: 900;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .role-card h2 {
-      margin: 0 0 8px;
-
-      color: #f8fafc;
-
-      font-size: 1.4rem;
-    }
-
-    .role-card p {
-      margin: 0;
-
-      color: #cbd5e1;
-
-      line-height: 1.55;
-    }
-
-    .continue-label {
-      margin-top: 18px;
-
-      color: #facc15;
-
-      font-size: 0.88rem;
-      font-weight: 850;
-    }
-
-    .login-note {
-      max-width: 680px;
-
-      margin: 22px auto 0;
-
-      color: #94a3b8;
-
-      font-size: 0.9rem;
-      line-height: 1.55;
-      text-align: center;
-    }
-
-    /* =========================================
-       LIGHT MODE
-    ========================================= */
-
-    body.day-mode {
-      background:
-        radial-gradient(
-          circle at top,
-          #ffffff 0,
-          #f3e7cf 48%,
-          #e7d6b5 100%
-        );
-
-      color: #171717;
-    }
-
-    body.day-mode .journey-minimal-header {
-      background: #ffffff;
-
-      border-bottom-color:
-        rgba(173, 123, 35, 0.48);
-    }
-
-    body.day-mode .journey-header-title {
-      color: #171717;
-    }
-
-    body.day-mode .journey-header-control {
-      color: #8a6118;
-
-      border-color:
-        rgba(173, 123, 35, 0.6);
-    }
-
-    body.day-mode h1,
-    body.day-mode .role-card h2 {
-      color: #171717;
-    }
-
-    body.day-mode .intro {
-      color: #374151;
-    }
-
-    body.day-mode .role-card {
-      border-color: #d7c7a2;
-
-      background:
-        rgba(255, 255, 255, 0.94);
-
-      color: #171717;
-
-      box-shadow:
-        0 10px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    body.day-mode .role-card p {
-      color: #374151;
-    }
-
-    body.day-mode .login-note {
-      color: #4b5563;
-    }
-
-    body.day-mode .eyebrow,
-    body.day-mode .role-label,
-    body.day-mode .continue-label {
-      color: #8a6118;
-    }
-
-    body.day-mode .role-card:hover,
-    body.day-mode .role-card:focus-visible {
-      border-color: #ad7b23;
-
-      box-shadow:
-        0 16px 30px rgba(91, 63, 17, 0.14);
-    }
-
-    /* =========================================
-       RESPONSIVE
-    ========================================= */
-
-    @media (max-width: 680px) {
-      .login-page-main {
-        padding: 16px;
-      }
-
-      .role-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .role-card {
-        min-height: 150px;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .journey-minimal-header {
-        grid-template-columns:
-          48px minmax(0, 1fr) 48px;
-
-        gap: 8px;
-        min-height: 76px;
-        padding: 10px 12px;
-      }
-
-      .journey-header-control {
-        width: 44px;
-        height: 44px;
-      }
-
-      .journey-header-title {
-        font-size: 0.82rem;
-        letter-spacing: 0.04em;
-      }
-
-      .login-page-main {
-        min-height: calc(100vh - 76px);
-      }
-    }
-
-    /* =====================================
-       ROLE CARD SIZE NORMALIZATION
-       ===================================== */
 
     .role-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
       align-items:stretch;
     }
 
     .role-card{
       width:100%;
-      min-height:220px;
-
+      min-height:180px;
       display:flex;
       flex-direction:column;
+      justify-content:space-between;
       align-items:flex-start;
-
-      padding:1.5rem;
-
-      border-radius:20px;
-    }
-
-    .role-card .role-label{
-      min-height:28px;
-      display:inline-flex;
-      align-items:center;
-    }
-
-    .role-card h2{
-      min-height:2.6rem;
-      display:flex;
-      align-items:center;
-    }
-
-    .role-card p{
-      margin-bottom:0;
-    }
-
-    @media(max-width:720px){
-      .role-card{
-        min-height:0;
-      }
-
-      .role-card h2{
-        min-height:0;
-      }
-    }
-
-
-    /* =========================================
-       LOCAL PUBLIC LOGIN VISUAL ALIGNMENT
-    ========================================== */
-
-    body{
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(212,175,55,.10),
-          transparent 30%
-        ),
-        #050505;
-      color:#f4f4f5;
-    }
-
-    .journey-minimal-header{
-      min-height:72px;
-      padding:10px 16px;
-      background:#0d0d0f;
-      border-bottom:1px solid rgba(212,175,55,.45);
-    }
-
-    .journey-header-title{
-      color:#ffffff;
-      font-size:clamp(.78rem,2vw,1rem);
-      letter-spacing:.02em;
-      text-transform:none;
-    }
-
-    .journey-header-control{
-      width:44px;
-      height:44px;
-      color:#d4af37;
-      border-color:rgba(212,175,55,.55);
-    }
-
-    .login-page-main{
-      min-height:calc(100vh - 72px);
-      padding:clamp(2rem,6vw,4rem) 16px;
-    }
-
-    .login-shell{
-      width:min(900px,100%);
-    }
-
-    .login-header{
-      margin-bottom:2rem;
-    }
-
-    .eyebrow{
-      color:#d4af37;
-      font-size:.8rem;
-      letter-spacing:.16em;
-    }
-
-    h1{
-      color:#ffffff;
-      font-size:clamp(2.3rem,6vw,4rem);
-      letter-spacing:-.035em;
-    }
-
-    .intro{
-      color:#bfc0c5;
-      max-width:620px;
-    }
-
-    .role-grid{
-      gap:18px;
-    }
-
-    .role-card{
-      min-height:180px;
       padding:24px;
       border:1px solid rgba(212,175,55,.28);
       border-radius:20px;
-      background:
-        linear-gradient(
-          180deg,
-          rgba(255,255,255,.035),
-          rgba(255,255,255,.012)
-        );
+      background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+      color:inherit;
+      text-decoration:none;
       box-shadow:0 18px 40px rgba(0,0,0,.22);
+      transition:transform 160ms ease,border-color 160ms ease,box-shadow 160ms ease;
     }
 
     .role-card:hover,
@@ -538,18 +95,125 @@
       transform:translateY(-2px);
       border-color:rgba(212,175,55,.72);
       box-shadow:0 20px 42px rgba(0,0,0,.3);
+      outline:none;
     }
 
     .role-label{
+      display:inline-flex;
+      align-items:center;
+      min-height:28px;
+      margin-bottom:9px;
       color:#d4af37;
+      font-size:.75rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
     }
 
     .role-card h2{
-      color:#ffffff;
+      margin:0 0 8px;
+      color:#fff;
+      font-size:1.4rem;
     }
 
     .role-card p{
+      margin:0;
       color:#bfc0c5;
+      line-height:1.55;
+    }
+
+    .continue-label{
+      margin-top:18px;
+      color:#d4af37;
+      font-size:.88rem;
+      font-weight:850;
+    }
+
+    .access-help{
+      margin-top:22px;
+      padding:20px;
+      border:1px solid rgba(212,175,55,.22);
+      border-radius:20px;
+      background:rgba(255,255,255,.018);
+    }
+
+    .access-help__header{
+      margin-bottom:16px;
+      text-align:center;
+    }
+
+    .access-help__header h2{
+      margin:0 0 6px;
+      color:#fff;
+      font-size:1.35rem;
+    }
+
+    .access-help__header p{
+      margin:0;
+      color:#aeb1b8;
+      line-height:1.5;
+    }
+
+    .access-help__grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .access-help__card{
+      padding:16px;
+      border:1px solid rgba(212,175,55,.18);
+      border-radius:16px;
+      background:rgba(0,0,0,.18);
+    }
+
+    .access-help__card h3{
+      margin:0 0 6px;
+      color:#fff;
+      font-size:1rem;
+    }
+
+    .access-help__card p{
+      margin:0 0 12px;
+      color:#aeb1b8;
+      font-size:.9rem;
+      line-height:1.5;
+    }
+
+    .access-links{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .access-links a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:9px 12px;
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:999px;
+      color:#d4af37;
+      text-decoration:none;
+      font-size:.86rem;
+      font-weight:800;
+    }
+
+    .access-links a:hover,
+    .access-links a:focus-visible{
+      border-color:#d4af37;
+      background:rgba(212,175,55,.07);
+      outline:none;
+    }
+
+    .login-note{
+      max-width:680px;
+      margin:22px auto 0;
+      color:#8f939b;
+      font-size:.9rem;
+      line-height:1.55;
+      text-align:center;
     }
 
     body.day-mode{
@@ -557,84 +221,69 @@
       color:#242424;
     }
 
-    body.day-mode .journey-minimal-header{
-      background:#ffffff;
-      border-bottom-color:#c8a74f;
-    }
-
-    body.day-mode .journey-header-title{
+    body.day-mode h1,
+    body.day-mode .role-card h2,
+    body.day-mode .access-help__header h2,
+    body.day-mode .access-help__card h3{
       color:#151515;
     }
 
-    body.day-mode .role-card{
-      background:#ffffff;
+    body.day-mode .intro,
+    body.day-mode .role-card p,
+    body.day-mode .access-help__header p,
+    body.day-mode .access-help__card p{
+      color:#55585f;
+    }
+
+    body.day-mode .role-card,
+    body.day-mode .access-help,
+    body.day-mode .access-help__card{
+      background:#fff;
       border-color:#d7c7a2;
       box-shadow:0 10px 24px rgba(76,52,12,.08);
     }
 
-    body.day-mode .role-card h2{
-      color:#151515;
-    }
-
-    body.day-mode .role-card p,
-    body.day-mode .intro{
-      color:#55585f;
+    body.day-mode .role-label,
+    body.day-mode .continue-label,
+    body.day-mode .access-links a{
+      color:#8a6118;
     }
 
     @media(max-width:700px){
-      .role-grid{
+      .role-grid,
+      .access-help__grid{
         grid-template-columns:1fr;
       }
     }
-
   </style>
 </head>
 
 <body>
-
   <div
     id="navigation"
     data-component="/locations/santa-ynez-valley/components/navigation.html"
   ></div>
 
-  <div
-    class="site-hero-divider"
-    aria-hidden="true"
-  ></div>
+  <div class="site-hero-divider" aria-hidden="true"></div>
 
-<main class="login-page-main">
-
+  <main class="login-page-main">
     <div class="login-shell">
-
       <header class="login-header">
-
         <div data-lang-block="en">
-          <h1>
-            Who Are You Entering As?
-          </h1>
-
+          <p class="eyebrow">Sandman Access</p>
+          <h1>Who Are You Entering As?</h1>
           <p class="intro">
-            Your phone may remember your account, password,
-            or passkey. Sandman will still ask which workspace
-            you want to enter.
+            Choose the workspace connected to your Sandman account.
           </p>
         </div>
 
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-          <h1>
-            ¿Cómo Vas a Ingresar?
-          </h1>
-
+        <div data-lang-block="es" class="hidden-lang">
+          <p class="eyebrow">Acceso Sandman</p>
+          <h1>¿Cómo Vas a Ingresar?</h1>
           <p class="intro">
-            Tu teléfono puede recordar tu cuenta, contraseña
-            o clave de acceso. Sandman todavía te pedirá que
-            elijas el espacio de trabajo al que deseas ingresar.
+            Elige el espacio conectado a tu cuenta Sandman.
           </p>
         </div>
-
       </header>
 
       <section
@@ -642,280 +291,113 @@
         aria-label="Choose your Sandman role"
         data-role-grid
       >
-
-        <a
-          id="parentLogin"
-          class="role-card"
-          href="/parent/auth.html"
-        >
+        <a id="parentLogin" class="role-card" href="/parent/auth.html">
           <div>
-
-            <span
-              class="role-label"
-              data-lang-block="en"
-            >
-              Family Access
-            </span>
-
-            <span
-              class="role-label hidden-lang"
-              data-lang-block="es"
-            >
-              Acceso Familiar
-            </span>
-
-            <h2 data-lang-block="en">
-              Parent
-            </h2>
-
-            <h2
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Padre o Madre
-            </h2>
-
-            <p data-lang-block="en">
-              View your athlete, family communication,
-              schedules, and parent tools.
-            </p>
-
-            <p
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Consulta la información de tu atleta,
-              comunicaciones familiares, horarios y
-              herramientas para padres.
-            </p>
-
+            <span class="role-label" data-lang-block="en">Family Access</span>
+            <span class="role-label hidden-lang" data-lang-block="es">Acceso Familiar</span>
+            <h2 data-lang-block="en">Parent</h2>
+            <h2 data-lang-block="es" class="hidden-lang">Padre o Madre</h2>
+            <p data-lang-block="en">View your athlete, family communication, schedules, and parent tools.</p>
+            <p data-lang-block="es" class="hidden-lang">Consulta tu atleta, comunicaciones familiares, horarios y herramientas para padres.</p>
           </div>
-
-          <span
-            class="continue-label"
-            data-lang-block="en"
-          >
-            Continue as Parent →
-          </span>
-
-          <span
-            class="continue-label hidden-lang"
-            data-lang-block="es"
-          >
-            Continuar como Padre o Madre →
-          </span>
+          <span class="continue-label" data-lang-block="en">Continue as Parent →</span>
+          <span class="continue-label hidden-lang" data-lang-block="es">Continuar como Padre o Madre →</span>
         </a>
 
-        <a
-          id="athleteLogin"
-          class="role-card"
-          href="/athletes/auth/"
-        >
+        <a id="athleteLogin" class="role-card" href="/athletes/auth/">
           <div>
-
-            <span
-              class="role-label"
-              data-lang-block="en"
-            >
-              Athlete Access
-            </span>
-
-            <span
-              class="role-label hidden-lang"
-              data-lang-block="es"
-            >
-              Acceso del Atleta
-            </span>
-
-            <h2 data-lang-block="en">
-              Athlete
-            </h2>
-
-            <h2
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Atleta
-            </h2>
-
-            <p data-lang-block="en">
-              Open athlete onboarding, profile,
-              progression, and training access.
-            </p>
-
-            <p
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Abre la incorporación, perfil, progresión
-              y acceso de entrenamiento del atleta.
-            </p>
-
+            <span class="role-label" data-lang-block="en">Athlete Access</span>
+            <span class="role-label hidden-lang" data-lang-block="es">Acceso del Atleta</span>
+            <h2 data-lang-block="en">Athlete</h2>
+            <h2 data-lang-block="es" class="hidden-lang">Atleta</h2>
+            <p data-lang-block="en">Open your athlete profile, progression, onboarding, and training access.</p>
+            <p data-lang-block="es" class="hidden-lang">Abre tu perfil, progresión, incorporación y acceso de entrenamiento.</p>
           </div>
-
-          <span
-            class="continue-label"
-            data-lang-block="en"
-          >
-            Continue as Athlete →
-          </span>
-
-          <span
-            class="continue-label hidden-lang"
-            data-lang-block="es"
-          >
-            Continuar como Atleta →
-          </span>
+          <span class="continue-label" data-lang-block="en">Continue as Athlete →</span>
+          <span class="continue-label hidden-lang" data-lang-block="es">Continuar como Atleta →</span>
         </a>
 
-        <a
-          id="coachLogin"
-          class="role-card"
-          href="/coaches/auth/login.html"
-        >
+        <a id="coachLogin" class="role-card" href="/coaches/auth/login.html">
           <div>
-
-            <span
-              class="role-label"
-              data-lang-block="en"
-            >
-              Staff Access
-            </span>
-
-            <span
-              class="role-label hidden-lang"
-              data-lang-block="es"
-            >
-              Acceso del Personal
-            </span>
-
-            <h2 data-lang-block="en">
-              Coach
-            </h2>
-
-            <h2
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Entrenador
-            </h2>
-
-            <p data-lang-block="en">
-              Open coaching tools, athlete management,
-              practice operations, and curriculum.
-            </p>
-
-            <p
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Abre herramientas de entrenamiento,
-              gestión de atletas, operaciones de práctica
-              y currículo.
-            </p>
-
+            <span class="role-label" data-lang-block="en">Staff Access</span>
+            <span class="role-label hidden-lang" data-lang-block="es">Acceso del Personal</span>
+            <h2 data-lang-block="en">Coach</h2>
+            <h2 data-lang-block="es" class="hidden-lang">Entrenador</h2>
+            <p data-lang-block="en">Open coaching tools, athlete management, practice operations, and curriculum.</p>
+            <p data-lang-block="es" class="hidden-lang">Abre herramientas de entrenamiento, gestión de atletas, operaciones de práctica y currículo.</p>
           </div>
-
-          <span
-            class="continue-label"
-            data-lang-block="en"
-          >
-            Continue as Coach →
-          </span>
-
-          <span
-            class="continue-label hidden-lang"
-            data-lang-block="es"
-          >
-            Continuar como Entrenador →
-          </span>
+          <span class="continue-label" data-lang-block="en">Continue as Coach →</span>
+          <span class="continue-label hidden-lang" data-lang-block="es">Continuar como Entrenador →</span>
         </a>
 
-        <a
-          id="managementLogin"
-          class="role-card"
-          href="/management/auth/"
-        >
+        <a id="managementLogin" class="role-card" href="/management/auth/">
           <div>
-
-            <span
-              class="role-label"
-              data-lang-block="en"
-            >
-              Management Access
-            </span>
-
-            <span
-              class="role-label hidden-lang"
-              data-lang-block="es"
-            >
-              Acceso de Gestión
-            </span>
-
-            <h2 data-lang-block="en">
-              Management
-            </h2>
-
-            <h2
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Gestión
-            </h2>
-
-            <p data-lang-block="en">
-              Open admissions, Gatekeeper, staff,
-              billing, and management controls.
-            </p>
-
-            <p
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Abre admisiones, Gatekeeper, personal,
-              facturación y controles de gestión.
-            </p>
-
+            <span class="role-label" data-lang-block="en">Management Access</span>
+            <span class="role-label hidden-lang" data-lang-block="es">Acceso de Gestión</span>
+            <h2 data-lang-block="en">Management</h2>
+            <h2 data-lang-block="es" class="hidden-lang">Gestión</h2>
+            <p data-lang-block="en">Open admissions, staff, billing, operations, and management controls.</p>
+            <p data-lang-block="es" class="hidden-lang">Abre admisiones, personal, facturación, operaciones y controles de gestión.</p>
           </div>
-
-          <span
-            class="continue-label"
-            data-lang-block="en"
-          >
-            Continue as Management →
-          </span>
-
-          <span
-            class="continue-label hidden-lang"
-            data-lang-block="es"
-          >
-            Continuar a Gestión →
-          </span>
+          <span class="continue-label" data-lang-block="en">Continue as Management →</span>
+          <span class="continue-label hidden-lang" data-lang-block="es">Continuar a Gestión →</span>
         </a>
-
-
       </section>
 
-      <p
-        class="login-note"
-        data-lang-block="en"
-      >
-        People with more than one role can return to this
-        page and choose a different workspace without
-        changing the public login link.
+      <section class="access-help" aria-labelledby="accessHelpTitle">
+        <div class="access-help__header" data-lang-block="en">
+          <h2 id="accessHelpTitle">Account Help</h2>
+          <p>Recovery restores existing access. Staff activation creates approved Coach or Management access.</p>
+        </div>
+
+        <div class="access-help__header hidden-lang" data-lang-block="es">
+          <h2>Ayuda de Cuenta</h2>
+          <p>La recuperación restaura acceso existente. La activación del personal crea acceso aprobado para Entrenador o Gestión.</p>
+        </div>
+
+        <div class="access-help__grid">
+          <article class="access-help__card">
+            <div data-lang-block="en">
+              <h3>Recover Access</h3>
+              <p>Use your existing role login, then choose Forgot Password or Recover Account. Your Sandman identity and permissions stay the same.</p>
+            </div>
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Recuperar Acceso</h3>
+              <p>Usa el acceso de tu función y luego elige recuperar contraseña o cuenta. Tu identidad y permisos permanecen iguales.</p>
+            </div>
+            <div class="access-links">
+              <a href="/parent/auth.html">Parent</a>
+              <a href="/athletes/auth/">Athlete</a>
+              <a href="/coaches/auth/login.html">Coach</a>
+              <a href="/management/auth/">Management</a>
+            </div>
+          </article>
+
+          <article class="access-help__card">
+            <div data-lang-block="en">
+              <h3>Staff Account Activation</h3>
+              <p>For approved Coach and Management invitations only. This is not public staff registration.</p>
+            </div>
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Activación de Cuenta del Personal</h3>
+              <p>Solo para invitaciones aprobadas de Entrenador y Gestión. No es registro público del personal.</p>
+            </div>
+            <div class="access-links">
+              <a href="/access/first-time/?role=coach">Activate Coach</a>
+              <a href="/access/first-time/?role=management">Activate Management</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <p class="login-note" data-lang-block="en">
+        Parent and Athlete access is established through enrollment and onboarding. Returning users can recover access here at any time.
       </p>
 
-      <p
-        class="login-note hidden-lang"
-        data-lang-block="es"
-      >
-        Las personas con más de una función pueden regresar
-        a esta página y elegir otro espacio de trabajo sin
-        cambiar el enlace público de inicio de sesión.
+      <p class="login-note hidden-lang" data-lang-block="es">
+        El acceso de Padres y Atletas se establece mediante inscripción e incorporación. Los usuarios existentes pueden recuperar acceso aquí en cualquier momento.
       </p>
-
     </div>
-
   </main>
 
   <script src="/assets/js/language.js" defer></script>
@@ -923,143 +405,64 @@
 
   <script>
     (() => {
-      const params =
-        new URLSearchParams(window.location.search);
-
-      const requestedReturnUrl =
-        params.get("returnUrl") ||
-        params.get("next") ||
-        "";
-
+      const params = new URLSearchParams(window.location.search);
+      const requestedReturnUrl = params.get("returnUrl") || params.get("next") || "";
       const safeReturnUrl =
-        requestedReturnUrl.startsWith("/") &&
-        !requestedReturnUrl.startsWith("//")
+        requestedReturnUrl.startsWith("/") && !requestedReturnUrl.startsWith("//")
           ? requestedReturnUrl
           : "";
 
-      function addParameter(
-        elementId,
-        parameterName,
-        returnUrl
-      ) {
+      function addParameter(elementId, parameterName, returnUrl) {
         if (!returnUrl) return;
-
-        const link =
-          document.getElementById(elementId);
-
+        const link = document.getElementById(elementId);
         if (!link) return;
 
-        const url =
-          new URL(
-            link.getAttribute("href"),
-            window.location.origin
-          );
-
-        url.searchParams.set(
-          parameterName,
-          returnUrl
-        );
-
-        link.href =
-          url.pathname + url.search;
+        const url = new URL(link.getAttribute("href"), window.location.origin);
+        url.searchParams.set(parameterName, returnUrl);
+        link.href = url.pathname + url.search;
       }
 
-      if (
-        safeReturnUrl.startsWith("/admin/") ||
-        safeReturnUrl.startsWith("/connect/")
-      ) {
-        addParameter(
-          "adminLogin",
-          "returnUrl",
-          safeReturnUrl
-        );
+      if (safeReturnUrl.startsWith("/management/")) {
+        addParameter("managementLogin", "returnUrl", safeReturnUrl);
       }
 
-      if (
-        safeReturnUrl.startsWith("/management/")
-      ) {
-        addParameter(
-          "managementLogin",
-          "returnUrl",
-          safeReturnUrl
-        );
+      if (safeReturnUrl.startsWith("/coaches/")) {
+        addParameter("coachLogin", "returnUrl", safeReturnUrl);
       }
 
-      if (
-        safeReturnUrl.startsWith("/coaches/")
-      ) {
-        addParameter(
-          "coachLogin",
-          "returnUrl",
-          safeReturnUrl
-        );
-      }
-
-      if (
-        safeReturnUrl.startsWith("/parent/")
-      ) {
-        addParameter(
-          "parentLogin",
-          "next",
-          safeReturnUrl
-        );
+      if (safeReturnUrl.startsWith("/parent/")) {
+        addParameter("parentLogin", "next", safeReturnUrl);
       }
 
       if (
         safeReturnUrl.startsWith("/athletes/") ||
-        safeReturnUrl.startsWith(
-          "/athlete-onboarding/"
-        )
+        safeReturnUrl.startsWith("/athlete-onboarding/")
       ) {
-        addParameter(
-          "athleteLogin",
-          "next",
-          safeReturnUrl
-        );
+        addParameter("athleteLogin", "next", safeReturnUrl);
       }
 
       function updateRoleGridLabel(language) {
-        const roleGrid =
-          document.querySelector("[data-role-grid]");
-
+        const roleGrid = document.querySelector("[data-role-grid]");
         if (!roleGrid) return;
-
         roleGrid.setAttribute(
           "aria-label",
-          language === "es"
-            ? "Elige tu función en Sandman"
-            : "Choose your Sandman role"
+          language === "es" ? "Elige tu función en Sandman" : "Choose your Sandman role"
         );
       }
 
-      document.addEventListener(
-        "DOMContentLoaded",
-        () => {
-          updateRoleGridLabel(
-            document.documentElement.lang
-          );
-        }
-      );
+      document.addEventListener("DOMContentLoaded", () => {
+        updateRoleGridLabel(document.documentElement.lang);
+      });
 
-      document.addEventListener(
-        "sandman:language-changed",
-        (event) => {
-          updateRoleGridLabel(
-            event.detail?.language
-          );
-        }
-      );
+      document.addEventListener("sandman:language-changed", (event) => {
+        updateRoleGridLabel(event.detail?.language);
+      });
     })();
   </script>
 
-
-  <div
-    id="footer"
-    data-component="/components/footer.html"
-  ></div>
+  <div id="footer" data-component="/components/footer.html"></div>
 
   <script src="/assets/js/component-loader.js" defer></script>
   <script src="/assets/js/navigation.js" defer></script>
-
 </body>
 </html>
