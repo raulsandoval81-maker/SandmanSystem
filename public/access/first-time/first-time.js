@@ -1,53 +1,39 @@
-const roleCards =
-  Array.from(
-    document.querySelectorAll("[data-role]")
-  );
+const roleCards = Array.from(
+  document.querySelectorAll("[data-role]")
+);
 
-const panel =
-  document.getElementById("activationPanel");
+const panel = document.getElementById("activationPanel");
+const title = document.getElementById("activationTitle");
+const description = document.getElementById("activationDescription");
+const notice = document.getElementById("activationNotice");
+const continueLink = document.getElementById("continueLink");
+const parentFields = document.getElementById("parentActivationFields");
+const parentToken = document.getElementById("parentToken");
+const parentEmail = document.getElementById("parentEmail");
+const parentError = document.getElementById("parentActivationError");
 
-const title =
-  document.getElementById("activationTitle");
-
-const description =
-  document.getElementById(
-    "activationDescription"
-  );
-
-const notice =
-  document.getElementById("activationNotice");
-
-const continueLink =
-  document.getElementById("continueLink");
-
-const parentFields =
-  document.getElementById("parentActivationFields");
-
-const parentToken =
-  document.getElementById("parentToken");
-
-const parentEmail =
-  document.getElementById("parentEmail");
-
-const parentError =
-  document.getElementById("parentActivationError");
+const params = new URLSearchParams(window.location.search);
+const requestedRole = String(params.get("role") || "").trim().toLowerCase();
+const invitationToken = String(params.get("token") || params.get("invite") || "").trim();
+const invitationEmail = String(params.get("email") || "").trim().toLowerCase();
+const athleteId = String(params.get("id") || params.get("uid") || "").trim().toUpperCase();
 
 const roleConfig = {
   parent: {
     title: "Activate Parent Access",
     description:
-      "Parent access must connect to an existing family and athlete record.",
+      "Use the Parent invitation issued by Sandman Management to register or connect your Parent account.",
     notice:
-      "Use the private invitation issued by Sandman Management.",
+      "This invitation is for the approved Parent or guardian email only. After activation, use the normal Sandman Login page.",
     href: "/parent/auth.html?mode=activate"
   },
 
   athlete: {
     title: "Activate Athlete Access",
     description:
-      "Athlete access must connect to an athlete already created by Sandman staff.",
+      "Register the Athlete email connected to this invitation, create a password, and connect it to the existing Sandman Athlete record.",
     notice:
-      "You will need the athlete identifier or activation information provided by your coach.",
+      "This is a one-time activation. Athletes under 14 require recorded Parent or guardian approval before Management can issue the invitation.",
     href: "/athletes/access/activate/"
   },
 
@@ -70,82 +56,74 @@ const roleConfig = {
   }
 };
 
+function buildParentActivationUrl() {
+  const token = String(parentToken?.value || invitationToken || "").trim();
+  const email = String(parentEmail?.value || invitationEmail || "").trim().toLowerCase();
+
+  if (!token || !email || (parentEmail && !parentEmail.validity.valid)) {
+    throw new Error("Enter the invitation token and a valid Parent email.");
+  }
+
+  return `/parent/auth.html?mode=activate&token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+}
+
+function buildAthleteActivationUrl() {
+  if (!athleteId || !invitationToken || !invitationEmail) {
+    throw new Error("This Athlete invitation is incomplete. Ask Sandman Management for a new activation link.");
+  }
+
+  return `/athletes/access/activate/?id=${encodeURIComponent(athleteId)}&token=${encodeURIComponent(invitationToken)}&email=${encodeURIComponent(invitationEmail)}`;
+}
 
 function selectRole(role) {
   const config = roleConfig[role];
-
   if (!config) return;
 
   roleCards.forEach((card) => {
-    card.classList.toggle(
-      "is-selected",
-      card.dataset.role === role
-    );
+    card.classList.toggle("is-selected", card.dataset.role === role);
   });
 
-  title.textContent =
-    config.title;
-
-  description.textContent =
-    config.description;
-
-  notice.textContent =
-    config.notice;
-
-  continueLink.href =
-    config.href;
-
-  parentFields.hidden =
-    role !== "parent";
-
-  continueLink.textContent =
-    config.title;
+  title.textContent = config.title;
+  description.textContent = config.description;
+  notice.textContent = config.notice;
+  continueLink.href = config.href;
+  continueLink.textContent = config.title;
+  parentFields.hidden = role !== "parent";
+  if (parentError) parentError.textContent = "";
 
   panel.hidden = false;
 }
 
-function parentActivationUrl() {
-  const token = String(parentToken.value || "").trim();
-  const email = String(parentEmail.value || "").trim().toLowerCase();
-  if (!token || !email || !parentEmail.validity.valid) {
-    throw new Error("Enter the invitation token and a valid Parent email.");
-  }
-  return `/parent/auth.html?mode=activate&token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
-}
-
-
 roleCards.forEach((card) => {
-  card.addEventListener(
-    "click",
-    () => {
-      selectRole(card.dataset.role);
-    }
-  );
+  card.addEventListener("click", () => {
+    selectRole(card.dataset.role);
+  });
 });
 
-
-const params =
-  new URLSearchParams(
-    window.location.search
-  );
-
-const requestedRole =
-  params.get("role");
-
-parentToken.value =
-  params.get("token") || params.get("invite") || "";
-
-parentEmail.value =
-  params.get("email") || "";
+if (parentToken) parentToken.value = invitationToken;
+if (parentEmail) parentEmail.value = invitationEmail;
 
 continueLink.addEventListener("click", (event) => {
-  if (parentFields.hidden) return;
+  const selectedRole = roleCards.find((card) => card.classList.contains("is-selected"))?.dataset.role;
 
-  event.preventDefault();
-  try {
-    window.location.assign(parentActivationUrl());
-  } catch (error) {
-    parentError.textContent = error.message;
+  if (selectedRole === "parent") {
+    event.preventDefault();
+    try {
+      window.location.assign(buildParentActivationUrl());
+    } catch (error) {
+      if (parentError) parentError.textContent = error.message;
+    }
+    return;
+  }
+
+  if (selectedRole === "athlete") {
+    event.preventDefault();
+    try {
+      window.location.assign(buildAthleteActivationUrl());
+    } catch (error) {
+      if (parentError) parentError.textContent = error.message;
+      else window.alert(error.message);
+    }
   }
 });
 
