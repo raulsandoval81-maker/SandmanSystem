@@ -11,6 +11,38 @@ import {
 
 const db = getFirestore();
 
+function ageFromDob(value: unknown): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || "").trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) return null;
+
+  const now = new Date();
+  let age = now.getFullYear() - year;
+  const monthDiff = now.getMonth() - (month - 1);
+  const dayDiff = now.getDate() - day;
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age -= 1;
+  return age;
+}
+
+function athleteDob(athlete: Record<string, any>): string {
+  return String(
+    athlete.dob ||
+    athlete.profile?.dob ||
+    athlete.athlete?.dob ||
+    ""
+  ).trim();
+}
+
 export const issueAccessInvitation = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
   const issuer = await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
@@ -18,29 +50,51 @@ export const issueAccessInvitation = onCall(async (req) => {
   const role = String(req.data?.role || "").trim().toLowerCase();
   const athleteUid = String(req.data?.athleteUid || "").trim().toUpperCase();
   const email = normalizeAccessEmail(req.data?.email);
+
   if (role === "athlete") {
     const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
     if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
-    requireStaffLocation(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
-    if (String(athleteSnap.data()?.authUid || "").trim()) {
+
+    const athlete = athleteSnap.data() || {};
+    requireStaffLocation(issuer, athlete.locationId, "This athlete is outside your authorized location scope.");
+
+    if (String(athlete.authUid || "").trim()) {
       throw new HttpsError("failed-precondition", "Athlete access is already activated.");
     }
+
+    const age = ageFromDob(athleteDob(athlete));
+    const requiresParentApproval = age === null || age < 14;
+    const parentApproved = req.data?.parentApproved === true;
+
+    if (requiresParentApproval && !parentApproved) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Athletes under age 14 require recorded Parent or guardian approval for direct Athlete access."
+      );
+    }
+
+    const accessMode = requiresParentApproval ? "hybrid" : "self_managed";
+
     let context;
     try {
       context = assertAthleteInvitationContext({
-        role, email, athleteUid,
-        accessMode: req.data?.accessMode,
-        parentApproved: req.data?.parentApproved,
+        role,
+        email,
+        athleteUid,
+        accessMode,
+        parentApproved: requiresParentApproval ? true : false,
       });
     } catch (error) {
       const reason = String((error as Error)?.message || "");
       if (reason === "PARENT_APPROVAL_REQUIRED") {
-        throw new HttpsError("failed-precondition", "Hybrid Athlete access requires recorded Parent approval.");
+        throw new HttpsError("failed-precondition", "Parent or guardian approval is required.");
       }
       throw new HttpsError("invalid-argument", "Valid Athlete access details are required.");
     }
+
     const tokenId = crypto.randomBytes(32).toString("hex");
     const exp = Date.now() + ACCESS_INVITATION_TTL_MS;
+
     await db.collection("accessInvitations").doc(tokenId).create({
       role: context.role,
       subjectId: context.athleteUid,
@@ -50,6 +104,7 @@ export const issueAccessInvitation = onCall(async (req) => {
       parentApproved: context.parentApproved,
       parentApprovalRecordedBy: context.parentApproved ? issuer.uid : null,
       parentApprovalRecordedAt: context.parentApproved ? FieldValue.serverTimestamp() : null,
+      ageAtIssue: age,
       exp,
       used: false,
       createdAt: FieldValue.serverTimestamp(),
@@ -57,7 +112,17 @@ export const issueAccessInvitation = onCall(async (req) => {
       createdByRole: issuer.role,
       source: "management_athlete_access",
     });
-    return { ok: true, role: "athlete", tokenId, exp, email, athleteUid, accessMode: context.accessMode };
+
+    return {
+      ok: true,
+      role: "athlete",
+      tokenId,
+      exp,
+      email,
+      athleteUid,
+      accessMode: context.accessMode,
+      requiresParentApproval,
+    };
   }
 
   if (role !== "parent") {
@@ -68,6 +133,7 @@ export const issueAccessInvitation = onCall(async (req) => {
   const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
   if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
   requireStaffLocation(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
+
   const relationship = links.docs.find((candidate) => {
     const data = candidate.data() || {};
     return normalizeAccessEmail(data.parentEmail) === email
@@ -79,7 +145,10 @@ export const issueAccessInvitation = onCall(async (req) => {
   }
 
   const context = assertParentInvitationContext({
-    role: "parent", email, athleteUid, relationshipId: relationship.id,
+    role: "parent",
+    email,
+    athleteUid,
+    relationshipId: relationship.id,
   });
   const tokenId = crypto.randomBytes(32).toString("hex");
   const exp = Date.now() + ACCESS_INVITATION_TTL_MS;
