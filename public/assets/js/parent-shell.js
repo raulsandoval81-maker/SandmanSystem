@@ -233,7 +233,7 @@ function polishFamilySnapshot() {
       }
 
       .family-snapshot-premium .family-athlete-chip::before{
-        content:"A";
+        content:var(--athlete-initial,"A");
         position:absolute;
         left:18px;
         top:50%;
