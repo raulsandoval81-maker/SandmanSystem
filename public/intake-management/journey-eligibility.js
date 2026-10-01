@@ -32,6 +32,27 @@ const JOURNEY_BUTTON_IDS = [
   "btn-mint-p2l-muay-thai",
 ];
 
+const TEAM_OPTIONS = [
+  {
+    value: "Sandman Combat",
+    label: "Sandman Combat",
+  },
+  {
+    value: "Sandman Fitness",
+    label: "Sandman Fitness",
+  },
+  {
+    value: "Sandman Academy of Combat & Fitness",
+    label: "Sandman Academy of Combat & Fitness",
+  },
+  {
+    value: "other",
+    label: "Other",
+  },
+];
+
+let teamSelectionTouched = false;
+
 // Fail closed while the paid proposal is being checked.
 JOURNEY_BUTTON_IDS.forEach((id) => {
   const button = $(id);
@@ -64,6 +85,80 @@ function normalizeName(value = "") {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+function normalizeTeamName(value = "") {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[™®]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function canonicalTeamName(value = "") {
+  const normalized = normalizeTeamName(value);
+
+  if (!normalized) return "Sandman Combat";
+
+  if (normalized === "sandman combat") {
+    return "Sandman Combat";
+  }
+
+  if (normalized === "sandman fitness") {
+    return "Sandman Fitness";
+  }
+
+  if (
+    normalized === "sandman academy of combat & fitness" ||
+    normalized === "sandman academy of combat and fitness"
+  ) {
+    return "Sandman Academy of Combat & Fitness";
+  }
+
+  return "other";
+}
+
+function paintCustomTeamField(selectedValue, submittedTeam = "") {
+  const wrap = $("c-team-other-wrap");
+  const input = $("c-team-other");
+  const isOther = selectedValue === "other";
+
+  if (wrap) wrap.hidden = !isOther;
+
+  if (input) {
+    if (isOther) {
+      if (!input.value) input.value = submittedTeam;
+      input.placeholder = "Enter team or affiliation";
+    } else {
+      input.value = "";
+    }
+  }
+}
+
+function configureTeamAffiliation(intake = {}, { force = false } = {}) {
+  const select = $("c-team");
+  if (!select || (teamSelectionTouched && !force)) return;
+
+  const submittedTeam = String(intake.location?.team || "").trim();
+  const canonical = canonicalTeamName(submittedTeam);
+
+  select.innerHTML = "";
+
+  TEAM_OPTIONS.forEach(({ value, label }) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+
+  select.value = canonical;
+  paintCustomTeamField(canonical, canonical === "other" ? submittedTeam : "");
+}
+
+$("c-team")?.addEventListener("change", () => {
+  teamSelectionTouched = true;
+  const selectedValue = String($("c-team")?.value || "").trim();
+  paintCustomTeamField(selectedValue);
+});
 
 function disciplineLabel(value = "") {
   const labels = {
@@ -326,6 +421,11 @@ async function loadPolicy() {
     if (!intakeSnap.exists()) return;
 
     const intake = intakeSnap.data() || {};
+
+    configureTeamAffiliation(intake);
+    setTimeout(() => configureTeamAffiliation(intake), 150);
+    setTimeout(() => configureTeamAffiliation(intake), 600);
+
     const proposalId = String(intake.proposalId || "").trim();
 
     if (!proposalId) {
