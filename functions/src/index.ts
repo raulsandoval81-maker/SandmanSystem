@@ -138,6 +138,10 @@ export {
   getEnrollmentPlacementActivity,
 } from "./enrollment/enrollmentActivity";
 
+export {
+  syncActivatedAdultContact,
+} from "./enrollment/syncActivatedAdultContact";
+
 /* =========================
    ONBOARDING
 ========================= */
