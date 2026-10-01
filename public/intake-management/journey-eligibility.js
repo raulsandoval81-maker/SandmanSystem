@@ -33,22 +33,11 @@ const JOURNEY_BUTTON_IDS = [
 ];
 
 const TEAM_OPTIONS = [
-  {
-    value: "Sandman Combat",
-    label: "Sandman Combat",
-  },
-  {
-    value: "Sandman Fitness",
-    label: "Sandman Fitness",
-  },
-  {
-    value: "Sandman Academy of Combat & Fitness",
-    label: "Sandman Academy of Combat & Fitness",
-  },
-  {
-    value: "other",
-    label: "Other",
-  },
+  { value: "Sandman Combat", label: "Sandman Combat" },
+  { value: "Sandman Combat Wrestling", label: "Sandman Combat Wrestling" },
+  { value: "Sandman Combat Boxing", label: "Sandman Combat Boxing" },
+  { value: "Sandman Combat Muay Thai", label: "Sandman Combat Muay Thai" },
+  { value: "other", label: "Other" },
 ];
 
 let teamSelectionTouched = false;
@@ -94,24 +83,41 @@ function normalizeTeamName(value = "") {
     .replace(/\s+/g, " ");
 }
 
-function canonicalTeamName(value = "") {
+function defaultTeamForDisciplines(disciplines = []) {
+  const unique = [...new Set(disciplines.map(normalize))];
+
+  if (unique.length !== 1) return "Sandman Combat";
+  if (unique[0] === "wrestling") return "Sandman Combat Wrestling";
+  if (unique[0] === "boxing") return "Sandman Combat Boxing";
+  if (unique[0] === "muay-thai") return "Sandman Combat Muay Thai";
+
+  return "Sandman Combat";
+}
+
+function canonicalTeamName(value = "", disciplines = []) {
   const normalized = normalizeTeamName(value);
+  const disciplineDefault = defaultTeamForDisciplines(disciplines);
 
-  if (!normalized) return "Sandman Combat";
-
-  if (normalized === "sandman combat") {
-    return "Sandman Combat";
-  }
-
-  if (normalized === "sandman fitness") {
-    return "Sandman Fitness";
-  }
+  if (!normalized) return disciplineDefault;
 
   if (
     normalized === "sandman academy of combat & fitness" ||
-    normalized === "sandman academy of combat and fitness"
+    normalized === "sandman academy of combat and fitness" ||
+    normalized === "sandman combat"
   ) {
-    return "Sandman Academy of Combat & Fitness";
+    return disciplineDefault;
+  }
+
+  if (normalized === "sandman combat wrestling") {
+    return "Sandman Combat Wrestling";
+  }
+
+  if (normalized === "sandman combat boxing") {
+    return "Sandman Combat Boxing";
+  }
+
+  if (normalized === "sandman combat muay thai") {
+    return "Sandman Combat Muay Thai";
   }
 
   return "other";
@@ -134,12 +140,16 @@ function paintCustomTeamField(selectedValue, submittedTeam = "") {
   }
 }
 
-function configureTeamAffiliation(intake = {}, { force = false } = {}) {
+function configureTeamAffiliation(
+  intake = {},
+  disciplines = [],
+  { force = false } = {}
+) {
   const select = $("c-team");
   if (!select || (teamSelectionTouched && !force)) return;
 
   const submittedTeam = String(intake.location?.team || "").trim();
-  const canonical = canonicalTeamName(submittedTeam);
+  const canonical = canonicalTeamName(submittedTeam, disciplines);
 
   select.innerHTML = "";
 
@@ -252,8 +262,6 @@ function disciplinesForAthlete(athlete = {}, proposal = {}) {
   if (athlete.discipline) values.push(athlete.discipline);
   if (athlete.primaryDiscipline) values.push(athlete.primaryDiscipline);
 
-  // Legacy proposal fallback: infer a discipline only from a concrete
-  // program-interest code. Never infer from age alone.
   const programInterest = normalize(
     proposal.prospect?.programInterest ||
     proposal.lockedSnapshot?.prospect?.programInterest ||
@@ -378,7 +386,6 @@ function applyDisciplinePolicy(disciplines = []) {
   setButtonVisible("btn-mint-boxing", teenAdult && boxing);
   setButtonVisible("btn-mint-z2h-muay-thai", youth && muayThai);
 
-  // Teen/adult Muay Thai is not a current Santa Ynez enrollment lane.
   setButtonVisible("btn-mint-p2l-muay-thai", false);
 
   clearJourneySelection();
@@ -421,20 +428,17 @@ async function loadPolicy() {
     if (!intakeSnap.exists()) return;
 
     const intake = intakeSnap.data() || {};
-
-    configureTeamAffiliation(intake);
-    setTimeout(() => configureTeamAffiliation(intake), 150);
-    setTimeout(() => configureTeamAffiliation(intake), 600);
-
     const proposalId = String(intake.proposalId || "").trim();
 
     if (!proposalId) {
+      configureTeamAffiliation(intake, []);
       applyDisciplinePolicy([]);
       return;
     }
 
     const proposalSnap = await getDoc(doc(db, "proposals", proposalId));
     if (!proposalSnap.exists()) {
+      configureTeamAffiliation(intake, []);
       applyDisciplinePolicy([]);
       return;
     }
@@ -446,9 +450,13 @@ async function loadPolicy() {
       : [];
 
     const apply = () => applyDisciplinePolicy(disciplines);
+    const applyTeam = () => configureTeamAffiliation(intake, disciplines);
 
+    applyTeam();
     apply();
+    setTimeout(applyTeam, 150);
     setTimeout(apply, 150);
+    setTimeout(applyTeam, 600);
     setTimeout(apply, 600);
 
     $("c-dob")?.addEventListener("change", () => {
