@@ -142,6 +142,10 @@ export {
   syncActivatedAdultContact,
 } from "./enrollment/syncActivatedAdultContact";
 
+export {
+  syncActivatedEnrollmentPlacement,
+} from "./enrollment/syncActivatedEnrollmentPlacement";
+
 /* =========================
    ONBOARDING
 ========================= */
