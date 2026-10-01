@@ -1,3 +1,5 @@
+import "./journey-eligibility.js";
+
 import {
   db,
   doc,
