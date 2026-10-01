@@ -91,8 +91,14 @@ function setStatus(el, message = "", kind = "") {
 function getNextUrl() {
   const params = new URLSearchParams(window.location.search);
   const next = params.get("next");
-  if (!next) return "/parent/my-athlete";
-  return next.startsWith("/") ? next : "/parent/my-athlete";
+
+  if (next && next.startsWith("/")) {
+    return next;
+  }
+
+  return activationToken
+    ? "/parent/welcome/"
+    : "/parent/";
 }
 
 function showLoginTab() {
