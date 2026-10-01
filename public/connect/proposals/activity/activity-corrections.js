@@ -58,17 +58,24 @@ function installLifecycleOrderCorrection() {
       list.querySelectorAll(".activity-lifecycle-step")
     );
 
-    const findStep = (label) =>
+    const findStep = (...labels) =>
       steps.find((step) =>
-        step.querySelector("strong")?.textContent?.trim() === label
+        labels.includes(
+          step.querySelector("strong")?.textContent?.trim()
+        )
       );
 
     const activation = findStep("Athlete Activation");
-    const placement =
-      findStep("Placement") ||
-      findStep("Starting Placement");
+    const placement = findStep(
+      "Placement",
+      "Starting Placement",
+      "Roster Placement"
+    );
     const coachAssessment = findStep("Coach Assessment");
-    const managementValidation = findStep("Management Validation");
+    const managementValidation = findStep(
+      "Management Validation",
+      "Management Validation & Starting XP"
+    );
 
     if (
       !activation ||
@@ -81,14 +88,32 @@ function installLifecycleOrderCorrection() {
 
     const placementTitle = placement.querySelector("strong");
     const placementDescription = placement.querySelector("small");
+    const coachDescription = coachAssessment.querySelector("small");
+    const validationTitle = managementValidation.querySelector("strong");
+    const validationDescription = managementValidation.querySelector("small");
 
     if (placementTitle) {
-      placementTitle.textContent = "Starting Placement";
+      placementTitle.textContent = "Roster Placement";
     }
 
     if (placementDescription) {
       placementDescription.textContent =
-        "Starting placement is established when the athlete is activated.";
+        "Athlete is registered and placed on the appropriate program roster so training can begin.";
+    }
+
+    if (coachDescription) {
+      coachDescription.textContent =
+        "When prior experience is claimed and Management requests validation, the coach assesses the athlete and returns findings to Management.";
+    }
+
+    if (validationTitle) {
+      validationTitle.textContent =
+        "Management Validation & Starting XP";
+    }
+
+    if (validationDescription) {
+      validationDescription.textContent =
+        "Management reviews the returned Coach assessment and applies any approved one-time prior-work XP award to establish the athlete's starting progression position.";
     }
 
     list.insertBefore(placement, coachAssessment);
@@ -113,7 +138,7 @@ function installLifecycleOrderCorrection() {
 
     if (lifecycleCopy) {
       lifecycleCopy.textContent =
-        "Starting placement is established at activation. Coach assessment is optional and may refine that placement; Management validation is required only when returned Coach findings need review.";
+        "Roster placement happens after activation so the athlete can begin training. If prior experience is claimed, Management may request a Coach assessment; Management then validates the returned findings and applies any approved one-time prior-work XP award.";
     }
 
     Array.from(
