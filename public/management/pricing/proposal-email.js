@@ -299,7 +299,7 @@ function buildProposalEmail(athletes) {
 
       if (nextAccess === "competition-3") {
         competitionNote =
-          "Competition Note: Hard sparring, sanctioned competition, or certain competition-development activities may require additional governing-body membership, insurance, or other eligibility requirements. Management will confirm any additional requirements before participation.";
+          "Competition Note: Hard sparring, sanctioned competition, or certain competition-development activities may require additional governing-body membership, insurance, or other eligibility requirements. Any additional requirements will be confirmed before participation.";
       }
     }
   }
@@ -316,13 +316,9 @@ function buildProposalEmail(athletes) {
 
   if (recommendedResponse?.code) {
     confirmationOptions.push(
-      `${recommendedResponse.code} — Recommended Next Step`
+      `${recommendedResponse.code} — ${recommendedResponse.label} · 12-Month Agreement + Autopay`
     );
   }
-
-  const responseCodes = confirmationOptions.map(
-    (line) => line.split(" — ")[0]
-  );
 
   const memberText = athletes
     .map(
@@ -337,24 +333,40 @@ function buildProposalEmail(athletes) {
 
   const confirmationLines = confirmationOptions.length
     ? [
-        "Proposal Confirmation",
-        "Please reply with the option you would like to move forward with:",
+        "------------------------------------------------------------",
+        "",
+        "PROPOSAL CONFIRMATION",
+        "",
+        "Please choose one:",
         "",
         ...confirmationOptions,
         "",
-        `Reply with your selection: ${responseCodes.join(", ")}.`,
+        "COPY + PASTE YOUR REPLY",
         "",
-        "Once your selection is received, Management will complete the next step."
+        "Selected Option: ______",
+        "",
+        recommendedResponse?.code
+          ? `Example: Selected Option: ${recommendedResponse.code}`
+          : "Example: Selected Option: A3",
+        "",
+        "Once I receive your selection, I’ll handle the next step."
       ]
     : [
-        "Proposal Confirmation",
+        "------------------------------------------------------------",
+        "",
+        "PROPOSAL CONFIRMATION",
+        "",
         "Please reply with the membership option you would like to move forward with.",
         "",
-        "Once your selection is received, Management will complete the next step."
+        "COPY + PASTE YOUR REPLY",
+        "",
+        "Selected Option: ______",
+        "",
+        "Once I receive your selection, I’ll handle the next step."
       ];
 
   const membershipNotes = [
-    "This Membership Plan Proposal is not a final enrollment agreement. Your reply confirms your preferred membership option only. Final enrollment is completed through the next Management step.",
+    "This Membership Plan Proposal is not a final enrollment agreement. Your reply confirms your preferred membership option only. Final enrollment is completed in the next step.",
     "AAU or other governing-body membership is purchased separately where required.",
     competitionNote,
     "Sandman Academy membership fees are separate from any outside facility, program, or participation fees that may apply."
@@ -398,7 +410,10 @@ function buildProposalEmail(athletes) {
     "",
     ...confirmationLines,
     "",
+    "------------------------------------------------------------",
+    "",
     "Membership Notes",
+    "",
     ...membershipNotes
   ].join("\n");
 }
