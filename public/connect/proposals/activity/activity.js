@@ -68,17 +68,17 @@ const lifecycle = [
   {
     key: "coach_assessment",
     label: "Coach Assessment",
-    description: "Athlete is sent to Coach for assessment."
+    description: "Optional when Management requests Coach assessment before final findings."
   },
   {
     key: "management_validation",
     label: "Management Validation",
-    description: "Experience and returned assessment are reviewed."
+    description: "Returned Coach findings are reviewed when an assessment was requested."
   },
   {
     key: "placement",
     label: "Placement",
-    description: "Final placement is recorded."
+    description: "Starting placement is established at activation or finalized after assessment."
   }
 ];
 
@@ -298,7 +298,7 @@ function timelineItem(item) {
   `;
 }
 
-function phase(title, description, items) {
+function phase(title, description, items, emptyMessage = "No activity recorded in this phase yet.") {
   return `
     <section class="activity-phase">
       <div class="activity-phase-head">
@@ -311,7 +311,7 @@ function phase(title, description, items) {
       ${
         items.length
           ? `<ol class="activity-list">${items.map(timelineItem).join("")}</ol>`
-          : `<p class="activity-empty">No activity recorded in this phase yet.</p>`
+          : `<p class="activity-empty">${esc(emptyMessage)}</p>`
       }
     </section>
   `;
@@ -323,6 +323,7 @@ function lifecycleState(
   placementRecords
 ) {
   const complete = new Set(["proposal"]);
+  const skipped = new Set();
   const historyEvents = new Set(
     historyRecords.map((item) =>
       String(item.event || "").trim().toUpperCase()
@@ -391,37 +392,54 @@ function lifecycleState(
     complete.add("intake");
   }
 
-  if (historyEvents.has("ATHLETE_ACTIVATED")) {
+  const activated = historyEvents.has("ATHLETE_ACTIVATED");
+  if (activated) {
     complete.add("activation");
   }
 
-  if (
+  const assessmentRequested =
     placementEvents.has("COACH_ASSESSMENT_SENT") ||
     placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
     placementEvents.has("EXPERIENCE_VALIDATED") ||
-    placementEvents.has("PLACEMENT_RECORDED")
-  ) {
-    complete.add("coach_assessment");
-  }
+    placementEvents.has("PLACEMENT_RECORDED");
 
-  if (
-    placementEvents.has("EXPERIENCE_VALIDATED") ||
-    placementEvents.has("PLACEMENT_RECORDED")
-  ) {
-    complete.add("management_validation");
-  }
-
-  if (placementEvents.has("PLACEMENT_RECORDED")) {
+  if (activated && !assessmentRequested) {
+    skipped.add("coach_assessment");
+    skipped.add("management_validation");
     complete.add("placement");
+  } else if (assessmentRequested) {
+    if (
+      placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
+      placementEvents.has("EXPERIENCE_VALIDATED") ||
+      placementEvents.has("PLACEMENT_RECORDED")
+    ) {
+      complete.add("coach_assessment");
+    }
+
+    if (
+      placementEvents.has("EXPERIENCE_VALIDATED") ||
+      placementEvents.has("PLACEMENT_RECORDED")
+    ) {
+      complete.add("management_validation");
+    }
+
+    if (placementEvents.has("PLACEMENT_RECORDED")) {
+      complete.add("placement");
+    }
   }
 
   const current = lifecycle.find(
-    (step) => !complete.has(step.key)
-  )?.key || "placement";
+    (step) =>
+      !complete.has(step.key) &&
+      !skipped.has(step.key)
+  )?.key || null;
 
   return {
     complete,
-    current
+    skipped,
+    current,
+    activated,
+    assessmentRequested
   };
 }
 
@@ -442,8 +460,7 @@ function lifecycleHtml(
         <div>
           <h2>Full Case Chain</h2>
           <p>
-            Completed steps are active. The current step is highlighted.
-            Future steps stay visible but inactive until the system records them.
+            Coach assessment is optional. If Management requests one, the case continues through Coach return and Management validation. Otherwise, the athlete begins from the starting placement established at activation.
           </p>
         </div>
       </div>
@@ -451,24 +468,51 @@ function lifecycleHtml(
       <ol class="activity-lifecycle-list">
         ${lifecycle.map((step, index) => {
           const isComplete = state.complete.has(step.key);
-          const isCurrent = state.current === step.key && !isComplete;
-          const className = isComplete
-            ? "is-complete"
-            : isCurrent
-              ? "is-current"
-              : "is-pending";
-          const stateLabel = isComplete
-            ? "Completed"
-            : isCurrent
-              ? "Current"
-              : "Waiting";
+          const isSkipped = state.skipped.has(step.key);
+          const isCurrent =
+            state.current === step.key &&
+            !isComplete &&
+            !isSkipped;
+          const className = isSkipped
+            ? "is-skipped"
+            : isComplete
+              ? "is-complete"
+              : isCurrent
+                ? "is-current"
+                : "is-pending";
+          const stateLabel = isSkipped
+            ? "Not Required"
+            : isComplete
+              ? "Completed"
+              : isCurrent
+                ? "Current"
+                : "Waiting";
+
+          let description = step.description;
+
+          if (isSkipped && step.key === "coach_assessment") {
+            description = "No Coach assessment was requested for this enrollment.";
+          }
+
+          if (isSkipped && step.key === "management_validation") {
+            description = "No returned Coach assessment required Management validation.";
+          }
+
+          if (
+            isComplete &&
+            step.key === "placement" &&
+            state.activated &&
+            !state.assessmentRequested
+          ) {
+            description = "Starting placement was established when the athlete was activated.";
+          }
 
           return `
             <li class="activity-lifecycle-step ${className}">
               <span class="activity-lifecycle-number">${index + 1}</span>
               <div>
                 <strong>${esc(step.label)}</strong>
-                <small>${esc(step.description)}</small>
+                <small>${esc(description)}</small>
               </div>
               <span class="activity-lifecycle-state">${stateLabel}</span>
             </li>
@@ -551,6 +595,18 @@ async function load() {
       createdAt: item.occurredAt
     }));
 
+  const lifecycleStatus = lifecycleState(
+    proposal,
+    historyRecords,
+    placementRecords
+  );
+
+  const placementEmptyMessage =
+    lifecycleStatus.activated &&
+    !lifecycleStatus.assessmentRequested
+      ? "No Coach assessment was requested. The athlete started from the placement established during activation."
+      : "No activity recorded in this phase yet.";
+
   subtitle.textContent =
     `${proposalId} · ${familyName}`;
 
@@ -588,8 +644,9 @@ async function load() {
 
     ${phase(
       "Placement & Onboarding",
-      "Coach assessment through Management validation and placement.",
-      placementItems
+      "Optional Coach assessment, Management validation when needed, and final or starting placement.",
+      placementItems,
+      placementEmptyMessage
     )}
   `;
 }
