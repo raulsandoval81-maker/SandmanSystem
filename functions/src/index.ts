@@ -146,6 +146,10 @@ export {
   syncActivatedEnrollmentPlacement,
 } from "./enrollment/syncActivatedEnrollmentPlacement";
 
+export {
+  consumeSubmittedIntakeToken,
+} from "./enrollment/consumeSubmittedIntakeToken";
+
 /* =========================
    ONBOARDING
 ========================= */
