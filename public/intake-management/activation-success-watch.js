@@ -24,12 +24,23 @@ function buildMintTagFromUid(uid = "", virtue = "") {
   return `${prefix}_CB${serial}_${safeVirtue}`;
 }
 
-function configureHandoffLinks(uid = "") {
+function getAthleteAccessToken(intake = {}) {
+  return String(
+    intake.athleteAccessInvitationToken ||
+    intake.athleteAccessToken ||
+    intake.athleteInvitationToken ||
+    ""
+  ).trim();
+}
+
+function configureHandoffLinks(uid = "", intake = {}) {
   const approvedUid = String(uid || "").trim();
   if (!approvedUid) return;
 
-  const onboarding =
-    `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(approvedUid)}`;
+  const athleteAccessToken = getAthleteAccessToken(intake);
+  const onboarding = athleteAccessToken
+    ? `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(approvedUid)}&token=${encodeURIComponent(athleteAccessToken)}`
+    : "";
   const parentLink = `${location.origin}/parent/`;
 
   const modal = document.getElementById("approval-modal");
@@ -46,8 +57,9 @@ function configureHandoffLinks(uid = "") {
 
   if (modalTitle) modalTitle.textContent = "Athlete Activated";
   if (modalIntro) {
-    modalIntro.textContent =
-      "Activation is complete. Continue athlete onboarding and provide parent access below.";
+    modalIntro.textContent = athleteAccessToken
+      ? "Activation is complete. Continue athlete onboarding and provide parent access below."
+      : "Activation is complete. Parent access is ready. Direct Athlete onboarding requires a Management-issued Athlete access invitation first.";
   }
 
   const labels = modal?.querySelectorAll("label.small.muted") || [];
@@ -59,7 +71,16 @@ function configureHandoffLinks(uid = "") {
   });
 
   if (approvedUidInput) approvedUidInput.value = approvedUid;
-  if (onboardingInput) onboardingInput.value = onboarding;
+  if (onboardingInput) {
+    onboardingInput.value = onboarding || "Issue Athlete access invitation before onboarding";
+    onboardingInput.readOnly = true;
+    onboardingInput.setAttribute(
+      "aria-label",
+      onboarding
+        ? "Athlete onboarding invitation link"
+        : "Athlete onboarding unavailable until Management issues an Athlete access invitation"
+    );
+  }
   if (parentInput) parentInput.value = parentLink;
 
   if (copyUid) {
@@ -67,13 +88,23 @@ function configureHandoffLinks(uid = "") {
   }
 
   if (copyOnboarding) {
-    copyOnboarding.disabled = false;
-    copyOnboarding.onclick = () => navigator.clipboard.writeText(onboarding);
+    copyOnboarding.disabled = !onboarding;
+    copyOnboarding.onclick = onboarding
+      ? () => navigator.clipboard.writeText(onboarding)
+      : null;
+    copyOnboarding.title = onboarding
+      ? "Copy Athlete onboarding invitation link"
+      : "Issue an Athlete access invitation from Management first";
   }
 
   if (openOnboarding) {
-    openOnboarding.disabled = false;
-    openOnboarding.onclick = () => window.open(onboarding, "_blank", "noopener");
+    openOnboarding.disabled = !onboarding;
+    openOnboarding.onclick = onboarding
+      ? () => window.open(onboarding, "_blank", "noopener")
+      : null;
+    openOnboarding.title = onboarding
+      ? "Open Athlete onboarding invitation link"
+      : "Issue an Athlete access invitation from Management first";
   }
 
   if (copyParent) {
@@ -161,7 +192,7 @@ function applyCompletedReviewUI(intake = {}) {
 
   if (approveCard) approveCard.hidden = true;
 
-  configureHandoffLinks(approvedUid);
+  configureHandoffLinks(approvedUid, intake);
 }
 
 if (tokenId) {
