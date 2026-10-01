@@ -41,6 +41,111 @@ function formatTimestamp(value) {
   });
 }
 
+function installLifecycleOrderCorrection() {
+  if (!card) return;
+
+  const render = () => {
+    const lifecycleSection =
+      card.querySelector(".activity-lifecycle");
+    const list =
+      lifecycleSection?.querySelector(".activity-lifecycle-list");
+
+    if (!lifecycleSection || !list) {
+      return false;
+    }
+
+    const steps = Array.from(
+      list.querySelectorAll(".activity-lifecycle-step")
+    );
+
+    const findStep = (label) =>
+      steps.find((step) =>
+        step.querySelector("strong")?.textContent?.trim() === label
+      );
+
+    const activation = findStep("Athlete Activation");
+    const placement =
+      findStep("Placement") ||
+      findStep("Starting Placement");
+    const coachAssessment = findStep("Coach Assessment");
+    const managementValidation = findStep("Management Validation");
+
+    if (
+      !activation ||
+      !placement ||
+      !coachAssessment ||
+      !managementValidation
+    ) {
+      return false;
+    }
+
+    const placementTitle = placement.querySelector("strong");
+    const placementDescription = placement.querySelector("small");
+
+    if (placementTitle) {
+      placementTitle.textContent = "Starting Placement";
+    }
+
+    if (placementDescription) {
+      placementDescription.textContent =
+        "Starting placement is established when the athlete is activated.";
+    }
+
+    list.insertBefore(placement, coachAssessment);
+
+    if (activation.classList.contains("is-complete")) {
+      placement.classList.remove(
+        "is-pending",
+        "is-current",
+        "is-skipped"
+      );
+      placement.classList.add("is-complete");
+
+      const placementState =
+        placement.querySelector(".activity-lifecycle-state");
+      if (placementState) {
+        placementState.textContent = "Completed";
+      }
+    }
+
+    const lifecycleCopy =
+      lifecycleSection.querySelector(".activity-lifecycle-head p");
+
+    if (lifecycleCopy) {
+      lifecycleCopy.textContent =
+        "Starting placement is established at activation. Coach assessment is optional and may refine that placement; Management validation is required only when returned Coach findings need review.";
+    }
+
+    Array.from(
+      list.querySelectorAll(".activity-lifecycle-step")
+    ).forEach((step, index) => {
+      const number =
+        step.querySelector(".activity-lifecycle-number");
+      if (number) {
+        number.textContent = String(index + 1);
+      }
+    });
+
+    return true;
+  };
+
+  if (render()) return;
+
+  const observer = new MutationObserver(() => {
+    if (render()) {
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(
+    card,
+    {
+      childList: true,
+      subtree: true
+    }
+  );
+}
+
 async function installCorrectionHistory() {
   if (!proposalId || !card) return;
 
@@ -133,6 +238,8 @@ async function installCorrectionHistory() {
     }
   );
 }
+
+installLifecycleOrderCorrection();
 
 installCorrectionHistory().catch((error) => {
   console.error(
