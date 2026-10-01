@@ -145,11 +145,11 @@ export const issueAccessInvitation = onCall(async (req) => {
   requireStaffLocation(issuer, athlete.locationId, "This athlete is outside your authorized location scope.");
 
   const links = await db.collection("parentAthleteLinks").where("athleteUid", "==", athleteUid).get();
-  let relationship = links.docs.find((candidate) => {
+  let relationshipId = links.docs.find((candidate) => {
     const data = candidate.data() || {};
     return normalizeAccessEmail(data.parentEmail) === email
       && ["pending", "active"].includes(String(data.status || "").toLowerCase());
-  });
+  })?.id || "";
 
   /*
    * A new Parent may not have a Firebase Auth account yet. Older activation
@@ -159,7 +159,7 @@ export const issueAccessInvitation = onCall(async (req) => {
    * the approved Parent email, so create the pending relationship here if it
    * is missing. The invitation consumer will bind parentUid after registration.
    */
-  if (!relationship) {
+  if (!relationshipId) {
     const approvedParentEmail = normalizeAccessEmail(athlete.parentEmail);
     if (!approvedParentEmail || approvedParentEmail !== email) {
       throw new HttpsError("failed-precondition", "Approved Parent relationship not found.");
@@ -182,18 +182,14 @@ export const issueAccessInvitation = onCall(async (req) => {
       { merge: true }
     );
 
-    const pendingSnap = await relationshipRef.get();
-    if (!pendingSnap.exists) {
-      throw new HttpsError("internal", "Unable to create the approved Parent relationship.");
-    }
-    relationship = pendingSnap;
+    relationshipId = relationshipRef.id;
   }
 
   const context = assertParentInvitationContext({
     role: "parent",
     email,
     athleteUid,
-    relationshipId: relationship.id,
+    relationshipId,
   });
   const tokenId = crypto.randomBytes(32).toString("hex");
   const exp = Date.now() + ACCESS_INVITATION_TTL_MS;
