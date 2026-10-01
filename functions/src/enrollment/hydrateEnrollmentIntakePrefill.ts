@@ -110,29 +110,14 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
   const locked = asRecord(proposal.lockedSnapshot);
   const liveProspect = asRecord(proposal.prospect);
   const lockedProspect = asRecord(locked.prospect);
-  const prospect = {
-    ...liveProspect,
-    ...lockedProspect,
-  };
-
   const liveAthlete = firstAthlete(proposal.athletes);
   const lockedAthlete = firstAthlete(locked.athletes);
-  const athlete = {
-    ...liveAthlete,
-    ...lockedAthlete,
-  };
-
   const liveContact = asRecord(proposal.contact || proposal.parent);
   const lockedContact = asRecord(locked.contact || locked.parent);
-  const contact = {
-    ...liveContact,
-    ...lockedContact,
-  };
 
   const appointmentId = firstValue(
-    prospect.appointmentId,
-    liveProspect.appointmentId,
     lockedProspect.appointmentId,
+    liveProspect.appointmentId,
     proposal.appointmentId
   );
 
@@ -149,7 +134,8 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
 
       const leadId = firstValue(
         appointment.leadId,
-        prospect.leadId,
+        lockedProspect.leadId,
+        liveProspect.leadId,
         proposal.leadId,
         proposal.connectLeadId
       );
@@ -165,11 +151,16 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
   const audience = clean(token.intakeAudience).toLowerCase();
 
   const athleteName = firstValue(
-    athlete.name,
-    athlete.fullName,
-    athlete.athleteName,
-    [athlete.first, athlete.last].filter(Boolean).join(" "),
-    prospect.athleteName,
+    lockedAthlete.name,
+    lockedAthlete.fullName,
+    lockedAthlete.athleteName,
+    [lockedAthlete.first, lockedAthlete.last].filter(Boolean).join(" "),
+    liveAthlete.name,
+    liveAthlete.fullName,
+    liveAthlete.athleteName,
+    [liveAthlete.first, liveAthlete.last].filter(Boolean).join(" "),
+    lockedProspect.athleteName,
+    liveProspect.athleteName,
     appointment.athleteName,
     lead.athleteName,
     lead.participantName,
@@ -181,10 +172,14 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
       ...existingPrefill,
       athleteName,
       dob: firstValue(
-        athlete.dob,
-        athlete.dateOfBirth,
-        prospect.dob,
-        prospect.dateOfBirth,
+        lockedAthlete.dob,
+        lockedAthlete.dateOfBirth,
+        liveAthlete.dob,
+        liveAthlete.dateOfBirth,
+        lockedProspect.dob,
+        lockedProspect.dateOfBirth,
+        liveProspect.dob,
+        liveProspect.dateOfBirth,
         appointment.dob,
         appointment.dateOfBirth,
         lead.dob,
@@ -192,36 +187,50 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
         existingPrefill.dob
       ),
       city: firstValue(
-        prospect.city,
-        contact.city,
+        lockedProspect.city,
+        liveProspect.city,
+        lockedContact.city,
+        liveContact.city,
         appointment.city,
         lead.city,
         existingPrefill.city
       ),
       state: firstValue(
-        prospect.state,
-        contact.state,
+        lockedProspect.state,
+        liveProspect.state,
+        lockedContact.state,
+        liveContact.state,
         appointment.state,
         lead.state,
         existingPrefill.state
       ),
       email: firstValue(
-        prospect.email,
-        prospect.parentEmail,
-        prospect.primaryContactEmail,
-        contact.email,
-        contact.parentEmail,
+        lockedProspect.email,
+        lockedProspect.parentEmail,
+        lockedProspect.primaryContactEmail,
+        liveProspect.email,
+        liveProspect.parentEmail,
+        liveProspect.primaryContactEmail,
+        lockedContact.email,
+        lockedContact.parentEmail,
+        liveContact.email,
+        liveContact.parentEmail,
         appointment.email,
         lead.email,
         lead.parentEmail,
         existingPrefill.email
       ),
       phone: firstValue(
-        prospect.phone,
-        prospect.parentPhone,
-        prospect.primaryContactPhone,
-        contact.phone,
-        contact.parentPhone,
+        lockedProspect.phone,
+        lockedProspect.parentPhone,
+        lockedProspect.primaryContactPhone,
+        liveProspect.phone,
+        liveProspect.parentPhone,
+        liveProspect.primaryContactPhone,
+        lockedContact.phone,
+        lockedContact.parentPhone,
+        liveContact.phone,
+        liveContact.parentPhone,
         appointment.phone,
         lead.phone,
         lead.parentPhone,
@@ -229,10 +238,14 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
       ),
       parentName: audience === "parent_guardian"
         ? firstValue(
-            prospect.primaryContactName,
-            prospect.parentName,
-            contact.name,
-            contact.parentName,
+            lockedProspect.primaryContactName,
+            lockedProspect.parentName,
+            liveProspect.primaryContactName,
+            liveProspect.parentName,
+            lockedContact.name,
+            lockedContact.parentName,
+            liveContact.name,
+            liveContact.parentName,
             appointment.parentName,
             lead.parentName,
             lead.guardianName,
@@ -240,9 +253,12 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
           )
         : existingPrefill.parentName || null,
       languagePreference: firstValue(
-        prospect.languagePreference,
-        prospect.preferredLanguage,
-        contact.languagePreference,
+        lockedProspect.languagePreference,
+        lockedProspect.preferredLanguage,
+        liveProspect.languagePreference,
+        liveProspect.preferredLanguage,
+        lockedContact.languagePreference,
+        liveContact.languagePreference,
         appointment.languagePreference,
         appointment.preferredLanguage,
         lead.languagePreference,
