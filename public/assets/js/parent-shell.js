@@ -169,6 +169,14 @@ function wireParentTabsGlobal() {
     });
 }
 
+function moveParentMethodBelowDashboard() {
+  const method = document.querySelector("main.wrap > .parent-method");
+  const priorityGrid = document.querySelector("main.wrap > .family-priority-grid");
+
+  if (!method || !priorityGrid) return;
+
+  priorityGrid.insertAdjacentElement("afterend", method);
+}
 
 function ensureParentFooter() {
   if (document.querySelector(".parent-system-footer")) return;
@@ -226,6 +234,7 @@ function initParentShell() {
   );
 
   wireParentTabsGlobal();
+  moveParentMethodBelowDashboard();
   ensureParentFooter();
 }
 
