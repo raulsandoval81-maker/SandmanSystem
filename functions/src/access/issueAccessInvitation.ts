@@ -43,6 +43,15 @@ function athleteDob(athlete: Record<string, any>): string {
   ).trim();
 }
 
+function pendingParentRelationshipId(athleteUid: string, email: string): string {
+  const emailKey = crypto
+    .createHash("sha256")
+    .update(email)
+    .digest("hex")
+    .slice(0, 16);
+  return `pending_${athleteUid}_${emailKey}`;
+}
+
 export const issueAccessInvitation = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
   const issuer = await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
@@ -129,19 +138,55 @@ export const issueAccessInvitation = onCall(async (req) => {
     throw new HttpsError("invalid-argument", "Only Parent and Athlete invitations are enabled.");
   }
 
-  const links = await db.collection("parentAthleteLinks").where("athleteUid", "==", athleteUid).get();
   const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
   if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
-  requireStaffLocation(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
 
-  const relationship = links.docs.find((candidate) => {
+  const athlete = athleteSnap.data() || {};
+  requireStaffLocation(issuer, athlete.locationId, "This athlete is outside your authorized location scope.");
+
+  const links = await db.collection("parentAthleteLinks").where("athleteUid", "==", athleteUid).get();
+  let relationship = links.docs.find((candidate) => {
     const data = candidate.data() || {};
     return normalizeAccessEmail(data.parentEmail) === email
       && ["pending", "active"].includes(String(data.status || "").toLowerCase());
   });
 
+  /*
+   * A new Parent may not have a Firebase Auth account yet. Older activation
+   * logic only created parentAthleteLinks when parentUid already existed,
+   * which made first-time Parent registration impossible. When Management
+   * issues the invitation, the activated Athlete record is authoritative for
+   * the approved Parent email, so create the pending relationship here if it
+   * is missing. The invitation consumer will bind parentUid after registration.
+   */
   if (!relationship) {
-    throw new HttpsError("failed-precondition", "Approved Parent relationship not found.");
+    const approvedParentEmail = normalizeAccessEmail(athlete.parentEmail);
+    if (!approvedParentEmail || approvedParentEmail !== email) {
+      throw new HttpsError("failed-precondition", "Approved Parent relationship not found.");
+    }
+
+    const relationshipRef = db.doc(
+      `parentAthleteLinks/${pendingParentRelationshipId(athleteUid, email)}`
+    );
+
+    await relationshipRef.set(
+      {
+        parentUid: null,
+        athleteUid,
+        parentEmail: email,
+        status: "pending",
+        source: "management_parent_access",
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    const pendingSnap = await relationshipRef.get();
+    if (!pendingSnap.exists) {
+      throw new HttpsError("internal", "Unable to create the approved Parent relationship.");
+    }
+    relationship = pendingSnap;
   }
 
   const context = assertParentInvitationContext({
