@@ -24,6 +24,23 @@ const F8_VIRTUES = [
   "COMBAT",
 ];
 
+const JOURNEY_BUTTON_IDS = [
+  "btn-mint-z2h",
+  "btn-mint-p2l",
+  "btn-mint-boxing",
+  "btn-mint-z2h-muay-thai",
+  "btn-mint-p2l-muay-thai",
+];
+
+// Fail closed while the paid proposal is being checked.
+JOURNEY_BUTTON_IDS.forEach((id) => {
+  const button = $(id);
+  if (!button) return;
+  button.hidden = true;
+  button.disabled = true;
+  button.setAttribute("aria-disabled", "true");
+});
+
 function normalize(value = "") {
   return String(value || "")
     .trim()
@@ -157,6 +174,12 @@ function setButtonVisible(id, visible) {
   button.hidden = !visible;
   button.disabled = !visible;
   button.setAttribute("aria-disabled", visible ? "false" : "true");
+
+  if (id === "btn-mint-z2h-muay-thai" && visible) {
+    button.removeAttribute("title");
+    const sub = button.querySelector(".mint-track-sub");
+    if (sub) sub.textContent = "Foundry 8";
+  }
 }
 
 function clearJourneySelection() {
