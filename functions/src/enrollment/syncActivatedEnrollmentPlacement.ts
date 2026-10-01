@@ -1,5 +1,4 @@
 import {
-  FieldPath,
   FieldValue,
   getFirestore,
 } from "firebase-admin/firestore";
@@ -65,44 +64,18 @@ export const syncActivatedEnrollmentPlacement = onDocumentUpdated(
       locationId,
       enrollmentIntakeId: clean(event.params.intakeId),
       enrollmentProposalId: proposalId || null,
+      "placement.locationId": locationId,
       updatedAt: FieldValue.serverTimestamp(),
     };
 
-    // FieldPath-based writes avoid treating discipline ids containing hyphens
-    // as nested path separators.
-    const writes: Array<[FieldPath, unknown]> = [
-      [new FieldPath("placement", "locationId"), locationId],
-    ];
-
     if (primaryDiscipline) {
-      writes.push(
-        [
-          new FieldPath(
-            "disciplines",
-            primaryDiscipline,
-            "locationId"
-          ),
-          locationId,
-        ],
-        [
-          new FieldPath(
-            "disciplines",
-            primaryDiscipline,
-            "placement",
-            "locationId"
-          ),
-          locationId,
-        ]
-      );
+      update[`disciplines.${primaryDiscipline}.locationId`] =
+        locationId;
+      update[
+        `disciplines.${primaryDiscipline}.placement.locationId`
+      ] = locationId;
     }
 
-    const batch = db.batch();
-    batch.set(athleteRef, update, { merge: true });
-
-    for (const [path, value] of writes) {
-      batch.update(athleteRef, path, value);
-    }
-
-    await batch.commit();
+    await athleteRef.update(update);
   }
 );
