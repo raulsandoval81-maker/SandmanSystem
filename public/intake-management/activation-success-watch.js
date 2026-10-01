@@ -19,6 +19,9 @@ const issueAccessInvitationCall =
 let issuedAthleteAccessToken = "";
 let issuedAthleteAccessUid = "";
 let issuedAthleteAccessEmail = "";
+let issuedParentAccessToken = "";
+let issuedParentAccessUid = "";
+let issuedParentAccessEmail = "";
 
 function buildMintTagFromUid(uid = "", virtue = "") {
   const safeUid = String(uid || "").trim().toUpperCase();
@@ -49,7 +52,6 @@ function getAgeFromDob(dob = "") {
   const month = Number(match[2]);
   const day = Number(match[3]);
   const birth = new Date(year, month - 1, day);
-
   if (
     birth.getFullYear() !== year ||
     birth.getMonth() !== month - 1 ||
@@ -69,14 +71,14 @@ function requiresParentApproval(intake = {}) {
   return age === null || age < 14;
 }
 
-function buildFirstTimeAthleteLink(uid = "", invitationToken = "", email = "") {
+function buildFirstTimeLink(role, uid = "", invitationToken = "", email = "") {
   const approvedUid = String(uid || "").trim().toUpperCase();
   const token = String(invitationToken || "").trim();
   const normalizedEmail = String(email || "").trim().toLowerCase();
   if (!approvedUid || !token || !normalizedEmail) return "";
 
   const url = new URL("/access/first-time/", location.origin);
-  url.searchParams.set("role", "athlete");
+  url.searchParams.set("role", role);
   url.searchParams.set("id", approvedUid);
   url.searchParams.set("token", token);
   url.searchParams.set("email", normalizedEmail);
@@ -91,11 +93,41 @@ function currentAthleteLink(uid = "") {
     !issuedAthleteAccessEmail
   ) return "";
 
-  return buildFirstTimeAthleteLink(
+  return buildFirstTimeLink(
+    "athlete",
     approvedUid,
     issuedAthleteAccessToken,
     issuedAthleteAccessEmail
   );
+}
+
+function currentParentLink(uid = "") {
+  const approvedUid = String(uid || "").trim().toUpperCase();
+  if (
+    !issuedParentAccessToken ||
+    issuedParentAccessUid !== approvedUid ||
+    !issuedParentAccessEmail
+  ) return "";
+
+  return buildFirstTimeLink(
+    "parent",
+    approvedUid,
+    issuedParentAccessToken,
+    issuedParentAccessEmail
+  );
+}
+
+function relabelModal(modal) {
+  const labels = modal?.querySelectorAll("label.small.muted") || [];
+  labels.forEach((label) => {
+    const value = String(label.textContent || "").trim();
+    if (value === "Athlete Onboarding Link") {
+      label.textContent = "Athlete First-Time Registration Link";
+    }
+    if (value === "Parent My-Athlete Link") {
+      label.textContent = "Parent First-Time Access / Login";
+    }
+  });
 }
 
 function configureHandoffLinks(uid = "", intake = {}) {
@@ -103,7 +135,7 @@ function configureHandoffLinks(uid = "", intake = {}) {
   if (!approvedUid) return;
 
   const athleteLink = currentAthleteLink(approvedUid);
-  const parentLogin = `${location.origin}/login/`;
+  const parentLink = currentParentLink(approvedUid);
   const approvalRequired = requiresParentApproval(intake);
 
   const modal = document.getElementById("approval-modal");
@@ -124,11 +156,12 @@ function configureHandoffLinks(uid = "", intake = {}) {
   const issueAccessBtn = document.getElementById("issue-athlete-access");
   const accessStatus = document.getElementById("athlete-access-status");
 
+  relabelModal(modal);
+
   if (modalTitle) modalTitle.textContent = "Athlete Activated";
   if (modalIntro) {
-    modalIntro.textContent = athleteLink
-      ? "Enrollment activation is complete. Send the one-time Athlete registration link below."
-      : "Enrollment activation is complete. Issue Athlete access only when the Athlete is ready to register an email and password.";
+    modalIntro.textContent =
+      "Enrollment activation is complete. Issue Parent or Athlete first-time access only when that person is ready to register. After activation, everyone returns through the normal Login page.";
   }
 
   if (approvedUidInput) approvedUidInput.value = approvedUid;
@@ -152,7 +185,8 @@ function configureHandoffLinks(uid = "", intake = {}) {
   }
 
   if (parentInput) {
-    parentInput.value = parentLogin;
+    parentInput.value = parentLink || "Issue Parent access when ready to register";
+    parentInput.readOnly = true;
   }
 
   if (copyUid) copyUid.onclick = () => navigator.clipboard.writeText(approvedUid);
@@ -171,8 +205,77 @@ function configureHandoffLinks(uid = "", intake = {}) {
       : null;
   }
 
-  if (copyParent) copyParent.onclick = () => navigator.clipboard.writeText(parentLogin);
-  if (openParent) openParent.onclick = () => window.open(parentLogin, "_blank", "noopener");
+  if (copyParent) {
+    copyParent.disabled = !parentLink;
+    copyParent.onclick = parentLink
+      ? () => navigator.clipboard.writeText(parentLink)
+      : null;
+  }
+
+  if (openParent) {
+    openParent.textContent = parentLink ? "Open" : "Issue Parent Access";
+    openParent.disabled = false;
+    openParent.onclick = parentLink
+      ? () => window.open(parentLink, "_blank", "noopener")
+      : async () => {
+          const suggestedEmail = String(
+            intake.parentEmail ||
+            intake.guardian?.email ||
+            intake.parent?.email ||
+            ""
+          ).trim().toLowerCase();
+
+          const entered = window.prompt(
+            "Parent / guardian email for first-time access:",
+            suggestedEmail
+          );
+          const email = String(entered || "").trim().toLowerCase();
+          if (!email) return;
+          if (!email.includes("@")) {
+            window.alert("Enter a valid Parent / guardian email.");
+            return;
+          }
+
+          openParent.disabled = true;
+          openParent.textContent = "Issuing…";
+
+          try {
+            const response = await issueAccessInvitationCall({
+              role: "parent",
+              athleteUid: approvedUid,
+              email
+            });
+            const result = response?.data || {};
+            const invitationToken = String(result.tokenId || "").trim();
+            if (!invitationToken) throw new Error("Invitation was created without a token.");
+
+            issuedParentAccessUid = approvedUid;
+            issuedParentAccessToken = invitationToken;
+            issuedParentAccessEmail = email;
+
+            const generatedLink = buildFirstTimeLink(
+              "parent",
+              approvedUid,
+              invitationToken,
+              email
+            );
+
+            if (parentInput) parentInput.value = generatedLink;
+            if (copyParent) {
+              copyParent.disabled = false;
+              copyParent.onclick = () => navigator.clipboard.writeText(generatedLink);
+            }
+            openParent.textContent = "Open";
+            openParent.onclick = () => window.open(generatedLink, "_blank", "noopener");
+          } catch (error) {
+            console.error("[parent-access] issue invitation failed:", error);
+            window.alert(error?.message || "Unable to issue Parent access invitation.");
+            openParent.textContent = "Issue Parent Access";
+          } finally {
+            openParent.disabled = false;
+          }
+        };
+  }
 
   if (athleteLink) {
     if (accessEmail) accessEmail.disabled = true;
@@ -234,7 +337,8 @@ function configureHandoffLinks(uid = "", intake = {}) {
           issuedAthleteAccessToken = invitationToken;
           issuedAthleteAccessEmail = email;
 
-          const generatedLink = buildFirstTimeAthleteLink(
+          const generatedLink = buildFirstTimeLink(
+            "athlete",
             approvedUid,
             invitationToken,
             email
@@ -255,11 +359,6 @@ function configureHandoffLinks(uid = "", intake = {}) {
             accessStatus.textContent = expires
               ? `Athlete registration invitation issued. Expires ${new Date(expires).toLocaleString()}.`
               : "Athlete registration invitation issued.";
-          }
-
-          if (modalIntro) {
-            modalIntro.textContent =
-              "Enrollment activation is complete. Send the one-time Athlete registration link below.";
           }
         } catch (error) {
           console.error("[athlete-access] issue invitation failed:", error);
@@ -361,10 +460,9 @@ if (tokenId) {
   ) {
     const status = String(intake.status || "").trim().toLowerCase();
     const approvedUid = String(intake.approvedUid || "").trim();
-
     if (status !== "approved" || !approvedUid) return false;
-    committedUid = approvedUid;
 
+    committedUid = approvedUid;
     if (uidInput) uidInput.value = approvedUid;
 
     if (approveBtn) {
@@ -417,7 +515,6 @@ if (tokenId) {
 
   window.addEventListener("pageshow", async () => {
     if (committedUid) return;
-
     try {
       const snapshot = await getDoc(intakeRef);
       if (snapshot.exists()) applyCommittedActivation(snapshot.data() || {});
