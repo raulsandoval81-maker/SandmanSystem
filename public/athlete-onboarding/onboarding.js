@@ -1,22 +1,12 @@
 // /public/athlete-onboarding/onboarding.js
 import {
   db,
-  auth,                 // ✅ needed for magic link + user state
-  functions,            // ✅ callable functions instance (must be exported by firebase-init.js)
+  auth,
   doc,
   getDoc,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
-// ✅ import callable helper from Firebase SDK (NOT firebase-init.js)
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-functions.js";
-// Firebase Auth helpers (CDN modular)
-import {
-  sendSignInLinkToEmail,
-  isSignInWithEmailLink,
-  signInWithEmailLink,
-  updatePassword
-} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { resolveOnboardingTemplate } from "./onboarding-templates.js";
 import {
   disciplineLabel,
@@ -28,7 +18,6 @@ const $ = (id) => document.getElementById(id);
 /* -------------------------------- URL PARAMS -------------------------------- */
 const params = new URLSearchParams(location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
-const tokenId = (params.get("token") || params.get("invite") || "").trim();
 
 if (!uid) {
   alert("Missing ?id= in URL");
@@ -50,25 +39,9 @@ const btnNo    = $("btn-not-me");
 
 let athlete = null;
 let uiLocked = false;
-let activationStage = "opening the activation link";
 
 /* -------------------------------- HELPERS -------------------------------- */
 const setStatus = (t) => { if (statusEl) statusEl.textContent = t || ""; };
-
-function setActivationStage(stage, message) {
-  activationStage = stage;
-  if (message) setStatus(message);
-}
-
-function activationErrorMessage(error) {
-  const code = String(error?.code || "");
-  const message = String(error?.message || error || "Unknown activation error.");
-  if (code.includes("permission-denied")) return `Activation stopped while ${activationStage}: ${message}`;
-  if (code.includes("failed-precondition") || code.includes("not-found") || code.includes("invalid-argument")) {
-    return `Activation stopped while ${activationStage}: ${message}`;
-  }
-  return `Activation stopped while ${activationStage}: ${message}`;
-}
 
 function onboardingIsComplete(a = {}) {
   return a?.onboarding?.status === "complete"
@@ -80,6 +53,11 @@ function athleteDestination() {
   return onboardingIsComplete(athlete)
     ? `/athletes/hub/?id=${encodeURIComponent(uid)}`
     : `/athlete-onboarding/step-2.html?id=${encodeURIComponent(uid)}`;
+}
+
+function athleteLoginUrl() {
+  const next = `/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+  return `/login/?next=${encodeURIComponent(next)}`;
 }
 
 const disableButtons = (d) => {
@@ -109,70 +87,9 @@ function pickTeamName(a) { return a.team?.name || a.teamName || a.team || "—";
 function pickCity(a)     { return a.team?.city || a.city || "—"; }
 function pickState(a)    { return a.team?.state || a.state || "—"; }
 
-/* -------------------------------- MAGIC LINK (only after YES) -------------------------------- */
-function onboardingReturnUrl() {
-  // Return to the SAME page so we can auto-resume YES
-  return `${location.origin}${location.pathname}?id=${encodeURIComponent(uid)}${tokenId ? `&token=${encodeURIComponent(tokenId)}` : ""}`;
-}
-
-async function startMagicLink(email) {
-  const cleaned = String(email || "").trim().toLowerCase();
-  if (!cleaned) throw new Error("Missing email.");
-
-  // Save email so we can finish sign-in when the link returns
-  localStorage.setItem("sandman_magic_email", cleaned);
-
-  // Save intent so after login we resume YES automatically
-  sessionStorage.setItem("sandman_pending_yes_uid", uid);
-
-  const actionCodeSettings = {
-    url: onboardingReturnUrl(),
-    handleCodeInApp: true
-  };
-
-  console.log("[magiclink] SENDING", { cleaned, actionCodeSettings });
-
-  setActivationStage("sending the secure sign-in email", "Sending secure sign-in email…");
-  await sendSignInLinkToEmail(auth, cleaned, actionCodeSettings);
-  console.log("[magiclink] SENT OK");
-  setStatus("Check your email to continue.");
-}
-
-async function finishMagicLinkIfPresent() {
-  if (!isSignInWithEmailLink(auth, window.location.href)) return false;
-
-  const saved = localStorage.getItem("sandman_magic_email");
-  const email = saved || window.prompt("Confirm your email to finish sign-in:");
-  if (!email) throw new Error("Email required to finish sign-in.");
-
-  const password = window.prompt(
-    "Create your athlete account password (at least 6 characters):"
-  );
-  if (!password || password.length < 6) {
-    throw new Error("A password of at least 6 characters is required.");
-  }
-
-  setActivationStage("verifying the emailed sign-in link", "Verifying secure sign-in link…");
-  await signInWithEmailLink(auth, email, window.location.href);
-  setActivationStage("creating the Athlete password", "Creating Athlete password…");
-  await updatePassword(auth.currentUser, password);
-
-  // Force refresh token (helps some mobile cases)
-  try { await auth.currentUser?.getIdToken?.(true); } catch {}
-
-  localStorage.removeItem("sandman_magic_email");
-
-  // Clean URL (strip oobCode params etc.) while preserving id/token
-  history.replaceState({}, document.title, onboardingReturnUrl());
-
-  return true;
-}
-
 function needsRealLogin() {
-  const u = auth?.currentUser;
-  if (!u) return true;
-  if (u.isAnonymous) return true; // anonymous is not “real login” for onboarding bind
-  return false;
+  const user = auth?.currentUser;
+  return !user || user.isAnonymous;
 }
 
 /* -------------------------------- LOAD ATHLETE -------------------------------- */
@@ -201,6 +118,7 @@ function prettyJourneyName(programTrack = "", art = "", placement = {}) {
 
   return "—";
 }
+
 function prettyArtName(art = "") {
   const canonical = normalizeDisciplineId(art);
 
@@ -241,7 +159,7 @@ function prettyTierRank(a = {}) {
 }
 
 async function loadAthlete() {
-  setActivationStage("loading the existing Athlete record", "Loading existing Athlete…");
+  setStatus("Loading existing Athlete…");
   disableButtons(true);
 
   await ensureSignedIn();
@@ -259,8 +177,8 @@ async function loadAthlete() {
   document.body.dataset.onboardingTemplate = onboardingTemplate.templateKey;
 
   console.log("[loadAthlete] full athlete:", athlete);
-console.log("[loadAthlete] programTrack:", athlete.programTrack);
-console.log("[loadAthlete] placement:", athlete.placement);
+  console.log("[loadAthlete] programTrack:", athlete.programTrack);
+  console.log("[loadAthlete] placement:", athlete.placement);
 
   const displayName = athlete.fullName || athlete.publicName || uid;
   const mintTag =
@@ -272,11 +190,12 @@ console.log("[loadAthlete] placement:", athlete.placement);
 
   if (nameEl) nameEl.textContent = displayName;
   if (virtueEl) virtueEl.textContent = mintTag;
-const journeyName = prettyJourneyName(
-  athlete.programTrack,
-  athlete.art,
-  athlete.placement
-);
+
+  const journeyName = prettyJourneyName(
+    athlete.programTrack,
+    athlete.art,
+    athlete.placement
+  );
   const artName = prettyArtName(athlete.art);
 
   text("mini-uid", uid);
@@ -313,128 +232,65 @@ const journeyName = prettyJourneyName(
   console.log("[loadAthlete] team/city/state:", team, city, state);
 }
 
-async function consumeAthleteAccess() {
-  const user = auth.currentUser;
-  if (!user || user.isAnonymous) throw new Error("An email-backed Athlete account is required.");
-  if (!tokenId) throw new Error("The Management-issued invitation token is missing.");
-  setActivationStage("binding direct access to the existing Athlete", "Activating direct Athlete access…");
-  const fn = httpsCallable(functions, "consumeAccessInvitation");
-  const res = await fn({ tokenId });
-  const result = res?.data || {};
-  if (result.role !== "athlete" || String(result.athleteUid || "").toUpperCase() !== uid) {
-    throw new Error("The activation response did not match this Athlete.");
-  }
-  sessionStorage.removeItem("sandman_pending_yes_uid");
-  setActivationStage("finishing activation", "Athlete access activated. Opening Athlete Home…");
-  window.location.href = athleteDestination();
-}
 /* -------------------------------- CONFIRM IDENTITY (STEP 1) --------------------------------
-   Pivot: NO Firestore write here.
-   After magic login, call Cloud Function to do the write with Admin privileges.
+   First-time access is activated before onboarding. This page only verifies
+   that the signed-in Firebase account is already bound to this Athlete record.
 -------------------------------------------------------------------------------------------- */
 async function confirmIdentity() {
   if (!athlete || uiLocked) return;
 
   hardLockUI("Working…");
 
-  const invitedEmail = String(localStorage.getItem("sandman_magic_email") || "").trim().toLowerCase();
-  const currentEmail = String(auth.currentUser?.email || "").trim().toLowerCase();
-  if (!needsRealLogin() && invitedEmail && currentEmail !== invitedEmail) {
-    unlockUI("A different account is signed in here. Open the Athlete invitation in a private window or the Athlete's browser.");
+  if (needsRealLogin()) {
+    setStatus("Athlete access must be activated first. Opening Sandman Login…");
+    window.location.assign(athleteLoginUrl());
     return;
   }
 
-  // If not signed in with a real account yet → start magic link
-  if (needsRealLogin()) {
-    try {
-      setStatus("Enter email to continue…");
-      const savedEmail =
-        localStorage.getItem("sandman_magic_email") || "";
-
-      const email = window.prompt(
-        "Confirm the athlete login email:",
-        savedEmail
-      );
-      if (!email) {
-        unlockUI("Login cancelled.");
-        return;
-      }
-      await startMagicLink(email);
-      // Stop here; they return via email link and we auto-resume YES
-      return;
-    } catch (e) {
-      console.error(e);
-      unlockUI("Login failed. Check console.");
-      return;
-    }
-  }
-
-  // Real signed-in user
   const user = auth.currentUser;
-  console.log("Auth UID:", user?.uid, "anon:", user?.isAnonymous);
-
   if (!user) {
     unlockUI("Not signed in.");
     return;
   }
 
-  // If already confirmed (UI copy), just continue
-  if (
-    athlete?.onboarding?.locks?.step1 === true &&
-    athlete?.authUid === user.uid
-  ) {
-    window.location.href = athleteDestination();
+  if (String(athlete.authUid || "").trim() !== user.uid) {
+    unlockUI(
+      "This login is not connected to this Athlete. Use the Athlete's first-time invitation or the correct Athlete login."
+    );
     return;
   }
 
-  try {
-    await consumeAthleteAccess();
-  } catch (e) {
-    console.error("[confirmIdentity] failed:", e);
-    unlockUI(activationErrorMessage(e));
+  if (athlete?.onboarding?.locks?.step1 !== true) {
+    unlockUI(
+      "Athlete access is connected, but first-time activation is incomplete. Ask Sandman Management to verify access."
+    );
+    return;
   }
+
+  window.location.href = athleteDestination();
 }
 
 /* -------------------------------- NOT ME -------------------------------- */
 function notMe() {
   if (uiLocked) return;
-  hardLockUI("Not you. Link locked. Ask coach for a new link.");
+  hardLockUI("Not you. Returning to Login…");
   setTimeout(() => {
-    window.location.href = "/athlete-onboarding/";
-  }, 1200);
+    window.location.href = "/login/";
+  }, 800);
 }
 
 /* -------------------------------- BOOT -------------------------------- */
 async function bootVerify() {
   try {
-    const completedMagicLink = await finishMagicLinkIfPresent();
     await loadAthlete();
-
-    if (completedMagicLink && !needsRealLogin()) {
-      hardLockUI("Activating direct Athlete access…");
-      await consumeAthleteAccess();
-      return;
-    }
-
-    // Auto-resume YES if they were in the middle of confirmation
-    const pendingUid = sessionStorage.getItem("sandman_pending_yes_uid");
-    if (pendingUid && pendingUid === uid && !needsRealLogin()) {
-      sessionStorage.removeItem("sandman_pending_yes_uid");
-      confirmIdentity();
-    }
-  } catch (e) {
-    console.error(e);
-    setStatus(activationErrorMessage(e));
+  } catch (error) {
+    console.error(error);
+    setStatus(error?.message || "Unable to load Athlete onboarding.");
     disableButtons(true);
   }
 }
 
-// Splash support
-if (isSignInWithEmailLink(auth, window.location.href) && splashPanel && verifyPanel) {
-  splashPanel.classList.add("hidden");
-  verifyPanel.classList.remove("hidden");
-  bootVerify();
-} else if (startBtn && splashPanel && verifyPanel) {
+if (startBtn && splashPanel && verifyPanel) {
   startBtn.addEventListener("click", () => {
     splashPanel.classList.add("hidden");
     verifyPanel.classList.remove("hidden");
