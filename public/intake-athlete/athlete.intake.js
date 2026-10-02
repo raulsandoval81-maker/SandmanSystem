@@ -6,7 +6,7 @@
 // city, state
 // emergencyName, emergencyPhone
 // medical
-// openWaiverBtn, waiverStatus, waiverCheck, signatureAthlete, signatureDate, submitBtn
+// openWaiverBtn, waiverStatus, waiverSignerSummary, submitBtn
 // intakeForm
 
 import {
@@ -90,7 +90,8 @@ const WAIVER_URL_EN =
 
 const WAIVER_URL_ES =
   "/waiver/?audience=adult_athlete&lang=es";
-let waiverViewed = false;
+let waiverAcceptance = null;
+let currentInviteToken = "";
 
 let leadLanguagePreference = null;
 let intakeOwnerUid = null;
@@ -121,51 +122,111 @@ function normalizeLanguagePreference(value = "") {
   return null;
 }
 
+function waiverStorageKey() {
+  return currentInviteToken
+    ? `sandman-waiver-acceptance:${currentInviteToken}`
+    : "";
+}
+
 function waiverAgreementOK() {
-  return (
-    waiverViewed &&
-    !!$("waiverCheck")?.checked &&
-    !!val("signatureAthlete") &&
-    !!val("signatureDate")
+  return Boolean(
+    waiverAcceptance?.agreed === true &&
+    waiverAcceptance?.signatureName &&
+    waiverAcceptance?.signatureDate
   );
 }
 
 function maybeUnlockSubmit() {
-  setDisabled("submitBtn", !waiverAgreementOK());
+  setDisabled(
+    "submitBtn",
+    !waiverAgreementOK()
+  );
 }
 
-function markWaiverViewed() {
-  waiverViewed = true;
+function applyWaiverAcceptance(acceptance) {
+  if (
+    !acceptance ||
+    acceptance.invite !== currentInviteToken ||
+    acceptance.audience !== "adult_athlete" ||
+    acceptance.agreed !== true
+  ) {
+    return;
+  }
+
+  waiverAcceptance =
+    acceptance;
+
+  const spanish =
+    activeLanguage() === "es";
+
   setWaiverStatusStrong(
-    activeLanguage() === "es"
-      ? "Visto"
-      : "Viewed"
+    spanish
+      ? "Firmada"
+      : "Signed",
+    "#34d399"
   );
 
-  setDisabled("waiverCheck", false);
-  setDisabled("signatureAthlete", false);
+  const summary =
+    $("waiverSignerSummary");
 
-  const todayISO = new Date().toISOString().slice(0, 10);
-  const dateEl = $("signatureDate");
-  if (dateEl) {
-    dateEl.value = todayISO;
-    dateEl.readOnly = true;
-    dateEl.disabled = true;
+  if (summary) {
+    summary.hidden = false;
+    summary.textContent =
+      spanish
+        ? `Firmado por ${acceptance.signatureName} el ${acceptance.signatureDate}.`
+        : `Signed by ${acceptance.signatureName} on ${acceptance.signatureDate}.`;
   }
 
   maybeUnlockSubmit();
 }
 
+function readWaiverAcceptance() {
+  const key =
+    waiverStorageKey();
+
+  if (!key) {
+    return;
+  }
+
+  try {
+    const raw =
+      localStorage.getItem(key);
+
+    if (!raw) {
+      return;
+    }
+
+    applyWaiverAcceptance(
+      JSON.parse(raw)
+    );
+  } catch (_) {
+    // Ignore malformed or unavailable local storage.
+  }
+}
+
 function openWaiver(url) {
-  window.open(url, "_blank", "noopener");
-  markWaiverViewed();
+  window.open(
+    url,
+    "_blank",
+    "noopener"
+  );
 }
 
 $("openWaiverBtn")?.addEventListener("click", () => {
-  const waiverUrl =
+  const baseUrl =
     activeLanguage() === "es"
       ? WAIVER_URL_ES
       : WAIVER_URL_EN;
+
+  const separator =
+    baseUrl.includes("?")
+      ? "&"
+      : "?";
+
+  const waiverUrl =
+    currentInviteToken
+      ? `${baseUrl}${separator}invite=${encodeURIComponent(currentInviteToken)}`
+      : baseUrl;
 
   openWaiver(waiverUrl);
 });
@@ -378,15 +439,23 @@ async function handleSubmit(e) {
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
     if (!waiverAgreementOK()) {
-      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtn");
+      fail(
+        activeLanguage() === "es"
+          ? "Abra la exención, acéptela y fírmela antes de continuar."
+          : "Open the waiver, accept it, and sign it before continuing.",
+        "openWaiverBtn"
+      );
     }
 
     const v = validateFormBasics();
 
-    const sign = titleCase(val("signatureAthlete"));
-    const signDate = val("signatureDate");
-    if (!sign) fail("Type your full name as signature.", "signatureAthlete");
-    if (!signDate) fail("Select today’s date.", "signatureDate");
+    const sign =
+      titleCase(
+        waiverAcceptance.signatureName
+      );
+
+    const signDate =
+      waiverAcceptance.signatureDate;
 
     const intake = {
       connectLeadId,
@@ -482,6 +551,13 @@ async function handleSubmit(e) {
         signingAuthority: "self",
         signatureName: sign,
         signatureDate: signDate,
+        acceptedAt:
+          waiverAcceptance.acceptedAt || null,
+        language:
+          waiverAcceptance.language || activeLanguage(),
+        waiverVersion:
+          waiverAcceptance.waiverVersion ||
+          "participation-waiver-v1",
       },
 
       status: "submitted",
@@ -517,33 +593,35 @@ async function handleSubmit(e) {
 }
 
 function wireWaiver() {
-  setDisabled("waiverCheck", true);
-  setDisabled("signatureAthlete", true);
-  setDisabled("signatureDate", true);
-  setDisabled("submitBtn", true);
+  setDisabled(
+    "submitBtn",
+    true
+  );
 
-  $("waiverCheck")
-  ?.addEventListener("change", () => {
+  window.addEventListener(
+    "storage",
+    (event) => {
+      if (
+        event.key !== waiverStorageKey() ||
+        !event.newValue
+      ) {
+        return;
+      }
 
-    const checked =
-      !!$("waiverCheck")?.checked;
+      try {
+        applyWaiverAcceptance(
+          JSON.parse(event.newValue)
+        );
+      } catch (_) {
+        // Ignore malformed cross-tab storage payloads.
+      }
+    }
+  );
 
-    setDisabled(
-      "signatureAthlete",
-      !checked
-    );
-
-    maybeUnlockSubmit();
-  });
-
-  ["signatureAthlete", "signatureDate"].forEach((id) => {
-    const el = $(id);
-    if (!el) return;
-
-    ["input", "change"].forEach((evt) =>
-      el.addEventListener(evt, maybeUnlockSubmit)
-    );
-  });
+  window.addEventListener(
+    "focus",
+    readWaiverAcceptance
+  );
 }
 
 function wirePhoneSanitizer(id) {
@@ -671,6 +749,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const tok = getInviteFromURL();
+  currentInviteToken =
+    String(tok || "").trim();
+
   if (!tok) {
     setWaiverStatusStrong(
       "⚠ Missing invite token.",
@@ -714,6 +795,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   wireWaiver();
+  readWaiverAcceptance();
   wirePhoneSanitizer("athletePhone");
   wirePhoneSanitizer("emergencyPhone");
 
