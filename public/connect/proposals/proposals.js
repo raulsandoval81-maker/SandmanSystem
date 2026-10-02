@@ -971,6 +971,18 @@ function proposalActionHtml(status, id) {
     return `<a class="proposal-open-btn" href="/intake-management/?proposalId=${encodeURIComponent(id)}">Continue to Enrollment</a>`;
   }
 
+  if (status === "AWAITING_CLIENT_SIGNATURE") {
+    return `
+      <button class="proposal-open-btn" type="button" data-proposal-action="issue-client-review" data-proposal-id="${esc(id)}">
+        Reissue Client Review
+      </button>
+
+      <button class="proposal-open-btn" type="button" data-proposal-action="record-manual-signature" data-proposal-id="${esc(id)}">
+        Record Manual Signature
+      </button>
+    `;
+  }
+
   const action = proposalAction(status);
 
   if (!action) {
@@ -1015,6 +1027,83 @@ async function runProposalAction(button) {
         "Client review link (copied when browser permission allows):",
         reviewUrl
       );
+
+      await loadProposalQueue();
+      return;
+    }
+
+    if (action === "record-manual-signature") {
+      const signerName =
+        window.prompt(
+          "Name shown on the signed paper form:"
+        );
+
+      if (!String(signerName || "").trim()) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
+
+      const signerChoice =
+        window.prompt(
+          "Signer relationship: type P for Parent/Guardian or A for Adult Athlete.",
+          "P"
+        );
+
+      if (signerChoice === null) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
+
+      const normalizedChoice =
+        String(signerChoice)
+          .trim()
+          .toUpperCase();
+
+      const signerRole =
+        normalizedChoice === "A"
+          ? "adult_athlete"
+          : normalizedChoice === "P"
+            ? "parent_guardian"
+            : "";
+
+      if (!signerRole) {
+        throw new Error(
+          "Use P for Parent/Guardian or A for Adult Athlete."
+        );
+      }
+
+      const confirmed =
+        window.confirm(
+          "Confirm that the signed paper/manual form is on file. This will record the client signature and move the proposal to Checkout Ready."
+        );
+
+      if (!confirmed) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
+
+      const response =
+        await httpsCallable(
+          functions,
+          "recordManualProposalSignature"
+        )({
+          proposalId,
+          signerName:
+            String(signerName).trim(),
+          signerRole,
+        });
+
+      if (
+        response.data?.status !==
+        "READY_FOR_CHECKOUT"
+      ) {
+        throw new Error(
+          "Checkout-ready status was not returned."
+        );
+      }
 
       await loadProposalQueue();
       return;
