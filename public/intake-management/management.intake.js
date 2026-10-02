@@ -205,6 +205,9 @@ async function resolveExistingEnrollmentHandoff(
             ? "adult_athlete"
             : "parent_guardian",
         deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
+        deliveryMethod: String(data.deliveryMethod || "").trim().toLowerCase(),
+        manualDelivery: data.manualDelivery === true,
+        manualDeliveryNote: String(data.manualDeliveryNote || "").trim(),
         deliveredAt: data.deliveredAt || null,
         deliveredTo: String(data.deliveredTo || "").trim(),
         exp: Number(data.exp || 0),
@@ -222,6 +225,9 @@ async function resolveExistingEnrollmentHandoff(
             ? "adult_athlete"
             : "parent_guardian",
         deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
+        deliveryMethod: String(data.deliveryMethod || "").trim().toLowerCase(),
+        manualDelivery: data.manualDelivery === true,
+        manualDeliveryNote: String(data.manualDeliveryNote || "").trim(),
         deliveredAt: data.deliveredAt || null,
         deliveredTo: String(data.deliveredTo || "").trim(),
         exp: Number(data.exp || 0),
@@ -247,7 +253,8 @@ async function resolveExistingEnrollmentHandoff(
     .filter((record) =>
       [
         "INTAKE_INVITE_CREATED",
-        "INTAKE_INVITE_SENT"
+        "INTAKE_INVITE_SENT",
+        "INTAKE_INVITE_MANUALLY_SENT"
       ].includes(
         String(record.event || "").trim().toUpperCase()
       ) &&
@@ -299,8 +306,13 @@ async function resolveExistingEnrollmentHandoff(
         tokenId,
         intakeAudience: audience,
         deliveryStatus: String(token.deliveryStatus || "").trim().toUpperCase(),
-        deliveredAt: token.deliveredAt || null,
-        deliveredTo: String(token.deliveredTo || "").trim(),
+        deliveryMethod: String(token.deliveryMethod || record.deliveryMethod || "").trim().toLowerCase(),
+        manualDelivery:
+          token.manualDelivery === true ||
+          String(record.event || "").trim().toUpperCase() === "INTAKE_INVITE_MANUALLY_SENT",
+        manualDeliveryNote: String(token.manualDeliveryNote || record.note || "").trim(),
+        deliveredAt: token.deliveredAt || record.occurredAt || record.createdAt || null,
+        deliveredTo: String(token.deliveredTo || record.recipient || "").trim(),
         exp,
       };
       handoffCache.set(key, result);
@@ -488,6 +500,23 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
     ? "Adult Athlete"
     : "Parent / Guardian";
 
+  const deliveryMethod = String(
+    handoff?.deliveryMethod || "email"
+  ).trim().toLowerCase();
+
+  const deliveryLabel =
+    deliveryMethod === "text"
+      ? "Text"
+      : deliveryMethod === "in_person"
+        ? "In Person"
+        : deliveryMethod === "other"
+          ? "Other"
+          : "Email";
+
+  const manualNote = String(
+    handoff?.manualDeliveryNote || ""
+  ).trim();
+
   return `
     <div class="pending-card awaiting-intake-card" data-awaiting-proposal="${esc(proposalId)}">
       <div class="pending-card-head">
@@ -498,10 +527,13 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
             ? `<div class="pending-card-meta small">${esc(athleteNames.join(" · "))}</div>`
             : ""}
           <div class="pending-card-meta small">
-            ${esc(audienceLabel)} · Sent ${esc(sentAt)}
+            ${esc(audienceLabel)} · Sent by ${esc(deliveryLabel)} · ${esc(sentAt)}
           </div>
           ${recipient
             ? `<div class="pending-card-meta small">${esc(recipient)}</div>`
+            : ""}
+          ${manualNote
+            ? `<div class="pending-card-meta small">Note: ${esc(manualNote)}</div>`
             : ""}
           <div class="pending-card-meta small">Link expires ${esc(expiresAt)}</div>
           <div class="pending-card-id">${esc(proposalId)}</div>
@@ -555,11 +587,17 @@ function renderReadyIntakeCard(proposal) {
         <button class="small solid-blue" data-ready-adult="${esc(proposalId)}">
           Adult Athlete
         </button>
+        <button class="small outline-blue" data-ready-mark-text="${esc(proposalId)}" data-ready-audience="adult_athlete">
+          Mark Text Sent
+        </button>
       `
     : intakeAudience === "parent_guardian"
       ? `
           <button class="small solid-blue" data-ready-parent="${esc(proposalId)}">
             Parent / Guardian
+          </button>
+          <button class="small outline-blue" data-ready-mark-text="${esc(proposalId)}" data-ready-audience="parent_guardian">
+            Mark Text Sent
           </button>
         `
       : `
