@@ -68,8 +68,6 @@ function proposalProspect(proposal = {}) {
 }
 
 function inferAudience(proposal = {}) {
-  await supersedeOppositeInvite(proposalId, audience);
-
   const athlete = proposalAthlete(proposal);
   const prospect = proposalProspect(proposal);
 
@@ -309,6 +307,8 @@ async function createInvite(proposal, audience) {
       "Unable to determine whether this intake belongs to a Parent / Guardian or an Adult Athlete. Verify the athlete DOB or registrant role first."
     );
   }
+
+  await supersedeOppositeInvite(proposalId, audience);
 
   const athlete = proposalAthlete(proposal);
   const prospect = proposalProspect(proposal);
