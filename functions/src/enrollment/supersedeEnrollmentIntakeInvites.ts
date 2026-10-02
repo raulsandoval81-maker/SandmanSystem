@@ -1,4 +1,8 @@
 import {
+  randomBytes,
+} from "node:crypto";
+
+import {
   HttpsError,
   onCall,
 } from "firebase-functions/v2/https";
@@ -206,9 +210,13 @@ export const supersedeEnrollmentIntakeInvites =
         req.data?.connectLeadId
       ) || null;
 
+    const tokenId =
+      randomBytes(8)
+        .toString("hex");
+
     const tokenRef =
       db.collection("intakeTokens")
-        .doc();
+        .doc(tokenId);
 
     const exp =
       Date.now() +
@@ -253,8 +261,7 @@ export const supersedeEnrollmentIntakeInvites =
       proposalId,
       intakeAudience: audience,
       supersededCount,
-      tokenId:
-        tokenRef.id,
+      tokenId,
       exp,
     };
   });
