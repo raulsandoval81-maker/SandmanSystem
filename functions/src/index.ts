@@ -158,6 +158,10 @@ export {
   supersedeEnrollmentIntakeInvites,
 } from "./enrollment/supersedeEnrollmentIntakeInvites";
 
+export {
+  sendEnrollmentIntakeEmail,
+} from "./enrollment/sendEnrollmentIntakeEmail";
+
 /* =========================
    ONBOARDING
 ========================= */
