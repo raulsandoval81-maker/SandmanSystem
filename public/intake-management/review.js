@@ -132,14 +132,14 @@ function applyActivatedCompletionView(uid, intake = {}) {
       uid;
   }
 
-  wireActivatedUidActions(
+  wireActivatedAccessAction(
     uid,
     intake
   );
 }
 
 // ------------------------------------------------------
-// Activated UID handoff actions
+// Activated first-time access handoff
 // ------------------------------------------------------
 function activatedContact(intake = {}) {
   const audience =
@@ -157,100 +157,175 @@ function activatedContact(intake = {}) {
       .trim()
       .toLowerCase();
 
-  const phone =
-    String(
-      isAdult
-        ? intake.athlete?.phoneDigits || intake.phoneDigits || intake.athletePhoneDigits || ""
-        : intake.parent?.phoneDigits || intake.parentPhoneDigits || intake.phoneDigits || ""
-    )
-      .replace(/\D/g, "");
-
-  const athleteName =
-    `${intake.first || intake.athlete?.first || ""} ${intake.last || intake.athlete?.last || ""}`
-      .trim() ||
-    "Sandman Athlete";
-
   return {
     audience,
     isAdult,
-    email,
-    phone,
-    athleteName
+    email
   };
 }
 
-function uidMessage(uid, intake = {}) {
+function buildFirstTimeAccessUrl({
+  role,
+  uid,
+  tokenId,
+  email
+}) {
+  const url =
+    new URL("/access/first-time/", location.origin);
+
+  url.searchParams.set(
+    "role",
+    role
+  );
+
+  if (role === "athlete") {
+    url.searchParams.set(
+      "id",
+      uid
+    );
+  }
+
+  url.searchParams.set(
+    "token",
+    tokenId
+  );
+
+  url.searchParams.set(
+    "email",
+    email
+  );
+
+  return url.toString();
+}
+
+function wireActivatedAccessAction(uid, intake = {}) {
   const {
     isAdult,
-    athleteName
-  } = activatedContact(intake);
-
-  const subject =
-    `Sandman Combat Athlete UID — ${athleteName}`;
-
-  const body =
-    isAdult
-      ? [
-          `${athleteName} is activated in Sandman Combat™.`,
-          "",
-          `Athlete UID: ${uid}`,
-          "",
-          "Keep this UID for athlete identification and support. Your Sandman Combat™ Athlete first-time access link is a separate registration step."
-        ].join("\n")
-      : [
-          `${athleteName} is activated in Sandman Combat™.`,
-          "",
-          `Athlete UID: ${uid}`,
-          "",
-          "Keep this UID for athlete identification and support. Your Sandman Combat™ Parent first-time access link is a separate registration step."
-        ].join("\n");
-
-  return {
-    subject,
-    body
-  };
-}
-
-function wireActivatedUidActions(uid, intake = {}) {
-  const {
     email
   } = activatedContact(intake);
 
-  const {
-    subject,
-    body
-  } = uidMessage(uid, intake);
-
-  const emailButton =
-    $("email-athlete-uid");
+  const button =
+    $("create-access-action");
 
   const status =
     $("athlete-uid-action-status");
 
-  if (emailButton) {
-    emailButton.disabled =
-      !email;
-
-    emailButton.title =
-      email
-        ? `Email Athlete UID to ${email}`
-        : "No email is attached to this intake";
-
-    emailButton.onclick =
-      email
-        ? () => {
-            location.href =
-              `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-          }
-        : null;
+  if (!button) {
+    return;
   }
+
+  const role =
+    isAdult
+      ? "athlete"
+      : "parent";
+
+  button.textContent =
+    isAdult
+      ? "Create Athlete Access"
+      : "Create Parent Access";
+
+  button.disabled =
+    !email;
+
+  button.title =
+    email
+      ? `Create first-time ${role} access for ${email}`
+      : `No approved ${role} email is attached to this intake`;
 
   if (status) {
     status.textContent =
       email
-        ? `Ready to email the athlete UID to ${email}.`
-        : "No email is attached to this intake.";
+        ? `Approved ${isAdult ? "Athlete" : "Parent"} email: ${email}`
+        : `No approved ${isAdult ? "Athlete" : "Parent"} email is attached to this intake.`;
   }
+
+  button.onclick =
+    email
+      ? async () => {
+          const originalLabel =
+            button.textContent;
+
+          button.disabled = true;
+          button.textContent =
+            "Creating Access…";
+
+          try {
+            const issue =
+              httpsCallable(
+                functions,
+                "issueAccessInvitation"
+              );
+
+            const payload =
+              role === "athlete"
+                ? {
+                    role: "athlete",
+                    athleteUid: uid,
+                    email,
+                    accessMode: "self_managed",
+                    parentApproved: false
+                  }
+                : {
+                    role: "parent",
+                    athleteUid: uid,
+                    email
+                  };
+
+            const response =
+              await issue(payload);
+
+            const tokenId =
+              String(
+                response?.data?.tokenId || ""
+              ).trim();
+
+            if (!tokenId) {
+              throw new Error(
+                `${isAdult ? "Athlete" : "Parent"} invitation token was not returned.`
+              );
+            }
+
+            const accessUrl =
+              buildFirstTimeAccessUrl({
+                role,
+                uid,
+                tokenId,
+                email
+              });
+
+            if (status) {
+              status.textContent =
+                `✓ ${isAdult ? "Athlete" : "Parent"} first-time access invitation created for ${email}.`;
+            }
+
+            window.open(
+              accessUrl,
+              "_blank",
+              "noopener"
+            );
+          } catch (error) {
+            console.error(
+              "[activation-access] failed:",
+              error
+            );
+
+            if (status) {
+              status.textContent =
+                error?.message ||
+                `Unable to create ${isAdult ? "Athlete" : "Parent"} access.`;
+            }
+
+            window.alert(
+              error?.message ||
+              `Unable to create ${isAdult ? "Athlete" : "Parent"} access.`
+            );
+          } finally {
+            button.disabled = false;
+            button.textContent =
+              originalLabel;
+          }
+        }
+      : null;
 }
 
 // ------------------------------------------------------
