@@ -2213,6 +2213,10 @@ alert(
               athlete.journey ||
               "zero2hero",
 
+            enrollmentType:
+              athlete.enrollmentType ||
+              "youth",
+
             plan:
               athlete.plan ||
               "standard",
@@ -2369,6 +2373,13 @@ alert(
           athleteName,
 
         journey,
+
+        enrollmentType:
+          String(
+            appointment.registrantRole || ""
+          ).trim().toLowerCase() === "adult-athlete"
+            ? "adult"
+            : "youth",
 
         plan:
           "standard",
