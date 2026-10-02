@@ -6,7 +6,7 @@
 // city, state
 // emergencyName, emergencyPhone
 // medical
-// openWaiverBtnEn, openWaiverBtnEs, waiverStatus, waiverCheck, signatureAthlete, signatureDate, submitBtn
+// openWaiverBtn, waiverStatus, waiverCheck, signatureAthlete, signatureDate, submitBtn
 // intakeForm
 
 import {
@@ -132,12 +132,13 @@ function openWaiver(url) {
   markWaiverViewed();
 }
 
-$("openWaiverBtnEn")?.addEventListener("click", () => {
-  openWaiver(WAIVER_URL_EN);
-});
+$("openWaiverBtn")?.addEventListener("click", () => {
+  const waiverUrl =
+    activeLanguage() === "es"
+      ? WAIVER_URL_ES
+      : WAIVER_URL_EN;
 
-$("openWaiverBtnEs")?.addEventListener("click", () => {
-  openWaiver(WAIVER_URL_ES);
+  openWaiver(waiverUrl);
 });
 
 function normalizeState(s) {
@@ -345,10 +346,10 @@ async function handleSubmit(e) {
     }
 
     if (!tokenId)
-      fail("Invite token missing canonical id (tokenId).", "openWaiverBtnEn");
+      fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
     if (!waiverAgreementOK()) {
-      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtnEn");
+      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtn");
     }
 
     const v = validateFormBasics();
@@ -473,12 +474,8 @@ async function handleSubmit(e) {
         el.disabled = true;
       });
 
-    if ($("openWaiverBtnEn")) {
-      $("openWaiverBtnEn").disabled = false;
-    }
-
-    if ($("openWaiverBtnEs")) {
-      $("openWaiverBtnEs").disabled = false;
+    if ($("openWaiverBtn")) {
+      $("openWaiverBtn").disabled = false;
     }
 
     console.log("[intake-athlete] submitted:", tokenId, intake);
