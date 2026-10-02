@@ -60,6 +60,12 @@ const recordPrepaidCashCall =
     "recordProposalPrepaidCash"
   );
 
+const createAutopaySetupCall =
+  httpsCallable(
+    functions,
+    "createProposalAutopaySetup"
+  );
+
 const clean = (value) =>
   String(value ?? "").trim();
 
@@ -700,6 +706,18 @@ function buildProposalItems(
             )
           ),
 
+        canSetupAutopay:
+          upper(
+            proposal.billingFollowUpStatus
+          ) ===
+            "AUTOPAY_SETUP_REQUIRED" &&
+          clean(
+            proposal.paymentMethod
+          ) === "cash_prepaid" &&
+          !clean(
+            proposal.stripeSubscriptionId
+          ),
+
         state:
           classification.state,
 
@@ -944,6 +962,19 @@ function render() {
                     data-cash-name="${esc(item.name)}"
                   >
                     Record prepaid cash
+                  </button>
+                `
+                : ""
+              }
+
+              ${item.canSetupAutopay
+                ? `
+                  <button
+                    class="billing-action billing-autopay-action"
+                    type="button"
+                    data-autopay-proposal-id="${esc(item.proposalId)}"
+                  >
+                    Create autopay setup link
                   </button>
                 `
                 : ""
@@ -1312,24 +1343,110 @@ function openCashDialog(
 
 billingQueue.addEventListener(
   "click",
-  (event) => {
-    const button =
+  async (event) => {
+    const cashButton =
       event.target.closest(
         "[data-cash-proposal-id]"
       );
 
-    if (!button) return;
+    if (cashButton) {
+      openCashDialog(
+        clean(
+          cashButton.dataset
+            .cashProposalId
+        ),
+        clean(
+          cashButton.dataset
+            .cashName
+        )
+      );
+      return;
+    }
 
-    openCashDialog(
+    const autopayButton =
+      event.target.closest(
+        "[data-autopay-proposal-id]"
+      );
+
+    if (!autopayButton) return;
+
+    const proposalId =
       clean(
-        button.dataset
-          .cashProposalId
-      ),
-      clean(
-        button.dataset
-          .cashName
-      )
-    );
+        autopayButton.dataset
+          .autopayProposalId
+      );
+
+    if (!proposalId) return;
+
+    const originalText =
+      autopayButton.textContent;
+
+    autopayButton.disabled = true;
+    autopayButton.textContent =
+      "Creating link…";
+
+    try {
+      const response =
+        await createAutopaySetupCall({
+          proposalId,
+        });
+
+      if (
+        response.data?.alreadyComplete ||
+        response.data?.reconciled ||
+        response.data?.status ===
+          "AUTOPAY_READY"
+      ) {
+        setStatus(
+          "Stripe autopay is already set up for this enrollment."
+        );
+        await loadBilling();
+        return;
+      }
+
+      const setupUrl =
+        clean(
+          response.data?.setupUrl
+        );
+
+      if (!setupUrl) {
+        throw new Error(
+          "Stripe did not return an autopay setup link."
+        );
+      }
+
+      try {
+        await navigator.clipboard.writeText(
+          setupUrl
+        );
+      } catch {
+        // The prompt below remains the reliable handoff.
+      }
+
+      window.prompt(
+        "Autopay setup link (copied when browser permission allows):",
+        setupUrl
+      );
+
+      setStatus(
+        "Autopay setup link is ready. No charge is made when the family saves their card."
+      );
+    } catch (error) {
+      console.error(
+        "[billing] autopay setup failed:",
+        error
+      );
+
+      setStatus(
+        error?.message ||
+          "Unable to create the Stripe autopay setup link.",
+        true
+      );
+    } finally {
+      autopayButton.disabled = false;
+      autopayButton.textContent =
+        originalText;
+    }
   }
 );
 
