@@ -222,6 +222,22 @@ function classifyProposal(
     return null;
   }
 
+  const billingFollowUpStatus =
+    upper(
+      proposal.billingFollowUpStatus
+    );
+
+  if (
+    billingFollowUpStatus ===
+    "AUTOPAY_SETUP_REQUIRED"
+  ) {
+    return {
+      view: "NEEDS_ACTION",
+      state: "Cash Prepaid",
+      next: "Set up Stripe autopay"
+    };
+  }
+
   if (status === "VOID") {
     return {
       view: "CLOSED",
@@ -665,8 +681,24 @@ function buildProposalItems(
         proposalId,
 
         canRecordPrepaidCash:
-          upper(proposal.status) ===
-          "READY_FOR_CHECKOUT",
+          (
+            upper(proposal.status) ===
+            "READY_FOR_CHECKOUT"
+          ) ||
+          (
+            upper(proposal.status) ===
+            "PAID" &&
+            !proposal.cashPrepayment &&
+            ![
+              proposal.stripePaymentIntentId,
+              proposal.stripeCheckoutSessionId,
+              proposal.pendingCheckoutSessionId,
+              proposal.stripeSubscriptionId
+            ].some(
+              (value) =>
+                Boolean(clean(value))
+            )
+          ),
 
         state:
           classification.state,
