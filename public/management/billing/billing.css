@@ -411,3 +411,18 @@
     width: 100%;
   }
 }
+
+
+.billing-autopay-action {
+  appearance: none;
+  background:
+    var(--management-success-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.billing-autopay-action:hover,
+.billing-autopay-action:focus-visible {
+  border-color:
+    var(--management-success);
+}
