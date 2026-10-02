@@ -120,12 +120,22 @@ export const getEnrollmentIntakeHandoffStatus =
       );
 
     const sentByTokenId =
-      new Map(
-        sentEvents.map((entry) => [
-          clean(entry.data.intakeTokenId),
-          entry.data,
-        ])
-      );
+      new Map<string, Record<string, any>>();
+
+    for (const entry of sentEvents) {
+      const tokenId =
+        clean(entry.data.intakeTokenId);
+
+      if (
+        tokenId &&
+        !sentByTokenId.has(tokenId)
+      ) {
+        sentByTokenId.set(
+          tokenId,
+          entry.data
+        );
+      }
+    }
 
     const tokenSnapshot =
       await db
