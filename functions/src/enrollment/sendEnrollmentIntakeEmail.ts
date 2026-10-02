@@ -146,12 +146,18 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
-      const exp = Number(token.exp || 0);
+      const existingExp = Number(token.exp || 0);
+      const alreadySent =
+        clean(token.deliveryStatus).toUpperCase() === "SENT";
 
-      if (exp && exp < Date.now()) {
+      if (
+        alreadySent &&
+        existingExp &&
+        existingExp < Date.now()
+      ) {
         throw new functions.https.HttpsError(
           "failed-precondition",
-          "This intake link has expired. Create a new handoff."
+          "This sent intake link has expired. Create a new handoff."
         );
       }
 
@@ -231,7 +237,7 @@ export const sendEnrollmentIntakeEmail =
         "",
         `Please continue the enrollment for ${athleteName} by completing and submitting the secure Sandman intake form below.`,
         "",
-        `This intake is assigned to the ${audienceText} and the secure link is valid for 48 hours from creation.`,
+        `This intake is assigned to the ${audienceText} and the secure link is valid for 48 hours from delivery.`,
         "",
         url,
         "",
@@ -258,7 +264,7 @@ export const sendEnrollmentIntakeEmail =
           Please continue the enrollment for <strong>${escapeHtml(athleteName)}</strong> by completing and submitting the secure Sandman intake form.
         </p>
         <p style="font-size:14px;line-height:1.6;color:#52525b;">
-          This intake is assigned to the ${escapeHtml(audienceText)}. The secure link is valid for 48 hours from creation.
+          This intake is assigned to the ${escapeHtml(audienceText)}. The secure link is valid for 48 hours from delivery.
         </p>
         <div style="margin:28px 0;text-align:center;">
           <a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 22px;background:#facc15;color:#050505;border-radius:10px;font-size:16px;font-weight:850;text-decoration:none;">
@@ -300,9 +306,17 @@ export const sendEnrollmentIntakeEmail =
       const resendEmailId =
         result.data?.id || "";
 
+      const deliveredAtMs = Date.now();
+      const exp =
+        deliveredAtMs + (48 * 60 * 60 * 1000);
+
       await tokenRef.set(
         {
           deliveryStatus: "SENT",
+          deliveryMethod: "email",
+          manualDelivery: false,
+          manualDeliveryNote: null,
+          exp,
           deliveredAt:
             FieldValue.serverTimestamp(),
           deliveredTo: recipient,
@@ -346,6 +360,7 @@ export const sendEnrollmentIntakeEmail =
         proposalId,
         intakeAudience,
         resendEmailId,
+        exp,
         url
       };
     });
