@@ -74,7 +74,7 @@ function renderIntakeLifecycle(intake = {}) {
   );
 }
 
-function applyActivatedCompletionView(uid) {
+function applyActivatedCompletionView(uid, intake = {}) {
   const corrections =
     $("reviewCorrectionsCard");
 
@@ -95,6 +95,15 @@ function applyActivatedCompletionView(uid) {
   const pageSubtitle =
     $("reviewPageSubtitle");
 
+  const nextStep =
+    $("activationNextStep");
+
+  const audience =
+    intakeAudienceFromRecord(intake);
+
+  const isAdult =
+    audience === "adult_athlete";
+
   if (pageTitle) {
     pageTitle.textContent =
       "Enrollment Complete";
@@ -102,7 +111,16 @@ function applyActivatedCompletionView(uid) {
 
   if (pageSubtitle) {
     pageSubtitle.textContent =
-      "The athlete is activated. The submitted intake remains available below as the enrollment record.";
+      isAdult
+        ? "The athlete is activated. Athlete first-time access is the next account step; Coach handles training and development from here."
+        : "The athlete is activated. Parent first-time access is the next account step; Coach handles training and development from here.";
+  }
+
+  if (nextStep) {
+    nextStep.textContent =
+      isAdult
+        ? "Enrollment activation is complete. Issue Athlete first-time access from Recently Activated when the athlete is ready to register. Coach handles training, placement, development, and any athletic follow-up."
+        : "Enrollment activation is complete. Issue Parent first-time access from Recently Activated when the family is ready to register. Coach handles training, placement, development, and any athletic follow-up.";
   }
 
   document.body.classList.add(
@@ -462,6 +480,22 @@ function applyReviewModeUI() {
 }
 
 // ------------------------------------------------------
+// Intake role
+// ------------------------------------------------------
+function intakeAudienceFromRecord(s = {}) {
+  return (
+    s.intakeAudience ||
+    (
+      s.source === "intake-athlete-ui"
+        ? "adult_athlete"
+        : s.source === "intake-parent-ui"
+          ? "parent_guardian"
+          : null
+    )
+  );
+}
+
+// ------------------------------------------------------
 // Submitted intake record
 // ------------------------------------------------------
 function renderSubmittedIntakeRecord(s = {}) {
@@ -489,14 +523,7 @@ function renderSubmittedIntakeRecord(s = {}) {
     "—";
 
   const intakeAudience =
-    s.intakeAudience ||
-    (
-      s.source === "intake-athlete-ui"
-        ? "adult_athlete"
-        : s.source === "intake-parent-ui"
-          ? "parent_guardian"
-          : null
-    );
+    intakeAudienceFromRecord(s);
 
   const completedByLabel =
     intakeAudience === "adult_athlete"
@@ -596,7 +623,8 @@ async function loadSubmission() {
     const uid = s.approvedUid;
 
     applyActivatedCompletionView(
-      uid
+      uid,
+      s
     );
 
     if ($("c-uid")) $("c-uid").value = uid;
