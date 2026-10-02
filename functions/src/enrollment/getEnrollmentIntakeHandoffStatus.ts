@@ -124,7 +124,7 @@ export const getEnrollmentIntakeHandoffStatus =
         state: "none",
         proposalId,
         intakeAudience:
-          clean(token.intakeAudience).toLowerCase() === "adult_athlete"
+          requestedAudience === "adult_athlete"
             ? "adult_athlete"
             : "parent_guardian",
       };
