@@ -59,6 +59,24 @@ function millis(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function tokenFromInviteLink() {
+  const value =
+    String($("invite-link")?.value || "").trim();
+
+  if (!value) return "";
+
+  try {
+    const url =
+      new URL(value, location.origin);
+
+    return String(
+      url.searchParams.get("invite") || ""
+    ).trim();
+  } catch {
+    return "";
+  }
+}
+
 function inviteUrlForToken(tokenId, intakeAudience = "parent_guardian") {
   const route = intakeAudience === "adult_athlete"
     ? "/intake-athlete/"
@@ -118,7 +136,6 @@ function paintSubmittedHandoff(intakeId, intakeAudience) {
   if ($("invite-link")) $("invite-link").value = "";
 
   if ($("btn-send-intake-email")) {
-    $("btn-send-intake-email").disabled = true;
     $("btn-send-intake-email").textContent = "Send Intake Email";
   }
 
@@ -853,10 +870,23 @@ async function generateIntakeInvite(
 
 $("btn-send-intake-email")?.addEventListener("click", async () => {
   const button = $("btn-send-intake-email");
+  const tokenId =
+    currentHandoffTokenId ||
+    tokenFromInviteLink();
 
-  if (!currentHandoffTokenId || !button || button.disabled) {
+  if (!button) {
     return;
   }
+
+  if (!tokenId) {
+    if ($("invite-status")) {
+      $("invite-status").textContent =
+        "Select a paid enrollment first so Sandman can create or recover the secure intake link.";
+    }
+    return;
+  }
+
+  currentHandoffTokenId = tokenId;
 
   const originalLabel = button.textContent;
   button.disabled = true;
@@ -876,7 +906,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
 
     const response =
       await sendIntake({
-        tokenId: currentHandoffTokenId
+        tokenId
       });
 
     const recipient =
