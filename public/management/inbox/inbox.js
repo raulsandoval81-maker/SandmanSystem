@@ -65,6 +65,9 @@ const detailEmpty =
 const detailPanel =
   document.querySelector(".detail-panel");
 
+const inboxLayout =
+  document.querySelector(".inbox-layout");
+
 const messageDetail =
   document.getElementById("messageDetail");
 
@@ -568,25 +571,29 @@ function renderQueue() {
 
   messageQueue.appendChild(fragment);
 
-  if (
-    selectedMessage &&
-    detailPanel
-  ) {
-    const selectedWrapper =
-      Array.from(
-        messageQueue.querySelectorAll(
-          ".message-item-wrap"
-        )
-      ).find(
-        (item) =>
-          item.dataset.messageId ===
-          selectedMessage.id
-      );
+  if (detailPanel && inboxLayout) {
+    const compactLayout =
+      window.matchMedia("(max-width: 900px)").matches;
 
-    if (selectedWrapper) {
-      selectedWrapper.appendChild(
-        detailPanel
-      );
+    if (selectedMessage && compactLayout) {
+      const selectedWrapper =
+        Array.from(
+          messageQueue.querySelectorAll(
+            ".message-item-wrap"
+          )
+        ).find(
+          (item) =>
+            item.dataset.messageId ===
+            selectedMessage.id
+        );
+
+      if (selectedWrapper) {
+        selectedWrapper.appendChild(
+          detailPanel
+        );
+      }
+    } else {
+      inboxLayout.appendChild(detailPanel);
     }
   }
 }
@@ -1692,6 +1699,13 @@ messageSearch.addEventListener(
   "input",
   renderQueue
 );
+
+window
+  .matchMedia("(max-width: 900px)")
+  .addEventListener("change", () => {
+    renderQueue();
+    renderDetail();
+  });
 
 refreshButton.addEventListener(
   "click",
