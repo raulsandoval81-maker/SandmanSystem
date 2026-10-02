@@ -35,10 +35,10 @@ export const getAccessSetupStatus = onCall(async (req) => {
     ? req.data.athleteUids
     : [];
 
-  const athleteUids = [...new Set(
-    requested
+  const athleteUids: string[] = [...new Set<string>(
+    (requested as unknown[])
       .map((value: unknown) => clean(value).toUpperCase())
-      .filter(Boolean)
+      .filter((value): value is string => Boolean(value))
   )].slice(0, 10);
 
   if (!athleteUids.length) {
