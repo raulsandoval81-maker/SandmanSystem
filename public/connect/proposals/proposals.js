@@ -26,6 +26,9 @@ const appointmentId =
 
 let proposalId =
   params.get("proposalId") || "";
+
+const preparedEnrollmentTokens =
+  new Map();
   
 /* ==================================================
    Existing Appointment Context Elements
@@ -1168,6 +1171,11 @@ async function runProposalAction(button) {
           ? "email"
           : "local";
 
+      const preparedToken =
+        preparedEnrollmentTokens.get(
+          proposalId
+        ) || "";
+
       const response =
         await httpsCallable(
           functions,
@@ -1175,6 +1183,11 @@ async function runProposalAction(button) {
         )({
           proposalId,
           delivery,
+
+          existingEnrollmentToken:
+            delivery === "email"
+              ? preparedToken
+              : undefined,
         });
 
       const enrollmentPath =
@@ -1191,6 +1204,20 @@ async function runProposalAction(button) {
           enrollmentPath,
           window.location.origin
         ).href;
+
+      const issuedToken =
+        new URL(
+          enrollmentUrl
+        ).searchParams.get(
+          "token"
+        ) || "";
+
+      if (issuedToken) {
+        preparedEnrollmentTokens.set(
+          proposalId,
+          issuedToken
+        );
+      }
 
       if (
         action ===
