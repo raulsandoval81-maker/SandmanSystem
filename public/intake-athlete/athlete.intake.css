@@ -560,3 +560,70 @@ textarea::placeholder{
 
 /* === SANDMAN PARENT INTAKE END === */
 
+
+
+/* === Intake language selector === */
+.language-switcher{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  width:min(100%,320px);
+  margin:0 auto 24px;
+  padding:4px;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:999px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 10px 28px rgba(0,0,0,.20);
+}
+
+.language-btn{
+  min-height:40px;
+  padding:0 18px;
+  border:0;
+  border-radius:999px;
+  color:var(--sandman-muted);
+  background:transparent;
+  font:inherit;
+  font-size:.86rem;
+  font-weight:900;
+  letter-spacing:.02em;
+  cursor:pointer;
+  transition:
+    color .18s ease,
+    background .18s ease,
+    box-shadow .18s ease,
+    transform .12s ease;
+}
+
+.language-btn:hover{
+  color:#fff;
+}
+
+.language-btn.active{
+  color:#111;
+  background:
+    linear-gradient(
+      180deg,
+      var(--sandman-gold-2),
+      var(--sandman-gold)
+    );
+  box-shadow:
+    0 5px 14px rgba(250,204,21,.20),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+.language-btn:focus-visible{
+  outline:2px solid var(--sandman-gold);
+  outline-offset:2px;
+}
+
+.waiver-lang-row{
+  grid-template-columns:1fr;
+}
+
+@media (max-width:480px){
+  .language-switcher{
+    width:100%;
+  }
+}
