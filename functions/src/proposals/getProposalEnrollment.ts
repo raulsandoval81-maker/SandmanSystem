@@ -123,11 +123,11 @@ export const getProposalEnrollment =
     const enrollmentStatus =
       status === "PAID"
         ? "PAID"
-        : status === "CHECKOUT_CREATED"
-          ? "PAYMENT_PENDING"
-          : agreementAccepted
-            ? "READY_FOR_PAYMENT"
-            : "READY_FOR_ENROLLMENT";
+        : !agreementAccepted
+          ? "AGREEMENT_IN_PROGRESS"
+          : status === "CHECKOUT_CREATED"
+            ? "PAYMENT_PENDING"
+            : "READY_FOR_PAYMENT";
 
     return {
       ok: true,
