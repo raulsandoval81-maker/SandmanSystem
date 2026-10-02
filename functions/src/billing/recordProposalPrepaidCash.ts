@@ -142,15 +142,50 @@ export const recordProposalPrepaidCash =
                 proposal.status
               ).toUpperCase();
 
+            const hasStripePayment =
+              [
+                proposal.stripePaymentIntentId,
+                proposal.stripeCheckoutSessionId,
+                proposal.pendingCheckoutSessionId,
+                proposal.stripeSubscriptionId,
+              ].some(
+                (value) =>
+                  Boolean(
+                    cleanString(value)
+                  )
+              );
+
+            const isCheckoutReady =
+              currentStatus ===
+              "READY_FOR_CHECKOUT";
+
+            const isLegacyPaidWithoutStripe =
+              currentStatus === "PAID" &&
+              !hasStripePayment;
+
             if (
-              currentStatus !==
-              "READY_FOR_CHECKOUT"
+              !isCheckoutReady &&
+              !isLegacyPaidWithoutStripe
             ) {
               throw new HttpsError(
                 "failed-precondition",
-                "Prepaid cash may only be recorded before Stripe checkout begins."
+                currentStatus === "PAID"
+                  ? "This proposal already has Stripe payment activity and cannot be changed to prepaid cash."
+                  : "Prepaid cash may only be recorded before Stripe checkout begins or on a paid proposal with no Stripe payment attached."
               );
             }
+
+            if (proposal.cashPrepayment) {
+              throw new HttpsError(
+                "already-exists",
+                "Prepaid cash has already been recorded for this proposal."
+              );
+            }
+
+            const nextStatus =
+              isCheckoutReady
+                ? "CASH_PREPAID_AUTOPAY_REQUIRED"
+                : "PAID";
 
             const historyRef =
               proposalRef
@@ -161,7 +196,10 @@ export const recordProposalPrepaidCash =
               proposalRef,
               {
                 status:
-                  "CASH_PREPAID_AUTOPAY_REQUIRED",
+                  nextStatus,
+
+                billingFollowUpStatus:
+                  "AUTOPAY_SETUP_REQUIRED",
 
                 paymentMethod:
                   "cash_prepaid",
@@ -202,10 +240,10 @@ export const recordProposalPrepaidCash =
                   "CASH_PREPAYMENT_RECORDED",
 
                 fromStatus:
-                  "READY_FOR_CHECKOUT",
+                  currentStatus,
 
                 toStatus:
-                  "CASH_PREPAID_AUTOPAY_REQUIRED",
+                  nextStatus,
 
                 amountCents,
                 monthsCovered,
@@ -227,7 +265,7 @@ export const recordProposalPrepaidCash =
             return {
               proposalId,
               status:
-                "CASH_PREPAID_AUTOPAY_REQUIRED",
+                nextStatus,
               amountCents,
               monthsCovered,
               enrollmentFeePaid,
