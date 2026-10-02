@@ -230,6 +230,10 @@ async function resolveExistingEnrollmentHandoff(
         state: "active",
         tokenId,
         intakeAudience: audience,
+        deliveryStatus: String(token.deliveryStatus || "").trim().toUpperCase(),
+        deliveredAt: token.deliveredAt || null,
+        deliveredTo: String(token.deliveredTo || "").trim(),
+        exp,
       };
       handoffCache.set(key, result);
       return result;
@@ -372,6 +376,87 @@ function intakeAudienceForProposal(proposal = {}, athletes = []) {
   return age >= 18 ? "adult_athlete" : "parent_guardian";
 }
 
+function formatDateTime(value) {
+  const ms = millis(value);
+  if (!ms) return "—";
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(ms));
+}
+
+function renderAwaitingIntakeCard({ proposal, handoff }) {
+  const proposalId = proposal.proposalId || proposal.id;
+  const locationId = String(proposal.locationId || "").trim();
+  const athletes = Array.isArray(
+    proposal.lockedSnapshot?.athletes
+  )
+    ? proposal.lockedSnapshot.athletes
+    : Array.isArray(proposal.athletes)
+      ? proposal.athletes
+      : [];
+
+  const athleteNames = athletes
+    .map((athlete) =>
+      String(
+        athlete?.name ||
+        athlete?.fullName ||
+        athlete?.athleteName ||
+        [athlete?.first, athlete?.last].filter(Boolean).join(" ") ||
+        ""
+      ).trim()
+    )
+    .filter(Boolean);
+
+  const sentAt = formatDateTime(handoff?.deliveredAt);
+  const expiresAt = handoff?.exp
+    ? formatDateTime(Number(handoff.exp))
+    : "—";
+  const recipient = String(handoff?.deliveredTo || "").trim();
+  const audienceLabel = handoff?.intakeAudience === "adult_athlete"
+    ? "Adult Athlete"
+    : "Parent / Guardian";
+
+  return `
+    <div class="pending-card awaiting-intake-card" data-awaiting-proposal="${esc(proposalId)}">
+      <div class="pending-card-head">
+        <div>
+          <div class="pending-card-name">${esc(paidProposalName(proposal))}</div>
+          <div class="pending-card-meta">Awaiting Intake · ${esc(locationId)}</div>
+          ${athleteNames.length
+            ? `<div class="pending-card-meta small">${esc(athleteNames.join(" · "))}</div>`
+            : ""}
+          <div class="pending-card-meta small">
+            ${esc(audienceLabel)} · Sent ${esc(sentAt)}
+          </div>
+          ${recipient
+            ? `<div class="pending-card-meta small">${esc(recipient)}</div>`
+            : ""}
+          <div class="pending-card-meta small">Link expires ${esc(expiresAt)}</div>
+          <div class="pending-card-id">${esc(proposalId)}</div>
+        </div>
+      </div>
+      <div class="pending-card-actions">
+        <button
+          class="small solid-blue"
+          data-awaiting-resend="${esc(proposalId)}"
+        >
+          Resend Intake Email
+        </button>
+        <button
+          class="small outline-blue"
+          data-awaiting-open="${esc(proposalId)}"
+        >
+          Open Handoff
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function renderReadyIntakeCard(proposal) {
   const proposalId = proposal.proposalId || proposal.id;
   const locationId = String(proposal.locationId || "").trim();
@@ -439,6 +524,7 @@ function renderReadyIntakeCard(proposal) {
 }
 
 let readyProposalMap = new Map();
+let awaitingProposalMap = new Map();
 
 function orientRequestedProposal() {
   if (!requestedProposalId) return;
@@ -485,6 +571,55 @@ function orientRequestedProposal() {
     card.focus({ preventScroll: true });
     card.scrollIntoView({ behavior: "smooth", block: "center" });
   }
+}
+
+function wireAwaitingIntakeButtons() {
+  document.querySelectorAll("[data-awaiting-open]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = awaitingProposalMap.get(button.dataset.awaitingOpen);
+      if (!item || button.disabled) return;
+
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = "Opening…";
+
+      try {
+        await generateIntakeInvite(
+          item.handoff.intakeAudience,
+          item.proposal
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-awaiting-resend]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = awaitingProposalMap.get(button.dataset.awaitingResend);
+      if (!item || button.disabled) return;
+
+      button.disabled = true;
+      const original = button.textContent;
+      button.textContent = "Sending…";
+
+      try {
+        await generateIntakeInvite(
+          item.handoff.intakeAudience,
+          item.proposal
+        );
+
+        const sendButton = $("btn-send-intake-email");
+        if (sendButton) {
+          sendButton.click();
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
+  });
 }
 
 function wireReadyIntakeButtons() {
@@ -595,15 +730,66 @@ async function loadReadyForIntake(managementContext) {
           const intakeSnapshot =
             await getDocs(intakeQuery);
 
-          return intakeSnapshot.empty
-            ? proposal
-            : null;
+          if (!intakeSnapshot.empty) {
+            return null;
+          }
+
+          const athletes = Array.isArray(
+            proposal.lockedSnapshot?.athletes
+          )
+            ? proposal.lockedSnapshot.athletes
+            : Array.isArray(proposal.athletes)
+              ? proposal.athletes
+              : [];
+
+          const intakeAudience =
+            intakeAudienceForProposal(proposal, athletes);
+
+          if (!intakeAudience) {
+            return {
+              state: "ready",
+              proposal,
+              handoff: null,
+            };
+          }
+
+          const handoff =
+            await resolveExistingEnrollmentHandoff(
+              proposalId,
+              intakeAudience
+            );
+
+          if (
+            handoff?.state === "active" &&
+            handoff.deliveryStatus === "SENT"
+          ) {
+            return {
+              state: "awaiting",
+              proposal,
+              handoff,
+            };
+          }
+
+          return {
+            state: "ready",
+            proposal,
+            handoff,
+          };
         }
       )
     );
 
-  const proposals =
+  const queueItems =
     readinessChecks.filter(Boolean);
+
+  const readyItems =
+    queueItems.filter((item) => item.state === "ready");
+
+  const awaitingItems =
+    queueItems.filter((item) => item.state === "awaiting");
+
+  const proposals =
+    readyItems.map((item) => item.proposal);
 
   readyProposalMap =
     new Map(
@@ -616,13 +802,38 @@ async function loadReadyForIntake(managementContext) {
       ])
     );
 
+  awaitingProposalMap =
+    new Map(
+      awaitingItems.map((item) => [
+        String(
+          item.proposal.proposalId ||
+          item.proposal.id
+        ),
+        item
+      ])
+    );
+
   if (count) count.textContent = `${proposals.length} Ready`;
 
   box.innerHTML = proposals.length
     ? `<div class="pending-list">${proposals.map(renderReadyIntakeCard).join("")}</div>`
-    : `<div class="muted small">No paid enrollments are waiting for intake.</div>`;
+    : `<div class="muted small">No paid enrollments are waiting for their first intake send.</div>`;
+
+  const awaitingBox = $("awaiting-intake-list");
+  const awaitingCount = $("awaiting-intake-count");
+
+  if (awaitingCount) {
+    awaitingCount.textContent = `${awaitingItems.length} Awaiting`;
+  }
+
+  if (awaitingBox) {
+    awaitingBox.innerHTML = awaitingItems.length
+      ? `<div class="pending-list">${awaitingItems.map(renderAwaitingIntakeCard).join("")}</div>`
+      : `<div class="muted small">No sent intake invitations are awaiting submission.</div>`;
+  }
 
   wireReadyIntakeButtons();
+  wireAwaitingIntakeButtons();
   orientRequestedProposal();
 }
 
@@ -917,12 +1128,42 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
     if ($("invite-status")) {
       $("invite-status").textContent =
         recipient
-          ? `✓ Intake email sent to ${recipient}.`
-          : "✓ Intake email sent.";
+          ? `✓ Intake email sent to ${recipient}. Enrollment is now Awaiting Intake.`
+          : "✓ Intake email sent. Enrollment is now Awaiting Intake.";
+    }
+
+    const proposalId = String(
+      response?.data?.proposalId || ""
+    ).trim();
+
+    const intakeAudience = String(
+      response?.data?.intakeAudience ||
+      currentHandoffAudience ||
+      ""
+    ).trim();
+
+    if (proposalId && intakeAudience) {
+      handoffCache.set(
+        handoffKey(proposalId, intakeAudience),
+        {
+          state: "active",
+          tokenId,
+          intakeAudience,
+          deliveryStatus: "SENT",
+          deliveredAt: Date.now(),
+          deliveredTo: recipient,
+          exp: Date.now() + INVITE_HOURS * 60 * 60 * 1000,
+        }
+      );
     }
 
     button.textContent =
       "Resend Intake Email";
+
+    const managementContext =
+      await requireManagement();
+
+    await loadReadyForIntake(managementContext);
   } catch (err) {
     console.error(
       "[management-enrollment] intake email failed:",
