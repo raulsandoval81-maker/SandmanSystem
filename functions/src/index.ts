@@ -295,6 +295,18 @@ export {
 } from "./proposals/recordManualProposalSignature";
 
 export {
+  issueProposalEnrollmentHandoff,
+} from "./proposals/issueProposalEnrollmentHandoff";
+
+export {
+  getProposalEnrollment,
+} from "./proposals/getProposalEnrollment";
+
+export {
+  saveProposalEnrollmentAgreement,
+} from "./proposals/saveProposalEnrollmentAgreement";
+
+export {
   requestProposalClientChanges,
 } from "./proposals/requestProposalClientChanges";
 
