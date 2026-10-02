@@ -102,16 +102,6 @@ export const recordManualEnrollmentIntakeDelivery =
 
     const token = tokenSnap.data() || {};
 
-    if (
-      clean(token.source).toLowerCase() !== "management_enrollment" ||
-      clean(token.mode || "new_athlete").toLowerCase() !== "new_athlete"
-    ) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "This is not a Management enrollment intake handoff."
-      );
-    }
-
     if (token.used === true) {
       throw new functions.https.HttpsError(
         "failed-precondition",
@@ -148,6 +138,41 @@ export const recordManualEnrollmentIntakeDelivery =
     }
 
     const proposal = proposalSnap.data() || {};
+
+    const currentWorkflow =
+      clean(token.source).toLowerCase() === "management_enrollment" &&
+      clean(token.mode || "new_athlete").toLowerCase() === "new_athlete";
+
+    let legacyEnrollmentHandoff = false;
+
+    if (!currentWorkflow) {
+      const historySnapshot =
+        await db
+          .collection(`proposals/${proposalId}/history`)
+          .get();
+
+      legacyEnrollmentHandoff =
+        historySnapshot.docs.some((snap) => {
+          const event = snap.data() || {};
+          return (
+            clean(event.intakeTokenId) === tokenId &&
+            [
+              "INTAKE_INVITE_CREATED",
+              "INTAKE_INVITE_SENT",
+              "INTAKE_INVITE_MANUALLY_SENT"
+            ].includes(
+              clean(event.event).toUpperCase()
+            )
+          );
+        });
+    }
+
+    if (!currentWorkflow && !legacyEnrollmentHandoff) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "This is not a verified Management enrollment intake handoff."
+      );
+    }
 
     requireStaffLocation(
       actor,
