@@ -517,9 +517,7 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
       ? "Text"
       : deliveryMethod === "in_person"
         ? "In Person"
-        : deliveryMethod === "other"
-          ? "Other"
-          : "Email";
+        : "Email";
 
   const manualNote = String(
     handoff?.manualDeliveryNote || ""
@@ -1368,9 +1366,7 @@ $("btn-mark-intake-sent")?.addEventListener("click", async () => {
     const label =
       method === "text"
         ? "Text"
-        : method === "in_person"
-          ? "In-person"
-          : "Manual";
+        : "In Person";
 
     if ($("invite-status")) {
       $("invite-status").textContent =
