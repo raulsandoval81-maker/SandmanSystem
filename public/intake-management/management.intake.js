@@ -1066,6 +1066,10 @@ async function generateIntakeInvite(
       state: "active",
       tokenId: newTokenId,
       intakeAudience: normalizedAudience,
+      deliveryStatus: "",
+      deliveredAt: null,
+      deliveredTo: "",
+      exp,
     };
     handoffCache.set(handoffKey(proposalId, normalizedAudience), cached);
 
@@ -1143,8 +1147,14 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
     ).trim();
 
     if (proposalId && intakeAudience) {
+      const key =
+        handoffKey(proposalId, intakeAudience);
+
+      const priorHandoff =
+        handoffCache.get(key);
+
       handoffCache.set(
-        handoffKey(proposalId, intakeAudience),
+        key,
         {
           state: "active",
           tokenId,
@@ -1152,7 +1162,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
           deliveryStatus: "SENT",
           deliveredAt: Date.now(),
           deliveredTo: recipient,
-          exp: Date.now() + INVITE_HOURS * 60 * 60 * 1000,
+          exp: Number(priorHandoff?.exp || 0),
         }
       );
     }
