@@ -33,6 +33,14 @@ type StaffContext = {
 type AssessmentCase = {
   intakeId: string | null;
   proposalId: string | null;
+  connectLeadId: string | null;
+  claimedExperience: {
+    priorExperience: string | null;
+    range: string | null;
+    notes: string | null;
+    discipline: string | null;
+    source: string | null;
+  };
 };
 
 function clean(value: unknown): string {
@@ -194,13 +202,60 @@ async function resolveAssessmentCase(
   if (!approved) {
     return {
       intakeId: null,
-      proposalId: null
+      proposalId: null,
+      connectLeadId: null,
+      claimedExperience: {
+        priorExperience: null,
+        range: null,
+        notes: null,
+        discipline: null,
+        source: null
+      }
     };
+  }
+
+  const connectLeadId =
+    clean(approved.data.connectLeadId) || null;
+
+  let claimedExperience = {
+    priorExperience: null as string | null,
+    range: null as string | null,
+    notes: null as string | null,
+    discipline: null as string | null,
+    source: null as string | null
+  };
+
+  if (connectLeadId) {
+    const leadSnap =
+      await db.doc(`interest_leads/${connectLeadId}`).get();
+
+    if (leadSnap.exists) {
+      const lead = leadSnap.data() || {};
+
+      claimedExperience = {
+        priorExperience:
+          clean(lead.claimedPriorExperience).toLowerCase() || null,
+        range:
+          clean(lead.claimedExperienceRange).toLowerCase() || null,
+        notes:
+          clean(lead.claimedExperienceNotes) || null,
+        discipline:
+          clean(
+            lead.preferredDiscipline ||
+            lead.discipline ||
+            approved.data.requestedDiscipline ||
+            approved.data.discipline
+          ).toLowerCase() || null,
+        source: "interest_lead"
+      };
+    }
   }
 
   return {
     intakeId: approved.id,
-    proposalId: clean(approved.data.proposalId) || null
+    proposalId: clean(approved.data.proposalId) || null,
+    connectLeadId,
+    claimedExperience
   };
 }
 
@@ -304,6 +359,8 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
         {
           proposalId: assessmentCase.proposalId,
           intakeId: assessmentCase.intakeId,
+          connectLeadId: assessmentCase.connectLeadId,
+          claimedExperience: assessmentCase.claimedExperience,
           caseLinkedAt: FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp()
         },
@@ -337,6 +394,8 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     // existing-athlete assessments that have no enrollment case.
     proposalId: assessmentCase.proposalId,
     intakeId: assessmentCase.intakeId,
+    connectLeadId: assessmentCase.connectLeadId,
+    claimedExperience: assessmentCase.claimedExperience,
     caseLinkedAt: assessmentCase.proposalId ? now : null,
 
     disciplineId: canonicalDiscipline,
