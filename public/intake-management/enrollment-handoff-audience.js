@@ -168,9 +168,6 @@ async function resolveLead(proposal = {}) {
 }
 
 async function inferAudienceWithLead(proposal = {}) {
-  const direct = inferAudience(proposal);
-  if (direct !== "unknown") return direct;
-
   try {
     const { lead, appointment } = await resolveLead(proposal);
 
@@ -234,6 +231,11 @@ async function inferAudienceWithLead(proposal = {}) {
       return age >= 18 ? "adult_athlete" : "parent_guardian";
     }
 
+    const direct = inferAudience(proposal);
+    if (direct !== "unknown") {
+      return direct;
+    }
+
     const athlete = proposalAthlete(proposal);
     const prospect = proposalProspect(proposal);
     const enrollmentType = normalizeRole(firstValue(
@@ -251,6 +253,11 @@ async function inferAudienceWithLead(proposal = {}) {
     }
   } catch (error) {
     console.warn("[enrollment-handoff-audience] lead lookup failed:", error);
+  }
+
+  const direct = inferAudience(proposal);
+  if (direct !== "unknown") {
+    return direct;
   }
 
   const athlete = proposalAthlete(proposal);
