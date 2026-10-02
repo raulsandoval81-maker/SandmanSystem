@@ -162,6 +162,11 @@ export {
   sendEnrollmentIntakeEmail,
 } from "./enrollment/sendEnrollmentIntakeEmail";
 
+export {
+  getEnrollmentIntakeHandoffStatus,
+} from "./enrollment/getEnrollmentIntakeHandoffStatus";
+
+
 /* =========================
    ONBOARDING
 ========================= */
