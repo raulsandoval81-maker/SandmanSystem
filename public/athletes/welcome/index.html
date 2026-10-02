@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Welcome to Sandman | Athlete</title>
+  <style>
+    :root{
+      --bg:#070707;
+      --panel:#111;
+      --panel-soft:#181818;
+      --text:#f5f5f5;
+      --muted:#aaa;
+      --line:rgba(255,255,255,.11);
+      --gold:#facc15;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top,rgba(250,204,21,.08),transparent 32rem),
+        var(--bg);
+      color:var(--text);
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    .topbar{
+      min-height:58px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-bottom:1px solid var(--line);
+      background:#050505;
+    }
+
+    .topbar span{
+      color:var(--gold);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .welcome-shell{
+      width:min(92%,900px);
+      margin:0 auto;
+      padding:42px 0 56px;
+    }
+
+    .welcome-card{
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:24px;
+      background:var(--panel);
+      box-shadow:0 24px 70px rgba(0,0,0,.35);
+    }
+
+    .welcome-hero{
+      padding:34px 30px 24px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .welcome-kicker{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+    }
+
+    .welcome-title{
+      margin:0;
+      font-size:clamp(2rem,6vw,3.6rem);
+      line-height:1;
+      letter-spacing:-.035em;
+    }
+
+    .welcome-intro{
+      max-width:720px;
+      margin:18px 0 0;
+      color:var(--muted);
+      font-size:1.04rem;
+      line-height:1.65;
+    }
+
+    .welcome-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      padding:24px 30px 8px;
+    }
+
+    .welcome-item{
+      padding:20px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel-soft);
+    }
+
+    .welcome-item strong{
+      display:block;
+      margin-bottom:7px;
+      font-size:1rem;
+    }
+
+    .welcome-item p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .welcome-action{
+      padding:24px 30px 30px;
+    }
+
+    .welcome-action a{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      width:100%;
+      border-radius:14px;
+      background:var(--gold);
+      color:#111;
+      font-weight:950;
+      text-decoration:none;
+    }
+
+    .welcome-note,
+    .welcome-status{
+      margin:12px 0 0;
+      color:var(--muted);
+      text-align:center;
+      font-size:.86rem;
+      line-height:1.45;
+    }
+
+    .welcome-status{
+      min-height:20px;
+    }
+
+    @media(max-width:680px){
+      .welcome-shell{
+        padding:24px 0 38px;
+      }
+
+      .welcome-hero,
+      .welcome-grid,
+      .welcome-action{
+        padding-left:20px;
+        padding-right:20px;
+      }
+
+      .welcome-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <span id="accessLabel">ATHLETE ACCESS</span>
+  </header>
+
+  <main class="welcome-shell">
+    <section class="welcome-card" aria-labelledby="welcomeTitle">
+      <div class="welcome-hero">
+        <p class="welcome-kicker" id="welcomeKicker">Welcome to Sandman</p>
+        <h1 class="welcome-title" id="welcomeTitle">Your account is ready.</h1>
+        <p class="welcome-intro" id="welcomeIntro">
+          Your Sandman Athlete account is connected. This is your first look at how your home base works.
+        </p>
+      </div>
+
+      <div class="welcome-grid">
+        <article class="welcome-item">
+          <strong id="item1Title">Your Home Base</strong>
+          <p id="item1Text">Your hub brings your training information together in one place.</p>
+        </article>
+
+        <article class="welcome-item">
+          <strong id="item2Title">Progress</strong>
+          <p id="item2Text">Follow your XP, rank, stripes, practice activity, and milestones.</p>
+        </article>
+
+        <article class="welcome-item">
+          <strong id="item3Title">Training</strong>
+          <p id="item3Text">Use Sandman to stay connected to your training, schedule, and development.</p>
+        </article>
+
+        <article class="welcome-item">
+          <strong id="item4Title">The Standard</strong>
+          <p id="item4Text">Combat, Strength, and Honor work together. Show up, do the work, and keep building.</p>
+        </article>
+      </div>
+
+      <div class="welcome-action">
+        <a id="enterHub" href="/athletes/hub/">Enter Athlete Hub</a>
+        <p class="welcome-note">
+          This orientation is for your first entry. On normal future visits, Sandman will take you back to your Athlete experience.
+        </p>
+        <p class="welcome-status" id="welcomeStatus" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/athletes/welcome/welcome.js"></script>
+</body>
+</html>
