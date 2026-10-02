@@ -113,12 +113,14 @@ export const saveProposalEnrollmentAgreement =
             .toUpperCase();
 
         if (
-          status !==
-          "READY_FOR_CHECKOUT"
+          ![
+            "READY_FOR_CHECKOUT",
+            "CHECKOUT_CREATED",
+          ].includes(status)
         ) {
           throw new HttpsError(
             "failed-precondition",
-            "Final enrollment verification must be completed before checkout begins."
+            "Final enrollment verification is not available for this proposal status."
           );
         }
 
@@ -186,9 +188,17 @@ export const saveProposalEnrollmentAgreement =
       enrollment: {
         proposalId,
         status:
-          "READY_FOR_PAYMENT",
+          clean(proposal.status)
+            .toUpperCase() ===
+            "CHECKOUT_CREATED"
+              ? "PAYMENT_PENDING"
+              : "READY_FOR_PAYMENT",
         paymentStatus:
-          "NOT_STARTED",
+          clean(proposal.status)
+            .toUpperCase() ===
+            "CHECKOUT_CREATED"
+              ? "PAYMENT_PENDING"
+              : "NOT_STARTED",
         paymentRequired:
           true,
 
