@@ -95,26 +95,91 @@ export const getEnrollmentIntakeHandoffStatus =
       };
     }
 
+    const historySnapshot =
+      await db
+        .collection(`proposals/${proposalId}/history`)
+        .get();
+
+    const sentEvents = historySnapshot.docs
+      .map((snap) => ({
+        id: snap.id,
+        data: snap.data() || {},
+      }))
+      .filter(({ data: event }) =>
+        clean(event.event).toUpperCase() === "INTAKE_INVITE_SENT" &&
+        clean(event.intakeTokenId)
+      )
+      .sort((a, b) =>
+        millis(b.data.occurredAt || b.data.createdAt) -
+        millis(a.data.occurredAt || a.data.createdAt)
+      );
+
+    const sentByTokenId =
+      new Map(
+        sentEvents.map((entry) => [
+          clean(entry.data.intakeTokenId),
+          entry.data,
+        ])
+      );
+
     const tokenSnapshot =
       await db
         .collection("intakeTokens")
         .where("proposalId", "==", proposalId)
         .get();
 
-    const tokens = tokenSnapshot.docs
-      .map((snap) => ({
+    const tokenEntries =
+      tokenSnapshot.docs.map((snap) => ({
         id: snap.id,
         data: snap.data() || {},
-      }))
-      .filter(({ data: token }) =>
-        clean(token.source).toLowerCase() === "management_enrollment" &&
-        clean(token.mode || "new_athlete").toLowerCase() === "new_athlete" &&
-        token.used !== true
-      )
-      .sort((a, b) =>
-        millis(b.data.updatedAt || b.data.createdAt) -
-        millis(a.data.updatedAt || a.data.createdAt)
-      );
+      }));
+
+    // Older enrollment tokens may predate the current source/mode fields.
+    // A matching INTAKE_INVITE_SENT history event is authoritative evidence
+    // that the token belongs to this Management enrollment workflow.
+    for (const sentEvent of sentEvents) {
+      const tokenId =
+        clean(sentEvent.data.intakeTokenId);
+
+      if (
+        tokenId &&
+        !tokenEntries.some((entry) => entry.id === tokenId)
+      ) {
+        const legacyTokenSnap =
+          await db.doc(`intakeTokens/${tokenId}`).get();
+
+        if (legacyTokenSnap.exists) {
+          tokenEntries.push({
+            id: legacyTokenSnap.id,
+            data: legacyTokenSnap.data() || {},
+          });
+        }
+      }
+    }
+
+    const tokens = tokenEntries
+      .filter(({ id, data: token }) => {
+        if (token.used === true) return false;
+
+        const currentWorkflow =
+          clean(token.source).toLowerCase() === "management_enrollment" &&
+          clean(token.mode || "new_athlete").toLowerCase() === "new_athlete";
+
+        return currentWorkflow || sentByTokenId.has(id);
+      })
+      .sort((a, b) => {
+        const aSent = sentByTokenId.has(a.id) ? 1 : 0;
+        const bSent = sentByTokenId.has(b.id) ? 1 : 0;
+
+        if (aSent !== bSent) {
+          return bSent - aSent;
+        }
+
+        return (
+          millis(b.data.updatedAt || b.data.createdAt) -
+          millis(a.data.updatedAt || a.data.createdAt)
+        );
+      });
 
     const tokenEntry = tokens[0];
 
@@ -131,6 +196,22 @@ export const getEnrollmentIntakeHandoffStatus =
     }
 
     const token = tokenEntry.data;
+    const sentEvent =
+      sentByTokenId.get(tokenEntry.id) || null;
+
+    const deliveryStatus =
+      clean(token.deliveryStatus).toUpperCase() ||
+      (sentEvent ? "SENT" : "");
+
+    const deliveredAt =
+      millis(token.deliveredAt) ||
+      millis(sentEvent?.occurredAt || sentEvent?.createdAt) ||
+      null;
+
+    const deliveredTo =
+      clean(token.deliveredTo) ||
+      clean(sentEvent?.recipient);
+
     const exp = Number(token.exp || 0);
 
     if (exp && exp <= Date.now()) {
@@ -144,9 +225,9 @@ export const getEnrollmentIntakeHandoffStatus =
             ? "adult_athlete"
             : "parent_guardian",
         exp,
-        deliveryStatus: clean(token.deliveryStatus).toUpperCase(),
-        deliveredAt: millis(token.deliveredAt) || null,
-        deliveredTo: clean(token.deliveredTo),
+        deliveryStatus,
+        deliveredAt,
+        deliveredTo,
       };
     }
 
@@ -160,8 +241,8 @@ export const getEnrollmentIntakeHandoffStatus =
           ? "adult_athlete"
           : "parent_guardian",
       exp,
-      deliveryStatus: clean(token.deliveryStatus).toUpperCase(),
-      deliveredAt: millis(token.deliveredAt) || null,
-      deliveredTo: clean(token.deliveredTo),
+      deliveryStatus,
+      deliveredAt,
+      deliveredTo,
     };
   });
