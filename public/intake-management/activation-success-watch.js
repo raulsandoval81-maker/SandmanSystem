@@ -158,10 +158,26 @@ function configureHandoffLinks(uid = "", intake = {}) {
 
   relabelModal(modal);
 
+  const intakeAudience =
+    String(
+      intake.intakeAudience ||
+      (
+        intake.source === "intake-athlete-ui"
+          ? "adult_athlete"
+          : intake.source === "intake-parent-ui"
+            ? "parent_guardian"
+            : ""
+      )
+    )
+      .trim()
+      .toLowerCase();
+
   if (modalTitle) modalTitle.textContent = "Athlete Activated";
   if (modalIntro) {
     modalIntro.textContent =
-      "Enrollment activation is complete. Issue Parent or Athlete first-time access only when that person is ready to register. After activation, everyone returns through the normal Login page.";
+      intakeAudience === "adult_athlete"
+        ? "Enrollment activation is complete. Athlete first-time access is the next account step. Coach handles training, placement, development, and athletic follow-up."
+        : "Enrollment activation is complete. Parent first-time access is the next account step. Coach handles training, placement, development, and athletic follow-up.";
   }
 
   if (approvedUidInput) approvedUidInput.value = approvedUid;
@@ -189,7 +205,10 @@ function configureHandoffLinks(uid = "", intake = {}) {
     parentInput.readOnly = true;
   }
 
-  if (copyUid) copyUid.onclick = () => navigator.clipboard.writeText(approvedUid);
+  if (copyUid && !copyUid.onclick) {
+    copyUid.onclick =
+      () => navigator.clipboard.writeText(approvedUid);
+  }
 
   if (copyAthlete) {
     copyAthlete.disabled = !athleteLink;
