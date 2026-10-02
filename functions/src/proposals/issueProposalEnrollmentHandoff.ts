@@ -88,26 +88,7 @@ export const issueProposalEnrollmentHandoff =
 
       let actorUid = "client";
 
-      if (req.auth) {
-        const access =
-          await requireProposalStaffAccess(
-            req.auth.uid
-          );
-
-        requireProposalLocationAccess(
-          access,
-          proposal.locationId
-        );
-
-        actorUid = req.auth.uid;
-      } else {
-        if (!clientReviewToken) {
-          throw new HttpsError(
-            "unauthenticated",
-            "A valid proposal review link or Management sign-in is required."
-          );
-        }
-
+      if (clientReviewToken) {
         const review =
           proposal.clientReview || {};
 
@@ -136,6 +117,23 @@ export const issueProposalEnrollmentHandoff =
             "Only Management may email a new enrollment verification link."
           );
         }
+      } else if (req.auth) {
+        const access =
+          await requireProposalStaffAccess(
+            req.auth.uid
+          );
+
+        requireProposalLocationAccess(
+          access,
+          proposal.locationId
+        );
+
+        actorUid = req.auth.uid;
+      } else {
+        throw new HttpsError(
+          "unauthenticated",
+          "A valid proposal review link or Management sign-in is required."
+        );
       }
 
       const status =
