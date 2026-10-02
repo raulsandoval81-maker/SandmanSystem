@@ -195,6 +195,11 @@ export {
   stripeBillingWebhook,
 } from "./billing/webhook";
 
+
+export {
+  recordProposalPrepaidCash,
+} from "./billing/recordProposalPrepaidCash";
+
 /* =========================
    PROPOSALS
 ========================= */
