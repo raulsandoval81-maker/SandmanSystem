@@ -213,8 +213,7 @@ function uidMessage(uid, intake = {}) {
 
 function wireActivatedUidActions(uid, intake = {}) {
   const {
-    email,
-    phone
+    email
   } = activatedContact(intake);
 
   const {
@@ -224,12 +223,6 @@ function wireActivatedUidActions(uid, intake = {}) {
 
   const emailButton =
     $("email-athlete-uid");
-
-  const textButton =
-    $("text-athlete-uid");
-
-  const copyButton =
-    $("copy-athlete-uid");
 
   const status =
     $("athlete-uid-action-status");
@@ -252,48 +245,11 @@ function wireActivatedUidActions(uid, intake = {}) {
         : null;
   }
 
-  if (textButton) {
-    textButton.disabled =
-      !phone;
-
-    textButton.title =
-      phone
-        ? `Text Athlete UID to ${phone}`
-        : "No phone number is attached to this intake";
-
-    textButton.onclick =
-      phone
-        ? () => {
-            location.href =
-              `sms:${encodeURIComponent(phone)}?&body=${encodeURIComponent(body)}`;
-          }
-        : null;
-  }
-
-  if (copyButton) {
-    copyButton.onclick =
-      async () => {
-        await navigator.clipboard.writeText(
-          uid
-        );
-
-        if (status) {
-          status.textContent =
-            `✓ Athlete UID ${uid} copied.`;
-        }
-      };
-  }
-
   if (status) {
-    const destinations = [
-      email ? `email: ${email}` : "",
-      phone ? `text: ${phone}` : ""
-    ].filter(Boolean);
-
     status.textContent =
-      destinations.length
-        ? `Ready to send via ${destinations.join(" · ")}.`
-        : "No email or phone is attached to this intake. Copy the UID if needed.";
+      email
+        ? `Ready to email the athlete UID to ${email}.`
+        : "No email is attached to this intake.";
   }
 }
 
