@@ -39,39 +39,71 @@
     };
   }
 
-  function requireEnrollmentToken() {
-    const { enrollmentToken } = getQueryParameters();
+  function requireEnrollmentContext() {
+    const {
+      enrollmentToken,
+      proposalId
+    } = getQueryParameters();
 
-    if (!enrollmentToken) {
-      throw new Error("A secure enrollment token is required.");
+    if (
+      !enrollmentToken ||
+      !proposalId
+    ) {
+      throw new Error(
+        "A complete secure enrollment verification link is required."
+      );
     }
 
-    return enrollmentToken;
+    return {
+      enrollmentToken,
+      proposalId
+    };
   }
 
   async function loadEnrollment() {
-    const enrollmentToken = requireEnrollmentToken();
+    const {
+      enrollmentToken,
+      proposalId
+    } = requireEnrollmentContext();
 
-    return callFunction("getEnrollmentByToken", {
-      enrollmentToken
-    });
+    return callFunction(
+      "getProposalEnrollment",
+      {
+        proposalId,
+        enrollmentToken
+      }
+    );
   }
 
   async function saveAgreement(agreement) {
-    const enrollmentToken = requireEnrollmentToken();
-
-    return callFunction("saveEnrollmentAgreement", {
+    const {
       enrollmentToken,
-      agreement
-    });
+      proposalId
+    } = requireEnrollmentContext();
+
+    return callFunction(
+      "saveProposalEnrollmentAgreement",
+      {
+        proposalId,
+        enrollmentToken,
+        agreement
+      }
+    );
   }
 
   async function createCheckout() {
-    const enrollmentToken = requireEnrollmentToken();
+    const {
+      enrollmentToken,
+      proposalId
+    } = requireEnrollmentContext();
 
-    return callFunction("createEnrollmentCheckout", {
-      enrollmentToken
-    });
+    return callFunction(
+      "createProposalCheckout",
+      {
+        proposalId,
+        enrollmentToken
+      }
+    );
   }
 
   async function verifyCheckoutReturn() {
@@ -95,7 +127,7 @@
   }
 
   async function confirmEnrollment() {
-    const enrollmentToken = requireEnrollmentToken();
+    const { enrollmentToken } = requireEnrollmentContext();
 
     return callFunction("confirmEnrollment", {
       enrollmentToken
@@ -103,7 +135,7 @@
   }
 
   async function createIntakeHandoff() {
-    const enrollmentToken = requireEnrollmentToken();
+    const { enrollmentToken } = requireEnrollmentContext();
 
     return callFunction("createEnrollmentIntakeHandoff", {
       enrollmentToken
