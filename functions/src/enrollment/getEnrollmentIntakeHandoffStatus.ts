@@ -106,7 +106,12 @@ export const getEnrollmentIntakeHandoffStatus =
         data: snap.data() || {},
       }))
       .filter(({ data: event }) =>
-        clean(event.event).toUpperCase() === "INTAKE_INVITE_SENT" &&
+        [
+          "INTAKE_INVITE_SENT",
+          "INTAKE_INVITE_MANUALLY_SENT"
+        ].includes(
+          clean(event.event).toUpperCase()
+        ) &&
         clean(event.intakeTokenId)
       )
       .sort((a, b) =>
@@ -212,6 +217,20 @@ export const getEnrollmentIntakeHandoffStatus =
       clean(token.deliveredTo) ||
       clean(sentEvent?.recipient);
 
+    const deliveryMethod =
+      clean(token.deliveryMethod).toLowerCase() ||
+      clean(sentEvent?.deliveryMethod).toLowerCase() ||
+      (sentEvent ? "email" : "");
+
+    const manualDelivery =
+      token.manualDelivery === true ||
+      clean(sentEvent?.event).toUpperCase() ===
+        "INTAKE_INVITE_MANUALLY_SENT";
+
+    const manualDeliveryNote =
+      clean(token.manualDeliveryNote) ||
+      clean(sentEvent?.note);
+
     const exp = Number(token.exp || 0);
 
     if (exp && exp <= Date.now()) {
@@ -226,6 +245,9 @@ export const getEnrollmentIntakeHandoffStatus =
             : "parent_guardian",
         exp,
         deliveryStatus,
+        deliveryMethod,
+        manualDelivery,
+        manualDeliveryNote,
         deliveredAt,
         deliveredTo,
       };
@@ -242,6 +264,9 @@ export const getEnrollmentIntakeHandoffStatus =
           : "parent_guardian",
       exp,
       deliveryStatus,
+      deliveryMethod,
+      manualDelivery,
+      manualDeliveryNote,
       deliveredAt,
       deliveredTo,
     };
