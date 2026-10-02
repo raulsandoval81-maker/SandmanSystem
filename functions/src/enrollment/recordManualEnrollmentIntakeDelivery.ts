@@ -109,12 +109,18 @@ export const recordManualEnrollmentIntakeDelivery =
       );
     }
 
-    const exp = Number(token.exp || 0);
+    const existingExp = Number(token.exp || 0);
+    const alreadySent =
+      clean(token.deliveryStatus).toUpperCase() === "SENT";
 
-    if (exp && exp <= Date.now()) {
+    if (
+      alreadySent &&
+      existingExp &&
+      existingExp <= Date.now()
+    ) {
       throw new functions.https.HttpsError(
         "failed-precondition",
-        "This intake link has expired. Create a new handoff before marking it sent."
+        "This sent intake link has expired. Create a new handoff before recording delivery again."
       );
     }
 
@@ -197,6 +203,10 @@ export const recordManualEnrollmentIntakeDelivery =
         ? clean(token.prefill?.phone)
         : "";
 
+    const deliveredAtMs = Date.now();
+    const exp =
+      deliveredAtMs + (48 * 60 * 60 * 1000);
+
     const now =
       FieldValue.serverTimestamp();
 
@@ -204,6 +214,7 @@ export const recordManualEnrollmentIntakeDelivery =
       {
         deliveryStatus: "SENT",
         deliveryMethod: method,
+        exp,
         deliveredAt: now,
         deliveredTo,
         deliveredByUid: context.auth.uid,
@@ -244,5 +255,6 @@ export const recordManualEnrollmentIntakeDelivery =
       deliveryMethod: method,
       deliveredTo,
       note,
+      exp,
     };
   });
