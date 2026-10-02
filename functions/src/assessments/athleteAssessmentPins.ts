@@ -351,17 +351,39 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     // Safe legacy backfill: an already-open assessment keeps the same pinId,
     // but receives authoritative case provenance when the current enrollment
     // can be resolved.
-    if (
-      assessmentCase.proposalId &&
-      !clean(activeData.proposalId)
-    ) {
+    const needsCaseBackfill =
+      Boolean(
+        assessmentCase.proposalId &&
+        !clean(activeData.proposalId)
+      );
+
+    const needsClaimBackfill =
+      Boolean(
+        assessmentCase.claimedExperience.source &&
+        (
+          !activeData.claimedExperience ||
+          typeof activeData.claimedExperience !== "object" ||
+          !clean(activeData.claimedExperience.source)
+        )
+      );
+
+    if (needsCaseBackfill || needsClaimBackfill) {
       await active.ref.set(
         {
-          proposalId: assessmentCase.proposalId,
-          intakeId: assessmentCase.intakeId,
-          connectLeadId: assessmentCase.connectLeadId,
-          claimedExperience: assessmentCase.claimedExperience,
-          caseLinkedAt: FieldValue.serverTimestamp(),
+          ...(needsCaseBackfill
+            ? {
+                proposalId: assessmentCase.proposalId,
+                intakeId: assessmentCase.intakeId,
+                connectLeadId: assessmentCase.connectLeadId,
+                caseLinkedAt: FieldValue.serverTimestamp()
+              }
+            : {}),
+          ...(needsClaimBackfill
+            ? {
+                connectLeadId: assessmentCase.connectLeadId,
+                claimedExperience: assessmentCase.claimedExperience
+              }
+            : {}),
           updatedAt: FieldValue.serverTimestamp()
         },
         { merge: true }
