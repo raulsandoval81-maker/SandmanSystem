@@ -134,6 +134,98 @@ function disciplinesFor(athlete = {}) {
     .filter(Boolean))];
 }
 
+function accessStatusLabel(status = "not_started") {
+  const labels = {
+    active: "Active",
+    sent: "Invitation Sent",
+    invitation_created: "Invitation Created",
+    not_started: "Not Activated",
+    not_applicable: "Not Applicable"
+  };
+
+  return labels[status] || "Not Activated";
+}
+
+function renderAccessSection({
+  role,
+  uid,
+  email,
+  status,
+  age,
+  adult
+}) {
+  if (role === "parent" && adult) {
+    return "";
+  }
+
+  const isAthlete =
+    role === "athlete";
+
+  const needsApproval =
+    isAthlete &&
+    (age === null || age < 14);
+
+  const title =
+    isAthlete
+      ? "Athlete Access"
+      : "Parent Access";
+
+  const sendLabel =
+    status === "not_started"
+      ? `Send ${isAthlete ? "Athlete" : "Parent"} First-Time Access`
+      : `Resend ${isAthlete ? "Athlete" : "Parent"} Access`;
+
+  return `
+    <section class="access-setup-section">
+      <div class="access-setup-head">
+        <div>
+          <strong>${title}</strong>
+          <span class="access-status" data-access-status="${esc(role)}">
+            ${esc(accessStatusLabel(status))}
+          </span>
+        </div>
+      </div>
+
+      <label class="access-email-label">
+        ${isAthlete ? "Athlete email" : "Approved Parent email"}
+        <input
+          type="email"
+          value="${esc(email || "")}"
+          data-access-email="${esc(role)}"
+          ${role === "parent" ? "readonly" : ""}
+          autocomplete="off"
+        >
+      </label>
+
+      ${needsApproval
+        ? `
+          <label class="access-approval">
+            <input
+              type="checkbox"
+              data-parent-approval="${esc(uid)}"
+            >
+            <span>
+              Parent / Guardian approval for direct Athlete access is recorded.
+            </span>
+          </label>
+        `
+        : ""}
+
+      <button
+        type="button"
+        class="small outline-blue"
+        data-send-access-role="${esc(role)}"
+        data-send-access-uid="${esc(uid)}"
+        data-access-age="${age === null ? "" : esc(age)}"
+      >
+        ${esc(sendLabel)}
+      </button>
+
+      <div class="small muted access-action-status" data-access-message="${esc(role)}"></div>
+    </section>
+  `;
+}
+
 function renderCard(athlete = {}) {
   const uid = athlete.uid || athlete.id;
   const name = athlete.publicName || athlete.fullName || uid;
@@ -141,30 +233,20 @@ function renderCard(athlete = {}) {
   const athleteEmail = String(
     athlete.athleteEmail || athlete.email || ""
   ).trim();
-  const role = String(
-    athlete.registrantRole || athlete.intakeAudience || ""
-  ).trim();
-  const accessMode = String(athlete.access?.mode || "")
-    .trim()
-    .toLowerCase();
   const authUid = String(athlete.authUid || "").trim();
   const adult = isAdultAthlete(athlete);
   const age = athleteAge(athlete);
   const disciplines = disciplinesFor(athlete);
 
-  const normalizedMode = String(
-    accessMode || (authUid ? "" : "parent_managed")
-  ).trim().toLowerCase();
+  const parentStatus =
+    adult
+      ? "not_applicable"
+      : athlete._parentAccessStatus || "not_started";
 
-  const athleteAccessAction = authUid
-    ? normalizedMode === "hybrid"
-      ? `<button class="small outline-blue" data-recent-self-managed-uid="${esc(uid)}">Transition to Self-Managed</button>`
-      : `<span class="pending-card-meta small">Direct Athlete access active${normalizedMode ? ` · ${esc(normalizedMode)}` : ""}</span>`
-    : `<button class="small outline-blue" data-recent-athlete-access-uid="${esc(uid)}" data-athlete-email="${esc(athleteEmail)}" data-adult-athlete="${adult ? "true" : "false"}">Approve Direct Athlete Access</button>`;
-
-  const parentAction = adult
-    ? `<span class="recent-adult-note">Adult athlete${age !== null ? ` · age ${esc(age)}` : ""} · Parent access not applicable</span>`
-    : `<button class="small outline-blue" data-recent-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail)}">Create Parent Access</button>`;
+  const athleteStatus =
+    authUid
+      ? "active"
+      : athlete._athleteAccessStatus || "not_started";
 
   return `
     <div class="pending-card recent-activated-card" data-recent-athlete="${esc(uid)}">
@@ -174,7 +256,7 @@ function renderCard(athlete = {}) {
           <div class="pending-card-meta">${esc(formatCityState(athlete.city, athlete.state))}</div>
           <div class="pending-card-id">${esc(uid)}</div>
           ${adult
-            ? ""
+            ? `<div class="pending-card-meta small">Adult athlete${age !== null ? ` · age ${esc(age)}` : ""}</div>`
             : parentEmail
               ? `<div class="pending-card-meta small">${esc(parentEmail)}</div>`
               : ""}
@@ -182,9 +264,42 @@ function renderCard(athlete = {}) {
       </div>
 
       <div class="pending-card-actions">
-        ${athleteAccessAction}
-        ${parentAction}
-        <button class="small solid-blue" data-recent-assessment-uid="${esc(uid)}" data-assessment-disciplines="${esc(JSON.stringify(disciplines))}">Send Coach Assessment</button>
+        <button
+          type="button"
+          class="small outline-blue"
+          data-access-toggle-uid="${esc(uid)}"
+          aria-expanded="false"
+        >
+          Access Setup
+        </button>
+
+        <button
+          class="small solid-blue"
+          data-recent-assessment-uid="${esc(uid)}"
+          data-assessment-disciplines="${esc(JSON.stringify(disciplines))}"
+        >
+          Send Coach Assessment
+        </button>
+      </div>
+
+      <div class="access-setup-panel" data-access-panel-uid="${esc(uid)}" hidden>
+        ${renderAccessSection({
+          role: "parent",
+          uid,
+          email: parentEmail,
+          status: parentStatus,
+          age,
+          adult
+        })}
+
+        ${renderAccessSection({
+          role: "athlete",
+          uid,
+          email: athleteEmail,
+          status: athleteStatus,
+          age,
+          adult
+        })}
       </div>
     </div>
   `;
@@ -243,6 +358,91 @@ function installStyles() {
       padding:0 10px 10px;
     }
 
+    body.management-enrollment-page .access-setup-panel{
+      margin-top:12px;
+      display:grid;
+      gap:12px;
+      padding:14px;
+      border:1px solid var(--management-border,#e3dac5);
+      border-radius:12px;
+      background:var(--management-surface-soft,#faf6ec);
+    }
+
+    body.management-enrollment-page .access-setup-panel[hidden]{
+      display:none;
+    }
+
+    body.management-enrollment-page .access-setup-section{
+      display:grid;
+      gap:10px;
+      padding:13px;
+      border:1px solid rgba(23,32,51,.12);
+      border-radius:10px;
+      background:#fff;
+    }
+
+    body.management-enrollment-page .access-setup-head{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+    }
+
+    body.management-enrollment-page .access-setup-head > div{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    body.management-enrollment-page .access-status{
+      display:inline-flex;
+      align-items:center;
+      min-height:25px;
+      padding:3px 8px;
+      border-radius:999px;
+      background:#eef1f4;
+      color:#475467;
+      font-size:.7rem;
+      font-weight:850;
+    }
+
+    body.management-enrollment-page .access-email-label{
+      display:grid;
+      gap:5px;
+      color:var(--management-muted,#667085);
+      font-size:.74rem;
+      font-weight:800;
+    }
+
+    body.management-enrollment-page .access-email-label input{
+      width:100%;
+      min-height:38px;
+      padding:8px 10px;
+      border:1px solid var(--management-border,#d7dce4);
+      border-radius:8px;
+      background:#fff;
+      color:var(--management-text,#172033);
+      font:inherit;
+    }
+
+    body.management-enrollment-page .access-approval{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      color:var(--management-text,#172033);
+      font-size:.77rem;
+      line-height:1.4;
+    }
+
+    body.management-enrollment-page .access-approval input{
+      margin-top:2px;
+    }
+
+    body.management-enrollment-page .access-action-status{
+      min-height:18px;
+    }
+
     body.management-enrollment-page .recent-adult-note{
       display:inline-flex;
       align-items:center;
@@ -290,7 +490,7 @@ async function loadRecentAthletes(managementContext) {
         )
       );
 
-  return snapshots
+  const athletes = snapshots
     .flatMap((snapshot) => snapshot.docs)
     .map((snapshot) => ({
       id: snapshot.id,
@@ -302,6 +502,129 @@ async function loadRecentAthletes(managementContext) {
         (a.createdAt?.toMillis?.() || 0)
     )
     .slice(0, RECENT_LIMIT);
+
+  const uids = athletes
+    .map((athlete) => String(athlete.uid || athlete.id || "").trim())
+    .filter(Boolean);
+
+  if (!uids.length) {
+    return athletes;
+  }
+
+  const [linkSnap, invitationSnap] = await Promise.all([
+    getDocs(
+      query(
+        collection(db, "parentAthleteLinks"),
+        where("athleteUid", "in", uids)
+      )
+    ),
+    getDocs(
+      query(
+        collection(db, "accessInvitations"),
+        where("athleteUid", "in", uids)
+      )
+    )
+  ]);
+
+  const linksByUid = new Map();
+  linkSnap.docs.forEach((docSnap) => {
+    const data = docSnap.data() || {};
+    const uid = String(data.athleteUid || "").trim();
+    if (!uid) return;
+
+    if (!linksByUid.has(uid)) {
+      linksByUid.set(uid, []);
+    }
+
+    linksByUid.get(uid).push({
+      id: docSnap.id,
+      ...data
+    });
+  });
+
+  const invitesByUid = new Map();
+  invitationSnap.docs.forEach((docSnap) => {
+    const data = docSnap.data() || {};
+    const uid = String(data.athleteUid || "").trim();
+    if (!uid) return;
+
+    if (!invitesByUid.has(uid)) {
+      invitesByUid.set(uid, []);
+    }
+
+    invitesByUid.get(uid).push({
+      id: docSnap.id,
+      ...data
+    });
+  });
+
+  function latestInvite(uid, role) {
+    return (invitesByUid.get(uid) || [])
+      .filter((invite) =>
+        String(invite.role || "").trim().toLowerCase() === role
+      )
+      .sort((a, b) => {
+        const am =
+          a.createdAt?.toMillis?.() ||
+          a.deliveredAt?.toMillis?.() ||
+          0;
+
+        const bm =
+          b.createdAt?.toMillis?.() ||
+          b.deliveredAt?.toMillis?.() ||
+          0;
+
+        return bm - am;
+      })[0] || null;
+  }
+
+  return athletes.map((athlete) => {
+    const uid = String(athlete.uid || athlete.id || "").trim();
+    const parentEmail =
+      String(athlete.parentEmail || "").trim().toLowerCase();
+
+    const parentLink =
+      (linksByUid.get(uid) || []).find((link) =>
+        String(link.parentEmail || "").trim().toLowerCase() === parentEmail &&
+        ["active", "pending"].includes(
+          String(link.status || "").trim().toLowerCase()
+        )
+      );
+
+    const parentInvite =
+      latestInvite(uid, "parent");
+
+    const athleteInvite =
+      latestInvite(uid, "athlete");
+
+    const parentStatus =
+      String(parentLink?.status || "").trim().toLowerCase() === "active"
+        ? "active"
+        : parentInvite?.used === true
+          ? "active"
+          : String(parentInvite?.deliveryStatus || "").trim().toUpperCase() === "SENT"
+            ? "sent"
+            : parentInvite
+              ? "invitation_created"
+              : "not_started";
+
+    const athleteStatus =
+      String(athlete.authUid || "").trim()
+        ? "active"
+        : athleteInvite?.used === true
+          ? "active"
+          : String(athleteInvite?.deliveryStatus || "").trim().toUpperCase() === "SENT"
+            ? "sent"
+            : athleteInvite
+              ? "invitation_created"
+              : "not_started";
+
+    return {
+      ...athlete,
+      _parentAccessStatus: parentStatus,
+      _athleteAccessStatus: athleteStatus
+    };
+  });
 }
 
 function renderRecentList(athletes) {
@@ -402,96 +725,175 @@ async function handleAssessment(button) {
   }
 }
 
-async function handleAthleteAccess(button) {
-  const uid = String(
-    button.dataset.recentAthleteAccessUid || ""
-  ).trim();
-  if (!uid) return;
+function accessPanelFor(button) {
+  return button.closest(".recent-activated-card")
+    ?.querySelector(".access-setup-panel");
+}
 
-  const originalLabel = button.textContent;
+async function sendAccess(button) {
+  const role =
+    String(button.dataset.sendAccessRole || "")
+      .trim()
+      .toLowerCase();
+
+  const uid =
+    String(button.dataset.sendAccessUid || "")
+      .trim();
+
+  if (!uid || !["parent", "athlete"].includes(role)) {
+    return;
+  }
+
+  const panel = accessPanelFor(button);
+
+  const emailInput =
+    panel?.querySelector(
+      `[data-access-email="${role}"]`
+    );
+
+  const email =
+    String(emailInput?.value || "")
+      .trim()
+      .toLowerCase();
+
+  const message =
+    panel?.querySelector(
+      `[data-access-message="${role}"]`
+    );
+
+  const status =
+    panel?.querySelector(
+      `[data-access-status="${role}"]`
+    );
+
+  if (!email || !email.includes("@")) {
+    window.alert(
+      `Enter a valid ${role === "parent" ? "Parent" : "Athlete"} email.`
+    );
+    return;
+  }
+
+  const ageRaw =
+    String(button.dataset.accessAge || "").trim();
+
+  const age =
+    ageRaw === ""
+      ? null
+      : Number(ageRaw);
+
+  let parentApproved =
+    false;
+
+  if (
+    role === "athlete" &&
+    (age === null || age < 14)
+  ) {
+    const approval =
+      panel?.querySelector(
+        `[data-parent-approval="${uid}"]`
+      );
+
+    if (!approval?.checked) {
+      window.alert(
+        "Record Parent / Guardian approval before issuing direct Athlete access for an athlete under 14."
+      );
+      return;
+    }
+
+    parentApproved = true;
+  }
+
+  const originalLabel =
+    button.textContent;
+
   button.disabled = true;
-  button.textContent = "Creating Access…";
+  button.textContent =
+    "Sending…";
+
+  if (message) {
+    message.textContent =
+      "Creating the one-time access shortcut…";
+  }
 
   try {
-    const approvedEmail = window.prompt(
-      "Confirm the approved Athlete login email:",
-      String(button.dataset.athleteEmail || "")
-        .trim()
-        .toLowerCase()
-    );
-
-    if (!approvedEmail) {
-      throw new Error("Athlete login email is required.");
-    }
-
-    const adult =
-      button.dataset.adultAthlete === "true";
-
-    const defaultMode = adult
-      ? "self_managed"
-      : "hybrid";
-
-    const accessMode = String(
-      window.prompt(
-        "Direct access mode: hybrid or self_managed",
-        defaultMode
-      ) || ""
-    ).trim().toLowerCase();
-
-    if (adult && accessMode !== "self_managed") {
-      throw new Error(
-        "Adult Athlete access must be self-managed."
+    const issue =
+      httpsCallable(
+        functions,
+        "issueAccessInvitation"
       );
-    }
 
-    const parentApproved = accessMode === "hybrid"
-      ? window.confirm(
-          "Confirm that Parent approval for hybrid Athlete access is recorded."
-        )
-      : false;
+    const issueResponse =
+      await issue({
+        role,
+        athleteUid: uid,
+        email,
+        ...(role === "athlete"
+          ? { parentApproved }
+          : {})
+      });
 
-    if (accessMode === "hybrid" && !parentApproved) {
-      throw new Error(
-        "Hybrid Athlete access requires recorded Parent approval."
-      );
-    }
-
-    const issue = httpsCallable(
-      functions,
-      "issueAccessInvitation"
-    );
-
-    const response = await issue({
-      role: "athlete",
-      athleteUid: uid,
-      email: approvedEmail,
-      accessMode,
-      parentApproved
-    });
-
-    const tokenId = String(
-      response?.data?.tokenId || ""
-    ).trim();
+    const tokenId =
+      String(
+        issueResponse?.data?.tokenId || ""
+      ).trim();
 
     if (!tokenId) {
-      throw new Error("Athlete access token was not returned.");
+      throw new Error(
+        "Access invitation token was not returned."
+      );
     }
 
-    const onboardingUrl =
-      `${location.origin}/access/first-time/?role=athlete` +
-      `&id=${encodeURIComponent(uid)}` +
-      `&token=${encodeURIComponent(tokenId)}` +
-      `&email=${encodeURIComponent(approvedEmail.trim().toLowerCase())}`;
+    if (message) {
+      message.textContent =
+        `Sending the one-time shortcut to ${email}…`;
+    }
 
-    window.open(onboardingUrl, "_blank", "noopener");
+    const deliver =
+      httpsCallable(
+        functions,
+        "sendAccessInvitationEmail"
+      );
+
+    await deliver({
+      role,
+      athleteUid: uid,
+      email,
+      tokenId
+    });
+
+    if (status) {
+      status.textContent =
+        "Invitation Sent";
+    }
+
+    if (message) {
+      message.textContent =
+        `✓ First-time ${role === "parent" ? "Parent" : "Athlete"} access sent to ${email}.`;
+    }
+
+    button.textContent =
+      `Resend ${role === "parent" ? "Parent" : "Athlete"} Access`;
   } catch (error) {
-    console.error("Create Athlete Access failed:", error);
-    window.alert(
-      error?.message || "Unable to create Athlete Access."
+    console.error(
+      "[access-setup] failed:",
+      error
     );
+
+    if (message) {
+      message.textContent =
+        error?.message ||
+        "Unable to send first-time access.";
+    }
+
+    window.alert(
+      error?.message ||
+      "Unable to send first-time access."
+    );
+
+    button.textContent =
+      originalLabel;
   } finally {
     button.disabled = false;
-    button.textContent = originalLabel;
   }
 }
 
@@ -540,88 +942,55 @@ async function handleSelfManaged(button) {
   }
 }
 
-async function handleParentAccess(button) {
-  const uid = String(
-    button.dataset.recentParentUid || ""
-  ).trim();
-  const email = String(
-    button.dataset.parentEmail || ""
-  ).trim().toLowerCase();
-
-  if (!uid || !email) {
-    window.alert(
-      "This athlete does not have an approved Parent email."
-    );
-    return;
-  }
-
-  const originalLabel = button.textContent;
-  button.disabled = true;
-  button.textContent = "Creating Access…";
-
-  try {
-    const issue = httpsCallable(
-      functions,
-      "issueAccessInvitation"
-    );
-
-    const response = await issue({
-      role: "parent",
-      athleteUid: uid,
-      email
-    });
-
-    const tokenId = String(
-      response?.data?.tokenId || ""
-    ).trim();
-
-    if (!tokenId) {
-      throw new Error("Parent invitation token was not returned.");
-    }
-
-    const url =
-      `${location.origin}/access/first-time/?role=parent` +
-      `&token=${encodeURIComponent(tokenId)}` +
-      `&email=${encodeURIComponent(email)}`;
-
-    window.open(url, "_blank", "noopener");
-  } catch (error) {
-    console.error("Create Parent Access failed:", error);
-    window.alert(
-      error?.message || "Unable to create Parent Access."
-    );
-  } finally {
-    button.disabled = false;
-    button.textContent = originalLabel;
-  }
-}
-
 function wireActions() {
   const box = $("approved-list");
   if (!box || box.dataset.recentActionsWired === "true") return;
 
   box.dataset.recentActionsWired = "true";
+
   box.addEventListener("click", (event) => {
-    const button = event.target.closest("button");
+    const button =
+      event.target.closest("button");
+
     if (!button) return;
+
+    if (button.dataset.accessToggleUid) {
+      const card =
+        button.closest(".recent-activated-card");
+
+      const panel =
+        card?.querySelector(
+          `[data-access-panel-uid="${button.dataset.accessToggleUid}"]`
+        );
+
+      if (!panel) return;
+
+      const opening =
+        panel.hidden;
+
+      panel.hidden =
+        !opening;
+
+      button.setAttribute(
+        "aria-expanded",
+        opening ? "true" : "false"
+      );
+
+      return;
+    }
+
+    if (button.dataset.sendAccessRole) {
+      sendAccess(button);
+      return;
+    }
 
     if (button.dataset.recentAssessmentUid) {
       handleAssessment(button);
       return;
     }
 
-    if (button.dataset.recentAthleteAccessUid) {
-      handleAthleteAccess(button);
-      return;
-    }
-
     if (button.dataset.recentSelfManagedUid) {
       handleSelfManaged(button);
-      return;
-    }
-
-    if (button.dataset.recentParentUid) {
-      handleParentAccess(button);
     }
   });
 }
