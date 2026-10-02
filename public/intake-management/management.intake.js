@@ -348,6 +348,21 @@ function intakeAudienceForProposal(proposal = {}, athletes = []) {
     return "parent_guardian";
   }
 
+  const enrollmentType = String(
+    athlete.enrollmentType ||
+    proposal.prospect?.enrollmentType ||
+    proposal.enrollmentType ||
+    ""
+  ).trim().toLowerCase();
+
+  if (["adult", "adult_athlete", "adult-athlete"].includes(enrollmentType)) {
+    return "adult_athlete";
+  }
+
+  if (["youth", "minor", "child"].includes(enrollmentType)) {
+    return "parent_guardian";
+  }
+
   const age = ageFromProposalDob(
     athlete.dob ||
     athlete.dateOfBirth ||
