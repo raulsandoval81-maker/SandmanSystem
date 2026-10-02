@@ -290,6 +290,75 @@ function paidProposalName(proposal = {}) {
   );
 }
 
+function ageFromProposalDob(value) {
+  const raw = String(value || "").trim();
+  const match = /^(\\d{4})-(\\d{2})-(\\d{2})/.exec(raw);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const monthDiff = today.getMonth() - (month - 1);
+  const dayDiff = today.getDate() - day;
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age -= 1;
+  }
+
+  return age >= 0 && age < 130 ? age : null;
+}
+
+function intakeAudienceForProposal(proposal = {}, athletes = []) {
+  const athlete = athletes[0] || {};
+
+  const explicit = String(
+    proposal.intakeAudience ||
+    proposal.registrantRole ||
+    proposal.lockedSnapshot?.intakeAudience ||
+    proposal.lockedSnapshot?.registrantRole ||
+    athlete.intakeAudience ||
+    athlete.registrantRole ||
+    ""
+  ).trim().toLowerCase();
+
+  if (["adult_athlete", "adult-athlete"].includes(explicit)) {
+    return "adult_athlete";
+  }
+
+  if (
+    [
+      "parent_guardian",
+      "parent-guardian",
+      "parent",
+      "guardian"
+    ].includes(explicit)
+  ) {
+    return "parent_guardian";
+  }
+
+  const age = ageFromProposalDob(
+    athlete.dob ||
+    athlete.dateOfBirth ||
+    proposal.prospect?.dob ||
+    proposal.prospect?.dateOfBirth
+  );
+
+  if (age === null) return null;
+  return age >= 18 ? "adult_athlete" : "parent_guardian";
+}
+
 function renderReadyIntakeCard(proposal) {
   const proposalId = proposal.proposalId || proposal.id;
   const locationId = String(proposal.locationId || "").trim();
@@ -313,6 +382,30 @@ function renderReadyIntakeCard(proposal) {
     )
     .filter(Boolean);
 
+  const intakeAudience = intakeAudienceForProposal(proposal, athletes);
+
+  const handoffAction = intakeAudience === "adult_athlete"
+    ? `
+        <button class="small solid-blue" data-ready-adult="${esc(proposalId)}">
+          Adult Athlete
+        </button>
+      `
+    : intakeAudience === "parent_guardian"
+      ? `
+          <button class="small solid-blue" data-ready-parent="${esc(proposalId)}">
+            Parent / Guardian
+          </button>
+        `
+      : `
+          <span class="small muted">Parent / Guardian / Athlete — intake owner not confirmed</span>
+          <button class="small solid-blue" data-ready-parent="${esc(proposalId)}">
+            Parent / Guardian
+          </button>
+          <button class="small outline-blue" data-ready-adult="${esc(proposalId)}">
+            Adult Athlete
+          </button>
+        `;
+
   return `
     <div class="pending-card" data-ready-proposal="${esc(proposalId)}">
       <div class="pending-card-head">
@@ -326,8 +419,7 @@ function renderReadyIntakeCard(proposal) {
         </div>
       </div>
       <div class="pending-card-actions">
-        <button class="small solid-blue" data-ready-parent="${esc(proposalId)}">Parent / Guardian</button>
-        <button class="small outline-blue" data-ready-adult="${esc(proposalId)}">Adult Athlete</button>
+        ${handoffAction}
       </div>
     </div>
   `;
