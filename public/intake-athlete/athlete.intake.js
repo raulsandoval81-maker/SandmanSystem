@@ -29,11 +29,31 @@ const setDisabled = (id, v) => {
   if (el) el.disabled = !!v;
 };
 
+function activeLanguage() {
+  return document.documentElement.lang === "es"
+    ? "es"
+    : "en";
+}
+
 function setWaiverStatusStrong(text, color = "") {
   const el = $("waiverStatus");
   if (!el) return;
-  const style = color ? ` style="color:${color}"` : "";
-  el.innerHTML = `Status: <strong${style}>${text}</strong>`;
+
+  const language =
+    activeLanguage();
+
+  const label =
+    language === "es"
+      ? "Estado"
+      : "Status";
+
+  const style =
+    color
+      ? ` style="color:${color}"`
+      : "";
+
+  el.innerHTML =
+    `${label}: <strong${style}>${text}</strong>`;
 }
 
 const WAIVER_URL_EN =
@@ -87,7 +107,11 @@ function maybeUnlockSubmit() {
 
 function markWaiverViewed() {
   waiverViewed = true;
-  setWaiverStatusStrong("Viewed");
+  setWaiverStatusStrong(
+    activeLanguage() === "es"
+      ? "Visto"
+      : "Viewed"
+  );
 
   setDisabled("waiverCheck", false);
   setDisabled("signatureAthlete", false);
