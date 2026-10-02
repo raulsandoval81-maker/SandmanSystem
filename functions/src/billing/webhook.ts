@@ -21,6 +21,7 @@ import {
 import { handleManagementPassCheckoutCompleted } from "./managementPassWebhook";
 import { resolveLockedRecurringPricing } from "../proposals/lockedRecurringPricing";
 import { ensureProposalMonthlySponsorCoupon, recoverOrCreateProposalSubscription } from "./proposalMonthlySponsor";
+import { handleProposalAutopaySetupCompleted } from "./proposalAutopaySetup";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -912,6 +913,18 @@ const webhookSecret =
 
           if (cleanString(session.metadata?.paymentFlow) === "management_pass") {
             await handleManagementPassCheckoutCompleted(session);
+            familyId = null;
+            break;
+          }
+
+          if (
+            cleanString(
+              session.metadata?.source
+            ) === "cash_prepaid_autopay"
+          ) {
+            await handleProposalAutopaySetupCompleted(
+              session
+            );
             familyId = null;
             break;
           }
