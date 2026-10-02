@@ -205,15 +205,45 @@ export const createProposalDraft =
           return athlete;
         }
 
+        const athleteRecord =
+          athlete as Record<string, unknown>;
+
+        const appointmentRegistrantRole =
+          cleanString(
+            appointmentProspect.registrantRole
+          ).toLowerCase();
+
+        const authoritativeEnrollmentType =
+          appointmentRegistrantRole === "adult-athlete" ||
+          appointmentRegistrantRole === "adult_athlete"
+            ? "adult"
+            : appointmentRegistrantRole === "parent-guardian" ||
+              appointmentRegistrantRole === "parent_guardian" ||
+              appointmentRegistrantRole === "parent" ||
+              appointmentRegistrantRole === "guardian"
+                ? "youth"
+                : nullableString(
+                    athleteRecord.enrollmentType
+                  );
+
         return {
-          ...athlete,
+          ...athleteRecord,
+
+          enrollmentType:
+            authoritativeEnrollmentType,
 
           dob:
             nullableString(
-              (athlete as Record<string, unknown>).dob ||
-              (athlete as Record<string, unknown>).dateOfBirth ||
+              athleteRecord.dob ||
+              athleteRecord.dateOfBirth ||
               appointmentProspect.dob ||
               appointmentProspect.dateOfBirth
+            ),
+
+          athleteAge:
+            nullableString(
+              athleteRecord.athleteAge ||
+              appointmentProspect.athleteAge
             ),
         };
       });
@@ -284,6 +314,16 @@ export const createProposalDraft =
                     primaryContactName ||
                     nullableString(
                       appointmentProspect.parentName
+                    ),
+
+                  registrantRole:
+                    nullableString(
+                      appointmentProspect.registrantRole
+                    ),
+
+                  athleteAge:
+                    nullableString(
+                      appointmentProspect.athleteAge
                     ),
 
                   email:
