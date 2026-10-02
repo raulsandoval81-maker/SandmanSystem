@@ -182,10 +182,79 @@ export const supersedeEnrollmentIntakeInvites =
       );
     }
 
+    const rawPrefill =
+      req.data?.prefill &&
+      typeof req.data.prefill === "object" &&
+      !Array.isArray(req.data.prefill)
+        ? req.data.prefill as Record<string, unknown>
+        : {};
+
+    const prefill =
+      Object.fromEntries(
+        Object.entries(rawPrefill)
+          .map(([key, value]) => [
+            key,
+            clean(value),
+          ])
+          .filter(([, value]) =>
+            Boolean(value)
+          )
+      );
+
+    const connectLeadId =
+      clean(
+        req.data?.connectLeadId
+      ) || null;
+
+    const tokenRef =
+      db.collection("intakeTokens")
+        .doc();
+
+    const exp =
+      Date.now() +
+      48 * 60 * 60 * 1000;
+
+    await tokenRef.set({
+      createdAt:
+        FieldValue.serverTimestamp(),
+      updatedAt:
+        FieldValue.serverTimestamp(),
+      exp,
+      used: false,
+      status: "invited",
+      mode: "new_athlete",
+      intakeAudience:
+        audience,
+      intakeRoute:
+        audience === "adult_athlete"
+          ? "athlete"
+          : "parent",
+      existingAthleteUid: "",
+      forTrack: null,
+      forLane: null,
+      requestedTrackCode: null,
+      requestedDiscipline: null,
+      existingAthleteName: null,
+      proposalId,
+      connectLeadId,
+      locationId:
+        clean(proposal.locationId),
+      prefill,
+      source:
+        "management_enrollment",
+      workflowVersion:
+        "intake-v2",
+      createdBy:
+        req.auth.uid,
+    });
+
     return {
       ok: true,
       proposalId,
       intakeAudience: audience,
       supersededCount,
+      tokenId:
+        tokenRef.id,
+      exp,
     };
   });
