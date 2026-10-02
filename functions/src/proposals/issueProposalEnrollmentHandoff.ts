@@ -53,6 +53,9 @@ export const issueProposalEnrollmentHandoff =
       const clientReviewToken =
         clean(req.data?.clientReviewToken);
 
+      const existingEnrollmentToken =
+        clean(req.data?.existingEnrollmentToken);
+
       if (!proposalId) {
         throw new HttpsError(
           "invalid-argument",
@@ -152,8 +155,31 @@ export const issueProposalEnrollmentHandoff =
         );
       }
 
+      const currentHandoff =
+        proposal.enrollmentHandoff || {};
+
+      const currentExpiresAt =
+        currentHandoff.expiresAt;
+
+      const canReuseExistingToken =
+        Boolean(
+          existingEnrollmentToken &&
+          hashProposalReviewToken(
+            existingEnrollmentToken
+          ) ===
+            clean(
+              currentHandoff.tokenHash
+            ) &&
+          currentExpiresAt instanceof
+            Timestamp &&
+          currentExpiresAt.toMillis() >
+            Date.now()
+        );
+
       const rawToken =
-        createProposalReviewToken();
+        canReuseExistingToken
+          ? existingEnrollmentToken
+          : createProposalReviewToken();
 
       const tokenHash =
         hashProposalReviewToken(
@@ -161,10 +187,12 @@ export const issueProposalEnrollmentHandoff =
         );
 
       const expiresAt =
-        Timestamp.fromMillis(
-          Date.now() +
-          7 * 24 * 60 * 60 * 1000
-        );
+        canReuseExistingToken
+          ? currentExpiresAt
+          : Timestamp.fromMillis(
+              Date.now() +
+              7 * 24 * 60 * 60 * 1000
+            );
 
       const prospect =
         proposal.prospect &&
@@ -202,7 +230,12 @@ export const issueProposalEnrollmentHandoff =
           issuedBy:
             actorUid,
           issuedAt:
-            FieldValue.serverTimestamp(),
+            canReuseExistingToken
+              ? (
+                  currentHandoff.issuedAt ||
+                  FieldValue.serverTimestamp()
+                )
+              : FieldValue.serverTimestamp(),
           delivery,
           recipient:
             delivery === "email"
@@ -227,6 +260,9 @@ export const issueProposalEnrollmentHandoff =
               : null,
           createdBy:
             actorUid,
+          reusedPreparedLink:
+            canReuseExistingToken,
+
           createdAt:
             FieldValue.serverTimestamp(),
         });
@@ -335,6 +371,9 @@ export const issueProposalEnrollmentHandoff =
           expiresAt.toDate().toISOString(),
         emailId:
           emailId || undefined,
+
+        reusedPreparedLink:
+          canReuseExistingToken,
       };
     }
   );
