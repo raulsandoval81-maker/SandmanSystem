@@ -266,6 +266,11 @@ export {
   acceptProposalClientReview,
 } from "./proposals/acceptProposalClientReview";
 
+
+export {
+  recordManualProposalSignature,
+} from "./proposals/recordManualProposalSignature";
+
 export {
   requestProposalClientChanges,
 } from "./proposals/requestProposalClientChanges";
