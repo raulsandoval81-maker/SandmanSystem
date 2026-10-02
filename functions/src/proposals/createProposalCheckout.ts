@@ -59,8 +59,16 @@ export const createProposalCheckout =
       const clientToken =
         cleanString(req.data?.token);
 
+      const enrollmentToken =
+        cleanString(
+          req.data?.enrollmentToken
+        );
+
       const isClientCheckout =
-        Boolean(clientToken);
+        Boolean(
+          enrollmentToken ||
+          clientToken
+        );
 
       if (
         !isClientCheckout &&
@@ -118,42 +126,90 @@ export const createProposalCheckout =
           proposal.locationId
         );
       } else {
-        const review =
-          proposal.clientReview || {};
+        if (enrollmentToken) {
+          const handoff =
+            proposal.enrollmentHandoff || {};
 
-        const tokenMatches =
-          clientToken &&
-          hashProposalReviewToken(
-            clientToken
-          ) ===
-            cleanString(
-              review.tokenHash
+          const tokenMatches =
+            hashProposalReviewToken(
+              enrollmentToken
+            ) ===
+              cleanString(
+                handoff.tokenHash
+              );
+
+          const expiresAt =
+            handoff.expiresAt;
+
+          if (
+            !tokenMatches ||
+            !(expiresAt instanceof Timestamp) ||
+            expiresAt.toMillis() <
+              Date.now()
+          ) {
+            throw new HttpsError(
+              "permission-denied",
+              "This enrollment verification link is invalid or expired."
             );
+          }
+        } else {
+          const review =
+            proposal.clientReview || {};
 
-        if (!tokenMatches) {
-          throw new HttpsError(
-            "permission-denied",
-            "This checkout link is invalid."
-          );
-        }
+          const tokenMatches =
+            clientToken &&
+            hashProposalReviewToken(
+              clientToken
+            ) ===
+              cleanString(
+                review.tokenHash
+              );
 
-        const expiresAt =
-          review.expiresAt;
+          if (!tokenMatches) {
+            throw new HttpsError(
+              "permission-denied",
+              "This checkout link is invalid."
+            );
+          }
 
-        if (
-          !(expiresAt instanceof Timestamp) ||
-          expiresAt.toMillis() <
-            Date.now()
-        ) {
-          throw new HttpsError(
-            "failed-precondition",
-            "This checkout link has expired."
-          );
+          const expiresAt =
+            review.expiresAt;
+
+          if (
+            !(expiresAt instanceof Timestamp) ||
+            expiresAt.toMillis() <
+              Date.now()
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              "This checkout link has expired."
+            );
+          }
         }
       }
 
       const proposalStatus =
         cleanString(proposal.status);
+
+      const enrollmentAgreement =
+        proposal.enrollmentAgreement &&
+        typeof proposal.enrollmentAgreement === "object"
+          ? proposal.enrollmentAgreement
+          : {};
+
+      if (
+        enrollmentAgreement.standardsAccepted !== true ||
+        enrollmentAgreement.proposalAccepted !== true ||
+        !enrollmentAgreement.acceptedAt ||
+        !cleanString(
+          enrollmentAgreement.signerName
+        )
+      ) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Complete final enrollment agreement verification before secure checkout."
+        );
+      }
 
       const existingCheckoutSessionId =
         cleanString(
