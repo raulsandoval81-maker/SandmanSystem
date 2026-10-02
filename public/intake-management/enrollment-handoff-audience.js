@@ -4,8 +4,6 @@ import {
   getDoc,
   functions,
   httpsCallable,
-  setDoc,
-  serverTimestamp,
 } from "/assets/js/firebase-init.js";
 
 const INVITE_HOURS = 48;
@@ -285,22 +283,18 @@ async function inferAudienceWithLead(proposal = {}) {
   return "unknown";
 }
 
-async function supersedeOppositeInvite(proposalId, audience) {
-  const supersede =
-    httpsCallable(
-      functions,
-      "supersedeEnrollmentIntakeInvites"
+async function createInvite(proposal, audience) {
+  const proposalId =
+    clean(
+      proposal.proposalId ||
+      proposal.id
     );
 
-  await supersede({
-    proposalId,
-    intakeAudience: audience,
-  });
-}
-
-async function createInvite(proposal, audience) {
-  const proposalId = clean(proposal.proposalId || proposal.id);
-  if (!proposalId) throw new Error("Paid enrollment is missing its proposal ID.");
+  if (!proposalId) {
+    throw new Error(
+      "Paid enrollment is missing its proposal ID."
+    );
+  }
 
   if (audience === "unknown") {
     throw new Error(
@@ -308,127 +302,170 @@ async function createInvite(proposal, audience) {
     );
   }
 
-  await supersedeOppositeInvite(proposalId, audience);
+  const athlete =
+    proposalAthlete(proposal);
 
-  const athlete = proposalAthlete(proposal);
-  const prospect = proposalProspect(proposal);
+  const prospect =
+    proposalProspect(proposal);
+
   const contact =
     proposal.lockedSnapshot?.contact ||
     proposal.contact ||
     proposal.lockedSnapshot?.parent ||
     proposal.parent ||
     {};
-  const { leadId, lead } = await resolveLead(proposal);
 
-  const tokenId = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-  const exp = Date.now() + INVITE_HOURS * 60 * 60 * 1000;
+  const { leadId, lead } =
+    await resolveLead(proposal);
 
-  const athleteName = firstValue(
-    athlete.name,
-    athlete.fullName,
-    athlete.athleteName,
-    [athlete.first, athlete.last].filter(Boolean).join(" "),
-    prospect.athleteName,
-    proposal.athleteName,
-    lead.athleteName,
-    lead.participantName
-  );
+  const athleteName =
+    firstValue(
+      athlete.name,
+      athlete.fullName,
+      athlete.athleteName,
+      [athlete.first, athlete.last]
+        .filter(Boolean)
+        .join(" "),
+      prospect.athleteName,
+      proposal.athleteName,
+      lead.athleteName,
+      lead.participantName
+    );
 
-  const prefill = Object.fromEntries(
-    Object.entries({
-      athleteName,
-      parentName: firstValue(
-        prospect.primaryContactName,
-        prospect.parentName,
-        contact.name,
-        contact.parentName,
-        proposal.parentName,
-        lead.parentName,
-        lead.guardianName
-      ),
-      dob: firstValue(
-        athlete.dob,
-        athlete.dateOfBirth,
-        prospect.dob,
-        prospect.dateOfBirth,
-        proposal.dob,
-        proposal.dateOfBirth,
-        lead.dob,
-        lead.dateOfBirth
-      ),
-      city: firstValue(prospect.city, contact.city, proposal.city, lead.city),
-      state: firstValue(prospect.state, contact.state, proposal.state, lead.state),
-      email: firstValue(
-        prospect.email,
-        prospect.parentEmail,
-        prospect.primaryContactEmail,
-        contact.email,
-        contact.parentEmail,
-        proposal.email,
-        proposal.parentEmail,
-        lead.email,
-        lead.parentEmail
-      ),
-      phone: firstValue(
-        prospect.phone,
-        prospect.parentPhone,
-        prospect.primaryContactPhone,
-        contact.phone,
-        contact.parentPhone,
-        proposal.phone,
-        proposal.parentPhone,
-        lead.phone,
-        lead.parentPhone
-      ),
-      languagePreference: firstValue(
-        prospect.languagePreference,
-        prospect.preferredLanguage,
-        contact.languagePreference,
-        proposal.languagePreference
+  const prefill =
+    Object.fromEntries(
+      Object.entries({
+        athleteName,
+        parentName: firstValue(
+          prospect.primaryContactName,
+          prospect.parentName,
+          contact.name,
+          contact.parentName,
+          proposal.parentName,
+          lead.parentName,
+          lead.guardianName
+        ),
+        dob: firstValue(
+          athlete.dob,
+          athlete.dateOfBirth,
+          prospect.dob,
+          prospect.dateOfBirth,
+          proposal.dob,
+          proposal.dateOfBirth,
+          lead.dob,
+          lead.dateOfBirth
+        ),
+        city: firstValue(
+          prospect.city,
+          contact.city,
+          proposal.city,
+          lead.city
+        ),
+        state: firstValue(
+          prospect.state,
+          contact.state,
+          proposal.state,
+          lead.state
+        ),
+        email: firstValue(
+          prospect.email,
+          prospect.parentEmail,
+          prospect.primaryContactEmail,
+          contact.email,
+          contact.parentEmail,
+          proposal.email,
+          proposal.parentEmail,
+          lead.email,
+          lead.parentEmail
+        ),
+        phone: firstValue(
+          prospect.phone,
+          prospect.parentPhone,
+          prospect.primaryContactPhone,
+          contact.phone,
+          contact.parentPhone,
+          proposal.phone,
+          proposal.parentPhone,
+          lead.phone,
+          lead.parentPhone
+        ),
+        languagePreference:
+          firstValue(
+            prospect.languagePreference,
+            prospect.preferredLanguage,
+            contact.languagePreference,
+            proposal.languagePreference
+          )
+      }).filter(([, value]) =>
+        value
       )
-    }).filter(([, value]) => value)
-  );
+    );
 
-  await setDoc(doc(db, "intakeTokens", tokenId), {
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    exp,
-    used: false,
-    status: "invited",
-    mode: "new_athlete",
-    intakeAudience: audience,
-    intakeRoute: audience === "adult_athlete" ? "athlete" : "parent",
-    existingAthleteUid: "",
-    forTrack: null,
-    forLane: null,
-    requestedTrackCode: null,
-    requestedDiscipline: null,
-    existingAthleteName: null,
-    proposalId,
-    connectLeadId: leadId || null,
-    locationId: clean(proposal.locationId) || null,
-    prefill,
-    source: "management_enrollment",
-    workflowVersion: "intake-v2"
-  });
+  const createHandoff =
+    httpsCallable(
+      functions,
+      "supersedeEnrollmentIntakeInvites"
+    );
 
-  const route = audience === "adult_athlete"
-    ? "/intake-athlete/"
-    : "/intake-parent/";
-  const url = `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
+  const response =
+    await createHandoff({
+      proposalId,
+      intakeAudience:
+        audience,
+      connectLeadId:
+        leadId || null,
+      prefill,
+    });
 
-  const inviteLink = document.getElementById("invite-link");
-  const routeLabel = document.getElementById("invite-route-label");
-  const inviteStatus = document.getElementById("invite-status");
+  const tokenId =
+    clean(
+      response.data?.tokenId
+    );
 
-  if (inviteLink) inviteLink.value = url;
-  if (routeLabel) {
-    routeLabel.textContent = audience === "adult_athlete"
-      ? "Adult Athlete Intake → /intake-athlete/"
-      : "Parent / Guardian Intake → /intake-parent/";
+  if (!tokenId) {
+    throw new Error(
+      "Enrollment handoff did not return an intake token."
+    );
   }
+
+  const route =
+    audience === "adult_athlete"
+      ? "/intake-athlete/"
+      : "/intake-parent/";
+
+  const url =
+    `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
+
+  const inviteLink =
+    document.getElementById(
+      "invite-link"
+    );
+
+  const routeLabel =
+    document.getElementById(
+      "invite-route-label"
+    );
+
+  const inviteStatus =
+    document.getElementById(
+      "invite-status"
+    );
+
+  if (inviteLink) {
+    inviteLink.value =
+      url;
+  }
+
+  if (routeLabel) {
+    routeLabel.textContent =
+      audience === "adult_athlete"
+        ? "Adult Athlete Intake → /intake-athlete/"
+        : "Parent / Guardian Intake → /intake-parent/";
+  }
+
   if (inviteStatus) {
-    inviteStatus.textContent = `✓ ${labelForAudience(audience)} intake created (${INVITE_HOURS}h).`;
+    inviteStatus.textContent =
+      `✓ ${labelForAudience(audience)} intake created (${INVITE_HOURS}h).`;
   }
 }
 
