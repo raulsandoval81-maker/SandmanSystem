@@ -52,6 +52,8 @@ function isOperationalPaidProposal(
   const status = clean(proposal.status).toUpperCase();
   const paymentStatus =
     clean(proposal.paymentStatus).toLowerCase();
+  const paymentMethod =
+    clean(proposal.paymentMethod).toLowerCase();
   const checkoutSessionId =
     clean(proposal.stripeCheckoutSessionId);
 
@@ -59,13 +61,25 @@ function isOperationalPaidProposal(
     proposal.stripeLivemode === true ||
     checkoutSessionId.startsWith("cs_live_");
 
+  const isRecordedCashPayment =
+    paymentMethod === "cash_prepaid" &&
+    Boolean(proposal.cashPrepayment) &&
+    Number(
+      proposal.cashPrepayment?.amountCents || 0
+    ) > 0;
+
   return (
     status === "PAID" &&
     paymentStatus === "paid" &&
     Boolean(proposal.paidAt) &&
-    Boolean(checkoutSessionId) &&
-    !checkoutSessionId.startsWith("cs_test_") &&
-    isLiveSession
+    (
+      isRecordedCashPayment ||
+      (
+        Boolean(checkoutSessionId) &&
+        !checkoutSessionId.startsWith("cs_test_") &&
+        isLiveSession
+      )
+    )
   );
 }
 
