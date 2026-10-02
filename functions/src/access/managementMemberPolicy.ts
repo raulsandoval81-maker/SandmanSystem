@@ -2,6 +2,36 @@ export function cleanMemberValue(value: unknown): string {
   return String(value ?? "").trim();
 }
 
+function managementMemberAge(value: unknown): number | null {
+  const raw = cleanMemberValue(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const birth = new Date(year, month - 1, day);
+
+  if (
+    birth.getFullYear() !== year ||
+    birth.getMonth() !== month - 1 ||
+    birth.getDate() !== day
+  ) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - year;
+  const monthDiff = today.getMonth() - (month - 1);
+  const dayDiff = today.getDate() - day;
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age -= 1;
+  }
+
+  return age >= 0 && age < 130 ? age : null;
+}
+
 export function managementLocationScope(staff: Record<string, unknown>, role: unknown): string[] | null {
   const normalizedRole = cleanMemberValue(role).toLowerCase().replace(/[\s-]+/g, "_");
   if (normalizedRole === "admin" || normalizedRole === "system_admin") return null;
@@ -92,6 +122,16 @@ export function mapManagementMember(
     accessMode,
     directAccessActive: Boolean(authUid),
     athleteEmail: cleanMemberValue(athlete.athleteEmail || athlete.email).toLowerCase(),
+    parentEmail: cleanMemberValue(athlete.parentEmail).toLowerCase(),
+    age: Number.isFinite(Number(athlete.age))
+      ? Number(athlete.age)
+      : managementMemberAge(
+          athlete.dob ||
+          athlete.dateOfBirth ||
+          athlete.birthDate ||
+          athlete.profile?.dob ||
+          athlete.profile?.dateOfBirth
+        ),
     parentLinkStatus: parentLinks.length
       ? [...new Set(parentLinks.map((link) => cleanMemberValue(link.status || "unknown").toLowerCase()))].join(", ")
       : "none",
