@@ -997,6 +997,10 @@ function proposalActionHtml(status, id) {
       <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
         Email Final Verification
       </button>
+
+      <span class="proposal-action-note">
+        Preview and Copy do not send email. Email creates and sends the current secure handoff.
+      </span>
     `;
   }
 
