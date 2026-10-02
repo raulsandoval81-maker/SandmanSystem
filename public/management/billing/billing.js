@@ -1,5 +1,7 @@
 import {
   db,
+  functions,
+  httpsCallable,
   collection,
   getDocs,
   query,
@@ -51,6 +53,12 @@ const countClosed =
 let managementContext = null;
 let billingItems = [];
 let activeView = "NEEDS_ACTION";
+
+const recordPrepaidCashCall =
+  httpsCallable(
+    functions,
+    "recordProposalPrepaidCash"
+  );
 
 const clean = (value) =>
   String(value ?? "").trim();
@@ -206,6 +214,7 @@ function classifyProposal(
       "READY_FOR_CHECKOUT",
       "CHECKOUT_CREATED",
       "PAYMENT_PENDING",
+      "CASH_PREPAID_AUTOPAY_REQUIRED",
       "PAID",
       "VOID"
     ].includes(status)
@@ -228,6 +237,17 @@ function classifyProposal(
       view: "NEEDS_ACTION",
       state: "Checkout Ready",
       next: "Begin checkout"
+    };
+  }
+
+  if (
+    status ===
+    "CASH_PREPAID_AUTOPAY_REQUIRED"
+  ) {
+    return {
+      view: "NEEDS_ACTION",
+      state: "Cash Prepaid",
+      next: "Set up Stripe autopay"
     };
   }
 
@@ -635,7 +655,18 @@ function buildProposalItems(
           ) || "—",
 
         amount:
-          proposalAmount(proposal),
+          proposal.cashPrepayment?.amountCents
+            ? moneyFromCents(
+                proposal.cashPrepayment
+                  .amountCents
+              )
+            : proposalAmount(proposal),
+
+        proposalId,
+
+        canRecordPrepaidCash:
+          upper(proposal.status) ===
+          "READY_FOR_CHECKOUT",
 
         state:
           classification.state,
@@ -871,18 +902,404 @@ function render() {
               </strong>
             </div>
 
-            <a
-              class="billing-action"
-              href="${esc(item.href)}"
-            >
-              ${esc(item.actionLabel)} →
-            </a>
+            <div class="billing-actions">
+              ${item.canRecordPrepaidCash
+                ? `
+                  <button
+                    class="billing-action billing-cash-action"
+                    type="button"
+                    data-cash-proposal-id="${esc(item.proposalId)}"
+                    data-cash-name="${esc(item.name)}"
+                  >
+                    Record prepaid cash
+                  </button>
+                `
+                : ""
+              }
+
+              <a
+                class="billing-action"
+                href="${esc(item.href)}"
+              >
+                ${esc(item.actionLabel)} →
+              </a>
+            </div>
 
           </article>
         `
       )
       .join("");
 }
+
+
+function ensureCashDialog() {
+  let dialog =
+    document.getElementById(
+      "prepaidCashDialog"
+    );
+
+  if (dialog) return dialog;
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+  dialog.id =
+    "prepaidCashDialog";
+
+  dialog.className =
+    "billing-cash-dialog";
+
+  dialog.innerHTML = `
+    <form
+      id="prepaidCashForm"
+      class="billing-cash-form"
+      method="dialog"
+    >
+      <div class="billing-cash-head">
+        <div>
+          <p class="eyebrow">
+            Management · Billing
+          </p>
+          <h2>
+            Record prepaid cash
+          </h2>
+          <p id="prepaidCashFamily"></p>
+        </div>
+
+        <button
+          class="billing-cash-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <input
+        id="prepaidCashProposalId"
+        type="hidden"
+      >
+
+      <div class="billing-cash-grid">
+        <label>
+          <span>Cash received</span>
+          <input
+            id="prepaidCashAmount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputmode="decimal"
+            required
+          >
+        </label>
+
+        <label>
+          <span>Months covered</span>
+          <input
+            id="prepaidCashMonths"
+            type="number"
+            min="1"
+            step="1"
+            value="1"
+            required
+          >
+        </label>
+
+        <label>
+          <span>Stripe takes over</span>
+          <input
+            id="prepaidCashNextBilling"
+            type="date"
+            required
+          >
+        </label>
+
+        <label class="billing-cash-check">
+          <input
+            id="prepaidCashEnrollmentFee"
+            type="checkbox"
+          >
+          <span>
+            Annual enrollment fee was included
+          </span>
+        </label>
+      </div>
+
+      <label class="billing-cash-note">
+        <span>Management note</span>
+        <textarea
+          id="prepaidCashNote"
+          rows="3"
+          placeholder="Optional note about what the cash covers."
+        ></textarea>
+      </label>
+
+      <p class="billing-cash-warning">
+        This records prepaid dues only. It does not create a Stripe payment or mark the proposal Stripe-paid.
+      </p>
+
+      <div class="billing-cash-footer">
+        <button
+          class="button button-secondary"
+          type="button"
+          data-cash-cancel
+        >
+          Cancel
+        </button>
+
+        <button
+          id="prepaidCashSubmit"
+          class="button"
+          type="submit"
+        >
+          Record cash
+        </button>
+      </div>
+
+      <p
+        id="prepaidCashStatus"
+        class="billing-status"
+        aria-live="polite"
+      ></p>
+    </form>
+  `;
+
+  document.body.appendChild(
+    dialog
+  );
+
+  const close = () => {
+    dialog.close();
+  };
+
+  dialog
+    .querySelector(
+      ".billing-cash-close"
+    )
+    ?.addEventListener(
+      "click",
+      close
+    );
+
+  dialog
+    .querySelector(
+      "[data-cash-cancel]"
+    )
+    ?.addEventListener(
+      "click",
+      close
+    );
+
+  dialog
+    .querySelector(
+      "#prepaidCashForm"
+    )
+    ?.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        const status =
+          document.getElementById(
+            "prepaidCashStatus"
+          );
+
+        const submit =
+          document.getElementById(
+            "prepaidCashSubmit"
+          );
+
+        const proposalId =
+          clean(
+            document.getElementById(
+              "prepaidCashProposalId"
+            )?.value
+          );
+
+        const amount =
+          Number(
+            document.getElementById(
+              "prepaidCashAmount"
+            )?.value
+          );
+
+        const monthsCovered =
+          Number(
+            document.getElementById(
+              "prepaidCashMonths"
+            )?.value
+          );
+
+        const nextBillingDate =
+          clean(
+            document.getElementById(
+              "prepaidCashNextBilling"
+            )?.value
+          );
+
+        const enrollmentFeePaid =
+          document.getElementById(
+            "prepaidCashEnrollmentFee"
+          )?.checked === true;
+
+        const note =
+          clean(
+            document.getElementById(
+              "prepaidCashNote"
+            )?.value
+          );
+
+        if (
+          !proposalId ||
+          !Number.isFinite(amount) ||
+          amount <= 0 ||
+          !Number.isInteger(
+            monthsCovered
+          ) ||
+          monthsCovered <= 0 ||
+          !nextBillingDate
+        ) {
+          if (status) {
+            status.textContent =
+              "Complete the cash amount, months covered, and next Stripe billing date.";
+            status.classList.add(
+              "is-error"
+            );
+          }
+
+          return;
+        }
+
+        submit.disabled = true;
+
+        if (status) {
+          status.textContent =
+            "Recording prepaid cash…";
+          status.classList.remove(
+            "is-error"
+          );
+        }
+
+        try {
+          await recordPrepaidCashCall({
+            proposalId,
+            amountCents:
+              Math.round(
+                amount * 100
+              ),
+            monthsCovered,
+            enrollmentFeePaid,
+            nextBillingDate,
+            note,
+          });
+
+          if (status) {
+            status.textContent =
+              "Cash recorded. Stripe autopay setup is still required.";
+          }
+
+          await loadBilling();
+
+          window.setTimeout(
+            () => dialog.close(),
+            450
+          );
+        } catch (error) {
+          console.error(
+            "[billing] prepaid cash failed:",
+            error
+          );
+
+          if (status) {
+            status.textContent =
+              error?.message ||
+              "Unable to record prepaid cash.";
+            status.classList.add(
+              "is-error"
+            );
+          }
+        } finally {
+          submit.disabled = false;
+        }
+      }
+    );
+
+  return dialog;
+}
+
+function openCashDialog(
+  proposalId,
+  familyName
+) {
+  const dialog =
+    ensureCashDialog();
+
+  document.getElementById(
+    "prepaidCashProposalId"
+  ).value = proposalId;
+
+  document.getElementById(
+    "prepaidCashFamily"
+  ).textContent =
+    familyName || proposalId;
+
+  document.getElementById(
+    "prepaidCashAmount"
+  ).value = "";
+
+  document.getElementById(
+    "prepaidCashMonths"
+  ).value = "1";
+
+  document.getElementById(
+    "prepaidCashNextBilling"
+  ).value = "";
+
+  document.getElementById(
+    "prepaidCashEnrollmentFee"
+  ).checked = false;
+
+  document.getElementById(
+    "prepaidCashNote"
+  ).value = "";
+
+  const status =
+    document.getElementById(
+      "prepaidCashStatus"
+    );
+
+  status.textContent = "";
+  status.classList.remove(
+    "is-error"
+  );
+
+  dialog.showModal();
+}
+
+billingQueue.addEventListener(
+  "click",
+  (event) => {
+    const button =
+      event.target.closest(
+        "[data-cash-proposal-id]"
+      );
+
+    if (!button) return;
+
+    openCashDialog(
+      clean(
+        button.dataset
+          .cashProposalId
+      ),
+      clean(
+        button.dataset
+          .cashName
+      )
+    );
+  }
+);
 
 async function loadBilling() {
   refreshBilling.disabled = true;
