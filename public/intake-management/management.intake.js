@@ -1083,6 +1083,7 @@ $("btn-find-intakes")?.addEventListener("click", async () => {
 function isOperationalPaidProposal(proposal = {}) {
   const status = String(proposal.status || "").trim().toUpperCase();
   const paymentStatus = String(proposal.paymentStatus || "").trim().toLowerCase();
+  const paymentMethod = String(proposal.paymentMethod || "").trim().toLowerCase();
   const checkoutSessionId = String(
     proposal.stripeCheckoutSessionId || ""
   ).trim();
@@ -1096,12 +1097,22 @@ function isOperationalPaidProposal(proposal = {}) {
   const isLiveStripePayment = explicitLivemode === true ||
     (explicitLivemode === null && legacyLiveSession);
 
+  const isRecordedCashPayment =
+    paymentMethod === "cash_prepaid" &&
+    Boolean(proposal.cashPrepayment) &&
+    Number(proposal.cashPrepayment?.amountCents || 0) > 0;
+
   return (
     status === "PAID" &&
     paymentStatus === "paid" &&
     Boolean(proposal.paidAt) &&
-    Boolean(checkoutSessionId) &&
-    !legacyTestSession &&
-    isLiveStripePayment
+    (
+      isRecordedCashPayment ||
+      (
+        Boolean(checkoutSessionId) &&
+        !legacyTestSession &&
+        isLiveStripePayment
+      )
+    )
   );
 }
