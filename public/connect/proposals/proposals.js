@@ -986,8 +986,12 @@ function proposalActionHtml(status, id) {
     status === "CHECKOUT_CREATED"
   ) {
     return `
-      <button class="proposal-open-btn" type="button" data-proposal-action="open-enrollment-verification" data-proposal-id="${esc(id)}">
-        Open Final Verification Here
+      <button class="proposal-open-btn" type="button" data-proposal-action="preview-enrollment-verification" data-proposal-id="${esc(id)}">
+        Preview Final Verification
+      </button>
+
+      <button class="proposal-open-btn" type="button" data-proposal-action="copy-enrollment-verification" data-proposal-id="${esc(id)}">
+        Copy Secure Link
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
@@ -1151,7 +1155,8 @@ async function runProposalAction(button) {
     }
 
     if (
-      action === "open-enrollment-verification" ||
+      action === "preview-enrollment-verification" ||
+      action === "copy-enrollment-verification" ||
       action === "email-enrollment-verification"
     ) {
       const delivery =
@@ -1177,18 +1182,60 @@ async function runProposalAction(button) {
         );
       }
 
-      if (delivery === "email") {
-        window.alert(
-          `Final enrollment verification sent to ${response.data?.recipient || "the family"}.`
+      const enrollmentUrl =
+        new URL(
+          enrollmentPath,
+          window.location.origin
+        ).href;
+
+      if (
+        action ===
+        "preview-enrollment-verification"
+      ) {
+        window.open(
+          enrollmentUrl,
+          "_blank",
+          "noopener"
         );
 
-        await loadProposalQueue();
+        button.disabled = false;
+        button.textContent =
+          originalText;
+
         return;
       }
 
-      window.location.assign(
-        enrollmentPath
+      if (
+        action ===
+        "copy-enrollment-verification"
+      ) {
+        try {
+          await navigator.clipboard.writeText(
+            enrollmentUrl
+          );
+
+          window.alert(
+            "Secure enrollment verification link copied."
+          );
+        } catch {
+          window.prompt(
+            "Copy secure enrollment verification link:",
+            enrollmentUrl
+          );
+        }
+
+        button.disabled = false;
+        button.textContent =
+          originalText;
+
+        return;
+      }
+
+      window.alert(
+        `Final enrollment verification sent to ${response.data?.recipient || "the family"}.`
       );
+
+      await loadProposalQueue();
       return;
     }
   } catch (error) {
