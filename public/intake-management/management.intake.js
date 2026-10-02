@@ -108,6 +108,10 @@ function paintInviteHandoff(
       : "Send Intake Email";
   }
 
+  if ($("btn-mark-intake-sent")) {
+    $("btn-mark-intake-sent").disabled = false;
+  }
+
   if ($("invite-route-label")) {
     $("invite-route-label").textContent = audience === "adult_athlete"
       ? "Adult Athlete Intake → /intake-athlete/"
@@ -137,6 +141,10 @@ function paintSubmittedHandoff(intakeId, intakeAudience) {
 
   if ($("btn-send-intake-email")) {
     $("btn-send-intake-email").textContent = "Send Intake Email";
+  }
+
+  if ($("btn-mark-intake-sent")) {
+    $("btn-mark-intake-sent").disabled = true;
   }
 
   if ($("invite-route-label")) {
@@ -822,10 +830,19 @@ function wireReadyIntakeButtons() {
       button.textContent = "Recording…";
 
       try {
+        currentHandoffTokenId = "";
+        currentHandoffAudience = "";
+
         await generateIntakeInvite(
           audience,
           proposal
         );
+
+        if (!currentHandoffTokenId) {
+          throw new Error(
+            "Sandman could not create or recover the intake handoff."
+          );
+        }
 
         await recordManualIntakeDelivery({
           method: "text",
