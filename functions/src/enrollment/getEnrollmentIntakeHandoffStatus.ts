@@ -39,10 +39,8 @@ export const getEnrollmentIntakeHandoffStatus =
     );
 
     const proposalId = clean(data?.proposalId);
-    const intakeAudience =
-      clean(data?.intakeAudience).toLowerCase() === "adult_athlete"
-        ? "adult_athlete"
-        : "parent_guardian";
+    const requestedAudience =
+      clean(data?.intakeAudience).toLowerCase();
 
     if (!proposalId) {
       throw new functions.https.HttpsError(
@@ -89,7 +87,11 @@ export const getEnrollmentIntakeHandoffStatus =
         state: "submitted",
         intakeId: submitted.id,
         proposalId,
-        intakeAudience,
+        intakeAudience:
+          clean(submitted.data()?.intakeAudience).toLowerCase() ||
+          (requestedAudience === "adult_athlete"
+            ? "adult_athlete"
+            : "parent_guardian"),
       };
     }
 
@@ -107,7 +109,6 @@ export const getEnrollmentIntakeHandoffStatus =
       .filter(({ data: token }) =>
         clean(token.source).toLowerCase() === "management_enrollment" &&
         clean(token.mode || "new_athlete").toLowerCase() === "new_athlete" &&
-        clean(token.intakeAudience).toLowerCase() === intakeAudience &&
         token.used !== true
       )
       .sort((a, b) =>
@@ -122,7 +123,10 @@ export const getEnrollmentIntakeHandoffStatus =
         ok: true,
         state: "none",
         proposalId,
-        intakeAudience,
+        intakeAudience:
+          clean(token.intakeAudience).toLowerCase() === "adult_athlete"
+            ? "adult_athlete"
+            : "parent_guardian",
       };
     }
 
@@ -135,7 +139,10 @@ export const getEnrollmentIntakeHandoffStatus =
         state: "expired",
         tokenId: tokenEntry.id,
         proposalId,
-        intakeAudience,
+        intakeAudience:
+          clean(token.intakeAudience).toLowerCase() === "adult_athlete"
+            ? "adult_athlete"
+            : "parent_guardian",
         exp,
         deliveryStatus: clean(token.deliveryStatus).toUpperCase(),
         deliveredAt: millis(token.deliveredAt) || null,
@@ -148,7 +155,10 @@ export const getEnrollmentIntakeHandoffStatus =
       state: "active",
       tokenId: tokenEntry.id,
       proposalId,
-      intakeAudience,
+      intakeAudience:
+        clean(token.intakeAudience).toLowerCase() === "adult_athlete"
+          ? "adult_athlete"
+          : "parent_guardian",
       exp,
       deliveryStatus: clean(token.deliveryStatus).toUpperCase(),
       deliveredAt: millis(token.deliveredAt) || null,
