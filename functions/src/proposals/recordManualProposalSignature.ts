@@ -26,9 +26,12 @@ export const recordManualProposalSignature =
       );
     }
 
+    const callerUid =
+      callerUid;
+
     const staffAccess =
       await requireProposalStaffAccess(
-        req.auth.uid
+        callerUid
       );
 
     const proposalId =
@@ -124,7 +127,7 @@ export const recordManualProposalSignature =
             cleanString(
               review.issuedBy
             ) ||
-            req.auth.uid;
+            callerUid;
 
           const historyRef =
             proposalRef
@@ -151,7 +154,7 @@ export const recordManualProposalSignature =
                   "manual_form",
 
                 recordedBy:
-                  req.auth.uid,
+                  callerUid,
 
                 recordedByName:
                   staffAccess.fullName,
@@ -181,7 +184,7 @@ export const recordManualProposalSignature =
                 FieldValue.serverTimestamp(),
 
               updatedBy:
-                req.auth.uid,
+                callerUid,
 
               updatedAt:
                 FieldValue.serverTimestamp(),
@@ -209,7 +212,7 @@ export const recordManualProposalSignature =
                 "manual_form",
 
               recordedBy:
-                req.auth.uid,
+                callerUid,
 
               recordedByName:
                 staffAccess.fullName,
