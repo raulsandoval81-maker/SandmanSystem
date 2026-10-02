@@ -64,6 +64,7 @@ function eventLabel(item = {}) {
     CLIENT_SIGNED: "Client signed",
     CHECKOUT_RESTARTED: "Checkout restarted",
     INTAKE_INVITE_CREATED: "Intake invite created",
+    INTAKE_INVITE_SENT: "Intake email sent",
     INTAKE_SUBMITTED: "Intake submitted",
     ATHLETE_ACTIVATED: "Athlete activated"
   };
@@ -86,6 +87,12 @@ function eventDetail(item = {}) {
     return item.intakeAudience === "adult_athlete"
       ? "Adult athlete intake handoff"
       : "Parent / guardian intake handoff";
+  }
+
+  if (item.event === "INTAKE_INVITE_SENT") {
+    return item.recipient
+      ? `Sent to ${item.recipient}`
+      : "Secure intake link emailed";
   }
 
   if (item.event === "INTAKE_SUBMITTED") {
