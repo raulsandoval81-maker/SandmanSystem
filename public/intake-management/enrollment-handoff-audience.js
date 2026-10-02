@@ -93,6 +93,20 @@ function inferAudience(proposal = {}) {
     return "parent_guardian";
   }
 
+  const enrollmentType = normalizeRole(firstValue(
+    athlete.enrollmentType,
+    prospect.enrollmentType,
+    proposal.enrollmentType
+  ));
+
+  if (["adult", "adult_athlete", "adultathlete"].includes(enrollmentType)) {
+    return "adult_athlete";
+  }
+
+  if (["youth", "minor", "child"].includes(enrollmentType)) {
+    return "parent_guardian";
+  }
+
   const dob = firstValue(
     athlete.dob,
     athlete.dateOfBirth,
