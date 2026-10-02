@@ -559,15 +559,66 @@ async function loadReadyForIntake(managementContext) {
     }
   }
 
-  readyProposalMap = new Map();
-
-  const proposals = proposalDocs
-    .map((proposalDoc) => {
-      const proposal = { id: proposalDoc.id, ...proposalDoc.data() };
-      readyProposalMap.set(proposal.proposalId || proposal.id, proposal);
-      return proposal;
-    })
+  const operationalProposals = proposalDocs
+    .map((proposalDoc) => ({
+      id: proposalDoc.id,
+      ...proposalDoc.data()
+    }))
     .filter(isOperationalPaidProposal);
+
+  const readinessChecks =
+    await Promise.all(
+      operationalProposals.map(
+        async (proposal) => {
+          const proposalId = String(
+            proposal.proposalId || proposal.id || ""
+          ).trim();
+
+          if (!proposalId) {
+            return null;
+          }
+
+          const locationId = String(
+            proposal.locationId || ""
+          ).trim();
+
+          const intakeQuery =
+            managementContext.isSystemAdmin
+              ? query(
+                  collection(db, "intakes"),
+                  where("proposalId", "==", proposalId),
+                  limit(1)
+                )
+              : query(
+                  collection(db, "intakes"),
+                  where("proposalId", "==", proposalId),
+                  where("locationId", "==", locationId),
+                  limit(1)
+                );
+
+          const intakeSnapshot =
+            await getDocs(intakeQuery);
+
+          return intakeSnapshot.empty
+            ? proposal
+            : null;
+        }
+      )
+    );
+
+  const proposals =
+    readinessChecks.filter(Boolean);
+
+  readyProposalMap =
+    new Map(
+      proposals.map((proposal) => [
+        String(
+          proposal.proposalId ||
+          proposal.id
+        ),
+        proposal
+      ])
+    );
 
   if (count) count.textContent = `${proposals.length} Ready`;
 
@@ -917,7 +968,11 @@ async function loadPendingLive(managementContext) {
 
 $("btn-find-intakes")?.addEventListener("click", async () => {
   const managementContext = await requireManagement();
-  await loadPendingLive(managementContext);
+
+  await Promise.all([
+    loadPendingLive(managementContext),
+    loadReadyForIntake(managementContext)
+  ]);
 });
 
 function wireApprovedButtons() {
