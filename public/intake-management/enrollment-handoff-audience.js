@@ -93,20 +93,6 @@ function inferAudience(proposal = {}) {
     return "parent_guardian";
   }
 
-  const enrollmentType = normalizeRole(firstValue(
-    athlete.enrollmentType,
-    prospect.enrollmentType,
-    proposal.enrollmentType
-  ));
-
-  if (["adult", "adult_athlete", "adultathlete"].includes(enrollmentType)) {
-    return "adult_athlete";
-  }
-
-  if (["youth", "minor", "child"].includes(enrollmentType)) {
-    return "parent_guardian";
-  }
-
   const dob = firstValue(
     athlete.dob,
     athlete.dateOfBirth,
@@ -194,8 +180,40 @@ async function inferAudienceWithLead(proposal = {}) {
 
     const age = ageFromDob(firstValue(lead.dob, lead.dateOfBirth));
     if (age !== null) return age >= 18 ? "adult_athlete" : "parent_guardian";
+
+    const athlete = proposalAthlete(proposal);
+    const prospect = proposalProspect(proposal);
+    const enrollmentType = normalizeRole(firstValue(
+      athlete.enrollmentType,
+      prospect.enrollmentType,
+      proposal.enrollmentType
+    ));
+
+    if (["adult", "adult_athlete", "adultathlete"].includes(enrollmentType)) {
+      return "adult_athlete";
+    }
+
+    if (["youth", "minor", "child"].includes(enrollmentType)) {
+      return "parent_guardian";
+    }
   } catch (error) {
     console.warn("[enrollment-handoff-audience] lead lookup failed:", error);
+  }
+
+  const athlete = proposalAthlete(proposal);
+  const prospect = proposalProspect(proposal);
+  const enrollmentType = normalizeRole(firstValue(
+    athlete.enrollmentType,
+    prospect.enrollmentType,
+    proposal.enrollmentType
+  ));
+
+  if (["adult", "adult_athlete", "adultathlete"].includes(enrollmentType)) {
+    return "adult_athlete";
+  }
+
+  if (["youth", "minor", "child"].includes(enrollmentType)) {
+    return "parent_guardian";
   }
 
   return "unknown";
