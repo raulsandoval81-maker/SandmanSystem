@@ -208,6 +208,10 @@ export {
   recordProposalPrepaidCash,
 } from "./billing/recordProposalPrepaidCash";
 
+export {
+  createProposalAutopaySetup,
+} from "./billing/proposalAutopaySetup";
+
 /* =========================
    PROPOSALS
 ========================= */
