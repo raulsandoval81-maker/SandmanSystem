@@ -25,6 +25,19 @@
     .lang.active{display:block}
     .audience-note{font-size:12px;font-weight:700;text-align:center;margin-bottom:12px}
     .small{font-size:11px;color:#4b5563}
+    .waiver-signoff{max-width:900px;margin:0 auto 44px;padding:0 24px}
+    .waiver-signoff-card{border:1px solid #d1d5db;border-radius:16px;padding:20px;background:#f9fafb}
+    .waiver-signoff h2{margin:0 0 8px;font-size:18px}
+    .waiver-signoff p{font-size:13px;color:#4b5563;margin-bottom:14px}
+    .waiver-check{display:flex;gap:10px;align-items:flex-start;margin:12px 0;font-size:13px;font-weight:700}
+    .waiver-check input{margin-top:3px}
+    .waiver-field{display:grid;gap:6px;margin-top:14px}
+    .waiver-field label{font-size:12px;font-weight:700}
+    .waiver-field input{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit;background:#fff}
+    .waiver-field input[readonly]{background:#f3f4f6}
+    .waiver-accept-btn{width:100%;margin-top:18px;border:0;border-radius:12px;padding:13px 16px;background:#111827;color:#fff;font-weight:800;cursor:pointer}
+    .waiver-accept-btn:disabled{opacity:.45;cursor:not-allowed}
+    .waiver-accept-status{margin-top:10px;font-size:12px;font-weight:700;color:#166534}
     @media print{
       @page{size:letter;margin:.5in}
       .topbar{display:none}
@@ -125,6 +138,34 @@
     <p class="small">La información del atleta, ubicación, contacto y firmante se recopila mediante el registro seguro de inscripción y no se vuelve a ingresar en esta exención digital. Los requisitos exactos de seguro, sanción y organización rectora se rigen por la póliza, charter, membresía, evento y reglas de la organización aplicables al momento de la participación.</p>
   </div>
 
+  <section class="waiver-signoff" id="waiverSignoff">
+    <div class="waiver-signoff-card">
+      <h2 id="waiverSignoffTitle">Waiver Acknowledgment</h2>
+      <p id="waiverSignoffIntro">Complete this acknowledgment before returning to Intake.</p>
+
+      <label class="waiver-check">
+        <input id="waiverAgree" type="checkbox" />
+        <span id="waiverAgreeLabel">I have read and agree to this waiver.</span>
+      </label>
+
+      <div class="waiver-field">
+        <label id="waiverSignatureLabel" for="waiverSignature">Adult Athlete Signature</label>
+        <input id="waiverSignature" type="text" autocomplete="name" />
+      </div>
+
+      <div class="waiver-field">
+        <label id="waiverDateLabel" for="waiverDate">Date</label>
+        <input id="waiverDate" type="date" readonly />
+      </div>
+
+      <button id="waiverAcceptBtn" class="waiver-accept-btn" type="button" disabled>
+        Accept & Return to Intake
+      </button>
+
+      <div id="waiverAcceptStatus" class="waiver-accept-status" hidden></div>
+    </div>
+  </section>
+
   <script>
     const params = new URLSearchParams(window.location.search);
     const hasRequestedLang = params.has('lang');
@@ -195,8 +236,157 @@
       );
     }
 
+    const inviteToken =
+      (params.get('invite') || '').trim();
+
+    const agreeBox =
+      document.getElementById('waiverAgree');
+
+    const signatureInput =
+      document.getElementById('waiverSignature');
+
+    const dateInput =
+      document.getElementById('waiverDate');
+
+    const acceptButton =
+      document.getElementById('waiverAcceptBtn');
+
+    const acceptStatus =
+      document.getElementById('waiverAcceptStatus');
+
+    const signoffTitle =
+      document.getElementById('waiverSignoffTitle');
+
+    const signoffIntro =
+      document.getElementById('waiverSignoffIntro');
+
+    const agreeLabel =
+      document.getElementById('waiverAgreeLabel');
+
+    const signatureLabel =
+      document.getElementById('waiverSignatureLabel');
+
+    const dateLabel =
+      document.getElementById('waiverDateLabel');
+
+    function acceptanceStorageKey(){
+      return inviteToken
+        ? `sandman-waiver-acceptance:${inviteToken}`
+        : '';
+    }
+
+    function localizeSignoff(lang){
+      const spanish = lang === 'es';
+      const parent =
+        audience === 'parent_guardian';
+
+      signoffTitle.textContent =
+        spanish
+          ? 'Aceptación de la Exención'
+          : 'Waiver Acknowledgment';
+
+      signoffIntro.textContent =
+        spanish
+          ? 'Complete esta aceptación antes de regresar al registro.'
+          : 'Complete this acknowledgment before returning to Intake.';
+
+      agreeLabel.textContent =
+        spanish
+          ? 'He leído y acepto esta exención.'
+          : 'I have read and agree to this waiver.';
+
+      signatureLabel.textContent =
+        spanish
+          ? (parent ? 'Firma del Padre, Madre o Tutor' : 'Firma del Atleta Adulto')
+          : (parent ? 'Parent / Guardian Signature' : 'Adult Athlete Signature');
+
+      dateLabel.textContent =
+        spanish ? 'Fecha' : 'Date';
+
+      acceptButton.textContent =
+        spanish
+          ? 'Aceptar y Regresar al Registro'
+          : 'Accept & Return to Intake';
+
+      signatureInput.placeholder =
+        spanish
+          ? 'Escriba su nombre completo'
+          : 'Type your full name';
+    }
+
+    function refreshAcceptButton(){
+      acceptButton.disabled =
+        !agreeBox.checked ||
+        !signatureInput.value.trim();
+    }
+
+    agreeBox.addEventListener(
+      'change',
+      refreshAcceptButton
+    );
+
+    signatureInput.addEventListener(
+      'input',
+      refreshAcceptButton
+    );
+
+    acceptButton.addEventListener(
+      'click',
+      () => {
+        const signatureName =
+          signatureInput.value.trim();
+
+        if (
+          !inviteToken ||
+          !agreeBox.checked ||
+          !signatureName
+        ) {
+          return;
+        }
+
+        const acceptance = {
+          invite: inviteToken,
+          audience,
+          language: requestedLang,
+          agreed: true,
+          signatureName,
+          signatureDate: dateInput.value,
+          acceptedAt: Date.now(),
+          waiverVersion: 'participation-waiver-v1'
+        };
+
+        try {
+          localStorage.setItem(
+            acceptanceStorageKey(),
+            JSON.stringify(acceptance)
+          );
+        } catch (_) {
+          acceptStatus.hidden = false;
+          acceptStatus.textContent =
+            requestedLang === 'es'
+              ? 'No se pudo guardar la aceptación. Regrese al registro e inténtelo de nuevo.'
+              : 'Unable to save the acknowledgment. Return to Intake and try again.';
+          return;
+        }
+
+        acceptStatus.hidden = false;
+        acceptStatus.textContent =
+          requestedLang === 'es'
+            ? 'Exención aceptada. Regresando al registro…'
+            : 'Waiver accepted. Returning to Intake…';
+
+        window.setTimeout(() => {
+          window.close();
+        }, 250);
+      }
+    );
+
     setAudienceLabels();
     setLanguage(requestedLang);
+    localizeSignoff(requestedLang);
+
+    dateInput.value =
+      new Date().toISOString().slice(0, 10);
   </script>
 </body>
 </html>
