@@ -462,6 +462,119 @@ function applyReviewModeUI() {
 }
 
 // ------------------------------------------------------
+// Submitted intake record
+// ------------------------------------------------------
+function renderSubmittedIntakeRecord(s = {}) {
+  const dob =
+    s.dob ??
+    s.athlete?.dob ??
+    "—";
+
+  const city =
+    s.location?.city ??
+    "—";
+
+  const state =
+    s.location?.state ??
+    "—";
+
+  const contactEmail =
+    s.parent?.email ??
+    s.athlete?.email ??
+    "—";
+
+  const contactPhone =
+    s.parent?.phoneDigits ??
+    s.athlete?.phoneDigits ??
+    "—";
+
+  const intakeAudience =
+    s.intakeAudience ||
+    (
+      s.source === "intake-athlete-ui"
+        ? "adult_athlete"
+        : s.source === "intake-parent-ui"
+          ? "parent_guardian"
+          : null
+    );
+
+  const completedByLabel =
+    intakeAudience === "adult_athlete"
+      ? "Adult Athlete"
+      : intakeAudience === "parent_guardian"
+        ? "Parent / Guardian"
+        : "—";
+
+  const emerName =
+    s.emergency?.name ??
+    "—";
+
+  const emerPhone =
+    s.emergency?.phoneDigits ??
+    "—";
+
+  const medical =
+    s.medical ??
+    "—";
+
+  const submittedFirst =
+    s.first ??
+    s.athlete?.first ??
+    "";
+
+  const submittedLast =
+    s.last ??
+    s.athlete?.last ??
+    "";
+
+  if ($("s-firstlast")) {
+    $("s-firstlast").textContent =
+      `${submittedFirst} ${submittedLast}`.trim() ||
+      "—";
+  }
+
+  if ($("s-dob")) {
+    $("s-dob").textContent =
+      dob;
+  }
+
+  if ($("s-city")) {
+    $("s-city").textContent =
+      city;
+  }
+
+  if ($("s-state")) {
+    $("s-state").textContent =
+      state;
+  }
+
+  if ($("s-email")) {
+    $("s-email").textContent =
+      contactEmail;
+  }
+
+  if ($("s-phone")) {
+    $("s-phone").textContent =
+      contactPhone;
+  }
+
+  if ($("s-completed-by")) {
+    $("s-completed-by").textContent =
+      completedByLabel;
+  }
+
+  if ($("s-emer")) {
+    $("s-emer").textContent =
+      `${emerName} (${emerPhone})`;
+  }
+
+  if ($("s-med")) {
+    $("s-med").textContent =
+      medical;
+  }
+}
+
+// ------------------------------------------------------
 // Load submission
 // ------------------------------------------------------
 async function loadSubmission() {
@@ -477,6 +590,7 @@ async function loadSubmission() {
 
   applyReviewModeUI(s);
   renderIntakeLifecycle(s);
+  renderSubmittedIntakeRecord(s);
 
   if (s.status === "approved" && s.approvedUid) {
     const uid = s.approvedUid;
@@ -559,63 +673,6 @@ async function loadSubmission() {
   if ($("c-last") && !$("c-last").value) {
     $("c-last").value = athleteLast;
   }
-
-  const city = s.location?.city ?? "—";
-  const state = s.location?.state ?? "—";
-
-  const contactEmail =
-    s.parent?.email ??
-    s.athlete?.email ??
-    "—";
-
-  const contactPhone =
-    s.parent?.phoneDigits ??
-    s.athlete?.phoneDigits ??
-    "—";
-
-  const intakeAudience =
-    s.intakeAudience ||
-    (
-      s.source === "intake-athlete-ui"
-        ? "adult_athlete"
-        : s.source === "intake-parent-ui"
-          ? "parent_guardian"
-          : null
-    );
-
-  const completedByLabel =
-    intakeAudience === "adult_athlete"
-      ? "Adult Athlete"
-      : intakeAudience === "parent_guardian"
-        ? "Parent / Guardian"
-        : "—";
-
-  const emerName = s.emergency?.name ?? "—";
-  const emerPhone = s.emergency?.phoneDigits ?? "—";
-  const medical = s.medical ?? "—";
-
-  if ($("s-firstlast")) {
-    const submittedFirst = s.first ?? s.athlete?.first ?? "";
-    const submittedLast = s.last ?? s.athlete?.last ?? "";
-    $("s-firstlast").textContent =
-      `${submittedFirst} ${submittedLast}`.trim() || "—";
-  }
-
-  if ($("s-dob")) $("s-dob").textContent = dob;
-  if ($("s-city")) $("s-city").textContent = city;
-  if ($("s-state")) $("s-state").textContent = state;
-  if ($("s-email")) $("s-email").textContent = contactEmail;
-  if ($("s-phone")) $("s-phone").textContent = contactPhone;
-
-  if ($("s-completed-by")) {
-    $("s-completed-by").textContent = completedByLabel;
-  }
-
-  if ($("s-emer")) {
-    $("s-emer").textContent = `${emerName} (${emerPhone})`;
-  }
-
-  if ($("s-med")) $("s-med").textContent = medical;
 
   if ($("c-city")) {
     $("c-city").value =
