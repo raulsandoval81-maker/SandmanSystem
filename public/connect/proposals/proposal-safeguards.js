@@ -15,6 +15,12 @@ const issueProposalClientReview =
     "issueProposalClientReview"
   );
 
+const recordManualProposalSignature =
+  httpsCallable(
+    functions,
+    "recordManualProposalSignature"
+  );
+
 function clean(value = "") {
   return String(value || "").trim();
 }
@@ -128,6 +134,111 @@ function addSafeguards() {
               }
             },
             true
+          );
+        }
+
+        if (
+          !actions.querySelector(
+            "[data-record-manual-signature]"
+          )
+        ) {
+          const manualButton =
+            document.createElement("button");
+
+          manualButton.type = "button";
+          manualButton.className =
+            "proposal-open-btn";
+          manualButton.dataset.recordManualSignature =
+            proposalId;
+          manualButton.textContent =
+            "Record Manual Signature";
+          manualButton.title =
+            "Use when the family already signed a paper/manual form. Records the signature in Activity and moves the proposal to Checkout Ready.";
+
+          manualButton.addEventListener(
+            "click",
+            async () => {
+              const signerName =
+                clean(
+                  window.prompt(
+                    "Name shown on the signed paper form:"
+                  )
+                );
+
+              if (!signerName) {
+                return;
+              }
+
+              const signerChoice =
+                clean(
+                  window.prompt(
+                    "Signer relationship: type P for Parent/Guardian or A for Adult Athlete.",
+                    "P"
+                  )
+                ).toUpperCase();
+
+              const signerRole =
+                signerChoice === "A"
+                  ? "adult_athlete"
+                  : signerChoice === "P"
+                    ? "parent_guardian"
+                    : "";
+
+              if (!signerRole) {
+                window.alert(
+                  "Use P for Parent/Guardian or A for Adult Athlete."
+                );
+                return;
+              }
+
+              const confirmed =
+                window.confirm(
+                  `Confirm that the signed paper/manual form for ${proposalId} is on file.\n\nThis records the client signature and moves the proposal to Checkout Ready.`
+                );
+
+              if (!confirmed) {
+                return;
+              }
+
+              const originalText =
+                manualButton.textContent;
+
+              manualButton.disabled = true;
+              manualButton.textContent =
+                "Recording…";
+
+              try {
+                await recordManualProposalSignature({
+                  proposalId,
+                  signerName,
+                  signerRole
+                });
+
+                window.alert(
+                  `${proposalId} manual signature recorded. The proposal is now Checkout Ready.`
+                );
+
+                window.location.reload();
+              } catch (error) {
+                console.error(
+                  "Manual proposal signature failed:",
+                  error
+                );
+
+                window.alert(
+                  error?.message ||
+                  "The manual signature could not be recorded."
+                );
+
+                manualButton.disabled = false;
+                manualButton.textContent =
+                  originalText;
+              }
+            }
+          );
+
+          actions.appendChild(
+            manualButton
           );
         }
 
