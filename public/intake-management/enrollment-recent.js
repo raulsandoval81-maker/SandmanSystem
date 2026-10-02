@@ -641,6 +641,9 @@ async function handleAssessment(button) {
     button.textContent = response?.data?.duplicate
       ? "Assessment Already Sent"
       : "Assessment Sent";
+    button.title = response?.data?.duplicate
+      ? "Coach assessment is already open; enrollment claim context is attached when available."
+      : "Coach assessment opened with the enrollment experience claim attached when available.";
     button.disabled = true;
   } catch (error) {
     console.error("Coach assessment handoff failed:", error);
