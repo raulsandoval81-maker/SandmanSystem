@@ -153,6 +153,9 @@ export const recordManualProposalSignature =
                 signatureMethod:
                   "manual_form",
 
+                acceptanceScope:
+                  "proposal_acceptance_only",
+
                 recordedBy:
                   callerUid,
 
@@ -210,6 +213,9 @@ export const recordManualProposalSignature =
 
               signatureMethod:
                 "manual_form",
+
+              acceptanceScope:
+                "proposal_acceptance_only",
 
               recordedBy:
                 callerUid,
