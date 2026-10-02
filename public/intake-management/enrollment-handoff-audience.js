@@ -331,6 +331,15 @@ async function normalizeCard(card) {
   const actions = card.querySelector(".pending-card-actions");
   if (!actions) return;
 
+  // If the proposal does not contain enough authoritative data to infer
+  // Parent/Guardian vs Adult Athlete, keep the Enrollment page's explicit
+  // two-choice fallback instead of replacing it with an unusable ambiguous
+  // button. Management can then choose the correct intake owner.
+  if (audience === "unknown") {
+    card.dataset.audienceNormalized = "true";
+    return;
+  }
+
   const button = document.createElement("button");
   button.type = "button";
   button.className = "small solid-blue";
