@@ -652,114 +652,35 @@
         </p>
 
 
-        <label class="checkbox-row">
-
-          <input
-            type="checkbox"
-            id="waiverCheck"
-            disabled
-          />
-
-          <span data-lang="en">
-            I have read and understand the Sandman Participation Waiver.
-          </span>
-
-          <span data-lang="es" hidden>
-            He leído y comprendo la Exención de Participación de Sandman.
-          </span>
-
-        </label>
-
-
-        <div class="certification-block">
+        <div class="certification-block" id="waiverCompletionPanel">
 
           <h3>
             <span data-lang="en">
-              Certification
+              Waiver Completion
             </span>
 
             <span data-lang="es" hidden>
-              Certificación
+              Finalización de la Exención
             </span>
           </h3>
 
           <p class="muted">
             <span data-lang="en">
-              I certify that I am the parent or legal guardian of this athlete and am authorized to sign on their behalf.
+              Read, agree, and sign on the waiver page as the parent or legal guardian. Your signed waiver will return here automatically.
             </span>
 
             <span data-lang="es" hidden>
-              Certifico que soy el padre, madre o tutor legal de este atleta y estoy autorizado para firmar en su nombre.
+              Lea, acepte y firme en la página de la exención como padre, madre o tutor legal. La exención firmada regresará aquí automáticamente.
             </span>
           </p>
 
+          <p
+            id="waiverSignerSummary"
+            class="muted"
+            hidden
+          ></p>
+
         </div>
-
-
-        <label for="signatureParent">
-
-          <span data-lang="en">
-            Electronic Signature
-          </span>
-
-          <span data-lang="es" hidden>
-            Firma Electrónica
-          </span>
-
-        </label>
-
-        <p class="muted small">
-
-          <span data-lang="en">
-            Type your full legal name below. By typing your name,
-            you acknowledge that it serves as your electronic signature.
-          </span>
-
-          <span data-lang="es" hidden>
-            Escriba su nombre legal completo a continuación.
-            Al escribir su nombre, reconoce que sirve como su firma electrónica.
-          </span>
-
-        </p>
-
-        <label for="signatureParent" class="small muted">
-
-          <span data-lang="en">
-            Parent / Guardian Signature
-          </span>
-
-          <span data-lang="es" hidden>
-            Firma del Padre o Tutor
-          </span>
-
-        </label>
-
-        <input
-          id="signatureParent"
-          type="text"
-          disabled
-          autocomplete="name"
-          placeholder="Type your full name…"
-        />
-
-
-        <label for="signatureDate">
-
-          <span data-lang="en">
-            Today's Date
-          </span>
-
-          <span data-lang="es" hidden>
-            Fecha de Hoy
-          </span>
-
-        </label>
-
-        <input
-          id="signatureDate"
-          type="date"
-          disabled
-        />
 
       </section>
 
