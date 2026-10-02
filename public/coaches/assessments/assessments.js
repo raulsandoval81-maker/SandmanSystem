@@ -47,6 +47,22 @@ function xpForExperience(value) {
   return 0;
 }
 
+function claimedRangeLabel(value) {
+  return ({
+    "under-1": "Less than 1 year",
+    "1-2": "1–2 years",
+    "2-3": "2–3 years",
+    "3-plus": "3+ years"
+  })[clean(value).toLowerCase()] || "Not provided";
+}
+
+function yesNoLabel(value) {
+  const normalized = clean(value).toLowerCase();
+  if (normalized === "yes") return "Yes";
+  if (normalized === "no") return "No";
+  return "Not provided";
+}
+
 function statusLabel(status) {
   const normalized =
     clean(status).toUpperCase();
@@ -132,6 +148,24 @@ function renderPin(pin) {
         pin.currentEarnedXp || 0
       )
     );
+
+  const claim =
+    pin.claimedExperience &&
+    typeof pin.claimedExperience === "object"
+      ? pin.claimedExperience
+      : {};
+
+  const claimedPrior =
+    yesNoLabel(claim.priorExperience);
+
+  const claimedRange =
+    claimedRangeLabel(claim.range);
+
+  const claimedNotes =
+    clean(claim.notes) || "No additional details provided.";
+
+  const claimedDiscipline =
+    clean(claim.discipline) || discipline;
 
   return `
     <article
@@ -221,8 +255,38 @@ function renderPin(pin) {
         </p>
 
         <h4>
-          Coach Verification
+          Claimed by Family / Athlete
         </h4>
+
+        <div class="assessment-claim-box">
+          <div>
+            <span>Prior Experience Claimed</span>
+            <strong>${esc(claimedPrior)}</strong>
+          </div>
+
+          <div>
+            <span>Claimed Time</span>
+            <strong>${esc(claimedRange)}</strong>
+          </div>
+
+          <div>
+            <span>Discipline</span>
+            <strong>${esc(claimedDiscipline)}</strong>
+          </div>
+
+          <div class="assessment-claim-notes">
+            <span>Submitted Details</span>
+            <p>${esc(claimedNotes)}</p>
+          </div>
+        </div>
+
+        <h4>
+          Coach Confirmation
+        </h4>
+
+        <p class="assessment-confirm-note">
+          Confirm what you observe. The submitted claim is context only and does not create starting XP by itself.
+        </p>
 
         <div class="assessment-grid assessment-grid--two">
 
@@ -235,6 +299,14 @@ function renderPin(pin) {
               data-experience-mode
               data-pin="${esc(pinId)}"
             >
+              <option value="">
+                Confirm experience…
+              </option>
+
+              <option value="0">
+                No Verified Prior Experience
+              </option>
+
               <option value="lt1">
                 Less than 1 Year
               </option>
@@ -620,6 +692,12 @@ async function submitAssessment(
         "[data-experience-mode]",
         pinId
       );
+
+    if (!experienceSelection) {
+      throw new Error(
+        "Confirm the athlete's prior experience."
+      );
+    }
 
     const placementRecommendation =
       valueFor(
