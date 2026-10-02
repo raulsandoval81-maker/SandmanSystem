@@ -18,6 +18,8 @@ export interface ProposalProspect {
   admissionsRequestId: string | null;
   familyName: string | null;
   primaryContactName: string | null;
+  registrantRole?: string | null;
+  athleteAge?: string | null;
   email: string | null;
   emailSource?: "appointment" | "proposal_input" | null;
   phone: string | null;
