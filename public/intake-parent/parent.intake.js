@@ -6,7 +6,7 @@
 // city, state
 // emergencyName, emergencyPhone
 // medical
-// openWaiverBtn, waiverStatus, waiverCheck, signatureParent, signatureDate, submitBtn
+// openWaiverBtn, waiverStatus, waiverSignerSummary, submitBtn
 // intakeForm
 
 import {
@@ -30,11 +30,52 @@ const setDisabled = (id, v) => {
   if (el) el.disabled = !!v;
 };
 
+function activeLanguage() {
+  const selectedSpanish =
+    document.getElementById("languageSpanish")
+      ?.getAttribute("aria-pressed") === "true";
+
+  const selectedEnglish =
+    document.getElementById("languageEnglish")
+      ?.getAttribute("aria-pressed") === "true";
+
+  if (selectedSpanish) return "es";
+  if (selectedEnglish) return "en";
+
+  try {
+    const saved =
+      localStorage.getItem(
+        "sandman-language"
+      );
+
+    if (saved === "es" || saved === "en") {
+      return saved;
+    }
+  } catch (_) {
+    // Ignore unavailable localStorage.
+  }
+
+  return document.documentElement.lang === "es"
+    ? "es"
+    : "en";
+}
+
 function setWaiverStatusStrong(text, color = "") {
   const el = $("waiverStatus");
   if (!el) return;
-  const style = color ? ` style="color:${color}"` : "";
-  el.innerHTML = `Status: <strong${style}>${text}</strong>`;
+
+  const label =
+    activeLanguage() === "es"
+      ? "Estado"
+      : "Status";
+
+  const style =
+    color
+      ? ` style="color:${color}"`
+      : "";
+
+  el.innerHTML =
+    `${label}: <strong${style}>${text}</strong>`;
 }
 
 // -------------------- Waiver config --------------------
@@ -43,7 +84,8 @@ const WAIVER_URL_EN =
 
 const WAIVER_URL_ES =
   "/waiver/?audience=parent_guardian&lang=es";
-let waiverViewed = false;
+let waiverAcceptance = null;
+let currentInviteToken = "";
 let inviteReady = false;
 
 let leadLanguagePreference = null;
@@ -130,52 +172,110 @@ function normalizeIdentityText(value = "") {
 }
 
 // -------------------- Waiver gating --------------------
+function waiverStorageKey() {
+  return currentInviteToken
+    ? `sandman-waiver-acceptance:${currentInviteToken}`
+    : "";
+}
+
 function waiverAgreementOK() {
-  return (
-    waiverViewed &&
-    !!$("waiverCheck")?.checked &&
-    !!val("signatureParent") &&
-    !!val("signatureDate")
+  return Boolean(
+    waiverAcceptance?.agreed === true &&
+    waiverAcceptance?.signatureName &&
+    waiverAcceptance?.signatureDate
   );
 }
 
 function maybeUnlockSubmit() {
-  setDisabled("submitBtn", !(inviteReady && waiverAgreementOK()));
+  setDisabled(
+    "submitBtn",
+    !(inviteReady && waiverAgreementOK())
+  );
 }
 
-function markWaiverViewed() {
-  waiverViewed = true;
-  setWaiverStatusStrong("Viewed");
+function applyWaiverAcceptance(acceptance) {
+  if (
+    !acceptance ||
+    acceptance.invite !== currentInviteToken ||
+    acceptance.audience !== "parent_guardian" ||
+    acceptance.agreed !== true
+  ) {
+    return;
+  }
 
-  setDisabled("waiverCheck", false);
-  setDisabled("signatureParent", false);
+  waiverAcceptance =
+    acceptance;
 
-  const todayISO = localDateISO();
-  const dateEl = $("signatureDate");
-  if (dateEl) {
-    dateEl.value = todayISO;
-    dateEl.readOnly = true;
-    dateEl.disabled = true; // hard lock
+  const spanish =
+    activeLanguage() === "es";
+
+  setWaiverStatusStrong(
+    spanish
+      ? "Firmada"
+      : "Signed",
+    "#34d399"
+  );
+
+  const summary =
+    $("waiverSignerSummary");
+
+  if (summary) {
+    summary.hidden = false;
+    summary.textContent =
+      spanish
+        ? `Firmado por ${acceptance.signatureName} el ${acceptance.signatureDate}.`
+        : `Signed by ${acceptance.signatureName} on ${acceptance.signatureDate}.`;
   }
 
   maybeUnlockSubmit();
 }
 
+function readWaiverAcceptance() {
+  const key =
+    waiverStorageKey();
+
+  if (!key) return;
+
+  try {
+    const raw =
+      localStorage.getItem(key);
+
+    if (!raw) return;
+
+    applyWaiverAcceptance(
+      JSON.parse(raw)
+    );
+  } catch (_) {
+    // Ignore malformed or unavailable local storage.
+  }
+}
+
 function openWaiver(url) {
-  window.open(url, "_blank", "noopener");
-  markWaiverViewed();
+  window.open(
+    url,
+    "_blank",
+    "noopener"
+  );
 }
 
 $("openWaiverBtn")?.addEventListener("click", () => {
-  const language =
-    document.documentElement.lang === "es"
-      ? "es"
-      : "en";
+  const baseUrl =
+    activeLanguage() === "es"
+      ? WAIVER_URL_ES
+      : WAIVER_URL_EN;
+
+  const separator =
+    baseUrl.includes("?")
+      ? "&"
+      : "?";
+
+  const waiverUrl =
+    currentInviteToken
+      ? `${baseUrl}${separator}invite=${encodeURIComponent(currentInviteToken)}`
+      : baseUrl;
 
   openWaiver(
-    language === "es"
-      ? WAIVER_URL_ES
-      : WAIVER_URL_EN
+    waiverUrl
   );
 });
 
@@ -495,7 +595,12 @@ async function handleSubmit(e) {
     }
 
     if (!waiverAgreementOK()) {
-      fail("Open the waiver, check the box, and add your signature.", "openWaiverBtn");
+      fail(
+        activeLanguage() === "es"
+          ? "Abra la exención, acéptela y fírmela antes de continuar."
+          : "Open the waiver, accept it, and sign it before continuing.",
+        "openWaiverBtn"
+      );
     }
 
     const v = validateFormBasics();
@@ -529,21 +634,36 @@ async function handleSubmit(e) {
       }
     }
 
-    const sign = titleCase(val("signatureParent"));
-    const signDate = val("signatureDate");
-    if (!sign) fail("Type your full name as signature.", "signatureParent");
+    const sign =
+      titleCase(
+        waiverAcceptance.signatureName
+      );
 
-    const signatureParts = splitFullName(sign);
-    if (!signatureParts.first || !signatureParts.last) {
+    const signDate =
+      waiverAcceptance.signatureDate;
+
+    const signatureParts =
+      splitFullName(sign);
+
+    if (
+      !signatureParts.first ||
+      !signatureParts.last
+    ) {
       fail(
-        "Electronic signature must include first and last name.",
-        "signatureParent"
+        activeLanguage() === "es"
+          ? "La firma electrónica debe incluir nombre y apellido."
+          : "Electronic signature must include first and last name.",
+        "openWaiverBtn"
       );
     }
 
-    if (!signDate) fail("Select today’s date.", "signatureDate");
     if (signDate !== localDateISO()) {
-      fail("Signature date must be today.", "signatureDate");
+      fail(
+        activeLanguage() === "es"
+          ? "La fecha de la firma debe ser hoy."
+          : "Signature date must be today.",
+        "openWaiverBtn"
+      );
     }
 
     const intake = {
@@ -642,6 +762,13 @@ async function handleSubmit(e) {
         signingAuthority: "guardian_for_athlete",
         signatureName: sign,
         signatureDate: signDate,
+        acceptedAt:
+          waiverAcceptance.acceptedAt || null,
+        language:
+          waiverAcceptance.language || activeLanguage(),
+        waiverVersion:
+          waiverAcceptance.waiverVersion ||
+          "participation-waiver-v1",
       },
 
       status: "submitted",
@@ -679,33 +806,35 @@ async function handleSubmit(e) {
 
 // -------------------- Wiring --------------------
 function wireWaiver() {
-  setDisabled("waiverCheck", true);
-  setDisabled("signatureParent", true);
-  setDisabled("signatureDate", true);
-  setDisabled("submitBtn", true);
+  setDisabled(
+    "submitBtn",
+    true
+  );
 
-  $("waiverCheck")
-  ?.addEventListener("change", () => {
+  window.addEventListener(
+    "storage",
+    (event) => {
+      if (
+        event.key !== waiverStorageKey() ||
+        !event.newValue
+      ) {
+        return;
+      }
 
-    const checked =
-      !!$("waiverCheck")?.checked;
+      try {
+        applyWaiverAcceptance(
+          JSON.parse(event.newValue)
+        );
+      } catch (_) {
+        // Ignore malformed cross-tab storage payloads.
+      }
+    }
+  );
 
-    setDisabled(
-      "signatureParent",
-      !checked
-    );
-
-    maybeUnlockSubmit();
-  });
-
-  ["signatureParent", "signatureDate"].forEach((id) => {
-    const el = $(id);
-    if (!el) return;
-
-    ["input", "change"].forEach((evt) =>
-      el.addEventListener(evt, maybeUnlockSubmit)
-    );
-  });
+  window.addEventListener(
+    "focus",
+    readWaiverAcceptance
+  );
 }
 
 function wirePhoneSanitizer(id) {
@@ -864,6 +993,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const tok = getInviteFromURL();
+
+  currentInviteToken =
+    String(tok || "").trim();
+
   if (!tok) {
     setWaiverStatusStrong(
       "⚠ Missing invite token.",
@@ -921,6 +1054,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   wireWaiver();
+  readWaiverAcceptance();
   wirePhoneSanitizer("parentPhone");
   wirePhoneSanitizer("emergencyPhone");
 
