@@ -94,7 +94,7 @@
     <p>Participants and spectators must follow coach instructions, safety requirements, facility rules, and applicable partner-program policies. Sideline coaching is not permitted. Sandman may limit or suspend participation when conduct, safety, readiness, membership status, or program requirements are not met.</p>
 
     <h2>10) Acknowledgment &amp; Electronic Signature</h2>
-    <p>I have read and understand this Participation Agreement and Waiver. I understand that the electronic signature entered in the enrollment intake is intended to serve as my signature and acknowledgment of these terms.</p>
+    <p>I have read and understand this Participation Agreement and Waiver. I understand that the electronic signature provided as part of this enrollment waiver flow is intended to serve as my signature and acknowledgment of these terms.</p>
     <p class="small">Athlete, location, contact, and signer information are collected through the secure enrollment intake and are not re-entered on this digital waiver. Exact insurance, sanctioning, and governing-body requirements are controlled by the applicable policy, charter, membership, event, and organization rules in effect at the time of participation.</p>
   </div>
 
@@ -134,7 +134,7 @@
     <p>Los participantes y espectadores deben seguir las instrucciones del entrenador, los requisitos de seguridad, las reglas de la instalación y las políticas aplicables del programa asociado. No se permite dar instrucciones desde la zona de observación. Sandman puede limitar o suspender la participación cuando no se cumplan los requisitos de conducta, seguridad, preparación, membresía o programa.</p>
 
     <h2>10) Reconocimiento y Firma Electrónica</h2>
-    <p>He leído y entiendo este Acuerdo de Participación y Exención. Entiendo que la firma electrónica ingresada en el registro de inscripción tiene la intención de servir como mi firma y reconocimiento de estos términos.</p>
+    <p>He leído y entiendo este Acuerdo de Participación y Exención. Entiendo que la firma electrónica proporcionada como parte de este proceso de exención de inscripción tiene la intención de servir como mi firma y reconocimiento de estos términos.</p>
     <p class="small">La información del atleta, ubicación, contacto y firmante se recopila mediante el registro seguro de inscripción y no se vuelve a ingresar en esta exención digital. Los requisitos exactos de seguro, sanción y organización rectora se rigen por la póliza, charter, membresía, evento y reglas de la organización aplicables al momento de la participación.</p>
   </div>
 
@@ -238,6 +238,13 @@
 
     const inviteToken =
       (params.get('invite') || '').trim();
+
+    const signoffSection =
+      document.getElementById('waiverSignoff');
+
+    if (!inviteToken && signoffSection) {
+      signoffSection.hidden = true;
+    }
 
     const agreeBox =
       document.getElementById('waiverAgree');
