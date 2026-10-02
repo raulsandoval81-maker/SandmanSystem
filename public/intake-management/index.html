@@ -437,6 +437,40 @@
 
       </div>
 
+      <div class="manual-intake-delivery">
+        <p class="small muted">
+          Already sent the intake another way? Record it here so Management can advance the enrollment without pretending an email was sent.
+        </p>
+
+        <div class="row">
+          <select
+            id="manual-send-method"
+            class="small"
+            aria-label="Manual intake delivery method"
+          >
+            <option value="text">Text</option>
+            <option value="in_person">In Person</option>
+            <option value="other">Other</option>
+          </select>
+
+          <input
+            id="manual-send-note"
+            type="text"
+            class="small"
+            maxlength="500"
+            placeholder="Optional note"
+          >
+
+          <button
+            id="btn-mark-intake-sent"
+            class="outline-blue small"
+            type="button"
+          >
+            Mark Intake Sent
+          </button>
+        </div>
+      </div>
+
       <div
         id="invite-status"
         class="small muted"
