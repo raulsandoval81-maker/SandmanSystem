@@ -328,6 +328,8 @@ function intakeAudienceForProposal(proposal = {}, athletes = []) {
     proposal.registrantRole ||
     proposal.lockedSnapshot?.intakeAudience ||
     proposal.lockedSnapshot?.registrantRole ||
+    proposal.lockedSnapshot?.prospect?.registrantRole ||
+    proposal.prospect?.registrantRole ||
     athlete.intakeAudience ||
     athlete.registrantRole ||
     ""
