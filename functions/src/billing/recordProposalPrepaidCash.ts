@@ -183,9 +183,7 @@ export const recordProposalPrepaidCash =
             }
 
             const nextStatus =
-              isCheckoutReady
-                ? "CASH_PREPAID_AUTOPAY_REQUIRED"
-                : "PAID";
+              "PAID";
 
             const historyRef =
               proposalRef
@@ -205,7 +203,11 @@ export const recordProposalPrepaidCash =
                   "cash_prepaid",
 
                 paymentStatus:
-                  "PREPAID_CASH_RECORDED",
+                  "paid",
+
+                paidAt:
+                  proposal.paidAt ||
+                  FieldValue.serverTimestamp(),
 
                 cashPrepayment: {
                   amountCents,
