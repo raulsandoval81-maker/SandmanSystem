@@ -579,48 +579,52 @@ async function continueToCheckout() {
     $("continueCheckoutButton");
 
   button.disabled = true;
-  button.textContent = "Opening Checkout…";
+  button.textContent =
+    "Opening Enrollment Verification…";
 
   try {
-    const checkout =
+    const issueEnrollment =
       httpsCallable(
         functions,
-        "createProposalCheckout"
+        "issueProposalEnrollmentHandoff"
       );
 
     const response =
-      await checkout({
+      await issueEnrollment({
         proposalId,
-        token
+        clientReviewToken:
+          token,
+        delivery:
+          "local"
       });
 
-    const checkoutUrl =
+    const enrollmentPath =
       String(
-        response.data?.checkoutUrl || ""
+        response.data?.enrollmentPath || ""
       ).trim();
 
-    if (!checkoutUrl) {
+    if (!enrollmentPath) {
       throw new Error(
-        "Checkout is not available."
+        "Enrollment verification is not available."
       );
     }
 
     window.location.assign(
-      checkoutUrl
+      enrollmentPath
     );
   } catch (error) {
     console.error(
-      "Client checkout failed:",
+      "Enrollment verification handoff failed:",
       error
     );
 
     button.disabled = false;
     button.textContent =
-      "Continue to Checkout";
+      "Continue to Enrollment Verification";
 
     showMessage(
       error?.message ||
-      "Unable to continue to checkout.",
+      "Unable to continue to enrollment verification.",
       true
     );
   }
