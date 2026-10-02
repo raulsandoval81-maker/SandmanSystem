@@ -511,118 +511,45 @@ async function loadRecentAthletes(managementContext) {
     return athletes;
   }
 
-  const [linkSnap, invitationSnap] = await Promise.all([
-    getDocs(
-      query(
-        collection(db, "parentAthleteLinks"),
-        where("athleteUid", "in", uids)
-      )
-    ),
-    getDocs(
-      query(
-        collection(db, "accessInvitations"),
-        where("athleteUid", "in", uids)
-      )
-    )
-  ]);
+  const statusCall =
+    httpsCallable(
+      functions,
+      "getAccessSetupStatus"
+    );
 
-  const linksByUid = new Map();
-  linkSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data() || {};
-    const uid = String(data.athleteUid || "").trim();
-    if (!uid) return;
-
-    if (!linksByUid.has(uid)) {
-      linksByUid.set(uid, []);
-    }
-
-    linksByUid.get(uid).push({
-      id: docSnap.id,
-      ...data
+  const statusResponse =
+    await statusCall({
+      athleteUids: uids
     });
-  });
 
-  const invitesByUid = new Map();
-  invitationSnap.docs.forEach((docSnap) => {
-    const data = docSnap.data() || {};
-    const uid = String(data.athleteUid || "").trim();
-    if (!uid) return;
-
-    if (!invitesByUid.has(uid)) {
-      invitesByUid.set(uid, []);
-    }
-
-    invitesByUid.get(uid).push({
-      id: docSnap.id,
-      ...data
-    });
-  });
-
-  function latestInvite(uid, role) {
-    return (invitesByUid.get(uid) || [])
-      .filter((invite) =>
-        String(invite.role || "").trim().toLowerCase() === role
-      )
-      .sort((a, b) => {
-        const am =
-          a.createdAt?.toMillis?.() ||
-          a.deliveredAt?.toMillis?.() ||
-          0;
-
-        const bm =
-          b.createdAt?.toMillis?.() ||
-          b.deliveredAt?.toMillis?.() ||
-          0;
-
-        return bm - am;
-      })[0] || null;
-  }
+  const statuses =
+    statusResponse?.data?.statuses || {};
 
   return athletes.map((athlete) => {
-    const uid = String(athlete.uid || athlete.id || "").trim();
-    const parentEmail =
-      String(athlete.parentEmail || "").trim().toLowerCase();
+    const uid =
+      String(
+        athlete.uid ||
+        athlete.id ||
+        ""
+      ).trim();
 
-    const parentLink =
-      (linksByUid.get(uid) || []).find((link) =>
-        String(link.parentEmail || "").trim().toLowerCase() === parentEmail &&
-        ["active", "pending"].includes(
-          String(link.status || "").trim().toLowerCase()
-        )
-      );
-
-    const parentInvite =
-      latestInvite(uid, "parent");
-
-    const athleteInvite =
-      latestInvite(uid, "athlete");
-
-    const parentStatus =
-      String(parentLink?.status || "").trim().toLowerCase() === "active"
-        ? "active"
-        : parentInvite?.used === true
-          ? "active"
-          : String(parentInvite?.deliveryStatus || "").trim().toUpperCase() === "SENT"
-            ? "sent"
-            : parentInvite
-              ? "invitation_created"
-              : "not_started";
-
-    const athleteStatus =
-      String(athlete.authUid || "").trim()
-        ? "active"
-        : athleteInvite?.used === true
-          ? "active"
-          : String(athleteInvite?.deliveryStatus || "").trim().toUpperCase() === "SENT"
-            ? "sent"
-            : athleteInvite
-              ? "invitation_created"
-              : "not_started";
+    const status =
+      statuses[uid] || {};
 
     return {
       ...athlete,
-      _parentAccessStatus: parentStatus,
-      _athleteAccessStatus: athleteStatus
+      _parentAccessStatus:
+        status.parentStatus ||
+        "not_started",
+      _athleteAccessStatus:
+        status.athleteStatus ||
+        (
+          String(
+            athlete.authUid || ""
+          ).trim()
+            ? "active"
+            : "not_started"
+        )
     };
   });
 }
