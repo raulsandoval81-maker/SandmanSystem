@@ -47,6 +47,13 @@ function ageFromDob(value) {
   return age >= 0 && age < 130 ? age : null;
 }
 
+function numericAge(value) {
+  const age = Number(clean(value));
+  return Number.isInteger(age) && age >= 0 && age < 130
+    ? age
+    : null;
+}
+
 function firstValue(...values) {
   for (const value of values) {
     const normalized = clean(value);
@@ -184,10 +191,15 @@ async function inferAudienceWithLead(proposal = {}) {
       return "parent_guardian";
     }
 
-    const appointmentAge = ageFromDob(firstValue(
-      appointment.dob,
-      appointment.dateOfBirth
-    ));
+    const appointmentAge =
+      ageFromDob(firstValue(
+        appointment.dob,
+        appointment.dateOfBirth
+      )) ??
+      numericAge(
+        appointment.athleteAge
+      );
+
     if (appointmentAge !== null) {
       return appointmentAge >= 18 ? "adult_athlete" : "parent_guardian";
     }
@@ -209,8 +221,18 @@ async function inferAudienceWithLead(proposal = {}) {
       return "parent_guardian";
     }
 
-    const age = ageFromDob(firstValue(lead.dob, lead.dateOfBirth));
-    if (age !== null) return age >= 18 ? "adult_athlete" : "parent_guardian";
+    const age =
+      ageFromDob(firstValue(
+        lead.dob,
+        lead.dateOfBirth
+      )) ??
+      numericAge(
+        lead.athleteAge
+      );
+
+    if (age !== null) {
+      return age >= 18 ? "adult_athlete" : "parent_guardian";
+    }
 
     const athlete = proposalAthlete(proposal);
     const prospect = proposalProspect(proposal);
