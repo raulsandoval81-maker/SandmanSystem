@@ -169,9 +169,66 @@ async function resolveExistingEnrollmentHandoff(
   const cached = handoffCache.get(key);
   if (cached) return cached;
 
-  // Proposal history is already Management-readable and records the exact
-  // intake token id. This avoids listing bearer tokens, which Firestore
-  // intentionally forbids.
+  try {
+    const getHandoffStatus =
+      httpsCallable(
+        functions,
+        "getEnrollmentIntakeHandoffStatus"
+      );
+
+    const response =
+      await getHandoffStatus({
+        proposalId,
+        intakeAudience: audience,
+      });
+
+    const data = response?.data || {};
+    const state = String(data.state || "").trim().toLowerCase();
+
+    if (state === "submitted") {
+      const result = {
+        state: "submitted",
+        tokenId: String(data.tokenId || "").trim(),
+        intakeId: String(data.intakeId || "").trim(),
+        intakeAudience: audience,
+      };
+      handoffCache.set(key, result);
+      return result;
+    }
+
+    if (state === "active") {
+      const result = {
+        state: "active",
+        tokenId: String(data.tokenId || "").trim(),
+        intakeAudience: audience,
+        deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
+        deliveredAt: data.deliveredAt || null,
+        deliveredTo: String(data.deliveredTo || "").trim(),
+        exp: Number(data.exp || 0),
+      };
+      handoffCache.set(key, result);
+      return result;
+    }
+
+    if (state === "expired") {
+      return {
+        state: "expired",
+        tokenId: String(data.tokenId || "").trim(),
+        intakeAudience: audience,
+        deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
+        deliveredAt: data.deliveredAt || null,
+        deliveredTo: String(data.deliveredTo || "").trim(),
+        exp: Number(data.exp || 0),
+      };
+    }
+  } catch (err) {
+    console.warn(
+      "[management-enrollment] authoritative handoff lookup failed; falling back to proposal history:",
+      err
+    );
+  }
+
+  // Fallback for older deployments or temporary callable failure.
   const historySnapshot = await getDocs(
     collection(db, "proposals", proposalId, "history")
   );
