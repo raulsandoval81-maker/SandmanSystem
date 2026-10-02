@@ -35,6 +35,9 @@ const PENDING_LIMIT = 8;
 // mint competing links while the proposal-history trigger is catching up.
 const handoffCache = new Map();
 
+let currentHandoffTokenId = "";
+let currentHandoffAudience = "";
+
 function esc(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -75,7 +78,17 @@ function paintInviteHandoff(
 
   const url = inviteUrlForToken(tokenId, audience);
 
+  currentHandoffTokenId = tokenId;
+  currentHandoffAudience = audience;
+
   if ($("invite-link")) $("invite-link").value = url;
+
+  if ($("btn-send-intake-email")) {
+    $("btn-send-intake-email").disabled = false;
+    $("btn-send-intake-email").textContent = recovered
+      ? "Resend Intake Email"
+      : "Send Intake Email";
+  }
 
   if ($("invite-route-label")) {
     $("invite-route-label").textContent = audience === "adult_athlete"
@@ -99,7 +112,15 @@ function paintSubmittedHandoff(intakeId, intakeAudience) {
     ? "Adult athlete"
     : "Parent / guardian";
 
+  currentHandoffTokenId = "";
+  currentHandoffAudience = "";
+
   if ($("invite-link")) $("invite-link").value = "";
+
+  if ($("btn-send-intake-email")) {
+    $("btn-send-intake-email").disabled = true;
+    $("btn-send-intake-email").textContent = "Send Intake Email";
+  }
 
   if ($("invite-route-label")) {
     $("invite-route-label").textContent =
@@ -748,17 +769,28 @@ async function generateIntakeInvite(
           enrollment?.state,
           intakeLead.state
         ),
-        email: firstValue(
-          proposalProspect.email,
-          proposalProspect.parentEmail,
-          proposalProspect.primaryContactEmail,
-          proposalContact.email,
-          proposalContact.parentEmail,
-          enrollment?.email,
-          enrollment?.parentEmail,
-          intakeLead.email,
-          intakeLead.parentEmail
-        ),
+        email: normalizedAudience === "adult_athlete"
+          ? firstValue(
+              proposalAthlete.email,
+              proposalAthlete.athleteEmail,
+              enrollment?.athleteEmail,
+              proposalProspect.email,
+              proposalProspect.primaryContactEmail,
+              proposalContact.email,
+              enrollment?.email,
+              intakeLead.email
+            )
+          : firstValue(
+              proposalProspect.parentEmail,
+              proposalProspect.primaryContactEmail,
+              proposalProspect.email,
+              proposalContact.parentEmail,
+              proposalContact.email,
+              enrollment?.parentEmail,
+              enrollment?.email,
+              intakeLead.parentEmail,
+              intakeLead.email
+            ),
         phone: firstValue(
           proposalProspect.phone,
           proposalProspect.parentPhone,
@@ -818,6 +850,66 @@ async function generateIntakeInvite(
     }
   }
 }
+
+$("btn-send-intake-email")?.addEventListener("click", async () => {
+  const button = $("btn-send-intake-email");
+
+  if (!currentHandoffTokenId || !button || button.disabled) {
+    return;
+  }
+
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = "Sending…";
+
+  if ($("invite-status")) {
+    $("invite-status").textContent =
+      "Sending the intake link to the attached enrollment email…";
+  }
+
+  try {
+    const sendIntake =
+      httpsCallable(
+        functions,
+        "sendEnrollmentIntakeEmail"
+      );
+
+    const response =
+      await sendIntake({
+        tokenId: currentHandoffTokenId
+      });
+
+    const recipient =
+      String(
+        response?.data?.recipient || ""
+      ).trim();
+
+    if ($("invite-status")) {
+      $("invite-status").textContent =
+        recipient
+          ? `✓ Intake email sent to ${recipient}.`
+          : "✓ Intake email sent.";
+    }
+
+    button.textContent =
+      "Resend Intake Email";
+  } catch (err) {
+    console.error(
+      "[management-enrollment] intake email failed:",
+      err
+    );
+
+    if ($("invite-status")) {
+      $("invite-status").textContent =
+        `⚠ ${err?.message || "Unable to send intake email."}`;
+    }
+
+    button.textContent =
+      originalLabel;
+  } finally {
+    button.disabled = false;
+  }
+});
 
 $("btn-copy-token")?.addEventListener("click", async () => {
   try {
