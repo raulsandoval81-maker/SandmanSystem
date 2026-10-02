@@ -52,7 +52,7 @@ function isOperationalPaidProposal(
 }
 
 const ALLOWED_METHODS =
-  new Set(["text", "in_person", "other"]);
+  new Set(["text", "in_person"]);
 
 export const recordManualEnrollmentIntakeDelivery =
   functions.https.onCall(async (data, context) => {
@@ -83,7 +83,7 @@ export const recordManualEnrollmentIntakeDelivery =
     if (!ALLOWED_METHODS.has(method)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "Delivery method must be text, in_person, or other."
+        "Delivery method must be text or in_person."
       );
     }
 
