@@ -569,3 +569,157 @@ dd {
   font: inherit;
   line-height: 1.55;
 }
+
+
+/* =========================================================
+   MANAGEMENT INBOX — LOCAL ACTION VISIBILITY
+   This stylesheet loads after shared Management CSS so the
+   inbox keeps its intended dark, high-contrast controls.
+========================================================= */
+
+.management-response .form-actions,
+#assignmentForm .form-actions,
+#passPaymentPanel .form-actions{
+  gap:.7rem;
+}
+
+.management-response .button,
+#assignmentForm .button,
+#passPaymentPanel .button,
+.management-page-actions .button{
+  min-height:46px;
+  border-width:1px;
+  box-shadow:none;
+  opacity:1;
+  visibility:visible;
+  -webkit-text-fill-color:currentColor;
+}
+
+.management-response .button-primary,
+#assignmentForm .button-primary,
+#passPaymentPanel .button-primary{
+  background:#d1aa55;
+  border-color:#e0bd72;
+  color:#090909;
+  -webkit-text-fill-color:#090909;
+  font-weight:900;
+}
+
+.management-response .button-primary:hover,
+.management-response .button-primary:focus-visible,
+#assignmentForm .button-primary:hover,
+#assignmentForm .button-primary:focus-visible,
+#passPaymentPanel .button-primary:hover,
+#passPaymentPanel .button-primary:focus-visible{
+  background:#e1bd68;
+  border-color:#f1d18a;
+  color:#050505;
+}
+
+.management-response .button-secondary,
+#assignmentForm .button-secondary,
+#passPaymentPanel .button-secondary,
+.management-page-actions .button-secondary{
+  background:#1b1b1b;
+  border-color:rgba(255,255,255,.24);
+  color:#f7f7f7;
+  -webkit-text-fill-color:#f7f7f7;
+  font-weight:800;
+}
+
+.management-response .button-secondary:hover,
+.management-response .button-secondary:focus-visible,
+#assignmentForm .button-secondary:hover,
+#assignmentForm .button-secondary:focus-visible,
+#passPaymentPanel .button-secondary:hover,
+#passPaymentPanel .button-secondary:focus-visible,
+.management-page-actions .button-secondary:hover,
+.management-page-actions .button-secondary:focus-visible{
+  background:#252525;
+  border-color:rgba(209,170,85,.72);
+  color:#fff;
+}
+
+.management-response .button:disabled,
+#assignmentForm .button:disabled,
+#passPaymentPanel .button:disabled{
+  opacity:.48;
+  color:inherit;
+  -webkit-text-fill-color:currentColor;
+}
+
+.management-action-help--primary{
+  padding:.8rem .9rem;
+  border:1px solid rgba(209,170,85,.22);
+  border-radius:.7rem;
+  background:rgba(209,170,85,.06);
+  color:#d7d7d7;
+}
+
+.management-action-help--primary strong{
+  color:#f0d28f;
+}
+
+.management-primary-actions{
+  align-items:stretch;
+}
+
+.management-primary-actions .button{
+  flex:1 1 170px;
+}
+
+#managementReplyEmail{
+  background:#d1aa55;
+  border-color:#e0bd72;
+  color:#090909;
+  -webkit-text-fill-color:#090909;
+}
+
+#markRespondedButton{
+  background:#24442d;
+  border-color:#4e7c59;
+  color:#f1fff3;
+  -webkit-text-fill-color:#f1fff3;
+}
+
+#closeMessageButton{
+  background:#202020;
+  border-color:rgba(255,255,255,.28);
+  color:#f4f4f4;
+  -webkit-text-fill-color:#f4f4f4;
+}
+
+#deleteMessageButton{
+  background:rgba(240,154,154,.07);
+  border-color:rgba(240,154,154,.55);
+  color:#ffb8b8;
+  -webkit-text-fill-color:#ffb8b8;
+}
+
+#suggestedResponseText{
+  background:#0b0b0b;
+  border-color:rgba(255,255,255,.2);
+  color:#f4f4f4;
+  -webkit-text-fill-color:#f4f4f4;
+}
+
+#suggestedResponseSelect,
+#coachSelect,
+#messageSearch,
+#managementNotes{
+  background:#0b0b0b;
+  border-color:rgba(255,255,255,.2);
+  color:#f4f4f4;
+  -webkit-text-fill-color:#f4f4f4;
+}
+
+@media (max-width:700px){
+  .management-primary-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .management-primary-actions .button{
+    width:100%;
+  }
+}
