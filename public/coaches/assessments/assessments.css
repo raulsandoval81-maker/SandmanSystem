@@ -305,3 +305,49 @@
     text-align:left;
   }
 }
+
+.assessment-claim-box{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0 20px;
+}
+.assessment-claim-box>div{
+  padding:12px;
+  border:1px solid rgba(212,175,55,.24);
+  border-radius:12px;
+  background:rgba(212,175,55,.06);
+}
+.assessment-claim-box span{
+  display:block;
+  margin-bottom:5px;
+  font-size:.72rem;
+  font-weight:850;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  opacity:.72;
+}
+.assessment-claim-box strong{
+  display:block;
+  overflow-wrap:anywhere;
+}
+.assessment-claim-notes{
+  grid-column:1/-1;
+}
+.assessment-claim-notes p{
+  margin:0;
+  line-height:1.5;
+}
+.assessment-confirm-note{
+  margin:-4px 0 14px;
+  opacity:.75;
+  line-height:1.5;
+}
+@media(max-width:720px){
+  .assessment-claim-box{
+    grid-template-columns:1fr;
+  }
+  .assessment-claim-notes{
+    grid-column:auto;
+  }
+}
