@@ -241,6 +241,8 @@
           id="athleteName"
           required
           autocomplete="name"
+          data-placeholder-en="e.g., Jordan Rivera"
+          data-placeholder-es="p. ej., Jordan Rivera"
           placeholder="e.g., Jordan Rivera"
         />
 
@@ -359,6 +361,8 @@
           id="athleteEmail"
           required
           autocomplete="email"
+          data-placeholder-en="name@example.com"
+          data-placeholder-es="nombre@ejemplo.com"
           placeholder="name@example.com"
         />
 
@@ -381,6 +385,8 @@
           required
           autocomplete="tel"
           inputmode="tel"
+          data-placeholder-en="555-123-4567"
+          data-placeholder-es="555-123-4567"
           placeholder="555-123-4567"
         />
 
@@ -436,6 +442,8 @@
           id="emergencyName"
           required
           autocomplete="name"
+          data-placeholder-en="Full name"
+          data-placeholder-es="Nombre completo"
           placeholder="Full name"
         />
 
@@ -458,6 +466,8 @@
           required
           autocomplete="tel"
           inputmode="tel"
+          data-placeholder-en="(555) 555-5555"
+          data-placeholder-es="(555) 555-5555"
           placeholder="(555) 555-5555"
         />
 
@@ -476,6 +486,8 @@
 
         <textarea
           id="medical"
+          data-placeholder-en="Allergies, medications, injuries, or other information your coach should know…"
+          data-placeholder-es="Alergias, medicamentos, lesiones u otra información que su entrenador deba saber…"
           placeholder="Allergies, medications, injuries, or other information your coach should know…"
         ></textarea>
 
@@ -533,6 +545,7 @@
             id="openWaiverBtnEn"
             class="btn btn-waiver"
             type="button"
+            data-lang="en"
           >
             English Waiver
           </button>
@@ -542,6 +555,8 @@
             id="openWaiverBtnEs"
             class="btn btn-waiver"
             type="button"
+            data-lang="es"
+            hidden
           >
             Exención en Español
           </button>
@@ -632,6 +647,8 @@
           type="text"
           disabled
           autocomplete="name"
+          data-placeholder-en="Type your full name…"
+          data-placeholder-es="Escriba su nombre completo…"
           placeholder="Type your full name…"
         />
 
@@ -774,6 +791,26 @@
 
         document.documentElement.lang =
           language;
+
+
+        document
+          .querySelectorAll("[data-placeholder-en]")
+          .forEach((element) => {
+            const key =
+              isEnglish
+                ? "placeholderEn"
+                : "placeholderEs";
+
+            const value =
+              element.dataset[key];
+
+            if (value) {
+              element.setAttribute(
+                "placeholder",
+                value
+              );
+            }
+          });
 
 
         try {
