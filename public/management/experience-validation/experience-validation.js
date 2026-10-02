@@ -107,6 +107,22 @@ function experiencePlan(
   };
 }
 
+function claimedRangeLabel(value) {
+  return ({
+    "under-1": "Less than 1 year",
+    "1-2": "1–2 years",
+    "2-3": "2–3 years",
+    "3-plus": "3+ years"
+  })[clean(value).toLowerCase()] || "Not provided";
+}
+
+function claimedPriorLabel(value) {
+  const normalized = clean(value).toLowerCase();
+  if (normalized === "yes") return "Yes";
+  if (normalized === "no") return "No";
+  return "Not provided";
+}
+
 function statusLabel(value) {
   const status =
     clean(value).toUpperCase();
@@ -173,6 +189,13 @@ function renderPin(pin) {
     typeof pin.priorExperience ===
       "object"
       ? pin.priorExperience
+      : {};
+
+  const claimedExperience =
+    pin.claimedExperience &&
+    typeof pin.claimedExperience ===
+      "object"
+      ? pin.claimedExperience
       : {};
 
   const plan =
@@ -299,6 +322,25 @@ function renderPin(pin) {
           </summary>
 
           <div class="experience-assessment-details__body">
+
+            <p>
+              <strong>Family / Athlete Claim:</strong>
+              ${esc(claimedPriorLabel(claimedExperience.priorExperience))}
+              ·
+              ${esc(claimedRangeLabel(claimedExperience.range))}
+              ${clean(claimedExperience.discipline)
+                ? ` · ${esc(clean(claimedExperience.discipline))}`
+                : ""}
+            </p>
+
+            ${clean(claimedExperience.notes)
+              ? `
+                <p>
+                  <strong>Submitted Experience Details:</strong>
+                  ${esc(clean(claimedExperience.notes))}
+                </p>
+              `
+              : ""}
 
             <p>
               <strong>FEAR:</strong>
