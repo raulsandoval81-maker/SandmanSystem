@@ -201,6 +201,9 @@ export const acceptProposalClientReview =
                 consentAccepted:
                   true,
 
+                acceptanceScope:
+                  "proposal_acceptance_only",
+
                 snapshotVersion:
                   review.snapshotVersion ||
                   1,
@@ -247,6 +250,9 @@ export const acceptProposalClientReview =
               signerName,
 
               signerRole,
+
+              acceptanceScope:
+                "proposal_acceptance_only",
 
               approvedBy,
 
