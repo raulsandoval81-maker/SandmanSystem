@@ -15,12 +15,12 @@
     content="noindex,nofollow"
   />
 
+  <link rel="stylesheet" href="/assets/css/management-ui.css" />
+  <link rel="stylesheet" href="/management/hub/management.css" />
   <link
     rel="stylesheet"
     href="/management/inbox/inbox.css"
   />
-  <link rel="stylesheet" href="/assets/css/management-ui.css" />
-  <link rel="stylesheet" href="/management/hub/management.css" />
 </head>
 
 <body>
@@ -353,14 +353,14 @@
             <div class="management-suggested-response__header">
               <div>
                 <p class="section-label">
-                  Suggested Response
+                  Response Draft
                 </p>
 
                 <p
                   id="suggestedResponseLabel"
                   class="muted"
                 >
-                  Response starter
+                  Editable response
                 </p>
               </div>
             </div>
@@ -397,7 +397,13 @@
               Primary Actions
             </p>
 
-            <div class="form-actions">
+            <p class="management-action-help management-action-help--primary">
+              <strong>Send Email</strong> sends the response draft above from Sandman.
+              <strong>Mark Responded</strong> is for a reply you handled by phone, text, or another channel.
+              <strong>Close / Archive</strong> removes a resolved conversation from the working inbox without deleting its record.
+            </p>
+
+            <div class="form-actions management-primary-actions">
               <button
                 id="managementReplyEmail"
                 class="button button-primary"
@@ -419,7 +425,7 @@
                 class="button button-secondary"
                 type="button"
               >
-                Close Message
+                Close / Archive
               </button>
             </div>
           </div>
@@ -478,7 +484,7 @@
 
             <p class="management-action-help">
               Permanently remove test messages, duplicates, or junk only.
-              Normal conversations should be closed instead.
+              Old or completed conversations should use Close / Archive instead.
             </p>
 
             <div class="form-actions">
