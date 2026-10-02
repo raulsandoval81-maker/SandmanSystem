@@ -42,7 +42,7 @@
       <button class="lang-btn active" data-lang="en" type="button">English</button>
       <button class="lang-btn" data-lang="es" type="button">Español</button>
     </div>
-    <button onclick="window.print()" class="print-btn" type="button">Print / Save PDF</button>
+    <button id="printWaiverBtn" onclick="window.print()" class="print-btn" type="button">Print / Save PDF</button>
   </div>
 
   <div class="wrap lang active" id="lang-en">
@@ -127,10 +127,13 @@
 
   <script>
     const params = new URLSearchParams(window.location.search);
+    const hasRequestedLang = params.has('lang');
     const requestedLang = params.get('lang') === 'es' ? 'es' : 'en';
     const audience = params.get('audience') || '';
     const buttons = document.querySelectorAll('.lang-btn');
     const sections = document.querySelectorAll('.lang');
+    const languageToggle = document.querySelector('.lang-toggle');
+    const printButton = document.getElementById('printWaiverBtn');
 
     function setAudienceLabels(){
       const parent = audience === 'parent_guardian';
@@ -150,12 +153,32 @@
       buttons.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
       sections.forEach(section => section.classList.toggle('active', section.id === `lang-${lang}`));
       document.documentElement.lang = lang;
-      const url = new URL(window.location.href);
-      url.searchParams.set('lang', lang);
-      history.replaceState(null, '', url);
+
+      if (printButton) {
+        printButton.textContent =
+          lang === 'es'
+            ? 'Imprimir / Guardar PDF'
+            : 'Print / Save PDF';
+      }
+
+      if (!hasRequestedLang) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('lang', lang);
+        history.replaceState(null, '', url);
+      }
     }
 
-    buttons.forEach(btn => btn.addEventListener('click', () => setLanguage(btn.dataset.lang)));
+    if (hasRequestedLang && languageToggle) {
+      languageToggle.hidden = true;
+    } else {
+      buttons.forEach(btn =>
+        btn.addEventListener(
+          'click',
+          () => setLanguage(btn.dataset.lang)
+        )
+      );
+    }
+
     setAudienceLabels();
     setLanguage(requestedLang);
   </script>
