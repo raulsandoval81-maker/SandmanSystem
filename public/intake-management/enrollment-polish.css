@@ -405,3 +405,23 @@ body.management-enrollment-page .footer {
     max-width: 100%;
   }
 }
+
+
+/* Intake Handoff: separate link controls from primary delivery action. */
+body.management-enrollment-page .enrollment-start-card .row + .row {
+  margin-top: 14px !important;
+}
+
+body.management-enrollment-page #btn-send-intake-email {
+  margin-right: 4px !important;
+}
+
+@media (max-width:720px) {
+  body.management-enrollment-page .enrollment-start-card .row + .row {
+    margin-top: 12px !important;
+  }
+
+  body.management-enrollment-page #btn-send-intake-email {
+    margin-right: 0 !important;
+  }
+}
