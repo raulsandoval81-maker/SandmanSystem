@@ -139,28 +139,46 @@ function applyActivatedCompletionView(uid, intake = {}) {
 }
 
 // ------------------------------------------------------
-// Activated first-time access handoff
+// Activated access + assessment handoff
 // ------------------------------------------------------
 function activatedContact(intake = {}) {
-  const audience =
-    intakeAudienceFromRecord(intake);
-
-  const isAdult =
-    audience === "adult_athlete";
-
-  const email =
+  const parentEmail =
     String(
-      isAdult
-        ? intake.athlete?.email || intake.email || intake.athleteEmail || ""
-        : intake.parent?.email || intake.parentEmail || intake.email || ""
+      intake.parent?.email ||
+      intake.parentEmail ||
+      ""
     )
       .trim()
       .toLowerCase();
 
+  const athleteEmail =
+    String(
+      intake.athlete?.email ||
+      intake.athleteEmail ||
+      (
+        intakeAudienceFromRecord(intake) === "adult_athlete"
+          ? intake.email || ""
+          : ""
+      )
+    )
+      .trim()
+      .toLowerCase();
+
+  const age =
+    getAgeFromDob(
+      getDobFromIntake(intake)
+    );
+
   return {
-    audience,
-    isAdult,
-    email
+    parentEmail,
+    athleteEmail,
+    age,
+    isAdult:
+      age !== null &&
+      age >= 18,
+    requiresParentApproval:
+      age === null ||
+      age < 14
   };
 }
 
@@ -171,7 +189,10 @@ function buildFirstTimeAccessUrl({
   email
 }) {
   const url =
-    new URL("/access/first-time/", location.origin);
+    new URL(
+      "/access/first-time/",
+      location.origin
+    );
 
   url.searchParams.set(
     "role",
@@ -198,134 +219,317 @@ function buildFirstTimeAccessUrl({
   return url.toString();
 }
 
+function assessmentDiscipline(intake = {}) {
+  return String(
+    intake.art ||
+    intake.placement?.art ||
+    intake.primaryDiscipline ||
+    intake.discipline ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+}
+
 function wireActivatedAccessAction(uid, intake = {}) {
   const {
+    parentEmail,
+    athleteEmail,
+    age,
     isAdult,
-    email
+    requiresParentApproval
   } = activatedContact(intake);
 
-  const button =
-    $("create-access-action");
+  const parentButton =
+    $("create-parent-access");
+
+  const athleteButton =
+    $("create-athlete-access");
+
+  const assessmentButton =
+    $("send-coach-assessment");
 
   const status =
     $("athlete-uid-action-status");
 
-  if (!button) {
-    return;
-  }
+  if (parentButton) {
+    parentButton.hidden =
+      isAdult;
 
-  const role =
-    isAdult
-      ? "athlete"
-      : "parent";
+    parentButton.disabled =
+      isAdult ||
+      !parentEmail;
 
-  button.textContent =
-    isAdult
-      ? "Create Athlete Access"
-      : "Create Parent Access";
+    parentButton.title =
+      isAdult
+        ? "Parent access does not apply to an adult athlete"
+        : parentEmail
+          ? `Create Parent first-time access for ${parentEmail}`
+          : "No approved Parent email is attached to this athlete";
 
-  button.disabled =
-    !email;
+    parentButton.onclick =
+      !isAdult && parentEmail
+        ? async () => {
+            const originalLabel =
+              parentButton.textContent;
 
-  button.title =
-    email
-      ? `Create first-time ${role} access for ${email}`
-      : `No approved ${role} email is attached to this intake`;
+            parentButton.disabled = true;
+            parentButton.textContent =
+              "Creating Access…";
 
-  if (status) {
-    status.textContent =
-      email
-        ? `Approved ${isAdult ? "Athlete" : "Parent"} email: ${email}`
-        : `No approved ${isAdult ? "Athlete" : "Parent"} email is attached to this intake.`;
-  }
+            try {
+              const issue =
+                httpsCallable(
+                  functions,
+                  "issueAccessInvitation"
+                );
 
-  button.onclick =
-    email
-      ? async () => {
-          const originalLabel =
-            button.textContent;
+              const response =
+                await issue({
+                  role: "parent",
+                  athleteUid: uid,
+                  email: parentEmail
+                });
 
-          button.disabled = true;
-          button.textContent =
-            "Creating Access…";
+              const tokenId =
+                String(
+                  response?.data?.tokenId || ""
+                ).trim();
 
-          try {
-            const issue =
-              httpsCallable(
-                functions,
-                "issueAccessInvitation"
+              if (!tokenId) {
+                throw new Error(
+                  "Parent invitation token was not returned."
+                );
+              }
+
+              const accessUrl =
+                buildFirstTimeAccessUrl({
+                  role: "parent",
+                  uid,
+                  tokenId,
+                  email: parentEmail
+                });
+
+              if (status) {
+                status.textContent =
+                  `✓ Parent first-time access created for ${parentEmail}.`;
+              }
+
+              window.open(
+                accessUrl,
+                "_blank",
+                "noopener"
+              );
+            } catch (error) {
+              console.error(
+                "[parent-access] failed:",
+                error
               );
 
-            const payload =
-              role === "athlete"
-                ? {
-                    role: "athlete",
-                    athleteUid: uid,
-                    email,
-                    accessMode: "self_managed",
-                    parentApproved: false
-                  }
-                : {
-                    role: "parent",
-                    athleteUid: uid,
-                    email
-                  };
-
-            const response =
-              await issue(payload);
-
-            const tokenId =
-              String(
-                response?.data?.tokenId || ""
-              ).trim();
-
-            if (!tokenId) {
-              throw new Error(
-                `${isAdult ? "Athlete" : "Parent"} invitation token was not returned.`
-              );
-            }
-
-            const accessUrl =
-              buildFirstTimeAccessUrl({
-                role,
-                uid,
-                tokenId,
-                email
-              });
-
-            if (status) {
-              status.textContent =
-                `✓ ${isAdult ? "Athlete" : "Parent"} first-time access invitation created for ${email}.`;
-            }
-
-            window.open(
-              accessUrl,
-              "_blank",
-              "noopener"
-            );
-          } catch (error) {
-            console.error(
-              "[activation-access] failed:",
-              error
-            );
-
-            if (status) {
-              status.textContent =
+              window.alert(
                 error?.message ||
-                `Unable to create ${isAdult ? "Athlete" : "Parent"} access.`;
+                "Unable to create Parent Access."
+              );
+            } finally {
+              parentButton.disabled = false;
+              parentButton.textContent =
+                originalLabel;
             }
+          }
+        : null;
+  }
 
-            window.alert(
-              error?.message ||
-              `Unable to create ${isAdult ? "Athlete" : "Parent"} access.`
+  if (athleteButton) {
+    athleteButton.hidden = false;
+
+    athleteButton.title =
+      requiresParentApproval
+        ? "Athletes under age 14 require recorded Parent or guardian approval before direct Athlete access is issued"
+        : "Issue direct Athlete first-time access";
+
+    athleteButton.onclick =
+      async () => {
+        const entered =
+          window.prompt(
+            "Confirm the approved Athlete login email:",
+            athleteEmail
+          );
+
+        const email =
+          String(
+            entered || ""
+          )
+            .trim()
+            .toLowerCase();
+
+        if (!email) {
+          return;
+        }
+
+        if (!email.includes("@")) {
+          window.alert(
+            "Enter a valid Athlete login email."
+          );
+          return;
+        }
+
+        let parentApproved =
+          false;
+
+        if (requiresParentApproval) {
+          parentApproved =
+            window.confirm(
+              "This athlete is under age 14. Confirm that Parent / guardian approval for direct Athlete access has been recorded."
             );
-          } finally {
-            button.disabled = false;
-            button.textContent =
-              originalLabel;
+
+          if (!parentApproved) {
+            return;
           }
         }
-      : null;
+
+        const originalLabel =
+          athleteButton.textContent;
+
+        athleteButton.disabled = true;
+        athleteButton.textContent =
+          "Creating Access…";
+
+        try {
+          const issue =
+            httpsCallable(
+              functions,
+              "issueAccessInvitation"
+            );
+
+          const response =
+            await issue({
+              role: "athlete",
+              athleteUid: uid,
+              email,
+              parentApproved
+            });
+
+          const tokenId =
+            String(
+              response?.data?.tokenId || ""
+            ).trim();
+
+          if (!tokenId) {
+            throw new Error(
+              "Athlete access token was not returned."
+            );
+          }
+
+          const accessUrl =
+            buildFirstTimeAccessUrl({
+              role: "athlete",
+              uid,
+              tokenId,
+              email
+            });
+
+          if (status) {
+            status.textContent =
+              `✓ Athlete first-time access created for ${email}.`;
+          }
+
+          window.open(
+            accessUrl,
+            "_blank",
+            "noopener"
+          );
+        } catch (error) {
+          console.error(
+            "[athlete-access] failed:",
+            error
+          );
+
+          window.alert(
+            error?.message ||
+            "Unable to create Athlete Access."
+          );
+        } finally {
+          athleteButton.disabled = false;
+          athleteButton.textContent =
+            originalLabel;
+        }
+      };
+  }
+
+  if (assessmentButton) {
+    assessmentButton.onclick =
+      async () => {
+        const originalLabel =
+          assessmentButton.textContent;
+
+        assessmentButton.disabled = true;
+        assessmentButton.textContent =
+          "Sending…";
+
+        try {
+          const createPin =
+            httpsCallable(
+              functions,
+              "createAthleteAssessmentPin"
+            );
+
+          const discipline =
+            assessmentDiscipline(intake);
+
+          const response =
+            await createPin({
+              athleteUid: uid,
+              ...(discipline
+                ? { discipline }
+                : {})
+            });
+
+          assessmentButton.textContent =
+            response?.data?.duplicate
+              ? "Assessment Already Sent"
+              : "Assessment Sent";
+
+          assessmentButton.disabled =
+            true;
+
+          if (status) {
+            status.textContent =
+              response?.data?.duplicate
+                ? "Coach Assessment was already sent."
+                : "✓ Coach Assessment sent.";
+          }
+        } catch (error) {
+          console.error(
+            "[coach-assessment] failed:",
+            error
+          );
+
+          window.alert(
+            error?.message ||
+            "Unable to send Coach Assessment."
+          );
+
+          assessmentButton.disabled = false;
+          assessmentButton.textContent =
+            originalLabel;
+        }
+      };
+  }
+
+  if (status) {
+    if (isAdult) {
+      status.textContent =
+        athleteEmail
+          ? `Adult athlete · direct Athlete access available for ${athleteEmail}. Parent access does not apply.`
+          : "Adult athlete · direct Athlete access available. Confirm the Athlete email when issuing access.";
+    } else if (requiresParentApproval) {
+      status.textContent =
+        `Age ${age ?? "unconfirmed"} · Parent access available. Direct Athlete access requires recorded Parent / guardian approval.`;
+    } else {
+      status.textContent =
+        `Age ${age} · Parent access and direct Athlete access are both available. Direct Athlete access uses the Athlete's own email.`;
+    }
+  }
 }
 
 // ------------------------------------------------------
