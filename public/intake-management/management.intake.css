@@ -1533,6 +1533,31 @@ body.management-review-page{
 
 /* QUEUE */
 
+.enrollment-awaiting-card{
+  margin-top:18px;
+
+  border-color:rgba(250,204,21,.30);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(250,204,21,.07),
+      rgba(255,255,255,.018)
+    );
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 4px 0 0 rgba(250,204,21,.72);
+}
+
+.awaiting-intake-card{
+  border-color:rgba(250,204,21,.30);
+}
+
+.enrollment-awaiting-card .pending-card-meta{
+  line-height:1.5;
+}
+
 .enrollment-queue-card{
   margin-top:18px;
 
