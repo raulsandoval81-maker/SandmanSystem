@@ -200,7 +200,10 @@ async function resolveExistingEnrollmentHandoff(
       const result = {
         state: "active",
         tokenId: String(data.tokenId || "").trim(),
-        intakeAudience: audience,
+        intakeAudience:
+          String(data.intakeAudience || "").trim().toLowerCase() === "adult_athlete"
+            ? "adult_athlete"
+            : "parent_guardian",
         deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
         deliveredAt: data.deliveredAt || null,
         deliveredTo: String(data.deliveredTo || "").trim(),
@@ -214,7 +217,10 @@ async function resolveExistingEnrollmentHandoff(
       return {
         state: "expired",
         tokenId: String(data.tokenId || "").trim(),
-        intakeAudience: audience,
+        intakeAudience:
+          String(data.intakeAudience || "").trim().toLowerCase() === "adult_athlete"
+            ? "adult_athlete"
+            : "parent_guardian",
         deliveryStatus: String(data.deliveryStatus || "").trim().toUpperCase(),
         deliveredAt: data.deliveredAt || null,
         deliveredTo: String(data.deliveredTo || "").trim(),
