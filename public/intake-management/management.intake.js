@@ -778,11 +778,11 @@ async function recordManualIntakeDelivery({
   const deliveredTo =
     String(response?.data?.deliveredTo || "").trim();
 
+  const exp =
+    Number(response?.data?.exp || 0);
+
   const key =
     handoffKey(proposalId, intakeAudience);
-
-  const prior =
-    handoffCache.get(key);
 
   if (proposalId) {
     handoffCache.set(
@@ -797,7 +797,7 @@ async function recordManualIntakeDelivery({
         manualDeliveryNote: note,
         deliveredAt: Date.now(),
         deliveredTo,
-        exp: Number(prior?.exp || 0),
+        exp,
       }
     );
   }
@@ -1441,6 +1441,9 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
         response?.data?.recipient || ""
       ).trim();
 
+    const exp =
+      Number(response?.data?.exp || 0);
+
     if ($("invite-status")) {
       $("invite-status").textContent =
         recipient
@@ -1462,9 +1465,6 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
       const key =
         handoffKey(proposalId, intakeAudience);
 
-      const priorHandoff =
-        handoffCache.get(key);
-
       handoffCache.set(
         key,
         {
@@ -1477,7 +1477,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
           manualDeliveryNote: "",
           deliveredAt: Date.now(),
           deliveredTo: recipient,
-          exp: Number(priorHandoff?.exp || 0),
+          exp,
         }
       );
     }
