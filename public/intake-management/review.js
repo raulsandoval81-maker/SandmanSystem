@@ -74,6 +74,47 @@ function renderIntakeLifecycle(intake = {}) {
   );
 }
 
+function applyActivatedCompletionView(uid) {
+  const corrections =
+    $("reviewCorrectionsCard");
+
+  const decisions =
+    $("reviewDecisionStack");
+
+  if (corrections) {
+    corrections.hidden = true;
+  }
+
+  if (decisions) {
+    decisions.hidden = true;
+  }
+
+  const pageTitle =
+    $("reviewPageTitle");
+
+  const pageSubtitle =
+    $("reviewPageSubtitle");
+
+  if (pageTitle) {
+    pageTitle.textContent =
+      "Enrollment Complete";
+  }
+
+  if (pageSubtitle) {
+    pageSubtitle.textContent =
+      "The athlete is activated. The submitted intake remains available below as the enrollment record.";
+  }
+
+  document.body.classList.add(
+    "is-activation-complete"
+  );
+
+  if ($("approved-athlete-uid")) {
+    $("approved-athlete-uid").value =
+      uid;
+  }
+}
+
 // ------------------------------------------------------
 // UI helpers
 // ------------------------------------------------------
@@ -439,6 +480,10 @@ async function loadSubmission() {
 
   if (s.status === "approved" && s.approvedUid) {
     const uid = s.approvedUid;
+
+    applyActivatedCompletionView(
+      uid
+    );
 
     if ($("c-uid")) $("c-uid").value = uid;
     if ($("approve-status")) $("approve-status").textContent = "✓ Already approved.";
