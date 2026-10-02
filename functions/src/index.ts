@@ -232,6 +232,7 @@ export {
 export { createAthleteOnboardingToken } from "./modules/createAthleteOnboardingToken";
 export { issueAccessInvitation } from "./access/issueAccessInvitation";
 export { sendAccessInvitationEmail } from "./access/sendAccessInvitationEmail";
+export { getAccessSetupStatus } from "./access/getAccessSetupStatus";
 export { consumeAccessInvitation } from "./access/consumeAccessInvitation";
 export { transitionAthleteAccessMode } from "./access/transitionAthleteAccessMode";
 export { searchManagementMembers } from "./access/searchManagementMembers";
