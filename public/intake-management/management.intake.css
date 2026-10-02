@@ -2042,3 +2042,47 @@ body.management-enrollment-page #invite-route-label{
   background: #fff;
   color: var(--management-text, #172033);
 }
+
+
+/* =========================================================
+   HYBRID INTAKE DELIVERY
+   Management can record text / in-person / other delivery
+   without representing it as an email send.
+========================================================= */
+
+.management-enrollment-page .manual-intake-delivery{
+  margin-top:16px;
+  padding-top:14px;
+  border-top:1px solid var(--management-border, #e3dac5);
+}
+
+.management-enrollment-page .manual-intake-delivery p{
+  margin:0 0 10px;
+}
+
+.management-enrollment-page .manual-intake-delivery select,
+.management-enrollment-page .manual-intake-delivery input{
+  min-height:44px;
+}
+
+.management-enrollment-page .manual-intake-delivery select{
+  flex:0 0 150px;
+}
+
+.management-enrollment-page .manual-intake-delivery input{
+  flex:1 1 260px;
+}
+
+.management-enrollment-page #btn-mark-intake-sent:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+@media (max-width:720px){
+  .management-enrollment-page .manual-intake-delivery select,
+  .management-enrollment-page .manual-intake-delivery input,
+  .management-enrollment-page #btn-mark-intake-sent{
+    width:100%;
+    flex:1 1 auto;
+  }
+}
