@@ -723,3 +723,131 @@ dd {
     width:100%;
   }
 }
+
+
+/* =========================================================
+   MANAGEMENT INBOX — WIDE WORKSPACE + FINAL CONTRAST OVERRIDES
+========================================================= */
+
+.inbox-layout{
+  width:min(1600px, calc(100% - 24px)) !important;
+  max-width:none !important;
+  grid-template-columns:minmax(340px, .78fr) minmax(560px, 1.55fr) !important;
+  align-items:start;
+  gap:18px !important;
+  padding:18px 0 36px !important;
+}
+
+.inbox-layout > .management-page-guide,
+.inbox-layout > .management-page-actions{
+  grid-column:1 / -1;
+}
+
+.queue-panel{
+  grid-column:1;
+  position:sticky;
+  top:18px;
+  max-height:calc(100vh - 36px);
+  overflow:auto;
+}
+
+.inbox-layout > .detail-panel{
+  grid-column:2;
+  width:100% !important;
+  min-width:0;
+  margin:0 !important;
+  overflow:visible;
+}
+
+.message-item-wrap > .detail-panel{
+  width:auto !important;
+  max-width:none !important;
+}
+
+.management-response .button-primary,
+#assignmentForm .button-primary,
+#passPaymentPanel .button-primary,
+#managementReplyEmail{
+  background:#d1aa55 !important;
+  border-color:#e0bd72 !important;
+  color:#090909 !important;
+  -webkit-text-fill-color:#090909 !important;
+}
+
+#markRespondedButton{
+  background:#24442d !important;
+  border-color:#4e7c59 !important;
+  color:#f1fff3 !important;
+  -webkit-text-fill-color:#f1fff3 !important;
+}
+
+.management-response .button-secondary,
+#assignmentForm .button-secondary,
+#passPaymentPanel .button-secondary,
+.management-page-actions .button-secondary,
+#closeMessageButton{
+  background:#1b1b1b !important;
+  border-color:rgba(255,255,255,.28) !important;
+  color:#f7f7f7 !important;
+  -webkit-text-fill-color:#f7f7f7 !important;
+}
+
+#deleteMessageButton{
+  background:rgba(240,154,154,.10) !important;
+  border-color:rgba(240,154,154,.6) !important;
+  color:#ffb8b8 !important;
+  -webkit-text-fill-color:#ffb8b8 !important;
+}
+
+#suggestedResponseText,
+#suggestedResponseSelect,
+#coachSelect,
+#messageSearch,
+#managementNotes,
+#passPaymentUrl{
+  background:#0b0b0b !important;
+  border-color:rgba(255,255,255,.22) !important;
+  color:#f4f4f4 !important;
+  -webkit-text-fill-color:#f4f4f4 !important;
+}
+
+.queue-panel,
+.detail-panel,
+.message-item-wrap,
+.message-card,
+.detail-grid > div,
+.management-suggested-response,
+.management-guidance-note{
+  color:var(--text) !important;
+}
+
+@media (max-width:1100px){
+  .inbox-layout{
+    grid-template-columns:minmax(300px, .85fr) minmax(460px, 1.35fr) !important;
+  }
+}
+
+@media (max-width:900px){
+  .inbox-layout{
+    width:min(100% - 20px, 760px) !important;
+    grid-template-columns:1fr !important;
+    padding-top:12px !important;
+  }
+
+  .inbox-layout > .management-page-guide,
+  .inbox-layout > .management-page-actions,
+  .queue-panel,
+  .inbox-layout > .detail-panel{
+    grid-column:1;
+  }
+
+  .queue-panel{
+    position:static;
+    max-height:none;
+    overflow:visible;
+  }
+
+  .message-item-wrap > .detail-panel{
+    margin:.5rem .65rem .8rem !important;
+  }
+}
