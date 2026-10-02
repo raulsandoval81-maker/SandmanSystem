@@ -166,6 +166,10 @@ export {
   getEnrollmentIntakeHandoffStatus,
 } from "./enrollment/getEnrollmentIntakeHandoffStatus";
 
+export {
+  recordManualEnrollmentIntakeDelivery,
+} from "./enrollment/recordManualEnrollmentIntakeDelivery";
+
 
 /* =========================
    ONBOARDING
