@@ -63,15 +63,23 @@ function firstValue(...values) {
 }
 
 function proposalAthlete(proposal = {}) {
-  return (
-    proposal.lockedSnapshot?.athletes?.[0] ||
-    proposal.athletes?.[0] ||
-    {}
-  );
+  const liveAthlete =
+    proposal.athletes?.[0] || {};
+
+  const lockedAthlete =
+    proposal.lockedSnapshot?.athletes?.[0] || {};
+
+  return {
+    ...liveAthlete,
+    ...lockedAthlete,
+  };
 }
 
 function proposalProspect(proposal = {}) {
-  return proposal.lockedSnapshot?.prospect || proposal.prospect || {};
+  return {
+    ...(proposal.prospect || {}),
+    ...(proposal.lockedSnapshot?.prospect || {}),
+  };
 }
 
 function inferAudience(proposal = {}) {
