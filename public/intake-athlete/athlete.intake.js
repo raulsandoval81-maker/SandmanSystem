@@ -30,6 +30,35 @@ const setDisabled = (id, v) => {
 };
 
 function activeLanguage() {
+  const selectedSpanish =
+    document.getElementById("languageSpanish")
+      ?.getAttribute("aria-pressed") === "true";
+
+  const selectedEnglish =
+    document.getElementById("languageEnglish")
+      ?.getAttribute("aria-pressed") === "true";
+
+  if (selectedSpanish) {
+    return "es";
+  }
+
+  if (selectedEnglish) {
+    return "en";
+  }
+
+  try {
+    const saved =
+      localStorage.getItem(
+        "sandman-language"
+      );
+
+    if (saved === "es" || saved === "en") {
+      return saved;
+    }
+  } catch (_) {
+    // Ignore unavailable localStorage.
+  }
+
   return document.documentElement.lang === "es"
     ? "es"
     : "en";
