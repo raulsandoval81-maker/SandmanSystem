@@ -26,8 +26,8 @@ export const recordManualProposalSignature =
       );
     }
 
-    const callerUid =
-      callerUid;
+    const callerUid: string =
+      req.auth.uid;
 
     const staffAccess =
       await requireProposalStaffAccess(
