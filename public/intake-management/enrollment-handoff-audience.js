@@ -1,9 +1,7 @@
 import {
   db,
-  collection,
   doc,
   getDoc,
-  getDocs,
   functions,
   httpsCallable,
   setDoc,
@@ -288,51 +286,16 @@ async function inferAudienceWithLead(proposal = {}) {
 }
 
 async function supersedeOppositeInvite(proposalId, audience) {
-  const opposite =
-    audience === "adult_athlete"
-      ? "parent_guardian"
-      : "adult_athlete";
-
-  const historySnapshot = await getDocs(
-    collection(db, "proposals", proposalId, "history")
-  );
-
-  const tokenIds = historySnapshot.docs
-    .map((historyDoc) => historyDoc.data() || {})
-    .filter((record) =>
-      clean(record.event).toUpperCase() === "INTAKE_INVITE_CREATED" &&
-      normalizeRole(record.intakeAudience) === opposite &&
-      clean(record.intakeTokenId)
-    )
-    .map((record) => clean(record.intakeTokenId));
-
-  for (const tokenId of tokenIds) {
-    const tokenRef = doc(db, "intakeTokens", tokenId);
-    const tokenSnap = await getDoc(tokenRef);
-    if (!tokenSnap.exists()) continue;
-
-    const token = tokenSnap.data() || {};
-    if (
-      clean(token.proposalId) !== proposalId ||
-      normalizeRole(token.intakeAudience) !== opposite ||
-      clean(token.source).toLowerCase() !== "management_enrollment" ||
-      token.used === true
-    ) {
-      continue;
-    }
-
-    await setDoc(
-      tokenRef,
-      {
-        used: true,
-        status: "superseded",
-        supersededAt: serverTimestamp(),
-        supersededByAudience: audience,
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
+  const supersede =
+    httpsCallable(
+      functions,
+      "supersedeEnrollmentIntakeInvites"
     );
-  }
+
+  await supersede({
+    proposalId,
+    intakeAudience: audience,
+  });
 }
 
 async function createInvite(proposal, audience) {
