@@ -131,6 +131,170 @@ function applyActivatedCompletionView(uid, intake = {}) {
     $("approved-athlete-uid").value =
       uid;
   }
+
+  wireActivatedUidActions(
+    uid,
+    intake
+  );
+}
+
+// ------------------------------------------------------
+// Activated UID handoff actions
+// ------------------------------------------------------
+function activatedContact(intake = {}) {
+  const audience =
+    intakeAudienceFromRecord(intake);
+
+  const isAdult =
+    audience === "adult_athlete";
+
+  const email =
+    String(
+      isAdult
+        ? intake.athlete?.email || intake.email || intake.athleteEmail || ""
+        : intake.parent?.email || intake.parentEmail || intake.email || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const phone =
+    String(
+      isAdult
+        ? intake.athlete?.phoneDigits || intake.phoneDigits || intake.athletePhoneDigits || ""
+        : intake.parent?.phoneDigits || intake.parentPhoneDigits || intake.phoneDigits || ""
+    )
+      .replace(/\D/g, "");
+
+  const athleteName =
+    `${intake.first || intake.athlete?.first || ""} ${intake.last || intake.athlete?.last || ""}`
+      .trim() ||
+    "Sandman Athlete";
+
+  return {
+    audience,
+    isAdult,
+    email,
+    phone,
+    athleteName
+  };
+}
+
+function uidMessage(uid, intake = {}) {
+  const {
+    isAdult,
+    athleteName
+  } = activatedContact(intake);
+
+  const subject =
+    `Sandman Combat Athlete UID — ${athleteName}`;
+
+  const body =
+    isAdult
+      ? [
+          `${athleteName} is activated in Sandman Combat™.`,
+          "",
+          `Athlete UID: ${uid}`,
+          "",
+          "Keep this UID for athlete identification and support. Your Sandman Combat™ Athlete first-time access link is a separate registration step."
+        ].join("\n")
+      : [
+          `${athleteName} is activated in Sandman Combat™.`,
+          "",
+          `Athlete UID: ${uid}`,
+          "",
+          "Keep this UID for athlete identification and support. Your Sandman Combat™ Parent first-time access link is a separate registration step."
+        ].join("\n");
+
+  return {
+    subject,
+    body
+  };
+}
+
+function wireActivatedUidActions(uid, intake = {}) {
+  const {
+    email,
+    phone
+  } = activatedContact(intake);
+
+  const {
+    subject,
+    body
+  } = uidMessage(uid, intake);
+
+  const emailButton =
+    $("email-athlete-uid");
+
+  const textButton =
+    $("text-athlete-uid");
+
+  const copyButton =
+    $("copy-athlete-uid");
+
+  const status =
+    $("athlete-uid-action-status");
+
+  if (emailButton) {
+    emailButton.disabled =
+      !email;
+
+    emailButton.title =
+      email
+        ? `Email Athlete UID to ${email}`
+        : "No email is attached to this intake";
+
+    emailButton.onclick =
+      email
+        ? () => {
+            location.href =
+              `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          }
+        : null;
+  }
+
+  if (textButton) {
+    textButton.disabled =
+      !phone;
+
+    textButton.title =
+      phone
+        ? `Text Athlete UID to ${phone}`
+        : "No phone number is attached to this intake";
+
+    textButton.onclick =
+      phone
+        ? () => {
+            location.href =
+              `sms:${encodeURIComponent(phone)}?&body=${encodeURIComponent(body)}`;
+          }
+        : null;
+  }
+
+  if (copyButton) {
+    copyButton.onclick =
+      async () => {
+        await navigator.clipboard.writeText(
+          uid
+        );
+
+        if (status) {
+          status.textContent =
+            `✓ Athlete UID ${uid} copied.`;
+        }
+      };
+  }
+
+  if (status) {
+    const destinations = [
+      email ? `email: ${email}` : "",
+      phone ? `text: ${phone}` : ""
+    ].filter(Boolean);
+
+    status.textContent =
+      destinations.length
+        ? `Ready to send via ${destinations.join(" · ")}.`
+        : "No email or phone is attached to this intake. Copy the UID if needed.";
+  }
 }
 
 // ------------------------------------------------------
