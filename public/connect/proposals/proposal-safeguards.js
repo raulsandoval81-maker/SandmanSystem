@@ -139,7 +139,7 @@ function addSafeguards() {
 
         if (
           !actions.querySelector(
-            "[data-record-manual-signature]"
+            '[data-record-manual-signature], [data-proposal-action="record-manual-signature"]'
           )
         ) {
           const manualButton =
