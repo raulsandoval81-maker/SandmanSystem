@@ -925,17 +925,17 @@ function actionLabel(
       return "Return to Builder";
 
     case "CLIENT_SIGNED":
-      return "Approve & Begin Checkout";
+      return "Approve Proposal";
 
     case "BUILDING":
     case "DRAFT":
       return "Continue Draft";
 
     case "READY_FOR_CHECKOUT":
-      return "Begin Checkout";
+      return "Final Enrollment Verification";
 
     case "CHECKOUT_CREATED":
-      return "Resume Checkout";
+      return "Resume Enrollment / Payment";
 
     case "APPROVED":
       return "Open Approved Proposal";
@@ -956,9 +956,7 @@ function proposalAction(status = "") {
     REVIEW: "issue-client-review",
     AWAITING_CLIENT_SIGNATURE: "issue-client-review",
     CLIENT_CHANGES_REQUESTED: "return-to-draft",
-    CLIENT_SIGNED: "approve-and-checkout",
-    READY_FOR_CHECKOUT: "begin-checkout",
-    CHECKOUT_CREATED: "begin-checkout"
+    CLIENT_SIGNED: "approve-proposal"
   })[status] || "";
 }
 
@@ -978,7 +976,22 @@ function proposalActionHtml(status, id) {
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="record-manual-signature" data-proposal-id="${esc(id)}">
-        Record Manual Signature
+        Record Manual Signature · Safeguard
+      </button>
+    `;
+  }
+
+  if (
+    status === "READY_FOR_CHECKOUT" ||
+    status === "CHECKOUT_CREATED"
+  ) {
+    return `
+      <button class="proposal-open-btn" type="button" data-proposal-action="open-enrollment-verification" data-proposal-id="${esc(id)}">
+        Open Final Verification Here
+      </button>
+
+      <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
+        Email Final Verification
       </button>
     `;
   }
@@ -1076,7 +1089,7 @@ async function runProposalAction(button) {
 
       const confirmed =
         window.confirm(
-          "Confirm that the signed paper/manual form is on file. This will record the client signature and move the proposal to Checkout Ready."
+          "Safeguard only: confirm that a signed paper/manual proposal acceptance is on file. This records the proposal acceptance and moves the case to Final Enrollment Verification. It does not replace the final enrollment agreement verification or payment."
         );
 
       if (!confirmed) {
@@ -1121,38 +1134,62 @@ async function runProposalAction(button) {
       return;
     }
 
-    if (action === "approve-and-checkout") {
+    if (action === "approve-proposal") {
       const approval = await httpsCallable(
         functions,
         "approveProposal"
       )({ proposalId });
 
       if (approval.data?.status !== "READY_FOR_CHECKOUT") {
-        throw new Error("Checkout-ready status was not returned.");
+        throw new Error(
+          "Final enrollment verification status was not returned."
+        );
       }
+
+      await loadProposalQueue();
+      return;
     }
 
     if (
-      action === "approve-and-checkout" ||
-      action === "begin-checkout"
+      action === "open-enrollment-verification" ||
+      action === "email-enrollment-verification"
     ) {
-      const checkout = await httpsCallable(
-        functions,
-        "createProposalCheckout"
-      )({ proposalId });
+      const delivery =
+        action === "email-enrollment-verification"
+          ? "email"
+          : "local";
 
-      if (checkout.data?.status === "PAID") {
-        window.location.assign(
-          `/intake-management/?proposalId=${encodeURIComponent(proposalId)}`
+      const response =
+        await httpsCallable(
+          functions,
+          "issueProposalEnrollmentHandoff"
+        )({
+          proposalId,
+          delivery,
+        });
+
+      const enrollmentPath =
+        response.data?.enrollmentPath;
+
+      if (!enrollmentPath) {
+        throw new Error(
+          "Enrollment verification link was not returned."
         );
+      }
+
+      if (delivery === "email") {
+        window.alert(
+          `Final enrollment verification sent to ${response.data?.recipient || "the family"}.`
+        );
+
+        await loadProposalQueue();
         return;
       }
 
-      if (!checkout.data?.checkoutUrl) {
-        throw new Error("Stripe checkout URL was not returned.");
-      }
-
-      window.location.assign(checkout.data.checkoutUrl);
+      window.location.assign(
+        enrollmentPath
+      );
+      return;
     }
   } catch (error) {
     console.error("[proposals] action failed:", error);
