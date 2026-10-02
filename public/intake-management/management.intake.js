@@ -730,7 +730,136 @@ function wireAwaitingIntakeButtons() {
   });
 }
 
+async function recordManualIntakeDelivery({
+  method = "text",
+  note = "",
+} = {}) {
+  const tokenId =
+    currentHandoffTokenId ||
+    tokenFromInviteLink();
+
+  if (!tokenId) {
+    throw new Error(
+      "Select a paid enrollment first so Sandman can create or recover the secure intake link."
+    );
+  }
+
+  const recordManualDelivery =
+    httpsCallable(
+      functions,
+      "recordManualEnrollmentIntakeDelivery"
+    );
+
+  const response =
+    await recordManualDelivery({
+      tokenId,
+      method,
+      note,
+    });
+
+  const proposalId =
+    String(response?.data?.proposalId || "").trim();
+
+  const intakeAudience =
+    String(
+      response?.data?.intakeAudience ||
+      currentHandoffAudience ||
+      ""
+    ).trim().toLowerCase() === "adult_athlete"
+      ? "adult_athlete"
+      : "parent_guardian";
+
+  const deliveredTo =
+    String(response?.data?.deliveredTo || "").trim();
+
+  const key =
+    handoffKey(proposalId, intakeAudience);
+
+  const prior =
+    handoffCache.get(key);
+
+  if (proposalId) {
+    handoffCache.set(
+      key,
+      {
+        state: "active",
+        tokenId,
+        intakeAudience,
+        deliveryStatus: "SENT",
+        deliveryMethod: method,
+        manualDelivery: true,
+        manualDeliveryNote: note,
+        deliveredAt: Date.now(),
+        deliveredTo,
+        exp: Number(prior?.exp || 0),
+      }
+    );
+  }
+
+  return response?.data || {};
+}
+
 function wireReadyIntakeButtons() {
+  document.querySelectorAll("[data-ready-mark-text]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const proposalId =
+        String(button.dataset.readyMarkText || "").trim();
+
+      const proposal =
+        readyProposalMap.get(proposalId);
+
+      const audience =
+        String(button.dataset.readyAudience || "").trim() === "adult_athlete"
+          ? "adult_athlete"
+          : "parent_guardian";
+
+      if (!proposal || button.disabled) return;
+
+      const original =
+        button.textContent;
+
+      button.disabled = true;
+      button.textContent = "Recording…";
+
+      try {
+        await generateIntakeInvite(
+          audience,
+          proposal
+        );
+
+        await recordManualIntakeDelivery({
+          method: "text",
+          note: "",
+        });
+
+        if ($("invite-status")) {
+          $("invite-status").textContent =
+            "✓ Text delivery recorded. Enrollment is now Awaiting Intake.";
+        }
+
+        const managementContext =
+          await requireManagement();
+
+        await loadReadyForIntake(
+          managementContext
+        );
+      } catch (err) {
+        console.error(
+          "[management-enrollment] manual text delivery failed:",
+          err
+        );
+
+        if ($("invite-status")) {
+          $("invite-status").textContent =
+            `⚠ ${err?.message || "Unable to record text delivery."}`;
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-ready-parent]").forEach((button) => {
     button.addEventListener("click", async () => {
       const proposal = readyProposalMap.get(button.dataset.readyParent);
@@ -1191,6 +1320,68 @@ async function generateIntakeInvite(
   }
 }
 
+$("btn-mark-intake-sent")?.addEventListener("click", async () => {
+  const button =
+    $("btn-mark-intake-sent");
+
+  if (!button) return;
+
+  const method =
+    String(
+      $("manual-send-method")?.value || "text"
+    ).trim().toLowerCase();
+
+  const note =
+    String(
+      $("manual-send-note")?.value || ""
+    ).trim();
+
+  const original =
+    button.textContent;
+
+  button.disabled = true;
+  button.textContent = "Recording…";
+
+  try {
+    await recordManualIntakeDelivery({
+      method,
+      note,
+    });
+
+    const label =
+      method === "text"
+        ? "Text"
+        : method === "in_person"
+          ? "In-person"
+          : "Manual";
+
+    if ($("invite-status")) {
+      $("invite-status").textContent =
+        `✓ ${label} delivery recorded. Enrollment is now Awaiting Intake.`;
+    }
+
+    const managementContext =
+      await requireManagement();
+
+    await loadReadyForIntake(
+      managementContext
+    );
+  } catch (err) {
+    console.error(
+      "[management-enrollment] manual intake delivery failed:",
+      err
+    );
+
+    if ($("invite-status")) {
+      $("invite-status").textContent =
+        `⚠ ${err?.message || "Unable to record manual intake delivery."}`;
+    }
+  } finally {
+    button.disabled = false;
+    button.textContent = original;
+  }
+});
+
 $("btn-send-intake-email")?.addEventListener("click", async () => {
   const button = $("btn-send-intake-email");
   const tokenId =
@@ -1268,6 +1459,9 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
           tokenId,
           intakeAudience,
           deliveryStatus: "SENT",
+          deliveryMethod: "email",
+          manualDelivery: false,
+          manualDeliveryNote: "",
           deliveredAt: Date.now(),
           deliveredTo: recipient,
           exp: Number(priorHandoff?.exp || 0),
