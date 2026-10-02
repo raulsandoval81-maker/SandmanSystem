@@ -129,30 +129,33 @@ async function resolveLead(proposal = {}) {
     proposal.connectLeadId
   );
 
+  let appointment = {};
   let lead = {};
 
-  if (!leadId && appointmentId) {
+  if (appointmentId) {
     const appointmentSnap = await getDoc(
       doc(db, "admissions_appointments", appointmentId)
     );
     if (appointmentSnap.exists()) {
-      lead = appointmentSnap.data() || {};
-      leadId = firstValue(
-        lead.leadId,
-        lead.appointmentId,
-        appointmentId
-      );
+      appointment = appointmentSnap.data() || {};
+      if (!leadId) {
+        leadId = firstValue(
+          appointment.leadId,
+          appointment.appointmentId,
+          appointmentId
+        );
+      }
     }
   }
 
   if (leadId) {
     const leadSnap = await getDoc(doc(db, "interest_leads", leadId));
     if (leadSnap.exists()) {
-      lead = { ...lead, ...leadSnap.data() };
+      lead = leadSnap.data() || {};
     }
   }
 
-  return { leadId, lead };
+  return { leadId, lead, appointment };
 }
 
 async function inferAudienceWithLead(proposal = {}) {
@@ -160,7 +163,33 @@ async function inferAudienceWithLead(proposal = {}) {
   if (direct !== "unknown") return direct;
 
   try {
-    const { lead } = await resolveLead(proposal);
+    const { lead, appointment } = await resolveLead(proposal);
+
+    const appointmentExplicit = normalizeRole(firstValue(
+      appointment.intakeAudience,
+      appointment.registrantRole
+    ));
+
+    if (["adult_athlete", "adultathlete"].includes(appointmentExplicit)) {
+      return "adult_athlete";
+    }
+    if ([
+      "parent_guardian",
+      "parent",
+      "guardian",
+      "parent_or_guardian"
+    ].includes(appointmentExplicit)) {
+      return "parent_guardian";
+    }
+
+    const appointmentAge = ageFromDob(firstValue(
+      appointment.dob,
+      appointment.dateOfBirth
+    ));
+    if (appointmentAge !== null) {
+      return appointmentAge >= 18 ? "adult_athlete" : "parent_guardian";
+    }
+
     const explicit = normalizeRole(firstValue(
       lead.intakeAudience,
       lead.registrantRole
