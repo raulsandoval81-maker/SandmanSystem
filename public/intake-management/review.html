@@ -311,12 +311,32 @@
         <label class="small muted">Athlete UID</label>
         <div class="modal-row">
           <input id="approved-athlete-uid" type="text" readonly class="mono small" />
-          <button type="button" class="pill" id="copy-athlete-uid">Copy Athlete UID</button>
         </div>
 
-        <div class="modal-actions" style="margin-top:18px;">
-          <a class="pill" href="/intake-management/">Return to Enrollment</a>
+        <div class="modal-actions activation-actions" style="margin-top:18px;">
+          <button type="button" class="solid-blue small" id="email-athlete-uid">
+            Email Athlete UID
+          </button>
+
+          <button type="button" class="outline-blue small" id="text-athlete-uid">
+            Text Athlete UID
+          </button>
+
+          <button type="button" class="pill" id="copy-athlete-uid">
+            Copy UID
+          </button>
+
+          <a class="pill" href="/intake-management/">
+            Return to Enrollment
+          </a>
         </div>
+
+        <p
+          id="athlete-uid-action-status"
+          class="small muted"
+          role="status"
+          aria-live="polite"
+        ></p>
       </div>
     </div>
 
