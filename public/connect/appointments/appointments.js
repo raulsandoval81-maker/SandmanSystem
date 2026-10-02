@@ -861,6 +861,11 @@ async function migrateLegacyAppointments() {
       );
 
       fillIfMissing(
+        "registrantRole",
+        lead.registrantRole
+      );
+
+      fillIfMissing(
         "dob",
         lead.dob ||
         lead.dateOfBirth
