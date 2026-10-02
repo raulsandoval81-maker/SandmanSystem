@@ -128,7 +128,23 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const hasRequestedLang = params.has('lang');
-    const requestedLang = params.get('lang') === 'es' ? 'es' : 'en';
+
+    let savedLang = 'en';
+    try {
+      const storedLang =
+        localStorage.getItem('sandman-language');
+
+      if (storedLang === 'es' || storedLang === 'en') {
+        savedLang = storedLang;
+      }
+    } catch (_) {
+      savedLang = 'en';
+    }
+
+    const requestedLang =
+      hasRequestedLang
+        ? (params.get('lang') === 'es' ? 'es' : 'en')
+        : savedLang;
     const audience = params.get('audience') || '';
     const buttons = document.querySelectorAll('.lang-btn');
     const sections = document.querySelectorAll('.lang');
