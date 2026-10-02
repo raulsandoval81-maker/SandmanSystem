@@ -29,7 +29,6 @@ const requestedProposalId = String(
 ).trim();
 
 const INVITE_HOURS = 48;
-const RECENT_APPROVED_LIMIT = 3;
 const PENDING_LIMIT = 8;
 
 // Keep the just-resolved handoff in memory so rapid repeat clicks cannot
