@@ -576,94 +576,23 @@
         </p>
 
 
-        <label class="checkbox-row">
-
-          <input
-            type="checkbox"
-            id="waiverCheck"
-            disabled
-          />
-
-
-          <span data-lang="en">
-            I have read and agree to the waiver.
-          </span>
-
-          <span data-lang="es" hidden>
-            He leído y acepto la exención.
-          </span>
-
-        </label>
-
-
-        <div class="waiver-certification">
-
+        <div class="waiver-certification" id="waiverCompletionPanel">
           <h3>
-            <span data-lang="en">
-              Certification
-            </span>
-
-            <span data-lang="es" hidden>
-              Certificación
-            </span>
+            <span data-lang="en">Waiver Completion</span>
+            <span data-lang="es" hidden>Finalización de la Exención</span>
           </h3>
 
           <p class="muted">
             <span data-lang="en">
-              I certify that I am the participating adult athlete
-              and that I am signing this waiver and enrollment
-              intake on my own behalf.
+              Read, agree, and sign on the waiver page. Your signature will return here automatically.
             </span>
-
             <span data-lang="es" hidden>
-              Certifico que soy el atleta adulto participante
-              y que firmo esta exención y registro de inscripción
-              en mi propio nombre.
+              Lea, acepte y firme en la página de la exención. Su firma regresará aquí automáticamente.
             </span>
           </p>
 
+          <p id="waiverSignerSummary" class="muted" hidden></p>
         </div>
-
-        <label for="signatureAthlete">
-
-          <span data-lang="en">
-            Adult Athlete Signature
-          </span>
-
-          <span data-lang="es" hidden>
-            Firma del Atleta Adulto
-          </span>
-
-        </label>
-
-        <input
-          id="signatureAthlete"
-          type="text"
-          disabled
-          autocomplete="name"
-          data-placeholder-en="Type your full name…"
-          data-placeholder-es="Escriba su nombre completo…"
-          placeholder="Type your full name…"
-        />
-
-
-        <label for="signatureDate">
-
-          <span data-lang="en">
-            Today's Date
-          </span>
-
-          <span data-lang="es" hidden>
-            Fecha de Hoy
-          </span>
-
-        </label>
-
-        <input
-          id="signatureDate"
-          type="date"
-          disabled
-        />
 
       </section>
 
