@@ -182,7 +182,12 @@ async function resolveExistingEnrollmentHandoff(
       ...historyDoc.data()
     }))
     .filter((record) =>
-      String(record.event || "").trim().toUpperCase() === "INTAKE_INVITE_CREATED" &&
+      [
+        "INTAKE_INVITE_CREATED",
+        "INTAKE_INVITE_SENT"
+      ].includes(
+        String(record.event || "").trim().toUpperCase()
+      ) &&
       String(record.intakeAudience || "").trim().toLowerCase() === audience &&
       String(record.intakeTokenId || "").trim()
     )
@@ -531,7 +536,9 @@ function orientRequestedProposal() {
 
   const orientation = $("enrollmentCaseOrientation");
   const status = $("enrollmentCaseStatus");
-  const proposal = readyProposalMap.get(requestedProposalId);
+  const proposal =
+    readyProposalMap.get(requestedProposalId) ||
+    awaitingProposalMap.get(requestedProposalId)?.proposal;
 
   if (!proposal) {
     if (orientation) orientation.hidden = true;
@@ -562,7 +569,7 @@ function orientRequestedProposal() {
   }
 
   const card = document.querySelector(
-    `[data-ready-proposal="${CSS.escape(requestedProposalId)}"]`
+    `[data-ready-proposal="${CSS.escape(requestedProposalId)}"], [data-awaiting-proposal="${CSS.escape(requestedProposalId)}"]`
   );
 
   if (card) {
