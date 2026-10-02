@@ -154,6 +154,10 @@ export {
   hydrateEnrollmentIntakePrefill,
 } from "./enrollment/hydrateEnrollmentIntakePrefill";
 
+export {
+  supersedeEnrollmentIntakeInvites,
+} from "./enrollment/supersedeEnrollmentIntakeInvites";
+
 /* =========================
    ONBOARDING
 ========================= */
