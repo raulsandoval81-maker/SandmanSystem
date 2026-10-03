@@ -263,7 +263,8 @@ const playlist = blocks
     minutes: Number(b.minutes || 0),
     cards: Array.isArray(b.cards) ? b.cards : [],
     notes: b.notes || "",
-    timer: b.timer || null
+    timer: b.timer || null,
+    drillBlocks: Array.isArray(b.drillBlocks) ? b.drillBlocks : []
   }))
     .filter(b => b.minutes > 0);
 
@@ -308,6 +309,8 @@ function renderComplete({
     cuesEl.innerHTML = "";
   }
 
+  document.getElementById("drillPanel")?.classList.add("hidden");
+
   if (clockEl) {
     clockEl.textContent = "00:00";
   }
@@ -319,6 +322,72 @@ function renderComplete({
   document
     .getElementById("sessionEndActions")
     ?.classList.remove("hidden");
+}
+
+function getActiveDrill(current, elapsedSeconds = 0) {
+  const drills = Array.isArray(current?.drillBlocks)
+    ? current.drillBlocks.filter(drill => Number(drill?.minutes || 0) > 0)
+    : [];
+
+  if (!drills.length) return { current: null, next: null, remaining: 0 };
+
+  let cursor = 0;
+  for (let i = 0; i < drills.length; i += 1) {
+    const drill = drills[i];
+    const duration = Math.max(0, Number(drill.minutes || 0) * 60);
+    const end = cursor + duration;
+
+    if (elapsedSeconds < end || i === drills.length - 1) {
+      return {
+        current: drill,
+        next: drills[i + 1] || null,
+        remaining: Math.max(0, end - elapsedSeconds)
+      };
+    }
+
+    cursor = end;
+  }
+
+  return { current: null, next: null, remaining: 0 };
+}
+
+function renderDrillPanel(current, elapsedSeconds) {
+  const panel = document.getElementById("drillPanel");
+  const nameEl = document.getElementById("drillName");
+  const goalEl = document.getElementById("drillGoal");
+  const levelEl = document.getElementById("drillCueLevel");
+  const flowEl = document.getElementById("drillFlow");
+
+  if (!panel || !nameEl || !goalEl || !levelEl || !flowEl) return;
+
+  const active = getActiveDrill(current, elapsedSeconds);
+  const drill = active.current;
+
+  if (!drill) {
+    panel.classList.add("hidden");
+    nameEl.textContent = "";
+    goalEl.textContent = "";
+    levelEl.textContent = "";
+    flowEl.textContent = "";
+    return;
+  }
+
+  panel.classList.remove("hidden");
+  nameEl.textContent = drill.name || "Drill";
+  levelEl.textContent = String(drill.cueLevel || "optimal").toUpperCase();
+  goalEl.textContent = drill.goal ? `Goal: ${drill.goal}` : "";
+
+  const flow = String(drill.flowCues || "").trim();
+  const coaching = String(drill.coachingCues || "").trim();
+  const details = [coaching, flow].filter(Boolean).join("  •  ");
+  flowEl.textContent = details;
+
+  if (active.next) {
+    const nextEl = document.getElementById("next");
+    if (nextEl) {
+      nextEl.textContent = `Next drill: ${active.next.name || "Drill"} • ${String(active.next.minutes || 0).padStart(2, "0")}:00`;
+    }
+  }
 }
 
 function render() {
@@ -397,6 +466,8 @@ if (actionEl) {
       format(remaining);
   }
 
+  renderDrillPanel(current, elapsed);
+
   if (remaining <= 0 && data.running) {
     const nextIndex =
       Number(data.index || 0) + 1;
@@ -463,9 +534,13 @@ if (actionEl) {
   }
 
   if (nextEl) {
-    nextEl.textContent = next
-      ? `Next: ${next.title} • ${String(next.minutes).padStart(2, "0")}:00`
-      : "Next: —";
+    const hasDrills = Array.isArray(current?.drillBlocks) && current.drillBlocks.some(drill => Number(drill?.minutes || 0) > 0);
+
+    if (!hasDrills) {
+      nextEl.textContent = next
+        ? `Next: ${next.title} • ${String(next.minutes).padStart(2, "0")}:00`
+        : "Next: —";
+    }
   }
 }
 
