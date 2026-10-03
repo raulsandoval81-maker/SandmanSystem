@@ -248,7 +248,7 @@
             </label>
 
             <label class="enrollment-field">
-              <span>Parent or responsible party</span>
+              <span id="agreementSignerLabel">Parent / Guardian</span>
 
               <input
                 id="agreementSignerName"
@@ -345,13 +345,13 @@
       >
         <div class="enrollment-panel__heading">
           <p class="enrollment-step-label">Step 4</p>
-          <h2>Coach Confirmation</h2>
+          <h2 id="confirmationHeading">Enrollment Confirmation</h2>
         </div>
 
         <div class="enrollment-card">
           <p id="confirmationMessage">
-            Payment has been verified. Your coach must now confirm the
-            enrollment before Parent Intake is unlocked.
+            Payment has been verified. Management must now confirm the
+            enrollment before Intake is unlocked.
           </p>
 
           <p
@@ -373,14 +373,13 @@
       >
         <div class="enrollment-panel__heading">
           <p class="enrollment-step-label">Step 5</p>
-          <h2>Parent Intake</h2>
+          <h2 id="intakeHeading">Parent Intake</h2>
         </div>
 
         <div class="enrollment-card">
-          <p>
-            Enrollment is confirmed. Continue to the existing Parent Intake
-            to provide contact, emergency, medical, waiver, and signature
-            information.
+          <p id="intakeIntro">
+            Enrollment is confirmed. Continue to Parent Intake to provide
+            contact, emergency, medical, waiver, and signature information.
           </p>
 
           <p>
@@ -395,7 +394,7 @@
             class="enrollment-button enrollment-button--primary"
             type="button"
           >
-            Continue to Parent Intake
+            <span id="openIntakeButtonLabel">Continue to Parent Intake</span>
           </button>
         </div>
       </section>
