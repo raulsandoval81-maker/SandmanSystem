@@ -580,7 +580,7 @@ async function continueToCheckout() {
 
   button.disabled = true;
   button.textContent =
-    "Opening Enrollment Verification…";
+    "Opening Review & Confirm…";
 
   try {
     const issueEnrollment =
@@ -605,7 +605,7 @@ async function continueToCheckout() {
 
     if (!enrollmentPath) {
       throw new Error(
-        "Enrollment verification is not available."
+        "Review & Confirm is not available."
       );
     }
 
@@ -614,17 +614,17 @@ async function continueToCheckout() {
     );
   } catch (error) {
     console.error(
-      "Enrollment verification handoff failed:",
+      "Review & Confirm handoff failed:",
       error
     );
 
     button.disabled = false;
     button.textContent =
-      "Continue to Enrollment Verification";
+      "Continue to Review & Confirm";
 
     showMessage(
       error?.message ||
-      "Unable to continue to enrollment verification.",
+      "Unable to continue to Review & Confirm.",
       true
     );
   }
