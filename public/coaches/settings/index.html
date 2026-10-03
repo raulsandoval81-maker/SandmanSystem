@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Settings | Sandman Coach</title>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
+  <style>
+    .coach-settings{display:grid;gap:18px}
+    .coach-settings__hero,.coach-settings__card{padding:22px;border:1px solid var(--coach-shell-line);border-radius:18px;background:var(--coach-shell-panel);box-shadow:0 10px 24px var(--coach-shell-shadow)}
+    .coach-settings h1,.coach-settings h2{margin:0;color:var(--coach-shell-gold)}
+    .coach-settings p{color:var(--coach-shell-muted)}
+    .coach-settings__row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 0;border-top:1px solid var(--coach-shell-line)}
+    .coach-settings__row:first-of-type{border-top:0}
+    .coach-settings__controls{display:flex;gap:8px;flex-wrap:wrap}
+    .coach-settings button{min-width:76px;padding:10px 14px;border:1px solid var(--coach-shell-line);border-radius:10px;background:transparent;color:var(--coach-shell-text);font:inherit;font-weight:800;cursor:pointer}
+    .coach-settings button.is-active{border-color:var(--coach-shell-gold);background:rgba(212,175,55,.14);color:var(--coach-shell-bright-gold)}
+  </style>
+</head>
+<body class="coach-shell-page" data-coach-page="Settings" data-coach-area="settings" data-coach-bilingual>
+<main class="coach-settings" data-coach-shell-content>
+  <section class="coach-settings__hero">
+    <p data-en="Coach Workspace" data-es="Espacio del Entrenador">Coach Workspace</p>
+    <h1 data-en="Settings" data-es="Configuración">Settings</h1>
+    <p data-en="Control how your Coach workspace is displayed. Operational rules and athlete data remain in their owning workflows."
+       data-es="Controla cómo se muestra tu espacio de Entrenador. Las reglas operativas y los datos de los atletas permanecen en sus flujos correspondientes.">
+      Control how your Coach workspace is displayed. Operational rules and athlete data remain in their owning workflows.
+    </p>
+  </section>
+  <section class="coach-settings__card">
+    <h2 data-en="Language" data-es="Idioma">Language</h2>
+    <div class="coach-settings__row">
+      <span data-en="Workspace language" data-es="Idioma del espacio">Workspace language</span>
+      <div class="coach-settings__controls">
+        <button type="button" data-setting-language="en">English</button>
+        <button type="button" data-setting-language="es">Español</button>
+      </div>
+    </div>
+  </section>
+  <section class="coach-settings__card">
+    <h2 data-en="Appearance" data-es="Apariencia">Appearance</h2>
+    <div class="coach-settings__row">
+      <span data-en="Workspace theme" data-es="Tema del espacio">Workspace theme</span>
+      <div class="coach-settings__controls">
+        <button type="button" data-setting-theme="light" data-en="Day" data-es="Día">Day</button>
+        <button type="button" data-setting-theme="dark" data-en="Night" data-es="Noche">Night</button>
+      </div>
+    </div>
+  </section>
+</main>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script>
+(() => {
+  const root=document.documentElement;
+  const languageButtons=[...document.querySelectorAll("[data-setting-language]")];
+  const themeButtons=[...document.querySelectorAll("[data-setting-theme]")];
+  const refresh=()=>{
+    const lang=localStorage.getItem("coachHubLanguage")==="es"?"es":"en";
+    const theme=localStorage.getItem("coachHubTheme")==="dark"?"dark":"light";
+    root.lang=lang; root.dataset.theme=theme;
+    document.querySelectorAll("[data-en][data-es]").forEach(el=>el.textContent=lang==="es"?el.dataset.es:el.dataset.en);
+    languageButtons.forEach(b=>b.classList.toggle("is-active",b.dataset.settingLanguage===lang));
+    themeButtons.forEach(b=>b.classList.toggle("is-active",b.dataset.settingTheme===theme));
+  };
+  languageButtons.forEach(b=>b.addEventListener("click",()=>{localStorage.setItem("coachHubLanguage",b.dataset.settingLanguage);window.dispatchEvent(new CustomEvent("coach-shell-language-change",{detail:{language:b.dataset.settingLanguage}}));refresh()}));
+  themeButtons.forEach(b=>b.addEventListener("click",()=>{localStorage.setItem("coachHubTheme",b.dataset.settingTheme);window.dispatchEvent(new CustomEvent("coach-shell-theme-change",{detail:{theme:b.dataset.settingTheme}}));refresh()}));
+  refresh();
+})();
+</script>
+</body>
+</html>
