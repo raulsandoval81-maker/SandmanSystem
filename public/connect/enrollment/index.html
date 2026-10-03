@@ -39,8 +39,8 @@
       <h1>Complete Your Enrollment</h1>
 
       <p class="enrollment-intro">
-        Review the locked proposal, complete final enrollment agreement
-        verification, and then continue to secure payment.
+        Review your approved enrollment and pricing, confirm the details,
+        and continue to secure payment.
       </p>
     </header>
 
@@ -109,8 +109,8 @@
           <h2>Enrollment Summary</h2>
 
           <p>
-            Confirm that the family, athlete, program, and billing
-            information below matches the proposal you approved.
+            Review the athlete, program, and exact billing amounts before
+            continuing.
           </p>
         </div>
 
@@ -172,7 +172,7 @@
             class="enrollment-button enrollment-button--primary"
             type="button"
           >
-            Continue to Agreement
+            Continue to Confirm
           </button>
         </div>
       </section>
@@ -193,72 +193,23 @@
           </p>
         </div>
 
-        <div class="enrollment-card">
-          <h3>House Standards</h3>
-
-          <ul class="enrollment-standards">
-            <li>Show up prepared and on time.</li>
-            <li>Give focused and honest effort.</li>
-            <li>Respect coaches, teammates, opponents, and families.</li>
-            <li>Protect the safety and dignity of everyone in the academy.</li>
-            <li>Represent the academy with discipline and honor.</li>
-          </ul>
-        </div>
-
         <form id="agreementForm">
           <div class="enrollment-card">
-            <h3>Enrollment Confirmation</h3>
+            <h3>Confirm Enrollment</h3>
 
             <label class="enrollment-checkbox">
               <input
-                id="standardsAccepted"
-                name="standardsAccepted"
+                id="termsConfirmed"
+                name="termsConfirmed"
                 type="checkbox"
                 required
               >
 
               <span>
-                I have reviewed and accept the academy standards.
+                I confirm the athlete, program, amount due now, recurring
+                monthly amount, and billing schedule shown in Review are
+                correct. Continue to payment.
               </span>
-            </label>
-
-            <label class="enrollment-checkbox">
-              <input
-                id="proposalAccepted"
-                name="proposalAccepted"
-                type="checkbox"
-                required
-              >
-
-              <span>
-                I confirm that the athlete, program, pricing, and billing
-                schedule shown here match the approved proposal and are the
-                enrollment terms I am accepting before payment.
-              </span>
-            </label>
-
-            <label class="enrollment-field">
-              <span id="agreementSignerLabel">Responsible Party</span>
-
-              <input
-                id="agreementSignerName"
-                name="signerName"
-                type="text"
-                autocomplete="name"
-                required
-              >
-            </label>
-
-            <label class="enrollment-field">
-              <span>Type your full name as your digital signature</span>
-
-              <input
-                id="agreementSignature"
-                name="signature"
-                type="text"
-                autocomplete="off"
-                required
-              >
             </label>
           </div>
 
@@ -295,8 +246,8 @@
 
         <div class="enrollment-card">
           <p id="paymentMessage">
-            Final enrollment verification is complete. Your locked billing
-            summary is ready for secure payment.
+            Your enrollment and billing details are confirmed. Continue to
+            secure payment.
           </p>
 
           <p
@@ -337,11 +288,11 @@
   </main>
 
   <script
-    src="/connect/enrollment/enrollment.config.js?v=20261002-3"
+    src="/connect/enrollment/enrollment.config.js?v=20261002-4"
   ></script>
   <script
     type="module"
-    src="/connect/enrollment/enrollment.js?v=20261002-3"
+    src="/connect/enrollment/enrollment.js?v=20261002-4"
   ></script>
 </body>
 </html>
