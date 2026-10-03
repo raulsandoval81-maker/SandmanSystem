@@ -51,7 +51,7 @@ export const SANDMAN_PRICING_CATALOG = {
 
     accessLevels: {
       "core-2": {
-        label: "2-Day Core",
+        label: "2-Day Core Basic Classes",
         description:
           "Two regular class days per person in one selected discipline."
       },
@@ -63,7 +63,7 @@ export const SANDMAN_PRICING_CATALOG = {
       },
 
       "classes-4": {
-        label: "4-Day Classes",
+        label: "4-Day Core Basic Classes",
         description:
           "Four regular class days per person. May stay in one discipline or split across two approved disciplines."
       },
