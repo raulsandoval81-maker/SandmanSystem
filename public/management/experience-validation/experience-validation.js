@@ -516,7 +516,7 @@ async function loadPins() {
   if (!list) return;
 
   setPageStatus(
-    "Loading returned assessments..."
+    "Loading returned assessments for Management validation..."
   );
 
   list.innerHTML = "";
@@ -553,12 +553,12 @@ async function loadPins() {
       list.innerHTML = `
         <div class="experience-empty">
           No returned Coach assessments
-          are waiting for experience validation.
+          are waiting for Management validation.
         </div>
       `;
 
       setPageStatus(
-        "No experience validations pending."
+        "No Coach assessment validations pending."
       );
 
       return;
@@ -570,7 +570,7 @@ async function loadPins() {
         .join("");
 
     setPageStatus(
-      `${reviewable.length} experience validation${
+      `${reviewable.length} Management validation${
         reviewable.length === 1
           ? ""
           : "s"
