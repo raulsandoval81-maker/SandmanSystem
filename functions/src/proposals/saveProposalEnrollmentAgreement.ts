@@ -183,6 +183,26 @@ export const saveProposalEnrollmentAgreement =
     const snapshot =
       proposal.lockedSnapshot || {};
 
+    const athletes =
+      Array.isArray(
+        snapshot.athletes
+      )
+        ? snapshot.athletes
+        : [];
+
+    const primaryAthlete =
+      athletes[0] &&
+      typeof athletes[0] === "object"
+        ? athletes[0] as Record<string, unknown>
+        : {};
+
+    const enrollmentAudience =
+      clean(
+        primaryAthlete.enrollmentType
+      ).toLowerCase() === "adult"
+        ? "adult_athlete"
+        : "parent_guardian";
+
     return {
       ok: true,
       enrollment: {
@@ -205,12 +225,9 @@ export const saveProposalEnrollmentAgreement =
         prospect:
           snapshot.prospect || {},
 
-        athletes:
-          Array.isArray(
-            snapshot.athletes
-          )
-            ? snapshot.athletes
-            : [],
+        athletes,
+
+        enrollmentAudience,
 
         pricing:
           snapshot.pricing || {},
