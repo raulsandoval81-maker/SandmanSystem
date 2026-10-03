@@ -311,6 +311,20 @@ import {
     elements.athleteList.appendChild(list);
   }
 
+  function isAdultEnrollment() {
+    return (
+      state.enrollment
+        ?.enrollmentAudience ===
+      "adult_athlete"
+    );
+  }
+
+  function intakeLabel() {
+    return isAdultEnrollment()
+      ? "Athlete Intake"
+      : "Parent Intake";
+  }
+
   function renderPaymentState() {
     const enrollment = state.enrollment;
     const status = getPaymentStatus(enrollment);
@@ -382,7 +396,7 @@ import {
       status === config.statuses.COMPLETE
     ) {
       elements.confirmationMessage.textContent =
-        "Your enrollment is confirmed. Parent Intake is now available.";
+        `Your enrollment is confirmed. ${intakeLabel()} is now available.`;
 
       elements.confirmationStatus.textContent =
         "Enrollment confirmed";
@@ -392,7 +406,7 @@ import {
 
     if (status === config.statuses.COACH_CONFIRMED) {
       elements.confirmationMessage.textContent =
-        "Your enrollment has been approved. Parent Intake is being unlocked.";
+        `Your enrollment has been approved. ${intakeLabel()} is being unlocked.`;
 
       elements.confirmationStatus.textContent =
         "Enrollment approved";
@@ -402,7 +416,7 @@ import {
 
     if (isPaymentComplete(enrollment)) {
       elements.confirmationMessage.textContent =
-        "Payment requirements are complete. Final enrollment approval is required before Parent Intake unlocks.";
+        `Payment requirements are complete. Final enrollment approval is required before ${intakeLabel()} unlocks.`;
 
       elements.confirmationStatus.textContent =
         "Awaiting enrollment approval";
@@ -580,7 +594,7 @@ import {
       showStep("intake");
     } catch (error) {
       showNotice(
-        "Your enrollment was approved, but Parent Intake could not be unlocked: " +
+        `Your enrollment was approved, but ${intakeLabel()} could not be unlocked: ` +
           getErrorMessage(error),
         true
       );
@@ -592,7 +606,7 @@ import {
   function handleOpenParentIntake() {
     if (!state.intakeTokenId) {
       showNotice(
-        "Parent Intake is not available yet. Contact the academy team if this continues.",
+        `${intakeLabel()} is not available yet. Contact the academy team if this continues.`,
         true
       );
 
