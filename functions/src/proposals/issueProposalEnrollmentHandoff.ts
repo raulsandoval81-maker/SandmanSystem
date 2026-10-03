@@ -117,7 +117,7 @@ export const issueProposalEnrollmentHandoff =
         if (delivery !== "local") {
           throw new HttpsError(
             "permission-denied",
-            "Only Management may email a new enrollment verification link."
+            "Only Management may email a new Review & Confirm link."
           );
         }
       } else if (req.auth) {
@@ -151,7 +151,7 @@ export const issueProposalEnrollmentHandoff =
       ) {
         throw new HttpsError(
           "failed-precondition",
-          "Only checkout-ready proposals may enter final enrollment verification."
+          "Only checkout-ready proposals may enter Review & Confirm."
         );
       }
 
@@ -291,13 +291,13 @@ export const issueProposalEnrollmentHandoff =
             to:
               recipient,
             subject:
-              "Complete your Sandman Academy enrollment verification",
+              "Review & Confirm your Sandman Academy enrollment",
             text: [
               `Hi ${contactName},`,
               "",
-              "Your approved Sandman Academy proposal is ready for final enrollment verification.",
+              "Your approved Sandman Academy proposal is ready for Review & Confirm.",
               "",
-              "Please review the locked enrollment details, complete the final enrollment agreement verification, and then continue to secure Stripe checkout.",
+              "Please review and confirm the locked enrollment and billing details, then continue to secure Stripe payment.",
               "",
               url,
               "",
@@ -312,18 +312,18 @@ export const issueProposalEnrollmentHandoff =
     <div style="max-width:640px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;">
       <div style="background:#050505;padding:28px 26px;text-align:center;">
         <div style="color:#d3b469;font-size:13px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">Sandman Academy</div>
-        <div style="margin-top:8px;color:#fff;font-size:25px;font-weight:800;">Final Enrollment Verification</div>
+        <div style="margin-top:8px;color:#fff;font-size:25px;font-weight:800;">Review & Confirm</div>
       </div>
       <div style="padding:30px 28px;">
         <p style="font-size:17px;font-weight:700;">Hi ${escapeHtml(contactName)},</p>
         <p style="font-size:16px;line-height:1.7;color:#27272a;">
-          Your approved proposal is ready for final enrollment verification.
-          Review the locked enrollment details, complete the final agreement verification,
-          and then continue to secure Stripe checkout.
+          Your approved proposal is ready for Review & Confirm.
+          Review and confirm the locked enrollment and billing details,
+          then continue to secure Stripe payment.
         </p>
         <div style="margin:26px 0;text-align:center;">
           <a href="${escapeHtml(url)}" style="display:inline-block;background:#171717;color:#fff8e8;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">
-            Complete Enrollment Verification
+            Review & Confirm Enrollment
           </a>
         </div>
         <p style="font-size:14px;line-height:1.6;color:#52525b;">
