@@ -108,6 +108,26 @@ export const getProposalEnrollment =
         ? proposal.enrollmentAgreement
         : {};
 
+    const athletes =
+      Array.isArray(
+        snapshot.athletes
+      )
+        ? snapshot.athletes
+        : [];
+
+    const primaryAthlete =
+      athletes[0] &&
+      typeof athletes[0] === "object"
+        ? athletes[0] as Record<string, unknown>
+        : {};
+
+    const enrollmentAudience =
+      clean(
+        primaryAthlete.enrollmentType
+      ).toLowerCase() === "adult"
+        ? "adult_athlete"
+        : "parent_guardian";
+
     const agreementAccepted =
       Boolean(
         agreement.acceptedAt
@@ -142,12 +162,9 @@ export const getProposalEnrollment =
         prospect:
           snapshot.prospect || {},
 
-        athletes:
-          Array.isArray(
-            snapshot.athletes
-          )
-            ? snapshot.athletes
-            : [],
+        athletes,
+
+        enrollmentAudience,
 
         pricing:
           snapshot.pricing || {},
