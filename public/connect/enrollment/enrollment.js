@@ -2,7 +2,11 @@
 
 import {
   SandmanEnrollmentService as service
-} from "./enrollment.service.js?v=20261002-5";
+} from "./enrollment.service.js?v=20261002-6";
+
+import {
+  SANDMAN_PRICING_CATALOG
+} from "/assets/js/pricing/sandman-pricing-catalog.js";
 
 (function () {
   const config = window.SandmanEnrollmentConfig;
@@ -144,40 +148,182 @@ import {
     elements.athleteList.replaceChildren();
 
     if (!athletes.length) {
-      const message = document.createElement("p");
-      message.textContent = "No athletes were included.";
-      elements.athleteList.appendChild(message);
+      const message =
+        document.createElement("p");
+
+      message.textContent =
+        "No athletes were included.";
+
+      elements.athleteList.appendChild(
+        message
+      );
+
       return;
     }
 
-    const list = document.createElement("ul");
-    list.className = "enrollment-athlete-list";
+    const journeyLabels = {
+      zero2hero: "Road2Champion",
+      path2legend: "Path2Legend",
+      quest2mastery: "Quest2Mastery",
+      fitness: "Everyday Fitness",
+      "everyday-fitness":
+        "Everyday Fitness"
+    };
+
+    const disciplineLabels = {
+      wrestling: "Wrestling",
+      boxing: "Boxing",
+      "muay-thai": "Muay Thai",
+      mma: "MMA",
+      "submission-grappling":
+        "Submission Grappling"
+    };
+
+    const termLabels = {
+      annual: "12-month agreement",
+      "six-month": "6-month agreement",
+      sixMonth: "6-month agreement",
+      "month-to-month":
+        "Month-to-month"
+    };
+
+    const accessLevels =
+      SANDMAN_PRICING_CATALOG
+        ?.combat
+        ?.accessLevels || {};
+
+    const list =
+      document.createElement("div");
+
+    list.className =
+      "enrollment-athlete-plans";
 
     athletes.forEach(function (athlete) {
-      const item = document.createElement("li");
-      const name = athlete.name || athlete.athleteName || "Athlete";
+      const card =
+        document.createElement("article");
 
-      const program =
-        athlete.programName ||
-        athlete.program ||
+      card.className =
+        "enrollment-athlete-plan";
+
+      const name =
+        athlete.name ||
+        athlete.athleteName ||
+        "Athlete";
+
+      const journey =
+        journeyLabels[
+          athlete.journey
+        ] ||
         athlete.journey ||
-        athlete.track ||
-        "Program pending";
+        "—";
 
-      const discipline =
-        athlete.disciplineName ||
-        athlete.discipline ||
-        athlete.lane ||
+      const disciplines =
+        Array.isArray(
+          athlete.disciplines
+        )
+          ? athlete.disciplines
+              .map(
+                (discipline) =>
+                  disciplineLabels[
+                    discipline
+                  ] ||
+                  discipline
+              )
+              .join(" + ")
+          : (
+              disciplineLabels[
+                athlete.discipline
+              ] ||
+              athlete.discipline ||
+              "—"
+            );
+
+      const access =
+        accessLevels[
+          athlete.trainingAccess
+        ];
+
+      const planName =
+        access?.label ||
+        athlete.trainingAccess ||
+        "Training plan";
+
+      const planDescription =
+        access?.description ||
         "";
 
-      item.textContent = discipline
-        ? name + " — " + program + " · " + discipline
-        : name + " — " + program;
+      const term =
+        termLabels[
+          athlete.billingTerm
+        ] ||
+        athlete.billingTerm ||
+        "—";
 
-      list.appendChild(item);
+      const heading =
+        document.createElement("h4");
+
+      heading.textContent =
+        name;
+
+      const plan =
+        document.createElement("strong");
+
+      plan.className =
+        "enrollment-athlete-plan__name";
+
+      plan.textContent =
+        planName;
+
+      const details =
+        document.createElement("dl");
+
+      details.innerHTML = `
+        <div>
+          <dt>Journey</dt>
+          <dd>${escapeHtml(journey)}</dd>
+        </div>
+        <div>
+          <dt>Discipline</dt>
+          <dd>${escapeHtml(disciplines)}</dd>
+        </div>
+        <div>
+          <dt>Agreement</dt>
+          <dd>${escapeHtml(term)}</dd>
+        </div>
+      `;
+
+      card.appendChild(heading);
+      card.appendChild(plan);
+
+      if (planDescription) {
+        const description =
+          document.createElement("p");
+
+        description.className =
+          "enrollment-athlete-plan__description";
+
+        description.textContent =
+          planDescription;
+
+        card.appendChild(
+          description
+        );
+      }
+
+      card.appendChild(details);
+      list.appendChild(card);
     });
 
     elements.athleteList.appendChild(list);
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
   function restoreCorrectStep() {
