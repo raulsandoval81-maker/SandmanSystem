@@ -18,6 +18,12 @@ const finalizeExperience =
     "finalizeExperienceValidation"
   );
 
+const recordPlacement =
+  httpsCallable(
+    functions,
+    "recordAthleteAssessmentPlacement"
+  );
+
 const REVIEWABLE_STATUSES =
   new Set([
     "RETURNED_TO_MANAGEMENT",
@@ -216,6 +222,22 @@ function renderPin(pin) {
       pin.placementRecommendation
     ) || "—";
 
+  const recognitionStatus =
+    clean(
+      pin.experienceRecognitionStatus
+    ).toUpperCase();
+
+  const recognitionResolved =
+    recognitionStatus === "AWARDED" ||
+    recognitionStatus === "REJECTED";
+
+  const recognitionLabel =
+    recognitionStatus === "AWARDED"
+      ? "Approved"
+      : recognitionStatus === "REJECTED"
+        ? "Rejected"
+        : "Pending";
+
   const coachNotes =
     clean(pin.coachNotes) ||
     "No additional Coach notes.";
@@ -372,16 +394,25 @@ function renderPin(pin) {
 
         <div class="experience-review">
 
+          <p class="experience-status">
+            <strong>Experience Recognition:</strong>
+            ${esc(recognitionLabel)}
+          </p>
+
           <label
             for="management-note-${esc(pinId)}"
           >
-            Management Note
+            ${recognitionResolved
+              ? "Final Placement Note"
+              : "Management Note"}
           </label>
 
           <textarea
             id="management-note-${esc(pinId)}"
             data-management-note="${esc(pinId)}"
-            placeholder="Optional Management review note."
+            placeholder="${recognitionResolved
+              ? "Optional note for Management final placement."
+              : "Optional Management review note."}"
           ></textarea>
 
           <p
@@ -393,21 +424,34 @@ function renderPin(pin) {
 
           <div class="experience-actions">
 
-            <button
-              class="button button-secondary"
-              type="button"
-              data-reject-pin="${esc(pinId)}"
-            >
-              Reject Recognition
-            </button>
+            ${recognitionResolved
+              ? `
+                <button
+                  class="button"
+                  type="button"
+                  data-record-placement="${esc(pinId)}"
+                >
+                  Record Final Placement
+                </button>
+              `
+              : `
+                <button
+                  class="button button-secondary"
+                  type="button"
+                  data-reject-pin="${esc(pinId)}"
+                >
+                  Reject Recognition
+                </button>
 
-            <button
-              class="button"
-              type="button"
-              data-approve-pin="${esc(pinId)}"
-            >
-              Approve Recognition
-            </button>
+                <button
+                  class="button"
+                  type="button"
+                  data-approve-pin="${esc(pinId)}"
+                >
+                  Approve Recognition
+                </button>
+              `
+            }
 
           </div>
 
@@ -500,13 +544,8 @@ async function loadPins() {
           ).toUpperCase();
 
         return (
-          REVIEWABLE_STATUSES.has(
-            status
-          ) &&
-          recognitionStatus !==
-            "AWARDED" &&
-          recognitionStatus !==
-            "REJECTED"
+          status ===
+            "RETURNED_TO_MANAGEMENT"
         );
       });
 
@@ -666,9 +705,104 @@ async function finalizePin(
   }
 }
 
+async function recordFinalPlacement(
+  pinId
+) {
+  const note =
+    clean(
+      document.querySelector(
+        `[data-management-note="${CSS.escape(
+          pinId
+        )}"]`
+      )?.value
+    );
+
+  const confirmed =
+    window.confirm(
+      "Record Management final placement for this returned Coach assessment?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setCardBusy(
+    pinId,
+    true
+  );
+
+  setCardStatus(
+    pinId,
+    "Recording final placement..."
+  );
+
+  try {
+    const response =
+      await recordPlacement({
+        pinId,
+        finalPlacementNote:
+          note || null
+      });
+
+    if (
+      response.data?.ok !== true ||
+      response.data?.status !==
+        "PLACEMENT_RECORDED"
+    ) {
+      throw new Error(
+        "Final placement was not recorded."
+      );
+    }
+
+    setCardStatus(
+      pinId,
+      "✓ Final placement recorded."
+    );
+
+    window.setTimeout(
+      loadPins,
+      650
+    );
+
+  } catch (error) {
+    console.error(
+      "Final placement failed:",
+      error
+    );
+
+    setCardStatus(
+      pinId,
+      error?.message ||
+      "Final placement failed."
+    );
+
+    setCardBusy(
+      pinId,
+      false
+    );
+  }
+}
+
+
 document.addEventListener(
   "click",
   (event) => {
+    const placement =
+      event.target.closest(
+        "[data-record-placement]"
+      );
+
+    if (placement) {
+      void recordFinalPlacement(
+        clean(
+          placement.dataset
+            .recordPlacement
+        )
+      );
+
+      return;
+    }
+
     const approve =
       event.target.closest(
         "[data-approve-pin]"
