@@ -504,3 +504,75 @@ button {
     transition: none;
   }
 }
+
+/* Athlete plan detail — Review & Confirm */
+.enrollment-athlete-plans {
+  display: grid;
+  gap: 14px;
+}
+
+.enrollment-athlete-plan {
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+}
+
+.enrollment-athlete-plan h4 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.enrollment-athlete-plan__name {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 1.08rem;
+}
+
+.enrollment-athlete-plan__description {
+  margin: 0 0 12px;
+  line-height: 1.5;
+  opacity: .88;
+}
+
+.enrollment-athlete-plan dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.enrollment-athlete-plan dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.enrollment-athlete-plan dt {
+  opacity: .72;
+}
+
+.enrollment-athlete-plan dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 700;
+}
+
+.enrollment-plan-note {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  font-size: .9rem;
+  line-height: 1.5;
+  opacity: .78;
+}
+
+@media (max-width: 620px) {
+  .enrollment-athlete-plan dl > div {
+    display: block;
+  }
+
+  .enrollment-athlete-plan dd {
+    margin-top: 2px;
+    text-align: left;
+  }
+}
