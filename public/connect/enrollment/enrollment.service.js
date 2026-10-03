@@ -104,65 +104,11 @@ import {
     );
   }
 
-  async function verifyCheckoutReturn() {
-    const {
-      enrollmentToken,
-      checkoutSessionId
-    } = getQueryParameters();
-
-    if (!enrollmentToken) {
-      throw new Error("A secure enrollment token is required.");
-    }
-
-    if (!checkoutSessionId) {
-      throw new Error("A Stripe Checkout Session ID is required.");
-    }
-
-    return callFunction("verifyEnrollmentCheckout", {
-      enrollmentToken,
-      checkoutSessionId
-    });
-  }
-
-  async function confirmEnrollment() {
-    const { enrollmentToken } = requireEnrollmentContext();
-
-    return callFunction("confirmEnrollment", {
-      enrollmentToken
-    });
-  }
-
-  async function createIntakeHandoff() {
-    const { enrollmentToken } = requireEnrollmentContext();
-
-    return callFunction("createEnrollmentIntakeHandoff", {
-      enrollmentToken
-    });
-  }
-
-  function openParentIntake(intakeTokenId) {
-    if (!intakeTokenId) {
-      throw new Error("An Intake token is required.");
-    }
-
-    const url = new URL(
-      config.routes.parentIntake,
-      window.location.origin
-    );
-
-    url.searchParams.set("invite", intakeTokenId);
-    window.location.assign(url.toString());
-  }
-
   const api = Object.freeze({
     getQueryParameters,
     loadEnrollment,
     saveAgreement,
-    createCheckout,
-    verifyCheckoutReturn,
-    confirmEnrollment,
-    createIntakeHandoff,
-    openParentIntake
+    createCheckout
   });
 
   window.SandmanEnrollmentService =
