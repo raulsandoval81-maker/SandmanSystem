@@ -66,9 +66,11 @@
   function setTheme(theme) {
     const light = theme === "light";
     root.dataset.theme = light ? "light" : "dark";
-    themeToggle.textContent = light ? "🌙" : "☀️";
-    themeToggle.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
-    themeToggle.title = light ? "Switch to dark theme" : "Switch to light theme";
+    if (themeToggle) {
+      themeToggle.textContent = light ? "🌙" : "☀️";
+      themeToggle.setAttribute("aria-label", light ? "Switch to dark theme" : "Switch to light theme");
+      themeToggle.title = light ? "Switch to dark theme" : "Switch to light theme";
+    }
     localStorage.setItem("coachHubTheme", light ? "light" : "dark");
   }
   function closeDrawer({ restoreFocus = false } = {}) {
@@ -90,7 +92,7 @@
   drawer.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => { if (window.innerWidth <= 900) closeDrawer(); }));
   document.addEventListener("keydown", (event) => { if (event.key === "Escape" && body.classList.contains("coach-shell-nav-open")) closeDrawer({ restoreFocus: true }); });
   window.addEventListener("resize", () => { if (window.innerWidth > 900) closeDrawer(); });
-  themeToggle.addEventListener("click", () => setTheme(root.dataset.theme === "light" ? "dark" : "light"));
+  if (themeToggle) themeToggle.addEventListener("click", () => setTheme(root.dataset.theme === "light" ? "dark" : "light"));
   languageToggles.forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.coachLanguage)));
   window.addEventListener("coach-shell-language-change", (event) => setLanguage(event.detail?.language));
   window.addEventListener("coach-shell-theme-change", (event) => setTheme(event.detail?.theme));
