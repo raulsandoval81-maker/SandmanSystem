@@ -54,18 +54,26 @@ console.log(
   appointmentId
 );
 
-if (
-  backToProposalBtn &&
-  appointmentId
-) {
-  backToProposalBtn.href =
-    "/connect/proposals/" +
-    `?appointmentId=${encodeURIComponent(
-      appointmentId
-    )}`;
+if (backToProposalBtn) {
+  if (proposalId) {
+    backToProposalBtn.href =
+      "/connect/proposals/" +
+      `?proposalId=${encodeURIComponent(
+        proposalId
+      )}`;
 
-  backToProposalBtn.textContent =
-    "← Back to Proposal";
+    backToProposalBtn.textContent =
+      "← Back to Proposals";
+  } else if (appointmentId) {
+    backToProposalBtn.href =
+      "/connect/admissions/" +
+      `?appointmentId=${encodeURIComponent(
+        appointmentId
+      )}`;
+
+    backToProposalBtn.textContent =
+      "← Back to Admissions Decision";
+  }
 }
 
 
