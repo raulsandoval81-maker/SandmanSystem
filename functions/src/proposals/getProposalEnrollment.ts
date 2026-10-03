@@ -102,10 +102,10 @@ export const getProposalEnrollment =
         ? proposal.lockedSnapshot
         : {};
 
-    const agreement =
-      proposal.enrollmentAgreement &&
-      typeof proposal.enrollmentAgreement === "object"
-        ? proposal.enrollmentAgreement
+    const confirmation =
+      proposal.enrollmentConfirmation &&
+      typeof proposal.enrollmentConfirmation === "object"
+        ? proposal.enrollmentConfirmation
         : {};
 
     const athletes =
@@ -128,9 +128,10 @@ export const getProposalEnrollment =
         ? "adult_athlete"
         : "parent_guardian";
 
-    const agreementAccepted =
+    const termsConfirmed =
+      confirmation.termsConfirmed === true &&
       Boolean(
-        agreement.acceptedAt
+        confirmation.confirmedAt
       );
 
     const paymentStatus =
@@ -143,8 +144,8 @@ export const getProposalEnrollment =
     const enrollmentStatus =
       status === "PAID"
         ? "PAID"
-        : !agreementAccepted
-          ? "AGREEMENT_IN_PROGRESS"
+        : !termsConfirmed
+          ? "READY_FOR_ENROLLMENT"
           : status === "CHECKOUT_CREATED"
             ? "PAYMENT_PENDING"
             : "READY_FOR_PAYMENT";
@@ -173,22 +174,10 @@ export const getProposalEnrollment =
           snapshot.pricing?.fundingRoute ||
           "STANDARD",
 
-        agreement: {
-          standardsAccepted:
-            agreement.standardsAccepted ===
+        confirmation: {
+          termsConfirmed:
+            confirmation.termsConfirmed ===
             true,
-
-          proposalAccepted:
-            agreement.proposalAccepted ===
-            true,
-
-          signerName:
-            clean(
-              agreement.signerName
-            ),
-
-          signature:
-            "",
         },
       },
     };
