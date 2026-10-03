@@ -1285,3 +1285,219 @@ body.clock-mode .clock-toggle{
     max-width:100%;
   }
 }
+
+
+/* =========================
+   NESTED DRILL BLOCKS
+========================= */
+.drill-block-editor{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+}
+
+.drill-block-editor-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.drill-block-editor-head > div{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.drill-block-kicker{
+  color:var(--muted);
+  font-size:.65rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.drill-add-btn,
+.drill-order-btn,
+.drill-remove-btn,
+.flow-cue-chip{
+  min-height:34px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:rgba(255,255,255,.05);
+  color:var(--text);
+  font:inherit;
+  font-size:.75rem;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.drill-add-btn{
+  padding:6px 10px;
+  border-color:rgba(212,175,55,.42);
+  color:var(--gold);
+}
+
+.drill-subblock-list{
+  display:grid;
+  gap:9px;
+  margin-top:10px;
+}
+
+.drill-subblock{
+  padding:10px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  background:var(--panel);
+}
+
+.drill-subblock-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.drill-subblock-head > strong{
+  color:var(--gold);
+  font-size:.78rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.drill-subblock-actions{
+  display:flex;
+  gap:5px;
+}
+
+.drill-order-btn{
+  width:34px;
+  padding:0;
+}
+
+.drill-remove-btn{
+  padding:0 9px;
+  color:#ef7777;
+}
+
+.drill-subblock-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) 86px minmax(0,1.4fr) 122px;
+  gap:8px;
+}
+
+.drill-subblock label,
+.drill-cue-grid label{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+
+.drill-subblock label > span{
+  color:var(--muted);
+  font-size:.65rem;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.drill-subblock input,
+.drill-subblock select{
+  width:100%;
+  min-width:0;
+  min-height:38px;
+  padding:7px 9px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(0,0,0,.12);
+  color:var(--text);
+  font:inherit;
+  font-size:.82rem;
+}
+
+.drill-cue-details{
+  margin-top:8px;
+  border-top:1px solid var(--line);
+  padding-top:7px;
+}
+
+.drill-cue-details summary{
+  color:var(--muted);
+  font-size:.72rem;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.drill-cue-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px;
+}
+
+.flow-cue-presets{
+  display:flex;
+  flex-wrap:wrap;
+  gap:5px;
+  margin-top:8px;
+}
+
+.flow-cue-chip{
+  min-height:30px;
+  padding:4px 8px;
+  border-radius:999px;
+  color:var(--muted);
+}
+
+.flow-cue-chip:hover{
+  color:var(--text);
+  border-color:rgba(212,175,55,.4);
+}
+
+@media (max-width:760px){
+  .drill-subblock-grid{
+    grid-template-columns:1fr 82px;
+  }
+
+  .drill-goal-field{
+    grid-column:1 / -1;
+  }
+
+  .drill-cue-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:480px){
+  .drill-block-editor{
+    padding:9px;
+  }
+
+  .drill-block-editor-head{
+    align-items:flex-start;
+  }
+
+  .drill-subblock-head{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .drill-subblock-actions{
+    width:100%;
+  }
+
+  .drill-remove-btn{
+    margin-left:auto;
+  }
+
+  .drill-subblock-grid{
+    grid-template-columns:1fr;
+  }
+
+  .drill-goal-field{
+    grid-column:auto;
+  }
+}
