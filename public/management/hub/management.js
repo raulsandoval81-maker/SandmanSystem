@@ -484,7 +484,7 @@ async function loadManagementDashboard(
           ).toUpperCase() !== "VOID"
       );
 
-    const checkoutReady =
+    const reviewConfirmReady =
       proposals.filter(
         (proposal) =>
           clean(
@@ -515,7 +515,7 @@ async function loadManagementDashboard(
 
     if (dashboardProposalDetail) {
       dashboardProposalDetail.textContent =
-        `${checkoutReady} checkout ready · ${paymentPending} payment pending`;
+        `${reviewConfirmReady} Review & Confirm ready · ${paymentPending} payment pending`;
     }
 
     const paidProposals =
@@ -545,7 +545,7 @@ async function loadManagementDashboard(
           upcomingAppointments.length,
         proposals:
           activeProposals.length,
-        checkoutReady,
+        reviewConfirmReady,
         paymentPending,
         paid:
           paidProposals.length
