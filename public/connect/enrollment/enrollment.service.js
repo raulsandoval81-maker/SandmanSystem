@@ -154,7 +154,7 @@ import {
     window.location.assign(url.toString());
   }
 
-  window.SandmanEnrollmentService = Object.freeze({
+  const api = Object.freeze({
     getQueryParameters,
     loadEnrollment,
     saveAgreement,
@@ -164,4 +164,16 @@ import {
     createIntakeHandoff,
     openParentIntake
   });
+
+  window.SandmanEnrollmentService =
+    api;
+
+  window.dispatchEvent(
+    new CustomEvent(
+      "sandman:enrollment-service-ready"
+    )
+  );
 })();
+
+export const SandmanEnrollmentService =
+  window.SandmanEnrollmentService;
