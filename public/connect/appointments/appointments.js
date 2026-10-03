@@ -1397,7 +1397,7 @@ async function loadAppointments() {
     lead.id
   )}"
 >
-  Open Admissions →
+  Open Admissions Decision →
 </a>
   </div>
     </article>
