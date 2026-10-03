@@ -16,15 +16,6 @@ function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
-function normalizedName(
-  value: string
-): string {
-  return value
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export const saveProposalEnrollmentAgreement =
   onCall(async (req) => {
     const proposalId =
@@ -33,17 +24,11 @@ export const saveProposalEnrollmentAgreement =
     const enrollmentToken =
       clean(req.data?.enrollmentToken);
 
-    const agreement =
-      req.data?.agreement &&
-      typeof req.data.agreement === "object"
-        ? req.data.agreement
+    const confirmation =
+      req.data?.confirmation &&
+      typeof req.data.confirmation === "object"
+        ? req.data.confirmation
         : {};
-
-    const signerName =
-      clean(agreement.signerName);
-
-    const signature =
-      clean(agreement.signature);
 
     if (
       !proposalId ||
@@ -56,28 +41,11 @@ export const saveProposalEnrollmentAgreement =
     }
 
     if (
-      agreement.standardsAccepted !== true ||
-      agreement.proposalAccepted !== true
+      confirmation.termsConfirmed !== true
     ) {
       throw new HttpsError(
         "failed-precondition",
-        "Accept the enrollment standards and confirm the locked proposal before continuing."
-      );
-    }
-
-    if (
-      !signerName ||
-      !signature ||
-      normalizedName(
-        signerName
-      ) !==
-        normalizedName(
-          signature
-        )
-    ) {
-      throw new HttpsError(
-        "invalid-argument",
-        "The digital signature must match the responsible party name."
+        "Confirm the enrollment and billing details before continuing."
       );
     }
 
@@ -120,9 +88,29 @@ export const saveProposalEnrollmentAgreement =
         ) {
           throw new HttpsError(
             "failed-precondition",
-            "Final enrollment verification is not available for this proposal status."
+            "Enrollment confirmation is not available for this proposal status."
           );
         }
+
+        const snapshot =
+          proposal.lockedSnapshot || {};
+
+        const priorAcceptance =
+          proposal.clientAcceptance || {};
+
+        const prospect =
+          snapshot.prospect || {};
+
+        const athletes =
+          Array.isArray(snapshot.athletes)
+            ? snapshot.athletes
+            : [];
+
+        const confirmedByName =
+          clean(priorAcceptance.signerName) ||
+          clean(prospect.primaryContactName) ||
+          clean(athletes[0]?.name) ||
+          null;
 
         const historyRef =
           proposalRef
@@ -132,20 +120,19 @@ export const saveProposalEnrollmentAgreement =
         tx.update(
           proposalRef,
           {
-            enrollmentAgreement: {
+            enrollmentConfirmation: {
               version:
-                "enrollment-verification-v1",
+                "pricing-confirmation-v1",
 
-              standardsAccepted:
+              termsConfirmed:
                 true,
 
-              proposalAccepted:
-                true,
+              confirmedByName,
 
-              signerName,
-              signature,
+              confirmationSource:
+                "secure_enrollment_link",
 
-              acceptedAt:
+              confirmedAt:
                 FieldValue.serverTimestamp(),
             },
 
@@ -160,12 +147,12 @@ export const saveProposalEnrollmentAgreement =
             proposalId,
 
             event:
-              "ENROLLMENT_AGREEMENT_VERIFIED",
+              "ENROLLMENT_TERMS_CONFIRMED",
 
-            signerName,
+            confirmationVersion:
+              "pricing-confirmation-v1",
 
-            agreementVersion:
-              "enrollment-verification-v1",
+            confirmedByName,
 
             createdAt:
               FieldValue.serverTimestamp(),
@@ -213,12 +200,14 @@ export const saveProposalEnrollmentAgreement =
             "CHECKOUT_CREATED"
               ? "PAYMENT_PENDING"
               : "READY_FOR_PAYMENT",
+
         paymentStatus:
           clean(proposal.status)
             .toUpperCase() ===
             "CHECKOUT_CREATED"
               ? "PAYMENT_PENDING"
               : "NOT_STARTED",
+
         paymentRequired:
           true,
 
@@ -236,17 +225,9 @@ export const saveProposalEnrollmentAgreement =
           snapshot.pricing?.fundingRoute ||
           "STANDARD",
 
-        agreement: {
-          standardsAccepted:
+        confirmation: {
+          termsConfirmed:
             true,
-
-          proposalAccepted:
-            true,
-
-          signerName,
-
-          signature:
-            "",
         },
       },
     };
