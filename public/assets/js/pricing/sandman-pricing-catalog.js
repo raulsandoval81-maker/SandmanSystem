@@ -75,7 +75,7 @@ export const SANDMAN_PRICING_CATALOG = {
       },
 
       "dual-full": {
-        label: "All Week Full Access",
+        label: "All Week Full Access — Up to 6 Days per Week",
         description:
           "Full scheduled access across up to two approved disciplines. When the schedule allows, an athlete may attend up to four weekday class sessions in each discipline plus up to two weekend development or competition opportunities. Access to a third discipline requires coach approval."
       }
