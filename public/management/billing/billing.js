@@ -257,8 +257,8 @@ function classifyProposal(
   ) {
     return {
       view: "NEEDS_ACTION",
-      state: "Verification Ready",
-      next: "Complete final enrollment verification"
+      state: "Review & Confirm Ready",
+      next: "Complete Review & Confirm"
     };
   }
 
