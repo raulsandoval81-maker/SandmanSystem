@@ -260,7 +260,7 @@ async function renderEnrollmentActivity() {
         <span class="enrollment-activity__case">${esc(proposalId)}</span>
       </div>
       ${sectionHtml("Enrollment", "Proposal through athlete activation.", enrollmentItems)}
-      ${sectionHtml("Placement & Onboarding", "Coach assessment through Management validation and placement.", placementItems)}
+      ${sectionHtml("Placement & Onboarding", "Coach assessment → Management validation → authoritative starting placement and XP.", placementItems)}
     `;
   } catch (error) {
     console.error("[enrollment-activity] failed:", error);
