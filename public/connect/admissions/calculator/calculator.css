@@ -1235,3 +1235,29 @@ textarea:focus {
     grid-column:auto;
   }
 }
+
+
+/* Shared Management shell must not appear in the family print proposal. */
+@media print {
+  .management-sidebar,
+  .management-header,
+  .sidebar-backdrop {
+    display: none !important;
+  }
+
+  .management-main {
+    min-height: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .management-page-content {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .management-page-content > .family-print-proposal {
+    max-width: none !important;
+    margin: 0 !important;
+  }
+}
