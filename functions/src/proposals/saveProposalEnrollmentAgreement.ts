@@ -36,7 +36,7 @@ export const saveProposalEnrollmentAgreement =
     ) {
       throw new HttpsError(
         "invalid-argument",
-        "A valid enrollment verification link is required."
+        "A valid Review & Confirm link is required."
       );
     }
 
