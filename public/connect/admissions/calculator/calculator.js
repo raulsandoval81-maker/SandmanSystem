@@ -525,7 +525,7 @@ const extras = {
           : [
               {
                 value: "core-2",
-                label: "Combat — 2-Day Core"
+                label: "Combat — 2-Day Core Basic Classes"
               },
               {
                 value: "competition-3",
@@ -533,7 +533,7 @@ const extras = {
               },
               {
                 value: "classes-4",
-                label: "Combat — 4-Day Classes"
+                label: "Combat — 4-Day Core Basic Classes"
               },
               {
                 value: "discipline-5",
