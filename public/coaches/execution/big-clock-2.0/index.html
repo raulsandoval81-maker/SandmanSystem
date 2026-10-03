@@ -8,7 +8,7 @@
   <title>Sandman Big Screen</title>
 
   <link rel="stylesheet"
-        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=7" />
+        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=8" />
 </head>
 
 <body>
@@ -124,6 +124,16 @@ No active block
        class="action">
   </div>
 
+  <section id="drillPanel" class="drill-panel hidden" aria-live="polite">
+    <div class="drill-panel-topline">
+      <span id="drillLabel" class="drill-label">Current drill</span>
+      <span id="drillCueLevel" class="drill-cue-level"></span>
+    </div>
+    <div id="drillName" class="drill-name"></div>
+    <div id="drillGoal" class="drill-goal"></div>
+    <div id="drillFlow" class="drill-flow"></div>
+  </section>
+
   <div id="next"
        class="next">
 
@@ -159,7 +169,7 @@ Return to Coach Companion
 
 <script
   type="module"
-  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=10">
+  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=11">
 </script>
 
 </body>
