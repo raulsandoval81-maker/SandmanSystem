@@ -71,13 +71,13 @@ export const SANDMAN_PRICING_CATALOG = {
       "discipline-5": {
         label: "5-Day Competition Development Track",
         description:
-          "Five-day access centered on one approved discipline, with expanded development, sparring, team, and competition work as scheduled."
+          "Four class sessions plus one competition-development day. The athlete may train four class days in one approved discipline or split the four class sessions across two approved disciplines, such as two days in each."
       },
 
       "dual-full": {
-        label: "Full Access 5–6 Days",
+        label: "6-Day Full Access",
         description:
-          "Broad scheduled access across up to two approved disciplines, with eligible five- to six-day training schedules."
+          "Full scheduled access across up to two approved disciplines. When the schedule allows, an athlete may attend up to four weekday class sessions in each discipline plus up to two weekend development or competition opportunities."
       }
     },
 
