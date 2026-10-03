@@ -2,7 +2,7 @@
 
 import {
   SandmanEnrollmentService as service
-} from "./enrollment.service.js?v=20261002-3";
+} from "./enrollment.service.js?v=20261002-4";
 
 (function () {
   const config = window.SandmanEnrollmentConfig;
@@ -52,23 +52,9 @@ import {
     elements.fundingRoute = document.getElementById("fundingRoute");
 
     elements.agreementForm = document.getElementById("agreementForm");
-    elements.standardsAccepted = document.getElementById(
-      "standardsAccepted"
+    elements.termsConfirmed = document.getElementById(
+      "termsConfirmed"
     );
-    elements.proposalAccepted = document.getElementById(
-      "proposalAccepted"
-    );
-    elements.signerName = document.getElementById(
-      "agreementSignerName"
-    );
-    elements.signature = document.getElementById(
-      "agreementSignature"
-    );
-
-    elements.agreementSignerLabel =
-      document.getElementById(
-        "agreementSignerLabel"
-      );
 
     elements.paymentMessage = document.getElementById("paymentMessage");
     elements.paymentStatus = document.getElementById("paymentStatus");
@@ -144,7 +130,7 @@ import {
     const enrollment = state.enrollment;
     const prospect = enrollment.prospect || {};
     const pricing = enrollment.pricing || {};
-    const agreement = enrollment.agreement || {};
+    const confirmation = enrollment.confirmation || {};
 
     elements.familyName.textContent =
       prospect.familyName ||
@@ -183,35 +169,10 @@ import {
       config.fundingRoutes.STANDARD
     );
 
-    elements.standardsAccepted.checked =
-      agreement.standardsAccepted === true;
-
-    elements.proposalAccepted.checked =
-      agreement.proposalAccepted === true;
-
-    elements.signerName.value =
-      agreement.signerName || "";
-
-    elements.signature.value =
-      agreement.signature || "";
-
-    renderAudienceLanguage();
+    elements.termsConfirmed.checked =
+      confirmation.termsConfirmed === true;
 
     renderPaymentState();
-  }
-
-  function renderAudienceLanguage() {
-    const isAdultAthlete =
-      state.enrollment
-        ?.enrollmentAudience ===
-      "adult_athlete";
-
-    if (elements.agreementSignerLabel) {
-      elements.agreementSignerLabel.textContent =
-        isAdultAthlete
-          ? "Athlete"
-          : "Parent / Guardian";
-    }
   }
 
   function renderAthletes(athletes) {
@@ -328,7 +289,7 @@ import {
     }
 
     if (status === config.statuses.AGREEMENT_IN_PROGRESS) {
-      showStep("agreement");
+      showStep("summary");
       return;
     }
 
@@ -376,42 +337,33 @@ import {
       return;
     }
 
-    const signerName = elements.signerName.value.trim();
-    const signature = elements.signature.value.trim();
-
-    if (normalizeName(signerName) !== normalizeName(signature)) {
-      showNotice(
-        state.enrollment?.enrollmentAudience === "adult_athlete"
-          ? "Your digital signature must match your full name."
-          : "Your digital signature must match the parent or guardian name.",
-        true
-      );
-
-      elements.signature.focus();
-      return;
-    }
-
-    const agreement = {
-      standardsAccepted: elements.standardsAccepted.checked,
-      proposalAccepted: elements.proposalAccepted.checked,
-      signerName,
-      signature
+    const confirmation = {
+      termsConfirmed:
+        elements.termsConfirmed.checked
     };
 
     setButtonBusy(
       elements.agreementForm.querySelector('[type="submit"]'),
       true,
-      "Saving Agreement..."
+      "Confirming..."
     );
 
     try {
-      const response = await service.saveAgreement(agreement);
+      const response =
+        await service.saveConfirmation(
+          confirmation
+        );
 
-      state.enrollment = normalizeEnrollment(response);
+      state.enrollment =
+        normalizeEnrollment(response);
+
       renderEnrollment();
       showStep("payment");
     } catch (error) {
-      showNotice(getErrorMessage(error), true);
+      showNotice(
+        getErrorMessage(error),
+        true
+      );
     } finally {
       setButtonBusy(
         elements.agreementForm.querySelector('[type="submit"]'),
@@ -519,13 +471,6 @@ import {
     };
 
     return labels[route] || route || "Not provided";
-  }
-
-  function normalizeName(value) {
-    return value
-      .trim()
-      .replace(/\s+/g, " ")
-      .toLocaleLowerCase();
   }
 
   function setLoading(isLoading) {
