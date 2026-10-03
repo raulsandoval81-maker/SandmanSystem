@@ -2,7 +2,7 @@
 
 import {
   SandmanEnrollmentService as service
-} from "./enrollment.service.js?v=20261002-4";
+} from "./enrollment.service.js?v=20261002-5";
 
 (function () {
   const config = window.SandmanEnrollmentConfig;
@@ -56,47 +56,12 @@ import {
       "termsConfirmed"
     );
 
-    elements.paymentMessage = document.getElementById("paymentMessage");
-    elements.paymentStatus = document.getElementById("paymentStatus");
-    elements.continueToAgreementButton = document.getElementById(
-      "continueToAgreementButton"
-    );
-    elements.backToSummaryButton = document.getElementById(
-      "backToSummaryButton"
-    );
-    elements.backToAgreementButton = document.getElementById(
-      "backToAgreementButton"
-    );
-    elements.checkoutButton = document.getElementById("checkoutButton");
   }
 
   function bindEvents() {
-    elements.continueToAgreementButton.addEventListener(
-      "click",
-      function () {
-        showStep("agreement");
-      }
-    );
-
-    elements.backToSummaryButton.addEventListener("click", function () {
-      showStep("summary");
-    });
-
-    elements.backToAgreementButton.addEventListener(
-      "click",
-      function () {
-        showStep("agreement");
-      }
-    );
-
     elements.agreementForm.addEventListener(
       "submit",
       handleAgreementSubmit
-    );
-
-    elements.checkoutButton.addEventListener(
-      "click",
-      handleCheckout
     );
 
   }
@@ -172,7 +137,7 @@ import {
     elements.termsConfirmed.checked =
       confirmation.termsConfirmed === true;
 
-    renderPaymentState();
+
   }
 
   function renderAthletes(athletes) {
@@ -215,89 +180,7 @@ import {
     elements.athleteList.appendChild(list);
   }
 
-  function renderPaymentState() {
-    const enrollment = state.enrollment;
-    const status = getPaymentStatus(enrollment);
-    const paymentRequired = isPaymentRequired(enrollment);
-
-    if (!paymentRequired) {
-      elements.paymentMessage.textContent =
-        "No family payment is required for this enrollment.";
-
-      elements.paymentStatus.textContent =
-        "Payment not required";
-
-      elements.checkoutButton.hidden = true;
-      elements.backToAgreementButton.hidden = false;
-      return;
-    }
-
-    elements.checkoutButton.hidden = false;
-
-    if (status === config.paymentStatuses.PAID) {
-      elements.paymentMessage.textContent =
-        "Your payment has been securely verified.";
-
-      elements.paymentStatus.textContent = "Payment verified";
-      elements.checkoutButton.hidden = true;
-      return;
-    }
-
-    if (status === config.paymentStatuses.PAYMENT_PENDING) {
-      elements.paymentMessage.textContent =
-        "Your secure checkout is open. Payment verification is pending.";
-
-      elements.paymentStatus.textContent =
-        "Waiting for payment verification";
-
-      elements.checkoutButton.textContent =
-        "Return to Secure Checkout";
-
-      return;
-    }
-
-    if (status === config.paymentStatuses.FAILED) {
-      elements.paymentMessage.textContent =
-        "Payment was not completed. You may try again.";
-
-      elements.paymentStatus.textContent = "Payment incomplete";
-      elements.checkoutButton.textContent =
-        "Try Secure Checkout Again";
-
-      return;
-    }
-
-    elements.paymentMessage.textContent =
-      "Your billing summary is ready for secure payment.";
-
-    elements.paymentStatus.textContent = "Payment not started";
-    elements.checkoutButton.textContent =
-      "Continue to Secure Checkout";
-  }
-
   function restoreCorrectStep() {
-    const status = state.enrollment.status;
-
-    if (
-      status === config.statuses.READY_FOR_PAYMENT ||
-      status === config.statuses.PAYMENT_PENDING ||
-      status === config.statuses.PAID ||
-      status === config.statuses.PAYMENT_NOT_REQUIRED
-    ) {
-      showStep("payment");
-      return;
-    }
-
-    if (status === config.statuses.AGREEMENT_IN_PROGRESS) {
-      showStep("summary");
-      return;
-    }
-
-    if (status === config.statuses.READY_FOR_ENROLLMENT) {
-      showStep("summary");
-      return;
-    }
-
     showStep("summary");
   }
 
@@ -337,53 +220,39 @@ import {
       return;
     }
 
-    const confirmation = {
-      termsConfirmed:
-        elements.termsConfirmed.checked
-    };
+    const submitButton =
+      elements.agreementForm.querySelector(
+        '[type="submit"]'
+      );
 
     setButtonBusy(
-      elements.agreementForm.querySelector('[type="submit"]'),
+      submitButton,
       true,
-      "Confirming..."
+      "Opening Secure Payment..."
     );
 
     try {
-      const response =
+      const confirmation = {
+        termsConfirmed:
+          elements.termsConfirmed.checked
+      };
+
+      const confirmResponse =
         await service.saveConfirmation(
           confirmation
         );
 
       state.enrollment =
-        normalizeEnrollment(response);
+        normalizeEnrollment(
+          confirmResponse
+        );
 
-      renderEnrollment();
-      showStep("payment");
-    } catch (error) {
-      showNotice(
-        getErrorMessage(error),
-        true
-      );
-    } finally {
-      setButtonBusy(
-        elements.agreementForm.querySelector('[type="submit"]'),
-        false
-      );
-    }
-  }
+      const checkoutResponse =
+        await service.createCheckout();
 
-  async function handleCheckout() {
-    setButtonBusy(
-      elements.checkoutButton,
-      true,
-      "Opening Checkout..."
-    );
-
-    try {
-      const response = await service.createCheckout();
       const checkoutUrl =
-        response.checkoutUrl ||
-        response.url;
+        checkoutResponse.checkoutUrl ||
+        checkoutResponse.url;
 
       if (!checkoutUrl) {
         throw new Error(
@@ -391,49 +260,20 @@ import {
         );
       }
 
-      window.location.assign(checkoutUrl);
+      window.location.assign(
+        checkoutUrl
+      );
     } catch (error) {
-      showNotice(getErrorMessage(error), true);
-      setButtonBusy(elements.checkoutButton, false);
+      showNotice(
+        getErrorMessage(error),
+        true
+      );
+
+      setButtonBusy(
+        submitButton,
+        false
+      );
     }
-  }
-
-  function getPaymentStatus(enrollment) {
-    return (
-      enrollment.paymentStatus ||
-      enrollment.payment?.status ||
-      config.paymentStatuses.NOT_STARTED
-    );
-  }
-
-  function isPaymentRequired(enrollment) {
-    if (
-      enrollment.paymentRequired === false ||
-      getPaymentStatus(enrollment) ===
-        config.paymentStatuses.PAYMENT_NOT_REQUIRED ||
-      enrollment.status === config.statuses.PAYMENT_NOT_REQUIRED
-    ) {
-      return false;
-    }
-
-    return true;
-  }
-
-  function isPaymentComplete(enrollment) {
-    const paymentStatus = getPaymentStatus(enrollment);
-
-    return (
-      paymentStatus === config.paymentStatuses.PAID ||
-      paymentStatus ===
-        config.paymentStatuses.PAYMENT_NOT_REQUIRED ||
-      enrollment.status === config.statuses.PAID ||
-      enrollment.status === config.statuses.PAYMENT_NOT_REQUIRED ||
-      enrollment.status === config.statuses.COACH_CONFIRMED ||
-      enrollment.status === config.statuses.INTAKE_UNLOCKED ||
-      enrollment.status === config.statuses.INTAKE_SUBMITTED ||
-      enrollment.status === config.statuses.ACTIVATED ||
-      enrollment.status === config.statuses.COMPLETE
-    );
   }
 
   function getAmount(source, keys) {
