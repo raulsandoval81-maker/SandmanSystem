@@ -57,7 +57,7 @@ export const SANDMAN_PRICING_CATALOG = {
       },
 
       "competition-3": {
-        label: "3-Day Competition Track",
+        label: "3-Day Competition Development",
         description:
           "Two regular class days plus one Strength & Honor, sparring, team-development, or competition-development day."
       },
@@ -69,15 +69,15 @@ export const SANDMAN_PRICING_CATALOG = {
       },
 
       "discipline-5": {
-        label: "5-Day",
+        label: "5-Day Development",
         description:
-          "Five-day access centered on one approved discipline per person."
+          "Five-day access centered on one approved discipline, including additional development or competition work as scheduled."
       },
 
       "dual-full": {
         label: "Dual-Discipline Full Access",
         description:
-          "Broad scheduled access across up to two approved disciplines per person."
+          "Broad scheduled access across up to two approved disciplines, including eligible 5–6 day training schedules."
       }
     },
 
