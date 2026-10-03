@@ -66,6 +66,26 @@ import {
       "agreementSignature"
     );
 
+    elements.agreementSignerLabel =
+      document.getElementById(
+        "agreementSignerLabel"
+      );
+
+    elements.intakeHeading =
+      document.getElementById(
+        "intakeHeading"
+      );
+
+    elements.intakeIntro =
+      document.getElementById(
+        "intakeIntro"
+      );
+
+    elements.openIntakeButtonLabel =
+      document.getElementById(
+        "openIntakeButtonLabel"
+      );
+
     elements.paymentMessage = document.getElementById("paymentMessage");
     elements.paymentStatus = document.getElementById("paymentStatus");
     elements.confirmationMessage = document.getElementById(
@@ -210,9 +230,45 @@ import {
       enrollment.intakeToken ||
       null;
 
+    renderAudienceLanguage();
 
     renderPaymentState();
     renderConfirmationState();
+  }
+
+  function renderAudienceLanguage() {
+    const isAdultAthlete =
+      state.enrollment
+        ?.enrollmentAudience ===
+      "adult_athlete";
+
+    if (elements.agreementSignerLabel) {
+      elements.agreementSignerLabel.textContent =
+        isAdultAthlete
+          ? "Athlete / Responsible Adult"
+          : "Parent / Guardian";
+    }
+
+    if (elements.intakeHeading) {
+      elements.intakeHeading.textContent =
+        isAdultAthlete
+          ? "Athlete Intake"
+          : "Parent Intake";
+    }
+
+    if (elements.intakeIntro) {
+      elements.intakeIntro.textContent =
+        isAdultAthlete
+          ? "Enrollment is confirmed. Continue to Athlete Intake to provide your contact, emergency, medical, waiver, and signature information."
+          : "Enrollment is confirmed. Continue to Parent Intake to provide contact, emergency, medical, waiver, and signature information.";
+    }
+
+    if (elements.openIntakeButtonLabel) {
+      elements.openIntakeButtonLabel.textContent =
+        isAdultAthlete
+          ? "Continue to Athlete Intake"
+          : "Continue to Parent Intake";
+    }
   }
 
   function renderAthletes(athletes) {
@@ -442,7 +498,9 @@ import {
 
     if (normalizeName(signerName) !== normalizeName(signature)) {
       showNotice(
-        "Your digital pledge must match the parent or responsible party name.",
+        state.enrollment?.enrollmentAudience === "adult_athlete"
+          ? "Your digital signature must match your full name."
+          : "Your digital signature must match the parent or guardian name.",
         true
       );
 
