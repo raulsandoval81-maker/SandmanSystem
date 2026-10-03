@@ -386,6 +386,8 @@ setStatus("Live session loaded.");
 }
 
 function getCompanionBlocks() {
+  const session = getCoachSessionPayload();
+
   return BLOCK_KEYS
     .map(key => {
       const block = blockEls[key];
@@ -393,6 +395,9 @@ function getCompanionBlocks() {
       if (!block || block.classList.contains("hidden")) {
         return null;
       }
+
+      const sourceBlock =
+        session?.blocks?.find(item => item?.slot === key) || null;
 
       const cardsTarget = getCardContainer(key);
 
@@ -430,7 +435,10 @@ function getCompanionBlocks() {
             ?.value
             .trim() || "",
 
-        cards
+        cards,
+        drillBlocks: Array.isArray(sourceBlock?.drillBlocks)
+          ? sourceBlock.drillBlocks
+          : []
       };
     })
     .filter(Boolean);
