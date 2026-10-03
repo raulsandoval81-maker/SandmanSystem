@@ -2,16 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
   <title>YESC Management</title>
 </head>
 <body>
   <main>
-    <h1>Youth Empowered Sports Club</h1>
-    <p>Management workspace.</p>
+    <p>Opening Academy Management...</p>
+    <p><a id="fallbackLink" href="/management/hub/">Continue to Academy Management</a></p>
   </main>
+
+  <script>
+    (() => {
+      const destination =
+        "/management/hub/" +
+        window.location.search;
+
+      const fallbackLink =
+        document.getElementById("fallbackLink");
+
+      if (fallbackLink) {
+        fallbackLink.href = destination;
+      }
+
+      window.location.replace(destination);
+    })();
+  </script>
 </body>
 </html>
