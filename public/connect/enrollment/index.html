@@ -88,7 +88,7 @@
 
           <li data-step="agreement">
             <span>2</span>
-            Final Agreement
+            Confirm
           </li>
 
           <li data-step="payment">
@@ -96,15 +96,6 @@
             Payment
           </li>
 
-          <li data-step="confirmation">
-            <span>4</span>
-            Confirmation
-          </li>
-
-          <li data-step="intake">
-            <span>5</span>
-            Intake
-          </li>
         </ol>
       </nav>
 
@@ -194,12 +185,11 @@
       >
         <div class="enrollment-panel__heading">
           <p class="enrollment-step-label">Step 2</p>
-          <h2>Final Enrollment Agreement Verification</h2>
+          <h2>Confirm Enrollment</h2>
 
           <p>
-            Your earlier proposal acceptance confirmed the offer you selected.
-            This step is the final enrollment verification required before
-            secure payment.
+            Confirm that the approved enrollment details are correct before
+            continuing to secure payment.
           </p>
         </div>
 
@@ -217,7 +207,7 @@
 
         <form id="agreementForm">
           <div class="enrollment-card">
-            <h3>Enrollment Agreement Verification</h3>
+            <h3>Enrollment Confirmation</h3>
 
             <label class="enrollment-checkbox">
               <input
@@ -286,7 +276,7 @@
               class="enrollment-button enrollment-button--primary"
               type="submit"
             >
-              Verify Agreement & Continue
+              Confirm & Continue
             </button>
           </div>
         </form>
@@ -337,68 +327,6 @@
         </div>
       </section>
 
-      <section
-        id="confirmationPanel"
-        class="enrollment-panel"
-        data-panel="confirmation"
-        hidden
-      >
-        <div class="enrollment-panel__heading">
-          <p class="enrollment-step-label">Step 4</p>
-          <h2 id="confirmationHeading">Enrollment Confirmation</h2>
-        </div>
-
-        <div class="enrollment-card">
-          <p id="confirmationMessage">
-            Payment has been verified. Management must now confirm the
-            enrollment before Intake is unlocked.
-          </p>
-
-          <p
-            id="confirmationStatus"
-            class="enrollment-status"
-            aria-live="polite"
-          >
-            Awaiting coach confirmation
-          </p>
-        </div>
-
-      </section>
-
-      <section
-        id="intakePanel"
-        class="enrollment-panel"
-        data-panel="intake"
-        hidden
-      >
-        <div class="enrollment-panel__heading">
-          <p class="enrollment-step-label">Step 5</p>
-          <h2 id="intakeHeading">Enrollment Intake</h2>
-        </div>
-
-        <div class="enrollment-card">
-          <p id="intakeIntro">
-            Enrollment is confirmed. Continue to Intake to provide contact,
-            emergency, medical, waiver, and signature information.
-          </p>
-
-          <p>
-            Athlete placement and final activation remain under coach
-            approval.
-          </p>
-        </div>
-
-        <div class="enrollment-actions">
-          <button
-            id="openParentIntakeButton"
-            class="enrollment-button enrollment-button--primary"
-            type="button"
-          >
-            <span id="openIntakeButtonLabel">Continue to Intake</span>
-          </button>
-        </div>
-      </section>
-
       <p
         id="enrollmentNotice"
         class="enrollment-notice"
@@ -409,11 +337,11 @@
   </main>
 
   <script
-    src="/connect/enrollment/enrollment.config.js?v=20261002-2"
+    src="/connect/enrollment/enrollment.config.js?v=20261002-3"
   ></script>
   <script
     type="module"
-    src="/connect/enrollment/enrollment.js?v=20261002-2"
+    src="/connect/enrollment/enrollment.js?v=20261002-3"
   ></script>
 </body>
 </html>
