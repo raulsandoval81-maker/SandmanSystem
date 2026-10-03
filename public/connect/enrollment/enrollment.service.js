@@ -73,7 +73,7 @@ import {
     );
   }
 
-  async function saveAgreement(agreement) {
+  async function saveConfirmation(confirmation) {
     const {
       enrollmentToken,
       proposalId
@@ -84,7 +84,7 @@ import {
       {
         proposalId,
         enrollmentToken,
-        agreement
+        confirmation
       }
     );
   }
@@ -107,7 +107,7 @@ import {
   const api = Object.freeze({
     getQueryParameters,
     loadEnrollment,
-    saveAgreement,
+    saveConfirmation,
     createCheckout
   });
 
