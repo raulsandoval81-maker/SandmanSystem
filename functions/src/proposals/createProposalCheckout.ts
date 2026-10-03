@@ -191,23 +191,19 @@ export const createProposalCheckout =
       const proposalStatus =
         cleanString(proposal.status);
 
-      const enrollmentAgreement =
-        proposal.enrollmentAgreement &&
-        typeof proposal.enrollmentAgreement === "object"
-          ? proposal.enrollmentAgreement
+      const enrollmentConfirmation =
+        proposal.enrollmentConfirmation &&
+        typeof proposal.enrollmentConfirmation === "object"
+          ? proposal.enrollmentConfirmation
           : {};
 
       if (
-        enrollmentAgreement.standardsAccepted !== true ||
-        enrollmentAgreement.proposalAccepted !== true ||
-        !enrollmentAgreement.acceptedAt ||
-        !cleanString(
-          enrollmentAgreement.signerName
-        )
+        enrollmentConfirmation.termsConfirmed !== true ||
+        !enrollmentConfirmation.confirmedAt
       ) {
         throw new HttpsError(
           "failed-precondition",
-          "Complete final enrollment agreement verification before secure checkout."
+          "Confirm the enrollment and billing details before secure checkout."
         );
       }
 
