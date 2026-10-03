@@ -332,6 +332,11 @@ import {
       return;
     }
 
+    if (status === config.statuses.READY_FOR_ENROLLMENT) {
+      showStep("summary");
+      return;
+    }
+
     showStep("summary");
   }
 
