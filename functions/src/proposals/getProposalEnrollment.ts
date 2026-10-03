@@ -35,7 +35,7 @@ function validateToken(
   ) {
     throw new HttpsError(
       "permission-denied",
-      "This enrollment verification link is invalid or expired."
+      "This Review & Confirm link is invalid or expired."
     );
   }
 }
@@ -54,7 +54,7 @@ export const getProposalEnrollment =
     ) {
       throw new HttpsError(
         "invalid-argument",
-        "A valid enrollment verification link is required."
+        "A valid Review & Confirm link is required."
       );
     }
 
@@ -92,7 +92,7 @@ export const getProposalEnrollment =
     ) {
       throw new HttpsError(
         "failed-precondition",
-        "This proposal is not available for final enrollment verification."
+        "This proposal is not available for Review & Confirm."
       );
     }
 
