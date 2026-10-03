@@ -2,7 +2,7 @@
 
 import {
   SandmanEnrollmentService as service
-} from "./enrollment.service.js?v=20261002-2";
+} from "./enrollment.service.js?v=20261002-3";
 
 (function () {
   const config = window.SandmanEnrollmentConfig;
@@ -17,8 +17,7 @@ import {
 
   const state = {
     enrollment: null,
-    currentStep: "summary",
-    intakeTokenId: null
+    currentStep: "summary"
   };
 
   const elements = {};
@@ -71,29 +70,8 @@ import {
         "agreementSignerLabel"
       );
 
-    elements.intakeHeading =
-      document.getElementById(
-        "intakeHeading"
-      );
-
-    elements.intakeIntro =
-      document.getElementById(
-        "intakeIntro"
-      );
-
-    elements.openIntakeButtonLabel =
-      document.getElementById(
-        "openIntakeButtonLabel"
-      );
-
     elements.paymentMessage = document.getElementById("paymentMessage");
     elements.paymentStatus = document.getElementById("paymentStatus");
-    elements.confirmationMessage = document.getElementById(
-      "confirmationMessage"
-    );
-    elements.confirmationStatus = document.getElementById(
-      "confirmationStatus"
-    );
     elements.continueToAgreementButton = document.getElementById(
       "continueToAgreementButton"
     );
@@ -104,9 +82,6 @@ import {
       "backToAgreementButton"
     );
     elements.checkoutButton = document.getElementById("checkoutButton");
-    elements.openParentIntakeButton = document.getElementById(
-      "openParentIntakeButton"
-    );
   }
 
   function bindEvents() {
@@ -138,11 +113,6 @@ import {
       handleCheckout
     );
 
-
-    elements.openParentIntakeButton.addEventListener(
-      "click",
-      handleOpenParentIntake
-    );
   }
 
   async function loadEnrollment() {
@@ -225,15 +195,9 @@ import {
     elements.signature.value =
       agreement.signature || "";
 
-    state.intakeTokenId =
-      enrollment.intakeTokenId ||
-      enrollment.intakeToken ||
-      null;
-
     renderAudienceLanguage();
 
     renderPaymentState();
-    renderConfirmationState();
   }
 
   function renderAudienceLanguage() {
@@ -245,29 +209,8 @@ import {
     if (elements.agreementSignerLabel) {
       elements.agreementSignerLabel.textContent =
         isAdultAthlete
-          ? "Athlete / Responsible Adult"
+          ? "Athlete"
           : "Parent / Guardian";
-    }
-
-    if (elements.intakeHeading) {
-      elements.intakeHeading.textContent =
-        isAdultAthlete
-          ? "Athlete Intake"
-          : "Parent Intake";
-    }
-
-    if (elements.intakeIntro) {
-      elements.intakeIntro.textContent =
-        isAdultAthlete
-          ? "Enrollment is confirmed. Continue to Athlete Intake to provide your contact, emergency, medical, waiver, and signature information."
-          : "Enrollment is confirmed. Continue to Parent Intake to provide contact, emergency, medical, waiver, and signature information.";
-    }
-
-    if (elements.openIntakeButtonLabel) {
-      elements.openIntakeButtonLabel.textContent =
-        isAdultAthlete
-          ? "Continue to Athlete Intake"
-          : "Continue to Parent Intake";
     }
   }
 
@@ -309,20 +252,6 @@ import {
     });
 
     elements.athleteList.appendChild(list);
-  }
-
-  function isAdultEnrollment() {
-    return (
-      state.enrollment
-        ?.enrollmentAudience ===
-      "adult_athlete"
-    );
-  }
-
-  function intakeLabel() {
-    return isAdultEnrollment()
-      ? "Athlete Intake"
-      : "Parent Intake";
   }
 
   function renderPaymentState() {
@@ -385,73 +314,8 @@ import {
       "Continue to Secure Checkout";
   }
 
-  function renderConfirmationState() {
-    const enrollment = state.enrollment;
-    const status = enrollment.status;
-
-    if (
-      status === config.statuses.INTAKE_UNLOCKED ||
-      status === config.statuses.INTAKE_SUBMITTED ||
-      status === config.statuses.ACTIVATED ||
-      status === config.statuses.COMPLETE
-    ) {
-      elements.confirmationMessage.textContent =
-        `Your enrollment is confirmed. ${intakeLabel()} is now available.`;
-
-      elements.confirmationStatus.textContent =
-        "Enrollment confirmed";
-
-      return;
-    }
-
-    if (status === config.statuses.COACH_CONFIRMED) {
-      elements.confirmationMessage.textContent =
-        `Your enrollment has been approved. ${intakeLabel()} is being unlocked.`;
-
-      elements.confirmationStatus.textContent =
-        "Enrollment approved";
-
-      return;
-    }
-
-    if (isPaymentComplete(enrollment)) {
-      elements.confirmationMessage.textContent =
-        `Payment requirements are complete. Final enrollment approval is required before ${intakeLabel()} unlocks.`;
-
-      elements.confirmationStatus.textContent =
-        "Awaiting enrollment approval";
-
-      return;
-    }
-
-    elements.confirmationMessage.textContent =
-      "Final enrollment approval becomes available after payment is verified or the enrollment is approved as payment not required.";
-
-    elements.confirmationStatus.textContent =
-      "Payment requirement incomplete";
-
-  }
-
   function restoreCorrectStep() {
     const status = state.enrollment.status;
-
-    if (
-      status === config.statuses.INTAKE_UNLOCKED ||
-      status === config.statuses.INTAKE_SUBMITTED ||
-      status === config.statuses.ACTIVATED ||
-      status === config.statuses.COMPLETE
-    ) {
-      showStep("intake");
-      return;
-    }
-
-    if (
-      status === config.statuses.COACH_CONFIRMED ||
-      isPaymentComplete(state.enrollment)
-    ) {
-      showStep("confirmation");
-      return;
-    }
 
     if (
       status === config.statuses.READY_FOR_PAYMENT ||
@@ -575,45 +439,6 @@ import {
       showNotice(getErrorMessage(error), true);
       setButtonBusy(elements.checkoutButton, false);
     }
-  }
-
-  async function unlockIntake() {
-    try {
-      const response = await service.createIntakeHandoff();
-
-      state.enrollment = normalizeEnrollment(response);
-
-      state.intakeTokenId =
-        response.intakeTokenId ||
-        response.intakeToken ||
-        state.enrollment.intakeTokenId ||
-        state.enrollment.intakeToken ||
-        null;
-
-      renderEnrollment();
-      showStep("intake");
-    } catch (error) {
-      showNotice(
-        `Your enrollment was approved, but ${intakeLabel()} could not be unlocked: ` +
-          getErrorMessage(error),
-        true
-      );
-
-      showStep("confirmation");
-    }
-  }
-
-  function handleOpenParentIntake() {
-    if (!state.intakeTokenId) {
-      showNotice(
-        `${intakeLabel()} is not available yet. Contact the academy team if this continues.`,
-        true
-      );
-
-      return;
-    }
-
-    service.openParentIntake(state.intakeTokenId);
   }
 
   function getPaymentStatus(enrollment) {
