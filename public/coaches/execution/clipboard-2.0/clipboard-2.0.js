@@ -1627,6 +1627,8 @@ window.clearSession = function () {
   const note = document.getElementById("slot-note");
   if (note) note.value = "";
 
+  document.querySelectorAll(".drill-subblock").forEach(item => item.remove());
+
   renderClipboardList();
 
   setStatus("Session cleared.");
