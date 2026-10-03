@@ -83,19 +83,13 @@
         <ol>
           <li data-step="summary" aria-current="step">
             <span>1</span>
-            Review
+            Review &amp; Confirm
           </li>
 
-          <li data-step="agreement">
+          <li>
             <span>2</span>
-            Confirm
+            Secure Payment
           </li>
-
-          <li data-step="payment">
-            <span>3</span>
-            Payment
-          </li>
-
         </ol>
       </nav>
 
@@ -105,8 +99,8 @@
         data-panel="summary"
       >
         <div class="enrollment-panel__heading">
-          <p class="enrollment-step-label">Step 1</p>
-          <h2>Enrollment Summary</h2>
+          <p class="enrollment-step-label">Review &amp; Confirm</p>
+          <h2>Your Enrollment</h2>
 
           <p>
             Review the athlete, program, and exact billing amounts before
@@ -166,33 +160,6 @@
           </article>
         </div>
 
-        <div class="enrollment-actions">
-          <button
-            id="continueToAgreementButton"
-            class="enrollment-button enrollment-button--primary"
-            type="button"
-          >
-            Continue to Confirm
-          </button>
-        </div>
-      </section>
-
-      <section
-        id="agreementPanel"
-        class="enrollment-panel"
-        data-panel="agreement"
-        hidden
-      >
-        <div class="enrollment-panel__heading">
-          <p class="enrollment-step-label">Step 2</p>
-          <h2>Confirm Enrollment</h2>
-
-          <p>
-            Confirm that the approved enrollment details are correct before
-            continuing to secure payment.
-          </p>
-        </div>
-
         <form id="agreementForm">
           <div class="enrollment-card">
             <h3>Confirm Enrollment</h3>
@@ -207,75 +174,21 @@
 
               <span>
                 I confirm the athlete, program, amount due now, recurring
-                monthly amount, and billing schedule shown in Review are
-                correct. Continue to payment.
+                monthly amount, and billing schedule shown above are correct.
               </span>
             </label>
           </div>
 
           <div class="enrollment-actions">
             <button
-              id="backToSummaryButton"
-              class="enrollment-button enrollment-button--secondary"
-              type="button"
-            >
-              Back
-            </button>
-
-            <button
               id="saveAgreementButton"
               class="enrollment-button enrollment-button--primary"
               type="submit"
             >
-              Confirm & Continue
+              Confirm &amp; Continue to Secure Payment
             </button>
           </div>
         </form>
-      </section>
-
-      <section
-        id="paymentPanel"
-        class="enrollment-panel"
-        data-panel="payment"
-        hidden
-      >
-        <div class="enrollment-panel__heading">
-          <p class="enrollment-step-label">Step 3</p>
-          <h2>Payment</h2>
-        </div>
-
-        <div class="enrollment-card">
-          <p id="paymentMessage">
-            Your enrollment and billing details are confirmed. Continue to
-            secure payment.
-          </p>
-
-          <p
-            id="paymentStatus"
-            class="enrollment-status"
-            aria-live="polite"
-          >
-            Payment not started
-          </p>
-        </div>
-
-        <div class="enrollment-actions">
-          <button
-            id="backToAgreementButton"
-            class="enrollment-button enrollment-button--secondary"
-            type="button"
-          >
-            Back
-          </button>
-
-          <button
-            id="checkoutButton"
-            class="enrollment-button enrollment-button--primary"
-            type="button"
-          >
-            Continue to Secure Checkout
-          </button>
-        </div>
       </section>
 
       <p
@@ -288,11 +201,11 @@
   </main>
 
   <script
-    src="/connect/enrollment/enrollment.config.js?v=20261002-4"
+    src="/connect/enrollment/enrollment.config.js?v=20261002-5"
   ></script>
   <script
     type="module"
-    src="/connect/enrollment/enrollment.js?v=20261002-4"
+    src="/connect/enrollment/enrollment.js?v=20261002-5"
   ></script>
 </body>
 </html>
