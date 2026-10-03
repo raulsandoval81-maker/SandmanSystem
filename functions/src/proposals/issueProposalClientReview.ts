@@ -56,7 +56,7 @@ function buildReviewEmail(input: {
     "",
     "Your Sandman Academy membership proposal is ready for final review.",
     "",
-    "Please review the membership details, payment schedule, and start information. If everything looks correct, accept the proposal to continue to final enrollment agreement verification.",
+    "Please review the membership details, payment schedule, and start information. If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment.",
     "",
     input.reviewUrl,
     "",
@@ -89,7 +89,7 @@ function buildReviewEmail(input: {
         <div style="font-size:16px;line-height:1.7;color:#27272a;">
           Your Sandman Academy membership proposal is ready for final review.
           Please review the membership details, payment schedule, and start information.
-          If everything looks correct, accept the proposal to continue to final enrollment agreement verification.
+          If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment.
         </div>
 
         <div style="margin:26px 0;text-align:center;">
