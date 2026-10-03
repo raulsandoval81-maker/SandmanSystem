@@ -1,8 +1,11 @@
 "use strict";
 
+import {
+  SandmanEnrollmentService as service
+} from "./enrollment.service.js?v=20261002-2";
+
 (function () {
   const config = window.SandmanEnrollmentConfig;
-  const service = window.SandmanEnrollmentService;
 
   if (!config) {
     throw new Error("Sandman Enrollment configuration was not loaded.");
