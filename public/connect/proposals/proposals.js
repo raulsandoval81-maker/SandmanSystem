@@ -935,10 +935,10 @@ function actionLabel(
       return "Continue Draft";
 
     case "READY_FOR_CHECKOUT":
-      return "Final Enrollment Verification";
+      return "Review & Confirm";
 
     case "CHECKOUT_CREATED":
-      return "Resume Enrollment / Payment";
+      return "Resume Review / Payment";
 
     case "APPROVED":
       return "Open Approved Proposal";
@@ -990,7 +990,7 @@ function proposalActionHtml(status, id) {
   ) {
     return `
       <button class="proposal-open-btn" type="button" data-proposal-action="preview-enrollment-verification" data-proposal-id="${esc(id)}">
-        Preview Final Verification
+        Preview Review & Confirm
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="copy-enrollment-verification" data-proposal-id="${esc(id)}">
@@ -998,7 +998,7 @@ function proposalActionHtml(status, id) {
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
-        Email Final Verification
+        Email Review & Confirm
       </button>
 
       <span class="proposal-action-note">
@@ -1100,7 +1100,7 @@ async function runProposalAction(button) {
 
       const confirmed =
         window.confirm(
-          "Safeguard only: confirm that a signed paper/manual proposal acceptance is on file. This records the proposal acceptance and moves the case to Final Enrollment Verification. It does not replace the final enrollment agreement verification or payment."
+          "Safeguard only: confirm that a signed paper/manual proposal acceptance is on file. This records proposal acceptance and moves the case to Review & Confirm. It does not replace the family’s Review & Confirm step or payment."
         );
 
       if (!confirmed) {
@@ -1153,7 +1153,7 @@ async function runProposalAction(button) {
 
       if (approval.data?.status !== "READY_FOR_CHECKOUT") {
         throw new Error(
-          "Final enrollment verification status was not returned."
+          "Review & Confirm status was not returned."
         );
       }
 
@@ -1195,7 +1195,7 @@ async function runProposalAction(button) {
 
       if (!enrollmentPath) {
         throw new Error(
-          "Enrollment verification link was not returned."
+          "Review & Confirm link was not returned."
         );
       }
 
@@ -1246,11 +1246,11 @@ async function runProposalAction(button) {
           );
 
           window.alert(
-            "Secure enrollment verification link copied."
+            "Secure Review & Confirm link copied."
           );
         } catch {
           window.prompt(
-            "Copy secure enrollment verification link:",
+            "Copy secure Review & Confirm link:",
             enrollmentUrl
           );
         }
@@ -1263,7 +1263,7 @@ async function runProposalAction(button) {
       }
 
       window.alert(
-        `Final enrollment verification sent to ${response.data?.recipient || "the family"}.`
+        `Review & Confirm link sent to ${response.data?.recipient || "the family"}.`
       );
 
       await loadProposalQueue();
