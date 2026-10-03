@@ -112,15 +112,15 @@ function applyActivatedCompletionView(uid, intake = {}) {
   if (pageSubtitle) {
     pageSubtitle.textContent =
       isAdult
-        ? "The athlete is activated. Athlete first-time access is the next account step; Coach handles training and development from here."
-        : "The athlete is activated. Parent first-time access is the next account step; Coach handles training and development from here.";
+        ? "The athlete is activated and routed. Athlete first-time access is the next account step. If assessment is required, Coach evaluates next; Management validates final starting placement and XP after the assessment returns."
+        : "The athlete is activated and routed. Parent first-time access is the next account step. If assessment is required, Coach evaluates next; Management validates final starting placement and XP after the assessment returns.";
   }
 
   if (nextStep) {
     nextStep.textContent =
       isAdult
-        ? "Enrollment activation is complete. Issue Athlete first-time access from Recently Activated when the athlete is ready to register. Coach handles training, placement, development, and any athletic follow-up."
-        : "Enrollment activation is complete. Issue Parent first-time access from Recently Activated when the family is ready to register. Coach handles training, placement, development, and any athletic follow-up.";
+        ? "Enrollment activation is complete. Issue Athlete first-time access from Recently Activated when the athlete is ready to register. If assessment is required, send Coach Assessment next; Management validates final starting placement and XP after the assessment returns."
+        : "Enrollment activation is complete. Issue Parent first-time access from Recently Activated when the family is ready to register. If assessment is required, send Coach Assessment next; Management validates final starting placement and XP after the assessment returns.";
   }
 
   document.body.classList.add(
