@@ -241,6 +241,37 @@ const BLOCK_KEYS = [
   "cond",
   "offmat"
 ];
+
+const DRILL_BLOCK_SLOTS = Object.freeze([
+  "warmup",
+  "drills",
+  "technique",
+  "live",
+  "cond"
+]);
+
+const CUE_LEVELS = Object.freeze([
+  "minimal",
+  "optimal",
+  "maximum"
+]);
+
+const FLOW_CUE_PRESETS = Object.freeze([
+  "Position",
+  "Go",
+  "Next position",
+  "Reset",
+  "Switch",
+  "Partner change",
+  "5 sec",
+  "10 sec",
+  "Time",
+  "Hold",
+  "Ready",
+  "Live",
+  "Recover",
+  "Water"
+]);
 const SLOT_TIMER_PACKS = {
   warmup: [
     {
@@ -419,12 +450,35 @@ function getActiveSession() {
 
 let draftSaveTimer = null;
 
+function drillBlockId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `drill-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function normalizeCueLevel(value = "optimal") {
+  const level = String(value || "").trim().toLowerCase();
+  return CUE_LEVELS.includes(level) ? level : "optimal";
+}
+
+function captureDrillBlocks(block) {
+  return [...block.querySelectorAll(".drill-subblock")].map((item) => ({
+    id: item.dataset.drillId || drillBlockId(),
+    name: item.querySelector(".drill-name")?.value.trim() || "",
+    minutes: Math.max(0, Number(item.querySelector(".drill-minutes")?.value || 0)),
+    goal: item.querySelector(".drill-goal")?.value.trim() || "",
+    cueLevel: normalizeCueLevel(item.querySelector(".drill-cue-level")?.value),
+    coachingCues: item.querySelector(".drill-coaching-cues")?.value.trim() || "",
+    flowCues: item.querySelector(".drill-flow-cues")?.value.trim() || ""
+  }));
+}
+
 function captureDraftBlocks() {
   return [...document.querySelectorAll("#planBlocks .plan-block")].map(block => ({
     slot: block.dataset.slot || "",
     minutes: Number(block.dataset.minutes || 0),
     visible: !block.classList.contains("hidden"),
     notes: document.getElementById(`notes-${block.dataset.slot}`)?.value || "",
+    drillBlocks: captureDrillBlocks(block),
     timer: {
       pack: block.dataset.timerPack || "",
       preset: block.dataset.timerPreset || "",
@@ -500,10 +554,129 @@ function restoreDraft(draft) {
     if (select && timer.pack) {
       select.value = `${timer.pack}|||${timer.preset || ""}|||${timer.label || ""}`;
     }
+
+    renderSavedDrillBlocks(block, saved.drillBlocks || []);
   });
 
   recalcTotal();
   return true;
+}
+
+function flowCueButtons() {
+  return FLOW_CUE_PRESETS.map(cue =>
+    `<button type="button" class="flow-cue-chip" data-flow-cue="${escapeHtml(cue)}">${escapeHtml(cue)}</button>`
+  ).join("");
+}
+
+function renderDrillSubblock(slot, data = {}) {
+  const item = document.createElement("article");
+  item.className = "drill-subblock";
+  item.dataset.drillId = String(data.id || drillBlockId());
+
+  const cueLevel = normalizeCueLevel(data.cueLevel);
+  const minutes = Number.isFinite(Number(data.minutes))
+    ? Math.max(0, Number(data.minutes))
+    : 5;
+
+  item.innerHTML = `
+    <div class="drill-subblock-head">
+      <strong>Drill Block</strong>
+      <div class="drill-subblock-actions">
+        <button type="button" class="drill-order-btn" data-drill-move="up" aria-label="Move drill up">↑</button>
+        <button type="button" class="drill-order-btn" data-drill-move="down" aria-label="Move drill down">↓</button>
+        <button type="button" class="drill-remove-btn" data-drill-remove aria-label="Remove drill">Remove</button>
+      </div>
+    </div>
+
+    <div class="drill-subblock-grid">
+      <label>
+        <span>Drill</span>
+        <input class="drill-name" type="text" maxlength="80" value="${escapeHtml(data.name || "")}" placeholder="Single-leg entry">
+      </label>
+
+      <label>
+        <span>Time</span>
+        <input class="drill-minutes" type="number" min="0" max="60" step="1" value="${minutes}">
+      </label>
+
+      <label class="drill-goal-field">
+        <span>Short goal</span>
+        <input class="drill-goal" type="text" maxlength="120" value="${escapeHtml(data.goal || "")}" placeholder="Win inside position">
+      </label>
+
+      <label>
+        <span>Cue level</span>
+        <select class="drill-cue-level">
+          <option value="minimal"${cueLevel === "minimal" ? " selected" : ""}>Minimal</option>
+          <option value="optimal"${cueLevel === "optimal" ? " selected" : ""}>Optimal</option>
+          <option value="maximum"${cueLevel === "maximum" ? " selected" : ""}>Maximum</option>
+        </select>
+      </label>
+    </div>
+
+    <details class="drill-cue-details">
+      <summary>Coaching + flow cues</summary>
+
+      <div class="drill-cue-grid">
+        <label>
+          <span>Coaching cues</span>
+          <input class="drill-coaching-cues" type="text" maxlength="240" value="${escapeHtml(data.coachingCues || "")}" placeholder="Head up · inside position · hips in">
+        </label>
+
+        <label>
+          <span>Flow cues</span>
+          <input class="drill-flow-cues" type="text" maxlength="240" value="${escapeHtml(data.flowCues || "")}" placeholder="Position · Go · Next position · 5 sec">
+        </label>
+      </div>
+
+      <div class="flow-cue-presets" aria-label="Quick flow cues">
+        ${flowCueButtons()}
+      </div>
+    </details>
+  `;
+
+  return item;
+}
+
+function renderSavedDrillBlocks(block, drillBlocks = []) {
+  const list = block.querySelector(".drill-subblock-list");
+  if (!list) return;
+
+  list.replaceChildren();
+
+  (Array.isArray(drillBlocks) ? drillBlocks : []).forEach(data => {
+    list.appendChild(renderDrillSubblock(block.dataset.slot || "", data));
+  });
+}
+
+function installDrillBlockEditors() {
+  DRILL_BLOCK_SLOTS.forEach(slot => {
+    const block = blockEls[slot];
+    const slotEl = document.getElementById(`slot-${slot}`);
+    if (!block || !slotEl || slotEl.querySelector(".drill-block-editor")) return;
+
+    const editor = document.createElement("section");
+    editor.className = "drill-block-editor";
+    editor.dataset.drillEditor = slot;
+    editor.innerHTML = `
+      <div class="drill-block-editor-head">
+        <div>
+          <span class="drill-block-kicker">Within this section</span>
+          <strong>Drill Blocks</strong>
+        </div>
+
+        <button type="button" class="drill-add-btn" data-add-drill-block="${slot}">
+          + Drill Block
+        </button>
+      </div>
+
+      <div class="drill-subblock-list"></div>
+    `;
+
+    const notes = slotEl.querySelector(".slot-notes");
+    if (notes) slotEl.insertBefore(editor, notes);
+    else slotEl.appendChild(editor);
+  });
 }
 
 function setTitle(key, label) {
@@ -969,6 +1142,9 @@ window.runPractice = async function () {
       ?.value
       .trim() || "",
 
+  drillBlocks:
+    captureDrillBlocks(b),
+
   timer: {
     pack:
       b.dataset.timerPack || "",
@@ -1074,7 +1250,8 @@ window.runPractice = async function () {
         blockId: block.slot,
         title: block.title,
         minutes: block.minutes,
-        cards: block.cards
+        cards: block.cards,
+        drillBlocks: block.drillBlocks || []
       })),
       plannedCards
     });
@@ -1219,6 +1396,75 @@ document.addEventListener("click", e => {
   queueDraftSave();
 });
 document.addEventListener("click", (e) => {
+  const add = e.target.closest("[data-add-drill-block]");
+  if (add) {
+    const slot = add.dataset.addDrillBlock || "";
+    const block = blockEls[slot];
+    const list = block?.querySelector(".drill-subblock-list");
+    if (!list) return;
+
+    list.appendChild(renderDrillSubblock(slot, {
+      cueLevel: "optimal",
+      minutes: 5
+    }));
+
+    queueDraftSave();
+    return;
+  }
+
+  const preset = e.target.closest("[data-flow-cue]");
+  if (preset) {
+    const drill = preset.closest(".drill-subblock");
+    const input = drill?.querySelector(".drill-flow-cues");
+    if (!input) return;
+
+    const cue = preset.dataset.flowCue || "";
+    const parts = input.value
+      .split("·")
+      .map(part => part.trim())
+      .filter(Boolean);
+
+    if (!parts.includes(cue)) parts.push(cue);
+
+    input.value = parts.join(" · ");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    return;
+  }
+
+  const remove = e.target.closest("[data-drill-remove]");
+  if (remove) {
+    remove.closest(".drill-subblock")?.remove();
+    queueDraftSave();
+    return;
+  }
+
+  const move = e.target.closest("[data-drill-move]");
+  if (move) {
+    const item = move.closest(".drill-subblock");
+    const list = item?.parentElement;
+    if (!item || !list) return;
+
+    if (move.dataset.drillMove === "up" && item.previousElementSibling) {
+      list.insertBefore(item, item.previousElementSibling);
+    }
+
+    if (move.dataset.drillMove === "down" && item.nextElementSibling) {
+      list.insertBefore(item.nextElementSibling, item);
+    }
+
+    queueDraftSave();
+  }
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.closest(".drill-subblock")) queueDraftSave();
+});
+
+document.addEventListener("change", (e) => {
+  if (e.target.matches(".drill-cue-level")) queueDraftSave();
+});
+
+document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-add-slot]");
   if (!btn) return;
 
@@ -1273,7 +1519,8 @@ async function saveCurrentPlanToFirestore() {
       b.dataset.slot,
     minutes: Number(b.dataset.minutes || 0),
     text: getNotesValue(b.dataset.slot),
-    cards: getBlockCards(b)
+    cards: getBlockCards(b),
+    drillBlocks: captureDrillBlocks(b)
   }));
 
   const totalMinutes =
@@ -1410,7 +1657,8 @@ window.endPractice = function endPractice() {
         document.getElementById(`notes-${b.dataset.slot}`)
           ?.value
           .trim() || "",
-      cards: getBlockCards(b)
+      cards: getBlockCards(b),
+      drillBlocks: captureDrillBlocks(b)
     }));
 
     const payload = {
@@ -1759,6 +2007,7 @@ function updateSupportLinks() {
   loadCurrentSchema();
   attachTimerSelectors();
   updateSupportLinks();
+  installDrillBlockEditors();
   restoreDraft(storedDraft);
 
   if (Array.isArray(hybridCards) && hybridCards.length) {
