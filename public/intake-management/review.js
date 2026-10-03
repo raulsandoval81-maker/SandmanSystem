@@ -112,15 +112,15 @@ function applyActivatedCompletionView(uid, intake = {}) {
   if (pageSubtitle) {
     pageSubtitle.textContent =
       isAdult
-        ? "The athlete is activated and routed. Athlete first-time access is the next account step. If assessment is required, Coach evaluates next; Management validates final starting placement and XP after the assessment returns."
-        : "The athlete is activated and routed. Parent first-time access is the next account step. If assessment is required, Coach evaluates next; Management validates final starting placement and XP after the assessment returns.";
+        ? "The athlete is activated and routed. Athlete first-time access is the next account step. If assessment is required, Coach evaluates next; the returned assessment appears in Management → Experience Validation for recognition and final placement."
+        : "The athlete is activated and routed. Parent first-time access is the next account step. If assessment is required, Coach evaluates next; the returned assessment appears in Management → Experience Validation for recognition and final placement.";
   }
 
   if (nextStep) {
     nextStep.textContent =
       isAdult
-        ? "Enrollment activation is complete. Issue Athlete first-time access from Recently Activated when the athlete is ready to register. If assessment is required, send Coach Assessment next; Management validates final starting placement and XP after the assessment returns."
-        : "Enrollment activation is complete. Issue Parent first-time access from Recently Activated when the family is ready to register. If assessment is required, send Coach Assessment next; Management validates final starting placement and XP after the assessment returns.";
+        ? "Enrollment activation is complete. Issue Athlete first-time access from Recently Activated when the athlete is ready to register. If assessment is required, send Coach Assessment next; the returned assessment appears in Management → Experience Validation for recognition and final placement."
+        : "Enrollment activation is complete. Issue Parent first-time access from Recently Activated when the family is ready to register. If assessment is required, send Coach Assessment next; the returned assessment appears in Management → Experience Validation for recognition and final placement.";
   }
 
   document.body.classList.add(
@@ -496,7 +496,7 @@ function wireActivatedAccessAction(uid, intake = {}) {
             status.textContent =
               response?.data?.duplicate
                 ? "Coach Assessment was already sent."
-                : "✓ Coach Assessment sent.";
+                : "✓ Coach Assessment sent. When the Coach returns it, continue in Management → Experience Validation.";
           }
         } catch (error) {
           console.error(
