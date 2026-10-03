@@ -541,7 +541,7 @@ const extras = {
               },
               {
                 value: "dual-full",
-                label: "Combat — 6-Day Full Access"
+                label: "Combat — All Week Full Access"
               }
             ];
 
