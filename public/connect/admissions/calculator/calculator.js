@@ -529,7 +529,7 @@ const extras = {
               },
               {
                 value: "competition-3",
-                label: "Combat — 3-Day Competition Development"
+                label: "Combat — 3-Day Competition Development Track"
               },
               {
                 value: "classes-4",
@@ -537,11 +537,11 @@ const extras = {
               },
               {
                 value: "discipline-5",
-                label: "Combat — 5-Day Development"
+                label: "Combat — 5-Day Competition Development Track"
               },
               {
                 value: "dual-full",
-                label: "Combat — Dual-Discipline Full Access"
+                label: "Combat — Full Access 5–6 Days"
               }
             ];
 
