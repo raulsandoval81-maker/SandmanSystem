@@ -25,9 +25,10 @@
     href="/connect/admissions/admissions.css"
   />
   <link rel="stylesheet" href="/assets/css/management-ui.css" />
+  <link rel="stylesheet" href="/management/hub/management.css" />
 </head>
 
-<body>
+<body data-management-area="appointments">
   <main class="admissions-page">
 
     <header class="admissions-header">
@@ -311,6 +312,11 @@
     </section>
 
   </main>
+
+  <script
+    type="module"
+    src="/management/shared/management-shell.js"
+  ></script>
 
   <script
     type="module"
