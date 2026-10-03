@@ -345,6 +345,41 @@ export const createProposalCheckout =
         );
       }
 
+      const athletes =
+        Array.isArray(
+          snapshot.athletes
+        )
+          ? snapshot.athletes as
+              Record<string, unknown>[]
+          : [];
+
+      const athleteSummary =
+        athletes
+          .map((athlete) => {
+            const name =
+              cleanString(
+                athlete.name ||
+                athlete.athleteName
+              );
+
+            const program =
+              cleanString(
+                athlete.programName ||
+                athlete.program ||
+                athlete.journey ||
+                athlete.track
+              );
+
+            return [
+              name,
+              program
+            ]
+              .filter(Boolean)
+              .join(" — ");
+          })
+          .filter(Boolean)
+          .join("; ");
+
       const email =
         cleanString(prospect.email).toLowerCase();
 
@@ -479,7 +514,11 @@ export const createProposalCheckout =
 
               product_data: {
                 name:
-                  `Sandman enrollment payment — ${proposalId}`,
+                  "Sandman Enrollment",
+
+                description:
+                  athleteSummary ||
+                  `Proposal ${proposalId}`,
               },
 
               unit_amount:
@@ -719,11 +758,15 @@ export const createProposalCheckout =
             custom_text: {
               submit: {
                 message:
-                  `Today's payment covers the approved enrollment payment. Your recurring membership of $${(
+                  `Due today: ${(
+                    dueNow / 100
+                  ).toFixed(
+                    2
+                  )}. Recurring membership: ${(
                     monthlyBalance / 100
                   ).toFixed(
                     2
-                  )}/month begins ${firstRecurringChargeDate} and bills on the 5th of each month.`,
+                  )}/month beginning ${firstRecurringChargeDate}; billed on the 5th.`,
               },
             },
 
