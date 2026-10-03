@@ -1,5 +1,10 @@
 "use strict";
 
+import {
+  functions,
+  httpsCallable
+} from "/assets/js/firebase-init.js";
+
 (function () {
   const config = window.SandmanEnrollmentConfig;
 
@@ -7,22 +12,15 @@
     throw new Error("Sandman Enrollment configuration was not loaded.");
   }
 
-  function requireFirebase() {
-    if (!window.firebase) {
-      throw new Error("Firebase SDK was not loaded.");
-    }
-
-    if (typeof window.firebase.functions !== "function") {
-      throw new Error("Firebase Functions SDK was not loaded.");
-    }
-
-    return window.firebase.functions();
-  }
-
   async function callFunction(functionName, payload = {}) {
-    const functions = requireFirebase();
-    const callable = functions.httpsCallable(functionName);
-    const response = await callable(payload);
+    const callable =
+      httpsCallable(
+        functions,
+        functionName
+      );
+
+    const response =
+      await callable(payload);
 
     return response.data;
   }
