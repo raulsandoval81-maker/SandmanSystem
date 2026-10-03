@@ -36,3 +36,11 @@ test("drill block model keeps cue density separate from neutral flow cues", asyn
   assert.match(clipboard, /class="drill-coaching-cues"/);
   assert.match(clipboard, /class="drill-flow-cues"/);
 });
+
+
+test("Coach Companion preserves nested drill blocks from the live session", async () => {
+  const companion = await read("public/coaches/execution/coach-companion/coach-companion.js");
+
+  assert.match(companion, /sourceBlock[\s\S]*session\?\.blocks\?\.find/);
+  assert.match(companion, /drillBlocks:\s*Array\.isArray\(sourceBlock\?\.drillBlocks\)/);
+});
