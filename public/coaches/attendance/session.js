@@ -4,10 +4,10 @@ import {
   getDocs,
   doc,
   getDoc,
-  ensureSignedIn,
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -140,7 +140,7 @@ async function loadAthletes() {
   setStatus("Loading athletes…");
 
   try {
-    await ensureSignedIn();
+    await requireCoach();
     await loadCanonicalPractice();
     await checkTodaySessionLock();
 
