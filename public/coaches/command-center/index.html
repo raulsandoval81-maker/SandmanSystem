@@ -1,185 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Daily Operations | Sandman Coach</title>
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/command-center/command-center.css?v=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Opening Daily Operations…</title>
+  <link rel="canonical" href="/coaches/today/">
+  <meta http-equiv="refresh" content="0;url=/coaches/today/">
 </head>
-<body class="coach-shell-page" data-coach-page="Daily Operations" data-coach-area="today">
-<main class="command-center-page" data-coach-shell-content>
-    <section class="hero">
-      <h1 data-en="Daily Operations" data-es="Control maestro del entrenador">Coach master control</h1>
-      <p
-        data-en="Your daily command surface. Review what needs your attention, open the owning workflow, and close today’s work."
-        data-es="Este es el espacio central del entrenador. Úsalo para la entrega de atletas, decisiones de entrenamiento, XP diario, revisión de áreas, pruebas y operaciones del entrenador."
-      >
-        This is the central coach workspace. Use it for athlete handoff, training decisions,
-        Daily XP, lane review, testing, and coach-side operations.
-      </p>
-    </section>
-
-    <section class="grid">
-
-      <article class="card">
-        <div class="eyebrow">Management</div>
-
-        <div class="card-title">
-          Management Notice
-        </div>
-
-        <div class="card-copy">
-          Admissions handoffs, operational updates,
-          requests, and follow-up from academy management.
-        </div>
-
-        <div class="mini-note">
-          Management owns admissions and operations.
-          Coach enters when training judgment or athlete development is needed.
-        </div>
-
-        <div class="actions">
-          <a
-            class="btn brand"
-            href="/coaches/management-notice/"
-          >
-            Open Management Notice
-          </a>
-        </div>
-      </article>
-
-      
-
-      
-
-
-
-      <article class="card">
-        <div class="eyebrow">Daily Operations</div>
-        <div class="card-title">Daily XP Console</div>
-        <div class="card-copy">
-          Award Combat, Strength, and Honor XP from one place. Best for fast coach-side XP actions.
-        </div>
-        <div class="actions">
-          <a class="btn brand" href="/coaches/daily-xp/daily-grind">Open Daily XP</a>
-        </div>
-      </article>
-
-      
-
-      <article class="card">
-        <div class="eyebrow">Strength Lane</div>
-        <div class="card-title">Strength Review</div>
-        <div id="list-strength" style="margin-top:6px;"></div>
-        <div class="card-copy">
-          Review Strength submissions and Iron Room logs.
-        </div>
-        <div class="queue">
-          <div class="queue-row">
-            <div class="queue-label">Pending Strength Sessions</div>
-            <div class="queue-count" id="count-strength">0</div>
-          </div>
-          <div class="queue-row">
-            <div class="queue-label">Pending Iron Logs</div>
-            <div class="queue-count" id="count-iron">0</div>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn brand" href="/coaches/lanes/strength/">Open Strength</a>
-        </div>
-      </article>
-
-      <article class="card">
-        <div class="eyebrow">Honor Lane</div>
-        <div class="card-title">Honor Review</div>
-        <div id="list-honor" style="margin-top:6px;"></div>
-        <div class="card-copy">
-          Review Honor reflections and award +5 or +10 based on coach judgment and submission quality.
-        </div>
-        <div class="queue">
-          <div class="queue-row">
-            <div class="queue-label">Pending Honor Sessions</div>
-            <div class="queue-count" id="count-honor">0</div>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn brand" href="/coaches/lanes/honor/">Open Honor</a>
-        </div>
-      </article>
-
-<article class="card">
-  <div class="eyebrow">Conditioning Lane</div>
-  <div class="card-title">Conditioning Review</div>
-  <div id="list-conditioning" style="margin-top:6px;"></div>
-
-  <div class="card-copy">
-    Manage Conditioning requests, assign sessions, and review completions (including remote HIIT).
-  </div>
-
-  <div class="queue">
-
-    <!-- NEW -->
-    <div class="queue-row">
-      <div class="queue-label">Pending Requests</div>
-      <div class="queue-count" id="count-conditioning-requests">0</div>
-    </div>
-
-    <!-- EXISTING -->
-    <div class="queue-row">
-      <div class="queue-label">Pending Review</div>
-      <div class="queue-count" id="count-conditioning">0</div>
-    </div>
-
-  </div>
-
-  <div class="actions">
-    <a class="btn brand" href="/coaches/lanes/conditioning/">Open Conditioning</a>
-  </div>
-</article>
-
-<article class="card wide">
-  <div class="eyebrow">Testing</div>
-
-  <div class="card-title">
-    Ready Athletes
-  </div>
-
-  <div id="list-testing" class="queue"></div>
-<div id="coach-actions-testing"></div>
-
-  <div class="card-copy">
-    Athletes marked READY for testing. Launch test directly.
-  </div>
-
-  <div class="actions">
-    <a
-      class="btn brand"
-      href="/coaches/testing/testing-command-center.html"
-    >
-      Open Testing Command Center
-    </a>
-
-    <a
-      class="btn"
-      href="/coaches/testing-history/"
-    >
-      Testing History
-    </a>
-  </div>
-</article>
-
-
-
-      
-
-    </section>
-
-    <div class="footer">
-      Coach is final authority on training and athlete development • Software assists operations, not judgment
-    </div>
-  </main>
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
-<script type="module" src="/coaches/command-center/command-center.js"></script>
+<body>
+  <p>
+    Opening Daily Operations…
+    <a href="/coaches/today/">Continue</a>
+  </p>
+  <script>
+    const target = new URL("/coaches/today/", location.origin);
+    target.search = location.search;
+    target.hash = location.hash;
+    location.replace(target.href);
+  </script>
 </body>
 </html>
