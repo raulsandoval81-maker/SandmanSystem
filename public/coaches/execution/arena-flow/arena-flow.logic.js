@@ -9,6 +9,13 @@ const inlineCurrentBlockEl = document.getElementById("inlineCurrentBlock");
 const inlinePauseBtn = document.getElementById("inlinePauseBtn");
 const inlineStopBtn = document.getElementById("inlineStopBtn");
 const inlineRunbarEl = document.getElementById("inlineRunbar");
+const competitionParams = new URLSearchParams(window.location.search);
+const competitionContext = {
+  eventId: String(competitionParams.get("eventId") || competitionParams.get("tournamentId") || "").trim(),
+  eventName: String(competitionParams.get("eventName") || "").trim(),
+  eventDate: String(competitionParams.get("eventDate") || "").trim(),
+  location: String(competitionParams.get("location") || "").trim()
+};
 
 /* =========================
    INLINE RUN STATE
@@ -342,10 +349,14 @@ window.savePlan = async function () {
       text: b.querySelector(".slot")?.textContent.trim() || ""
     })),
     updatedAt: serverTimestamp(),
-    source: "arena-flow-clipboard"
+    source: "arena-flow-clipboard",
+    eventId: competitionContext.eventId || null,
+    eventName: competitionContext.eventName || null,
+    eventDate: competitionContext.eventDate || null,
+    location: competitionContext.location || null
   };
 
-  const key = new Date().toISOString().slice(0, 10) + "-arena-flow";
+  const key = competitionContext.eventId || ((competitionContext.eventDate || new Date().toISOString().slice(0, 10)) + "-arena-flow");
 
   await setDoc(doc(db, "practicePlans", key), payload, { merge: true });
 
@@ -357,7 +368,7 @@ window.savePlan = async function () {
    TIMER
 ========================= */
 window.openTimerWindow = function () {
-  const key = new Date().toISOString().slice(0, 10) + "-arena-flow";
+  const key = competitionContext.eventId || ((competitionContext.eventDate || new Date().toISOString().slice(0, 10)) + "-arena-flow");
   const url = `/lab/timer-engine/ui/athlete/sandman-coach-timer.html?plan=${encodeURIComponent(key)}`;
   const w = window.open(url, "sandmanTimer", "width=760,height=820");
   if (w) w.focus();
@@ -388,7 +399,7 @@ window.runArenaFlow = async function () {
    INIT
 ========================= */
 window.loadDefault = function () {
-  saveStatusEl.textContent = "Arena Flow 45 loaded (not saved).";
+  saveStatusEl.textContent = competitionContext.eventId ? `Arena Flow 45 loaded for ${competitionContext.eventName || competitionContext.eventId} (not saved).` : "Arena Flow 45 loaded (not saved).";
   recalcTotal();
 };
 
