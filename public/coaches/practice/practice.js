@@ -28,37 +28,37 @@ const flows = {
     description:
       "Use the full live workflow when the room has time for check-in, planning, and active execution.",
 
-    startHeading: "Run the Full Live Start",
+    startHeading: "Open the Canonical Practice",
     startDescription:
-      "Check athletes in, build the session, then run the active practice.",
+      "Session Builder establishes the normal practice record first. Then check athletes in and run the room.",
 
     steps: [
       {
-        title: "Check In",
-        description: "Record athletes as they arrive."
+        title: "Open Practice",
+        description: "Session Builder creates the canonical practice."
       },
       {
-        title: "Build Session",
-        description: "Choose the practice structure."
+        title: "Check In",
+        description: "Record athletes against that practice."
       },
       {
         title: "Run Practice",
-        description: "Coach the active session."
+        description: "Use Clipboard, Clock, or Coach Companion."
       }
     ],
 
     actions: [
       {
-        label: "Start Check-In",
-        href: "/coaches/attendance/session.html",
+        label: "Open Session Builder",
+        href: "/coaches/execution/session-builder/",
         primary: true
       },
       {
-        label: "Session Builder",
-        href: "/coaches/execution/session-builder/"
+        label: "Resume Check-In",
+        href: "/coaches/attendance/session.html"
       },
       {
-        label: "Run Practice",
+        label: "Practice Clipboard",
         href: "/coaches/execution/clipboard-2.0/"
       }
     ]
@@ -69,33 +69,33 @@ const flows = {
     description:
       "Use this when the coach needs to run the room directly without building a formal session first.",
 
-    startHeading: "Check In, Then Coach the Room",
+    startHeading: "Create the Direct Practice",
     startDescription:
-      "Check athletes in, intentionally bypass the Builder, and run the practice under coach direction.",
+      "Create the Coach-directed canonical practice, then check athletes in and coach the room without a Builder plan.",
 
     steps: [
       {
+        title: "Create Practice",
+        description: "Establish the canonical Coach-directed record."
+      },
+      {
         title: "Check In",
-        description: "Record athletes as they arrive."
+        description: "Record athletes against that practice."
       },
       {
-        title: "Skip Builder",
-        description: "Intentional Builder bypass."
-      },
-      {
-        title: "Run Practice",
-        description: "Coach the room directly."
+        title: "Coach the Room",
+        description: "Run the session directly."
       }
     ],
 
     actions: [
       {
-        label: "Start Check-In",
-        href: "/coaches/attendance/session.html",
+        label: "Create Direct Practice",
+        href: "/coaches/practice/entry.html?mode=coach-directed",
         primary: true
       },
       {
-        label: "Attendance",
+        label: "Review Attendance",
         href: "/coaches/attendance/"
       },
       {
@@ -131,9 +131,13 @@ const flows = {
 
     actions: [
       {
-        label: "Reconstruct Practice",
-        href: "/coaches/attendance/",
+        label: "Recover Past Practice",
+        href: "/coaches/practice/entry.html?mode=after-the-fact",
         primary: true
+      },
+      {
+        label: "Review Attendance",
+        href: "/coaches/attendance/"
       },
       {
         label: "Practice Log",
