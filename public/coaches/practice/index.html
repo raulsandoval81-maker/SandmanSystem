@@ -449,6 +449,18 @@
       transform:translateY(-2px);
     }
 
+    .support-card--primary{
+      border-color:rgba(255,221,72,.45);
+    }
+
+    .section-heading--secondary{
+      margin-top:22px;
+    }
+
+    .support-grid--teaching{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
     .support-card strong{
       display:block;
       margin-bottom:6px;
@@ -479,7 +491,8 @@
         min-height:0;
       }
 
-      .support-grid{
+      .support-grid,
+      .support-grid--teaching{
         grid-template-columns:repeat(2,minmax(0,1fr));
       }
     }
@@ -527,7 +540,8 @@
         width:min(100% - 22px,1120px);
       }
 
-      .support-grid{
+      .support-grid,
+      .support-grid--teaching{
         grid-template-columns:1fr;
       }
 
@@ -759,32 +773,36 @@
   </section>
 
   <div class="section-heading">
-    <h2>Practice Support</h2>
+    <h2>Run Practice</h2>
     <p>
-      Supporting tools stay available without creating duplicate workflows.
+      Execution tools support the active room. They do not create a second practice record.
     </p>
   </div>
 
   <section class="support-grid">
 
     <a
-      class="support-card"
+      class="support-card support-card--primary"
       href="/coaches/execution/session-builder/"
     >
       <strong>Session Builder</strong>
-      <span>Build a structured practice when today calls for it.</span>
+      <span>Build or resume the structured practice plan.</span>
     </a>
 
-    
-
-    
+    <a
+      class="support-card"
+      href="/coaches/execution/clipboard-2.0/"
+    >
+      <strong>Practice Clipboard</strong>
+      <span>Build and run the active practice plan.</span>
+    </a>
 
     <a
       class="support-card"
       href="/coaches/execution/big-clock-2.0/"
     >
       <strong>Big Clock</strong>
-      <span>Run visible practice timing.</span>
+      <span>Run visible practice timing and live cues.</span>
     </a>
 
     <a
@@ -792,15 +810,26 @@
       href="/coaches/execution/coach-companion/"
     >
       <strong>Coach Companion</strong>
-      <span>Open supporting practice controls and guidance.</span>
+      <span>Use the private Coach-side execution view and notes.</span>
     </a>
+
+  </section>
+
+  <div class="section-heading section-heading--secondary">
+    <h2>Teaching Support</h2>
+    <p>
+      Reference material supports coaching decisions without changing the practice lifecycle.
+    </p>
+  </div>
+
+  <section class="support-grid support-grid--teaching">
 
     <a
       class="support-card"
       href="/coaches/cards/"
     >
       <strong>Curriculum &amp; Skill Cards</strong>
-      <span>Open canonical teaching material, skills, games, and mat-talk support.</span>
+      <span>Open teaching material, skills, games, warmups, and mat-talk support.</span>
     </a>
 
     <a
@@ -808,10 +837,8 @@
       href="/coaches/conditioning/"
     >
       <strong>Conditioning Support</strong>
-      <span>Open current strength and conditioning support.</span>
+      <span>Open strength and conditioning reference tools.</span>
     </a>
-
-    
 
   </section>
 
