@@ -14,7 +14,7 @@
 
   <meta
     name="description"
-    content="Explore Zero2Hero and Path2Legend Boxing currently offered at Sandman Academy in Elk Grove, California."
+    content="Explore combat and fitness programs currently offered at Sandman Academy in the Elk Grove."
   >
 
   <link
@@ -399,6 +399,124 @@
       line-height:1.75;
     }
 
+    /* =========================================
+       HIIT FIT
+    ========================================== */
+
+    .fitness-section{
+      padding:
+        clamp(4rem,8vw,7rem)
+        1.25rem;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(200,40,30,.18),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #170909 0%,
+          #070707 55%,
+          #050505 100%
+        );
+    }
+
+    .fitness-shell{
+      width:min(1100px,100%);
+      margin:0 auto;
+    }
+
+    .fitness-panel{
+      overflow:hidden;
+
+      border:
+        1px solid
+        rgba(255,70,55,.5);
+
+      border-radius:24px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(180,18,18,.76),
+          rgba(28,31,38,.98)
+        );
+
+      box-shadow:
+        0 24px 55px
+        rgba(0,0,0,.35);
+    }
+
+    .fitness-heading{
+      max-width:800px;
+
+      margin:0 auto;
+
+      padding:
+        clamp(2rem,5vw,3.2rem)
+        1.5rem
+        2rem;
+
+      text-align:center;
+    }
+
+    .fitness-heading h2{
+      margin:.2rem 0;
+
+      color:#fff;
+
+      font-size:clamp(2.6rem,7vw,5rem);
+
+      letter-spacing:-.045em;
+      text-transform:uppercase;
+    }
+
+    .fitness-heading p{
+      color:#eee;
+
+      line-height:1.7;
+    }
+
+    .fitness-grid{
+      display:grid;
+
+      grid-template-columns:1fr;
+
+      gap:1rem;
+
+      padding:
+        0
+        1.5rem
+        1.5rem;
+    }
+
+    .fitness-card{
+      padding:1.25rem;
+
+      border:
+        1px solid
+        rgba(255,255,255,.15);
+
+      border-radius:16px;
+
+      background:
+        rgba(10,14,20,.48);
+    }
+
+    .fitness-card h3{
+      margin:0 0 .6rem;
+
+      color:#fff;
+    }
+
+    .fitness-card p{
+      margin:0;
+
+      color:#ddd;
+
+      line-height:1.65;
+    }
 
     /* =========================================
        STANDARD / CTA
@@ -503,10 +621,16 @@
           1.15fr
           .85fr;
       }
+
+      .fitness-grid{
+        grid-template-columns:
+          repeat(3,minmax(0,1fr));
+      }
     }
 
     @media(max-width:640px){
       .program-section,
+      .fitness-section,
       .local-standard,
       .program-cta{
         padding-right:1rem;
@@ -671,6 +795,59 @@
       color:#171717;
     }
 
+    /* HIIT FIT
+       Keep its red identity but lighten enough for day mode.
+    */
+
+    body.day-mode .fitness-section{
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(190,42,30,.10),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #f6eee7 0%,
+          #eee6da 100%
+        );
+    }
+
+    body.day-mode .fitness-panel{
+      border-color:rgba(170,40,30,.50);
+
+      background:
+        linear-gradient(
+          180deg,
+          #b9352b 0%,
+          #77251f 38%,
+          #393535 100%
+        );
+
+      box-shadow:
+        0 18px 36px rgba(0,0,0,.15);
+    }
+
+    body.day-mode .fitness-heading h2{
+      color:#ffffff;
+    }
+
+    body.day-mode .fitness-heading p{
+      color:#f5f5f5;
+    }
+
+    body.day-mode .fitness-card{
+      border-color:rgba(255,255,255,.28);
+      background:rgba(255,255,255,.10);
+    }
+
+    body.day-mode .fitness-card h3{
+      color:#ffffff;
+    }
+
+    body.day-mode .fitness-card p{
+      color:#f0f0f0;
+    }
 
     /* SANDMAN STANDARD */
 
@@ -742,10 +919,31 @@
       color:#111 !important;
     }
 
-
+  
     /* LIGHT MODE — YOUTH JOURNEY CONTRAST */
     html[data-theme="light"] .program-section--youth .program-eyebrow{
       color:#55585f !important;
+    }
+
+  
+
+    /* JOURNEY TITLE MOBILE FIT */
+    .program-heading h2{
+      max-width:100%;
+      overflow-wrap:normal;
+    }
+
+    .program-heading h2 a{
+      display:inline-block;
+      max-width:100%;
+    }
+
+    @media (max-width:640px){
+      .program-heading h2{
+        font-size:clamp(2.25rem, 10.5vw, 3.4rem);
+        line-height:1;
+        letter-spacing:-.035em;
+      }
     }
 
   </style>
@@ -780,7 +978,7 @@
         <div data-lang-block="en">
 
           <p class="program-eyebrow">
-            Sandman Zero2Hero™
+            Sandman Combat™
           </p>
 
           <h1>
@@ -788,7 +986,8 @@
           </h1>
 
           <p class="programs-hero__lead">
-            Boxing programs built around structured progression, clear standards, and earned achievement.
+            Combat and fitness programs built around structured
+            progression, clear standards, and earned achievement.
           </p>
 
           <p class="programs-hero__statement">
@@ -803,11 +1002,7 @@
         >
 
           <p class="program-eyebrow">
-            Sandman Zero2Hero™
-          </p>
-
-          <p class="program-eyebrow">
-            Elk Grove
+            Sandman Combat™
           </p>
 
           <h1>
@@ -972,25 +1167,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Boxing</strong> —
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/road2champion/wrestling.html">
+                    <strong>Wrestling</strong> —
                     fundamentals, mechanics, balance,
                     movement, and body control.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Wrestling</strong> —
-                    position, balance, control, pressure, and body awareness.
-                  </div>
-                </li>
-
-                <li>
-                  <div class="program-discipline-link">
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/road2champion/muay-thai.html">
                     <strong>Muay Thai</strong> —
-                    timing, balance, striking fundamentals, movement, and composure.
-                  </div>
+                    movement, coordination, distance,
+                    and controlled striking fundamentals.
+                  </a>
                 </li>
               </ul>
 
@@ -1007,27 +1196,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Boxeo</strong> —
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/road2champion/wrestling.html">
+                    <strong>Lucha</strong> —
                     fundamentos, mecánica, equilibrio,
                     movimiento y control corporal.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Lucha</strong> —
-                    posición, equilibrio, control, presión
-                    y conciencia corporal.
-                  </div>
-                </li>
-
-                <li>
-                  <div class="program-discipline-link">
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/road2champion/muay-thai.html">
                     <strong>Muay Thai</strong> —
-                    tiempo, equilibrio, fundamentos de golpeo,
-                    movimiento y compostura.
-                  </div>
+                    movimiento, coordinación, distancia
+                    y fundamentos de golpeo controlado.
+                  </a>
                 </li>
               </ul>
 
@@ -1212,27 +1393,27 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Boxing</strong> —
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
+                    <strong>Wrestling</strong> —
                     advanced skills, pressure, leadership,
                     and competition readiness.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Wrestling</strong> —
-                    advanced positioning, pressure, tactical control,
-                    competition readiness, and leadership.
-                  </div>
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/boxing.html">
+                    <strong>Boxing</strong> —
+                    timing, footwork, conditioning,
+                    pressure, and composure.
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/muay-thai.html">
                     <strong>Muay Thai</strong> —
-                    advanced striking, defense, timing, pressure,
-                    composure, and responsible competition development.
-                  </div>
+                    timing, balance, controlled striking,
+                    conditioning, pressure, and composure.
+                  </a>
                 </li>
               </ul>
 
@@ -1249,27 +1430,27 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Boxeo</strong> —
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
+                    <strong>Lucha</strong> —
                     habilidades avanzadas, presión,
                     liderazgo y preparación competitiva.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <strong>Lucha</strong> —
-                    posicionamiento avanzado, presión, control táctico,
-                    preparación competitiva y liderazgo.
-                  </div>
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/boxing.html">
+                    <strong>Boxeo</strong> —
+                    ritmo, desplazamiento, acondicionamiento,
+                    presión y compostura.
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
+                  <a class="program-discipline-link" href="/locations/elk-grove/programs/zero2hero/path2legend/muay-thai.html">
                     <strong>Muay Thai</strong> —
-                    golpeo avanzado, defensa, tiempo, presión,
-                    compostura y desarrollo competitivo responsable.
-                  </div>
+                    tiempo, equilibrio, golpeo controlado,
+                    acondicionamiento, presión y compostura.
+                  </a>
                 </li>
               </ul>
 
@@ -1308,208 +1489,6 @@
                 competencia, el liderazgo y el desarrollo a largo
                 plazo mediante entrenamiento disciplinado y
                 responsabilidad constante.
-              </p>
-
-            </div>
-
-          </article>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-
-
-    <!-- =========================================
-         QUEST2MASTERY
-    ========================================== -->
-
-    <section
-      class="program-section program-section--legend"
-      id="quest2mastery"
-    >
-
-      <div class="program-wrap">
-
-        <header class="program-heading">
-
-          <div data-lang-block="en">
-
-            <p class="program-eyebrow">
-              Advanced Combat Journey
-            </p>
-
-            <h2>
-              Quest2Mastery™
-            </h2>
-
-            <span class="program-age">
-              Ages 16+
-            </span>
-
-            <p>
-              Develop complete combat skill through disciplined training,
-              technical growth, tactical understanding, and long-term mastery.
-            </p>
-
-          </div>
-
-          <div
-            data-lang-block="es"
-            class="hidden-lang"
-          >
-
-            <p class="program-eyebrow">
-              Camino de Combate Avanzado
-            </p>
-
-            <h2>
-              Quest2Mastery™
-            </h2>
-
-            <span class="program-age">
-              Edades 16+
-            </span>
-
-            <p>
-              Desarrolla habilidades completas de combate mediante
-              entrenamiento disciplinado, crecimiento técnico,
-              comprensión táctica y dominio a largo plazo.
-            </p>
-
-          </div>
-
-        </header>
-
-
-        <div
-          class="badge-collection"
-          role="list"
-          aria-label="Quest2Mastery progression"
-        >
-
-          <article class="badge-card">
-            <img
-              src="/assets/images/badges/ranks-v2/apprentice-white-v3.png"
-              alt="Apprentice badge"
-            >
-            <h3>Apprentice</h3>
-          </article>
-
-          <article class="badge-card">
-            <img
-              src="/assets/images/badges/ranks-v2/warrior-blue-v3.png"
-              alt="Warrior badge"
-            >
-            <h3>Warrior</h3>
-          </article>
-
-          <article class="badge-card">
-            <img
-              src="/assets/images/badges/ranks-v2/hero-purple-v3.png"
-              alt="Hero badge"
-            >
-            <h3>Hero</h3>
-          </article>
-
-          <article class="badge-card">
-            <img
-              src="/assets/images/badges/ranks-v2/veteran-brown-v3.png"
-              alt="Veteran badge"
-            >
-            <h3>Veteran</h3>
-          </article>
-
-          <article class="badge-card">
-            <img
-              src="/assets/images/badges/ranks-v2/master-black-gold-v3.png"
-              alt="Master badge"
-            >
-            <h3>Master</h3>
-          </article>
-
-        </div>
-
-
-        <div class="program-details">
-
-          <article class="program-card">
-
-            <div data-lang-block="en">
-
-              <h3>
-                Programs
-              </h3>
-
-              <ul class="program-list">
-                <li>
-                  <a class="program-discipline-link"
-                     aria-disabled="true">
-                    <strong>MMA</strong> —
-                    integrated striking, wrestling, grappling,
-                    transitions, tactics, and complete combat development.
-                  </a>
-                </li>
-              </ul>
-
-            </div>
-
-            <div
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-
-              <h3>
-                Programas
-              </h3>
-
-              <ul class="program-list">
-                <li>
-                  <a class="program-discipline-link"
-                     aria-disabled="true">
-                    <strong>MMA</strong> —
-                    golpeo integrado, lucha, grappling,
-                    transiciones, táctica y desarrollo completo de combate.
-                  </a>
-                </li>
-              </ul>
-
-            </div>
-
-          </article>
-
-
-          <article class="program-card">
-
-            <div data-lang-block="en">
-
-              <h3>
-                Purpose
-              </h3>
-
-              <p class="program-purpose">
-                Build complete martial artists through progressive,
-                accountable training from Apprentice to Master.
-              </p>
-
-            </div>
-
-            <div
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-
-              <h3>
-                Propósito
-              </h3>
-
-              <p class="program-purpose">
-                Desarrollar artistas marciales completos mediante
-                entrenamiento progresivo y responsable desde
-                Apprentice hasta Master.
               </p>
 
             </div>
@@ -1799,34 +1778,5 @@
     src="/assets/js/navigation.js"
     defer
   ></script>
-
-
-<!-- SANDMAN-PUBLIC-DISCIPLINE-STATIC-GUARD -->
-<script>
-document.addEventListener("click", function (event) {
-  const item = event.target.closest(".program-discipline-link");
-  if (!item) return;
-
-  const text = (item.textContent || "")
-    .trim()
-    .toLowerCase();
-
-  const combatDiscipline =
-    text.includes("wrestling") ||
-    text.includes("lucha") ||
-    text.includes("boxing") ||
-    text.includes("boxeo") ||
-    text.includes("muay thai") ||
-    text.includes("submission grappling") ||
-    text.includes("grappling de sumisión") ||
-    text.includes("mma");
-
-  if (!combatDiscipline) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-}, true);
-</script>
-
 </body>
 </html>
