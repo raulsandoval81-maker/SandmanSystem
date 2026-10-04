@@ -17,6 +17,7 @@ import { PROGRAMS } from "/assets/js/programs.js";
 const ELK_GROVE_PROGRAM_IDS =
   new Set([
     "zero2hero-wrestling",
+    "zero2hero-boxing",
     "zero2hero-muay-thai",
     "path2legend-wrestling",
     "path2legend-boxing",
@@ -1401,6 +1402,7 @@ function updatePrograms() {
       const locationProgramIds = {
         "santa-ynez-valley": new Set([
           "zero2hero-wrestling",
+          "zero2hero-boxing",
           "zero2hero-muay-thai",
           "path2legend-wrestling",
           "path2legend-boxing"
