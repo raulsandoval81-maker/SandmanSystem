@@ -1,238 +1,143 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>System Operations | Sandman</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
-  </style>
+  <title>System Operations | Sandman Coach</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
+  <link rel="stylesheet" href="/coaches/_ui/operations-hub.css?v=1">
+  <link rel="icon" href="data:,">
 </head>
 
-<body class="coach-shell-page" data-coach-page="System Operations" data-coach-area="system" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
-    <h1>System Operations</h1>
-    <p>Coach access, shared schedule, system forms, support, and policies.</p>
+<body
+  class="coach-shell-page"
+  data-coach-page="System Operations"
+  data-coach-area="system"
+>
+<main class="operations-hub" data-coach-shell-content>
 
+  <header class="operations-hero">
+    <p class="operations-eyebrow">Coach Workspace</p>
+    <h1>System Operations</h1>
+    <p>
+      Access the Coach workspace systems that support operations without
+      duplicating athlete, team, practice, or competition authority.
+    </p>
   </header>
 
-  <section class="grid">
-    <a class="card" href="/coaches/schedule/">
-      <h2>Schedule</h2>
-      <p>Open Coach schedule and calendar tools.</p>
-    </a>
-
-    <a class="card" href="/coaches/profiles/">
-      <h2>Coach Profiles &amp; Access</h2>
-      <p>Review Coach identity and workspace context.</p>
-    </a>
-
-    <a class="card" href="/coaches/forms/">
-      <h2>Forms &amp; Templates</h2>
-      <p>Open current Coach forms and operational templates.</p>
-    </a>
-
-    <a class="card" href="/coaches/support/">
-      <h2>Support &amp; Policies</h2>
-      <p>Contact support, report issues, and open Coach policies.</p>
-    </a>
-pe html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>System Operations | Sandman</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-
-  <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
-  </style>
-</head>
-
-<body class="coach-shell-page" data-coach-page="System Operations" data-coach-area="system" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
-    <h1>System Operations</h1>
-    <p>Coach access, shared schedule, system forms, support, and policies.</p>
-
-  </header>
-
-  <section class="grid">
-    <a class="card" href="/coaches/schedule/">
-      <h2>Schedule</h2>
-      <p>Open Coach schedule and calendar tools.</p>
-    </a>
-
-    <a class="card" href="/coaches/profiles/">
-      <h2>Coach Profiles &amp; Access</h2>
-      <p>Review Coach identity and workspace context.</p>
-    </a>
-
-    <a class="card" href="/coaches/forms/">
-      <h2>Forms &amp; Templates</h2>
-      <p>Open current Coach forms and operational templates.</p>
-    </a>
-
-    <a class="card" href="/coaches/support/">
-      <h2>Support &amp; Policies</h2>
-      <p>Contact support, report issues, and open Coach policies.</p>
-    </a>
-    <a class="card" href="/coaches/logs/"><h2>Operational Logs</h2><p>Review available practice, match, and XP history tools.</p></a>
-pe html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>System Operations | Sandman</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-
-  <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
-  </style>
-</head>
-
-<body class="coach-shell-page" data-coach-page="System Operations" data-coach-area="system" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
-    <h1>System Operations</h1>
-    <p>Coach access, shared schedule, system forms, support, and policies.</p>
-
-  </header>
-
-  <section class="grid">
-    <a class="card" href="/coaches/schedule/">
-      <h2>Schedule</h2>
-      <p>Open Coach schedule and calendar tools.</p>
-    </a>
-
-    <a class="card" href="/coaches/profiles/">
-      <h2>Coach Profiles &amp; Access</h2>
-      <p>Review Coach identity and workspace context.</p>
-    </a>
-
-    <a class="card" href="/coaches/forms/">
-      <h2>Forms &amp; Templates</h2>
-      <p>Open current Coach forms and operational templates.</p>
-    </a>
-
-    <a class="card" href="/coaches/support/">
-      <h2>Support &amp; Policies</h2>
-      <p>Contact support, report issues, and open Coach policies.</p>
-    </a>
-pe html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>System Operations | Sandman</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-
-  <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
-  </style>
-</head>
-
-<body class="coach-shell-page" data-coach-page="System Operations" data-coach-area="system" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
-    <h1>System Operations</h1>
-    <p>Coach access, shared schedule, system forms, support, and policies.</p>
-
-  </header>
-
-  <section class="grid">
-    <a class="card" href="/coaches/schedule/">
-      <h2>Schedule</h2>
-      <p>Open Coach schedule and calendar tools.</p>
-    </a>
-
-    <a class="card" href="/coaches/profiles/">
-      <h2>Coach Profiles &amp; Access</h2>
-      <p>Review Coach identity and workspace context.</p>
-    </a>
-
-    <a class="card" href="/coaches/forms/">
-      <h2>Forms &amp; Templates</h2>
-      <p>Open current Coach forms and operational templates.</p>
-    </a>
-
-    <a class="card" href="/coaches/support/">
-      <h2>Support &amp; Policies</h2>
-      <p>Contact support, report issues, and open Coach policies.</p>
-    </a>
-    <a class="card" href="/coaches/logs/"><h2>Operational Logs</h2><p>Review available practice, match, and XP history tools.</p></a>
-    <a class="card" href="/coaches/index.html"><h2>Legacy Coach System</h2><p>Temporary access to existing tools while operational navigation is phased in.</p></a>
+  <section class="operations-flow" aria-label="System operations flow">
+    <span>Access</span>
+    <b>→</b>
+    <span>Reference</span>
+    <b>→</b>
+    <span>Support</span>
   </section>
+
+  <section class="operations-grid">
+
+    <a
+      class="operations-card operations-card--primary"
+      href="/coaches/settings/"
+    >
+      <span>Workspace</span>
+      <h2>Settings</h2>
+      <p>
+        Manage Coach workspace language and appearance without changing
+        operational rules or athlete data.
+      </p>
+    </a>
+
+    <a
+      class="operations-card operations-card--primary"
+      href="/communications/coach/schedule.html"
+    >
+      <span>Official Reference</span>
+      <h2>Published Schedule</h2>
+      <p>
+        Review the official academy schedule and event timing published
+        through the schedule workflow.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/profiles/"
+    >
+      <span>Identity</span>
+      <h2>Coach Profiles</h2>
+      <p>
+        Review Coach identity and profile reference information.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/forms/"
+    >
+      <span>Reference</span>
+      <h2>Forms &amp; Templates</h2>
+      <p>
+        Open Coach forms, handouts, volunteer materials, and operational templates.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/support/"
+    >
+      <span>Help</span>
+      <h2>Support &amp; Policies</h2>
+      <p>
+        Open Coach support, issue-reporting, policy, and related help resources.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/logs/practice-log.html"
+    >
+      <span>History</span>
+      <h2>Practice Log</h2>
+      <p>
+        Review and close the actual recorded practice workflow through
+        the existing Practice Log surface.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/management-notice/"
+    >
+      <span>Management</span>
+      <h2>Management Notice</h2>
+      <p>
+        Review operational requests and follow-up sent from Academy Management.
+      </p>
+    </a>
+
+    <a
+      class="operations-card"
+      href="/coaches/hub/"
+    >
+      <span>Home</span>
+      <h2>Coach Home</h2>
+      <p>
+        Return to the main Coach operations workspace.
+      </p>
+    </a>
+
+  </section>
+
+  <p class="operations-note">
+    System Operations supports the Coach workspace. Athlete development remains
+    in Athlete Operations, team coordination in Team Operations, practice in
+    Practice Operations, and event work in Competition Operations.
+  </p>
+
 </main>
 
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
-
+<script src="/coaches/_ui/coach-shell.js?v=3"></script>
 </body>
 </html>
