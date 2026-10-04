@@ -1,6 +1,5 @@
 import {
   db,
-  ensureSignedIn,
   collection,
   getDocs,
   doc,
@@ -11,8 +10,19 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
-await ensureSignedIn();
+function localCoachLoginUrl() {
+  const returnUrl = window.location.pathname + window.location.search;
+  return "/coaches/auth/login.html?returnUrl=" + encodeURIComponent(returnUrl);
+}
+
+try {
+  await requireCoach();
+} catch (error) {
+  window.location.replace(localCoachLoginUrl());
+  throw error;
+}
 
 const container = document.getElementById("submissions-container");
 const requestsContainer = document.getElementById("requests-container");
