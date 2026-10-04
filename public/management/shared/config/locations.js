@@ -4,6 +4,11 @@ export const MANAGEMENT_LOCATIONS = {
     name: "Santa Ynez Valley"
   },
 
+  "elk-grove": {
+    id: "elk-grove",
+    name: "Elk Grove"
+  },
+
   lompoc: {
     id: "lompoc",
     name: "Lompoc"
