@@ -31,6 +31,8 @@ const summary = document.getElementById("sessionSummary");
 const statusEl = document.getElementById("status");
 const athleteInputEl = document.getElementById("athleteInput");
 const closeBtn = document.getElementById("closeBtn");
+const finalizeAttendanceLink = document.getElementById("finalizeAttendanceLink");
+const dailyGrindLink = document.getElementById("dailyGrindLink");
 
 function escapeHtml(value) {
   return String(value || "")
@@ -215,7 +217,30 @@ function getStructure(blocks) {
   };
 }
 
+function updateCloseoutLinks() {
+  const practiceId = String(
+    requestedPracticeId ||
+    sessionSource.practiceId ||
+    payload?.practiceId ||
+    ""
+  ).trim();
+
+  if (finalizeAttendanceLink) {
+    finalizeAttendanceLink.href = practiceId
+      ? `/coaches/attendance/?session=${encodeURIComponent(practiceId)}`
+      : "/coaches/attendance/";
+  }
+
+  if (dailyGrindLink) {
+    dailyGrindLink.href = practiceId
+      ? `/coaches/daily-xp/?session=${encodeURIComponent(practiceId)}`
+      : "/coaches/daily-xp/";
+  }
+}
+
 function renderSummary() {
+
+  updateCloseoutLinks();
 
   if (!summary) return;
 
