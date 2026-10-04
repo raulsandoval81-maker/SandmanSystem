@@ -55,6 +55,16 @@ function safeHttpUrl(value) {
   }
 }
 
+function competitionContextUrl(path, record) {
+  const params = new URLSearchParams();
+  if (record.eventId) params.set("eventId", record.eventId);
+  if (record.name) params.set("eventName", record.name);
+  if (record.startDate) params.set("eventDate", record.startDate);
+  if (record.locationName) params.set("location", record.locationName);
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 function render() {
   const discipline = el("disciplineFilter").value;
   const scheduleRecords = records.filter((record) => record.programScopes?.includes("wrestling") && record.status === "active");
@@ -70,7 +80,12 @@ function render() {
   el("eventList").innerHTML = shown.length ? shown.map((record) => {
     const published = record.publicationStatus === "published";
     const registrationUrl = safeHttpUrl(record.registrationUrl);
-    return `<article class="event-card ${record.disciplineId === "strength-honor" ? "strength-honor" : ""}"><div><div class="actions" style="justify-content:flex-start;margin-bottom:8px"><span class="pill ${published ? "published" : "draft"}">${published ? "PUBLISHED" : "DRAFT"}</span><span class="pill">${record.disciplineId === "strength-honor" ? "Strength & Honor" : "Wrestling"}</span>${record.sanctionCard ? `<span class="pill">${safe(record.sanctionCard)}</span>` : ""}</div><h3>${safe(record.name)}</h3><p><span class="countdown">${safe(countdown(record))}</span> · ${safe(record.startDate)}${record.endDate ? `–${safe(record.endDate)}` : ""} · ${safe(record.locationName || "Location pending")}</p>${record.sanctionNote ? `<p>Sanction note: ${safe(record.sanctionNote)}</p>` : ""}${record.registrationDeadline ? `<p>Registration deadline: ${safe(record.registrationDeadline)}</p>` : ""}${registrationUrl ? `<p><a class="button secondary" href="${safe(registrationUrl)}" target="_blank" rel="noopener noreferrer">Registration</a></p>` : ""}</div><div class="actions"><button class="button secondary" data-edit="${safe(record.eventId)}">Edit</button></div></article>`;
+    return `<article class="event-card ${record.disciplineId === "strength-honor" ? "strength-honor" : ""}"><div><div class="actions" style="justify-content:flex-start;margin-bottom:8px"><span class="pill ${published ? "published" : "draft"}">${published ? "PUBLISHED" : "DRAFT"}</span><span class="pill">${record.disciplineId === "strength-honor" ? "Strength & Honor" : "Wrestling"}</span>${record.sanctionCard ? `<span class="pill">${safe(record.sanctionCard)}</span>` : ""}</div><h3>${safe(record.name)}</h3><p><span class="countdown">${safe(countdown(record))}</span> · ${safe(record.startDate)}${record.endDate ? `–${safe(record.endDate)}` : ""} · ${safe(record.locationName || "Location pending")}</p>${record.sanctionNote ? `<p>Sanction note: ${safe(record.sanctionNote)}</p>` : ""}${record.registrationDeadline ? `<p>Registration deadline: ${safe(record.registrationDeadline)}</p>` : ""}${registrationUrl ? `<p><a class="button secondary" href="${safe(registrationUrl)}" target="_blank" rel="noopener noreferrer">Registration</a></p>` : ""}</div><div class="actions">
+  <a class="button secondary" href="${safe(competitionContextUrl("/coaches/execution/arena-flow/", record))}">Clipboard</a>
+  <a class="button secondary" href="${safe(competitionContextUrl("/coaches/tools/coaches-event-log.html", record))}">Event Log</a>
+  <a class="button secondary" href="${safe(competitionContextUrl("/coaches/arena-xp/", record))}">Arena XP</a>
+  <button class="button secondary" data-edit="${safe(record.eventId)}">Edit</button>
+</div></article>`;
   }).join("") : `<p class="empty">No ${listMode} competition events in this program.</p>`;
 }
 function toggleTime() { const known = el("timePrecision").value === "datetime"; el("startAtField").hidden = !known; el("startAt").required = known; }
