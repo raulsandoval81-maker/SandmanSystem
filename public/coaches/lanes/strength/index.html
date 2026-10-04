@@ -8,53 +8,32 @@
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=5">
 
   <style>
-    :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --line:#27304a;
-      --brand:#ffdd48;
-      --text:#f0f4f8;
-      --muted:#9aa4b1;
-      --ok:#22c55e;
-      --bad:#ef4444;
-      --warn:#f59e0b;
-    }
-
     *{box-sizing:border-box}
 
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    .lane-hero,
+    .lane-panel{
+      margin-bottom:16px;
+      padding:18px;
+      border:1px solid var(--coach-shell-line);
+      border-radius:16px;
+      background:var(--coach-shell-panel);
+      color:var(--coach-shell-text);
+      box-shadow:0 10px 24px var(--coach-shell-shadow);
     }
 
-    header{
-      padding:16px;
-      border-bottom:1px solid var(--line);
-      background:#0f1a33;
-    }
-
-    .header-inner{
-      max-width:1200px;
-      margin:0 auto;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-    }
+    .lane-panel{padding:16px}
 
     .title{
       font-weight:900;
       font-size:1.1rem;
       letter-spacing:.5px;
-      color:var(--brand);
+      color:var(--coach-shell-gold);
     }
 
     .sub{
+      color:var(--coach-shell-muted);
       font-size:.85rem;
-      opacity:.7;
+      opacity:1;
     }
 
     main{
@@ -67,7 +46,7 @@
     .empty{
       opacity:.6;
       padding:20px;
-      border:1px dashed var(--line);
+      border:1px dashed var(--coach-shell-line);
       border-radius:12px;
       text-align:center;
     }
@@ -75,7 +54,7 @@
     .footer{
       margin-top:40px;
       padding-top:20px;
-      border-top:1px solid var(--line);
+      border-top:1px solid var(--coach-shell-line);
       font-size:.8rem;
       opacity:.6;
       text-align:center;
@@ -84,21 +63,15 @@
     @media (max-width:600px){
       .header-inner{flex-direction:column;align-items:flex-start}
     }
-    body.day{
-  --bg:#ffffff;
-  --panel:#f5f7fb;
-  --text:#111;
-  --line:#ddd;
-}
   </style>
 </head>
 <body class="coach-shell-page" data-coach-page="Strength Review" data-coach-area="today">
   <main data-coach-shell-content>
-  <section style="margin-bottom:16px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
+  <section class="lane-hero">
     <div class="title">Strength Lane Review</div>
     <div class="sub">All Segments • Coach View • Status + XP Award</div>
   </section>
-  <section style="margin-bottom:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
+  <section class="lane-panel">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
       <div>
         <h2 style="margin:0 0 6px;">Active Strength Phase</h2>
@@ -107,7 +80,7 @@
       <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
         <label style="display:grid;gap:5px;font-weight:800;font-size:.82rem;">
           <span>Phase</span>
-          <select id="strengthPhaseSelect" disabled style="min-height:42px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);">
+          <select id="strengthPhaseSelect" disabled style="min-height:42px;padding:0 10px;border:1px solid var(--coach-shell-line);border-radius:9px;background:var(--coach-shell-page-bg);color:var(--coach-shell-text);">
             <option value="preseason">Preseason</option>
             <option value="inseason">In-Season</option>
             <option value="postseason">Postseason</option>
