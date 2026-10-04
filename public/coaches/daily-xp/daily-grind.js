@@ -536,6 +536,30 @@ function requestedAttendanceSessionId() {
   return id && !id.includes("/") ? id : "";
 }
 
+
+function showPracticeCloseoutHandoff(practiceId) {
+  const id = String(practiceId || "").trim();
+  const status = document.getElementById("pageStatus");
+
+  if (!id || !status) return;
+
+  let link = document.getElementById("continuePracticeCloseout");
+
+  if (!link) {
+    link = document.createElement("a");
+    link.id = "continuePracticeCloseout";
+    link.className = "btn btn-ghost";
+    link.style.display = "inline-flex";
+    link.style.marginTop = "10px";
+    link.textContent = "Continue to Practice Log / Final Close";
+    status.insertAdjacentElement("afterend", link);
+  }
+
+  link.href =
+    "/coaches/logs/practice-log.html?practiceId=" +
+    encodeURIComponent(id);
+}
+
 async function loadApprovedAttendance() {
   const requestedSessionId = requestedAttendanceSessionId();
 
@@ -986,7 +1010,8 @@ async function issueAwardForSelection(award) {
         athleteIds: ids
       });
       if (completion.data?.readyForDailyGrind === false) {
-        readinessStatus = " · Practice complete";
+        readinessStatus = " · Daily Grind complete";
+        showPracticeCloseoutHandoff(activeAttendanceSession.id);
       }
     } catch (error) {
       console.error("[daily-grind] readiness completion failed", error);
