@@ -1,0 +1,29 @@
+name: Deploy Sandman Hosting
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-hosting
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Firebase Hosting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout approved commit
+        uses: actions/checkout@v4
+
+      - name: Deploy Sandman Hosting to production
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+          projectId: sandmandashboard
+          target: sandman
+          channelId: live
+          entryPoint: .
