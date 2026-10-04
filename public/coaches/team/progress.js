@@ -1,12 +1,15 @@
 import {
   db,
-  ensureSignedIn,
   doc,
   setDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 
-await ensureSignedIn();
+import {
+  requireCoach
+} from "/assets/js/coach-guard.js";
+
+await requireCoach();
 
 const laneSelect = document.getElementById("laneSelect");
 const typeSelect = document.getElementById("typeSelect");
