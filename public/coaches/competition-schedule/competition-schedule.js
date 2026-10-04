@@ -1,5 +1,5 @@
 import { functions, httpsCallable } from "/assets/js/firebase-init.js";
-import { requireCoach, isCoachAuthenticationError, coachLoginUrl } from "/assets/js/coach-guard.js";
+import { requireCoach, isCoachAuthenticationError } from "/assets/js/coach-guard.js";
 import { requireManagement, managementLoginUrl } from "/management/shared/guards/management-guard.js";
 
 const callList = httpsCallable(functions, "listCompetitionEvents");
@@ -8,6 +8,11 @@ const callPublication = httpsCallable(functions, "setCompetitionPublication");
 const el = (id) => document.getElementById(id);
 let records = [];
 let listMode = "upcoming";
+
+function localCoachLoginUrl() {
+  const returnUrl = window.location.pathname + window.location.search;
+  return "/coaches/auth/login.html?returnUrl=" + encodeURIComponent(returnUrl);
+}
 
 if (!el("weighInAnchorTime")) {
   const label = document.createElement("label");
@@ -118,4 +123,4 @@ el("historyFilter").addEventListener("click", () => { listMode="history"; el("hi
 const managementPortal = document.body.dataset.competitionPortal === "management";
 
 try { await (managementPortal ? requireManagement() : requireCoach()); el("competitionProtected").hidden = false; el("competitionStatus").textContent = managementPortal ? "Management fallback access verified. Coach remains the primary competition owner." : "Coach access verified. Drafts remain staff-only until Publish."; await load(); }
-catch (error) { el("competitionStatus").classList.add("error"); const authentication = managementPortal ? "Management access required." : (isCoachAuthenticationError(error) ? "Coach sign-in required." : "Coach authorization required."); el("competitionStatus").innerHTML = `${authentication} <a href="${managementPortal ? managementLoginUrl() : coachLoginUrl()}">Sign in</a>`; }
+catch (error) { el("competitionStatus").classList.add("error"); const authentication = managementPortal ? "Management access required." : (isCoachAuthenticationError(error) ? "Coach sign-in required." : "Coach authorization required."); el("competitionStatus").innerHTML = `${authentication} <a href="${managementPortal ? managementLoginUrl() : localCoachLoginUrl()}">Sign in</a>`; }
