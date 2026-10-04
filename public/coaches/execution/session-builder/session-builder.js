@@ -6,11 +6,11 @@ import {
 import {
   db,
   doc,
-  ensureSignedIn,
   functions,
   getDoc,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 import {
   SESSION_PROGRAMS,
   SESSION_ROOMS,
@@ -451,7 +451,7 @@ function persistSession(payload) {
 }
 
 async function openCanonicalPractice(payload) {
-  await ensureSignedIn();
+  await requireCoach();
   const openPractice = httpsCallable(functions, "openPracticeSession");
   const response = await openPractice({
     practiceId: payload.practiceId,
@@ -511,7 +511,7 @@ async function loadAttendanceContext() {
 }
 
 async function restoreCanonicalPractice(practiceId) {
-  await ensureSignedIn();
+  await requireCoach();
   const getPractice = httpsCallable(functions, "getPracticeSession");
   const response = await getPractice({ practiceId });
   const practice = response.data?.practice || {};
