@@ -12,6 +12,21 @@
       "url": "/locations/santa-ynez-valley/"
     },
     {
+      "id": "elk-grove",
+      "name": "Elk Grove",
+      "status": "active",
+      "enrollment": "open",
+      "programs": [
+        "Road2Champion Wrestling",
+        "Road2Champion Muay Thai",
+        "Path2Legend Wrestling",
+        "Path2Legend Boxing",
+        "Path2Legend Muay Thai",
+        "Everyday Fitness"
+      ],
+      "url": "/locations/elk-grove/"
+    },
+    {
       "id": "lompoc",
       "name": "Lompoc",
       "status": "coming-soon",
