@@ -130,6 +130,17 @@
   </section>
 
 </main>
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script>
+(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (!params.toString()) return;
+  document.querySelectorAll('.grid a.card').forEach((link) => {
+    const url = new URL(link.href, window.location.origin);
+    params.forEach((value, key) => url.searchParams.set(key, value));
+    link.href = url.pathname + url.search;
+  });
+})();
+</script>
+<script src="/coaches/_ui/coach-shell.js?v=4"></script>
 </body>
 </html>
