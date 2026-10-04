@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach · Event Log </title>
+  <title>Competition Event Log | Sandman Coach</title>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=4">
   <style>
     :root { color-scheme: dark; }
     body{
@@ -161,11 +162,12 @@
     #saveStatus{color:#94a3b8;font-size:.68rem;}
   </style>
 </head>
-<body>
-  <main class="wrap">
+<body class="coach-shell-page" data-coach-page="Event Log" data-coach-area="competition" data-coach-context="event-log">
+  <main class="wrap" data-coach-shell-content>
     <!-- scoped nav: only core coach tools -->
 
-    <h1>Coaches Event Log </h1>
+    <h1>Competition Event Log</h1>
+    <p id="eventContext" class="muted">No canonical event selected.</p>
     <p class="muted">Event-day control panel — call times, weigh-ins, who’s competing, and what to tell parents.</p>
 
     <!-- event info -->
@@ -257,6 +259,18 @@
 
     const athList = document.getElementById("athList");
     const saveStatus = document.getElementById("saveStatus");
+    const params = new URLSearchParams(window.location.search);
+    const canonicalEventId = String(params.get("eventId") || params.get("tournamentId") || "").trim();
+    const canonicalEventName = String(params.get("eventName") || "").trim();
+    const canonicalEventDate = String(params.get("eventDate") || "").trim();
+    const canonicalLocation = String(params.get("location") || "").trim();
+
+    if (canonicalEventName) document.getElementById("evName").value = canonicalEventName;
+    if (canonicalEventDate) document.getElementById("evDate").value = canonicalEventDate;
+    if (canonicalLocation) document.getElementById("evLocation").value = canonicalLocation;
+    document.getElementById("eventContext").textContent = canonicalEventId
+      ? `Canonical Event: ${canonicalEventName || canonicalEventId} · ${canonicalEventId}`
+      : "No canonical event selected. Open this log from Competition Schedule when possible.";
 
     function makeAthRow(data={}){
       const wrap = document.createElement("div");
@@ -308,18 +322,19 @@
         matchLog: document.getElementById("matchLog").value.trim(),
         parentBroadcast: document.querySelector(".broadcast-area").innerText.trim(),
         updatedAt: serverTimestamp(),
-        source: "weekend-clipboard"
+        source: "competition-event-log",
+        eventId: canonicalEventId || null
       };
 
-      // key by date if available
-      const key = payload.eventDate || new Date().toISOString().slice(0,10);
+      const key = canonicalEventId || payload.eventDate || new Date().toISOString().slice(0,10);
       await setDoc(doc(db, "weekendClipboards", key), payload, { merge:true });
-      saveStatus.textContent = "Saved.";
+      saveStatus.textContent = canonicalEventId ? `Saved to event ${canonicalEventId}.` : "Saved without canonical event ID.";
     };
 
     // optional: start with 1 blank athlete
     addAthRow();
   </script>
+  <script src="/coaches/_ui/coach-shell.js?v=4"></script>
 </body>
 </html>
 
