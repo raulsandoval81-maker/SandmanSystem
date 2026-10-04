@@ -3,27 +3,87 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Team Communication</title>
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
-  <link rel="stylesheet" href="/coaches/team/team.css?v=2">
+  <title>Team Communication | Sandman Coach</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2">
+  <link rel="stylesheet" href="/coaches/team/team.css?v=3">
   <link rel="icon" href="data:,">
 </head>
+
 <body class="coach-shell-page" data-coach-page="Team Communication" data-coach-area="team">
 <main class="wrap team-page" data-coach-shell-content>
+
   <section class="hero">
+    <p class="kicker">Team Operations</p>
     <h1>Team Communication</h1>
-    <p>Team communication references and pathways.</p>
+    <p>
+      Choose the communication workflow that owns the message. Team Operations
+      routes the work; Para-Comms remains the communication system of record.
+    </p>
   </section>
-  <section class="panel">
-    <ul class="reference-list">
-      <li>Coach → Parent</li>
-      <li>Coach → Athlete</li>
-      <li>Parent → Coach</li>
-      <li>System Signals</li>
-      <li>Tournament Communications</li>
-    </ul>
+
+  <section class="grid team-routing-grid">
+    <a class="card route-card route-card--primary" href="/communications/coach/hub.html">
+      <span class="operation-label">Direct</span>
+      <h2>Family Communication Hub</h2>
+      <p>
+        Review unread parent ↔ Coach conversations and continue established
+        athlete-family threads.
+      </p>
+    </a>
+
+    <a class="card route-card route-card--primary" href="/communications/coach/broadcast.html">
+      <span class="operation-label">One-to-Many</span>
+      <h2>Team Broadcast</h2>
+      <p>
+        Send team-wide or discipline-specific notices to athletes, parents, or both.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/communications/coach/announcements-feed.html">
+      <span class="operation-label">Bulletin</span>
+      <h2>Announcements Feed</h2>
+      <p>
+        Review active, pinned, archived, and prior Coach announcements.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/communications/coach/bilingual-comms.html">
+      <span class="operation-label">Language</span>
+      <h2>Bilingual Message Builder</h2>
+      <p>
+        Prepare English and Spanish communication, review the translation,
+        then copy or post it through the communication workflow.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/coaches/management-notice/">
+      <span class="operation-label">Management → Coach</span>
+      <h2>Management Notice</h2>
+      <p>
+        Review academy Management requests, updates, and follow-up sent to Coaches.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/communications/coach/schedule.html">
+      <span class="operation-label">Official Reference</span>
+      <h2>Published Schedule</h2>
+      <p>
+        Read the official academy schedule before communicating reminders or changes.
+      </p>
+    </a>
   </section>
+
+  <section class="panel team-authority-panel">
+    <h2>Communication Authority</h2>
+    <p>
+      A Coach message communicates around the work; it does not become the official
+      schedule, alter enrollment, change athlete progression, or replace a canonical
+      competition or Management record.
+    </p>
+  </section>
+
 </main>
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>
