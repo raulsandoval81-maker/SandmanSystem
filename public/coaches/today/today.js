@@ -7,11 +7,15 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import {
-  coachLoginUrl,
   requireCoach
 } from "/assets/js/coach-guard.js";
 
 const $ = (id) => document.getElementById(id);
+
+function localCoachLoginUrl() {
+  const returnUrl = window.location.pathname + window.location.search;
+  return "/coaches/auth/login.html?returnUrl=" + encodeURIComponent(returnUrl);
+}
 
 const countStrengthEl = $("count-strength");
 const countHonorEl = $("count-honor");
@@ -237,7 +241,7 @@ async function initialize() {
       text.textContent = "Coach access is required to open Daily Operations. ";
 
       const link = document.createElement("a");
-      link.href = coachLoginUrl();
+      link.href = localCoachLoginUrl();
       link.textContent = "Sign in as Coach";
 
       status.append(text, link);
