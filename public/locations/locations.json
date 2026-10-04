@@ -9,7 +9,26 @@
         "Road2Champion Wrestling",
         "Road2Champion Muay Thai / Kickboxing"
       ],
-      "url": "/locations/santa-ynez-valley/"
+      "url": "/locations/santa-ynez-valley/",
+      "serviceAreas": [
+        "Santa Ynez",
+        "Santa Ynez Valley",
+        "Solvang",
+        "Buellton",
+        "Los Olivos",
+        "Ballard"
+      ],
+      "searchAliases": [
+        "93460",
+        "93463",
+        "93427",
+        "93441",
+        "Santa Ynez wrestling",
+        "Solvang wrestling",
+        "Solvang boxing",
+        "Solvang Muay Thai",
+        "Santa Ynez combat sports"
+      ]
     },
     {
       "id": "elk-grove",
@@ -56,7 +75,15 @@
       "status": "coming-soon",
       "enrollment": "closed",
       "programs": [],
-      "url": "/locations/lompoc/"
+      "url": "/locations/lompoc/",
+      "serviceAreas": [
+        "Lompoc"
+      ],
+      "searchAliases": [
+        "93436",
+        "93437",
+        "Lompoc wrestling"
+      ]
     },
     {
       "id": "carmichael",
