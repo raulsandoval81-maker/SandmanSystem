@@ -29,6 +29,9 @@ const rowsEl = document.getElementById("rows");
 const statusEl = document.getElementById("status");
 
 const tourEl = document.getElementById("tournamentId");
+const competitionParams = new URLSearchParams(window.location.search);
+const canonicalEventId = String(competitionParams.get("eventId") || competitionParams.get("tournamentId") || "").trim();
+if (canonicalEventId && tourEl) tourEl.value = canonicalEventId;
 const searchEl = document.getElementById("search");
 const refreshBtn = document.getElementById("refreshBtn");
 
