@@ -26,6 +26,16 @@
     { label: "Workspace", links: [["Settings", "/coaches/settings/", "settings"]] }
   ];
   const practiceLinks = [["Session Builder", "/coaches/execution/session-builder/", "session-builder"], ["Attendance", "/coaches/attendance/", "attendance"], ["Practice Log", "/coaches/logs/practice-log.html", "practice-log"], ["Execution Tools", "/coaches/execution/", "execution-tools"]];
+  const practiceDrawerLinks = [
+    ["Session Builder", "/coaches/execution/session-builder/"],
+    ["Attendance", "/coaches/attendance/"],
+    ["Practice Clipboard", "/coaches/execution/clipboard-2.0/"],
+    ["Big Clock", "/coaches/execution/big-clock-2.0/"],
+    ["Coach Companion", "/coaches/execution/coach-companion/"],
+    ["Daily Grind", "/coaches/daily-xp/"],
+    ["Practice Log / Final Close", "/coaches/logs/practice-log.html"],
+    ["Curriculum / Skill Cards", "/coaches/cards/"]
+  ];
   const declaredContext = String(body.dataset.coachContext || "").trim();
   const routeContext = practiceLinks.find(([, href]) => currentPath === href || currentPath.startsWith(href))?.[2] || "";
   const activePracticeContext = declaredContext || routeContext;
@@ -47,7 +57,7 @@
   shell.innerHTML = `
     <aside id="coachShellDrawer" class="coach-shell__drawer" aria-label="Coach navigation">
       <div class="coach-shell__drawer-header"><span class="coach-shell__drawer-system">Sandman Combat System™</span><span class="coach-shell__drawer-role">Coach</span></div>
-      <nav class="coach-shell__nav">${navGroups.map((group) => `${group.label ? `<div class="coach-shell__nav-label">${group.label}</div>` : ""}${group.links.map(([label, href, area]) => `<a class="coach-shell__nav-link${area === activeArea ? " is-active" : ""}" href="${href}"${area === activeArea ? ' aria-current="page"' : ""}>${label}</a>`).join("")}`).join("")}</nav>
+      <nav class="coach-shell__nav">${navGroups.map((group) => `${group.label ? `<div class="coach-shell__nav-label">${group.label}</div>` : ""}${group.links.map(([label, href, area]) => { const active = area === activeArea; const primary = `<a class="coach-shell__nav-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; if (area !== "practice" || !active) return primary; return `${primary}<div class="coach-shell__nav-sub" aria-label="Practice Operations tools">${practiceDrawerLinks.map(([subLabel, subHref]) => { const normalized = subHref.replace(/\/index\.html$/, "/"); const subActive = currentPath === normalized || currentPath.startsWith(normalized); return `<a class="coach-shell__nav-sublink${subActive ? " is-active" : ""}" href="${subHref}"${subActive ? ' aria-current="page"' : ""}>${subLabel}</a>`; }).join("")}</div>`; }).join("")}`).join("")}</nav>
     </aside>
     <div id="coachShellBackdrop" class="coach-shell__backdrop" hidden></div>
     <div class="coach-shell__workspace">
