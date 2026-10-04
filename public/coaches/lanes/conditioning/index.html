@@ -5,12 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Coach Review — Conditioning | Sandman System</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=5" />
   <script src="/assets/js/include.js" defer></script>
 </head>
-<body>
-  <main style="max-width:1100px;margin:0 auto;padding:16px;">
+<body class="coach-shell-page" data-coach-page="Conditioning Review" data-coach-area="today">
+  <main data-coach-shell-content style="width:100%;max-width:none;margin:0;padding:0;">
 
-    <h1 style="margin:0 0 12px;">Conditioning Review</h1>
+    <section style="margin-bottom:16px;padding:18px;border:1px solid var(--coach-shell-line);border-radius:14px;background:var(--coach-shell-panel);">
+      <h1 style="margin:0 0 6px;color:var(--coach-shell-gold);">Conditioning Review</h1>
+      <div style="color:var(--coach-shell-muted);font-size:.85rem;">Requests · Submissions · Coach Review · XP Award</div>
+    </section>
 
     <!-- 🔥 NEW: REQUESTS (TOP) -->
     <section style="margin-bottom:20px;">
@@ -30,6 +34,7 @@
 
   </main>
 
-  <script type="module" src="/coaches/lanes/conditioning/review.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=5"></script>
+  <script type="module" src="/coaches/lanes/conditioning/review.js?v=coach-shell-2"></script>
 </body>
 </html>
