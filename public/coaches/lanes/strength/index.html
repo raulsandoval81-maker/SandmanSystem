@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Coach • Strength Review</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=5">
 
   <style>
     :root{
@@ -90,20 +91,12 @@
 }
   </style>
 </head>
-<body>
-  <header>
-    <div class="header-inner">
-      <div>
-        <div class="title">Strength Lane Review</div>
-        <div class="sub">All Segments • Coach View • Status + XP Award</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-  <div class="sub">Sandman Systems™</div>
-  <button id="themeToggle" class="btn">☀️ / 🌙</button>
-</div>
-    </div>
-  </header>
-  <main>
+<body class="coach-shell-page" data-coach-page="Strength Review" data-coach-area="today">
+  <main data-coach-shell-content>
+  <section style="margin-bottom:16px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
+    <div class="title">Strength Lane Review</div>
+    <div class="sub">All Segments • Coach View • Status + XP Award</div>
+  </section>
   <section style="margin-bottom:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
       <div>
@@ -139,21 +132,8 @@
     Coach is final authority • No auto-awards
   </div>
 </main>
-<script>
-const toggle = document.getElementById("themeToggle");
-
-const saved = localStorage.getItem("cc-theme");
-if(saved === "day"){
-  document.body.classList.add("day");
-}
-
-toggle?.addEventListener("click", () => {
-  document.body.classList.toggle("day");
-  const isDay = document.body.classList.contains("day");
-  localStorage.setItem("cc-theme", isDay ? "day" : "night");
-});
-</script>
-  <script type="module" src="/coaches/lanes/strength/phase-control.js"></script>
-  <script type="module" src="/coaches/lanes/strength/review.js?v=coach-auth-1"></script>
+<script type="module" src="/coaches/lanes/strength/phase-control.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=5"></script>
+  <script type="module" src="/coaches/lanes/strength/review.js?v=coach-shell-2"></script>
 </body>
 </html>
