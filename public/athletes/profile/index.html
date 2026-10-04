@@ -1,10 +1,19 @@
 <script type="module">
   import {
+    auth,
     db,
+    collection,
+    query,
+    where,
+    limit,
+    getDocs,
     doc,
-    getDoc,
-    ensureSignedIn
+    getDoc
   } from "/assets/js/firebase-init.js";
+
+  import {
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
   function norm(value) {
     return String(value || "").trim().toUpperCase();
@@ -12,7 +21,12 @@
 
   function normalizeField(value) {
     if (value && typeof value === "object") {
-      value = value.name || value.code || value.slug || value.value || "";
+      value =
+        value.name ||
+        value.code ||
+        value.slug ||
+        value.value ||
+        "";
     }
 
     return String(value || "")
@@ -21,65 +35,166 @@
       .replace(/[\s_]+/g, "-");
   }
 
-  function getIdFromUrl() {
-    const params = new URLSearchParams(window.location.search);
+  function getIdFromContext() {
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
 
     return norm(
       params.get("id") ||
       params.get("uid") ||
-      params.get("athleteId")
+      params.get("athleteId") ||
+      localStorage.getItem("sandman_lastAthleteUid") ||
+      localStorage.getItem("currentAthleteId") ||
+      sessionStorage.getItem("currentAthleteId")
+    );
+  }
+
+  function persistAthleteId(id) {
+    const athleteId = norm(id);
+    if (!athleteId) return;
+
+    localStorage.setItem(
+      "sandman_lastAthleteUid",
+      athleteId
+    );
+
+    localStorage.setItem(
+      "currentAthleteId",
+      athleteId
+    );
+
+    sessionStorage.setItem(
+      "currentAthleteId",
+      athleteId
     );
   }
 
   function fail(message) {
-    document.body.innerHTML = `<div class="msg">${message}</div>`;
+    document.body.innerHTML =
+      `<div class="msg">${message}</div>`;
+
     throw new Error(message);
   }
 
-  async function route() {
-    await ensureSignedIn();
-
-    const id = getIdFromUrl();
-
-    if (!id) {
-      fail("Missing athlete ID");
-      return;
+  async function waitForRealAuth() {
+    if (
+      auth.currentUser &&
+      !auth.currentUser.isAnonymous
+    ) {
+      return auth.currentUser;
     }
 
-    const snap = await getDoc(doc(db, "athletes", id));
+    return await new Promise(
+      (resolve) => {
+        let settled = false;
 
-    if (!snap.exists()) {
-      fail("Athlete not found");
-      return;
-    }
+        const finish = (user) => {
+          if (settled) return;
+          settled = true;
 
-    const athlete = snap.data() || {};
+          try {
+            unsubscribe();
+          } catch {}
 
-    const journey = normalizeField(
-      athlete.journey ||
-      athlete.programTrack ||
-      athlete.program ||
-      athlete.track
+          resolve(
+            user &&
+            !user.isAnonymous
+              ? user
+              : null
+          );
+        };
+
+        const unsubscribe =
+          onAuthStateChanged(
+            auth,
+            (user) => {
+              if (
+                user &&
+                !user.isAnonymous
+              ) {
+                finish(user);
+              }
+            }
+          );
+
+        setTimeout(
+          () => {
+            finish(
+              auth.currentUser
+            );
+          },
+          4000
+        );
+      }
     );
+  }
+
+  async function resolveAthleteIdForUser(
+    user
+  ) {
+    if (!user?.uid) return "";
+
+    const snapshot =
+      await getDocs(
+        query(
+          collection(
+            db,
+            "athletes"
+          ),
+          where(
+            "authUid",
+            "==",
+            user.uid
+          ),
+          limit(1)
+        )
+      );
+
+    if (snapshot.empty) {
+      return "";
+    }
+
+    return norm(
+      snapshot.docs[0].id
+    );
+  }
+
+  function destinationFor(
+    id,
+    athlete
+  ) {
+    const journey =
+      normalizeField(
+        athlete.journey ||
+        athlete.programTrack ||
+        athlete.program ||
+        athlete.track
+      );
 
     if (
       journey === "road2champion" ||
       journey === "r2c" ||
       id.startsWith("F8_")
     ) {
-      window.location.replace(
-        `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`
+      return (
+        "/athletes/profile/mini-profile.html?id=" +
+        encodeURIComponent(id)
       );
-      return;
     }
 
-    const art = normalizeField(
-      athlete.art ||
-      athlete.primaryDiscipline ||
-      athlete.discipline
-    );
+    const art =
+      normalizeField(
+        athlete.art ||
+        athlete.primaryDiscipline ||
+        athlete.discipline
+      );
 
-    const profileType = normalizeField(athlete.profileType);
+    const profileType =
+      normalizeField(
+        athlete.profileType
+      );
 
     const isQuest2Mastery =
       journey === "q2m" ||
@@ -88,21 +203,94 @@
       art === "mma" ||
       profileType === "adult";
 
-    const destination = isQuest2Mastery
-      ? "/athletes/profile/adult-profile.html"
-      : "/athletes/profile/athlete-profile.html";
+    const destination =
+      isQuest2Mastery
+        ? "/athletes/profile/adult-profile.html"
+        : "/athletes/profile/athlete-profile.html";
+
+    return (
+      destination +
+      "?id=" +
+      encodeURIComponent(id)
+    );
+  }
+
+  async function route() {
+    const user =
+      await waitForRealAuth();
+
+    let id =
+      getIdFromContext();
+
+    if (
+      !id &&
+      user
+    ) {
+      id =
+        await resolveAthleteIdForUser(
+          user
+        );
+    }
+
+    if (!id) {
+      const next =
+        encodeURIComponent(
+          window.location.pathname +
+          window.location.search +
+          window.location.hash
+        );
+
+      window.location.replace(
+        "/athletes/auth/?next=" +
+        next
+      );
+
+      return;
+    }
+
+    persistAthleteId(id);
+
+    const snap =
+      await getDoc(
+        doc(
+          db,
+          "athletes",
+          id
+        )
+      );
+
+    if (!snap.exists()) {
+      fail("Athlete not found");
+      return;
+    }
+
+    const athlete =
+      snap.data() || {};
 
     window.location.replace(
-      `${destination}?id=${encodeURIComponent(id)}`
+      destinationFor(
+        id,
+        athlete
+      )
     );
   }
 
   route().catch((error) => {
-    console.error("Profile routing failed:", error);
+    console.error(
+      "Profile routing failed:",
+      error
+    );
 
-    if (!document.body.textContent.includes("Athlete")) {
+    const currentText =
+      document.body.textContent || "";
+
+    if (
+      !currentText.includes(
+        "Athlete not found"
+      )
+    ) {
       document.body.innerHTML =
-        `<div class="msg">Unable to route profile</div>`;
+        '<div class="msg">Unable to route profile. Return to Athlete Home and try again.</div>';
     }
   });
 </script>
