@@ -720,159 +720,48 @@ html[data-theme="light"] .gateway-title{
     </section>
 
 
-    <!-- CURRENT ACTIVE ACADEMY -->
+    <!-- DYNAMIC ACADEMY SEARCH RESULT -->
 
     <article
-      id="santaYnezAcademy"
+      id="academyResultCard"
       class="academy-card"
       hidden
     >
-
       <div class="academy-card__header">
-
         <span
+          id="academyResultStatus"
           class="academy-status"
-          data-lang-block="en"
         >
-          Enrollment Open
+          Academy
         </span>
 
-        <span
-          class="academy-status hidden-lang"
-          data-lang-block="es"
-        >
-          Inscripciones Abiertas
-        </span>
-
-        <h2>
-          Santa Ynez Valley, CA
-        </h2>
-
+        <h2 id="academyResultName"></h2>
       </div>
 
-      <div data-lang-block="en">
+      <section class="academy-program">
+        <p
+          id="academyResultSummary"
+          class="academy-summary"
+        ></p>
 
-        <section class="academy-program">
-          <p class="academy-summary">
-            Combat &amp; Fitness training for youth, teens, and adults.
-          </p>
+        <p
+          id="academyResultOfferings"
+          class="academy-offerings"
+        ></p>
+      </section>
 
-          <p class="academy-offerings">
-            Wrestling · Boxing · Muay Thai
-          </p>
-        </section>
+      <p
+        id="academyResultArea"
+        class="local-note"
+      ></p>
 
-        <a
-          class="academy-button"
-          href="/locations/santa-ynez-valley/"
-        >
-          Visit Academy →
-        </a>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
+      <a
+        id="academyResultLink"
+        class="academy-button"
+        href="#"
       >
-
-        <section class="academy-program">
-          <p class="academy-summary">
-            Entrenamiento de combate y fitness para jóvenes, adolescentes y adultos.
-          </p>
-
-          <p class="academy-offerings">
-            Lucha · Boxeo · Muay Thai
-          </p>
-        </section>
-
-        <a
-          class="academy-button"
-          href="/locations/santa-ynez-valley/"
-        >
-          Visitar Academia →
-        </a>
-
-      </div>
-
-    </article>
-
-
-    <!-- LOMPOC SEARCH RESULT -->
-
-    <article
-      id="lompocAcademy"
-      class="academy-card"
-      hidden
-    >
-
-      <div class="academy-card__header">
-
-        <span
-          class="academy-status"
-          data-lang-block="en"
-        >
-          Enrolling Now
-        </span>
-
-        <span
-          class="academy-status hidden-lang"
-          data-lang-block="es"
-        >
-          Inscripciones Abiertas
-        </span>
-
-        <h2>
-          Lompoc, CA
-        </h2>
-
-      </div>
-
-      <div data-lang-block="en">
-
-        <section class="academy-program">
-          <p class="academy-summary">
-            Wrestling training for youth and teens.
-          </p>
-
-          <p class="academy-offerings">
-            Wrestling
-          </p>
-        </section>
-
-        <a
-          class="academy-button"
-          href="/locations/lompoc/"
-        >
-          Visit Academy →
-        </a>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-        <section class="academy-program">
-          <p class="academy-summary">
-            Entrenamiento de lucha para jóvenes y adolescentes.
-          </p>
-
-          <p class="academy-offerings">
-            Lucha
-          </p>
-        </section>
-
-        <a
-          class="academy-button"
-          href="/locations/lompoc/"
-        >
-          Visitar Academia →
-        </a>
-
-      </div>
-
+        Visit Academy →
+      </a>
     </article>
 
 
@@ -920,168 +809,211 @@ html[data-theme="light"] .gateway-title{
 
   <script>
     (() => {
-      const form =
-        document.getElementById(
-          "academyFinder"
-        );
-
-      const input =
-        document.getElementById(
-          "academyCity"
-        );
-
-      const santaYnez =
-        document.getElementById(
-          "santaYnezAcademy"
-        );
-
-      const lompoc =
-        document.getElementById(
-          "lompocAcademy"
-        );
-
-      const noResult =
-        document.getElementById(
-          "academyNoResult"
-        );
+      const form = document.getElementById("academyFinder");
+      const input = document.getElementById("academyCity");
+      const resultCard = document.getElementById("academyResultCard");
+      const resultStatus = document.getElementById("academyResultStatus");
+      const resultName = document.getElementById("academyResultName");
+      const resultSummary = document.getElementById("academyResultSummary");
+      const resultOfferings = document.getElementById("academyResultOfferings");
+      const resultArea = document.getElementById("academyResultArea");
+      const resultLink = document.getElementById("academyResultLink");
+      const noResult = document.getElementById("academyNoResult");
 
       if (
         !form ||
         !input ||
-        !santaYnez ||
-        !lompoc ||
+        !resultCard ||
+        !resultStatus ||
+        !resultName ||
+        !resultSummary ||
+        !resultOfferings ||
+        !resultArea ||
+        !resultLink ||
         !noResult
       ) {
         return;
       }
 
-
-      const locations = [
-        {
-          card: santaYnez,
-
-          aliases: [
-            "santa ynez",
-            "santa ynez valley",
-            "solvang",
-            "buellton",
-            "los olivos",
-            "ballard",
-            "93460",
-            "93463",
-            "93427",
-            "93441"
-          ]
-        },
-
-        {
-          card: lompoc,
-
-          aliases: [
-            "lompoc",
-            "93436",
-            "93437"
-          ]
-        }
-      ];
-
+      let locations = [];
 
       const normalize = value =>
         String(value || "")
           .toLowerCase()
           .trim()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
           .replace(/[.,]/g, "")
           .replace(/\s+/g, " ");
 
-
-      function hideResults() {
-        santaYnez.hidden = true;
-        lompoc.hidden = true;
-
-        noResult.classList.remove(
-          "is-visible"
-        );
+      function locationTerms(location = {}) {
+        return [
+          location.name,
+          location.id,
+          ...(Array.isArray(location.serviceAreas)
+            ? location.serviceAreas
+            : []),
+          ...(Array.isArray(location.searchAliases)
+            ? location.searchAliases
+            : [])
+        ]
+          .map(normalize)
+          .filter(Boolean);
       }
-
 
       function findLocation(value) {
-        const search =
-          normalize(value);
+        const search = normalize(value);
+        if (!search) return null;
 
-        if (!search) {
-          return null;
-        }
+        const exact = locations.find(location =>
+          locationTerms(location).some(term => search === term)
+        );
+
+        if (exact) return exact;
 
         return (
-          locations.find(
-            location =>
-              location.aliases.some(
-                alias =>
-                  search === normalize(alias)
-              )
-          )
-          ||
-          locations.find(
-            location =>
-              location.aliases.some(
-                alias =>
-                  search.includes(
-                    normalize(alias)
-                  )
-              )
-          )
-          ||
-          null
+          locations.find(location =>
+            locationTerms(location).some(term =>
+              search.includes(term) ||
+              term.includes(search)
+            )
+          ) || null
         );
       }
 
+      function hideResults() {
+        resultCard.hidden = true;
+        noResult.classList.remove("is-visible");
+      }
 
-      form.addEventListener(
-        "submit",
-        event => {
-          event.preventDefault();
+      function statusLabel(location = {}) {
+        if (location.status === "concept") {
+          return "Available at Launch";
+        }
 
-          const city =
-            normalize(input.value);
+        if (location.enrollment === "open") {
+          return "Enrollment Open";
+        }
 
-          if (!city) {
-            input.focus();
-            return;
-          }
+        if (location.status === "coming-soon") {
+          return "Coming Soon";
+        }
 
-          hideResults();
+        return "Academy";
+      }
 
-          const result =
-            findLocation(city);
+      function summaryText(location = {}) {
+        if (location.status === "concept") {
+          return "This Sandman Academy location is built and preparing for launch.";
+        }
 
-          if (result) {
-            result.card.hidden = false;
+        if (location.enrollment === "open") {
+          return "Combat & Fitness training currently available in this area.";
+        }
 
-            result.card.scrollIntoView({
-              behavior: "smooth",
-              block: "center"
-            });
+        return "Explore Sandman Academy programs and training for this area.";
+      }
 
-            return;
-          }
+      function renderLocation(location = {}) {
+        resultStatus.textContent = statusLabel(location);
+        resultName.textContent = `${location.name || "Sandman Academy"}, CA`;
+        resultSummary.textContent = summaryText(location);
 
-          noResult.classList.add(
-            "is-visible"
+        const programs = Array.isArray(location.programs)
+          ? location.programs
+          : [];
+
+        resultOfferings.textContent =
+          programs.length
+            ? programs
+                .map(program =>
+                  String(program)
+                    .replace(/^Road2Champion\s+/i, "")
+                    .replace(/^Path2Legend\s+/i, "")
+                    .replace(/^Everyday\s+/i, "")
+                )
+                .filter((value, index, array) =>
+                  array.indexOf(value) === index
+                )
+                .join(" · ")
+            : "Programs vary by location.";
+
+        const areas = Array.isArray(location.serviceAreas)
+          ? location.serviceAreas
+          : [];
+
+        resultArea.textContent =
+          areas.length > 1
+            ? `Serving ${areas.slice(0, 8).join(" · ")}${areas.length > 8 ? " · surrounding communities" : ""}`
+            : "";
+
+        resultLink.href = location.url || "/locations/";
+        resultLink.textContent =
+          location.status === "concept"
+            ? "Preview Academy →"
+            : "Visit Academy →";
+
+        resultCard.hidden = false;
+        resultCard.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      }
+
+      async function loadLocations() {
+        try {
+          const response = await fetch(
+            "/locations/locations.json",
+            { cache: "no-store" }
           );
 
-          noResult.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
+          if (!response.ok) {
+            throw new Error("Location registry unavailable.");
+          }
+
+          const payload = await response.json();
+
+          locations = Array.isArray(payload.locations)
+            ? payload.locations
+            : [];
+        } catch (error) {
+          console.error("[academy-finder] could not load locations", error);
+          locations = [];
         }
-      );
+      }
 
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
 
-      /*
-       * Gateway starts clean.
-       * No academy card is permanently displayed.
-       */
+        const city = normalize(input.value);
+
+        if (!city) {
+          input.focus();
+          return;
+        }
+
+        hideResults();
+
+        if (!locations.length) {
+          await loadLocations();
+        }
+
+        const result = findLocation(city);
+
+        if (result) {
+          renderLocation(result);
+          return;
+        }
+
+        noResult.classList.add("is-visible");
+        noResult.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      });
+
       hideResults();
+      loadLocations();
     })();
   </script>
 
