@@ -476,9 +476,15 @@ async function loadRoster() {
               <div class="roster-actions" style="margin-top:6px;">
 <a
   class="pill"
+  href="/coaches/athletes/athlete.html?id=${encodeURIComponent(id)}"
+>
+  Track
+</a>
+<a
+  class="pill"
   href="${profileUrlForAthlete(id, data)}"
 >
-  Profile
+  Athlete View
 </a>
                 ${
                   !isArchiveView()
