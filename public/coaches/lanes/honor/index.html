@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Coach • Honor Review</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=5">
 
   <style>
     :root{
@@ -84,18 +85,12 @@
     }
   </style>
 </head>
-<body>
-  <header>
-    <div class="header-inner">
-      <div>
-        <div class="title">Honor Lane Review</div>
-        <div class="sub">All Segments • Coach View • Status + XP Award</div>
-      </div>
-      <div class="sub">Sandman Systems™</div>
-    </div>
-  </header>
-
-  <main>
+<body class="coach-shell-page" data-coach-page="Honor Review" data-coach-area="today">
+  <main data-coach-shell-content>
+  <section style="margin-bottom:16px;padding:18px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
+    <div class="title">Honor Lane Review</div>
+    <div class="sub">All Segments • Coach View • Status + XP Award</div>
+  </section>
     <div id="submissions-container">
       <div class="empty">Loading Honor submissions…</div>
     </div>
@@ -104,7 +99,8 @@
       Coach is final authority • No auto-awards
     </div>
   </main>
+  <script src="/coaches/_ui/coach-shell.js?v=5"></script>
 
-  <script type="module" src="/coaches/lanes/honor/review.js?v=coach-auth-1"></script>
+  <script type="module" src="/coaches/lanes/honor/review.js?v=coach-shell-2"></script>
 </body>
 </html>
