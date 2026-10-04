@@ -3,27 +3,90 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Team Logistics</title>
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
-  <link rel="stylesheet" href="/coaches/team/team.css?v=2">
+  <title>Team Logistics | Sandman Coach</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2">
+  <link rel="stylesheet" href="/coaches/team/team.css?v=3">
   <link rel="icon" href="data:,">
 </head>
+
 <body class="coach-shell-page" data-coach-page="Team Logistics" data-coach-area="team">
 <main class="wrap team-page" data-coach-shell-content>
+
   <section class="hero">
+    <p class="kicker">Team Operations</p>
     <h1>Team Logistics</h1>
-    <p>Team logistics references and planning areas.</p>
+    <p>
+      Coordinate the team by opening the workflow that owns each operational record.
+      Logistics is the routing layer, not a second schedule or competition database.
+    </p>
   </section>
-  <section class="panel">
-    <ul class="reference-list">
-      <li>Season Schedule</li>
-      <li>Tournaments</li>
-      <li>Travel</li>
-      <li>Parent Planning</li>
-      <li>Registration Tracking</li>
-    </ul>
+
+  <section class="grid team-routing-grid">
+    <a class="card route-card route-card--primary" href="/communications/coach/schedule.html">
+      <span class="operation-label">Schedule</span>
+      <h2>Published Team Calendar</h2>
+      <p>
+        Review the official academy practice schedule, ceremonies, events,
+        and important dates published by Management.
+      </p>
+    </a>
+
+    <a class="card route-card route-card--primary" href="/coaches/competition-schedule/">
+      <span class="operation-label">Competition Plan</span>
+      <h2>Competition Schedule</h2>
+      <p>
+        Review and maintain Coach-owned competition planning, event details,
+        registration context, and publication state.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/coaches/execution/arena-flow/">
+      <span class="operation-label">Tournament Day</span>
+      <h2>Weekend Clipboard</h2>
+      <p>
+        Open the competition preparation flow for athlete readiness and arena work.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/coaches/competition/">
+      <span class="operation-label">Execution</span>
+      <h2>Competition Operations</h2>
+      <p>
+        Move into the event operation that owns preparation, live execution,
+        match records, and closeout.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/coaches/roster/">
+      <span class="operation-label">Team Roster</span>
+      <h2>Athletes</h2>
+      <p>
+        Review the active team roster and move into individual Athlete Tracking
+        when logistics become athlete-specific.
+      </p>
+    </a>
+
+    <a class="card route-card" href="/communications/coach/broadcast.html">
+      <span class="operation-label">Reminder</span>
+      <h2>Communicate Logistics</h2>
+      <p>
+        Send reminders about published schedules, competition dates, gear,
+        arrival times, and other team coordination.
+      </p>
+    </a>
   </section>
+
+  <section class="panel team-authority-panel">
+    <h2>Logistics Authority</h2>
+    <p>
+      Team Logistics coordinates around canonical records. Schedule remains owned
+      by the published Schedule workflow; competition planning and execution remain
+      owned by Competition Operations.
+    </p>
+  </section>
+
 </main>
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>
