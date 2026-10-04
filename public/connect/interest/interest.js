@@ -16,8 +16,11 @@ import { PROGRAMS } from "/assets/js/programs.js";
 
 const ELK_GROVE_PROGRAM_IDS =
   new Set([
-    "zero2hero-boxing",
-    "path2legend-boxing"
+    "zero2hero-wrestling",
+    "zero2hero-muay-thai",
+    "path2legend-wrestling",
+    "path2legend-boxing",
+    "path2legend-muay-thai"
   ]);
 const form =
   document.getElementById("interestForm");
@@ -214,33 +217,11 @@ function getEntryMode() {
 }
 
 function syncLocalLocationContext() {
-  const locationId =
-    getRequestedLocationId();
-
   /*
-   * Location ownership now comes directly from
-   * the local academy URL.
-   *
-   * Elk Grove currently exposes Combat only.
+   * Location ownership comes from the local city URL.
+   * Elk Grove is active for Combat and Fitness.
+   * Do not hide or force an interest type here.
    */
-  if (locationId === "elk-grove") {
-    interestTypeInputs.forEach((input) => {
-      const isCombat =
-        input.value === "combat";
-
-      input.disabled = !isCombat;
-      input.checked = isCombat;
-
-      const option =
-        input.closest(
-          ".interest-type-option"
-        );
-
-      if (option) {
-        option.hidden = !isCombat;
-      }
-    });
-  }
 }
 
 function readForm() {
@@ -618,14 +599,12 @@ if (
 
   if (
     lead.locationId === "elk-grove" &&
-    (
-      lead.interestType !== "combat" ||
-      !ELK_GROVE_PROGRAM_IDS.has(lead.programInterest)
-    )
+    (lead.interestType === "combat" || lead.interestType === "both") &&
+    !ELK_GROVE_PROGRAM_IDS.has(lead.programInterest)
   ) {
     return message(
-      "Select an available Elk Grove Boxing program.",
-      "Selecciona un programa de Boxeo disponible en Elk Grove."
+      "Select an available Elk Grove combat program.",
+      "Selecciona un programa de combate disponible en Elk Grove."
     );
   }
 
@@ -1431,8 +1410,11 @@ function updatePrograms() {
           "path2legend-wrestling"
         ]),
         "elk-grove": new Set([
-          "zero2hero-boxing",
-          "path2legend-boxing"
+          "zero2hero-wrestling",
+          "zero2hero-muay-thai",
+          "path2legend-wrestling",
+          "path2legend-boxing",
+          "path2legend-muay-thai"
         ])
       };
 
