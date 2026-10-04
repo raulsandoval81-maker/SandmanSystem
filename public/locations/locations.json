@@ -25,7 +25,30 @@
         "Path2Legend Muay Thai",
         "Everyday Fitness"
       ],
-      "url": "/locations/elk-grove/"
+      "url": "/locations/elk-grove/",
+      "serviceAreas": [
+        "Elk Grove",
+        "Laguna",
+        "Laguna West",
+        "Vineyard",
+        "Sheldon",
+        "Wilton",
+        "Florin",
+        "South Sacramento",
+        "Valley Hi",
+        "North Laguna",
+        "Franklin",
+        "Galt"
+      ],
+      "searchAliases": [
+        "Elk Grove combat sports",
+        "Elk Grove wrestling",
+        "Elk Grove boxing",
+        "Elk Grove Muay Thai",
+        "South Sacramento combat sports",
+        "Vineyard wrestling",
+        "Wilton boxing"
+      ]
     },
     {
       "id": "lompoc",
@@ -34,6 +57,44 @@
       "enrollment": "closed",
       "programs": [],
       "url": "/locations/lompoc/"
+    },
+    {
+      "id": "carmichael",
+      "name": "Carmichael",
+      "status": "concept",
+      "enrollment": "closed",
+      "discoverable": false,
+      "programs": [
+        "Road2Champion Wrestling",
+        "Road2Champion Muay Thai",
+        "Path2Legend Wrestling",
+        "Path2Legend Boxing",
+        "Path2Legend Muay Thai",
+        "Everyday Fitness"
+      ],
+      "serviceAreas": [
+        "Carmichael",
+        "Fair Oaks",
+        "Citrus Heights",
+        "Arden-Arcade",
+        "North Highlands",
+        "Foothill Farms",
+        "Gold River",
+        "Rancho Cordova",
+        "Orangevale",
+        "Sacramento"
+      ],
+      "searchAliases": [
+        "Carmichael combat sports",
+        "Carmichael wrestling",
+        "Carmichael boxing",
+        "Carmichael Muay Thai",
+        "Fair Oaks combat sports",
+        "Citrus Heights wrestling",
+        "Arden Arcade boxing",
+        "Gold River combat sports"
+      ],
+      "url": "/locations/carmichael/"
     }
   ]
 }
