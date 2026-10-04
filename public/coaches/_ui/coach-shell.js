@@ -12,7 +12,7 @@
     ["competition", ["/coaches/competition/", "/coaches/competition-schedule/", "/coaches/execution/arena-flow/", "/coaches/live/", "/coaches/arena-xp/", "/coaches/tools/coaches-event-log.html"]],
     ["practice", ["/coaches/practice/", "/coaches/execution/", "/coaches/attendance/", "/coaches/daily-xp/", "/coaches/cards/", "/coaches/curriculum/", "/coaches/conditioning/"]],
     ["athletes", ["/coaches/athletes/", "/coaches/roster/", "/coaches/assessments/", "/coaches/skill-check/", "/coaches/progression/", "/coaches/testing/", "/coaches/testing-history/", "/coaches/recognition/"]],
-    ["team", ["/coaches/team/"]],
+    ["team", ["/coaches/team/", "/communications/coach/"]],
     ["emergency", ["/coaches/safety/"]],
     ["system", ["/coaches/system/", "/coaches/schedule/", "/coaches/profiles/", "/coaches/forms/", "/coaches/support/", "/coaches/notes/", "/coaches/tools/"]],
     ["settings", ["/coaches/settings/"]],
@@ -32,6 +32,16 @@
   const competitionLinks = [["Competition Plan", "/coaches/competition-schedule/", "plan"], ["Weekend Clipboard", "/coaches/execution/arena-flow/", "clipboard"], ["Event Log", "/coaches/tools/coaches-event-log.html", "event-log"], ["Arena XP", "/coaches/arena-xp/", "arena-xp"]];
   const competitionRouteContext = competitionLinks.find(([, href]) => currentPath === href || currentPath.startsWith(href))?.[2] || "";
   const activeCompetitionContext = declaredContext || competitionRouteContext;
+  const teamLinks = [
+    ["Communication", "/coaches/team/communication.html", "communication"],
+    ["Logistics", "/coaches/team/logistics.html", "logistics"],
+    ["Culture", "/coaches/team/culture.html", "culture"],
+    ["Team Progress", "/coaches/team/progress.html", "progress"]
+  ];
+  const teamRouteContext =
+    currentPath.startsWith("/communications/coach/") ? "communication" :
+    teamLinks.find(([, href]) => currentPath === href || currentPath.startsWith(href))?.[2] || "";
+  const activeTeamContext = declaredContext || teamRouteContext;
   const shell = document.createElement("div");
   shell.className = "coach-shell";
   shell.innerHTML = `
@@ -44,6 +54,7 @@
       <header class="coach-shell__header"><div class="coach-shell__header-inner"><div class="coach-shell__header-left"><button id="coachShellMenuToggle" class="coach-shell__menu-toggle" type="button" aria-label="Open Coach navigation" aria-expanded="false" aria-controls="coachShellDrawer">☰</button></div><div class="coach-shell__header-center"><a class="coach-shell__brand" href="/coaches/hub/">Sandman Combat System™</a><div class="coach-shell__page-name">${pageName}</div></div><div class="coach-shell__header-right"></div></div><div class="coach-shell__header-line"></div></header>
       ${activeArea === "practice" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Practice tools">${practiceLinks.map(([label, href, context]) => { const active = context === activePracticeContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       ${activeArea === "competition" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Competition tools">${competitionLinks.map(([label, href, context]) => { const active = context === activeCompetitionContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
+      ${activeArea === "team" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Team tools">${teamLinks.map(([label, href, context]) => { const active = context === activeTeamContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       <div class="coach-shell__main"></div>
     </div>`;
   content.replaceWith(shell);
