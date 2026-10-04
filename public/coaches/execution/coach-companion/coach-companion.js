@@ -586,7 +586,10 @@ window.endPractice = function () {
     console.warn("Clipboard draft completion marker failed:", err);
   }
 
-  window.location.href = "/coaches/logs/practice-log.html";
+  window.location.href = session?.practiceId
+    ? "/coaches/logs/practice-log.html?practiceId=" +
+      encodeURIComponent(session.practiceId)
+    : "/coaches/logs/practice-log.html";
 };
 
 window.openDisciplineCards = function () {
