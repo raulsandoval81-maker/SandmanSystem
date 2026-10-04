@@ -1,68 +1,96 @@
 <!doctype html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Team Operations</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Team Operations | Sandman Coach</title>
 
-<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
-<link rel="stylesheet" href="/coaches/team/team.css?v=2">
-<link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2">
+  <link rel="stylesheet" href="/coaches/team/team.css?v=3">
+  <link rel="icon" href="data:,">
 </head>
-<body class="coach-shell-page" data-coach-page="Team Operations" data-coach-area="team">
 
+<body class="coach-shell-page" data-coach-page="Team Operations" data-coach-area="team">
 <main class="wrap team-page" data-coach-shell-content>
 
-  <section class="hero">
+  <section class="hero team-operations-hero">
+    <p class="kicker">People · Communication · Coordination</p>
     <h1>Team Operations</h1>
     <p>
-      Team communication, logistics, culture, and progress loops.
+      Coach command center for family communication, team culture, logistics,
+      and team-wide development focus.
     </p>
   </section>
 
-  <section class="grid">
-
-
-<a class="card" href="/coaches/team/communication.html">
-  <h2>Communication</h2>
-  <p>
-    Coach signals, parent communication, athlete communication, and team messaging.
-  </p>
-</a>
-
-<a class="card" href="/coaches/team/culture.html">
-  <h2>Culture</h2>
-  <p>
-    Rules of Life, Creed, Code, Goal, Mission, and room standards.
-  </p>
-</a>
-
-<a class="card" href="/coaches/team/logistics.html">
-  <h2>Logistics</h2>
-  <p>
-    Schedule, tournaments, travel, planning, and team operations.
-  </p>
-</a>
-
-<a class="card" href="/coaches/team/progress.html">
-  <h2>Progress</h2>
-  <p>
-    Challenges, missions, focus points, and development signals.
-  </p>
-</a>
-
-
-
-
-
-
-
-
+  <section class="team-flow" aria-label="Team operations flow">
+    <span>Communicate</span><b>→</b>
+    <span>Coordinate</span><b>→</b>
+    <span>Reinforce Culture</span><b>→</b>
+    <span>Develop the Team</span>
   </section>
 
-</main>
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+  <section class="grid team-operations-grid">
+    <a class="card team-operation-card team-operation-card--primary" href="/coaches/team/communication.html">
+      <span class="operation-label">Communication</span>
+      <h2>Team Communication</h2>
+      <p>
+        Open family threads, broadcasts, announcements, bilingual tools,
+        and Management notices through the canonical communication system.
+      </p>
+    </a>
 
+    <a class="card team-operation-card" href="/coaches/team/logistics.html">
+      <span class="operation-label">Coordination</span>
+      <h2>Team Logistics</h2>
+      <p>
+        Move into official schedules, competition planning, tournament preparation,
+        and other logistics-owning workflows without duplicating their records.
+      </p>
+    </a>
+
+    <a class="card team-operation-card" href="/coaches/team/culture.html">
+      <span class="operation-label">Standard</span>
+      <h2>Team Culture</h2>
+      <p>
+        Reinforce F.E.A.R., Sandman standards, identity, and the culture Coaches
+        are responsible for teaching and protecting.
+      </p>
+    </a>
+
+    <a class="card team-operation-card team-operation-card--primary" href="/coaches/team/progress.html">
+      <span class="operation-label">Team Development</span>
+      <h2>Team Progress</h2>
+      <p>
+        Push Coach-directed challenges, missions, focus points, and team emphasis.
+        Challenges create focus; XP remains earned through its owning system.
+      </p>
+    </a>
+
+    <a class="card team-operation-card" href="/coaches/roster/">
+      <span class="operation-label">People</span>
+      <h2>Athlete Tracking</h2>
+      <p>
+        Move from team-level work into an individual athlete's deeper Coach
+        intelligence view when attention becomes athlete-specific.
+      </p>
+    </a>
+
+    <a class="card team-operation-card" href="/coaches/competition/">
+      <span class="operation-label">Events</span>
+      <h2>Competition Operations</h2>
+      <p>
+        Prepare, run, record, and close competition work in the operation that
+        owns event execution.
+      </p>
+    </a>
+  </section>
+
+  <p class="team-governance-note">
+    Team Operations coordinates people and team-wide work. It does not replace
+    Athlete Tracking, Competition Operations, the published Schedule, or athlete progression.
+  </p>
+</main>
+
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>
