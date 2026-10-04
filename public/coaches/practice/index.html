@@ -81,6 +81,26 @@
       line-height:1.55;
     }
 
+    .practice-lifecycle{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:13px 15px;
+      margin-bottom:18px;
+      border:1px solid var(--practice-line);
+      border-radius:14px;
+      background:var(--practice-panel);
+      color:var(--practice-muted);
+      font-size:.76rem;
+      font-weight:850;
+    }
+
+    .practice-lifecycle b{
+      color:var(--practice-gold);
+    }
+
     .choice-panel{
       padding:22px;
       border:1px solid var(--practice-line);
@@ -469,6 +489,24 @@
         display:block;
       }
 
+      .practice-lifecycle{
+        justify-content:flex-start;
+      }
+
+      .practice-lifecycle b{
+        display:none;
+      }
+
+      .practice-lifecycle span{
+        width:100%;
+        padding:5px 0;
+        border-bottom:1px solid var(--practice-line);
+      }
+
+      .practice-lifecycle span:last-child{
+        border-bottom:0;
+      }
+
       .change-flow{
         margin-top:14px;
       }
@@ -522,6 +560,17 @@
       and the system will carry the correct workflow forward.
     </p>
   </header>
+
+  <section class="practice-lifecycle" aria-label="Canonical practice lifecycle">
+    <span>Establish Practice</span><b>→</b>
+    <span>Check In</span><b>→</b>
+    <span>Run Practice</span><b>→</b>
+    <span>Submit Check-In</span><b>→</b>
+    <span>Finalize Attendance</span><b>→</b>
+    <span>Complete Daily Grind</span><b>→</b>
+    <span>Save Practice Memory</span><b>→</b>
+    <span>Final Close</span>
+  </section>
 
   <section
     class="choice-panel"
@@ -686,14 +735,14 @@
           class="flow-action flow-action--primary"
           href="/coaches/attendance/"
         >
-          Finalize Attendance
+          Review &amp; Finalize Attendance
         </a>
 
         <a
           class="flow-action"
           href="/coaches/daily-xp/"
         >
-          Daily Grind
+          Complete Daily Grind
         </a>
 
         <a
@@ -767,9 +816,11 @@
   </section>
 
   <div class="practice-note">
-    Different start. Same finish. Every path converges on submitted check-in,
-    finalized attendance, completed Daily Grind, saved practice memory,
-    and final close.
+    <strong>Practice authority:</strong>
+    different starts are allowed, but every practice converges on one canonical record.
+    Check-in does not finalize attendance. Attendance does not award XP by itself.
+    Final close happens only after attendance is finalized, Daily Grind is completed,
+    and the practice record is ready to close.
   </div>
 
 </main>
