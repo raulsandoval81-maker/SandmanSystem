@@ -1,230 +1,243 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Athlete Personal Tracker | Sandman System™</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Athlete Tracking | Sandman Coach</title>
 
-  <!-- We are inside /public/coaches/, step back to shared assets -->
-  <link rel="stylesheet" href="../assets/css/site.css" />
-  <script src="../assets/js/include.js" defer></script>
-
-  <style>
-    :root{
-      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
-      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
-    }
-    body{background:var(--bg);color:#f3f4f6}
-    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
-
-    .layout{display:grid;grid-template-columns:320px 1fr;gap:1rem}
-    @media(max-width:900px){.layout{grid-template-columns:1fr}}
-
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
-    .panel h2{color:#ffd633;margin:.2rem 0 1rem}
-
-    .muted{color:var(--muted)}
-    .field{margin:.65rem 0}
-    label{display:block;margin-bottom:.25rem;color:#cfe2ff;font-weight:700}
-    input[type="number"], input[type="text"], textarea, select{
-      width:100%;padding:.6rem .7rem;border-radius:10px;border:1px solid #394a61;background:#121821;color:#f3f4f6
-    }
-    textarea{min-height:130px;resize:vertical}
-
-    .skills-list{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
-    .chip{background:#121821;border:1px solid #3a4b61;border-radius:999px;padding:.25rem .6rem;font-weight:700}
-    .chip button{background:none;border:0;color:#ff9999;margin-left:.35rem;cursor:pointer}
-
-    .btn{display:inline-block;padding:.65rem 1rem;border-radius:999px;background:var(--pill-bg);color:var(--pill-fg);border:2px solid var(--pill-br);font-weight:900;text-decoration:none;cursor:pointer}
-    .btn.secondary{background:transparent}
-    .btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
-
-    .history{list-style:none;padding:0;margin:.5rem 0 0}
-    .history li{border-top:1px solid #2c3a4e;padding:.6rem 0}
-    .history small{color:var(--muted)}
-    .badge{border:1px solid #3a4b61;border-radius:7px;padding:.15rem .4rem;margin-right:.25rem}
-  </style>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
+  <link rel="stylesheet" href="/coaches/athletes/athlete-tracking.css?v=20261003-1" />
+  <link rel="icon" href="data:,">
 </head>
-<body>
-  <!-- Shared header -->
-  <div data-include="../assets/includes/header.html"></div>
 
-  <main class="wrap">
-    <div class="layout">
+<body
+  class="coach-shell-page"
+  data-coach-page="Athlete Tracking"
+  data-coach-area="athletes"
+>
+<main class="athlete-track-page" data-coach-shell-content>
 
-      <!-- LEFT: Form -->
-      <section class="panel">
-        <h2>Athlete Personal Tracker</h2>
-        <p class="muted">Private coach log — record focus, effort, attitude, respect, and skills per athlete.</p>
-
-        <div class="field">
-          <label for="athlete">Athlete</label>
-          <input id="athlete" type="text" placeholder="e.g., sandoval" />
-        </div>
-
-        <div class="field">
-          <label for="focus">Focus (0–5)</label>
-          <input id="focus" type="number" min="0" max="5" step="1" value="0" />
-        </div>
-
-        <div class="field">
-          <label for="effort">Effort (0–5)</label>
-          <input id="effort" type="number" min="0" max="5" step="1" value="0" />
-        </div>
-
-        <div class="field">
-          <label for="attitude">Attitude (0–5)</label>
-          <input id="attitude" type="number" min="0" max="5" step="1" value="0" />
-        </div>
-
-        <div class="field">
-          <label for="respect">Respect (0–5)</label>
-          <input id="respect" type="number" min="0" max="5" step="1" value="0" />
-        </div>
-
-        <div class="field">
-          <label for="skillInput">Skills</label>
-          <div style="display:flex;gap:.5rem">
-            <input id="skillInput" type="text" placeholder="Add a skill (e.g., sprawl)" />
-            <button id="addSkill" class="btn" type="button">+ Add Skill</button>
-          </div>
-          <div id="skills" class="skills-list"></div>
-        </div>
-
-        <div class="field">
-          <label for="notes">Coach Notes</label>
-          <textarea id="notes" placeholder="Observations, strengths, weaknesses, reminders…"></textarea>
-        </div>
-
-        <div class="btn-row">
-          <button id="save" class="btn" type="button">Save Log</button>
-          <button id="clear" class="btn secondary" type="button">Clear</button>
-          <a class="btn secondary" href="hub.html">← Back to Portal</a>
-        </div>
-      </section>
-
-      <!-- RIGHT: History -->
-      <section class="panel">
-        <h2>Log History</h2>
-        <p class="muted">Local demo only. Firestore wiring will replace this.</p>
-        <ul id="history" class="history" aria-live="polite"></ul>
-      </section>
-
+  <header class="athlete-track-header">
+    <div>
+      <p class="eyebrow">Coach Athlete Intelligence</p>
+      <h1>Athlete Tracking</h1>
+      <p class="muted">
+        Read-only command view for athlete development, competition, activity,
+        and connected performance intelligence.
+      </p>
     </div>
-  </main>
 
-  <!-- Shared footer -->
-  <div data-include="../assets/includes/footer.html"></div>
+    <a class="pill" href="/coaches/roster/">← Team Roster</a>
+  </header>
 
-  <!-- Local demo logic (no modules, no Firebase) -->
-  <script>
-    (function(){
-      const $ = s => document.querySelector(s);
+  <section
+    id="athleteTrackStatus"
+    class="athlete-track-notice"
+    role="status"
+    aria-live="polite"
+  >
+    Verifying Coach access…
+  </section>
 
-      const athlete  = $("#athlete");
-      const focus    = $("#focus");
-      const effort   = $("#effort");
-      const attitude = $("#attitude");
-      const respect  = $("#respect");
-      const notes    = $("#notes");
+  <div data-athlete-track-protected hidden>
+    <section class="athlete-identity card">
+      <div>
+        <span class="label">Athlete</span>
+        <h2 id="athleteName">—</h2>
+        <p id="athleteMeta" class="muted">—</p>
+      </div>
 
-      const skillInput = $("#skillInput");
-      const addSkillBtn = $("#addSkill");
-      const skillsWrap = $("#skills");
+      <div class="identity-status">
+        <span id="athleteStatus" class="status-chip">—</span>
+        <span id="athleteId" class="muted">—</span>
+      </div>
+    </section>
 
-      const saveBtn  = $("#save");
-      const clearBtn = $("#clear");
-      const history  = $("#history");
+    <section class="attention card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Current Focus</span>
+          <h2>Needs Attention</h2>
+        </div>
+      </div>
 
-      let skills = [];
+      <div id="attentionList" class="attention-list">
+        <p class="muted">Reviewing athlete status…</p>
+      </div>
+    </section>
 
-      function renderSkills(){
-        skillsWrap.innerHTML = skills.map((s, i) =>
-          `<span class="chip">${escapeHtml(s)} <button data-i="${i}" title="remove">×</button></span>`
-        ).join("");
-        skillsWrap.querySelectorAll("button").forEach(btn=>{
-          btn.addEventListener("click", () => {
-            skills.splice(parseInt(btn.dataset.i,10),1);
-            renderSkills();
-          });
-        });
-      }
+    <section class="metric-grid">
+      <article class="metric-card">
+        <span>Rank / Tier</span>
+        <strong id="metricRank">—</strong>
+        <small id="metricRankMeta">—</small>
+      </article>
 
-      function addSkill(){
-        const v = (skillInput.value || "").trim();
-        if(!v) return;
-        skills.push(v);
-        skillInput.value = "";
-        renderSkills();
-      }
+      <article class="metric-card">
+        <span>XP</span>
+        <strong id="metricXp">—</strong>
+        <small>Current progression value</small>
+      </article>
 
-      function saveLog(){
-        const entry = {
-          ts: Date.now(),
-          athlete: (athlete.value||"").trim(),
-          focus: clampInt(focus.value,0,5),
-          effort: clampInt(effort.value,0,5),
-          attitude: clampInt(attitude.value,0,5),
-          respect: clampInt(respect.value,0,5),
-          skills: [...skills],
-          notes: (notes.value||"").trim()
-        };
-        if(!entry.athlete){
-          alert("Enter an athlete name before saving.");
-          return;
-        }
-        const key = "coachPersonalLogs";
-        const all = JSON.parse(localStorage.getItem(key) || "[]");
-        all.unshift(entry);
-        localStorage.setItem(key, JSON.stringify(all));
-        renderHistory();
-        clearForm(true);
-        alert("Saved locally. (Will wire to Firestore later.)");
-      }
+      <article class="metric-card">
+        <span>Verified Skills</span>
+        <strong id="metricSkills">—</strong>
+        <small id="metricSkillsMeta">—</small>
+      </article>
 
-      function renderHistory(){
-        const key = "coachPersonalLogs";
-        const all = JSON.parse(localStorage.getItem(key) || "[]");
-        if(!all.length){
-          history.innerHTML = `<li class="muted">No logs yet.</li>`;
-          return;
-        }
-        history.innerHTML = all.map(e => {
-          const when = new Date(e.ts).toLocaleString();
-          const tags = (e.skills || []).map(s=>`<span class="badge">${escapeHtml(s)}</span>`).join("");
-          return `<li>
-            <div><strong>${escapeHtml(e.athlete)}</strong> • <small>${when}</small></div>
-            <div class="muted">F:${e.focus} E:${e.effort} A:${e.attitude} R:${e.respect}</div>
-            ${tags ? `<div style="margin:.25rem 0">${tags}</div>` : ""}
-            ${e.notes ? `<div>${escapeHtml(e.notes)}</div>` : ""}
-          </li>`;
-        }).join("");
-      }
+      <article class="metric-card">
+        <span>Upcoming Competition</span>
+        <strong id="metricCompetition">—</strong>
+        <small id="metricCompetitionMeta">—</small>
+      </article>
 
-      function clearForm(keepAthlete=false){
-        if(!keepAthlete) athlete.value = "";
-        focus.value = effort.value = attitude.value = respect.value = 0;
-        notes.value = "";
-        skills = [];
-        renderSkills();
-      }
+      <article class="metric-card">
+        <span>Recent Activity</span>
+        <strong id="metricActivity">—</strong>
+        <small>Latest XP entries</small>
+      </article>
 
-      function clampInt(v,min,max){
-        v = parseInt(v,10); if(isNaN(v)) v=min; return Math.max(min, Math.min(max, v));
-      }
-      function escapeHtml(s){
-        return (s+"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-      }
+      <article class="metric-card">
+        <span>Achievements</span>
+        <strong id="metricAchievements">—</strong>
+        <small>Recent recorded milestones</small>
+      </article>
+    </section>
 
-      // Events
-      addSkillBtn.addEventListener("click", addSkill);
-      skillInput.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); addSkill(); }});
-      saveBtn.addEventListener("click", saveLog);
-      clearBtn.addEventListener("click", () => clearForm(false));
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Development</span>
+          <h2>Skills Intelligence</h2>
+          <p class="muted">
+            Coach-verified technical development by discipline.
+          </p>
+        </div>
+      </div>
 
-      renderSkills();
-      renderHistory();
-    })();
-  </script>
+      <div id="skillsSummary" class="skills-grid">
+        <p class="muted">Loading Skills…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Competition</span>
+          <h2>Upcoming Competition</h2>
+          <p class="muted">
+            Published events matching the athlete's training scope.
+          </p>
+        </div>
+      </div>
+
+      <div id="competitionList" class="competition-list">
+        <p class="muted">Loading competition schedule…</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Performance</span>
+          <h2>Stats & Activity</h2>
+          <p class="muted">
+            Recent XP and achievement signals from the athlete record.
+          </p>
+        </div>
+      </div>
+
+      <div class="activity-columns">
+        <div>
+          <h3>Recent Activity</h3>
+          <div id="activityList" class="feed-list">
+            <p class="muted">Loading activity…</p>
+          </div>
+        </div>
+
+        <div>
+          <h3>Recent Achievements</h3>
+          <div id="achievementList" class="feed-list">
+            <p class="muted">Loading achievements…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card cornerman-card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Cornerman AI</span>
+          <h2>Performance Intelligence</h2>
+        </div>
+
+        <span class="status-chip status-chip--quiet">
+          Awaiting Match Feed
+        </span>
+      </div>
+
+      <p>
+        Cornerman already has match-state, scoring, event-log, and analysis
+        architecture. This athlete view will surface evidence-based match
+        patterns, Coach summaries, and practice focus once Cornerman match
+        records are linked to the canonical athlete history.
+      </p>
+
+      <p class="muted">
+        Cornerman analysis will interpret evidence. It will not alter Skills,
+        XP, rank, testing, or official competition records.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow">Coach Actions</span>
+          <h2>Open Owning Workflow</h2>
+          <p class="muted">
+            Athlete Tracking summarizes. Use the owning Coach workflow to make changes.
+          </p>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <a id="skillCheckLink" class="action-card" href="/coaches/skill-check/">
+          <strong>Skill Check</strong>
+          <span>Verify technical development</span>
+        </a>
+
+        <a id="progressionLink" class="action-card" href="/coaches/progression/">
+          <strong>Progression</strong>
+          <span>Review development and readiness</span>
+        </a>
+
+        <a id="testingLink" class="action-card" href="/coaches/testing/">
+          <strong>Testing</strong>
+          <span>Open testing workflow</span>
+        </a>
+
+        <a id="recognitionLink" class="action-card" href="/coaches/recognition/">
+          <strong>Recognition & History</strong>
+          <span>Review recorded athlete progress</span>
+        </a>
+
+        <a id="athleteViewLink" class="action-card" href="/athletes/profile/">
+          <strong>Athlete View</strong>
+          <span>See the athlete-facing profile</span>
+        </a>
+      </div>
+    </section>
+
+    <p class="governance-note">
+      Athlete Tracking is a read-only Coach intelligence surface. Skill verification,
+      progression, testing, competition operations, and XP remain controlled by
+      their canonical workflows.
+    </p>
+  </div>
+</main>
+
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
+<script type="module" src="/coaches/athletes/athlete-tracking.js?v=20261003-1"></script>
 </body>
 </html>
