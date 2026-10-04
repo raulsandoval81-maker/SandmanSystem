@@ -89,6 +89,7 @@
     return await new Promise(
       (resolve) => {
         let settled = false;
+        let unsubscribe = () => {};
 
         const finish = (user) => {
           if (settled) return;
@@ -106,7 +107,7 @@
           );
         };
 
-        const unsubscribe =
+        unsubscribe =
           onAuthStateChanged(
             auth,
             (user) => {
@@ -222,10 +223,38 @@
     let id =
       getIdFromContext();
 
-    if (
-      !id &&
-      user
-    ) {
+    if (!user) {
+      const nextUrl =
+        new URL(
+          window.location.href
+        );
+
+      if (
+        id &&
+        !nextUrl.searchParams.get("id")
+      ) {
+        nextUrl.searchParams.set(
+          "id",
+          id
+        );
+      }
+
+      const next =
+        encodeURIComponent(
+          nextUrl.pathname +
+          nextUrl.search +
+          nextUrl.hash
+        );
+
+      window.location.replace(
+        "/athletes/auth/?next=" +
+        next
+      );
+
+      return;
+    }
+
+    if (!id) {
       id =
         await resolveAthleteIdForUser(
           user
