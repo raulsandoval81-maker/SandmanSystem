@@ -4,14 +4,33 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Coach Review — Conditioning | Sandman System</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=5" />
+  <style>
+    .lane-hero{
+      margin-bottom:16px;
+      padding:18px;
+      border:1px solid var(--coach-shell-line);
+      border-radius:16px;
+      background:var(--coach-shell-panel);
+      color:var(--coach-shell-text);
+      box-shadow:0 10px 24px var(--coach-shell-shadow);
+    }
+    .lane-hero h1{color:var(--coach-shell-gold)!important}
+    .lane-hero div{color:var(--coach-shell-muted)!important}
+    .lane-card{
+      padding:14px;
+      border:1px solid var(--coach-shell-line);
+      border-radius:14px;
+      background:var(--coach-shell-panel);
+      color:var(--coach-shell-text);
+    }
+  </style>
   <script src="/assets/js/include.js" defer></script>
 </head>
 <body class="coach-shell-page" data-coach-page="Conditioning Review" data-coach-area="today">
   <main data-coach-shell-content style="width:100%;max-width:none;margin:0;padding:0;">
 
-    <section style="margin-bottom:16px;padding:18px;border:1px solid var(--coach-shell-line);border-radius:14px;background:var(--coach-shell-panel);">
+    <section class="lane-hero">
       <h1 style="margin:0 0 6px;color:var(--coach-shell-gold);">Conditioning Review</h1>
       <div style="color:var(--coach-shell-muted);font-size:.85rem;">Requests · Submissions · Coach Review · XP Award</div>
     </section>
