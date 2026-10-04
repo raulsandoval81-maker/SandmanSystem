@@ -1698,7 +1698,10 @@ window.endPractice = function endPractice() {
 
     persistDraft("completed");
 
-    window.location.href = "/coaches/logs/practice-log.html";
+    window.location.href = session.practiceId
+      ? "/coaches/logs/practice-log.html?practiceId=" +
+        encodeURIComponent(session.practiceId)
+      : "/coaches/logs/practice-log.html";
 
   } catch (err) {
     console.error("End practice failed:", err);
