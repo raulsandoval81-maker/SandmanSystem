@@ -1,3 +1,8 @@
+import {
+  coachLoginUrl,
+  requireCoach
+} from "/assets/js/coach-guard.js";
+
 const choicePanel = document.getElementById("practiceChoicePanel");
 const activeFlow = document.getElementById("activePracticeFlow");
 
@@ -263,10 +268,57 @@ choices.forEach((choice) => {
 
 changePracticeFlow?.addEventListener("click", resetFlow);
 
-const savedFlow = sessionStorage.getItem(FLOW_STORAGE_KEY);
+async function initializePracticeOperations() {
+  const page = document.querySelector(".practice-page");
+  const hero = document.querySelector(".practice-hero");
+  const protectedSections = page
+    ? [...page.children].filter((element) => element !== hero)
+    : [];
 
-if (savedFlow && flows[savedFlow]) {
-  renderFlow(savedFlow, {
-    scroll: false
+  protectedSections.forEach((element) => {
+    element.hidden = true;
   });
+
+  const notice = document.createElement("section");
+  notice.className = "practice-note";
+  notice.setAttribute("role", "status");
+  notice.setAttribute("aria-live", "polite");
+  notice.textContent = "Verifying Coach access…";
+
+  if (hero?.parentNode) {
+    hero.insertAdjacentElement("afterend", notice);
+  }
+
+  try {
+    await requireCoach();
+
+    notice.remove();
+
+    protectedSections.forEach((element) => {
+      element.hidden = false;
+    });
+
+    const savedFlow =
+      sessionStorage.getItem(FLOW_STORAGE_KEY);
+
+    if (savedFlow && flows[savedFlow]) {
+      renderFlow(savedFlow, {
+        scroll: false
+      });
+    }
+  } catch (error) {
+    notice.replaceChildren();
+
+    const text = document.createElement("span");
+    text.textContent =
+      "Coach access is required to open Practice Operations. ";
+
+    const link = document.createElement("a");
+    link.href = coachLoginUrl();
+    link.textContent = "Sign in as Coach";
+
+    notice.append(text, link);
+  }
 }
+
+void initializePracticeOperations();
