@@ -45,6 +45,11 @@ const pageStatusEl = document.getElementById("pageStatus");
 const searchEl = document.getElementById("search");
 const tourEl = document.getElementById("tournamentId");
 const evEl = document.getElementById("eventName");
+const competitionParams = new URLSearchParams(window.location.search);
+const canonicalEventId = String(competitionParams.get("eventId") || competitionParams.get("tournamentId") || "").trim();
+const canonicalEventName = String(competitionParams.get("eventName") || "").trim();
+if (canonicalEventId && tourEl) tourEl.value = canonicalEventId;
+if (canonicalEventName && evEl) evEl.value = canonicalEventName;
 const wonEl = document.getElementById("wonEvent");
 const winArmEl = document.getElementById("winArm");
 
