@@ -1,0 +1,165 @@
+:root{
+  color-scheme:dark;
+  --panel:var(--coach-shell-panel);
+  --line:var(--coach-shell-line);
+  --text:var(--coach-shell-text);
+  --muted:var(--coach-shell-muted);
+  --gold:var(--coach-shell-gold);
+}
+
+*{box-sizing:border-box}
+
+.practice-entry{
+  width:min(900px,100%);
+  margin:0 auto;
+  padding:0 0 64px;
+  color:var(--text);
+}
+
+.entry-hero,
+.entry-card,
+.entry-notice{
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:18px;
+}
+
+.entry-hero{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:18px;
+  padding:24px;
+  margin-bottom:16px;
+}
+
+.entry-hero h1{
+  margin:3px 0 8px;
+}
+
+.entry-hero p{
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.eyebrow{
+  margin:0;
+  color:var(--gold) !important;
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.secondary-link{
+  color:var(--text);
+  text-decoration:none;
+  font-weight:850;
+  white-space:nowrap;
+}
+
+.entry-notice{
+  padding:14px 16px;
+  margin-bottom:16px;
+  color:var(--muted);
+}
+
+.entry-notice.is-error{
+  border-color:#7f1d1d;
+}
+
+.entry-card{
+  padding:20px;
+}
+
+.entry-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.entry-wide{
+  grid-column:1 / -1;
+}
+
+label{
+  display:grid;
+  gap:6px;
+  font-weight:800;
+}
+
+label small{
+  color:var(--muted);
+  font-weight:500;
+  line-height:1.4;
+}
+
+input,
+select{
+  width:100%;
+  padding:11px 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  font:inherit;
+}
+
+.entry-authority{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(255,255,255,.025);
+}
+
+.entry-authority p{
+  margin:5px 0 0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.entry-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+
+.entry-actions button,
+.entry-actions a{
+  display:inline-flex;
+  min-height:42px;
+  align-items:center;
+  padding:9px 14px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  font:inherit;
+  font-weight:850;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.entry-actions button{
+  border-color:var(--gold);
+}
+
+@media(max-width:650px){
+  .practice-entry{
+    width:min(100% - 22px,900px);
+  }
+
+  .entry-hero{
+    display:grid;
+  }
+
+  .entry-grid{
+    grid-template-columns:1fr;
+  }
+
+  .entry-wide{
+    grid-column:auto;
+  }
+}
