@@ -212,3 +212,50 @@ html[data-theme="light"] .practice-log input[type="number"]{
   }
 
 }
+
+.practice-log .final-close-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px;
+}
+
+.practice-log .final-close-actions a,
+.practice-log .final-close-actions button{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  margin:0;
+  padding:11px 13px;
+  border:1px solid var(--practice-line);
+  border-radius:12px;
+  text-decoration:none;
+  font:inherit;
+  font-weight:800;
+}
+
+.practice-log .final-close-actions a{
+  background:var(--coach-shell-page-bg, #0b1120);
+  color:var(--practice-text);
+}
+
+.practice-log .final-close-actions a:hover{
+  border-color:var(--practice-gold);
+}
+
+.practice-log .final-close-actions button{
+  grid-column:1 / -1;
+  background:var(--practice-red);
+  color:#fff;
+}
+
+@media (max-width:560px){
+  .practice-log .final-close-actions{
+    grid-template-columns:1fr;
+  }
+
+  .practice-log .final-close-actions button{
+    grid-column:auto;
+  }
+}
