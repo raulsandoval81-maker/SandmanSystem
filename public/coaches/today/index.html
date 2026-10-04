@@ -4,24 +4,159 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Daily Operations | Sandman Coach</title>
+
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/_ui/operations-hub.css?v=1">
+  <link rel="stylesheet" href="/coaches/today/today.css?v=20261003-1">
+  <link rel="icon" href="data:,">
 </head>
+
 <body class="coach-shell-page" data-coach-page="Daily Operations" data-coach-area="today">
-<main class="operations-hub" data-coach-shell-content>
-  <header class="operations-hero"><p class="operations-eyebrow">Current Work</p><h1>Daily Operations</h1><p>Review what needs attention now, then move into the operation that owns the work.</p></header>
-  <section class="operations-flow" aria-label="Today workflow"><span>Review</span><b>→</b><span>Route</span><b>→</b><span>Complete in owning operation</span></section>
-  <section class="operations-grid">
-    <a class="operations-card operations-card--primary" href="/coaches/command-center/"><span>Current queue</span><h2>Command Center</h2><p>Keep the existing daily control view while it transitions into Daily Operations.</p></a>
-    <a class="operations-card" href="/coaches/dashboard/"><span>Summary</span><h2>Operations Dashboard</h2><p>Review the existing Coach metrics and overview.</p></a>
-    <a class="operations-card" href="/coaches/practice/"><span>Owning operation</span><h2>Practice</h2><p>Open today's planning, execution, attendance, and XP closeout.</p></a>
-    <a class="operations-card" href="/coaches/competition/"><span>Owning operation</span><h2>Competition</h2><p>Open event, roster, live, result, and competition follow-up tools.</p></a>
-    <a class="operations-card" href="/coaches/athletes/"><span>Owning operation</span><h2>Athlete</h2><p>Open athlete-specific reviews, testing, progression, and recognition.</p></a>
-    <a class="operations-card" href="/coaches/team/"><span>Owning operation</span><h2>Team</h2><p>Open communication, family context, culture, logistics, and progress.</p></a>
-    <a class="operations-card" href="https://cornerman-ai.vercel.app/" target="_blank" rel="noopener noreferrer"><span>Optional external product</span><h2>Open Cornerman AI ↗</h2><p>Use when today's work includes active competition intelligence.</p></a>
-    <article class="operations-card"><span>Future attachment</span><h2>FuelAI</h2><p>No stable Coach destination is configured. Daily Operations remains independent.</p></article>
+<main class="daily-page" data-coach-shell-content>
+
+  <header class="daily-hero">
+    <div>
+      <p class="eyebrow">Current Work</p>
+      <h1>Daily Operations</h1>
+      <p>
+        Review what needs Coach attention now, then complete the work
+        inside the operation that owns it.
+      </p>
+    </div>
+    <span class="daily-status-pill">Live Coach Queue</span>
+  </header>
+
+  <section id="dailyStatus" class="daily-notice" role="status" aria-live="polite">
+    Verifying Coach access…
   </section>
+
+  <div data-daily-protected hidden>
+
+    <section class="daily-flow" aria-label="Daily workflow">
+      <span>Review</span><b>→</b>
+      <span>Prioritize</span><b>→</b>
+      <span>Open Owning Workflow</span><b>→</b>
+      <span>Close the Work</span>
+    </section>
+
+    <section class="daily-priority-grid">
+
+      <article class="priority-card priority-card--management">
+        <span class="priority-label">Management</span>
+        <h2>Management Notice</h2>
+        <p>
+          Admissions handoffs, operational requests, and follow-up from Academy Management.
+        </p>
+        <a class="action-link" href="/coaches/management-notice/">Open Management Notice</a>
+      </article>
+
+      <article class="priority-card">
+        <span class="priority-label">Strength</span>
+        <div class="priority-heading">
+          <h2>Strength Review</h2>
+          <strong id="count-strength">0</strong>
+        </div>
+        <div id="list-strength" class="mini-list"></div>
+        <p><span id="count-iron">0</span> pending Iron Room logs</p>
+        <a class="action-link" href="/coaches/lanes/strength/">Open Strength</a>
+      </article>
+
+      <article class="priority-card">
+        <span class="priority-label">Honor</span>
+        <div class="priority-heading">
+          <h2>Honor Review</h2>
+          <strong id="count-honor">0</strong>
+        </div>
+        <div id="list-honor" class="mini-list"></div>
+        <p>Review pending Honor submissions using Coach judgment.</p>
+        <a class="action-link" href="/coaches/lanes/honor/">Open Honor</a>
+      </article>
+
+      <article class="priority-card">
+        <span class="priority-label">Conditioning</span>
+        <div class="priority-heading">
+          <h2>Conditioning</h2>
+          <strong id="count-conditioning">0</strong>
+        </div>
+        <div id="list-conditioning" class="mini-list"></div>
+        <p><span id="count-conditioning-requests">0</span> pending requests</p>
+        <a class="action-link" href="/coaches/lanes/conditioning/">Open Conditioning</a>
+      </article>
+
+    </section>
+
+    <section class="daily-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Testing</p>
+          <h2>Ready Athletes</h2>
+          <p>Only athletes currently marked READY appear here.</p>
+        </div>
+        <a class="secondary-link" href="/coaches/testing/">Testing Operations</a>
+      </div>
+
+      <div id="list-testing" class="testing-list">
+        <p class="muted">Loading testing queue…</p>
+      </div>
+    </section>
+
+    <section class="daily-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Owning Operations</p>
+          <h2>Move the Work</h2>
+          <p>Daily Operations identifies work. These operations own completion.</p>
+        </div>
+      </div>
+
+      <div class="operation-grid">
+        <a class="operation-card operation-card--primary" href="/coaches/practice/">
+          <span>Training Day</span>
+          <strong>Practice Operations</strong>
+          <p>Plan, run, finalize attendance, award verified Daily Grind XP, and close practice.</p>
+        </a>
+
+        <a class="operation-card" href="/coaches/roster/">
+          <span>Development</span>
+          <strong>Athlete Tracking</strong>
+          <p>Review deep athlete intelligence and move into athlete-specific Coach workflows.</p>
+        </a>
+
+        <a class="operation-card" href="/coaches/team/">
+          <span>People</span>
+          <strong>Team Operations</strong>
+          <p>Handle communication, logistics, culture, and team-wide development focus.</p>
+        </a>
+
+        <a class="operation-card" href="/coaches/competition/">
+          <span>Events</span>
+          <strong>Competition Operations</strong>
+          <p>Prepare, run, record, and close competition work.</p>
+        </a>
+
+        <a class="operation-card" href="/coaches/daily-xp/daily-grind">
+          <span>Verified XP</span>
+          <strong>Daily Grind</strong>
+          <p>Complete Coach-side attendance XP work through the existing XP workflow.</p>
+        </a>
+
+        <a class="operation-card" href="/communications/coach/hub.html">
+          <span>Communication</span>
+          <strong>Coach Communications</strong>
+          <p>Open family threads, broadcasts, announcements, and schedule references.</p>
+        </a>
+      </div>
+    </section>
+
+    <p class="governance-note">
+      Daily Operations is the Coach triage surface. It does not replace the workflows
+      that own practice, skills, progression, testing, team communication, competition,
+      or Management decisions.
+    </p>
+
+  </div>
 </main>
+
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
+<script type="module" src="/coaches/today/today.js?v=20261003-1"></script>
 </body>
 </html>
