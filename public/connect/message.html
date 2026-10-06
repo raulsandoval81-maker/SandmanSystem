@@ -1080,6 +1080,15 @@
       }
     }
 
+    const requestedTopic = new URLSearchParams(window.location.search).get("topic");
+    if (
+      messageTopic &&
+      requestedTopic &&
+      Array.from(messageTopic.options).some(option => option.value === requestedTopic)
+    ) {
+      messageTopic.value = requestedTopic;
+    }
+
     messageTopic?.addEventListener("change", syncPassField);
     syncPassField();
   </script>
