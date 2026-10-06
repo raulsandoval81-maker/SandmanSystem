@@ -423,6 +423,10 @@ html[data-theme="light"] .gateway-title{
     padding-right:1.4rem;
   }
 
+  .academy-expansion-form[hidden]{
+    display:none;
+  }
+
   .academy-expansion-form{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -759,10 +763,13 @@ html[data-theme="light"] .gateway-title{
             System to your area.
           </p>
 
-          <p>
-            Leave your contact information and Sandman Administration
-            will review the opportunity.
-          </p>
+          <button
+            id="showAcademyExpansionForm"
+            class="interest-button"
+            type="button"
+          >
+            Interested in Bringing Sandman Here?
+          </button>
 
         </div>
 
@@ -780,16 +787,19 @@ html[data-theme="light"] .gateway-title{
             Conéctate con nosotros para conocer más.
           </p>
 
-          <p>
-            Deja tu información de contacto y la Administración de Sandman
-            revisará la oportunidad.
-          </p>
+          <button
+            id="showAcademyExpansionFormEs"
+            class="interest-button"
+            type="button"
+          >
+            ¿Interesado en Llevar Sandman Aquí?
+          </button>
 
         </div>
 
       </div>
 
-      <form id="academyExpansionForm" class="academy-expansion-form">
+      <form id="academyExpansionForm" class="academy-expansion-form" hidden>
         <input id="academyExpansionCity" name="city" type="hidden">
 
         <label>
@@ -1127,6 +1137,14 @@ html[data-theme="light"] .gateway-title{
         if (expansionCity) expansionCity.value = input.value.trim();
         if (expansionCityDisplay) expansionCityDisplay.value = input.value.trim();
 
+        const expansionForm = document.getElementById("academyExpansionForm");
+        const showExpansionBtn = document.getElementById("showAcademyExpansionForm");
+        const showExpansionBtnEs = document.getElementById("showAcademyExpansionFormEs");
+
+        if (expansionForm) expansionForm.hidden = true;
+        showExpansionBtn?.removeAttribute("hidden");
+        showExpansionBtnEs?.removeAttribute("hidden");
+
         noResult.classList.add("is-visible");
         noResult.scrollIntoView({
           behavior: "smooth",
@@ -1151,6 +1169,23 @@ html[data-theme="light"] .gateway-title{
     const expansionForm = document.getElementById("academyExpansionForm");
     const expansionSubmit = document.getElementById("academyExpansionSubmit");
     const expansionStatus = document.getElementById("academyExpansionStatus");
+    const showExpansionBtn = document.getElementById("showAcademyExpansionForm");
+    const showExpansionBtnEs = document.getElementById("showAcademyExpansionFormEs");
+
+    function showExpansionForm() {
+      if (!expansionForm) return;
+      expansionForm.hidden = false;
+      showExpansionBtn?.setAttribute("hidden", "");
+      showExpansionBtnEs?.setAttribute("hidden", "");
+      expansionForm.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+      expansionForm.querySelector('input[name="contactName"]')?.focus();
+    }
+
+    showExpansionBtn?.addEventListener("click", showExpansionForm);
+    showExpansionBtnEs?.addEventListener("click", showExpansionForm);
 
     expansionForm?.addEventListener("submit", async event => {
       event.preventDefault();
