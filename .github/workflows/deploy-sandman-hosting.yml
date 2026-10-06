@@ -2,6 +2,13 @@ name: Deploy Sandman Hosting
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "public/**"
+      - "firebase.json"
+      - ".github/workflows/deploy-sandman-hosting.yml"
 
 permissions:
   contents: read
