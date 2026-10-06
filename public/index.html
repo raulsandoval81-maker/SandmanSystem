@@ -835,6 +835,11 @@ html[data-theme="light"] .gateway-title{
         return;
       }
 
+      const PUBLIC_LOCATION_IDS = new Set([
+        "santa-ynez-valley",
+        "lompoc"
+      ]);
+
       let locations = [];
 
       const normalize = value =>
@@ -974,7 +979,11 @@ html[data-theme="light"] .gateway-title{
           const payload = await response.json();
 
           locations = Array.isArray(payload.locations)
-            ? payload.locations
+            ? payload.locations.filter(location =>
+                PUBLIC_LOCATION_IDS.has(
+                  String(location?.id || "").toLowerCase().trim()
+                )
+              )
             : [];
         } catch (error) {
           console.error("[academy-finder] could not load locations", error);
