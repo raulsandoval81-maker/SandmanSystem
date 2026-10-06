@@ -423,6 +423,72 @@ html[data-theme="light"] .gateway-title{
     padding-right:1.4rem;
   }
 
+  .academy-expansion-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:.75rem;
+    margin:1.25rem auto 0;
+    max-width:560px;
+    text-align:left;
+  }
+
+  .academy-expansion-form label{
+    display:grid;
+    gap:.35rem;
+    color:#fff;
+    font-size:.78rem;
+    font-weight:800;
+  }
+
+  .academy-expansion-form .full{
+    grid-column:1 / -1;
+  }
+
+  .academy-expansion-form input,
+  .academy-expansion-form textarea{
+    width:100%;
+    min-height:46px;
+    padding:.75rem .85rem;
+    border:1px solid rgba(212,175,55,.36);
+    border-radius:10px;
+    outline:none;
+    background:#101012;
+    color:#fff;
+    font:inherit;
+  }
+
+  .academy-expansion-form textarea{
+    min-height:92px;
+    resize:vertical;
+  }
+
+  .academy-expansion-form input:focus,
+  .academy-expansion-form textarea:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(212,175,55,.10);
+  }
+
+  .academy-expansion-submit{
+    grid-column:1 / -1;
+    min-height:50px;
+    border:1px solid var(--gold-light);
+    border-radius:12px;
+    background:linear-gradient(180deg,#e5bf4b,#c69222);
+    color:#080808;
+    font-weight:900;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+
+  .academy-expansion-status{
+    grid-column:1 / -1;
+    min-height:1.2rem;
+    margin:0;
+    color:var(--muted);
+    font-size:.84rem;
+    text-align:center;
+  }
+
   .local-note{
     max-width:580px;
     margin:1.5rem auto 0;
@@ -445,6 +511,16 @@ html[data-theme="light"] .gateway-title{
       grid-template-columns:1fr;
       gap:.15rem;
       margin:.75rem 0;
+    }
+
+    .academy-expansion-form{
+      grid-template-columns:1fr;
+    }
+
+    .academy-expansion-form .full,
+    .academy-expansion-submit,
+    .academy-expansion-status{
+      grid-column:1;
     }
   }
 
@@ -683,12 +759,10 @@ html[data-theme="light"] .gateway-title{
             System to your area.
           </p>
 
-          <a
-            class="interest-button"
-            href="/connect/message.html?topic=academy-expansion"
-          >
-            Interested in Starting an Academy?
-          </a>
+          <p>
+            Leave your contact information and Sandman Administration
+            will review the opportunity.
+          </p>
 
         </div>
 
@@ -706,16 +780,49 @@ html[data-theme="light"] .gateway-title{
             Conéctate con nosotros para conocer más.
           </p>
 
-          <a
-            class="interest-button"
-            href="/connect/message.html?topic=academy-expansion"
-          >
-            ¿Interesado en Iniciar una Academia?
-          </a>
+          <p>
+            Deja tu información de contacto y la Administración de Sandman
+            revisará la oportunidad.
+          </p>
 
         </div>
 
       </div>
+
+      <form id="academyExpansionForm" class="academy-expansion-form">
+        <input id="academyExpansionCity" name="city" type="hidden">
+
+        <label>
+          Name
+          <input name="contactName" type="text" autocomplete="name" required>
+        </label>
+
+        <label>
+          Email
+          <input name="email" type="email" autocomplete="email" required>
+        </label>
+
+        <label>
+          Phone
+          <input name="phone" type="tel" autocomplete="tel">
+        </label>
+
+        <label>
+          City
+          <input id="academyExpansionCityDisplay" type="text" readonly>
+        </label>
+
+        <label class="full">
+          Tell us about the opportunity
+          <textarea name="message" placeholder="Facility, coaching background, local interest, or anything else you want us to know."></textarea>
+        </label>
+
+        <button id="academyExpansionSubmit" class="academy-expansion-submit" type="submit">
+          Send to Sandman Administration
+        </button>
+
+        <p id="academyExpansionStatus" class="academy-expansion-status" aria-live="polite"></p>
+      </form>
 
     </section>
 
@@ -1014,6 +1121,12 @@ html[data-theme="light"] .gateway-title{
           return;
         }
 
+        const expansionCity = document.getElementById("academyExpansionCity");
+        const expansionCityDisplay = document.getElementById("academyExpansionCityDisplay");
+
+        if (expansionCity) expansionCity.value = input.value.trim();
+        if (expansionCityDisplay) expansionCityDisplay.value = input.value.trim();
+
         noResult.classList.add("is-visible");
         noResult.scrollIntoView({
           behavior: "smooth",
@@ -1024,6 +1137,74 @@ html[data-theme="light"] .gateway-title{
       hideResults();
       loadLocations();
     })();
+  </script>
+
+  <script type="module">
+    import {
+      db,
+      collection,
+      addDoc,
+      serverTimestamp,
+      ensureSignedIn
+    } from "/assets/js/firebase-init.js";
+
+    const expansionForm = document.getElementById("academyExpansionForm");
+    const expansionSubmit = document.getElementById("academyExpansionSubmit");
+    const expansionStatus = document.getElementById("academyExpansionStatus");
+
+    expansionForm?.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!expansionForm.reportValidity()) return;
+
+      expansionSubmit.disabled = true;
+      expansionStatus.textContent = "Sending to Sandman Administration…";
+
+      try {
+        await ensureSignedIn();
+
+        const data = new FormData(expansionForm);
+
+        await addDoc(collection(db, "general_messages"), {
+          organization: "sandman-system",
+          pipeline: "academy-expansion",
+          source: "root-academy-finder",
+
+          status: "NEW",
+          messageStatus: "NEW",
+
+          contactName: String(data.get("contactName") || "").trim(),
+          email: String(data.get("email") || "").trim().toLowerCase(),
+          phone: String(data.get("phone") || "").trim(),
+          topic: "academy-expansion",
+          message: String(data.get("message") || "").trim(),
+
+          requestedCity: String(data.get("city") || "").trim(),
+          preferredLocation: String(data.get("city") || "").trim(),
+
+          routingStage: "ADMIN_REVIEW",
+          nextRoutingStage: "MANAGEMENT_TRIAGE",
+          routingPolicy: "PUBLIC_TO_SYSTEM_ADMIN",
+          requiredManagerLevel: "SYSTEM_ADMIN",
+          assignmentStatus: "UNASSIGNED",
+
+          pagePath: window.location.pathname,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+
+        expansionStatus.textContent =
+          "Received. Sandman Administration will review this opportunity.";
+
+        expansionForm.reset();
+      } catch (error) {
+        console.error("[academy-expansion] submission failed", error);
+        expansionStatus.textContent =
+          "We could not send your request. Please try again.";
+      } finally {
+        expansionSubmit.disabled = false;
+      }
+    });
   </script>
 
 
