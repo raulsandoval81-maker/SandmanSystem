@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Enrollment Flow | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+  <link rel="stylesheet" href="/management/enrollment-flow/enrollment-flow.css">
+</head>
+<body data-management-area="enrollment-flow">
+  <main class="flow-wrap">
+    <header class="flow-header">
+      <div>
+        <p class="eyebrow">Management · Enrollment</p>
+        <h1>Enrollment Flow</h1>
+        <p>One operational view from proposal through payment, enrollment, intake, and activation.</p>
+      </div>
+      <div class="flow-header-actions">
+        <a class="button button-secondary" href="/management/billing/">Billing</a>
+        <button id="refreshFlow" class="button button-secondary" type="button">Refresh</button>
+      </div>
+    </header>
+    <details class="management-page-guide">
+      <summary><span>How this page works</span><span class="management-page-guide__hint">Instructions</span></summary>
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section"><strong>Purpose</strong><p>See the complete operational state of paid and active enrollment cases without reconstructing the story across separate pages.</p></div>
+        <div class="management-page-guide__section"><strong>Financial authority</strong><p>Stripe establishes Stripe payment state. Approved Management cash recording establishes cash payment state.</p></div>
+        <div class="management-page-guide__section"><strong>Enrollment authority</strong><p>Management controls the handoff, intake review, and activation. Payment does not by itself equal athlete activation.</p></div>
+        <div class="management-page-guide__section"><strong>Next action</strong><p>The selected case always shows the operational next step. If a step is complete, attention moves to the next unresolved handoff.</p></div>
+      </div>
+    </details>
+    <p id="flowStatus" class="flow-status" aria-live="polite">Loading enrollment flow…</p>
+    <section class="flow-summary" aria-label="Enrollment flow summary">
+      <button class="flow-summary-card is-active" data-filter="ALL" type="button"><span>All Active</span><strong id="countAll">0</strong></button>
+      <button class="flow-summary-card" data-filter="PAYMENT" type="button"><span>Payment</span><strong id="countPayment">0</strong></button>
+      <button class="flow-summary-card" data-filter="ENROLLMENT" type="button"><span>Enrollment</span><strong id="countEnrollment">0</strong></button>
+      <button class="flow-summary-card" data-filter="INTAKE" type="button"><span>Intake</span><strong id="countIntake">0</strong></button>
+      <button class="flow-summary-card" data-filter="ACTIVATION" type="button"><span>Activation</span><strong id="countActivation">0</strong></button>
+    </section>
+    <section class="flow-toolbar">
+      <input id="flowSearch" type="search" placeholder="Search family, athlete, location, proposal…" autocomplete="off">
+      <span id="flowVisibleCount">0 records</span>
+    </section>
+    <section class="flow-layout">
+      <section id="flowList" class="flow-list" aria-label="Enrollment cases"></section>
+      <aside id="flowDetail" class="flow-detail" aria-live="polite"><div class="flow-empty">Select an enrollment case to see the full story.</div></aside>
+    </section>
+  </main>
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="/management/enrollment-flow/enrollment-flow.js"></script>
+</body>
+</html>
