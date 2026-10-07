@@ -535,57 +535,6 @@ body[data-theme="night"] .assessment-xp-box{
 }
 
 
-.assessment-validation-details{
-  border:0;
-}
-
-.assessment-validation-summary{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  cursor:pointer;
-  list-style:none;
-}
-
-.assessment-validation-summary::-webkit-details-marker{
-  display:none;
-}
-
-.assessment-validation-summary span:first-child{
-  display:grid;
-  gap:3px;
-}
-
-.assessment-validation-summary small{
-  color:var(--coach-shell-bright-gold);
-  font-size:.7rem;
-  font-weight:900;
-  letter-spacing:.13em;
-  text-transform:uppercase;
-}
-
-.assessment-validation-summary strong{
-  color:var(--coach-shell-text);
-  font-size:1rem;
-}
-
-.assessment-validation-chevron{
-  flex:0 0 auto;
-  color:var(--coach-shell-bright-gold);
-  font-size:1.2rem;
-  font-weight:900;
-  transition:transform .18s ease;
-}
-
-.assessment-validation-details[open] .assessment-validation-chevron{
-  transform:rotate(180deg);
-}
-
-.assessment-validation-body{
-  padding-top:14px;
-}
-
 
 .assessment-athlete-details{
   border:0;
