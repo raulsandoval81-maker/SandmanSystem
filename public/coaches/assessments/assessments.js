@@ -731,7 +731,9 @@ function renderPin(pin) {
 
           <div class="assessment-work-body">
             <p class="assessment-work-required">
-              Complete the full Coach assessment inside this panel before returning it to Management.
+              ${isValidationClaim
+                ? "Record the baseline FEAR + skills observation. Saving it returns this onboarding assessment to Management."
+                : "Complete the full Coach assessment inside this panel before returning it to Management."}
             </p>
 
             ${isValidationClaim
@@ -780,6 +782,9 @@ function renderPin(pin) {
                 `
             }
 
+            ${isValidationClaim
+              ? ""
+              : `
             <div class="assessment-divider"></div>
 
         <section>
@@ -972,6 +977,9 @@ function renderPin(pin) {
         >
           Return to Management
         </button>
+
+              `
+            }
       </div>
         </div>
       </details>
@@ -1104,6 +1112,31 @@ function wireValidationObservationControls() {
             const full =
               response?.data
                 ?.fullCreditEligible === true;
+
+            if (
+              response?.data?.baselineComplete === true &&
+              response?.data?.status === "RETURNED_TO_MANAGEMENT"
+            ) {
+              const card =
+                document.querySelector(
+                  `[data-assessment-card="${CSS.escape(
+                    pinId
+                  )}"]`
+                );
+
+              if (card) {
+                card.classList.add(
+                  "assessment-card--complete"
+                );
+
+                setTimeout(() => {
+                  card.remove();
+                  updateEmptyState();
+                }, 350);
+              }
+
+              return;
+            }
 
             if (statusEl) {
               statusEl.textContent =
