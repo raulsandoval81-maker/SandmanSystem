@@ -1168,22 +1168,25 @@ const extras = {
         );
 
       const firstMonthDueNow =
-        overdueMembershipMonths > 0
+        paymentStartMode ===
+            "deferred_family"
           ? 0
-          : paymentStartMode ===
-              "deferred_family"
-            ? 0
-            : proratedFirstMonth;
+          : proratedFirstMonth;
 
+      /*
+       * The family has not paid the first month merely because the
+       * proposal sat in review. If the next recurring date has already
+       * passed, collect the first month plus each missed recurring month.
+       *
+       * Example: $30 enrollment + $90 first month + $90 missed month
+       * = $210 due now, then $90/month going forward.
+       */
       const dueNow =
         Math.max(
           0,
           enrollmentDueNow +
-          (
-            overdueMembershipMonths > 0
-              ? overdueMembershipDueNow
-              : firstMonthDueNow
-          )
+          firstMonthDueNow +
+          overdueMembershipDueNow
         );
 
       if (el.deferredEligibility) {
