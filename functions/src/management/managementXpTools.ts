@@ -1237,20 +1237,6 @@ export const createManagementXpAdjustment =
           )
         );
 
-        if (isVerifiedExperienceOverride) {
-          const alreadyRecognized =
-            athlete.verifiedExperienceOverride?.used === true ||
-            athlete.legacy === true ||
-            Number(athlete.legacyCreditTotal || 0) > 0;
-
-          if (alreadyRecognized) {
-            throw new HttpsError(
-              "failed-precondition",
-              "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED"
-            );
-          }
-        }
-
         const awardIdentity =
           isVerifiedExperienceOverride
             ? `verified-experience-override:${athleteUid}`
@@ -1280,6 +1266,20 @@ export const createManagementXpAdjustment =
             idempotent: true,
             duplicate: true
           };
+        }
+
+        if (isVerifiedExperienceOverride) {
+          const alreadyRecognized =
+            athlete.verifiedExperienceOverride?.used === true ||
+            athlete.legacy === true ||
+            Number(athlete.legacyCreditTotal || 0) > 0;
+
+          if (alreadyRecognized) {
+            throw new HttpsError(
+              "failed-precondition",
+              "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED"
+            );
+          }
         }
 
         let xpAuthority;
@@ -1680,6 +1680,15 @@ export const createManagementXpAdjustment =
           requestedAmount:
             amount,
 
+          ...(isVerifiedExperienceOverride
+            ? {
+                recognitionTotal,
+                recognitionHeld:
+                  Math.max(0, recognitionTotal - delta),
+                verifiedExperienceYears
+              }
+            : {}),
+
           delta,
 
           amount:
@@ -1770,7 +1779,9 @@ export const createManagementXpAdjustment =
               "MANAGEMENT_ADJUSTMENT",
 
             source:
-              "management_adjustment",
+              isVerifiedExperienceOverride
+                ? "management_verified_experience_override"
+                : "management_adjustment",
 
             discipline,
 
