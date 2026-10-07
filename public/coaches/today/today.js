@@ -357,119 +357,117 @@ function renderRecognitionItems(items) {
 }
 
 async function refreshRecognitionQueue(user) {
-  if (!listRecognitionEl || !user) return;
+  if (!listRecognitionEl || !user) return { queue: { testing: [] } };
+
+  const athleteSnapshot =
+    await getDocs(
+      collection(db, "athletes")
+    );
+
+  let serverData = null;
+  let readyItems = [];
 
   try {
     const token =
       await user.getIdToken();
 
-    const [response, athleteSnapshot] =
-      await Promise.all([
-        fetch(
-          RECOGNITION_QUEUE_ENDPOINT,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`
-            }
+    const response =
+      await fetch(
+        RECOGNITION_QUEUE_ENDPOINT,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
           }
-        ),
-        getDocs(
-          collection(db, "athletes")
-        )
-      ]);
-
-    if (!response.ok) {
-      throw new Error(
-        `Recognition queue failed: ${response.status}`
+        }
       );
-    }
 
-    const data =
-      await response.json();
+    if (response.ok) {
+      const data =
+        await response.json();
 
-    if (!data?.ok) {
-      throw new Error(
-        data?.error ||
-        "Recognition queue unavailable."
-      );
-    }
-
-    const readyItems =
-      Array.isArray(
-        data?.queue?.stripeAwards
-      )
-        ? data.queue.stripeAwards
-        : [];
-
-    const readyIds =
-      new Set(
-        readyItems
-          .map((item) =>
-            String(
-              item?.athleteUid ||
-              ""
-            ).trim()
+      if (data?.ok) {
+        serverData = data;
+        readyItems =
+          Array.isArray(
+            data?.queue?.stripeAwards
           )
-          .filter(Boolean)
-      );
+            ? data.queue.stripeAwards
+            : [];
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "[daily-operations] recognition server unavailable; using athlete fallback",
+      error
+    );
+  }
 
-    const ready =
-      readyItems.map((item) => ({
-        status: "ready",
-        athleteUid:
+  const readyIds =
+    new Set(
+      readyItems
+        .map((item) =>
           String(
             item?.athleteUid ||
             ""
-          ).trim(),
-        athleteName:
-          String(
-            item?.athleteName ||
-            item?.athleteUid ||
-            "Athlete"
-          ).trim(),
-        stripe:
-          Math.max(
-            1,
-            Number(
-              item?.decision?.stripe ||
-              1
-            ) || 1
-          ),
-        remaining: 0
-      }));
+          ).trim()
+        )
+        .filter(Boolean)
+    );
 
-    const approaching = [];
+  const ready =
+    readyItems.map((item) => ({
+      status: "ready",
+      athleteUid:
+        String(
+          item?.athleteUid ||
+          ""
+        ).trim(),
+      athleteName:
+        String(
+          item?.athleteName ||
+          item?.athleteUid ||
+          "Athlete"
+        ).trim(),
+      stripe:
+        Math.max(
+          1,
+          Number(
+            item?.decision?.stripe ||
+            1
+          ) || 1
+        ),
+      remaining: 0
+    }));
 
-    athleteSnapshot.docs.forEach((docSnap) => {
-      const athleteUid =
-        docSnap.id;
+  const approaching = [];
+  const localTesting = [];
 
-      if (readyIds.has(athleteUid)) {
-        return;
-      }
+  athleteSnapshot.docs.forEach((docSnap) => {
+    const athleteUid =
+      docSnap.id;
 
-      const athlete =
-        docSnap.data() || {};
+    const athlete =
+      docSnap.data() || {};
 
-      if (!isCurrentAthlete(athlete)) {
-        return;
-      }
+    if (!isCurrentAthlete(athlete)) {
+      return;
+    }
 
-      const xpCap =
-        athleteXpCap(athlete);
+    const xpCap =
+      athleteXpCap(athlete);
 
-      if (xpCap <= 0) {
-        return;
-      }
+    const xp =
+      athleteTierXp(athlete);
 
-      const currentStripe =
-        athleteStripeCount(athlete);
+    const currentStripe =
+      athleteStripeCount(athlete);
 
-      if (currentStripe >= 4) {
-        return;
-      }
-
+    if (
+      !readyIds.has(athleteUid) &&
+      xpCap > 0 &&
+      currentStripe < 4
+    ) {
       const nextStripe =
         currentStripe + 1;
 
@@ -478,71 +476,133 @@ async function refreshRecognitionQueue(user) {
           (xpCap * nextStripe) / 4
         );
 
-      const xp =
-        athleteTierXp(athlete);
-
       const remaining =
         threshold - xp;
 
       if (
-        remaining <= 0 ||
-        remaining > 50
+        remaining > 0 &&
+        remaining <= 50
       ) {
-        return;
+        approaching.push({
+          status: "approaching",
+          athleteUid,
+          athleteName:
+            athleteDisplayName(
+              athlete,
+              athleteUid
+            ),
+          stripe: nextStripe,
+          remaining
+        });
       }
+    }
 
-      approaching.push({
-        status: "approaching",
+    const testing =
+      athlete?.testing || {};
+
+    const rawState =
+      String(
+        testing?.state || ""
+      )
+        .trim()
+        .toUpperCase();
+
+    let stage = "";
+
+    if (rawState === "TESTING") {
+      stage = "TESTING";
+    } else if (rawState === "READY") {
+      stage = "TEST_SCHEDULED";
+    } else if (
+      rawState === "ELIGIBLE" ||
+      testing?.testEligibleAt
+    ) {
+      stage = "TEST_ELIGIBLE";
+    } else if (
+      rawState === "TEMPLE" ||
+      (
+        xpCap > 0 &&
+        xp / xpCap >= 0.9 &&
+        !testing?.scheduledDate
+      )
+    ) {
+      stage = "TEMPLE";
+    }
+
+    if (stage) {
+      localTesting.push({
         athleteUid,
         athleteName:
           athleteDisplayName(
             athlete,
             athleteUid
           ),
-        stripe: nextStripe,
-        remaining
+        stage,
+        decision: {
+          tier:
+            athlete?.tier ?? "—",
+          stripe:
+            currentStripe
+        }
       });
-    });
-
-    approaching.sort(
-      (a, b) =>
-        a.remaining - b.remaining ||
-        a.athleteName.localeCompare(
-          b.athleteName
-        )
-    );
-
-    const items = [
-      ...ready,
-      ...approaching
-    ];
-
-    setCount(
-      countRecognitionEl,
-      items.length
-    );
-
-    renderRecognitionItems(items);
-
-    return data;
-  } catch (error) {
-    console.error(
-      "[daily-operations] recognition queue failed",
-      error
-    );
-
-    setCount(
-      countRecognitionEl,
-      0
-    );
-
-    if (listRecognitionEl) {
-      listRecognitionEl.innerHTML =
-        '<div class="mini-list__empty">Recognition queue unavailable</div>';
     }
+  });
 
-    return null;
-  }
+  approaching.sort(
+    (a, b) =>
+      a.remaining - b.remaining ||
+      a.athleteName.localeCompare(
+        b.athleteName
+      )
+  );
+
+  const items = [
+    ...ready,
+    ...approaching
+  ];
+
+  setCount(
+    countRecognitionEl,
+    items.length
+  );
+
+  renderRecognitionItems(items);
+
+  const serverTesting =
+    Array.isArray(
+      serverData?.queue?.testing
+    )
+      ? serverData.queue.testing
+      : [];
+
+  const mergedTesting =
+    new Map();
+
+  [
+    ...localTesting,
+    ...serverTesting
+  ].forEach((item) => {
+    const key =
+      String(
+        item?.athleteUid || ""
+      ).trim();
+
+    if (key) {
+      mergedTesting.set(
+        key,
+        item
+      );
+    }
+  });
+
+  return {
+    ...(serverData || {}),
+    queue: {
+      ...(serverData?.queue || {}),
+      testing:
+        [...mergedTesting.values()]
+    }
+  };
 }
 
 function testingStageLabel(stage) {
