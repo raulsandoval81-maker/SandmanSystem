@@ -340,16 +340,14 @@ function renderValidationObservationSection(
 
   return `
     <section class="assessment-validation">
-      <details class="assessment-validation-details">
-        <summary class="assessment-validation-summary">
-          <span>
-            <small>Prior-Experience Validation</small>
-            <strong>Practice Observation · FEAR + Skills</strong>
-          </span>
-          <span class="assessment-validation-chevron" aria-hidden="true">⌄</span>
-        </summary>
+      <p class="assessment-eyebrow">
+        Prior-Experience Validation
+      </p>
 
-        <div class="assessment-validation-body">
+      <h4>
+        Practice Observation · FEAR + Skills
+      </h4>
+
       <p class="assessment-confirm-note">
         Save one observation when time allows; a second observation on a separate practice day is preferred. The first two validation practices are capped at 5 XP unless that day's guardrails are met.
       </p>
@@ -491,8 +489,6 @@ function renderValidationObservationSection(
       >
         <option value="${esc(respect)}" selected>${esc(respect)}</option>
       </select>
-        </div>
-      </details>
     </section>
   `;
 }
