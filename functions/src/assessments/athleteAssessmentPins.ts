@@ -981,6 +981,128 @@ export const returnAthleteAssessmentPin = onCall(async (req) => {
 });
 
 /* =====================================================
+   ASSESSMENT EDGE-CASE RESOLUTION
+===================================================== */
+
+export const resolveAthleteAssessmentEdgeCase = onCall(async (req) => {
+  if (!req.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Staff sign-in required."
+    );
+  }
+
+  const staff = await requireStaff(req.auth.uid);
+
+  if (!staff.isAdmin && !staff.isManagement && !staff.isCoach) {
+    throw new HttpsError(
+      "permission-denied",
+      "Staff access required."
+    );
+  }
+
+  const pinId = clean(req.data?.pinId);
+  const resolution = clean(req.data?.resolution).toLowerCase();
+
+  if (!pinId) {
+    throw new HttpsError(
+      "invalid-argument",
+      "pinId is required."
+    );
+  }
+
+  if (![
+    "baseline_complete",
+    "legacy_transition_resolved"
+  ].includes(resolution)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Unsupported assessment resolution."
+    );
+  }
+
+  const pinRef = db.doc(`athleteAssessmentPins/${pinId}`);
+  const pinSnap = await pinRef.get();
+
+  if (!pinSnap.exists) {
+    throw new HttpsError(
+      "not-found",
+      "Assessment pin not found."
+    );
+  }
+
+  const pin = pinSnap.data() || {};
+  requireLocationAccess(staff, clean(pin.locationId));
+
+  const status = clean(pin.status).toUpperCase();
+
+  if (![
+    "ASSESSMENT_NEEDED",
+    "IN_ASSESSMENT"
+  ].includes(status)) {
+    return {
+      ok: true,
+      alreadyResolved: true,
+      status
+    };
+  }
+
+  if (resolution === "baseline_complete") {
+    const observations =
+      pin.validationObservations &&
+      typeof pin.validationObservations === "object"
+        ? pin.validationObservations
+        : {};
+
+    const days = Object.keys(observations).filter(Boolean);
+
+    if (!days.length) {
+      throw new HttpsError(
+        "failed-precondition",
+        "A saved FEAR + skills baseline is required."
+      );
+    }
+
+    await pinRef.set(
+      {
+        status: "RETURNED_TO_MANAGEMENT",
+        coachReturnedAt: FieldValue.serverTimestamp(),
+        coachReturnedBy: req.auth.uid,
+        coachReturnMode: "BASELINE_COMPLETE",
+        updatedAt: FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    return {
+      ok: true,
+      status: "RETURNED_TO_MANAGEMENT",
+      resolution: "baseline_complete"
+    };
+  }
+
+  await pinRef.set(
+    {
+      status: "LEGACY_TRANSITION_RESOLVED",
+      resolutionCode: "LEGACY_TRANSITION_ALREADY_HANDLED",
+      resolutionNote:
+        clean(req.data?.note) ||
+        "Legacy transition case — athlete placement/XP was already handled before the current Coach assessment workflow was finalized.",
+      resolvedAt: FieldValue.serverTimestamp(),
+      resolvedBy: req.auth.uid,
+      updatedAt: FieldValue.serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  return {
+    ok: true,
+    status: "LEGACY_TRANSITION_RESOLVED",
+    resolution: "legacy_transition_resolved"
+  };
+});
+
+/* =====================================================
    MANAGEMENT CLOSES LOOP
 ===================================================== */
 
