@@ -1005,9 +1005,13 @@ function proposalActionHtml(status, id) {
         Correct Proposal
       </button>
 
-      <span class="proposal-action-note">
-        In-Person opens the Review & Confirm page for use with the family. Remote sends the secure Review & Confirm link by email. Copy Alternative Secure Link provides a manual handoff option.
-      </span>
+      <div class="proposal-action-note">
+        <ul>
+          <li><strong>In-Person:</strong> Opens the Review & Confirm page for use with the family.</li>
+          <li><strong>Remote:</strong> Sends the secure Review & Confirm link by email.</li>
+          <li><strong>Alternative Secure Link:</strong> Copies the secure link for a manual handoff.</li>
+        </ul>
+      </div>
     `;
   }
 
