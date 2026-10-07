@@ -92,9 +92,6 @@ function resolveManagementAdjustmentSemantic(categoryInput, explicitSemantic) {
     if (category === "downtime_recovery") {
         return explicitSemantic ?? "NEW_EARNED_XP";
     }
-    if (category === "verified_experience_override") {
-        return "RECOGNIZED_PRIOR_EXPERIENCE";
-    }
     if (category === "correction") {
         if (!explicitSemantic)
             throw new Error("CORRECTION_REQUIRES_EXPLICIT_XP_SEMANTIC");
