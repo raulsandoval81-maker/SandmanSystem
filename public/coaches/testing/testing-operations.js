@@ -58,6 +58,8 @@ async function init() {
     athletes.forEach((a, uid) => {
       const state = clean(a?.testing?.state).toUpperCase();
       const params = new URLSearchParams({uid, athleteName:nameOf(a,uid), tier:clean(a?.tier||"T0"), track:uid.startsWith("F8_")?"foundry8-combat":"foundry4-combat"});
+      const scheduledDate = clean(a?.testing?.scheduledDate);
+      if (scheduledDate) params.set("testDate", scheduledDate);
       const setup = "/coaches/testing/testing-command-center.html?" + params.toString();
       const sheet = "/coaches/testing/coach-sheet.html?" + params.toString();
 
