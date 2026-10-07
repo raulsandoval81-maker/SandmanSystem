@@ -321,22 +321,6 @@ function renderValidationObservationSection(
   const observations =
     sortedValidationObservations(pin);
 
-  if (observations.length >= 2) {
-    return `
-      <section class="assessment-validation-complete">
-        <p class="assessment-eyebrow">
-          Prior-Experience Validation
-        </p>
-        <strong>
-          Validation observations complete · 2 of 2 recorded.
-        </strong>
-        <span>
-          Coach observation work is complete. Continue with Coach Confirmation and final handoff.
-        </span>
-      </section>
-    `;
-  }
-
   const observation =
     latestValidationObservation(pin);
 
@@ -357,20 +341,41 @@ function renderValidationObservationSection(
       observation?.fear?.respect
     );
 
-  return `
-    <section class="assessment-validation">
-      <p class="assessment-eyebrow">
-        Prior-Experience Validation
-      </p>
+  const hiddenFear = `
+      <select
+        data-fear="focus"
+        data-pin="${esc(pinId)}"
+        hidden
+      >
+        <option value="${esc(focus)}" selected>${esc(focus)}</option>
+      </select>
 
-      <h4>
-        Practice Observation · FEAR + Skills
-      </h4>
+      <select
+        data-fear="effort"
+        data-pin="${esc(pinId)}"
+        hidden
+      >
+        <option value="${esc(effort)}" selected>${esc(effort)}</option>
+      </select>
 
-      <p class="assessment-confirm-note">
-        Save one observation when time allows; a second observation on a separate practice day is preferred. The first two validation practices are capped at 5 XP unless that day's guardrails are met.
-      </p>
+      <select
+        data-fear="attitude"
+        data-pin="${esc(pinId)}"
+        hidden
+      >
+        <option value="${esc(attitude)}" selected>${esc(attitude)}</option>
+      </select>
 
+      <select
+        data-fear="respect"
+        data-pin="${esc(pinId)}"
+        hidden
+      >
+        <option value="${esc(respect)}" selected>${esc(respect)}</option>
+      </select>
+  `;
+
+  const observationForm = `
       <label class="assessment-field assessment-validation-date">
         <span>Practice Date</span>
         <input
@@ -469,6 +474,63 @@ function renderValidationObservationSection(
           Save Practice Observation
         </button>
       </div>
+  `;
+
+  if (observations.length >= 1) {
+    return `
+      <section class="assessment-validation-complete">
+        <p class="assessment-eyebrow">
+          Prior-Experience Validation
+        </p>
+        <strong>
+          Baseline assessment complete.
+        </strong>
+        <span>
+          The onboarding FEAR + skills baseline is recorded. Continue with Coach Confirmation and final handoff.
+        </span>
+
+        <div class="assessment-validation-history">
+          ${renderValidationHistory(pin)}
+        </div>
+
+        ${
+          observations.length < 2
+            ? `
+                <details class="assessment-second-look">
+                  <summary>
+                    Need a second look? <span>Optional</span>
+                  </summary>
+                  <div class="assessment-second-look-body">
+                    <p class="assessment-confirm-note">
+                      Use this only if you need another practice observation before returning the assessment. Normal attendance XP applies.
+                    </p>
+                    ${observationForm}
+                  </div>
+                </details>
+              `
+            : ""
+        }
+
+        ${hiddenFear}
+      </section>
+    `;
+  }
+
+  return `
+    <section class="assessment-validation">
+      <p class="assessment-eyebrow">
+        Prior-Experience Validation
+      </p>
+
+      <h4>
+        Baseline Observation · FEAR + Skills
+      </h4>
+
+      <p class="assessment-confirm-note">
+        Record one baseline observation. The first validation practice is capped at 5 XP unless that day's guardrails are met. A second look is optional.
+      </p>
+
+      ${observationForm}
 
       <div
         class="assessment-validation-history"
@@ -477,37 +539,7 @@ function renderValidationObservationSection(
         ${renderValidationHistory(pin)}
       </div>
 
-      <select
-        data-fear="focus"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(focus)}" selected>${esc(focus)}</option>
-      </select>
-
-      <select
-        data-fear="effort"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(effort)}" selected>${esc(effort)}</option>
-      </select>
-
-      <select
-        data-fear="attitude"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(attitude)}" selected>${esc(attitude)}</option>
-      </select>
-
-      <select
-        data-fear="respect"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(respect)}" selected>${esc(respect)}</option>
-      </select>
+      ${hiddenFear}
     </section>
   `;
 }
