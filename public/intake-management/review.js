@@ -849,6 +849,47 @@ $("mint-virtue")?.addEventListener("change", updateMintTagPreview);
 // ------------------------------------------------------
 // Paint Mint UI
 // ------------------------------------------------------
+function journeyDisplayLabel(track = "") {
+  const key =
+    String(track || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    key === "zero2hero" ||
+    key === "zero2hero-wrestling"
+  ) {
+    return "Road2Champion Wrestling";
+  }
+
+  if (
+    key === "zero2hero-kickboxing" ||
+    key === "zero2hero-muay-thai"
+  ) {
+    return "Road2Champion Muay Thai";
+  }
+
+  if (
+    key === "path2legend-boxing"
+  ) {
+    return "Path2Legend Boxing";
+  }
+
+  if (
+    key === "path2legend"
+  ) {
+    return "Path2Legend Wrestling";
+  }
+
+  if (
+    key === "quest2mastery"
+  ) {
+    return "Quest2Mastery MMA";
+  }
+
+  return track || "—";
+}
+
 function paintMintUI({
   track = "",
   tier = "",
@@ -856,17 +897,16 @@ function paintMintUI({
   uid = "",
   padlock = "—"
 }) {
-  const trackDisplay = track || "—";
+  const trackDisplay =
+    journeyDisplayLabel(track);
 
-  const tierRankText =
-    (tier && rank)
-      ? `${tier}_${rank}`
-      : (tier || rank || "—");
+  const rankDisplay =
+    rank || tier || "—";
 
   const lock = uid ? padlock : "—";
 
   if ($("m-track")) $("m-track").textContent = trackDisplay;
-  if ($("m-rank")) $("m-rank").textContent = tierRankText;
+  if ($("m-rank")) $("m-rank").textContent = rankDisplay;
   if ($("m-padlock")) $("m-padlock").textContent = lock;
   if ($("c-uid")) $("c-uid").value = uid || "";
 }
