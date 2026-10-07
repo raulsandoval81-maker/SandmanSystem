@@ -525,39 +525,12 @@ async function refreshRecognitionQueue(user) {
 
   renderRecognitionItems(items);
 
-  const serverTesting =
-    Array.isArray(
-      serverData?.queue?.testing
-    )
-      ? serverData.queue.testing
-      : [];
-
-  const mergedTesting =
-    new Map();
-
-  [
-    ...localTesting,
-    ...serverTesting
-  ].forEach((item) => {
-    const key =
-      String(
-        item?.athleteUid || ""
-      ).trim();
-
-    if (key) {
-      mergedTesting.set(
-        key,
-        item
-      );
-    }
-  });
-
   return {
     ...(serverData || {}),
     queue: {
       ...(serverData?.queue || {}),
       testing:
-        [...mergedTesting.values()]
+        localTesting
     }
   };
 }
