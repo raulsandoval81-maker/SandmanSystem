@@ -18,6 +18,24 @@ const createAdjustment =
     "createManagementXpAdjustment"
   );
 
+const listPins =
+  httpsCallable(
+    functions,
+    "listAthleteAssessmentPins"
+  );
+
+const finalizeExperience =
+  httpsCallable(
+    functions,
+    "finalizeExperienceValidation"
+  );
+
+const recordPlacement =
+  httpsCallable(
+    functions,
+    "recordAthleteAssessmentPlacement"
+  );
+
 const searchForm =
   $("athleteSearchForm");
 
@@ -59,6 +77,12 @@ const applyButton =
 
 const clearButton =
   $("clearAdjustmentButton");
+
+const experienceValidationStatus =
+  $("experienceValidationStatus");
+
+const experienceValidationContent =
+  $("experienceValidationContent");
 
 let athlete = null;
 let selectedDiscipline = "";
@@ -254,6 +278,210 @@ function renderProgressionSummary() {
   `;
 }
 
+
+function experiencePlan(priorExperience = {}) {
+  if (priorExperience.manual === true) {
+    const total = Math.max(0, Number(priorExperience.manualXp ?? priorExperience.recognitionXp ?? 0));
+    return { label: "Less than 1 Year", now: total, held: 0 };
+  }
+
+  const years = Number(priorExperience.verifiedYears || 0);
+
+  if (years === 1) return { label: "1 Year Verified", now: 200, held: 0 };
+  if (years === 2) return { label: "2 Years Verified", now: 200, held: 200 };
+  if (years >= 3) return { label: "3+ Years Verified", now: 300, held: 300 };
+
+  return { label: "No Prior Experience", now: 0, held: 0 };
+}
+
+function fearSummary(fear = {}) {
+  return [
+    ["Focus", fear.focus],
+    ["Effort", fear.effort],
+    ["Attitude", fear.attitude],
+    ["Respect", fear.respect]
+  ].map(([label, value]) => `${label}: ${clean(value) || "—"}`).join(" · ");
+}
+
+function setExperienceStatus(message) {
+  if (experienceValidationStatus) experienceValidationStatus.textContent = message || "";
+}
+
+function renderExperienceValidation(pin) {
+  if (!experienceValidationContent) return;
+
+  if (!pin) {
+    experienceValidationContent.innerHTML = `
+      <p class="xp-static-state">
+        No returned Coach assessment is waiting for Management validation for this athlete.
+      </p>
+    `;
+    setExperienceStatus("No returned assessment pending.");
+    return;
+  }
+
+  const plan = experiencePlan(pin.priorExperience || {});
+  const recognitionStatus = clean(pin.experienceRecognitionStatus).toUpperCase();
+  const resolved = recognitionStatus === "AWARDED" || recognitionStatus === "REJECTED";
+  const coachNotes = clean(pin.coachNotes) || "No additional Coach notes.";
+  const placement = clean(pin.placementRecommendation) || "—";
+
+  setExperienceStatus(
+    resolved
+      ? `Recognition ${recognitionStatus === "AWARDED" ? "approved" : "rejected"} · final placement pending`
+      : "Returned by Coach · Management decision required"
+  );
+
+  experienceValidationContent.innerHTML = `
+    <div class="summary-grid">
+      ${summaryItem("Coach Validation", plan.label)}
+      ${summaryItem("XP Now", `${plan.now} XP`)}
+      ${summaryItem("Held XP", plan.held ? `${plan.held} XP` : "0 XP")}
+      ${summaryItem("Placement Recommendation", placement)}
+    </div>
+
+    <details class="xp-assessment-details">
+      <summary>View Coach Assessment</summary>
+      <div>
+        <p><strong>FEAR:</strong> ${esc(fearSummary(pin.fear || {}))}</p>
+        <p><strong>Coach Notes:</strong> ${esc(coachNotes)}</p>
+      </div>
+    </details>
+
+    <label class="field">
+      <span>Management Note</span>
+      <textarea id="experienceManagementNote" rows="4" maxlength="1000"
+        placeholder="Optional Management note."></textarea>
+    </label>
+
+    <p id="experienceActionStatus" class="status-line" role="status" aria-live="polite"></p>
+
+    <div class="action-row">
+      ${
+        resolved
+          ? `<button id="recordPlacementButton" class="button button-primary" type="button">Record Final Placement</button>`
+          : `
+              <button id="rejectExperienceButton" class="button button-secondary" type="button">Reject Recognition</button>
+              <button id="approveExperienceButton" class="button button-primary" type="button">Approve Recognition</button>
+            `
+      }
+    </div>
+  `;
+
+  const actionStatus = $("experienceActionStatus");
+  const setActionStatus = (message, error = false) => {
+    if (!actionStatus) return;
+    actionStatus.textContent = message || "";
+    actionStatus.classList.toggle("is-error", error);
+  };
+
+  const setBusy = (busy) => {
+    experienceValidationContent.querySelectorAll("button").forEach((button) => {
+      button.disabled = busy;
+    });
+  };
+
+  $("approveExperienceButton")?.addEventListener("click", async () => {
+    if (!window.confirm("Approve this prior-experience recognition?")) return;
+    setBusy(true);
+    setActionStatus("Applying verified experience recognition…");
+    try {
+      const response = await finalizeExperience({
+        pinId: clean(pin.id),
+        decision: "approve",
+        managementNote: clean($("experienceManagementNote")?.value) || null
+      });
+      if (response.data?.ok !== true) throw new Error("Experience validation was not completed.");
+      const awarded = Number(response.data?.awardedAmount ?? response.data?.delta ?? 0);
+      const held = Number(response.data?.recognitionHeld ?? 0);
+      setActionStatus(`Approved · ${awarded} XP issued now${held > 0 ? ` · ${held} XP held` : ""}`);
+      await loadSelectedExperience();
+    } catch (error) {
+      setActionStatus(error?.message || "Experience validation failed.", true);
+      setBusy(false);
+    }
+  });
+
+  $("rejectExperienceButton")?.addEventListener("click", async () => {
+    if (!window.confirm("Reject this prior-experience recognition?")) return;
+    setBusy(true);
+    setActionStatus("Recording rejection…");
+    try {
+      const response = await finalizeExperience({
+        pinId: clean(pin.id),
+        decision: "reject",
+        managementNote: clean($("experienceManagementNote")?.value) || null
+      });
+      if (response.data?.ok !== true) throw new Error("Experience validation was not completed.");
+      setActionStatus("Prior-experience recognition rejected.");
+      await loadSelectedExperience();
+    } catch (error) {
+      setActionStatus(error?.message || "Experience validation failed.", true);
+      setBusy(false);
+    }
+  });
+
+  $("recordPlacementButton")?.addEventListener("click", async () => {
+    if (!window.confirm("Record Management final placement for this returned Coach assessment?")) return;
+    setBusy(true);
+    setActionStatus("Recording final placement…");
+    try {
+      const response = await recordPlacement({
+        pinId: clean(pin.id),
+        finalPlacementNote: clean($("experienceManagementNote")?.value) || null
+      });
+      if (response.data?.ok !== true || response.data?.status !== "PLACEMENT_RECORDED") {
+        throw new Error("Final placement was not recorded.");
+      }
+      setActionStatus("✓ Final placement recorded.");
+      await loadSelectedExperience();
+    } catch (error) {
+      setActionStatus(error?.message || "Final placement failed.", true);
+      setBusy(false);
+    }
+  });
+}
+
+async function loadSelectedExperience() {
+  if (!athlete?.athleteId) {
+    renderExperienceValidation(null);
+    return;
+  }
+
+  setExperienceStatus("Checking for returned Coach assessment…");
+  if (experienceValidationContent) experienceValidationContent.innerHTML = "";
+
+  try {
+    const response = await listPins({});
+    const pins = Array.isArray(response.data?.pins) ? response.data.pins : [];
+
+    const pin = pins.find((item) => {
+      const sameAthlete =
+        clean(item.athleteUid).toLowerCase() === clean(athlete.athleteId).toLowerCase();
+
+      const sameDiscipline =
+        !selectedDiscipline ||
+        clean(item.discipline).toLowerCase() === clean(selectedDiscipline).toLowerCase();
+
+      const status = clean(item.status).toUpperCase();
+
+      return sameAthlete &&
+        sameDiscipline &&
+        (status === "RETURNED_TO_MANAGEMENT" || status === "PLACEMENT_RECORDED");
+    }) || null;
+
+    renderExperienceValidation(pin);
+  } catch (error) {
+    console.error("[management-xp] experience lookup failed", error);
+    setExperienceStatus("Unable to check Coach assessment.");
+    if (experienceValidationContent) {
+      experienceValidationContent.innerHTML = `
+        <p class="xp-static-state is-error">Unable to load returned Coach assessment.</p>
+      `;
+    }
+  }
+}
+
 function renderAthlete(member) {
   athlete = member;
   selectedDiscipline = "";
@@ -374,6 +602,7 @@ function renderAthlete(member) {
           !selectedDiscipline;
 
         renderProgressionSummary();
+        void loadSelectedExperience();
 
         if (selectedDiscipline) {
           setSearchStatus(
@@ -388,6 +617,7 @@ function renderAthlete(member) {
     );
 
   renderProgressionSummary();
+  void loadSelectedExperience();
 
   if (!progressions.length) {
     setSearchStatus(
@@ -430,6 +660,8 @@ function clearAll() {
 
   selectedAthlete.innerHTML = "";
   searchResults.innerHTML = "";
+  if (experienceValidationContent) experienceValidationContent.innerHTML = "";
+  setExperienceStatus("");
 
   clearAdjustmentFields();
 
