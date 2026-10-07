@@ -774,8 +774,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
             claimed === "yes" &&
             [
               "ASSESSMENT_NEEDED",
-              "IN_ASSESSMENT",
-              "RETURNED_TO_MANAGEMENT"
+              "IN_ASSESSMENT"
             ].includes(status)
           );
         });
