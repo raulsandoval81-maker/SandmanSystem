@@ -701,3 +701,12 @@ body[data-theme="night"] .assessment-xp-box{
 .assessment-work-body .assessment-return{
   margin-top:14px;
 }
+
+
+.assessment-work-required{
+  margin:14px 0 4px;
+  color:var(--coach-shell-muted);
+  font-size:.8rem;
+  font-weight:800;
+  line-height:1.45;
+}
