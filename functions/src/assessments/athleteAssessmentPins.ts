@@ -438,10 +438,21 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     ),
 
     onboardingPolicy: {
-      practice1: "half_credit",
-      practice2: "half_credit",
-      practice3Plus: "full_credit"
+      scope: "claimed_prior_experience_only",
+      practice1: "half_credit_unless_validation_standard_met",
+      practice2: "half_credit_unless_validation_standard_met",
+      practice3Plus: "full_credit",
+      halfCreditXp: 5,
+      fearPassingScore: 16,
+      fearMaximumScore: 20,
+      acceptedShirts: ["plain_white", "academy"],
+      acceptedExecution: ["clean", "smooth"],
+      requiresCorrectSkills: true,
+      requiresKnowHow: true
     },
+
+    validationObservations: {},
+    validationPracticeDays: [],
 
     fear: null,
 
@@ -516,6 +527,243 @@ export const listAthleteAssessmentPins = onCall(async (req) => {
   return {
     ok: true,
     pins
+  };
+});
+
+
+function requireDayKey(value: unknown): string {
+  const dayKey = clean(value);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dayKey);
+
+  if (!match) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Validation observation date must use YYYY-MM-DD."
+    );
+  }
+
+  const date = new Date(
+    Date.UTC(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3])
+    )
+  );
+
+  if (
+    date.getUTCFullYear() !== Number(match[1]) ||
+    date.getUTCMonth() !== Number(match[2]) - 1 ||
+    date.getUTCDate() !== Number(match[3])
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Validation observation date is invalid."
+    );
+  }
+
+  return dayKey;
+}
+
+function requireFearScore(value: unknown, label: string): number {
+  const score = Number(value);
+
+  if (
+    !Number.isInteger(score) ||
+    score < 1 ||
+    score > 5
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      `${label} must be scored from 1 to 5.`
+    );
+  }
+
+  return score;
+}
+
+export const saveAthleteValidationObservation = onCall(async (req) => {
+  if (!req.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Coach sign-in required."
+    );
+  }
+
+  const staff = await requireStaff(req.auth.uid);
+
+  if (!staff.isAdmin && !staff.isCoach) {
+    throw new HttpsError(
+      "permission-denied",
+      "Coach access required."
+    );
+  }
+
+  const pinId = clean(req.data?.pinId);
+  const dayKey = requireDayKey(req.data?.dayKey);
+
+  if (!pinId) {
+    throw new HttpsError(
+      "invalid-argument",
+      "pinId is required."
+    );
+  }
+
+  const pinRef = db.doc(`athleteAssessmentPins/${pinId}`);
+  const pinSnap = await pinRef.get();
+
+  if (!pinSnap.exists) {
+    throw new HttpsError(
+      "not-found",
+      "Assessment pin not found."
+    );
+  }
+
+  const pin = pinSnap.data() || {};
+  requireLocationAccess(staff, clean(pin.locationId));
+
+  if (
+    clean(pin.claimedExperience?.priorExperience).toLowerCase() !== "yes"
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Validation observations apply only to athletes requesting prior-experience validation."
+    );
+  }
+
+  const status = clean(pin.status).toUpperCase();
+
+  if (
+    ![
+      "ASSESSMENT_NEEDED",
+      "IN_ASSESSMENT",
+      "RETURNED_TO_MANAGEMENT"
+    ].includes(status)
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "This prior-experience validation is no longer active."
+    );
+  }
+
+  const focus = requireFearScore(req.data?.fear?.focus, "Focus");
+  const effort = requireFearScore(req.data?.fear?.effort, "Effort");
+  const attitude = requireFearScore(req.data?.fear?.attitude, "Attitude");
+  const respect = requireFearScore(req.data?.fear?.respect, "Respect");
+  const fearTotal = focus + effort + attitude + respect;
+
+  const shirt = clean(req.data?.shirt).toLowerCase();
+  const allowedShirts = new Set([
+    "plain_white",
+    "academy",
+    "other"
+  ]);
+
+  if (!allowedShirts.has(shirt)) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Choose Plain White, Academy Shirt, or Other."
+    );
+  }
+
+  const execution = clean(req.data?.execution).toLowerCase();
+
+  if (
+    ![
+      "clean",
+      "smooth",
+      "rigid",
+      "sloppy"
+    ].includes(execution)
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Choose Clean, Smooth, Rigid, or Sloppy execution."
+    );
+  }
+
+  const correctSkills = req.data?.correctSkills === true;
+  const knowHow = req.data?.knowHow === true;
+
+  const observations =
+    pin.validationObservations &&
+    typeof pin.validationObservations === "object"
+      ? pin.validationObservations
+      : {};
+
+  const existingDays =
+    Object.keys(observations)
+      .filter(Boolean);
+
+  if (
+    !existingDays.includes(dayKey) &&
+    existingDays.length >= 2
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Two validation observation days are already recorded."
+    );
+  }
+
+  const shirtStandardMet =
+    shirt === "plain_white" ||
+    shirt === "academy";
+
+  const executionStandardMet =
+    execution === "clean" ||
+    execution === "smooth";
+
+  const fullCreditEligible =
+    fearTotal >= 16 &&
+    shirtStandardMet &&
+    correctSkills &&
+    knowHow &&
+    executionStandardMet;
+
+  const observation = {
+    dayKey,
+
+    fear: {
+      focus,
+      effort,
+      attitude,
+      respect,
+      total: fearTotal
+    },
+
+    shirt,
+    shirtStandardMet,
+
+    correctSkills,
+    knowHow,
+
+    execution,
+    executionStandardMet,
+
+    fullCreditEligible,
+
+    coachUid: req.auth.uid,
+    savedAt: FieldValue.serverTimestamp()
+  };
+
+  await pinRef.update({
+    [`validationObservations.${dayKey}`]:
+      observation,
+
+    status:
+      status === "ASSESSMENT_NEEDED"
+        ? "IN_ASSESSMENT"
+        : status,
+
+    updatedAt:
+      FieldValue.serverTimestamp()
+  });
+
+  return {
+    ok: true,
+    pinId,
+    dayKey,
+    fearTotal,
+    fullCreditEligible
   };
 });
 
