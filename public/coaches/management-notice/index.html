@@ -21,9 +21,9 @@
 
     <a
       class="back-link"
-      href="/coaches/command-center/"
+      href="/coaches/today/"
     >
-      ← Command Center
+      ← Daily Operations
     </a>
   </header>
 
@@ -35,13 +35,27 @@
           <h2>Management Messages</h2>
         </div>
 
-        <span class="count-badge">0</span>
+        <span id="managementNoticeCount" class="count-badge">0</span>
       </div>
 
-      <div class="empty-state">
+      <div
+        id="managementNoticeStatus"
+        class="notice-status"
+        role="status"
+        aria-live="polite"
+      >
+        Loading management notices…
+      </div>
+
+      <div
+        id="managementNoticeList"
+        class="notice-list"
+      ></div>
+
+      <div id="managementNoticeEmpty" class="empty-state" hidden>
         <h3>No management notices</h3>
         <p>
-          Messages and follow-up sent to you by academy
+          Messages, assessment requests, and follow-up sent to you by academy
           management will appear here.
         </p>
       </div>
