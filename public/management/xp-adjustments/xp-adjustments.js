@@ -87,6 +87,9 @@ const managementRecognitionHint =
 const managementRecognitionCap =
   $("managementRecognitionCap");
 
+const managementRecognitionBreakdown =
+  $("managementRecognitionBreakdown");
+
 const reasonInput =
   $("adjustmentReason");
 
@@ -851,12 +854,12 @@ function syncOverrideAvailability() {
   }
 }
 
-function recognitionMaximum(yearsValue) {
+function recognitionStageCap(yearsValue) {
   const years = Number(yearsValue || 0);
 
   if (years === 1) return 200;
-  if (years === 2) return 400;
-  if (years === 3) return 600;
+  if (years === 2) return 200;
+  if (years === 3) return 300;
 
   return 0;
 }
@@ -868,44 +871,77 @@ function selectedRecognitionPlan() {
       0
     );
 
-  const total =
+  const perStage =
     Number(
       managementRecognitionXp?.value ||
       0
     );
 
-  const maximum =
-    recognitionMaximum(years);
+  const stageCap =
+    recognitionStageCap(years);
 
   if (
-    !maximum ||
-    !Number.isInteger(total) ||
-    total <= 0 ||
-    total > maximum
-  ) {
-    return null;
-  }
-
-  if (
-    years >= 2 &&
-    total % 2 !== 0
+    !stageCap ||
+    !Number.isInteger(perStage) ||
+    perStage <= 0 ||
+    perStage > stageCap
   ) {
     return null;
   }
 
   if (years === 1) {
     return {
-      total,
-      now: total,
+      perStage,
+      total: perStage,
+      now: perStage,
       held: 0
     };
   }
 
   return {
-    total,
-    now: Math.floor(total / 2),
-    held: total - Math.floor(total / 2)
+    perStage,
+    total: perStage * 2,
+    now: perStage,
+    held: perStage
   };
+}
+
+function renderRecognitionBreakdown() {
+  if (!managementRecognitionBreakdown) return;
+
+  const years =
+    Number(
+      verifiedExperienceYears?.value ||
+      0
+    );
+
+  const plan =
+    selectedRecognitionPlan();
+
+  if (!years || !plan) {
+    managementRecognitionBreakdown.hidden = true;
+    managementRecognitionBreakdown.innerHTML = "";
+    return;
+  }
+
+  const yearLabel =
+    years === 3
+      ? "3+ Years"
+      : `${years} Year${years === 1 ? "" : "s"}`;
+
+  managementRecognitionBreakdown.hidden = false;
+  managementRecognitionBreakdown.innerHTML = `
+    <strong>${yearLabel} Recognition</strong>
+    <p>
+      <b>${plan.now} XP now</b>
+      ·
+      ${plan.held
+        ? `<b>${plan.held} XP at Tier 1</b>`
+        : "<b>No later XP</b>"}
+      ·
+      ${plan.total} XP total
+    </p>
+  `;
 }
 
 function syncRecognitionInput() {
@@ -916,14 +952,18 @@ function syncRecognitionInput() {
     return;
   }
 
-  const maximum =
-    recognitionMaximum(
-      verifiedExperienceYears?.value
+  const years =
+    Number(
+      verifiedExperienceYears?.value ||
+      0
     );
+
+  const stageCap =
+    recognitionStageCap(years);
 
   managementRecognitionXp.value = "";
 
-  if (!maximum) {
+  if (!stageCap) {
     managementRecognitionXp.max = "";
     managementRecognitionXp.placeholder =
       "Select verified year first";
@@ -934,27 +974,30 @@ function syncRecognitionInput() {
     }
 
     managementRecognitionHint.textContent =
-      "System maximum will appear after the verified year is selected.";
+      "System stage cap will appear after the verified year is selected.";
 
+    renderRecognitionBreakdown();
     return;
   }
 
   if (managementRecognitionCap) {
     managementRecognitionCap.hidden = false;
     managementRecognitionCap.textContent =
-      `MAX ${maximum} XP`;
+      `MAX ${stageCap} XP / STAGE`;
   }
 
   managementRecognitionXp.max =
-    String(maximum);
+    String(stageCap);
 
   managementRecognitionXp.placeholder =
-    `1–${maximum} XP`;
+    `1–${stageCap} XP per stage`;
 
   managementRecognitionHint.textContent =
-    Number(verifiedExperienceYears?.value) >= 2
-      ? `System maximum: ${maximum} XP total. Management may select any lower even-number total; the system splits it 50/50 between XP now and XP held for Tier 1.`
-      : `System maximum: ${maximum} XP. Management may select any lower whole-number recognition amount, but cannot exceed the system maximum.`;
+    years === 1
+      ? `1 Year: up to ${stageCap} XP now. No held XP.`
+      : `${years === 3 ? "3+ Years" : "2 Years"}: up to ${stageCap} XP now and the same amount held for Tier 1.`;
+
+  renderRecognitionBreakdown();
 }
 
 function syncAdjustmentCategoryUi() {
@@ -1019,6 +1062,11 @@ categoryInput?.addEventListener(
 verifiedExperienceYears?.addEventListener(
   "change",
   syncRecognitionInput
+);
+
+managementRecognitionXp?.addEventListener(
+  "input",
+  renderRecognitionBreakdown
 );
 
 syncAdjustmentCategoryUi();
@@ -1228,9 +1276,7 @@ adjustmentForm.addEventListener(
       !recognitionPlan
     ) {
       setAdjustmentStatus(
-        Number(verifiedExperienceYears?.value) >= 2
-          ? "Select an even-number recognition total so it can split 50/50 between XP now and Tier 1 held XP."
-          : "Select the verified experience year and recognition amount.",
+        "Select the verified experience year and a valid XP-per-stage amount.",
         true
       );
 
