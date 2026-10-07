@@ -502,6 +502,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         }
         const athlete = athleteSnap.data() || {};
         requireLocationAccess(staffContext.staff, clean(athlete.locationId));
+        const awardIdentity = `management-adjustment:${adjustmentId}`;
         const receiptRef = db.collection("xpAwardReceipts").doc((0, authoritativeXpService_1.awardReceiptKey)(athleteUid, awardIdentity));
         const receiptSnap = await tx.get(receiptRef);
         if (receiptSnap.exists) {
