@@ -13,6 +13,10 @@ import {
   requireProposalLocationAccess,
 } from "./proposalAccess";
 
+import {
+  getStripe,
+} from "../billing/stripeClient";
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -72,7 +76,15 @@ export const returnProposalToDraft =
         status === "REVIEW" ||
         status === "AWAITING_CLIENT_SIGNATURE";
 
-      if (!clientRequestedChange && !managementCorrection) {
+      const checkoutCorrection =
+        status === "READY_FOR_CHECKOUT" ||
+        status === "CHECKOUT_CREATED";
+
+      if (
+        !clientRequestedChange &&
+        !managementCorrection &&
+        !checkoutCorrection
+      ) {
         throw new HttpsError(
           "failed-precondition",
           "This proposal cannot be reopened from its current stage. Signed, checkout, payment, and enrollment stages require the appropriate downstream correction path."
@@ -80,13 +92,43 @@ export const returnProposalToDraft =
       }
 
       if (
-        managementCorrection &&
+        (managementCorrection || checkoutCorrection) &&
         correctionReason.length < 8
       ) {
         throw new HttpsError(
           "invalid-argument",
           "A correction reason of at least 8 characters is required."
         );
+      }
+
+      if (checkoutCorrection) {
+        const checkoutSessionId =
+          cleanString(
+            proposal.pendingCheckoutSessionId
+          );
+
+        if (checkoutSessionId) {
+          try {
+            const stripe = getStripe();
+            const session =
+              await stripe.checkout.sessions.retrieve(
+                checkoutSessionId
+              );
+
+            if (
+              session.status === "open"
+            ) {
+              await stripe.checkout.sessions.expire(
+                checkoutSessionId
+              );
+            }
+          } catch (error) {
+            console.warn(
+              "[returnProposalToDraft] unable to expire old checkout session",
+              error
+            );
+          }
+        }
       }
 
       const historyRef = proposalRef.collection("history").doc();
@@ -100,6 +142,10 @@ export const returnProposalToDraft =
         approvedBy: FieldValue.delete(),
         lockedAt: FieldValue.delete(),
         lockedBy: FieldValue.delete(),
+        pendingCheckoutSessionId:
+          FieldValue.delete(),
+        checkoutSessionCreatedAt:
+          FieldValue.delete(),
         updatedBy: req.auth!.uid,
         updatedAt: FieldValue.serverTimestamp(),
       });
@@ -109,12 +155,15 @@ export const returnProposalToDraft =
         event: "STATUS_CHANGED",
         fromStatus: status,
         toStatus: "DRAFT",
-        reason: clientRequestedChange
-          ? "CLIENT_REVISION_REQUESTED"
-          : "MANAGEMENT_CORRECTION",
-        correctionReason: managementCorrection
-          ? correctionReason
-          : "",
+        reason: checkoutCorrection
+          ? "MANAGEMENT_CORRECTION_CHECKOUT"
+          : clientRequestedChange
+            ? "CLIENT_REVISION_REQUESTED"
+            : "MANAGEMENT_CORRECTION",
+        correctionReason:
+          managementCorrection || checkoutCorrection
+            ? correctionReason
+            : "",
         createdBy: req.auth!.uid,
         createdByName: staffAccess.fullName,
         createdAt: FieldValue.serverTimestamp(),
