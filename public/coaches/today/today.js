@@ -3,9 +3,7 @@ import {
   collection,
   onSnapshot,
   query,
-  where,
-  functions,
-  httpsCallable
+  where
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -24,26 +22,11 @@ const countHonorEl = $("count-honor");
 const countConditioningEl = $("count-conditioning");
 const countConditioningRequestsEl = $("count-conditioning-requests");
 const countIronEl = $("count-iron");
-const countAssessmentsEl = $("count-assessments");
 
 const listStrengthEl = $("list-strength");
 const listHonorEl = $("list-honor");
 const listConditioningEl = $("list-conditioning");
 const listTestingEl = $("list-testing");
-const listAssessmentsEl = $("list-assessments");
-
-const listAssessmentPins =
-  httpsCallable(
-    functions,
-    "listAthleteAssessmentPins"
-  );
-
-const OPEN_ASSESSMENT_STATUSES =
-  new Set([
-    "ASSESSMENT_NEEDED",
-    "IN_ASSESSMENT"
-  ]);
-
 function setCount(el, value) {
   if (el) el.textContent = String(Number(value || 0));
 }
@@ -179,63 +162,6 @@ function subscribeLaneCounts() {
   );
 }
 
-async function refreshAssessmentQueue() {
-  if (!listAssessmentsEl) return;
-
-  try {
-    const response =
-      await listAssessmentPins();
-
-    const pins =
-      Array.isArray(response?.data?.pins)
-        ? response.data.pins
-        : Array.isArray(response?.data)
-          ? response.data
-          : [];
-
-    const openPins =
-      pins.filter((pin) =>
-        OPEN_ASSESSMENT_STATUSES.has(
-          String(pin?.status || "")
-            .trim()
-            .toUpperCase()
-        )
-      );
-
-    setCount(
-      countAssessmentsEl,
-      openPins.length
-    );
-
-    renderMiniList(
-      listAssessmentsEl,
-      openPins.map((pin) =>
-        String(
-          pin?.athleteName ||
-          pin?.athleteUid ||
-          pin?.id ||
-          ""
-        ).trim()
-      ).filter(Boolean)
-    );
-  } catch (error) {
-    console.error(
-      "[daily-operations] assessment queue failed",
-      error
-    );
-
-    setCount(
-      countAssessmentsEl,
-      0
-    );
-
-    if (listAssessmentsEl) {
-      listAssessmentsEl.innerHTML =
-        '<div class="mini-list__empty">Assessment queue unavailable</div>';
-    }
-  }
-}
-
 function subscribeTestingReady() {
   if (!listTestingEl) return;
 
@@ -300,7 +226,6 @@ async function initialize() {
     if (status) status.hidden = true;
 
     subscribeLaneCounts();
-    await refreshAssessmentQueue();
     subscribeTestingReady();
   } catch (error) {
     console.error("[daily-operations] Coach access denied", error);
