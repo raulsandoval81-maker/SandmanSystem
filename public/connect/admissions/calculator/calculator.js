@@ -1543,14 +1543,18 @@ const extras = {
           proratedFirstMonth,
           enrollmentDueNow,
           firstMonthDueNow,
-          normalDueNow,
+          normalDueNow: dueNow,
           dueNow,
+
+          overdueMembershipMonths,
+          overdueMembershipDueNow,
 
           paymentStartMode,
           deferredFamilyEligible,
 
           recurringBillingDay: 5,
-          firstRecurringChargeDate,
+          firstRecurringChargeDate:
+            resolvedFirstRecurringChargeDate,
 
           monthlyBase,
           commitmentDiscount,
