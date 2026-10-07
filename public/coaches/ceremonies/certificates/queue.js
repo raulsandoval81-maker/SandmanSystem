@@ -251,23 +251,27 @@ async function loadQueue() {
       );
     }
 
-    const [
-      recognitionData,
-      athleteSnapshot
-    ] = await Promise.all([
-      authFetchJson(
-        ENGINE_ENDPOINTS.recognition,
-        user
-      ),
-      getDocs(
+    const athleteSnapshot =
+      await getDocs(
         collection(db, "athletes")
-      )
-    ]);
+      );
 
-    if (!recognitionData?.ok) {
-      throw new Error(
-        recognitionData?.error ||
-        "Recognition queue unavailable."
+    let recognitionData = null;
+
+    try {
+      const data =
+        await authFetchJson(
+          ENGINE_ENDPOINTS.recognition,
+          user
+        );
+
+      if (data?.ok) {
+        recognitionData = data;
+      }
+    } catch (error) {
+      console.warn(
+        "[certificate-queue] certificate-ready service unavailable; showing watch queue only",
+        error
       );
     }
 
@@ -409,9 +413,13 @@ async function loadQueue() {
         approaching.length;
 
       queueStatus.textContent =
-        total
-          ? `${approaching.length} approaching · ${ready.length} certificate${ready.length === 1 ? "" : "s"} ready.`
-          : "Recognition queue is clear.";
+        recognitionData
+          ? (
+              total
+                ? `${approaching.length} approaching · ${ready.length} certificate${ready.length === 1 ? "" : "s"} ready.`
+                : "Recognition queue is clear."
+            )
+          : `${approaching.length} approaching · certificate-ready check unavailable.`;
     }
   } catch (error) {
     console.error(
