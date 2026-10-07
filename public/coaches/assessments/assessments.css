@@ -585,3 +585,82 @@ body[data-theme="night"] .assessment-xp-box{
 .assessment-validation-body{
   padding-top:14px;
 }
+
+
+.assessment-athlete-details{
+  border:0;
+}
+
+.assessment-athlete-summary{
+  display:block;
+  cursor:pointer;
+  list-style:none;
+}
+
+.assessment-athlete-summary::-webkit-details-marker{
+  display:none;
+}
+
+.assessment-athlete-summary-main{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+}
+
+.assessment-athlete-summary-side{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex:0 0 auto;
+}
+
+.assessment-athlete-summary-xp{
+  min-width:64px;
+  text-align:right;
+}
+
+.assessment-athlete-summary-xp span,
+.assessment-athlete-summary-xp strong{
+  display:block;
+}
+
+.assessment-athlete-summary-xp span{
+  color:var(--coach-shell-muted);
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.assessment-athlete-summary-xp strong{
+  margin-top:2px;
+  color:var(--coach-shell-bright-gold);
+  font-size:1.15rem;
+}
+
+.assessment-athlete-chevron{
+  color:var(--coach-shell-bright-gold);
+  font-size:1.35rem;
+  font-weight:900;
+  line-height:1;
+  transition:transform .18s ease;
+}
+
+.assessment-athlete-details[open] .assessment-athlete-chevron{
+  transform:rotate(180deg);
+}
+
+.assessment-athlete-body{
+  padding-top:2px;
+}
+
+@media(max-width:720px){
+  .assessment-athlete-summary-main{
+    align-items:flex-start;
+  }
+
+  .assessment-athlete-summary-side{
+    gap:10px;
+  }
+}
