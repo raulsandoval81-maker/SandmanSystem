@@ -37,6 +37,42 @@ function clean(value) {
   return String(value ?? "").trim();
 }
 
+function programDisplayLabel(value) {
+  const normalized =
+    clean(value).toLowerCase();
+
+  if (
+    normalized === "zero2hero" ||
+    normalized === "zero-to-hero" ||
+    normalized === "road2champion"
+  ) {
+    return "Road2Champion";
+  }
+
+  if (
+    normalized === "path2legend"
+  ) {
+    return "Path2Legend";
+  }
+
+  if (
+    normalized === "quest2mastery"
+  ) {
+    return "Quest2Mastery";
+  }
+
+  return clean(value) || "—";
+}
+
+function placementExample(athleteUid) {
+  return clean(athleteUid)
+    .toUpperCase()
+    .startsWith("F8_")
+      ? "Example: Shadow · T0"
+      : "Example: Apprentice · T0";
+}
+
+
 function xpForExperience(value) {
   const years = Number(value || 0);
 
@@ -138,8 +174,9 @@ function renderPin(pin) {
     "—";
 
   const program =
-    clean(pin.program) ||
-    "—";
+    programDisplayLabel(
+      pin.program
+    );
 
   const currentXp =
     Math.max(
@@ -346,64 +383,41 @@ function renderPin(pin) {
         <div
           class="assessment-manual"
           data-manual-area="${esc(pinId)}"
+          hidden
         >
           <label class="assessment-field">
             <span>
-              Less Than 1 Year Recognition
+              Coach Recognition Recommendation
             </span>
 
-            <select
-              data-less-than-one-xp
+            <input
+              data-manual-xp
               data-pin="${esc(pinId)}"
+              type="number"
+              min="0"
+              max="199"
+              step="1"
+              inputmode="numeric"
+              placeholder="0–199 XP"
             >
-              <option value="50">
-                50 XP
-              </option>
 
-              <option value="100">
-                100 XP
-              </option>
-
-              <option value="manual">
-                Manual
-              </option>
-            </select>
+            <small class="assessment-field-help">
+              Less than 1 year: Coach may recommend 0–199 XP.
+            </small>
           </label>
 
-          <div
-            data-custom-xp-area="${esc(pinId)}"
-            hidden
-          >
-            <label class="assessment-field">
-              <span>
-                Manual Recognition XP
-              </span>
+          <label class="assessment-field">
+            <span>
+              Required Coach Note
+            </span>
 
-              <input
-                data-manual-xp
-                data-pin="${esc(pinId)}"
-                type="number"
-                min="0"
-                max="199"
-                step="1"
-                inputmode="numeric"
-                placeholder="0–199 XP"
-              >
-            </label>
-
-            <label class="assessment-field">
-              <span>
-                Required Coach Note
-              </span>
-
-              <textarea
-                data-experience-note
-                data-pin="${esc(pinId)}"
-                rows="3"
-                placeholder="Explain the custom recognition recommendation."
-              ></textarea>
-            </label>
-          </div>
+            <textarea
+              data-experience-note
+              data-pin="${esc(pinId)}"
+              rows="3"
+              placeholder="Explain the prior-experience recognition recommendation."
+            ></textarea>
+          </label>
         </div>
       </section>
 
@@ -425,7 +439,11 @@ function renderPin(pin) {
               data-placement
               data-pin="${esc(pinId)}"
               type="text"
-              placeholder="Example: Apprentice · T0"
+              placeholder="${esc(
+                placementExample(
+                  athleteUid
+                )
+              )}"
             >
           </label>
 
@@ -467,21 +485,7 @@ function renderPin(pin) {
 }
 
 function wireExperienceControls() {
-  function syncLessThanOne(pinId) {
-    const selector =
-      document.querySelector(
-        `[data-less-than-one-xp][data-pin="${CSS.escape(
-          pinId
-        )}"]`
-      );
-
-    const customArea =
-      document.querySelector(
-        `[data-custom-xp-area="${CSS.escape(
-          pinId
-        )}"]`
-      );
-
+  function syncManualRecognition(pinId) {
     const manualInput =
       document.querySelector(
         `[data-manual-xp][data-pin="${CSS.escape(
@@ -496,41 +500,32 @@ function wireExperienceControls() {
         )}"]`
       );
 
-    const selection =
-      clean(selector?.value || "50");
-
-    const isManual =
-      selection === "manual";
-
-    if (customArea) {
-      customArea.hidden =
-        !isManual;
-    }
-
     if (!recognition) return;
 
-    if (isManual) {
-      const amount =
-        Math.max(
-          0,
-          Math.min(
-            199,
-            Math.floor(
-              Number(
-                manualInput?.value || 0
-              )
-            )
-          )
-        );
-
-      recognition.textContent =
+    const raw =
+      clean(
         manualInput?.value
-          ? `${amount} XP`
-          : "Manual";
-    } else {
+      );
+
+    if (!raw) {
       recognition.textContent =
-        `${Number(selection)} XP`;
+        "0 XP";
+      return;
     }
+
+    const amount =
+      Math.max(
+        0,
+        Math.min(
+          199,
+          Math.floor(
+            Number(raw)
+          )
+        )
+      );
+
+    recognition.textContent =
+      `${amount} XP`;
   }
 
   document
@@ -538,16 +533,15 @@ function wireExperienceControls() {
       "[data-experience-mode]"
     )
     .forEach((select) => {
-      select.addEventListener(
-        "change",
-        () => {
-          const pinId =
-            clean(select.dataset.pin);
+      const pinId =
+        clean(select.dataset.pin);
 
+      const sync =
+        () => {
           const value =
             clean(select.value);
 
-          const lessThanOneArea =
+          const manualArea =
             document.querySelector(
               `[data-manual-area="${CSS.escape(
                 pinId
@@ -564,39 +558,31 @@ function wireExperienceControls() {
           const isLessThanOne =
             value === "lt1";
 
-          if (lessThanOneArea) {
-            lessThanOneArea.hidden =
+          if (manualArea) {
+            manualArea.hidden =
               !isLessThanOne;
           }
 
+          if (!recognition) return;
+
           if (isLessThanOne) {
-            syncLessThanOne(pinId);
-          } else if (recognition) {
+            syncManualRecognition(
+              pinId
+            );
+          } else {
             recognition.textContent =
               `${xpForExperience(
                 value
               )} XP`;
           }
-        }
-      );
-    });
-
-  document
-    .querySelectorAll(
-      "[data-less-than-one-xp]"
-    )
-    .forEach((select) => {
-      const pinId =
-        clean(select.dataset.pin);
+        };
 
       select.addEventListener(
         "change",
-        () => {
-          syncLessThanOne(pinId);
-        }
+        sync
       );
 
-      syncLessThanOne(pinId);
+      sync();
     });
 
   document
@@ -607,10 +593,11 @@ function wireExperienceControls() {
       input.addEventListener(
         "input",
         () => {
-          const pinId =
-            clean(input.dataset.pin);
-
-          syncLessThanOne(pinId);
+          syncManualRecognition(
+            clean(
+              input.dataset.pin
+            )
+          );
         }
       );
     });
@@ -736,72 +723,45 @@ async function submitAssessment(
       experienceSelection ===
       "lt1"
     ) {
-      const lessThanOneSelection =
+      const manualXpRaw =
         valueFor(
-          "[data-less-than-one-xp]",
+          "[data-manual-xp]",
           pinId
-        ) || "50";
+        );
 
-      let recognitionXp = 0;
-      let experienceNote = "";
+      const experienceNote =
+        valueFor(
+          "[data-experience-note]",
+          pinId
+        );
+
+      if (manualXpRaw === "") {
+        throw new Error(
+          "Enter the Coach prior-experience XP recommendation."
+        );
+      }
+
+      const recognitionXp =
+        Number(
+          manualXpRaw
+        );
 
       if (
-        lessThanOneSelection ===
-        "manual"
+        !Number.isInteger(
+          recognitionXp
+        ) ||
+        recognitionXp < 0 ||
+        recognitionXp >= 200
       ) {
-        const manualXpRaw =
-          valueFor(
-            "[data-manual-xp]",
-            pinId
-          );
+        throw new Error(
+          "Recognition XP must be a whole number from 0 to 199."
+        );
+      }
 
-        experienceNote =
-          valueFor(
-            "[data-experience-note]",
-            pinId
-          );
-
-        if (manualXpRaw === "") {
-          throw new Error(
-            "Enter the manual prior-experience XP amount."
-          );
-        }
-
-        recognitionXp =
-          Number(manualXpRaw);
-
-        if (
-          !Number.isInteger(
-            recognitionXp
-          ) ||
-          recognitionXp < 0 ||
-          recognitionXp >= 200
-        ) {
-          throw new Error(
-            "Manual XP must be a whole number from 0 to 199."
-          );
-        }
-
-        if (!experienceNote) {
-          throw new Error(
-            "Manual recognition requires a Coach note."
-          );
-        }
-      } else {
-        recognitionXp =
-          Number(
-            lessThanOneSelection
-          );
-
-        if (
-          ![50, 100].includes(
-            recognitionXp
-          )
-        ) {
-          throw new Error(
-            "Choose 50 XP, 100 XP, or Manual."
-          );
-        }
+      if (!experienceNote) {
+        throw new Error(
+          "Less-than-1-year recognition requires a Coach note."
+        );
       }
 
       payload.experienceMode =
@@ -811,8 +771,7 @@ async function submitAssessment(
         recognitionXp;
 
       payload.experienceNote =
-        experienceNote ||
-        "Coach verified less than 1 year of prior experience.";
+        experienceNote;
     } else {
       payload.experienceMode =
         "standard";
