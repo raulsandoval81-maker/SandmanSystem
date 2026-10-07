@@ -6,7 +6,7 @@
   <title>Testing | Sandman</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css?v=20261007-5" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css?v=20261007-6" />
 </head>
 
 <body class="coach-shell-page" data-coach-page="Testing" data-coach-area="xp" data-coach-shell-hub>
@@ -35,6 +35,12 @@
 
   <section class="testing-summary-grid">
     <article class="testing-summary-card">
+      <span>Coach Watch</span>
+      <strong id="countTestingWatch">0</strong>
+      <p>Roster athletes intentionally being monitored for a future test.</p>
+    </article>
+
+    <article class="testing-summary-card">
       <span><i>1</i> Readiness</span>
       <strong id="countTestingReadiness">0</strong>
       <p>Temple and test-eligible athletes.</p>
@@ -51,6 +57,23 @@
       <strong id="countTestingActive">0</strong>
       <p>Testing sessions currently in progress.</p>
     </article>
+  </section>
+
+  <section class="workflow-section">
+    <h2>Coach Watchlist</h2>
+    <p class="section-note">
+      Pull up to 10 athletes from the active roster for Coach monitoring without changing their real testing state.
+    </p>
+
+    <div class="testing-watch-controls">
+      <select id="testingRosterSelect">
+        <option value="">Choose roster athlete</option>
+      </select>
+      <button id="addTestingWatchBtn" class="btn" type="button">Add to Watchlist</button>
+    </div>
+
+    <div id="testingWatchStatus" class="section-note"></div>
+    <div id="testingWatchList" class="testing-ops-list"></div>
   </section>
   <section class="workflow-section">
     <h2>1. Readiness</h2>
@@ -87,7 +110,7 @@
   </section>
 </main>
 
-<script type="module" src="/coaches/testing/testing-operations.js?v=20261007-2"></script>
+<script type="module" src="/coaches/testing/testing-operations.js?v=20261007-3"></script>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 
 </body>
