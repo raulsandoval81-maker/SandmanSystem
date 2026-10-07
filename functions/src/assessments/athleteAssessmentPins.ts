@@ -621,6 +621,12 @@ function requireFearScore(value: unknown, label: string): number {
   return score;
 }
 
+function categoricalFearFromScore(score: number): string {
+  if (score >= 4) return "meets";
+  if (score === 3) return "developing";
+  return "concern";
+}
+
 
 export const saveAthleteValidationObservation = onCall(async (req) => {
   if (!req.auth) {
@@ -685,6 +691,12 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     );
   }
 
+  const focus = requireFearScore(req.data?.fear?.focus, "Focus");
+  const effort = requireFearScore(req.data?.fear?.effort, "Effort");
+  const attitude = requireFearScore(req.data?.fear?.attitude, "Attitude");
+  const respect = requireFearScore(req.data?.fear?.respect, "Respect");
+  const fearTotal = focus + effort + attitude + respect;
+
   const shirt = clean(req.data?.shirt).toLowerCase();
   const allowedShirts = new Set([
     "plain_white",
@@ -728,13 +740,10 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     Object.keys(observations)
       .filter(Boolean);
 
-  if (
-    !existingDays.includes(dayKey) &&
-    existingDays.length >= 2
-  ) {
+  if (existingDays.length >= 1) {
     throw new HttpsError(
       "failed-precondition",
-      "One baseline observation and one optional second look are already recorded."
+      "The one-time FEAR + skills baseline is already recorded."
     );
   }
 
@@ -747,6 +756,7 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     execution === "smooth";
 
   const fullCreditEligible =
+    fearTotal >= 16 &&
     shirtStandardMet &&
     correctSkills &&
     knowHow &&
@@ -754,6 +764,14 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
 
   const observation = {
     dayKey,
+
+    fear: {
+      focus,
+      effort,
+      attitude,
+      respect,
+      total: fearTotal
+    },
 
     shirt,
     shirtStandardMet,
@@ -774,6 +792,13 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     [`validationObservations.${dayKey}`]:
       observation,
 
+    fear: {
+      focus: categoricalFearFromScore(focus),
+      effort: categoricalFearFromScore(effort),
+      attitude: categoricalFearFromScore(attitude),
+      respect: categoricalFearFromScore(respect)
+    },
+
     status:
       status === "ASSESSMENT_NEEDED"
         ? "IN_ASSESSMENT"
@@ -787,6 +812,7 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     ok: true,
     pinId,
     dayKey,
+    fearTotal,
     fullCreditEligible,
     status:
       status === "ASSESSMENT_NEEDED"
