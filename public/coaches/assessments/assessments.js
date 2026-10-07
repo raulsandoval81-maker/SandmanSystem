@@ -633,50 +633,6 @@ function renderPin(pin) {
         <div class="assessment-athlete-body">
       <div class="assessment-divider"></div>
 
-      ${
-        isValidationClaim
-          ? ""
-          : `
-              <section>
-                <p class="assessment-eyebrow">
-                  FEAR Review
-                </p>
-
-                <h4>
-                  Focus · Effort · Attitude · Respect
-                </h4>
-
-                <div class="assessment-grid assessment-grid--four">
-                  ${fearField(
-                    pinId,
-                    "focus",
-                    "Focus"
-                  )}
-
-                  ${fearField(
-                    pinId,
-                    "effort",
-                    "Effort"
-                  )}
-
-                  ${fearField(
-                    pinId,
-                    "attitude",
-                    "Attitude"
-                  )}
-
-                  ${fearField(
-                    pinId,
-                    "respect",
-                    "Respect"
-                  )}
-                </div>
-
-                <div class="assessment-divider"></div>
-              </section>
-            `
-      }
-
       <section>
         <p class="assessment-eyebrow">
           Prior Experience
@@ -708,18 +664,67 @@ function renderPin(pin) {
           </div>
         </div>
 
-        ${
-          isValidationClaim
-            ? `
-                <div class="assessment-divider"></div>
-                ${renderValidationObservationSection(
-                  pin,
-                  pinId
-                )}
-                <div class="assessment-divider"></div>
-              `
-            : ""
-        }
+        <p class="assessment-coach-prompt">
+          Coach, read the athlete's submitted details first. When you're ready to work, open the assessment clipboard.
+        </p>
+
+        <details class="assessment-work-details">
+          <summary class="assessment-work-summary">
+            <span>
+              <small>Coach Work</small>
+              <strong>Open Coach Assessment</strong>
+            </span>
+            <span class="assessment-work-chevron" aria-hidden="true">⌄</span>
+          </summary>
+
+          <div class="assessment-work-body">
+            ${isValidationClaim
+              ? `
+                  ${renderValidationObservationSection(
+                    pin,
+                    pinId
+                  )}
+                `
+              : `
+                  <section>
+                    <p class="assessment-eyebrow">
+                      FEAR Review
+                    </p>
+
+                    <h4>
+                      Focus · Effort · Attitude · Respect
+                    </h4>
+
+                    <div class="assessment-grid assessment-grid--four">
+                      ${fearField(
+                        pinId,
+                        "focus",
+                        "Focus"
+                      )}
+
+                      ${fearField(
+                        pinId,
+                        "effort",
+                        "Effort"
+                      )}
+
+                      ${fearField(
+                        pinId,
+                        "attitude",
+                        "Attitude"
+                      )}
+
+                      ${fearField(
+                        pinId,
+                        "respect",
+                        "Respect"
+                      )}
+                    </div>
+                  </section>
+                `
+            }
+
+            <div class="assessment-divider"></div>
 
         <h4>
           Coach Confirmation
@@ -867,6 +872,18 @@ function renderPin(pin) {
         </div>
       </section>
 
+        <div class="assessment-handoff">
+          <p class="assessment-eyebrow">
+            Final Handoff
+          </p>
+          <strong>
+            Read it once more.
+          </strong>
+          <span>
+            If the assessment matches what you saw in practice, return it to Management.
+          </span>
+        </div>
+
       <div class="assessment-return">
         <p
           class="assessment-card-status"
@@ -883,6 +900,9 @@ function renderPin(pin) {
           Return to Management
         </button>
       </div>
+        </div>
+      </details>
+
         </div>
       </details>
 
