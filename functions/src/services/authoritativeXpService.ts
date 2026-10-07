@@ -578,10 +578,22 @@ function stateKey(parts: unknown[]): string {
 function validationObservationFullCredit(observation: any): boolean {
   if (!observation || typeof observation !== "object") return false;
 
+  const fear = observation.fear || {};
+  const total = Number(
+    fear.total ??
+    (
+      Number(fear.focus || 0) +
+      Number(fear.effort || 0) +
+      Number(fear.attitude || 0) +
+      Number(fear.respect || 0)
+    )
+  );
+
   const shirt = String(observation.shirt || "").trim().toLowerCase();
   const execution = String(observation.execution || "").trim().toLowerCase();
 
   return (
+    total >= 16 &&
     ["plain_white", "academy"].includes(shirt) &&
     observation.correctSkills === true &&
     observation.knowHow === true &&
