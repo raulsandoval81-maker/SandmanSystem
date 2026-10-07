@@ -84,8 +84,104 @@ const experienceValidationStatus =
 const experienceValidationContent =
   $("experienceValidationContent");
 
+const experienceModeButton =
+  $("experienceModeButton");
+
+const adjustmentModeButton =
+  $("adjustmentModeButton");
+
+const xpAdjustmentPanel =
+  $("xpAdjustmentPanel");
+
 let athlete = null;
 let selectedDiscipline = "";
+let activeXpMode = "experience";
+
+function setXpMode(mode) {
+  activeXpMode =
+    mode === "adjustment"
+      ? "adjustment"
+      : "experience";
+
+  const experienceActive =
+    activeXpMode === "experience";
+
+  experienceModeButton?.classList.toggle(
+    "is-active",
+    experienceActive
+  );
+
+  adjustmentModeButton?.classList.toggle(
+    "is-active",
+    !experienceActive
+  );
+
+  experienceModeButton?.setAttribute(
+    "aria-selected",
+    String(experienceActive)
+  );
+
+  adjustmentModeButton?.setAttribute(
+    "aria-selected",
+    String(!experienceActive)
+  );
+
+  const experienceChevron =
+    experienceModeButton?.querySelector(
+      ".xp-mode-chevron"
+    );
+
+  const adjustmentChevron =
+    adjustmentModeButton?.querySelector(
+      ".xp-mode-chevron"
+    );
+
+  if (experienceChevron) {
+    experienceChevron.textContent =
+      experienceActive ? "›" : "";
+  }
+
+  if (adjustmentChevron) {
+    adjustmentChevron.textContent =
+      experienceActive ? "" : "‹";
+  }
+
+  if (adjustmentPanel && !adjustmentPanel.hidden) {
+    const experiencePanel =
+      $("experienceValidationPanel");
+
+    if (experiencePanel) {
+      experiencePanel.hidden =
+        !experienceActive;
+    }
+
+    if (xpAdjustmentPanel) {
+      xpAdjustmentPanel.hidden =
+        experienceActive;
+    }
+  }
+}
+
+experienceModeButton?.addEventListener(
+  "click",
+  () => setXpMode("experience")
+);
+
+adjustmentModeButton?.addEventListener(
+  "click",
+  () => {
+    setXpMode("adjustment");
+
+    if (
+      athlete &&
+      selectedDiscipline
+    ) {
+      categoryInput?.focus();
+    }
+  }
+);
+
+setXpMode("experience");
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -603,6 +699,7 @@ function renderAthlete(member) {
 
         renderProgressionSummary();
         void loadSelectedExperience();
+        setXpMode(activeXpMode);
 
         if (selectedDiscipline) {
           setSearchStatus(
@@ -611,13 +708,16 @@ function renderAthlete(member) {
             )} progression selected.`
           );
 
-          categoryInput.focus();
+          if (activeXpMode === "adjustment") {
+            categoryInput.focus();
+          }
         }
       }
     );
 
   renderProgressionSummary();
   void loadSelectedExperience();
+  setXpMode(activeXpMode);
 
   if (!progressions.length) {
     setSearchStatus(
@@ -637,7 +737,9 @@ function renderAthlete(member) {
       )} progression selected.`
     );
 
-    categoryInput.focus();
+    if (activeXpMode === "adjustment") {
+      categoryInput.focus();
+    }
   }
 
   searchResults.innerHTML = "";
