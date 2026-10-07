@@ -153,35 +153,6 @@ async function init() {
     const scheduled = [];
     const active = [];
 
-    const serverTesting =
-      Array.isArray(
-        queueData?.queue?.testing
-      )
-        ? queueData.queue.testing
-        : [];
-
-    serverTesting.forEach((item) => {
-      const stage =
-        clean(item?.stage).toUpperCase();
-
-      if (
-        ![
-          "TEMPLE",
-          "TEST_ELIGIBLE"
-        ].includes(stage)
-      ) {
-        return;
-      }
-
-      const uid =
-        clean(item?.athleteUid);
-
-      readinessByUid.set(
-        uid,
-        stage
-      );
-    });
-
     athletes.forEach((a, uid) => {
       const state =
         clean(
