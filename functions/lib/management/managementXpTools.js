@@ -488,23 +488,24 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const athleteUid = clean(req.data?.athleteUid);
     const requestedAmount = Number(req.data?.amount);
     const verifiedExperienceYears = Number(req.data?.verifiedExperienceYears || 0);
-    const recognitionTotal = Number(req.data?.recognitionTotal || 0);
     const reason = clean(req.data?.reason);
     const category = clean(req.data?.category).toLowerCase();
     const semantic = (0, xpDomainPolicy_1.resolveManagementAdjustmentSemantic)(category, clean(req.data?.semantic) || undefined);
     const adjustmentId = clean(req.data?.adjustmentId);
     const discipline = clean(req.data?.discipline).toLowerCase();
     const isVerifiedExperienceOverride = category === "verified_experience_override";
-    const recognitionMaximum = verifiedExperienceYears === 1
+    const recognitionStageCap = verifiedExperienceYears === 1
         ? 200
         : verifiedExperienceYears === 2
-            ? 400
+            ? 200
             : verifiedExperienceYears === 3
-                ? 600
+                ? 300
                 : 0;
-    const overrideIssuedNow = verifiedExperienceYears === 1
-        ? recognitionTotal
-        : recognitionTotal / 2;
+    const recognitionPerStage = Number(req.data?.recognitionPerStage || 0);
+    const recognitionTotal = verifiedExperienceYears === 1
+        ? recognitionPerStage
+        : recognitionPerStage * 2;
+    const overrideIssuedNow = recognitionPerStage;
     const amount = isVerifiedExperienceOverride ? overrideIssuedNow : requestedAmount;
     const allowedCategories = new Set([
         "delayed_onboarding",
@@ -520,14 +521,10 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         if (![1, 2, 3].includes(verifiedExperienceYears)) {
             throw new https_1.HttpsError("invalid-argument", "Verified experience must be 1 Year, 2 Years, or 3+ Years.");
         }
-        if (!Number.isInteger(recognitionTotal) ||
-            recognitionTotal <= 0 ||
-            recognitionTotal > recognitionMaximum) {
-            throw new https_1.HttpsError("invalid-argument", `Recognition XP must be a whole number from 1 to ${recognitionMaximum} for the selected verified-experience year.`);
-        }
-        if (verifiedExperienceYears >= 2 &&
-            recognitionTotal % 2 !== 0) {
-            throw new https_1.HttpsError("invalid-argument", "Two-year and 3+ year recognition totals must be even so XP can split 50/50 between now and Tier 1 held XP.");
+        if (!Number.isInteger(recognitionPerStage) ||
+            recognitionPerStage <= 0 ||
+            recognitionPerStage > recognitionStageCap) {
+            throw new https_1.HttpsError("invalid-argument", `Recognition XP per stage must be a whole number from 1 to ${recognitionStageCap} for the selected Coach verification / suggestion.`);
         }
     }
     else if (!Number.isFinite(amount) ||
