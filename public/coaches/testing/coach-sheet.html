@@ -422,8 +422,30 @@
   </div>
 
   <script>
+    const params = new URLSearchParams(window.location.search);
+    const athleteEl = document.getElementById("athlete");
     const dateEl = document.getElementById("date");
-    if (dateEl && !dateEl.value) {
+    const trackEl = document.getElementById("track");
+
+    const incomingUid = params.get("uid") || params.get("athleteId") || "";
+    const incomingName = params.get("athleteName") || params.get("name") || "";
+    const incomingTrack = params.get("track") || "";
+    const incomingTier = params.get("tier") || "";
+    const incomingDate = params.get("testDate") || "";
+
+    if (athleteEl && (incomingName || incomingUid)) {
+      athleteEl.value = incomingName
+        ? incomingName + (incomingUid ? " · " + incomingUid : "")
+        : incomingUid;
+    }
+
+    if (trackEl && (incomingTrack || incomingTier)) {
+      trackEl.value = [incomingTrack, incomingTier].filter(Boolean).join(" · ");
+    }
+
+    if (dateEl && incomingDate) {
+      dateEl.value = incomingDate;
+    } else if (dateEl && !dateEl.value) {
       const d = new Date();
       const offset = d.getTimezoneOffset();
       const local = new Date(d.getTime() - offset * 60000);
