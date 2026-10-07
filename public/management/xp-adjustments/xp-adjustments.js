@@ -1452,8 +1452,16 @@ adjustmentForm.addEventListener(
               "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED"
             )
             ? "Verified experience has already been recognized for this athlete. The one-time override is no longer available."
-            : message ||
-              "Unable to apply XP adjustment.",
+            : (
+                isExperienceOverride &&
+                (
+                  message.includes("INTERNAL") ||
+                  message.toLowerCase().includes("internal")
+                )
+              )
+              ? "Verified Experience Override backend is not deployed yet. No new override can be applied until the Management XP function is updated."
+              : message ||
+                "Unable to apply XP adjustment.",
         true
       );
 
