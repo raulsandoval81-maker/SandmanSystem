@@ -258,3 +258,51 @@ body{
     display:flex;
   }
 }
+
+
+.queue-hero__side{
+  display:flex;
+  align-items:flex-end;
+  flex-direction:column;
+  gap:12px;
+}
+
+.queue-total{
+  min-width:92px;
+  padding:10px 14px;
+  border:1px solid rgba(255,221,59,.38);
+  border-radius:12px;
+  background:rgba(255,221,59,.08);
+  text-align:center;
+}
+
+.queue-total span{
+  display:block;
+  color:var(--muted);
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.queue-total strong{
+  display:block;
+  margin-top:2px;
+  color:var(--gold);
+  font-size:1.65rem;
+}
+
+.recognition-card--approaching{
+  border-style:dashed;
+}
+
+@media(max-width:760px){
+  .queue-hero__side{
+    width:100%;
+    align-items:stretch;
+  }
+
+  .queue-total{
+    width:100%;
+  }
+}
