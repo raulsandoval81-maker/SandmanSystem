@@ -575,6 +575,33 @@ function stateKey(parts: unknown[]): string {
   return createHash("sha256").update(parts.map((part) => String(part ?? "")).join("|")).digest("hex").slice(0, 32);
 }
 
+function validationObservationFullCredit(observation: any): boolean {
+  if (!observation || typeof observation !== "object") return false;
+
+  const fear = observation.fear || {};
+  const total = Number(
+    fear.total ??
+    (
+      Number(fear.focus || 0) +
+      Number(fear.effort || 0) +
+      Number(fear.attitude || 0) +
+      Number(fear.respect || 0)
+    )
+  );
+
+  const shirt = String(observation.shirt || "").trim().toLowerCase();
+  const execution = String(observation.execution || "").trim().toLowerCase();
+
+  return (
+    total >= 16 &&
+    ["plain_white", "academy"].includes(shirt) &&
+    observation.correctSkills === true &&
+    observation.knowHow === true &&
+    ["clean", "smooth"].includes(execution)
+  );
+}
+
+
 export async function awardXpAuthoritatively(coachUid: string, input: any) {
   if (!String(coachUid ?? "").trim()) throw new HttpsError("unauthenticated", "coachUid required");
   const request = normalizeXpRequest(input);
@@ -605,6 +632,11 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
     let trustedDiscipline = "";
     let trustedPracticeDayKey = "";
     let exactCoachVerifiedOverlap: Record<string, any> | null = null;
+    let validationPinRef: FirebaseFirestore.DocumentReference | null = null;
+    let validationPracticeDaysAfter: string[] | null = null;
+    let validationPracticeNumber: number | null = null;
+    let validationFullCreditEligible: boolean | null = null;
+    let validationRequestedAmount: number | null = null;
     if (request.kind === "ATTENDANCE") {
       if (String(request.meta.source ?? "") === COACH_VERIFIED_PRACTICE_SOURCE) {
         trustedPracticeDayKey = requiredString(
@@ -712,6 +744,121 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         }
       }
     }
+
+    if (request.kind === "ATTENDANCE") {
+      const assessmentQuery =
+        db.collection("athleteAssessmentPins")
+          .where("athleteUid", "==", request.uid)
+          .limit(10);
+
+      const assessmentSnapshot =
+        await tx.get(assessmentQuery);
+
+      const activeValidationDoc =
+        assessmentSnapshot.docs.find((docSnap) => {
+          const pin = docSnap.data() || {};
+          const status =
+            String(pin.status || "")
+              .trim()
+              .toUpperCase();
+
+          const claimed =
+            String(
+              pin.claimedExperience?.priorExperience ||
+              ""
+            )
+              .trim()
+              .toLowerCase();
+
+          return (
+            claimed === "yes" &&
+            [
+              "ASSESSMENT_NEEDED",
+              "IN_ASSESSMENT",
+              "RETURNED_TO_MANAGEMENT"
+            ].includes(status)
+          );
+        });
+
+      if (activeValidationDoc) {
+        const pin =
+          activeValidationDoc.data() || {};
+
+        const priorDays =
+          Array.isArray(pin.validationPracticeDays)
+            ? [
+                ...new Set(
+                  pin.validationPracticeDays
+                    .map(String)
+                    .filter(Boolean)
+                )
+              ]
+            : [];
+
+        const existingIndex =
+          priorDays.indexOf(
+            trustedPracticeDayKey
+          );
+
+        const practiceNumber =
+          existingIndex >= 0
+            ? existingIndex + 1
+            : priorDays.length + 1;
+
+        if (practiceNumber <= 2) {
+          const observation =
+            pin.validationObservations &&
+            typeof pin.validationObservations === "object"
+              ? pin.validationObservations[
+                  trustedPracticeDayKey
+                ]
+              : null;
+
+          validationPinRef =
+            activeValidationDoc.ref;
+
+          validationPracticeNumber =
+            practiceNumber;
+
+          validationFullCreditEligible =
+            validationObservationFullCredit(
+              observation
+            );
+
+          validationRequestedAmount =
+            Number(request.amount);
+
+          if (
+            !validationFullCreditEligible &&
+            Number(request.amount) > 5
+          ) {
+            request.amount = 5;
+          }
+
+          request.meta.validationGuardrail = {
+            active: true,
+            practiceNumber,
+            fearMinimum: 16,
+            halfCreditXp: 5,
+            fullCreditEligible:
+              validationFullCreditEligible,
+            requestedAmount:
+              validationRequestedAmount,
+            authoritativeAmount:
+              Number(request.amount)
+          };
+
+          validationPracticeDaysAfter =
+            existingIndex >= 0
+              ? priorDays
+              : [
+                  ...priorDays,
+                  trustedPracticeDayKey
+                ];
+        }
+      }
+    }
+
     if (request.kind === "STRENGTH" || request.kind === "HONOR") {
       const expectedSource = request.kind === "STRENGTH" ? "lane-review" : "honor_lane_review";
       if (String(request.meta.source ?? "") !== expectedSource) {
@@ -938,6 +1085,40 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       athletePatch["testing.templeEnteredAt"] = now;
     }
     tx.set(athleteRef, athletePatch, { merge: true });
+
+    if (
+      validationPinRef &&
+      validationPracticeDaysAfter
+    ) {
+      tx.set(
+        validationPinRef,
+        {
+          validationPracticeDays:
+            validationPracticeDaysAfter,
+
+          validationAttendanceLast: {
+            dayKey:
+              trustedPracticeDayKey,
+            practiceNumber:
+              validationPracticeNumber,
+            fullCreditEligible:
+              validationFullCreditEligible,
+            requestedAmount:
+              validationRequestedAmount,
+            awardedAmount:
+              plan.delta,
+            updatedAt:
+              now
+          },
+
+          updatedAt:
+            now
+        },
+        {
+          merge: true
+        }
+      );
+    }
 
     const log = {
       createdAt: now, monthKey: mk, uid: request.uid, coachUid,
