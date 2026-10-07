@@ -669,6 +669,39 @@ function proposalQueueStyles() {
       line-height:1.45;
     }
 
+    .proposal-stage-strip{
+      display:grid;
+      grid-template-columns:
+        minmax(180px,.7fr)
+        minmax(260px,1.3fr);
+      gap:10px;
+      padding:12px;
+      border:1px solid var(--management-border-strong);
+      border-radius:12px;
+      background:var(--management-surface);
+    }
+
+    .proposal-stage-strip > div{
+      min-width:0;
+    }
+
+    .proposal-stage-strip small{
+      display:block;
+      margin-bottom:5px;
+      color:var(--management-muted);
+      font-size:.68rem;
+      font-weight:850;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .proposal-stage-strip strong{
+      display:block;
+      color:var(--management-text);
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
     .proposal-card-grid{
       display:grid;
       grid-template-columns:
@@ -764,6 +797,10 @@ function proposalQueueStyles() {
     }
 
     @media(max-width:900px){
+      .proposal-stage-strip{
+        grid-template-columns:1fr;
+      }
+
       .proposal-queue-counts{
         width:100%;
         grid-template-columns:
@@ -1314,6 +1351,29 @@ async function runProposalAction(button) {
   }
 }
 
+function proposalStageInfo(status = "") {
+  switch (status) {
+    case "REVIEW":
+      return { stage: "Client Review", next: "Issue the client review and await family response." };
+    case "AWAITING_CLIENT_SIGNATURE":
+      return { stage: "Client Review", next: "Family reviews and signs the proposal." };
+    case "CLIENT_CHANGES_REQUESTED":
+      return { stage: "Proposal Correction", next: "Return to Prospect Builder and correct the offer." };
+    case "CLIENT_SIGNED":
+      return { stage: "Management Approval", next: "Approve the accepted proposal for checkout." };
+    case "BUILDING":
+    case "DRAFT":
+      return { stage: "Proposal Builder", next: "Complete the proposal and issue it to the family." };
+    case "READY_FOR_CHECKOUT":
+    case "CHECKOUT_CREATED":
+      return { stage: "Review & Confirm", next: "Family confirms the locked enrollment, then continues to Stripe." };
+    case "PAID":
+      return { stage: "Management Enrollment", next: "Issue the secure Intake handoff." };
+    default:
+      return { stage: "Management Review", next: "Open the proposal and determine the next approved step." };
+  }
+}
+
 function proposalCardHtml(
   proposal,
   {
@@ -1347,6 +1407,9 @@ function proposalCardHtml(
     getDueNow(
       proposal
     );
+
+  const stageInfo =
+    proposalStageInfo(status);
 
   const updated =
     proposal.updatedAt ||
@@ -1382,6 +1445,17 @@ function proposalCardHtml(
         ${athleteSummaryHtml(
           proposal
         )}
+      </div>
+
+      <div class="proposal-stage-strip">
+        <div>
+          <small>Current Stage</small>
+          <strong>${esc(stageInfo.stage)}</strong>
+        </div>
+        <div>
+          <small>Next Step</small>
+          <strong>${esc(stageInfo.next)}</strong>
+        </div>
       </div>
 
       <div class="proposal-card-grid">
