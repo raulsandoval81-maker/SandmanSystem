@@ -1469,15 +1469,19 @@ const extras = {
           : "";
 
       const firstMonthSummary =
-        overdueMembershipMonths > 0
+        paymentStartMode === "start_now"
           ? `${money(
-              overdueMembershipDueNow
-            )} for ${overdueMembershipMonths} missed month${overdueMembershipMonths === 1 ? "" : "s"}`
-          : paymentStartMode === "start_now"
-            ? `${money(
-                proratedFirstMonth
-              )} (${prorationPercent}%)`
-            : "Deferred";
+              proratedFirstMonth
+            )} (${prorationPercent}%)`
+          : "Deferred";
+
+      const additionalMonthsSummary =
+        overdueMembershipMonths +
+        additionalMembershipMonthsDue;
+
+      const additionalMonthsDueNow =
+        overdueMembershipDueNow +
+        additionalMembershipDueNow;
 
       el.summary.innerHTML = `
         ${intro}
@@ -1505,6 +1509,13 @@ const extras = {
               •
               First-month membership:
               ${firstMonthSummary}
+              ${
+                additionalMonthsSummary > 0
+                  ? ` • Additional membership owed: ${money(
+                      additionalMonthsDueNow
+                    )} (${additionalMonthsSummary} month${additionalMonthsSummary === 1 ? "" : "s"})`
+                  : ""
+              }
             </strong>
           </div>
 
@@ -1513,7 +1524,7 @@ const extras = {
             <strong>
               ${escapeHtml(
                 formatProposalDate(
-                  firstRecurringChargeDate
+                  resolvedFirstRecurringChargeDate
                 )
               )}
             </strong>
