@@ -797,6 +797,10 @@ function proposalQueueStyles() {
     }
 
     @media(max-width:900px){
+      .proposal-stage-strip{
+        grid-template-columns:1fr;
+      }
+
       .proposal-queue-counts{
         width:100%;
         grid-template-columns:
