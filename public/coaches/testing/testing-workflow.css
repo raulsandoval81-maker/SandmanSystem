@@ -263,3 +263,42 @@ body[data-theme="night"] .testing-summary-card strong{
     grid-template-columns:1fr;
   }
 }
+
+
+.testing-flow span{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+}
+
+.testing-flow i,
+.testing-summary-card span i{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  border-radius:999px;
+  border:1px solid rgba(212,175,55,.5);
+  background:rgba(212,175,55,.12);
+  color:#8a6919;
+  font-style:normal;
+  font-size:.68rem;
+  font-weight:900;
+  line-height:1;
+}
+
+.testing-summary-card span{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+html[data-coach-theme="night"] .testing-flow i,
+html[data-coach-theme="night"] .testing-summary-card span i,
+body[data-theme="night"] .testing-flow i,
+body[data-theme="night"] .testing-summary-card span i{
+  color:#f0cf67;
+  border-color:rgba(240,207,103,.45);
+  background:rgba(240,207,103,.1);
+}
