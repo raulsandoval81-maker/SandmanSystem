@@ -72,6 +72,35 @@ function placementExample(athleteUid) {
       : "Example: Apprentice · T0";
 }
 
+function disciplineDisplayLabel(value) {
+  const normalized =
+    clean(value).toLowerCase();
+
+  return ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    "muay-thai": "Muay Thai",
+    "muay thai": "Muay Thai",
+    mma: "MMA",
+    grappling: "Grappling"
+  })[normalized] || clean(value) || "—";
+}
+
+function locationDisplayLabel(value) {
+  const normalized =
+    clean(value)
+      .replaceAll("-", " ");
+
+  return normalized
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) =>
+      part.charAt(0).toUpperCase() +
+      part.slice(1)
+    )
+    .join(" ") || "—";
+}
+
 
 function xpForExperience(value) {
   const years = Number(value || 0);
@@ -166,12 +195,14 @@ function renderPin(pin) {
     athleteUid;
 
   const locationId =
-    clean(pin.locationId) ||
-    "—";
+    locationDisplayLabel(
+      pin.locationId
+    );
 
   const discipline =
-    clean(pin.discipline) ||
-    "—";
+    disciplineDisplayLabel(
+      pin.discipline
+    );
 
   const program =
     programDisplayLabel(
@@ -202,7 +233,10 @@ function renderPin(pin) {
     clean(claim.notes) || "No additional details provided.";
 
   const claimedDiscipline =
-    clean(claim.discipline) || discipline;
+    disciplineDisplayLabel(
+      claim.discipline ||
+      pin.discipline
+    );
 
   return `
     <article
@@ -349,22 +383,22 @@ function renderPin(pin) {
               </option>
 
               <option value="1">
-                1 Year — 200 XP
+                1 Year — 200 XP Total
               </option>
 
               <option value="2">
-                2 Years — 400 XP
+                2 Years — 400 XP Total
               </option>
 
               <option value="3">
-                3+ Years — 600 XP
+                3+ Years — 600 XP Total
               </option>
             </select>
           </label>
 
           <div class="assessment-recognition">
             <span>
-              Prior-Experience Recognition
+              Recognition Plan Total
             </span>
 
             <strong
@@ -374,7 +408,7 @@ function renderPin(pin) {
             </strong>
 
             <small>
-              Separate from earned practice XP.
+              Separate from earned practice XP. Management applies the issued-now / held schedule.
             </small>
           </div>
 
@@ -402,7 +436,7 @@ function renderPin(pin) {
             >
 
             <small class="assessment-field-help">
-              Less than 1 year: Coach may recommend 0–199 XP.
+              Less than 1 year: Coach may recommend 0–199 XP. Management authorizes the final recognition.
             </small>
           </label>
 
