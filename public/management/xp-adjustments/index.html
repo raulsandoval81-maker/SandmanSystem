@@ -299,12 +299,17 @@
             type="button"
             role="tab"
             aria-selected="true"
+            aria-disabled="true"
+            disabled
             aria-controls="experienceValidationPanel"
             data-xp-mode="experience"
           >
             <span>
-              <strong>Experience Validation</strong>
-              <small>Review returned Coach experience and final placement.</small>
+              <strong>
+                Experience Validation
+                <span id="experienceQueueBadge" class="xp-queue-badge">0 waiting</span>
+              </strong>
+              <small id="experienceQueueNote">Available when Coach-returned assessments are waiting for Management.</small>
             </span>
             <span class="xp-mode-chevron" aria-hidden="true">›</span>
           </button>
@@ -390,7 +395,7 @@
           XP Management
         </h3>
 
-        <section id="experienceValidationPanel" class="xp-step-panel" role="tabpanel" aria-live="polite">
+        <section id="experienceValidationPanel" class="xp-step-panel" role="tabpanel" aria-live="polite" hidden>
           <div class="xp-step-panel__head">
             <strong>Experience Validation</strong>
             <span id="experienceValidationStatus">Checking for returned Coach assessment…</span>
@@ -398,7 +403,7 @@
           <div id="experienceValidationContent"></div>
         </section>
 
-        <section id="xpAdjustmentPanel" class="xp-step-panel" role="tabpanel" hidden>
+        <section id="xpAdjustmentPanel" class="xp-step-panel" role="tabpanel">
           <div class="xp-step-panel__head">
             <strong>XP Adjustment</strong>
             <span>Administrative correction only when applicable.</span>
