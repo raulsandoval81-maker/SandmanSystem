@@ -523,16 +523,7 @@ function renderPin(pin) {
       pin.discipline
     );
 
-  const validationObservations =
-    pin.validationObservations &&
-    typeof pin.validationObservations === "object"
-      ? pin.validationObservations
-      : {};
 
-  const hasSavedBaseline =
-    Object.keys(validationObservations)
-      .filter(Boolean)
-      .length > 0;
 
   const isLegacyTransitionCandidate =
     !isValidationClaim &&
@@ -842,19 +833,6 @@ function renderPin(pin) {
           Return to Management
         </button>
 
-        ${
-          hasSavedBaseline
-            ? `
-                <button
-                  class="assessment-button assessment-button--outline"
-                  type="button"
-                  data-resolve-baseline="${esc(pinId)}"
-                >
-                  Baseline Complete · Send to Management
-                </button>
-              `
-            : ""
-        }
 
         ${
           isLegacyTransitionCandidate
@@ -1442,26 +1420,6 @@ async function resolveEdgeCase(
 function wireEdgeCaseButtons() {
   document
     .querySelectorAll(
-      "[data-resolve-baseline]"
-    )
-    .forEach((button) => {
-      button.addEventListener(
-        "click",
-        () => {
-          resolveEdgeCase(
-            clean(
-              button.dataset
-                .resolveBaseline
-            ),
-            "baseline_complete",
-            button
-          );
-        }
-      );
-    });
-
-  document
-    .querySelectorAll(
       "[data-resolve-legacy]"
     )
     .forEach((button) => {
@@ -1551,63 +1509,12 @@ async function loadAssessments() {
     const response =
       await listPins({});
 
-    let allPins =
+    const allPins =
       Array.isArray(
         response?.data?.pins
       )
         ? response.data.pins
         : [];
-
-    const staleCompletedBaselines =
-      allPins.filter((pin) => {
-        const status =
-          clean(pin.status)
-            .toUpperCase();
-
-        const claimed =
-          clean(
-            pin.claimedExperience
-              ?.priorExperience
-          ).toLowerCase();
-
-        const observations =
-          pin.validationObservations &&
-          typeof pin.validationObservations ===
-            "object"
-            ? pin.validationObservations
-            : {};
-
-        return (
-          OPEN_STATUSES.has(status) &&
-          claimed === "yes" &&
-          Object.keys(observations)
-            .filter(Boolean)
-            .length > 0
-        );
-      });
-
-    if (staleCompletedBaselines.length) {
-      await Promise.all(
-        staleCompletedBaselines.map(
-          (pin) =>
-            resolveAssessmentEdgeCase({
-              pinId: clean(pin.id),
-              resolution:
-                "baseline_complete"
-            })
-        )
-      );
-
-      const refreshed =
-        await listPins({});
-
-      allPins =
-        Array.isArray(
-          refreshed?.data?.pins
-        )
-          ? refreshed.data.pins
-          : [];
-    }
 
     const pins =
       allPins.filter((pin) =>
