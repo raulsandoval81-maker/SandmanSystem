@@ -321,7 +321,40 @@ function renderValidationObservationSection(
   const observations =
     sortedValidationObservations(pin);
 
-  const observationForm = `
+  if (observations.length >= 1) {
+    return `
+      <section class="assessment-validation-complete">
+        <p class="assessment-eyebrow">
+          FEAR + Skills Baseline
+        </p>
+        <strong>
+          One-time baseline recorded.
+        </strong>
+        <span>
+          Continue with Coach Confirmation and return the assessment to Management.
+        </span>
+
+        <div class="assessment-validation-history">
+          ${renderValidationHistory(pin)}
+        </div>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="assessment-validation">
+      <p class="assessment-eyebrow">
+        FEAR + Skills Baseline
+      </p>
+
+      <h4>
+        One-Time Onboarding Assessment
+      </h4>
+
+      <p class="assessment-confirm-note">
+        Record FEAR and the technical baseline once. After saving, these inputs close and cannot be entered again.
+      </p>
+
       <label class="assessment-field assessment-validation-date">
         <span>Practice Date</span>
         <input
@@ -331,6 +364,29 @@ function renderValidationObservationSection(
           value="${esc(pacificDayKey())}"
         >
       </label>
+
+      <div class="assessment-grid assessment-grid--four">
+        ${fearScoreField(
+          pinId,
+          "focus",
+          "Focus"
+        )}
+        ${fearScoreField(
+          pinId,
+          "effort",
+          "Effort"
+        )}
+        ${fearScoreField(
+          pinId,
+          "attitude",
+          "Attitude"
+        )}
+        ${fearScoreField(
+          pinId,
+          "respect",
+          "Respect"
+        )}
+      </div>
 
       <div class="assessment-grid assessment-grid--two assessment-validation-standards">
         <label class="assessment-field">
@@ -394,75 +450,12 @@ function renderValidationObservationSection(
           class="assessment-button assessment-button--outline"
           data-save-validation="${esc(pinId)}"
         >
-          Save Skill Read
+          Save One-Time Baseline
         </button>
-      </div>
-  `;
-
-  if (observations.length >= 1) {
-    return `
-      <section class="assessment-validation-complete">
-        <p class="assessment-eyebrow">
-          Prior-Experience Skill Read
-        </p>
-        <strong>
-          Technical baseline recorded.
-        </strong>
-        <span>
-          Continue with Coach Confirmation and the recognition recommendation below.
-        </span>
-
-        <div class="assessment-validation-history">
-          ${renderValidationHistory(pin)}
-        </div>
-
-        ${
-          observations.length < 2
-            ? `
-                <details class="assessment-second-look">
-                  <summary>
-                    Need a second technical look? <span>Optional</span>
-                  </summary>
-                  <div class="assessment-second-look-body">
-                    <p class="assessment-confirm-note">
-                      Use this only if you need another technical observation before returning the assessment. Normal attendance XP applies.
-                    </p>
-                    ${observationForm}
-                  </div>
-                </details>
-              `
-            : ""
-        }
-      </section>
-    `;
-  }
-
-  return `
-    <section class="assessment-validation">
-      <p class="assessment-eyebrow">
-        Prior-Experience Skill Read
-      </p>
-
-      <h4>
-        Technical Baseline
-      </h4>
-
-      <p class="assessment-confirm-note">
-        Record one technical baseline. The first validation practice is capped at 5 XP unless the technical guardrails are met. A second look is optional.
-      </p>
-
-      ${observationForm}
-
-      <div
-        class="assessment-validation-history"
-        data-validation-history="${esc(pinId)}"
-      >
-        ${renderValidationHistory(pin)}
       </div>
     </section>
   `;
 }
-
 
 function renderPin(pin) {
   const pinId =
@@ -619,7 +612,7 @@ function renderPin(pin) {
           <div class="assessment-work-body">
             <p class="assessment-work-required">
               ${isValidationClaim
-                ? "Record the prior-experience technical baseline, then complete Coach Confirmation and return it to Management."
+                ? "Record the one-time FEAR + skills baseline, then complete Coach Confirmation and return it to Management."
                 : "Complete the Coach assessment inside this panel before returning it to Management."}
             </p>
 
@@ -867,6 +860,24 @@ function wireValidationObservationControls() {
               pinId
             );
 
+          const scoreFor =
+            (key) =>
+              Number(
+                valueFor(
+                  `[data-validation-fear="${key}"]`,
+                  pinId
+                )
+              );
+
+          const focus =
+            scoreFor("focus");
+          const effort =
+            scoreFor("effort");
+          const attitude =
+            scoreFor("attitude");
+          const respect =
+            scoreFor("respect");
+
           const shirt =
             valueFor(
               "[data-validation-shirt]",
@@ -895,6 +906,10 @@ function wireValidationObservationControls() {
 
           if (
             !dayKey ||
+            !focus ||
+            !effort ||
+            !attitude ||
+            !respect ||
             !shirt ||
             !execution
           ) {
@@ -917,11 +932,23 @@ function wireValidationObservationControls() {
               await saveValidationObservation({
                 pinId,
                 dayKey,
+                fear: {
+                  focus,
+                  effort,
+                  attitude,
+                  respect
+                },
                 shirt,
                 execution,
                 correctSkills,
                 knowHow
               });
+
+            const total =
+              Number(
+                response?.data?.fearTotal ||
+                0
+              );
 
             const full =
               response?.data
@@ -930,8 +957,8 @@ function wireValidationObservationControls() {
             if (statusEl) {
               statusEl.textContent =
                 full
-                  ? "Saved · technical full-credit standard met."
-                  : "Saved · 5 XP validation cap applies.";
+                  ? `Saved · FEAR ${total}/20 · full-credit standard met.`
+                  : `Saved · FEAR ${total}/20 · 5 XP validation cap applies.`;
             }
 
             await loadAssessments();
