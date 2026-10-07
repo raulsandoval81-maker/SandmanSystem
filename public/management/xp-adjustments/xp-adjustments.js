@@ -66,6 +66,21 @@ const categoryInput =
 const amountInput =
   $("adjustmentAmount");
 
+const amountField =
+  $("adjustmentAmountField");
+
+const verifiedExperienceField =
+  $("verifiedExperienceField");
+
+const verifiedExperienceYears =
+  $("verifiedExperienceYears");
+
+const managementRecognitionField =
+  $("managementRecognitionField");
+
+const managementRecognitionYears =
+  $("managementRecognitionYears");
+
 const reasonInput =
   $("adjustmentReason");
 
@@ -717,6 +732,8 @@ function renderAthlete(member) {
 
   renderProgressionSummary();
   void loadSelectedExperience();
+  syncOverrideAvailability();
+  syncAdjustmentCategoryUi();
   setXpMode(activeXpMode);
 
   if (!progressions.length) {
@@ -748,8 +765,15 @@ function renderAthlete(member) {
 function clearAdjustmentFields() {
   categoryInput.value = "";
   amountInput.value = "";
+  if (verifiedExperienceYears) {
+    verifiedExperienceYears.value = "";
+  }
+  if (managementRecognitionYears) {
+    managementRecognitionYears.value = "";
+  }
   reasonInput.value = "";
 
+  syncAdjustmentCategoryUi();
   setAdjustmentStatus("");
 }
 
@@ -792,6 +816,166 @@ function categoryLabel(value) {
       "Correction"
   })[value] || value;
 }
+
+function overrideOption() {
+  return categoryInput?.querySelector(
+    'option[value="verified_experience_override"]'
+  ) || null;
+}
+
+function syncOverrideAvailability() {
+  const option =
+    overrideOption();
+
+  if (!option) return;
+
+  const used =
+    athlete?.priorExperienceRecognitionUsed ===
+    true;
+
+  option.hidden = used;
+  option.disabled = used;
+
+  if (
+    used &&
+    categoryInput.value ===
+      "verified_experience_override"
+  ) {
+    categoryInput.value = "";
+  }
+}
+
+function recognitionChoices(yearsValue) {
+  const years = Number(yearsValue || 0);
+
+  if (years === 1) {
+    return [
+      { total: 50, now: 50, held: 0 },
+      { total: 100, now: 100, held: 0 },
+      { total: 150, now: 150, held: 0 },
+      { total: 200, now: 200, held: 0 }
+    ];
+  }
+
+  if (years === 2) {
+    return [
+      { total: 100, now: 50, held: 50 },
+      { total: 200, now: 100, held: 100 },
+      { total: 300, now: 150, held: 150 },
+      { total: 400, now: 200, held: 200 }
+    ];
+  }
+
+  if (years === 3) {
+    return [
+      { total: 150, now: 75, held: 75 },
+      { total: 300, now: 150, held: 150 },
+      { total: 450, now: 225, held: 225 },
+      { total: 600, now: 300, held: 300 }
+    ];
+  }
+
+  return [];
+}
+
+function selectedRecognitionPlan() {
+  const total =
+    Number(
+      managementRecognitionYears?.value ||
+      0
+    );
+
+  return recognitionChoices(
+    verifiedExperienceYears?.value
+  ).find(
+    (choice) =>
+      choice.total === total
+  ) || null;
+}
+
+function syncRecognitionChoices() {
+  if (!managementRecognitionYears) return;
+
+  const choices =
+    recognitionChoices(
+      verifiedExperienceYears?.value
+    );
+
+  managementRecognitionYears.innerHTML = [
+    '<option value="">Select recognition amount…</option>',
+    ...choices.map(
+      (choice) => `
+        <option value="${choice.total}">
+          ${choice.total} XP total — ${choice.now} now${choice.held ? ` + ${choice.held} held for Tier 1` : ""}
+        </option>
+      `
+    )
+  ].join("");
+}
+
+function syncAdjustmentCategoryUi() {
+  syncOverrideAvailability();
+
+  const isOverride =
+    categoryInput?.value ===
+    "verified_experience_override";
+
+  if (amountField) {
+    amountField.hidden =
+      isOverride;
+  }
+
+  if (verifiedExperienceField) {
+    verifiedExperienceField.hidden =
+      !isOverride;
+  }
+
+  if (managementRecognitionField) {
+    managementRecognitionField.hidden =
+      !isOverride;
+  }
+
+  if (amountInput) {
+    amountInput.required =
+      !isOverride;
+
+    if (isOverride) {
+      amountInput.value = "";
+    }
+  }
+
+  if (verifiedExperienceYears) {
+    verifiedExperienceYears.required =
+      isOverride;
+
+    if (!isOverride) {
+      verifiedExperienceYears.value = "";
+    }
+  }
+
+  if (managementRecognitionYears) {
+    managementRecognitionYears.required =
+      isOverride;
+
+    if (!isOverride) {
+      managementRecognitionYears.value = "";
+    }
+  }
+
+  syncRecognitionChoices();
+}
+
+categoryInput?.addEventListener(
+  "change",
+  syncAdjustmentCategoryUi
+);
+
+verifiedExperienceYears?.addEventListener(
+  "change",
+  syncRecognitionChoices
+);
+
+syncAdjustmentCategoryUi();
 
 function createAdjustmentId() {
   if (
@@ -961,10 +1145,23 @@ adjustmentForm.addEventListener(
         categoryInput.value
       );
 
+    const isExperienceOverride =
+      category ===
+      "verified_experience_override";
+
+    const recognitionPlan =
+      isExperienceOverride
+        ? selectedRecognitionPlan()
+        : null;
+
     const amount =
-      Number(
-        amountInput.value
-      );
+      isExperienceOverride
+        ? Number(
+            recognitionPlan?.now || 0
+          )
+        : Number(
+            amountInput.value
+          );
 
     const reason =
       clean(
@@ -981,8 +1178,23 @@ adjustmentForm.addEventListener(
     }
 
     if (
-      !Number.isInteger(amount) ||
-      amount <= 0
+      isExperienceOverride &&
+      !recognitionPlan
+    ) {
+      setAdjustmentStatus(
+        "Select the verified experience year and recognition amount.",
+        true
+      );
+
+      return;
+    }
+
+    if (
+      !isExperienceOverride &&
+      (
+        !Number.isInteger(amount) ||
+        amount <= 0
+      )
     ) {
       setAdjustmentStatus(
         "XP amount must be a positive whole number.",
@@ -1007,7 +1219,9 @@ adjustmentForm.addEventListener(
       `${athlete.name} (${athlete.athleteId})`,
       `${disciplineLabel(selectedDiscipline)}`,
       `${categoryLabel(category)}`,
-      `+${amount} XP`,
+      isExperienceOverride
+        ? `${recognitionPlan.total} XP total — ${recognitionPlan.now} now${recognitionPlan.held ? ` + ${recognitionPlan.held} held for Tier 1` : ""}`
+        : `+${amount} XP`,
       "",
       reason,
       "",
@@ -1040,6 +1254,18 @@ adjustmentForm.addEventListener(
             selectedDiscipline,
 
           amount,
+
+          verifiedExperienceYears:
+            isExperienceOverride
+              ? Number(
+                  verifiedExperienceYears.value
+                )
+              : null,
+
+          recognitionTotal:
+            isExperienceOverride
+              ? recognitionPlan.total
+              : null,
 
           reason,
 
@@ -1095,9 +1321,20 @@ adjustmentForm.addEventListener(
         `
       );
 
+      if (isExperienceOverride) {
+        athlete.priorExperienceRecognitionUsed = true;
+      }
+
       categoryInput.value = "";
       amountInput.value = "";
+      if (verifiedExperienceYears) {
+        verifiedExperienceYears.value = "";
+      }
+      if (managementRecognitionYears) {
+        managementRecognitionYears.value = "";
+      }
       reasonInput.value = "";
+      syncAdjustmentCategoryUi();
 
     } catch (error) {
       console.error(
@@ -1114,9 +1351,9 @@ adjustmentForm.addEventListener(
         )
           ? "This athlete has already reached the active-rank XP cap."
           : message.includes(
-              "VERIFIED_EXPERIENCE_ALREADY_RECOGNIZED"
+              "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED"
             )
-            ? "Verified experience has already been recognized for this athlete. The override cannot be used again."
+            ? "Verified experience has already been recognized for this athlete. The one-time override is no longer available."
             : message ||
               "Unable to apply XP adjustment.",
         true
