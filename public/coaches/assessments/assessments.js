@@ -635,10 +635,7 @@ function renderPin(pin) {
 
       ${
         isValidationClaim
-          ? renderValidationObservationSection(
-              pin,
-              pinId
-            )
+          ? ""
           : `
               <section>
                 <p class="assessment-eyebrow">
@@ -674,11 +671,11 @@ function renderPin(pin) {
                     "Respect"
                   )}
                 </div>
+
+                <div class="assessment-divider"></div>
               </section>
             `
       }
-
-      <div class="assessment-divider"></div>
 
       <section>
         <p class="assessment-eyebrow">
@@ -710,6 +707,19 @@ function renderPin(pin) {
             <p>${esc(claimedNotes)}</p>
           </div>
         </div>
+
+        ${
+          isValidationClaim
+            ? `
+                <div class="assessment-divider"></div>
+                ${renderValidationObservationSection(
+                  pin,
+                  pinId
+                )}
+                <div class="assessment-divider"></div>
+              `
+            : ""
+        }
 
         <h4>
           Coach Confirmation
