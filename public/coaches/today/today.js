@@ -313,47 +313,9 @@ function isCurrentAthlete(data) {
   );
 }
 
-function renderRecognitionItems(items) {
-  if (!listRecognitionEl) return;
-
-  if (!items.length) {
-    listRecognitionEl.innerHTML =
-      '<div class="mini-list__empty">No athletes within 50 XP of a stripe.</div>';
-    return;
-  }
-
-  listRecognitionEl.innerHTML =
-    items.slice(0, 8).map((item) => {
-      const ready =
-        item.status === "ready";
-
-      const detail =
-        ready
-          ? `Stripe ${item.stripe} earned · Certificate ready`
-          : `${item.remaining} XP to Stripe ${item.stripe}`;
-
-      const action =
-        ready
-          ? `
-            <a
-              class="recognition-action"
-              href="/coaches/ceremonies/certificates/generator.html?uid=${encodeURIComponent(item.athleteUid)}"
-            >
-              Generate Certificate
-            </a>
-          `
-          : "";
-
-      return `
-        <div class="recognition-item recognition-item--${ready ? "ready" : "approaching"}">
-          <div>
-            <strong>${item.athleteName}</strong>
-            <span>${detail}</span>
-          </div>
-          ${action}
-        </div>
-      `;
-    }).join("");
+function renderRecognitionItems() {
+  // Daily Operations intentionally shows only the queue count.
+  // Athlete-level recognition detail belongs to the Certificate Queue.
 }
 
 async function refreshRecognitionQueue(user) {
