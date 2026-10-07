@@ -160,9 +160,10 @@ export const returnProposalToDraft =
           : clientRequestedChange
             ? "CLIENT_REVISION_REQUESTED"
             : "MANAGEMENT_CORRECTION",
-        correctionReason: managementCorrection
-          ? correctionReason
-          : "",
+        correctionReason:
+          managementCorrection || checkoutCorrection
+            ? correctionReason
+            : "",
         createdBy: req.auth!.uid,
         createdByName: staffAccess.fullName,
         createdAt: FieldValue.serverTimestamp(),
