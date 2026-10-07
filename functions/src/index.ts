@@ -327,6 +327,7 @@ export {
   listAthleteAssessmentPins,
   saveAthleteValidationObservation,
   returnAthleteAssessmentPin,
+  resolveAthleteAssessmentEdgeCase,
   recordAthleteAssessmentPlacement,
 } from "./assessments/athleteAssessmentPins";
 
