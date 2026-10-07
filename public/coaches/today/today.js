@@ -4,6 +4,7 @@ import {
   onSnapshot,
   query,
   where,
+  getDocs,
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
@@ -236,6 +237,127 @@ async function refreshManagementNoticeCount() {
   }
 }
 
+function athleteDisplayName(data, athleteId) {
+  return (
+    String(
+      data?.publicName ||
+      data?.fullName ||
+      data?.name ||
+      athleteId ||
+      ""
+    ).trim() ||
+    athleteId
+  );
+}
+
+function athleteStripeCount(data) {
+  return Math.max(
+    0,
+    Math.min(
+      4,
+      Number(
+        data?.stripeCount ??
+        data?.stripe ??
+        0
+      ) || 0
+    )
+  );
+}
+
+function athleteTierXp(data) {
+  return Math.max(
+    0,
+    Number(
+      data?.xp ??
+      data?.activeTierXp ??
+      data?.tierXp ??
+      0
+    ) || 0
+  );
+}
+
+function athleteXpCap(data) {
+  return Math.max(
+    0,
+    Number(
+      data?.xpCap ??
+      data?.tierCap ??
+      0
+    ) || 0
+  );
+}
+
+function isCurrentAthlete(data) {
+  const rosterStatus =
+    String(
+      data?.rosterStatus ||
+      data?.status ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    rosterStatus &&
+    ![
+      "current",
+      "active",
+      "approved"
+    ].includes(rosterStatus)
+  ) {
+    return false;
+  }
+
+  return !(
+    data?.isDev === true ||
+    data?.devMode === true ||
+    data?.isTest === true
+  );
+}
+
+function renderRecognitionItems(items) {
+  if (!listRecognitionEl) return;
+
+  if (!items.length) {
+    listRecognitionEl.innerHTML =
+      '<div class="mini-list__empty">No athletes within 50 XP of a stripe.</div>';
+    return;
+  }
+
+  listRecognitionEl.innerHTML =
+    items.slice(0, 8).map((item) => {
+      const ready =
+        item.status === "ready";
+
+      const detail =
+        ready
+          ? `Stripe ${item.stripe} earned · Certificate ready`
+          : `${item.remaining} XP to Stripe ${item.stripe}`;
+
+      const action =
+        ready
+          ? `
+            <a
+              class="recognition-action"
+              href="/coaches/ceremonies/certificates/generator.html?uid=${encodeURIComponent(item.athleteUid)}"
+            >
+              Generate Certificate
+            </a>
+          `
+          : "";
+
+      return `
+        <div class="recognition-item recognition-item--${ready ? "ready" : "approaching"}">
+          <div>
+            <strong>${item.athleteName}</strong>
+            <span>${detail}</span>
+          </div>
+          ${action}
+        </div>
+      `;
+    }).join("");
+}
+
 async function refreshRecognitionQueue(user) {
   if (!listRecognitionEl || !user) return;
 
@@ -243,16 +365,21 @@ async function refreshRecognitionQueue(user) {
     const token =
       await user.getIdToken();
 
-    const response =
-      await fetch(
-        RECOGNITION_QUEUE_ENDPOINT,
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`
+    const [response, athleteSnapshot] =
+      await Promise.all([
+        fetch(
+          RECOGNITION_QUEUE_ENDPOINT,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`
+            }
           }
-        }
-      );
+        ),
+        getDocs(
+          collection(db, "athletes")
+        )
+      ]);
 
     if (!response.ok) {
       throw new Error(
@@ -270,28 +397,134 @@ async function refreshRecognitionQueue(user) {
       );
     }
 
-    const stripeItems =
+    const readyItems =
       Array.isArray(
         data?.queue?.stripeAwards
       )
         ? data.queue.stripeAwards
         : [];
 
-    setCount(
-      countRecognitionEl,
-      stripeItems.length
+    const readyIds =
+      new Set(
+        readyItems
+          .map((item) =>
+            String(
+              item?.athleteUid ||
+              ""
+            ).trim()
+          )
+          .filter(Boolean)
+      );
+
+    const ready =
+      readyItems.map((item) => ({
+        status: "ready",
+        athleteUid:
+          String(
+            item?.athleteUid ||
+            ""
+          ).trim(),
+        athleteName:
+          String(
+            item?.athleteName ||
+            item?.athleteUid ||
+            "Athlete"
+          ).trim(),
+        stripe:
+          Math.max(
+            1,
+            Number(
+              item?.decision?.stripe ||
+              1
+            ) || 1
+          ),
+        remaining: 0
+      }));
+
+    const approaching = [];
+
+    athleteSnapshot.docs.forEach((docSnap) => {
+      const athleteUid =
+        docSnap.id;
+
+      if (readyIds.has(athleteUid)) {
+        return;
+      }
+
+      const athlete =
+        docSnap.data() || {};
+
+      if (!isCurrentAthlete(athlete)) {
+        return;
+      }
+
+      const xpCap =
+        athleteXpCap(athlete);
+
+      if (xpCap <= 0) {
+        return;
+      }
+
+      const currentStripe =
+        athleteStripeCount(athlete);
+
+      if (currentStripe >= 4) {
+        return;
+      }
+
+      const nextStripe =
+        currentStripe + 1;
+
+      const threshold =
+        Math.ceil(
+          (xpCap * nextStripe) / 4
+        );
+
+      const xp =
+        athleteTierXp(athlete);
+
+      const remaining =
+        threshold - xp;
+
+      if (
+        remaining <= 0 ||
+        remaining > 50
+      ) {
+        return;
+      }
+
+      approaching.push({
+        status: "approaching",
+        athleteUid,
+        athleteName:
+          athleteDisplayName(
+            athlete,
+            athleteUid
+          ),
+        stripe: nextStripe,
+        remaining
+      });
+    });
+
+    approaching.sort(
+      (a, b) =>
+        a.remaining - b.remaining ||
+        a.athleteName.localeCompare(
+          b.athleteName
+        )
     );
 
-    renderMiniList(
-      listRecognitionEl,
-      stripeItems.map((item) =>
-        String(
-          item?.athleteName ||
-          item?.athleteUid ||
-          ""
-        ).trim()
-      ).filter(Boolean)
+    const items = [
+      ...ready,
+      ...approaching
+    ];
+
+    setCount(
+      countRecognitionEl,
+      items.length
     );
+
+    renderRecognitionItems(items);
   } catch (error) {
     console.error(
       "[daily-operations] recognition queue failed",
