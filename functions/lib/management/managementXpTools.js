@@ -471,6 +471,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         "delayed_onboarding",
         "downtime_recovery",
         "paper_reconciliation",
+        "verified_experience_override",
         "correction"
     ]);
     if (!athleteUid) {
@@ -502,7 +503,19 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         }
         const athlete = athleteSnap.data() || {};
         requireLocationAccess(staffContext.staff, clean(athlete.locationId));
-        const awardIdentity = `management-adjustment:${adjustmentId}`;
+        const isVerifiedExperienceOverride = category === "verified_experience_override";
+        const awardIdentity = isVerifiedExperienceOverride
+            ? `verified-experience-override:${athleteUid}:${discipline}`
+            : `management-adjustment:${adjustmentId}`;
+        if (isVerifiedExperienceOverride) {
+            const existingLegacyCredit = Number(athlete.legacyCreditTotal ||
+                athlete.legacyCreditIssued ||
+                0);
+            if (athlete.legacy === true ||
+                existingLegacyCredit > 0) {
+                throw new https_1.HttpsError("failed-precondition", "VERIFIED_EXPERIENCE_ALREADY_RECOGNIZED");
+            }
+        }
         const receiptRef = db.collection("xpAwardReceipts").doc((0, authoritativeXpService_1.awardReceiptKey)(athleteUid, awardIdentity));
         const receiptSnap = await tx.get(receiptRef);
         if (receiptSnap.exists) {
@@ -633,7 +646,9 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             note: reason,
             awardIdentity,
             meta: {
-                source: "management_adjustment",
+                source: isVerifiedExperienceOverride
+                    ? "management_verified_experience_override"
+                    : "management_adjustment",
                 category,
                 semantic,
                 discipline,
@@ -690,7 +705,9 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             uid: athleteUid,
             awardIdentity,
             kind: "MANAGEMENT_ADJUSTMENT",
-            source: "management_adjustment",
+            source: isVerifiedExperienceOverride
+                ? "management_verified_experience_override"
+                : "management_adjustment",
             discipline,
             createdAt: now,
             logId: logRef.id,
