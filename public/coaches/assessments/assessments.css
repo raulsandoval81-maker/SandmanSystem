@@ -731,3 +731,15 @@ body[data-theme="night"] .assessment-xp-box{
   font-size:.8rem;
   line-height:1.4;
 }
+
+
+.assessment-card[data-assessment-locked="true"]{
+  pointer-events:none;
+}
+
+.assessment-card[data-assessment-locked="true"] input,
+.assessment-card[data-assessment-locked="true"] select,
+.assessment-card[data-assessment-locked="true"] textarea,
+.assessment-card[data-assessment-locked="true"] button{
+  opacity:.6;
+}
