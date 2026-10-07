@@ -23,7 +23,6 @@ export type ManagementXpAdjustmentCategory =
   | "delayed_onboarding"
   | "paper_reconciliation"
   | "downtime_recovery"
-  | "verified_experience_override"
   | "correction";
 
 export const LIFETIME_XP_RECEIPT_VERSION = "lifetime-components-v1" as const;
@@ -125,9 +124,6 @@ export function resolveManagementAdjustmentSemantic(
   }
   if (category === "downtime_recovery") {
     return explicitSemantic ?? "NEW_EARNED_XP";
-  }
-  if (category === "verified_experience_override") {
-    return "RECOGNIZED_PRIOR_EXPERIENCE";
   }
   if (category === "correction") {
     if (!explicitSemantic) throw new Error("CORRECTION_REQUIRES_EXPLICIT_XP_SEMANTIC");
