@@ -3,7 +3,9 @@ import {
   collection,
   onSnapshot,
   query,
-  where
+  where,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -23,6 +25,8 @@ const countConditioningEl = $("count-conditioning");
 const countConditioningRequestsEl = $("count-conditioning-requests");
 const countIronEl = $("count-iron");
 const countRecognitionEl = $("count-recognition");
+const countManagementNoticesEl = $("count-management-notices");
+const managementAssessmentSummaryEl = $("management-assessment-summary");
 
 const listStrengthEl = $("list-strength");
 const listHonorEl = $("list-honor");
@@ -32,6 +36,18 @@ const listRecognitionEl = $("list-recognition");
 
 const RECOGNITION_QUEUE_ENDPOINT =
   "https://us-central1-sandmandashboard.cloudfunctions.net/testRecognitionQueue";
+
+const listAssessmentPins =
+  httpsCallable(
+    functions,
+    "listAthleteAssessmentPins"
+  );
+
+const OPEN_ASSESSMENT_STATUSES =
+  new Set([
+    "ASSESSMENT_NEEDED",
+    "IN_ASSESSMENT"
+  ]);
 function setCount(el, value) {
   if (el) el.textContent = String(Number(value || 0));
 }
@@ -165,6 +181,59 @@ function subscribeLaneCounts() {
       console.error("[daily-operations] lane queue failed", error);
     }
   );
+}
+
+async function refreshManagementNoticeCount() {
+  try {
+    const response =
+      await listAssessmentPins();
+
+    const pins =
+      Array.isArray(response?.data?.pins)
+        ? response.data.pins
+        : Array.isArray(response?.data)
+          ? response.data
+          : [];
+
+    const openAssessments =
+      pins.filter((pin) =>
+        OPEN_ASSESSMENT_STATUSES.has(
+          String(pin?.status || "")
+            .trim()
+            .toUpperCase()
+        )
+      );
+
+    const count =
+      openAssessments.length;
+
+    setCount(
+      countManagementNoticesEl,
+      count
+    );
+
+    if (managementAssessmentSummaryEl) {
+      managementAssessmentSummaryEl.textContent =
+        count === 0
+          ? "No assessment requests pending. "
+          : `${count} athlete assessment request${count === 1 ? "" : "s"} waiting. `;
+    }
+  } catch (error) {
+    console.error(
+      "[daily-operations] management assessment count failed",
+      error
+    );
+
+    setCount(
+      countManagementNoticesEl,
+      0
+    );
+
+    if (managementAssessmentSummaryEl) {
+      managementAssessmentSummaryEl.textContent =
+        "Management request count unavailable. ";
+    }
+  }
 }
 
 async function refreshRecognitionQueue(user) {
@@ -306,6 +375,7 @@ async function initialize() {
     if (status) status.hidden = true;
 
     subscribeLaneCounts();
+    await refreshManagementNoticeCount();
     await refreshRecognitionQueue(
       coachContext?.user
     );
