@@ -19,16 +19,14 @@ function normalizeList(...values) {
         if (Array.isArray(value)) {
             for (const item of value) {
                 const normalized = clean(item);
-                if (normalized &&
-                    !out.includes(normalized)) {
+                if (normalized && !out.includes(normalized)) {
                     out.push(normalized);
                 }
             }
             continue;
         }
         const normalized = clean(value);
-        if (normalized &&
-            !out.includes(normalized)) {
+        if (normalized && !out.includes(normalized)) {
             out.push(normalized);
         }
     }
@@ -48,9 +46,7 @@ async function requireStaff(uid) {
     const isAdmin = role === "admin";
     const isManagement = MANAGEMENT_ROLES.has(role);
     const isCoach = role === "coach";
-    if (!isAdmin &&
-        !isManagement &&
-        !isCoach) {
+    if (!isAdmin && !isManagement && !isCoach) {
         throw new https_1.HttpsError("permission-denied", "Coach, Management, or Admin access required.");
     }
     return {
@@ -65,8 +61,7 @@ async function requireStaff(uid) {
 function requireLocationAccess(staff, locationId) {
     if (staff.isAdmin)
         return;
-    if (!locationId ||
-        !staff.locationIds.includes(locationId)) {
+    if (!locationId || !staff.locationIds.includes(locationId)) {
         throw new https_1.HttpsError("permission-denied", "This athlete is outside your assigned location.");
     }
 }
@@ -102,6 +97,71 @@ function serializePin(id, data) {
         placementRecordedAt: timestampMillis(data.placementRecordedAt)
     };
 }
+async function resolveAssessmentCase(athleteUid) {
+    const intakeSnap = await db
+        .collection("intakes")
+        .where("approvedUid", "==", athleteUid)
+        .get();
+    const approved = intakeSnap.docs
+        .map((doc) => ({
+        id: doc.id,
+        data: doc.data() || {}
+    }))
+        .filter(({ data }) => clean(data.mode || "new_athlete").toLowerCase() === "new_athlete" &&
+        clean(data.status).toLowerCase() === "approved" &&
+        data.minted === true &&
+        Boolean(clean(data.proposalId)))
+        .sort((a, b) => (timestampMillis(b.data.approvedAt) ||
+        timestampMillis(b.data.updatedAt) ||
+        timestampMillis(b.data.createdAt) || 0) -
+        (timestampMillis(a.data.approvedAt) ||
+            timestampMillis(a.data.updatedAt) ||
+            timestampMillis(a.data.createdAt) || 0))[0];
+    if (!approved) {
+        return {
+            intakeId: null,
+            proposalId: null,
+            connectLeadId: null,
+            claimedExperience: {
+                priorExperience: null,
+                range: null,
+                notes: null,
+                discipline: null,
+                source: null
+            }
+        };
+    }
+    const connectLeadId = clean(approved.data.connectLeadId) || null;
+    let claimedExperience = {
+        priorExperience: null,
+        range: null,
+        notes: null,
+        discipline: null,
+        source: null
+    };
+    if (connectLeadId) {
+        const leadSnap = await db.doc(`interest_leads/${connectLeadId}`).get();
+        if (leadSnap.exists) {
+            const lead = leadSnap.data() || {};
+            claimedExperience = {
+                priorExperience: clean(lead.claimedPriorExperience).toLowerCase() || null,
+                range: clean(lead.claimedExperienceRange).toLowerCase() || null,
+                notes: clean(lead.claimedExperienceNotes) || null,
+                discipline: clean(lead.preferredDiscipline ||
+                    lead.discipline ||
+                    approved.data.requestedDiscipline ||
+                    approved.data.discipline).toLowerCase() || null,
+                source: "interest_lead"
+            };
+        }
+    }
+    return {
+        intakeId: approved.id,
+        proposalId: clean(approved.data.proposalId) || null,
+        connectLeadId,
+        claimedExperience
+    };
+}
 /* =====================================================
    MANAGEMENT → COACH
 ===================================================== */
@@ -110,8 +170,7 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("unauthenticated", "Staff sign-in required.");
     }
     const staff = await requireStaff(req.auth.uid);
-    if (!staff.isAdmin &&
-        !staff.isManagement) {
+    if (!staff.isAdmin && !staff.isManagement) {
         throw new https_1.HttpsError("permission-denied", "Management access required.");
     }
     const athleteUid = clean(req.data?.athleteUid);
@@ -128,7 +187,7 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
     try {
         canonicalDiscipline = (0, lifetimeCombatDisciplinePolicy_1.resolveAuthoritativeLifetimeCombatDiscipline)({
             athlete,
-            requestedDiscipline: req.data?.discipline,
+            requestedDiscipline: req.data?.discipline
         });
     }
     catch (error) {
@@ -136,6 +195,9 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
     }
     const locationId = clean(athlete.locationId);
     requireLocationAccess(staff, locationId);
+    // Enrollment provenance is resolved server-side. The browser never gets
+    // to choose which proposal/intake owns this Coach assessment.
+    const assessmentCase = await resolveAssessmentCase(athleteUid);
     const existingSnap = await db
         .collection("athleteAssessmentPins")
         .where("athleteUid", "==", athleteUid)
@@ -149,25 +211,63 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         ].includes(status);
     });
     if (active) {
-        const activeDiscipline = clean(active.data().disciplineId || active.data().discipline);
+        const activeData = active.data() || {};
+        const activeDiscipline = clean(activeData.disciplineId || activeData.discipline);
         if (activeDiscipline !== canonicalDiscipline) {
             throw new https_1.HttpsError("failed-precondition", "ACTIVE_ASSESSMENT_DISCIPLINE_MISMATCH");
+        }
+        // Safe legacy backfill: an already-open assessment keeps the same pinId,
+        // but receives authoritative case provenance when the current enrollment
+        // can be resolved.
+        const needsCaseBackfill = Boolean(assessmentCase.proposalId &&
+            !clean(activeData.proposalId));
+        const needsClaimBackfill = Boolean(assessmentCase.claimedExperience.source &&
+            (!activeData.claimedExperience ||
+                typeof activeData.claimedExperience !== "object" ||
+                !clean(activeData.claimedExperience.source)));
+        if (needsCaseBackfill || needsClaimBackfill) {
+            await active.ref.set({
+                ...(needsCaseBackfill
+                    ? {
+                        proposalId: assessmentCase.proposalId,
+                        intakeId: assessmentCase.intakeId,
+                        connectLeadId: assessmentCase.connectLeadId,
+                        caseLinkedAt: firestore_1.FieldValue.serverTimestamp()
+                    }
+                    : {}),
+                ...(needsClaimBackfill
+                    ? {
+                        connectLeadId: assessmentCase.connectLeadId,
+                        claimedExperience: assessmentCase.claimedExperience
+                    }
+                    : {}),
+                updatedAt: firestore_1.FieldValue.serverTimestamp()
+            }, { merge: true });
         }
         return {
             ok: true,
             duplicate: true,
             pinId: active.id,
-            status: active.data().status
+            status: activeData.status,
+            proposalId: clean(activeData.proposalId) ||
+                assessmentCase.proposalId,
+            intakeId: clean(activeData.intakeId) ||
+                assessmentCase.intakeId
         };
     }
-    const pinRef = db
-        .collection("athleteAssessmentPins")
-        .doc();
+    const pinRef = db.collection("athleteAssessmentPins").doc();
     const now = firestore_1.FieldValue.serverTimestamp();
     await pinRef.set({
         athleteUid,
         athleteName: athleteName(athlete, athleteUid),
         locationId,
+        // Canonical case provenance. Null is allowed only for genuine legacy /
+        // existing-athlete assessments that have no enrollment case.
+        proposalId: assessmentCase.proposalId,
+        intakeId: assessmentCase.intakeId,
+        connectLeadId: assessmentCase.connectLeadId,
+        claimedExperience: assessmentCase.claimedExperience,
+        caseLinkedAt: assessmentCase.proposalId ? now : null,
         disciplineId: canonicalDiscipline,
         discipline: canonicalDiscipline,
         program: clean(athlete.programTrack ||
@@ -205,7 +305,9 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
     return {
         ok: true,
         pinId: pinRef.id,
-        status: "ASSESSMENT_NEEDED"
+        status: "ASSESSMENT_NEEDED",
+        proposalId: assessmentCase.proposalId,
+        intakeId: assessmentCase.intakeId
     };
 });
 /* =====================================================
@@ -227,10 +329,9 @@ exports.listAthleteAssessmentPins = (0, https_1.onCall)(async (req) => {
         data: doc.data()
     }))
         .filter(({ data }) => {
-        if (staff.isAdmin) {
+        if (staff.isAdmin)
             return true;
-        }
-        return (staff.locationIds.includes(clean(data.locationId)));
+        return staff.locationIds.includes(clean(data.locationId));
     })
         .map(({ id, data }) => serializePin(id, data));
     return {
@@ -246,8 +347,7 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("unauthenticated", "Coach sign-in required.");
     }
     const staff = await requireStaff(req.auth.uid);
-    if (!staff.isAdmin &&
-        !staff.isCoach) {
+    if (!staff.isAdmin && !staff.isCoach) {
         throw new https_1.HttpsError("permission-denied", "Coach access required.");
     }
     const pinId = clean(req.data?.pinId);
@@ -261,16 +361,11 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
     }
     const pin = pinSnap.data() || {};
     requireLocationAccess(staff, clean(pin.locationId));
-    const status = clean(pin.status)
-        .toUpperCase();
-    if (![
-        "ASSESSMENT_NEEDED",
-        "IN_ASSESSMENT"
-    ].includes(status)) {
+    const status = clean(pin.status).toUpperCase();
+    if (!["ASSESSMENT_NEEDED", "IN_ASSESSMENT"].includes(status)) {
         throw new https_1.HttpsError("failed-precondition", "This assessment is no longer open for Coach review.");
     }
-    const fear = req.data?.fear &&
-        typeof req.data.fear === "object"
+    const fear = req.data?.fear && typeof req.data.fear === "object"
         ? req.data.fear
         : {};
     const allowedFear = new Set([
@@ -279,14 +374,10 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         "concern"
     ]);
     const normalizedFear = {
-        focus: clean(fear.focus)
-            .toLowerCase(),
-        effort: clean(fear.effort)
-            .toLowerCase(),
-        attitude: clean(fear.attitude)
-            .toLowerCase(),
-        respect: clean(fear.respect)
-            .toLowerCase()
+        focus: clean(fear.focus).toLowerCase(),
+        effort: clean(fear.effort).toLowerCase(),
+        attitude: clean(fear.attitude).toLowerCase(),
+        respect: clean(fear.respect).toLowerCase()
     };
     for (const value of Object.values(normalizedFear)) {
         if (!allowedFear.has(value)) {
@@ -311,23 +402,17 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         if (!experienceNote) {
             throw new https_1.HttpsError("invalid-argument", "Manual prior-experience XP requires a Coach note.");
         }
-        manualXp =
-            requestedManualXp;
-        recognitionXp =
-            requestedManualXp;
+        manualXp = requestedManualXp;
+        recognitionXp = requestedManualXp;
     }
     else {
-        verifiedYears =
-            Number(req.data?.verifiedExperienceYears ||
-                0);
+        verifiedYears = Number(req.data?.verifiedExperienceYears || 0);
         if (![0, 1, 2, 3].includes(verifiedYears)) {
             throw new https_1.HttpsError("invalid-argument", "Verified experience must be None, 1 Year, 2 Years, or 3+ Years.");
         }
-        recognitionXp =
-            recognizedXpForYears(verifiedYears);
+        recognitionXp = recognizedXpForYears(verifiedYears);
     }
-    const placementRecommendation = clean(req.data
-        ?.placementRecommendation);
+    const placementRecommendation = clean(req.data?.placementRecommendation);
     if (!placementRecommendation) {
         throw new https_1.HttpsError("invalid-argument", "Placement recommendation is required.");
     }
@@ -335,32 +420,25 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         .doc(`athletes/${clean(pin.athleteUid)}`)
         .get();
     const currentEarnedXp = athleteSnap.exists
-        ? Math.max(0, Number(athleteSnap.data()?.xp ||
-            0))
-        : Math.max(0, Number(pin.currentEarnedXp ||
-            0));
+        ? Math.max(0, Number(athleteSnap.data()?.xp || 0))
+        : Math.max(0, Number(pin.currentEarnedXp || 0));
     await pinRef.set({
         status: "RETURNED_TO_MANAGEMENT",
         currentEarnedXp,
         fear: normalizedFear,
         priorExperience: {
-            verifiedYears: manual
-                ? null
-                : verifiedYears,
+            verifiedYears: manual ? null : verifiedYears,
             recognitionXp,
             manual,
             manualXp,
-            note: experienceNote ||
-                null
+            note: experienceNote || null
         },
         placementRecommendation,
         coachNotes: clean(req.data?.coachNotes) || null,
         coachReturnedAt: firestore_1.FieldValue.serverTimestamp(),
         coachReturnedBy: req.auth.uid,
         updatedAt: firestore_1.FieldValue.serverTimestamp()
-    }, {
-        merge: true
-    });
+    }, { merge: true });
     return {
         ok: true,
         status: "RETURNED_TO_MANAGEMENT",
@@ -376,8 +454,7 @@ exports.recordAthleteAssessmentPlacement = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("unauthenticated", "Management sign-in required.");
     }
     const staff = await requireStaff(req.auth.uid);
-    if (!staff.isAdmin &&
-        !staff.isManagement) {
+    if (!staff.isAdmin && !staff.isManagement) {
         throw new https_1.HttpsError("permission-denied", "Management access required.");
     }
     const pinId = clean(req.data?.pinId);
@@ -391,22 +468,17 @@ exports.recordAthleteAssessmentPlacement = (0, https_1.onCall)(async (req) => {
     }
     const pin = pinSnap.data() || {};
     requireLocationAccess(staff, clean(pin.locationId));
-    if (clean(pin.status)
-        .toUpperCase() !==
-        "RETURNED_TO_MANAGEMENT") {
+    if (clean(pin.status).toUpperCase() !== "RETURNED_TO_MANAGEMENT") {
         throw new https_1.HttpsError("failed-precondition", "Coach assessment has not been returned yet.");
     }
     const finalPlacementNote = clean(req.data?.finalPlacementNote);
     await pinRef.set({
         status: "PLACEMENT_RECORDED",
-        finalPlacementNote: finalPlacementNote ||
-            null,
+        finalPlacementNote: finalPlacementNote || null,
         placementRecordedAt: firestore_1.FieldValue.serverTimestamp(),
         placementRecordedBy: req.auth.uid,
         updatedAt: firestore_1.FieldValue.serverTimestamp()
-    }, {
-        merge: true
-    });
+    }, { merge: true });
     return {
         ok: true,
         status: "PLACEMENT_RECORDED"
