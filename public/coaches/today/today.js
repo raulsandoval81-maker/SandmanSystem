@@ -477,17 +477,11 @@ async function refreshRecognitionQueue(user) {
     } else if (rawState === "READY") {
       stage = "TEST_SCHEDULED";
     } else if (
-      rawState === "ELIGIBLE" ||
-      testing?.testEligibleAt
+      rawState === "ELIGIBLE"
     ) {
       stage = "TEST_ELIGIBLE";
     } else if (
-      rawState === "TEMPLE" ||
-      (
-        xpCap > 0 &&
-        xp / xpCap >= 0.9 &&
-        !testing?.scheduledDate
-      )
+      rawState === "TEMPLE"
     ) {
       stage = "TEMPLE";
     }
