@@ -84,6 +84,9 @@ const managementRecognitionXp =
 const managementRecognitionHint =
   $("managementRecognitionHint");
 
+const managementRecognitionCap =
+  $("managementRecognitionCap");
+
 const reasonInput =
   $("adjustmentReason");
 
@@ -925,10 +928,21 @@ function syncRecognitionInput() {
     managementRecognitionXp.placeholder =
       "Select verified year first";
 
+    if (managementRecognitionCap) {
+      managementRecognitionCap.hidden = true;
+      managementRecognitionCap.textContent = "";
+    }
+
     managementRecognitionHint.textContent =
       "System maximum will appear after the verified year is selected.";
 
     return;
+  }
+
+  if (managementRecognitionCap) {
+    managementRecognitionCap.hidden = false;
+    managementRecognitionCap.textContent =
+      `MAX ${maximum} XP`;
   }
 
   managementRecognitionXp.max =
