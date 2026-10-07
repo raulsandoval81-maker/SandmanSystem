@@ -1314,6 +1314,29 @@ async function runProposalAction(button) {
   }
 }
 
+function proposalStageInfo(status = "") {
+  switch (status) {
+    case "REVIEW":
+      return { stage: "Client Review", next: "Issue the client review and await family response." };
+    case "AWAITING_CLIENT_SIGNATURE":
+      return { stage: "Client Review", next: "Family reviews and signs the proposal." };
+    case "CLIENT_CHANGES_REQUESTED":
+      return { stage: "Proposal Correction", next: "Return to Prospect Builder and correct the offer." };
+    case "CLIENT_SIGNED":
+      return { stage: "Management Approval", next: "Approve the accepted proposal for checkout." };
+    case "BUILDING":
+    case "DRAFT":
+      return { stage: "Proposal Builder", next: "Complete the proposal and issue it to the family." };
+    case "READY_FOR_CHECKOUT":
+    case "CHECKOUT_CREATED":
+      return { stage: "Review & Confirm", next: "Family confirms the locked enrollment, then continues to Stripe." };
+    case "PAID":
+      return { stage: "Management Enrollment", next: "Issue the secure Intake handoff." };
+    default:
+      return { stage: "Management Review", next: "Open the proposal and determine the next approved step." };
+  }
+}
+
 function proposalCardHtml(
   proposal,
   {
@@ -1347,6 +1370,9 @@ function proposalCardHtml(
     getDueNow(
       proposal
     );
+
+  const stageInfo =
+    proposalStageInfo(status);
 
   const updated =
     proposal.updatedAt ||
@@ -1382,6 +1408,17 @@ function proposalCardHtml(
         ${athleteSummaryHtml(
           proposal
         )}
+      </div>
+
+      <div class="proposal-stage-strip">
+        <div>
+          <small>Current Stage</small>
+          <strong>${esc(stageInfo.stage)}</strong>
+        </div>
+        <div>
+          <small>Next Step</small>
+          <strong>${esc(stageInfo.next)}</strong>
+        </div>
       </div>
 
       <div class="proposal-card-grid">
