@@ -308,3 +308,69 @@
     border-bottom:0;
   }
 }
+
+
+.recognition-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 10px;
+  border:1px solid var(--daily-line);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+}
+
+.recognition-item strong,
+.recognition-item span{
+  display:block;
+}
+
+.recognition-item strong{
+  color:var(--daily-text);
+  font-size:.82rem;
+}
+
+.recognition-item span{
+  margin-top:2px;
+  color:var(--daily-muted);
+  font-size:.73rem;
+}
+
+.recognition-item--ready{
+  border-color:rgba(209,170,85,.46);
+  background:rgba(209,170,85,.07);
+}
+
+.recognition-action{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:6px 9px;
+  border:1px solid rgba(209,170,85,.48);
+  border-radius:8px;
+  color:var(--daily-text);
+  text-decoration:none;
+  font-size:.72rem;
+  font-weight:850;
+}
+
+.recognition-action:hover,
+.recognition-action:focus-visible{
+  border-color:var(--daily-gold);
+  color:var(--daily-gold);
+  outline:none;
+}
+
+@media(max-width:560px){
+  .recognition-item{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .recognition-action{
+    width:100%;
+  }
+}
