@@ -6,17 +6,52 @@
   <title>Testing | Sandman</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css?v=20261007-3" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css?v=20261007-4" />
 </head>
 
 <body class="coach-shell-page" data-coach-page="Testing" data-coach-area="xp" data-coach-shell-hub>
 <main class="testing-workflow" data-coach-shell-content>
-  <header class="workflow-hero">
-    <p class="workflow-eyebrow">XP &amp; Progression</p>
-    <h1>Testing Operations</h1>
-    <p>Move athletes from Temple readiness through scheduled testing, live evaluation, cooldown, promotion, and follow-through.</p>
+  <header class="workflow-hero testing-hero">
+    <div>
+      <p class="workflow-eyebrow">XP &amp; Progression</p>
+      <h1>Testing Operations</h1>
+      <p>Move athletes from Temple readiness through scheduled testing, live evaluation, cooldown, promotion, and follow-through.</p>
+    </div>
+
+    <div class="testing-total">
+      <span>Queue</span>
+      <strong id="countTestingTotal">0</strong>
+    </div>
   </header>
+
   <section id="testingStatus" class="testing-ops-status" role="status" aria-live="polite">Loading testing pipeline…</section>
+
+  <section class="testing-flow" aria-label="Testing workflow">
+    <span>Readiness Review</span><b>→</b>
+    <span>Schedule Test</span><b>→</b>
+    <span>Run Test Session</span><b>→</b>
+    <span>Follow Through</span>
+  </section>
+
+  <section class="testing-summary-grid">
+    <article class="testing-summary-card">
+      <span>Readiness</span>
+      <strong id="countTestingReadiness">0</strong>
+      <p>Temple and test-eligible athletes.</p>
+    </article>
+
+    <article class="testing-summary-card">
+      <span>Scheduled</span>
+      <strong id="countTestingScheduled">0</strong>
+      <p>Approved tests waiting to be prepared or started.</p>
+    </article>
+
+    <article class="testing-summary-card">
+      <span>Active</span>
+      <strong id="countTestingActive">0</strong>
+      <p>Testing sessions currently in progress.</p>
+    </article>
+  </section>
   <section class="workflow-section">
     <h2>1. Readiness</h2>
     <p class="section-note">Temple and test-eligible athletes. Review the athlete before scheduling a test.</p>
@@ -34,29 +69,25 @@
   </section>
   <section class="workflow-section">
     <h2>4. Follow Through</h2>
-    <p class="section-note">More preparation, cooldown, promotion, and ceremony work happens after testing.</p>
+    <p class="section-note">After the test, this is where preparation holds, cooldown, promotion readiness, and ceremony work continue.</p>
     <div class="workflow-grid">
-      <a class="workflow-card" href="/coaches/progression/queue.html"><span class="workflow-tag">After Test</span><h3>Follow-Through Queue</h3><p>More preparation, cooldown, promotion, and recent promotion work.</p></a>
-      <a class="workflow-card" href="/coaches/testing/testing-command-center.html"><span class="workflow-tag">Test Session</span><h3>Testing Command Center</h3><p>Prepare a scheduled test session and launch scoring.</p></a>
+      <a class="workflow-card" href="/coaches/progression/queue.html"><span class="workflow-tag">After Test</span><h3>Testing Follow-Through</h3><p>More preparation, cooldown, promotion readiness, and recent promotion work.</p></a>
     </div>
   </section>
+
   <section class="workflow-section">
-    <h2>History</h2>
-    <p class="section-note">Scoring sessions and lifecycle activity are separate records.</p>
+    <h2>Testing Tools &amp; Records</h2>
+    <p class="section-note">The operational tools stay inside Testing; use the athlete queue above to know where to enter.</p>
     <div class="workflow-grid">
-      <a class="workflow-card" href="/coaches/testing/results-history.html"><span class="workflow-tag">Scoring</span><h3>Test Sessions</h3><p>Review detailed panel sessions and open their submitted scores.</p></a>
+      <a class="workflow-card" href="/coaches/testing/testing-command-center.html"><span class="workflow-tag">Test Session</span><h3>Testing Command Center</h3><p>Prepare a scheduled athlete, assign the panel, and launch scoring.</p></a>
+      <a class="workflow-card" href="/coaches/testing/results-history.html"><span class="workflow-tag">Scoring</span><h3>Test Sessions</h3><p>Review detailed panel sessions and submitted scores.</p></a>
       <a class="workflow-card" href="/coaches/testing-history/"><span class="workflow-tag">Lifecycle</span><h3>Testing Activity History</h3><p>Review scheduled, started, passed, failed, cooldown, and promotion events.</p></a>
-    </div>
-  </section>
-  <section class="workflow-section">
-    <h2>Reference</h2>
-    <div class="workflow-grid">
-      <a class="workflow-card" href="/coaches/testing/coach-sheet.html"><span class="workflow-tag">Base Test</span><h3>Coach Sheet</h3><p>Reference the established evaluation and scoring language.</p></a>
+      <a class="workflow-card" href="/coaches/testing/coach-sheet.html"><span class="workflow-tag">Evaluation</span><h3>Coach Sheet</h3><p>Open the established evaluation language and test cues.</p></a>
     </div>
   </section>
 </main>
 
-<script type="module" src="/coaches/testing/testing-operations.js?v=20261007-1"></script>
+<script type="module" src="/coaches/testing/testing-operations.js?v=20261007-2"></script>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 
 </body>
