@@ -1291,7 +1291,9 @@ adjustmentForm.addEventListener(
       setAdjustmentStatus(
         duplicate
           ? "This adjustment was already recorded. No duplicate XP was added."
-          : `Adjustment recorded successfully. +${applied} XP applied.`
+          : isExperienceOverride
+            ? `Verified experience recorded. ${recognitionPlan.total} XP total — ${applied} now${recognitionPlan.held ? ` + ${recognitionPlan.held} held for Tier 1` : ""}.`
+            : `Adjustment recorded successfully. +${applied} XP applied.`
       );
 
       adjustmentForm.insertAdjacentHTML(
@@ -1315,7 +1317,9 @@ adjustmentForm.addEventListener(
               ·
               ${esc(categoryLabel(category))}
               ·
-              +${esc(applied)} XP
+              ${isExperienceOverride
+                ? `${esc(recognitionPlan.total)} XP total · ${esc(applied)} now${recognitionPlan.held ? ` · ${esc(recognitionPlan.held)} held` : ""}`
+                : `+${esc(applied)} XP`}
             </p>
           </div>
         `
