@@ -322,7 +322,8 @@ function categoricalFearValue(score) {
 
 function renderValidationObservationSection(
   pin,
-  pinId
+  pinId,
+  isPriorExperienceClaim
 ) {
   const observations =
     sortedValidationObservations(pin);
@@ -331,7 +332,9 @@ function renderValidationObservationSection(
     return `
       <section class="assessment-validation-complete">
         <p class="assessment-eyebrow">
-          FEAR + Skills Baseline
+          ${isPriorExperienceClaim
+            ? "FEAR + Skills Baseline"
+            : "FEAR Baseline"}
         </p>
         <strong>
           One-time baseline recorded.
@@ -350,7 +353,9 @@ function renderValidationObservationSection(
   return `
     <section class="assessment-validation">
       <p class="assessment-eyebrow">
-        FEAR + Skills Baseline
+        ${isPriorExperienceClaim
+          ? "FEAR + Skills Baseline"
+          : "FEAR Baseline"}
       </p>
 
       <h4>
@@ -358,7 +363,9 @@ function renderValidationObservationSection(
       </h4>
 
       <p class="assessment-confirm-note">
-        Record FEAR and the technical baseline once. After saving, these inputs close and cannot be entered again.
+        ${isPriorExperienceClaim
+          ? "Record FEAR and the technical baseline once. After saving, these inputs close and cannot be entered again."
+          : "Record FEAR once. After saving, these inputs close and cannot be entered again."}
       </p>
 
       <label class="assessment-field assessment-validation-date">
@@ -394,54 +401,60 @@ function renderValidationObservationSection(
         )}
       </div>
 
-      <div class="assessment-grid assessment-grid--two assessment-validation-standards">
-        <label class="assessment-field">
-          <span>Shirt Standard</span>
-          <select
-            data-validation-shirt
-            data-pin="${esc(pinId)}"
-          >
-            <option value="">Select…</option>
-            <option value="plain_white">Plain White Shirt</option>
-            <option value="academy">Academy Shirt</option>
-            <option value="other">Other / Not Yet Up To Standard</option>
-          </select>
-        </label>
+      ${
+        isPriorExperienceClaim
+          ? `
+              <div class="assessment-grid assessment-grid--two assessment-validation-standards">
+                <label class="assessment-field">
+                  <span>Shirt Standard</span>
+                  <select
+                    data-validation-shirt
+                    data-pin="${esc(pinId)}"
+                  >
+                    <option value="">Select…</option>
+                    <option value="plain_white">Plain White Shirt</option>
+                    <option value="academy">Academy Shirt</option>
+                    <option value="other">Other / Not Yet Up To Standard</option>
+                  </select>
+                </label>
 
-        <label class="assessment-field">
-          <span>Execution Quality</span>
-          <select
-            data-validation-execution
-            data-pin="${esc(pinId)}"
-          >
-            <option value="">Select…</option>
-            <option value="clean">Clean</option>
-            <option value="smooth">Smooth</option>
-            <option value="rigid">Rigid</option>
-            <option value="sloppy">Sloppy</option>
-          </select>
-        </label>
-      </div>
+                <label class="assessment-field">
+                  <span>Execution Quality</span>
+                  <select
+                    data-validation-execution
+                    data-pin="${esc(pinId)}"
+                  >
+                    <option value="">Select…</option>
+                    <option value="clean">Clean</option>
+                    <option value="smooth">Smooth</option>
+                    <option value="rigid">Rigid</option>
+                    <option value="sloppy">Sloppy</option>
+                  </select>
+                </label>
+              </div>
 
-      <div class="assessment-validation-checks">
-        <label>
-          <input
-            type="checkbox"
-            data-validation-correct-skills
-            data-pin="${esc(pinId)}"
-          >
-          <span>Correct skills</span>
-        </label>
+              <div class="assessment-validation-checks">
+                <label>
+                  <input
+                    type="checkbox"
+                    data-validation-correct-skills
+                    data-pin="${esc(pinId)}"
+                  >
+                  <span>Correct skills</span>
+                </label>
 
-        <label>
-          <input
-            type="checkbox"
-            data-validation-know-how
-            data-pin="${esc(pinId)}"
-          >
-          <span>Shows know-how</span>
-        </label>
-      </div>
+                <label>
+                  <input
+                    type="checkbox"
+                    data-validation-know-how
+                    data-pin="${esc(pinId)}"
+                  >
+                  <span>Shows know-how</span>
+                </label>
+              </div>
+            `
+          : ""
+      }
 
       <div class="assessment-validation-actions">
         <p
@@ -625,20 +638,16 @@ function renderPin(pin) {
             <p class="assessment-work-required">
               ${isValidationClaim
                 ? "Record the one-time FEAR + skills baseline, then complete Coach Confirmation and return it to Management."
-                : "Complete the Coach assessment inside this panel before returning it to Management."}
+                : "Record the one-time FEAR baseline, then complete Coach Confirmation and return it to Management."}
             </p>
 
-            ${isValidationClaim
-              ? `
-                  ${renderValidationObservationSection(
-                    pin,
-                    pinId
-                  )}
+            ${renderValidationObservationSection(
+              pin,
+              pinId,
+              isValidationClaim
+            )}
 
-                  <div class="assessment-divider"></div>
-                `
-              : ""
-            }
+            <div class="assessment-divider"></div>
 
             <div class="assessment-divider"></div>
 
@@ -931,14 +940,28 @@ function wireValidationObservationControls() {
               )}"]`
             )?.checked === true;
 
+          const requiresTechnicalBaseline =
+            Boolean(
+              document.querySelector(
+                `[data-validation-shirt][data-pin="${CSS.escape(
+                  pinId
+                )}"]`
+              )
+            );
+
           if (
             !dayKey ||
             !focus ||
             !effort ||
             !attitude ||
             !respect ||
-            !shirt ||
-            !execution
+            (
+              requiresTechnicalBaseline &&
+              (
+                !shirt ||
+                !execution
+              )
+            )
           ) {
             if (statusEl) {
               statusEl.textContent =
@@ -965,10 +988,22 @@ function wireValidationObservationControls() {
                   attitude,
                   respect
                 },
-                shirt,
-                execution,
-                correctSkills,
-                knowHow
+                shirt:
+                  requiresTechnicalBaseline
+                    ? shirt
+                    : null,
+                execution:
+                  requiresTechnicalBaseline
+                    ? execution
+                    : null,
+                correctSkills:
+                  requiresTechnicalBaseline
+                    ? correctSkills
+                    : false,
+                knowHow:
+                  requiresTechnicalBaseline
+                    ? knowHow
+                    : false
               });
 
             const total =
@@ -983,9 +1018,13 @@ function wireValidationObservationControls() {
 
             if (statusEl) {
               statusEl.textContent =
-                full
-                  ? `Saved · FEAR ${total}/20 · full-credit standard met.`
-                  : `Saved · FEAR ${total}/20 · 5 XP validation cap applies.`;
+                requiresTechnicalBaseline
+                  ? (
+                      full
+                        ? `Saved · FEAR ${total}/20 · full-credit standard met.`
+                        : `Saved · FEAR ${total}/20 · 5 XP validation cap applies.`
+                    )
+                  : `Saved · FEAR ${total}/20.`;
             }
 
             await loadAssessments();
@@ -1509,12 +1548,56 @@ async function loadAssessments() {
     const response =
       await listPins({});
 
-    const allPins =
+    let allPins =
       Array.isArray(
         response?.data?.pins
       )
         ? response.data.pins
         : [];
+
+    const legacyTwoDayCompleted =
+      allPins.filter((pin) => {
+        const status =
+          clean(pin.status)
+            .toUpperCase();
+
+        const observations =
+          pin.validationObservations &&
+          typeof pin.validationObservations ===
+            "object"
+            ? pin.validationObservations
+            : {};
+
+        return (
+          OPEN_STATUSES.has(status) &&
+          Object.keys(observations)
+            .filter(Boolean)
+            .length >= 2
+        );
+      });
+
+    if (legacyTwoDayCompleted.length) {
+      await Promise.all(
+        legacyTwoDayCompleted.map(
+          (pin) =>
+            resolveAssessmentEdgeCase({
+              pinId: clean(pin.id),
+              resolution:
+                "baseline_complete"
+            })
+        )
+      );
+
+      const refreshed =
+        await listPins({});
+
+      allPins =
+        Array.isArray(
+          refreshed?.data?.pins
+        )
+          ? refreshed.data.pins
+          : [];
+    }
 
     const pins =
       allPins.filter((pin) =>
