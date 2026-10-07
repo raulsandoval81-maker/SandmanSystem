@@ -110,6 +110,10 @@
   border-color:rgba(255,221,72,.42);
 }
 
+.priority-card--recognition{
+  border-color:rgba(209,170,85,.40);
+}
+
 .priority-heading{
   display:flex;
   align-items:center;
