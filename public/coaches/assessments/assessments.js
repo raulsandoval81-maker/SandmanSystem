@@ -595,43 +595,46 @@ function renderPin(pin) {
       class="assessment-card"
       data-assessment-card="${esc(pinId)}"
     >
-
-      <div class="assessment-card-head">
-        <div>
-          <span class="assessment-pill">
+      <details class="assessment-athlete-details">
+        <summary class="assessment-athlete-summary">
+          <div class="assessment-athlete-summary-main">
+            <div>
+              <span class="assessment-pill">
             ${esc(
               statusLabel(
                 pin.status
               )
             )}
-          </span>
+              </span>
 
-          <h3>
-            ${esc(athleteName)}
-          </h3>
+              <h3>
+                ${esc(athleteName)}
+              </h3>
 
-          <p class="assessment-meta">
-            ${esc(athleteUid)}
-            ·
-            ${esc(locationId)}
-          </p>
+              <p class="assessment-meta">
+                ${esc(athleteUid)}
+                ·
+                ${esc(locationId)}
+              </p>
 
-          <p class="assessment-meta">
-            ${esc(discipline)}
-            ·
-            ${esc(program)}
-          </p>
-        </div>
+              <p class="assessment-meta">
+                ${esc(discipline)}
+                ·
+                ${esc(program)}
+              </p>
+            </div>
 
-        <div class="assessment-xp-box">
-          <span>Current Earned XP</span>
-          <strong>${esc(currentXp)}</strong>
-          <small>
-            Normal practice XP stays earned.
-          </small>
-        </div>
-      </div>
+            <div class="assessment-athlete-summary-side">
+              <div class="assessment-athlete-summary-xp">
+                <span>XP</span>
+                <strong>${esc(currentXp)}</strong>
+              </div>
+              <span class="assessment-athlete-chevron" aria-hidden="true">⌄</span>
+            </div>
+          </div>
+        </summary>
 
+        <div class="assessment-athlete-body">
       <div class="assessment-divider"></div>
 
       ${
@@ -874,6 +877,8 @@ function renderPin(pin) {
           Return to Management
         </button>
       </div>
+        </div>
+      </details>
 
     </article>
   `;
