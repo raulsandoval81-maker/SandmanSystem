@@ -1006,7 +1006,7 @@ function proposalActionHtml(status, id) {
       </button>
 
       <span class="proposal-action-note">
-        Preview and Copy do not send email. Email creates and sends the current secure handoff.
+        In-Person opens the Review & Confirm page for use with the family. Remote sends the secure Review & Confirm link by email. Copy Alternative Secure Link provides a manual handoff option.
       </span>
     `;
   }
