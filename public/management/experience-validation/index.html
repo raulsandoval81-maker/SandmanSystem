@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Experience Validation • Sandman Management</title>
+  <title>XP Management • Sandman Management</title>
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1"
@@ -145,14 +145,7 @@
           href="/management/experience-validation/"
           aria-current="page"
         >
-          <span>Experience Validation</span>
-        </a>
-
-        <a
-          class="sidebar-link"
-          href="/management/xp-adjustments/"
-        >
-          <span>XP Adjustments</span>
+          <span>XP Management</span>
         </a>
 
         <a
@@ -244,13 +237,23 @@
             </p>
 
             <h2>
-              Experience Validation
+              XP Management
             </h2>
 
             <p>
-              Review returned Coach assessments,
-              decide experience recognition, and record final starting placement.
+              Manage experience recognition, administrative XP adjustments,
+              and final starting placement from one progression workspace.
             </p>
+
+            <label class="xp-tool-switcher">
+              <span>XP Tool</span>
+              <select id="xpToolSelector" aria-label="Choose XP Management tool">
+                <option value="/management/experience-validation/" selected>Experience Validation</option>
+                <option value="/management/xp-adjustments/">XP Adjustments</option>
+              </select>
+            </label>
+
+            <h3 class="xp-tool-title">Experience Validation</h3>
           </div>
 
           <button
@@ -349,6 +352,13 @@
     type="module"
     src="/management/shared/management-shell.js"
   ></script>
+
+  <script>
+    document.getElementById("xpToolSelector")?.addEventListener("change", (event) => {
+      const next = event.target.value;
+      if (next && next !== window.location.pathname) window.location.href = next;
+    });
+  </script>
 
   <script
     type="module"
