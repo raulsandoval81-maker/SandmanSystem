@@ -1079,11 +1079,6 @@ export const createManagementXpAdjustment =
         req.data?.verifiedExperienceYears || 0
       );
 
-    const recognitionTotal =
-      Number(
-        req.data?.recognitionTotal || 0
-      );
-
     const reason =
       clean(
         req.data?.reason
@@ -1113,19 +1108,27 @@ export const createManagementXpAdjustment =
     const isVerifiedExperienceOverride =
       category === "verified_experience_override";
 
-    const recognitionMaximum =
+    const recognitionStageCap =
       verifiedExperienceYears === 1
         ? 200
         : verifiedExperienceYears === 2
-          ? 400
+          ? 200
           : verifiedExperienceYears === 3
-            ? 600
+            ? 300
             : 0;
 
-    const overrideIssuedNow =
+    const recognitionPerStage =
+      Number(
+        req.data?.recognitionPerStage || 0
+      );
+
+    const recognitionTotal =
       verifiedExperienceYears === 1
-        ? recognitionTotal
-        : recognitionTotal / 2;
+        ? recognitionPerStage
+        : recognitionPerStage * 2;
+
+    const overrideIssuedNow =
+      recognitionPerStage;
 
     const amount =
       isVerifiedExperienceOverride
@@ -1157,23 +1160,13 @@ export const createManagementXpAdjustment =
       }
 
       if (
-        !Number.isInteger(recognitionTotal) ||
-        recognitionTotal <= 0 ||
-        recognitionTotal > recognitionMaximum
+        !Number.isInteger(recognitionPerStage) ||
+        recognitionPerStage <= 0 ||
+        recognitionPerStage > recognitionStageCap
       ) {
         throw new HttpsError(
           "invalid-argument",
-          `Recognition XP must be a whole number from 1 to ${recognitionMaximum} for the selected verified-experience year.`
-        );
-      }
-
-      if (
-        verifiedExperienceYears >= 2 &&
-        recognitionTotal % 2 !== 0
-      ) {
-        throw new HttpsError(
-          "invalid-argument",
-          "Two-year and 3+ year recognition totals must be even so XP can split 50/50 between now and Tier 1 held XP."
+          `Recognition XP per stage must be a whole number from 1 to ${recognitionStageCap} for the selected Coach verification / suggestion.`
         );
       }
     } else if (
