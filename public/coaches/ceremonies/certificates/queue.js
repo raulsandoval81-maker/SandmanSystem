@@ -1,4 +1,17 @@
+import {
+  db,
+  collection,
+  getDocs
+} from "/assets/js/firebase-init.js";
+
+import {
+  requireCoach
+} from "/assets/js/coach-guard.js";
+
 const ENGINE_ENDPOINTS = {
+  recognition:
+    "https://us-central1-sandmandashboard.cloudfunctions.net/testRecognitionQueue",
+
   progression:
     "https://us-central1-sandmandashboard.cloudfunctions.net/testProgressionEngine",
 
@@ -6,133 +19,552 @@ const ENGINE_ENDPOINTS = {
     "https://us-central1-sandmandashboard.cloudfunctions.net/testCertificatePayloadEngine"
 };
 
-const fields = {
-  athleteUid: document.getElementById("athleteUid")
-};
+const $ = (id) =>
+  document.getElementById(id);
 
-const buttons = {
-  check: document.getElementById("checkBtn")
-};
+const queueStatus =
+  $("queueStatus");
 
-const statusBox = document.getElementById("statusBox");
+const recognitionQueue =
+  $("recognitionQueue");
 
-function renderStatus(html) {
-  statusBox.innerHTML = html;
+const countApproaching =
+  $("countApproaching");
+
+const countReady =
+  $("countReady");
+
+const athleteUid =
+  $("athleteUid");
+
+const checkBtn =
+  $("checkBtn");
+
+const manualStatus =
+  $("manualStatus");
+
+function clean(value) {
+  return String(value ?? "").trim();
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
+function esc(value = "") {
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    .replaceAll("'", "&#39;");
 }
 
-async function fetchJson(url) {
-  const { requireCoach } = await import("/assets/js/coach-guard.js");
-  const { user } = await requireCoach();
-  const token = await user.getIdToken(true);
+function displayName(data, uid) {
+  return (
+    clean(
+      data?.publicName ||
+      data?.fullName ||
+      data?.name
+    ) ||
+    uid
+  );
+}
 
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+function stripeCount(data) {
+  return Math.max(
+    0,
+    Math.min(
+      4,
+      Number(
+        data?.stripeCount ??
+        data?.stripe ??
+        0
+      ) || 0
+    )
+  );
+}
+
+function tierXp(data) {
+  return Math.max(
+    0,
+    Number(
+      data?.xp ??
+      data?.activeTierXp ??
+      data?.tierXp ??
+      0
+    ) || 0
+  );
+}
+
+function xpCap(data) {
+  return Math.max(
+    0,
+    Number(
+      data?.xpCap ??
+      data?.tierCap ??
+      0
+    ) || 0
+  );
+}
+
+function isCurrentAthlete(data) {
+  const rosterStatus =
+    clean(
+      data?.rosterStatus ||
+      data?.status
+    ).toLowerCase();
+
+  if (
+    rosterStatus &&
+    ![
+      "current",
+      "active",
+      "approved"
+    ].includes(rosterStatus)
+  ) {
+    return false;
+  }
+
+  return !(
+    data?.isDev === true ||
+    data?.devMode === true ||
+    data?.isTest === true
+  );
+}
+
+async function authFetchJson(url, user) {
+  const token =
+    await user.getIdToken();
+
+  const response =
+    await fetch(url, {
+      headers: {
+        Authorization:
+          `Bearer ${token}`
+      }
+    });
 
   if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
+    throw new Error(
+      `Request failed: ${response.status}`
+    );
   }
 
-  const data = await response.json();
-
-  if (!data.success) {
-    throw new Error(data.error || "Engine returned failure.");
-  }
+  const data =
+    await response.json();
 
   return data;
 }
 
-function openGenerator(uid) {
-  const url =
-    `./generator.html?uid=${encodeURIComponent(uid)}`;
-
-  window.open(url, "_blank");
+function generatorUrl(uid) {
+  return (
+    "/coaches/ceremonies/certificates/generator.html?uid=" +
+    encodeURIComponent(uid)
+  );
 }
 
-async function checkAthlete() {
-  const uid = fields.athleteUid.value.trim();
+function renderQueue(items) {
+  if (!recognitionQueue) return;
 
-  if (!uid) {
-    renderStatus(`<p>Please enter an athlete UID.</p>`);
+  if (!items.length) {
+    recognitionQueue.innerHTML = `
+      <div class="empty-state">
+        <h3>No recognition work right now</h3>
+        <p>
+          No current athletes are within 50 XP of a stripe or waiting on a certificate.
+        </p>
+      </div>
+    `;
     return;
   }
 
-  renderStatus(`<p>Checking ${escapeHtml(uid)}...</p>`);
+  recognitionQueue.innerHTML =
+    items.map((item) => {
+      const ready =
+        item.status === "ready";
 
+      return `
+        <article class="recognition-card recognition-card--${ready ? "ready" : "approaching"}">
+          <div class="recognition-card__main">
+            <span class="recognition-state">
+              ${ready ? "Certificate Ready" : "Approaching"}
+            </span>
+
+            <h3>${esc(item.athleteName)}</h3>
+
+            <p class="recognition-meta">
+              ${esc(item.athleteUid)}
+              · Stripe ${esc(item.stripe)}
+            </p>
+
+            <p class="recognition-detail">
+              ${
+                ready
+                  ? "Stripe earned. Open the athlete certificate and continue the recognition workflow."
+                  : `${esc(item.remaining)} XP remaining to the next stripe threshold.`
+              }
+            </p>
+          </div>
+
+          <div class="recognition-card__action">
+            ${
+              ready
+                ? `
+                  <a
+                    class="primary-action"
+                    href="${generatorUrl(item.athleteUid)}"
+                  >
+                    Generate Certificate
+                  </a>
+                `
+                : `
+                  <span class="watch-label">
+                    Watch
+                  </span>
+                `
+            }
+          </div>
+        </article>
+      `;
+    }).join("");
+}
+
+async function loadQueue() {
   try {
-    const progressionUrl =
-      `${ENGINE_ENDPOINTS.progression}?uid=${encodeURIComponent(uid)}`;
+    const coachContext =
+      await requireCoach();
 
-    const payloadUrl =
-      `${ENGINE_ENDPOINTS.certificatePayload}?uid=${encodeURIComponent(uid)}`;
+    const user =
+      coachContext?.user;
 
-    const [progressionData, payloadData] = await Promise.all([
-      fetchJson(progressionUrl),
-      fetchJson(payloadUrl)
+    if (!user) {
+      throw new Error(
+        "Coach sign-in required."
+      );
+    }
+
+    const [
+      recognitionData,
+      athleteSnapshot
+    ] = await Promise.all([
+      authFetchJson(
+        ENGINE_ENDPOINTS.recognition,
+        user
+      ),
+      getDocs(
+        collection(db, "athletes")
+      )
     ]);
 
-    const athlete = progressionData.athlete;
-    const decision = progressionData.decision;
-    const payload = payloadData.payload;
+    if (!recognitionData?.ok) {
+      throw new Error(
+        recognitionData?.error ||
+        "Recognition queue unavailable."
+      );
+    }
 
-    const printReady = Boolean(payload?.printReady);
+    const readyItems =
+      Array.isArray(
+        recognitionData?.queue?.stripeAwards
+      )
+        ? recognitionData.queue.stripeAwards
+        : [];
 
-    renderStatus(`
-      <div style="padding:16px;border:1px solid #ccc;border-radius:12px;background:#fff;">
-        <h2>${escapeHtml(athlete.name)}</h2>
+    const readyIds =
+      new Set(
+        readyItems
+          .map((item) =>
+            clean(item?.athleteUid)
+          )
+          .filter(Boolean)
+      );
 
-        <p><strong>UID:</strong> ${escapeHtml(athlete.uid)}</p>
-        <p><strong>Program:</strong> ${escapeHtml(athlete.programName)}</p>
-        <p><strong>Tier:</strong> ${escapeHtml(athlete.tierCode)} · ${escapeHtml(decision.stripeDecision.trainingShirt)}</p>
-        <p><strong>Stripe:</strong> ${escapeHtml(athlete.stripe)}</p>
-        <p><strong>XP:</strong> ${escapeHtml(athlete.xp)} / ${escapeHtml(decision.stripeDecision.threshold)}</p>
+    const ready =
+      readyItems.map((item) => ({
+        status: "ready",
+        athleteUid:
+          clean(item?.athleteUid),
+        athleteName:
+          clean(
+            item?.athleteName ||
+            item?.athleteUid
+          ) || "Athlete",
+        stripe:
+          Math.max(
+            1,
+            Number(
+              item?.decision?.stripe ||
+              1
+            ) || 1
+          ),
+        remaining: 0
+      }));
 
-        <hr />
+    const approaching = [];
 
-        <p><strong>Progression State:</strong> ${escapeHtml(decision.state)}</p>
-        <p><strong>Next Action:</strong> ${escapeHtml(decision.nextAction)}</p>
-        <p><strong>Coach Action:</strong> ${escapeHtml(decision.coachAction)}</p>
+    athleteSnapshot.docs.forEach((docSnap) => {
+      const uid =
+        docSnap.id;
 
-        <p>
-  <strong>Certificate:</strong>
-  ${
-    printReady
-      ? "Ready to print"
-      : payload?.reason === "LEGACY_PLACEMENT"
-        ? "Legacy placement recognized — no Sandman certificate"
-        : "No certificate ready"
-  }
-</p>
+      if (readyIds.has(uid)) {
+        return;
+      }
 
-        ${
-          printReady
-            ? `<button onclick="openGenerator('${escapeHtml(uid)}')">Open Certificate Generator</button>`
-            : ""
-        }
-      </div>
-    `);
+      const athlete =
+        docSnap.data() || {};
 
-  } catch (err) {
-    console.error(err);
+      if (!isCurrentAthlete(athlete)) {
+        return;
+      }
 
-    renderStatus(`
-      <div style="padding:16px;border:1px solid #b00020;border-radius:12px;background:#fff;">
-        <strong>Error:</strong> ${escapeHtml(err.message)}
-      </div>
-    `);
+      const cap =
+        xpCap(athlete);
+
+      if (cap <= 0) {
+        return;
+      }
+
+      const currentStripe =
+        stripeCount(athlete);
+
+      if (currentStripe >= 4) {
+        return;
+      }
+
+      const nextStripe =
+        currentStripe + 1;
+
+      const threshold =
+        Math.ceil(
+          (cap * nextStripe) / 4
+        );
+
+      const remaining =
+        threshold - tierXp(athlete);
+
+      if (
+        remaining <= 0 ||
+        remaining > 50
+      ) {
+        return;
+      }
+
+      approaching.push({
+        status: "approaching",
+        athleteUid: uid,
+        athleteName:
+          displayName(
+            athlete,
+            uid
+          ),
+        stripe: nextStripe,
+        remaining
+      });
+    });
+
+    approaching.sort(
+      (a, b) =>
+        a.remaining - b.remaining ||
+        a.athleteName.localeCompare(
+          b.athleteName
+        )
+    );
+
+    ready.sort(
+      (a, b) =>
+        a.athleteName.localeCompare(
+          b.athleteName
+        )
+    );
+
+    if (countApproaching) {
+      countApproaching.textContent =
+        String(approaching.length);
+    }
+
+    if (countReady) {
+      countReady.textContent =
+        String(ready.length);
+    }
+
+    renderQueue([
+      ...ready,
+      ...approaching
+    ]);
+
+    if (queueStatus) {
+      const total =
+        ready.length +
+        approaching.length;
+
+      queueStatus.textContent =
+        total
+          ? `${total} athlete${total === 1 ? "" : "s"} in recognition tracking.`
+          : "Recognition queue is clear.";
+    }
+  } catch (error) {
+    console.error(
+      "[certificate-queue] load failed:",
+      error
+    );
+
+    if (queueStatus) {
+      queueStatus.textContent =
+        error?.message ||
+        "Recognition queue unavailable.";
+    }
+
+    if (recognitionQueue) {
+      recognitionQueue.innerHTML =
+        '<div class="empty-state"><h3>Queue unavailable</h3><p>Unable to load recognition tracking.</p></div>';
+    }
   }
 }
 
-buttons.check.addEventListener("click", checkAthlete);
-fields.athleteUid.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") checkAthlete();
-});
+async function checkAthlete() {
+  const uid =
+    clean(athleteUid?.value);
+
+  if (!uid) {
+    if (manualStatus) {
+      manualStatus.innerHTML =
+        "<p>Enter an athlete UID.</p>";
+    }
+    return;
+  }
+
+  if (manualStatus) {
+    manualStatus.innerHTML =
+      `<p>Checking ${esc(uid)}…</p>`;
+  }
+
+  try {
+    const coachContext =
+      await requireCoach();
+
+    const user =
+      coachContext?.user;
+
+    if (!user) {
+      throw new Error(
+        "Coach sign-in required."
+      );
+    }
+
+    const [
+      progressionData,
+      payloadData
+    ] = await Promise.all([
+      authFetchJson(
+        `${ENGINE_ENDPOINTS.progression}?uid=${encodeURIComponent(uid)}`,
+        user
+      ),
+      authFetchJson(
+        `${ENGINE_ENDPOINTS.certificatePayload}?uid=${encodeURIComponent(uid)}`,
+        user
+      )
+    ]);
+
+    if (!progressionData?.success) {
+      throw new Error(
+        progressionData?.error ||
+        "Progression lookup failed."
+      );
+    }
+
+    if (!payloadData?.success) {
+      throw new Error(
+        payloadData?.error ||
+        "Certificate lookup failed."
+      );
+    }
+
+    const athlete =
+      progressionData.athlete || {};
+
+    const decision =
+      progressionData.decision || {};
+
+    const payload =
+      payloadData.payload || {};
+
+    const printReady =
+      payload?.printReady === true;
+
+    if (manualStatus) {
+      manualStatus.innerHTML = `
+        <article class="manual-result">
+          <h3>${esc(athlete.name || uid)}</h3>
+
+          <p>
+            <strong>Progression:</strong>
+            ${esc(decision.state || "Unknown")}
+          </p>
+
+          <p>
+            <strong>Next Action:</strong>
+            ${esc(decision.nextAction || "Continue training")}
+          </p>
+
+          <p>
+            <strong>Certificate:</strong>
+            ${
+              printReady
+                ? "Ready"
+                : payload?.reason === "LEGACY_PLACEMENT"
+                  ? "Legacy placement recognized — no Sandman certificate"
+                  : "Not ready"
+            }
+          </p>
+
+          ${
+            printReady
+              ? `
+                <a
+                  class="primary-action"
+                  href="${generatorUrl(uid)}"
+                >
+                  Generate Certificate
+                </a>
+              `
+              : ""
+          }
+        </article>
+      `;
+    }
+  } catch (error) {
+    console.error(
+      "[certificate-queue] manual check failed:",
+      error
+    );
+
+    if (manualStatus) {
+      manualStatus.innerHTML = `
+        <div class="error-state">
+          <strong>Error:</strong>
+          ${esc(
+            error?.message ||
+            "Unable to check athlete."
+          )}
+        </div>
+      `;
+    }
+  }
+}
+
+if (checkBtn) {
+  checkBtn.addEventListener(
+    "click",
+    checkAthlete
+  );
+}
+
+if (athleteUid) {
+  athleteUid.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === "Enter") {
+        checkAthlete();
+      }
+    }
+  );
+}
+
+void loadQueue();
