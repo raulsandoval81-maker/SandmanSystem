@@ -772,3 +772,15 @@ body[data-theme="night"] .assessment-xp-box{
 .assessment-second-look-body{
   margin-top:12px;
 }
+
+
+.assessment-button--quiet{
+  border-color:rgba(255,255,255,.12);
+  background:transparent;
+  color:var(--coach-shell-muted);
+}
+
+.assessment-button--quiet:hover{
+  border-color:var(--coach-shell-gold);
+  color:var(--coach-shell-text);
+}
