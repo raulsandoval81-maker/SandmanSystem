@@ -785,6 +785,9 @@ function categoryLabel(value) {
     paper_reconciliation:
       "Paper Reconciliation",
 
+    verified_experience_override:
+      "Verified Experience Override — One Time",
+
     correction:
       "Correction"
   })[value] || value;
@@ -1110,8 +1113,12 @@ adjustmentForm.addEventListener(
           "XP_CAP_REACHED"
         )
           ? "This athlete has already reached the active-rank XP cap."
-          : message ||
-            "Unable to apply XP adjustment.",
+          : message.includes(
+              "VERIFIED_EXPERIENCE_ALREADY_RECOGNIZED"
+            )
+            ? "Verified experience has already been recognized for this athlete. The override cannot be used again."
+            : message ||
+              "Unable to apply XP adjustment.",
         true
       );
 
