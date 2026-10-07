@@ -798,7 +798,8 @@ export const createProposalCheckout =
               billingFlowVersion:
                 "payment_then_subscription_v1",
 
-              firstRecurringChargeDate,
+              firstRecurringChargeDate:
+                resolvedFirstRecurringChargeDate,
 
               recurringBillingDay:
                 String(
@@ -907,11 +908,28 @@ export const createProposalCheckout =
                 .collection("history")
                 .doc();
 
+            const lockedSnapshotForCheckout =
+              isReplacingExpiredCheckout ||
+              resolvedFirstRecurringChargeDate !==
+                firstRecurringChargeDate
+                ? {
+                    ...snapshot,
+                    pricing: {
+                      ...pricing,
+                      firstRecurringChargeDate:
+                        resolvedFirstRecurringChargeDate,
+                    },
+                  }
+                : snapshot;
+
             tx.update(
               proposalRef,
               {
                 status:
                   "CHECKOUT_CREATED",
+
+                lockedSnapshot:
+                  lockedSnapshotForCheckout,
 
                 pendingCheckoutSessionId:
                   session.id,
@@ -941,9 +959,12 @@ export const createProposalCheckout =
                 proposalId,
 
                 event:
-                  isReplacingExpiredCheckout
-                    ? "CHECKOUT_RESTARTED"
-                    : "STATUS_CHANGED",
+                  resolvedFirstRecurringChargeDate !==
+                  firstRecurringChargeDate
+                    ? "RECURRING_CHARGE_DATE_ROLLED_FORWARD"
+                    : isReplacingExpiredCheckout
+                      ? "CHECKOUT_RESTARTED"
+                      : "STATUS_CHANGED",
 
                 fromStatus:
                   isReplacingExpiredCheckout
