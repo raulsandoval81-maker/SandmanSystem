@@ -672,13 +672,17 @@ function renderPin(pin) {
         <details class="assessment-work-details">
           <summary class="assessment-work-summary">
             <span>
-              <small>Coach Work</small>
+              <small>Coach Work · Complete All Steps</small>
               <strong>Open Coach Assessment</strong>
             </span>
             <span class="assessment-work-chevron" aria-hidden="true">⌄</span>
           </summary>
 
           <div class="assessment-work-body">
+            <p class="assessment-work-required">
+              Complete the full Coach assessment inside this panel before returning it to Management.
+            </p>
+
             ${isValidationClaim
               ? `
                   ${renderValidationObservationSection(
