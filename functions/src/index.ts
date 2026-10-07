@@ -325,6 +325,7 @@ export {
 export {
   createAthleteAssessmentPin,
   listAthleteAssessmentPins,
+  saveAthleteValidationObservation,
   returnAthleteAssessmentPin,
   recordAthleteAssessmentPlacement,
 } from "./assessments/athleteAssessmentPins";
