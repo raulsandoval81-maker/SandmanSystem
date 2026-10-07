@@ -24,6 +24,12 @@ const saveValidationObservation =
     "saveAthleteValidationObservation"
   );
 
+const resolveAssessmentEdgeCase =
+  httpsCallable(
+    functions,
+    "resolveAthleteAssessmentEdgeCase"
+  );
+
 const OPEN_STATUSES =
   new Set([
     "ASSESSMENT_NEEDED",
@@ -517,6 +523,21 @@ function renderPin(pin) {
       pin.discipline
     );
 
+  const validationObservations =
+    pin.validationObservations &&
+    typeof pin.validationObservations === "object"
+      ? pin.validationObservations
+      : {};
+
+  const hasSavedBaseline =
+    Object.keys(validationObservations)
+      .filter(Boolean)
+      .length > 0;
+
+  const isLegacyTransitionCandidate =
+    !isValidationClaim &&
+    currentXp > 0;
+
   return `
     <article
       class="assessment-card"
@@ -820,6 +841,34 @@ function renderPin(pin) {
         >
           Return to Management
         </button>
+
+        ${
+          hasSavedBaseline
+            ? `
+                <button
+                  class="assessment-button assessment-button--outline"
+                  type="button"
+                  data-resolve-baseline="${esc(pinId)}"
+                >
+                  Baseline Complete · Send to Management
+                </button>
+              `
+            : ""
+        }
+
+        ${
+          isLegacyTransitionCandidate
+            ? `
+                <button
+                  class="assessment-button assessment-button--quiet"
+                  type="button"
+                  data-resolve-legacy="${esc(pinId)}"
+                >
+                  Legacy Transition · Remove From Queue
+                </button>
+              `
+            : ""
+        }
 
       </div>
         </div>
@@ -1315,6 +1364,123 @@ async function submitAssessment(
   }
 }
 
+async function resolveEdgeCase(
+  pinId,
+  resolution,
+  button
+) {
+  const statusEl =
+    document.querySelector(
+      `[data-card-status="${CSS.escape(
+        pinId
+      )}"]`
+    );
+
+  const legacy =
+    resolution ===
+      "legacy_transition_resolved";
+
+  if (
+    legacy &&
+    !window.confirm(
+      "Remove this legacy transition assessment from the Coach queue? This does not change the athlete roster or XP."
+    )
+  ) {
+    return;
+  }
+
+  button.disabled = true;
+
+  if (statusEl) {
+    statusEl.textContent =
+      legacy
+        ? "Resolving legacy transition…"
+        : "Sending completed baseline to Management…";
+  }
+
+  try {
+    const response =
+      await resolveAssessmentEdgeCase({
+        pinId,
+        resolution
+      });
+
+    if (response?.data?.ok !== true) {
+      throw new Error(
+        "Assessment resolution did not complete."
+      );
+    }
+
+    const card =
+      document.querySelector(
+        `[data-assessment-card="${CSS.escape(
+          pinId
+        )}"]`
+      );
+
+    if (card) {
+      card.classList.add(
+        "assessment-card--complete"
+      );
+
+      setTimeout(() => {
+        card.remove();
+        updateEmptyState();
+      }, 350);
+    }
+  } catch (error) {
+    if (statusEl) {
+      statusEl.textContent =
+        error?.message ||
+        "Unable to resolve assessment.";
+    }
+
+    button.disabled = false;
+  }
+}
+
+function wireEdgeCaseButtons() {
+  document
+    .querySelectorAll(
+      "[data-resolve-baseline]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          resolveEdgeCase(
+            clean(
+              button.dataset
+                .resolveBaseline
+            ),
+            "baseline_complete",
+            button
+          );
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-resolve-legacy]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          resolveEdgeCase(
+            clean(
+              button.dataset
+                .resolveLegacy
+            ),
+            "legacy_transition_resolved",
+            button
+          );
+        }
+      );
+    });
+}
+
 function wireReturnButtons() {
   document
     .querySelectorAll(
@@ -1427,6 +1593,7 @@ async function loadAssessments() {
 
     wireValidationObservationControls();
     wireExperienceControls();
+    wireEdgeCaseButtons();
     wireReturnButtons();
   } catch (error) {
     console.error(
