@@ -163,12 +163,18 @@ function generatorUrl(uid) {
 function renderQueue(items) {
   if (!recognitionQueue) return;
 
-  if (!items.length) {
+  const readyItems =
+    items.filter(
+      (item) =>
+        item.status === "ready"
+    );
+
+  if (!readyItems.length) {
     recognitionQueue.innerHTML = `
       <div class="empty-state">
-        <h3>No recognition work right now</h3>
+        <h3>No certificates ready</h3>
         <p>
-          No current athletes are within 50 XP of a stripe or waiting on a certificate.
+          Approaching athletes stay in the count until the stripe is actually earned.
         </p>
       </div>
     `;
@@ -176,54 +182,35 @@ function renderQueue(items) {
   }
 
   recognitionQueue.innerHTML =
-    items.map((item) => {
-      const ready =
-        item.status === "ready";
+    readyItems.map((item) => `
+      <article class="recognition-card recognition-card--ready">
+        <div class="recognition-card__main">
+          <span class="recognition-state">
+            Certificate Ready
+          </span>
 
-      return `
-        <article class="recognition-card recognition-card--${ready ? "ready" : "approaching"}">
-          <div class="recognition-card__main">
-            <span class="recognition-state">
-              ${ready ? "Certificate Ready" : "Approaching"}
-            </span>
+          <h3>${esc(item.athleteName)}</h3>
 
-            <h3>${esc(item.athleteName)}</h3>
+          <p class="recognition-meta">
+            ${esc(item.athleteUid)}
+            · Stripe ${esc(item.stripe)}
+          </p>
 
-            <p class="recognition-meta">
-              ${esc(item.athleteUid)}
-              · Stripe ${esc(item.stripe)}
-            </p>
+          <p class="recognition-detail">
+            Stripe earned. Open the certificate generator to continue.
+          </p>
+        </div>
 
-            <p class="recognition-detail">
-              ${
-                ready
-                  ? "Stripe earned. Open the athlete certificate and continue the recognition workflow."
-                  : `${esc(item.remaining)} XP remaining to the next stripe threshold.`
-              }
-            </p>
-          </div>
-
-          <div class="recognition-card__action">
-            ${
-              ready
-                ? `
-                  <a
-                    class="primary-action"
-                    href="${generatorUrl(item.athleteUid)}"
-                  >
-                    Generate Certificate
-                  </a>
-                `
-                : `
-                  <span class="watch-label">
-                    Watch
-                  </span>
-                `
-            }
-          </div>
-        </article>
-      `;
-    }).join("");
+        <div class="recognition-card__action">
+          <a
+            class="primary-action"
+            href="${generatorUrl(item.athleteUid)}"
+          >
+            Generate Certificate
+          </a>
+        </div>
+      </article>
+    `).join("");
 }
 
 async function loadQueue() {
@@ -384,10 +371,7 @@ async function loadQueue() {
         String(ready.length);
     }
 
-    renderQueue([
-      ...ready,
-      ...approaching
-    ]);
+    renderQueue(ready);
 
     if (queueStatus) {
       const total =
@@ -396,7 +380,7 @@ async function loadQueue() {
 
       queueStatus.textContent =
         total
-          ? `${total} athlete${total === 1 ? "" : "s"} in recognition tracking.`
+          ? `${approaching.length} approaching · ${ready.length} certificate${ready.length === 1 ? "" : "s"} ready.`
           : "Recognition queue is clear.";
     }
   } catch (error) {
