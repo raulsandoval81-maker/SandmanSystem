@@ -330,8 +330,7 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     const status = clean(doc.data().status).toUpperCase();
     return [
       "ASSESSMENT_NEEDED",
-      "IN_ASSESSMENT",
-      "RETURNED_TO_MANAGEMENT"
+      "IN_ASSESSMENT"
     ].includes(status);
   });
 
