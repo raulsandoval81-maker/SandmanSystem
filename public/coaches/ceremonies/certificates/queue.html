@@ -4,23 +4,94 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Certificate Queue | Sandman Combat</title>
-  <link rel="stylesheet" href="./generator.css" />
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
+  <link rel="stylesheet" href="./queue.css?v=20261007-1" />
 </head>
 
-<body>
-  <main class="page">
-    <section class="controls">
-      <h1>Certificate Queue</h1>
-      <p>Check a real athlete record and open the certificate generator when a certificate is ready.</p>
+<body
+  class="coach-shell-page"
+  data-coach-page="Certificate Queue"
+  data-coach-area="recognition"
+>
+  <main class="certificate-queue-page" data-coach-shell-content>
+    <header class="queue-hero">
+      <div>
+        <p class="eyebrow">Progression Recognition</p>
+        <h1>Certificate Queue</h1>
+        <p>
+          Athletes appear automatically when they are within 50 XP of the next stripe.
+          Once the stripe is earned, open the exact athlete certificate and continue the recognition workflow.
+        </p>
+      </div>
 
-      <input id="athleteUid" placeholder="Athlete UID, example F4_0001" value="F4_0001" />
+      <a class="secondary-link" href="/coaches/today/">
+        ← Daily Operations
+      </a>
+    </header>
 
-      <button id="checkBtn">Check Athlete</button>
+    <section
+      id="queueStatus"
+      class="queue-status"
+      role="status"
+      aria-live="polite"
+    >
+      Loading recognition queue…
+    </section>
 
-      <div id="statusBox" style="margin-top:16px;"></div>
+    <section class="queue-summary-grid">
+      <article class="summary-card">
+        <span>Approaching</span>
+        <strong id="countApproaching">0</strong>
+        <p>Within 50 XP of the next stripe.</p>
+      </article>
+
+      <article class="summary-card summary-card--ready">
+        <span>Certificate Ready</span>
+        <strong id="countReady">0</strong>
+        <p>Stripe earned and ready for certificate action.</p>
+      </article>
+    </section>
+
+    <section class="queue-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Live Queue</p>
+          <h2>Recognition Work</h2>
+        </div>
+      </div>
+
+      <div id="recognitionQueue" class="recognition-list"></div>
+    </section>
+
+    <section class="queue-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Edge Case</p>
+          <h2>Check Athlete by UID</h2>
+          <p>
+            Use this only when an athlete does not appear in the automatic queue.
+          </p>
+        </div>
+      </div>
+
+      <div class="manual-check">
+        <input
+          id="athleteUid"
+          placeholder="Athlete UID, example F4_0001"
+          autocomplete="off"
+        />
+
+        <button id="checkBtn" type="button">
+          Check Athlete
+        </button>
+      </div>
+
+      <div id="manualStatus"></div>
     </section>
   </main>
 
-  <script src="./queue.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=3"></script>
+  <script type="module" src="./queue.js?v=20261007-1"></script>
 </body>
 </html>
