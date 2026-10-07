@@ -1,4 +1,11 @@
-import { db, collection, getDocs } from "/assets/js/firebase-init.js";
+import {
+  db,
+  collection,
+  getDocs,
+  doc,
+  updateDoc,
+  serverTimestamp
+} from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
 
 const ENDPOINT = "https://us-central1-sandmandashboard.cloudfunctions.net/testRecognitionQueue";
@@ -24,6 +31,61 @@ function render(el, rows, emptyText) {
   el.innerHTML = rows.length ? rows.join("") : `<div class="testing-ops-empty">${esc(emptyText)}</div>`;
 }
 
+function isCurrentRosterAthlete(a = {}) {
+  const status =
+    clean(
+      a?.rosterStatus ||
+      a?.status
+    ).toLowerCase();
+
+  if (
+    status &&
+    ![
+      "current",
+      "active",
+      "approved"
+    ].includes(status)
+  ) {
+    return false;
+  }
+
+  return !(
+    a?.isDev === true ||
+    a?.devMode === true ||
+    a?.isTest === true
+  );
+}
+
+function athleteWatchCard(uid, a) {
+  return `
+    <article class="testing-ops-card testing-ops-card--watch">
+      <div>
+        <span class="testing-ops-stage">Coach Watch</span>
+        <h3>${esc(nameOf(a, uid))}</h3>
+        <p>
+          ${esc(uid)}
+          · ${esc(a?.rankName || a?.tier || "—")}
+          · ${Number(a?.xp || 0)} XP
+        </p>
+      </div>
+
+      <div class="testing-ops-actions">
+        <a href="/coaches/athletes/athlete.html?id=${encodeURIComponent(uid)}">
+          Athlete
+        </a>
+        <button
+          class="testing-watch-remove"
+          type="button"
+          data-watch-remove="${esc(uid)}"
+        >
+          Return to Roster
+        </button>
+      </div>
+    </article>
+  `;
+}
+
+
 async function init() {
   const status = $("testingStatus");
   const readinessEl = $("readinessQueue");
@@ -33,6 +95,11 @@ async function init() {
   const countReadinessEl = $("countTestingReadiness");
   const countScheduledEl = $("countTestingScheduled");
   const countActiveEl = $("countTestingActive");
+  const countWatchEl = $("countTestingWatch");
+  const rosterSelectEl = $("testingRosterSelect");
+  const addWatchBtn = $("addTestingWatchBtn");
+  const watchListEl = $("testingWatchList");
+  const watchStatusEl = $("testingWatchStatus");
 
   try {
     const coach = await requireCoach();
@@ -121,36 +188,15 @@ async function init() {
           a?.testing?.state
         ).toUpperCase();
 
-      const xp =
-        Number(
-          a?.xp ??
-          a?.activeTierXp ??
-          a?.tierXp ??
-          0
-        ) || 0;
-
-      const cap =
-        Number(
-          a?.xpCap ??
-          a?.tierCap ??
-          0
-        ) || 0;
-
       if (
-        state === "ELIGIBLE" ||
-        a?.testing?.testEligibleAt
+        state === "ELIGIBLE"
       ) {
         readinessByUid.set(
           uid,
           "TEST_ELIGIBLE"
         );
       } else if (
-        state === "TEMPLE" ||
-        (
-          cap > 0 &&
-          xp / cap >= 0.9 &&
-          !a?.testing?.scheduledDate
-        )
+        state === "TEMPLE"
       ) {
         readinessByUid.set(
           uid,
@@ -206,6 +252,96 @@ async function init() {
       }
     });
 
+    const watched = [];
+    const rosterChoices = [];
+
+    athletes.forEach((a, uid) => {
+      if (!isCurrentRosterAthlete(a)) return;
+
+      const state =
+        clean(
+          a?.testing?.state
+        ).toUpperCase();
+
+      const inRealTesting =
+        [
+          "TEMPLE",
+          "ELIGIBLE",
+          "READY",
+          "TESTING",
+          "FREEZE",
+          "COOLDOWN"
+        ].includes(state);
+
+      if (
+        a?.testing?.coachWatch === true &&
+        !inRealTesting
+      ) {
+        watched.push({
+          uid,
+          athlete: a
+        });
+        return;
+      }
+
+      if (
+        !inRealTesting &&
+        a?.testing?.coachWatch !== true
+      ) {
+        rosterChoices.push({
+          uid,
+          athlete: a
+        });
+      }
+    });
+
+    watched.sort((a, b) =>
+      nameOf(a.athlete, a.uid).localeCompare(
+        nameOf(b.athlete, b.uid)
+      )
+    );
+
+    rosterChoices.sort((a, b) =>
+      nameOf(a.athlete, a.uid).localeCompare(
+        nameOf(b.athlete, b.uid)
+      )
+    );
+
+    if (countWatchEl) {
+      countWatchEl.textContent =
+        String(watched.length);
+    }
+
+    if (watchListEl) {
+      render(
+        watchListEl,
+        watched.map(({uid, athlete}) =>
+          athleteWatchCard(uid, athlete)
+        ),
+        "No athletes are on the Coach testing watchlist."
+      );
+    }
+
+    if (rosterSelectEl) {
+      rosterSelectEl.innerHTML =
+        '<option value="">Choose roster athlete</option>' +
+        rosterChoices.map(({uid, athlete}) =>
+          `<option value="${esc(uid)}">${esc(nameOf(athlete, uid))} · ${esc(athlete?.rankName || athlete?.tier || "—")}</option>`
+        ).join("");
+    }
+
+    if (watchStatusEl) {
+      watchStatusEl.textContent =
+        watched.length >= 10
+          ? "Watchlist is full (10 athletes). Return an athlete to the roster before adding another."
+          : `${watched.length} of 10 watchlist spots used.`;
+    }
+
+    if (addWatchBtn) {
+      addWatchBtn.disabled =
+        watched.length >= 10;
+    }
+
     const readiness = [];
 
     readinessByUid.forEach(
@@ -243,6 +379,7 @@ async function init() {
     );
 
     const total =
+      watched.length +
       readiness.length +
       scheduled.length +
       active.length;
@@ -271,6 +408,81 @@ async function init() {
       total
         ? `${total} athlete${total===1?"":"s"} currently need testing attention.`
         : "Testing pipeline is clear.";
+
+    addWatchBtn?.addEventListener(
+      "click",
+      async () => {
+        const uid =
+          clean(
+            rosterSelectEl?.value
+          );
+
+        if (!uid) {
+          if (watchStatusEl) {
+            watchStatusEl.textContent =
+              "Choose an athlete from the roster first.";
+          }
+          return;
+        }
+
+        if (watched.length >= 10) {
+          if (watchStatusEl) {
+            watchStatusEl.textContent =
+              "Watchlist is limited to 10 athletes.";
+          }
+          return;
+        }
+
+        await updateDoc(
+          doc(db, "athletes", uid),
+          {
+            "testing.coachWatch": true,
+            "testing.coachWatchAt":
+              serverTimestamp(),
+            "testing.coachWatchBy":
+              coach?.user?.uid || null,
+            updatedAt:
+              serverTimestamp()
+          }
+        );
+
+        window.location.reload();
+      }
+    );
+
+    watchListEl?.addEventListener(
+      "click",
+      async (event) => {
+        const button =
+          event.target.closest(
+            "[data-watch-remove]"
+          );
+
+        if (!button) return;
+
+        const uid =
+          clean(
+            button.getAttribute(
+              "data-watch-remove"
+            )
+          );
+
+        if (!uid) return;
+
+        await updateDoc(
+          doc(db, "athletes", uid),
+          {
+            "testing.coachWatch": false,
+            "testing.coachWatchAt": null,
+            "testing.coachWatchBy": null,
+            updatedAt:
+              serverTimestamp()
+          }
+        );
+
+        window.location.reload();
+      }
+    );
   } catch (error) {
     console.error(
       "[testing-operations]",
