@@ -621,11 +621,6 @@ function requireFearScore(value: unknown, label: string): number {
   return score;
 }
 
-function categoricalFearFromScore(score: number): string {
-  if (score >= 4) return "meets";
-  if (score === 3) return "developing";
-  return "concern";
-}
 
 export const saveAthleteValidationObservation = onCall(async (req) => {
   if (!req.auth) {
@@ -690,12 +685,6 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     );
   }
 
-  const focus = requireFearScore(req.data?.fear?.focus, "Focus");
-  const effort = requireFearScore(req.data?.fear?.effort, "Effort");
-  const attitude = requireFearScore(req.data?.fear?.attitude, "Attitude");
-  const respect = requireFearScore(req.data?.fear?.respect, "Respect");
-  const fearTotal = focus + effort + attitude + respect;
-
   const shirt = clean(req.data?.shirt).toLowerCase();
   const allowedShirts = new Set([
     "plain_white",
@@ -758,7 +747,6 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     execution === "smooth";
 
   const fullCreditEligible =
-    fearTotal >= 16 &&
     shirtStandardMet &&
     correctSkills &&
     knowHow &&
@@ -766,14 +754,6 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
 
   const observation = {
     dayKey,
-
-    fear: {
-      focus,
-      effort,
-      attitude,
-      respect,
-      total: fearTotal
-    },
 
     shirt,
     shirtStandardMet,
@@ -790,65 +770,28 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     savedAt: FieldValue.serverTimestamp()
   };
 
-  const isFirstBaseline =
-    existingDays.length === 0;
-
-  const nextStatus =
-    isFirstBaseline
-      ? "RETURNED_TO_MANAGEMENT"
-      : status;
-
-  const update: Record<string, any> = {
+  await pinRef.update({
     [`validationObservations.${dayKey}`]:
       observation,
 
     status:
-      nextStatus,
+      status === "ASSESSMENT_NEEDED"
+        ? "IN_ASSESSMENT"
+        : status,
 
     updatedAt:
       FieldValue.serverTimestamp()
-  };
-
-  if (isFirstBaseline) {
-    update.fear = {
-      focus:
-        categoricalFearFromScore(focus),
-      effort:
-        categoricalFearFromScore(effort),
-      attitude:
-        categoricalFearFromScore(attitude),
-      respect:
-        categoricalFearFromScore(respect)
-    };
-
-    update.baselineAssessmentCompletedAt =
-      FieldValue.serverTimestamp();
-
-    update.baselineAssessmentCompletedBy =
-      req.auth.uid;
-
-    update.coachReturnedAt =
-      FieldValue.serverTimestamp();
-
-    update.coachReturnedBy =
-      req.auth.uid;
-
-    update.coachReturnMode =
-      "BASELINE_OBSERVATION";
-  }
-
-  await pinRef.update(update);
+  });
 
   return {
     ok: true,
     pinId,
     dayKey,
-    fearTotal,
     fullCreditEligible,
     status:
-      nextStatus,
-    baselineComplete:
-      isFirstBaseline
+      status === "ASSESSMENT_NEEDED"
+        ? "IN_ASSESSMENT"
+        : status
   };
 });
 
@@ -902,33 +845,6 @@ export const returnAthleteAssessmentPin = onCall(async (req) => {
       "failed-precondition",
       "This assessment is no longer open for Coach review."
     );
-  }
-
-  const fear =
-    req.data?.fear && typeof req.data.fear === "object"
-      ? req.data.fear
-      : {};
-
-  const allowedFear = new Set([
-    "meets",
-    "developing",
-    "concern"
-  ]);
-
-  const normalizedFear = {
-    focus: clean(fear.focus).toLowerCase(),
-    effort: clean(fear.effort).toLowerCase(),
-    attitude: clean(fear.attitude).toLowerCase(),
-    respect: clean(fear.respect).toLowerCase()
-  };
-
-  for (const value of Object.values(normalizedFear)) {
-    if (!allowedFear.has(value)) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Complete all FEAR findings before returning the assessment."
-      );
-    }
   }
 
   const experienceMode = clean(
@@ -1014,7 +930,6 @@ export const returnAthleteAssessmentPin = onCall(async (req) => {
     {
       status: "RETURNED_TO_MANAGEMENT",
       currentEarnedXp,
-      fear: normalizedFear,
       priorExperience: {
         verifiedYears: manual ? null : verifiedYears,
         recognitionXp,
