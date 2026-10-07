@@ -443,7 +443,7 @@
               </select>
             </label>
 
-            <label class="field">
+            <label id="adjustmentAmountField" class="field">
               <span>
                 XP Amount
               </span>
@@ -457,6 +457,30 @@
                 placeholder="Enter whole XP"
                 required
               >
+            </label>
+
+            <label id="verifiedExperienceField" class="field" hidden>
+              <span>
+                Verified Experience Checkpoint
+              </span>
+
+              <select id="verifiedExperienceYears">
+                <option value="">
+                  Select verified checkpoint…
+                </option>
+
+                <option value="1">
+                  1 Year Verified — 200 XP now
+                </option>
+
+                <option value="2">
+                  2 Years Verified — 200 XP now + 200 held
+                </option>
+
+                <option value="3">
+                  3+ Years Verified — 300 XP now + 300 held
+                </option>
+              </select>
             </label>
 
           </div>
