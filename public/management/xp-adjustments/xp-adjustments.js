@@ -883,6 +883,13 @@ function selectedRecognitionPlan() {
     return null;
   }
 
+  if (
+    years >= 2 &&
+    total % 2 !== 0
+  ) {
+    return null;
+  }
+
   if (years === 1) {
     return {
       total,
@@ -931,7 +938,9 @@ function syncRecognitionInput() {
     `1–${maximum} XP`;
 
   managementRecognitionHint.textContent =
-    `System maximum: ${maximum} XP. Management may select any lower whole-number recognition amount, but cannot exceed the system maximum.`;
+    Number(verifiedExperienceYears?.value) >= 2
+      ? `System maximum: ${maximum} XP total. Management may select any lower even-number total; the system splits it 50/50 between XP now and XP held for Tier 1.`
+      : `System maximum: ${maximum} XP. Management may select any lower whole-number recognition amount, but cannot exceed the system maximum.`;
 }
 
 function syncAdjustmentCategoryUi() {
@@ -1205,7 +1214,9 @@ adjustmentForm.addEventListener(
       !recognitionPlan
     ) {
       setAdjustmentStatus(
-        "Select the verified experience year and recognition amount.",
+        Number(verifiedExperienceYears?.value) >= 2
+          ? "Select an even-number recognition total so it can split 50/50 between XP now and Tier 1 held XP."
+          : "Select the verified experience year and recognition amount.",
         true
       );
 
