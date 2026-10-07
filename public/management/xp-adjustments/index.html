@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>XP Adjustments • Sandman Management</title>
+  <title>XP Management • Sandman Management</title>
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1"
@@ -140,18 +140,11 @@
       </p>
 
       <a
-        class="sidebar-link"
-        href="/management/experience-validation/"
-      >
-        <span>Experience Validation</span>
-      </a>
-
-      <a
         class="sidebar-link active"
-        href="/management/xp-adjustments/"
+        href="/management/experience-validation/"
         aria-current="page"
       >
-        <span>XP Adjustments</span>
+        <span>XP Management</span>
       </a>
 
       <a
@@ -242,8 +235,23 @@
           </p>
 
           <h2>
-            XP Adjustments
+            XP Management
           </h2>
+
+          <p>
+            Manage experience recognition, administrative XP adjustments,
+            and final starting placement from one progression workspace.
+          </p>
+
+          <label class="xp-tool-switcher">
+            <span>XP Tool</span>
+            <select id="xpToolSelector" aria-label="Choose XP Management tool">
+              <option value="/management/experience-validation/">Experience Validation</option>
+              <option value="/management/xp-adjustments/" selected>XP Adjustments</option>
+            </select>
+          </label>
+
+          <h3 class="xp-tool-title">XP Adjustments</h3>
 
           <p>
             Correct existing athlete XP when Management
@@ -280,21 +288,12 @@
           <strong>Important</strong>
           <p>This is a correction tool, not a normal earning path. Attendance, competition, Strength, Honor, prior-experience recognition, testing, and promotion each remain governed by their own rules.</p>
         </div>
+        <div class="management-page-guide__section">
+          <strong>Controlled Management Tool</strong>
+          <p>XP Adjustments are separate from normal practice, competition, Strength, Honor, and prior-experience awards. Every adjustment requires an athlete, category, amount, reason, and Management confirmation.</p>
+        </div>
       </div>
     </details>
-
-      <section class="adjustment-policy">
-        <strong>
-          Controlled Management Tool
-        </strong>
-
-        <p>
-          XP Adjustments are separate from normal practice,
-          competition, Strength, Honor, and prior-experience awards.
-          Every adjustment requires an athlete, category, amount,
-          reason, and Management confirmation.
-        </p>
-      </section>
 
       <section class="adjustment-card">
 
@@ -489,6 +488,13 @@
   type="module"
   src="/management/shared/management-shell.js"
 ></script>
+
+<script>
+  document.getElementById("xpToolSelector")?.addEventListener("change", (event) => {
+    const next = event.target.value;
+    if (next && next !== window.location.pathname) window.location.href = next;
+  });
+</script>
 
 <script
   type="module"
