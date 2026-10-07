@@ -1039,7 +1039,7 @@ function proposalActionHtml(status, id) {
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="correct-proposal" data-proposal-id="${esc(id)}">
-        Correct Proposal
+        Management: Edit Proposal
       </button>
 
       <div class="proposal-action-note">
