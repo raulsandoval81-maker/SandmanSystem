@@ -550,14 +550,6 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         }
         const athlete = athleteSnap.data() || {};
         requireLocationAccess(staffContext.staff, clean(athlete.locationId));
-        if (isVerifiedExperienceOverride) {
-            const alreadyRecognized = athlete.verifiedExperienceOverride?.used === true ||
-                athlete.legacy === true ||
-                Number(athlete.legacyCreditTotal || 0) > 0;
-            if (alreadyRecognized) {
-                throw new https_1.HttpsError("failed-precondition", "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED");
-            }
-        }
         const awardIdentity = isVerifiedExperienceOverride
             ? `verified-experience-override:${athleteUid}`
             : `management-adjustment:${adjustmentId}`;
@@ -571,6 +563,14 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
                 idempotent: true,
                 duplicate: true
             };
+        }
+        if (isVerifiedExperienceOverride) {
+            const alreadyRecognized = athlete.verifiedExperienceOverride?.used === true ||
+                athlete.legacy === true ||
+                Number(athlete.legacyCreditTotal || 0) > 0;
+            if (alreadyRecognized) {
+                throw new https_1.HttpsError("failed-precondition", "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED");
+            }
         }
         let xpAuthority;
         try {
@@ -726,6 +726,13 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             uid: athleteUid,
             kind: "MANAGEMENT_ADJUSTMENT",
             requestedAmount: amount,
+            ...(isVerifiedExperienceOverride
+                ? {
+                    recognitionTotal,
+                    recognitionHeld: Math.max(0, recognitionTotal - delta),
+                    verifiedExperienceYears
+                }
+                : {}),
             delta,
             amount: delta,
             awardedAmount: delta,
@@ -764,7 +771,9 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             uid: athleteUid,
             awardIdentity,
             kind: "MANAGEMENT_ADJUSTMENT",
-            source: "management_adjustment",
+            source: isVerifiedExperienceOverride
+                ? "management_verified_experience_override"
+                : "management_adjustment",
             discipline,
             createdAt: now,
             logId: logRef.id,
