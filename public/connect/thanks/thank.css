@@ -50,18 +50,20 @@ body{
   min-height:100vh;
   margin:0 auto;
   padding:48px 0 64px;
-  display:grid;
-  place-items:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 .thank-shell{
-  width:min(100%,760px);
-  padding:36px;
+  width:min(100%,720px);
+  padding:40px 34px 34px;
   background:rgba(19,19,19,.96);
   border:1px solid var(--border);
   border-radius:22px;
   box-shadow:var(--shadow);
   text-align:center;
+  overflow:hidden;
 }
 
 .thank-header{
@@ -106,11 +108,12 @@ body{
 
 .message-card{
   margin:26px auto 0;
-  padding:24px;
-  background:var(--panel-raised);
-  border:1px solid var(--border);
-  border-radius:17px;
-  text-align:left;
+  padding:20px 0 0;
+  background:transparent;
+  border:0;
+  border-top:1px solid var(--border);
+  border-radius:0;
+  text-align:center;
 }
 
 .message-card h2{
@@ -156,7 +159,8 @@ body{
   }
 
   .thank-shell{
-    padding:28px 20px;
+    width:100%;
+    padding:30px 20px 26px;
     border-radius:17px;
   }
 
