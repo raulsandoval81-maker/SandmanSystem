@@ -608,7 +608,7 @@ export const createProposalCheckout =
               },
 
               unit_amount:
-                dueNow,
+                checkoutDueNow,
             },
 
             quantity: 1,
