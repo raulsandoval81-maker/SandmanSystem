@@ -735,6 +735,52 @@ function proposalQueueStyles() {
       overflow-wrap:anywhere;
     }
 
+    .management-rules-panel{
+      margin:0 0 24px;
+      border:1px solid var(--management-border);
+      border-radius:14px;
+      background:var(--management-surface);
+      overflow:hidden;
+    }
+
+    .management-rules-panel > summary{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:15px 17px;
+      cursor:pointer;
+      font-weight:900;
+      list-style:none;
+    }
+
+    .management-rules-panel > summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .management-rules-body{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+      padding:0 17px 17px;
+      border-top:1px solid var(--management-border);
+    }
+
+    .management-rules-body .management-page-guide__section{
+      padding-top:16px;
+    }
+
+    .management-rules-body ul{
+      margin:8px 0 0;
+      padding-left:20px;
+    }
+
+    .management-rules-body p{
+      margin:8px 0 0;
+      color:var(--management-muted);
+      line-height:1.5;
+    }
+
     .proposal-card-actions{
       display:flex;
       gap:10px;
