@@ -668,15 +668,6 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
   const pin = pinSnap.data() || {};
   requireLocationAccess(staff, clean(pin.locationId));
 
-  if (
-    clean(pin.claimedExperience?.priorExperience).toLowerCase() !== "yes"
-  ) {
-    throw new HttpsError(
-      "failed-precondition",
-      "Validation observations apply only to athletes requesting prior-experience validation."
-    );
-  }
-
   const status = clean(pin.status).toUpperCase();
 
   if (
@@ -697,38 +688,51 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
   const respect = requireFearScore(req.data?.fear?.respect, "Respect");
   const fearTotal = focus + effort + attitude + respect;
 
-  const shirt = clean(req.data?.shirt).toLowerCase();
-  const allowedShirts = new Set([
-    "plain_white",
-    "academy",
-    "other"
-  ]);
+  const isPriorExperienceClaim =
+    clean(
+      pin.claimedExperience?.priorExperience
+    ).toLowerCase() === "yes";
 
-  if (!allowedShirts.has(shirt)) {
-    throw new HttpsError(
-      "invalid-argument",
-      "Choose Plain White, Academy Shirt, or Other."
-    );
+  const shirt =
+    clean(req.data?.shirt).toLowerCase();
+
+  const execution =
+    clean(req.data?.execution).toLowerCase();
+
+  const correctSkills =
+    req.data?.correctSkills === true;
+
+  const knowHow =
+    req.data?.knowHow === true;
+
+  if (isPriorExperienceClaim) {
+    const allowedShirts = new Set([
+      "plain_white",
+      "academy",
+      "other"
+    ]);
+
+    if (!allowedShirts.has(shirt)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Choose Plain White, Academy Shirt, or Other."
+      );
+    }
+
+    if (
+      ![
+        "clean",
+        "smooth",
+        "rigid",
+        "sloppy"
+      ].includes(execution)
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Choose Clean, Smooth, Rigid, or Sloppy execution."
+      );
+    }
   }
-
-  const execution = clean(req.data?.execution).toLowerCase();
-
-  if (
-    ![
-      "clean",
-      "smooth",
-      "rigid",
-      "sloppy"
-    ].includes(execution)
-  ) {
-    throw new HttpsError(
-      "invalid-argument",
-      "Choose Clean, Smooth, Rigid, or Sloppy execution."
-    );
-  }
-
-  const correctSkills = req.data?.correctSkills === true;
-  const knowHow = req.data?.knowHow === true;
 
   const observations =
     pin.validationObservations &&
@@ -756,11 +760,15 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     execution === "smooth";
 
   const fullCreditEligible =
-    fearTotal >= 16 &&
-    shirtStandardMet &&
-    correctSkills &&
-    knowHow &&
-    executionStandardMet;
+    isPriorExperienceClaim
+      ? (
+          fearTotal >= 16 &&
+          shirtStandardMet &&
+          correctSkills &&
+          knowHow &&
+          executionStandardMet
+        )
+      : null;
 
   const observation = {
     dayKey,
@@ -773,14 +781,40 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
       total: fearTotal
     },
 
-    shirt,
-    shirtStandardMet,
+    baselineType:
+      isPriorExperienceClaim
+        ? "FEAR_AND_SKILLS"
+        : "FEAR_ONLY",
 
-    correctSkills,
-    knowHow,
+    shirt:
+      isPriorExperienceClaim
+        ? shirt
+        : null,
 
-    execution,
-    executionStandardMet,
+    shirtStandardMet:
+      isPriorExperienceClaim
+        ? shirtStandardMet
+        : null,
+
+    correctSkills:
+      isPriorExperienceClaim
+        ? correctSkills
+        : null,
+
+    knowHow:
+      isPriorExperienceClaim
+        ? knowHow
+        : null,
+
+    execution:
+      isPriorExperienceClaim
+        ? execution
+        : null,
+
+    executionStandardMet:
+      isPriorExperienceClaim
+        ? executionStandardMet
+        : null,
 
     fullCreditEligible,
 
