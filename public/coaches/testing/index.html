@@ -6,22 +6,38 @@
   <title>Testing | Sandman</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css?v=20261007-3" />
 </head>
 
 <body class="coach-shell-page" data-coach-page="Testing" data-coach-area="xp" data-coach-shell-hub>
 <main class="testing-workflow" data-coach-shell-content>
   <header class="workflow-hero">
     <p class="workflow-eyebrow">XP &amp; Progression</p>
-    <h1>Testing</h1>
-    <p>Move athletes from readiness through testing, cooldown, and formal promotion without collapsing those stages.</p>
+    <h1>Testing Operations</h1>
+    <p>Move athletes from Temple readiness through scheduled testing, live evaluation, cooldown, promotion, and follow-through.</p>
   </header>
+  <section id="testingStatus" class="testing-ops-status" role="status" aria-live="polite">Loading testing pipeline…</section>
   <section class="workflow-section">
-    <h2>Workflow &amp; Queue</h2>
-    <p class="section-note">Start with the operational queue, then open an athlete or build a scheduled test session.</p>
+    <h2>1. Readiness</h2>
+    <p class="section-note">Temple and test-eligible athletes. Review the athlete before scheduling a test.</p>
+    <div id="readinessQueue" class="testing-ops-list"></div>
+  </section>
+  <section class="workflow-section">
+    <h2>2. Scheduled Testing</h2>
+    <p class="section-note">Tests approved by Coach and waiting to be prepared or started.</p>
+    <div id="scheduledQueue" class="testing-ops-list"></div>
+  </section>
+  <section class="workflow-section">
+    <h2>3. Active Testing</h2>
+    <p class="section-note">Athletes currently in an active testing session.</p>
+    <div id="activeQueue" class="testing-ops-list"></div>
+  </section>
+  <section class="workflow-section">
+    <h2>4. Follow Through</h2>
+    <p class="section-note">More preparation, cooldown, promotion, and ceremony work happens after testing.</p>
     <div class="workflow-grid">
-      <a class="workflow-card" href="/coaches/progression/queue.html"><span class="workflow-tag">Queue</span><h3>Promotion Queue</h3><p>See athletes in cooldown, needing more preparation, or ready for formal promotion.</p></a>
-      <a class="workflow-card" href="/coaches/testing/testing-command-center.html"><span class="workflow-tag">Test Session</span><h3>Testing Command Center</h3><p>Assign the athlete and panel, then generate the contextual scoring and live-result links.</p></a>
+      <a class="workflow-card" href="/coaches/progression/queue.html"><span class="workflow-tag">After Test</span><h3>Follow-Through Queue</h3><p>More preparation, cooldown, promotion, and recent promotion work.</p></a>
+      <a class="workflow-card" href="/coaches/testing/testing-command-center.html"><span class="workflow-tag">Test Session</span><h3>Testing Command Center</h3><p>Prepare a scheduled test session and launch scoring.</p></a>
     </div>
   </section>
   <section class="workflow-section">
@@ -40,7 +56,8 @@
   </section>
 </main>
 
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script type="module" src="/coaches/testing/testing-operations.js?v=20261007-1"></script>
+<script src="/coaches/_ui/coach-shell.js?v=3"></script>
 
 </body>
 </html>
