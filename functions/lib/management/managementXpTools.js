@@ -630,6 +630,31 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         athletePatch[`${progressionPrefix}trackBase`] = base;
         athletePatch[`${progressionPrefix}updatedAt`] = now;
         Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime), disciplineLifetime.patch);
+        if (isVerifiedExperienceOverride) {
+            const heldXp = Math.max(0, recognitionTotal - delta);
+            Object.assign(athletePatch, {
+                legacy: true,
+                legacyType: "external",
+                legacyYearsVerified: verifiedExperienceYears,
+                legacyCreditTotal: recognitionTotal,
+                legacyCreditIssued: delta,
+                legacyHold: heldXp > 0,
+                legacyCreditSchedule: verifiedExperienceYears >= 2
+                    ? "deferred_t1_entry"
+                    : "full_t0",
+                legacyNote: reason,
+                verifiedExperienceOverride: {
+                    used: true,
+                    verifiedYears: verifiedExperienceYears,
+                    recognitionTotal,
+                    issuedNow: delta,
+                    heldXp,
+                    discipline,
+                    managementUid: actorUid,
+                    usedAt: now
+                }
+            });
+        }
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
                 ...progression,
