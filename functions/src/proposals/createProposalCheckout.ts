@@ -380,9 +380,31 @@ export const createProposalCheckout =
           ? monthlyBalance * overdueMembershipMonths
           : 0;
 
+      /*
+       * An unpaid proposal still owes its first month. If the proposal
+       * has crossed a billing date while awaiting payment, also collect
+       * each missed recurring month before starting normal billing again.
+       */
+      const firstMonthDueNowCents =
+        overdueMembershipMonths > 0
+          ? Math.round(
+              Number(
+                pricing.proratedFirstMonth || 0
+              ) * 100
+            )
+          : Math.max(
+              0,
+              Math.round(
+                Number(
+                  pricing.proratedFirstMonth || 0
+                ) * 100
+              )
+            );
+
       const checkoutDueNow =
         overdueMembershipMonths > 0
           ? enrollmentDueNow +
+            firstMonthDueNowCents +
             overdueMembershipDueNowCents
           : lockedDueNow;
 
