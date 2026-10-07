@@ -6,7 +6,7 @@
   <title>Certificate Queue | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="./queue.css?v=20261007-2" />
+  <link rel="stylesheet" href="./queue.css?v=20261007-3" />
 </head>
 
 <body
@@ -20,14 +20,21 @@
         <p class="eyebrow">Progression Recognition</p>
         <h1>Certificate Queue</h1>
         <p>
-          Keep an eye on upcoming stripe recognition without starting certificate work too early.
-          Athlete details appear here only when a certificate is actually ready.
+          Review athletes approaching stripe recognition, then move certificate-ready athletes
+          into the generator when the recognition action is actually available.
         </p>
       </div>
 
-      <a class="secondary-link" href="/coaches/today/">
-        ← Daily Operations
-      </a>
+      <div class="queue-hero__side">
+        <div class="queue-total">
+          <span>Queue</span>
+          <strong id="countRecognitionTotal">0</strong>
+        </div>
+
+        <a class="secondary-link" href="/coaches/today/">
+          ← Daily Operations
+        </a>
+      </div>
     </header>
 
     <section
@@ -56,8 +63,25 @@
     <section class="queue-panel">
       <div class="panel-heading">
         <div>
-          <p class="eyebrow">Live Queue</p>
+          <p class="eyebrow">Approaching</p>
+          <h2>Recognition Watch</h2>
+          <p>
+            These athletes are close enough to watch, but no certificate action is available yet.
+          </p>
+        </div>
+      </div>
+
+      <div id="approachingQueue" class="recognition-list"></div>
+    </section>
+
+    <section class="queue-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Action</p>
           <h2>Certificates Ready</h2>
+          <p>
+            These athletes have reached the recognition point and can move into the certificate generator.
+          </p>
         </div>
       </div>
 
@@ -92,6 +116,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="./queue.js?v=20261007-2"></script>
+  <script type="module" src="./queue.js?v=20261007-3"></script>
 </body>
 </html>
