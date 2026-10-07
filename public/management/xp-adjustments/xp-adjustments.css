@@ -332,3 +332,57 @@
   color: #2f2a1d;
   font-weight: 650;
 }
+
+
+.xp-management-info{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.9rem;
+  margin:1rem 0 1.25rem;
+}
+
+.xp-management-info__card,
+.xp-step-panel{
+  border:1px solid var(--line,rgba(255,255,255,.14));
+  border-radius:.85rem;
+  background:var(--panel-soft,rgba(255,255,255,.035));
+  padding:1rem;
+}
+
+.xp-management-info__card{
+  display:grid;
+  gap:.4rem;
+}
+
+.xp-management-info__card p,
+.xp-management-info__card small{
+  margin:0;
+}
+
+.xp-step-panel{
+  display:grid;
+  gap:.85rem;
+  margin-top:.9rem;
+}
+
+.xp-step-panel__head{
+  display:grid;
+  gap:.2rem;
+}
+
+.xp-step-panel__head span,
+.xp-static-state{
+  opacity:.78;
+}
+
+.xp-assessment-details{
+  border-top:1px solid var(--line,rgba(255,255,255,.12));
+  border-bottom:1px solid var(--line,rgba(255,255,255,.12));
+  padding:.7rem 0;
+}
+
+@media (max-width:760px){
+  .xp-management-info{
+    grid-template-columns:1fr;
+  }
+}
