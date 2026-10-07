@@ -485,17 +485,23 @@
 
             <label id="managementRecognitionField" class="field" hidden>
               <span>
-                Recognition Selection
+                Management Recognition XP
               </span>
 
-              <select id="managementRecognitionYears">
-                <option value="">
-                  Select recognition amount…
-                </option>
-              </select>
+              <input
+                id="managementRecognitionXp"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                placeholder="Select verified year first"
+              >
 
-              <small class="field-note">
-                System sets the maximum. Management may select a lower recognition amount, but never above the selected verified-experience maximum.
+              <small
+                id="managementRecognitionHint"
+                class="field-note"
+              >
+                System maximum will appear after the verified year is selected.
               </small>
             </label>
 
