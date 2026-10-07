@@ -495,16 +495,16 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const adjustmentId = clean(req.data?.adjustmentId);
     const discipline = clean(req.data?.discipline).toLowerCase();
     const isVerifiedExperienceOverride = category === "verified_experience_override";
-    const allowedRecognitionTotals = verifiedExperienceYears === 1
-        ? new Set([50, 100, 150, 200])
+    const recognitionMaximum = verifiedExperienceYears === 1
+        ? 200
         : verifiedExperienceYears === 2
-            ? new Set([100, 200, 300, 400])
+            ? 400
             : verifiedExperienceYears === 3
-                ? new Set([150, 300, 450, 600])
-                : new Set();
+                ? 600
+                : 0;
     const overrideIssuedNow = verifiedExperienceYears === 1
         ? recognitionTotal
-        : recognitionTotal / 2;
+        : Math.floor(recognitionTotal / 2);
     const amount = isVerifiedExperienceOverride ? overrideIssuedNow : requestedAmount;
     const allowedCategories = new Set([
         "delayed_onboarding",
@@ -520,8 +520,10 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         if (![1, 2, 3].includes(verifiedExperienceYears)) {
             throw new https_1.HttpsError("invalid-argument", "Verified experience must be 1 Year, 2 Years, or 3+ Years.");
         }
-        if (!allowedRecognitionTotals.has(recognitionTotal)) {
-            throw new https_1.HttpsError("invalid-argument", "Recognition selection is outside the allowed system values for that experience year.");
+        if (!Number.isInteger(recognitionTotal) ||
+            recognitionTotal <= 0 ||
+            recognitionTotal > recognitionMaximum) {
+            throw new https_1.HttpsError("invalid-argument", `Recognition XP must be a whole number from 1 to ${recognitionMaximum} for the selected verified-experience year.`);
         }
     }
     else if (!Number.isFinite(amount) ||
