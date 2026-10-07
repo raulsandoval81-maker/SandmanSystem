@@ -95,7 +95,7 @@
   padding:18px;
   border:1px solid var(--coach-shell-line);
   border-radius:16px;
-  background:rgba(255,255,255,.025);
+  background:var(--coach-shell-panel);
   transition:opacity .2s ease, transform .2s ease;
 }
 
@@ -197,8 +197,10 @@
   padding:11px 12px;
   border:1px solid var(--coach-shell-line);
   border-radius:10px;
-  background:var(--coach-shell-charcoal);
-  color:var(--coach-shell-text);
+  background:var(--coach-shell-panel) !important;
+  color:var(--coach-shell-text) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025);
+  opacity:1;
   font:inherit;
 }
 
@@ -350,4 +352,70 @@
   .assessment-claim-notes{
     grid-column:auto;
   }
+}
+
+
+.assessment-field input,
+.assessment-field select,
+.assessment-field textarea{
+  min-height:44px;
+  position:relative;
+  z-index:1;
+  border-color:rgba(212,175,55,.28);
+}
+
+.assessment-field textarea{
+  min-height:86px;
+}
+
+.assessment-field select option{
+  background:#111827;
+  color:#f3f4f6;
+}
+
+.assessment-field-help{
+  display:block;
+  margin-top:6px;
+  color:var(--coach-shell-muted);
+  font-size:.72rem;
+  line-height:1.35;
+}
+
+.assessment-manual[hidden]{
+  display:none !important;
+}
+
+.assessment-card section{
+  position:relative;
+}
+
+.assessment-claim-box>div,
+.assessment-recognition,
+.assessment-xp-box{
+  background:var(--coach-shell-panel);
+}
+
+html[data-coach-theme="night"] .assessment-card,
+body[data-theme="night"] .assessment-card{
+  background:#111827;
+}
+
+html[data-coach-theme="night"] .assessment-field input,
+html[data-coach-theme="night"] .assessment-field select,
+html[data-coach-theme="night"] .assessment-field textarea,
+body[data-theme="night"] .assessment-field input,
+body[data-theme="night"] .assessment-field select,
+body[data-theme="night"] .assessment-field textarea{
+  background:#0d1420 !important;
+  color:#f3f4f6 !important;
+  border-color:#39465a;
+}
+
+html[data-coach-theme="night"] .assessment-claim-box>div,
+html[data-coach-theme="night"] .assessment-recognition,
+html[data-coach-theme="night"] .assessment-xp-box,
+body[data-theme="night"] .assessment-claim-box>div,
+body[data-theme="night"] .assessment-recognition,
+body[data-theme="night"] .assessment-xp-box{
+  background:#0f1724;
 }
