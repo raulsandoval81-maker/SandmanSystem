@@ -89,6 +89,12 @@ exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
                 athleteInvitationError(error);
             }
             const stamp = firestore_1.FieldValue.serverTimestamp();
+            const existingOnboarding = athlete.onboarding && typeof athlete.onboarding === "object"
+                ? athlete.onboarding
+                : {};
+            const existingLocks = existingOnboarding.locks && typeof existingOnboarding.locks === "object"
+                ? existingOnboarding.locks
+                : {};
             tx.update(athleteRef, {
                 authUid: callerUid,
                 access: {
@@ -98,10 +104,27 @@ exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
                     activatedAt: stamp,
                     invitationId: tokenId,
                 },
+                onboarding: {
+                    ...existingOnboarding,
+                    identityConfirmedAt: existingOnboarding.identityConfirmedAt || stamp,
+                    locks: {
+                        ...existingLocks,
+                        step1: true,
+                    },
+                },
                 updatedAt: stamp,
             });
-            tx.update(invitationRef, { used: true, usedAt: stamp, usedBy: callerUid });
-            return { ok: true, role: "athlete", athleteUid: decision.athleteUid, accessMode: decision.accessMode };
+            tx.update(invitationRef, {
+                used: true,
+                usedAt: stamp,
+                usedBy: callerUid,
+            });
+            return {
+                ok: true,
+                role: "athlete",
+                athleteUid: decision.athleteUid,
+                accessMode: decision.accessMode,
+            };
         }
         const relationshipId = String(invitation.relationshipId || invitation.subjectId || "").trim();
         const athleteUid = String(invitation.athleteUid || "").trim().toUpperCase();
@@ -145,7 +168,10 @@ exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
             activatedAt: relationship.activatedAt || stamp,
             updatedAt: stamp,
         });
-        tx.update(athleteRef, { parentUid: callerUid, updatedAt: stamp });
+        tx.update(athleteRef, {
+            parentUid: callerUid,
+            updatedAt: stamp,
+        });
         tx.set(db.doc(`parents/${callerUid}`), {
             uid: callerUid,
             email: decision.email,
@@ -153,7 +179,15 @@ exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
             primaryAthleteUid: decision.athleteUid,
             updatedAt: stamp,
         }, { merge: true });
-        tx.update(invitationRef, { used: true, usedAt: stamp, usedBy: callerUid });
-        return { ok: true, role: "parent", athleteUid: decision.athleteUid };
+        tx.update(invitationRef, {
+            used: true,
+            usedAt: stamp,
+            usedBy: callerUid,
+        });
+        return {
+            ok: true,
+            role: "parent",
+            athleteUid: decision.athleteUid,
+        };
     });
 });

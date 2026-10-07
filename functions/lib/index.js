@@ -33,8 +33,9 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.issueAccessInvitation = exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmailV2 = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteSkillsSummary = exports.getAthleteProfileFeed = exports.skillCheckCoachCall = exports.coachAction = exports.markStripeCertificateIssued = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testAthleteNormalizer = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.ping = void 0;
-exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.markManagementMessageResponded = exports.sendManagementMessageEmail = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = exports.deleteTestProposal = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.updateStaffGovernance = exports.getAdminOversightSummary = exports.getAthleteSessionHistory = exports.listManagementAttendance = exports.savePracticeSessionMemory = exports.closePracticeSession = exports.getPracticeSession = exports.savePracticeAthleteInput = exports.completePracticeDailyGrind = exports.finalizePracticeAttendance = exports.updatePracticeCheckIn = exports.getPracticeAttendanceReview = exports.createOrRecoverCanonicalPractice = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = void 0;
+exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.recordManualEnrollmentIntakeDelivery = exports.getEnrollmentIntakeHandoffStatus = exports.sendEnrollmentIntakeEmail = exports.supersedeEnrollmentIntakeInvites = exports.hydrateEnrollmentIntakePrefill = exports.consumeSubmittedIntakeToken = exports.syncActivatedEnrollmentPlacement = exports.syncActivatedAdultContact = exports.getEnrollmentPlacementActivity = exports.recordEnrollmentAthleteActivated = exports.recordEnrollmentIntakeSubmitted = exports.recordEnrollmentIntakeInvite = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteSkillsSummary = exports.getAthleteProfileFeed = exports.skillCheckCoachCall = exports.coachAction = exports.markStripeCertificateIssued = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testAthleteNormalizer = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.ping = void 0;
+exports.deleteTestProposal = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.saveProposalEnrollmentAgreement = exports.getProposalEnrollment = exports.issueProposalEnrollmentHandoff = exports.recordManualProposalSignature = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.updateStaffGovernance = exports.getAdminOversightSummary = exports.getAthleteSessionHistory = exports.listManagementAttendance = exports.savePracticeSessionMemory = exports.closePracticeSession = exports.getPracticeSession = exports.savePracticeAthleteInput = exports.completePracticeDailyGrind = exports.finalizePracticeAttendance = exports.updatePracticeCheckIn = exports.getPracticeAttendanceReview = exports.createOrRecoverCanonicalPractice = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.getAccessSetupStatus = exports.sendAccessInvitationEmail = exports.issueAccessInvitation = exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.createProposalAutopaySetup = exports.recordProposalPrepaidCash = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmailV2 = exports.sendGatekeeperEmail = void 0;
+exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.markManagementMessageResponded = exports.sendManagementMessageEmail = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -133,6 +134,27 @@ var createCoachAthleteCall_1 = require("./modules/createCoachAthleteCall");
 Object.defineProperty(exports, "createCoachAthleteCall", { enumerable: true, get: function () { return createCoachAthleteCall_1.createCoachAthleteCall; } });
 var addDisciplineCoachCall_1 = require("./modules/addDisciplineCoachCall");
 Object.defineProperty(exports, "addDisciplineCoachCall", { enumerable: true, get: function () { return addDisciplineCoachCall_1.addDisciplineCoachCall; } });
+var enrollmentActivity_1 = require("./enrollment/enrollmentActivity");
+Object.defineProperty(exports, "recordEnrollmentIntakeInvite", { enumerable: true, get: function () { return enrollmentActivity_1.recordEnrollmentIntakeInvite; } });
+Object.defineProperty(exports, "recordEnrollmentIntakeSubmitted", { enumerable: true, get: function () { return enrollmentActivity_1.recordEnrollmentIntakeSubmitted; } });
+Object.defineProperty(exports, "recordEnrollmentAthleteActivated", { enumerable: true, get: function () { return enrollmentActivity_1.recordEnrollmentAthleteActivated; } });
+Object.defineProperty(exports, "getEnrollmentPlacementActivity", { enumerable: true, get: function () { return enrollmentActivity_1.getEnrollmentPlacementActivity; } });
+var syncActivatedAdultContact_1 = require("./enrollment/syncActivatedAdultContact");
+Object.defineProperty(exports, "syncActivatedAdultContact", { enumerable: true, get: function () { return syncActivatedAdultContact_1.syncActivatedAdultContact; } });
+var syncActivatedEnrollmentPlacement_1 = require("./enrollment/syncActivatedEnrollmentPlacement");
+Object.defineProperty(exports, "syncActivatedEnrollmentPlacement", { enumerable: true, get: function () { return syncActivatedEnrollmentPlacement_1.syncActivatedEnrollmentPlacement; } });
+var consumeSubmittedIntakeToken_1 = require("./enrollment/consumeSubmittedIntakeToken");
+Object.defineProperty(exports, "consumeSubmittedIntakeToken", { enumerable: true, get: function () { return consumeSubmittedIntakeToken_1.consumeSubmittedIntakeToken; } });
+var hydrateEnrollmentIntakePrefill_1 = require("./enrollment/hydrateEnrollmentIntakePrefill");
+Object.defineProperty(exports, "hydrateEnrollmentIntakePrefill", { enumerable: true, get: function () { return hydrateEnrollmentIntakePrefill_1.hydrateEnrollmentIntakePrefill; } });
+var supersedeEnrollmentIntakeInvites_1 = require("./enrollment/supersedeEnrollmentIntakeInvites");
+Object.defineProperty(exports, "supersedeEnrollmentIntakeInvites", { enumerable: true, get: function () { return supersedeEnrollmentIntakeInvites_1.supersedeEnrollmentIntakeInvites; } });
+var sendEnrollmentIntakeEmail_1 = require("./enrollment/sendEnrollmentIntakeEmail");
+Object.defineProperty(exports, "sendEnrollmentIntakeEmail", { enumerable: true, get: function () { return sendEnrollmentIntakeEmail_1.sendEnrollmentIntakeEmail; } });
+var getEnrollmentIntakeHandoffStatus_1 = require("./enrollment/getEnrollmentIntakeHandoffStatus");
+Object.defineProperty(exports, "getEnrollmentIntakeHandoffStatus", { enumerable: true, get: function () { return getEnrollmentIntakeHandoffStatus_1.getEnrollmentIntakeHandoffStatus; } });
+var recordManualEnrollmentIntakeDelivery_1 = require("./enrollment/recordManualEnrollmentIntakeDelivery");
+Object.defineProperty(exports, "recordManualEnrollmentIntakeDelivery", { enumerable: true, get: function () { return recordManualEnrollmentIntakeDelivery_1.recordManualEnrollmentIntakeDelivery; } });
 /* =========================
    ONBOARDING
 ========================= */
@@ -158,6 +180,10 @@ var checkoutCall_1 = require("./billing/checkoutCall");
 Object.defineProperty(exports, "createBillingCheckoutCall", { enumerable: true, get: function () { return checkoutCall_1.createBillingCheckoutCall; } });
 var webhook_1 = require("./billing/webhook");
 Object.defineProperty(exports, "stripeBillingWebhook", { enumerable: true, get: function () { return webhook_1.stripeBillingWebhook; } });
+var recordProposalPrepaidCash_1 = require("./billing/recordProposalPrepaidCash");
+Object.defineProperty(exports, "recordProposalPrepaidCash", { enumerable: true, get: function () { return recordProposalPrepaidCash_1.recordProposalPrepaidCash; } });
+var proposalAutopaySetup_1 = require("./billing/proposalAutopaySetup");
+Object.defineProperty(exports, "createProposalAutopaySetup", { enumerable: true, get: function () { return proposalAutopaySetup_1.createProposalAutopaySetup; } });
 /* =========================
    PROPOSALS
 ========================= */
@@ -175,6 +201,10 @@ var createAthleteOnboardingToken_1 = require("./modules/createAthleteOnboardingT
 Object.defineProperty(exports, "createAthleteOnboardingToken", { enumerable: true, get: function () { return createAthleteOnboardingToken_1.createAthleteOnboardingToken; } });
 var issueAccessInvitation_1 = require("./access/issueAccessInvitation");
 Object.defineProperty(exports, "issueAccessInvitation", { enumerable: true, get: function () { return issueAccessInvitation_1.issueAccessInvitation; } });
+var sendAccessInvitationEmail_1 = require("./access/sendAccessInvitationEmail");
+Object.defineProperty(exports, "sendAccessInvitationEmail", { enumerable: true, get: function () { return sendAccessInvitationEmail_1.sendAccessInvitationEmail; } });
+var getAccessSetupStatus_1 = require("./access/getAccessSetupStatus");
+Object.defineProperty(exports, "getAccessSetupStatus", { enumerable: true, get: function () { return getAccessSetupStatus_1.getAccessSetupStatus; } });
 var consumeAccessInvitation_1 = require("./access/consumeAccessInvitation");
 Object.defineProperty(exports, "consumeAccessInvitation", { enumerable: true, get: function () { return consumeAccessInvitation_1.consumeAccessInvitation; } });
 var transitionAthleteAccessMode_1 = require("./access/transitionAthleteAccessMode");
@@ -220,6 +250,14 @@ var getProposalClientReview_1 = require("./proposals/getProposalClientReview");
 Object.defineProperty(exports, "getProposalClientReview", { enumerable: true, get: function () { return getProposalClientReview_1.getProposalClientReview; } });
 var acceptProposalClientReview_1 = require("./proposals/acceptProposalClientReview");
 Object.defineProperty(exports, "acceptProposalClientReview", { enumerable: true, get: function () { return acceptProposalClientReview_1.acceptProposalClientReview; } });
+var recordManualProposalSignature_1 = require("./proposals/recordManualProposalSignature");
+Object.defineProperty(exports, "recordManualProposalSignature", { enumerable: true, get: function () { return recordManualProposalSignature_1.recordManualProposalSignature; } });
+var issueProposalEnrollmentHandoff_1 = require("./proposals/issueProposalEnrollmentHandoff");
+Object.defineProperty(exports, "issueProposalEnrollmentHandoff", { enumerable: true, get: function () { return issueProposalEnrollmentHandoff_1.issueProposalEnrollmentHandoff; } });
+var getProposalEnrollment_1 = require("./proposals/getProposalEnrollment");
+Object.defineProperty(exports, "getProposalEnrollment", { enumerable: true, get: function () { return getProposalEnrollment_1.getProposalEnrollment; } });
+var saveProposalEnrollmentAgreement_1 = require("./proposals/saveProposalEnrollmentAgreement");
+Object.defineProperty(exports, "saveProposalEnrollmentAgreement", { enumerable: true, get: function () { return saveProposalEnrollmentAgreement_1.saveProposalEnrollmentAgreement; } });
 var requestProposalClientChanges_1 = require("./proposals/requestProposalClientChanges");
 Object.defineProperty(exports, "requestProposalClientChanges", { enumerable: true, get: function () { return requestProposalClientChanges_1.requestProposalClientChanges; } });
 var returnProposalToDraft_1 = require("./proposals/returnProposalToDraft");
