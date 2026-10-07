@@ -321,60 +321,6 @@ function renderValidationObservationSection(
   const observations =
     sortedValidationObservations(pin);
 
-  const observation =
-    latestValidationObservation(pin);
-
-  const focus =
-    categoricalFearValue(
-      observation?.fear?.focus
-    );
-  const effort =
-    categoricalFearValue(
-      observation?.fear?.effort
-    );
-  const attitude =
-    categoricalFearValue(
-      observation?.fear?.attitude
-    );
-  const respect =
-    categoricalFearValue(
-      observation?.fear?.respect
-    );
-
-  const hiddenFear = `
-      <select
-        data-fear="focus"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(focus)}" selected>${esc(focus)}</option>
-      </select>
-
-      <select
-        data-fear="effort"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(effort)}" selected>${esc(effort)}</option>
-      </select>
-
-      <select
-        data-fear="attitude"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(attitude)}" selected>${esc(attitude)}</option>
-      </select>
-
-      <select
-        data-fear="respect"
-        data-pin="${esc(pinId)}"
-        hidden
-      >
-        <option value="${esc(respect)}" selected>${esc(respect)}</option>
-      </select>
-  `;
-
   const observationForm = `
       <label class="assessment-field assessment-validation-date">
         <span>Practice Date</span>
@@ -385,29 +331,6 @@ function renderValidationObservationSection(
           value="${esc(pacificDayKey())}"
         >
       </label>
-
-      <div class="assessment-grid assessment-grid--four">
-        ${fearScoreField(
-          pinId,
-          "focus",
-          "Focus"
-        )}
-        ${fearScoreField(
-          pinId,
-          "effort",
-          "Effort"
-        )}
-        ${fearScoreField(
-          pinId,
-          "attitude",
-          "Attitude"
-        )}
-        ${fearScoreField(
-          pinId,
-          "respect",
-          "Respect"
-        )}
-      </div>
 
       <div class="assessment-grid assessment-grid--two assessment-validation-standards">
         <label class="assessment-field">
@@ -471,7 +394,7 @@ function renderValidationObservationSection(
           class="assessment-button assessment-button--outline"
           data-save-validation="${esc(pinId)}"
         >
-          Save Practice Observation
+          Save Skill Read
         </button>
       </div>
   `;
@@ -480,13 +403,13 @@ function renderValidationObservationSection(
     return `
       <section class="assessment-validation-complete">
         <p class="assessment-eyebrow">
-          Prior-Experience Validation
+          Prior-Experience Skill Read
         </p>
         <strong>
-          Baseline assessment complete.
+          Technical baseline recorded.
         </strong>
         <span>
-          The onboarding FEAR + skills baseline is recorded. Continue with Coach Confirmation and final handoff.
+          Continue with Coach Confirmation and the recognition recommendation below.
         </span>
 
         <div class="assessment-validation-history">
@@ -498,11 +421,11 @@ function renderValidationObservationSection(
             ? `
                 <details class="assessment-second-look">
                   <summary>
-                    Need a second look? <span>Optional</span>
+                    Need a second technical look? <span>Optional</span>
                   </summary>
                   <div class="assessment-second-look-body">
                     <p class="assessment-confirm-note">
-                      Use this only if you need another practice observation before returning the assessment. Normal attendance XP applies.
+                      Use this only if you need another technical observation before returning the assessment. Normal attendance XP applies.
                     </p>
                     ${observationForm}
                   </div>
@@ -510,8 +433,6 @@ function renderValidationObservationSection(
               `
             : ""
         }
-
-        ${hiddenFear}
       </section>
     `;
   }
@@ -519,15 +440,15 @@ function renderValidationObservationSection(
   return `
     <section class="assessment-validation">
       <p class="assessment-eyebrow">
-        Prior-Experience Validation
+        Prior-Experience Skill Read
       </p>
 
       <h4>
-        Baseline Observation · FEAR + Skills
+        Technical Baseline
       </h4>
 
       <p class="assessment-confirm-note">
-        Record one baseline observation. The first validation practice is capped at 5 XP unless that day's guardrails are met. A second look is optional.
+        Record one technical baseline. The first validation practice is capped at 5 XP unless the technical guardrails are met. A second look is optional.
       </p>
 
       ${observationForm}
@@ -538,44 +459,10 @@ function renderValidationObservationSection(
       >
         ${renderValidationHistory(pin)}
       </div>
-
-      ${hiddenFear}
     </section>
   `;
 }
 
-function fearField(
-  pinId,
-  key,
-  label
-) {
-  return `
-    <label class="assessment-field">
-      <span>${esc(label)}</span>
-
-      <select
-        data-fear="${esc(key)}"
-        data-pin="${esc(pinId)}"
-      >
-        <option value="">
-          Select…
-        </option>
-
-        <option value="meets">
-          Meets Standard
-        </option>
-
-        <option value="developing">
-          Developing
-        </option>
-
-        <option value="concern">
-          Concern
-        </option>
-      </select>
-    </label>
-  `;
-}
 
 function renderPin(pin) {
   const pinId =
@@ -732,8 +619,8 @@ function renderPin(pin) {
           <div class="assessment-work-body">
             <p class="assessment-work-required">
               ${isValidationClaim
-                ? "Record the baseline FEAR + skills observation. Saving it returns this onboarding assessment to Management."
-                : "Complete the full Coach assessment inside this panel before returning it to Management."}
+                ? "Record the prior-experience technical baseline, then complete Coach Confirmation and return it to Management."
+                : "Complete the Coach assessment inside this panel before returning it to Management."}
             </p>
 
             ${isValidationClaim
@@ -742,49 +629,12 @@ function renderPin(pin) {
                     pin,
                     pinId
                   )}
+
+                  <div class="assessment-divider"></div>
                 `
-              : `
-                  <section>
-                    <p class="assessment-eyebrow">
-                      FEAR Review
-                    </p>
-
-                    <h4>
-                      Focus · Effort · Attitude · Respect
-                    </h4>
-
-                    <div class="assessment-grid assessment-grid--four">
-                      ${fearField(
-                        pinId,
-                        "focus",
-                        "Focus"
-                      )}
-
-                      ${fearField(
-                        pinId,
-                        "effort",
-                        "Effort"
-                      )}
-
-                      ${fearField(
-                        pinId,
-                        "attitude",
-                        "Attitude"
-                      )}
-
-                      ${fearField(
-                        pinId,
-                        "respect",
-                        "Respect"
-                      )}
-                    </div>
-                  </section>
-                `
+              : ""
             }
 
-            ${isValidationClaim
-              ? ""
-              : `
             <div class="assessment-divider"></div>
 
         <section>
@@ -978,8 +828,6 @@ function renderPin(pin) {
           Return to Management
         </button>
 
-              `
-            }
       </div>
         </div>
       </details>
@@ -1019,24 +867,6 @@ function wireValidationObservationControls() {
               pinId
             );
 
-          const scoreFor =
-            (key) =>
-              Number(
-                valueFor(
-                  `[data-validation-fear="${key}"]`,
-                  pinId
-                )
-              );
-
-          const focus =
-            scoreFor("focus");
-          const effort =
-            scoreFor("effort");
-          const attitude =
-            scoreFor("attitude");
-          const respect =
-            scoreFor("respect");
-
           const shirt =
             valueFor(
               "[data-validation-shirt]",
@@ -1065,10 +895,6 @@ function wireValidationObservationControls() {
 
           if (
             !dayKey ||
-            !focus ||
-            !effort ||
-            !attitude ||
-            !respect ||
             !shirt ||
             !execution
           ) {
@@ -1091,58 +917,21 @@ function wireValidationObservationControls() {
               await saveValidationObservation({
                 pinId,
                 dayKey,
-                fear: {
-                  focus,
-                  effort,
-                  attitude,
-                  respect
-                },
                 shirt,
                 execution,
                 correctSkills,
                 knowHow
               });
 
-            const total =
-              Number(
-                response?.data?.fearTotal ||
-                0
-              );
-
             const full =
               response?.data
                 ?.fullCreditEligible === true;
 
-            if (
-              response?.data?.baselineComplete === true &&
-              response?.data?.status === "RETURNED_TO_MANAGEMENT"
-            ) {
-              const card =
-                document.querySelector(
-                  `[data-assessment-card="${CSS.escape(
-                    pinId
-                  )}"]`
-                );
-
-              if (card) {
-                card.classList.add(
-                  "assessment-card--complete"
-                );
-
-                setTimeout(() => {
-                  card.remove();
-                  updateEmptyState();
-                }, 350);
-              }
-
-              return;
-            }
-
             if (statusEl) {
               statusEl.textContent =
                 full
-                  ? `Saved · FEAR ${total}/20 · full-credit standard met.`
-                  : `Saved · FEAR ${total}/20 · 5 XP validation cap applies.`;
+                  ? "Saved · technical full-credit standard met."
+                  : "Saved · 5 XP validation cap applies.";
             }
 
             await loadAssessments();
@@ -1344,41 +1133,6 @@ async function submitAssessment(
   }
 
   try {
-    const focus =
-      valueFor(
-        '[data-fear="focus"]',
-        pinId
-      );
-
-    const effort =
-      valueFor(
-        '[data-fear="effort"]',
-        pinId
-      );
-
-    const attitude =
-      valueFor(
-        '[data-fear="attitude"]',
-        pinId
-      );
-
-    const respect =
-      valueFor(
-        '[data-fear="respect"]',
-        pinId
-      );
-
-    if (
-      !focus ||
-      !effort ||
-      !attitude ||
-      !respect
-    ) {
-      throw new Error(
-        "Complete FEAR before returning the assessment. Prior-experience validation athletes need at least one saved practice observation."
-      );
-    }
-
     const experienceSelection =
       valueFor(
         "[data-experience-mode]",
@@ -1411,13 +1165,6 @@ async function submitAssessment(
 
     const payload = {
       pinId,
-
-      fear: {
-        focus,
-        effort,
-        attitude,
-        respect
-      },
 
       placementRecommendation,
 
