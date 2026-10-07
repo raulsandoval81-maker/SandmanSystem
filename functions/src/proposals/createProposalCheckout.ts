@@ -323,9 +323,74 @@ export const createProposalCheckout =
         );
       }
 
+      /*
+       * Proposal pricing locks the billing day, but the proposal may sit
+       * in review long enough for its original first-charge date to pass.
+       * For the current Sandman schedule (5th of each month), preserve the
+       * locked amount and billing day while rolling a stale first-charge
+       * date forward to the next valid future 5th.
+       *
+       * This fixes stale proposals without changing the member's price.
+       */
+      let resolvedFirstRecurringChargeDate =
+        firstRecurringChargeDate;
+
+      const now = new Date();
+
+      if (
+        new Date(firstRecurringChargeMs).getTime() <=
+        now.getTime()
+      ) {
+        const nextRecurringDate =
+          new Date(
+            Date.UTC(
+              now.getUTCFullYear(),
+              now.getUTCMonth(),
+              5,
+              12,
+              0,
+              0
+            )
+          );
+
+        if (
+          nextRecurringDate.getTime() <=
+          now.getTime()
+        ) {
+          nextRecurringDate.setUTCMonth(
+            nextRecurringDate.getUTCMonth() + 1
+          );
+        }
+
+        resolvedFirstRecurringChargeDate =
+          [
+            nextRecurringDate.getUTCFullYear(),
+            String(
+              nextRecurringDate.getUTCMonth() + 1
+            ).padStart(2, "0"),
+            "05",
+          ].join("-");
+      }
+
+      const resolvedFirstRecurringChargeMs =
+        Date.UTC(
+          Number(
+            resolvedFirstRecurringChargeDate.slice(0, 4)
+          ),
+          Number(
+            resolvedFirstRecurringChargeDate.slice(5, 7)
+          ) - 1,
+          Number(
+            resolvedFirstRecurringChargeDate.slice(8, 10)
+          ),
+          12,
+          0,
+          0
+        );
+
       const firstRecurringChargeUnix =
         Math.floor(
-          firstRecurringChargeMs / 1000
+          resolvedFirstRecurringChargeMs / 1000
         );
 
       if (
@@ -733,7 +798,8 @@ export const createProposalCheckout =
               billingFlowVersion:
                 "payment_then_subscription_v1",
 
-              firstRecurringChargeDate,
+              firstRecurringChargeDate:
+                resolvedFirstRecurringChargeDate,
 
               recurringBillingDay:
                 String(
@@ -766,7 +832,7 @@ export const createProposalCheckout =
                     monthlyBalance / 100
                   ).toFixed(
                     2
-                  )}/month beginning ${firstRecurringChargeDate}; billed on the 5th.`,
+                  )}/month beginning ${resolvedFirstRecurringChargeDate}; billed on the 5th.`,
               },
             },
 
@@ -842,11 +908,28 @@ export const createProposalCheckout =
                 .collection("history")
                 .doc();
 
+            const lockedSnapshotForCheckout =
+              isReplacingExpiredCheckout ||
+              resolvedFirstRecurringChargeDate !==
+                firstRecurringChargeDate
+                ? {
+                    ...snapshot,
+                    pricing: {
+                      ...pricing,
+                      firstRecurringChargeDate:
+                        resolvedFirstRecurringChargeDate,
+                    },
+                  }
+                : snapshot;
+
             tx.update(
               proposalRef,
               {
                 status:
                   "CHECKOUT_CREATED",
+
+                lockedSnapshot:
+                  lockedSnapshotForCheckout,
 
                 pendingCheckoutSessionId:
                   session.id,
@@ -876,9 +959,12 @@ export const createProposalCheckout =
                 proposalId,
 
                 event:
-                  isReplacingExpiredCheckout
-                    ? "CHECKOUT_RESTARTED"
-                    : "STATUS_CHANGED",
+                  resolvedFirstRecurringChargeDate !==
+                  firstRecurringChargeDate
+                    ? "RECURRING_CHARGE_DATE_ROLLED_FORWARD"
+                    : isReplacingExpiredCheckout
+                      ? "CHECKOUT_RESTARTED"
+                      : "STATUS_CHANGED",
 
                 fromStatus:
                   isReplacingExpiredCheckout
