@@ -1356,9 +1356,9 @@ adjustmentForm.addEventListener(
                 )
               : null,
 
-          recognitionTotal:
+          recognitionPerStage:
             isExperienceOverride
-              ? recognitionPlan.total
+              ? recognitionPlan.perStage
               : null,
 
           reason,
