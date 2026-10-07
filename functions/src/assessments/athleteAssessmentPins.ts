@@ -621,6 +621,12 @@ function requireFearScore(value: unknown, label: string): number {
   return score;
 }
 
+function categoricalFearFromScore(score: number): string {
+  if (score >= 4) return "meets";
+  if (score === 3) return "developing";
+  return "concern";
+}
+
 export const saveAthleteValidationObservation = onCall(async (req) => {
   if (!req.auth) {
     throw new HttpsError(
@@ -784,25 +790,65 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
     savedAt: FieldValue.serverTimestamp()
   };
 
-  await pinRef.update({
+  const isFirstBaseline =
+    existingDays.length === 0;
+
+  const nextStatus =
+    isFirstBaseline
+      ? "RETURNED_TO_MANAGEMENT"
+      : status;
+
+  const update: Record<string, any> = {
     [`validationObservations.${dayKey}`]:
       observation,
 
     status:
-      status === "ASSESSMENT_NEEDED"
-        ? "IN_ASSESSMENT"
-        : status,
+      nextStatus,
 
     updatedAt:
       FieldValue.serverTimestamp()
-  });
+  };
+
+  if (isFirstBaseline) {
+    update.fear = {
+      focus:
+        categoricalFearFromScore(focus),
+      effort:
+        categoricalFearFromScore(effort),
+      attitude:
+        categoricalFearFromScore(attitude),
+      respect:
+        categoricalFearFromScore(respect)
+    };
+
+    update.baselineAssessmentCompletedAt =
+      FieldValue.serverTimestamp();
+
+    update.baselineAssessmentCompletedBy =
+      req.auth.uid;
+
+    update.coachReturnedAt =
+      FieldValue.serverTimestamp();
+
+    update.coachReturnedBy =
+      req.auth.uid;
+
+    update.coachReturnMode =
+      "BASELINE_OBSERVATION";
+  }
+
+  await pinRef.update(update);
 
   return {
     ok: true,
     pinId,
     dayKey,
     fearTotal,
-    fullCreditEligible
+    fullCreditEligible,
+    status:
+      nextStatus,
+    baselineComplete:
+      isFirstBaseline
   };
 });
 
