@@ -102,6 +102,9 @@ function mapManagementMember(athleteId, athlete, parentLinks = []) {
         locationId: cleanMemberValue(athlete.locationId || athlete.team?.locationId),
         accessMode,
         directAccessActive: Boolean(authUid),
+        priorExperienceRecognitionUsed: athlete.verifiedExperienceOverride?.used === true ||
+            athlete.legacy === true ||
+            Number(athlete.legacyCreditTotal || 0) > 0,
         athleteEmail: cleanMemberValue(athlete.athleteEmail || athlete.email).toLowerCase(),
         parentEmail: cleanMemberValue(athlete.parentEmail).toLowerCase(),
         age: Number.isFinite(Number(athlete.age))
