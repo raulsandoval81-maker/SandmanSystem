@@ -22,11 +22,16 @@ const countHonorEl = $("count-honor");
 const countConditioningEl = $("count-conditioning");
 const countConditioningRequestsEl = $("count-conditioning-requests");
 const countIronEl = $("count-iron");
+const countRecognitionEl = $("count-recognition");
 
 const listStrengthEl = $("list-strength");
 const listHonorEl = $("list-honor");
 const listConditioningEl = $("list-conditioning");
 const listTestingEl = $("list-testing");
+const listRecognitionEl = $("list-recognition");
+
+const RECOGNITION_QUEUE_ENDPOINT =
+  "https://us-central1-sandmandashboard.cloudfunctions.net/testRecognitionQueue";
 function setCount(el, value) {
   if (el) el.textContent = String(Number(value || 0));
 }
@@ -162,6 +167,80 @@ function subscribeLaneCounts() {
   );
 }
 
+async function refreshRecognitionQueue(user) {
+  if (!listRecognitionEl || !user) return;
+
+  try {
+    const token =
+      await user.getIdToken();
+
+    const response =
+      await fetch(
+        RECOGNITION_QUEUE_ENDPOINT,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`
+          }
+        }
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `Recognition queue failed: ${response.status}`
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (!data?.ok) {
+      throw new Error(
+        data?.error ||
+        "Recognition queue unavailable."
+      );
+    }
+
+    const stripeItems =
+      Array.isArray(
+        data?.queue?.stripeAwards
+      )
+        ? data.queue.stripeAwards
+        : [];
+
+    setCount(
+      countRecognitionEl,
+      stripeItems.length
+    );
+
+    renderMiniList(
+      listRecognitionEl,
+      stripeItems.map((item) =>
+        String(
+          item?.athleteName ||
+          item?.athleteUid ||
+          ""
+        ).trim()
+      ).filter(Boolean)
+    );
+  } catch (error) {
+    console.error(
+      "[daily-operations] recognition queue failed",
+      error
+    );
+
+    setCount(
+      countRecognitionEl,
+      0
+    );
+
+    if (listRecognitionEl) {
+      listRecognitionEl.innerHTML =
+        '<div class="mini-list__empty">Recognition queue unavailable</div>';
+    }
+  }
+}
+
 function subscribeTestingReady() {
   if (!listTestingEl) return;
 
@@ -220,12 +299,16 @@ async function initialize() {
     document.querySelector("[data-daily-protected]");
 
   try {
-    await requireCoach();
+    const coachContext =
+      await requireCoach();
 
     if (protectedContent) protectedContent.hidden = false;
     if (status) status.hidden = true;
 
     subscribeLaneCounts();
+    await refreshRecognitionQueue(
+      coachContext?.user
+    );
     subscribeTestingReady();
   } catch (error) {
     console.error("[daily-operations] Coach access denied", error);
