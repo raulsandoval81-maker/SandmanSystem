@@ -13,6 +13,10 @@ import {
   requireProposalLocationAccess,
 } from "./proposalAccess";
 
+import {
+  getStripe,
+} from "../billing/stripeClient";
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
 }
