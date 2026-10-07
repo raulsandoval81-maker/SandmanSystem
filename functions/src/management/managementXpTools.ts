@@ -1113,19 +1113,19 @@ export const createManagementXpAdjustment =
     const isVerifiedExperienceOverride =
       category === "verified_experience_override";
 
-    const allowedRecognitionTotals =
+    const recognitionMaximum =
       verifiedExperienceYears === 1
-        ? new Set([50, 100, 150, 200])
+        ? 200
         : verifiedExperienceYears === 2
-          ? new Set([100, 200, 300, 400])
+          ? 400
           : verifiedExperienceYears === 3
-            ? new Set([150, 300, 450, 600])
-            : new Set<number>();
+            ? 600
+            : 0;
 
     const overrideIssuedNow =
       verifiedExperienceYears === 1
         ? recognitionTotal
-        : recognitionTotal / 2;
+        : Math.floor(recognitionTotal / 2);
 
     const amount =
       isVerifiedExperienceOverride
@@ -1156,10 +1156,14 @@ export const createManagementXpAdjustment =
         );
       }
 
-      if (!allowedRecognitionTotals.has(recognitionTotal)) {
+      if (
+        !Number.isInteger(recognitionTotal) ||
+        recognitionTotal <= 0 ||
+        recognitionTotal > recognitionMaximum
+      ) {
         throw new HttpsError(
           "invalid-argument",
-          "Recognition selection is outside the allowed system values for that experience year."
+          `Recognition XP must be a whole number from 1 to ${recognitionMaximum} for the selected verified-experience year.`
         );
       }
     } else if (
