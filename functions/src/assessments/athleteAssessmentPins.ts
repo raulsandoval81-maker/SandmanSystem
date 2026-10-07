@@ -481,7 +481,7 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
       scope: "claimed_prior_experience_only",
       practice1: "half_credit_unless_validation_standard_met",
       practice2Plus: "normal_attendance",
-      secondLook: "optional_coach_discretion",
+      fearBaseline: "one_time",
       halfCreditXp: 5,
       fearPassingScore: 16,
       fearMaximumScore: 20,
