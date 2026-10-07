@@ -72,7 +72,11 @@ export const returnProposalToDraft =
         status === "REVIEW" ||
         status === "AWAITING_CLIENT_SIGNATURE";
 
-      if (!clientRequestedChange && !managementCorrection) {
+      if (
+        !clientRequestedChange &&
+        !managementCorrection &&
+        !checkoutCorrection
+      ) {
         throw new HttpsError(
           "failed-precondition",
           "This proposal cannot be reopened from its current stage. Signed, checkout, payment, and enrollment stages require the appropriate downstream correction path."
@@ -89,6 +93,34 @@ export const returnProposalToDraft =
         );
       }
 
+      const checkoutCorrection =
+        status === "READY_FOR_CHECKOUT" ||
+        status === "CHECKOUT_CREATED";
+
+      if (
+        checkoutCorrection &&
+        proposal.pendingCheckoutSessionId
+      ) {
+        try {
+          const stripe = getStripe();
+          const session =
+            await stripe.checkout.sessions.retrieve(
+              proposal.pendingCheckoutSessionId
+            );
+
+          if (session.status === "open") {
+            await stripe.checkout.sessions.expire(
+              proposal.pendingCheckoutSessionId
+            );
+          }
+        } catch (error) {
+          console.warn(
+            "[returnProposalToDraft] unable to expire old checkout session",
+            error
+          );
+        }
+      }
+
       const historyRef = proposalRef.collection("history").doc();
 
       tx.update(proposalRef, {
@@ -100,6 +132,8 @@ export const returnProposalToDraft =
         approvedBy: FieldValue.delete(),
         lockedAt: FieldValue.delete(),
         lockedBy: FieldValue.delete(),
+        pendingCheckoutSessionId: FieldValue.delete(),
+        checkoutSessionCreatedAt: FieldValue.delete(),
         updatedBy: req.auth!.uid,
         updatedAt: FieldValue.serverTimestamp(),
       });
