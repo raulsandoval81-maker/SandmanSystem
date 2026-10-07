@@ -1125,7 +1125,7 @@ export const createManagementXpAdjustment =
     const overrideIssuedNow =
       verifiedExperienceYears === 1
         ? recognitionTotal
-        : Math.floor(recognitionTotal / 2);
+        : recognitionTotal / 2;
 
     const amount =
       isVerifiedExperienceOverride
@@ -1164,6 +1164,16 @@ export const createManagementXpAdjustment =
         throw new HttpsError(
           "invalid-argument",
           `Recognition XP must be a whole number from 1 to ${recognitionMaximum} for the selected verified-experience year.`
+        );
+      }
+
+      if (
+        verifiedExperienceYears >= 2 &&
+        recognitionTotal % 2 !== 0
+      ) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Two-year and 3+ year recognition totals must be even so XP can split 50/50 between now and Tier 1 held XP."
         );
       }
     } else if (
