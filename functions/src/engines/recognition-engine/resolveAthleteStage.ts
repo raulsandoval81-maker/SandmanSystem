@@ -22,33 +22,26 @@ function hasPassedTest(a: any): boolean {
 }
 
 function isTestingActive(a: any): boolean {
-  return normalize(a?.testing?.state) === "active";
+  return normalize(a?.testing?.state) === "testing";
 }
 
 function inCooldown(a: any): boolean {
   return Boolean(
-    a?.cooldownUntil &&
-    new Date(a.cooldownUntil).getTime() > Date.now()
+    a?.testing?.cooldownUntil &&
+    new Date(a.testing.cooldownUntil).getTime() > Date.now()
   );
 }
 
 function isTemple(a: any): boolean {
-  const xp = num(a.xp);
-  const cap = num(a.xpCap);
-  const ratio = cap > 0 ? xp / cap : 0;
-
-  return ratio >= 0.9 && !a?.testing?.testScheduledAt;
+  return normalize(a?.testing?.state) === "temple";
 }
 
 function isTestEligible(a: any): boolean {
-  return Boolean(
-    a?.testing?.testEligibleAt &&
-    !a?.testing?.testScheduledAt
-  );
+  return normalize(a?.testing?.state) === "eligible";
 }
 
 function isTestScheduled(a: any): boolean {
-  return Boolean(a?.testing?.testScheduledAt);
+  return normalize(a?.testing?.state) === "ready";
 }
 
 function isCeremony(a: any): boolean {
