@@ -375,43 +375,6 @@ export const createProposalCheckout =
           ].join("-");
       }
 
-      const now = new Date();
-
-      if (
-        new Date(firstRecurringChargeMs).getTime() <=
-        now.getTime()
-      ) {
-        const nextRecurringDate =
-          new Date(
-            Date.UTC(
-              now.getUTCFullYear(),
-              now.getUTCMonth(),
-              5,
-              12,
-              0,
-              0
-            )
-          );
-
-        if (
-          nextRecurringDate.getTime() <=
-          now.getTime()
-        ) {
-          nextRecurringDate.setUTCMonth(
-            nextRecurringDate.getUTCMonth() + 1
-          );
-        }
-
-        resolvedFirstRecurringChargeDate =
-          [
-            nextRecurringDate.getUTCFullYear(),
-            String(
-              nextRecurringDate.getUTCMonth() + 1
-            ).padStart(2, "0"),
-            "05",
-          ].join("-");
-      }
-
       const overdueMembershipDueNowCents =
         overdueMembershipMonths > 0
           ? monthlyBalance * overdueMembershipMonths
@@ -630,7 +593,7 @@ export const createProposalCheckout =
           Stripe.Checkout.SessionCreateParams.LineItem[] =
           [];
 
-        if (dueNow > 0) {
+        if (checkoutDueNow > 0) {
           lineItems.push({
             price_data: {
               currency: "usd",
