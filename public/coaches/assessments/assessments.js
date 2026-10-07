@@ -318,6 +318,25 @@ function renderValidationObservationSection(
   pin,
   pinId
 ) {
+  const observations =
+    sortedValidationObservations(pin);
+
+  if (observations.length >= 2) {
+    return `
+      <section class="assessment-validation-complete">
+        <p class="assessment-eyebrow">
+          Prior-Experience Validation
+        </p>
+        <strong>
+          Validation observations complete · 2 of 2 recorded.
+        </strong>
+        <span>
+          Coach observation work is complete. Continue with Coach Confirmation and final handoff.
+        </span>
+      </section>
+    `;
+  }
+
   const observation =
     latestValidationObservation(pin);
 
