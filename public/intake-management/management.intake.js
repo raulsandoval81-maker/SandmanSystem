@@ -550,13 +550,13 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
           class="small solid-blue"
           data-awaiting-resend="${esc(proposalId)}"
         >
-          Resend Intake Email
+          Remote — Resend Intake Email
         </button>
         <button
           class="small outline-blue"
           data-awaiting-open="${esc(proposalId)}"
         >
-          Open Handoff
+          In-Person — Open Intake
         </button>
       </div>
     </div>
@@ -695,7 +695,7 @@ function wireAwaitingIntakeButtons() {
 
       const original = button.textContent;
       button.disabled = true;
-      button.textContent = "Opening…";
+      button.textContent = "Opening Intake…";
 
       try {
         await generateIntakeInvite(
@@ -716,7 +716,7 @@ function wireAwaitingIntakeButtons() {
 
       button.disabled = true;
       const original = button.textContent;
-      button.textContent = "Sending…";
+      button.textContent = "Sending Remote Email…";
 
       try {
         await generateIntakeInvite(

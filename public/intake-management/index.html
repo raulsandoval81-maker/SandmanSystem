@@ -421,56 +421,50 @@
         <span class="status-pill">48 Hours</span>
       </div>
 
-      <div class="row" style="margin-top:14px;">
+      <input
+        id="invite-link"
+        type="hidden"
+        readonly
+      >
 
-        <input
-          id="invite-link"
-          type="text"
-          readonly
-          class="mono small"
-          placeholder="Invite link appears…"
+      <div class="row intake-handoff-actions" style="margin-top:14px;">
+        <button
+          id="btn-open-qr"
+          class="solid-blue small"
+          type="button"
         >
+          In-Person — Open Intake
+        </button>
 
         <button
           id="btn-copy-token"
           class="outline-blue small"
           type="button"
         >
-          Copy Link
+          Copy Secure Link
         </button>
-
-      </div>
-
-      <div class="row">
 
         <button
           id="btn-send-intake-email"
-          class="solid-blue small"
-          type="button"
-        >
-          Send Intake Email
-        </button>
-
-        <button
-          id="btn-open-qr"
           class="outline-blue small"
           type="button"
         >
-          Open Intake
+          Remote — Send Intake Email
         </button>
-
-        <span
-          id="invite-route-label"
-          class="small muted"
-        >
-          Intake audience will be resolved automatically.
-        </span>
-
       </div>
 
-      <div class="manual-intake-delivery">
-        <p class="small muted">
-          Already sent the intake another way? Record it here so Management can advance the enrollment without pretending an email was sent.
+      <div
+        id="invite-route-label"
+        class="small muted"
+        style="margin-top:8px;"
+      >
+        Intake audience will be resolved automatically.
+      </div>
+
+      <details class="manual-intake-delivery" style="margin-top:14px;">
+        <summary class="small">Manual handoff — edge case</summary>
+        <p class="small muted" style="margin-top:8px;">
+          Use only when the secure link was already delivered another way and Management needs to record that handoff.
         </p>
 
         <div class="row">
@@ -497,10 +491,10 @@
             type="button"
             disabled
           >
-            Mark Intake Sent
+            Record Manual Handoff
           </button>
         </div>
-      </div>
+      </details>
 
       <div
         id="invite-status"
