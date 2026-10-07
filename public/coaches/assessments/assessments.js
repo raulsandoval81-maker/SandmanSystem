@@ -1232,6 +1232,30 @@ function valueFor(
   );
 }
 
+function lockAssessmentCard(pinId) {
+  const card =
+    document.querySelector(
+      `[data-assessment-card="${CSS.escape(
+        pinId
+      )}"]`
+    );
+
+  if (!card) return;
+
+  card
+    .querySelectorAll(
+      "input, select, textarea, button"
+    )
+    .forEach((control) => {
+      control.disabled = true;
+    });
+
+  card.setAttribute(
+    "data-assessment-locked",
+    "true"
+  );
+}
+
 async function submitAssessment(
   pinId,
   button
@@ -1414,6 +1438,8 @@ async function submitAssessment(
       statusEl.textContent =
         "Returned to Management.";
     }
+
+    lockAssessmentCard(pinId);
 
     const card =
       document.querySelector(
