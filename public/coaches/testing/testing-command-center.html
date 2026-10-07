@@ -227,6 +227,7 @@
     const athleteName = params.get("athleteName") || params.get("name") || "";
     const track = params.get("track") || "";
     const tier = params.get("tier") || "";
+    const testDate = params.get("testDate") || "";
 
     if (uid) els.uid.value = uid;
     if (athleteName) els.athleteName.value = athleteName;
@@ -239,6 +240,10 @@
 
     if (tier) {
       els.tier.value = tier;
+    }
+
+    if (testDate) {
+      els.testDate.value = testDate;
     }
 
     updatePanelStatus();
