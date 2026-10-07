@@ -990,15 +990,15 @@ function proposalActionHtml(status, id) {
   ) {
     return `
       <button class="proposal-open-btn" type="button" data-proposal-action="preview-enrollment-verification" data-proposal-id="${esc(id)}">
-        Preview Review & Confirm
+        Review & Confirm — In Person
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="copy-enrollment-verification" data-proposal-id="${esc(id)}">
-        Copy Secure Link
+        Copy Alternative Secure Link
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
-        Email Review & Confirm
+        Review & Confirm — Remote
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="correct-proposal" data-proposal-id="${esc(id)}">
