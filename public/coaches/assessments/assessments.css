@@ -743,3 +743,32 @@ body[data-theme="night"] .assessment-xp-box{
 .assessment-card[data-assessment-locked="true"] button{
   opacity:.6;
 }
+
+
+.assessment-second-look{
+  margin-top:12px;
+  border-top:1px solid var(--coach-shell-line);
+  padding-top:10px;
+}
+
+.assessment-second-look summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+  color:var(--coach-shell-text);
+  font-size:.82rem;
+  font-weight:900;
+}
+
+.assessment-second-look summary span{
+  color:var(--coach-shell-muted);
+  font-size:.7rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.assessment-second-look-body{
+  margin-top:12px;
+}
