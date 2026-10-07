@@ -843,6 +843,11 @@ function proposalQueueStyles() {
     }
 
     @media(max-width:900px){
+      .management-rules-body{
+        grid-template-columns:1fr;
+      }
+
+
       .proposal-stage-strip{
         grid-template-columns:1fr;
       }
