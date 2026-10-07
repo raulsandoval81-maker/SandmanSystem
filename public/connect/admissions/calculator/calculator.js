@@ -1093,22 +1093,97 @@ const extras = {
           ? "deferred_family"
           : "start_now";
 
+      const firstRecurringChargeDate =
+        nextMonthlyBillingDate(
+          membershipStartDate
+        );
+
+      /*
+       * If a proposal sits past one or more scheduled 5th-of-month
+       * charges, those membership months are not erased. They are
+       * collected at checkout before the family enters normal recurring
+       * billing again.
+       */
+      let overdueMembershipMonths = 0;
+      let resolvedFirstRecurringChargeDate =
+        firstRecurringChargeDate;
+
+      const firstRecurringDate =
+        parseLocalDate(
+          firstRecurringChargeDate
+        );
+
+      const today =
+        new Date();
+
+      if (firstRecurringDate) {
+        const cursor =
+          new Date(
+            firstRecurringDate.getFullYear(),
+            firstRecurringDate.getMonth(),
+            firstRecurringDate.getDate(),
+            12,
+            0,
+            0,
+            0
+          );
+
+        const todayStart =
+          new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            today.getDate(),
+            12,
+            0,
+            0,
+            0
+          );
+
+        while (
+          cursor.getTime() <=
+            todayStart.getTime() &&
+          overdueMembershipMonths < 24
+        ) {
+          overdueMembershipMonths += 1;
+          cursor.setMonth(
+            cursor.getMonth() + 1
+          );
+        }
+
+        if (
+          overdueMembershipMonths > 0
+        ) {
+          resolvedFirstRecurringChargeDate =
+            localIsoDate(
+              cursor
+            );
+        }
+      }
+
+      const overdueMembershipDueNow =
+        Math.max(
+          0,
+          monthlyBalance *
+          overdueMembershipMonths
+        );
+
       const firstMonthDueNow =
-        paymentStartMode ===
-          "deferred_family"
+        overdueMembershipMonths > 0
           ? 0
-          : proratedFirstMonth;
+          : paymentStartMode ===
+              "deferred_family"
+            ? 0
+            : proratedFirstMonth;
 
       const dueNow =
         Math.max(
           0,
           enrollmentDueNow +
-          firstMonthDueNow
-        );
-
-      const firstRecurringChargeDate =
-        nextMonthlyBillingDate(
-          membershipStartDate
+          (
+            overdueMembershipMonths > 0
+              ? overdueMembershipDueNow
+              : firstMonthDueNow
+          )
         );
 
       if (el.deferredEligibility) {
