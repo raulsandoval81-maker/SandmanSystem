@@ -26,7 +26,7 @@ let canonicalPractice = null;
 let canonicalAttendance = null;
 let canonicalRoster = [];
 let canonicalAthleteInputs = {};
-
+ 
 const summary = document.getElementById("sessionSummary");
 const statusEl = document.getElementById("status");
 const athleteInputEl = document.getElementById("athleteInput");
