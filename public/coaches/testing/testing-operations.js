@@ -29,6 +29,10 @@ async function init() {
   const readinessEl = $("readinessQueue");
   const scheduledEl = $("scheduledQueue");
   const activeEl = $("activeQueue");
+  const countTotalEl = $("countTestingTotal");
+  const countReadinessEl = $("countTestingReadiness");
+  const countScheduledEl = $("countTestingScheduled");
+  const countActiveEl = $("countTestingActive");
 
   try {
     const coach = await requireCoach();
@@ -242,6 +246,26 @@ async function init() {
       readiness.length +
       scheduled.length +
       active.length;
+
+    if (countTotalEl) {
+      countTotalEl.textContent =
+        String(total);
+    }
+
+    if (countReadinessEl) {
+      countReadinessEl.textContent =
+        String(readiness.length);
+    }
+
+    if (countScheduledEl) {
+      countScheduledEl.textContent =
+        String(scheduled.length);
+    }
+
+    if (countActiveEl) {
+      countActiveEl.textContent =
+        String(active.length);
+    }
 
     status.textContent =
       total
