@@ -663,6 +663,7 @@ function renderPin(pin) {
             <p>${esc(claimedNotes)}</p>
           </div>
         </div>
+      </section>
 
         <p class="assessment-coach-prompt">
           Coach, read the athlete's submitted details first. When you're ready to work, open the assessment clipboard.
@@ -726,6 +727,7 @@ function renderPin(pin) {
 
             <div class="assessment-divider"></div>
 
+        <section>
         <h4>
           Coach Confirmation
         </h4>
