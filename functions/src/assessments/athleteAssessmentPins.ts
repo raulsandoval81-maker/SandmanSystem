@@ -403,6 +403,47 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     };
   }
 
+  const terminalStatuses = new Set([
+    "RETURNED_TO_MANAGEMENT",
+    "PLACEMENT_RECORDED"
+  ]);
+
+  const completed = existingSnap.docs.find((doc) => {
+    const data = doc.data() || {};
+    const status = clean(data.status).toUpperCase();
+
+    if (!terminalStatuses.has(status)) {
+      return false;
+    }
+
+    const priorProposalId = clean(data.proposalId);
+
+    if (assessmentCase.proposalId) {
+      return priorProposalId === assessmentCase.proposalId;
+    }
+
+    // Legacy assessments may not have enrollment-case provenance.
+    return !priorProposalId;
+  });
+
+  if (completed) {
+    const completedData = completed.data() || {};
+
+    return {
+      ok: true,
+      duplicate: true,
+      completed: true,
+      pinId: completed.id,
+      status: completedData.status,
+      proposalId:
+        clean(completedData.proposalId) ||
+        assessmentCase.proposalId,
+      intakeId:
+        clean(completedData.intakeId) ||
+        assessmentCase.intakeId
+    };
+  }
+
   const pinRef = db.collection("athleteAssessmentPins").doc();
   const now = FieldValue.serverTimestamp();
 
@@ -634,8 +675,7 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
   if (
     ![
       "ASSESSMENT_NEEDED",
-      "IN_ASSESSMENT",
-      "RETURNED_TO_MANAGEMENT"
+      "IN_ASSESSMENT"
     ].includes(status)
   ) {
     throw new HttpsError(
