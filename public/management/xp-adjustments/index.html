@@ -282,6 +282,40 @@
         </div>
       </details>
 
+      <div class="xp-mode-switch" role="tablist" aria-label="XP Management mode">
+        <button
+          id="experienceModeButton"
+          class="xp-mode-card is-active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="experienceValidationPanel"
+          data-xp-mode="experience"
+        >
+          <span>
+            <strong>Experience Validation</strong>
+            <small>Review returned Coach experience and final placement.</small>
+          </span>
+          <span class="xp-mode-chevron" aria-hidden="true">›</span>
+        </button>
+
+        <button
+          id="adjustmentModeButton"
+          class="xp-mode-card"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="xpAdjustmentPanel"
+          data-xp-mode="adjustment"
+        >
+          <span class="xp-mode-chevron xp-mode-chevron--left" aria-hidden="true">‹</span>
+          <span>
+            <strong>XP Adjustment</strong>
+            <small>Apply a verified administrative XP correction.</small>
+          </span>
+        </button>
+      </div>
+
       <section class="adjustment-card">
 
         <p class="adjustment-eyebrow">
@@ -356,7 +390,7 @@
           XP Management
         </h3>
 
-        <section id="experienceValidationPanel" class="xp-step-panel" aria-live="polite">
+        <section id="experienceValidationPanel" class="xp-step-panel" role="tabpanel" aria-live="polite">
           <div class="xp-step-panel__head">
             <strong>Experience Validation</strong>
             <span id="experienceValidationStatus">Checking for returned Coach assessment…</span>
@@ -364,7 +398,7 @@
           <div id="experienceValidationContent"></div>
         </section>
 
-        <section class="xp-step-panel">
+        <section id="xpAdjustmentPanel" class="xp-step-panel" role="tabpanel" hidden>
           <div class="xp-step-panel__head">
             <strong>XP Adjustment</strong>
             <span>Administrative correction only when applicable.</span>
