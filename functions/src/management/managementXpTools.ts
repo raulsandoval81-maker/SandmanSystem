@@ -1069,9 +1069,19 @@ export const createManagementXpAdjustment =
         req.data?.athleteUid
       );
 
-    const amount =
+    const requestedAmount =
       Number(
         req.data?.amount
+      );
+
+    const verifiedExperienceYears =
+      Number(
+        req.data?.verifiedExperienceYears || 0
+      );
+
+    const recognitionTotal =
+      Number(
+        req.data?.recognitionTotal || 0
       );
 
     const reason =
@@ -1100,11 +1110,34 @@ export const createManagementXpAdjustment =
         req.data?.discipline
       ).toLowerCase();
 
+    const isVerifiedExperienceOverride =
+      category === "verified_experience_override";
+
+    const allowedRecognitionTotals =
+      verifiedExperienceYears === 1
+        ? new Set([50, 100, 150, 200])
+        : verifiedExperienceYears === 2
+          ? new Set([100, 200, 300, 400])
+          : verifiedExperienceYears === 3
+            ? new Set([150, 300, 450, 600])
+            : new Set<number>();
+
+    const overrideIssuedNow =
+      verifiedExperienceYears === 1
+        ? recognitionTotal
+        : recognitionTotal / 2;
+
+    const amount =
+      isVerifiedExperienceOverride
+        ? overrideIssuedNow
+        : requestedAmount;
+
     const allowedCategories =
       new Set([
         "delayed_onboarding",
         "downtime_recovery",
         "paper_reconciliation",
+        "verified_experience_override",
         "correction"
       ]);
 
@@ -1115,7 +1148,21 @@ export const createManagementXpAdjustment =
       );
     }
 
-    if (
+    if (isVerifiedExperienceOverride) {
+      if (![1, 2, 3].includes(verifiedExperienceYears)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Verified experience must be 1 Year, 2 Years, or 3+ Years."
+        );
+      }
+
+      if (!allowedRecognitionTotals.has(recognitionTotal)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Recognition selection is outside the allowed system values for that experience year."
+        );
+      }
+    } else if (
       !Number.isFinite(amount) ||
       !Number.isInteger(amount) ||
       amount <= 0
@@ -1190,8 +1237,24 @@ export const createManagementXpAdjustment =
           )
         );
 
+        if (isVerifiedExperienceOverride) {
+          const alreadyRecognized =
+            athlete.verifiedExperienceOverride?.used === true ||
+            athlete.legacy === true ||
+            Number(athlete.legacyCreditTotal || 0) > 0;
+
+          if (alreadyRecognized) {
+            throw new HttpsError(
+              "failed-precondition",
+              "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED"
+            );
+          }
+        }
+
         const awardIdentity =
-          `management-adjustment:${adjustmentId}`;
+          isVerifiedExperienceOverride
+            ? `verified-experience-override:${athleteUid}`
+            : `management-adjustment:${adjustmentId}`;
 
         const receiptRef =
           db.collection(
@@ -1363,6 +1426,35 @@ export const createManagementXpAdjustment =
           disciplineLifetime.patch
         );
 
+        if (isVerifiedExperienceOverride) {
+          const heldXp =
+            Math.max(0, recognitionTotal - delta);
+
+          Object.assign(athletePatch, {
+            legacy: true,
+            legacyType: "external",
+            legacyYearsVerified: verifiedExperienceYears,
+            legacyCreditTotal: recognitionTotal,
+            legacyCreditIssued: delta,
+            legacyHold: heldXp > 0,
+            legacyCreditSchedule:
+              verifiedExperienceYears >= 2
+                ? "deferred_t1_entry"
+                : "full_t0",
+            legacyNote: reason,
+            verifiedExperienceOverride: {
+              used: true,
+              verifiedYears: verifiedExperienceYears,
+              recognitionTotal,
+              issuedNow: delta,
+              heldXp,
+              discipline,
+              managementUid: actorUid,
+              usedAt: now
+            }
+          });
+        }
+
         if (base === "F8") {
           const remoteAccess =
             resolveF8RemoteAccess({
@@ -1470,6 +1562,14 @@ export const createManagementXpAdjustment =
           requestedAmount:
             amount,
 
+          ...(isVerifiedExperienceOverride
+            ? {
+                recognitionTotal,
+                recognitionHeld:
+                  Math.max(0, recognitionTotal - delta)
+              }
+            : {}),
+
           beforeXp,
           afterXp,
           xpCap,
@@ -1524,7 +1624,19 @@ export const createManagementXpAdjustment =
 
           meta: {
             source:
-              "management_adjustment",
+              isVerifiedExperienceOverride
+                ? "management_verified_experience_override"
+                : "management_adjustment",
+
+            ...(isVerifiedExperienceOverride
+              ? {
+                  verifiedExperienceYears,
+                  recognitionTotal,
+                  recognitionIssuedNow: delta,
+                  recognitionHeld:
+                    Math.max(0, recognitionTotal - delta)
+                }
+              : {}),
 
             category,
 
