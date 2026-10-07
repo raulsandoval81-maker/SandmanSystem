@@ -2,8 +2,6 @@ import {
   db,
   collection,
   onSnapshot,
-  query,
-  where,
   getDocs,
   functions,
   httpsCallable
@@ -525,6 +523,8 @@ async function refreshRecognitionQueue(user) {
     );
 
     renderRecognitionItems(items);
+
+    return data;
   } catch (error) {
     console.error(
       "[daily-operations] recognition queue failed",
@@ -540,59 +540,139 @@ async function refreshRecognitionQueue(user) {
       listRecognitionEl.innerHTML =
         '<div class="mini-list__empty">Recognition queue unavailable</div>';
     }
+
+    return null;
   }
 }
 
-function subscribeTestingReady() {
+function testingStageLabel(stage) {
+  const normalized =
+    String(stage || "")
+      .trim()
+      .toUpperCase();
+
+  if (normalized === "TEMPLE") {
+    return "Temple";
+  }
+
+  if (normalized === "TEST_ELIGIBLE") {
+    return "Ready for Test";
+  }
+
+  if (normalized === "TEST_SCHEDULED") {
+    return "Test Scheduled";
+  }
+
+  if (normalized === "TESTING") {
+    return "Testing";
+  }
+
+  return normalized.replaceAll("_", " ");
+}
+
+function renderTestingReadiness(recognitionData) {
   if (!listTestingEl) return;
 
-  const readyQuery = query(
-    collection(db, "athletes"),
-    where("testing.state", "==", "READY")
-  );
+  const testingItems =
+    Array.isArray(
+      recognitionData?.queue?.testing
+    )
+      ? recognitionData.queue.testing
+      : [];
 
-  onSnapshot(
-    readyQuery,
-    (snap) => {
-      if (!snap.size) {
-        listTestingEl.innerHTML =
-          '<p class="muted">No athletes are currently marked READY.</p>';
-        return;
-      }
+  if (!testingItems.length) {
+    listTestingEl.innerHTML =
+      '<p class="muted">No athletes are currently in Temple or the testing pipeline.</p>';
+    return;
+  }
 
-      listTestingEl.innerHTML = snap.docs.map((docSnap) => {
-        const data = docSnap.data() || {};
-        const athleteId = docSnap.id;
-        const name =
-          data.publicName ||
-          data.fullName ||
-          data.name ||
-          athleteId;
+  const priority = {
+    TESTING: 0,
+    TEST_SCHEDULED: 1,
+    TEST_ELIGIBLE: 2,
+    TEMPLE: 3
+  };
 
-        const testDate =
-          data?.testing?.scheduledDate ||
-          "No date set";
+  const items =
+    [...testingItems].sort((a, b) => {
+      const aStage =
+        String(a?.stage || "")
+          .trim()
+          .toUpperCase();
 
-        return `
-          <article class="testing-row">
-            <div>
-              <strong>${name}</strong>
-              <span>${data.tier || data.rankName || "—"} · READY · ${testDate}</span>
-            </div>
-            <div class="testing-actions">
-              <a href="/coaches/athletes/athlete.html?id=${encodeURIComponent(athleteId)}">Track</a>
-              <a href="/coaches/testing/coach-athlete-panel.html?id=${encodeURIComponent(athleteId)}&v=2">Review</a>
-            </div>
-          </article>
-        `;
-      }).join("");
-    },
-    (error) => {
-      console.error("[daily-operations] testing queue failed", error);
-      listTestingEl.innerHTML =
-        '<p class="muted">Testing queue unavailable.</p>';
-    }
-  );
+      const bStage =
+        String(b?.stage || "")
+          .trim()
+          .toUpperCase();
+
+      return (
+        (priority[aStage] ?? 9) -
+          (priority[bStage] ?? 9) ||
+        String(
+          a?.athleteName ||
+          a?.athleteUid ||
+          ""
+        ).localeCompare(
+          String(
+            b?.athleteName ||
+            b?.athleteUid ||
+            ""
+          )
+        )
+      );
+    });
+
+  listTestingEl.innerHTML =
+    items.map((item) => {
+      const athleteId =
+        String(
+          item?.athleteUid ||
+          ""
+        ).trim();
+
+      const name =
+        String(
+          item?.athleteName ||
+          athleteId ||
+          "Athlete"
+        ).trim();
+
+      const stage =
+        testingStageLabel(
+          item?.stage
+        );
+
+      const stripe =
+        Number(
+          item?.decision?.stripe ?? 0
+        );
+
+      const tier =
+        item?.decision?.tier ?? "—";
+
+      return `
+        <article class="testing-row">
+          <div>
+            <strong>${name}</strong>
+            <span>
+              ${stage}
+              · Tier ${tier}
+              · Stripe ${stripe}
+            </span>
+          </div>
+
+          <div class="testing-actions">
+            <a href="/coaches/athletes/athlete.html?id=${encodeURIComponent(athleteId)}">
+              Track
+            </a>
+
+            <a href="/coaches/testing/coach-athlete-panel.html?id=${encodeURIComponent(athleteId)}&v=2">
+              Open Testing
+            </a>
+          </div>
+        </article>
+      `;
+    }).join("");
 }
 
 async function initialize() {
@@ -609,10 +689,14 @@ async function initialize() {
 
     subscribeLaneCounts();
     await refreshManagementNoticeCount();
-    await refreshRecognitionQueue(
-      coachContext?.user
+    const recognitionData =
+      await refreshRecognitionQueue(
+        coachContext?.user
+      );
+
+    renderTestingReadiness(
+      recognitionData
     );
-    subscribeTestingReady();
   } catch (error) {
     console.error("[daily-operations] Coach access denied", error);
 
