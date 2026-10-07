@@ -466,3 +466,38 @@
     font-size:1.7rem;
   }
 }
+
+
+/* Experience Validation queue state */
+.xp-queue-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:24px;
+  margin-left:8px;
+  padding:2px 8px;
+  border:1px solid var(--management-border);
+  border-radius:999px;
+  background:var(--management-surface-soft);
+  color:var(--management-muted);
+  font-size:.72rem;
+  font-weight:900;
+  vertical-align:middle;
+}
+
+.xp-queue-badge.is-live{
+  border-color:var(--management-gold);
+  background:#fff3cf;
+  color:#5b4710;
+}
+
+.xp-mode-card:disabled{
+  cursor:not-allowed;
+  opacity:.58;
+  box-shadow:none;
+}
+
+.xp-mode-card:disabled:hover{
+  border-color:var(--management-border);
+  outline:none;
+}
