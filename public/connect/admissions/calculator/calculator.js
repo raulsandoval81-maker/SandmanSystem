@@ -1447,11 +1447,15 @@ const extras = {
           : "";
 
       const firstMonthSummary =
-        paymentStartMode === "start_now"
+        overdueMembershipMonths > 0
           ? `${money(
-              proratedFirstMonth
-            )} (${prorationPercent}%)`
-          : "Deferred";
+              overdueMembershipDueNow
+            )} for ${overdueMembershipMonths} missed month${overdueMembershipMonths === 1 ? "" : "s"}`
+          : paymentStartMode === "start_now"
+            ? `${money(
+                proratedFirstMonth
+              )} (${prorationPercent}%)`
+            : "Deferred";
 
       el.summary.innerHTML = `
         ${intro}
