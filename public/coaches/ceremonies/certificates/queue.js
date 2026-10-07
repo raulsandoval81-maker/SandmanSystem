@@ -28,6 +28,12 @@ const queueStatus =
 const recognitionQueue =
   $("recognitionQueue");
 
+const approachingQueue =
+  $("approachingQueue");
+
+const countRecognitionTotal =
+  $("countRecognitionTotal");
+
 const countApproaching =
   $("countApproaching");
 
@@ -160,53 +166,71 @@ function generatorUrl(uid) {
   );
 }
 
+function renderApproaching(items) {
+  if (!approachingQueue) return;
+
+  if (!items.length) {
+    approachingQueue.innerHTML = `
+      <div class="empty-state">
+        <h3>No athletes approaching</h3>
+        <p>No one is currently within 50 XP of the next stripe threshold.</p>
+      </div>
+    `;
+    return;
+  }
+
+  approachingQueue.innerHTML =
+    items.map((item) => `
+      <article class="recognition-card recognition-card--approaching">
+        <div class="recognition-card__main">
+          <span class="recognition-state">Approaching</span>
+          <h3>${esc(item.athleteName)}</h3>
+          <p class="recognition-meta">
+            ${esc(item.athleteUid)} · Stripe ${esc(item.stripe)}
+          </p>
+          <p class="recognition-detail">
+            ${esc(item.remaining)} XP remaining before the stripe recognition point.
+          </p>
+        </div>
+        <div class="recognition-card__action">
+          <span class="watch-label">Monitor</span>
+        </div>
+      </article>
+    `).join("");
+}
+
 function renderQueue(items) {
   if (!recognitionQueue) return;
 
-  const readyItems =
-    items.filter(
-      (item) =>
-        item.status === "ready"
-    );
-
-  if (!readyItems.length) {
+  if (!items.length) {
     recognitionQueue.innerHTML = `
       <div class="empty-state">
         <h3>No certificates ready</h3>
-        <p>
-          Approaching athletes stay in the count until the stripe is actually earned.
-        </p>
+        <p>No athlete has reached a certificate-ready recognition point.</p>
       </div>
     `;
     return;
   }
 
   recognitionQueue.innerHTML =
-    readyItems.map((item) => `
+    items.map((item) => `
       <article class="recognition-card recognition-card--ready">
         <div class="recognition-card__main">
-          <span class="recognition-state">
-            Certificate Ready
-          </span>
-
+          <span class="recognition-state">Certificate Ready</span>
           <h3>${esc(item.athleteName)}</h3>
-
           <p class="recognition-meta">
-            ${esc(item.athleteUid)}
-            · Stripe ${esc(item.stripe)}
+            ${esc(item.athleteUid)} · Stripe ${esc(item.stripe)}
           </p>
-
           <p class="recognition-detail">
-            Stripe earned. Open the certificate generator to continue.
+            Stripe earned. Open the generator to review the certificate details and continue the recognition workflow.
           </p>
         </div>
-
         <div class="recognition-card__action">
           <a
             class="primary-action"
             href="${generatorUrl(item.athleteUid)}"
           >
-            Generate Certificate
+            Open Generator
           </a>
         </div>
       </article>
@@ -371,6 +395,12 @@ async function loadQueue() {
         String(ready.length);
     }
 
+    if (countRecognitionTotal) {
+      countRecognitionTotal.textContent =
+        String(ready.length + approaching.length);
+    }
+
+    renderApproaching(approaching);
     renderQueue(ready);
 
     if (queueStatus) {
