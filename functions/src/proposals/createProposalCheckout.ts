@@ -260,6 +260,17 @@ export const createProposalCheckout =
       const monthlyBalance =
         toCents(pricing.monthlyBalance);
 
+      const additionalMembershipMonthsDue =
+        Math.min(
+          24,
+          Math.max(
+            0,
+            Number(
+              pricing.additionalMembershipMonthsDue || 0
+            )
+          )
+        );
+
       if (monthlyBalance < 50) {
         throw new HttpsError(
           "failed-precondition",
@@ -401,11 +412,19 @@ export const createProposalCheckout =
               )
             );
 
+      const additionalMembershipDueNowCents =
+        Math.round(
+          monthlyBalance *
+          additionalMembershipMonthsDue
+        );
+
       const checkoutDueNow =
-        overdueMembershipMonths > 0
+        overdueMembershipMonths > 0 ||
+        additionalMembershipMonthsDue > 0
           ? enrollmentDueNow +
             firstMonthDueNowCents +
-            overdueMembershipDueNowCents
+            overdueMembershipDueNowCents +
+            additionalMembershipDueNowCents
           : lockedDueNow;
 
       if (checkoutDueNow < 50) {
@@ -966,6 +985,9 @@ export const createProposalCheckout =
                       overdueMembershipMonths,
                       overdueMembershipDueNow:
                         overdueMembershipDueNowCents / 100,
+                      additionalMembershipMonthsDue,
+                      additionalMembershipDueNow:
+                        additionalMembershipDueNowCents / 100,
                     },
                   }
                 : snapshot;

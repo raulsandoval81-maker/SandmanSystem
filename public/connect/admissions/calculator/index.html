@@ -801,6 +801,26 @@
               </option>
             </select>
 
+            <div class="field">
+              <label for="additionalMembershipMonthsDue">
+                Additional membership months due now
+              </label>
+              <input
+                id="additionalMembershipMonthsDue"
+                type="number"
+                min="0"
+                max="24"
+                step="1"
+                value="0"
+                inputmode="numeric"
+              />
+              <p class="help">
+                Management use only. Enter additional unpaid monthly
+                membership periods confirmed as owed. The first month
+                remains calculated from the membership start date.
+              </p>
+            </div>
+
             <p
               id="deferredEligibility"
               class="help"

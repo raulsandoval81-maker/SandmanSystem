@@ -1086,6 +1086,17 @@ const extras = {
           "start_now";
       }
 
+      const additionalMembershipMonthsDue =
+        Math.min(
+          24,
+          Math.max(
+            0,
+            Number(
+              el.additionalMembershipMonthsDue?.value
+            ) || 0
+          )
+        );
+
       const paymentStartMode =
         el.paymentStartMode?.value ===
           "deferred_family" &&
@@ -1167,6 +1178,13 @@ const extras = {
           overdueMembershipMonths
         );
 
+      const additionalMembershipDueNow =
+        Math.max(
+          0,
+          monthlyBalance *
+          additionalMembershipMonthsDue
+        );
+
       const firstMonthDueNow =
         paymentStartMode ===
             "deferred_family"
@@ -1186,7 +1204,8 @@ const extras = {
           0,
           enrollmentDueNow +
           firstMonthDueNow +
-          overdueMembershipDueNow
+          overdueMembershipDueNow +
+          additionalMembershipDueNow
         );
 
       if (el.deferredEligibility) {
@@ -1555,6 +1574,8 @@ const extras = {
 
           overdueMembershipMonths,
           overdueMembershipDueNow,
+          additionalMembershipMonthsDue,
+          additionalMembershipDueNow,
 
           paymentStartMode,
           deferredFamilyEligible,
