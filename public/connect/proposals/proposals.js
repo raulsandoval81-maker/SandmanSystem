@@ -669,6 +669,39 @@ function proposalQueueStyles() {
       line-height:1.45;
     }
 
+    .proposal-stage-strip{
+      display:grid;
+      grid-template-columns:
+        minmax(180px,.7fr)
+        minmax(260px,1.3fr);
+      gap:10px;
+      padding:12px;
+      border:1px solid var(--management-border-strong);
+      border-radius:12px;
+      background:var(--management-surface);
+    }
+
+    .proposal-stage-strip > div{
+      min-width:0;
+    }
+
+    .proposal-stage-strip small{
+      display:block;
+      margin-bottom:5px;
+      color:var(--management-muted);
+      font-size:.68rem;
+      font-weight:850;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .proposal-stage-strip strong{
+      display:block;
+      color:var(--management-text);
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
     .proposal-card-grid{
       display:grid;
       grid-template-columns:
