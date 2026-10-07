@@ -1189,6 +1189,10 @@ export const createManagementXpAdjustment =
             athlete.locationId
           )
         );
+
+        const awardIdentity =
+          `management-adjustment:${adjustmentId}`;
+
         const receiptRef =
           db.collection(
             "xpAwardReceipts"
