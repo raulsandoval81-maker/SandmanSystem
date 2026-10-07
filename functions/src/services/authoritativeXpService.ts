@@ -804,7 +804,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
             ? existingIndex + 1
             : priorDays.length + 1;
 
-        if (practiceNumber <= 2) {
+        if (practiceNumber === 1) {
           const observation =
             pin.validationObservations &&
             typeof pin.validationObservations === "object"
