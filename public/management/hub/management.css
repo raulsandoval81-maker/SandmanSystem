@@ -757,3 +757,35 @@ a {
     max-width: 100%;
   }
 }
+
+
+/* XP Management tool selector */
+.xp-tool-switcher{
+  display:grid;
+  gap:.4rem;
+  margin-top:1rem;
+  max-width:320px;
+}
+
+.xp-tool-switcher span{
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:.78;
+}
+
+.xp-tool-switcher select{
+  width:100%;
+  min-height:44px;
+  padding:.7rem .8rem;
+  border:1px solid var(--line, rgba(255,255,255,.16));
+  border-radius:.65rem;
+  background:var(--panel, #111);
+  color:inherit;
+  font:inherit;
+}
+
+.xp-tool-title{
+  margin:1.25rem 0 .35rem;
+}
