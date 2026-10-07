@@ -480,8 +480,8 @@ export const createAthleteAssessmentPin = onCall(async (req) => {
     onboardingPolicy: {
       scope: "claimed_prior_experience_only",
       practice1: "half_credit_unless_validation_standard_met",
-      practice2: "half_credit_unless_validation_standard_met",
-      practice3Plus: "full_credit",
+      practice2Plus: "normal_attendance",
+      secondLook: "optional_coach_discretion",
       halfCreditXp: 5,
       fearPassingScore: 16,
       fearMaximumScore: 20,
@@ -739,7 +739,7 @@ export const saveAthleteValidationObservation = onCall(async (req) => {
   ) {
     throw new HttpsError(
       "failed-precondition",
-      "Two validation observation days are already recorded."
+      "One baseline observation and one optional second look are already recorded."
     );
   }
 
