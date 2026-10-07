@@ -845,22 +845,38 @@ function renderPin(pin) {
 
         <div class="assessment-grid assessment-grid--two">
 
-          <label class="assessment-field">
+          <div class="assessment-recognition assessment-starting-placement">
             <span>
-              Placement Recommendation
+              Starting Placement
             </span>
+
+            <strong>
+              ${esc(
+                clean(athleteUid)
+                  .toUpperCase()
+                  .startsWith("F8_")
+                    ? "Shadow · T0"
+                    : "Apprentice · T0"
+              )}
+            </strong>
+
+            <small>
+              All athletes begin at Tier 0. Prior experience recognition does not skip the starting tier.
+            </small>
 
             <input
               data-placement
               data-pin="${esc(pinId)}"
-              type="text"
-              placeholder="${esc(
-                placementExample(
-                  athleteUid
-                )
+              type="hidden"
+              value="${esc(
+                clean(athleteUid)
+                  .toUpperCase()
+                  .startsWith("F8_")
+                    ? "Shadow · T0"
+                    : "Apprentice · T0"
               )}"
             >
-          </label>
+          </div>
 
           <label class="assessment-field">
             <span>
