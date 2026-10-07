@@ -249,8 +249,13 @@ export const createProposalCheckout =
           ? snapshot.prospect as Record<string, unknown>
           : {};
 
-      const dueNow =
+      const lockedDueNow =
         toCents(pricing.dueNow);
+
+      const enrollmentDueNow =
+        toCents(
+          pricing.enrollmentDueNow
+        );
 
       const monthlyBalance =
         toCents(pricing.monthlyBalance);
@@ -325,15 +330,50 @@ export const createProposalCheckout =
 
       /*
        * Proposal pricing locks the billing day, but the proposal may sit
-       * in review long enough for its original first-charge date to pass.
-       * For the current Sandman schedule (5th of each month), preserve the
-       * locked amount and billing day while rolling a stale first-charge
-       * date forward to the next valid future 5th.
-       *
-       * This fixes stale proposals without changing the member's price.
+       * in review long enough for one or more scheduled membership charges
+       * to become due. Those missed monthly charges must be collected now;
+       * they are not discarded by moving the next recurring date forward.
        */
       let resolvedFirstRecurringChargeDate =
         firstRecurringChargeDate;
+
+      let overdueMembershipMonths = 0;
+      let cursorMs = firstRecurringChargeMs;
+      const nowMs = Date.now();
+
+      while (
+        cursorMs <= nowMs &&
+        overdueMembershipMonths < 24
+      ) {
+        overdueMembershipMonths += 1;
+
+        const cursorDate =
+          new Date(cursorMs);
+
+        cursorMs =
+          Date.UTC(
+            cursorDate.getUTCFullYear(),
+            cursorDate.getUTCMonth() + 1,
+            5,
+            12,
+            0,
+            0
+          );
+      }
+
+      if (overdueMembershipMonths > 0) {
+        const nextRecurringDate =
+          new Date(cursorMs);
+
+        resolvedFirstRecurringChargeDate =
+          [
+            nextRecurringDate.getUTCFullYear(),
+            String(
+              nextRecurringDate.getUTCMonth() + 1
+            ).padStart(2, "0"),
+            "05",
+          ].join("-");
+      }
 
       const now = new Date();
 
@@ -372,6 +412,24 @@ export const createProposalCheckout =
           ].join("-");
       }
 
+      const overdueMembershipDueNowCents =
+        overdueMembershipMonths > 0
+          ? monthlyBalance * overdueMembershipMonths
+          : 0;
+
+      const checkoutDueNow =
+        overdueMembershipMonths > 0
+          ? enrollmentDueNow +
+            overdueMembershipDueNowCents
+          : lockedDueNow;
+
+      if (checkoutDueNow < 50) {
+        throw new HttpsError(
+          "failed-precondition",
+          "This proposal has no payable amount due now."
+        );
+      }
+
       const resolvedFirstRecurringChargeMs =
         Date.UTC(
           Number(
@@ -403,7 +461,7 @@ export const createProposalCheckout =
         );
       }
 
-      if (dueNow < 50) {
+      if (checkoutDueNow < 50) {
         throw new HttpsError(
           "failed-precondition",
           "This proposal has no payable amount due now. A no-charge enrollment requires a separate Management billing path."
@@ -825,7 +883,7 @@ export const createProposalCheckout =
               submit: {
                 message:
                   `Due today: ${(
-                    dueNow / 100
+                    checkoutDueNow / 100
                   ).toFixed(
                     2
                   )}. Recurring membership: ${(
@@ -916,8 +974,13 @@ export const createProposalCheckout =
                     ...snapshot,
                     pricing: {
                       ...pricing,
+                      dueNow:
+                        checkoutDueNow / 100,
                       firstRecurringChargeDate:
                         resolvedFirstRecurringChargeDate,
+                      overdueMembershipMonths,
+                      overdueMembershipDueNow:
+                        overdueMembershipDueNowCents / 100,
                     },
                   }
                 : snapshot;
