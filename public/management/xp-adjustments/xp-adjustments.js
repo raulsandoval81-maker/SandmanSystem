@@ -117,15 +117,28 @@ const adjustmentModeButton =
 const xpAdjustmentPanel =
   $("xpAdjustmentPanel");
 
+const experienceQueueBadge =
+  $("experienceQueueBadge");
+
+const experienceQueueNote =
+  $("experienceQueueNote");
+
 let athlete = null;
 let selectedDiscipline = "";
-let activeXpMode = "experience";
+let activeXpMode = "adjustment";
+let experienceQueueCount = 0;
 
 function setXpMode(mode) {
+  const requestedMode =
+    mode === "experience"
+      ? "experience"
+      : "adjustment";
+
   activeXpMode =
-    mode === "adjustment"
-      ? "adjustment"
-      : "experience";
+    requestedMode === "experience" &&
+    experienceQueueCount > 0
+      ? "experience"
+      : "adjustment";
 
   const experienceActive =
     activeXpMode === "experience";
@@ -188,7 +201,13 @@ function setXpMode(mode) {
 
 experienceModeButton?.addEventListener(
   "click",
-  () => setXpMode("experience")
+  () => {
+    if (experienceQueueCount <= 0) {
+      return;
+    }
+
+    setXpMode("adjustment");
+  }
 );
 
 adjustmentModeButton?.addEventListener(
@@ -206,6 +225,83 @@ adjustmentModeButton?.addEventListener(
 );
 
 setXpMode("experience");
+
+function returnedExperienceQueue(pins = []) {
+  return pins.filter(
+    (pin) =>
+      clean(pin.status).toUpperCase() ===
+      "RETURNED_TO_MANAGEMENT"
+  );
+}
+
+function renderExperienceQueueState(count) {
+  experienceQueueCount =
+    Math.max(0, Number(count || 0));
+
+  const available =
+    experienceQueueCount > 0;
+
+  if (experienceModeButton) {
+    experienceModeButton.disabled =
+      !available;
+
+    experienceModeButton.setAttribute(
+      "aria-disabled",
+      String(!available)
+    );
+  }
+
+  if (experienceQueueBadge) {
+    experienceQueueBadge.textContent =
+      available
+        ? `${experienceQueueCount} waiting`
+        : "0 waiting";
+
+    experienceQueueBadge.classList.toggle(
+      "is-live",
+      available
+    );
+  }
+
+  if (experienceQueueNote) {
+    experienceQueueNote.textContent =
+      available
+        ? `${experienceQueueCount} Coach-returned assessment${experienceQueueCount === 1 ? "" : "s"} waiting for Management.`
+        : "No Coach-returned experience assessments are waiting.";
+  }
+
+  if (
+    !available &&
+    activeXpMode === "experience"
+  ) {
+    setXpMode("adjustment");
+  }
+}
+
+async function refreshExperienceQueue() {
+  try {
+    const response =
+      await listPins({});
+
+    const pins =
+      Array.isArray(response.data?.pins)
+        ? response.data.pins
+        : [];
+
+    renderExperienceQueueState(
+      returnedExperienceQueue(pins).length
+    );
+  } catch (error) {
+    console.error(
+      "[management-xp] queue lookup failed",
+      error
+    );
+
+    renderExperienceQueueState(0);
+  }
+}
+
+void refreshExperienceQueue();
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -516,6 +612,7 @@ function renderExperienceValidation(pin) {
       const held = Number(response.data?.recognitionHeld ?? 0);
       setActionStatus(`Approved · ${awarded} XP issued now${held > 0 ? ` · ${held} XP held` : ""}`);
       await loadSelectedExperience();
+      await refreshExperienceQueue();
     } catch (error) {
       setActionStatus(error?.message || "Experience validation failed.", true);
       setBusy(false);
@@ -535,6 +632,7 @@ function renderExperienceValidation(pin) {
       if (response.data?.ok !== true) throw new Error("Experience validation was not completed.");
       setActionStatus("Prior-experience recognition rejected.");
       await loadSelectedExperience();
+      await refreshExperienceQueue();
     } catch (error) {
       setActionStatus(error?.message || "Experience validation failed.", true);
       setBusy(false);
@@ -555,6 +653,7 @@ function renderExperienceValidation(pin) {
       }
       setActionStatus("✓ Final placement recorded.");
       await loadSelectedExperience();
+      await refreshExperienceQueue();
     } catch (error) {
       setActionStatus(error?.message || "Final placement failed.", true);
       setBusy(false);
