@@ -239,61 +239,33 @@
           </h2>
 
           <p>
-            Manage experience recognition, administrative XP adjustments,
-            and final starting placement from one progression workspace.
-          </p>
-
-          <label class="xp-tool-switcher">
-            <span>XP Tool</span>
-            <select id="xpToolSelector" aria-label="Choose XP Management tool">
-              <option value="/management/experience-validation/">Experience Validation</option>
-              <option value="/management/xp-adjustments/" selected>XP Adjustments</option>
-            </select>
-          </label>
-
-          <h3 class="xp-tool-title">XP Adjustments</h3>
-
-          <p>
-            Correct existing athlete XP when Management
-            has verified a legitimate administrative need.
+            Find the athlete first, then complete any returned experience
+            validation or legitimate administrative XP correction in Step 3.
           </p>
         </div>
       </section>
 
 
-    <details class="management-page-guide">
-      <summary>
-        <span>How this page works</span>
-        <span class="management-page-guide__hint" aria-hidden="true">Instructions</span>
-      </summary>
+    
+      <section class="xp-management-info" aria-label="XP Management guidance">
+        <article class="xp-management-info__card">
+          <strong>Experience Validation</strong>
+          <p>
+            Coach evaluates claimed prior experience and returns the technical recommendation.
+            Management approves or rejects recognition, then records final placement.
+          </p>
+          <small>1 Year: 200 XP now · 2 Years: 200 now + 200 held · 3+ Years: 300 now + 300 held.</small>
+        </article>
 
-      <div class="management-page-guide__body">
-        <div class="management-page-guide__section">
-          <strong>Purpose</strong>
-          <p>Make a controlled administrative correction to an existing athlete XP record when Management has verified a legitimate need.</p>
-        </div>
-        <div class="management-page-guide__section">
-          <strong>What you do here</strong>
-          <p>Select the athlete, choose the correct XP category, enter the adjustment amount and reason, review the impact, and confirm the Management action.</p>
-        </div>
-        <div class="management-page-guide__section">
-          <strong>What happens next</strong>
-          <p>The approved adjustment becomes part of the athlete’s authoritative XP record and should remain traceable through the system audit history.</p>
-        </div>
-        <div class="management-page-guide__section">
-          <strong>Authority</strong>
-          <p>Management alone authorizes administrative XP corrections through this tool. Coaches may identify or support a legitimate correction, but they do not mint or finalize XP here. The system records the approved adjustment and audit reason.</p>
-        </div>
-        <div class="management-page-guide__section">
-          <strong>Important</strong>
-          <p>This is a correction tool, not a normal earning path. Attendance, competition, Strength, Honor, prior-experience recognition, testing, and promotion each remain governed by their own rules.</p>
-        </div>
-        <div class="management-page-guide__section">
-          <strong>Controlled Management Tool</strong>
-          <p>XP Adjustments are separate from normal practice, competition, Strength, Honor, and prior-experience awards. Every adjustment requires an athlete, category, amount, reason, and Management confirmation.</p>
-        </div>
-      </div>
-    </details>
+        <article class="xp-management-info__card">
+          <strong>XP Adjustments</strong>
+          <p>
+            Use only for a verified administrative need such as Delayed Onboarding,
+            Downtime Recovery, Paper Reconciliation, or Correction.
+          </p>
+          <small>Adjustments remain separate from normal earned XP, testing, promotion, Strength, Honor, and competition awards.</small>
+        </article>
+      </section>
 
       <section class="adjustment-card">
 
@@ -366,8 +338,22 @@
         </p>
 
         <h3>
-          Create Adjustment
+          XP Management
         </h3>
+
+        <section id="experienceValidationPanel" class="xp-step-panel" aria-live="polite">
+          <div class="xp-step-panel__head">
+            <strong>Experience Validation</strong>
+            <span id="experienceValidationStatus">Checking for returned Coach assessment…</span>
+          </div>
+          <div id="experienceValidationContent"></div>
+        </section>
+
+        <section class="xp-step-panel">
+          <div class="xp-step-panel__head">
+            <strong>XP Adjustment</strong>
+            <span>Administrative correction only when applicable.</span>
+          </div>
 
         <form id="adjustmentForm">
 
@@ -475,6 +461,7 @@
           </div>
 
         </form>
+        </section>
 
       </section>
 
@@ -488,13 +475,6 @@
   type="module"
   src="/management/shared/management-shell.js"
 ></script>
-
-<script>
-  document.getElementById("xpToolSelector")?.addEventListener("change", (event) => {
-    const next = event.target.value;
-    if (next && next !== window.location.pathname) window.location.href = next;
-  });
-</script>
 
 <script
   type="module"
