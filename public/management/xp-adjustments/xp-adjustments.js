@@ -78,8 +78,11 @@ const verifiedExperienceYears =
 const managementRecognitionField =
   $("managementRecognitionField");
 
-const managementRecognitionYears =
-  $("managementRecognitionYears");
+const managementRecognitionXp =
+  $("managementRecognitionXp");
+
+const managementRecognitionHint =
+  $("managementRecognitionHint");
 
 const reasonInput =
   $("adjustmentReason");
@@ -768,8 +771,8 @@ function clearAdjustmentFields() {
   if (verifiedExperienceYears) {
     verifiedExperienceYears.value = "";
   }
-  if (managementRecognitionYears) {
-    managementRecognitionYears.value = "";
+  if (managementRecognitionXp) {
+    managementRecognitionXp.value = "";
   }
   reasonInput.value = "";
 
@@ -845,72 +848,90 @@ function syncOverrideAvailability() {
   }
 }
 
-function recognitionChoices(yearsValue) {
+function recognitionMaximum(yearsValue) {
   const years = Number(yearsValue || 0);
 
-  if (years === 1) {
-    return [
-      { total: 50, now: 50, held: 0 },
-      { total: 100, now: 100, held: 0 },
-      { total: 150, now: 150, held: 0 },
-      { total: 200, now: 200, held: 0 }
-    ];
-  }
+  if (years === 1) return 200;
+  if (years === 2) return 400;
+  if (years === 3) return 600;
 
-  if (years === 2) {
-    return [
-      { total: 100, now: 50, held: 50 },
-      { total: 200, now: 100, held: 100 },
-      { total: 300, now: 150, held: 150 },
-      { total: 400, now: 200, held: 200 }
-    ];
-  }
-
-  if (years === 3) {
-    return [
-      { total: 150, now: 75, held: 75 },
-      { total: 300, now: 150, held: 150 },
-      { total: 450, now: 225, held: 225 },
-      { total: 600, now: 300, held: 300 }
-    ];
-  }
-
-  return [];
+  return 0;
 }
 
 function selectedRecognitionPlan() {
-  const total =
+  const years =
     Number(
-      managementRecognitionYears?.value ||
+      verifiedExperienceYears?.value ||
       0
     );
 
-  return recognitionChoices(
-    verifiedExperienceYears?.value
-  ).find(
-    (choice) =>
-      choice.total === total
-  ) || null;
+  const total =
+    Number(
+      managementRecognitionXp?.value ||
+      0
+    );
+
+  const maximum =
+    recognitionMaximum(years);
+
+  if (
+    !maximum ||
+    !Number.isInteger(total) ||
+    total <= 0 ||
+    total > maximum
+  ) {
+    return null;
+  }
+
+  if (years === 1) {
+    return {
+      total,
+      now: total,
+      held: 0
+    };
+  }
+
+  return {
+    total,
+    now: Math.floor(total / 2),
+    held: total - Math.floor(total / 2)
+  };
 }
 
-function syncRecognitionChoices() {
-  if (!managementRecognitionYears) return;
+function syncRecognitionInput() {
+  if (
+    !managementRecognitionXp ||
+    !managementRecognitionHint
+  ) {
+    return;
+  }
 
-  const choices =
-    recognitionChoices(
+  const maximum =
+    recognitionMaximum(
       verifiedExperienceYears?.value
     );
 
-  managementRecognitionYears.innerHTML = [
-    '<option value="">Select recognition amount…</option>',
-    ...choices.map(
-      (choice) => `
-        <option value="${choice.total}">
-          ${choice.total} XP total — ${choice.now} now${choice.held ? ` + ${choice.held} held for Tier 1` : ""}
-        </option>
-      `
-    )
-  ].join("");
+  managementRecognitionXp.value = "";
+
+  if (!maximum) {
+    managementRecognitionXp.max = "";
+    managementRecognitionXp.placeholder =
+      "Select verified year first";
+
+    managementRecognitionHint.textContent =
+      "System maximum will appear after the verified year is selected.";
+
+    return;
+  }
+
+  managementRecognitionXp.max =
+    String(maximum);
+
+  managementRecognitionXp.placeholder =
+    `1–${maximum} XP`;
+
+  managementRecognitionHint.textContent =
+    `System maximum: ${maximum} XP. Management may select any lower whole-number recognition amount, but cannot exceed the system maximum.`;
 }
 
 function syncAdjustmentCategoryUi() {
@@ -953,16 +974,18 @@ function syncAdjustmentCategoryUi() {
     }
   }
 
-  if (managementRecognitionYears) {
-    managementRecognitionYears.required =
+  if (managementRecognitionXp) {
+    managementRecognitionXp.required =
       isOverride;
 
     if (!isOverride) {
-      managementRecognitionYears.value = "";
+      managementRecognitionXp.value = "";
     }
   }
 
-  syncRecognitionChoices();
+  if (!isOverride) {
+    syncRecognitionInput();
+  }
 }
 
 categoryInput?.addEventListener(
@@ -972,7 +995,7 @@ categoryInput?.addEventListener(
 
 verifiedExperienceYears?.addEventListener(
   "change",
-  syncRecognitionChoices
+  syncRecognitionInput
 );
 
 syncAdjustmentCategoryUi();
@@ -1334,8 +1357,8 @@ adjustmentForm.addEventListener(
       if (verifiedExperienceYears) {
         verifiedExperienceYears.value = "";
       }
-      if (managementRecognitionYears) {
-        managementRecognitionYears.value = "";
+      if (managementRecognitionXp) {
+        managementRecognitionXp.value = "";
       }
       reasonInput.value = "";
       syncAdjustmentCategoryUi();
