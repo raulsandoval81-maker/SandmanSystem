@@ -24,7 +24,9 @@ exports.createProposalCheckout = (0, https_1.onCall)({
 }, async (req) => {
     const proposalId = cleanString(req.data?.proposalId);
     const clientToken = cleanString(req.data?.token);
-    const isClientCheckout = Boolean(clientToken);
+    const enrollmentToken = cleanString(req.data?.enrollmentToken);
+    const isClientCheckout = Boolean(enrollmentToken ||
+        clientToken);
     if (!isClientCheckout &&
         !req.auth) {
         throw new https_1.HttpsError("unauthenticated", "A valid checkout link or staff sign-in is required.");
@@ -52,21 +54,43 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
     }
     else {
-        const review = proposal.clientReview || {};
-        const tokenMatches = clientToken &&
-            (0, proposalClientReview_1.hashProposalReviewToken)(clientToken) ===
-                cleanString(review.tokenHash);
-        if (!tokenMatches) {
-            throw new https_1.HttpsError("permission-denied", "This checkout link is invalid.");
+        if (enrollmentToken) {
+            const handoff = proposal.enrollmentHandoff || {};
+            const tokenMatches = (0, proposalClientReview_1.hashProposalReviewToken)(enrollmentToken) ===
+                cleanString(handoff.tokenHash);
+            const expiresAt = handoff.expiresAt;
+            if (!tokenMatches ||
+                !(expiresAt instanceof firestore_1.Timestamp) ||
+                expiresAt.toMillis() <
+                    Date.now()) {
+                throw new https_1.HttpsError("permission-denied", "This enrollment verification link is invalid or expired.");
+            }
         }
-        const expiresAt = review.expiresAt;
-        if (!(expiresAt instanceof firestore_1.Timestamp) ||
-            expiresAt.toMillis() <
-                Date.now()) {
-            throw new https_1.HttpsError("failed-precondition", "This checkout link has expired.");
+        else {
+            const review = proposal.clientReview || {};
+            const tokenMatches = clientToken &&
+                (0, proposalClientReview_1.hashProposalReviewToken)(clientToken) ===
+                    cleanString(review.tokenHash);
+            if (!tokenMatches) {
+                throw new https_1.HttpsError("permission-denied", "This checkout link is invalid.");
+            }
+            const expiresAt = review.expiresAt;
+            if (!(expiresAt instanceof firestore_1.Timestamp) ||
+                expiresAt.toMillis() <
+                    Date.now()) {
+                throw new https_1.HttpsError("failed-precondition", "This checkout link has expired.");
+            }
         }
     }
     const proposalStatus = cleanString(proposal.status);
+    const enrollmentConfirmation = proposal.enrollmentConfirmation &&
+        typeof proposal.enrollmentConfirmation === "object"
+        ? proposal.enrollmentConfirmation
+        : {};
+    if (enrollmentConfirmation.termsConfirmed !== true ||
+        !enrollmentConfirmation.confirmedAt) {
+        throw new https_1.HttpsError("failed-precondition", "Confirm the enrollment and billing details before secure checkout.");
+    }
     const existingCheckoutSessionId = cleanString(proposal.pendingCheckoutSessionId);
     if (proposalStatus !==
         "READY_FOR_CHECKOUT" &&
@@ -89,7 +113,8 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         typeof snapshot.prospect === "object"
         ? snapshot.prospect
         : {};
-    const dueNow = toCents(pricing.dueNow);
+    const lockedDueNow = toCents(pricing.dueNow);
+    const enrollmentDueNow = toCents(pricing.enrollmentDueNow);
     const monthlyBalance = toCents(pricing.monthlyBalance);
     if (monthlyBalance < 50) {
         throw new https_1.HttpsError("failed-precondition", "The locked monthly balance is invalid.");
@@ -114,14 +139,80 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         recurringDay !== 5) {
         throw new https_1.HttpsError("failed-precondition", "The locked recurring billing schedule is invalid.");
     }
-    const firstRecurringChargeUnix = Math.floor(firstRecurringChargeMs / 1000);
+    /*
+     * Proposal pricing locks the billing day, but the proposal may sit
+     * in review long enough for one or more scheduled membership charges
+     * to become due. Those missed monthly charges must be collected now;
+     * they are not discarded by moving the next recurring date forward.
+     */
+    let resolvedFirstRecurringChargeDate = firstRecurringChargeDate;
+    let overdueMembershipMonths = 0;
+    let cursorMs = firstRecurringChargeMs;
+    const nowMs = Date.now();
+    while (cursorMs <= nowMs &&
+        overdueMembershipMonths < 24) {
+        overdueMembershipMonths += 1;
+        const cursorDate = new Date(cursorMs);
+        cursorMs =
+            Date.UTC(cursorDate.getUTCFullYear(), cursorDate.getUTCMonth() + 1, 5, 12, 0, 0);
+    }
+    if (overdueMembershipMonths > 0) {
+        const nextRecurringDate = new Date(cursorMs);
+        resolvedFirstRecurringChargeDate =
+            [
+                nextRecurringDate.getUTCFullYear(),
+                String(nextRecurringDate.getUTCMonth() + 1).padStart(2, "0"),
+                "05",
+            ].join("-");
+    }
+    const overdueMembershipDueNowCents = overdueMembershipMonths > 0
+        ? monthlyBalance * overdueMembershipMonths
+        : 0;
+    /*
+     * An unpaid proposal still owes its first month. If the proposal
+     * has crossed a billing date while awaiting payment, also collect
+     * each missed recurring month before starting normal billing again.
+     */
+    const firstMonthDueNowCents = overdueMembershipMonths > 0
+        ? Math.round(Number(pricing.proratedFirstMonth || 0) * 100)
+        : Math.max(0, Math.round(Number(pricing.proratedFirstMonth || 0) * 100));
+    const checkoutDueNow = overdueMembershipMonths > 0
+        ? enrollmentDueNow +
+            firstMonthDueNowCents +
+            overdueMembershipDueNowCents
+        : lockedDueNow;
+    if (checkoutDueNow < 50) {
+        throw new https_1.HttpsError("failed-precondition", "This proposal has no payable amount due now.");
+    }
+    const resolvedFirstRecurringChargeMs = Date.UTC(Number(resolvedFirstRecurringChargeDate.slice(0, 4)), Number(resolvedFirstRecurringChargeDate.slice(5, 7)) - 1, Number(resolvedFirstRecurringChargeDate.slice(8, 10)), 12, 0, 0);
+    const firstRecurringChargeUnix = Math.floor(resolvedFirstRecurringChargeMs / 1000);
     if (firstRecurringChargeUnix <=
         Math.floor(Date.now() / 1000)) {
         throw new https_1.HttpsError("failed-precondition", "The first recurring charge date must be in the future.");
     }
-    if (dueNow < 50) {
+    if (checkoutDueNow < 50) {
         throw new https_1.HttpsError("failed-precondition", "This proposal has no payable amount due now. A no-charge enrollment requires a separate Management billing path.");
     }
+    const athletes = Array.isArray(snapshot.athletes)
+        ? snapshot.athletes
+        : [];
+    const athleteSummary = athletes
+        .map((athlete) => {
+        const name = cleanString(athlete.name ||
+            athlete.athleteName);
+        const program = cleanString(athlete.programName ||
+            athlete.program ||
+            athlete.journey ||
+            athlete.track);
+        return [
+            name,
+            program
+        ]
+            .filter(Boolean)
+            .join(" — ");
+    })
+        .filter(Boolean)
+        .join("; ");
     const email = cleanString(prospect.email).toLowerCase();
     const publicBaseUrl = cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) || "https://www.sandmancombat.com";
     const rawCatalogItems = Array.isArray(pricing.stripeCatalogItems)
@@ -173,14 +264,16 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     try {
         const stripe = (0, stripeClient_1.getStripe)();
         const lineItems = [];
-        if (dueNow > 0) {
+        if (checkoutDueNow > 0) {
             lineItems.push({
                 price_data: {
                     currency: "usd",
                     product_data: {
-                        name: `Sandman enrollment payment — ${proposalId}`,
+                        name: "Sandman Enrollment",
+                        description: athleteSummary ||
+                            `Proposal ${proposalId}`,
                     },
-                    unit_amount: dueNow,
+                    unit_amount: checkoutDueNow,
                 },
                 quantity: 1,
             });
@@ -292,7 +385,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 proposalId,
                 source: "admissions_proposal",
                 billingFlowVersion: "payment_then_subscription_v1",
-                firstRecurringChargeDate,
+                firstRecurringChargeDate: resolvedFirstRecurringChargeDate,
                 recurringBillingDay: String(recurringBillingDay),
             },
             payment_intent_data: {
@@ -305,7 +398,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             },
             custom_text: {
                 submit: {
-                    message: `Today's payment covers the approved enrollment payment. Your recurring membership of $${(monthlyBalance / 100).toFixed(2)}/month begins ${firstRecurringChargeDate} and bills on the 5th of each month.`,
+                    message: `Due today: ${(checkoutDueNow / 100).toFixed(2)}. Recurring membership: ${(monthlyBalance / 100).toFixed(2)}/month beginning ${resolvedFirstRecurringChargeDate}; billed on the 5th.`,
                 },
             },
             allow_promotion_codes: false,
@@ -342,8 +435,23 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             const historyRef = proposalRef
                 .collection("history")
                 .doc();
+            const lockedSnapshotForCheckout = isReplacingExpiredCheckout ||
+                resolvedFirstRecurringChargeDate !==
+                    firstRecurringChargeDate
+                ? {
+                    ...snapshot,
+                    pricing: {
+                        ...pricing,
+                        dueNow: checkoutDueNow / 100,
+                        firstRecurringChargeDate: resolvedFirstRecurringChargeDate,
+                        overdueMembershipMonths,
+                        overdueMembershipDueNow: overdueMembershipDueNowCents / 100,
+                    },
+                }
+                : snapshot;
             tx.update(proposalRef, {
                 status: "CHECKOUT_CREATED",
+                lockedSnapshot: lockedSnapshotForCheckout,
                 pendingCheckoutSessionId: session.id,
                 checkoutStartedAt: firestore_1.FieldValue.serverTimestamp(),
                 checkoutStartedBy: actorUid,
@@ -355,9 +463,12 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             });
             tx.create(historyRef, {
                 proposalId,
-                event: isReplacingExpiredCheckout
-                    ? "CHECKOUT_RESTARTED"
-                    : "STATUS_CHANGED",
+                event: resolvedFirstRecurringChargeDate !==
+                    firstRecurringChargeDate
+                    ? "RECURRING_CHARGE_DATE_ROLLED_FORWARD"
+                    : isReplacingExpiredCheckout
+                        ? "CHECKOUT_RESTARTED"
+                        : "STATUS_CHANGED",
                 fromStatus: isReplacingExpiredCheckout
                     ? "CHECKOUT_CREATED"
                     : "READY_FOR_CHECKOUT",

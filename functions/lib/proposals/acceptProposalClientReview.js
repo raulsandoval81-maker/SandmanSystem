@@ -63,6 +63,10 @@ exports.acceptProposalClientReview = (0, https_1.onCall)(async (req) => {
         if (!review.snapshot) {
             throw new https_1.HttpsError("failed-precondition", "The proposal review snapshot is missing.");
         }
+        const approvedBy = (0, proposalClientReview_1.cleanReviewString)(review.issuedBy);
+        if (!approvedBy) {
+            throw new https_1.HttpsError("failed-precondition", "The Management approval record is missing from this proposal.");
+        }
         const historyRef = proposalRef
             .collection("history")
             .doc();
@@ -74,11 +78,18 @@ exports.acceptProposalClientReview = (0, https_1.onCall)(async (req) => {
                 signature,
                 signerRole,
                 consentAccepted: true,
+                acceptanceScope: "proposal_acceptance_only",
                 snapshotVersion: review.snapshotVersion ||
                     1,
                 signedSnapshot: review.snapshot,
                 signedAt: firestore_1.FieldValue.serverTimestamp(),
             },
+            approvedBy,
+            approvedAt: review.issuedAt ||
+                firestore_1.FieldValue.serverTimestamp(),
+            lockedBy: approvedBy,
+            lockedAt: review.issuedAt ||
+                firestore_1.FieldValue.serverTimestamp(),
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
         tx.create(historyRef, {
@@ -88,6 +99,9 @@ exports.acceptProposalClientReview = (0, https_1.onCall)(async (req) => {
             toStatus: "READY_FOR_CHECKOUT",
             signerName,
             signerRole,
+            acceptanceScope: "proposal_acceptance_only",
+            approvedBy,
+            approvalSource: "proposal_signature_request",
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });
         return {

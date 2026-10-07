@@ -91,10 +91,12 @@ function verifyProposalSubscription(subscription, identity) {
     const customerId = typeof subscription.customer === "string"
         ? subscription.customer : subscription.customer.id;
     const metadata = subscription.metadata || {};
+    const expectedSource = identity.source || "admissions_proposal";
+    const expectedFlow = identity.billingFlowVersion || "payment_then_subscription_v1";
     if (customerId !== identity.customerId ||
         metadata.proposalId !== identity.proposalId ||
-        metadata.source !== "admissions_proposal" ||
-        metadata.billingFlowVersion !== "payment_then_subscription_v1" ||
+        metadata.source !== expectedSource ||
+        metadata.billingFlowVersion !== expectedFlow ||
         (metadata.checkoutSessionId && metadata.checkoutSessionId !== identity.checkoutSessionId) ||
         metadata.monthlyBaseCents !== String(identity.amounts.monthlyBaseCents) ||
         metadata.monthlySponsorCents !== String(identity.amounts.monthlySponsorCents) ||

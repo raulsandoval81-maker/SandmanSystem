@@ -32,7 +32,7 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
         data.familyName);
     const primaryContactName = nullableString(data.prospect?.primaryContactName ||
         data.primaryContactName);
-    const email = nullableString(cleanEmail(data.prospect?.email ||
+    const requestedEmail = nullableString(cleanEmail(data.prospect?.email ||
         data.email));
     const phone = nullableString(data.prospect?.phone ||
         data.phone);
@@ -77,6 +77,14 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("failed-precondition", "A proposal must be connected to an appointment with a valid location.");
     }
     (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, locationId);
+    const appointmentEmail = nullableString(cleanEmail(appointmentProspect.email));
+    const proposalEmail = appointmentEmail ||
+        requestedEmail;
+    const proposalEmailSource = appointmentEmail
+        ? "appointment"
+        : requestedEmail
+            ? "proposal_input"
+            : null;
     // Athlete identity data collected before Admissions should
     // survive into the Proposal. DOB belongs to the athlete,
     // not the prospect/contact record.
@@ -87,12 +95,26 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
             Array.isArray(athlete)) {
             return athlete;
         }
+        const athleteRecord = athlete;
+        const appointmentRegistrantRole = cleanString(appointmentProspect.registrantRole).toLowerCase();
+        const authoritativeEnrollmentType = appointmentRegistrantRole === "adult-athlete" ||
+            appointmentRegistrantRole === "adult_athlete"
+            ? "adult"
+            : appointmentRegistrantRole === "parent-guardian" ||
+                appointmentRegistrantRole === "parent_guardian" ||
+                appointmentRegistrantRole === "parent" ||
+                appointmentRegistrantRole === "guardian"
+                ? "youth"
+                : nullableString(athleteRecord.enrollmentType);
         return {
-            ...athlete,
-            dob: nullableString(athlete.dob ||
-                athlete.dateOfBirth ||
+            ...athleteRecord,
+            enrollmentType: authoritativeEnrollmentType,
+            dob: nullableString(athleteRecord.dob ||
+                athleteRecord.dateOfBirth ||
                 appointmentProspect.dob ||
                 appointmentProspect.dateOfBirth),
+            athleteAge: nullableString(athleteRecord.athleteAge ||
+                appointmentProspect.athleteAge),
         };
     });
     const counterRef = db
@@ -128,8 +150,10 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
                             appointmentProspect.participantName),
                     primaryContactName: primaryContactName ||
                         nullableString(appointmentProspect.parentName),
-                    email: email ||
-                        nullableString(cleanEmail(appointmentProspect.email)),
+                    registrantRole: nullableString(appointmentProspect.registrantRole),
+                    athleteAge: nullableString(appointmentProspect.athleteAge),
+                    email: proposalEmail,
+                    emailSource: proposalEmailSource,
                     phone: phone ||
                         nullableString(appointmentProspect.phone),
                     city: nullableString(appointmentProspect.city),

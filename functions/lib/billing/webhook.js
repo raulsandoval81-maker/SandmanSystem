@@ -10,6 +10,7 @@ const subscriptions_1 = require("./subscriptions");
 const managementPassWebhook_1 = require("./managementPassWebhook");
 const lockedRecurringPricing_1 = require("../proposals/lockedRecurringPricing");
 const proposalMonthlySponsor_1 = require("./proposalMonthlySponsor");
+const proposalAutopaySetup_1 = require("./proposalAutopaySetup");
 function cleanString(value) {
     return String(value ?? "").trim();
 }
@@ -432,6 +433,11 @@ exports.stripeBillingWebhook = (0, https_1.onRequest)({
                 const session = event.data.object;
                 if (cleanString(session.metadata?.paymentFlow) === "management_pass") {
                     await (0, managementPassWebhook_1.handleManagementPassCheckoutCompleted)(session);
+                    familyId = null;
+                    break;
+                }
+                if (cleanString(session.metadata?.source) === "cash_prepaid_autopay") {
+                    await (0, proposalAutopaySetup_1.handleProposalAutopaySetupCompleted)(session);
                     familyId = null;
                     break;
                 }
