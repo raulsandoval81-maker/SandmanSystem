@@ -24,6 +24,7 @@ const countConditioningEl = $("count-conditioning");
 const countConditioningRequestsEl = $("count-conditioning-requests");
 const countIronEl = $("count-iron");
 const countRecognitionEl = $("count-recognition");
+const countTestingEl = $("count-testing");
 const countManagementNoticesEl = $("count-management-notices");
 const managementAssessmentSummaryEl = $("management-assessment-summary");
 
@@ -319,7 +320,7 @@ function renderRecognitionItems() {
 }
 
 async function refreshRecognitionQueue(user) {
-  if (!listRecognitionEl || !user) return { queue: { testing: [] } };
+  if (!user) return { queue: { testing: [] } };
 
   const athleteSnapshot =
     await getDocs(
@@ -593,8 +594,6 @@ function testingStageLabel(stage) {
 }
 
 function renderTestingReadiness(recognitionData) {
-  if (!listTestingEl) return;
-
   const testingItems =
     Array.isArray(
       recognitionData?.queue?.testing
@@ -602,99 +601,10 @@ function renderTestingReadiness(recognitionData) {
       ? recognitionData.queue.testing
       : [];
 
-  if (!testingItems.length) {
-    listTestingEl.innerHTML =
-      '<p class="muted">No athletes are currently in Temple or the testing pipeline.</p>';
-    return;
-  }
-
-  const priority = {
-    TESTING: 0,
-    TEST_SCHEDULED: 1,
-    TEST_ELIGIBLE: 2,
-    TEMPLE: 3
-  };
-
-  const items =
-    [...testingItems].sort((a, b) => {
-      const aStage =
-        String(a?.stage || "")
-          .trim()
-          .toUpperCase();
-
-      const bStage =
-        String(b?.stage || "")
-          .trim()
-          .toUpperCase();
-
-      return (
-        (priority[aStage] ?? 9) -
-          (priority[bStage] ?? 9) ||
-        String(
-          a?.athleteName ||
-          a?.athleteUid ||
-          ""
-        ).localeCompare(
-          String(
-            b?.athleteName ||
-            b?.athleteUid ||
-            ""
-          )
-        )
-      );
-    });
-
-  listTestingEl.innerHTML =
-    items.map((item) => {
-      const athleteId =
-        String(
-          item?.athleteUid ||
-          ""
-        ).trim();
-
-      const name =
-        String(
-          item?.athleteName ||
-          athleteId ||
-          "Athlete"
-        ).trim();
-
-      const stage =
-        testingStageLabel(
-          item?.stage
-        );
-
-      const stripe =
-        Number(
-          item?.decision?.stripe ?? 0
-        );
-
-      const tier =
-        item?.decision?.tier ?? "—";
-
-      return `
-        <article class="testing-row">
-          <div>
-            <strong>${name}</strong>
-            <span>
-              ${stage}
-              · Tier ${tier}
-              · Stripe ${stripe}
-            </span>
-          </div>
-
-          <div class="testing-actions">
-            <a href="/coaches/athletes/athlete.html?id=${encodeURIComponent(athleteId)}">
-              Track
-            </a>
-
-            <a href="/coaches/testing/coach-athlete-panel.html?id=${encodeURIComponent(athleteId)}&v=2">
-              Open Testing
-            </a>
-          </div>
-        </article>
-      `;
-    }).join("");
+  setCount(
+    countTestingEl,
+    testingItems.length
+  );
 }
 
 async function initialize() {
