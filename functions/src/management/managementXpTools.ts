@@ -1189,34 +1189,6 @@ export const createManagementXpAdjustment =
             athlete.locationId
           )
         );
-
-        const isVerifiedExperienceOverride =
-          category === "verified_experience_override";
-
-        const awardIdentity =
-          isVerifiedExperienceOverride
-            ? `verified-experience-override:${athleteUid}:${discipline}`
-            : `management-adjustment:${adjustmentId}`;
-
-        if (isVerifiedExperienceOverride) {
-          const existingLegacyCredit =
-            Number(
-              athlete.legacyCreditTotal ||
-              athlete.legacyCreditIssued ||
-              0
-            );
-
-          if (
-            athlete.legacy === true ||
-            existingLegacyCredit > 0
-          ) {
-            throw new HttpsError(
-              "failed-precondition",
-              "VERIFIED_EXPERIENCE_ALREADY_RECOGNIZED"
-            );
-          }
-        }
-
         const receiptRef =
           db.collection(
             "xpAwardReceipts"
