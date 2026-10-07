@@ -1001,6 +1001,10 @@ function proposalActionHtml(status, id) {
         Email Review & Confirm
       </button>
 
+      <button class="proposal-open-btn" type="button" data-proposal-action="correct-proposal" data-proposal-id="${esc(id)}">
+        Correct Proposal
+      </button>
+
       <span class="proposal-action-note">
         Preview and Copy do not send email. Email creates and sends the current secure handoff.
       </span>
@@ -1027,6 +1031,35 @@ async function runProposalAction(button) {
   button.textContent = "Working…";
 
   try {
+    if (action === "correct-proposal") {
+      const reason = window.prompt(
+        "Why is this proposal being corrected?",
+        "Correct billing before payment."
+      );
+
+      if (
+        !String(reason || "").trim() ||
+        String(reason).trim().length < 8
+      ) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
+
+      await httpsCallable(
+        functions,
+        "returnProposalToDraft"
+      )({
+        proposalId,
+        reason: String(reason).trim(),
+      });
+
+      window.location.assign(
+        `/connect/admissions/calculator/?proposalId=${encodeURIComponent(proposalId)}`
+      );
+      return;
+    }
+
     if (action === "issue-client-review") {
       const response = await httpsCallable(
         functions,
