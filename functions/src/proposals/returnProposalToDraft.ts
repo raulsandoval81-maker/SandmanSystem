@@ -76,6 +76,10 @@ export const returnProposalToDraft =
         status === "REVIEW" ||
         status === "AWAITING_CLIENT_SIGNATURE";
 
+      const checkoutCorrection =
+        status === "READY_FOR_CHECKOUT" ||
+        status === "CHECKOUT_CREATED";
+
       if (
         !clientRequestedChange &&
         !managementCorrection &&
@@ -96,10 +100,6 @@ export const returnProposalToDraft =
           "A correction reason of at least 8 characters is required."
         );
       }
-
-      const checkoutCorrection =
-        status === "READY_FOR_CHECKOUT" ||
-        status === "CHECKOUT_CREATED";
 
       if (
         checkoutCorrection &&
@@ -150,9 +150,10 @@ export const returnProposalToDraft =
         reason: clientRequestedChange
           ? "CLIENT_REVISION_REQUESTED"
           : "MANAGEMENT_CORRECTION",
-        correctionReason: managementCorrection
-          ? correctionReason
-          : "",
+        correctionReason:
+          managementCorrection || checkoutCorrection
+            ? correctionReason
+            : "",
         createdBy: req.auth!.uid,
         createdByName: staffAccess.fullName,
         createdAt: FieldValue.serverTimestamp(),
@@ -163,7 +164,7 @@ export const returnProposalToDraft =
         proposalId,
         status: "DRAFT" as const,
         correction:
-          managementCorrection,
+          managementCorrection || checkoutCorrection,
       };
     });
   });
