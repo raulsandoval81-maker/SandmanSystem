@@ -287,6 +287,31 @@ exports.finalizeExperienceValidation = (0, https_1.onCall)(async (req) => {
             updatedAt: now
         };
         Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime), disciplineLifetime.patch);
+        if (isVerifiedExperienceOverride) {
+            const heldXp = Math.max(0, recognitionTotal - delta);
+            Object.assign(athletePatch, {
+                legacy: true,
+                legacyType: "external",
+                legacyYearsVerified: verifiedExperienceYears,
+                legacyCreditTotal: recognitionTotal,
+                legacyCreditIssued: delta,
+                legacyHold: heldXp > 0,
+                legacyCreditSchedule: verifiedExperienceYears >= 2
+                    ? "deferred_t1_entry"
+                    : "full_t0",
+                legacyNote: reason,
+                verifiedExperienceOverride: {
+                    used: true,
+                    verifiedYears: verifiedExperienceYears,
+                    recognitionTotal,
+                    issuedNow: delta,
+                    heldXp,
+                    discipline,
+                    managementUid: actorUid,
+                    usedAt: now
+                }
+            });
+        }
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
                 ...athlete,
@@ -461,22 +486,45 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const actorUid = req.auth.uid;
     const staffContext = await (0, staffAuthorization_1.requireActiveStaff)(actorUid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Management access required.");
     const athleteUid = clean(req.data?.athleteUid);
-    const amount = Number(req.data?.amount);
+    const requestedAmount = Number(req.data?.amount);
+    const verifiedExperienceYears = Number(req.data?.verifiedExperienceYears || 0);
+    const recognitionTotal = Number(req.data?.recognitionTotal || 0);
     const reason = clean(req.data?.reason);
     const category = clean(req.data?.category).toLowerCase();
     const semantic = (0, xpDomainPolicy_1.resolveManagementAdjustmentSemantic)(category, clean(req.data?.semantic) || undefined);
     const adjustmentId = clean(req.data?.adjustmentId);
     const discipline = clean(req.data?.discipline).toLowerCase();
+    const isVerifiedExperienceOverride = category === "verified_experience_override";
+    const allowedRecognitionTotals = verifiedExperienceYears === 1
+        ? new Set([50, 100, 150, 200])
+        : verifiedExperienceYears === 2
+            ? new Set([100, 200, 300, 400])
+            : verifiedExperienceYears === 3
+                ? new Set([150, 300, 450, 600])
+                : new Set();
+    const overrideIssuedNow = verifiedExperienceYears === 1
+        ? recognitionTotal
+        : recognitionTotal / 2;
+    const amount = isVerifiedExperienceOverride ? overrideIssuedNow : requestedAmount;
     const allowedCategories = new Set([
         "delayed_onboarding",
         "downtime_recovery",
         "paper_reconciliation",
+        "verified_experience_override",
         "correction"
     ]);
     if (!athleteUid) {
         throw new https_1.HttpsError("invalid-argument", "athleteUid is required.");
     }
-    if (!Number.isFinite(amount) ||
+    if (isVerifiedExperienceOverride) {
+        if (![1, 2, 3].includes(verifiedExperienceYears)) {
+            throw new https_1.HttpsError("invalid-argument", "Verified experience must be 1 Year, 2 Years, or 3+ Years.");
+        }
+        if (!allowedRecognitionTotals.has(recognitionTotal)) {
+            throw new https_1.HttpsError("invalid-argument", "Recognition selection is outside the allowed system values for that experience year.");
+        }
+    }
+    else if (!Number.isFinite(amount) ||
         !Number.isInteger(amount) ||
         amount <= 0) {
         throw new https_1.HttpsError("invalid-argument", "Adjustment XP must be a positive whole number.");
@@ -502,7 +550,17 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         }
         const athlete = athleteSnap.data() || {};
         requireLocationAccess(staffContext.staff, clean(athlete.locationId));
-        const awardIdentity = `management-adjustment:${adjustmentId}`;
+        if (isVerifiedExperienceOverride) {
+            const alreadyRecognized = athlete.verifiedExperienceOverride?.used === true ||
+                athlete.legacy === true ||
+                Number(athlete.legacyCreditTotal || 0) > 0;
+            if (alreadyRecognized) {
+                throw new https_1.HttpsError("failed-precondition", "VERIFIED_EXPERIENCE_OVERRIDE_ALREADY_USED");
+            }
+        }
+        const awardIdentity = isVerifiedExperienceOverride
+            ? `verified-experience-override:${athleteUid}`
+            : `management-adjustment:${adjustmentId}`;
         const receiptRef = db.collection("xpAwardReceipts").doc((0, authoritativeXpService_1.awardReceiptKey)(athleteUid, awardIdentity));
         const receiptSnap = await tx.get(receiptRef);
         if (receiptSnap.exists) {
@@ -611,6 +669,12 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             lane: "combat",
             amount: delta,
             requestedAmount: amount,
+            ...(isVerifiedExperienceOverride
+                ? {
+                    recognitionTotal,
+                    recognitionHeld: Math.max(0, recognitionTotal - delta)
+                }
+                : {}),
             beforeXp,
             afterXp,
             xpCap,
@@ -633,7 +697,17 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             note: reason,
             awardIdentity,
             meta: {
-                source: "management_adjustment",
+                source: isVerifiedExperienceOverride
+                    ? "management_verified_experience_override"
+                    : "management_adjustment",
+                ...(isVerifiedExperienceOverride
+                    ? {
+                        verifiedExperienceYears,
+                        recognitionTotal,
+                        recognitionIssuedNow: delta,
+                        recognitionHeld: Math.max(0, recognitionTotal - delta)
+                    }
+                    : {}),
                 category,
                 semantic,
                 discipline,
