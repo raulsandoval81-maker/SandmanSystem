@@ -292,7 +292,12 @@ export const openPracticeSession = onCall(async (request) => {
           ["program", String(current.program || ""), String(input.program || "").trim()],
           ["tier", String(current.tier || ""), String(input.tier || "").trim()],
         ];
-        const changed = stableContext.find(([, before, after]) => before !== after);
+        const changed = stableContext.find(([field, before, after]) => {
+          if (before === after) return false;
+          const lateBindable = before === ""
+            || (field === "discipline" && before === "unassigned");
+          return !lateBindable;
+        });
         if (changed) {
           throw new HttpsError("failed-precondition", `Practice ${changed[0]} cannot change after check-in begins.`);
         }
@@ -545,6 +550,13 @@ export const finalizePracticeAttendance = onCall(async (request) => {
     const practice = practiceSnap.data() || {};
     const locationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
     requirePracticeLocation(actor, locationId);
+    const practiceDiscipline = normalizePracticeDiscipline(practice.discipline);
+    if (!practiceDiscipline || practiceDiscipline === "unassigned") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Choose the practice discipline before finalizing attendance for XP."
+      );
+    }
     const sessionDateKey = requireSessionDateKey(practice.sessionDateKey || attendanceSnap.data()?.sessionDateKey);
     const existing = attendanceSnap.data() || {};
     if (attendanceSnap.exists && String(existing.practiceId || practiceId) !== practiceId) {
