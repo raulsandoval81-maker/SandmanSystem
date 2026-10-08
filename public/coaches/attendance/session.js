@@ -1061,10 +1061,10 @@ if (isBuilderFlow()) {
   if (title) title.textContent = "Athlete Check-In";
   if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm Sandman’s Tier and Training Week suggestion.";
 
-  document.querySelector('[data-step-screen="1"] .eyebrow')?.replaceChildren("Step 1 of 4");
-  document.querySelector('[data-step-screen="2"] .eyebrow')?.replaceChildren("Step 2 of 4");
-  document.querySelector('[data-step-screen="3"] .eyebrow')?.replaceChildren("Step 3 of 4");
-  document.querySelector('[data-step-screen="4"] .eyebrow')?.replaceChildren("Step 4 of 4");
+
+  document.querySelector('[data-step-screen="2"] .eyebrow')?.replaceChildren("Step 1 of 3");
+  document.querySelector('[data-step-screen="3"] .eyebrow')?.replaceChildren("Step 2 of 3");
+  document.querySelector('[data-step-screen="4"] .eyebrow')?.replaceChildren("Step 3 of 3");
 
   document.body.classList.add("builder-attendance-flow");
   if ($("contextStepNav")) $("contextStepNav").hidden = false;
