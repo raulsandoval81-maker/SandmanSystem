@@ -550,7 +550,49 @@ window.clearSession = function () {
   setStatus("Companion notes cleared.");
 };
 
-window.endPractice = function () {
+window.endPractice = async function () {
+  const button = document.querySelector("[data-end-practice-log]");
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  setStatus("Preparing your practice log…");
+  try {
+    const session = getCoachSessionPayload();
+    if (!session?.practiceId) {
+      setStatus("Practice identity missing. Open the session from Big Clock before continuing.");
+      return;
+    }
+    const record = {
+      source: "coach-companion",
+      schema: session.schema || session.template || session.sessionType || "",
+      discipline: session.discipline || "",
+      journey: session.journey || "",
+      tier: session.tier || "",
+      practiceId: session.practiceId,
+      focus: focusEl?.value.trim() || session.focus || "",
+      coachSession: session,
+      blocks: getCompanionBlocks(),
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(LAST_PRACTICE_KEY, JSON.stringify(record));
+    // Always retain the local handoff before attempting any optional cloud save.
+    const draft = JSON.parse(localStorage.getItem(CLIPBOARD_DRAFT_KEY) || "null");
+    if (draft?.version === 1) {
+      localStorage.setItem(CLIPBOARD_DRAFT_KEY, JSON.stringify({
+        ...draft, lifecycle: "completed",
+        updatedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString()
+      }));
+    }
+    window.location.href = "/coaches/logs/practice-log.html?practiceId=" + encodeURIComponent(session.practiceId);
+  } catch (error) {
+    console.error("My Practice Log handoff failed", error);
+    setStatus("Could not prepare the practice log. Your notes remain on this screen.");
+  } finally {
+    if (button) button.disabled = false;
+  }
+};
+
+window.legacyEndPractice = function () {
   const session = getCoachSessionPayload();
 
   localStorage.setItem(LAST_PRACTICE_KEY, JSON.stringify({
