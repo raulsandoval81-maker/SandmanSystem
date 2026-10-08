@@ -571,6 +571,27 @@ async function loadCanonicalPractice() {
     track: canonicalPractice.program || "",
     schema: canonicalPractice.entryMode || "normal",
   };
+  const sharedLog = canonicalPractice.dailyPracticeLog || null;
+  if (sharedLog) {
+    const observations = {
+      teamNotes: sharedLog.teamNotes || "",
+      eventNotes: sharedLog.eventNotes || "",
+      generalNotes: sharedLog.generalNotes || "",
+      individualNotes: sharedLog.individualNotes || {}
+    };
+    const existing = payload?.practiceId === requestedPracticeId ? payload : {};
+    payload = {
+      ...existing,
+      source: "daily-practice-log",
+      practiceId: requestedPracticeId,
+      focus: sharedLog.focus || existing.focus || "",
+      observations,
+      blocks: (Array.isArray(existing.blocks) ? existing.blocks : []).map(block => ({
+        ...block, notes: sharedLog.blockNotes?.[block.slot] ?? block.notes ?? ""
+      }))
+    };
+    renderSummary();
+  }
   const reflection = canonicalPractice.sessionMemory?.reflection || {};
   setValue("fear", reflection.fearRating);
   setValue("worked", reflection.worked);
