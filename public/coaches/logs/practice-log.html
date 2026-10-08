@@ -16,6 +16,28 @@
   <h1>Practice Log</h1>
   <p class="muted">Post-practice memory capture.</p>
 
+  <section id="practiceDetailsCard" class="card">
+    <h2>Practice Details</h2>
+    <p class="muted">Confirm what actually happened before attendance and XP are finalized.</p>
+
+    <label for="practiceProgram">Program / Discipline</label>
+    <select id="practiceProgram">
+      <option value="">Select program</option>
+    </select>
+
+    <label for="practiceTier">Focus Tier</label>
+    <input id="practiceTier" type="text" placeholder="Optional tier / rank focus" />
+
+    <label for="practiceWeek">Training Week</label>
+    <input id="practiceWeek" type="number" min="1" max="36" placeholder="Optional week" />
+
+    <label for="practiceDuration">Actual Duration</label>
+    <input id="practiceDuration" type="number" min="1" max="480" placeholder="Minutes" />
+
+    <button id="savePracticeDetailsBtn" type="button">Save Practice Details</button>
+    <div id="practiceDetailsStatus" class="muted">Ready</div>
+  </section>
+
   <!-- SESSION SUMMARY -->
   <section class="card">
 
@@ -121,7 +143,7 @@
 
 <script
   type="module"
-  src="/coaches/logs/practice-log.js?v=3"
+  src="/coaches/logs/practice-log.js?v=20261008-4"
 ></script>
 
 </body>
