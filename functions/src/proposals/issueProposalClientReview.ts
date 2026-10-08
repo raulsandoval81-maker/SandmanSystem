@@ -38,6 +38,7 @@ function escapeHtml(value: unknown): string {
 function buildReviewEmail(input: {
   contactName: string;
   reviewUrl: string;
+  membershipChoice?: boolean;
 }) {
   const contactName =
     input.contactName || "there";
@@ -49,14 +50,20 @@ function buildReviewEmail(input: {
     escapeHtml(input.reviewUrl);
 
   const subject =
-    "Review your Sandman Academy membership proposal";
+    input.membershipChoice
+      ? "Choose your Sandman Academy membership option"
+      : "Review your Sandman Academy membership proposal";
 
   const text = [
     `Hi ${contactName},`,
     "",
-    "Your Sandman Academy membership proposal is ready for final review.",
+    input.membershipChoice
+      ? "Your Sandman Academy membership options are ready."
+      : "Your Sandman Academy membership proposal is ready for final review.",
     "",
-    "Please review the membership details, payment schedule, and start information. If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment.",
+    input.membershipChoice
+      ? "Please open the secure Sandman link and choose the membership option you want. Management will update the proposal to match your choice, then send the final Review & Confirm step."
+      : "Please review the membership details, payment schedule, and start information. If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment.",
     "",
     input.reviewUrl,
     "",
@@ -87,14 +94,18 @@ function buildReviewEmail(input: {
         </div>
 
         <div style="font-size:16px;line-height:1.7;color:#27272a;">
-          Your Sandman Academy membership proposal is ready for final review.
-          Please review the membership details, payment schedule, and start information.
-          If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment.
+          ${input.membershipChoice
+            ? "Your Sandman Academy membership options are ready. Please choose the option you want. Management will update the proposal to match your choice and then send the final Review & Confirm step."
+            : "Your Sandman Academy membership proposal is ready for final review. Please review the membership details, payment schedule, and start information. If everything looks correct, accept the proposal to continue to Review & Confirm before secure payment."
+          }
         </div>
 
         <div style="margin:26px 0;text-align:center;">
           <a href="${safeReviewUrl}" style="display:inline-block;background:#171717;color:#fff8e8;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">
-            Review &amp; Accept Proposal
+            ${input.membershipChoice
+              ? "Choose Membership Option"
+              : "Review &amp; Accept Proposal"
+            }
           </a>
         </div>
 
