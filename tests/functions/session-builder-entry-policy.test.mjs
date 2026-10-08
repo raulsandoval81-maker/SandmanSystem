@@ -76,3 +76,14 @@ test("Manual, Hybrid, Checked-In, and Quick use the shared Builder and Clipboard
   assert.match(clipboard, /window\.runPractice/);
   assert.match(clipboard, /openPracticeSession/);
 });
+
+
+test("Session Builder starts with Pre-Practice Setup or Skip Clean Slate", () => {
+  const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  assert.match(html, /Set Up Pre-Practice/);
+  assert.match(html, /Skip — Clean Slate/);
+  assert.match(builder, /executionMode:\s*"manual"/);
+  assert.match(builder, /discipline:\s*"unassigned"/);
+  assert.match(builder, /attendance\/session\.html\?practiceId=/);
+});
