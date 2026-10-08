@@ -20,9 +20,18 @@
     <h2>Practice Details</h2>
     <p class="muted">Confirm what actually happened before attendance and XP are finalized.</p>
 
-    <label for="practiceProgram">Program / Discipline</label>
+    <label for="practiceDiscipline">Discipline</label>
+    <select id="practiceDiscipline">
+      <option value="">Select discipline</option>
+      <option value="wrestling">Wrestling</option>
+      <option value="boxing">Boxing</option>
+      <option value="muay-thai">Muay Thai</option>
+      <option value="striking">Fitness / Striking</option>
+    </select>
+
+    <label for="practiceProgram">Program <span class="muted">(optional)</span></label>
     <select id="practiceProgram">
-      <option value="">Select program</option>
+      <option value="">No program selected</option>
     </select>
 
     <label for="practiceTier">Focus Tier</label>
