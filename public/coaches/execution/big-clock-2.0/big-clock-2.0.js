@@ -502,6 +502,11 @@ function renderDrillPanel(current, elapsedSeconds) {
 
 function render() {
   const data = getState();
+  // Never show the ready overlay over a running, paused, or completed session.
+  const ready = document.getElementById("readyScreen");
+  if (ready && (data.running || data.paused || data.complete)) {
+    ready.classList.add("hidden");
+  }
 
   const statusEl = document.getElementById("status");
   const blockEl = document.getElementById("block");
