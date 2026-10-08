@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Coach · Clipboard 2.0</title>
 
-  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=4"/>
+  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=5"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -262,23 +262,29 @@
 
   </div>
 
-  <div class="live-links">
+  <section class="clipboard-handoff" aria-label="Practice handoff">
+    <div class="clipboard-handoff-copy">
+      <span class="clipboard-handoff-kicker">Practice Ready</span>
+      <strong>Take this plan to the floor.</strong>
+      <span>Open Big Clock when you are ready to run the session.</span>
+    </div>
 
-    <button
-      class="live-link-btn primary"
-      type="button"
-      onclick="runPractice()">
-      ▶ Clock Portal
-    </button>
+    <div class="clipboard-handoff-actions">
+      <button
+        class="live-link-btn primary clipboard-clock-action"
+        type="button"
+        onclick="runPractice()">
+        ▶ Open Big Clock
+      </button>
 
-    <button
-      class="live-link-btn"
-      type="button"
-      onclick="clearSession()">
-      Clear Session
-    </button>
-
-  </div>
+      <button
+        class="live-link-btn clipboard-clear-action"
+        type="button"
+        onclick="clearSession()">
+        Clear Session
+      </button>
+    </div>
+  </section>
 
 </main>
 
