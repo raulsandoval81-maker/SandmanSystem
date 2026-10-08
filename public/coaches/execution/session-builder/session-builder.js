@@ -547,7 +547,7 @@ function setShell(schema) {
 function createSessionPayload(practiceId = activePracticeId) {
   const program = getProgramData();
   const room = selectedRoom();
-  if (!program.program || !room) return null;
+  if (!program.discipline || !room) return null;
   const shell = shellData();
   const week = programUsesWeek() ? weekSelect.value : "";
   return {
