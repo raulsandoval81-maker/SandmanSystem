@@ -111,7 +111,7 @@ async function waitForAuth() {
     await ensureSignedIn();
   } catch (err) {
     console.warn("Coach Companion auth warning:", err);
-    setStatus("Auth failed.");
+    setStatus("Sign in with your Coach account to open My Practice Log.");
   }
 }
 
@@ -285,6 +285,11 @@ if (!blocks.length) {
 
 const coachPayload = {
   sessionId,
+  practiceId: String(payload.practiceId || live.practiceId || "").trim(),
+  academyId: payload.academyId || "",
+  roomId: payload.roomId || "",
+  trainingGroups: Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [],
+  carryForwardNote: payload.carryForwardNote || "",
 
   schema: payload.schema || "",
   discipline: payload.discipline || "",
