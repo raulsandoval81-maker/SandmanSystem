@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-8">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-9">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -35,25 +35,6 @@
         <span>Choose the time on Big Clock and begin. Add the details after practice.</span>
       </button>
     </div>
-  </section>
-
-  <section id="currentSessionSection" class="dashboard-section current-session-section" hidden>
-    <div class="section-heading compact-heading"><div><span class="eyebrow">Current session</span><h2>Unfinished work</h2></div></div>
-    <div id="draftEmpty" class="empty-state">No unfinished session found. Start a new session below.</div>
-    <article id="draftCard" class="draft-card" hidden>
-      <div class="draft-card-main">
-        <div class="draft-title-row">
-          <div><span id="draftLifecycle" class="status-pill">Editing</span><h3 id="draftTitle">—</h3></div>
-          <span id="draftUpdated" class="draft-updated">—</span>
-        </div>
-        <p id="draftIdentity" class="draft-identity">—</p>
-        <div id="draftMetrics" class="draft-metrics">—</div>
-      </div>
-      <div class="draft-actions">
-        <a id="continueDraftBtn" class="primary-action" href="/coaches/execution/clipboard-2.0/">Continue in Practice Clipboard</a>
-        <button id="discardDraftBtn" class="secondary-button danger" type="button">Discard Draft</button>
-      </div>
-    </article>
   </section>
 
   <section id="newSessionSection" class="dashboard-section new-session-section" hidden>
@@ -105,6 +86,27 @@
     </div>
 
     <div id="practiceContextScreen" hidden>
+      <section id="currentSessionSection" class="current-session-section context-current-session" hidden>
+        <div class="section-heading compact-heading">
+          <div><span class="eyebrow">Current session</span><h2>Unfinished work</h2></div>
+        </div>
+        <div id="draftEmpty" class="empty-state">No unfinished session found. Continue setting up this practice.</div>
+        <article id="draftCard" class="draft-card" hidden>
+          <div class="draft-card-main">
+            <div class="draft-title-row">
+              <div><span id="draftLifecycle" class="status-pill">Editing</span><h3 id="draftTitle">—</h3></div>
+              <span id="draftUpdated" class="draft-updated">—</span>
+            </div>
+            <p id="draftIdentity" class="draft-identity">—</p>
+            <div id="draftMetrics" class="draft-metrics">—</div>
+          </div>
+          <div class="draft-actions">
+            <a id="continueDraftBtn" class="primary-action" href="/coaches/execution/clipboard-2.0/">Continue in Practice Clipboard</a>
+            <button id="discardDraftBtn" class="secondary-button danger" type="button">Discard Draft</button>
+          </div>
+        </article>
+      </section>
+
       <div class="screen-heading">
         <div>
           <span class="eyebrow">Practice Context</span>
@@ -178,6 +180,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-8"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-9"></script>
 </body>
 </html>
