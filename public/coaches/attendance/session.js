@@ -662,7 +662,12 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
   if (!container) return;
 
   container.innerHTML = groups.slice(0, 3).map((group, index) => `
-    <section class="training-group-card" data-training-group="${index}">
+    <section
+      class="training-group-card"
+      data-training-group="${index}"
+      data-athlete-ids="${encodeURIComponent(JSON.stringify(group.athleteIds || []))}"
+      data-athlete-names="${encodeURIComponent(JSON.stringify(group.athleteNames || []))}"
+    >
       <div class="training-group-head">
         <div>
           <span class="training-group-kicker">Training Group ${index + 1}</span>
@@ -722,6 +727,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     button.addEventListener("click", () => {
       button.closest(".training-group-card")?.remove();
       renumberTrainingGroups();
+      updateGroupControls();
       updateContextSummary();
     });
   });
@@ -774,7 +780,15 @@ function captureTrainingGroups() {
       tier,
       rank: rankForTier(tier),
       trainingSession: String(card.querySelector(".training-session")?.value || "1").trim(),
-      carryForwardNote: String(card.querySelector(".training-note")?.value || "").trim()
+      carryForwardNote: String(card.querySelector(".training-note")?.value || "").trim(),
+      athleteIds: (() => {
+        try { return JSON.parse(decodeURIComponent(card.dataset.athleteIds || "%5B%5D")); }
+        catch { return []; }
+      })(),
+      athleteNames: (() => {
+        try { return JSON.parse(decodeURIComponent(card.dataset.athleteNames || "%5B%5D")); }
+        catch { return []; }
+      })()
     };
   });
 }
