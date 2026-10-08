@@ -111,7 +111,7 @@ async function waitForAuth() {
     await ensureSignedIn();
   } catch (err) {
     console.warn("Coach Companion auth warning:", err);
-    setStatus("Sign in with your Coach account to open My Practice Log.");
+    setStatus("Sign in with your Coach account to open Coach Field Log.");
   }
 }
 
@@ -338,7 +338,7 @@ function saveNotesDraft() {
       notes,
       updatedAt: new Date().toISOString()
     }));
-    setStatus("My Practice Log draft saved on this device.");
+    setStatus("Coach Field Log draft saved on this device.");
   } catch (error) {
     console.error("Could not save notes draft", error);
     setStatus("Notes have not been saved. Check browser storage.");
@@ -537,7 +537,7 @@ window.copyCompanionLink = async function () {
       window.location.origin + links.companion
     );
 
-    setStatus("Coach Companion link copied.");
+    setStatus("Coach Field Log link copied.");
   } catch (err) {
     console.error(err);
     setStatus("Copy failed.");
@@ -633,7 +633,7 @@ window.endPractice = async function () {
     }
     window.location.href = "/coaches/logs/practice-log.html?practiceId=" + encodeURIComponent(session.practiceId);
   } catch (error) {
-    console.error("My Practice Log handoff failed", error);
+    console.error("Coach Field Log handoff failed", error);
     setStatus("Could not prepare the practice log. Your notes remain on this screen.");
   } finally {
     if (button) button.disabled = false;
