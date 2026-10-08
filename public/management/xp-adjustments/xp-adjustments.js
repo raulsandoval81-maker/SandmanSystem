@@ -799,21 +799,32 @@ function renderExperienceValidation(pin) {
   const assessmentStatus =
     clean(pin.status).toUpperCase();
 
+  const recognitionGeneration =
+    Math.max(0, Number(pin.recognitionGeneration || 0));
+
+  const coachReconfirmed =
+    recognitionGeneration >= 1 &&
+    assessmentStatus === "RETURNED_TO_MANAGEMENT" &&
+    noRecognitionXp;
+
   const reopenEligible =
     [
       "RETURNED_TO_MANAGEMENT",
       "PLACEMENT_RECORDED"
     ].includes(assessmentStatus) &&
     noRecognitionXp;
+
   const coachNotes = clean(pin.coachNotes) || "No additional Coach notes.";
   const placement = clean(pin.placementRecommendation) || "—";
 
   setExperienceStatus(
     resolved
       ? `${noRecognitionXp ? "No recognition XP confirmed" : `Recognition ${recognitionStatus === "AWARDED" ? "approved" : "rejected"}`} · final placement pending`
-      : noRecognitionXp
-        ? "Returned by Coach · no recognition XP · Management closeout required"
-        : "Returned by Coach · Management decision required"
+      : coachReconfirmed
+        ? "Coach Reconfirmed · 0 XP · Management final decision"
+        : noRecognitionXp
+          ? "Returned by Coach · no recognition XP · Management closeout required"
+          : "Returned by Coach · Management decision required"
   );
 
   experienceValidationContent.innerHTML = `
@@ -839,13 +850,19 @@ function renderExperienceValidation(pin) {
     </label>
 
     ${
-      reopenEligible
+      coachReconfirmed
         ? `
-            <p class="status-line is-warning">
-              Review Recommended — 0 XP return may need reassessment before closeout.
+            <p class="status-line">
+              Coach Reconfirmed — reassessment completed. Management may accept the 0 XP result or reopen again with documented reason.
             </p>
           `
-        : ""
+        : reopenEligible
+          ? `
+              <p class="status-line is-warning">
+                Review Recommended — 0 XP return may need reassessment before closeout.
+              </p>
+            `
+          : ""
     }
 
     <p id="experienceActionStatus" class="status-line" role="status" aria-live="polite"></p>
