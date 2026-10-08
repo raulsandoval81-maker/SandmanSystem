@@ -22,7 +22,7 @@
     </header>
 
     <nav class="attendance-stepper" aria-label="Attendance steps">
-      <button class="attendance-step is-active" type="button" data-step-target="1">
+      <button class="attendance-step" type="button" data-step-target="1" hidden>
         <span>1</span><strong>Practice</strong>
       </button>
       <button class="attendance-step" type="button" data-step-target="2" disabled>
@@ -36,7 +36,7 @@
       </button>
     </nav>
 
-    <section class="attendance-screen is-active" data-step-screen="1">
+    <section class="attendance-screen" data-step-screen="1" hidden>
       <section class="attendance-card attendance-card--focus">
         <div class="section-head">
           <div>
@@ -171,6 +171,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261008-14"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-8"></script>
 </body>
 </html>
