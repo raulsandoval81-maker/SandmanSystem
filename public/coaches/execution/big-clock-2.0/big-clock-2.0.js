@@ -704,7 +704,8 @@ window.toggleLiveCompanionQr = function () {
   if (opening) {
     const session = getSessionPayload();
     const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1";
-    const url = `${window.location.origin}/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
+    const practiceId = String(getPayload().practiceId || session.practiceId || "").trim();
+    const url = `${window.location.origin}/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}${practiceId ? `&practiceId=${encodeURIComponent(practiceId)}` : ""}`;
     if (image.dataset.url !== url) {
       image.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(url)}`;
       image.dataset.url = url;
