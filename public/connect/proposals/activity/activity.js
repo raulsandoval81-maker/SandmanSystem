@@ -132,6 +132,12 @@ function money(value) {
   ).format(Number.isFinite(amount) ? amount : 0);
 }
 
+function hasActiveMembershipChoice(proposal = {}) {
+  return proposal
+    .membershipChoiceRequest
+    ?.active === true;
+}
+
 function statusLabel(value = "") {
   const key = String(value || "").toUpperCase();
   return ({
@@ -448,6 +454,11 @@ function lifecycleHtml(
   historyRecords,
   placementRecords
 ) {
+  const membershipChoiceActive =
+    hasActiveMembershipChoice(
+      proposal
+    );
+
   const state = lifecycleState(
     proposal,
     historyRecords,
@@ -488,7 +499,17 @@ function lifecycleHtml(
                 ? "Current"
                 : "Waiting";
 
+          let label = step.label;
           let description = step.description;
+
+          if (
+            membershipChoiceActive &&
+            step.key === "signature"
+          ) {
+            label = "Membership Choice";
+            description =
+              "Family chooses one of the issued membership options before the final Review & Confirm step.";
+          }
 
           if (isSkipped && step.key === "coach_assessment") {
             description = "No Coach assessment was requested for this enrollment.";
@@ -511,7 +532,7 @@ function lifecycleHtml(
             <li class="activity-lifecycle-step ${className}">
               <span class="activity-lifecycle-number">${index + 1}</span>
               <div>
-                <strong>${esc(step.label)}</strong>
+                <strong>${esc(label)}</strong>
                 <small>${esc(description)}</small>
               </div>
               <span class="activity-lifecycle-state">${stateLabel}</span>
@@ -610,6 +631,11 @@ async function load() {
   subtitle.textContent =
     `${proposalId} · ${familyName}`;
 
+  const membershipChoiceActive =
+    hasActiveMembershipChoice(
+      proposal
+    );
+
   card.innerHTML = `
     <div class="activity-summary">
       <div>
@@ -618,15 +644,27 @@ async function load() {
       </div>
       <div>
         <small>Status</small>
-        <strong>${esc(statusLabel(proposal.status))}</strong>
+        <strong>${esc(
+          membershipChoiceActive
+            ? "Membership Choice Pending"
+            : statusLabel(proposal.status)
+        )}</strong>
       </div>
       <div>
-        <small>Monthly</small>
-        <strong>${esc(money(pricing.monthlyBalance))}</strong>
+        <small>${membershipChoiceActive ? "Membership" : "Monthly"}</small>
+        <strong>${
+          membershipChoiceActive
+            ? "Choice Pending"
+            : esc(money(pricing.monthlyBalance))
+        }</strong>
       </div>
       <div>
         <small>Due Now</small>
-        <strong>${esc(money(pricing.dueNow))}</strong>
+        <strong>${
+          membershipChoiceActive
+            ? "Pending Selection"
+            : esc(money(pricing.dueNow))
+        }</strong>
       </div>
     </div>
 
