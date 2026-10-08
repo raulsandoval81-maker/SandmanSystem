@@ -268,3 +268,15 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
     width:100%;
   }
 }
+
+
+.context-current-session{
+  margin:0 0 16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:var(--soft-surface);
+}
+.context-current-session[hidden]{
+  display:none !important;
+}
