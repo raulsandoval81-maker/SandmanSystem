@@ -3,29 +3,29 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach · Companion</title>
+  <title>Coach · My Practice Log</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3"/>
   <link rel="stylesheet" href="/coaches/execution/coach-companion/coach-companion.css?v=1"/>
   <link rel="icon" href="data:,">
 </head>
 
-<body class="coach-shell-page" data-coach-page="Coach Companion" data-coach-area="practice">
+<body class="coach-shell-page" data-coach-page="My Practice Log" data-coach-area="practice">
 <main class="wrap" data-coach-shell-content>
 
   <div class="page-header">
-    <h1>Coach Companion</h1>
+    <h1>My Practice Log</h1>
     <button id="themeToggle" class="theme-icon-btn" aria-label="Toggle theme">◐</button>
   </div>
 
   <p class="muted">
-    Private coach-side view. Session is loaded from Coach Console.
+    Private coaching notes for the active practice. Review the plan, record observations, then continue to Practice Log / Final Close.
   </p>
 
   <div class="toolbar-2">
     <div class="session-total-row">
       <span id="totalTime">Total: 00:00</span>
-      <span id="saveStatus" class="muted">Waiting for Coach Console session.</span>
+      <span id="saveStatus" class="muted">Loading practice context…</span>
     </div>
   </div>
 
@@ -182,13 +182,13 @@
   </div>
   <div class="footer-actions">
     <button type="button" onclick="clearSession()">Clear Notes</button>
-    <button type="button" onclick="endPractice()">End Practice → Log</button>
+    <button type="button" onclick="endPractice()">Continue to Practice Log / Final Close</button>
   </div>
 
 </main>
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=1"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=2"></script>
 </body>
 </html>
