@@ -872,7 +872,7 @@ function renderExperienceValidation(pin) {
         reopenEligible
           ? `
                 <button id="reopenAssessmentButton" class="button button-secondary" type="button">
-                  Send Assessment to Coach
+                  Resend Assessment to Coach
                 </button>
                 <button id="approveExperienceButton" class="button button-primary" type="button">
                   Proceed With Recommendation
