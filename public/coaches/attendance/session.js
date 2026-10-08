@@ -772,7 +772,6 @@ function bindEvents() {
       showStep(Number(button.dataset.stepTarget));
     });
   });
-  });
 }
 
 bindEvents();
