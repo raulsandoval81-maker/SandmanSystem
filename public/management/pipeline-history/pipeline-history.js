@@ -247,6 +247,77 @@ function finalizeCase(caseRecord) {
   };
 }
 
+function activatedPipelineKeys(intakes = [], athletes = []) {
+  const athleteIds = new Set(
+    athletes
+      .map((athlete) => clean(athlete.id))
+      .filter(Boolean)
+  );
+
+  const proposalIds = new Set();
+  const leadIds = new Set();
+
+  intakes.forEach((intake) => {
+    const approvedUid = clean(intake.approvedUid);
+    const status = clean(intake.status).toLowerCase();
+
+    const isActivated =
+      intake.minted === true &&
+      status === "approved" &&
+      approvedUid &&
+      athleteIds.has(approvedUid);
+
+    if (!isActivated) return;
+
+    const proposalId = clean(intake.proposalId);
+    if (proposalId) {
+      proposalIds.add(proposalId);
+    }
+
+    [
+      intake.connectLeadId,
+      intake.leadId,
+      intake.interestLeadId,
+      intake.appointmentId,
+      intake.admissionsRequestId
+    ]
+      .map(clean)
+      .filter(Boolean)
+      .forEach((id) => leadIds.add(id));
+  });
+
+  return {
+    proposalIds,
+    leadIds
+  };
+}
+
+function caseIsActivated(record, activation) {
+  const proposalIds =
+    Array.isArray(record.proposals)
+      ? record.proposals
+          .map((proposal) =>
+            clean(
+              proposal.proposalId ||
+              proposal.id
+            )
+          )
+          .filter(Boolean)
+      : [];
+
+  if (
+    proposalIds.some((id) =>
+      activation.proposalIds.has(id)
+    )
+  ) {
+    return true;
+  }
+
+  return leadKeys(record).some((id) =>
+    activation.leadIds.has(id)
+  );
+}
+
 function buildCaseRecords(leads, proposals) {
   const orderedProposals = [...proposals].sort((a, b) => proposalSortValue(b) - proposalSortValue(a));
   const cases = leads.map((lead) => ({
@@ -511,12 +582,48 @@ async function loadHistory(context) {
     return;
   }
 
-  const [leads, proposals] = await Promise.all([
-    loadScopedCollection(context, "interest_leads"),
-    loadScopedCollection(context, "proposals")
+  const [
+    leads,
+    proposals,
+    intakes,
+    athletes
+  ] = await Promise.all([
+    loadScopedCollection(
+      context,
+      "interest_leads"
+    ),
+    loadScopedCollection(
+      context,
+      "proposals"
+    ),
+    loadScopedCollection(
+      context,
+      "intakes"
+    ),
+    loadScopedCollection(
+      context,
+      "athletes"
+    )
   ]);
 
-  records = buildCaseRecords(leads, proposals);
+  const activation =
+    activatedPipelineKeys(
+      intakes,
+      athletes
+    );
+
+  records =
+    buildCaseRecords(
+      leads,
+      proposals
+    ).filter(
+      (record) =>
+        !caseIsActivated(
+          record,
+          activation
+        )
+    );
+
   populateFilters();
   render();
 }
