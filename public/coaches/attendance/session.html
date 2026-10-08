@@ -32,14 +32,7 @@
           <strong id="checkedCountTop" class="checked-badge">0 in</strong>
         </div>
 
-        <details class="attendance-practice-details">
-          <summary>Today's Practice · Coach &amp; Notes</summary>
-          <div class="practice-secondary-fields">
-            <label>Coach Name<input id="coachName" type="text" value="Coach Sandoval" /></label>
-            <label>Practice Notes<textarea id="practiceNotes" placeholder="Optional notes for today's practice..."></textarea></label>
-          </div>
-          <p id="sessionStatus" class="muted" role="status">Loading today's check-ins…</p>
-        </details>
+        <p id="sessionStatus" class="muted" role="status">Loading today's check-ins…</p>
 
         <label class="athlete-search-label" for="searchAthlete">Find athlete</label>
         <input
@@ -111,6 +104,14 @@
           <span id="trainingGroupHint" class="muted"></span>
         </div>
 
+        <div class="attendance-practice-details">
+          <h3>Coach &amp; Practice Notes</h3>
+          <div class="practice-secondary-fields">
+            <label>Coach Name<input id="coachName" type="text" value="Coach Sandoval" /></label>
+            <label>Practice Notes<textarea id="practiceNotes" placeholder="Optional notes for today's practice..."></textarea></label>
+          </div>
+        </div>
+
         <div class="context-summary">
           <span class="label">Practice Context</span>
           <strong id="contextSummary">Waiting for attendance.</strong>
@@ -125,6 +126,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261008-12"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-13"></script>
 </body>
 </html>
