@@ -52,6 +52,11 @@ const modeField = document.getElementById("modeField");
 const buildBtn = document.getElementById("buildBtn");
 const modeAvailability = document.getElementById("modeAvailability");
 const summaryAvailability = document.getElementById("summaryAvailability");
+const prePracticeGate = document.getElementById("prePracticeGate");
+const currentSessionSection = document.getElementById("currentSessionSection");
+const newSessionSection = document.getElementById("newSessionSection");
+const setupPrePracticeBtn = document.getElementById("setupPrePracticeBtn");
+const skipCleanSlateBtn = document.getElementById("skipCleanSlateBtn");
 
 let selectedSchema = "standard-60";
 let selectedMode = "hybrid";
@@ -93,6 +98,8 @@ function selectedProgram() {
 }
 
 function populateRooms(preferredValue = "") {
+  const rememberedRoom = readJson(SESSION_KEY, {})?.roomValue || "";
+  const preferred = preferredValue || rememberedRoom;
   roomSelect.innerHTML = "";
   SESSION_ROOMS.forEach((room) => {
     const option = document.createElement("option");
@@ -100,7 +107,7 @@ function populateRooms(preferredValue = "") {
     option.textContent = room.label;
     roomSelect.appendChild(option);
   });
-  if (roomByValue(preferredValue)) roomSelect.value = preferredValue;
+  if (roomByValue(preferred)) roomSelect.value = preferred;
 }
 
 function populatePrograms(preferredProgramId = "") {
@@ -295,7 +302,7 @@ function updateSummary() {
   document.getElementById("summaryRank").textContent = usesRank ? (optionText(rankSelect) || "Select a rank") : "—";
   document.getElementById("summaryWeekRow").hidden = !usesWeek;
   document.getElementById("summaryWeek").textContent = usesWeek ? (optionText(weekSelect) || "Select a week") : "—";
-  const modeLabels = { "checked-in": "Checked-In", hybrid: "Hybrid", manual: "Manual", quick: "Quick Start" };
+  const modeLabels = { "checked-in": "Attendance First", hybrid: "Hybrid", manual: "Manual", quick: "Quick Start" };
   document.getElementById("summaryMode").textContent = modeLabels[selectedMode] || "Manual";
 
   if (selectedMode === "checked-in") {
@@ -322,6 +329,77 @@ function updateSummary() {
       : selectedMode === "quick"
         ? "Start Quick 45"
         : "Build in Practice Clipboard";
+}
+
+
+function showPrePracticeSetup() {
+  if (prePracticeGate) prePracticeGate.hidden = true;
+  if (currentSessionSection) currentSessionSection.hidden = false;
+  if (newSessionSection) newSessionSection.hidden = false;
+  updateSummary();
+}
+
+function cleanSlatePayload() {
+  const room = selectedRoom();
+  if (!room) return null;
+  const shell = SHELLS["standard-60"];
+  return {
+    schema: "standard-60",
+    durationMinutes: shell.minutes,
+    xpTimeScale: "standard",
+    executionMode: "manual",
+    practiceId: "",
+    sessionId: room.value,
+    locationId: room.locationId,
+    academyId: room.locationId,
+    roomId: room.roomId,
+    roomValue: room.value,
+    program: "",
+    foundry: "",
+    track: "",
+    journey: "",
+    discipline: "unassigned",
+    tier: "",
+    rank: "",
+    rankLabel: "",
+    week: "",
+    hybridPhase: "",
+    hybridCycle: "",
+    hybridWeekInCycle: "",
+    hybridWaveKey: "",
+    hybridWave: [],
+    hybridCards: [],
+    hybridRules: {},
+    source: "session-builder-clean-slate",
+    createdAt: new Date().toISOString()
+  };
+}
+
+async function skipToCleanSlateAttendance() {
+  const existingDraft = getRecoverableDraft();
+  if (existingDraft && !window.confirm("Skip setup and leave the unfinished Clipboard draft?")) return;
+  let payload = cleanSlatePayload();
+  if (!payload) {
+    const noticeEl = document.getElementById("dashboardNotice");
+    noticeEl.textContent = "Choose a valid room before starting Attendance.";
+    noticeEl.hidden = false;
+    return;
+  }
+
+  selectedMode = "manual";
+  skipCleanSlateBtn.disabled = true;
+
+  try {
+    payload = await openCanonicalPractice(payload);
+    persistSession(payload);
+    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder`;
+  } catch (error) {
+    console.error("Clean-slate entry failed", error);
+    const noticeEl = document.getElementById("dashboardNotice");
+    noticeEl.textContent = error?.message || "Could not open clean-slate Attendance.";
+    noticeEl.hidden = false;
+    skipCleanSlateBtn.disabled = false;
+  }
 }
 
 function formatUpdated(value) {
@@ -512,6 +590,7 @@ async function loadAttendanceContext() {
 
 async function restoreCanonicalPractice(practiceId) {
   await requireCoach();
+  showPrePracticeSetup();
   const getPractice = httpsCallable(functions, "getPracticeSession");
   const response = await getPractice({ practiceId });
   const practice = response.data?.practice || {};
@@ -533,6 +612,9 @@ async function restoreCanonicalPractice(practiceId) {
   document.getElementById("dashboardNotice").textContent = "Canonical practice restored. Continue planning with the same practice ID.";
   document.getElementById("dashboardNotice").hidden = false;
 }
+
+setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
+skipCleanSlateBtn?.addEventListener("click", skipToCleanSlateAttendance);
 
 shellCards.forEach(card => card.addEventListener("click", () => {
   setShell(card.dataset.schema || "standard-60");
