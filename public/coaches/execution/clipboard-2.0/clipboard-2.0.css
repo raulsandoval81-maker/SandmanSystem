@@ -1638,3 +1638,201 @@ body.clock-mode .clock-toggle{
 .clipboard-group-chip[data-tier="T2"]{--group-accent:#22c55e}
 .clipboard-group-chip[data-tier="T3"]{--group-accent:#3b82f6}
 .clipboard-group-chip[data-tier="T4"]{--group-accent:#a855f7}
+
+
+/* ============================================================
+   CLIPBOARD STUDIO — V7
+   Presentation-only refinement. Preserve all editor IDs, events,
+   card engines, save flow, and practice handoff behavior.
+   ============================================================ */
+#clipboardRoot{
+  --bg:#090c11;
+  --panel:#121820;
+  --panel-2:#1b222d;
+  --line:#303a47;
+  --line-2:#46515e;
+  --text:#f2f5f8;
+  --muted:#a7b1bc;
+  --gold:#dfc177;
+  --red:#c54e51;
+  --input-bg:#0f151d;
+  background:radial-gradient(ellipse 1100px 460px at 50% -210px,rgba(170,185,202,.10),transparent 70%),var(--bg);
+  min-height:100vh;
+}
+#clipboardRoot.theme-day{
+  --bg:#f1f3f5;--panel:#fff;--panel-2:#edf0f3;
+  --line:#d5dce4;--line-2:#b9c4d0;--text:#17212c;
+  --muted:#586575;--gold:#87631f;--red:#bc4149;
+  --input-bg:#f9fafb;
+}
+#clipboardRoot .wrap{max-width:1180px;padding:28px 24px 72px}
+#clipboardRoot .clipboard-topbar{
+  min-height:110px;padding:14px 70px 22px;
+  border-bottom:1px solid var(--line);
+}
+#clipboardRoot .topbar-center h1{
+  color:var(--text);font-size:clamp(1.65rem,3vw,2.35rem);
+  letter-spacing:-.045em;line-height:1.1;
+  font-weight:850;text-shadow:none;
+}
+#clipboardRoot .topbar-center .muted{font-size:.86rem;line-height:1.4}
+#clipboardRoot #clipboardMatLane{
+  color:var(--gold);font-size:.72rem;font-weight:850;
+  text-transform:uppercase;letter-spacing:.17em;
+}
+#clipboardRoot .theme-icon-btn{
+  position:relative;top:auto;right:auto;width:42px;height:42px;
+  border-radius:12px;cursor:pointer;box-shadow:none;
+}
+#clipboardRoot .clipboard-status-bar{
+  margin:18px 0 20px;padding:13px 18px;
+  border-radius:14px;background:var(--panel);
+  box-shadow:0 8px 25px rgba(0,0,0,.09);
+}
+#clipboardRoot .back-builder-link{
+  font-size:.85rem;line-height:1.4;color:var(--muted);
+}
+#clipboardRoot .back-builder-link:hover{color:var(--text)}
+#clipboardRoot .duration-status{font-size:.93rem;letter-spacing:-.015em}
+#clipboardRoot #saveStatus{font-size:.78rem;text-align:right}
+#clipboardRoot .broadcast-box{
+  padding:22px;border-radius:18px;border:1px solid var(--line);
+  background:linear-gradient(145deg,rgba(170,185,202,.055),transparent 65%),var(--panel);
+  box-shadow:0 14px 34px rgba(0,0,0,.11);margin:0 0 26px;
+}
+#clipboardRoot .hybrid-summary{margin-bottom:18px}
+#clipboardRoot .hybrid-line{font-size:.95rem;line-height:1.5}
+#clipboardRoot #hybridIdentity{font-weight:850;font-size:1.1rem}
+#clipboardRoot .clipboard-training-groups{gap:12px;margin:12px 0 22px}
+#clipboardRoot .clipboard-group-chip{
+  padding:15px 16px;gap:7px;border-radius:13px;
+  background:var(--input-bg);border-left-width:3px;
+}
+#clipboardRoot .clipboard-group-label{font-size:.7rem;letter-spacing:.12em}
+#clipboardRoot .clipboard-group-chip strong{font-size:.92rem;line-height:1.4}
+#clipboardRoot .clipboard-group-chip > span:not(.clipboard-group-label),
+#clipboardRoot .clipboard-group-chip em{font-size:.79rem;line-height:1.4}
+#clipboardRoot .broadcast-box > label.block-title{
+  margin-bottom:10px !important;color:var(--muted) !important;
+  font-size:.75rem;letter-spacing:.13em;
+}
+#clipboardRoot textarea.broadcast{
+  min-height:105px;padding:15px 16px;
+  background:var(--input-bg);border:1px solid var(--line);
+  border-radius:12px;font:inherit;font-size:.95rem;line-height:1.5;
+}
+#clipboardRoot #planBlocks{display:block}
+#clipboardRoot .plan-block{
+  overflow:visible;position:relative;
+  padding:0;margin-bottom:14px;border:1px solid var(--line);
+  border-radius:16px;background:var(--panel);
+  box-shadow:0 8px 24px rgba(0,0,0,.10);
+}
+#clipboardRoot .plan-block.red{
+  background:var(--panel);
+  border-color:var(--line);
+}
+#clipboardRoot .plan-block.red::before{
+  content:"";position:absolute;left:0;top:17px;bottom:17px;
+  width:3px;border-radius:0 5px 5px 0;background:var(--red);
+}
+#clipboardRoot .plan-block.running-now{border-color:#2a9b69 !important}
+#clipboardRoot .block-head-row{
+  align-items:center;gap:16px;padding:17px 20px;margin:0;
+  border-bottom:1px solid var(--line);
+}
+#clipboardRoot .sw-head{gap:10px;min-width:0}
+#clipboardRoot .block-title{
+  color:var(--text);font-size:.96rem;letter-spacing:.005em;
+  line-height:1.38;font-weight:820;text-transform:none;
+}
+#clipboardRoot .block-tools{
+  margin:0 0 0 auto;flex-wrap:wrap;justify-content:flex-end;gap:9px;
+}
+#clipboardRoot .pill-btn,
+#clipboardRoot .library-btn,
+#clipboardRoot .add-card-btn,
+#clipboardRoot .plan-block .pill-btn.library-btn{
+  height:38px !important;min-height:38px !important;
+  padding:0 15px !important;font-size:.78rem !important;
+  border-radius:10px !important;background:var(--panel-2);
+  border-color:var(--line-2);color:var(--text);box-shadow:none;
+}
+#clipboardRoot .move-btn{
+  width:31px;height:31px;min-height:31px;padding:0;
+  border-radius:9px;font-size:.93rem;flex-shrink:0;
+}
+#clipboardRoot .min-input{
+  width:54px;height:36px;font-size:.83rem;
+  background:var(--input-bg);border-color:var(--line);
+}
+#clipboardRoot .mini-clock{
+  font-size:.88rem;font-weight:800;font-variant-numeric:tabular-nums;
+  min-width:48px;text-align:right;
+}
+#clipboardRoot .plan-block .slot{padding:16px 20px 19px;margin:0}
+#clipboardRoot .slot-cards{gap:10px}
+#clipboardRoot .clip-card-body.compact{
+  padding:11px 13px;line-height:1.35;
+}
+#clipboardRoot .clip-line1{font-size:.94rem;line-height:1.35}
+#clipboardRoot .clip-line2,
+#clipboardRoot .clip-line3{font-size:.82rem;line-height:1.38}
+#clipboardRoot .slot-notes{margin-top:16px}
+#clipboardRoot .notes-label{
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:800;margin-bottom:8px;
+}
+#clipboardRoot .slot-notes-input{
+  min-height:58px;padding:12px 13px;resize:vertical;
+  border:1px solid var(--line);border-radius:10px;
+  background:var(--input-bg);font-size:.9rem;line-height:1.5;
+}
+#clipboardRoot textarea:focus-visible,
+#clipboardRoot input:focus-visible,
+#clipboardRoot select:focus-visible,
+#clipboardRoot button:focus-visible,
+#clipboardRoot a:focus-visible{
+  outline:2px solid var(--gold);outline-offset:3px;
+}
+#clipboardRoot .clipboard-handoff{
+  margin-top:26px;padding:23px 25px;border-radius:18px;
+  border-color:var(--line);background:var(--panel);
+}
+#clipboardRoot .clipboard-handoff-copy strong{font-size:1.13rem}
+#clipboardRoot .clipboard-clock-action{
+  min-height:46px;border-radius:11px;background:var(--gold);
+  color:#13171d;border-color:var(--gold);
+}
+#clipboardRoot .clipboard-clear-action{border-radius:11px}
+@media(max-width:760px){
+  #clipboardRoot .wrap{padding:14px 12px 50px}
+  #clipboardRoot .clipboard-topbar{min-height:95px;padding:12px 50px 18px}
+  #clipboardRoot .topbar-center h1{font-size:1.55rem}
+  #clipboardRoot .topbar-center .muted{font-size:.75rem}
+  #clipboardRoot .clipboard-status-bar{
+    grid-template-columns:1fr auto;gap:9px;padding:12px;
+  }
+  #clipboardRoot .duration-status{justify-self:end;font-size:.8rem}
+  #clipboardRoot #saveStatus{grid-column:1/-1;text-align:left}
+  #clipboardRoot .broadcast-box{padding:16px;margin-bottom:20px}
+  #clipboardRoot .clipboard-training-groups{grid-template-columns:1fr}
+  #clipboardRoot .block-head-row{align-items:flex-start;padding:14px;flex-wrap:wrap}
+  #clipboardRoot .sw-head{max-width:none;width:100%}
+  #clipboardRoot .block-title{font-size:.92rem}
+  #clipboardRoot .block-tools{
+    width:100%;margin:0;justify-content:flex-start;
+  }
+  #clipboardRoot .plan-block .slot{padding:13px 14px 16px}
+  #clipboardRoot .mini-clock{margin-left:auto}
+  #clipboardRoot .clipboard-handoff{padding:18px}
+}
+@media(max-width:380px){
+  #clipboardRoot .topbar-center h1{font-size:1.34rem}
+  #clipboardRoot .clipboard-topbar{padding-left:34px;padding-right:34px}
+  #clipboardRoot .theme-icon-btn{width:34px;height:34px}
+}
+@media(prefers-reduced-motion:reduce){
+  #clipboardRoot .plan-block.running-now,
+  #clipboardRoot.run-mode{animation:none}
+}
