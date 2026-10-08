@@ -604,6 +604,11 @@ function renderDraft() {
   const draft = getRecoverableDraft();
   const card = document.getElementById("draftCard");
   const empty = document.getElementById("draftEmpty");
+
+  // The old unfinished-session surface was removed from Screen 3.
+  // Keep draft recovery data intact without requiring those DOM nodes.
+  if (!card || !empty) return;
+
   card.hidden = !draft;
   empty.hidden = Boolean(draft);
   if (!draft) return;
