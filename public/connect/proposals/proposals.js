@@ -1062,6 +1062,10 @@ function proposalActionHtml(status, id) {
 
   if (status === "AWAITING_CLIENT_SIGNATURE") {
     return `
+      <button class="proposal-open-btn" type="button" data-proposal-action="send-membership-options" data-proposal-id="${esc(id)}">
+        Send Membership Options
+      </button>
+
       <button class="proposal-open-btn" type="button" data-proposal-action="issue-client-review" data-proposal-id="${esc(id)}">
         Reissue Client Review
       </button>
@@ -1149,6 +1153,98 @@ async function runProposalAction(button) {
       window.location.assign(
         `/connect/admissions/calculator/?proposalId=${encodeURIComponent(proposalId)}`
       );
+      return;
+    }
+
+    if (action === "send-membership-options") {
+      const option1Monthly = Number(
+        window.prompt(
+          "Month-to-month monthly rate:",
+          "100"
+        )
+      );
+
+      const option1Due = Number(
+        window.prompt(
+          "Month-to-month due now:",
+          "70"
+        )
+      );
+
+      const option2Monthly = Number(
+        window.prompt(
+          "12-month recurring monthly rate:",
+          "80"
+        )
+      );
+
+      const option2Due = Number(
+        window.prompt(
+          "12-month recurring due now:",
+          "30"
+        )
+      );
+
+      if (
+        ![option1Monthly, option1Due, option2Monthly, option2Due]
+          .every((value) => Number.isFinite(value) && value >= 0)
+      ) {
+        throw new Error(
+          "Enter valid membership amounts."
+        );
+      }
+
+      await httpsCallable(
+        functions,
+        "configureProposalMembershipChoice"
+      )({
+        proposalId,
+        option1: {
+          title: "Month-to-Month",
+          monthlyCents:
+            Math.round(option1Monthly * 100),
+          dueNowCents:
+            Math.round(option1Due * 100),
+          paymentMethodLabel:
+            "Cash or check",
+          note:
+            "September and October were previously paid at $80 per month."
+        },
+        option2: {
+          title:
+            "12-Month Recurring Membership",
+          monthlyCents:
+            Math.round(option2Monthly * 100),
+          dueNowCents:
+            Math.round(option2Due * 100),
+          paymentMethodLabel:
+            "Recurring digital billing",
+          note:
+            "September and October are fully satisfied at the recurring rate."
+        },
+        contextNote:
+          "September and October have already been recorded as paid. Annual enrollment remains due."
+      });
+
+      const response = await httpsCallable(
+        functions,
+        "issueProposalClientReview"
+      )({
+        proposalId,
+        delivery: "email"
+      });
+
+      if (!response.data?.reviewPath) {
+        throw new Error(
+          "Membership choice review link was not returned."
+        );
+      }
+
+      window.alert(
+        "Membership options sent through Sandman."
+      );
+
+      await loadProposalQueue();
       return;
     }
 
