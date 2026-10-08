@@ -124,6 +124,7 @@ function populatePrograms(preferredProgramId = "") {
 
   let programs = programsForLocation(room?.locationId || "")
     .filter((program) => program.programId !== "manual-build")
+    .filter((program) => program.programId !== "fitness-striking")
     .filter((program) => !discipline || program.discipline === discipline);
 
   // If the active room has no configured journey yet, keep discipline usable.
