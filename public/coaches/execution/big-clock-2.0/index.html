@@ -8,7 +8,7 @@
   <title>Sandman Big Screen</title>
 
   <link rel="stylesheet"
-        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=8" />
+        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=20261008-9" />
 </head>
 
 <body>
@@ -42,12 +42,22 @@
   Session Ready
 </div>
 
+<div id="fastPassTimeSetup" class="fast-pass-time hidden">
+  <div class="fast-pass-label">Choose Practice Time</div>
+  <div class="fast-pass-times" role="group" aria-label="Practice duration">
+    <button type="button" data-fast-minutes="30">30 min</button>
+    <button type="button" data-fast-minutes="45">45 min</button>
+    <button type="button" data-fast-minutes="60" class="active">60 min</button>
+    <button type="button" data-fast-minutes="90">90 min</button>
+  </div>
+</div>
+
 <button
   class="ready-pill primary ready-start"
   type="button"
   onclick="startPracticeNow()">
 
-  Start Practice
+  Begin Practice
 
 </button>
 
@@ -156,7 +166,7 @@ Next: —
 <div class="session-end-actions hidden"
      id="sessionEndActions">
 
-<a class="return-btn"
+<a id="sessionEndPrimaryAction" class="return-btn"
   href="/coaches/execution/coach-companion/">
 
 
@@ -169,7 +179,7 @@ Return to Coach Companion
 
 <script
   type="module"
-  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=11">
+  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=20261008-12">
 </script>
 
 </body>
