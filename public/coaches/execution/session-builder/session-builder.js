@@ -277,6 +277,7 @@ function tierFromLadderKey(key = "") {
 }
 
 function populateRanks(preferredTier = "") {
+  if (!rankSelect) return;
   const journey = selectedProgram()?.journey || "";
   const ladder = RANK_LADDERS[journey] || [];
   rankSelect.innerHTML = "";
@@ -303,6 +304,7 @@ function populateRanks(preferredTier = "") {
   }
 }
 function populateWeeks() {
+  if (!weekSelect) return;
   const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
   weekSelect.innerHTML = routeReady
     ? '<option value="">Let Sandman decide / select week</option>'
@@ -369,11 +371,17 @@ function updateModeButtons() {
 }
 
 function updateConditionalControls() {
+  if (rankField) rankField.hidden = true;
+  if (weekField) weekField.hidden = true;
+  if (modeAvailability) {
+    modeAvailability.textContent = "Tier and Training Week will be suggested after attendance from the athletes who check in.";
+    modeAvailability.hidden = false;
+    modeAvailability.classList.remove("unavailable");
+  }
+  return;
+
   const usesRank = programUsesRank();
   const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
-
-  rankField.hidden = false;
-  weekField.hidden = false;
 
   if (!routeReady) {
     rankSelect.disabled = true;
@@ -443,7 +451,7 @@ function shellData() {
 function getProgramData() {
   const program = selectedProgram();
   const discipline = program?.discipline || String(disciplineFamilySelect?.value || "").trim();
-  const tier = effectiveTier();
+  const tier = "";
   const journey = program?.journey || "";
   const ladder = RANK_LADDERS[journey] || [];
   const rankName = ladder.find(rank => tierFromLadderKey(rank.key) === tier)?.name || "";
@@ -494,7 +502,7 @@ function updateSummary() {
 
   if (summaryWeekRow) summaryWeekRow.hidden = false;
   if (summaryWeek) {
-    const week = effectiveWeek();
+    const week = "";
     if (!routeReady) summaryWeek.textContent = "Select Journey and Discipline";
     else if (!usesWeek) summaryWeek.textContent = "Not used";
     else if (week) summaryWeek.textContent = `Week ${week}`;
@@ -777,6 +785,21 @@ function createSessionPayload(practiceId = activePracticeId) {
 }
 
 function persistSession(payload) {
+  try {
+    const previous = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
+    const sameRoute = String(previous?.journey || "") === String(payload?.journey || "")
+      && String(previous?.discipline || "") === String(payload?.discipline || "");
+    if (sameRoute && (previous?.tier || previous?.week)) {
+      localStorage.setItem("sandman_previous_route_context_v1", JSON.stringify({
+        journey: previous.journey || "",
+        discipline: previous.discipline || "",
+        tier: previous.tier || "",
+        rankLabel: previous.rankLabel || "",
+        week: previous.week || ""
+      }));
+    }
+  } catch {}
+
   localStorage.removeItem(DRAFT_KEY);
   localStorage.removeItem(CLIPBOARD_KEY);
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
@@ -898,8 +921,8 @@ disciplineSelect.addEventListener("change", () => {
   populateRanks();
   refreshHybridAvailability();
 });
-rankSelect.addEventListener("change", refreshHybridAvailability);
-weekSelect.addEventListener("change", updateSummary);
+rankSelect?.addEventListener("change", refreshHybridAvailability);
+weekSelect?.addEventListener("change", updateSummary);
 
 document.getElementById("discardDraftBtn")?.addEventListener("click", () => {
   if (!window.confirm("Discard this unfinished session?")) return;
