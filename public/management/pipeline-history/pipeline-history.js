@@ -17,6 +17,11 @@ const historySearch = document.getElementById("historySearch");
 const academyFilter = document.getElementById("academyFilter");
 const stageFilter = document.getElementById("stageFilter");
 
+const archiveMode =
+  new URLSearchParams(
+    window.location.search
+  ).get("view") === "archive";
+
 let records = [];
 
 function clean(value) {
@@ -133,6 +138,18 @@ function labelForStage(value = "") {
     closed: "Closed"
   };
   return labels[value] || value.replaceAll("_", " ") || "New Lead";
+}
+
+function isClosedStage(record) {
+  return currentStage(record) === "closed";
+}
+
+function archiveFilteredRecords(source = []) {
+  return source.filter((record) =>
+    archiveMode
+      ? isClosedStage(record)
+      : !isClosedStage(record)
+  );
 }
 
 function setStatus(message, isError = false) {
@@ -379,7 +396,9 @@ function buildCaseRecords(leads, proposals) {
 
 function populateFilters() {
   const locations = [...new Set(records.map((record) => clean(record.locationId || record.proposalLocationId)).filter(Boolean))].sort();
-  const stages = [...new Set(records.map(currentStage).filter(Boolean))].sort();
+  const stages = archiveMode
+    ? ["closed"]
+    : [...new Set(records.map(currentStage).filter(Boolean))].sort();
 
   academyFilter.innerHTML = '<option value="all">All Academies</option>' + locations
     .map((location) => `<option value="${esc(location)}">${esc(labelForLocation(location))}</option>`)
@@ -613,15 +632,17 @@ async function loadHistory(context) {
     );
 
   records =
-    buildCaseRecords(
-      leads,
-      proposals
-    ).filter(
-      (record) =>
-        !caseIsActivated(
-          record,
-          activation
-        )
+    archiveFilteredRecords(
+      buildCaseRecords(
+        leads,
+        proposals
+      ).filter(
+        (record) =>
+          !caseIsActivated(
+            record,
+            activation
+          )
+      )
     );
 
   populateFilters();
