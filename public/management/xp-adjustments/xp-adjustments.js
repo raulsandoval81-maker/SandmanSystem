@@ -853,6 +853,7 @@ function renderExperienceValidation(pin) {
           ? "✓ No recognition XP required."
           : `Approved · ${awarded} XP issued now${held > 0 ? ` · ${held} XP held` : ""}`
       );
+      await refreshSelectedAthleteSummary();
       await loadSelectedExperience();
       await refreshExperienceQueue();
     } catch (error) {
@@ -1442,6 +1443,35 @@ async function findMembers(search) {
     : [];
 }
 
+
+async function refreshSelectedAthleteSummary() {
+  const athleteId =
+    clean(athlete?.athleteId);
+
+  if (!athleteId) {
+    return;
+  }
+
+  const members =
+    await findMembers(athleteId);
+
+  const refreshed =
+    members.find(
+      (member) =>
+        clean(member.athleteId)
+          .toLowerCase() ===
+        athleteId.toLowerCase()
+    ) ||
+    members[0];
+
+  if (!refreshed) {
+    return;
+  }
+
+  athlete = refreshed;
+  renderProgressionSummary();
+}
+
 searchForm.addEventListener(
   "submit",
   async (event) => {
@@ -1730,6 +1760,8 @@ adjustmentForm.addEventListener(
             ? `Verified experience recorded. ${recognitionPlan.total} XP total — ${applied} now${recognitionPlan.held ? ` + ${recognitionPlan.held} held for Tier 1` : ""}.`
             : `Adjustment recorded successfully. +${applied} XP applied.`
       );
+
+      await refreshSelectedAthleteSummary();
 
       adjustmentForm.insertAdjacentHTML(
         "beforeend",
