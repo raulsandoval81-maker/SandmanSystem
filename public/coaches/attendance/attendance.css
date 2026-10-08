@@ -619,3 +619,18 @@ html[data-theme="light"]{
   }
   .training-group-actions button{width:100%}
 }
+
+
+/* Attendance identity carries consistently from check-in to review. */
+.attendance-identity{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
+.attendance-identity strong{font-weight:850}
+.attendance-identity small{color:var(--attendance-muted);overflow-wrap:anywhere}
+.attendance-route{display:inline-flex;align-items:center;max-width:100%;padding:5px 9px;border:1px solid currentColor;border-radius:9px;font-size:.76rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
+.attendance-rank-white{color:#cbd5e1;background:rgba(203,213,225,.08)}
+.attendance-rank-yellow{color:#facc15;background:rgba(250,204,21,.08)}
+.attendance-rank-orange{color:#fb923c;background:rgba(251,146,60,.08)}
+.attendance-rank-green{color:#4ade80;background:rgba(74,222,128,.08)}
+.attendance-rank-black{color:#e5e7eb;background:#1f2937;border-color:#6b7280}
+.attendance-rank-neutral{color:var(--attendance-muted)}
+.attendance-present-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
+.attendance-present-label{font-size:.73rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:#4ade80}
