@@ -323,3 +323,49 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
     grid-template-columns:1fr;
   }
 }
+
+.secondary-session-add{
+  display:grid;
+  gap:6px;
+  padding-top:4px;
+}
+
+.secondary-session-add .secondary-button{
+  width:100%;
+}
+
+.secondary-session-route{
+  display:grid;
+  gap:12px;
+  padding:14px;
+  border:1px solid var(--gold-line);
+  border-radius:13px;
+  background:var(--gold-soft);
+}
+
+.secondary-session-route[hidden]{
+  display:none !important;
+}
+
+.secondary-session-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.secondary-session-head h3{
+  margin:4px 0 0;
+  color:var(--gold);
+  font-size:1rem;
+}
+
+@media(max-width:560px){
+  .secondary-session-head{
+    flex-direction:column;
+  }
+
+  .secondary-session-head .secondary-button{
+    width:100%;
+  }
+}
