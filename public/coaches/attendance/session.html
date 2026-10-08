@@ -7,71 +7,136 @@
   <title>Athlete Check-In | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css" />
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261008-2" />
 </head>
 
 <body class="coach-shell-page attendance-checkin" data-coach-page="Athlete Check-In" data-coach-area="practice">
   <main class="attendance-page" data-coach-shell-content>
     <header class="attendance-header">
-      <h1>Athlete Check-In</h1>
-      <p>Load the active canonical practice, record athletes as they arrive, then submit check-in for Coach review.</p>
+      <div>
+        <p class="attendance-step-label">Attendance · 3-step flow</p>
+        <h1>Athlete Check-In</h1>
+        <p>Find athletes fast, check them in one by one, then review before submitting.</p>
+      </div>
       <a class="pill" href="/coaches/practice/">← Practice Operations</a>
     </header>
 
-    <section class="attendance-card">
-    <div class="session-date">
-      <span class="label">Today's Date</span>
-      <span id="sessionDateLabel" class="value">—</span>
-     </div>
-
-   <label>
-     Active Practice
-     <input id="practiceIdentity" value="No active practice loaded" readonly aria-readonly="true" />
-</label>
-
-
-      <label>
-        Coach Name
-        <input id="coachName" type="text" value="Coach Sandoval" />
-      </label>
-
-      <label>
-        Notes / Discipline
-        <textarea id="practiceNotes" placeholder="Optional notes..."></textarea>
-      </label>
-
-      <button id="startSession" type="button">
-        Load Active Practice
+    <nav class="attendance-stepper" aria-label="Attendance steps">
+      <button class="attendance-step is-active" type="button" data-step-target="1">
+        <span>1</span><strong>Practice</strong>
       </button>
+      <button class="attendance-step" type="button" data-step-target="2" disabled>
+        <span>2</span><strong>Athletes</strong>
+      </button>
+      <button class="attendance-step" type="button" data-step-target="3" disabled>
+        <span>3</span><strong>Review</strong>
+      </button>
+    </nav>
 
-      <p id="sessionStatus" class="muted">Ready.</p>
-      <a id="returnToBuilder" href="/coaches/execution/session-builder/" hidden>Return to Session Builder</a>
+    <section class="attendance-screen is-active" data-step-screen="1">
+      <section class="attendance-card attendance-card--focus">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Step 1 of 3</span>
+            <h2>Confirm Practice</h2>
+          </div>
+        </div>
+
+        <div class="session-date">
+          <span class="label">Today's Date</span>
+          <span id="sessionDateLabel" class="value">—</span>
+        </div>
+
+        <label>
+          Active Practice
+          <input id="practiceIdentity" value="No active practice loaded" readonly aria-readonly="true" />
+        </label>
+
+        <div class="practice-secondary-fields">
+          <label>
+            Coach Name
+            <input id="coachName" type="text" value="Coach Sandoval" />
+          </label>
+
+          <label>
+            Notes / Discipline
+            <textarea id="practiceNotes" placeholder="Optional notes..."></textarea>
+          </label>
+        </div>
+
+        <button id="startSession" class="primary full-action" type="button">
+          Load Practice & Continue
+        </button>
+
+        <p id="sessionStatus" class="muted">Ready.</p>
+        <a id="returnToBuilder" href="/coaches/execution/session-builder/" hidden>Return to Session Builder</a>
+      </section>
     </section>
 
-    <section class="attendance-card">
-      <h2>Attendance Roster</h2>
+    <section class="attendance-screen" data-step-screen="2" hidden>
+      <section class="attendance-card attendance-card--focus">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Step 2 of 3</span>
+            <h2>Check In Athletes</h2>
+            <p class="muted">Search, then tap Check In. Checked athletes move out of the way.</p>
+          </div>
+          <strong id="checkedCountTop" class="checked-badge">0 in</strong>
+        </div>
 
-      <input
-        id="searchAthlete"
-        type="text"
-        placeholder="Search athlete name..."
-      />
+        <label class="athlete-search-label" for="searchAthlete">Find athlete</label>
+        <input
+          id="searchAthlete"
+          class="athlete-search"
+          type="search"
+          inputmode="search"
+          autocomplete="off"
+          placeholder="Type athlete name or ID..."
+        />
 
-      <div id="athleteList"></div>
+        <div class="quick-search-row" aria-label="Quick athlete search">
+          <button type="button" class="quick-search-btn" data-quick-search="">All</button>
+          <button type="button" class="quick-search-btn" data-quick-search="a">A</button>
+          <button type="button" class="quick-search-btn" data-quick-search="b">B</button>
+          <button type="button" class="quick-search-btn" data-quick-search="c">C</button>
+          <button type="button" class="quick-search-btn" data-quick-search="d">D</button>
+          <button type="button" class="quick-search-btn" data-quick-search="e">E</button>
+        </div>
+
+        <div id="athleteList" class="athlete-checkin-list"></div>
+
+        <div class="screen-actions">
+          <button id="reviewAttendanceBtn" class="primary full-action" type="button">
+            Review Checked-In Athletes
+          </button>
+        </div>
+      </section>
     </section>
 
-    <section class="attendance-card">
-      <h2>Checked In Today</h2>
-      <p id="checkedCount" class="muted">0 checked in</p>
-      <div id="checkedList"></div>
+    <section class="attendance-screen" data-step-screen="3" hidden>
+      <section class="attendance-card attendance-card--focus">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Step 3 of 3</span>
+            <h2>Review Attendance</h2>
+            <p class="muted">Confirm the list before sending it into the Coach review / XP flow.</p>
+          </div>
+        </div>
 
-      <button id="finalizeSession" type="button">
-        Submit for Coach Review
-      </button>
+        <p id="checkedCount" class="checked-summary">0 checked in</p>
+        <div id="checkedList" class="checked-review-list"></div>
+
+        <div class="screen-actions screen-actions--split">
+          <button id="backToAthletesBtn" type="button">← Add / Remove Athletes</button>
+          <button id="finalizeSession" class="primary" type="button">
+            Submit for Coach Review
+          </button>
+        </div>
+      </section>
     </section>
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-2"></script>
 </body>
 </html>
