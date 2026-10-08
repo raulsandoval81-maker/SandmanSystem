@@ -486,7 +486,10 @@ function previousRouteContext() {
 
 function contextSuggestions() {
   const ladder = ladderForPractice();
-  const present = Array.from(checkedIn.values());
+  const present = Array.from(checkedIn.values()).map((checked) => {
+    const id = String(checked?.id || checked?.uid || "");
+    return athletes.find((athlete) => String(athlete.id || athlete.uid || "") === id) || checked;
+  });
   const rosterTier = dominantValue(present.map((athlete) => normalizeAthleteTier(athlete, ladder)));
 
   const athleteWeek = dominantValue(present.map((athlete) => {
@@ -584,7 +587,7 @@ function preparePracticeContext() {
   showStep(4);
 }
 
-function savePracticeContextToBuilderSession() {
+async function savePracticeContextToBuilderSession() {
   let session = {};
   try {
     session = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
@@ -609,6 +612,30 @@ function savePracticeContextToBuilderSession() {
   localStorage.setItem("sandman_rank", tier);
   localStorage.setItem("sandman_rank_label", rankLabel);
   localStorage.setItem("sandman_week", week);
+
+  if (tier && activePractice?.practiceId) {
+    try {
+      const openPractice = httpsCallable(functions, "openPracticeSession");
+      await openPractice({
+        practiceId: activePractice.practiceId,
+        liveSessionId: activePractice.liveSessionId || activePractice.sessionId || "",
+        locationId: activePractice.locationId || activePractice.academyId || "",
+        academyId: activePractice.academyId || activePractice.locationId || "",
+        roomId: activePractice.roomId || "",
+        discipline: activePractice.discipline || "",
+        journey: activePractice.journey || "",
+        program: activePractice.program || "",
+        track: activePractice.track || "",
+        tier,
+        schema: activePractice.schema || session.schema || "academy-60",
+        executionMode: activePractice.executionMode || session.executionMode || "hybrid",
+        durationMinutes: Number(activePractice.durationMinutes || session.durationMinutes || 60)
+      });
+      activePractice = { ...activePractice, tier };
+    } catch (error) {
+      console.warn("[session] practice tier sync skipped", error);
+    }
+  }
 }
 
 function todayLabel() {
@@ -642,7 +669,7 @@ async function submitForReview() {
   renderCheckedIn();
 
   if (isBuilderFlow() && returnTarget() === "clipboard") {
-    savePracticeContextToBuilderSession();
+    await savePracticeContextToBuilderSession();
     let sessionId = "";
     try {
       sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
