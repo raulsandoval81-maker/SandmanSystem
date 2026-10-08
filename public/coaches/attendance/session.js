@@ -107,6 +107,11 @@ function programMatchesAthlete(athlete = {}) {
   return true;
 }
 
+function isBuilderFlow() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("return") === "builder" && params.get("flow") === "builder";
+}
+
 function requestedPracticeId() {
   const params = new URLSearchParams(window.location.search);
   return String(params.get("practice") || params.get("practiceId") || "").trim();
@@ -142,14 +147,18 @@ async function loadCanonicalPractice() {
   if (String(practice.status || "").toLowerCase() !== "active") {
     throw new Error("This practice is no longer active.");
   }
-  if (!String(practice.discipline || "").trim()) {
-    throw new Error("The active practice has no explicit discipline.");
+  const discipline = String(practice.discipline || "").trim().toLowerCase();
+  if (!discipline) {
+    throw new Error("The active practice has no discipline state.");
   }
   activePractice = practice;
   sessionId = practiceId;
   sessionRef = doc(db, "attendance_sessions", practiceId);
   if ($("practiceIdentity")) {
-    $("practiceIdentity").value = [practice.discipline, practice.journey, practice.roomId]
+    const disciplineLabel = String(practice.discipline || "").toLowerCase() === "unassigned"
+      ? "Route selected after attendance"
+      : practice.discipline;
+    $("practiceIdentity").value = [disciplineLabel, practice.journey, practice.roomId]
       .filter(Boolean).join(" · ");
   }
 }
@@ -428,6 +437,10 @@ async function submitForReview() {
 
   renderAthletes();
   renderCheckedIn();
+
+  if (isBuilderFlow()) {
+    window.location.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&step=4`;
+  }
 }
 
 function bindEvents() {
@@ -468,5 +481,22 @@ function bindEvents() {
 
 bindEvents();
 configureBuilderReturn();
-showStep(1);
-loadAthletes();
+
+if (isBuilderFlow()) {
+  const label = $("attendanceFlowLabel");
+  const title = $("attendanceTitle");
+  const lead = $("attendanceLead");
+  if (label) label.textContent = "Session Builder · Screen 3";
+  if (title) title.textContent = "Attendance";
+  if (lead) lead.textContent = "Athletes check in first. When attendance is finished, Coach continues to Screen 4.";
+
+  loadAthletes()
+    .then(() => startSession())
+    .catch((error) => {
+      console.error("[session] builder attendance start failed", error);
+      setStatus(error?.message || "Could not start attendance.", true);
+    });
+} else {
+  showStep(1);
+  loadAthletes();
+}
