@@ -875,7 +875,7 @@ function renderExperienceValidation(pin) {
                   Reopen Assessment
                 </button>
                 <button id="approveExperienceButton" class="button button-primary" type="button">
-                  Complete · No Recognition XP
+                  Proceed · Complete With No Recognition XP
                 </button>
               `
           : resolved
@@ -883,7 +883,7 @@ function renderExperienceValidation(pin) {
           : noRecognitionXp
             ? `
                 <button id="approveExperienceButton" class="button button-primary" type="button">
-                  Complete · No Recognition XP
+                  Proceed · Complete With No Recognition XP
                 </button>
               `
             : `
