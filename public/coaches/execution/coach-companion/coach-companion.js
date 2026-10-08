@@ -762,6 +762,32 @@ function escapeHtml(value) {
   renderCoachSession();
   setupAthleteNotes();
   restoreNotesDraft();
+  // Hydrate shared notes on this device; local unsent work stays as fallback.
+  const practiceId = getCoachSessionPayload()?.practiceId;
+  if (practiceId) {
+    try {
+      const getPractice = httpsCallable(functions, "getPracticeSession");
+      const response = await getPractice({ practiceId });
+      const shared = response.data?.practice?.dailyPracticeLog;
+      if (shared && !localStorage.getItem(notesDraftKey())) {
+        BLOCK_KEYS.forEach(slot => {
+          const el = document.getElementById("notes-" + slot);
+          if (el && typeof shared.blockNotes?.[slot] === "string") el.value = shared.blockNotes[slot];
+        });
+        if (focusEl) focusEl.value = shared.focus || "";
+        OBSERVATION_IDS.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = shared[id] || "";
+        });
+        Object.assign(individualNotes, shared.individualNotes || {});
+        setStatus("Shared Daily Practice Log loaded.");
+      }
+    } catch (error) {
+      console.warn("Shared log retrieval failed", error);
+      setStatus("Shared log unavailable. Local notes remain available.");
+    }
+  }
+
 
   document.querySelectorAll(".slot-notes-input").forEach(autoGrow);
   if (focusEl) autoGrow(focusEl);
