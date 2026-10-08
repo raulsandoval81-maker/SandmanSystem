@@ -347,7 +347,9 @@ function renderAthletes() {
   }
 
   if (!filteredAthletes.length) {
-    list.innerHTML = `<p class="muted">No athletes found.</p>`;
+    list.innerHTML = checkedIn.size
+      ? `<p class="muted">All matching athletes are checked in.</p>`
+      : `<p class="muted">No athletes found.</p>`;
     return;
   }
 
@@ -445,7 +447,7 @@ async function checkInAthlete(id) {
     .map((item) => [item.id || item.uid, item]));
 
   setStatus(`${payload.name} checked in.`);
-  renderAthletes();
+  applyFilters();
   renderCheckedIn();
 }
 
@@ -493,7 +495,7 @@ function renderCheckedIn() {
       checkedIn = new Map((Array.isArray(attendance.checkedIn) ? attendance.checkedIn : [])
         .map((item) => [item.id || item.uid, item]));
 
-      renderAthletes();
+      applyFilters();
       renderCheckedIn();
     });
   });
@@ -770,14 +772,6 @@ function bindEvents() {
       showStep(Number(button.dataset.stepTarget));
     });
   });
-
-  document.querySelectorAll("[data-quick-search]").forEach((button) => {
-    button.addEventListener("click", () => {
-      if (!$("searchAthlete")) return;
-      $("searchAthlete").value = button.dataset.quickSearch || "";
-      applyFilters();
-      $("searchAthlete").focus();
-    });
   });
 }
 
