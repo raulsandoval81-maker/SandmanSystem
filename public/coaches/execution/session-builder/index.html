@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-7">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-8">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -15,7 +15,6 @@
       <h1>Session Builder</h1>
       <p>Plan the shell. Build the practice in Clipboard.</p>
     </div>
-    <div class="room-context" aria-live="polite"><span>Current room</span><strong id="currentRoomLabel">Lompoc Mat 1</strong></div>
   </header>
 
   <div id="dashboardNotice" class="dashboard-notice" hidden></div>
@@ -58,100 +57,129 @@
   </section>
 
   <section id="newSessionSection" class="dashboard-section new-session-section" hidden>
-    <div class="setup-step">
-      <div class="section-heading">
-        <div><span class="eyebrow">1 · Session</span><h2>What kind of session?</h2></div>
+    <div id="guidedSetupScreen">
+      <div class="setup-step">
+        <div class="section-heading">
+          <div><span class="eyebrow">Session</span><h2>What kind of session?</h2></div>
+        </div>
+        <div class="choice-grid choice-grid--two" id="sessionTypeChoices">
+          <button class="setup-choice active" type="button" data-session-type="academy" aria-pressed="true">
+            <strong>Academy Class</strong>
+            <span>Regular team or academy practice.</span>
+          </button>
+          <button class="setup-choice" type="button" data-session-type="private" aria-pressed="false">
+            <strong>Private Session</strong>
+            <span>One-on-one or small-group coaching.</span>
+          </button>
+        </div>
       </div>
-      <div class="choice-grid choice-grid--two" id="sessionTypeChoices">
-        <button class="setup-choice active" type="button" data-session-type="academy" aria-pressed="true">
-          <strong>Academy Class</strong>
-          <span>Regular team or academy practice.</span>
-        </button>
-        <button class="setup-choice" type="button" data-session-type="private" aria-pressed="false">
-          <strong>Private Session</strong>
-          <span>One-on-one or small-group coaching.</span>
-        </button>
+
+      <div class="setup-step">
+        <div class="section-heading">
+          <div><span class="eyebrow">Length</span><h2>Choose session length</h2></div>
+        </div>
+        <div class="duration-grid" id="durationChoices" aria-label="Session length"></div>
+      </div>
+
+      <div class="setup-step">
+        <div class="section-heading">
+          <div><span class="eyebrow">Build mode</span><h2>How should Sandman build it?</h2></div>
+        </div>
+        <div class="mode-row entry-mode-row" id="modeField">
+          <button class="mode-btn" type="button" data-mode="auto" aria-pressed="false">
+            <strong>Auto</strong><span>Sandman leads the build.</span>
+          </button>
+          <button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true">
+            <strong>Hybrid</strong><span>Sandman + Coach input.</span>
+          </button>
+          <button class="mode-btn" type="button" data-mode="manual" aria-pressed="false">
+            <strong>Manual</strong><span>Coach controls the build.</span>
+          </button>
+        </div>
+        <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
+      </div>
+
+      <div class="screen-actions">
+        <button id="continueToContextBtn" class="primary-action" type="button">Continue to Practice Context</button>
       </div>
     </div>
 
-    <div class="setup-step">
-      <div class="section-heading">
-        <div><span class="eyebrow">2 · Length</span><h2>Choose session length</h2></div>
+    <div id="practiceContextScreen" hidden>
+      <div class="screen-heading">
+        <div>
+          <span class="eyebrow">Practice Context</span>
+          <h2>What are you coaching?</h2>
+          <p id="contextLead">Choose the discipline. Sandman will only ask for details that matter.</p>
+        </div>
+        <button id="backToGuidedSetupBtn" class="secondary-button" type="button">Back</button>
       </div>
-      <div class="duration-grid" id="durationChoices" aria-label="Session length"></div>
-    </div>
 
-    <div class="setup-step">
-      <div class="section-heading">
-        <div><span class="eyebrow">3 · Build mode</span><h2>How should Sandman build it?</h2></div>
-      </div>
-      <div class="mode-row entry-mode-row" id="modeField">
-        <button class="mode-btn" type="button" data-mode="auto" aria-pressed="false">
-          <strong>Auto</strong><span>Sandman leads the build.</span>
-        </button>
-        <button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true">
-          <strong>Hybrid</strong><span>Sandman + Coach input.</span>
-        </button>
-        <button class="mode-btn" type="button" data-mode="manual" aria-pressed="false">
-          <strong>Manual</strong><span>Coach controls the build.</span>
-        </button>
-      </div>
-      <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
-    </div>
+      <div class="context-layout">
+        <div class="details-panel context-details">
+          <div class="field">
+            <label for="disciplineFamilySelect">Discipline</label>
+            <div class="discipline-choice-grid" id="disciplineChoiceGrid">
+              <button type="button" data-discipline="wrestling">Wrestling</button>
+              <button type="button" data-discipline="boxing">Boxing</button>
+              <button type="button" data-discipline="muay-thai">Muay Thai</button>
+              <button type="button" data-discipline="striking">Fitness / Striking</button>
+            </div>
+            <select id="disciplineFamilySelect" class="dashboard-select visually-hidden-select" tabindex="-1" aria-hidden="true">
+              <option value="">Select Discipline</option>
+              <option value="wrestling">Wrestling</option>
+              <option value="boxing">Boxing</option>
+              <option value="muay-thai">Muay Thai</option>
+              <option value="striking">Fitness / Striking</option>
+            </select>
+          </div>
 
-    <div class="configuration-layout">
-      <div class="details-panel">
-        <div class="field"><label for="roomSelect">Room</label><select id="roomSelect" class="dashboard-select"></select></div>
+          <div class="field" id="programField" hidden>
+            <label for="disciplineSelect">Journey / Program</label>
+            <select id="disciplineSelect" class="dashboard-select">
+              <option value="">Select Discipline First</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="disciplineFamilySelect">Discipline</label>
-          <select id="disciplineFamilySelect" class="dashboard-select">
-            <option value="">Select Discipline</option>
-            <option value="wrestling">Wrestling</option>
-            <option value="boxing">Boxing</option>
-            <option value="muay-thai">Muay Thai</option>
-            <option value="striking">Fitness / Striking</option>
-          </select>
+          <div class="field" id="rankField">
+            <label for="rankSelect">Focus Tier <span class="optional-label">Optional</span></label>
+            <select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select>
+          </div>
+
+          <div class="field" id="weekField">
+            <label for="weekSelect">Training Week <span class="optional-label">Optional</span></label>
+            <select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select>
+          </div>
         </div>
 
-        <div class="field" id="programField">
-          <label for="disciplineSelect">Program</label>
-          <select id="disciplineSelect" class="dashboard-select">
-            <option value="">Select Discipline First</option>
-          </select>
-        </div>
-
-        <div class="field" id="rankField"><label for="rankSelect">Session Focus Tier</label><select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select></div>
-        <div class="field" id="weekField"><label for="weekSelect">Training Week</label><select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select></div>
+        <aside class="selection-summary" aria-live="polite">
+          <span class="eyebrow">Current selection</span>
+          <h3 id="summaryShell">Academy Class · 60 min</h3>
+          <dl>
+            <div><dt>Mode</dt><dd id="summaryMode">Hybrid</dd></div>
+            <div><dt>Discipline</dt><dd id="summaryDiscipline">Select a discipline</dd></div>
+            <div id="summaryProgramRow"><dt>Journey</dt><dd id="summaryProgram">—</dd></div>
+            <div id="summaryRankRow"><dt>Focus Tier</dt><dd id="summaryRank">—</dd></div>
+            <div id="summaryWeekRow"><dt>Week</dt><dd id="summaryWeek">—</dd></div>
+          </dl>
+          <p id="summaryAvailability" class="summary-availability">Choose a discipline to continue.</p>
+          <button id="buildBtn" class="primary-action build-action" type="button">Continue with Hybrid</button>
+        </aside>
       </div>
 
-      <aside class="selection-summary" aria-live="polite">
-        <span class="eyebrow">Current selection</span>
-        <h3 id="summaryShell">Academy Class · 60 min</h3>
-        <dl>
-          <div><dt>Mode</dt><dd id="summaryMode">Hybrid</dd></div>
-          <div><dt>Room</dt><dd id="summaryRoom">Lompoc Mat 1</dd></div>
-          <div><dt>Discipline</dt><dd id="summaryDiscipline">Select a discipline</dd></div>
-          <div id="summaryProgramRow"><dt>Program</dt><dd id="summaryProgram">—</dd></div>
-          <div id="summaryRankRow"><dt>Rank</dt><dd id="summaryRank">—</dd></div>
-          <div id="summaryWeekRow"><dt>Week</dt><dd id="summaryWeek">—</dd></div>
-        </dl>
-        <p id="summaryAvailability" class="summary-availability">Choose a discipline to continue.</p>
-        <button id="buildBtn" class="primary-action build-action" type="button">Continue to Practice Clipboard</button>
-      </aside>
+      <section id="attendanceContext" class="attendance-context" hidden aria-live="polite">
+        <div class="attendance-context-heading">
+          <div><span class="eyebrow">Athletes present</span><h3 id="attendanceCount">0 checked in</h3></div>
+          <a id="attendanceLink" class="secondary-link" href="/coaches/attendance/session.html">Manage check-in</a>
+        </div>
+        <div id="attendanceRanks" class="rank-summary"></div>
+        <div id="attendanceAthletes" class="checked-athletes"></div>
+      </section>
     </div>
 
-    <section id="attendanceContext" class="attendance-context" hidden aria-live="polite">
-      <div class="attendance-context-heading">
-        <div><span class="eyebrow">Athletes present</span><h3 id="attendanceCount">0 checked in</h3></div>
-        <a id="attendanceLink" class="secondary-link" href="/coaches/attendance/session.html">Manage check-in</a>
-      </div>
-      <div id="attendanceRanks" class="rank-summary"></div>
-      <div id="attendanceAthletes" class="checked-athletes"></div>
-    </section>
+    <select id="roomSelect" hidden aria-hidden="true"></select>
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-6"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-7"></script>
 </body>
 </html>
