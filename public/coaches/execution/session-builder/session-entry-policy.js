@@ -1,7 +1,8 @@
 export const SESSION_ENTRY_MODES = Object.freeze([
-  "checked-in",
+  "auto",
   "hybrid",
   "manual",
+  "checked-in",
   "quick"
 ]);
 
@@ -136,9 +137,6 @@ export function programsForLocation(locationId) {
 
 export function normalizeExecutionMode(value, fallback = "manual") {
   const mode = String(value || "").trim().toLowerCase();
-  if (mode === "auto") {
-    throw new Error("Auto session planning is not available yet.");
-  }
   return SESSION_ENTRY_MODES.includes(mode) ? mode : fallback;
 }
 
