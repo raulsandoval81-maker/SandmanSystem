@@ -1051,7 +1051,7 @@ function proposalAction(status = "") {
   })[status] || "";
 }
 
-function proposalActionHtml(status, id) {
+function proposalActionHtml(status, id, proposal = {}) {
   if (status === "BUILDING" || status === "DRAFT") {
     return `<a class="proposal-open-btn" href="/connect/admissions/calculator/?proposalId=${encodeURIComponent(id)}">Continue Draft</a>`;
   }
@@ -1688,7 +1688,11 @@ function proposalCardHtml(
       </div>
 
       <div class="proposal-card-actions">
-        ${proposalActionHtml(status, id)}
+        ${proposalActionHtml(
+          status,
+          id,
+          proposal
+        )}
 
         ${
           canDeleteTestProposal &&
