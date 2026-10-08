@@ -291,6 +291,7 @@ export const openPracticeSession = onCall(async (request) => {
           ["journey", String(current.journey || ""), String(input.journey || "").trim()],
           ["program", String(current.program || ""), String(input.program || "").trim()],
           ["tier", String(current.tier || ""), String(input.tier || "").trim()],
+          ["week", String(current.week || ""), String(input.week || "").trim()],
         ];
         const changed = stableContext.find(([field, before, after]) => {
           if (before === after) return false;
@@ -321,6 +322,7 @@ export const openPracticeSession = onCall(async (request) => {
       program: String(input.program || "").trim(),
       track: String(input.track || "").trim(),
       tier: String(input.tier || "").trim(),
+      week: String(input.week || "").trim(),
       schema: String(input.schema || "").trim(),
       durationMinutes: requireBoundedNumber(input.durationMinutes ?? 0, "durationMinutes", 0, 480),
       ...(executionMode ? { executionMode } : {}),
