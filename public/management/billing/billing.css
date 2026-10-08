@@ -426,3 +426,48 @@
   border-color:
     var(--management-success);
 }
+
+
+.billing-prior-payments {
+  grid-column: 1 / -2;
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--management-border);
+  border-radius: 10px;
+  background: var(--management-surface-soft);
+}
+
+.billing-prior-payments > small {
+  color: var(--management-muted);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.billing-prior-payment-list {
+  display: grid;
+  gap: 8px;
+}
+
+.billing-prior-payment-item {
+  display: grid;
+  gap: 3px;
+}
+
+.billing-prior-payment-item strong {
+  color: var(--management-text);
+  line-height: 1.35;
+}
+
+.billing-prior-payment-item span {
+  color: var(--management-muted);
+  font-size: .8rem;
+}
+
+@media (max-width: 1000px) {
+  .billing-prior-payments {
+    grid-column: 1 / -1;
+  }
+}
