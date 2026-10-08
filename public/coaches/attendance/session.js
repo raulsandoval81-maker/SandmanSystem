@@ -531,16 +531,6 @@ function normalizeAthleteTier(athlete = {}, ladder = ladderForPractice()) {
 }
 
 function athleteAgeGroup(athlete = {}) {
-  const explicit = String(
-    athlete.ageGroup ||
-    athlete.ageBand ||
-    athlete.divisionAge ||
-    athlete.profileType ||
-    ""
-  ).trim();
-
-  if (explicit) return explicit;
-
   const age = Number(athlete.age);
   if (Number.isFinite(age)) {
     if (age >= 14) return "Teen";
@@ -548,10 +538,62 @@ function athleteAgeGroup(athlete = {}) {
     return "Youth 7–10";
   }
 
+  const explicit = String(
+    athlete.ageGroup ||
+    athlete.ageBand ||
+    athlete.divisionAge ||
+    ""
+  ).trim();
+  if (explicit) return explicit;
+
+  const profileType = String(athlete.profileType || "").trim().toLowerCase();
+  if (profileType === "mini") return "Youth 7–10";
+  if (profileType === "youth" || profileType === "kid") return "Youth";
+  if (profileType === "teen") return "Teen";
+  if (profileType === "adult") return "Adult";
+
   const id = String(athlete.id || athlete.uid || "").toUpperCase();
   if (id.startsWith("F4_")) return "Teen";
   if (id.startsWith("F8_")) return "Youth";
   return "Athletes";
+}
+
+function normalizeJourneyCode(value = "") {
+  const key = String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
+  if (["z2h", "zero2hero", "road2champion"].includes(key)) return "Z2H";
+  if (["p2l", "path2legend"].includes(key)) return "P2L";
+  if (["q2m", "quest2mastery"].includes(key)) return "Q2M";
+  return "";
+}
+
+function journeyForAthlete(athlete = {}) {
+  const direct = normalizeJourneyCode(
+    athlete.journey ||
+    athlete.programTrack ||
+    athlete.track ||
+    athlete.program ||
+    ""
+  );
+  if (direct) return direct;
+
+  const id = String(athlete.id || athlete.uid || "").toUpperCase();
+  if (id.startsWith("F4_")) return "P2L";
+  if (id.startsWith("F8_")) return "Z2H";
+
+  const ageGroup = athleteAgeGroup(athlete);
+  if (/teen/i.test(ageGroup)) return "P2L";
+  return normalizeJourneyCode(activePractice?.journey) || "Z2H";
+}
+
+function journeyOptions(selected = "") {
+  const normalized = normalizeJourneyCode(selected) || "Z2H";
+  return [
+    ["Z2H", "Road2Champion"],
+    ["P2L", "Path2Legend"],
+    ["Q2M", "Quest2Mastery"]
+  ].map(([value, label]) =>
+    `<option value="${value}"${value === normalized ? " selected" : ""}>${label}</option>`
+  ).join("");
 }
 
 function checkedInAthletes() {
@@ -562,7 +604,7 @@ function checkedInAthletes() {
 }
 
 function rankForTier(tier = "", journey = activePractice?.journey) {
-  const ladder = ladderForJourney(journey);
+  const ladder = ladderForJourney(normalizeJourneyCode(journey) || journey);
   return ladder.find((item) => tierFromLadderKey(item.key) === tier)?.name || "";
 }
 
@@ -584,15 +626,17 @@ function suggestedTrainingGroups() {
 
   present.forEach((athlete) => {
     const ageGroup = athleteAgeGroup(athlete);
-    const tier = normalizeAthleteTier(athlete, ladder);
-    const isTeen = /teen|adult/i.test(ageGroup) || String(athlete.id || "").toUpperCase().startsWith("F4_");
-    const key = `${isTeen ? "teen" : "youth"}|${tier}`;
+    const journey = journeyForAthlete(athlete);
+    const athleteLadder = ladderForJourney(journey);
+    const tier = normalizeAthleteTier(athlete, athleteLadder);
+    const key = `${journey}|${ageGroup}|${tier}`;
 
     if (!buckets.has(key)) {
       buckets.set(key, {
         ageGroup,
+        journey,
         tier,
-        rank: rankForTier(tier),
+        rank: rankForTier(tier, journey),
         athleteIds: [],
         athleteNames: []
       });
@@ -605,19 +649,23 @@ function suggestedTrainingGroups() {
 
   let groups = [...buckets.values()]
     .sort((a, b) => {
-      const aTeen = /teen|adult/i.test(a.ageGroup) ? 1 : 0;
-      const bTeen = /teen|adult/i.test(b.ageGroup) ? 1 : 0;
+      const aTeen = a.journey === "P2L" || /teen|adult/i.test(a.ageGroup) ? 1 : 0;
+      const bTeen = b.journey === "P2L" || /teen|adult/i.test(b.ageGroup) ? 1 : 0;
       if (aTeen !== bTeen) return aTeen - bTeen;
+      if (a.journey !== b.journey) return String(a.journey).localeCompare(String(b.journey));
       return String(a.tier).localeCompare(String(b.tier));
     });
 
   if (groups.length > 3) {
     const firstTwo = groups.slice(0, 2);
     const rest = groups.slice(2);
+    const mergedJourney = rest.some(g => g.journey === "P2L") ? "P2L" : (rest[0]?.journey || "Z2H");
+    const mergedTier = rest[0]?.tier || "T0";
     const merged = {
       ageGroup: rest.some(g => /teen|adult/i.test(g.ageGroup)) ? "Teen" : "Mixed Youth",
-      tier: rest[0]?.tier || "T0",
-      rank: rankForTier(rest[0]?.tier || "T0"),
+      journey: mergedJourney,
+      tier: mergedTier,
+      rank: rankForTier(mergedTier, mergedJourney),
       athleteIds: rest.flatMap(g => g.athleteIds),
       athleteNames: rest.flatMap(g => g.athleteNames)
     };
@@ -627,8 +675,9 @@ function suggestedTrainingGroups() {
   if (!groups.length) {
     groups = [{
       ageGroup: "Athletes",
+      journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
       tier: "T0",
-      rank: rankForTier("T0"),
+      rank: rankForTier("T0", normalizeJourneyCode(activePractice?.journey) || "Z2H"),
       athleteIds: [],
       athleteNames: []
     }];
@@ -650,8 +699,8 @@ function suggestedTrainingGroups() {
   }));
 }
 
-function tierOptions(selected = "") {
-  return ladderForPractice().map((rank) => {
+function tierOptions(selected = "", journey = activePractice?.journey) {
+  return ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
     const tier = tierFromLadderKey(rank.key);
     return `<option value="${tier}"${tier === selected ? " selected" : ""}>${tier} — ${rank.name}</option>`;
   }).join("");
@@ -683,15 +732,22 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         </label>
 
         <label>
+          Journey
+          <select class="training-journey">
+            ${journeyOptions(group.journey)}
+          </select>
+        </label>
+
+        <label>
           Tier
           <select class="training-tier">
-            ${tierOptions(group.tier)}
+            ${tierOptions(group.tier, group.journey)}
           </select>
         </label>
 
         <label>
           Rank
-          <input class="training-rank" type="text" value="${group.rank || rankForTier(group.tier)}" readonly>
+          <input class="training-rank" type="text" value="${group.rank || rankForTier(group.tier, group.journey)}" readonly>
         </label>
 
         <label>
@@ -709,11 +765,26 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     </section>
   `).join("");
 
+  container.querySelectorAll(".training-journey").forEach((select) => {
+    select.addEventListener("change", () => {
+      const card = select.closest(".training-group-card");
+      const tier = card?.querySelector(".training-tier");
+      const rank = card?.querySelector(".training-rank");
+      if (!tier) return;
+      const previousTier = tier.value || "T0";
+      tier.innerHTML = tierOptions(previousTier, select.value);
+      if (!tier.value) tier.value = "T0";
+      if (rank) rank.value = rankForTier(tier.value, select.value);
+      updateContextSummary();
+    });
+  });
+
   container.querySelectorAll(".training-tier").forEach((select) => {
     select.addEventListener("change", () => {
       const card = select.closest(".training-group-card");
+      const journey = card?.querySelector(".training-journey")?.value || activePractice?.journey;
       const rank = card?.querySelector(".training-rank");
-      if (rank) rank.value = rankForTier(select.value);
+      if (rank) rank.value = rankForTier(select.value, journey);
       updateContextSummary();
     });
   });
@@ -758,10 +829,12 @@ function addTrainingGroup() {
   const current = captureTrainingGroups();
   if (current.length >= 3) return;
   const previous = current[current.length - 1] || {};
+  const journey = previous.journey || (/teen/i.test(previous.ageGroup || "") ? "P2L" : "Z2H");
   current.push({
     ageGroup: previous.ageGroup || "Teen",
+    journey,
     tier: previous.tier || "T0",
-    rank: rankForTier(previous.tier || "T0"),
+    rank: rankForTier(previous.tier || "T0", journey),
     trainingSession: previous.trainingSession || "1",
     carryForwardNote: "",
     athleteIds: [],
@@ -772,13 +845,15 @@ function addTrainingGroup() {
 
 function captureTrainingGroups() {
   return [...document.querySelectorAll(".training-group-card")].map((card, index) => {
+    const journey = String(card.querySelector(".training-journey")?.value || normalizeJourneyCode(activePractice?.journey) || "Z2H").trim();
     const tier = String(card.querySelector(".training-tier")?.value || "T0").trim();
     return {
       id: `group-${index + 1}`,
       label: `Group ${index + 1}`,
       ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
+      journey,
       tier,
-      rank: rankForTier(tier),
+      rank: rankForTier(tier, journey),
       trainingSession: String(card.querySelector(".training-session")?.value || "1").trim(),
       carryForwardNote: String(card.querySelector(".training-note")?.value || "").trim(),
       athleteIds: (() => {
@@ -796,7 +871,7 @@ function captureTrainingGroups() {
 function updateContextSummary() {
   const groups = captureTrainingGroups();
   const summary = groups.map((group) =>
-    `${group.label}: ${group.ageGroup || "Athletes"} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
+    `${group.label}: ${group.ageGroup || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
   ).join(" | ");
   if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
 }
@@ -816,8 +891,9 @@ async function savePracticeContextToBuilderSession() {
 
   const trainingGroups = captureTrainingGroups();
   const primary = trainingGroups[0] || {
+    journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
     tier: "T0",
-    rank: rankForTier("T0"),
+    rank: rankForTier("T0", normalizeJourneyCode(activePractice?.journey) || "Z2H"),
     trainingSession: "1",
     carryForwardNote: ""
   };
@@ -828,6 +904,7 @@ async function savePracticeContextToBuilderSession() {
 
   const updated = {
     ...session,
+    journey: primary.journey || session.journey,
     tier,
     rank: tier,
     rankLabel,
