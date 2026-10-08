@@ -365,3 +365,5 @@ export {
 export {
   submitProposalMembershipChoice,
 } from "./proposals/submitProposalMembershipChoice";
+
+export { recordProposalMembershipChoice } from "./proposals/recordProposalMembershipChoice";
