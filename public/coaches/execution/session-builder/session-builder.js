@@ -40,6 +40,7 @@ const RANK_LADDERS = Object.freeze({
 
 const sessionTypeButtons = [...document.querySelectorAll("[data-session-type]")];
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const matLaneButtons = [...document.querySelectorAll("[data-mat-lane]")];
 const durationChoices = document.getElementById("durationChoices");
 const journeySelect = document.getElementById("journeySelect");
 const disciplineField = document.getElementById("disciplineField");
@@ -108,6 +109,17 @@ function selectedRoom() {
   return roomByValue(roomSelect?.value || "");
 }
 
+function selectedMatLabel() {
+  const room = selectedRoom();
+  if (!room) return "Mat 1";
+  return room.lane ? `Mat 1${room.lane}` : room.label || room.roomId || "Mat 1";
+}
+
+function scopedSessionKey(sessionId = "") {
+  const id = String(sessionId || "").trim();
+  return id ? `${SESSION_KEY}:${id}` : SESSION_KEY;
+}
+
 function selectedProgram() {
   return programById(disciplineSelect?.value || "");
 }
@@ -142,6 +154,39 @@ function populateRooms(preferredValue = "") {
     SESSION_ROOMS[0];
 
   if (selected) roomSelect.value = selected.value;
+  updateMatLaneButtons();
+}
+
+function updateMatLaneButtons() {
+  const lane = String(selectedRoom()?.lane || "A").toUpperCase();
+  matLaneButtons.forEach((button) => {
+    const active = String(button.dataset.matLane || "").toUpperCase() === lane;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function chooseMatLane(laneValue = "A") {
+  const lane = String(laneValue || "A").toUpperCase();
+  const current = selectedRoom();
+  const sameLocation = SESSION_ROOMS.find((room) =>
+    room.locationId === current?.locationId && String(room.lane || "").toUpperCase() === lane
+  );
+  const guidedLane = SESSION_ROOMS.find((room) =>
+    String(room.lane || "").toUpperCase() === lane && roomHasGuidedPrograms(room)
+  );
+  const next = sameLocation || guidedLane;
+  if (!next) return;
+
+  roomSelect.value = next.value;
+  updateMatLaneButtons();
+
+  const rememberedJourney = journeySelect?.value || "";
+  const rememberedDiscipline = disciplineFamilySelect?.value || "";
+  populateJourneys(rememberedJourney);
+  updateDisciplineAvailability(rememberedDiscipline);
+  populatePrograms(disciplineSelect?.value || "");
+  updateSummary();
 }
 
 function journeyLabel(code = "") {
@@ -495,6 +540,7 @@ function updateSummary() {
   const usesWeek = programUsesWeek();
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
+  const summaryMat = document.getElementById("summaryMat");
   const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
   const summaryRankRow = document.getElementById("summaryRankRow");
@@ -504,6 +550,7 @@ function updateSummary() {
 
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
+  if (summaryMat) summaryMat.textContent = selectedMatLabel();
   if (summaryJourney) summaryJourney.textContent = journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey";
   if (summaryDiscipline) {
     summaryDiscipline.textContent =
@@ -824,6 +871,7 @@ function persistSession(payload) {
   localStorage.removeItem(DRAFT_KEY);
   localStorage.removeItem(CLIPBOARD_KEY);
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  localStorage.setItem(scopedSessionKey(payload.sessionId), JSON.stringify(payload));
   writeCompatibilityKeys(payload);
 }
 
@@ -919,7 +967,12 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
   updateSummary();
 }));
 
+matLaneButtons.forEach((button) => button.addEventListener("click", () => {
+  chooseMatLane(button.dataset.matLane || "A");
+}));
+
 roomSelect.addEventListener("change", () => {
+  updateMatLaneButtons();
   populateJourneys(journeySelect?.value || "");
   updateDisciplineAvailability(disciplineFamilySelect?.value || "");
   populatePrograms(disciplineSelect.value);
@@ -961,7 +1014,7 @@ buildBtn.addEventListener("click", async () => {
   try {
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
-    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=clipboard&flow=builder`;
+    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=clipboard&flow=builder`;
   } catch (error) {
     console.error("Session entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
