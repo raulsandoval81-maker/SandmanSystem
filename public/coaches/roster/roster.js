@@ -616,29 +616,29 @@ async function loadRoster() {
         ? LADDER_F8
         : LADDER_F4;
 
-    const tierNum = tierNumber(combat, athleteTrack);
+    const tierNum = tierNumber(data, athleteTrack);
 
     const tier =
       ladder[tierNum] ||
       ladder.find((item) =>
-        item.name === combat.rankName ||
-        item.rank === combat.rankName
+        item.name === data.rankName ||
+        item.rank === data.rankName
       ) ||
       ladder[0];
 
-    const rankName = displayRankName(id, { ...data, ...combat });
+    const rankName = displayRankName(id, data);
 
     const xpNow = Number(
-      combat.xp ??
-      combat.currentTierXP ??
+      data.xp ??
+      data.currentTierXP ??
       0
     );
 
     const xpCap = Number(
       tier?.cap ??
-      combat.xpCap ??
-      combat.cap ??
-      combat.tierCap ??
+      data.xpCap ??
+      data.cap ??
+      data.tierCap ??
       (athleteTrack === "F8"
         ? 800
         : 1000)
@@ -650,8 +650,8 @@ async function loadRoster() {
     );
 
     const storedStripes = Number(
-      combat.stripeCount ??
-      combat.stripes ??
+      data.stripeCount ??
+      data.stripes ??
       0
     );
 
