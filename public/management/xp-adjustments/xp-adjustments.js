@@ -648,17 +648,48 @@ function progressionFor(
   member,
   discipline
 ) {
-  return disciplineProgressions(
-    member
-  ).find(
-    (row) =>
-      clean(
-        row.discipline
-      ).toLowerCase() ===
-      clean(
-        discipline
-      ).toLowerCase()
-  ) || null;
+  const disciplineRow =
+    disciplineProgressions(
+      member
+    ).find(
+      (row) =>
+        clean(
+          row.discipline
+        ).toLowerCase() ===
+        clean(
+          discipline
+        ).toLowerCase()
+    ) || null;
+
+  if (!member) {
+    return disciplineRow;
+  }
+
+  return {
+    ...(disciplineRow || {}),
+    discipline:
+      clean(discipline) ||
+      clean(disciplineRow?.discipline) ||
+      clean(member.primaryDiscipline),
+    trackBase:
+      clean(member.trackBase) ||
+      clean(member.pathway) ||
+      clean(disciplineRow?.trackBase),
+    tier:
+      clean(member.tier) ||
+      clean(disciplineRow?.tier),
+    rankName:
+      clean(member.rankName) ||
+      clean(disciplineRow?.rankName),
+    xp:
+      Number.isFinite(Number(member.xp))
+        ? Number(member.xp)
+        : Number(disciplineRow?.xp || 0),
+    xpCap:
+      Number.isFinite(Number(member.xpCap))
+        ? Number(member.xpCap)
+        : Number(disciplineRow?.xpCap || 0)
+  };
 }
 
 function renderProgressionSummary() {
