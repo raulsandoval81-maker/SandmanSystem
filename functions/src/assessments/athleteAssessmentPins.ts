@@ -1137,6 +1137,144 @@ export const resolveAthleteAssessmentEdgeCase = onCall(async (req) => {
 });
 
 /* =====================================================
+   MANAGEMENT REOPENS ACCIDENTAL ZERO-XP CLOSEOUT
+===================================================== */
+
+export const reopenAthleteAssessmentPin = onCall(async (req) => {
+  if (!req.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Management sign-in required."
+    );
+  }
+
+  const staff = await requireStaff(req.auth.uid);
+
+  if (!staff.isAdmin && !staff.isManagement) {
+    throw new HttpsError(
+      "permission-denied",
+      "Management access required."
+    );
+  }
+
+  const pinId = clean(req.data?.pinId);
+
+  if (!pinId) {
+    throw new HttpsError(
+      "invalid-argument",
+      "pinId is required."
+    );
+  }
+
+  const reason =
+    clean(req.data?.reason) ||
+    "Management reopened an accidental zero-XP assessment closeout.";
+
+  const pinRef = db.doc(`athleteAssessmentPins/${pinId}`);
+
+  const result = await db.runTransaction(async (tx) => {
+    const pinSnap = await tx.get(pinRef);
+
+    if (!pinSnap.exists) {
+      throw new HttpsError(
+        "not-found",
+        "Assessment pin not found."
+      );
+    }
+
+    const pin = pinSnap.data() || {};
+    requireLocationAccess(staff, clean(pin.locationId));
+
+    const status = clean(pin.status).toUpperCase();
+
+    if (status !== "PLACEMENT_RECORDED") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Only a completed assessment can be reopened."
+      );
+    }
+
+    const awardedXp = Number(
+      pin.experienceRecognitionAwardedXp || 0
+    );
+
+    if (!Number.isFinite(awardedXp) || awardedXp !== 0) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Assessments that already awarded recognition XP cannot be reopened with this repair action."
+      );
+    }
+
+    const recognitionGeneration =
+      Math.max(
+        0,
+        Number(pin.recognitionGeneration || 0)
+      ) + 1;
+
+    const now = Timestamp.now();
+
+    tx.set(
+      pinRef,
+      {
+        status: "IN_ASSESSMENT",
+
+        recognitionGeneration,
+
+        priorExperience: {
+          verifiedYears: null,
+          recognitionXp: null,
+          manual: false,
+          manualXp: null,
+          note: null
+        },
+
+        placementRecommendation: null,
+        coachNotes: null,
+
+        coachReturnedAt: null,
+        coachReturnedBy: null,
+        coachReturnMode: null,
+
+        placementRecordedAt: null,
+        placementRecordedBy: null,
+        finalPlacementNote: null,
+
+        experienceRecognitionStatus: null,
+        experienceRecognitionRequestedXp: null,
+        experienceRecognitionIssuedNowXp: null,
+        experienceRecognitionHeldXp: null,
+        experienceRecognitionSchedule: null,
+        experienceRecognitionAwardedXp: null,
+        experienceRecognitionReviewedAt: null,
+        experienceRecognitionReviewedBy: null,
+        experienceRecognitionManagementNote: null,
+        experienceRecognitionReceiptId: null,
+        experienceRecognitionLogId: null,
+
+        assessmentRepair: {
+          type: "REOPEN_ZERO_XP_CLOSEOUT",
+          reason,
+          reopenedAt: now,
+          reopenedBy: req.auth.uid,
+          recognitionGeneration
+        },
+
+        updatedAt: now
+      },
+      { merge: true }
+    );
+
+    return {
+      ok: true,
+      status: "IN_ASSESSMENT",
+      recognitionGeneration
+    };
+  });
+
+  return result;
+});
+
+/* =====================================================
    MANAGEMENT CLOSES LOOP
 ===================================================== */
 
