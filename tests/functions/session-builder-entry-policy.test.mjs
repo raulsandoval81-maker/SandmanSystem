@@ -78,12 +78,28 @@ test("Manual, Hybrid, Checked-In, and Quick use the shared Builder and Clipboard
 });
 
 
-test("Session Builder starts with Pre-Practice Setup or Skip Clean Slate", () => {
+test("Session Builder starts with Pre-Practice Setup or Skip to Practice", () => {
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   assert.match(html, /Set Up Pre-Practice/);
-  assert.match(html, /Skip — Clean Slate/);
+  assert.match(html, /Skip to Practice/);
   assert.match(builder, /executionMode:\s*"manual"/);
   assert.match(builder, /discipline:\s*"unassigned"/);
-  assert.match(builder, /attendance\/session\.html\?practiceId=/);
+  assert.match(builder, /big-clock-2\.0\/\?practiceId=/);
+});
+
+
+test("fast practice runs from Big Clock and posts practice input afterward", () => {
+  const clockHtml = fs.readFileSync(path.join(repo, "public/coaches/execution/big-clock-2.0/index.html"), "utf8");
+  const clockJs = fs.readFileSync(path.join(repo, "public/coaches/execution/big-clock-2.0/big-clock-2.0.js"), "utf8");
+  const logHtml = fs.readFileSync(path.join(repo, "public/coaches/logs/practice-log.html"), "utf8");
+  assert.match(clockHtml, /30 min/);
+  assert.match(clockHtml, /45 min/);
+  assert.match(clockHtml, /60 min/);
+  assert.match(clockHtml, /90 min/);
+  assert.match(clockJs, /session-builder-fast-pass/);
+  assert.match(clockJs, /Post Practice Input/);
+  assert.match(clockJs, /savePracticeSessionMemory/);
+  assert.match(logHtml, /Practice Details/);
+  assert.match(logHtml, /Save Practice Details/);
 });
