@@ -80,10 +80,8 @@ const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const BIG_CLOCK_KEY = "sandman_big_clock_payload_v2";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
 
-function matLaneLabel(session = {}) {
-  const roomId = String(session.roomId || "").toLowerCase();
-  const lane = roomId === "mat-1b" ? "Session 1B" : "Session 1A";
-  return `Mat 1 · ${lane}`;
+function matLaneLabel() {
+  return "Mat 1";
 }
 
 function getSessionPayload() {
@@ -524,9 +522,9 @@ function getActiveSession() {
     schema: currentSchema,
     executionMode: builderSession.executionMode || "",
     practiceId: builderSession.practiceId || "",
-    sessionId: builderSession.sessionId || "lompoc-mat-1a",
+    sessionId: builderSession.sessionId || "lompoc-mat-1",
     academyId: builderSession.academyId || "lompoc",
-    roomId: builderSession.roomId || "mat-1a",
+    roomId: builderSession.roomId || "mat-1",
     program: builderSession.program || "",
     track: builderSession.track || "",
     journey: builderSession.journey || "",
