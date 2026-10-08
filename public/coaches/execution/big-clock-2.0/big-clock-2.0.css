@@ -711,3 +711,7 @@ body{
   .live-companion-tools{right:12px;top:calc(env(safe-area-inset-top) + 8px)}
   .live-companion-toggle{font-size:.72rem;min-height:38px;padding:8px 11px}
 }
+
+/* Keep My Practice Log QR unobtrusive at lower-left during execution. */
+.live-companion-tools{left:clamp(12px,2vw,28px);right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 16px);align-items:flex-start}
+@media(max-width:700px){.live-companion-tools{left:12px;right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 12px)}}
