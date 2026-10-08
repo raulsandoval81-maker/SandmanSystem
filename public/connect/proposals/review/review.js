@@ -400,6 +400,151 @@ function renderProposal(
     ].join("");
 }
 
+
+function moneyFromCents(value) {
+  return money(
+    (Number(value) || 0) / 100
+  );
+}
+
+function renderMembershipChoice(
+  request = {}
+) {
+  const options =
+    Array.isArray(request.options)
+      ? request.options
+      : [];
+
+  if (!request.active || !options.length) {
+    return false;
+  }
+
+  $("membershipChoiceSection").hidden =
+    false;
+
+  $("signatureSection").hidden =
+    true;
+
+  $("membershipChoiceContext").textContent =
+    request.contextNote ||
+    "Choose the membership option you want Sandman Academy to prepare for final Review & Confirm.";
+
+  $("membershipChoiceOptions").innerHTML =
+    options
+      .map(
+        (option, index) => `
+          <label class="membership-choice-card">
+            <input
+              type="radio"
+              name="membershipChoice"
+              value="${esc(option.id)}"
+              ${index === 0 ? "" : ""}
+            >
+
+            <span>
+              <strong>
+                ${esc(option.title)}
+              </strong>
+
+              <span>
+                ${esc(
+                  `${moneyFromCents(option.monthlyCents)}/month · ${option.paymentMethodLabel || ""}`
+                )}
+              </span>
+
+              <span>
+                Due now: ${esc(
+                  moneyFromCents(
+                    option.dueNowCents
+                  )
+                )}
+              </span>
+
+              ${option.note
+                ? `<span>${esc(option.note)}</span>`
+                : ""
+              }
+            </span>
+          </label>
+        `
+      )
+      .join("");
+
+  return true;
+}
+
+async function submitMembershipChoice() {
+  hideMessage();
+
+  const selected =
+    document.querySelector(
+      'input[name="membershipChoice"]:checked'
+    );
+
+  if (!selected) {
+    showMessage(
+      "Choose a membership option before continuing.",
+      true
+    );
+    return;
+  }
+
+  const button =
+    $("submitMembershipChoiceButton");
+
+  button.disabled = true;
+  button.textContent =
+    "Submitting…";
+
+  try {
+    const submitChoice =
+      httpsCallable(
+        functions,
+        "submitProposalMembershipChoice"
+      );
+
+    const response =
+      await submitChoice({
+        proposalId,
+        token,
+        optionId:
+          selected.value
+      });
+
+    if (
+      response.data?.status !==
+      "CLIENT_CHANGES_REQUESTED"
+    ) {
+      throw new Error(
+        "Membership choice was not returned to Management."
+      );
+    }
+
+    showConfirmation(
+      "Membership Choice Received",
+      "Thank you. Sandman Academy will update the proposal to match your selection and send the final Review & Confirm step."
+    );
+
+    $("continueCheckoutButton").hidden =
+      true;
+  } catch (error) {
+    console.error(
+      "Membership choice failed:",
+      error
+    );
+
+    button.disabled = false;
+    button.textContent =
+      "Confirm Membership Choice";
+
+    showMessage(
+      error?.message ||
+      "Unable to submit your membership choice.",
+      true
+    );
+  }
+}
+
 function showConfirmation(
   title,
   text
@@ -454,6 +599,16 @@ async function loadProposal() {
   renderProposal(
     data.proposal
   );
+
+  if (
+    renderMembershipChoice(
+      data.membershipChoiceRequest
+    )
+  ) {
+    $("proposalStatus").textContent =
+      "Choose Your Membership";
+    return;
+  }
 
   if (data.signed) {
     showConfirmation(
@@ -634,6 +789,12 @@ $("acceptProposalButton")
   .addEventListener(
     "click",
     acceptProposal
+  );
+
+$("submitMembershipChoiceButton")
+  .addEventListener(
+    "click",
+    submitMembershipChoice
   );
 
 $("continueCheckoutButton")
