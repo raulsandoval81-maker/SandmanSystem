@@ -529,7 +529,8 @@ function getActiveSession() {
     track: builderSession.track || "",
     journey: builderSession.journey || "",
     discipline: String(builderSession.discipline || "").toLowerCase(),
-    tier: String(builderSession.tier || "").toLowerCase()
+    tier: String(builderSession.tier || "").trim(),
+    week: String(builderSession.week || "").trim()
   };
 }
 
@@ -1256,6 +1257,7 @@ window.runPractice = async function () {
         program: session.program,
         track: session.track,
         tier: session.tier,
+        week: session.week,
         schema: currentSchema,
         executionMode: session.executionMode,
         durationMinutes: Number(builderSession.durationMinutes || getSchemaMaxMinutes(currentSchema) || 0)
@@ -1285,6 +1287,7 @@ window.runPractice = async function () {
     discipline: session.discipline,
     journey: session.journey,
     tier: session.tier,
+    week: session.week,
 
     blocks,
     autoStart: false,
@@ -1306,6 +1309,7 @@ window.runPractice = async function () {
     discipline: session.discipline,
     journey: session.journey,
     tier: session.tier,
+    week: session.week,
 
     focus:
       document.getElementById("slot-note")?.value.trim() || "",
