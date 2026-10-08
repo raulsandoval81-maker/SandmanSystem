@@ -206,7 +206,7 @@ experienceModeButton?.addEventListener(
       return;
     }
 
-    setXpMode("adjustment");
+    setXpMode("experience");
   }
 );
 
@@ -537,6 +537,9 @@ function renderExperienceValidation(pin) {
   }
 
   const plan = experiencePlan(pin.priorExperience || {});
+  const noRecognitionXp =
+    Number(plan.now || 0) === 0 &&
+    Number(plan.held || 0) === 0;
   const recognitionStatus = clean(pin.experienceRecognitionStatus).toUpperCase();
   const resolved = recognitionStatus === "AWARDED" || recognitionStatus === "REJECTED";
   const coachNotes = clean(pin.coachNotes) || "No additional Coach notes.";
@@ -544,8 +547,10 @@ function renderExperienceValidation(pin) {
 
   setExperienceStatus(
     resolved
-      ? `Recognition ${recognitionStatus === "AWARDED" ? "approved" : "rejected"} · final placement pending`
-      : "Returned by Coach · Management decision required"
+      ? `${noRecognitionXp ? "No recognition XP confirmed" : `Recognition ${recognitionStatus === "AWARDED" ? "approved" : "rejected"}`} · final placement pending`
+      : noRecognitionXp
+        ? "Returned by Coach · no recognition XP · Management closeout required"
+        : "Returned by Coach · Management decision required"
   );
 
   experienceValidationContent.innerHTML = `
@@ -575,11 +580,17 @@ function renderExperienceValidation(pin) {
     <div class="action-row">
       ${
         resolved
-          ? `<button id="recordPlacementButton" class="button button-primary" type="button">Record Final Placement</button>`
-          : `
-              <button id="rejectExperienceButton" class="button button-secondary" type="button">Reject Recognition</button>
-              <button id="approveExperienceButton" class="button button-primary" type="button">Approve Recognition</button>
-            `
+          ? `<button id="recordPlacementButton" class="button button-primary" type="button">Complete Assessment</button>`
+          : noRecognitionXp
+            ? `
+                <button id="approveExperienceButton" class="button button-primary" type="button">
+                  Complete · No Recognition XP
+                </button>
+              `
+            : `
+                <button id="rejectExperienceButton" class="button button-secondary" type="button">Reject Recognition</button>
+                <button id="approveExperienceButton" class="button button-primary" type="button">Approve Recognition</button>
+              `
       }
     </div>
   `;
@@ -598,9 +609,19 @@ function renderExperienceValidation(pin) {
   };
 
   $("approveExperienceButton")?.addEventListener("click", async () => {
-    if (!window.confirm("Approve this prior-experience recognition?")) return;
+    if (
+      !window.confirm(
+        noRecognitionXp
+          ? "Complete this assessment with no prior-experience recognition XP?"
+          : "Approve this prior-experience recognition?"
+      )
+    ) return;
     setBusy(true);
-    setActionStatus("Applying verified experience recognition…");
+    setActionStatus(
+      noRecognitionXp
+        ? "Completing assessment with no recognition XP…"
+        : "Applying verified experience recognition…"
+    );
     try {
       const response = await finalizeExperience({
         pinId: clean(pin.id),
@@ -610,7 +631,11 @@ function renderExperienceValidation(pin) {
       if (response.data?.ok !== true) throw new Error("Experience validation was not completed.");
       const awarded = Number(response.data?.awardedAmount ?? response.data?.delta ?? 0);
       const held = Number(response.data?.recognitionHeld ?? 0);
-      setActionStatus(`Approved · ${awarded} XP issued now${held > 0 ? ` · ${held} XP held` : ""}`);
+      setActionStatus(
+        noRecognitionXp
+          ? "✓ No recognition XP required."
+          : `Approved · ${awarded} XP issued now${held > 0 ? ` · ${held} XP held` : ""}`
+      );
       await loadSelectedExperience();
       await refreshExperienceQueue();
     } catch (error) {
@@ -640,9 +665,9 @@ function renderExperienceValidation(pin) {
   });
 
   $("recordPlacementButton")?.addEventListener("click", async () => {
-    if (!window.confirm("Record Management final placement for this returned Coach assessment?")) return;
+    if (!window.confirm("Complete this returned Coach assessment?")) return;
     setBusy(true);
-    setActionStatus("Recording final placement…");
+    setActionStatus("Completing assessment…");
     try {
       const response = await recordPlacement({
         pinId: clean(pin.id),
@@ -651,7 +676,7 @@ function renderExperienceValidation(pin) {
       if (response.data?.ok !== true || response.data?.status !== "PLACEMENT_RECORDED") {
         throw new Error("Final placement was not recorded.");
       }
-      setActionStatus("✓ Final placement recorded.");
+      setActionStatus("✓ Assessment complete.");
       await loadSelectedExperience();
       await refreshExperienceQueue();
     } catch (error) {
