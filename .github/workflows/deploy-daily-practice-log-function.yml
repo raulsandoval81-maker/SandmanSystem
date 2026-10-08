@@ -1,0 +1,46 @@
+name: Deploy Daily Practice Log Function
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-practice-function-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy saveDailyPracticeLog
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout approved commit
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install function dependencies
+        run: npm ci --prefix functions
+
+      - name: Compile Firebase Functions
+        run: npm --prefix functions run build
+
+      - name: Authenticate Firebase CLI
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Firebase service account secret is missing"
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+
+      - name: Deploy only shared log endpoint
+        run: npx --yes firebase-tools@latest deploy --only functions:saveDailyPracticeLog --project sandmandashboard --non-interactive
