@@ -109,6 +109,19 @@ const startAnnualThisMonthBtn =
     "startAnnualThisMonthBtn"
   );
 
+const priorPaymentAmount =
+  document.getElementById("priorPaymentAmount");
+const priorPaymentMethod =
+  document.getElementById("priorPaymentMethod");
+const priorPaymentFirstMonth =
+  document.getElementById("priorPaymentFirstMonth");
+const priorPaymentLastMonth =
+  document.getElementById("priorPaymentLastMonth");
+const priorPaymentEnrollmentIncluded =
+  document.getElementById("priorPaymentEnrollmentIncluded");
+const priorPaymentNote =
+  document.getElementById("priorPaymentNote");
+
 const enrollmentSupport =
   document.getElementById("enrollmentSupport");
 
@@ -1265,6 +1278,49 @@ addAthleteBtn?.addEventListener(
 );
 
 
+function monthPeriods(first, last) {
+  if (!/^\d{4}-\d{2}$/.test(first) || !/^\d{4}-\d{2}$/.test(last)) {
+    return [];
+  }
+  const [fy, fm] = first.split("-").map(Number);
+  const [ly, lm] = last.split("-").map(Number);
+  const start = new Date(fy, fm - 1, 1);
+  const end = new Date(ly, lm - 1, 1);
+  if (start > end) return [];
+  const periods = [];
+  const cursor = new Date(start);
+  while (cursor <= end && periods.length < 12) {
+    periods.push(
+      `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`
+    );
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return periods;
+}
+
+function priorPaymentHandoff() {
+  const amount = Number(priorPaymentAmount?.value || 0);
+  const method = String(priorPaymentMethod?.value || "");
+  const first = String(priorPaymentFirstMonth?.value || "");
+  const last = String(priorPaymentLastMonth?.value || first);
+  const periods = monthPeriods(first, last);
+
+  if (!amount || !method || !periods.length) {
+    return null;
+  }
+
+  return {
+    amountCents: Math.round(amount * 100),
+    paymentMethod: method,
+    periods,
+    enrollmentFeeIncluded:
+      priorPaymentEnrollmentIncluded?.checked === true,
+    note:
+      String(priorPaymentNote?.value || "").trim() ||
+      "Historical payment recorded during membership transition."
+  };
+}
+
 function startAnnualThisMonth() {
   const today =
     new Date();
@@ -1473,6 +1529,7 @@ continueProposalBtn?.addEventListener("click", () => {
     createdAt: Date.now(),
     athletes: readAthletes(),
     membershipStartDate: enrollmentStartDate?.value || "",
+    priorPayment: priorPaymentHandoff(),
   }));
   window.location.href = `/connect/admissions/calculator/?appointmentId=${encodeURIComponent(appointmentId)}`;
 });
