@@ -7,7 +7,7 @@
   <title>Athlete Check-In | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261008-6" />
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261008-7" />
 </head>
 
 <body class="coach-shell-page attendance-checkin" data-coach-page="Athlete Check-In" data-coach-area="practice">
@@ -134,31 +134,31 @@
         <div class="section-head">
           <div>
             <span class="eyebrow">Step 4 of 4</span>
-            <h2>Tier & Training Week</h2>
-            <p class="muted">Sandman uses the athletes who checked in to suggest today’s practice context. Coach can confirm or change it.</p>
+            <h2>Practice Groups</h2>
+            <p class="muted">Sandman uses checked-in athletes to suggest up to three training groups. Coach can adjust the split before Clipboard.</p>
           </div>
         </div>
 
-        <div class="context-suggestion-grid">
-          <label>
-            Tier
-            <select id="contextTierSelect">
-              <option value="">Sandman Suggests</option>
-            </select>
-            <span id="contextTierSuggestion" class="muted"></span>
-          </label>
+        <div class="practice-route-summary">
+          <div>
+            <span>Journey</span>
+            <strong id="contextJourney">—</strong>
+          </div>
+          <div>
+            <span>Discipline</span>
+            <strong id="contextDiscipline">—</strong>
+          </div>
+        </div>
 
-          <label>
-            Training Week
-            <select id="contextWeekSelect">
-              <option value="">Sandman Suggests</option>
-            </select>
-            <span id="contextWeekSuggestion" class="muted"></span>
-          </label>
+        <div id="trainingGroups" class="training-groups"></div>
+
+        <div class="training-group-actions">
+          <button id="addTrainingGroupBtn" type="button">+ Add Training Group</button>
+          <span id="trainingGroupHint" class="muted"></span>
         </div>
 
         <div class="context-summary">
-          <span class="label">Current Practice Context</span>
+          <span class="label">Practice Context</span>
           <strong id="contextSummary">Waiting for attendance.</strong>
         </div>
 
@@ -171,6 +171,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261008-12"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-13"></script>
 </body>
 </html>
