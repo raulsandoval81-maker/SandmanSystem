@@ -307,6 +307,9 @@ function populateWeeks() {
   weekSelect.innerHTML = routeReady
     ? '<option value="">Let Sandman decide / select week</option>'
     : '<option value="">Select Journey and Discipline</option>';
+
+  if (!routeReady) return;
+
   for (let week = 1; week <= 36; week += 1) {
     const option = document.createElement("option");
     option.value = String(week);
@@ -375,8 +378,8 @@ function updateConditionalControls() {
   if (!routeReady) {
     rankSelect.disabled = true;
     weekSelect.disabled = true;
-    if (rankModeLabel) rankModeLabel.textContent = "After route";
-    if (weekModeLabel) weekModeLabel.textContent = "After route";
+    if (rankModeLabel) rankModeLabel.textContent = "";
+    if (weekModeLabel) weekModeLabel.textContent = "";
     modeAvailability.textContent = "Choose a Journey and Discipline to establish the practice route.";
     if (rankSuggestion) rankSuggestion.textContent = "";
     if (weekSuggestion) weekSuggestion.textContent = "";
