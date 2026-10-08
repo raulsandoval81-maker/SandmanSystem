@@ -587,3 +587,35 @@
     justify-self:start;
   }
 }
+
+
+/* Experience assessment detail contrast */
+.xp-assessment-details{
+  padding:14px 16px;
+  border:2px solid var(--management-border);
+  border-radius:12px;
+  background:#ffffff;
+  color:#17191d;
+}
+
+.xp-assessment-details summary{
+  color:#17191d;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.xp-assessment-details > div{
+  padding-top:10px;
+}
+
+.xp-assessment-details p{
+  margin:6px 0;
+  color:#24272c;
+  opacity:1;
+  line-height:1.5;
+}
+
+.xp-assessment-details strong{
+  color:#111317;
+  font-weight:900;
+}
