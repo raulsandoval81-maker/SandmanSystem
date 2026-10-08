@@ -665,7 +665,7 @@ async function skipToPractice() {
     payload = await openCanonicalPractice(payload);
     payload.source = "session-builder-fast-pass";
     persistSession(payload);
-    localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify({
+    const fastClockPayload = {
       source: "session-builder-fast-pass",
       practiceId: payload.practiceId,
       sessionId: payload.sessionId,
@@ -677,7 +677,9 @@ async function skipToPractice() {
         notes: "",
         drillBlocks: []
       }]
-    }));
+    };
+    localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify(fastClockPayload));
+    localStorage.setItem(`${BIG_CLOCK_PAYLOAD_KEY}:${payload.sessionId}`, JSON.stringify(fastClockPayload));
     window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&fast=1`;
   } catch (error) {
     console.error("Skip-to-practice entry failed", error);
@@ -732,7 +734,7 @@ function renderDraft() {
   document.getElementById("draftUpdated").textContent = formatUpdated(draft.updatedAt);
   document.getElementById("draftIdentity").textContent = identity || "Manual coach-built session";
   document.getElementById("draftMetrics").textContent = `${cards.length} cards · ${noteCount} notes · ${allocated}/${shell.minutes || session.durationMinutes || allocated} min allocated`;
-  document.getElementById("continueDraftBtn").href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(session.sessionId || "lompoc-mat-1")}`;
+  document.getElementById("continueDraftBtn").href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(session.sessionId || "lompoc-mat-1a")}`;
 }
 
 function getHybridData(weekValue) {
