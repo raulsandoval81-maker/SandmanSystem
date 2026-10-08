@@ -60,6 +60,12 @@ const recordPrepaidCashCall =
     "recordProposalPrepaidCash"
   );
 
+const recordPriorPaymentCall =
+  httpsCallable(
+    functions,
+    "recordProposalPriorPayment"
+  );
+
 const createAutopaySetupCall =
   httpsCallable(
     functions,
@@ -217,6 +223,7 @@ function classifyProposal(
 
   if (
     ![
+      "AWAITING_CLIENT_SIGNATURE",
       "READY_FOR_CHECKOUT",
       "CHECKOUT_CREATED",
       "PAYMENT_PENDING",
@@ -232,6 +239,17 @@ function classifyProposal(
     upper(
       proposal.billingFollowUpStatus
     );
+
+  if (
+    status ===
+    "AWAITING_CLIENT_SIGNATURE"
+  ) {
+    return {
+      view: "NEEDS_ACTION",
+      state: "Client Review",
+      next: "Record prior payment if applicable; proposal choice remains pending"
+    };
+  }
 
   if (
     billingFollowUpStatus ===
@@ -686,6 +704,17 @@ function buildProposalItems(
 
         proposalId,
 
+        priorPayments:
+          Array.isArray(
+            proposal.priorPayments
+          )
+            ? proposal.priorPayments
+            : [],
+
+        canRecordPriorPayment:
+          upper(proposal.status) ===
+          "AWAITING_CLIENT_SIGNATURE",
+
         canRecordPrepaidCash:
           (
             upper(proposal.status) ===
@@ -953,6 +982,20 @@ function render() {
             </div>
 
             <div class="billing-actions">
+              ${item.canRecordPriorPayment
+                ? `
+                  <button
+                    class="billing-action billing-prior-payment-action"
+                    type="button"
+                    data-prior-payment-proposal-id="${esc(item.proposalId)}"
+                    data-prior-payment-name="${esc(item.name)}"
+                  >
+                    Record prior payment
+                  </button>
+                `
+                : ""
+              }
+
               ${item.canRecordPrepaidCash
                 ? `
                   <button
@@ -992,6 +1035,412 @@ function render() {
         `
       )
       .join("");
+}
+
+
+function priorPaymentPeriods(
+  startValue,
+  endValue
+) {
+  const matchStart =
+    clean(startValue).match(
+      /^(\\d{4})-(\\d{2})$/
+    );
+
+  const matchEnd =
+    clean(endValue).match(
+      /^(\\d{4})-(\\d{2})$/
+    );
+
+  if (!matchStart || !matchEnd) {
+    return [];
+  }
+
+  const start =
+    new Date(
+      Number(matchStart[1]),
+      Number(matchStart[2]) - 1,
+      1
+    );
+
+  const end =
+    new Date(
+      Number(matchEnd[1]),
+      Number(matchEnd[2]) - 1,
+      1
+    );
+
+  if (
+    end.getTime() <
+    start.getTime()
+  ) {
+    return [];
+  }
+
+  const periods = [];
+  const cursor =
+    new Date(start);
+
+  while (
+    cursor.getTime() <=
+    end.getTime() &&
+    periods.length < 12
+  ) {
+    periods.push(
+      `${cursor.getFullYear()}-${String(
+        cursor.getMonth() + 1
+      ).padStart(2, "0")}`
+    );
+
+    cursor.setMonth(
+      cursor.getMonth() + 1
+    );
+  }
+
+  return periods;
+}
+
+function ensurePriorPaymentDialog() {
+  let dialog =
+    document.getElementById(
+      "priorPaymentDialog"
+    );
+
+  if (dialog) return dialog;
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+  dialog.id =
+    "priorPaymentDialog";
+
+  dialog.className =
+    "billing-cash-dialog";
+
+  dialog.innerHTML = `
+    <form
+      id="priorPaymentForm"
+      class="billing-cash-form"
+      method="dialog"
+    >
+      <div class="billing-cash-head">
+        <div>
+          <p class="eyebrow">
+            Management · Billing
+          </p>
+          <h2>
+            Record prior payment
+          </h2>
+          <p id="priorPaymentFamily"></p>
+        </div>
+
+        <button
+          class="billing-cash-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <input
+        id="priorPaymentProposalId"
+        type="hidden"
+      >
+
+      <div class="billing-cash-grid">
+        <label>
+          <span>Amount received</span>
+          <input
+            id="priorPaymentAmount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            inputmode="decimal"
+            required
+          >
+        </label>
+
+        <label>
+          <span>Payment method</span>
+          <select id="priorPaymentMethod">
+            <option value="cash">Cash</option>
+            <option value="check">Check</option>
+          </select>
+        </label>
+
+        <label>
+          <span>First month covered</span>
+          <input
+            id="priorPaymentStartMonth"
+            type="month"
+            required
+          >
+        </label>
+
+        <label>
+          <span>Last month covered</span>
+          <input
+            id="priorPaymentEndMonth"
+            type="month"
+            required
+          >
+        </label>
+
+        <label class="billing-cash-check">
+          <input
+            id="priorPaymentEnrollmentFee"
+            type="checkbox"
+          >
+          <span>
+            Annual enrollment fee was included
+          </span>
+        </label>
+      </div>
+
+      <label class="billing-cash-note">
+        <span>Management note</span>
+        <textarea
+          id="priorPaymentNote"
+          rows="3"
+          placeholder="Example: September and October dues paid before digital billing transition."
+        ></textarea>
+      </label>
+
+      <p class="billing-cash-warning">
+        This creates a billing audit record only. It does not mark the proposal paid, change the proposal stage, or replace Review &amp; Confirm.
+      </p>
+
+      <div class="billing-cash-footer">
+        <button
+          class="button button-secondary"
+          type="button"
+          data-prior-payment-cancel
+        >
+          Cancel
+        </button>
+
+        <button
+          id="priorPaymentSubmit"
+          class="button"
+          type="submit"
+        >
+          Record payment
+        </button>
+      </div>
+
+      <p
+        id="priorPaymentStatus"
+        class="billing-status"
+        aria-live="polite"
+      ></p>
+    </form>
+  `;
+
+  document.body.appendChild(
+    dialog
+  );
+
+  const close = () => {
+    dialog.close();
+  };
+
+  dialog
+    .querySelector(
+      ".billing-cash-close"
+    )
+    ?.addEventListener(
+      "click",
+      close
+    );
+
+  dialog
+    .querySelector(
+      "[data-prior-payment-cancel]"
+    )
+    ?.addEventListener(
+      "click",
+      close
+    );
+
+  dialog
+    .querySelector(
+      "#priorPaymentForm"
+    )
+    ?.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        const status =
+          document.getElementById(
+            "priorPaymentStatus"
+          );
+
+        const submit =
+          document.getElementById(
+            "priorPaymentSubmit"
+          );
+
+        const proposalId =
+          clean(
+            document.getElementById(
+              "priorPaymentProposalId"
+            )?.value
+          );
+
+        const amount =
+          Number(
+            document.getElementById(
+              "priorPaymentAmount"
+            )?.value
+          );
+
+        const paymentMethod =
+          clean(
+            document.getElementById(
+              "priorPaymentMethod"
+            )?.value
+          );
+
+        const periods =
+          priorPaymentPeriods(
+            document.getElementById(
+              "priorPaymentStartMonth"
+            )?.value,
+            document.getElementById(
+              "priorPaymentEndMonth"
+            )?.value
+          );
+
+        const enrollmentFeeIncluded =
+          document.getElementById(
+            "priorPaymentEnrollmentFee"
+          )?.checked === true;
+
+        const note =
+          clean(
+            document.getElementById(
+              "priorPaymentNote"
+            )?.value
+          );
+
+        if (
+          !proposalId ||
+          !Number.isFinite(amount) ||
+          amount <= 0 ||
+          !periods.length
+        ) {
+          if (status) {
+            status.textContent =
+              "Complete the amount and month range.";
+          }
+          return;
+        }
+
+        if (submit) {
+          submit.disabled = true;
+          submit.textContent =
+            "Recording…";
+        }
+
+        if (status) {
+          status.textContent =
+            "Recording prior payment…";
+        }
+
+        try {
+          await recordPriorPaymentCall({
+            proposalId,
+            amountCents:
+              Math.round(amount * 100),
+            paymentMethod,
+            periods,
+            enrollmentFeeIncluded,
+            note
+          });
+
+          if (status) {
+            status.textContent =
+              "Prior payment recorded. Proposal stage was not changed.";
+          }
+
+          await loadBilling();
+
+          window.setTimeout(
+            () => dialog.close(),
+            500
+          );
+        } catch (error) {
+          console.error(
+            "[billing] prior payment failed:",
+            error
+          );
+
+          if (status) {
+            status.textContent =
+              error?.message ||
+              "Unable to record prior payment.";
+          }
+        } finally {
+          if (submit) {
+            submit.disabled = false;
+            submit.textContent =
+              "Record payment";
+          }
+        }
+      }
+    );
+
+  return dialog;
+}
+
+function openPriorPaymentDialog(
+  proposalId,
+  name
+) {
+  const dialog =
+    ensurePriorPaymentDialog();
+
+  document.getElementById(
+    "priorPaymentProposalId"
+  ).value = proposalId;
+
+  document.getElementById(
+    "priorPaymentFamily"
+  ).textContent = name;
+
+  document.getElementById(
+    "priorPaymentAmount"
+  ).value = "";
+
+  document.getElementById(
+    "priorPaymentMethod"
+  ).value = "cash";
+
+  document.getElementById(
+    "priorPaymentStartMonth"
+  ).value = "";
+
+  document.getElementById(
+    "priorPaymentEndMonth"
+  ).value = "";
+
+  document.getElementById(
+    "priorPaymentEnrollmentFee"
+  ).checked = false;
+
+  document.getElementById(
+    "priorPaymentNote"
+  ).value = "";
+
+  document.getElementById(
+    "priorPaymentStatus"
+  ).textContent = "";
+
+  dialog.showModal();
 }
 
 
@@ -1449,6 +1898,30 @@ billingQueue.addEventListener(
     }
   }
 );
+
+billingQueue?.addEventListener(
+  "click",
+  (event) => {
+    const button =
+      event.target.closest(
+        "[data-prior-payment-proposal-id]"
+      );
+
+    if (!button) return;
+
+    openPriorPaymentDialog(
+      clean(
+        button.dataset
+          .priorPaymentProposalId
+      ),
+      clean(
+        button.dataset
+          .priorPaymentName
+      )
+    );
+  }
+);
+
 
 async function loadBilling() {
   refreshBilling.disabled = true;
