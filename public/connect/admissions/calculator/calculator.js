@@ -1762,31 +1762,42 @@ const functionName =
           );
         }
 
-        if (
-          !isExistingProposal &&
-          pendingPriorPaymentHandoff &&
-          !priorPaymentRecordedFromHandoff
-        ) {
-          const recordPriorPayment =
-            httpsCallable(
-              functions,
-              "recordProposalPriorPayment"
-            );
-
-          await recordPriorPayment({
-            proposalId: savedProposalId,
-            ...pendingPriorPaymentHandoff
-          });
-
-          priorPaymentRecordedFromHandoff = true;
-          pendingPriorPaymentHandoff = null;
-        }
-
         // The first save creates the proposal ID.
 // Keep that ID in the active Builder session so
 // subsequent saves update the same proposal and
 // Submit for Review can advance it to REVIEW.
 proposalId = savedProposalId;
+
+        let priorPaymentWarning = "";
+
+        if (
+          !isExistingProposal &&
+          pendingPriorPaymentHandoff &&
+          !priorPaymentRecordedFromHandoff
+        ) {
+          try {
+            const recordPriorPayment =
+              httpsCallable(
+                functions,
+                "recordProposalPriorPayment"
+              );
+
+            await recordPriorPayment({
+              proposalId: savedProposalId,
+              ...pendingPriorPaymentHandoff
+            });
+
+            priorPaymentRecordedFromHandoff = true;
+            pendingPriorPaymentHandoff = null;
+          } catch (priorPaymentError) {
+            console.error(
+              "Prior payment Billing handoff failed:",
+              priorPaymentError
+            );
+            priorPaymentWarning =
+              " Proposal was saved, but the historical payment still needs to be recorded in Billing.";
+          }
+        }
 
 // Preserve the proposal in the URL without
 // reloading the Prospect Builder.
@@ -1809,9 +1820,11 @@ window.history.replaceState(
           `Saved ${savedProposalId}`;
 
 alert(
-  isExistingProposal
-    ? `Proposal draft ${savedProposalId} updated successfully.`
-    : `Proposal draft ${savedProposalId} created successfully.`
+  (
+    isExistingProposal
+      ? `Proposal draft ${savedProposalId} updated successfully.`
+      : `Proposal draft ${savedProposalId} created successfully.`
+  ) + priorPaymentWarning
 );
         } catch (error) {
         console.error(
