@@ -169,3 +169,102 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
+
+
+/* =========================
+   PRACTICE CONTEXT SCREEN
+========================= */
+.screen-actions{
+  display:flex;
+  justify-content:flex-end;
+  padding-top:14px;
+}
+.screen-actions .primary-action{
+  min-width:min(100%,320px);
+}
+.screen-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+.screen-heading h2{
+  margin:4px 0 5px;
+  color:var(--gold);
+  font-size:clamp(1.35rem,3vw,1.7rem);
+}
+.screen-heading p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.45;
+}
+.context-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.35fr) minmax(280px,.75fr);
+  gap:14px;
+}
+.context-details{
+  grid-template-columns:1fr;
+}
+.discipline-choice-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.discipline-choice-grid button{
+  min-height:58px;
+  padding:10px 12px;
+  border:1px solid var(--control-line);
+  border-radius:11px;
+  background:var(--card);
+  color:var(--text);
+  font-weight:900;
+  cursor:pointer;
+}
+.discipline-choice-grid button.active{
+  border-color:var(--gold);
+  background:var(--gold-soft);
+  color:var(--gold);
+  box-shadow:0 0 0 2px rgba(212,175,55,.1);
+}
+.optional-label{
+  color:var(--muted);
+  font-weight:700;
+  text-transform:none;
+  letter-spacing:0;
+}
+.visually-hidden-select{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
+#practiceContextScreen[hidden],
+#guidedSetupScreen[hidden]{
+  display:none !important;
+}
+@media(max-width:800px){
+  .context-layout{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:560px){
+  .screen-heading{
+    flex-direction:column;
+  }
+  .screen-heading .secondary-button{
+    width:100%;
+  }
+  .discipline-choice-grid{
+    grid-template-columns:1fr;
+  }
+  .screen-actions .primary-action{
+    width:100%;
+  }
+}
