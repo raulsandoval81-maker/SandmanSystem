@@ -7,7 +7,7 @@ import { resolveQualifyingRecoveryPractice } from "../modules/decay/decayRecover
 import { awardReceiptKey } from "../services/authoritativeXpService";
 
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
-const EXECUTION_MODES = new Set(["manual", "hybrid", "quick", "checked-in"]);
+const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
 const MAX_PLAN_VERSION = 10_000;
 const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
