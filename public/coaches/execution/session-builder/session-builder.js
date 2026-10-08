@@ -941,6 +941,34 @@ function createSessionPayload(practiceId = activePracticeId) {
   };
 }
 
+function createSecondarySessionPayload(primaryPayload) {
+  const secondary = primaryPayload?.secondarySession;
+  if (!secondary) return null;
+  return {
+    schema: primaryPayload.schema,
+    durationMinutes: primaryPayload.durationMinutes,
+    xpTimeScale: primaryPayload.xpTimeScale,
+    executionMode: primaryPayload.executionMode,
+    practiceId: "",
+    sessionId: secondary.roomValue,
+    locationId: primaryPayload.locationId,
+    academyId: primaryPayload.academyId,
+    roomId: secondary.roomId,
+    roomValue: secondary.roomValue,
+    program: secondary.program,
+    foundry: secondary.foundry,
+    track: secondary.track,
+    journey: secondary.journey,
+    discipline: secondary.discipline,
+    tier: "",
+    rank: "",
+    rankLabel: "",
+    week: "",
+    source: "session-builder-secondary",
+    createdAt: new Date().toISOString()
+  };
+}
+
 function persistSession(payload) {
   try {
     const previous = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
@@ -1126,8 +1154,22 @@ buildBtn.addEventListener("click", async () => {
   if (!payload) return;
   buildBtn.disabled = true;
   try {
+    const secondaryPayload = createSecondarySessionPayload(payload);
+    let openedSecondary = null;
+
+    if (secondaryPayload) {
+      openedSecondary = await openCanonicalPractice(secondaryPayload);
+      payload.secondarySession = {
+        ...payload.secondarySession,
+        practiceId: openedSecondary.practiceId,
+        sessionId: openedSecondary.sessionId
+      };
+    }
+
+    payload.practiceId = "";
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
+
     window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=clipboard&flow=builder`;
   } catch (error) {
     console.error("Session entry failed", error);
