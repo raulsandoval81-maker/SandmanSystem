@@ -36,6 +36,12 @@ const recordPlacement =
     "recordAthleteAssessmentPlacement"
   );
 
+const reopenAssessment =
+  httpsCallable(
+    functions,
+    "reopenAthleteAssessmentPin"
+  );
+
 const searchForm =
   $("athleteSearchForm");
 
@@ -790,6 +796,8 @@ function renderExperienceValidation(pin) {
     Number(plan.held || 0) === 0;
   const recognitionStatus = clean(pin.experienceRecognitionStatus).toUpperCase();
   const resolved = recognitionStatus === "AWARDED" || recognitionStatus === "REJECTED";
+  const placementRecorded =
+    clean(pin.status).toUpperCase() === "PLACEMENT_RECORDED";
   const coachNotes = clean(pin.coachNotes) || "No additional Coach notes.";
   const placement = clean(pin.placementRecommendation) || "—";
 
@@ -827,8 +835,10 @@ function renderExperienceValidation(pin) {
 
     <div class="action-row">
       ${
-        resolved
-          ? `<button id="recordPlacementButton" class="button button-primary" type="button">Complete Assessment</button>`
+        placementRecorded && noRecognitionXp
+          ? `<button id="reopenAssessmentButton" class="button button-secondary" type="button">Reopen Assessment</button>`
+          : resolved
+            ? `<button id="recordPlacementButton" class="button button-primary" type="button">Complete Assessment</button>`
           : noRecognitionXp
             ? `
                 <button id="approveExperienceButton" class="button button-primary" type="button">
@@ -909,6 +919,35 @@ function renderExperienceValidation(pin) {
       await refreshExperienceQueue();
     } catch (error) {
       setActionStatus(error?.message || "Experience validation failed.", true);
+      setBusy(false);
+    }
+  });
+
+  $("reopenAssessmentButton")?.addEventListener("click", async () => {
+    if (!window.confirm("Reopen this accidental zero-XP closeout and send it back to Coach?")) return;
+
+    setBusy(true);
+    setActionStatus("Reopening assessment for Coach correction…");
+
+    try {
+      const response = await reopenAssessment({
+        pinId: clean(pin.id),
+        reason: clean($("experienceManagementNote")?.value) ||
+          "Accidental zero-XP closeout reopened for corrected Coach recognition."
+      });
+
+      if (
+        response.data?.ok !== true ||
+        response.data?.status !== "IN_ASSESSMENT"
+      ) {
+        throw new Error("Assessment was not reopened.");
+      }
+
+      setActionStatus("✓ Assessment reopened and returned to Coach.");
+      await loadSelectedExperience();
+      await refreshExperienceQueue();
+    } catch (error) {
+      setActionStatus(error?.message || "Unable to reopen assessment.", true);
       setBusy(false);
     }
   });
