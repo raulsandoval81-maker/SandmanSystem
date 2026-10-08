@@ -225,6 +225,8 @@ function refreshFocusSuggestion({ apply = true } = {}) {
   suggestedTier = suggestion.tier;
   suggestedWeek = suggestion.week;
 
+  if (!rankSelect || !weekSelect) return;
+
   if (apply && selectedMode === "hybrid") {
     if (!rankSelect.value && suggestedTier && [...rankSelect.options].some((option) => option.value === suggestedTier)) {
       rankSelect.value = suggestedTier;
@@ -249,13 +251,13 @@ function refreshFocusSuggestion({ apply = true } = {}) {
 }
 
 function effectiveTier() {
-  if (!programUsesRank()) return "";
+  if (!rankSelect || !programUsesRank()) return "";
   if (selectedMode === "auto") return suggestedTier || "";
   return String(rankSelect.value || "");
 }
 
 function effectiveWeek() {
-  if (!programUsesRank()) return "";
+  if (!weekSelect || !programUsesRank()) return "";
   if (selectedMode === "auto") return suggestedWeek || "";
   return String(weekSelect.value || "");
 }
@@ -763,7 +765,7 @@ function createSessionPayload(practiceId = activePracticeId) {
   const room = selectedRoom();
   if (!program.discipline || !room) return null;
   const shell = shellData();
-  const week = effectiveWeek();
+  const week = "";
   return {
     schema: selectedSchema,
     durationMinutes: shell.minutes,
@@ -853,7 +855,7 @@ async function restoreCanonicalPractice(practiceId) {
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
   populateRanks(String(practice.tier || ""));
-  if (practice.week && [...weekSelect.options].some((option) => option.value === String(practice.week))) {
+  if (weekSelect && practice.week && [...weekSelect.options].some((option) => option.value === String(practice.week))) {
     weekSelect.value = String(practice.week);
   }
   refreshFocusSuggestion({ apply: false });
@@ -902,7 +904,7 @@ roomSelect.addEventListener("change", () => {
   populateJourneys(journeySelect?.value || "");
   updateDisciplineAvailability(disciplineFamilySelect?.value || "");
   populatePrograms(disciplineSelect.value);
-  populateRanks(rankSelect.value);
+  populateRanks(rankSelect?.value || "");
   refreshHybridAvailability();
 });
 
