@@ -18,6 +18,43 @@ let sessionRef = null;
 let sessionId = null;
 let sessionLocked = false;
 let activePractice = null;
+let currentStep = 1;
+
+function showStep(step) {
+  currentStep = Math.min(3, Math.max(1, Number(step) || 1));
+
+  document
+    .querySelectorAll("[data-step-screen]")
+    .forEach((screen) => {
+      const active =
+        Number(screen.dataset.stepScreen) === currentStep;
+
+      screen.hidden = !active;
+      screen.classList.toggle("is-active", active);
+    });
+
+  document
+    .querySelectorAll("[data-step-target]")
+    .forEach((button) => {
+      const target = Number(button.dataset.stepTarget);
+      button.classList.toggle("is-active", target === currentStep);
+      button.classList.toggle("is-complete", target < currentStep);
+
+      if (target === 2) {
+        button.disabled = !sessionRef || !sessionId;
+      } else if (target === 3) {
+        button.disabled = !checkedIn.size;
+      } else {
+        button.disabled = false;
+      }
+    });
+
+  if (currentStep === 2) {
+    requestAnimationFrame(() => {
+      $("searchAthlete")?.focus();
+    });
+  }
+}
 
 function setStatus(msg, isError = false) {
   const el = $("sessionStatus");
@@ -181,10 +218,11 @@ if (dateEl) {
 }
 
 function applyFilters() {
-  const search = String($("searchAthlete")?.value || "").toLowerCase();
+  const search = String($("searchAthlete")?.value || "").toLowerCase().trim();
 
   filteredAthletes = athletes.filter((athlete) => {
     if (!programMatchesAthlete(athlete)) return false;
+    if (checkedIn.has(athlete.id)) return false;
 
     const name = athleteName(athlete).toLowerCase();
     const id = String(athlete.id || "").toLowerCase();
@@ -212,30 +250,25 @@ function renderAthletes() {
     return;
   }
 
-  list.innerHTML = filteredAthletes.map((athlete) => {
-    const isChecked = checkedIn.has(athlete.id);
-
+  list.innerHTML = filteredAthletes.map((athlete, index) => {
     return `
-      <div class="athlete-row">
+      <button
+        type="button"
+        class="athlete-checkin-card"
+        data-athlete-id="${athlete.id}"
+      >
+        <span class="athlete-number">Athlete ${index + 1}</span>
         <span class="athlete-main">
           <strong>${athleteName(athlete)}</strong>
-          <span class="muted">${athlete.id}</span>
-          <span class="muted">${athleteProgram(athlete) || "—"}</span>
+          <span>${athlete.id}</span>
+          <span>${athleteProgram(athlete) || "—"}</span>
         </span>
-
-        <button
-          type="button"
-          class="checkin-btn"
-          data-athlete-id="${athlete.id}"
-          ${isChecked ? "disabled" : ""}
-        >
-          ${isChecked ? "Checked In" : "Check In"}
-        </button>
-      </div>
+        <span class="checkin-action">Check In</span>
+      </button>
     `;
   }).join("");
 
-  document.querySelectorAll(".checkin-btn").forEach((btn) => {
+  document.querySelectorAll(".athlete-checkin-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       checkInAthlete(btn.dataset.athleteId);
     });
@@ -257,6 +290,7 @@ async function startSession() {
     setStatus(`Existing check-in loaded for ${todayLabel()}.`);
     renderAthletes();
     renderCheckedIn();
+    showStep(2);
     return;
   }
 
@@ -273,6 +307,7 @@ async function startSession() {
   setStatus(`Session started for ${todayLabel()}.`);
   renderAthletes();
   renderCheckedIn();
+  showStep(2);
 }
 
 async function checkInAthlete(id) {
@@ -319,6 +354,9 @@ function renderCheckedIn() {
   const list = $("checkedList");
 
   if (count) count.textContent = `${checkedIn.size} checked in`;
+  if ($("checkedCountTop")) {
+    $("checkedCountTop").textContent = `${checkedIn.size} in`;
+  }
   if (!list) return;
 
   if (!checkedIn.size) {
@@ -326,8 +364,9 @@ function renderCheckedIn() {
     return;
   }
 
-  list.innerHTML = Array.from(checkedIn.values()).map((athlete) => `
-    <div class="athlete-row">
+  list.innerHTML = Array.from(checkedIn.values()).map((athlete, index) => `
+    <div class="athlete-row checked-athlete-row">
+      <span class="athlete-number">Athlete ${index + 1}</span>
       <span>
         <strong>${athlete.name}</strong>
         <span class="muted">${athlete.id}</span>
@@ -396,8 +435,38 @@ function bindEvents() {
   $("finalizeSession")?.addEventListener("click", submitForReview);
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
+
+  $("reviewAttendanceBtn")?.addEventListener("click", () => {
+    if (!checkedIn.size) {
+      setStatus("Check in at least one athlete before review.", true);
+      return;
+    }
+    renderCheckedIn();
+    showStep(3);
+  });
+
+  $("backToAthletesBtn")?.addEventListener("click", () => {
+    showStep(2);
+  });
+
+  document.querySelectorAll("[data-step-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      showStep(Number(button.dataset.stepTarget));
+    });
+  });
+
+  document.querySelectorAll("[data-quick-search]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (!$("searchAthlete")) return;
+      $("searchAthlete").value = button.dataset.quickSearch || "";
+      applyFilters();
+      $("searchAthlete").focus();
+    });
+  });
 }
 
 bindEvents();
 configureBuilderReturn();
+showStep(1);
 loadAthletes();
