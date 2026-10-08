@@ -356,3 +356,11 @@ export {
 
 export { createManagementPassCheckout } from "./modules/management/createManagementPassCheckout";
 export { confirmManagementPassAttendance } from "./modules/management/confirmManagementPassAttendance";
+
+export {
+  configureProposalMembershipChoice,
+} from "./proposals/configureProposalMembershipChoice";
+
+export {
+  submitProposalMembershipChoice,
+} from "./proposals/submitProposalMembershipChoice";
