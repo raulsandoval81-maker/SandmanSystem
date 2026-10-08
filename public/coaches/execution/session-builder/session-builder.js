@@ -64,7 +64,6 @@ const guidedSetupScreen = document.getElementById("guidedSetupScreen");
 const practiceContextScreen = document.getElementById("practiceContextScreen");
 const continueToContextBtn = document.getElementById("continueToContextBtn");
 const backToGuidedSetupBtn = document.getElementById("backToGuidedSetupBtn");
-const disciplineButtons = [...document.querySelectorAll("[data-discipline]")];
 
 let selectedSessionType = "academy";
 let selectedDuration = 60;
@@ -145,21 +144,36 @@ function populateJourneys(preferredJourney = "") {
   updateDisciplineAvailability();
 }
 
-function updateDisciplineAvailability() {
+function disciplineLabel(value = "") {
+  return ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    "muay-thai": "Muay Thai",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  })[value] || value;
+}
+
+function updateDisciplineAvailability(preferredDiscipline = "") {
   const journey = String(journeySelect?.value || "");
-  const programs = availablePrograms().filter((program) => !journey || program.journey === journey);
-  const disciplines = new Set(programs.map((program) => program.discipline));
-  disciplineButtons.forEach((button) => {
-    const enabled = Boolean(journey) && disciplines.has(button.dataset.discipline);
-    button.hidden = !enabled;
-    if (!enabled && button.classList.contains("active")) {
-      button.classList.remove("active");
-      button.setAttribute("aria-pressed", "false");
-    }
+  const programs = availablePrograms().filter((program) => journey && program.journey === journey);
+  const disciplines = [...new Set(programs.map((program) => program.discipline).filter(Boolean))];
+
+  disciplineFamilySelect.innerHTML = '<option value="">Select Discipline</option>';
+  disciplines.forEach((discipline) => {
+    const option = document.createElement("option");
+    option.value = discipline;
+    option.textContent = disciplineLabel(discipline);
+    disciplineFamilySelect.appendChild(option);
   });
-  if (disciplineFamilySelect && !disciplines.has(disciplineFamilySelect.value)) {
+
+  if (disciplines.includes(preferredDiscipline)) {
+    disciplineFamilySelect.value = preferredDiscipline;
+  } else {
     disciplineFamilySelect.value = "";
   }
+
+  if (disciplineField) disciplineField.hidden = !journey;
 }
 
 function populatePrograms(preferredProgramId = "") {
@@ -183,14 +197,7 @@ function populatePrograms(preferredProgramId = "") {
     disciplineSelect.value = programs[0].programId;
   }
 
-  if (programField) programField.hidden = true;
-
-  disciplineButtons.forEach((button) => {
-    const active = button.dataset.discipline === discipline;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-}
+  if (programField) programField.hidden = true;}
 
 function programUsesRank() {
   return Boolean(selectedProgram()?.journey && RANK_LADDERS[selectedProgram().journey]);
@@ -724,10 +731,8 @@ async function restoreCanonicalPractice(practiceId) {
   const restoredJourney = String(practice.journey || "");
   populateJourneys(restoredJourney);
   const restoredDiscipline = String(practice.discipline || "").toLowerCase();
-  if (disciplineFamilySelect) {
-    disciplineFamilySelect.value = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
-  }
-  updateDisciplineAvailability();
+  const preferredDiscipline = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
+  updateDisciplineAvailability(preferredDiscipline);
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
@@ -751,11 +756,9 @@ backToGuidedSetupBtn?.addEventListener("click", () => {
 });
 
 journeySelect?.addEventListener("change", () => {
-  if (disciplineFamilySelect) disciplineFamilySelect.value = "";
+  updateDisciplineAvailability("");
   populatePrograms("");
   populateRanks();
-  if (disciplineField) disciplineField.hidden = !journeySelect.value;
-  updateDisciplineAvailability();
   refreshHybridAvailability();
 });
 
@@ -783,6 +786,7 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
 
 roomSelect.addEventListener("change", () => {
   populateJourneys(journeySelect?.value || "");
+  updateDisciplineAvailability(disciplineFamilySelect?.value || "");
   populatePrograms(disciplineSelect.value);
   populateRanks(rankSelect.value);
   refreshHybridAvailability();
