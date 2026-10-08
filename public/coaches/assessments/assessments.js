@@ -1568,7 +1568,14 @@ async function loadAssessments() {
             ? pin.validationObservations
             : {};
 
+        const recognitionGeneration =
+          Math.max(
+            0,
+            Number(pin.recognitionGeneration || 0)
+          );
+
         return (
+          recognitionGeneration === 0 &&
           OPEN_STATUSES.has(status) &&
           Object.keys(observations)
             .filter(Boolean)
