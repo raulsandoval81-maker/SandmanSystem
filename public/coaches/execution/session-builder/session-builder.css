@@ -293,3 +293,33 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
   cursor:default;
   background:var(--soft-surface);
 }
+
+.mat-session-identity{
+  display:grid;
+  grid-template-columns:minmax(180px,.55fr) minmax(0,1.45fr);
+  gap:12px;
+  align-items:stretch;
+}
+
+.mat-session-room{
+  display:flex;
+  min-height:94px;
+  flex-direction:column;
+  justify-content:center;
+  padding:14px;
+  border:1px solid var(--gold-line);
+  border-radius:12px;
+  background:var(--gold-soft);
+}
+
+.mat-session-room strong{
+  margin-top:5px;
+  color:var(--gold);
+  font-size:1.3rem;
+}
+
+@media(max-width:700px){
+  .mat-session-identity{
+    grid-template-columns:1fr;
+  }
+}
