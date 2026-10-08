@@ -116,6 +116,14 @@ function getPracticeType() {
   return `${activePractice?.journey || "session"}-${activePractice?.discipline || "practice"}`;
 }
 
+function matLabel(roomId = "") {
+  const value = String(roomId || "").toLowerCase();
+  if (value === "mat-1a") return "Mat 1A";
+  if (value === "mat-1b") return "Mat 1B";
+  if (value === "mat-1") return "Mat 1A";
+  return String(roomId || "Mat");
+}
+
 function programMatchesAthlete(athlete = {}) {
   const journey = String(activePractice?.journey || "").toLowerCase();
   const discipline = String(activePractice?.discipline || "").toLowerCase();
@@ -210,7 +218,7 @@ async function loadCanonicalPractice() {
   sessionId = practiceId;
   sessionRef = doc(db, "attendance_sessions", practiceId);
   if ($("practiceIdentity")) {
-    $("practiceIdentity").value = [practice.discipline, practice.journey, practice.roomId]
+    $("practiceIdentity").value = [practice.discipline, practice.journey, matLabel(practice.roomId)]
       .filter(Boolean).join(" · ");
   }
 }
