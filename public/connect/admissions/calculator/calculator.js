@@ -41,6 +41,7 @@ let proposalId =
 
 let pendingPriorPaymentHandoff = null;
 let priorPaymentRecordedFromHandoff = false;
+let proposalEnrollmentPreviouslyPaid = false;
   
 const backToProposalBtn =
   document.getElementById(
@@ -1000,10 +1001,21 @@ const extras = {
       }
 
 
+      const enrollmentPreviouslyPaid =
+        pendingPriorPaymentHandoff
+          ?.enrollmentFeeIncluded === true ||
+        proposalEnrollmentPreviouslyPaid === true;
+
+      const enrollmentPreviouslyPaidAmount =
+        enrollmentPreviouslyPaid
+          ? enrollmentBase
+          : 0;
+
       const enrollmentDueNow=Math.max(
         0,
         enrollmentBase+
         extra.amount-
+        enrollmentPreviouslyPaidAmount-
         admissionsCredits-
         privatePromo-
         support
@@ -1570,6 +1582,8 @@ const extras = {
           enrollmentPackageName,
           renewalPackageName,
           enrollmentBase,
+          enrollmentPreviouslyPaid,
+          enrollmentPreviouslyPaidAmount,
           extraCode: el.extra.value,
           extraLabel: extra.label,
           extraAmount: extra.amount,
@@ -2316,6 +2330,16 @@ alert(
       const pricing =
         proposal.pricing || {};
 
+      proposalEnrollmentPreviouslyPaid =
+        pricing.enrollmentPreviouslyPaid === true ||
+        (
+          Array.isArray(proposal.priorPayments) &&
+          proposal.priorPayments.some(
+            (payment) =>
+              payment?.enrollmentFeeIncluded === true
+          )
+        );
+
       const athletes =
         Array.isArray(proposal.athletes)
           ? proposal.athletes
@@ -2630,6 +2654,11 @@ alert(
         typeof handoff.priorPayment === "object"
           ? handoff.priorPayment
           : null;
+
+      proposalEnrollmentPreviouslyPaid =
+        pendingPriorPaymentHandoff
+          ?.enrollmentFeeIncluded === true;
+
       calculate();
     }
 
