@@ -3,6 +3,7 @@ const LOG_KEY = "sandman_last_practice_log";
 
 import { functions, httpsCallable } from "/assets/js/firebase-init.js";
 import { coachLoginUrl, isCoachAuthenticationError, requireCoach } from "/assets/js/coach-guard.js?v=2";
+import { programById, programsForLocation } from "/coaches/execution/session-builder/session-entry-policy.js";
 
 let payload = JSON.parse(
   localStorage.getItem(PAYLOAD_KEY) || "null"
@@ -33,6 +34,11 @@ const athleteInputEl = document.getElementById("athleteInput");
 const closeBtn = document.getElementById("closeBtn");
 const finalizeAttendanceLink = document.getElementById("finalizeAttendanceLink");
 const dailyGrindLink = document.getElementById("dailyGrindLink");
+const practiceProgram = document.getElementById("practiceProgram");
+const practiceTier = document.getElementById("practiceTier");
+const practiceWeek = document.getElementById("practiceWeek");
+const practiceDuration = document.getElementById("practiceDuration");
+const practiceDetailsStatus = document.getElementById("practiceDetailsStatus");
 
 function escapeHtml(value) {
   return String(value || "")
@@ -464,6 +470,72 @@ function renderAthleteInputs() {
   }).join("");
 }
 
+function populatePracticePrograms() {
+  if (!practiceProgram || !canonicalPractice) return;
+  const locationId = String(canonicalPractice.locationId || canonicalPractice.academyId || "").trim();
+  const programs = programsForLocation(locationId).filter((program) => program.programId !== "manual-build");
+  practiceProgram.innerHTML = '<option value="">Select program</option>';
+  programs.forEach((program) => {
+    const option = document.createElement("option");
+    option.value = program.programId;
+    option.textContent = program.label;
+    practiceProgram.appendChild(option);
+  });
+  if (canonicalPractice.program && programs.some((program) => program.programId === canonicalPractice.program)) {
+    practiceProgram.value = canonicalPractice.program;
+  }
+  if (practiceTier) practiceTier.value = canonicalPractice.tier || "";
+  if (practiceWeek) practiceWeek.value = canonicalPractice.week || "";
+  if (practiceDuration) practiceDuration.value = canonicalPractice.durationMinutes || "";
+}
+
+async function savePracticeDetails() {
+  if (!canonicalPractice || !requestedPracticeId) throw new Error("Canonical practice is required.");
+  const selected = programById(practiceProgram?.value || "");
+  if (!selected) throw new Error("Choose the program / discipline that was actually practiced.");
+  const durationMinutes = Math.max(1, Math.min(480, Number(practiceDuration?.value || canonicalPractice.durationMinutes || 60)));
+  const week = String(practiceWeek?.value || "").trim();
+  const tier = String(practiceTier?.value || "").trim();
+
+  const openPractice = httpsCallable(functions, "openPracticeSession");
+  await openPractice({
+    practiceId: requestedPracticeId,
+    liveSessionId: canonicalPractice.liveSessionId,
+    locationId: canonicalPractice.locationId || canonicalPractice.academyId,
+    academyId: canonicalPractice.locationId || canonicalPractice.academyId,
+    roomId: canonicalPractice.roomId,
+    discipline: selected.discipline,
+    journey: selected.journey || "",
+    program: selected.programId,
+    track: selected.track || selected.foundry || "",
+    tier,
+    schema: canonicalPractice.schema || "fast-practice",
+    executionMode: canonicalPractice.executionMode || "manual",
+    durationMinutes,
+    week
+  });
+
+  canonicalPractice = {
+    ...canonicalPractice,
+    discipline: selected.discipline,
+    journey: selected.journey || "",
+    program: selected.programId,
+    track: selected.track || selected.foundry || "",
+    tier,
+    week,
+    durationMinutes
+  };
+  sessionSource = {
+    ...sessionSource,
+    discipline: canonicalPractice.discipline,
+    journey: canonicalPractice.journey,
+    track: canonicalPractice.program,
+    tier: canonicalPractice.tier
+  };
+  renderSummary();
+  if (practiceDetailsStatus) practiceDetailsStatus.textContent = "Practice details saved.";
+}
+
 async function loadCanonicalPractice() {
   if (!requestedPracticeId || requestedPracticeId.includes("/")) return;
   const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
@@ -473,6 +545,7 @@ async function loadCanonicalPractice() {
   canonicalRoster = Array.isArray(response.data?.roster) ? response.data.roster : [];
   canonicalAthleteInputs = response.data?.athleteInputs || {};
   if (!canonicalPractice) throw new Error("Canonical practice not found.");
+  populatePracticePrograms();
   payload = payload || { source: "canonical-practice", blocks: [] };
   sessionSource = {
     ...sessionSource,
@@ -663,6 +736,13 @@ document
       if (statusEl) statusEl.textContent = error?.message || "Unable to save practice input.";
     });
   });
+
+document.getElementById("savePracticeDetailsBtn")?.addEventListener("click", () => {
+  savePracticeDetails().catch((error) => {
+    console.error("Practice details save failed", error);
+    if (practiceDetailsStatus) practiceDetailsStatus.textContent = error?.message || "Unable to save practice details.";
+  });
+});
 
 closeBtn?.addEventListener("click", () => {
   finalClose().catch((error) => {
