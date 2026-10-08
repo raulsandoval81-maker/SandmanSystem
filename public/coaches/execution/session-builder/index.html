@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-11">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-12">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -119,13 +119,15 @@
           </div>
 
           <div class="field" id="rankField">
-            <label for="rankSelect">Focus Tier <span class="optional-label">Optional</span></label>
+            <label for="rankSelect">Focus Tier <span class="optional-label" id="rankModeLabel">Optional</span></label>
             <select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select>
+            <p id="rankSuggestion" class="field-guidance"></p>
           </div>
 
           <div class="field" id="weekField">
-            <label for="weekSelect">Training Week <span class="optional-label">Optional</span></label>
+            <label for="weekSelect">Training Week <span class="optional-label" id="weekModeLabel">Optional</span></label>
             <select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select>
+            <p id="weekSuggestion" class="field-guidance"></p>
           </div>
         </div>
 
@@ -150,6 +152,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-13"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-14"></script>
 </body>
 </html>
