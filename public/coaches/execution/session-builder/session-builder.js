@@ -51,6 +51,10 @@ const rankSelect = document.getElementById("rankSelect");
 const weekSelect = document.getElementById("weekSelect");
 const rankField = document.getElementById("rankField");
 const weekField = document.getElementById("weekField");
+const rankModeLabel = document.getElementById("rankModeLabel");
+const weekModeLabel = document.getElementById("weekModeLabel");
+const rankSuggestion = document.getElementById("rankSuggestion");
+const weekSuggestion = document.getElementById("weekSuggestion");
 const modeField = document.getElementById("modeField");
 const buildBtn = document.getElementById("buildBtn");
 const modeAvailability = document.getElementById("modeAvailability");
@@ -74,6 +78,8 @@ let hybridUsable = false;
 let availabilityRequest = 0;
 let modeWasForced = false;
 let activePracticeId = "";
+let suggestedTier = "";
+let suggestedWeek = "";
 
 function readJson(key, fallback = null) {
   try {
@@ -199,12 +205,67 @@ function populatePrograms(preferredProgramId = "") {
 
   if (programField) programField.hidden = true;}
 
+function matchingPriorFocus() {
+  const remembered = readJson(SESSION_KEY, {});
+  const currentProgram = selectedProgram();
+  if (!currentProgram) return { tier: "", week: "" };
+
+  const sameJourney = String(remembered?.journey || "") === String(currentProgram.journey || "");
+  const sameDiscipline = String(remembered?.discipline || "").toLowerCase() === String(currentProgram.discipline || "").toLowerCase();
+  if (!sameJourney || !sameDiscipline) return { tier: "", week: "" };
+
+  return {
+    tier: String(remembered?.tier || remembered?.rank || "").trim(),
+    week: String(remembered?.week || "").trim()
+  };
+}
+
+function refreshFocusSuggestion({ apply = true } = {}) {
+  const suggestion = matchingPriorFocus();
+  suggestedTier = suggestion.tier;
+  suggestedWeek = suggestion.week;
+
+  if (apply && selectedMode === "hybrid") {
+    if (!rankSelect.value && suggestedTier && [...rankSelect.options].some((option) => option.value === suggestedTier)) {
+      rankSelect.value = suggestedTier;
+    }
+    if (!weekSelect.value && suggestedWeek && [...weekSelect.options].some((option) => option.value === suggestedWeek)) {
+      weekSelect.value = suggestedWeek;
+    }
+  }
+
+  if (apply && selectedMode === "auto") {
+    if (suggestedTier && [...rankSelect.options].some((option) => option.value === suggestedTier)) {
+      rankSelect.value = suggestedTier;
+    } else {
+      rankSelect.value = "";
+    }
+    if (suggestedWeek && [...weekSelect.options].some((option) => option.value === suggestedWeek)) {
+      weekSelect.value = suggestedWeek;
+    } else {
+      weekSelect.value = "";
+    }
+  }
+}
+
+function effectiveTier() {
+  if (!programUsesRank()) return "";
+  if (selectedMode === "auto") return suggestedTier || "";
+  return String(rankSelect.value || "");
+}
+
+function effectiveWeek() {
+  if (!programUsesRank()) return "";
+  if (selectedMode === "auto") return suggestedWeek || "";
+  return String(weekSelect.value || "");
+}
+
 function programUsesRank() {
   return Boolean(selectedProgram()?.journey && RANK_LADDERS[selectedProgram().journey]);
 }
 
 function programUsesWeek() {
-  return programUsesRank() && selectedMode !== "auto";
+  return programUsesRank();
 }
 
 function isManualOnlyProgram() {
@@ -237,7 +298,7 @@ function populateRanks(preferredTier = "") {
   }
 }
 function populateWeeks() {
-  weekSelect.innerHTML = '<option value="">Select Week</option>';
+  weekSelect.innerHTML = '<option value="">Let Sandman decide / select week</option>';
   for (let week = 1; week <= 36; week += 1) {
     const option = document.createElement("option");
     option.value = String(week);
@@ -299,27 +360,57 @@ function updateModeButtons() {
 function updateConditionalControls() {
   const usesRank = programUsesRank();
 
-  if (selectedMode === "auto") {
-    rankField.hidden = true;
-    weekField.hidden = true;
-    modeAvailability.textContent = "Auto uses Sandman’s system logic. Coach only needs to identify the practice context.";
+  rankField.hidden = !usesRank;
+  weekField.hidden = !usesRank;
+
+  if (!usesRank) {
+    modeAvailability.textContent = "Choose a Journey and Discipline to establish the practice route.";
+    if (rankSuggestion) rankSuggestion.textContent = "";
+    if (weekSuggestion) weekSuggestion.textContent = "";
+  } else if (selectedMode === "auto") {
+    rankSelect.disabled = true;
+    weekSelect.disabled = true;
+    if (rankModeLabel) rankModeLabel.textContent = "System choice";
+    if (weekModeLabel) weekModeLabel.textContent = "System choice";
+    if (rankSuggestion) rankSuggestion.textContent = suggestedTier
+      ? `Sandman choice from the last matching session: ${optionText(rankSelect) || suggestedTier}.`
+      : "No prior matching focus yet. Sandman will choose from available practice context.";
+    if (weekSuggestion) weekSuggestion.textContent = suggestedWeek
+      ? `Sandman choice from the last matching session: Week ${suggestedWeek}.`
+      : "No prior matching week yet. Sandman will choose from available practice context.";
+    modeAvailability.textContent = "Auto carries Sandman’s system choice into Attendance and Clipboard.";
   } else if (selectedMode === "hybrid") {
-    rankField.hidden = !usesRank;
-    weekField.hidden = !usesRank;
+    rankSelect.disabled = false;
+    weekSelect.disabled = false;
+    if (rankModeLabel) rankModeLabel.textContent = "Suggested";
+    if (weekModeLabel) weekModeLabel.textContent = "Suggested";
+    if (rankSuggestion) rankSuggestion.textContent = suggestedTier
+      ? "Sandman prefilled the last matching focus. Coach can change it."
+      : "No prior matching focus yet. Coach may choose one or leave it to Sandman.";
+    if (weekSuggestion) weekSuggestion.textContent = suggestedWeek
+      ? "Sandman prefilled the last matching week. Coach can change it."
+      : "No prior matching week yet. Coach may choose one or leave it to Sandman.";
     modeAvailability.textContent = hybridUsable
-      ? "Hybrid can use curriculum suggestions. Focus tier and week are optional guidance."
-      : "Hybrid is active. Focus tier and week are optional when available.";
+      ? "Hybrid uses Sandman suggestions with Coach override."
+      : "Hybrid keeps Sandman suggestions optional and Coach-controlled.";
   } else {
-    rankField.hidden = !usesRank;
-    weekField.hidden = !usesRank;
-    modeAvailability.textContent = usesRank
-      ? "Manual gives Coach the available tier and week controls."
-      : "Manual keeps the practice build with Coach.";
+    rankSelect.disabled = false;
+    weekSelect.disabled = false;
+    if (rankModeLabel) rankModeLabel.textContent = "Coach choice";
+    if (weekModeLabel) weekModeLabel.textContent = "Coach choice";
+    if (rankSuggestion) rankSuggestion.textContent = suggestedTier
+      ? "Prior matching focus is available as reference; Coach makes the selection."
+      : "Coach selects the focus tier.";
+    if (weekSuggestion) weekSuggestion.textContent = suggestedWeek
+      ? `Prior matching session used Week ${suggestedWeek}; Coach makes the selection.`
+      : "Coach selects the training week.";
+    modeAvailability.textContent = "Manual keeps Focus Tier and Training Week with Coach.";
   }
 
   modeAvailability.hidden = false;
   modeAvailability.classList.remove("unavailable");
 }
+
 function shellData() {
   const type = SESSION_TYPES[selectedSessionType] || SESSION_TYPES.academy;
   return { label: type.label, minutes: selectedDuration };
@@ -328,7 +419,7 @@ function shellData() {
 function getProgramData() {
   const program = selectedProgram();
   const discipline = program?.discipline || String(disciplineFamilySelect?.value || "").trim();
-  const tier = programUsesRank() && selectedMode !== "auto" ? rankSelect.value : "";
+  const tier = effectiveTier();
   const journey = program?.journey || "";
   const ladder = RANK_LADDERS[journey] || [];
   const rankName = ladder.find(rank => tierFromLadderKey(rank.key) === tier)?.name || "";
@@ -347,8 +438,8 @@ function getProgramData() {
 function updateSummary() {
   const shell = shellData();
   const program = getProgramData();
-  const usesRank = programUsesRank() && selectedMode !== "auto";
-  const usesWeek = programUsesRank() && selectedMode !== "auto";
+  const usesRank = programUsesRank();
+  const usesWeek = programUsesWeek();
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
   const summaryJourney = document.getElementById("summaryJourney");
@@ -372,10 +463,20 @@ function updateSummary() {
   if (summaryProgram) summaryProgram.textContent = optionText(disciplineSelect) || "—";
 
   if (summaryRankRow) summaryRankRow.hidden = !usesRank;
-  if (summaryRank) summaryRank.textContent = usesRank ? (optionText(rankSelect) || "Optional") : "—";
+  if (summaryRank) {
+    const tier = effectiveTier();
+    if (!usesRank) summaryRank.textContent = "—";
+    else if (tier) summaryRank.textContent = optionText(rankSelect) || tier;
+    else summaryRank.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
+  }
 
   if (summaryWeekRow) summaryWeekRow.hidden = !usesWeek;
-  if (summaryWeek) summaryWeek.textContent = usesWeek ? (optionText(weekSelect) || "Optional") : "—";
+  if (summaryWeek) {
+    const week = effectiveWeek();
+    if (!usesWeek) summaryWeek.textContent = "—";
+    else if (week) summaryWeek.textContent = `Week ${week}`;
+    else summaryWeek.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
+  }
 
   if (!journeySelect?.value) {
     summaryAvailability.textContent = "Choose a journey to continue.";
@@ -626,7 +727,7 @@ function createSessionPayload(practiceId = activePracticeId) {
   const room = selectedRoom();
   if (!program.discipline || !room) return null;
   const shell = shellData();
-  const week = programUsesWeek() ? weekSelect.value : "";
+  const week = effectiveWeek();
   return {
     schema: selectedSchema,
     durationMinutes: shell.minutes,
@@ -678,42 +779,6 @@ async function openCanonicalPractice(payload) {
   return { ...payload, practiceId };
 }
 
-function clearAttendanceContext() {
-  document.getElementById("attendanceContext").hidden = true;
-}
-
-function renderAttendanceContext(attendance = {}) {
-  const participants = attendanceParticipants(attendance);
-  const ranks = attendanceRankSummary(attendance);
-  const section = document.getElementById("attendanceContext");
-  section.hidden = false;
-  document.getElementById("attendanceCount").textContent = `${participants.length} checked in`;
-  const rankEl = document.getElementById("attendanceRanks");
-  rankEl.replaceChildren(...ranks.map(({ label, count }) => {
-    const chip = document.createElement("span");
-    chip.textContent = `${label}: ${count}`;
-    return chip;
-  }));
-  const athletesEl = document.getElementById("attendanceAthletes");
-  athletesEl.replaceChildren(...participants.map((athlete) => {
-    const chip = document.createElement("span");
-    const detail = [athlete.athleteId, athlete.journey, athlete.rank || athlete.tier].filter(Boolean).join(" · ");
-    const name = document.createElement("strong");
-    name.textContent = athlete.name;
-    const small = document.createElement("small");
-    small.textContent = detail;
-    chip.append(name, small);
-    return chip;
-  }));
-  document.getElementById("attendanceLink").href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(activePracticeId)}&return=builder`;
-}
-
-async function loadAttendanceContext() {
-  if (!activePracticeId) return clearAttendanceContext();
-  const snapshot = await getDoc(doc(db, "attendance_sessions", activePracticeId));
-  renderAttendanceContext(snapshot.exists() ? snapshot.data() || {} : {});
-}
-
 async function restoreCanonicalPractice(practiceId) {
   await requireCoach();
   showPrePracticeSetup();
@@ -737,10 +802,13 @@ async function restoreCanonicalPractice(practiceId) {
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
   populateRanks(String(practice.tier || ""));
+  if (practice.week && [...weekSelect.options].some((option) => option.value === String(practice.week))) {
+    weekSelect.value = String(practice.week);
+  }
+  refreshFocusSuggestion({ apply: false });
   roomSelect.disabled = true;
   await refreshHybridAvailability();
   showPracticeContext();
-  await loadAttendanceContext();
   document.getElementById("dashboardNotice").textContent = "Practice route restored. Continue with the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
@@ -759,6 +827,7 @@ journeySelect?.addEventListener("change", () => {
   updateDisciplineAvailability("");
   populatePrograms("");
   populateRanks();
+  refreshFocusSuggestion();
   refreshHybridAvailability();
 });
 
@@ -771,6 +840,7 @@ sessionTypeButtons.forEach(button => button.addEventListener("click", () => {
 
 modeButtons.forEach(button => button.addEventListener("click", () => {
   selectedMode = button.dataset.mode || "hybrid";
+  refreshFocusSuggestion();
   updateModeButtons();
   updateConditionalControls();
   updateSummary();
@@ -787,6 +857,7 @@ roomSelect.addEventListener("change", () => {
 disciplineFamilySelect?.addEventListener("change", () => {
   populatePrograms("");
   populateRanks();
+  refreshFocusSuggestion();
   refreshHybridAvailability();
 });
 
@@ -831,6 +902,7 @@ populateJourneys();
 populatePrograms();
 populateWeeks();
 populateRanks();
+refreshFocusSuggestion();
 renderDurationChoices();
 updateModeButtons();
 updateConditionalControls();
