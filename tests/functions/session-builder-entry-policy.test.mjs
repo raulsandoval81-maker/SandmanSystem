@@ -121,20 +121,22 @@ test("guided setup separates session type, duration, and build mode", () => {
 });
 
 
-test("guided setup opens a separate Practice Context screen", () => {
+test("guided setup opens Screen 3 Practice Route with journey-led discipline dropdowns", () => {
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
 
   assert.match(html, /id="guidedSetupScreen"/);
   assert.match(html, /id="practiceContextScreen" hidden/);
-  assert.match(html, /Continue to Practice Context/);
-  assert.match(html, /What are you coaching\?/);
-  assert.match(html, /data-discipline="wrestling"/);
-  assert.match(html, /data-discipline="boxing"/);
+  assert.match(html, /Continue to Practice Route/);
+  assert.match(html, /Screen 3 · Practice Route/);
+  assert.match(html, /id="journeySelect"/);
+  assert.match(html, /id="disciplineFamilySelect" class="dashboard-select"/);
+  assert.doesNotMatch(html, /data-discipline=/);
   assert.doesNotMatch(html, /<label for="roomSelect">Room<\/label>/);
   assert.match(html, /<select id="roomSelect" hidden/);
   assert.match(builder, /function showPracticeContext\(/);
-  assert.match(builder, /programField\.hidden = programs\.length <= 1/);
+  assert.match(builder, /function populateJourneys\(/);
+  assert.match(builder, /function updateDisciplineAvailability\(/);
 });
 
 
@@ -143,7 +145,7 @@ test("Session Builder excludes fitness discipline from guided practice", () => {
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   assert.doesNotMatch(html, /data-discipline="striking"/);
   assert.doesNotMatch(html, />Fitness \/ Striking</);
-  assert.match(builder, /programId !== "fitness-striking"/);
+  assert.match(builder, /"fitness-striking"/);
 });
 
 
@@ -170,4 +172,20 @@ test("practice route is Screen 3, attendance is Screen 4, Clipboard is Screen 5"
   assert.doesNotMatch(attendanceHtml, /Session Builder · Screen 3/);
   assert.doesNotMatch(attendanceJs, /athlete-number/);
   assert.match(attendanceJs, /clipboard-2\.0/);
+});
+
+
+test("focus tier and week follow Auto, Hybrid, and Manual behavior", () => {
+  const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+
+  assert.match(html, /id="rankSuggestion"/);
+  assert.match(html, /id="weekSuggestion"/);
+  assert.match(builder, /function matchingPriorFocus\(/);
+  assert.match(builder, /function refreshFocusSuggestion\(/);
+  assert.match(builder, /System choice/);
+  assert.match(builder, /Suggested/);
+  assert.match(builder, /Coach choice/);
+  assert.match(builder, /Sandman chooses/);
+  assert.doesNotMatch(builder, /disciplineButtons/);
 });
