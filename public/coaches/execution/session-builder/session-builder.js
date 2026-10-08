@@ -906,9 +906,14 @@ async function restoreCanonicalPractice(practiceId) {
   const response = await getPractice({ practiceId });
   const practice = response.data?.practice || {};
   if (String(practice.status || "").toLowerCase() !== "active") throw new Error("This practice is no longer active.");
+  const practiceLocation = String(practice.locationId || practice.academyId || "");
+  const practiceRoomId = String(practice.roomId || "");
   const room = SESSION_ROOMS.find((candidate) =>
-    candidate.locationId === String(practice.locationId || practice.academyId || "")
-      && candidate.roomId === String(practice.roomId || "")
+    candidate.locationId === practiceLocation && candidate.roomId === practiceRoomId
+  ) || SESSION_ROOMS.find((candidate) =>
+    practiceRoomId === "mat-1"
+      && candidate.locationId === practiceLocation
+      && candidate.roomId === "mat-1a"
   );
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
