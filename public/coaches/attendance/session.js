@@ -379,7 +379,15 @@ function renderAthletes() {
 
 async function startSession() {
   if (sessionLocked) {
-    setStatus("Today's session is already submitted. No more check-ins allowed.", true);
+    setStatus("Attendance is already submitted. Review the existing check-ins.", true);
+    const existing = await getDoc(doc(db, "attendance_sessions", activePractice.practiceId));
+    if (existing.exists()) {
+      checkedIn = new Map((Array.isArray(existing.data()?.checkedIn) ? existing.data().checkedIn : [])
+        .map(athlete => [athlete.id || athlete.uid, athlete]));
+      renderAthletes();
+      renderCheckedIn();
+    }
+    showStep(2);
     return;
   }
 
@@ -1069,6 +1077,17 @@ if (isBuilderFlow()) {
       setStatus(error?.message || "Could not start attendance.", true);
     });
 } else {
-  showStep(1);
-  loadAthletes();
+  // Session Builder has already established the canonical practice.
+  // Direct Attendance links go straight to athlete check-in as well.
+  loadAthletes()
+    .then(() => activePractice && startSession())
+    .catch(error => {
+      console.error("[session] attendance startup failed", error);
+      setStatus(error?.message || "Could not open attendance.", true);
+    });
 }
+
+// Step 1 is redundant: the practice was selected before Attendance.
+document.querySelector('[data-step-target="1"]')?.setAttribute("hidden", "");
+document.querySelector('[data-step-screen="1"]')?.setAttribute("hidden", "");
+
