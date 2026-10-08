@@ -1063,7 +1063,7 @@ function proposalActionHtml(status, id) {
   if (status === "AWAITING_CLIENT_SIGNATURE") {
     return `
       <button class="proposal-open-btn" type="button" data-proposal-action="send-membership-options" data-proposal-id="${esc(id)}">
-        Send Membership Options
+        ${hasActiveMembershipChoice(proposal) ? "Resend Membership Options" : "Send Membership Options"}
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="issue-client-review" data-proposal-id="${esc(id)}">
@@ -1498,7 +1498,35 @@ async function runProposalAction(button) {
   }
 }
 
-function proposalStageInfo(status = "") {
+function hasActiveMembershipChoice(
+  proposal = {}
+) {
+  return (
+    proposal.status ===
+      "AWAITING_CLIENT_SIGNATURE" &&
+    proposal
+      .membershipChoiceRequest
+      ?.active === true
+  );
+}
+
+function proposalStageInfo(
+  status = "",
+  proposal = {}
+) {
+  if (
+    hasActiveMembershipChoice(
+      proposal
+    )
+  ) {
+    return {
+      stage:
+        "Membership Choice",
+      next:
+        "Waiting for the family to choose a membership option."
+    };
+  }
+
   switch (status) {
     case "REVIEW":
       return { stage: "Client Review", next: "Issue the client review and await family response." };
@@ -1556,7 +1584,17 @@ function proposalCardHtml(
     );
 
   const stageInfo =
-    proposalStageInfo(status);
+    proposalStageInfo(
+      status,
+      proposal
+    );
+
+  const displayStatus =
+    hasActiveMembershipChoice(
+      proposal
+    )
+      ? "Membership Choice Pending"
+      : labelForStatus(status);
 
   const updated =
     proposal.updatedAt ||
@@ -1581,9 +1619,7 @@ function proposalCardHtml(
 
         <span class="proposal-status">
           ${esc(
-            labelForStatus(
-              status
-            )
+            displayStatus
           )}
         </span>
       </div>
