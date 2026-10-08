@@ -104,6 +104,11 @@ const enrollmentStartDate =
     "enrollmentStartDate"
   );
 
+const startAnnualThisMonthBtn =
+  document.getElementById(
+    "startAnnualThisMonthBtn"
+  );
+
 const enrollmentSupport =
   document.getElementById("enrollmentSupport");
 
@@ -1258,6 +1263,63 @@ addAthleteBtn?.addEventListener(
     });
   }
 );
+
+
+function startAnnualThisMonth() {
+  const today =
+    new Date();
+
+  const year =
+    today.getFullYear();
+
+  const month =
+    String(
+      today.getMonth() + 1
+    ).padStart(2, "0");
+
+  if (enrollmentStartDate) {
+    enrollmentStartDate.value =
+      `${year}-${month}-01`;
+  }
+
+  athleteList
+    .querySelectorAll(
+      ".pricing-athlete"
+    )
+    .forEach((card) => {
+      const plan =
+        card.querySelector(
+          ".athlete-plan"
+        )?.value;
+
+      if (plan !== "standard") {
+        return;
+      }
+
+      const billingTerm =
+        card.querySelector(
+          ".billing-term"
+        );
+
+      if (billingTerm) {
+        billingTerm.value =
+          "annual";
+      }
+    });
+
+  renderPricing();
+
+  if (pricingSourceStatus) {
+    pricingSourceStatus.textContent =
+      "12-month transition applied. Prior paid months remain in Billing; this checkout starts with the current month.";
+  }
+}
+
+startAnnualThisMonthBtn
+  ?.addEventListener(
+    "click",
+    startAnnualThisMonth
+  );
 
 enrollmentStartDate?.addEventListener(
   "input",
