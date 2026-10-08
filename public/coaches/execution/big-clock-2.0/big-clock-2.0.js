@@ -229,6 +229,23 @@ async function setState(state) {
   }
 }
 
+function matLaneLabel(session = {}) {
+  const roomId = String(session.roomId || "").toLowerCase();
+  if (roomId === "mat-1a") return "Mat 1A";
+  if (roomId === "mat-1b") return "Mat 1B";
+  if (roomId === "mat-1") return "Mat 1A";
+  return session.sessionId || "Mat 1";
+}
+
+function renderLaneIdentity() {
+  const session = getSessionPayload();
+  const label = matLaneLabel(session);
+  const readyLane = document.getElementById("clockMatLane");
+  if (readyLane) readyLane.textContent = label;
+  const brand = document.querySelector(".brand");
+  if (brand) brand.textContent = `Sandman Combat · ${label}`;
+}
+
 function getPayload() {
   try {
     return JSON.parse(localStorage.getItem(PAYLOAD_KEY) || "{}");
@@ -735,6 +752,7 @@ function showQrPanel(url, title = "Scan QR") {
   qrPanel?.classList.add("active");
 }
 
+renderLaneIdentity();
 render();
 
 setInterval(render, 250);
