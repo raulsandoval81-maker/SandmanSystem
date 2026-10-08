@@ -324,6 +324,36 @@ function notesDraftKey() {
   const session = getCoachSessionPayload();
   return session?.practiceId ? NOTES_DRAFT_PREFIX + session.practiceId : "";
 }
+const OBSERVATION_IDS = ["teamNotes", "eventNotes", "generalNotes"];
+const individualNotes = {};
+function observationSnapshot() {
+  const notes = {};
+  OBSERVATION_IDS.forEach(id => { notes[id] = document.getElementById(id)?.value || ""; });
+  const selected = document.getElementById("athleteNoteSelect")?.value || "";
+  if (selected) individualNotes[selected] = document.getElementById("athleteNoteText")?.value || "";
+  return { ...notes, individualNotes: { ...individualNotes } };
+}
+function setupAthleteNotes() {
+  const select = document.getElementById("athleteNoteSelect");
+  const input = document.getElementById("athleteNoteText");
+  if (!select || !input) return;
+  const groups = getCoachSessionPayload()?.trainingGroups || [];
+  const athletes = new Map();
+  groups.forEach(group => {
+    (group.athleteIds || []).forEach((id,index) => {
+      if (id) athletes.set(String(id), String(group.athleteNames?.[index] || id));
+    });
+  });
+  select.innerHTML = '<option value="">Choose an athlete</option>';
+  athletes.forEach((name,id) => {
+    const option=document.createElement("option");
+    option.value=id; option.textContent=name; select.appendChild(option);
+  });
+  select.addEventListener("change", () => {
+    input.disabled=!select.value;
+    input.value=select.value ? individualNotes[select.value] || "" : "";
+  });
+}
 function saveNotesDraft() {
   const key = notesDraftKey();
   if (!key) return;
@@ -336,6 +366,7 @@ function saveNotesDraft() {
       practiceId: getCoachSessionPayload().practiceId,
       focus: focusEl?.value || "",
       notes,
+      observations: observationSnapshot(),
       updatedAt: new Date().toISOString()
     }));
     setStatus("Daily Practice Log draft saved on this device.");
@@ -357,6 +388,12 @@ function restoreNotesDraft() {
         autoGrow(el);
       }
     });
+    const observations = draft.observations || {};
+    OBSERVATION_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && typeof observations[id] === "string") el.value = observations[id];
+    });
+    Object.assign(individualNotes, observations.individualNotes || {});
     if (focusEl && typeof draft.focus === "string") {
       focusEl.value = draft.focus;
       autoGrow(focusEl);
@@ -618,6 +655,7 @@ window.endPractice = async function () {
       focus: focusEl?.value.trim() || session.focus || "",
       coachSession: session,
       blocks: getCompanionBlocks(),
+      observations: observationSnapshot(),
       savedAt: new Date().toISOString()
     };
     saveNotesDraft();
@@ -654,7 +692,9 @@ function autoGrow(el) {
 document.addEventListener("input", e => {
   if (
     e.target.classList.contains("slot-notes-input") ||
-    e.target.id === "slot-note"
+    e.target.id === "slot-note" ||
+    OBSERVATION_IDS.includes(e.target.id) ||
+    e.target.id === "athleteNoteText"
   ) {
     autoGrow(e.target);
     saveNotesDraft();
@@ -693,6 +733,7 @@ function escapeHtml(value) {
   hydrationComplete = true;
 
   renderCoachSession();
+  setupAthleteNotes();
   restoreNotesDraft();
 
   document.querySelectorAll(".slot-notes-input").forEach(autoGrow);
