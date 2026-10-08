@@ -505,7 +505,7 @@ window.savePlan = async function () {
   try {
     const session = getCoachSessionPayload();
 
-    await setDoc(doc(db, "practicePlans", new Date().toISOString().slice(0, 10)), {
+    await setDoc(doc(db, "practicePlans", session?.practiceId || `legacy-${new Date().toISOString().slice(0, 10)}`), {
       source: "coach-companion",
 
       schema:
