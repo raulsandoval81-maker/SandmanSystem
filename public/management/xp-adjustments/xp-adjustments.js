@@ -123,10 +123,14 @@ const experienceQueueBadge =
 const experienceQueueNote =
   $("experienceQueueNote");
 
+const experienceQueueList =
+  $("experienceQueueList");
+
 let athlete = null;
 let selectedDiscipline = "";
 let activeXpMode = "adjustment";
 let experienceQueueCount = 0;
+let experienceQueuePins = [];
 
 function setXpMode(mode) {
   const requestedMode =
@@ -197,6 +201,23 @@ function setXpMode(mode) {
         experienceActive;
     }
   }
+
+  if (searchForm) {
+    searchForm.hidden = experienceActive;
+  }
+
+  if (searchStatus) {
+    searchStatus.hidden = experienceActive;
+  }
+
+  if (searchResults) {
+    searchResults.hidden = experienceActive;
+  }
+
+  if (experienceQueueList) {
+    experienceQueueList.hidden =
+      !experienceActive;
+  }
 }
 
 experienceModeButton?.addEventListener(
@@ -232,6 +253,190 @@ function returnedExperienceQueue(pins = []) {
       clean(pin.status).toUpperCase() ===
       "RETURNED_TO_MANAGEMENT"
   );
+}
+
+function queuePinLabel(pin = {}) {
+  const name =
+    clean(pin.athleteName) ||
+    clean(pin.athleteUid) ||
+    "Athlete";
+
+  const discipline =
+    disciplineLabel(
+      clean(
+        pin.discipline ||
+        pin.disciplineId
+      )
+    );
+
+  const plan =
+    experiencePlan(
+      pin.priorExperience || {}
+    );
+
+  return {
+    name,
+    discipline,
+    plan
+  };
+}
+
+function renderExperienceQueueList() {
+  if (!experienceQueueList) {
+    return;
+  }
+
+  if (!experienceQueuePins.length) {
+    experienceQueueList.innerHTML = `
+      <p class="xp-static-state">
+        No Coach-returned assessments are waiting.
+      </p>
+    `;
+    return;
+  }
+
+  experienceQueueList.innerHTML = `
+    <div class="experience-queue-head">
+      <strong>Returned Coach Assessments</strong>
+      <span>Select an athlete to review the handoff.</span>
+    </div>
+
+    <div class="experience-queue-grid">
+      ${experienceQueuePins.map((pin, index) => {
+        const label = queuePinLabel(pin);
+
+        return `
+          <button
+            class="experience-queue-card"
+            type="button"
+            data-experience-pin-index="${index}"
+          >
+            <span class="experience-queue-card__identity">
+              <strong>${esc(label.name)}</strong>
+              <small>
+                ${esc(clean(pin.athleteUid))}
+                ·
+                ${esc(label.discipline)}
+              </small>
+            </span>
+
+            <span class="experience-queue-card__plan">
+              ${esc(label.plan.label)}
+              ·
+              ${esc(label.plan.now)} XP now
+              ${label.plan.held
+                ? ` · ${esc(label.plan.held)} held`
+                : ""}
+            </span>
+
+            <span class="experience-queue-card__open">
+              Review →
+            </span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  experienceQueueList
+    .querySelectorAll(
+      "[data-experience-pin-index]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const pin =
+            experienceQueuePins[
+              Number(
+                button.dataset
+                  .experiencePinIndex
+              )
+            ];
+
+          if (!pin) {
+            return;
+          }
+
+          button.disabled = true;
+
+          try {
+            const memberMatches =
+              await findMembers(
+                clean(pin.athleteUid) ||
+                clean(pin.athleteName)
+              );
+
+            const exact =
+              memberMatches.find(
+                (member) =>
+                  clean(member.athleteId)
+                    .toLowerCase() ===
+                  clean(pin.athleteUid)
+                    .toLowerCase()
+              ) ||
+              memberMatches[0];
+
+            if (!exact) {
+              throw new Error(
+                "Athlete record not found in Management scope."
+              );
+            }
+
+            setXpMode("experience");
+            renderAthlete(exact);
+
+            const pinDiscipline =
+              clean(
+                pin.discipline ||
+                pin.disciplineId
+              ).toLowerCase();
+
+            if (pinDiscipline) {
+              selectedDiscipline =
+                pinDiscipline;
+
+              const disciplineSelect =
+                $("disciplineSelect");
+
+              if (disciplineSelect) {
+                disciplineSelect.value =
+                  pinDiscipline;
+              }
+
+              renderProgressionSummary();
+              adjustmentPanel.hidden = false;
+              await loadSelectedExperience();
+              setXpMode("experience");
+            }
+
+            selectedAthlete
+              ?.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+
+          } catch (error) {
+            console.error(
+              "[management-xp] queue selection failed",
+              error
+            );
+
+            setSearchStatus(
+              error?.message ||
+              "Unable to open returned assessment.",
+              true
+            );
+
+            if (searchStatus) {
+              searchStatus.hidden = false;
+            }
+          } finally {
+            button.disabled = false;
+          }
+        }
+      );
+    });
 }
 
 function renderExperienceQueueState(count) {
@@ -288,9 +493,21 @@ async function refreshExperienceQueue() {
         ? response.data.pins
         : [];
 
+    experienceQueuePins =
+      returnedExperienceQueue(pins);
+
     renderExperienceQueueState(
-      returnedExperienceQueue(pins).length
+      experienceQueuePins.length
     );
+
+    renderExperienceQueueList();
+
+    if (
+      experienceQueuePins.length > 0 &&
+      !athlete
+    ) {
+      setXpMode("experience");
+    }
   } catch (error) {
     console.error(
       "[management-xp] queue lookup failed",
