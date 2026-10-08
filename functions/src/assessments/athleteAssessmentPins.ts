@@ -1148,7 +1148,9 @@ export const reopenAthleteAssessmentPin = onCall(async (req) => {
     );
   }
 
-  const staff = await requireStaff(req.auth.uid);
+  const actorUid = req.auth.uid;
+
+  const staff = await requireStaff(actorUid);
 
   if (!staff.isAdmin && !staff.isManagement) {
     throw new HttpsError(
@@ -1260,7 +1262,7 @@ export const reopenAthleteAssessmentPin = onCall(async (req) => {
           type: "REOPEN_ZERO_XP_CLOSEOUT",
           reason,
           reopenedAt: now,
-          reopenedBy: req.auth.uid,
+          reopenedBy: actorUid,
           recognitionGeneration
         },
 
