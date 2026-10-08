@@ -7,7 +7,7 @@
   <title>Athlete Check-In | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261008-3" />
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261008-4" />
 </head>
 
 <body class="coach-shell-page attendance-checkin" data-coach-page="Athlete Check-In" data-coach-area="practice">
@@ -30,6 +30,9 @@
       </button>
       <button class="attendance-step" type="button" data-step-target="3" disabled>
         <span>3</span><strong>Review</strong>
+      </button>
+      <button id="contextStepNav" class="attendance-step" type="button" data-step-target="4" disabled hidden>
+        <span>4</span><strong>Context</strong>
       </button>
     </nav>
 
@@ -134,9 +137,49 @@
         </div>
       </section>
     </section>
+
+    <section id="practiceContextStep" class="attendance-screen" data-step-screen="4" hidden>
+      <section class="attendance-card attendance-card--focus">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Practice Context</span>
+            <h2>Tier & Training Week</h2>
+            <p class="muted">Sandman uses the athletes who checked in to suggest today’s practice context. Coach can confirm or change it.</p>
+          </div>
+        </div>
+
+        <div class="context-suggestion-grid">
+          <label>
+            Tier
+            <select id="contextTierSelect">
+              <option value="">Sandman Suggests</option>
+            </select>
+            <span id="contextTierSuggestion" class="muted"></span>
+          </label>
+
+          <label>
+            Training Week
+            <select id="contextWeekSelect">
+              <option value="">Sandman Suggests</option>
+            </select>
+            <span id="contextWeekSuggestion" class="muted"></span>
+          </label>
+        </div>
+
+        <div class="context-summary">
+          <span class="label">Current Practice Context</span>
+          <strong id="contextSummary">Waiting for attendance.</strong>
+        </div>
+
+        <div class="screen-actions screen-actions--split">
+          <button id="backToReviewBtn" type="button">← Review Attendance</button>
+          <button id="finishContextBtn" class="primary" type="button">Continue to Clipboard</button>
+        </div>
+      </section>
+    </section>
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261008-4"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-5"></script>
 </body>
 </html>
