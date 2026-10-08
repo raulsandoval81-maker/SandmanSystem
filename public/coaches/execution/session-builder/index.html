@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-14">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-15">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -53,18 +53,10 @@
             <strong>Mat 1</strong>
           </div>
 
-          <div>
-            <span class="eyebrow">Session lane</span>
-            <div class="choice-grid choice-grid--two" id="matLaneChoices">
-              <button class="setup-choice active" type="button" data-mat-lane="A" aria-pressed="true">
-                <strong>Session 1A</strong>
-                <span>First session lane on Mat 1.</span>
-              </button>
-              <button class="setup-choice" type="button" data-mat-lane="B" aria-pressed="false">
-                <strong>Session 1B</strong>
-                <span>Second session lane on Mat 1.</span>
-              </button>
-            </div>
+          <div class="mat-session-room">
+            <span class="eyebrow">Primary session</span>
+            <strong>Session 1A</strong>
+            <span class="field-guidance">Add Session 1B later only when a second route is needed.</span>
           </div>
         </div>
       </div>
@@ -146,6 +138,35 @@
               <option value="">Select Journey and Discipline</option>
             </select>
           </div>
+
+          <div class="secondary-session-add">
+            <button id="addSecondSessionBtn" class="secondary-button" type="button">+ Add Session 1B</button>
+            <p class="field-guidance">Optional. Use only when a second Journey / Discipline is running on Mat 1 at the same time.</p>
+          </div>
+
+          <section id="secondarySessionRoute" class="secondary-session-route" hidden>
+            <div class="secondary-session-head">
+              <div>
+                <span class="eyebrow">Session 1B · Optional</span>
+                <h3>Second practice route</h3>
+              </div>
+              <button id="removeSecondSessionBtn" class="secondary-button" type="button">Remove Session 1B</button>
+            </div>
+
+            <div class="field">
+              <label for="secondJourneySelect">Journey</label>
+              <select id="secondJourneySelect" class="dashboard-select">
+                <option value="">Select Journey</option>
+              </select>
+            </div>
+
+            <div class="field" id="secondDisciplineField" hidden>
+              <label for="secondDisciplineSelect">Discipline</label>
+              <select id="secondDisciplineSelect" class="dashboard-select">
+                <option value="">Select Discipline</option>
+              </select>
+            </div>
+          </section>
         </div>
 
         <aside class="selection-summary" aria-live="polite">
@@ -157,6 +178,7 @@
             <div><dt>Session</dt><dd id="summarySession">Session 1A</dd></div>
             <div><dt>Journey</dt><dd id="summaryJourney">Select a journey</dd></div>
             <div><dt>Discipline</dt><dd id="summaryDiscipline">Select a discipline</dd></div>
+            <div id="summarySecondSessionRow" hidden><dt>Session 1B</dt><dd id="summarySecondSession">Not added</dd></div>
           </dl>
           <p id="summaryAvailability" class="summary-availability">Choose a journey and discipline to continue.</p>
           <button id="buildBtn" class="primary-action build-action" type="button">Continue to Attendance</button>
@@ -168,6 +190,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-24"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-25"></script>
 </body>
 </html>
