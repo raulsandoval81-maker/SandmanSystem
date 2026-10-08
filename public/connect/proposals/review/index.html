@@ -248,6 +248,40 @@
       margin: 0;
     }
 
+    .membership-choice-grid {
+      display: grid;
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .membership-choice-card {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+      border: 1px solid #d4c7ad;
+      border-radius: 14px;
+      background: #fffaf0;
+      padding: 16px;
+      cursor: pointer;
+    }
+
+    .membership-choice-card input {
+      margin-top: 4px;
+    }
+
+    .membership-choice-card strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .membership-choice-card span {
+      display: block;
+      color: #514b43;
+      line-height: 1.45;
+    }
+
     .signature-shell {
       background: #faf6ed;
     }
@@ -591,6 +625,36 @@
             then completes Review & Confirm for the locked enrollment
             and billing details before continuing to secure payment.
           </p>
+        </section>
+
+        <section
+          id="membershipChoiceSection"
+          class="proposal-section"
+          hidden
+        >
+          <p class="section-label">
+            Choose Your Membership
+          </p>
+
+          <p
+            id="membershipChoiceContext"
+            class="terms-copy"
+          ></p>
+
+          <div
+            id="membershipChoiceOptions"
+            class="membership-choice-grid"
+          ></div>
+
+          <div class="client-actions">
+            <button
+              id="submitMembershipChoiceButton"
+              class="client-button primary"
+              type="button"
+            >
+              Confirm Membership Choice
+            </button>
+          </div>
         </section>
 
         <section
