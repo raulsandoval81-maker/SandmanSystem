@@ -908,6 +908,104 @@ function visibleItems() {
     );
 }
 
+
+function formatPriorPaymentPeriod(value = "") {
+  const match =
+    clean(value).match(
+      /^(\d{4})-(\d{2})$/
+    );
+
+  if (!match) {
+    return value || "—";
+  }
+
+  const date =
+    new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      1
+    );
+
+  return date.toLocaleDateString(
+    [],
+    {
+      month: "long",
+      year: "numeric"
+    }
+  );
+}
+
+function priorPaymentSummaryHtml(item) {
+  const payments =
+    Array.isArray(item.priorPayments)
+      ? item.priorPayments
+      : [];
+
+  if (!payments.length) {
+    return "";
+  }
+
+  return `
+    <div class="billing-prior-payments">
+      <small>Prior payments recorded</small>
+
+      <div class="billing-prior-payment-list">
+        ${payments
+          .map((payment) => {
+            const periods =
+              Array.isArray(payment.periods)
+                ? payment.periods
+                : [];
+
+            const first =
+              periods[0] || "";
+
+            const last =
+              periods[
+                periods.length - 1
+              ] || first;
+
+            const periodLabel =
+              first && last && first !== last
+                ? `${formatPriorPaymentPeriod(first)} – ${formatPriorPaymentPeriod(last)}`
+                : formatPriorPaymentPeriod(first);
+
+            const method =
+              clean(payment.paymentMethod)
+                .toLowerCase() === "check"
+                ? "Check"
+                : "Cash";
+
+            const amount =
+              moneyFromCents(
+                payment.amountCents
+              );
+
+            const enrollment =
+              payment.enrollmentFeeIncluded
+                ? "Enrollment included"
+                : "Enrollment not included";
+
+            return `
+              <div class="billing-prior-payment-item">
+                <strong>
+                  ${esc(periodLabel)} ·
+                  ${esc(method)} ·
+                  ${esc(amount)}
+                </strong>
+
+                <span>
+                  ${esc(enrollment)}
+                </span>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    </div>
+  `;
+}
+
 function render() {
   const items =
     visibleItems();
@@ -980,6 +1078,8 @@ function render() {
                 )}
               </strong>
             </div>
+
+            ${priorPaymentSummaryHtml(item)}
 
             <div class="billing-actions">
               ${item.canRecordPriorPayment
