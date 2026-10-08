@@ -502,6 +502,13 @@ function renderDrillPanel(current, elapsedSeconds) {
 
 function render() {
   const data = getState();
+  const liveTools = document.getElementById("liveCompanionTools");
+  const liveVisible = Boolean(data.running || data.paused) && !data.complete;
+  liveTools?.classList.toggle("hidden", !liveVisible);
+  if (!liveVisible) {
+    document.getElementById("liveCompanionPanel")?.classList.add("hidden");
+    document.getElementById("liveCompanionToggle")?.setAttribute("aria-expanded", "false");
+  }
   // Never show the ready overlay over a running, paused, or completed session.
   const ready = document.getElementById("readyScreen");
   if (ready && (data.running || data.paused || data.complete)) {
@@ -686,6 +693,25 @@ window.startPracticeNow = async function () {
   } finally {
     if (startButton) startButton.disabled = false;
   }
+};
+
+window.toggleLiveCompanionQr = function () {
+  const panel = document.getElementById("liveCompanionPanel");
+  const button = document.getElementById("liveCompanionToggle");
+  const image = document.getElementById("liveCompanionQr");
+  if (!panel || !button || !image) return;
+  const opening = panel.classList.contains("hidden");
+  if (opening) {
+    const session = getSessionPayload();
+    const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1";
+    const url = `${window.location.origin}/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
+    if (image.dataset.url !== url) {
+      image.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(url)}`;
+      image.dataset.url = url;
+    }
+  }
+  panel.classList.toggle("hidden", !opening);
+  button.setAttribute("aria-expanded", String(opening));
 };
 
 window.showBigClockQr = function () {
