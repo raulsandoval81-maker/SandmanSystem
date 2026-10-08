@@ -1501,3 +1501,98 @@ body.clock-mode .clock-toggle{
     grid-column:auto;
   }
 }
+
+/* =========================
+   PRACTICE HANDOFF
+========================= */
+.clipboard-handoff{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:18px;
+  margin-top:20px;
+  padding:16px 18px;
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:14px;
+  background:
+    linear-gradient(135deg,rgba(212,175,55,.08),rgba(255,255,255,.025)),
+    var(--panel);
+  box-shadow:0 12px 28px rgba(0,0,0,.18);
+}
+
+.clipboard-handoff-copy{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+
+.clipboard-handoff-kicker{
+  color:var(--gold);
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.clipboard-handoff-copy strong{
+  font-size:1rem;
+  line-height:1.25;
+}
+
+.clipboard-handoff-copy > span:last-child{
+  color:var(--muted);
+  font-size:.8rem;
+  line-height:1.4;
+}
+
+.clipboard-handoff-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.clipboard-clock-action{
+  min-height:46px;
+  padding:0 18px;
+  border-radius:11px;
+  font-size:.82rem;
+  letter-spacing:.02em;
+  text-transform:none;
+  box-shadow:0 8px 20px rgba(212,175,55,.16);
+}
+
+.clipboard-clear-action{
+  min-height:40px;
+  padding:0 12px;
+  border-color:rgba(239,68,68,.2);
+  background:transparent;
+  color:var(--muted);
+  font-size:.72rem;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+.clipboard-clear-action:hover,
+.clipboard-clear-action:focus-visible{
+  border-color:rgba(239,68,68,.55);
+  background:rgba(239,68,68,.07);
+  color:#ef7777;
+}
+
+@media(max-width:720px){
+  .clipboard-handoff{
+    grid-template-columns:1fr;
+    gap:14px;
+    padding:14px;
+  }
+
+  .clipboard-handoff-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .clipboard-clock-action,
+  .clipboard-clear-action{
+    width:100%;
+  }
+}
