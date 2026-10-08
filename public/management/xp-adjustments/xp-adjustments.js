@@ -796,8 +796,15 @@ function renderExperienceValidation(pin) {
     Number(plan.held || 0) === 0;
   const recognitionStatus = clean(pin.experienceRecognitionStatus).toUpperCase();
   const resolved = recognitionStatus === "AWARDED" || recognitionStatus === "REJECTED";
-  const placementRecorded =
-    clean(pin.status).toUpperCase() === "PLACEMENT_RECORDED";
+  const assessmentStatus =
+    clean(pin.status).toUpperCase();
+
+  const reopenEligible =
+    [
+      "RETURNED_TO_MANAGEMENT",
+      "PLACEMENT_RECORDED"
+    ].includes(assessmentStatus) &&
+    noRecognitionXp;
   const coachNotes = clean(pin.coachNotes) || "No additional Coach notes.";
   const placement = clean(pin.placementRecommendation) || "—";
 
@@ -835,7 +842,7 @@ function renderExperienceValidation(pin) {
 
     <div class="action-row">
       ${
-        placementRecorded && noRecognitionXp
+        reopenEligible
           ? `<button id="reopenAssessmentButton" class="button button-secondary" type="button">Reopen Assessment</button>`
           : resolved
             ? `<button id="recordPlacementButton" class="button button-primary" type="button">Complete Assessment</button>`
