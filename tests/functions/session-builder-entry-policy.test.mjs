@@ -119,3 +119,20 @@ test("guided setup separates session type, duration, and build mode", () => {
   assert.match(clipboard, /"academy-75"/);
   assert.match(clipboard, /"academy-120"/);
 });
+
+
+test("guided setup opens a separate Practice Context screen", () => {
+  const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+
+  assert.match(html, /id="guidedSetupScreen"/);
+  assert.match(html, /id="practiceContextScreen" hidden/);
+  assert.match(html, /Continue to Practice Context/);
+  assert.match(html, /What are you coaching\?/);
+  assert.match(html, /data-discipline="wrestling"/);
+  assert.match(html, /data-discipline="boxing"/);
+  assert.doesNotMatch(html, /<label for="roomSelect">Room<\/label>/);
+  assert.match(html, /<select id="roomSelect" hidden/);
+  assert.match(builder, /function showPracticeContext\(/);
+  assert.match(builder, /programField\.hidden = programs\.length <= 1/);
+});
