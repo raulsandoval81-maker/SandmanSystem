@@ -530,8 +530,40 @@ function getActiveSession() {
     journey: builderSession.journey || "",
     discipline: String(builderSession.discipline || "").toLowerCase(),
     tier: String(builderSession.tier || "").trim(),
-    week: String(builderSession.week || "").trim()
+    week: String(builderSession.week || "").trim(),
+    trainingGroups: Array.isArray(builderSession.trainingGroups) ? builderSession.trainingGroups : [],
+    carryForwardNote: String(builderSession.carryForwardNote || "").trim()
   };
+}
+
+function renderClipboardTrainingGroups() {
+  const el = document.getElementById("clipboardTrainingGroups");
+  if (!el) return;
+
+  const session = getActiveSession();
+  const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups.slice(0, 3) : [];
+  if (!groups.length) {
+    el.hidden = true;
+    el.innerHTML = "";
+    return;
+  }
+
+  el.hidden = false;
+  el.innerHTML = groups.map((group, index) => {
+    const tier = String(group.tier || "T0").toUpperCase();
+    const note = String(group.carryForwardNote || "").trim();
+    const names = Array.isArray(group.athleteNames) && group.athleteNames.length
+      ? group.athleteNames.join(", ")
+      : "";
+    return `
+      <article class="clipboard-group-chip" data-tier="${tier}">
+        <span class="clipboard-group-label">Group ${index + 1}</span>
+        <strong>${group.ageGroup || "Athletes"} · ${tier} ${group.rank || ""}</strong>
+        <span>Session ${group.trainingSession || session.week || "1"}${names ? ` · ${names}` : ""}</span>
+        ${note ? `<em>Carry forward: ${note}</em>` : ""}
+      </article>
+    `;
+  }).join("");
 }
 
 let draftSaveTimer = null;
@@ -1288,6 +1320,8 @@ window.runPractice = async function () {
     journey: session.journey,
     tier: session.tier,
     week: session.week,
+    trainingGroups: session.trainingGroups,
+    carryForwardNote: session.carryForwardNote,
 
     blocks,
     autoStart: false,
@@ -1310,6 +1344,8 @@ window.runPractice = async function () {
     journey: session.journey,
     tier: session.tier,
     week: session.week,
+    trainingGroups: session.trainingGroups,
+    carryForwardNote: session.carryForwardNote,
 
     focus:
       document.getElementById("slot-note")?.value.trim() || "",
@@ -1628,6 +1664,8 @@ async function saveCurrentPlanToFirestore() {
     discipline: session.discipline,
     journey: session.journey,
     tier: session.tier,
+    trainingGroups: session.trainingGroups,
+    carryForwardNote: session.carryForwardNote,
 
     singleFocus:
       SCHEMAS[currentSchema]?.mode === "single"
@@ -2100,6 +2138,7 @@ function updateSupportLinks() {
   loadCurrentSchema();
   attachTimerSelectors();
   updateSupportLinks();
+  renderClipboardTrainingGroups();
   installDrillBlockEditors();
   restoreDraft(storedDraft);
 
