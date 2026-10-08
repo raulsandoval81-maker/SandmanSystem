@@ -853,13 +853,13 @@ function renderExperienceValidation(pin) {
       coachReconfirmed
         ? `
             <p class="status-line">
-              Coach Reconfirmed — reassessment completed. Management may accept the 0 XP result or reopen again with documented reason.
+              Coach Reconfirmed — second review completed. Management may proceed with the recommendation or send it back again with a documented reason.
             </p>
           `
         : reopenEligible
           ? `
               <p class="status-line is-warning">
-                Review Recommended — 0 XP return may need reassessment before closeout.
+                System Flag — this return looks incomplete or unusual. Send it back to Coach for a second confirmation, or proceed with the current recommendation.
               </p>
             `
           : ""
@@ -875,7 +875,7 @@ function renderExperienceValidation(pin) {
                   Reopen Assessment
                 </button>
                 <button id="approveExperienceButton" class="button button-primary" type="button">
-                  Proceed · Complete With No Recognition XP
+                  Proceed With Recommendation
                 </button>
               `
           : resolved
@@ -883,7 +883,7 @@ function renderExperienceValidation(pin) {
           : noRecognitionXp
             ? `
                 <button id="approveExperienceButton" class="button button-primary" type="button">
-                  Proceed · Complete With No Recognition XP
+                  Proceed With Recommendation
                 </button>
               `
             : `
