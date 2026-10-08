@@ -995,3 +995,43 @@ export const closePracticeSession = onCall(async (request) => {
   });
   return { ok: true, practiceId, status: "closed", idempotent };
 });
+
+
+/** Coach-owned, practice-scoped working log. Separate from immutable plan and final reflection. */
+export const saveDailyPracticeLog = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
+  const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach access required.");
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+  const input = request.data?.log || {};
+  const notes: Record<string, string> = {};
+  for (const [key, value] of Object.entries(input.blockNotes || {})) {
+    if (/^[a-z0-9_-]{1,40}$/i.test(key)) notes[key] = compactString(value, 4000);
+  }
+  const individualNotes: Record<string, string> = {};
+  for (const [id, value] of Object.entries(input.individualNotes || {})) {
+    if (/^[a-zA-Z0-9_-]{1,160}$/.test(id)) individualNotes[id] = compactString(value, 4000);
+  }
+  const db = getFirestore();
+  const ref = db.doc(`practiceSessions/${practiceId}`);
+  await db.runTransaction(async tx => {
+    const snap = await tx.get(ref);
+    if (!snap.exists) throw new HttpsError("not-found", "Practice not found.");
+    const practice = snap.data() || {};
+    requirePracticeOwner(actor, practice);
+    if (practice.status !== "active") throw new HttpsError("failed-precondition", "Closed practice logs cannot be edited.");
+    tx.update(ref, {
+      dailyPracticeLog: {
+        blockNotes: notes,
+        focus: compactString(input.focus, 4000),
+        teamNotes: compactString(input.teamNotes, 4000),
+        eventNotes: compactString(input.eventNotes, 4000),
+        generalNotes: compactString(input.generalNotes, 4000),
+        individualNotes,
+        savedBy: actor.uid,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+  return { ok: true, practiceId };
+});
