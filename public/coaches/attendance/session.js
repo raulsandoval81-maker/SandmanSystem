@@ -104,16 +104,40 @@ function athleteDisciplines(a = {}) {
   return raw.map((value) => String(value).trim().toLowerCase());
 }
 
+function journeyDisplay(value = "") {
+  const raw = String(value || "").trim();
+  const key = raw.toLowerCase().replace(/[\s_-]+/g, "");
+  if (["z2h", "zero2hero", "road2champion"].includes(key)) return "Road2Champion";
+  if (["p2l", "path2legend"].includes(key)) return "Path2Legend";
+  if (["q2m", "quest2mastery"].includes(key)) return "Quest2Mastery";
+  return raw;
+}
+
+function disciplineDisplay(value = "") {
+  const raw = String(value || "").trim().toLowerCase();
+  return ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    "muay-thai": "Muay Thai",
+    muaythai: "Muay Thai",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling",
+    striking: "Striking"
+  })[raw] || String(value || "").trim();
+}
+
 function athleteRouteDetail(a = {}) {
   return [
-    a.journey || a.programTrack || a.program || "",
-    a.discipline || a.primaryDiscipline || "",
+    journeyDisplay(a.journey || a.programTrack || a.program || ""),
+    disciplineDisplay(a.discipline || a.primaryDiscipline || ""),
     a.rank || a.tier || ""
   ].filter(Boolean).join(" · ");
 }
 
 function getPracticeType() {
-  return `${activePractice?.journey || "session"}-${activePractice?.discipline || "practice"}`;
+  return [journeyDisplay(activePractice?.journey), disciplineDisplay(activePractice?.discipline)]
+    .filter(Boolean)
+    .join(" · ") || "practice";
 }
 
 function matLabel() {
@@ -200,18 +224,33 @@ async function loadCanonicalPractice() {
   if (String(practice.status || "").toLowerCase() !== "active") {
     throw new Error("This practice is no longer active.");
   }
-  const discipline = String(practice.discipline || "").trim().toLowerCase();
+  let discipline = String(practice.discipline || "").trim().toLowerCase();
+  let journey = String(practice.journey || "").trim();
+
+  if ((!discipline || !journey) && practiceId === rememberedPracticeId()) {
+    try {
+      const builder = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+      discipline = discipline || String(builder.discipline || "").trim().toLowerCase();
+      journey = journey || String(builder.journey || "").trim();
+    } catch {}
+  }
+
   if (!discipline) {
     throw new Error("The active practice has no discipline state.");
   }
-  activePractice = practice;
+
+  activePractice = {
+    ...practice,
+    discipline,
+    journey
+  };
   sessionId = practiceId;
   sessionRef = doc(db, "attendance_sessions", practiceId);
   if ($("practiceIdentity")) {
     $("practiceIdentity").value = [
       matLabel(),
-      practice.journey,
-      practice.discipline
+      journeyDisplay(activePractice.journey),
+      disciplineDisplay(activePractice.discipline)
     ].filter(Boolean).join(" · ");
   }
 }
