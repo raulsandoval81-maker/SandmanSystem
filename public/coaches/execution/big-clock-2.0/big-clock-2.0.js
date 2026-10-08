@@ -8,9 +8,11 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 
-const STATE_KEY = "sandman_run_state";
-const PAYLOAD_KEY = "sandman_big_clock_payload_v2";
-const TV_SCALE_KEY = "sandman_tv_scale";
+const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
+const scopedKey = (base) => SESSION_PARAM ? `${base}:${SESSION_PARAM}` : base;
+const STATE_KEY = scopedKey("sandman_run_state");
+const PAYLOAD_KEY = scopedKey("sandman_big_clock_payload_v2");
+const TV_SCALE_KEY = scopedKey("sandman_tv_scale");
 
 let authReady = false;
 let audioCtx = null;
@@ -194,7 +196,7 @@ async function setState(state) {
       getSessionPayload();
 
     const sessionId =
-      session.sessionId || "lompoc-mat-1";
+      session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
 
     await setDoc(
       doc(db, "liveSessions", sessionId),
@@ -237,9 +239,10 @@ function getPayload() {
 
 function getSessionPayload() {
   try {
-    return JSON.parse(
-      localStorage.getItem("sandman_session_builder_v1") || "{}"
-    );
+    const scopedSession = SESSION_PARAM
+      ? localStorage.getItem(`sandman_session_builder_v1:${SESSION_PARAM}`)
+      : "";
+    return JSON.parse(scopedSession || localStorage.getItem("sandman_session_builder_v1") || "{}");
   } catch {
     return {};
   }
@@ -673,7 +676,7 @@ window.startPracticeNow = async function () {
 
 window.showBigClockQr = function () {
   const session = getSessionPayload();
-  const sessionId = session.sessionId || "lompoc-mat-1";
+  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
 
   const url =
     `${window.location.origin}/coaches/execution/big-clock-2.0/?session=${encodeURIComponent(sessionId)}`;
@@ -683,7 +686,7 @@ window.showBigClockQr = function () {
 
 window.showCompanionQr = function () {
   const session = getSessionPayload();
-  const sessionId = session.sessionId || "lompoc-mat-1";
+  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
 
   const url =
     `${window.location.origin}/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
