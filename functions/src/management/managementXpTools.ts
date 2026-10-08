@@ -459,8 +459,16 @@ export const finalizeExperienceValidation =
             )
           );
 
+          const recognitionGeneration =
+            Math.max(
+              0,
+              Number(pin.recognitionGeneration || 0)
+            );
+
           const awardIdentity =
-            `experience-validation:${pinId}`;
+            recognitionGeneration > 0
+              ? `experience-validation:${pinId}:r${recognitionGeneration}`
+              : `experience-validation:${pinId}`;
 
           const receiptRef =
             db.collection(
