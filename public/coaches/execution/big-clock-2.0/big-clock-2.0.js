@@ -9,10 +9,9 @@ import {
 } from "/assets/js/firebase-init.js";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
-const scopedKey = (base) => SESSION_PARAM ? `${base}:${SESSION_PARAM}` : base;
-const STATE_KEY = scopedKey("sandman_run_state");
-const PAYLOAD_KEY = scopedKey("sandman_big_clock_payload_v2");
-const TV_SCALE_KEY = scopedKey("sandman_tv_scale");
+const STATE_KEY = "sandman_run_state";
+const PAYLOAD_KEY = "sandman_big_clock_payload_v2";
+const TV_SCALE_KEY = "sandman_tv_scale";
 
 let authReady = false;
 let audioCtx = null;
@@ -256,10 +255,7 @@ function getPayload() {
 
 function getSessionPayload() {
   try {
-    const scopedSession = SESSION_PARAM
-      ? localStorage.getItem(`sandman_session_builder_v1:${SESSION_PARAM}`)
-      : "";
-    return JSON.parse(scopedSession || localStorage.getItem("sandman_session_builder_v1") || "{}");
+    return JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
   } catch {
     return {};
   }
