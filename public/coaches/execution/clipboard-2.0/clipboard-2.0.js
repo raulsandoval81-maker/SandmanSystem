@@ -74,11 +74,10 @@ ensureSignedIn()
 
 const SESSION_KEY = "sandman_session_builder_v1";
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
-const scopedKey = (base) => SESSION_PARAM ? `${base}:${SESSION_PARAM}` : base;
-const CLIPBOARD_KEY = scopedKey("sandman_clipboard_v1");
-const DRAFT_KEY = scopedKey("sandman_clipboard_draft_v1");
-const COACH_SESSION_KEY = scopedKey("sandman_coach_session_v1");
-const BIG_CLOCK_KEY = scopedKey("sandman_big_clock_payload_v2");
+const CLIPBOARD_KEY = "sandman_clipboard_v1";
+const DRAFT_KEY = "sandman_clipboard_draft_v1";
+const COACH_SESSION_KEY = "sandman_coach_session_v1";
+const BIG_CLOCK_KEY = "sandman_big_clock_payload_v2";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
 
 function matLaneLabel(session = {}) {
@@ -91,10 +90,7 @@ function matLaneLabel(session = {}) {
 
 function getSessionPayload() {
   try {
-    const scopedSession = SESSION_PARAM
-      ? localStorage.getItem(`${SESSION_KEY}:${SESSION_PARAM}`)
-      : "";
-    return JSON.parse(scopedSession || localStorage.getItem(SESSION_KEY) || "{}");
+    return JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
   } catch {
     return {};
   }
