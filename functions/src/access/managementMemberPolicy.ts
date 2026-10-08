@@ -89,18 +89,33 @@ export function mapManagementMember(
       return {
         discipline,
         trackBase: cleanMemberValue(
+          athlete.trackBase ||
+          athlete.programTrack ||
+          athlete.track ||
           record.trackBase ||
           record.programTrack ||
           record.track
         ),
-        tier: cleanMemberValue(record.tier),
-        rankName: cleanMemberValue(record.rankName),
-        xp: Number.isFinite(Number(record.xp))
-          ? Number(record.xp)
-          : 0,
-        xpCap: Number.isFinite(Number(record.xpCap))
-          ? Number(record.xpCap)
-          : 0,
+        tier: cleanMemberValue(
+          athlete.tier ??
+          athlete.progressionTier ??
+          record.tier
+        ),
+        rankName: cleanMemberValue(
+          athlete.rankName ||
+          athlete.tierName ||
+          record.rankName
+        ),
+        xp: Number.isFinite(Number(athlete.xp))
+          ? Number(athlete.xp)
+          : Number.isFinite(Number(athlete.currentTierXP))
+            ? Number(athlete.currentTierXP)
+            : 0,
+        xpCap: Number.isFinite(Number(athlete.xpCap))
+          ? Number(athlete.xpCap)
+          : Number.isFinite(Number(athlete.tierCap))
+            ? Number(athlete.tierCap)
+            : 0,
       };
     });
 
