@@ -1038,14 +1038,9 @@ if (
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
-    activeDiscipline === rootDiscipline
-      ? (a.xp ?? 0)
-      : (
-          combat.xp ??
-          combat.xpTotal ??
-          combat.xpCombat ??
-          0
-        )
+    a.xp ??
+    a.currentTierXP ??
+    0
   );
 
   const historicalCombatXp =
@@ -1061,10 +1056,10 @@ if (
   // -----------------------------
   // Stripe info
   // -----------------------------
-const storedTierNum = getStoredTierNum(combat);
-const storedStripes = getStoredStripes(combat);
+const storedTierNum = getStoredTierNum(a);
+const storedStripes = getStoredStripes(a);
 
-  const storedXpCap = getStoredXpCap(combat, ladder, storedTierNum);
+  const storedXpCap = getStoredXpCap(a, ladder, storedTierNum);
 
   const tierInfo = ladder?.[storedTierNum] || {};
   const req = unlockRules({ athlete: a });
@@ -1073,11 +1068,12 @@ const storedStripes = getStoredStripes(combat);
   // Rank / Color display
   // -----------------------------
   const rankName =
-    combat.rankName ||
-    combat.tierName ||
-    combat.rank ||
+    a.rankName ||
+    a.tierName ||
+    a.rank ||
     tierInfo?.rank ||
     tierInfo?.name ||
+    combat.rankName ||
     "Apprentice";
 
   const rankColor =
@@ -1122,7 +1118,7 @@ if (badgeRow) {
   const badges =
     Array.isArray(combat.badges) && combat.badges.length
       ? combat.badges
-      : [{ tier: combat.tier || "T0", rankName }];
+      : [{ tier: a.tier || a.progressionTier || "T0", rankName }];
 
   // Past badges only
   const pastBadges = badges.filter(
@@ -1144,7 +1140,7 @@ if (badgeRow) {
   });
 
   // Render current badge big
-  const currentTierNum = Number(String(combat.tier || "T0").replace("T", "")) || 0;
+  const currentTierNum = Number(String(a.tier || a.progressionTier || "T0").replace("T", "")) || 0;
   const currentFile = P2L_V3_BADGES[`t${currentTierNum}`] || P2L_V3_BADGES.t0;
 
   const currentImg = document.createElement("img");
@@ -1177,7 +1173,7 @@ const isStriking =
  art === "muay-thai";
 
 const currentTier =
-  String(combat.tier || "T0").toUpperCase();
+  String(a.tier || a.progressionTier || "T0").toUpperCase();
 
 const beltMap = {
   T0: isStriking
