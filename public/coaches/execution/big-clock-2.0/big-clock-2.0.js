@@ -15,6 +15,7 @@ const TV_SCALE_KEY = "sandman_tv_scale";
 let authReady = false;
 let audioCtx = null;
 let lastBeepKey = "";
+let fastPassMinutes = 60;
 
 function compactWorkedCard(card, blockId, index) {
   const item = typeof card === "object" && card ? card : { title: String(card || "") };
@@ -243,6 +244,103 @@ function getSessionPayload() {
     return {};
   }
 }
+
+function isFastPass() {
+  const payload = getPayload();
+  return payload.source === "session-builder-fast-pass"
+    || new URLSearchParams(window.location.search).get("fast") === "1";
+}
+
+function renderFastPassSetup() {
+  const panel = document.getElementById("fastPassTimeSetup");
+  if (!panel) return;
+  panel.classList.toggle("hidden", !isFastPass());
+  document.querySelectorAll("[data-fast-minutes]").forEach((button) => {
+    const active = Number(button.dataset.fastMinutes || 0) === fastPassMinutes;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+function setFastPassMinutes(minutes) {
+  const next = Number(minutes || 0);
+  if (![30, 45, 60, 90].includes(next)) return;
+  fastPassMinutes = next;
+  const payload = getPayload();
+  payload.durationMinutes = next;
+  payload.blocks = [{
+    title: "Practice",
+    minutes: next,
+    cards: [],
+    notes: "",
+    drillBlocks: []
+  }];
+  localStorage.setItem(PAYLOAD_KEY, JSON.stringify(payload));
+  renderFastPassSetup();
+}
+
+async function prepareFastPassPractice() {
+  if (!isFastPass()) return;
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  if (!practiceId) throw new Error("Fast practice is missing its practice ID.");
+  if (!authReady) {
+    await ensureSignedIn();
+    authReady = true;
+  }
+
+  const openPractice = httpsCallable(functions, "openPracticeSession");
+  await openPractice({
+    practiceId,
+    liveSessionId: session.sessionId,
+    locationId: session.locationId,
+    academyId: session.locationId,
+    roomId: session.roomId,
+    discipline: session.discipline || "unassigned",
+    journey: session.journey || "",
+    program: session.program || "",
+    track: session.track || "",
+    tier: session.tier || "",
+    schema: "fast-practice",
+    executionMode: session.executionMode || "manual",
+    durationMinutes: fastPassMinutes,
+    week: session.week || ""
+  });
+
+  const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+  await saveMemory({
+    operation: "plan",
+    practiceId,
+    planVersion: 1,
+    plannedBlocks: [{
+      blockId: "Practice",
+      title: "Practice",
+      minutes: fastPassMinutes,
+      cards: []
+    }],
+    plannedCards: []
+  });
+
+  const nextSession = { ...session, durationMinutes: fastPassMinutes, schema: "fast-practice" };
+  localStorage.setItem("sandman_session_builder_v1", JSON.stringify(nextSession));
+}
+
+function configureEndAction() {
+  const action = document.getElementById("sessionEndPrimaryAction");
+  if (!action || !isFastPass()) return;
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  action.textContent = "Post Practice Input";
+  action.href = practiceId
+    ? `/coaches/logs/practice-log.html?practiceId=${encodeURIComponent(practiceId)}&fast=1`
+    : "/coaches/logs/practice-log.html";
+}
+
+document.querySelectorAll("[data-fast-minutes]").forEach((button) => {
+  button.addEventListener("click", () => setFastPassMinutes(button.dataset.fastMinutes));
+});
 
 function startFromPayload() {
   lastBeepKey = "";
@@ -551,16 +649,26 @@ const readyScreen =
    READY SCREEN LAUNCH
 ========================= */
 
-window.startPracticeNow = function () {
-  beep(660, 0.12);
+window.startPracticeNow = async function () {
+  const startButton = document.querySelector(".ready-start");
+  if (startButton) startButton.disabled = true;
+  try {
+    await prepareFastPassPractice();
+    beep(660, 0.12);
 
-  document
-    .getElementById("sessionEndActions")
-    ?.classList.add("hidden");
+    document
+      .getElementById("sessionEndActions")
+      ?.classList.add("hidden");
 
-  startFromPayload();
-
-  readyScreen?.classList.add("hidden");
+    startFromPayload();
+    readyScreen?.classList.add("hidden");
+  } catch (error) {
+    console.error("Practice start failed:", error);
+    const status = document.querySelector(".ready-status");
+    if (status) status.textContent = error?.message || "Could not start practice.";
+  } finally {
+    if (startButton) startButton.disabled = false;
+  }
 };
 
 window.showBigClockQr = function () {
