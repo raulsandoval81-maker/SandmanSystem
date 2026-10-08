@@ -384,11 +384,12 @@ if (art === "muay-thai") {
   safeText("combatArcTitle", combatArcLabel);
 
   const ladder = LADDER_F8;
-  const tierNum = getStoredTierNum(combat);
+  const tierNum = getStoredTierNum(A);
   const tierInfo = ladder?.[tierNum] || {};
 
   const rankName =
     tierInfo?.name ||
+    A.rankName ||
     combat.rankName ||
     "Shadow";
 
@@ -471,9 +472,9 @@ if (art === "muay-thai") {
   }
 
   // ===== XP / STRIPES =====
-  const xpNow = Number(combat.xp || 0);
-  const xpCap = getStoredXpCap(combat, ladder, tierNum) || 800;
-  const storedStripes = getStoredStripes(combat);
+  const xpNow = Number(A.xp ?? A.currentTierXP ?? 0);
+  const xpCap = getStoredXpCap(A, ladder, tierNum) || 800;
+  const storedStripes = getStoredStripes(A);
   const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
 
   const displayStripes = getEffectiveStripes({
