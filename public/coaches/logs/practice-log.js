@@ -34,6 +34,7 @@ const athleteInputEl = document.getElementById("athleteInput");
 const closeBtn = document.getElementById("closeBtn");
 const finalizeAttendanceLink = document.getElementById("finalizeAttendanceLink");
 const dailyGrindLink = document.getElementById("dailyGrindLink");
+const practiceDiscipline = document.getElementById("practiceDiscipline");
 const practiceProgram = document.getElementById("practiceProgram");
 const practiceTier = document.getElementById("practiceTier");
 const practiceWeek = document.getElementById("practiceWeek");
@@ -474,7 +475,7 @@ function populatePracticePrograms() {
   if (!practiceProgram || !canonicalPractice) return;
   const locationId = String(canonicalPractice.locationId || canonicalPractice.academyId || "").trim();
   const programs = programsForLocation(locationId).filter((program) => program.programId !== "manual-build");
-  practiceProgram.innerHTML = '<option value="">Select program</option>';
+  practiceProgram.innerHTML = '<option value="">No program selected</option>';
   programs.forEach((program) => {
     const option = document.createElement("option");
     option.value = program.programId;
@@ -484,6 +485,9 @@ function populatePracticePrograms() {
   if (canonicalPractice.program && programs.some((program) => program.programId === canonicalPractice.program)) {
     practiceProgram.value = canonicalPractice.program;
   }
+  if (practiceDiscipline && canonicalPractice.discipline !== "unassigned") {
+    practiceDiscipline.value = canonicalPractice.discipline || "";
+  }
   if (practiceTier) practiceTier.value = canonicalPractice.tier || "";
   if (practiceWeek) practiceWeek.value = canonicalPractice.week || "";
   if (practiceDuration) practiceDuration.value = canonicalPractice.durationMinutes || "";
@@ -492,7 +496,8 @@ function populatePracticePrograms() {
 async function savePracticeDetails() {
   if (!canonicalPractice || !requestedPracticeId) throw new Error("Canonical practice is required.");
   const selected = programById(practiceProgram?.value || "");
-  if (!selected) throw new Error("Choose the program / discipline that was actually practiced.");
+  const discipline = String(selected?.discipline || practiceDiscipline?.value || "").trim();
+  if (!discipline) throw new Error("Choose the discipline that was actually practiced.");
   const durationMinutes = Math.max(1, Math.min(480, Number(practiceDuration?.value || canonicalPractice.durationMinutes || 60)));
   const week = String(practiceWeek?.value || "").trim();
   const tier = String(practiceTier?.value || "").trim();
@@ -504,10 +509,10 @@ async function savePracticeDetails() {
     locationId: canonicalPractice.locationId || canonicalPractice.academyId,
     academyId: canonicalPractice.locationId || canonicalPractice.academyId,
     roomId: canonicalPractice.roomId,
-    discipline: selected.discipline,
-    journey: selected.journey || "",
-    program: selected.programId,
-    track: selected.track || selected.foundry || "",
+    discipline,
+    journey: selected?.journey || canonicalPractice.journey || "",
+    program: selected?.programId || canonicalPractice.program || "",
+    track: selected?.track || selected?.foundry || canonicalPractice.track || "",
     tier,
     schema: canonicalPractice.schema || "fast-practice",
     executionMode: canonicalPractice.executionMode || "manual",
@@ -517,10 +522,10 @@ async function savePracticeDetails() {
 
   canonicalPractice = {
     ...canonicalPractice,
-    discipline: selected.discipline,
-    journey: selected.journey || "",
-    program: selected.programId,
-    track: selected.track || selected.foundry || "",
+    discipline,
+    journey: selected?.journey || canonicalPractice.journey || "",
+    program: selected?.programId || canonicalPractice.program || "",
+    track: selected?.track || selected?.foundry || canonicalPractice.track || "",
     tier,
     week,
     durationMinutes
@@ -736,6 +741,11 @@ document
       if (statusEl) statusEl.textContent = error?.message || "Unable to save practice input.";
     });
   });
+
+practiceProgram?.addEventListener("change", () => {
+  const selected = programById(practiceProgram.value);
+  if (selected && practiceDiscipline) practiceDiscipline.value = selected.discipline;
+});
 
 document.getElementById("savePracticeDetailsBtn")?.addEventListener("click", () => {
   savePracticeDetails().catch((error) => {
