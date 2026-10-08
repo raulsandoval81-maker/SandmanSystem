@@ -501,3 +501,89 @@
   border-color:var(--management-border);
   outline:none;
 }
+
+
+/* Direct Experience Validation queue */
+.experience-queue-list{
+  display:grid;
+  gap:12px;
+  margin:16px 0 6px;
+}
+
+.experience-queue-head{
+  display:grid;
+  gap:3px;
+}
+
+.experience-queue-head strong{
+  color:var(--management-text);
+  font-weight:900;
+}
+
+.experience-queue-head span{
+  color:var(--management-muted);
+  font-size:.86rem;
+}
+
+.experience-queue-grid{
+  display:grid;
+  gap:10px;
+}
+
+.experience-queue-card{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  padding:15px 16px;
+  border:2px solid var(--management-border);
+  border-radius:14px;
+  background:var(--management-surface);
+  color:var(--management-text);
+  text-align:left;
+  font:inherit;
+  cursor:pointer;
+}
+
+.experience-queue-card:hover,
+.experience-queue-card:focus-visible{
+  border-color:var(--management-gold);
+  outline:3px solid rgba(179,138,22,.16);
+  outline-offset:1px;
+}
+
+.experience-queue-card__identity{
+  display:grid;
+  gap:3px;
+}
+
+.experience-queue-card__identity strong{
+  font-weight:900;
+}
+
+.experience-queue-card__identity small,
+.experience-queue-card__plan{
+  color:var(--management-muted);
+}
+
+.experience-queue-card__plan{
+  font-size:.88rem;
+  font-weight:750;
+}
+
+.experience-queue-card__open{
+  color:#725600;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+@media(max-width:760px){
+  .experience-queue-card{
+    grid-template-columns:1fr;
+  }
+
+  .experience-queue-card__open{
+    justify-self:start;
+  }
+}
