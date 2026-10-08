@@ -303,7 +303,10 @@ function populateRanks(preferredTier = "") {
   }
 }
 function populateWeeks() {
-  weekSelect.innerHTML = '<option value="">Let Sandman decide / select week</option>';
+  const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
+  weekSelect.innerHTML = routeReady
+    ? '<option value="">Let Sandman decide / select week</option>'
+    : '<option value="">Select Journey and Discipline</option>';
   for (let week = 1; week <= 36; week += 1) {
     const option = document.createElement("option");
     option.value = String(week);
@@ -364,12 +367,25 @@ function updateModeButtons() {
 
 function updateConditionalControls() {
   const usesRank = programUsesRank();
+  const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
 
-  rankField.hidden = !usesRank;
-  weekField.hidden = !usesRank;
+  rankField.hidden = false;
+  weekField.hidden = false;
 
-  if (!usesRank) {
+  if (!routeReady) {
+    rankSelect.disabled = true;
+    weekSelect.disabled = true;
+    if (rankModeLabel) rankModeLabel.textContent = "After route";
+    if (weekModeLabel) weekModeLabel.textContent = "After route";
     modeAvailability.textContent = "Choose a Journey and Discipline to establish the practice route.";
+    if (rankSuggestion) rankSuggestion.textContent = "";
+    if (weekSuggestion) weekSuggestion.textContent = "";
+  } else if (!usesRank) {
+    rankSelect.disabled = true;
+    weekSelect.disabled = true;
+    if (rankModeLabel) rankModeLabel.textContent = "Not used";
+    if (weekModeLabel) weekModeLabel.textContent = "Not used";
+    modeAvailability.textContent = "This route does not currently use Tier or Training Week.";
     if (rankSuggestion) rankSuggestion.textContent = "";
     if (weekSuggestion) weekSuggestion.textContent = "";
   } else if (selectedMode === "auto") {
@@ -462,18 +478,22 @@ function updateSummary() {
       disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
   }
 
-  if (summaryRankRow) summaryRankRow.hidden = !usesRank;
+  const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
+
+  if (summaryRankRow) summaryRankRow.hidden = false;
   if (summaryRank) {
     const tier = effectiveTier();
-    if (!usesRank) summaryRank.textContent = "—";
+    if (!routeReady) summaryRank.textContent = "Select Journey and Discipline";
+    else if (!usesRank) summaryRank.textContent = "Not used";
     else if (tier) summaryRank.textContent = optionText(rankSelect) || tier;
     else summaryRank.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
   }
 
-  if (summaryWeekRow) summaryWeekRow.hidden = !usesWeek;
+  if (summaryWeekRow) summaryWeekRow.hidden = false;
   if (summaryWeek) {
     const week = effectiveWeek();
-    if (!usesWeek) summaryWeek.textContent = "—";
+    if (!routeReady) summaryWeek.textContent = "Select Journey and Discipline";
+    else if (!usesWeek) summaryWeek.textContent = "Not used";
     else if (week) summaryWeek.textContent = `Week ${week}`;
     else summaryWeek.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
   }
@@ -832,6 +852,7 @@ journeySelect?.addEventListener("change", () => {
   updateDisciplineAvailability("");
   populatePrograms("");
   populateRanks();
+  populateWeeks();
   refreshFocusSuggestion();
   refreshHybridAvailability();
 });
@@ -862,6 +883,7 @@ roomSelect.addEventListener("change", () => {
 disciplineFamilySelect?.addEventListener("change", () => {
   populatePrograms("");
   populateRanks();
+  populateWeeks();
   refreshFocusSuggestion();
   refreshHybridAvailability();
 });
