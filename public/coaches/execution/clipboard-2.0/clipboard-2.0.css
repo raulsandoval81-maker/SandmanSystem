@@ -1596,3 +1596,45 @@ body.clock-mode .clock-toggle{
     width:100%;
   }
 }
+
+/* =========================
+   TRAINING GROUP CONTEXT
+========================= */
+.clipboard-training-groups{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:8px;
+  margin:0 0 12px;
+}
+.clipboard-group-chip{
+  display:grid;
+  gap:3px;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-left:4px solid var(--group-accent,var(--gold));
+  border-radius:10px;
+  background:rgba(255,255,255,.035);
+}
+.clipboard-group-label{
+  color:var(--muted);
+  font-size:.62rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.clipboard-group-chip strong{font-size:.78rem}
+.clipboard-group-chip > span:not(.clipboard-group-label){
+  color:var(--muted);
+  font-size:.7rem;
+}
+.clipboard-group-chip em{
+  color:var(--text);
+  font-size:.7rem;
+  font-style:normal;
+}
+.clipboard-group-chip[data-tier="T0"]{--group-accent:#d1d5db}
+.clipboard-group-chip[data-tier="T1"]{--group-accent:#facc15}
+.clipboard-group-chip[data-tier="T2"]{--group-accent:#22c55e}
+.clipboard-group-chip[data-tier="T3"]{--group-accent:#3b82f6}
+.clipboard-group-chip[data-tier="T4"]{--group-accent:#a855f7}
