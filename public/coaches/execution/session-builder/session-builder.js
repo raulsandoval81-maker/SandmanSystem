@@ -283,7 +283,12 @@ function populateRanks(preferredTier = "") {
 
   const blank = document.createElement("option");
   blank.value = "";
-  blank.textContent = ladder.length ? "Let Sandman decide / no focus tier" : "Not needed";
+  const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
+  blank.textContent = !routeReady
+    ? "Select Journey and Discipline"
+    : ladder.length
+      ? "Let Sandman decide / no tier"
+      : "Not needed";
   rankSelect.appendChild(blank);
 
   ladder.forEach(rank => {
@@ -404,7 +409,7 @@ function updateConditionalControls() {
     if (weekSuggestion) weekSuggestion.textContent = suggestedWeek
       ? `Prior matching session used Week ${suggestedWeek}; Coach makes the selection.`
       : "Coach selects the training week.";
-    modeAvailability.textContent = "Manual keeps Focus Tier and Training Week with Coach.";
+    modeAvailability.textContent = "Manual keeps Tier and Training Week with Coach.";
   }
 
   modeAvailability.hidden = false;
@@ -444,8 +449,6 @@ function updateSummary() {
   const summaryMode = document.getElementById("summaryMode");
   const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
-  const summaryProgramRow = document.getElementById("summaryProgramRow");
-  const summaryProgram = document.getElementById("summaryProgram");
   const summaryRankRow = document.getElementById("summaryRankRow");
   const summaryRank = document.getElementById("summaryRank");
   const summaryWeekRow = document.getElementById("summaryWeekRow");
@@ -458,9 +461,6 @@ function updateSummary() {
     summaryDiscipline.textContent =
       disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
   }
-
-  if (summaryProgramRow) summaryProgramRow.hidden = !program.program;
-  if (summaryProgram) summaryProgram.textContent = optionText(disciplineSelect) || "—";
 
   if (summaryRankRow) summaryRankRow.hidden = !usesRank;
   if (summaryRank) {
