@@ -190,6 +190,7 @@ function populateWeeks() {
 }
 
 function getModelPath() {
+  if (selectedMode === "auto") return "";
   const prefix = selectedProgram()?.hybridModelPrefix || "";
   const tier = String(rankSelect?.value || "").toLowerCase();
   return prefix && tier ? `${prefix}-${tier}-waves.js` : "";
