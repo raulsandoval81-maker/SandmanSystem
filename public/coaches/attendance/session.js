@@ -558,6 +558,13 @@ function athleteAgeGroup(athlete = {}) {
   return "Athletes";
 }
 
+function displayTrainingAgeGroup(value = "") {
+  const label = String(value || "").trim();
+  if (/^Youth(?:\s+\d+\s*[–-]\s*\d+)?$/i.test(label)) return "Youth";
+  if (/^Teen(?:\s*14\s*\+)?$/i.test(label)) return "Teen";
+  return label;
+}
+
 function normalizeJourneyCode(value = "") {
   const key = String(value || "").trim().toLowerCase().replace(/[\s_-]+/g, "");
   if (["z2h", "zero2hero", "road2champion"].includes(key)) return "Z2H";
@@ -728,7 +735,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       <div class="training-group-grid">
         <label>
           Age Group
-          <input class="training-age-group" type="text" value="${group.ageGroup || ""}" placeholder="Youth 7–10">
+          <input class="training-age-group" type="text" value="${displayTrainingAgeGroup(group.ageGroup)}" placeholder="Youth">
         </label>
 
         <label>
@@ -871,7 +878,7 @@ function captureTrainingGroups() {
 function updateContextSummary() {
   const groups = captureTrainingGroups();
   const summary = groups.map((group) =>
-    `${group.label}: ${group.ageGroup || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
+    `${group.label}: ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
   ).join(" | ");
   if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
 }
