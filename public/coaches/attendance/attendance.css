@@ -217,19 +217,6 @@ html[data-theme="light"]{
   font-size:1rem !important;
 }
 
-.quick-search-row{
-  display:flex;
-  gap:6px;
-  margin-bottom:12px;
-  overflow-x:auto;
-  padding-bottom:2px;
-}
-
-.quick-search-btn{
-  min-width:42px !important;
-  min-height:36px !important;
-  padding:5px 9px !important;
-}
 
 .athlete-checkin-list{
   display:grid;
@@ -460,5 +447,75 @@ html[data-theme="light"]{
 @media(max-width:720px){
   .return-builder-link{
     width:100%;
+  }
+}
+
+/* Attendance review polish */
+.checked-review-list{
+  margin-top:4px;
+}
+
+.checked-athlete-row{
+  min-height:64px;
+  padding:13px 14px !important;
+  border-color:rgba(212,175,55,.24) !important;
+  background:linear-gradient(180deg,rgba(212,175,55,.055),var(--attendance-surface)) !important;
+}
+
+.checked-athlete-row > span{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+
+.checked-athlete-row > span strong{
+  font-size:.98rem;
+}
+
+.checked-athlete-row > span .muted{
+  font-size:.72rem;
+  letter-spacing:.035em;
+}
+
+.remove-checkin-btn{
+  min-height:34px !important;
+  padding:6px 11px !important;
+  border-color:rgba(255,138,138,.28) !important;
+  background:transparent !important;
+  color:var(--attendance-muted) !important;
+  font-size:.74rem !important;
+}
+
+.remove-checkin-btn:hover,
+.remove-checkin-btn:focus-visible{
+  border-color:var(--attendance-danger) !important;
+  color:var(--attendance-danger) !important;
+}
+
+.attendance-secondary-action{
+  border-radius:12px !important;
+  background:transparent !important;
+  color:var(--attendance-muted) !important;
+}
+
+.attendance-next-action{
+  min-width:240px;
+  border-radius:12px !important;
+}
+
+@media(max-width:720px){
+  .attendance-next-action{
+    min-width:0;
+  }
+}
+
+@media(max-width:480px){
+  .checked-athlete-row{
+    grid-template-columns:minmax(0,1fr) auto !important;
+  }
+
+  .checked-athlete-row .remove-checkin-btn{
+    grid-column:auto;
+    width:auto;
   }
 }
