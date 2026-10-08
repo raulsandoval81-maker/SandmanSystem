@@ -310,22 +310,20 @@ function rankInfo(
     discipline,
     rank:
       clean(
-        combat.rankName ||
-        combat.tierName ||
         athlete.rankName ||
-        athlete.tierName
+        athlete.tierName ||
+        combat.rankName ||
+        combat.tierName
       ) || "—",
     tier:
       clean(
-        combat.tier ??
-        combat.progressionTier ??
         athlete.tier ??
-        athlete.progressionTier
+        athlete.progressionTier ??
+        combat.tier ??
+        combat.progressionTier
       ),
     xp:
       Number(
-        combat.xp ??
-        combat.currentTierXP ??
         athlete.xp ??
         athlete.currentTierXP ??
         0
