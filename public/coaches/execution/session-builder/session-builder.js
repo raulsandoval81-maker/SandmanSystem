@@ -680,7 +680,7 @@ async function skipToPractice() {
     };
     localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify(fastClockPayload));
     localStorage.setItem(`${BIG_CLOCK_PAYLOAD_KEY}:${payload.sessionId}`, JSON.stringify(fastClockPayload));
-    window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&fast=1`;
+    window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&fast=1`;
   } catch (error) {
     console.error("Skip-to-practice entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
