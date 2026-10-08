@@ -115,10 +115,6 @@ function selectedMatLabel() {
   return room.lane ? `Mat 1${room.lane}` : room.label || room.roomId || "Mat 1";
 }
 
-function scopedSessionKey(sessionId = "") {
-  const id = String(sessionId || "").trim();
-  return id ? `${SESSION_KEY}:${id}` : SESSION_KEY;
-}
 
 function selectedProgram() {
   return programById(disciplineSelect?.value || "");
@@ -679,7 +675,6 @@ async function skipToPractice() {
       }]
     };
     localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify(fastClockPayload));
-    localStorage.setItem(`${BIG_CLOCK_PAYLOAD_KEY}:${payload.sessionId}`, JSON.stringify(fastClockPayload));
     window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&fast=1`;
   } catch (error) {
     console.error("Skip-to-practice entry failed", error);
@@ -873,7 +868,6 @@ function persistSession(payload) {
   localStorage.removeItem(DRAFT_KEY);
   localStorage.removeItem(CLIPBOARD_KEY);
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
-  localStorage.setItem(scopedSessionKey(payload.sessionId), JSON.stringify(payload));
   writeCompatibilityKeys(payload);
 }
 
