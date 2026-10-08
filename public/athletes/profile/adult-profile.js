@@ -990,13 +990,10 @@ if (typeof combat.tier === "number") {
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
-    combat.xp ??
-    combat.xpTotal ??
-    combat.xpCombat ??
     a.xp ??
+    a.currentTierXP ??
     a.xpTotal ??
     a.xpCombat ??
-    (xpDaily + xpArena + xpFightIQ) ??
     0
   );
 
@@ -1011,14 +1008,14 @@ if (typeof combat.tier === "number") {
   // Stripe info
   // -----------------------------
   const storedTierNum =
-    getStoredTierNum(combat);
+    getStoredTierNum(a);
 
   const storedStripes =
-    getStoredStripes(combat);
+    getStoredStripes(a);
 
   const storedXpCap =
     getStoredXpCap(
-      combat,
+      a,
       ladder,
       storedTierNum
     );
@@ -1030,11 +1027,12 @@ if (typeof combat.tier === "number") {
   // Rank / Color display
   // -----------------------------
   const rankName =
-    combat.rankName ||
-    combat.tierName ||
-    combat.rank ||
+    a.rankName ||
+    a.tierName ||
+    a.rank ||
     tierInfo?.rank ||
     tierInfo?.name ||
+    combat.rankName ||
     "Apprentice";
 
   const rankColor =
@@ -1074,7 +1072,7 @@ const BADGES = {
 
 const currentTier =
   String(
-    combat.tier || "T0"
+    a.tier || a.progressionTier || "T0"
   ).toUpperCase();
 
   const badges =
