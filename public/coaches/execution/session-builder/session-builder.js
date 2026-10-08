@@ -110,9 +110,12 @@ function selectedRoom() {
 }
 
 function selectedMatLabel() {
-  const room = selectedRoom();
-  if (!room) return "Mat 1";
-  return room.lane ? `Mat 1${room.lane}` : room.label || room.roomId || "Mat 1";
+  return "Mat 1";
+}
+
+function selectedSessionLabel() {
+  const lane = String(selectedRoom()?.lane || "A").toUpperCase();
+  return lane === "B" ? "Session 1B" : "Session 1A";
 }
 
 
@@ -537,6 +540,7 @@ function updateSummary() {
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
   const summaryMat = document.getElementById("summaryMat");
+  const summarySession = document.getElementById("summarySession");
   const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
   const summaryRankRow = document.getElementById("summaryRankRow");
@@ -547,6 +551,7 @@ function updateSummary() {
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
   if (summaryMat) summaryMat.textContent = selectedMatLabel();
+  if (summarySession) summarySession.textContent = selectedSessionLabel();
   if (summaryJourney) summaryJourney.textContent = journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey";
   if (summaryDiscipline) {
     summaryDiscipline.textContent =
