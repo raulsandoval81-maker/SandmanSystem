@@ -33,6 +33,12 @@ function addSafeguards() {
         clean(card.dataset.status)
           .toUpperCase();
 
+      const membershipChoiceActive =
+        clean(
+          card.dataset
+            .membershipChoiceActive
+        ).toLowerCase() === "true";
+
       const proposalId =
         clean(card.dataset.proposalId) ||
         clean(
@@ -56,7 +62,42 @@ function addSafeguards() {
         .forEach((button) => button.remove());
 
       if (
-        status === "AWAITING_CLIENT_SIGNATURE"
+        status === "AWAITING_CLIENT_SIGNATURE" &&
+        membershipChoiceActive
+      ) {
+        actions
+          .querySelectorAll(
+            '[data-proposal-action="issue-client-review"], [data-proposal-action="record-manual-signature"], [data-record-manual-signature], [data-proposal-affirmation]'
+          )
+          .forEach(
+            (element) => element.remove()
+          );
+
+        if (
+          !actions.querySelector(
+            "[data-membership-choice-affirmation]"
+          )
+        ) {
+          const note =
+            document.createElement("span");
+
+          note.dataset
+            .membershipChoiceAffirmation =
+            "true";
+
+          note.className =
+            "proposal-action-note";
+
+          note.textContent =
+            "Membership options sent ✓ Waiting for family selection.";
+
+          actions.prepend(note);
+        }
+      }
+
+      if (
+        status === "AWAITING_CLIENT_SIGNATURE" &&
+        !membershipChoiceActive
       ) {
         const issueButton =
           actions.querySelector(
