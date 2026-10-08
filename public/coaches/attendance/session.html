@@ -14,9 +14,9 @@
   <main class="attendance-page" data-coach-shell-content>
     <header class="attendance-header">
       <div>
-        <p class="attendance-step-label">Attendance · 3-step flow</p>
-        <h1>Athlete Check-In</h1>
-        <p>Find athletes fast, check them in one by one, then review before submitting.</p>
+        <p class="attendance-step-label" id="attendanceFlowLabel">Attendance · 3-step flow</p>
+        <h1 id="attendanceTitle">Athlete Check-In</h1>
+        <p id="attendanceLead">Find athletes fast, check them in one by one, then review before submitting.</p>
       </div>
       <a class="pill" href="/coaches/practice/">← Practice Operations</a>
     </header>
@@ -129,7 +129,7 @@
         <div class="screen-actions screen-actions--split">
           <button id="backToAthletesBtn" type="button">← Add / Remove Athletes</button>
           <button id="finalizeSession" class="primary" type="button">
-            Submit for Coach Review
+            Finish Attendance
           </button>
         </div>
       </section>
@@ -137,6 +137,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261008-2"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261008-3"></script>
 </body>
 </html>
