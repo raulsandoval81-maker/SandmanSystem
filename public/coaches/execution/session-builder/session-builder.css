@@ -280,3 +280,16 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
 .context-current-session[hidden]{
   display:none !important;
 }
+
+.field-guidance{
+  min-height:18px;
+  margin:6px 2px 0;
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.35;
+}
+.dashboard-select:disabled{
+  opacity:.82;
+  cursor:default;
+  background:var(--soft-surface);
+}
