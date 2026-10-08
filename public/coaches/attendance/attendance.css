@@ -435,3 +435,30 @@ html[data-theme="light"]{
     text-align:left;
   }
 }
+
+.return-builder-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  margin-top:14px;
+  padding:9px 14px;
+  border:1px solid var(--attendance-line);
+  border-radius:12px;
+  background:var(--attendance-surface);
+  color:var(--attendance-text);
+  font-weight:800;
+  text-decoration:none;
+}
+
+.return-builder-link:hover,
+.return-builder-link:focus-visible{
+  border-color:var(--attendance-gold);
+  color:var(--attendance-gold);
+}
+
+@media(max-width:720px){
+  .return-builder-link{
+    width:100%;
+  }
+}
