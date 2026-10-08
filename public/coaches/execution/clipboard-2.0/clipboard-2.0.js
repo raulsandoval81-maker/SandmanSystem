@@ -536,6 +536,14 @@ function getActiveSession() {
   };
 }
 
+function groupJourneyDisplay(value = "") {
+  const key = String(value || "").trim().toUpperCase();
+  if (key === "Z2H") return "Road2Champion";
+  if (key === "P2L") return "Path2Legend";
+  if (key === "Q2M") return "Quest2Mastery";
+  return String(value || "").trim();
+}
+
 function renderClipboardTrainingGroups() {
   const el = document.getElementById("clipboardTrainingGroups");
   if (!el) return;
@@ -558,7 +566,7 @@ function renderClipboardTrainingGroups() {
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
         <span class="clipboard-group-label">Group ${index + 1}</span>
-        <strong>${group.ageGroup || "Athletes"} · ${tier} ${group.rank || ""}</strong>
+        <strong>${group.ageGroup || "Athletes"} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
         <span>Session ${group.trainingSession || session.week || "1"}${names ? ` · ${names}` : ""}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
       </article>
