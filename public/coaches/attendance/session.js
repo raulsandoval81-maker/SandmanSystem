@@ -902,8 +902,20 @@ function updateContextSummary() {
 }
 
 function preparePracticeContext() {
-  if ($("contextJourney")) $("contextJourney").textContent = journeyDisplay(activePractice?.journey);
-  if ($("contextDiscipline")) $("contextDiscipline").textContent = disciplineDisplay(activePractice?.discipline);
+  if (!activePractice?.practiceId || !checkedIn.size) {
+    setStatus("Load today's practice and check in an athlete before Practice Groups.", true);
+    showStep(2);
+    return;
+  }
+  const journey = journeyDisplay(activePractice.journey);
+  const discipline = disciplineDisplay(activePractice.discipline);
+  if (!journey || !discipline) {
+    setStatus("Practice route is incomplete. Return to Session Builder to confirm Journey and discipline.", true);
+    showStep(3);
+    return;
+  }
+  if ($("contextJourney")) $("contextJourney").textContent = journey;
+  if ($("contextDiscipline")) $("contextDiscipline").textContent = discipline;
   renderTrainingGroups();
   showStep(4);
 }
