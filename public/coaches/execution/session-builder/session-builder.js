@@ -41,6 +41,8 @@ const RANK_LADDERS = Object.freeze({
 const sessionTypeButtons = [...document.querySelectorAll("[data-session-type]")];
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
 const durationChoices = document.getElementById("durationChoices");
+const journeySelect = document.getElementById("journeySelect");
+const disciplineField = document.getElementById("disciplineField");
 const disciplineFamilySelect = document.getElementById("disciplineFamilySelect");
 const programField = document.getElementById("programField");
 const roomSelect = document.getElementById("roomSelect");
@@ -118,19 +120,56 @@ function populateRooms(preferredValue = "") {
   if (roomByValue(preferred)) roomSelect.value = preferred;
 }
 
-function populatePrograms(preferredProgramId = "") {
-  const room = selectedRoom();
-  const discipline = String(disciplineFamilySelect?.value || "").trim();
+function journeyLabel(code = "") {
+  return ({ Z2H: "Road2Champion", P2L: "Path2Legend", Q2M: "Quest2Mastery" })[code] || code;
+}
 
-  let programs = programsForLocation(room?.locationId || "")
-    .filter((program) => program.programId !== "manual-build")
-    .filter((program) => program.programId !== "fitness-striking")
+function availablePrograms() {
+  const room = selectedRoom();
+  return programsForLocation(room?.locationId || "")
+    .filter((program) => !["manual-build", "fitness-striking"].includes(program.programId));
+}
+
+function populateJourneys(preferredJourney = "") {
+  const programs = availablePrograms();
+  const journeys = [...new Set(programs.map((program) => program.journey).filter(Boolean))];
+  journeySelect.innerHTML = '<option value="">Select Journey</option>';
+  journeys.forEach((journey) => {
+    const option = document.createElement("option");
+    option.value = journey;
+    option.textContent = journeyLabel(journey);
+    journeySelect.appendChild(option);
+  });
+  if (journeys.includes(preferredJourney)) journeySelect.value = preferredJourney;
+  if (disciplineField) disciplineField.hidden = !journeySelect.value;
+  updateDisciplineAvailability();
+}
+
+function updateDisciplineAvailability() {
+  const journey = String(journeySelect?.value || "");
+  const programs = availablePrograms().filter((program) => !journey || program.journey === journey);
+  const disciplines = new Set(programs.map((program) => program.discipline));
+  disciplineButtons.forEach((button) => {
+    const enabled = Boolean(journey) && disciplines.has(button.dataset.discipline);
+    button.hidden = !enabled;
+    if (!enabled && button.classList.contains("active")) {
+      button.classList.remove("active");
+      button.setAttribute("aria-pressed", "false");
+    }
+  });
+  if (disciplineFamilySelect && !disciplines.has(disciplineFamilySelect.value)) {
+    disciplineFamilySelect.value = "";
+  }
+}
+
+function populatePrograms(preferredProgramId = "") {
+  const journey = String(journeySelect?.value || "");
+  const discipline = String(disciplineFamilySelect?.value || "").trim();
+  const programs = availablePrograms()
+    .filter((program) => !journey || program.journey === journey)
     .filter((program) => !discipline || program.discipline === discipline);
 
-  // If the active room has no configured journey yet, keep discipline usable.
-  // Journey remains optional until the location's program map is defined.
-  disciplineSelect.innerHTML = '<option value="">No specific journey</option>';
-
+  disciplineSelect.innerHTML = '<option value="">Select Journey and Discipline</option>';
   programs.forEach((program) => {
     const option = document.createElement("option");
     option.value = program.programId;
@@ -140,14 +179,11 @@ function populatePrograms(preferredProgramId = "") {
 
   if (programs.some((program) => program.programId === preferredProgramId)) {
     disciplineSelect.value = preferredProgramId;
-  } else if (programs.length === 1) {
+  } else if (journey && discipline && programs.length === 1) {
     disciplineSelect.value = programs[0].programId;
   }
 
-  if (programField) {
-    // Only ask Coach to choose a journey when there is an actual choice.
-    programField.hidden = programs.length <= 1;
-  }
+  if (programField) programField.hidden = true;
 
   disciplineButtons.forEach((button) => {
     const active = button.dataset.discipline === discipline;
@@ -155,6 +191,7 @@ function populatePrograms(preferredProgramId = "") {
     button.setAttribute("aria-pressed", String(active));
   });
 }
+
 function programUsesRank() {
   return Boolean(selectedProgram()?.journey && RANK_LADDERS[selectedProgram().journey]);
 }
@@ -307,6 +344,7 @@ function updateSummary() {
   const usesWeek = programUsesRank() && selectedMode !== "auto";
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
+  const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
   const summaryProgramRow = document.getElementById("summaryProgramRow");
   const summaryProgram = document.getElementById("summaryProgram");
@@ -317,6 +355,7 @@ function updateSummary() {
 
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
+  if (summaryJourney) summaryJourney.textContent = journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey";
   if (summaryDiscipline) {
     summaryDiscipline.textContent =
       disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
@@ -331,7 +370,9 @@ function updateSummary() {
   if (summaryWeekRow) summaryWeekRow.hidden = !usesWeek;
   if (summaryWeek) summaryWeek.textContent = usesWeek ? (optionText(weekSelect) || "Optional") : "—";
 
-  if (!program.discipline) {
+  if (!journeySelect?.value) {
+    summaryAvailability.textContent = "Choose a journey to continue.";
+  } else if (!program.discipline) {
     summaryAvailability.textContent = "Choose a discipline to continue.";
   } else if (selectedMode === "auto") {
     summaryAvailability.textContent = "Sandman will use basic system logic and available athlete/curriculum context.";
@@ -344,11 +385,7 @@ function updateSummary() {
   }
 
   buildBtn.disabled = !program.discipline || !selectedRoom();
-  buildBtn.textContent = selectedMode === "auto"
-    ? "Build Auto Session"
-    : selectedMode === "hybrid"
-      ? "Continue with Hybrid"
-      : "Build Manual Session";
+  buildBtn.textContent = "Continue to Attendance";
 }
 
 function showPrePracticeSetup() {
@@ -366,60 +403,6 @@ function showPracticeContext() {
   updateConditionalControls();
   updateSummary();
   practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function attendanceSetupPayload() {
-  const room = selectedRoom();
-  if (!room) return null;
-  const shell = shellData();
-  return {
-    schema: selectedSchema,
-    durationMinutes: shell.minutes,
-    xpTimeScale: shell.minutes >= 120 ? "two-hour" : shell.minutes >= 90 ? "ninety-minute" : "standard",
-    executionMode: selectedMode,
-    practiceId: "",
-    sessionId: room.value,
-    locationId: room.locationId,
-    academyId: room.locationId,
-    roomId: room.roomId,
-    roomValue: room.value,
-    program: "",
-    foundry: "",
-    track: "",
-    journey: "",
-    discipline: "unassigned",
-    tier: "",
-    rank: "",
-    rankLabel: "",
-    week: "",
-    hybridPhase: "",
-    hybridCycle: "",
-    hybridWeekInCycle: "",
-    hybridWaveKey: "",
-    hybridWave: [],
-    hybridCards: [],
-    hybridRules: {},
-    source: "session-builder-attendance",
-    createdAt: new Date().toISOString()
-  };
-}
-
-async function beginAttendanceStep() {
-  let payload = attendanceSetupPayload();
-  if (!payload) return;
-
-  continueToContextBtn.disabled = true;
-  try {
-    payload = await openCanonicalPractice(payload);
-    persistSession(payload);
-    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder&flow=builder`;
-  } catch (error) {
-    console.error("Attendance handoff failed", error);
-    const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = error?.message || "Could not open attendance for this practice.";
-    noticeEl.hidden = false;
-    continueToContextBtn.disabled = false;
-  }
 }
 
 function cleanSlatePayload() {
@@ -738,10 +721,13 @@ async function restoreCanonicalPractice(practiceId) {
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
   populateRooms(room.value);
+  const restoredJourney = String(practice.journey || "");
+  populateJourneys(restoredJourney);
   const restoredDiscipline = String(practice.discipline || "").toLowerCase();
   if (disciplineFamilySelect) {
     disciplineFamilySelect.value = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
   }
+  updateDisciplineAvailability();
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
@@ -750,22 +736,31 @@ async function restoreCanonicalPractice(practiceId) {
   await refreshHybridAvailability();
   showPracticeContext();
   await loadAttendanceContext();
-  document.getElementById("dashboardNotice").textContent = "Attendance complete. Continue with Screen 4 using the same practice.";
+  document.getElementById("dashboardNotice").textContent = "Practice route restored. Continue with the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
 
 setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
 skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 
-continueToContextBtn?.addEventListener("click", beginAttendanceStep);
+continueToContextBtn?.addEventListener("click", showPracticeContext);
 backToGuidedSetupBtn?.addEventListener("click", () => {
   if (practiceContextScreen) practiceContextScreen.hidden = true;
   if (currentSessionSection) currentSessionSection.hidden = true;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
 });
 
+journeySelect?.addEventListener("change", () => {
+  if (disciplineFamilySelect) disciplineFamilySelect.value = "";
+  populatePrograms("");
+  populateRanks();
+  if (disciplineField) disciplineField.hidden = !journeySelect.value;
+  updateDisciplineAvailability();
+  refreshHybridAvailability();
+});
+
 disciplineButtons.forEach((button) => button.addEventListener("click", () => {
-  if (!disciplineFamilySelect) return;
+  if (!disciplineFamilySelect || !journeySelect?.value) return;
   disciplineFamilySelect.value = button.dataset.discipline || "";
   populatePrograms("");
   populateRanks();
@@ -787,6 +782,7 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
 }));
 
 roomSelect.addEventListener("change", () => {
+  populateJourneys(journeySelect?.value || "");
   populatePrograms(disciplineSelect.value);
   populateRanks(rankSelect.value);
   refreshHybridAvailability();
@@ -800,6 +796,7 @@ disciplineFamilySelect?.addEventListener("change", () => {
 
 disciplineSelect.addEventListener("change", () => {
   const program = selectedProgram();
+  if (program && journeySelect) journeySelect.value = program.journey;
   if (program && disciplineFamilySelect) disciplineFamilySelect.value = program.discipline;
   populateRanks();
   refreshHybridAvailability();
@@ -821,17 +818,9 @@ buildBtn.addEventListener("click", async () => {
   if (!payload) return;
   buildBtn.disabled = true;
   try {
-    if (selectedMode === "checked-in" && !activePracticeId) {
-      payload = await openCanonicalPractice(payload);
-      persistSession(payload);
-      window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder`;
-      return;
-    }
-    if (activePracticeId || selectedMode === "quick") {
-      payload = await openCanonicalPractice(payload);
-    }
+    payload = await openCanonicalPractice(payload);
     persistSession(payload);
-    window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(payload.sessionId)}`;
+    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=clipboard&flow=builder`;
   } catch (error) {
     console.error("Session entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
@@ -842,6 +831,7 @@ buildBtn.addEventListener("click", async () => {
 });
 
 populateRooms();
+populateJourneys();
 populatePrograms();
 populateWeeks();
 populateRanks();
