@@ -4,7 +4,9 @@ import {
   doc,
   getDoc,
   setDoc,
-  serverTimestamp
+  serverTimestamp,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
@@ -634,6 +636,30 @@ window.clearSession = function () {
   setStatus("Companion notes cleared.");
 };
 
+async function saveSharedDailyLog() {
+  const session = getCoachSessionPayload();
+  if (!session?.practiceId) throw new Error("Missing practice ID.");
+  const snapshot = observationSnapshot();
+  const blockNotes = {};
+  BLOCK_KEYS.forEach(slot => { blockNotes[slot] = document.getElementById("notes-" + slot)?.value || ""; });
+  const save = httpsCallable(functions, "saveDailyPracticeLog");
+  await save({ practiceId: session.practiceId, log: {
+    focus: focusEl?.value || "", blockNotes,
+    teamNotes: snapshot.teamNotes, eventNotes: snapshot.eventNotes,
+    generalNotes: snapshot.generalNotes, individualNotes: snapshot.individualNotes
+  }});
+}
+window.saveDailyPracticeLog = async function () {
+  try {
+    saveNotesDraft();
+    await saveSharedDailyLog();
+    setStatus("Daily Practice Log saved to the shared practice.");
+  } catch (error) {
+    console.error("Shared Daily Practice Log save failed", error);
+    setStatus("Saved on this device only. Shared save failed: " + (error?.message || "unknown error"));
+  }
+};
+
 window.endPractice = async function () {
   const button = document.querySelector("[data-end-practice-log]");
   if (button?.disabled) return;
@@ -659,6 +685,7 @@ window.endPractice = async function () {
       savedAt: new Date().toISOString()
     };
     saveNotesDraft();
+    await saveSharedDailyLog();
     localStorage.setItem(LAST_PRACTICE_KEY, JSON.stringify(record));
     // Always retain the local handoff before attempting any optional cloud save.
     const draft = JSON.parse(localStorage.getItem(CLIPBOARD_DRAFT_KEY) || "null");
