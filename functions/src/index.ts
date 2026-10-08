@@ -275,6 +275,7 @@ export {
   getPracticeSession,
   closePracticeSession,
   savePracticeSessionMemory,
+  saveDailyPracticeLog,
 } from "./practice/practiceSessions";
 export { listManagementAttendance } from "./practice/listManagementAttendance";
 export { getAthleteSessionHistory } from "./practice/getAthleteSessionHistory";
