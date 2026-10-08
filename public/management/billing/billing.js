@@ -1044,12 +1044,12 @@ function priorPaymentPeriods(
 ) {
   const matchStart =
     clean(startValue).match(
-      /^(\\d{4})-(\\d{2})$/
+      /^(\d{4})-(\d{2})$/
     );
 
   const matchEnd =
     clean(endValue).match(
-      /^(\\d{4})-(\\d{2})$/
+      /^(\d{4})-(\d{2})$/
     );
 
   if (!matchStart || !matchEnd) {
