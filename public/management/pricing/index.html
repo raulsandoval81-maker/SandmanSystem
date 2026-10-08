@@ -201,6 +201,45 @@
         </small>
       </div>
 
+      <div class="pricing-transition-payment">
+        <p class="section-label">Historical payment to Billing</p>
+        <div class="pricing-field-grid">
+          <div class="pricing-field">
+            <label for="priorPaymentAmount">Amount received</label>
+            <input id="priorPaymentAmount" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+          <div class="pricing-field">
+            <label for="priorPaymentMethod">Payment method</label>
+            <select id="priorPaymentMethod">
+              <option value="">None</option>
+              <option value="cash">Cash</option>
+              <option value="check">Check</option>
+            </select>
+          </div>
+          <div class="pricing-field">
+            <label for="priorPaymentFirstMonth">First month covered</label>
+            <input id="priorPaymentFirstMonth" type="month">
+          </div>
+          <div class="pricing-field">
+            <label for="priorPaymentLastMonth">Last month covered</label>
+            <input id="priorPaymentLastMonth" type="month">
+          </div>
+          <div class="pricing-field">
+            <label>
+              <input id="priorPaymentEnrollmentIncluded" type="checkbox">
+              Annual enrollment was included
+            </label>
+          </div>
+          <div class="pricing-field">
+            <label for="priorPaymentNote">Management note</label>
+            <input id="priorPaymentNote" type="text" placeholder="Historical payment before transition">
+          </div>
+        </div>
+        <small>
+          When the proposal draft is created, Sandman records this as prior-payment history in Billing. It does not reduce or change proposal status by itself.
+        </small>
+      </div>
+
       <div class="pricing-field-grid">
         <div class="pricing-field">
           <label for="enrollmentStartDate">
@@ -588,7 +627,7 @@
 
   <script
     type="module"
-    src="./pricing.js?v=20261008-2"
+    src="./pricing.js?v=20261008-3"
   ></script>
 
   <script
