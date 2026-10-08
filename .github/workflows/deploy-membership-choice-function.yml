@@ -1,0 +1,41 @@
+name: Deploy Membership Choice Function
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-membership-choice-functions
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Compile and deploy recordProposalMembershipChoice
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout approved commit
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install function dependencies
+        run: npm ci --prefix functions
+      - name: Compile Functions
+        run: npm --prefix functions run build
+      - name: Authenticate Firebase CLI
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "::error::Firebase service account secret is missing"
+            exit 1
+          fi
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Deploy membership-choice recorder only
+        run: npx --yes firebase-tools@latest deploy --only functions:recordProposalMembershipChoice --project sandmandashboard --non-interactive
