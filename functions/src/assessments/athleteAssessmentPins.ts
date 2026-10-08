@@ -1187,10 +1187,15 @@ export const reopenAthleteAssessmentPin = onCall(async (req) => {
 
     const status = clean(pin.status).toUpperCase();
 
-    if (status !== "PLACEMENT_RECORDED") {
+    if (
+      ![
+        "RETURNED_TO_MANAGEMENT",
+        "PLACEMENT_RECORDED"
+      ].includes(status)
+    ) {
       throw new HttpsError(
         "failed-precondition",
-        "Only a completed assessment can be reopened."
+        "Only a returned or completed zero-XP assessment can be reopened."
       );
     }
 
