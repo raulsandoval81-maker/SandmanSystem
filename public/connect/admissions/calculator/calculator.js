@@ -38,6 +38,9 @@ const appointmentId =
 
 let proposalId =
   params.get("proposalId") || "";
+
+let pendingPriorPaymentHandoff = null;
+let priorPaymentRecordedFromHandoff = false;
   
 const backToProposalBtn =
   document.getElementById(
@@ -1759,6 +1762,26 @@ const functionName =
           );
         }
 
+        if (
+          !isExistingProposal &&
+          pendingPriorPaymentHandoff &&
+          !priorPaymentRecordedFromHandoff
+        ) {
+          const recordPriorPayment =
+            httpsCallable(
+              functions,
+              "recordProposalPriorPayment"
+            );
+
+          await recordPriorPayment({
+            proposalId: savedProposalId,
+            ...pendingPriorPaymentHandoff
+          });
+
+          priorPaymentRecordedFromHandoff = true;
+          pendingPriorPaymentHandoff = null;
+        }
+
         // The first save creates the proposal ID.
 // Keep that ID in the active Builder session so
 // subsequent saves update the same proposal and
@@ -2589,6 +2612,11 @@ alert(
       if (handoff.membershipStartDate && el.membershipStartDate) {
         el.membershipStartDate.value = handoff.membershipStartDate;
       }
+      pendingPriorPaymentHandoff =
+        handoff.priorPayment &&
+        typeof handoff.priorPayment === "object"
+          ? handoff.priorPayment
+          : null;
       calculate();
     }
 
