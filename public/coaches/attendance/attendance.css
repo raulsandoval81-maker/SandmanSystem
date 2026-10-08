@@ -519,3 +519,103 @@ html[data-theme="light"]{
     width:auto;
   }
 }
+
+/* =========================
+   ATTENDANCE PRACTICE GROUPS
+========================= */
+.practice-route-summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:14px;
+}
+.practice-route-summary > div{
+  display:grid;
+  gap:4px;
+  padding:11px 13px;
+  border:1px solid var(--attendance-line);
+  border-radius:12px;
+  background:var(--attendance-surface);
+}
+.practice-route-summary span,
+.training-group-kicker{
+  color:var(--attendance-muted);
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.practice-route-summary strong{color:var(--attendance-gold)}
+
+.training-groups{
+  display:grid;
+  gap:12px;
+}
+.training-group-card{
+  padding:14px;
+  border:1px solid rgba(212,175,55,.24);
+  border-radius:15px;
+  background:linear-gradient(180deg,rgba(212,175,55,.05),var(--attendance-surface));
+}
+.training-group-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+.training-group-head > div{
+  display:grid;
+  gap:3px;
+  min-width:0;
+}
+.training-group-head strong{
+  font-size:.9rem;
+  line-height:1.35;
+}
+.remove-training-group{
+  min-height:32px !important;
+  padding:5px 10px !important;
+  background:transparent !important;
+  color:var(--attendance-muted) !important;
+  font-size:.72rem !important;
+}
+.training-group-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.training-group-grid label,
+.training-carry-forward{
+  margin:0 !important;
+}
+.training-group-grid .training-rank[readonly]{
+  color:var(--attendance-gold);
+  font-weight:900;
+}
+.training-carry-forward{
+  margin-top:10px !important;
+}
+.training-carry-forward textarea{
+  min-height:72px;
+}
+.training-group-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+}
+.training-group-actions button{
+  border-radius:12px !important;
+}
+@media(max-width:720px){
+  .practice-route-summary,
+  .training-group-grid{
+    grid-template-columns:1fr;
+  }
+  .training-group-actions{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .training-group-actions button{width:100%}
+}
