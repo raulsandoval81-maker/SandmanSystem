@@ -82,10 +82,8 @@ const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
 
 function matLaneLabel(session = {}) {
   const roomId = String(session.roomId || "").toLowerCase();
-  if (roomId === "mat-1a") return "Mat 1A";
-  if (roomId === "mat-1b") return "Mat 1B";
-  if (roomId === "mat-1") return "Mat 1A";
-  return session.sessionId || "Mat 1";
+  const lane = roomId === "mat-1b" ? "Session 1B" : "Session 1A";
+  return `Mat 1 · ${lane}`;
 }
 
 function getSessionPayload() {
