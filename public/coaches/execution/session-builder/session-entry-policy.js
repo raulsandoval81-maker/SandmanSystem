@@ -8,36 +8,16 @@ export const SESSION_ENTRY_MODES = Object.freeze([
 
 export const SESSION_ROOMS = Object.freeze([
   Object.freeze({
-    value: "lompoc-mat-1a",
-    roomId: "mat-1a",
-    physicalRoomId: "mat-1",
-    lane: "A",
+    value: "lompoc-mat-1",
+    roomId: "mat-1",
     locationId: "lompoc",
-    label: "Lompoc Mat 1A"
+    label: "Lompoc Mat 1"
   }),
   Object.freeze({
-    value: "lompoc-mat-1b",
-    roomId: "mat-1b",
-    physicalRoomId: "mat-1",
-    lane: "B",
-    locationId: "lompoc",
-    label: "Lompoc Mat 1B"
-  }),
-  Object.freeze({
-    value: "solvang-mat-1a",
-    roomId: "mat-1a",
-    physicalRoomId: "mat-1",
-    lane: "A",
+    value: "solvang-mat-1",
+    roomId: "mat-1",
     locationId: "santa-ynez-valley",
-    label: "Solvang Mat 1A"
-  }),
-  Object.freeze({
-    value: "solvang-mat-1b",
-    roomId: "mat-1b",
-    physicalRoomId: "mat-1",
-    lane: "B",
-    locationId: "santa-ynez-valley",
-    label: "Solvang Mat 1B"
+    label: "Solvang Mat 1"
   })
 ]);
 
