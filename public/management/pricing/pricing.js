@@ -1002,167 +1002,6 @@ function buildCustomerEstimate() {
       )
       .join("");
 
-  let recommendationHtml = "";
-  let recommendationText = "";
-
-  const combatAthletes =
-    athletes.filter(
-      (athlete) =>
-        athlete.plan === "standard"
-    );
-
-  if (combatAthletes.length === 1) {
-    const athlete = combatAthletes[0];
-
-    const accessOrder =
-      SANDMAN_PRICING_CATALOG
-        .combat
-        .accessOrder;
-
-    const currentIndex =
-      accessOrder.indexOf(
-        athlete.trainingAccess
-      );
-
-    const nextAccess =
-      currentIndex >= 0
-        ? accessOrder[currentIndex + 1]
-        : "";
-
-    if (nextAccess) {
-      const nextLevel =
-        SANDMAN_PRICING_CATALOG
-          .combat
-          .accessLevels[nextAccess];
-
-      const recommendationAthletes =
-        athletes.map(
-          (item) => ({
-            ...item,
-            trainingAccess:
-              item === athlete
-                ? nextAccess
-                : item.trainingAccess,
-            billingTerm:
-              item.plan === "standard"
-                ? "annual"
-                : item.billingTerm
-          })
-        );
-
-      const recommendationEstimate =
-        calculateManagementEstimate(
-          recommendationAthletes,
-          {
-            startDate:
-              enrollmentStartDate?.value,
-
-            enrollmentSupportPercent:
-              enrollmentSupport?.value,
-
-            monthlySponsorPercent:
-              monthlySponsor?.value,
-
-            promotionAmount:
-              appliedPromotion?.amount || 0
-          }
-        );
-
-      const recommendedMonthly =
-        Number(
-          recommendationEstimate
-            .monthlyMembership || 0
-        );
-
-      const currentMtm =
-        Number(
-          monthToMonth?.estimate
-            ?.monthlyMembership || 0
-        );
-
-      let comparisonLine = "";
-
-      if (
-        recommendedMonthly === currentMtm
-      ) {
-        comparisonLine = `
-          <p class="customer-estimate-highlight">
-            Same monthly price as
-            ${estimateEscape(
-              estimateAccessLabel(athlete)
-            )}
-            month-to-month, with additional
-            training access.
-          </p>
-        `;
-      }
-
-      const competitionNote =
-        nextAccess === "competition-3"
-          ? `
-            <p class="customer-estimate-competition-note">
-              <strong>Competition Note:</strong>
-              Hard sparring, sanctioned competition,
-              or certain competition-development
-              activities may require additional
-              governing-body membership, insurance,
-              or other eligibility requirements.
-              Management will confirm any additional
-              requirements before participation.
-            </p>
-          `
-          : "";
-
-      recommendationHtml = `
-        <section class="customer-estimate-recommendation">
-          <h2>
-            Recommended Next Step
-          </h2>
-
-          <h3>
-            ${estimateEscape(nextLevel.label)}
-          </h3>
-
-          <p class="customer-estimate-recommendation-price">
-            12-month agreement + autopay —
-            <strong>
-              ${money(recommendedMonthly)}/month
-            </strong>
-          </p>
-
-          <p>
-            ${estimateEscape(
-              nextLevel.description
-            )}
-          </p>
-
-          ${comparisonLine}
-
-          ${competitionNote}
-        </section>
-      `;
-
-      recommendationText = [
-        "",
-        "Recommended Next Step",
-        nextLevel.label,
-        `12-month agreement + autopay — ${money(
-          recommendedMonthly
-        )}/month`,
-        nextLevel.description,
-        recommendedMonthly === currentMtm
-          ? `Same monthly price as ${estimateAccessLabel(
-              athlete
-            )} month-to-month, with additional training access.`
-          : "",
-        nextAccess === "competition-3"
-          ? "Competition Note: Hard sparring, sanctioned competition, or certain competition-development activities may require additional governing-body membership, insurance, or other eligibility requirements. Management will confirm any additional requirements before participation."
-          : ""
-      ]
-        .filter(Boolean)
-        .join("\n");
-    }
-  }
 
   const html = `
     <div class="customer-estimate-brand">
@@ -1234,7 +1073,6 @@ function buildCustomerEstimate() {
       </p>
     </section>
 
-    ${recommendationHtml}
 
     <div class="customer-estimate-footer">
       <p>
@@ -1252,6 +1090,13 @@ function buildCustomerEstimate() {
         Sandman Academy membership fees are separate
         from any Youth Empowered program, facility,
         or participation fees.
+      </p>
+
+      <p>
+        <strong>Want more training later?</strong>
+        When you’re ready for additional training time,
+        talk with Coach or Management and we’ll review
+        the next available option.
       </p>
 
       <div class="customer-estimate-confirmation">
@@ -1316,7 +1161,7 @@ function buildCustomerEstimate() {
     "",
     "We’re switching over to digital payments here at Sandman Academy, and with that we’ve updated the membership payment structure.",
     "",
-    "Below is your Membership Plan Proposal with the available payment options and the next training option available to you.",
+    "Below is your Membership Plan Proposal with the available payment options for the plan you selected.",
     "",
     "Please review everything and send back the Proposal Confirmation section at the bottom with the option you’d like to move forward with.",
     "",
@@ -1351,11 +1196,11 @@ function buildCustomerEstimate() {
     `12-month annual savings: ${money(
       annualSavings
     )}`,
-    recommendationText,
     "",
     "Membership plan proposal — not an enrollment agreement.",
     "AAU or other governing-body membership is purchased separately where required.",
     "Youth Empowered Note: Sandman Academy membership fees are separate from any Youth Empowered program, facility, or participation fees.",
+    "Want more training later? When you’re ready for additional training time, talk with Coach or Management and we’ll review the next available option.",
     "",
     "Proposal Confirmation",
     "Please copy and return the section below with your preferred option.",
