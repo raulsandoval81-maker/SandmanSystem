@@ -140,6 +140,12 @@ const enrollmentSupportRow =
 const enrollmentSupportAmount =
   document.getElementById("enrollmentSupportAmount");
 
+const priorEnrollmentPaidRow =
+  document.getElementById("priorEnrollmentPaidRow");
+
+const priorEnrollmentPaidAmount =
+  document.getElementById("priorEnrollmentPaidAmount");
+
 const promotionCode =
   document.getElementById(
     "promotionCode"
@@ -314,6 +320,8 @@ function renderPricing() {
     enrollmentSupportPercent: enrollmentSupport?.value,
     monthlySponsorPercent: monthlySponsor?.value,
     promotionAmount: appliedPromotion?.amount || 0,
+    enrollmentPreviouslyPaid:
+      priorPaymentEnrollmentIncluded?.checked === true,
   });
   const pricing = estimate.pricing;
 
@@ -472,6 +480,15 @@ function renderPricing() {
   admissionsCreditsAmount.textContent = `-${money(estimate.admissionsCredits)}`;
   enrollmentSupportRow.hidden = estimate.enrollmentSupport === 0;
   enrollmentSupportAmount.textContent = `-${money(estimate.enrollmentSupport)}`;
+
+  if (priorEnrollmentPaidRow) {
+    priorEnrollmentPaidRow.hidden =
+      estimate.enrollmentPreviouslyPaid === 0;
+  }
+  if (priorEnrollmentPaidAmount) {
+    priorEnrollmentPaidAmount.textContent =
+      `-${money(estimate.enrollmentPreviouslyPaid)}`;
+  }
 
   prorationLabel.textContent =
     `First month — ${Math.round(estimate.prorationRate * 100)}%`;
@@ -1389,6 +1406,10 @@ enrollmentStartDate?.addEventListener(
 
 enrollmentSupport?.addEventListener("change", renderPricing);
 monthlySponsor?.addEventListener("change", renderPricing);
+priorPaymentEnrollmentIncluded?.addEventListener(
+  "change",
+  renderPricing
+);
 
 applyPromotionBtn?.addEventListener(
   "click",
