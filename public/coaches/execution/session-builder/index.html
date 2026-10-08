@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-9">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-10">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -41,7 +41,7 @@
     <div id="guidedSetupScreen">
       <div class="setup-step">
         <div class="section-heading">
-          <div><span class="eyebrow">Session</span><h2>What kind of session?</h2></div>
+          <div><span class="eyebrow">Screen 2 · Session</span><h2>What kind of session?</h2></div>
         </div>
         <div class="choice-grid choice-grid--two" id="sessionTypeChoices">
           <button class="setup-choice active" type="button" data-session-type="academy" aria-pressed="true">
@@ -81,37 +81,16 @@
       </div>
 
       <div class="screen-actions">
-        <button id="continueToContextBtn" class="primary-action" type="button">Continue to Practice Context</button>
+        <button id="continueToContextBtn" class="primary-action" type="button">Continue to Attendance</button>
       </div>
     </div>
 
     <div id="practiceContextScreen" hidden>
-      <section id="currentSessionSection" class="current-session-section context-current-session" hidden>
-        <div class="section-heading compact-heading">
-          <div><span class="eyebrow">Current session</span><h2>Unfinished work</h2></div>
-        </div>
-        <div id="draftEmpty" class="empty-state">No unfinished session found. Continue setting up this practice.</div>
-        <article id="draftCard" class="draft-card" hidden>
-          <div class="draft-card-main">
-            <div class="draft-title-row">
-              <div><span id="draftLifecycle" class="status-pill">Editing</span><h3 id="draftTitle">—</h3></div>
-              <span id="draftUpdated" class="draft-updated">—</span>
-            </div>
-            <p id="draftIdentity" class="draft-identity">—</p>
-            <div id="draftMetrics" class="draft-metrics">—</div>
-          </div>
-          <div class="draft-actions">
-            <a id="continueDraftBtn" class="primary-action" href="/coaches/execution/clipboard-2.0/">Continue in Practice Clipboard</a>
-            <button id="discardDraftBtn" class="secondary-button danger" type="button">Discard Draft</button>
-          </div>
-        </article>
-      </section>
-
       <div class="screen-heading">
         <div>
-          <span class="eyebrow">Practice Context</span>
+          <span class="eyebrow">Screen 4 · Practice Route</span>
           <h2>What are you coaching?</h2>
-          <p id="contextLead">Choose the discipline. Sandman will only ask for details that matter.</p>
+          <p id="contextLead">Attendance is set. Choose the practice route, then continue into the session build.</p>
         </div>
         <button id="backToGuidedSetupBtn" class="secondary-button" type="button">Back</button>
       </div>
@@ -180,6 +159,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-9"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-10"></script>
 </body>
 </html>
