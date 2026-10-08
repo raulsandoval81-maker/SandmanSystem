@@ -136,3 +136,12 @@ test("guided setup opens a separate Practice Context screen", () => {
   assert.match(builder, /function showPracticeContext\(/);
   assert.match(builder, /programField\.hidden = programs\.length <= 1/);
 });
+
+
+test("Session Builder excludes fitness discipline from guided practice", () => {
+  const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  assert.doesNotMatch(html, /data-discipline="striking"/);
+  assert.doesNotMatch(html, />Fitness \/ Striking</);
+  assert.match(builder, /programId !== "fitness-striking"/);
+});
