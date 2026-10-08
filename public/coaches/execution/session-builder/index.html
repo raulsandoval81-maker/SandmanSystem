@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=3">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-4">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -20,7 +20,25 @@
 
   <div id="dashboardNotice" class="dashboard-notice" hidden></div>
 
-  <section class="dashboard-section current-session-section">
+  <section id="prePracticeGate" class="dashboard-section pre-practice-gate">
+    <div class="pre-practice-copy">
+      <span class="eyebrow">Start practice</span>
+      <h2>Pre-Practice Setup</h2>
+      <p>Set up today’s practice, or skip setup and open a clean manual attendance slate.</p>
+    </div>
+    <div class="pre-practice-actions">
+      <button id="setupPrePracticeBtn" class="gate-choice gate-choice--primary" type="button">
+        <strong>Set Up Pre-Practice</strong>
+        <span>Choose Manual or Hybrid, then set the practice.</span>
+      </button>
+      <button id="skipCleanSlateBtn" class="gate-choice" type="button">
+        <strong>Skip — Clean Slate</strong>
+        <span>Manual fast pass. Go straight to Attendance with nothing pre-populated.</span>
+      </button>
+    </div>
+  </section>
+
+  <section id="currentSessionSection" class="dashboard-section current-session-section" hidden>
     <div class="section-heading compact-heading"><div><span class="eyebrow">Current session</span><h2>Unfinished work</h2></div></div>
     <div id="draftEmpty" class="empty-state">No unfinished session found. Start a new session below.</div>
     <article id="draftCard" class="draft-card" hidden>
@@ -39,7 +57,7 @@
     </article>
   </section>
 
-  <section class="dashboard-section new-session-section">
+  <section id="newSessionSection" class="dashboard-section new-session-section" hidden>
     <div class="section-heading"><div><span class="eyebrow">Start new</span><h2>Choose a session shell</h2></div></div>
     <div class="session-shells" aria-label="Session shell">
       <button class="session-card" type="button" data-schema="quick-45" aria-pressed="false"><span class="shell-name">Private</span><strong>45 min</strong><span>Single focus</span></button>
@@ -59,12 +77,10 @@
         </div>
         <div class="field" id="rankField"><label for="rankSelect">Session Focus Tier</label><select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select></div>
         <div class="field" id="weekField"><label for="weekSelect">Training Week</label><select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select></div>
-        <fieldset class="field mode-field" id="modeField"><legend>Start path</legend><div class="mode-row entry-mode-row">
-          <button class="mode-btn" type="button" data-mode="checked-in" aria-pressed="false"><strong>Checked-In</strong><span>Attendance first</span></button>
-          <button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true"><strong>Hybrid</strong><span>Suggested cards</span></button>
-          <button class="mode-btn" type="button" data-mode="manual" aria-pressed="false"><strong>Manual</strong><span>Coach built</span></button>
-          <button class="mode-btn" type="button" data-mode="quick" aria-pressed="false"><strong>Quick Start</strong><span>Fast entry</span></button>
-          <button class="mode-btn" type="button" aria-pressed="false" disabled><strong>Auto</strong><span>Coming later</span></button>
+        <fieldset class="field mode-field" id="modeField"><legend>Session build mode</legend><div class="mode-row entry-mode-row">
+          <button class="mode-btn" type="button" data-mode="manual" aria-pressed="false"><strong>Manual</strong><span>Coach controls the build</span></button>
+          <button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true"><strong>Hybrid</strong><span>Sandman + Coach input</span></button>
+          <button class="mode-btn" type="button" aria-pressed="false" disabled><strong>Auto</strong><span>System-built · coming later</span></button>
         </div></fieldset>
         <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
@@ -97,6 +113,6 @@
   <nav class="execution-tools" aria-label="Execution tools"><span>Execution tools</span><a href="/coaches/execution/clipboard-2.0/">Practice Clipboard</a><a href="/coaches/execution/big-clock-2.0/">Big Clock</a><a href="/coaches/execution/coach-companion/">Coach Companion</a><a href="/coaches/logs/practice-log.html">Practice Log</a></nav>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=2"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-4"></script>
 </body>
 </html>
