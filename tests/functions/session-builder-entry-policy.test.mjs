@@ -145,3 +145,23 @@ test("Session Builder excludes fitness discipline from guided practice", () => {
   assert.doesNotMatch(html, />Fitness \/ Striking</);
   assert.match(builder, /programId !== "fitness-striking"/);
 });
+
+
+test("attendance is the gated Screen 3 before practice route", () => {
+  const builderHtml = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builderJs = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  const attendanceHtml = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.html"), "utf8");
+  const attendanceJs = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.js"), "utf8");
+
+  assert.match(builderHtml, /Continue to Attendance/);
+  assert.match(builderHtml, /Screen 4 · Practice Route/);
+  assert.match(builderJs, /function beginAttendanceStep\(\)/);
+  assert.match(builderJs, /discipline: "unassigned"/);
+  assert.match(builderJs, /return=builder&flow=builder/);
+  assert.match(builderJs, /activePracticeId \|\| selectedMode === "quick"/);
+
+  assert.match(attendanceHtml, /Finish Attendance/);
+  assert.match(attendanceJs, /function isBuilderFlow\(\)/);
+  assert.match(attendanceJs, /Route selected after attendance/);
+  assert.match(attendanceJs, /practiceId=.*step=4/);
+});
