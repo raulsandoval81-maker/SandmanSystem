@@ -1645,6 +1645,11 @@ function proposalPricingSnapshot() {
         ),
       firstMonthDueNow:
         estimate.proratedFirstMonth,
+      additionalMembershipMonthsDue: 0,
+      additionalMembershipDueNow: 0,
+      overdueMembershipMonths: 0,
+      overdueMembershipDueNow: 0,
+      paymentStartMode: "start_now",
       normalDueNow:
         estimate.dueAtEnrollment,
       dueNow:
@@ -1698,10 +1703,40 @@ continueProposalBtn?.addEventListener(
       let proposalId =
         String(proposal?.proposalId || proposal?.id || "");
 
-      if (!proposalId) {
-        const snapshot =
-          proposalPricingSnapshot();
+      const snapshot =
+        proposalPricingSnapshot();
 
+      const proposalPayload = {
+        appointmentId,
+        admissionsRequestId:
+          sourceAppointment.admissionsRequestId ||
+          sourceAppointment.requestId ||
+          null,
+        prospect: {
+          appointmentId,
+          familyName:
+            sourceAppointment.parentName ||
+            sourceAppointment.guardianName ||
+            sourceAppointment.participantName ||
+            sourceAppointment.athleteName ||
+            null
+        },
+        coach: {
+          name: "Coach Sandoval"
+        },
+        athletes:
+          snapshot.athletes,
+        pricing:
+          snapshot.pricing,
+        agreement: {
+          membershipStartDate:
+            enrollmentStartDate?.value || "",
+          recurringBillingDay: 5
+        },
+        internalNotes: null
+      };
+
+      if (!proposalId) {
         const createProposalDraft =
           httpsCallable(
             functions,
@@ -1709,35 +1744,9 @@ continueProposalBtn?.addEventListener(
           );
 
         const response =
-          await createProposalDraft({
-            appointmentId,
-            admissionsRequestId:
-              sourceAppointment.admissionsRequestId ||
-              sourceAppointment.requestId ||
-              null,
-            prospect: {
-              appointmentId,
-              familyName:
-                sourceAppointment.parentName ||
-                sourceAppointment.guardianName ||
-                sourceAppointment.participantName ||
-                sourceAppointment.athleteName ||
-                null
-            },
-            coach: {
-              name: "Coach Sandoval"
-            },
-            athletes:
-              snapshot.athletes,
-            pricing:
-              snapshot.pricing,
-            agreement: {
-              membershipStartDate:
-                enrollmentStartDate?.value || "",
-              recurringBillingDay: 5
-            },
-            internalNotes: null
-          });
+          await createProposalDraft(
+            proposalPayload
+          );
 
         proposalId =
           String(
@@ -1749,6 +1758,17 @@ continueProposalBtn?.addEventListener(
             "Proposal ID was not returned."
           );
         }
+      } else {
+        const updateProposalDraft =
+          httpsCallable(
+            functions,
+            "updateProposalDraft"
+          );
+
+        await updateProposalDraft({
+          ...proposalPayload,
+          proposalId
+        });
       }
 
       const priorPayment =
