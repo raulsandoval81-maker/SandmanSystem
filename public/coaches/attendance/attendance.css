@@ -123,3 +123,255 @@ html[data-theme="light"]{
   .attendance-page .checkin-btn,
   .attendance-page .remove-checkin-btn{width:100%}
 }
+
+
+/* 2026-10-08 Attendance 3-step coach flow */
+.attendance-step-label,
+.attendance-page .eyebrow{
+  margin:0 0 5px;
+  color:var(--attendance-gold);
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.attendance-stepper{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 16px;
+}
+
+.attendance-step{
+  display:flex !important;
+  min-height:54px !important;
+  gap:9px;
+  justify-content:flex-start !important;
+  border-radius:12px !important;
+  text-align:left;
+}
+
+.attendance-step span{
+  display:grid;
+  width:26px;
+  height:26px;
+  flex:0 0 26px;
+  place-items:center;
+  border:1px solid var(--attendance-line);
+  border-radius:999px;
+  color:var(--attendance-muted);
+}
+
+.attendance-step strong{
+  font-size:.82rem;
+}
+
+.attendance-step.is-active{
+  border-color:var(--attendance-gold);
+  background:rgba(212,175,55,.10);
+}
+
+.attendance-step.is-active span,
+.attendance-step.is-complete span{
+  border-color:var(--attendance-gold);
+  background:var(--attendance-gold);
+  color:#080808;
+}
+
+.attendance-step:disabled{
+  opacity:.5;
+}
+
+.attendance-screen[hidden]{
+  display:none !important;
+}
+
+.attendance-card--focus{
+  padding:20px;
+}
+
+.practice-secondary-fields{
+  display:grid;
+  grid-template-columns:1fr 1.4fr;
+  gap:12px;
+}
+
+.full-action{
+  width:100%;
+  border-radius:12px !important;
+}
+
+.athlete-search-label{
+  margin-bottom:5px !important;
+  color:var(--attendance-muted);
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.athlete-search{
+  min-height:54px !important;
+  margin-bottom:10px;
+  font-size:1rem !important;
+}
+
+.quick-search-row{
+  display:flex;
+  gap:6px;
+  margin-bottom:12px;
+  overflow-x:auto;
+  padding-bottom:2px;
+}
+
+.quick-search-btn{
+  min-width:42px !important;
+  min-height:36px !important;
+  padding:5px 9px !important;
+}
+
+.athlete-checkin-list{
+  display:grid;
+  gap:8px;
+}
+
+.athlete-checkin-card{
+  display:grid !important;
+  grid-template-columns:74px minmax(0,1fr) auto;
+  align-items:center !important;
+  width:100%;
+  gap:12px;
+  padding:12px 14px !important;
+  border-radius:14px !important;
+  text-align:left;
+}
+
+.athlete-checkin-card:hover,
+.athlete-checkin-card:focus-visible{
+  border-color:var(--attendance-gold);
+  background:rgba(212,175,55,.08);
+}
+
+.athlete-number{
+  color:var(--attendance-gold);
+  font-size:.68rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.athlete-checkin-card .athlete-main strong{
+  font-size:.95rem;
+}
+
+.athlete-checkin-card .athlete-main span{
+  color:var(--attendance-muted);
+  font-size:.74rem;
+}
+
+.checkin-action{
+  color:var(--attendance-gold);
+  font-size:.78rem;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.checked-badge{
+  min-width:54px;
+  padding:6px 9px;
+  border:1px solid var(--attendance-gold);
+  border-radius:999px;
+  color:var(--attendance-gold);
+  text-align:center;
+  font-size:.76rem;
+}
+
+.screen-actions{
+  margin-top:14px;
+}
+
+.screen-actions--split{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.checked-summary{
+  margin:0 0 12px;
+  color:var(--attendance-gold);
+  font-weight:900;
+}
+
+.checked-athlete-row{
+  display:grid !important;
+  grid-template-columns:74px minmax(0,1fr) auto;
+}
+
+@media(max-width:720px){
+  .practice-secondary-fields{
+    grid-template-columns:1fr;
+  }
+
+  .attendance-stepper{
+    gap:5px;
+  }
+
+  .attendance-step{
+    min-height:48px !important;
+    padding:7px 8px !important;
+  }
+
+  .attendance-step span{
+    width:22px;
+    height:22px;
+    flex-basis:22px;
+    font-size:.7rem;
+  }
+
+  .attendance-step strong{
+    font-size:.7rem;
+  }
+
+  .athlete-checkin-card,
+  .checked-athlete-row{
+    grid-template-columns:62px minmax(0,1fr) auto !important;
+    align-items:center !important;
+    flex-direction:initial !important;
+  }
+
+  .screen-actions--split{
+    flex-direction:column;
+  }
+
+  .screen-actions--split button{
+    width:100%;
+  }
+}
+
+@media(max-width:480px){
+  .attendance-step strong{
+    display:none;
+  }
+
+  .attendance-step{
+    justify-content:center !important;
+  }
+
+  .athlete-checkin-card{
+    grid-template-columns:54px minmax(0,1fr) !important;
+  }
+
+  .athlete-checkin-card .checkin-action{
+    grid-column:2;
+  }
+
+  .checked-athlete-row{
+    grid-template-columns:54px minmax(0,1fr) !important;
+  }
+
+  .checked-athlete-row .remove-checkin-btn{
+    grid-column:2;
+    width:100%;
+  }
+}
