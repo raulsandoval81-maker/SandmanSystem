@@ -55,18 +55,18 @@ test("attendance context deduplicates athletes and summarizes actual ranks", () 
   ]);
 });
 
-test("Auto is not a functional execution mode", () => {
-  assert.deepEqual(policy.SESSION_ENTRY_MODES, ["checked-in", "hybrid", "manual", "quick"]);
-  assert.throws(
-    () => policy.normalizeExecutionMode("auto"),
-    /Auto session planning is not available yet/
-  );
+test("Auto, Hybrid, and Manual are functional guided setup modes", () => {
+  assert.ok(policy.SESSION_ENTRY_MODES.includes("auto"));
+  assert.ok(policy.SESSION_ENTRY_MODES.includes("hybrid"));
+  assert.ok(policy.SESSION_ENTRY_MODES.includes("manual"));
+  assert.equal(policy.normalizeExecutionMode("auto"), "auto");
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
-  assert.match(html, />Auto</);
-  assert.doesNotMatch(html, /data-mode="auto"/);
+  assert.match(html, /data-mode="auto"/);
+  assert.match(html, /data-mode="hybrid"/);
+  assert.match(html, /data-mode="manual"/);
 });
 
-test("Manual, Hybrid, Checked-In, and Quick use the shared Builder and Clipboard spine", () => {
+test("Auto, Manual, and Hybrid use the shared Builder and Clipboard spine", () => {
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   const clipboard = fs.readFileSync(path.join(repo, "public/coaches/execution/clipboard-2.0/clipboard-2.0.js"), "utf8");
   assert.match(builder, /data-mode|selectedMode/);
@@ -102,4 +102,20 @@ test("fast practice runs from Big Clock and posts practice input afterward", () 
   assert.match(clockJs, /savePracticeSessionMemory/);
   assert.match(logHtml, /Practice Details/);
   assert.match(logHtml, /Save Practice Details/);
+});
+
+
+test("guided setup separates session type, duration, and build mode", () => {
+  const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  const clipboard = fs.readFileSync(path.join(repo, "public/coaches/execution/clipboard-2.0/clipboard-2.0.js"), "utf8");
+
+  assert.match(html, /Academy Class/);
+  assert.match(html, /Private Session/);
+  assert.match(builder, /durations: \[60, 75, 90, 120\]/);
+  assert.match(builder, /durations: \[30, 45, 60, 90\]/);
+  assert.match(builder, /selectedMode = "hybrid"/);
+  assert.match(clipboard, /"private-30"/);
+  assert.match(clipboard, /"academy-75"/);
+  assert.match(clipboard, /"academy-120"/);
 });
