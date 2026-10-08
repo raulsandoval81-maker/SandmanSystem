@@ -338,10 +338,9 @@ function showPrePracticeSetup() {
 function cleanSlatePayload() {
   const room = selectedRoom();
   if (!room) return null;
-  const shell = SHELLS["standard-60"];
   return {
-    schema: "standard-60",
-    durationMinutes: shell.minutes,
+    schema: "fast-practice",
+    durationMinutes: 60,
     xpTimeScale: "standard",
     executionMode: "manual",
     practiceId: "",
@@ -377,7 +376,7 @@ async function skipToPractice() {
   let payload = cleanSlatePayload();
   if (!payload) {
     const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = "Choose a valid room before starting Attendance.";
+    noticeEl.textContent = "Choose a valid room before starting practice.";
     noticeEl.hidden = false;
     return;
   }
@@ -432,12 +431,19 @@ function renderDraft() {
   if (!draft) return;
 
   const session = draft.session || {};
-  const shell = SHELLS[draft.schema || session.schema] || { label: "Practice", minutes: draft.durationMinutes || 0 };
+  const draftSchema = String(draft.schema || session.schema || "");
+  const draftType = draftSchema.startsWith("private-") ? "private" : "academy";
+  const typeConfig = SESSION_TYPES[draftType] || SESSION_TYPES.academy;
+  const shell = {
+    label: typeConfig.label,
+    minutes: Number(draft.durationMinutes || session.durationMinutes || draftSchema.split("-").pop() || 0)
+  };
   const blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
   const cards = Array.isArray(draft.cards) ? draft.cards : [];
   const noteCount = blocks.filter(block => String(block.notes || "").trim()).length + (String(draft.focus || "").trim() ? 1 : 0);
   const allocated = blocks.filter(block => block.visible !== false).reduce((sum, block) => sum + Number(block.minutes || 0), 0);
-  const identity = [session.discipline, session.tier && session.rankLabel ? `${session.tier} ${session.rankLabel}` : session.tier, session.week ? `Week ${session.week}` : "", session.executionMode === "hybrid" ? "Hybrid" : "Manual"].filter(Boolean).join(" · ");
+  const modeLabel = session.executionMode === "auto" ? "Auto" : session.executionMode === "hybrid" ? "Hybrid" : "Manual";
+  const identity = [session.discipline, session.tier && session.rankLabel ? `${session.tier} ${session.rankLabel}` : session.tier, session.week ? `Week ${session.week}` : "", modeLabel].filter(Boolean).join(" · ");
 
   document.getElementById("draftLifecycle").textContent = draft.lifecycle === "launched" ? "Sent to Clock" : "Editing";
   document.getElementById("draftTitle").textContent = `${shell.label} · ${shell.minutes || session.durationMinutes || 0} min · ${session.sessionId || "Room"}`;
