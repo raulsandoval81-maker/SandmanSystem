@@ -1159,14 +1159,14 @@ async function runProposalAction(button) {
 
     if (action === "record-membership-choice") {
       const selected = window.prompt("Which issued option did the family choose? Enter 1 (month-to-month) or 2 (12-month recurring):", "2");
-      if (selected === null) return;
+      if (selected === null) { button.disabled = false; button.textContent = originalText; return; }
       const optionId = selected.trim() === "1" ? "month_to_month" : selected.trim() === "2" ? "twelve_month" : "";
       if (!optionId) throw new Error("Select issued Option 1 or Option 2.");
       const evidence = window.prompt("Evidence: source, date and family response (for audit):", "Family email reply on October 8, 2026: Option 2.");
-      if (evidence === null) return;
+      if (evidence === null) { button.disabled = false; button.textContent = originalText; return; }
       if (String(evidence).trim().length < 12) throw new Error("Evidence note is required.");
       const confirmed = window.confirm("Record the family's issued membership choice? This preserves the audit and does NOT sign, charge or activate the proposal.");
-      if (!confirmed) return;
+      if (!confirmed) { button.disabled = false; button.textContent = originalText; return; }
       await httpsCallable(functions, "recordProposalMembershipChoice")({ proposalId, optionId, evidence: evidence.trim() });
       await loadProposalQueue();
       return;
