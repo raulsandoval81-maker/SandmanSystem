@@ -2389,6 +2389,34 @@ alert(
 
       el.athleteList.innerHTML = "";
 
+      if (el.membershipStartDate) {
+        el.membershipStartDate.value =
+          pricing.membershipStartDate ||
+          proposal.agreement?.membershipStartDate ||
+          "";
+      }
+
+      if (el.additionalMembershipMonthsDue) {
+        el.additionalMembershipMonthsDue.value =
+          String(
+            Math.max(
+              0,
+              Number(
+                pricing.additionalMembershipMonthsDue ||
+                0
+              )
+            )
+          );
+      }
+
+      if (el.paymentStartMode) {
+        el.paymentStartMode.value =
+          pricing.paymentStartMode ===
+            "deferred_family"
+            ? "deferred_family"
+            : "start_now";
+      }
+
       if (athletes.length) {
         athletes.forEach((athlete) => {
           addAthlete({
@@ -2656,6 +2684,7 @@ alert(
           : null;
 
       proposalEnrollmentPreviouslyPaid =
+        proposalEnrollmentPreviouslyPaid === true ||
         pendingPriorPaymentHandoff
           ?.enrollmentFeeIncluded === true;
 
