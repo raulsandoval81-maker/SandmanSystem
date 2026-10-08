@@ -58,6 +58,11 @@ const currentSessionSection = document.getElementById("currentSessionSection");
 const newSessionSection = document.getElementById("newSessionSection");
 const setupPrePracticeBtn = document.getElementById("setupPrePracticeBtn");
 const skipCleanSlateBtn = document.getElementById("skipCleanSlateBtn");
+const guidedSetupScreen = document.getElementById("guidedSetupScreen");
+const practiceContextScreen = document.getElementById("practiceContextScreen");
+const continueToContextBtn = document.getElementById("continueToContextBtn");
+const backToGuidedSetupBtn = document.getElementById("backToGuidedSetupBtn");
+const disciplineButtons = [...document.querySelectorAll("[data-discipline]")];
 
 let selectedSessionType = "academy";
 let selectedDuration = 60;
@@ -116,13 +121,14 @@ function populateRooms(preferredValue = "") {
 function populatePrograms(preferredProgramId = "") {
   const room = selectedRoom();
   const discipline = String(disciplineFamilySelect?.value || "").trim();
-  const programs = programsForLocation(room?.locationId || "")
+
+  let programs = programsForLocation(room?.locationId || "")
     .filter((program) => program.programId !== "manual-build")
     .filter((program) => !discipline || program.discipline === discipline);
 
-  disciplineSelect.innerHTML = discipline
-    ? '<option value="">No specific program</option>'
-    : '<option value="">Select Discipline First</option>';
+  // If the active room has no configured journey yet, keep discipline usable.
+  // Journey remains optional until the location's program map is defined.
+  disciplineSelect.innerHTML = '<option value="">No specific journey</option>';
 
   programs.forEach((program) => {
     const option = document.createElement("option");
@@ -133,11 +139,21 @@ function populatePrograms(preferredProgramId = "") {
 
   if (programs.some((program) => program.programId === preferredProgramId)) {
     disciplineSelect.value = preferredProgramId;
+  } else if (programs.length === 1) {
+    disciplineSelect.value = programs[0].programId;
   }
 
-  if (programField) programField.hidden = !discipline;
-}
+  if (programField) {
+    // Only ask Coach to choose a journey when there is an actual choice.
+    programField.hidden = programs.length <= 1;
+  }
 
+  disciplineButtons.forEach((button) => {
+    const active = button.dataset.discipline === discipline;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
 function programUsesRank() {
   return Boolean(selectedProgram()?.journey && RANK_LADDERS[selectedProgram().journey]);
 }
@@ -159,13 +175,10 @@ function populateRanks(preferredTier = "") {
   const ladder = RANK_LADDERS[journey] || [];
   rankSelect.innerHTML = "";
 
-  if (!ladder.length) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "Not needed";
-    rankSelect.appendChild(option);
-    return;
-  }
+  const blank = document.createElement("option");
+  blank.value = "";
+  blank.textContent = ladder.length ? "Let Sandman decide / no focus tier" : "Not needed";
+  rankSelect.appendChild(blank);
 
   ladder.forEach(rank => {
     const option = document.createElement("option");
@@ -178,7 +191,6 @@ function populateRanks(preferredTier = "") {
     rankSelect.value = preferredTier;
   }
 }
-
 function populateWeeks() {
   weekSelect.innerHTML = '<option value="">Select Week</option>';
   for (let week = 1; week <= 36; week += 1) {
@@ -241,26 +253,28 @@ function updateModeButtons() {
 
 function updateConditionalControls() {
   const usesRank = programUsesRank();
-  rankField.hidden = !usesRank || selectedMode === "auto";
-  weekField.hidden = !programUsesWeek();
-  modeAvailability.hidden = false;
 
   if (selectedMode === "auto") {
-    modeAvailability.textContent = hybridUsable
-      ? "Auto will use Sandman curriculum logic and the selected session context."
-      : "Auto will use Sandman’s basic session logic for this context.";
-    modeAvailability.classList.remove("unavailable");
+    rankField.hidden = true;
+    weekField.hidden = true;
+    modeAvailability.textContent = "Auto uses Sandman’s system logic. Coach only needs to identify the practice context.";
   } else if (selectedMode === "hybrid") {
+    rankField.hidden = !usesRank;
+    weekField.hidden = !usesRank;
     modeAvailability.textContent = hybridUsable
-      ? "Hybrid curriculum suggestions are available."
-      : "Hybrid is active. Sandman will assist with the available session context.";
-    modeAvailability.classList.remove("unavailable");
+      ? "Hybrid can use curriculum suggestions. Focus tier and week are optional guidance."
+      : "Hybrid is active. Focus tier and week are optional when available.";
   } else {
-    modeAvailability.textContent = "Manual keeps the detailed controls with Coach.";
-    modeAvailability.classList.remove("unavailable");
+    rankField.hidden = !usesRank;
+    weekField.hidden = !usesRank;
+    modeAvailability.textContent = usesRank
+      ? "Manual gives Coach the available tier and week controls."
+      : "Manual keeps the practice build with Coach.";
   }
-}
 
+  modeAvailability.hidden = false;
+  modeAvailability.classList.remove("unavailable");
+}
 function shellData() {
   const type = SESSION_TYPES[selectedSessionType] || SESSION_TYPES.academy;
   return { label: type.label, minutes: selectedDuration };
@@ -288,36 +302,44 @@ function getProgramData() {
 function updateSummary() {
   const shell = shellData();
   const program = getProgramData();
-  const room = optionText(roomSelect) || "Choose a room";
   const usesRank = programUsesRank() && selectedMode !== "auto";
-  const usesWeek = programUsesWeek();
+  const usesWeek = programUsesRank() && selectedMode !== "auto";
+  const summaryShell = document.getElementById("summaryShell");
+  const summaryMode = document.getElementById("summaryMode");
+  const summaryDiscipline = document.getElementById("summaryDiscipline");
+  const summaryProgramRow = document.getElementById("summaryProgramRow");
+  const summaryProgram = document.getElementById("summaryProgram");
+  const summaryRankRow = document.getElementById("summaryRankRow");
+  const summaryRank = document.getElementById("summaryRank");
+  const summaryWeekRow = document.getElementById("summaryWeekRow");
+  const summaryWeek = document.getElementById("summaryWeek");
 
-  document.getElementById("currentRoomLabel").textContent = room;
-  document.getElementById("summaryShell").textContent = `${shell.label} · ${shell.minutes} min`;
-  document.getElementById("summaryRoom").textContent = room;
-  document.getElementById("summaryDiscipline").textContent =
-    disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
-  document.getElementById("summaryProgramRow").hidden = !program.program;
-  document.getElementById("summaryProgram").textContent = optionText(disciplineSelect) || "—";
-  document.getElementById("summaryRankRow").hidden = !usesRank;
-  document.getElementById("summaryRank").textContent = usesRank ? (optionText(rankSelect) || "Select a rank") : "—";
-  document.getElementById("summaryWeekRow").hidden = !usesWeek;
-  document.getElementById("summaryWeek").textContent = usesWeek ? (optionText(weekSelect) || "Select a week") : "—";
-  const modeLabels = { auto: "Auto", hybrid: "Hybrid", manual: "Manual" };
-  document.getElementById("summaryMode").textContent = modeLabels[selectedMode] || "Hybrid";
+  if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
+  if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
+  if (summaryDiscipline) {
+    summaryDiscipline.textContent =
+      disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
+  }
+
+  if (summaryProgramRow) summaryProgramRow.hidden = !program.program;
+  if (summaryProgram) summaryProgram.textContent = optionText(disciplineSelect) || "—";
+
+  if (summaryRankRow) summaryRankRow.hidden = !usesRank;
+  if (summaryRank) summaryRank.textContent = usesRank ? (optionText(rankSelect) || "Optional") : "—";
+
+  if (summaryWeekRow) summaryWeekRow.hidden = !usesWeek;
+  if (summaryWeek) summaryWeek.textContent = usesWeek ? (optionText(weekSelect) || "Optional") : "—";
 
   if (!program.discipline) {
     summaryAvailability.textContent = "Choose a discipline to continue.";
   } else if (selectedMode === "auto") {
-    summaryAvailability.textContent = hybridUsable
-      ? "Sandman will build from the curriculum context."
-      : "Sandman will build a basic guided session.";
+    summaryAvailability.textContent = "Sandman will use basic system logic and available athlete/curriculum context.";
   } else if (selectedMode === "hybrid") {
     summaryAvailability.textContent = hybridUsable
       ? "Sandman suggestions will be available in Clipboard."
-      : "Hybrid assistance will use the session details you provide.";
+      : "Hybrid will use the context you provide and keep the rest flexible.";
   } else {
-    summaryAvailability.textContent = "Coach-built session with all available detail controls.";
+    summaryAvailability.textContent = "Coach controls the build in Practice Clipboard.";
   }
 
   buildBtn.disabled = !program.discipline || !selectedRoom();
@@ -328,12 +350,21 @@ function updateSummary() {
       : "Build Manual Session";
 }
 
-
 function showPrePracticeSetup() {
   if (prePracticeGate) prePracticeGate.hidden = true;
   if (currentSessionSection) currentSessionSection.hidden = false;
   if (newSessionSection) newSessionSection.hidden = false;
+  if (guidedSetupScreen) guidedSetupScreen.hidden = false;
+  if (practiceContextScreen) practiceContextScreen.hidden = true;
   updateSummary();
+}
+
+function showPracticeContext() {
+  if (guidedSetupScreen) guidedSetupScreen.hidden = true;
+  if (practiceContextScreen) practiceContextScreen.hidden = false;
+  updateConditionalControls();
+  updateSummary();
+  practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function cleanSlatePayload() {
@@ -659,6 +690,7 @@ async function restoreCanonicalPractice(practiceId) {
   populateRanks(String(practice.tier || ""));
   roomSelect.disabled = true;
   await refreshHybridAvailability();
+  showPracticeContext();
   await loadAttendanceContext();
   document.getElementById("dashboardNotice").textContent = "Canonical practice restored. Continue planning with the same practice ID.";
   document.getElementById("dashboardNotice").hidden = false;
@@ -666,6 +698,20 @@ async function restoreCanonicalPractice(practiceId) {
 
 setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
 skipCleanSlateBtn?.addEventListener("click", skipToPractice);
+
+continueToContextBtn?.addEventListener("click", showPracticeContext);
+backToGuidedSetupBtn?.addEventListener("click", () => {
+  if (practiceContextScreen) practiceContextScreen.hidden = true;
+  if (guidedSetupScreen) guidedSetupScreen.hidden = false;
+});
+
+disciplineButtons.forEach((button) => button.addEventListener("click", () => {
+  if (!disciplineFamilySelect) return;
+  disciplineFamilySelect.value = button.dataset.discipline || "";
+  populatePrograms("");
+  populateRanks();
+  refreshHybridAvailability();
+}));
 
 sessionTypeButtons.forEach(button => button.addEventListener("click", () => {
   selectedSessionType = button.dataset.sessionType || "academy";
@@ -682,9 +728,8 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
 }));
 
 roomSelect.addEventListener("change", () => {
-  const previous = disciplineSelect.value;
-  populatePrograms(previous);
-  populateRanks();
+  populatePrograms(disciplineSelect.value);
+  populateRanks(rankSelect.value);
   refreshHybridAvailability();
 });
 
@@ -740,6 +785,8 @@ populatePrograms();
 populateWeeks();
 populateRanks();
 renderDurationChoices();
+updateModeButtons();
+updateConditionalControls();
 renderDraft();
 
 const notice = new URLSearchParams(window.location.search).get("notice");
