@@ -112,17 +112,36 @@ function selectedProgram() {
   return programById(disciplineSelect?.value || "");
 }
 
+function roomHasGuidedPrograms(room) {
+  if (!room) return false;
+  return programsForLocation(room.locationId)
+    .some((program) => !["manual-build", "fitness-striking"].includes(program.programId));
+}
+
 function populateRooms(preferredValue = "") {
   const rememberedRoom = readJson(SESSION_KEY, {})?.roomValue || "";
-  const preferred = preferredValue || rememberedRoom;
   roomSelect.innerHTML = "";
+
   SESSION_ROOMS.forEach((room) => {
     const option = document.createElement("option");
     option.value = room.value;
     option.textContent = room.label;
     roomSelect.appendChild(option);
   });
-  if (roomByValue(preferred)) roomSelect.value = preferred;
+
+  const preferredRoom = roomByValue(preferredValue);
+  const remembered = roomByValue(rememberedRoom);
+  const guidedDefault = SESSION_ROOMS.find(roomHasGuidedPrograms);
+
+  const selected =
+    (preferredRoom && roomHasGuidedPrograms(preferredRoom) ? preferredRoom : null) ||
+    (remembered && roomHasGuidedPrograms(remembered) ? remembered : null) ||
+    guidedDefault ||
+    preferredRoom ||
+    remembered ||
+    SESSION_ROOMS[0];
+
+  if (selected) roomSelect.value = selected.value;
 }
 
 function journeyLabel(code = "") {
