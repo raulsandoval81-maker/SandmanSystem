@@ -319,6 +319,53 @@ setStatus(
   }
 }
 
+const NOTES_DRAFT_PREFIX = "sandman_my_practice_log_draft_v1:";
+function notesDraftKey() {
+  const session = getCoachSessionPayload();
+  return session?.practiceId ? NOTES_DRAFT_PREFIX + session.practiceId : "";
+}
+function saveNotesDraft() {
+  const key = notesDraftKey();
+  if (!key) return;
+  const notes = {};
+  BLOCK_KEYS.forEach(slot => {
+    notes[slot] = document.getElementById("notes-" + slot)?.value || "";
+  });
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      practiceId: getCoachSessionPayload().practiceId,
+      focus: focusEl?.value || "",
+      notes,
+      updatedAt: new Date().toISOString()
+    }));
+    setStatus("My Practice Log draft saved on this device.");
+  } catch (error) {
+    console.error("Could not save notes draft", error);
+    setStatus("Notes have not been saved. Check browser storage.");
+  }
+}
+function restoreNotesDraft() {
+  const key = notesDraftKey();
+  if (!key) return;
+  try {
+    const draft = JSON.parse(localStorage.getItem(key) || "null");
+    if (!draft || draft.practiceId !== getCoachSessionPayload()?.practiceId) return;
+    BLOCK_KEYS.forEach(slot => {
+      const el = document.getElementById("notes-" + slot);
+      if (el && typeof draft.notes?.[slot] === "string") {
+        el.value = draft.notes[slot];
+        autoGrow(el);
+      }
+    });
+    if (focusEl && typeof draft.focus === "string") {
+      focusEl.value = draft.focus;
+      autoGrow(focusEl);
+    }
+  } catch (error) {
+    console.warn("Could not restore notes draft", error);
+  }
+}
+
 function renderCoachSession() {
   if (!hydrationComplete) return;
   let session = getCoachSessionPayload();
@@ -573,6 +620,7 @@ window.endPractice = async function () {
       blocks: getCompanionBlocks(),
       savedAt: new Date().toISOString()
     };
+    saveNotesDraft();
     localStorage.setItem(LAST_PRACTICE_KEY, JSON.stringify(record));
     // Always retain the local handoff before attempting any optional cloud save.
     const draft = JSON.parse(localStorage.getItem(CLIPBOARD_DRAFT_KEY) || "null");
@@ -592,53 +640,6 @@ window.endPractice = async function () {
   }
 };
 
-window.legacyEndPractice = function () {
-  const session = getCoachSessionPayload();
-
-  localStorage.setItem(LAST_PRACTICE_KEY, JSON.stringify({
-    source: "coach-companion",
-
-    schema:
-      session?.schema ||
-      session?.template ||
-      session?.sessionType ||
-      "",
-
-    discipline: session?.discipline || "",
-    journey: session?.journey || "",
-    tier: session?.tier || "",
-    practiceId: session?.practiceId || "",
-
-    focus:
-      focusEl?.value.trim() ||
-      session?.focus ||
-      "",
-
-    coachSession: session || null,
-    blocks: getCompanionBlocks(),
-    savedAt: new Date().toISOString()
-  }));
-
-  try {
-    const draft = JSON.parse(localStorage.getItem(CLIPBOARD_DRAFT_KEY) || "null");
-    if (draft?.version === 1) {
-      localStorage.setItem(CLIPBOARD_DRAFT_KEY, JSON.stringify({
-        ...draft,
-        lifecycle: "completed",
-        updatedAt: new Date().toISOString(),
-        completedAt: new Date().toISOString()
-      }));
-    }
-  } catch (err) {
-    console.warn("Clipboard draft completion marker failed:", err);
-  }
-
-  window.location.href = session?.practiceId
-    ? "/coaches/logs/practice-log.html?practiceId=" +
-      encodeURIComponent(session.practiceId)
-    : "/coaches/logs/practice-log.html";
-};
-
 window.openDisciplineCards = function () {
   window.location.href = "/coaches/execution/clipboard-2.0/";
 };
@@ -656,6 +657,7 @@ document.addEventListener("input", e => {
     e.target.id === "slot-note"
   ) {
     autoGrow(e.target);
+    saveNotesDraft();
   }
 });
 
@@ -691,6 +693,7 @@ function escapeHtml(value) {
   hydrationComplete = true;
 
   renderCoachSession();
+  restoreNotesDraft();
 
   document.querySelectorAll(".slot-notes-input").forEach(autoGrow);
   if (focusEl) autoGrow(focusEl);
