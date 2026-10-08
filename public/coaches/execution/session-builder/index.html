@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-12">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261008-13">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
@@ -80,6 +80,22 @@
         <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
 
+      <div class="setup-step">
+        <div class="section-heading">
+          <div><span class="eyebrow">Mat lane</span><h2>Which side are you running?</h2></div>
+        </div>
+        <div class="choice-grid choice-grid--two" id="matLaneChoices">
+          <button class="setup-choice active" type="button" data-mat-lane="A" aria-pressed="true">
+            <strong>Mat 1A</strong>
+            <span>Session lane A.</span>
+          </button>
+          <button class="setup-choice" type="button" data-mat-lane="B" aria-pressed="false">
+            <strong>Mat 1B</strong>
+            <span>Session lane B.</span>
+          </button>
+        </div>
+      </div>
+
       <div class="screen-actions">
         <button id="continueToContextBtn" class="primary-action" type="button">Continue to Practice Route</button>
       </div>
@@ -124,6 +140,7 @@
           <h3 id="summaryShell">Academy Class · 60 min</h3>
           <dl>
             <div><dt>Mode</dt><dd id="summaryMode">Hybrid</dd></div>
+            <div><dt>Mat</dt><dd id="summaryMat">Mat 1A</dd></div>
             <div><dt>Journey</dt><dd id="summaryJourney">Select a journey</dd></div>
             <div><dt>Discipline</dt><dd id="summaryDiscipline">Select a discipline</dd></div>
           </dl>
@@ -137,6 +154,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-20"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261008-21"></script>
 </body>
 </html>
