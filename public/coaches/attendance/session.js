@@ -904,7 +904,7 @@ async function savePracticeContextToBuilderSession() {
 
   const updated = {
     ...session,
-    journey: primary.journey || session.journey,
+    journey: session.journey || activePractice?.journey || "",
     tier,
     rank: tier,
     rankLabel,
