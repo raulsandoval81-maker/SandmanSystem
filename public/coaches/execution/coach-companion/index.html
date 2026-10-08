@@ -180,6 +180,20 @@
     </label>
     <textarea id="slot-note" class="broadcast" placeholder="Private session reminders…"></textarea>
   </div>
+  <section class="field-log-sections" aria-label="Daily practice observations">
+    <h2>Practice Observations</h2>
+    <p>Record what happened. These notes remain separate from the locked Practice Plan.</p>
+    <label for="teamNotes"><strong>Team Notes</strong></label>
+    <textarea id="teamNotes" class="field-log-input" placeholder="Team performance, behavior, strengths, areas to improve..."></textarea>
+    <label for="athleteNoteSelect"><strong>Individual Athlete Notes</strong></label>
+    <select id="athleteNoteSelect" class="field-log-select"><option value="">Choose an athlete</option></select>
+    <textarea id="athleteNoteText" class="field-log-input" placeholder="Athlete observations and development follow-up..." disabled></textarea>
+    <label for="eventNotes"><strong>Events &amp; Incidents</strong></label>
+    <textarea id="eventNotes" class="field-log-input" placeholder="Notable events, competition preparation, safety observations..."></textarea>
+    <label for="generalNotes"><strong>General Coaching Notes</strong></label>
+    <textarea id="generalNotes" class="field-log-input" placeholder="Additional observations or notes transcribed after practice..."></textarea>
+    <p class="muted">Drafts are saved on this device. Review your notes before Final Close.</p>
+  </section>
   <div class="footer-actions">
     <button type="button" onclick="clearSession()">Clear Notes</button>
     <button type="button" data-end-practice-log onclick="endPractice()">End Daily Practice Log → Final Close</button>
@@ -189,6 +203,6 @@
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=5"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=6"></script>
 </body>
 </html>
