@@ -8,8 +8,19 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
+import {
+  LADDER_YOUTH,
+  LADDER_F4,
+  LADDER_Q2M
+} from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
+
+const LADDER_BY_JOURNEY = Object.freeze({
+  Z2H: LADDER_YOUTH,
+  P2L: LADDER_F4,
+  Q2M: LADDER_Q2M
+});
 
 let athletes = [];
 let filteredAthletes = [];
@@ -21,7 +32,8 @@ let activePractice = null;
 let currentStep = 1;
 
 function showStep(step) {
-  currentStep = Math.min(3, Math.max(1, Number(step) || 1));
+  const maxStep = isBuilderFlow() ? 4 : 3;
+  currentStep = Math.min(maxStep, Math.max(1, Number(step) || 1));
 
   document
     .querySelectorAll("[data-step-screen]")
@@ -44,6 +56,8 @@ function showStep(step) {
         button.disabled = !sessionRef || !sessionId;
       } else if (target === 3) {
         button.disabled = !checkedIn.size;
+      } else if (target === 4) {
+        button.disabled = !isBuilderFlow() || !checkedIn.size;
       } else {
         button.disabled = false;
       }
@@ -431,6 +445,172 @@ function renderCheckedIn() {
     });
   });
 }
+function ladderForPractice() {
+  return LADDER_BY_JOURNEY[String(activePractice?.journey || "").toUpperCase()] || [];
+}
+
+function tierFromLadderKey(key = "") {
+  return String(key || "").replace(/^R/i, "T");
+}
+
+function normalizeAthleteTier(athlete = {}, ladder = ladderForPractice()) {
+  const direct = String(athlete.tier || "").trim();
+  if (direct) return tierFromLadderKey(direct);
+
+  const rank = String(athlete.rank || "").trim().toLowerCase();
+  if (!rank) return "";
+
+  const match = ladder.find((item) => String(item?.name || "").trim().toLowerCase() === rank);
+  return match ? tierFromLadderKey(match.key) : "";
+}
+
+function dominantValue(values = []) {
+  const counts = new Map();
+  values.filter(Boolean).forEach((value) => {
+    counts.set(value, (counts.get(value) || 0) + 1);
+  });
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))[0]?.[0] || "";
+}
+
+function previousRouteContext() {
+  try {
+    const value = JSON.parse(localStorage.getItem("sandman_previous_route_context_v1") || "{}");
+    const sameRoute = String(value?.journey || "") === String(activePractice?.journey || "")
+      && String(value?.discipline || "") === String(activePractice?.discipline || "");
+    return sameRoute ? value : {};
+  } catch {
+    return {};
+  }
+}
+
+function contextSuggestions() {
+  const ladder = ladderForPractice();
+  const present = Array.from(checkedIn.values());
+  const rosterTier = dominantValue(present.map((athlete) => normalizeAthleteTier(athlete, ladder)));
+
+  const athleteWeek = dominantValue(present.map((athlete) => {
+    const raw = athlete.trainingWeek ?? athlete.curriculumWeek ?? athlete.week ?? "";
+    const num = Number(raw);
+    return Number.isFinite(num) && num >= 1 && num <= 36 ? String(num) : "";
+  }));
+
+  const prior = previousRouteContext();
+  const priorTier = String(prior?.tier || "").trim();
+  const priorWeek = String(prior?.week || "").trim();
+
+  return {
+    tier: rosterTier || priorTier || "",
+    week: athleteWeek || priorWeek || "1",
+    tierSource: rosterTier
+      ? "checked-in roster"
+      : priorTier
+        ? "last matching practice"
+        : "no established tier yet",
+    weekSource: athleteWeek
+      ? "checked-in athlete context"
+      : priorWeek
+        ? "last matching practice"
+        : "new route default"
+  };
+}
+
+function populatePracticeContext() {
+  const tierSelect = $("contextTierSelect");
+  const weekSelect = $("contextWeekSelect");
+  if (!tierSelect || !weekSelect) return;
+
+  const ladder = ladderForPractice();
+  const suggestions = contextSuggestions();
+
+  tierSelect.innerHTML = '<option value="">Sandman Suggests</option>';
+  ladder.forEach((rank) => {
+    const option = document.createElement("option");
+    option.value = tierFromLadderKey(rank.key);
+    option.textContent = `${option.value} — ${rank.name}`;
+    tierSelect.appendChild(option);
+  });
+
+  weekSelect.innerHTML = '<option value="">Sandman Suggests</option>';
+  for (let week = 1; week <= 36; week += 1) {
+    const option = document.createElement("option");
+    option.value = String(week);
+    option.textContent = `Week ${week}`;
+    weekSelect.appendChild(option);
+  }
+
+  const mode = String(activePractice?.executionMode || "hybrid").toLowerCase();
+  if (mode === "auto") {
+    tierSelect.disabled = true;
+    weekSelect.disabled = true;
+  } else {
+    tierSelect.disabled = false;
+    weekSelect.disabled = false;
+  }
+
+  tierSelect.dataset.suggestion = suggestions.tier;
+  weekSelect.dataset.suggestion = suggestions.week;
+
+  $("contextTierSuggestion").textContent = suggestions.tier
+    ? `Sandman suggests ${suggestions.tier} from the ${suggestions.tierSource}.`
+    : "Sandman found mixed or missing tier data; Coach can choose a tier.";
+
+  $("contextWeekSuggestion").textContent =
+    `Sandman suggests Week ${suggestions.week} from the ${suggestions.weekSource}.`;
+
+  updateContextSummary();
+}
+
+function selectedContextTier() {
+  const select = $("contextTierSelect");
+  return String(select?.value || select?.dataset?.suggestion || "").trim();
+}
+
+function selectedContextWeek() {
+  const select = $("contextWeekSelect");
+  return String(select?.value || select?.dataset?.suggestion || "").trim();
+}
+
+function updateContextSummary() {
+  const tier = selectedContextTier();
+  const week = selectedContextWeek();
+  const tierLabel = tier || "No tier focus";
+  const weekLabel = week ? `Week ${week}` : "No week selected";
+  if ($("contextSummary")) $("contextSummary").textContent = `${tierLabel} · ${weekLabel}`;
+}
+
+function preparePracticeContext() {
+  populatePracticeContext();
+  showStep(4);
+}
+
+function savePracticeContextToBuilderSession() {
+  let session = {};
+  try {
+    session = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+  } catch {}
+
+  const tier = selectedContextTier();
+  const week = selectedContextWeek();
+  const ladder = ladderForPractice();
+  const rankLabel = ladder.find((item) => tierFromLadderKey(item.key) === tier)?.name || "";
+
+  const updated = {
+    ...session,
+    tier,
+    rank: tier,
+    rankLabel,
+    week,
+    practiceId: activePractice?.practiceId || session.practiceId || ""
+  };
+
+  localStorage.setItem("sandman_session_builder_v1", JSON.stringify(updated));
+  localStorage.setItem("sandman_tier", tier);
+  localStorage.setItem("sandman_rank", tier);
+  localStorage.setItem("sandman_rank_label", rankLabel);
+  localStorage.setItem("sandman_week", week);
+}
+
 function todayLabel() {
   return new Date().toLocaleDateString(undefined, {
     month: "short",
@@ -462,6 +642,7 @@ async function submitForReview() {
   renderCheckedIn();
 
   if (isBuilderFlow() && returnTarget() === "clipboard") {
+    savePracticeContextToBuilderSession();
     let sessionId = "";
     try {
       sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
@@ -474,7 +655,17 @@ async function submitForReview() {
 
 function bindEvents() {
   $("startSession")?.addEventListener("click", startSession);
-  $("finalizeSession")?.addEventListener("click", submitForReview);
+  $("finalizeSession")?.addEventListener("click", () => {
+    if (isBuilderFlow()) {
+      preparePracticeContext();
+    } else {
+      submitForReview();
+    }
+  });
+  $("finishContextBtn")?.addEventListener("click", submitForReview);
+  $("backToReviewBtn")?.addEventListener("click", () => showStep(3));
+  $("contextTierSelect")?.addEventListener("change", updateContextSummary);
+  $("contextWeekSelect")?.addEventListener("change", updateContextSummary);
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
 
@@ -517,7 +708,10 @@ if (isBuilderFlow()) {
   const lead = $("attendanceLead");
   if (label) label.textContent = "Attendance";
   if (title) title.textContent = "Athlete Check-In";
-  if (lead) lead.textContent = "Find your name, check in, then review before continuing.";
+  if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm Sandman’s Tier and Training Week suggestion.";
+  document.body.classList.add("builder-attendance-flow");
+  if ($("contextStepNav")) $("contextStepNav").hidden = false;
+  if ($("finalizeSession")) $("finalizeSession").textContent = "Continue to Practice Context";
 
   loadAthletes()
     .then(() => startSession())
