@@ -10,7 +10,17 @@ import {
   calculateManagementEstimate
 } from "./pricing-estimate-model.js?v=20261008-2";
 
-import { db, doc, getDoc } from "/assets/js/firebase-init.js";
+import {
+  db,
+  functions,
+  httpsCallable,
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  getDoc
+} from "/assets/js/firebase-init.js";
 import { requireManagement } from "/management/shared/guards/management-guard.js";
 
 const appointmentId = new URLSearchParams(window.location.search).get("appointmentId") || "";
@@ -1543,17 +1553,260 @@ async function loadPricingSource() {
   continueProposalBtn.hidden = false;
 }
 
-continueProposalBtn?.addEventListener("click", () => {
-  if (!sourceAppointment || !appointmentId) return;
-  sessionStorage.setItem("sandmanPricingProposalHandoff", JSON.stringify({
-    appointmentId,
-    createdAt: Date.now(),
-    athletes: readAthletes(),
-    membershipStartDate: enrollmentStartDate?.value || "",
-    priorPayment: priorPaymentHandoff(),
-  }));
-  window.location.href = `/connect/admissions/calculator/?appointmentId=${encodeURIComponent(appointmentId)}`;
-});
+async function findDraftProposalForAppointment() {
+  const snapshot = await getDocs(
+    query(
+      collection(db, "proposals"),
+      where("prospect.appointmentId", "==", appointmentId)
+    )
+  );
+
+  const drafts = snapshot.docs
+    .map((entry) => ({
+      id: entry.id,
+      ...(entry.data() || {})
+    }))
+    .filter(
+      (proposal) =>
+        String(proposal.status || "")
+          .trim()
+          .toUpperCase() === "DRAFT"
+    )
+    .sort(
+      (a, b) =>
+        Number(
+          b.updatedAt?.toMillis?.() ||
+          b.createdAt?.toMillis?.() ||
+          0
+        ) -
+        Number(
+          a.updatedAt?.toMillis?.() ||
+          a.createdAt?.toMillis?.() ||
+          0
+        )
+    );
+
+  return drafts[0] || null;
+}
+
+function proposalPricingSnapshot() {
+  const athletes = readAthletes();
+  const estimate = calculateManagementEstimate(
+    athletes,
+    {
+      startDate: enrollmentStartDate?.value,
+      enrollmentSupportPercent:
+        enrollmentSupport?.value,
+      monthlySponsorPercent:
+        monthlySponsor?.value,
+      promotionAmount:
+        appliedPromotion?.amount || 0,
+      enrollmentPreviouslyPaid:
+        priorPaymentEnrollmentIncluded
+          ?.checked === true
+    }
+  );
+
+  return {
+    athletes,
+    estimate,
+    pricing: {
+      registrationCount:
+        estimate.eligibleCount,
+      enrollmentBase:
+        estimate.annualEnrollment,
+      enrollmentPreviouslyPaid:
+        estimate.enrollmentPreviouslyPaid > 0,
+      enrollmentPreviouslyPaidAmount:
+        estimate.enrollmentPreviouslyPaid,
+      admissionsCredits:
+        estimate.admissionsCredits,
+      support:
+        estimate.enrollmentSupport,
+      supportPercent:
+        Number(enrollmentSupport?.value || 0),
+      monthlySponsor:
+        estimate.monthlySponsor,
+      monthlySponsorPercent:
+        Number(monthlySponsor?.value || 0),
+      membershipStartDate:
+        enrollmentStartDate?.value || "",
+      prorationPercent:
+        Math.round(
+          estimate.prorationRate * 100
+        ),
+      proratedFirstMonth:
+        estimate.proratedFirstMonth,
+      enrollmentDueNow:
+        Math.max(
+          0,
+          estimate.dueAtEnrollment -
+          estimate.proratedFirstMonth
+        ),
+      firstMonthDueNow:
+        estimate.proratedFirstMonth,
+      normalDueNow:
+        estimate.dueAtEnrollment,
+      dueNow:
+        estimate.dueAtEnrollment,
+      monthlyBase:
+        estimate.monthlyBase,
+      monthlyBalance:
+        estimate.monthlyMembership,
+      projectedSavingsAnnual:
+        Number(
+          estimate.pricing
+            ?.projectedSavingsAnnual || 0
+        )
+    }
+  };
+}
+
+continueProposalBtn?.addEventListener(
+  "click",
+  async () => {
+    if (!sourceAppointment || !appointmentId) {
+      return;
+    }
+
+    const originalText =
+      continueProposalBtn.textContent;
+
+    continueProposalBtn.disabled = true;
+    continueProposalBtn.textContent =
+      "Creating Proposal…";
+
+    try {
+      const handoff = {
+        appointmentId,
+        createdAt: Date.now(),
+        athletes: readAthletes(),
+        membershipStartDate:
+          enrollmentStartDate?.value || "",
+        priorPayment:
+          priorPaymentHandoff(),
+      };
+
+      sessionStorage.setItem(
+        "sandmanPricingProposalHandoff",
+        JSON.stringify(handoff)
+      );
+
+      let proposal =
+        await findDraftProposalForAppointment();
+
+      let proposalId =
+        String(proposal?.proposalId || proposal?.id || "");
+
+      if (!proposalId) {
+        const snapshot =
+          proposalPricingSnapshot();
+
+        const createProposalDraft =
+          httpsCallable(
+            functions,
+            "createProposalDraft"
+          );
+
+        const response =
+          await createProposalDraft({
+            appointmentId,
+            admissionsRequestId:
+              sourceAppointment.admissionsRequestId ||
+              sourceAppointment.requestId ||
+              null,
+            prospect: {
+              appointmentId,
+              familyName:
+                sourceAppointment.parentName ||
+                sourceAppointment.guardianName ||
+                sourceAppointment.participantName ||
+                sourceAppointment.athleteName ||
+                null
+            },
+            coach: {
+              name: "Coach Sandoval"
+            },
+            athletes:
+              snapshot.athletes,
+            pricing:
+              snapshot.pricing,
+            agreement: {
+              membershipStartDate:
+                enrollmentStartDate?.value || "",
+              recurringBillingDay: 5
+            },
+            internalNotes: null
+          });
+
+        proposalId =
+          String(
+            response.data?.proposalId || ""
+          );
+
+        if (!proposalId) {
+          throw new Error(
+            "Proposal ID was not returned."
+          );
+        }
+      }
+
+      const priorPayment =
+        priorPaymentHandoff();
+
+      if (priorPayment) {
+        const recordPriorPayment =
+          httpsCallable(
+            functions,
+            "recordProposalPriorPayment"
+          );
+
+        try {
+          await recordPriorPayment({
+            proposalId,
+            ...priorPayment
+          });
+        } catch (error) {
+          if (
+            error?.code !==
+            "functions/already-exists"
+          ) {
+            throw error;
+          }
+        }
+      }
+
+      sessionStorage.setItem(
+        "sandmanPricingProposalHandoff",
+        JSON.stringify({
+          ...handoff,
+          priorPayment: null
+        })
+      );
+
+      window.location.href =
+        "/connect/admissions/calculator/" +
+        `?appointmentId=${encodeURIComponent(appointmentId)}` +
+        `&proposalId=${encodeURIComponent(proposalId)}`;
+    } catch (error) {
+      console.error(
+        "Pricing → Proposal handoff failed:",
+        error
+      );
+
+      if (pricingSourceStatus) {
+        pricingSourceStatus.textContent =
+          error?.message ||
+          "Could not create the proposal.";
+      }
+
+      continueProposalBtn.disabled =
+        false;
+      continueProposalBtn.textContent =
+        originalText;
+    }
+  }
+);
 
 loadPricingSource().catch((error) => {
   pricingSourceStatus.textContent = error?.message || "Admissions context could not be loaded.";
