@@ -762,14 +762,6 @@ journeySelect?.addEventListener("change", () => {
   refreshHybridAvailability();
 });
 
-disciplineButtons.forEach((button) => button.addEventListener("click", () => {
-  if (!disciplineFamilySelect || !journeySelect?.value) return;
-  disciplineFamilySelect.value = button.dataset.discipline || "";
-  populatePrograms("");
-  populateRanks();
-  refreshHybridAvailability();
-}));
-
 sessionTypeButtons.forEach(button => button.addEventListener("click", () => {
   selectedSessionType = button.dataset.sessionType || "academy";
   selectedDuration = SESSION_TYPES[selectedSessionType]?.defaultMinutes || 60;
