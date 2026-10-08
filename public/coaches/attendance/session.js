@@ -500,8 +500,12 @@ function renderCheckedIn() {
     });
   });
 }
+function ladderForJourney(journey = activePractice?.journey) {
+  return LADDER_BY_JOURNEY[String(journey || "").toUpperCase()] || [];
+}
+
 function ladderForPractice() {
-  return LADDER_BY_JOURNEY[String(activePractice?.journey || "").toUpperCase()] || [];
+  return ladderForJourney(activePractice?.journey);
 }
 
 function tierFromLadderKey(key = "") {
@@ -509,23 +513,57 @@ function tierFromLadderKey(key = "") {
 }
 
 function normalizeAthleteTier(athlete = {}, ladder = ladderForPractice()) {
-  const direct = String(athlete.tier || "").trim();
-  if (direct) return tierFromLadderKey(direct);
+  const direct = String(
+    athlete.progressionTier ||
+    athlete.tier ||
+    athlete.tierCode ||
+    ""
+  ).trim().toUpperCase();
 
-  const rank = String(athlete.rank || "").trim().toLowerCase();
-  if (!rank) return "";
+  if (/^T[0-4]$/.test(direct)) return direct;
+  if (/^R[0-4]$/.test(direct)) return tierFromLadderKey(direct);
+
+  const rank = String(athlete.rankName || athlete.rank || "").trim().toLowerCase();
+  if (!rank) return "T0";
 
   const match = ladder.find((item) => String(item?.name || "").trim().toLowerCase() === rank);
-  return match ? tierFromLadderKey(match.key) : "";
+  return match ? tierFromLadderKey(match.key) : "T0";
 }
 
-function dominantValue(values = []) {
-  const counts = new Map();
-  values.filter(Boolean).forEach((value) => {
-    counts.set(value, (counts.get(value) || 0) + 1);
+function athleteAgeGroup(athlete = {}) {
+  const explicit = String(
+    athlete.ageGroup ||
+    athlete.ageBand ||
+    athlete.divisionAge ||
+    athlete.profileType ||
+    ""
+  ).trim();
+
+  if (explicit) return explicit;
+
+  const age = Number(athlete.age);
+  if (Number.isFinite(age)) {
+    if (age >= 14) return "Teen";
+    if (age >= 11) return "Youth 11–13";
+    return "Youth 7–10";
+  }
+
+  const id = String(athlete.id || athlete.uid || "").toUpperCase();
+  if (id.startsWith("F4_")) return "Teen";
+  if (id.startsWith("F8_")) return "Youth";
+  return "Athletes";
+}
+
+function checkedInAthletes() {
+  return Array.from(checkedIn.values()).map((checked) => {
+    const id = String(checked?.id || checked?.uid || "");
+    return athletes.find((athlete) => String(athlete.id || athlete.uid || "") === id) || checked;
   });
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))[0]?.[0] || "";
+}
+
+function rankForTier(tier = "", journey = activePractice?.journey) {
+  const ladder = ladderForJourney(journey);
+  return ladder.find((item) => tierFromLadderKey(item.key) === tier)?.name || "";
 }
 
 function previousRouteContext() {
@@ -539,106 +577,220 @@ function previousRouteContext() {
   }
 }
 
-function contextSuggestions() {
+function suggestedTrainingGroups() {
+  const present = checkedInAthletes();
   const ladder = ladderForPractice();
-  const present = Array.from(checkedIn.values()).map((checked) => {
-    const id = String(checked?.id || checked?.uid || "");
-    return athletes.find((athlete) => String(athlete.id || athlete.uid || "") === id) || checked;
-  });
-  const rosterTier = dominantValue(present.map((athlete) => normalizeAthleteTier(athlete, ladder)));
+  const buckets = new Map();
 
-  const athleteWeek = dominantValue(present.map((athlete) => {
-    const raw = athlete.trainingWeek ?? athlete.curriculumWeek ?? athlete.week ?? "";
-    const num = Number(raw);
-    return Number.isFinite(num) && num >= 1 && num <= 36 ? String(num) : "";
-  }));
+  present.forEach((athlete) => {
+    const ageGroup = athleteAgeGroup(athlete);
+    const tier = normalizeAthleteTier(athlete, ladder);
+    const isTeen = /teen|adult/i.test(ageGroup) || String(athlete.id || "").toUpperCase().startsWith("F4_");
+    const key = `${isTeen ? "teen" : "youth"}|${tier}`;
+
+    if (!buckets.has(key)) {
+      buckets.set(key, {
+        ageGroup,
+        tier,
+        rank: rankForTier(tier),
+        athleteIds: [],
+        athleteNames: []
+      });
+    }
+
+    const group = buckets.get(key);
+    group.athleteIds.push(String(athlete.id || athlete.uid || ""));
+    group.athleteNames.push(athleteName(athlete));
+  });
+
+  let groups = [...buckets.values()]
+    .sort((a, b) => {
+      const aTeen = /teen|adult/i.test(a.ageGroup) ? 1 : 0;
+      const bTeen = /teen|adult/i.test(b.ageGroup) ? 1 : 0;
+      if (aTeen !== bTeen) return aTeen - bTeen;
+      return String(a.tier).localeCompare(String(b.tier));
+    });
+
+  if (groups.length > 3) {
+    const firstTwo = groups.slice(0, 2);
+    const rest = groups.slice(2);
+    const merged = {
+      ageGroup: rest.some(g => /teen|adult/i.test(g.ageGroup)) ? "Teen" : "Mixed Youth",
+      tier: rest[0]?.tier || "T0",
+      rank: rankForTier(rest[0]?.tier || "T0"),
+      athleteIds: rest.flatMap(g => g.athleteIds),
+      athleteNames: rest.flatMap(g => g.athleteNames)
+    };
+    groups = [...firstTwo, merged];
+  }
+
+  if (!groups.length) {
+    groups = [{
+      ageGroup: "Athletes",
+      tier: "T0",
+      rank: rankForTier("T0"),
+      athleteIds: [],
+      athleteNames: []
+    }];
+  }
 
   const prior = previousRouteContext();
-  const priorTier = String(prior?.tier || "").trim();
-  const priorWeek = String(prior?.week || "").trim();
-
-  return {
-    tier: rosterTier || priorTier || "",
-    week: athleteWeek || priorWeek || "1",
-    tierSource: rosterTier
-      ? "checked-in roster"
-      : priorTier
-        ? "last matching practice"
-        : "no established tier yet",
-    weekSource: athleteWeek
-      ? "checked-in athlete context"
-      : priorWeek
-        ? "last matching practice"
-        : "new route default"
-  };
+  return groups.map((group, index) => ({
+    ...group,
+    id: `group-${index + 1}`,
+    label: `Group ${index + 1}`,
+    trainingSession: String(
+      group.trainingSession ||
+      prior.trainingGroups?.[index]?.trainingSession ||
+      prior.week ||
+      activePractice?.week ||
+      "1"
+    ),
+    carryForwardNote: String(prior.trainingGroups?.[index]?.carryForwardNote || "")
+  }));
 }
 
-function populatePracticeContext() {
-  const tierSelect = $("contextTierSelect");
-  const weekSelect = $("contextWeekSelect");
-  if (!tierSelect || !weekSelect) return;
+function tierOptions(selected = "") {
+  return ladderForPractice().map((rank) => {
+    const tier = tierFromLadderKey(rank.key);
+    return `<option value="${tier}"${tier === selected ? " selected" : ""}>${tier} — ${rank.name}</option>`;
+  }).join("");
+}
 
-  const ladder = ladderForPractice();
-  const suggestions = contextSuggestions();
+function renderTrainingGroups(groups = suggestedTrainingGroups()) {
+  const container = $("trainingGroups");
+  if (!container) return;
 
-  tierSelect.innerHTML = '<option value="">Sandman Suggests</option>';
-  ladder.forEach((rank) => {
-    const option = document.createElement("option");
-    option.value = tierFromLadderKey(rank.key);
-    option.textContent = `${option.value} — ${rank.name}`;
-    tierSelect.appendChild(option);
+  container.innerHTML = groups.slice(0, 3).map((group, index) => `
+    <section class="training-group-card" data-training-group="${index}">
+      <div class="training-group-head">
+        <div>
+          <span class="training-group-kicker">Training Group ${index + 1}</span>
+          <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
+        </div>
+        ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
+      </div>
+
+      <div class="training-group-grid">
+        <label>
+          Age Group
+          <input class="training-age-group" type="text" value="${group.ageGroup || ""}" placeholder="Youth 7–10">
+        </label>
+
+        <label>
+          Tier
+          <select class="training-tier">
+            ${tierOptions(group.tier)}
+          </select>
+        </label>
+
+        <label>
+          Rank
+          <input class="training-rank" type="text" value="${group.rank || rankForTier(group.tier)}" readonly>
+        </label>
+
+        <label>
+          Training Session
+          <select class="training-session">
+            ${Array.from({length:36},(_,i)=>`<option value="${i+1}"${String(i+1)===String(group.trainingSession)?" selected":""}>Session ${i+1}</option>`).join("")}
+          </select>
+        </label>
+      </div>
+
+      <label class="training-carry-forward">
+        Carry Forward Note
+        <textarea class="training-note" placeholder="What needs another touch next time?">${group.carryForwardNote || ""}</textarea>
+      </label>
+    </section>
+  `).join("");
+
+  container.querySelectorAll(".training-tier").forEach((select) => {
+    select.addEventListener("change", () => {
+      const card = select.closest(".training-group-card");
+      const rank = card?.querySelector(".training-rank");
+      if (rank) rank.value = rankForTier(select.value);
+      updateContextSummary();
+    });
   });
 
-  weekSelect.innerHTML = '<option value="">Sandman Suggests</option>';
-  for (let week = 1; week <= 36; week += 1) {
-    const option = document.createElement("option");
-    option.value = String(week);
-    option.textContent = `Week ${week}`;
-    weekSelect.appendChild(option);
-  }
+  container.querySelectorAll(".training-age-group, .training-session, .training-note").forEach((input) => {
+    input.addEventListener("input", updateContextSummary);
+    input.addEventListener("change", updateContextSummary);
+  });
 
-  const mode = String(activePractice?.executionMode || "hybrid").toLowerCase();
-  if (mode === "auto") {
-    tierSelect.disabled = true;
-    weekSelect.disabled = true;
-  } else {
-    tierSelect.disabled = false;
-    weekSelect.disabled = false;
-  }
+  container.querySelectorAll(".remove-training-group").forEach((button) => {
+    button.addEventListener("click", () => {
+      button.closest(".training-group-card")?.remove();
+      renumberTrainingGroups();
+      updateContextSummary();
+    });
+  });
 
-  tierSelect.dataset.suggestion = suggestions.tier;
-  weekSelect.dataset.suggestion = suggestions.week;
-
-  $("contextTierSuggestion").textContent = suggestions.tier
-    ? `Sandman suggests ${suggestions.tier} from the ${suggestions.tierSource}.`
-    : "Sandman found mixed or missing tier data; Coach can choose a tier.";
-
-  $("contextWeekSuggestion").textContent =
-    `Sandman suggests Week ${suggestions.week} from the ${suggestions.weekSource}.`;
-
+  updateGroupControls();
   updateContextSummary();
 }
 
-function selectedContextTier() {
-  const select = $("contextTierSelect");
-  return String(select?.value || select?.dataset?.suggestion || "").trim();
+function renumberTrainingGroups() {
+  document.querySelectorAll(".training-group-card").forEach((card, index) => {
+    card.dataset.trainingGroup = String(index);
+    const kicker = card.querySelector(".training-group-kicker");
+    if (kicker) kicker.textContent = `Training Group ${index + 1}`;
+  });
 }
 
-function selectedContextWeek() {
-  const select = $("contextWeekSelect");
-  return String(select?.value || select?.dataset?.suggestion || "").trim();
+function updateGroupControls() {
+  const count = document.querySelectorAll(".training-group-card").length;
+  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
+  if ($("trainingGroupHint")) {
+    $("trainingGroupHint").textContent = count >= 3
+      ? "Maximum 3 groups for one practice."
+      : `${count} training group${count === 1 ? "" : "s"} active.`;
+  }
+}
+
+function addTrainingGroup() {
+  const current = captureTrainingGroups();
+  if (current.length >= 3) return;
+  const previous = current[current.length - 1] || {};
+  current.push({
+    ageGroup: previous.ageGroup || "Teen",
+    tier: previous.tier || "T0",
+    rank: rankForTier(previous.tier || "T0"),
+    trainingSession: previous.trainingSession || "1",
+    carryForwardNote: "",
+    athleteIds: [],
+    athleteNames: []
+  });
+  renderTrainingGroups(current);
+}
+
+function captureTrainingGroups() {
+  return [...document.querySelectorAll(".training-group-card")].map((card, index) => {
+    const tier = String(card.querySelector(".training-tier")?.value || "T0").trim();
+    return {
+      id: `group-${index + 1}`,
+      label: `Group ${index + 1}`,
+      ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
+      tier,
+      rank: rankForTier(tier),
+      trainingSession: String(card.querySelector(".training-session")?.value || "1").trim(),
+      carryForwardNote: String(card.querySelector(".training-note")?.value || "").trim()
+    };
+  });
 }
 
 function updateContextSummary() {
-  const tier = selectedContextTier();
-  const week = selectedContextWeek();
-  const tierLabel = tier || "No tier focus";
-  const weekLabel = week ? `Week ${week}` : "No week selected";
-  if ($("contextSummary")) $("contextSummary").textContent = `${tierLabel} · ${weekLabel}`;
+  const groups = captureTrainingGroups();
+  const summary = groups.map((group) =>
+    `${group.label}: ${group.ageGroup || "Athletes"} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
+  ).join(" | ");
+  if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
 }
 
 function preparePracticeContext() {
-  populatePracticeContext();
+  if ($("contextJourney")) $("contextJourney").textContent = journeyDisplay(activePractice?.journey);
+  if ($("contextDiscipline")) $("contextDiscipline").textContent = disciplineDisplay(activePractice?.discipline);
+  renderTrainingGroups();
   showStep(4);
 }
 
@@ -648,10 +800,17 @@ async function savePracticeContextToBuilderSession() {
     session = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
   } catch {}
 
-  const tier = selectedContextTier();
-  const week = selectedContextWeek();
-  const ladder = ladderForPractice();
-  const rankLabel = ladder.find((item) => tierFromLadderKey(item.key) === tier)?.name || "";
+  const trainingGroups = captureTrainingGroups();
+  const primary = trainingGroups[0] || {
+    tier: "T0",
+    rank: rankForTier("T0"),
+    trainingSession: "1",
+    carryForwardNote: ""
+  };
+
+  const tier = primary.tier;
+  const week = primary.trainingSession;
+  const rankLabel = primary.rank;
 
   const updated = {
     ...session,
@@ -659,6 +818,9 @@ async function savePracticeContextToBuilderSession() {
     rank: tier,
     rankLabel,
     week,
+    trainingSession: week,
+    trainingGroups,
+    carryForwardNote: primary.carryForwardNote,
     practiceId: activePractice?.practiceId || session.practiceId || ""
   };
 
@@ -667,6 +829,14 @@ async function savePracticeContextToBuilderSession() {
   localStorage.setItem("sandman_rank", tier);
   localStorage.setItem("sandman_rank_label", rankLabel);
   localStorage.setItem("sandman_week", week);
+  localStorage.setItem("sandman_training_groups_v1", JSON.stringify(trainingGroups));
+  localStorage.setItem("sandman_previous_route_context_v1", JSON.stringify({
+    journey: activePractice?.journey || "",
+    discipline: activePractice?.discipline || "",
+    tier,
+    week,
+    trainingGroups
+  }));
 
   if (tier && activePractice?.practiceId) {
     try {
@@ -682,13 +852,14 @@ async function savePracticeContextToBuilderSession() {
         program: activePractice.program || "",
         track: activePractice.track || "",
         tier,
+        week,
         schema: activePractice.schema || session.schema || "academy-60",
         executionMode: activePractice.executionMode || session.executionMode || "hybrid",
         durationMinutes: Number(activePractice.durationMinutes || session.durationMinutes || 60)
       });
-      activePractice = { ...activePractice, tier };
+      activePractice = { ...activePractice, tier, week };
     } catch (error) {
-      console.warn("[session] practice tier sync skipped", error);
+      console.warn("[session] practice tier/session sync skipped", error);
     }
   }
 }
@@ -748,8 +919,7 @@ function bindEvents() {
   });
   $("finishContextBtn")?.addEventListener("click", submitForReview);
   $("backToReviewBtn")?.addEventListener("click", () => showStep(3));
-  $("contextTierSelect")?.addEventListener("change", updateContextSummary);
-  $("contextWeekSelect")?.addEventListener("change", updateContextSummary);
+  $("addTrainingGroupBtn")?.addEventListener("click", addTrainingGroup);
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
 
