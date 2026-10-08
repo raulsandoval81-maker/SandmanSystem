@@ -75,7 +75,7 @@ function normalizePeriods(
     periods.length > 12 ||
     periods.some(
       (period) =>
-        !/^\\d{4}-\\d{2}$/.test(period)
+        !/^\d{4}-\d{2}$/.test(period)
     )
   ) {
     throw new HttpsError(
