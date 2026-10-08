@@ -40,13 +40,6 @@ const RANK_LADDERS = Object.freeze({
 
 const sessionTypeButtons = [...document.querySelectorAll("[data-session-type]")];
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
-const matLaneButtons = [...document.querySelectorAll("[data-mat-lane]")];
-const addSecondSessionBtn = document.getElementById("addSecondSessionBtn");
-const removeSecondSessionBtn = document.getElementById("removeSecondSessionBtn");
-const secondarySessionRoute = document.getElementById("secondarySessionRoute");
-const secondJourneySelect = document.getElementById("secondJourneySelect");
-const secondDisciplineField = document.getElementById("secondDisciplineField");
-const secondDisciplineSelect = document.getElementById("secondDisciplineSelect");
 const durationChoices = document.getElementById("durationChoices");
 const journeySelect = document.getElementById("journeySelect");
 const disciplineField = document.getElementById("disciplineField");
@@ -87,7 +80,6 @@ let modeWasForced = false;
 let activePracticeId = "";
 let suggestedTier = "";
 let suggestedWeek = "";
-let secondSessionEnabled = false;
 
 function readJson(key, fallback = null) {
   try {
@@ -120,11 +112,6 @@ function selectedMatLabel() {
   return "Mat 1";
 }
 
-function selectedSessionLabel() {
-  const lane = String(selectedRoom()?.lane || "A").toUpperCase();
-  return lane === "B" ? "Session 1B" : "Session 1A";
-}
-
 
 function selectedProgram() {
   return programById(disciplineSelect?.value || "");
@@ -149,119 +136,17 @@ function populateRooms(preferredValue = "") {
 
   const preferredRoom = roomByValue(preferredValue);
   const remembered = roomByValue(rememberedRoom);
-  const guidedDefault = SESSION_ROOMS.find((room) => roomHasGuidedPrograms(room) && room.lane === "A")
-    || SESSION_ROOMS.find(roomHasGuidedPrograms);
+  const guidedDefault = SESSION_ROOMS.find(roomHasGuidedPrograms);
 
   const selected =
     (preferredRoom && roomHasGuidedPrograms(preferredRoom) ? preferredRoom : null) ||
-    (remembered && roomHasGuidedPrograms(remembered) && remembered.lane === "A" ? remembered : null) ||
+    (remembered && roomHasGuidedPrograms(remembered) ? remembered : null) ||
     guidedDefault ||
     preferredRoom ||
     remembered ||
     SESSION_ROOMS[0];
 
   if (selected) roomSelect.value = selected.value;
-  updateMatLaneButtons();
-}
-
-function updateMatLaneButtons() {
-  const lane = String(selectedRoom()?.lane || "A").toUpperCase();
-  matLaneButtons.forEach((button) => {
-    const active = String(button.dataset.matLane || "").toUpperCase() === lane;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-}
-
-function chooseMatLane(laneValue = "A") {
-  const lane = String(laneValue || "A").toUpperCase();
-  const current = selectedRoom();
-  const sameLocation = SESSION_ROOMS.find((room) =>
-    room.locationId === current?.locationId && String(room.lane || "").toUpperCase() === lane
-  );
-  const guidedLane = SESSION_ROOMS.find((room) =>
-    String(room.lane || "").toUpperCase() === lane && roomHasGuidedPrograms(room)
-  );
-  const next = sameLocation || guidedLane;
-  if (!next) return;
-
-  roomSelect.value = next.value;
-  updateMatLaneButtons();
-
-  const rememberedJourney = journeySelect?.value || "";
-  const rememberedDiscipline = disciplineFamilySelect?.value || "";
-  populateJourneys(rememberedJourney);
-  updateDisciplineAvailability(rememberedDiscipline);
-  populatePrograms(disciplineSelect?.value || "");
-  updateSummary();
-}
-
-function populateSecondJourneys(preferredJourney = "") {
-  if (!secondJourneySelect) return;
-  const programs = availablePrograms();
-  const journeys = [...new Set(programs.map((program) => program.journey).filter(Boolean))];
-  secondJourneySelect.innerHTML = '<option value="">Select Journey</option>';
-  journeys.forEach((journey) => {
-    const option = document.createElement("option");
-    option.value = journey;
-    option.textContent = journeyLabel(journey);
-    secondJourneySelect.appendChild(option);
-  });
-  if (journeys.includes(preferredJourney)) secondJourneySelect.value = preferredJourney;
-  updateSecondDisciplineAvailability();
-}
-
-function updateSecondDisciplineAvailability(preferredDiscipline = "") {
-  if (!secondDisciplineSelect) return;
-  const journey = String(secondJourneySelect?.value || "");
-  const programs = availablePrograms().filter((program) => journey && program.journey === journey);
-  const disciplines = [...new Set(programs.map((program) => program.discipline).filter(Boolean))];
-
-  secondDisciplineSelect.innerHTML = '<option value="">Select Discipline</option>';
-  disciplines.forEach((discipline) => {
-    const option = document.createElement("option");
-    option.value = discipline;
-    option.textContent = disciplineLabel(discipline);
-    secondDisciplineSelect.appendChild(option);
-  });
-
-  secondDisciplineSelect.value = disciplines.includes(preferredDiscipline) ? preferredDiscipline : "";
-  if (secondDisciplineField) secondDisciplineField.hidden = !journey;
-}
-
-function secondSessionData() {
-  if (!secondSessionEnabled) return null;
-  const journey = String(secondJourneySelect?.value || "");
-  const discipline = String(secondDisciplineSelect?.value || "");
-  const program = availablePrograms().find((item) =>
-    item.journey === journey && item.discipline === discipline
-  );
-  if (!journey || !discipline || !program) return null;
-  return {
-    label: "Session 1B",
-    lane: "B",
-    roomId: "mat-1b",
-    roomValue: selectedRoom()?.locationId === "santa-ynez-valley" ? "solvang-mat-1b" : "lompoc-mat-1b",
-    journey,
-    discipline,
-    program: program.programId,
-    foundry: program.foundry || "",
-    track: program.track || ""
-  };
-}
-
-function setSecondSessionEnabled(enabled) {
-  secondSessionEnabled = Boolean(enabled);
-  if (secondarySessionRoute) secondarySessionRoute.hidden = !secondSessionEnabled;
-  if (addSecondSessionBtn) addSecondSessionBtn.hidden = secondSessionEnabled;
-  if (!secondSessionEnabled) {
-    if (secondJourneySelect) secondJourneySelect.value = "";
-    if (secondDisciplineSelect) secondDisciplineSelect.value = "";
-    if (secondDisciplineField) secondDisciplineField.hidden = true;
-  } else {
-    populateSecondJourneys(secondJourneySelect?.value || "");
-  }
-  updateSummary();
 }
 
 function journeyLabel(code = "") {
@@ -616,34 +501,23 @@ function updateSummary() {
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
   const summaryMat = document.getElementById("summaryMat");
-  const summarySession = document.getElementById("summarySession");
   const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
   const summaryRankRow = document.getElementById("summaryRankRow");
   const summaryRank = document.getElementById("summaryRank");
   const summaryWeekRow = document.getElementById("summaryWeekRow");
   const summaryWeek = document.getElementById("summaryWeek");
-  const summarySecondSessionRow = document.getElementById("summarySecondSessionRow");
-  const summarySecondSession = document.getElementById("summarySecondSession");
 
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
   if (summaryMat) summaryMat.textContent = selectedMatLabel();
-  if (summarySession) summarySession.textContent = selectedSessionLabel();
   if (summaryJourney) summaryJourney.textContent = journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey";
   if (summaryDiscipline) {
     summaryDiscipline.textContent =
       disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
   }
 
-  const secondary = secondSessionData();
-  if (summarySecondSessionRow) summarySecondSessionRow.hidden = !secondSessionEnabled;
-  if (summarySecondSession) {
-    summarySecondSession.textContent = secondary
-      ? `${journeyLabel(secondary.journey)} · ${disciplineLabel(secondary.discipline)}`
-      : "Choose Journey and Discipline";
-  }
-
+  
   const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
 
   if (summaryRankRow) summaryRankRow.hidden = false;
@@ -678,7 +552,7 @@ function updateSummary() {
     summaryAvailability.textContent = "Coach controls the build in Practice Clipboard.";
   }
 
-  buildBtn.disabled = !program.discipline || !selectedRoom() || (secondSessionEnabled && !secondSessionData());
+  buildBtn.disabled = !program.discipline || !selectedRoom();
   buildBtn.textContent = "Continue to Attendance";
 }
 
@@ -931,40 +805,11 @@ function createSessionPayload(practiceId = activePracticeId) {
     academyId: room.locationId,
     roomId: room.roomId,
     roomValue: room.value,
-    secondarySession: secondSessionData(),
     ...program,
     rank: program.tier,
     week,
     ...getHybridData(week),
     source: "session-builder",
-    createdAt: new Date().toISOString()
-  };
-}
-
-function createSecondarySessionPayload(primaryPayload) {
-  const secondary = primaryPayload?.secondarySession;
-  if (!secondary) return null;
-  return {
-    schema: primaryPayload.schema,
-    durationMinutes: primaryPayload.durationMinutes,
-    xpTimeScale: primaryPayload.xpTimeScale,
-    executionMode: primaryPayload.executionMode,
-    practiceId: "",
-    sessionId: secondary.roomValue,
-    locationId: primaryPayload.locationId,
-    academyId: primaryPayload.academyId,
-    roomId: secondary.roomId,
-    roomValue: secondary.roomValue,
-    program: secondary.program,
-    foundry: secondary.foundry,
-    track: secondary.track,
-    journey: secondary.journey,
-    discipline: secondary.discipline,
-    tier: "",
-    rank: "",
-    rankLabel: "",
-    week: "",
-    source: "session-builder-secondary",
     createdAt: new Date().toISOString()
   };
 }
@@ -987,20 +832,8 @@ function persistSession(payload) {
 
   localStorage.removeItem(DRAFT_KEY);
   localStorage.removeItem(CLIPBOARD_KEY);
+  localStorage.removeItem("sandman_secondary_session_v1");
   localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
-  if (payload.secondarySession) {
-    localStorage.setItem("sandman_secondary_session_v1", JSON.stringify({
-      ...payload.secondarySession,
-      locationId: payload.locationId,
-      academyId: payload.academyId,
-      schema: payload.schema,
-      durationMinutes: payload.durationMinutes,
-      executionMode: payload.executionMode,
-      source: "session-builder-secondary"
-    }));
-  } else {
-    localStorage.removeItem("sandman_secondary_session_v1");
-  }
   writeCompatibilityKeys(payload);
 }
 
@@ -1038,11 +871,12 @@ async function restoreCanonicalPractice(practiceId) {
   const practiceLocation = String(practice.locationId || practice.academyId || "");
   const practiceRoomId = String(practice.roomId || "");
   const room = SESSION_ROOMS.find((candidate) =>
-    candidate.locationId === practiceLocation && candidate.roomId === practiceRoomId
+    candidate.locationId === practiceLocation
+      && candidate.roomId === practiceRoomId
   ) || SESSION_ROOMS.find((candidate) =>
-    practiceRoomId === "mat-1"
+    ["mat-1a", "mat-1b"].includes(practiceRoomId)
       && candidate.locationId === practiceLocation
-      && candidate.roomId === "mat-1a"
+      && candidate.roomId === "mat-1"
   );
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
@@ -1101,20 +935,7 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
   updateSummary();
 }));
 
-matLaneButtons.forEach((button) => button.addEventListener("click", () => {
-  chooseMatLane(button.dataset.matLane || "A");
-}));
-
-addSecondSessionBtn?.addEventListener("click", () => setSecondSessionEnabled(true));
-removeSecondSessionBtn?.addEventListener("click", () => setSecondSessionEnabled(false));
-secondJourneySelect?.addEventListener("change", () => {
-  updateSecondDisciplineAvailability("");
-  updateSummary();
-});
-secondDisciplineSelect?.addEventListener("change", updateSummary);
-
 roomSelect.addEventListener("change", () => {
-  updateMatLaneButtons();
   populateJourneys(journeySelect?.value || "");
   updateDisciplineAvailability(disciplineFamilySelect?.value || "");
   populatePrograms(disciplineSelect.value);
@@ -1154,19 +975,6 @@ buildBtn.addEventListener("click", async () => {
   if (!payload) return;
   buildBtn.disabled = true;
   try {
-    const secondaryPayload = createSecondarySessionPayload(payload);
-    let openedSecondary = null;
-
-    if (secondaryPayload) {
-      openedSecondary = await openCanonicalPractice(secondaryPayload);
-      payload.secondarySession = {
-        ...payload.secondarySession,
-        practiceId: openedSecondary.practiceId,
-        sessionId: openedSecondary.sessionId
-      };
-    }
-
-    payload.practiceId = "";
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
 
@@ -1182,7 +990,6 @@ buildBtn.addEventListener("click", async () => {
 
 populateRooms();
 populateJourneys();
-populateSecondJourneys();
 populatePrograms();
 populateWeeks();
 populateRanks();
