@@ -231,6 +231,73 @@ const SCHEMAS = {
   }
 };
 
+function makePrivateSchema(minutes) {
+  const warmup = Math.min(5, minutes);
+  const focus = Math.max(0, minutes - warmup);
+  return {
+    mode: "single",
+    label: `Private Session ${minutes}`,
+    maxMinutes: minutes,
+    focusModes: {
+      "warmup-only": [
+        { key: "warmup", label: "Warm-up / Movement", minutes }
+      ],
+      "conditioning": [
+        { key: "warmup", label: "Warm-up", minutes: warmup },
+        { key: "cond", label: "Conditioning", minutes: focus }
+      ],
+      "technique": [
+        { key: "warmup", label: "Warm-up", minutes: warmup },
+        { key: "technique", label: "Technique", minutes: focus }
+      ],
+      "drilling": [
+        { key: "warmup", label: "Warm-up", minutes: warmup },
+        { key: "drills", label: "Drilling", minutes: focus }
+      ],
+      "live": [
+        { key: "warmup", label: "Warm-up", minutes: warmup },
+        { key: "live", label: "Live Session", minutes: focus }
+      ]
+    }
+  };
+}
+
+SCHEMAS["private-30"] = makePrivateSchema(30);
+SCHEMAS["private-45"] = makePrivateSchema(45);
+SCHEMAS["private-60"] = makePrivateSchema(60);
+SCHEMAS["private-90"] = makePrivateSchema(90);
+
+SCHEMAS["academy-60"] = {
+  ...SCHEMAS["standard-60"],
+  label: "Academy Class 60"
+};
+
+SCHEMAS["academy-75"] = {
+  mode: "board",
+  label: "Academy Class 75",
+  maxMinutes: 75,
+  blocks: [
+    { key: "onmat", label: "Announcements / On The Mat Talk", minutes: 2 },
+    { key: "warmup", label: "Warm Up / Body Mechanics", minutes: 10 },
+    { key: "drills", label: "Review of Prior Skills", minutes: 12 },
+    { key: "technique", label: "New Technique", minutes: 18 },
+    { key: "water", label: "Water Break", minutes: 3 },
+    { key: "live", label: "Live Session", minutes: 20 },
+    { key: "cond", label: "Conditioning / Skill Activity", minutes: 7 },
+    { key: "offmat", label: "Roll Call / Off The Mat Talk", minutes: 3 }
+  ]
+};
+
+SCHEMAS["academy-90"] = {
+  ...SCHEMAS["elite-90"],
+  label: "Academy Class 90"
+};
+
+SCHEMAS["academy-120"] = {
+  ...SCHEMAS["extended-120"],
+  label: "Academy Class 120"
+};
+
 const BLOCK_KEYS = [
   "onmat",
   "warmup",
@@ -789,7 +856,7 @@ function updateClipboardBankVisibility() {
   if (!clipboardBankEl) return;
 
   clipboardBankEl.style.display =
-    currentSchema === "quick-45" ? "block" : "none";
+    SCHEMAS[currentSchema]?.mode === "single" ? "block" : "none";
 }
 
 function updateGameButtonVisibility() {
@@ -797,8 +864,7 @@ function updateGameButtonVisibility() {
   if (!btn) return;
 
   const show =
-    currentSchema === "elite-90" ||
-    currentSchema === "extended-120";
+    ["elite-90", "extended-120", "academy-90", "academy-120"].includes(currentSchema);
 
   btn.style.display = show ? "inline-block" : "none";
 }
@@ -808,7 +874,7 @@ function updateGameButtonVisibility() {
 ========================= */
 
 function applySingleTemplate() {
-  const schema = SCHEMAS["quick-45"];
+  const schema = SCHEMAS[currentSchema];
   const focus = singleFocusEl?.value || "technique";
   const blocks =
     schema.focusModes[focus] ||
@@ -865,7 +931,7 @@ function applyBlockTemplate(schemaKey) {
 }
 
 window.loadCurrentSchema = function () {
-  if (currentSchema === "quick-45") {
+  if (SCHEMAS[currentSchema]?.mode === "single") {
     applySingleTemplate();
   } else {
     applyBlockTemplate(currentSchema);
@@ -986,7 +1052,7 @@ const allCards =
 
   if (!allCards.length) {
 
-    if (currentSchema === "quick-45" && bank) {
+    if (SCHEMAS[currentSchema]?.mode === "single" && bank) {
       bank.innerHTML =
         `<div class="muted">No cards added yet.</div>`;
     }
@@ -994,7 +1060,7 @@ const allCards =
     return;
   }
 
-  if (currentSchema === "quick-45" && bank) {
+  if (SCHEMAS[currentSchema]?.mode === "single" && bank) {
 
     if (!bankCards.length) {
 
@@ -1083,7 +1149,7 @@ if (
       lane === "games";
 
     const allowGames =
-      ["elite-90", "extended-120"].includes(currentSchema) &&
+      ["elite-90", "extended-120", "academy-90", "academy-120"].includes(currentSchema) &&
       (lane === "water" || lane === "games");
 
     if (isGame && !allowGames) {
@@ -1336,7 +1402,7 @@ singleFocusEl?.addEventListener("change", () => {
     return;
   }
 
-  if (currentSchema === "quick-45") {
+  if (SCHEMAS[currentSchema]?.mode === "single") {
     applySingleTemplate();
     renderClipboardList();
     queueDraftSave();
@@ -1542,7 +1608,7 @@ async function saveCurrentPlanToFirestore() {
     tier: session.tier,
 
     singleFocus:
-      currentSchema === "quick-45"
+      SCHEMAS[currentSchema]?.mode === "single"
         ? singleFocusEl?.value || null
         : null,
 
