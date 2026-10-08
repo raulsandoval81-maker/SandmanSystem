@@ -27,12 +27,9 @@ const CLIPBOARD_KEY = "sandman_clipboard_v1";
 const DRAFT_KEY = "sandman_clipboard_draft_v1";
 const BIG_CLOCK_PAYLOAD_KEY = "sandman_big_clock_payload_v2";
 
-const SHELLS = Object.freeze({
-  "quick-45": { label: "Quick Combat", minutes: 45 },
-  "standard-60": { label: "Standard Combat", minutes: 60 },
-  "elite-90": { label: "Advanced Combat", minutes: 90 },
-  "extended-120": { label: "Extended Combat", minutes: 120 },
-  "fitness-striking-60": { label: "Striking Fitness", minutes: 60 }
+const SESSION_TYPES = Object.freeze({
+  academy: { label: "Academy Class", durations: [60, 75, 90, 120], defaultMinutes: 60 },
+  private: { label: "Private Session", durations: [30, 45, 60, 90], defaultMinutes: 45 }
 });
 
 const RANK_LADDERS = Object.freeze({
@@ -41,8 +38,11 @@ const RANK_LADDERS = Object.freeze({
   Q2M: LADDER_Q2M
 });
 
-const shellCards = [...document.querySelectorAll(".session-card")];
+const sessionTypeButtons = [...document.querySelectorAll("[data-session-type]")];
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const durationChoices = document.getElementById("durationChoices");
+const disciplineFamilySelect = document.getElementById("disciplineFamilySelect");
+const programField = document.getElementById("programField");
 const roomSelect = document.getElementById("roomSelect");
 const disciplineSelect = document.getElementById("disciplineSelect");
 const rankSelect = document.getElementById("rankSelect");
@@ -59,7 +59,9 @@ const newSessionSection = document.getElementById("newSessionSection");
 const setupPrePracticeBtn = document.getElementById("setupPrePracticeBtn");
 const skipCleanSlateBtn = document.getElementById("skipCleanSlateBtn");
 
-let selectedSchema = "standard-60";
+let selectedSessionType = "academy";
+let selectedDuration = 60;
+let selectedSchema = "academy-60";
 let selectedMode = "hybrid";
 let hybridModel = null;
 let hybridUsable = false;
@@ -113,24 +115,27 @@ function populateRooms(preferredValue = "") {
 
 function populatePrograms(preferredProgramId = "") {
   const room = selectedRoom();
-  const programs = programsForLocation(room?.locationId || "");
-  const groups = new Map();
-  disciplineSelect.innerHTML = '<option value="">Select Program</option>';
+  const discipline = String(disciplineFamilySelect?.value || "").trim();
+  const programs = programsForLocation(room?.locationId || "")
+    .filter((program) => program.programId !== "manual-build")
+    .filter((program) => !discipline || program.discipline === discipline);
+
+  disciplineSelect.innerHTML = discipline
+    ? '<option value="">No specific program</option>'
+    : '<option value="">Select Discipline First</option>';
+
   programs.forEach((program) => {
-    if (!groups.has(program.groupLabel)) {
-      const group = document.createElement("optgroup");
-      group.label = program.groupLabel;
-      groups.set(program.groupLabel, group);
-      disciplineSelect.appendChild(group);
-    }
     const option = document.createElement("option");
     option.value = program.programId;
     option.textContent = program.label;
-    groups.get(program.groupLabel).appendChild(option);
+    disciplineSelect.appendChild(option);
   });
+
   if (programs.some((program) => program.programId === preferredProgramId)) {
     disciplineSelect.value = preferredProgramId;
   }
+
+  if (programField) programField.hidden = !discipline;
 }
 
 function programUsesRank() {
@@ -138,12 +143,11 @@ function programUsesRank() {
 }
 
 function programUsesWeek() {
-  return programUsesRank() && selectedMode === "hybrid" && hybridUsable;
+  return programUsesRank() && selectedMode !== "auto";
 }
 
 function isManualOnlyProgram() {
-  const program = selectedProgram();
-  return !program?.hybrid || selectedSchema === "fitness-striking-60";
+  return false;
 }
 
 function tierFromLadderKey(key = "") {
@@ -200,11 +204,7 @@ async function refreshHybridAvailability() {
   hybridModel = null;
   hybridUsable = false;
 
-  if (!programUsesRank() || isManualOnlyProgram()) {
-    if (selectedMode === "hybrid") {
-      selectedMode = "manual";
-      modeWasForced = true;
-    }
+  if (!programUsesRank()) {
     updateModeButtons();
     updateConditionalControls();
     updateSummary();
@@ -220,17 +220,10 @@ async function refreshHybridAvailability() {
       hybridUsable = modelHasConsumableCards(model);
     } catch (error) {
       if (requestId !== availabilityRequest) return;
-      console.warn("Hybrid model unavailable:", path, error);
+      console.warn("Guided model unavailable:", path, error);
     }
   }
 
-  if (!hybridUsable && selectedMode === "hybrid") {
-    selectedMode = "manual";
-    modeWasForced = true;
-  } else if (modeWasForced) {
-    selectedMode = "hybrid";
-    modeWasForced = false;
-  }
   updateModeButtons();
   updateConditionalControls();
   updateSummary();
@@ -238,9 +231,8 @@ async function refreshHybridAvailability() {
 
 function updateModeButtons() {
   modeButtons.forEach(button => {
-    const isHybrid = button.dataset.mode === "hybrid";
-    button.disabled = isHybrid && !hybridUsable;
     const active = button.dataset.mode === selectedMode;
+    button.disabled = false;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
@@ -248,31 +240,35 @@ function updateModeButtons() {
 
 function updateConditionalControls() {
   const usesRank = programUsesRank();
-  const manualOnly = isManualOnlyProgram();
-  rankField.hidden = !usesRank;
+  rankField.hidden = !usesRank || selectedMode === "auto";
   weekField.hidden = !programUsesWeek();
-  modeField.hidden = false;
   modeAvailability.hidden = false;
 
-  if (manualOnly) {
-    modeAvailability.textContent = "";
+  if (selectedMode === "auto") {
+    modeAvailability.textContent = hybridUsable
+      ? "Auto will use Sandman curriculum logic and the selected session context."
+      : "Auto will use Sandman’s basic session logic for this context.";
     modeAvailability.classList.remove("unavailable");
-  } else if (hybridUsable) {
-    modeAvailability.textContent = "Hybrid suggestions are available for this program and rank.";
+  } else if (selectedMode === "hybrid") {
+    modeAvailability.textContent = hybridUsable
+      ? "Hybrid curriculum suggestions are available."
+      : "Hybrid is active. Sandman will assist with the available session context.";
     modeAvailability.classList.remove("unavailable");
   } else {
-    modeAvailability.textContent = "Hybrid suggestions are not available for this program and rank.";
-    modeAvailability.classList.add("unavailable");
+    modeAvailability.textContent = "Manual keeps the detailed controls with Coach.";
+    modeAvailability.classList.remove("unavailable");
   }
 }
 
 function shellData() {
-  return SHELLS[selectedSchema] || SHELLS["standard-60"];
+  const type = SESSION_TYPES[selectedSessionType] || SESSION_TYPES.academy;
+  return { label: type.label, minutes: selectedDuration };
 }
 
 function getProgramData() {
   const program = selectedProgram();
-  const tier = programUsesRank() ? rankSelect.value : "";
+  const discipline = program?.discipline || String(disciplineFamilySelect?.value || "").trim();
+  const tier = programUsesRank() && selectedMode !== "auto" ? rankSelect.value : "";
   const journey = program?.journey || "";
   const ladder = RANK_LADDERS[journey] || [];
   const rankName = ladder.find(rank => tierFromLadderKey(rank.key) === tier)?.name || "";
@@ -282,7 +278,7 @@ function getProgramData() {
     foundry: program?.foundry || "",
     track: program?.track || "",
     journey,
-    discipline: program?.discipline || "",
+    discipline,
     tier,
     rankLabel: rankName
   };
@@ -292,44 +288,43 @@ function updateSummary() {
   const shell = shellData();
   const program = getProgramData();
   const room = optionText(roomSelect) || "Choose a room";
-  const usesRank = programUsesRank();
+  const usesRank = programUsesRank() && selectedMode !== "auto";
   const usesWeek = programUsesWeek();
 
   document.getElementById("currentRoomLabel").textContent = room;
   document.getElementById("summaryShell").textContent = `${shell.label} · ${shell.minutes} min`;
   document.getElementById("summaryRoom").textContent = room;
-  document.getElementById("summaryProgram").textContent = optionText(disciplineSelect) || "Select a program";
+  document.getElementById("summaryDiscipline").textContent =
+    disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
+  document.getElementById("summaryProgramRow").hidden = !program.program;
+  document.getElementById("summaryProgram").textContent = optionText(disciplineSelect) || "—";
   document.getElementById("summaryRankRow").hidden = !usesRank;
   document.getElementById("summaryRank").textContent = usesRank ? (optionText(rankSelect) || "Select a rank") : "—";
   document.getElementById("summaryWeekRow").hidden = !usesWeek;
   document.getElementById("summaryWeek").textContent = usesWeek ? (optionText(weekSelect) || "Select a week") : "—";
-  const modeLabels = { "checked-in": "Attendance First", hybrid: "Hybrid", manual: "Manual", quick: "Quick Start" };
-  document.getElementById("summaryMode").textContent = modeLabels[selectedMode] || "Manual";
+  const modeLabels = { auto: "Auto", hybrid: "Hybrid", manual: "Manual" };
+  document.getElementById("summaryMode").textContent = modeLabels[selectedMode] || "Hybrid";
 
-  if (selectedMode === "checked-in") {
-    summaryAvailability.textContent = activePracticeId
-      ? "Canonical practice and attendance context are ready."
-      : "Open Attendance first, then return to plan with the checked-in room.";
-  } else if (selectedMode === "quick") {
-    summaryAvailability.textContent = "Quick Start uses the Quick 45 shell and the shared Clipboard/Clock engine.";
-  } else if (isManualOnlyProgram()) {
-    summaryAvailability.textContent = "Manual session shell.";
-  } else if (hybridUsable) {
-    summaryAvailability.textContent = selectedMode === "hybrid" ? "Hybrid suggestions will be added in Clipboard." : "Manual planning selected; no Hybrid suggestions will be added.";
-  } else if (disciplineSelect?.value) {
-    summaryAvailability.textContent = "Hybrid suggestions are not available for this program and rank. Manual planning will be used.";
+  if (!program.discipline) {
+    summaryAvailability.textContent = "Choose a discipline to continue.";
+  } else if (selectedMode === "auto") {
+    summaryAvailability.textContent = hybridUsable
+      ? "Sandman will build from the curriculum context."
+      : "Sandman will build a basic guided session.";
+  } else if (selectedMode === "hybrid") {
+    summaryAvailability.textContent = hybridUsable
+      ? "Sandman suggestions will be available in Clipboard."
+      : "Hybrid assistance will use the session details you provide.";
   } else {
-    summaryAvailability.textContent = "Choose a program to check Hybrid availability.";
+    summaryAvailability.textContent = "Coach-built session with all available detail controls.";
   }
 
-  buildBtn.disabled = !program.program || !selectedRoom();
-  buildBtn.textContent = selectedMode === "checked-in" && !activePracticeId
-    ? "Open Attendance Check-In"
-    : selectedMode === "checked-in"
-      ? "Continue to Practice Clipboard"
-      : selectedMode === "quick"
-        ? "Start Quick 45"
-        : "Build in Practice Clipboard";
+  buildBtn.disabled = !program.discipline || !selectedRoom();
+  buildBtn.textContent = selectedMode === "auto"
+    ? "Build Auto Session"
+    : selectedMode === "hybrid"
+      ? "Continue with Hybrid"
+      : "Build Manual Session";
 }
 
 
@@ -453,7 +448,7 @@ function renderDraft() {
 }
 
 function getHybridData(weekValue) {
-  if (selectedMode !== "hybrid" || !hybridUsable || !hybridModel) {
+  if (!["hybrid", "auto"].includes(selectedMode) || !hybridUsable || !hybridModel) {
     return { hybridPhase: "", hybridCycle: "", hybridWeekInCycle: "", hybridWaveKey: "", hybridWave: [], hybridCards: [], hybridRules: {} };
   }
 
@@ -501,13 +496,46 @@ function writeCompatibilityKeys(payload) {
   Object.entries(entries).forEach(([key, value]) => localStorage.setItem(key, String(value ?? "")));
 }
 
-function setShell(schema) {
-  selectedSchema = SHELLS[schema] ? schema : "standard-60";
-  shellCards.forEach((card) => {
-    const active = card.dataset.schema === selectedSchema;
-    card.classList.toggle("active", active);
-    card.setAttribute("aria-pressed", String(active));
+function renderDurationChoices() {
+  const type = SESSION_TYPES[selectedSessionType] || SESSION_TYPES.academy;
+  if (!type.durations.includes(selectedDuration)) selectedDuration = type.defaultMinutes;
+  selectedSchema = `${selectedSessionType}-${selectedDuration}`;
+
+  durationChoices.replaceChildren(...type.durations.map((minutes) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "duration-choice";
+    button.dataset.minutes = String(minutes);
+    button.textContent = minutes === 120 ? "2 hr" : minutes === 90 ? "1 hr 30" : `${minutes} min`;
+    const active = minutes === selectedDuration;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.addEventListener("click", () => {
+      selectedDuration = minutes;
+      selectedSchema = `${selectedSessionType}-${selectedDuration}`;
+      renderDurationChoices();
+      updateSummary();
+    });
+    return button;
+  }));
+
+  sessionTypeButtons.forEach((button) => {
+    const active = button.dataset.sessionType === selectedSessionType;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   });
+}
+
+function setShell(schema) {
+  const match = /^(academy|private)-(30|45|60|75|90|120)$/.exec(String(schema || ""));
+  if (match) {
+    selectedSessionType = match[1];
+    selectedDuration = Number(match[2]);
+  } else {
+    selectedSessionType = "academy";
+    selectedDuration = 60;
+  }
+  renderDurationChoices();
 }
 
 function createSessionPayload(practiceId = activePracticeId) {
@@ -617,8 +645,9 @@ async function restoreCanonicalPractice(practiceId) {
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
   populateRooms(room.value);
+  if (disciplineFamilySelect) disciplineFamilySelect.value = String(practice.discipline || "");
   populatePrograms(String(practice.program || ""));
-  setShell(String(practice.schema || "standard-60"));
+  setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
   populateRanks(String(practice.tier || ""));
   roomSelect.disabled = true;
@@ -631,20 +660,15 @@ async function restoreCanonicalPractice(practiceId) {
 setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
 skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 
-shellCards.forEach(card => card.addEventListener("click", () => {
-  setShell(card.dataset.schema || "standard-60");
-  if (selectedSchema === "fitness-striking-60") {
-    disciplineSelect.value = "fitness-striking";
-    populateRanks();
-  }
-  refreshHybridAvailability();
+sessionTypeButtons.forEach(button => button.addEventListener("click", () => {
+  selectedSessionType = button.dataset.sessionType || "academy";
+  selectedDuration = SESSION_TYPES[selectedSessionType]?.defaultMinutes || 60;
+  renderDurationChoices();
+  updateSummary();
 }));
 
 modeButtons.forEach(button => button.addEventListener("click", () => {
-  if (button.disabled) return;
-  selectedMode = button.dataset.mode || "manual";
-  if (selectedMode === "quick") setShell("quick-45");
-  modeWasForced = false;
+  selectedMode = button.dataset.mode || "hybrid";
   updateModeButtons();
   updateConditionalControls();
   updateSummary();
@@ -656,10 +680,16 @@ roomSelect.addEventListener("change", () => {
   populateRanks();
   refreshHybridAvailability();
 });
+
+disciplineFamilySelect?.addEventListener("change", () => {
+  populatePrograms("");
+  populateRanks();
+  refreshHybridAvailability();
+});
+
 disciplineSelect.addEventListener("change", () => {
-  if (disciplineSelect.value === "fitness-striking") {
-    setShell("fitness-striking-60");
-  }
+  const program = selectedProgram();
+  if (program && disciplineFamilySelect) disciplineFamilySelect.value = program.discipline;
   populateRanks();
   refreshHybridAvailability();
 });
@@ -702,12 +732,13 @@ populateRooms();
 populatePrograms();
 populateWeeks();
 populateRanks();
+renderDurationChoices();
 renderDraft();
 
 const notice = new URLSearchParams(window.location.search).get("notice");
 if (notice === "choose-session") {
   const noticeEl = document.getElementById("dashboardNotice");
-  noticeEl.textContent = "Choose a session shell first.";
+  noticeEl.textContent = "Choose the session setup first.";
   noticeEl.hidden = false;
 }
 
