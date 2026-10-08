@@ -244,10 +244,33 @@ function classifyProposal(
     status ===
     "AWAITING_CLIENT_SIGNATURE"
   ) {
+    const membershipChoiceActive =
+      proposal
+        .membershipChoiceRequest
+        ?.active === true;
+
+    const priorPayments =
+      Array.isArray(
+        proposal.priorPayments
+      )
+        ? proposal.priorPayments
+        : [];
+
+    if (membershipChoiceActive) {
+      return {
+        view: "NEEDS_ACTION",
+        state: "Membership Choice Pending",
+        next: "Waiting for the family to choose a membership option."
+      };
+    }
+
     return {
       view: "NEEDS_ACTION",
       state: "Client Review",
-      next: "Record prior payment if applicable; proposal choice remains pending"
+      next:
+        priorPayments.length > 0
+          ? "Family review remains pending."
+          : "Record prior payment if applicable; family review remains pending."
     };
   }
 
