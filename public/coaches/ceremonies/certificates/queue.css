@@ -1,37 +1,29 @@
 :root{
   color-scheme:dark;
-  --page:#090909;
-  --panel:#111827;
-  --panel-soft:#151d2a;
-  --line:#2b3647;
-  --text:#f3f4f6;
-  --muted:#aeb6c3;
-  --gold:#ffdd3b;
+  --queue-panel:var(--coach-shell-panel);
+  --queue-line:var(--coach-shell-line);
+  --queue-text:var(--coach-shell-text);
+  --queue-muted:var(--coach-shell-muted);
+  --queue-gold:var(--coach-shell-gold);
+  --queue-bright-gold:var(--coach-shell-bright-gold);
 }
 
 *{box-sizing:border-box}
 
-body{
-  margin:0;
-  min-height:100vh;
-  background:#090909;
-  color:var(--text);
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-}
-
 .certificate-queue-page{
-  width:min(1100px,100%);
+  width:min(1180px,100%);
   margin:0 auto;
-  padding:24px 0 64px;
+  padding:0 0 64px;
+  color:var(--queue-text);
 }
 
 .queue-hero,
 .queue-panel,
 .queue-status,
 .summary-card{
-  border:1px solid var(--line);
+  border:1px solid var(--queue-line);
   border-radius:18px;
-  background:var(--panel);
+  background:var(--queue-panel);
 }
 
 .queue-hero{
@@ -55,13 +47,13 @@ body{
 .summary-card p,
 .recognition-detail,
 .recognition-meta{
-  color:var(--muted);
+  color:var(--queue-muted);
   line-height:1.5;
 }
 
 .eyebrow{
   margin:0;
-  color:var(--gold);
+  color:var(--queue-gold);
   font-size:.72rem;
   font-weight:900;
   letter-spacing:.11em;
@@ -70,17 +62,17 @@ body{
 
 .secondary-link{
   flex:0 0 auto;
-  color:var(--text);
+  color:var(--queue-text);
   text-decoration:none;
   font-weight:850;
 }
 
-.secondary-link:hover{color:var(--gold)}
+.secondary-link:hover{color:var(--queue-gold)}
 
 .queue-status{
   padding:13px 15px;
   margin-bottom:16px;
-  color:var(--muted);
+  color:var(--queue-muted);
 }
 
 .queue-summary-grid{
@@ -95,7 +87,7 @@ body{
 }
 
 .summary-card span{
-  color:var(--muted);
+  color:var(--queue-muted);
   font-size:.78rem;
   font-weight:850;
   text-transform:uppercase;
@@ -105,7 +97,7 @@ body{
 .summary-card strong{
   display:block;
   margin-top:5px;
-  color:var(--gold);
+  color:var(--queue-gold);
   font-size:2rem;
 }
 
@@ -141,9 +133,9 @@ body{
   justify-content:space-between;
   gap:16px;
   padding:15px;
-  border:1px solid var(--line);
+  border:1px solid var(--queue-line);
   border-radius:14px;
-  background:var(--panel-soft);
+  background:rgba(255,255,255,.025);
 }
 
 .recognition-card--ready{
@@ -151,7 +143,7 @@ body{
 }
 
 .recognition-state{
-  color:var(--gold);
+  color:var(--queue-gold);
   font-size:.7rem;
   font-weight:900;
   letter-spacing:.09em;
@@ -173,7 +165,7 @@ body{
   padding:9px 12px;
   border:1px solid rgba(255,221,59,.45);
   border-radius:9px;
-  background:var(--gold);
+  background:var(--queue-gold);
   color:#111;
   font-weight:900;
   text-decoration:none;
@@ -182,23 +174,23 @@ body{
 .watch-label{
   display:inline-flex;
   padding:7px 10px;
-  border:1px solid var(--line);
+  border:1px solid var(--queue-line);
   border-radius:999px;
-  color:var(--muted);
+  color:var(--queue-muted);
   font-size:.72rem;
   font-weight:850;
 }
 
 .empty-state{
   padding:28px 16px;
-  border:1px dashed var(--line);
+  border:1px dashed var(--queue-line);
   border-radius:12px;
   text-align:center;
 }
 
 .empty-state p{
   margin-bottom:0;
-  color:var(--muted);
+  color:var(--queue-muted);
 }
 
 .manual-check{
@@ -211,19 +203,19 @@ body{
   min-height:44px;
   width:100%;
   padding:10px 12px;
-  border:1px solid var(--line);
+  border:1px solid var(--queue-line);
   border-radius:9px;
-  background:#0d1420;
-  color:var(--text);
+  background:rgba(255,255,255,.025);
+  color:var(--queue-text);
 }
 
 .manual-result,
 .error-state{
   margin-top:14px;
   padding:14px;
-  border:1px solid var(--line);
+  border:1px solid var(--queue-line);
   border-radius:12px;
-  background:var(--panel-soft);
+  background:rgba(255,255,255,.025);
 }
 
 .error-state{
@@ -278,7 +270,7 @@ body{
 
 .queue-total span{
   display:block;
-  color:var(--muted);
+  color:var(--queue-muted);
   font-size:.68rem;
   font-weight:900;
   letter-spacing:.08em;
@@ -288,7 +280,7 @@ body{
 .queue-total strong{
   display:block;
   margin-top:2px;
-  color:var(--gold);
+  color:var(--queue-gold);
   font-size:1.65rem;
 }
 
@@ -305,4 +297,29 @@ body{
   .queue-total{
     width:100%;
   }
+}
+
+
+/* Keep Certificate Queue visually inside the shared Coach shell in light mode. */
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .queue-hero,
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .queue-panel,
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .queue-status,
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .summary-card{
+  background:var(--coach-shell-panel);
+  color:var(--coach-shell-text);
+  border-color:var(--coach-shell-line);
+  box-shadow:0 10px 24px var(--coach-shell-shadow);
+}
+
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .recognition-card,
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .manual-result{
+  background:rgba(0,0,0,.025);
+  color:var(--coach-shell-text);
+  border-color:var(--coach-shell-line);
+}
+
+html[data-theme="light"] .coach-shell-page[data-coach-area="recognition"] .manual-check input{
+  background:#fff;
+  color:#171717;
+  border-color:rgba(8,8,8,.20);
 }
