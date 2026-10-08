@@ -838,12 +838,29 @@ function renderExperienceValidation(pin) {
         placeholder="Optional Management note."></textarea>
     </label>
 
+    ${
+      reopenEligible
+        ? `
+            <p class="status-line is-warning">
+              Review Recommended — 0 XP return may need reassessment before closeout.
+            </p>
+          `
+        : ""
+    }
+
     <p id="experienceActionStatus" class="status-line" role="status" aria-live="polite"></p>
 
     <div class="action-row">
       ${
         reopenEligible
-          ? `<button id="reopenAssessmentButton" class="button button-secondary" type="button">Reopen Assessment</button>`
+          ? `
+                <button id="reopenAssessmentButton" class="button button-secondary" type="button">
+                  Reopen Assessment
+                </button>
+                <button id="approveExperienceButton" class="button button-primary" type="button">
+                  Complete · No Recognition XP
+                </button>
+              `
           : resolved
             ? `<button id="recordPlacementButton" class="button button-primary" type="button">Complete Assessment</button>`
           : noRecognitionXp
