@@ -42,6 +42,7 @@ let proposalId =
 let pendingPriorPaymentHandoff = null;
 let priorPaymentRecordedFromHandoff = false;
 let proposalEnrollmentPreviouslyPaid = false;
+let recordedMembershipPeriods = new Set();
   
 const backToProposalBtn =
   document.getElementById(
@@ -1186,12 +1187,20 @@ const extras = {
         }
       }
 
-      const overdueMembershipDueNow =
-        Math.max(
-          0,
-          monthlyBalance *
-          overdueMembershipMonths
-        );
+      // Existing recorded cash/check payments satisfy their specific billing months.
+      // Never charge a month twice merely because the proposal was reissued.
+      const startPeriod = String(membershipStartDate).slice(0, 7);
+      const firstMonthPreviouslyPaid = recordedMembershipPeriods.has(startPeriod);
+      let unpaidOverdueMonths = 0;
+      const overdueCursor = parseLocalDate(firstRecurringChargeDate);
+      if (overdueCursor) {
+        for (let index = 0; index < overdueMembershipMonths; index += 1) {
+          const period = localIsoDate(overdueCursor).slice(0, 7);
+          if (!recordedMembershipPeriods.has(period)) unpaidOverdueMonths += 1;
+          overdueCursor.setMonth(overdueCursor.getMonth() + 1);
+        }
+      }
+      const overdueMembershipDueNow = Math.max(0, monthlyBalance * unpaidOverdueMonths);
 
       const additionalMembershipDueNow =
         Math.max(
@@ -1204,7 +1213,7 @@ const extras = {
         paymentStartMode ===
             "deferred_family"
           ? 0
-          : proratedFirstMonth;
+          : firstMonthPreviouslyPaid ? 0 : proratedFirstMonth;
 
       /*
        * The family has not paid the first month merely because the
@@ -1324,8 +1333,8 @@ const extras = {
       ) {
         el.breakdown.append(
           line(
-            `First-month membership (${prorationPercent}%)`,
-            proratedFirstMonth
+            firstMonthPreviouslyPaid ? "First-month membership — previously paid" : `First-month membership (${prorationPercent}%)`,
+            firstMonthDueNow
           )
         );
       } else {
@@ -2329,6 +2338,13 @@ alert(
 
       const pricing =
         proposal.pricing || {};
+
+      recordedMembershipPeriods = new Set(
+        (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
+          .filter(payment => payment?.enrollmentFeeIncluded !== true || Array.isArray(payment?.periods))
+          .flatMap(payment => Array.isArray(payment?.periods) ? payment.periods : [])
+          .filter(period => /^\\d{4}-\\d{2}$/.test(String(period)))
+      );
 
       proposalEnrollmentPreviouslyPaid =
         pricing.enrollmentPreviouslyPaid === true ||
