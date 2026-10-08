@@ -80,13 +80,37 @@ function athleteProgram(a = {}) {
   ).toLowerCase();
 }
 
+function athleteDisciplines(a = {}) {
+  const raw = [
+    a.discipline,
+    a.primaryDiscipline,
+    ...(Array.isArray(a.disciplines) ? a.disciplines : []),
+    ...(Array.isArray(a.enrolledDisciplines) ? a.enrolledDisciplines : [])
+  ].filter(Boolean);
+  return raw.map((value) => String(value).trim().toLowerCase());
+}
+
+function athleteRouteDetail(a = {}) {
+  return [
+    a.journey || a.programTrack || a.program || "",
+    a.discipline || a.primaryDiscipline || "",
+    a.rank || a.tier || ""
+  ].filter(Boolean).join(" · ");
+}
+
 function getPracticeType() {
   return `${activePractice?.journey || "session"}-${activePractice?.discipline || "practice"}`;
 }
 
 function programMatchesAthlete(athlete = {}) {
   const journey = String(activePractice?.journey || "").toLowerCase();
+  const discipline = String(activePractice?.discipline || "").toLowerCase();
   const program = athleteProgram(athlete);
+  const disciplines = athleteDisciplines(athlete);
+
+  if (discipline && discipline !== "unassigned" && disciplines.length && !disciplines.includes(discipline)) {
+    return false;
+  }
 
   if (journey === "z2h" || journey === "zero2hero") {
     return program.includes("z2h") || program.includes("zero2hero") || program.includes("foundry8") || program.includes("f8");
@@ -270,7 +294,7 @@ function renderAthletes() {
         <span class="athlete-main">
           <strong>${athleteName(athlete)}</strong>
           <span>${athlete.id}</span>
-          <span>${athleteProgram(athlete) || "—"}</span>
+          <span>${athleteRouteDetail(athlete) || athleteProgram(athlete) || "—"}</span>
         </span>
         <span class="checkin-action">Check In</span>
       </button>
