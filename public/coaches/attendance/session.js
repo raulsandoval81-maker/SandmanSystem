@@ -166,10 +166,6 @@ function requestedSessionId() {
   return String(new URLSearchParams(window.location.search).get("session") || "").trim();
 }
 
-function scopedBuilderSessionKey(sessionId = requestedSessionId()) {
-  const id = String(sessionId || "").trim();
-  return id ? `sandman_session_builder_v1:${id}` : "sandman_session_builder_v1";
-}
 
 function requestedPracticeId() {
   const params = new URLSearchParams(window.location.search);
@@ -191,8 +187,6 @@ function configureBuilderReturn() {
 
 function rememberedPracticeId() {
   try {
-    const scoped = JSON.parse(localStorage.getItem(scopedBuilderSessionKey()) || "{}");
-    if (scoped?.practiceId) return String(scoped.practiceId).trim();
     return String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.practiceId || "").trim();
   } catch {
     return "";
@@ -610,9 +604,8 @@ function preparePracticeContext() {
 
 async function savePracticeContextToBuilderSession() {
   let session = {};
-  const scopedKey = scopedBuilderSessionKey();
   try {
-    session = JSON.parse(localStorage.getItem(scopedKey) || localStorage.getItem("sandman_session_builder_v1") || "{}");
+    session = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
   } catch {}
 
   const tier = selectedContextTier();
@@ -630,7 +623,6 @@ async function savePracticeContextToBuilderSession() {
   };
 
   localStorage.setItem("sandman_session_builder_v1", JSON.stringify(updated));
-  localStorage.setItem(scopedKey, JSON.stringify(updated));
   localStorage.setItem("sandman_tier", tier);
   localStorage.setItem("sandman_rank", tier);
   localStorage.setItem("sandman_rank_label", rankLabel);
