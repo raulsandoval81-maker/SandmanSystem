@@ -739,7 +739,11 @@ function buildProposalItems(
           ) || "—",
 
         amount:
-          proposal
+          upper(proposal.status) === "DRAFT" &&
+          Array.isArray(proposal.priorPayments) &&
+          proposal.priorPayments.length > 0
+            ? "Recalculate in Proposal"
+            : proposal
             .membershipChoiceRequest
             ?.active === true
             ? "Pending Selection"
