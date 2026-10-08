@@ -1,6 +1,6 @@
 :root{
-  --attendance-bg:#0b1120;
-  --attendance-panel:#0f172a;
+  --attendance-bg:var(--coach-shell-page-bg,#11110f);
+  --attendance-panel:var(--coach-shell-panel,#181816);
   --attendance-surface:rgba(255,255,255,.045);
   --attendance-line:rgba(255,255,255,.12);
   --attendance-text:#f7f7f5;
@@ -19,7 +19,7 @@ html[data-theme="light"]{
   --attendance-danger:#a52228;
 }
 
-.attendance-checkin{min-height:100vh;margin:0;background:var(--attendance-bg)}
+.attendance-checkin{min-height:100vh;margin:0;background:var(--coach-shell-page-bg,var(--attendance-bg))}
 .attendance-page{
   width:min(920px,calc(100% - 36px));
   min-height:100vh;
@@ -238,7 +238,7 @@ html[data-theme="light"]{
 
 .athlete-checkin-card{
   display:grid !important;
-  grid-template-columns:74px minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,1fr) auto;
   align-items:center !important;
   width:100%;
   gap:12px;
@@ -305,7 +305,7 @@ html[data-theme="light"]{
 
 .checked-athlete-row{
   display:grid !important;
-  grid-template-columns:74px minmax(0,1fr) auto;
+  grid-template-columns:minmax(0,1fr) auto;
 }
 
 @media(max-width:720px){
@@ -335,7 +335,7 @@ html[data-theme="light"]{
 
   .athlete-checkin-card,
   .checked-athlete-row{
-    grid-template-columns:62px minmax(0,1fr) auto !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
     align-items:center !important;
     flex-direction:initial !important;
   }
@@ -359,11 +359,11 @@ html[data-theme="light"]{
   }
 
   .athlete-checkin-card{
-    grid-template-columns:54px minmax(0,1fr) !important;
+    grid-template-columns:minmax(0,1fr) !important;
   }
 
   .athlete-checkin-card .checkin-action{
-    grid-column:2;
+    grid-column:1;
   }
 
   .checked-athlete-row{
