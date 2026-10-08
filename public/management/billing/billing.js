@@ -223,6 +223,7 @@ function classifyProposal(
 
   if (
     ![
+      "DRAFT",
       "AWAITING_CLIENT_SIGNATURE",
       "READY_FOR_CHECKOUT",
       "CHECKOUT_CREATED",
@@ -239,6 +240,26 @@ function classifyProposal(
     upper(
       proposal.billingFollowUpStatus
     );
+
+  if (status === "DRAFT") {
+    const priorPayments =
+      Array.isArray(
+        proposal.priorPayments
+      )
+        ? proposal.priorPayments
+        : [];
+
+    if (!priorPayments.length) {
+      return null;
+    }
+
+    return {
+      view: "NEEDS_ACTION",
+      state: "Proposal Draft",
+      next:
+        "Historical payment recorded. Finish the membership option and proposal."
+    };
+  }
 
   if (
     status ===
@@ -739,8 +760,12 @@ function buildProposalItems(
             : [],
 
         canRecordPriorPayment:
-          upper(proposal.status) ===
-          "AWAITING_CLIENT_SIGNATURE",
+          [
+            "DRAFT",
+            "AWAITING_CLIENT_SIGNATURE"
+          ].includes(
+            upper(proposal.status)
+          ),
 
         canRecordPrepaidCash:
           (
