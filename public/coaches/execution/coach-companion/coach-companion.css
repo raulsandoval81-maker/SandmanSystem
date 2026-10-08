@@ -350,3 +350,13 @@ body{
     min-height:42px;
   }
 }
+
+/* Daily Practice Log observations */
+.field-log-sections{display:grid;gap:12px;margin:22px 0;padding:22px;border:1px solid var(--line,#374151);border-radius:16px;background:var(--panel,#111827)}
+.field-log-sections h2{margin:0;font-size:1.25rem}
+.field-log-sections p{margin:0 0 8px;color:var(--muted,#9ca3af);line-height:1.5}
+.field-log-sections label{font-size:.9rem;margin-top:8px}
+.field-log-input,.field-log-select{box-sizing:border-box;width:100%;min-height:44px;padding:12px;color:var(--text,#fff);background:var(--input-bg,#111827);border:1px solid var(--line,#374151);border-radius:10px;font:inherit}
+.field-log-input{min-height:95px;resize:vertical;line-height:1.5}
+.field-log-input:disabled{opacity:.5}
+@media(max-width:720px){.field-log-sections{padding:15px}}
