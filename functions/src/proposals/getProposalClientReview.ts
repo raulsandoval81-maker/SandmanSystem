@@ -121,5 +121,11 @@ export const getProposalClientReview =
       changesRequested:
         proposal.status ===
         "CLIENT_CHANGES_REQUESTED",
+
+      membershipChoiceRequest:
+        proposal.membershipChoiceRequest || null,
+
+      membershipChoiceResponse:
+        proposal.membershipChoiceResponse || null,
     };
   });
