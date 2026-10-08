@@ -1329,12 +1329,9 @@ window.runPractice = async function () {
 
   // Do not try to rewrite the canonical plan once any execution has been recorded.
   try {
-    const practiceSnap = await getDoc(doc(db, "practiceSessions", practiceId));
-    if (!practiceSnap.exists()) {
-      setStatus("Practice record not found. Return to Practice Operations.");
-      return;
-    }
-    const practice = practiceSnap.data() || {};
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const practice = result.data?.practice || {};
     if (practice.sessionMemory?.executionStartedAt || String(practice.status || "").toLowerCase() !== "active") {
       showLockedPracticeNotice(session.sessionId);
       return;
