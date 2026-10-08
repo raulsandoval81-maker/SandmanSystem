@@ -320,6 +320,17 @@ function renderSummary() {
       <p><strong>Status:</strong> ${escapeHtml(canonicalPractice.status || "—")} · <strong>Verified:</strong> ${Array.isArray(canonicalAttendance?.presentIds) ? canonicalAttendance.presentIds.length : 0}</p>
     ` : ""}
 
+    ${payload?.observations ? `
+      <h3>Daily Practice Log Observations</h3>
+      <p><strong>Team:</strong> ${escapeHtml(payload.observations.teamNotes || "—")}</p>
+      <p><strong>Events:</strong> ${escapeHtml(payload.observations.eventNotes || "—")}</p>
+      <p><strong>General:</strong> ${escapeHtml(payload.observations.generalNotes || "—")}</p>
+      <h4>Individual Athletes</h4>
+      <ul>${Object.entries(payload.observations.individualNotes || {})
+        .filter(([,note]) => String(note).trim())
+        .map(([id,note]) => `<li><strong>${escapeHtml(id)}</strong>: ${escapeHtml(note)}</li>`).join("") || "<li>No individual notes</li>"}</ul>
+    ` : ""}
+
     <h3>Blocks</h3>
 
     <ul>
