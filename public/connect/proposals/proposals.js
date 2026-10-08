@@ -1589,12 +1589,33 @@ function proposalCardHtml(
       proposal
     );
 
-  const displayStatus =
+  const membershipChoiceActive =
     hasActiveMembershipChoice(
       proposal
-    )
+    );
+
+  const displayStatus =
+    membershipChoiceActive
       ? "Membership Choice Pending"
       : labelForStatus(status);
+
+  const membershipOptions =
+    membershipChoiceActive &&
+    Array.isArray(
+      proposal
+        .membershipChoiceRequest
+        ?.options
+    )
+      ? proposal
+          .membershipChoiceRequest
+          .options
+      : [];
+
+  const option1 =
+    membershipOptions[0] || null;
+
+  const option2 =
+    membershipOptions[1] || null;
 
   const updated =
     proposal.updatedAt ||
@@ -1643,25 +1664,82 @@ function proposalCardHtml(
       </div>
 
       <div class="proposal-card-grid">
-        <div>
-          <small>
-            Monthly
-          </small>
+        ${membershipChoiceActive
+          ? `
+            <div>
+              <small>
+                ${esc(
+                  option1?.title ||
+                  "Option 1"
+                )}
+              </small>
 
-          <strong>
-            ${money(monthly)}
-          </strong>
-        </div>
+              <strong>
+                ${option1
+                  ? `${money(
+                      Number(
+                        option1.monthlyCents ||
+                        0
+                      ) / 100
+                    )}/month · ${money(
+                      Number(
+                        option1.dueNowCents ||
+                        0
+                      ) / 100
+                    )} due now`
+                  : "Pending"
+                }
+              </strong>
+            </div>
 
-        <div>
-          <small>
-            Due Now
-          </small>
+            <div>
+              <small>
+                ${esc(
+                  option2?.title ||
+                  "Option 2"
+                )}
+              </small>
 
-          <strong>
-            ${money(dueNow)}
-          </strong>
-        </div>
+              <strong>
+                ${option2
+                  ? `${money(
+                      Number(
+                        option2.monthlyCents ||
+                        0
+                      ) / 100
+                    )}/month · ${money(
+                      Number(
+                        option2.dueNowCents ||
+                        0
+                      ) / 100
+                    )} due now`
+                  : "Pending"
+                }
+              </strong>
+            </div>
+          `
+          : `
+            <div>
+              <small>
+                Monthly
+              </small>
+
+              <strong>
+                ${money(monthly)}
+              </strong>
+            </div>
+
+            <div>
+              <small>
+                Due Now
+              </small>
+
+              <strong>
+                ${money(dueNow)}
+              </strong>
+            </div>
+          `
+        }
 
         <div>
           <small>
