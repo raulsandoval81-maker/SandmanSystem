@@ -147,21 +147,27 @@ test("Session Builder excludes fitness discipline from guided practice", () => {
 });
 
 
-test("attendance is the gated Screen 3 before practice route", () => {
+
+
+
+test("practice route is Screen 3, attendance is Screen 4, Clipboard is Screen 5", () => {
   const builderHtml = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builderJs = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   const attendanceHtml = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.html"), "utf8");
   const attendanceJs = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.js"), "utf8");
 
+  assert.match(builderHtml, /Screen 3 · Practice Route/);
   assert.match(builderHtml, /Continue to Attendance/);
-  assert.match(builderHtml, /Screen 4 · Practice Route/);
-  assert.match(builderJs, /function beginAttendanceStep\(\)/);
-  assert.match(builderJs, /discipline: "unassigned"/);
-  assert.match(builderJs, /return=builder&flow=builder/);
-  assert.match(builderJs, /activePracticeId \|\| selectedMode === "quick"/);
-
+  assert.match(builderHtml, /id="journeySelect"/);
+  assert.match(builderJs, /populateJourneys/);
+  assert.match(builderJs, /return=clipboard&flow=builder/);
   assert.match(attendanceHtml, /Finish Attendance/);
-  assert.match(attendanceJs, /function isBuilderFlow\(\)/);
-  assert.match(attendanceJs, /Route selected after attendance/);
-  assert.match(attendanceJs, /practiceId=.*step=4/);
+  assert.match(attendanceHtml, /data-quick-search="a">A/);
+  assert.match(attendanceHtml, /data-quick-search="e">E/);
+  assert.match(attendanceHtml, /data-quick-search="i">I/);
+  assert.match(attendanceHtml, /data-quick-search="o">O/);
+  assert.match(attendanceHtml, /data-quick-search="u">U/);
+  assert.doesNotMatch(attendanceHtml, /Session Builder · Screen 3/);
+  assert.doesNotMatch(attendanceJs, /athlete-number/);
+  assert.match(attendanceJs, /clipboard-2\.0/);
 });
