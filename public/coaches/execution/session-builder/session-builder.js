@@ -353,7 +353,7 @@ function updateSummary() {
 
 function showPrePracticeSetup() {
   if (prePracticeGate) prePracticeGate.hidden = true;
-  if (currentSessionSection) currentSessionSection.hidden = false;
+  if (currentSessionSection) currentSessionSection.hidden = true;
   if (newSessionSection) newSessionSection.hidden = false;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
   if (practiceContextScreen) practiceContextScreen.hidden = true;
@@ -363,6 +363,7 @@ function showPrePracticeSetup() {
 function showPracticeContext() {
   if (guidedSetupScreen) guidedSetupScreen.hidden = true;
   if (practiceContextScreen) practiceContextScreen.hidden = false;
+  if (currentSessionSection) currentSessionSection.hidden = false;
   updateConditionalControls();
   updateSummary();
   practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -703,6 +704,7 @@ skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 continueToContextBtn?.addEventListener("click", showPracticeContext);
 backToGuidedSetupBtn?.addEventListener("click", () => {
   if (practiceContextScreen) practiceContextScreen.hidden = true;
+  if (currentSessionSection) currentSessionSection.hidden = true;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
 });
 
