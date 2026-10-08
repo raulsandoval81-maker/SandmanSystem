@@ -363,10 +363,63 @@ function showPrePracticeSetup() {
 function showPracticeContext() {
   if (guidedSetupScreen) guidedSetupScreen.hidden = true;
   if (practiceContextScreen) practiceContextScreen.hidden = false;
-  if (currentSessionSection) currentSessionSection.hidden = false;
   updateConditionalControls();
   updateSummary();
   practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function attendanceSetupPayload() {
+  const room = selectedRoom();
+  if (!room) return null;
+  const shell = shellData();
+  return {
+    schema: selectedSchema,
+    durationMinutes: shell.minutes,
+    xpTimeScale: shell.minutes >= 120 ? "two-hour" : shell.minutes >= 90 ? "ninety-minute" : "standard",
+    executionMode: selectedMode,
+    practiceId: "",
+    sessionId: room.value,
+    locationId: room.locationId,
+    academyId: room.locationId,
+    roomId: room.roomId,
+    roomValue: room.value,
+    program: "",
+    foundry: "",
+    track: "",
+    journey: "",
+    discipline: "unassigned",
+    tier: "",
+    rank: "",
+    rankLabel: "",
+    week: "",
+    hybridPhase: "",
+    hybridCycle: "",
+    hybridWeekInCycle: "",
+    hybridWaveKey: "",
+    hybridWave: [],
+    hybridCards: [],
+    hybridRules: {},
+    source: "session-builder-attendance",
+    createdAt: new Date().toISOString()
+  };
+}
+
+async function beginAttendanceStep() {
+  let payload = attendanceSetupPayload();
+  if (!payload) return;
+
+  continueToContextBtn.disabled = true;
+  try {
+    payload = await openCanonicalPractice(payload);
+    persistSession(payload);
+    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder&flow=builder`;
+  } catch (error) {
+    console.error("Attendance handoff failed", error);
+    const noticeEl = document.getElementById("dashboardNotice");
+    noticeEl.textContent = error?.message || "Could not open attendance for this practice.";
+    noticeEl.hidden = false;
+    continueToContextBtn.disabled = false;
+  }
 }
 
 function cleanSlatePayload() {
@@ -685,7 +738,10 @@ async function restoreCanonicalPractice(practiceId) {
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
   populateRooms(room.value);
-  if (disciplineFamilySelect) disciplineFamilySelect.value = String(practice.discipline || "");
+  const restoredDiscipline = String(practice.discipline || "").toLowerCase();
+  if (disciplineFamilySelect) {
+    disciplineFamilySelect.value = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
+  }
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
@@ -694,14 +750,14 @@ async function restoreCanonicalPractice(practiceId) {
   await refreshHybridAvailability();
   showPracticeContext();
   await loadAttendanceContext();
-  document.getElementById("dashboardNotice").textContent = "Canonical practice restored. Continue planning with the same practice ID.";
+  document.getElementById("dashboardNotice").textContent = "Attendance complete. Continue with Screen 4 using the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
 
 setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
 skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 
-continueToContextBtn?.addEventListener("click", showPracticeContext);
+continueToContextBtn?.addEventListener("click", beginAttendanceStep);
 backToGuidedSetupBtn?.addEventListener("click", () => {
   if (practiceContextScreen) practiceContextScreen.hidden = true;
   if (currentSessionSection) currentSessionSection.hidden = true;
@@ -751,7 +807,7 @@ disciplineSelect.addEventListener("change", () => {
 rankSelect.addEventListener("change", refreshHybridAvailability);
 weekSelect.addEventListener("change", updateSummary);
 
-document.getElementById("discardDraftBtn").addEventListener("click", () => {
+document.getElementById("discardDraftBtn")?.addEventListener("click", () => {
   if (!window.confirm("Discard this unfinished session?")) return;
   localStorage.removeItem(DRAFT_KEY);
   localStorage.removeItem(CLIPBOARD_KEY);
@@ -771,7 +827,9 @@ buildBtn.addEventListener("click", async () => {
       window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder`;
       return;
     }
-    if (selectedMode === "quick") payload = await openCanonicalPractice(payload);
+    if (activePracticeId || selectedMode === "quick") {
+      payload = await openCanonicalPractice(payload);
+    }
     persistSession(payload);
     window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(payload.sessionId)}`;
   } catch (error) {
