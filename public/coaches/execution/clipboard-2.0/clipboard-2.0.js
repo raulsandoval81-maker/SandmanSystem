@@ -81,6 +81,14 @@ const COACH_SESSION_KEY = scopedKey("sandman_coach_session_v1");
 const BIG_CLOCK_KEY = scopedKey("sandman_big_clock_payload_v2");
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
 
+function matLaneLabel(session = {}) {
+  const roomId = String(session.roomId || "").toLowerCase();
+  if (roomId === "mat-1a") return "Mat 1A";
+  if (roomId === "mat-1b") return "Mat 1B";
+  if (roomId === "mat-1") return "Mat 1A";
+  return session.sessionId || "Mat 1";
+}
+
 function getSessionPayload() {
   try {
     const scopedSession = SESSION_PARAM
@@ -91,6 +99,21 @@ function getSessionPayload() {
     return {};
   }
 }
+
+function renderLaneIdentity() {
+  const session = getSessionPayload();
+  const lane = document.getElementById("clipboardMatLane");
+  if (lane) lane.textContent = matLaneLabel(session);
+
+  const back = document.querySelector(".back-builder-link");
+  if (back && session.practiceId) {
+    const sessionId = session.sessionId || SESSION_PARAM || "";
+    const sessionPart = sessionId ? `&session=${encodeURIComponent(sessionId)}` : "";
+    back.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(session.practiceId)}${sessionPart}`;
+  }
+}
+
+renderLaneIdentity();
 
 function getDraftPayload() {
   try {
