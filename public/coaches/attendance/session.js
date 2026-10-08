@@ -109,7 +109,11 @@ function programMatchesAthlete(athlete = {}) {
 
 function isBuilderFlow() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("return") === "builder" && params.get("flow") === "builder";
+  return params.get("flow") === "builder";
+}
+
+function returnTarget() {
+  return new URLSearchParams(window.location.search).get("return") || "";
 }
 
 function requestedPracticeId() {
@@ -121,7 +125,7 @@ function configureBuilderReturn() {
   const link = $("returnToBuilder");
   if (!link) return;
   const params = new URLSearchParams(window.location.search);
-  if (params.get("return") !== "builder") return;
+  if (!["builder", "clipboard"].includes(params.get("return"))) return;
   const practiceId = requestedPracticeId();
   if (!practiceId) return;
   link.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(practiceId)}`;
@@ -155,10 +159,7 @@ async function loadCanonicalPractice() {
   sessionId = practiceId;
   sessionRef = doc(db, "attendance_sessions", practiceId);
   if ($("practiceIdentity")) {
-    const disciplineLabel = String(practice.discipline || "").toLowerCase() === "unassigned"
-      ? "Route selected after attendance"
-      : practice.discipline;
-    $("practiceIdentity").value = [disciplineLabel, practice.journey, practice.roomId]
+    $("practiceIdentity").value = [practice.discipline, practice.journey, practice.roomId]
       .filter(Boolean).join(" · ");
   }
 }
@@ -259,14 +260,13 @@ function renderAthletes() {
     return;
   }
 
-  list.innerHTML = filteredAthletes.map((athlete, index) => {
+  list.innerHTML = filteredAthletes.map((athlete) => {
     return `
       <button
         type="button"
         class="athlete-checkin-card"
         data-athlete-id="${athlete.id}"
       >
-        <span class="athlete-number">Athlete ${index + 1}</span>
         <span class="athlete-main">
           <strong>${athleteName(athlete)}</strong>
           <span>${athlete.id}</span>
@@ -373,9 +373,8 @@ function renderCheckedIn() {
     return;
   }
 
-  list.innerHTML = Array.from(checkedIn.values()).map((athlete, index) => `
+  list.innerHTML = Array.from(checkedIn.values()).map((athlete) => `
     <div class="athlete-row checked-athlete-row">
-      <span class="athlete-number">Athlete ${index + 1}</span>
       <span>
         <strong>${athlete.name}</strong>
         <span class="muted">${athlete.id}</span>
@@ -438,8 +437,14 @@ async function submitForReview() {
   renderAthletes();
   renderCheckedIn();
 
-  if (isBuilderFlow()) {
-    window.location.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&step=4`;
+  if (isBuilderFlow() && returnTarget() === "clipboard") {
+    let sessionId = "";
+    try {
+      sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
+    } catch {}
+    window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
+  } else if (isBuilderFlow()) {
+    window.location.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}`;
   }
 }
 
@@ -486,9 +491,9 @@ if (isBuilderFlow()) {
   const label = $("attendanceFlowLabel");
   const title = $("attendanceTitle");
   const lead = $("attendanceLead");
-  if (label) label.textContent = "Session Builder · Screen 3";
-  if (title) title.textContent = "Attendance";
-  if (lead) lead.textContent = "Athletes check in first. When attendance is finished, Coach continues to Screen 4.";
+  if (label) label.textContent = "Attendance";
+  if (title) title.textContent = "Athlete Check-In";
+  if (lead) lead.textContent = "Find your name, check in, then review before continuing.";
 
   loadAthletes()
     .then(() => startSession())
