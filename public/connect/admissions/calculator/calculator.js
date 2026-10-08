@@ -2343,7 +2343,7 @@ alert(
         (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
           .filter(payment => payment?.enrollmentFeeIncluded !== true || Array.isArray(payment?.periods))
           .flatMap(payment => Array.isArray(payment?.periods) ? payment.periods : [])
-          .filter(period => /^\\d{4}-\\d{2}$/.test(String(period)))
+          .filter(period => /^\d{4}-\d{2}$/.test(String(period)))
       );
 
       proposalEnrollmentPreviouslyPaid =
