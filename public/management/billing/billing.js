@@ -718,12 +718,16 @@ function buildProposalItems(
           ) || "—",
 
         amount:
-          proposal.cashPrepayment?.amountCents
-            ? moneyFromCents(
-                proposal.cashPrepayment
-                  .amountCents
-              )
-            : proposalAmount(proposal),
+          proposal
+            .membershipChoiceRequest
+            ?.active === true
+            ? "Pending Selection"
+            : proposal.cashPrepayment?.amountCents
+              ? moneyFromCents(
+                  proposal.cashPrepayment
+                    .amountCents
+                )
+              : proposalAmount(proposal),
 
         proposalId,
 
