@@ -1605,6 +1605,7 @@ function proposalCardHtml(
       class="proposal-card"
       data-proposal-id="${esc(id)}"
       data-status="${esc(status)}"
+      data-membership-choice-active="${hasActiveMembershipChoice(proposal) ? "true" : "false"}"
     >
       <div class="proposal-card-top">
         <div>
