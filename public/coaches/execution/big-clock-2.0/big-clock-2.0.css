@@ -682,3 +682,32 @@ body{
 @media(max-width:560px){
   .fast-pass-times{grid-template-columns:repeat(2,1fr);}
 }
+
+
+/* Coach Companion access during practice only */
+.live-companion-tools{
+  position:fixed;right:clamp(12px,2vw,28px);
+  top:calc(env(safe-area-inset-top) + 14px);
+  z-index:90;display:flex;flex-direction:column;align-items:flex-end;gap:10px;
+}
+.live-companion-toggle,.live-companion-close{
+  cursor:pointer;min-height:42px;padding:9px 16px;
+  border:1px solid rgba(255,221,72,.38);border-radius:12px;
+  background:rgba(14,18,25,.95);color:#ffdd48;
+  font:800 .8rem system-ui,sans-serif;letter-spacing:.02em;
+}
+.live-companion-panel{
+  display:flex;flex-direction:column;align-items:center;
+  width:min(290px,calc(100vw - 32px));padding:19px 16px;
+  background:#131820;border:1px solid rgba(255,221,72,.3);
+  border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.55);
+  text-align:center;color:#fff;
+}
+.live-companion-panel strong{font-size:1rem}
+.live-companion-panel p{font-size:.8rem;line-height:1.4;color:#cbd5e1;margin:8px 0 15px}
+.live-companion-panel img{width:min(210px,66vw);height:auto;background:white;padding:9px;border-radius:12px}
+.live-companion-close{margin-top:14px;color:#fff;border-color:#475569}
+@media(max-width:700px){
+  .live-companion-tools{right:12px;top:calc(env(safe-area-inset-top) + 8px)}
+  .live-companion-toggle{font-size:.72rem;min-height:38px;padding:8px 11px}
+}
