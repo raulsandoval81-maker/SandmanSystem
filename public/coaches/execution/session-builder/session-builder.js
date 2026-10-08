@@ -25,6 +25,7 @@ import {
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
 const DRAFT_KEY = "sandman_clipboard_draft_v1";
+const BIG_CLOCK_PAYLOAD_KEY = "sandman_big_clock_payload_v2";
 
 const SHELLS = Object.freeze({
   "quick-45": { label: "Quick Combat", minutes: 45 },
@@ -375,7 +376,7 @@ function cleanSlatePayload() {
   };
 }
 
-async function skipToCleanSlateAttendance() {
+async function skipToPractice() {
   const existingDraft = getRecoverableDraft();
   if (existingDraft && !window.confirm("Skip setup and leave the unfinished Clipboard draft?")) return;
   let payload = cleanSlatePayload();
@@ -391,12 +392,26 @@ async function skipToCleanSlateAttendance() {
 
   try {
     payload = await openCanonicalPractice(payload);
+    payload.source = "session-builder-fast-pass";
     persistSession(payload);
-    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&return=builder`;
+    localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify({
+      source: "session-builder-fast-pass",
+      practiceId: payload.practiceId,
+      sessionId: payload.sessionId,
+      durationMinutes: 60,
+      blocks: [{
+        title: "Practice",
+        minutes: 60,
+        cards: [],
+        notes: "",
+        drillBlocks: []
+      }]
+    }));
+    window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&fast=1`;
   } catch (error) {
-    console.error("Clean-slate entry failed", error);
+    console.error("Skip-to-practice entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = error?.message || "Could not open clean-slate Attendance.";
+    noticeEl.textContent = error?.message || "Could not start practice.";
     noticeEl.hidden = false;
     skipCleanSlateBtn.disabled = false;
   }
@@ -614,7 +629,7 @@ async function restoreCanonicalPractice(practiceId) {
 }
 
 setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
-skipCleanSlateBtn?.addEventListener("click", skipToCleanSlateAttendance);
+skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 
 shellCards.forEach(card => card.addEventListener("click", () => {
   setShell(card.dataset.schema || "standard-60");
