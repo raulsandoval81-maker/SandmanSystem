@@ -1238,6 +1238,21 @@ if (
    RUN PRACTICE
 ========================= */
 
+function showLockedPracticeNotice(sessionId) {
+  setStatus("This practice has already started. Its saved plan is locked to protect the practice record.");
+  const actions = document.querySelector(".clipboard-handoff-actions");
+  if (!actions) return;
+  let link = document.getElementById("resumeExistingPractice");
+  if (!link) {
+    link = document.createElement("a");
+    link.id = "resumeExistingPractice";
+    link.className = "live-link-btn primary";
+    link.textContent = "Return to Existing Practice";
+    actions.prepend(link);
+  }
+  link.href = `/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
+}
+
 window.runPractice = async function () {
   const session = getActiveSession();
 
@@ -1309,6 +1324,24 @@ window.runPractice = async function () {
   } catch (error) {
     console.error("Practice open failed", error);
     setStatus(error?.message || "Could not open the canonical practice.");
+    return;
+  }
+
+  // Do not try to rewrite the canonical plan once any execution has been recorded.
+  try {
+    const practiceSnap = await getDoc(doc(db, "practiceSessions", practiceId));
+    if (!practiceSnap.exists()) {
+      setStatus("Practice record not found. Return to Practice Operations.");
+      return;
+    }
+    const practice = practiceSnap.data() || {};
+    if (practice.sessionMemory?.executionStartedAt || String(practice.status || "").toLowerCase() !== "active") {
+      showLockedPracticeNotice(session.sessionId);
+      return;
+    }
+  } catch (error) {
+    console.error("Practice state check failed", error);
+    setStatus("Unable to verify practice state. Nothing was launched or overwritten.");
     return;
   }
 
@@ -1389,7 +1422,11 @@ window.runPractice = async function () {
     });
   } catch (error) {
     console.error("Durable practice plan save failed", error);
-    setStatus(error?.message || "Could not save the canonical practice plan.");
+    if (/practice plan cannot change after execution starts|closed practices cannot change/i.test(String(error?.message || ""))) {
+      showLockedPracticeNotice(session.sessionId);
+    } else {
+      setStatus(error?.message || "Could not save the canonical practice plan.");
+    }
     return;
   }
 
