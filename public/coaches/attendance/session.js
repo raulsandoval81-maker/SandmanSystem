@@ -120,12 +120,6 @@ function matLabel() {
   return "Mat 1";
 }
 
-function sessionLaneLabel(roomId = "") {
-  const value = String(roomId || "").toLowerCase();
-  if (value === "mat-1b") return "Session 1B";
-  return "Session 1A";
-}
-
 function programMatchesAthlete(athlete = {}) {
   const journey = String(activePractice?.journey || "").toLowerCase();
   const discipline = String(activePractice?.discipline || "").toLowerCase();
@@ -216,7 +210,6 @@ async function loadCanonicalPractice() {
   if ($("practiceIdentity")) {
     $("practiceIdentity").value = [
       matLabel(),
-      sessionLaneLabel(practice.roomId),
       practice.journey,
       practice.discipline
     ].filter(Boolean).join(" · ");
