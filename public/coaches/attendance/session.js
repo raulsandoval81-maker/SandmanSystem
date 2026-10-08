@@ -126,6 +126,23 @@ function disciplineDisplay(value = "") {
   })[raw] || String(value || "").trim();
 }
 
+function escapeAttendance(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function attendanceIdentityMarkup(a = {}) {
+  const id = String(a.id || a.uid || "").trim();
+  const item = athletes.find(row => row.id === id) || a;
+  const journey = journeyDisplay(item.journey || item.programTrack || item.program || "");
+  const discipline = disciplineDisplay(item.discipline || item.primaryDiscipline || activePractice?.discipline || "");
+  const tier = String(item.tier || a.tier || "").trim();
+  const rank = String(item.rank || a.rank || "").trim();
+  const route = [journey, discipline, [tier, rank].filter(Boolean).join(" · ")].filter(Boolean).join(" · ");
+  const lower = rank.toLowerCase();
+  const color = /shadow|apprentice|white/.test(lower) ? "white" : /prospect|yellow/.test(lower) ? "yellow" : /competitor|orange/.test(lower) ? "orange" : /contender|green/.test(lower) ? "green" : /champion|legend|hero|black/.test(lower) ? "black" : "neutral";
+  return '<span class="attendance-identity"><strong>' + escapeAttendance(athleteName(item)) +
+    '</strong><small>' + escapeAttendance(id) + '</small><span class="attendance-route attendance-rank-' +
+    color + '">' + escapeAttendance(route || "Training details not assigned") + '</span></span>';
+}
 function athleteRouteDetail(a = {}) {
   return [
     journeyDisplay(a.journey || a.programTrack || a.program || ""),
@@ -360,11 +377,7 @@ function renderAthletes() {
         class="athlete-checkin-card"
         data-athlete-id="${athlete.id}"
       >
-        <span class="athlete-main">
-          <strong>${athleteName(athlete)}</strong>
-          <span>${athlete.id}</span>
-          <span>${athleteRouteDetail(athlete) || athleteProgram(athlete) || "—"}</span>
-        </span>
+        <span class="athlete-main">${attendanceIdentityMarkup(athlete)}</span>
         <span class="checkin-action">Check In</span>
       </button>
     `;
@@ -476,10 +489,7 @@ function renderCheckedIn() {
 
   list.innerHTML = Array.from(checkedIn.values()).map((athlete) => `
     <div class="athlete-row checked-athlete-row">
-      <span>
-        <strong>${athlete.name}</strong>
-        <span class="muted">${athlete.id}</span>
-      </span>
+      <span class="attendance-present-card">${attendanceIdentityMarkup(athlete)}<span class="attendance-present-label">Present</span></span>
 
       <button
         type="button"
