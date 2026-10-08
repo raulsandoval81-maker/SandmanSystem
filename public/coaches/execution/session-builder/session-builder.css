@@ -12,3 +12,84 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
 @media(max-width:900px){.entry-mode-row{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:800px){.session-shells{grid-template-columns:repeat(3,minmax(0,1fr))}.configuration-layout{grid-template-columns:1fr}}
 @media(max-width:560px){.dashboard-header{align-items:flex-start;padding:14px}.room-context{min-width:0;padding:8px 10px}.room-context span{display:none}.room-context strong{font-size:.78rem}.dashboard-section{padding:12px}.draft-card{align-items:stretch;flex-direction:column}.draft-title-row{display:block}.draft-updated{display:block;margin-top:6px}.draft-actions{justify-content:stretch}.draft-actions>*{flex:1 1 100%}.session-shells,.entry-mode-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.session-card{padding:9px}.details-panel{grid-template-columns:1fr;padding:11px}.attendance-context-heading{align-items:flex-start;flex-direction:column}.execution-tools span{flex:1 1 100%;margin:0}.execution-tools a{flex:1 1 calc(50% - 8px);text-align:center}}
+
+
+/* Pre-Practice entry gate */
+.pre-practice-gate{
+  display:grid;
+  grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);
+  align-items:stretch;
+  gap:18px;
+}
+
+.pre-practice-copy h2{
+  margin:4px 0 7px;
+  color:var(--gold);
+  font-size:clamp(1.35rem,3vw,1.75rem);
+}
+
+.pre-practice-copy p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.pre-practice-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.gate-choice{
+  display:flex;
+  min-height:118px;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:6px;
+  padding:16px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--card);
+  color:var(--text);
+  text-align:left;
+  cursor:pointer;
+}
+
+.gate-choice strong{
+  color:var(--gold);
+  font-size:1rem;
+}
+
+.gate-choice span{
+  color:var(--muted);
+  font-size:.78rem;
+  line-height:1.4;
+}
+
+.gate-choice--primary{
+  border-color:var(--gold-line);
+  background:var(--gold-soft);
+}
+
+.gate-choice:hover,
+.gate-choice:focus-visible{
+  border-color:var(--gold);
+  outline:none;
+}
+
+.gate-choice:disabled{
+  opacity:.55;
+  cursor:wait;
+}
+
+@media(max-width:760px){
+  .pre-practice-gate,
+  .pre-practice-actions{
+    grid-template-columns:1fr;
+  }
+
+  .gate-choice{
+    min-height:96px;
+  }
+}
