@@ -195,7 +195,7 @@ async function setState(state) {
       getSessionPayload();
 
     const sessionId =
-      session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
+      session.sessionId || SESSION_PARAM || "lompoc-mat-1";
 
     await setDoc(
       doc(db, "liveSessions", sessionId),
@@ -228,10 +228,8 @@ async function setState(state) {
   }
 }
 
-function matLaneLabel(session = {}) {
-  const roomId = String(session.roomId || "").toLowerCase();
-  const lane = roomId === "mat-1b" ? "Session 1B" : "Session 1A";
-  return `Mat 1 · ${lane}`;
+function matLaneLabel() {
+  return "Mat 1";
 }
 
 function renderLaneIdentity() {
@@ -687,7 +685,7 @@ window.startPracticeNow = async function () {
 
 window.showBigClockQr = function () {
   const session = getSessionPayload();
-  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
+  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1";
 
   const url =
     `${window.location.origin}/coaches/execution/big-clock-2.0/?session=${encodeURIComponent(sessionId)}`;
@@ -697,7 +695,7 @@ window.showBigClockQr = function () {
 
 window.showCompanionQr = function () {
   const session = getSessionPayload();
-  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1a";
+  const sessionId = session.sessionId || SESSION_PARAM || "lompoc-mat-1";
 
   const url =
     `${window.location.origin}/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
