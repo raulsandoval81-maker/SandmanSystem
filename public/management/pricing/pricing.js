@@ -8,7 +8,7 @@ import {
 
 import {
   calculateManagementEstimate
-} from "./pricing-estimate-model.js";
+} from "./pricing-estimate-model.js?v=20261008-2";
 
 import { db, doc, getDoc } from "/assets/js/firebase-init.js";
 import { requireManagement } from "/management/shared/guards/management-guard.js";
