@@ -353,6 +353,47 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "load-verified-practice") {
+      const practiceId = optionalPracticeId(data.practiceId);
+      if (!practiceId) {
+        throw new HttpsError("invalid-argument", "A practiceId is required for verified evidence.");
+      }
+      const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
+      if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
+      const practice = practiceSnap.data() || {};
+      requirePracticeVerificationAccess(actor, practice);
+      if (normalizeDiscipline(practice.discipline) !== discipline) {
+        throw new HttpsError("failed-precondition", "Practice discipline does not match the requested evidence.");
+      }
+      const attendanceSnap = await db.doc(`attendance_sessions/${practiceId}`).get();
+      const attendance = attendanceSnap.data() || {};
+      if (!attendanceSnap.exists || clean(attendance.status).toLowerCase() !== "finalized"
+          || attendance.finalized !== true || !attendanceIncludesAthlete(attendance, athleteId)) {
+        throw new HttpsError("failed-precondition", "Finalized attendance for this athlete is required.");
+      }
+      const memorySnap = await db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`).get();
+      const memory = memorySnap.data() || {};
+      if (!memorySnap.exists || clean(memory.practiceId) !== practiceId
+          || clean(memory.athleteId).toUpperCase() !== athleteId
+          || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
+        throw new HttpsError("failed-precondition", "Matching athlete-session memory is required.");
+      }
+      const verifiedSnap = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).get();
+      return {
+        ok: true, practiceId, athleteId, discipline,
+        verifiedSkills: verifiedSnap.docs
+          .map(docSnap => docSnap.data() || {})
+          .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+            && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId)))
+          .map(skill => ({
+            familyId: normalizeFamily(skill.familyId),
+            state: normalizeState(skill.state),
+            coachUid: clean(skill.coachUid),
+            verifiedAt: skill.verifiedAt || null
+          }))
+      };
+    }
+
     if (action === "load") {
       const snap = await db
         .collection("athletes")
