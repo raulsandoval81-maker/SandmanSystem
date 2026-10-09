@@ -88,7 +88,7 @@ function inviteUrlForToken(tokenId, intakeAudience = "parent_guardian") {
 function paintInviteHandoff(
   tokenId,
   intakeAudience,
-  { recovered = false } = {}
+  { recovered = false, handoff = null } = {}
 ) {
   const audience = intakeAudience === "adult_athlete"
     ? "adult_athlete"
@@ -103,9 +103,10 @@ function paintInviteHandoff(
 
   if ($("btn-send-intake-email")) {
     $("btn-send-intake-email").disabled = false;
-    $("btn-send-intake-email").textContent = recovered
-      ? "Resend Intake Email"
-      : "Send Intake Email";
+    $("btn-send-intake-email").textContent =
+      handoff?.deliveryStatus === "SENT" && handoff?.deliveryMethod === "email"
+        ? "Resend Intake Email"
+        : "Send Intake Email";
   }
 
   if ($("btn-mark-intake-sent")) {
@@ -123,9 +124,15 @@ function paintInviteHandoff(
       ? "Adult athlete"
       : "Parent / guardian";
 
-    $("invite-status").textContent = recovered
-      ? `✓ Existing ${label.toLowerCase()} intake handoff recovered.`
-      : `✓ ${label} intake created (${INVITE_HOURS}h).`;
+    const sent = handoff?.deliveryStatus === "SENT";
+    const method = handoff?.deliveryMethod === "email" ? "email" : handoff?.deliveryMethod === "text" ? "text" : "manual handoff";
+    const destination = handoff?.deliveredTo ? ` to ${handoff.deliveredTo}` : "";
+    const sentAt = handoff?.deliveredAt
+      ? new Date(Number(handoff.deliveredAt)).toLocaleString()
+      : "";
+    $("invite-status").textContent = sent
+      ? `✓ Secure Intake token confirmed. Invitation recorded as sent by ${method}${destination}${sentAt ? ` on ${sentAt}` : ""}. No new token created.`
+      : `✓ Secure ${label.toLowerCase()} Intake token ${recovered ? "already exists" : "created"} and is ready. Email NOT sent yet. Select Send Intake Email to deliver it.`;
   }
 }
 
@@ -1125,7 +1132,8 @@ async function generateIntakeInvite(
 
     if (existing?.state === "active") {
       paintInviteHandoff(existing.tokenId, normalizedAudience, {
-        recovered: true
+        recovered: true,
+        handoff: existing
       });
       return;
     }
@@ -1413,6 +1421,19 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
   }
 
   currentHandoffTokenId = tokenId;
+
+  const existingStatus = [...handoffCache.values()].find(
+    entry => entry?.tokenId === tokenId
+  );
+  if (existingStatus?.deliveryStatus === "SENT" &&
+      existingStatus?.deliveryMethod === "email" &&
+      !window.confirm(
+        "Sandman already recorded this Intake email as sent" +
+        (existingStatus.deliveredTo ? " to " + existingStatus.deliveredTo : "") +
+        ". Send it again?"
+      )) {
+    return;
+  }
 
   const originalLabel = button.textContent;
   button.disabled = true;
