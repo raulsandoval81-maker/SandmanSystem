@@ -1431,10 +1431,33 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
         "sendEnrollmentIntakeEmail"
       );
 
-    const response =
-      await sendIntake({
-        tokenId
+    let response;
+    try {
+      response = await sendIntake({ tokenId });
+    } catch (initialError) {
+      if (!/No valid intake email is attached/i.test(String(initialError?.message || ""))) {
+        throw initialError;
+      }
+
+      const enteredEmail = window.prompt(
+        "No recipient email is attached. Enter the verified Parent / Guardian email address:"
+      );
+      if (!enteredEmail) throw initialError;
+      const recipientEmail = enteredEmail.trim().toLowerCase();
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipientEmail)) {
+        throw new Error("Enter a valid email address before sending Intake.");
+      }
+      if (!window.confirm(
+        "Send Benjamin's secure enrollment Intake to " + recipientEmail + "? This records the verified recipient in the audit trail."
+      )) {
+        throw new Error("Email handoff cancelled; no Intake email was sent.");
+      }
+      response = await sendIntake({
+        tokenId,
+        recipientEmail,
+        confirmRecipient: true
       });
+    }
 
     const recipient =
       String(
