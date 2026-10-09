@@ -1029,19 +1029,14 @@ buildBtn.addEventListener("click", async () => {
   if (existingDraft && !window.confirm("Starting a new session will replace the unfinished Clipboard draft. Continue?")) return;
   let payload = createSessionPayload();
   if (!payload) return;
-  // Never describe an empty or incorrectly classified curriculum as an AUTO prescription.
-  if (selectedMode === "auto" && (!hybridUsable || !hybridModel || !payload.hybridCards?.length)) {
-    const noticeEl = document.getElementById("dashboardNotice");
-    if (noticeEl) {
-      noticeEl.textContent = "AUTO needs an approved prescribed curriculum for this group. No lesson was created. Use HYBRID only to coach-build a session, or return to Attendance.";
-      noticeEl.hidden = false;
-    }
-    return;
-  }
   buildBtn.disabled = true;
   try {
     payload = await resolveGroupPrescriptions(payload);
-    if (selectedMode === "auto" && payload.trainingGroups?.length && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready"))) {
+    // AUTO must be genuinely driven by checked-in groups, not a stale single-tier fallback.
+    if (selectedMode === "auto" && !payload.trainingGroups?.length) {
+      throw new Error("AUTO needs attendance-derived groups before prescribing a lesson. Return to Attendance.");
+    }
+    if (selectedMode === "auto" && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready"))) {
       throw new Error("AUTO cannot start: one or more groups lack an approved lesson. No incomplete prescription was launched.");
     }
     payload = await openCanonicalPractice(payload);
