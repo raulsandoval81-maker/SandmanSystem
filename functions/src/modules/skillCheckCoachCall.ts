@@ -13,6 +13,7 @@ import {
 import {
   normalizeStaffList,
   normalizeStaffRole,
+  normalizeStaffScope,
   requireActiveStaff,
   staffHasLocation,
 } from "../services/staffAuthorization";
@@ -380,18 +381,24 @@ export const skillCheckCoachCall =
       if (cursor) optionalPracticeId(cursor);
       const pageSize = 50;
       const scope = clean(data.scope).toLowerCase() || "coach";
-      if (!["coach", "athlete-location"].includes(scope)) {
+      if (!["coach", "athlete-location", "athlete-academy"].includes(scope)) {
         throw new HttpsError("invalid-argument", "Unsupported history scope.");
       }
       const athleteLocationId = clean(athlete.locationId);
+      const athleteAcademyId = clean(athlete.academyId);
+      if (scope === "athlete-academy" && (!athleteAcademyId
+          || (normalizeStaffRole(actor.role) !== "admin"
+            && !normalizeStaffScope(actor.staff).academyIds.includes(athleteAcademyId)))) {
+        throw new HttpsError("permission-denied", "Athlete academy is not authorized for historical discovery.");
+      }
       if (scope === "athlete-location" && (!athleteLocationId
           || (normalizeStaffRole(actor.role) !== "admin"
             && !staffHasLocation(actor.staff, athleteLocationId)))) {
         throw new HttpsError("permission-denied", "Athlete location is not authorized for historical discovery.");
       }
       let query = db.collection("practiceSessions")
-        .where(scope === "coach" ? "coachUid" : "locationId", "==",
-          scope === "coach" ? actor.uid : athleteLocationId)
+        .where(scope === "coach" ? "coachUid" : scope === "athlete-location" ? "locationId" : "academyId", "==",
+          scope === "coach" ? actor.uid : scope === "athlete-location" ? athleteLocationId : athleteAcademyId)
         .orderBy(FieldPath.documentId())
         .limit(pageSize + 1);
       if (cursor) query = query.startAfter(cursor);
@@ -408,6 +415,14 @@ export const skillCheckCoachCall =
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
         if (scope === "athlete-location") {
           requireHistoricalPracticeReadAccess(actor, practice, athleteLocationId);
+        } else if (scope === "athlete-academy") {
+          // Legacy academy-only records are accepted only when their location
+          // is absent and the actor has explicit academy access.
+          if (clean(practice.locationId) || clean(practice.academyId) !== athleteAcademyId
+              || (normalizeStaffRole(actor.role) !== "admin"
+                && !normalizeStaffScope(actor.staff).academyIds.includes(athleteAcademyId))) {
+            throw new HttpsError("permission-denied", "Legacy practice academy is outside authorized scope.");
+          }
         } else {
           requirePracticeVerificationAccess(actor, practice);
         }
@@ -501,7 +516,7 @@ export const skillCheckCoachCall =
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
-        limitation: "Discovery is paged by practice ID. Athlete-location mode covers only practiceSessions with a matching locationId; legacy academyId-only records, transfers, and chronological state resolution remain unproven."
+        limitation: "Each discovery scope is separately paginated, and only athlete-location or explicitly authorized legacy academy-only records are eligible. Scope overlap, transfers, unindexed practices, and chronological state resolution remain unproven."
       };
     }
 
