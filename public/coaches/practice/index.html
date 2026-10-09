@@ -205,13 +205,16 @@
       text-transform:uppercase;
     }
 
+    .practice-heading h1{ margin:0 0 18px; color:var(--practice-gold); font-size:clamp(1.6rem,3vw,2.2rem); }
+
     .active-flow{
       margin-top:18px;
-      padding:22px;
-      border:1px solid var(--practice-line);
-      border-radius:18px;
-      background:var(--practice-panel);
+      padding:0;
+      border:0;
+      background:transparent;
     }
+
+    .active-flow[hidden], .choice-panel[hidden]{ display:none !important; }
 
     .flow-header{
       display:flex;
@@ -569,45 +572,9 @@
 
 
 
-  <section
-    class="active-flow"
-    id="activePracticeFlow"
-    aria-live="polite"
-    hidden
-  >
-    <div class="flow-header">
-
-      <div class="flow-header-copy">
-        
-        <h2 id="activeFlowTitle"></h2>
-        <span id="activeFlowDescription"></span>
-      </div>
-
-    </div>
-
-    <div class="flow-block">
-
-      <div class="flow-block-header">
-        
-        
-        <span id="startFlowDescription"></span>
-      </div>
-
-      <ol
-        class="flow-sequence"
-        id="startFlowSteps"
-        aria-label="Selected practice starting workflow"
-      ></ol>
-
-      <div
-        class="flow-actions"
-        id="startFlowActions"
-        aria-label="Selected practice actions"
-      ></div>
-
-    </div>
-
-  </section>
+  <header class="practice-heading">
+    <h1>Practice Operations</h1>
+  </header>
 
   <section
     class="choice-panel"
@@ -668,6 +635,46 @@
     </div>
   </section>
 
+  <section
+    class="active-flow"
+    id="activePracticeFlow"
+    aria-live="polite"
+    hidden
+  >
+    <div class="flow-header">
+
+      <div class="flow-header-copy">
+        
+        <h2 id="activeFlowTitle"></h2>
+        <span id="activeFlowDescription"></span>
+      </div>
+
+    </div>
+
+    <div class="flow-block">
+
+      <div class="flow-block-header">
+        
+        
+        <span id="startFlowDescription"></span>
+      </div>
+
+      <ol
+        class="flow-sequence"
+        id="startFlowSteps"
+        aria-label="Selected practice starting workflow"
+      ></ol>
+
+      <div
+        class="flow-actions"
+        id="startFlowActions"
+        aria-label="Selected practice actions"
+      ></div>
+
+    </div>
+
+  </section>
+
   <div class="practice-note">
     <strong>Practice authority:</strong>
     different starts are allowed, but every practice converges on one canonical record.
@@ -679,7 +686,7 @@
 </main>
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/practice/practice.js?v=2"></script>
+<script type="module" src="/coaches/practice/practice.js?v=3"></script>
 
 </body>
 </html>
