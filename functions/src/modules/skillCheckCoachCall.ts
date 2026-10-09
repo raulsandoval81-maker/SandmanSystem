@@ -422,11 +422,24 @@ export const skillCheckCoachCall =
           states: [...record.states].sort(),
           observations: record.observations,
           conflictingStates: record.states.size > 1,
+          // Partial historical coverage cannot establish the current state,
+          // even when all sampled observations happen to agree.
+          currentState: null,
+          progressionStatus: record.states.size > 1 ? "conflicting-history" : "incomplete-history",
+          eligibleForAuto: false,
         }));
+      const progressionAssessment = {
+        status: familyEvidence.some(item => item.conflictingStates)
+          ? "requires-evidence-reconciliation" : "requires-complete-history",
+        evaluatedAthleteCount: 1,
+        historyExhaustive: false,
+        autoEligible: false,
+        reason: "Historical discovery is bounded and has no verified chronology for current skill state.",
+      };
       return {
         ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
         practices: matching, scanned: candidates.size,
-        ...(includeEvidence ? { history, familyEvidence } : {}),
+        ...(includeEvidence ? { history, familyEvidence, progressionAssessment } : {}),
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
