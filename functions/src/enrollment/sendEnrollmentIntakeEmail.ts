@@ -195,13 +195,26 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
-      const recipient =
-        normalizeEmail(token.prefill?.email);
+      const attachedEmail = normalizeEmail(token.prefill?.email);
+      const overrideEmail = normalizeEmail(data?.recipientEmail);
+      const recipient = overrideEmail || attachedEmail;
 
-      if (!recipient || !recipient.includes("@")) {
+      if (
+        !recipient ||
+        !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient)
+      ) {
         throw new functions.https.HttpsError(
           "failed-precondition",
           "No valid intake email is attached to this enrollment."
+        );
+      }
+
+      // A staff-supplied recipient must be explicitly confirmed, and is
+      // recorded on the same token for subsequent audit/recovery.
+      if (overrideEmail && data?.confirmRecipient !== true) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Confirm the recipient email before sending."
         );
       }
 
@@ -320,6 +333,7 @@ export const sendEnrollmentIntakeEmail =
           deliveredAt:
             FieldValue.serverTimestamp(),
           deliveredTo: recipient,
+          ...(overrideEmail ? { "prefill.email": recipient, recipientEmailSource: "management_verified" } : {}),
           deliveredByUid: context.auth.uid,
           resendEmailId,
           updatedAt:
@@ -343,6 +357,7 @@ export const sendEnrollmentIntakeEmail =
             intakeTokenId: tokenId,
             intakeAudience,
             recipient,
+            recipientEmailSource: overrideEmail ? "management_verified" : "intake_prefill",
             resendEmailId,
             source: "management_enrollment_email",
             occurredAt:
