@@ -363,7 +363,7 @@ export const skillCheckCoachCall =
         .get();
       const includeEvidence = data.includeEvidence === true;
       const matching: { practiceId: string; sessionDateKey: string }[] = [];
-      const history: { practiceId: string; sessionDateKey: string; verifiedSkills: { familyId: string; state: string }[] }[] = [];
+      const history: { practiceId: string; sessionDateKey: string; verifiedSkills: { familyId: string; state: string; verifiedAt: string | null; coachUid: string }[] }[] = [];
       for (const candidate of candidates.docs) {
         if (matching.length >= 20) break;
         const practiceId = candidate.id;
