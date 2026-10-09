@@ -574,7 +574,7 @@ function renderClipboardTrainingGroups() {
           // Only link to local teaching pages. Never turn imported curriculum metadata
           // into an arbitrary navigation target.
           const href = String(card.href || "");
-          const safeHref = /^\\/coaches\\/cards\\/[a-z0-9/_-]+\\.html$/i.test(href) ? href : "";
+          const safeHref = href.startsWith("/coaches/cards/") && href.endsWith(".html") && !href.includes("..") && !href.includes("?") && !href.includes("#") ? href : "";
           return safeHref
             ? `<a href="${encodeText(safeHref)}" target="_blank" rel="noopener noreferrer">${encodeText(card.title || "Skill card")}</a>`
             : `<span>${encodeText(card.title || "Skill card")} (link unavailable)</span>`;
