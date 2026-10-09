@@ -353,6 +353,62 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "load-verified-history") {
+      // Explicit practice IDs prevent unbounded collection-group searches and
+      // require authorization, finalized attendance, and matching session memory
+      // separately for every historical record.
+      const practiceIds = Array.isArray(data.practiceIds) ? data.practiceIds : [];
+      if (!practiceIds.length || practiceIds.length > 20) {
+        throw new HttpsError("invalid-argument", "Supply 1–20 historical practice IDs.");
+      }
+      const uniqueIds = [...new Set(practiceIds.map(optionalPracticeId))];
+      if (uniqueIds.length !== practiceIds.length || uniqueIds.some(id => !id)) {
+        throw new HttpsError("invalid-argument", "Historical practice IDs must be unique and valid.");
+      }
+      const history = [];
+      for (const practiceId of uniqueIds) {
+        const [practiceSnap, attendanceSnap, memorySnap] = await Promise.all([
+          db.doc(`practiceSessions/${practiceId}`).get(),
+          db.doc(`attendance_sessions/${practiceId}`).get(),
+          db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`).get(),
+        ]);
+        if (!practiceSnap.exists || !attendanceSnap.exists || !memorySnap.exists) {
+          throw new HttpsError("failed-precondition", "Historical evidence is incomplete.");
+        }
+        const practice = practiceSnap.data() || {};
+        requirePracticeVerificationAccess(actor, practice);
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        if (normalizeDiscipline(practice.discipline) !== discipline
+            || clean(attendance.practiceId) !== practiceId
+            || normalizeDiscipline(attendance.discipline) !== discipline
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || attendance.finalized !== true
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== practiceId
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
+          throw new HttpsError("failed-precondition", "Historical practice verification is inconsistent.");
+        }
+        const snap = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).get();
+        history.push({
+          practiceId,
+          verifiedSkills: snap.docs.map(docSnap => docSnap.data() || {})
+            .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+              && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+              && ALLOWED_STATES.includes(normalizeState(skill.state)))
+            .map(skill => ({
+              familyId: normalizeFamily(skill.familyId),
+              state: normalizeState(skill.state),
+              coachUid: clean(skill.coachUid),
+              verifiedAt: skill.verifiedAt || null,
+            })),
+        });
+      }
+      return { ok: true, athleteId, discipline, history };
+    }
+
     if (action === "load-verified-practice") {
       const practiceId = optionalPracticeId(data.practiceId);
       if (!practiceId) {
