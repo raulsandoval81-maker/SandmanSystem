@@ -107,3 +107,19 @@ test("missing page evidence is distinct from a pagination cycle", () => {
   assert.ok(result.blockers.includes("missing-evidence:athlete-location"));
   assert.equal(result.blockers.some(x => x.startsWith("cursor-cycle")), false);
 });
+
+test("verification timestamp before practice date blocks chronology", () => {
+  const item = practice("p1", "2026-10-09");
+  item.verifiedSkills[0].verifiedAt = "2026-10-08T18:00:00.000Z";
+  const result = assess([page("athlete-location", null, null, [item])]);
+  assert.ok(result.blockers.includes("verification-predates-practice"));
+  assert.equal(result.eligibleForAuto, false);
+});
+
+test("later verification of a prior practice remains valid evidence", () => {
+  const item = practice("p1", "2026-10-01");
+  item.verifiedSkills[0].verifiedAt = "2026-10-09T18:00:00.000Z";
+  const result = assess([page("athlete-location", null, null, [item])]);
+  assert.equal(result.blockers.includes("verification-predates-practice"), false);
+  assert.equal(result.coverageComplete, false);
+});
