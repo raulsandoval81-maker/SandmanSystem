@@ -360,7 +360,9 @@ export const skillCheckCoachCall =
         .where("coachUid", "==", actor.uid)
         .limit(50)
         .get();
+      const includeEvidence = data.includeEvidence === true;
       const matching: { practiceId: string; sessionDateKey: string }[] = [];
+      const history: { practiceId: string; sessionDateKey: string; verifiedSkills: { familyId: string; state: string }[] }[] = [];
       for (const candidate of candidates.docs) {
         if (matching.length >= 20) break;
         const practiceId = candidate.id;
@@ -383,13 +385,48 @@ export const skillCheckCoachCall =
             || clean(memory.athleteId).toUpperCase() !== athleteId
             || normalizeDiscipline(memory.discipline) !== discipline
             || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
-        const verified = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).limit(1).get();
+        const verified = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`)
+          .limit(includeEvidence ? 100 : 1).get();
         if (verified.empty) continue;
-        matching.push({ practiceId, sessionDateKey: clean(practice.sessionDateKey) });
+        const sessionDateKey = clean(practice.sessionDateKey);
+        matching.push({ practiceId, sessionDateKey });
+        if (includeEvidence) {
+          history.push({
+            practiceId,
+            sessionDateKey,
+            verifiedSkills: verified.docs.map(docSnap => docSnap.data() || {})
+              .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+                && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+                && ALLOWED_STATES.includes(normalizeState(skill.state)))
+              .map(skill => ({
+                familyId: normalizeFamily(skill.familyId),
+                state: normalizeState(skill.state),
+              })),
+          });
+        }
       }
+      // A deterministic evidence inventory only; conflicting states are never
+      // silently reduced to a presumed mastery level or a latest progression.
+      const families = new Map<string, { states: Set<string>; observations: number }>();
+      for (const practice of history) {
+        for (const skill of practice.verifiedSkills) {
+          const previous = families.get(skill.familyId) || { states: new Set<string>(), observations: 0 };
+          previous.states.add(skill.state);
+          previous.observations += 1;
+          families.set(skill.familyId, previous);
+        }
+      }
+      const familyEvidence = [...families.entries()].sort(([a], [b]) => a.localeCompare(b))
+        .map(([familyId, record]) => ({
+          familyId,
+          states: [...record.states].sort(),
+          observations: record.observations,
+          conflictingStates: record.states.size > 1,
+        }));
       return {
         ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
         practices: matching, scanned: candidates.size,
+        ...(includeEvidence ? { history, familyEvidence } : {}),
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
