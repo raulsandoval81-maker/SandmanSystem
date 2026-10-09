@@ -82,6 +82,12 @@ function updateModeUI() {
   const description = $("entryDescription");
 
   if (keyField) keyField.hidden = mode !== "after-the-fact";
+  if ($("sessionDateKey")) {
+    $("sessionDateKey").disabled = mode !== "after-the-fact";
+    if (mode !== "after-the-fact") $("sessionDateKey").value = todayKey();
+  }
+  const createButton = $("createPractice");
+  if (createButton) createButton.textContent = mode === "planned" ? "Continue to Attendance" : mode === "quick-start" ? "Open Big Clock" : "Recover Past Practice";
 
   if (title) title.textContent = mode === "planned" ? "Attendance Setup" : mode === "quick-start" ? "Quick Clock Setup" : "Record Past Practice";
 
@@ -99,7 +105,7 @@ async function submit() {
   const mode = $("entryMode")?.value || "coach-directed";
   const room = roomByValue($("roomSelect")?.value || "");
   const program = programById($("programSelect")?.value || "");
-  const sessionDateKey = $("sessionDateKey")?.value || "";
+  const sessionDateKey = mode === "after-the-fact" ? ($("sessionDateKey")?.value || "") : todayKey();
   const practiceKey = $("practiceKey")?.value?.trim() || "";
 
   if (!room) {
