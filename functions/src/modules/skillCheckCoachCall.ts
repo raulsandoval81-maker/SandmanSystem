@@ -402,7 +402,7 @@ export const skillCheckCoachCall =
       const includeEvidence = data.includeEvidence === true;
       const matching: { practiceId: string; sessionDateKey: string }[] = [];
       const history: { practiceId: string; sessionDateKey: string; verifiedSkills: { familyId: string; state: string; verifiedAt: string | null; coachUid: string }[] }[] = [];
-      for (const candidate of candidates.docs) {
+      for (const candidate of candidates) {
         const practiceId = candidate.id;
         const practice = candidate.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
@@ -472,13 +472,23 @@ export const skillCheckCoachCall =
           progressionStatus: record.states.size > 1 ? "conflicting-history" : "incomplete-history",
           eligibleForAuto: false,
         }));
+      const chronologyComplete = history.length > 0 && history.every(practice => {
+        const date = practice.sessionDateKey;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)
+          || Number.isNaN(Date.parse(date + "T00:00:00.000Z"))
+          || new Date(date + "T00:00:00.000Z").toISOString().slice(0, 10) !== date) {
+          return false;
+        }
+        return practice.verifiedSkills.length > 0
+          && practice.verifiedSkills.every(skill => Boolean(skill.verifiedAt)
+            && !Number.isNaN(Date.parse(skill.verifiedAt as string)));
+      });
       const progressionAssessment = {
         status: familyEvidence.some(item => item.conflictingStates)
           ? "requires-evidence-reconciliation" : "requires-complete-history",
         evaluatedAthleteCount: 1,
         historyExhaustive: false,
-        chronologyComplete: history.every(practice => /^\d{4}-\d{2}-\d{2}$/.test(practice.sessionDateKey)
-          && practice.verifiedSkills.every(skill => Boolean(skill.verifiedAt))),
+        chronologyComplete,
         autoEligible: false,
         reason: "Historical discovery is bounded and has no verified chronology for current skill state.",
       };
