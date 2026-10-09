@@ -576,6 +576,54 @@
 
 
   <section
+    class="active-flow"
+    id="activePracticeFlow"
+    aria-live="polite"
+    hidden
+  >
+    <div class="flow-header">
+
+      <div class="flow-header-copy">
+        <p>Selected Flow</p>
+        <h2 id="activeFlowTitle"></h2>
+        <span id="activeFlowDescription"></span>
+      </div>
+
+      <button
+        class="change-flow"
+        id="changePracticeFlow"
+        type="button"
+      >
+        Change Start
+      </button>
+
+    </div>
+
+    <div class="flow-block">
+
+      <div class="flow-block-header">
+        <p>Next Steps</p>
+        <h3 id="startFlowHeading">Begin Practice</h3>
+        <span id="startFlowDescription"></span>
+      </div>
+
+      <ol
+        class="flow-sequence"
+        id="startFlowSteps"
+        aria-label="Selected practice starting workflow"
+      ></ol>
+
+      <div
+        class="flow-actions"
+        id="startFlowActions"
+        aria-label="Selected practice actions"
+      ></div>
+
+    </div>
+
+  </section>
+
+  <section
     class="choice-panel"
     id="practiceChoicePanel"
     aria-labelledby="practiceChoiceHeading"
@@ -632,54 +680,6 @@
       </button>
 
     </div>
-  </section>
-
-  <section
-    class="active-flow"
-    id="activePracticeFlow"
-    aria-live="polite"
-    hidden
-  >
-    <div class="flow-header">
-
-      <div class="flow-header-copy">
-        <p>Selected Flow</p>
-        <h2 id="activeFlowTitle"></h2>
-        <span id="activeFlowDescription"></span>
-      </div>
-
-      <button
-        class="change-flow"
-        id="changePracticeFlow"
-        type="button"
-      >
-        Change Start
-      </button>
-
-    </div>
-
-    <div class="flow-block">
-
-      <div class="flow-block-header">
-        <p>Different Start</p>
-        <h3 id="startFlowHeading">Start Today’s Practice</h3>
-        <span id="startFlowDescription"></span>
-      </div>
-
-      <ol
-        class="flow-sequence"
-        id="startFlowSteps"
-        aria-label="Selected practice starting workflow"
-      ></ol>
-
-      <div
-        class="flow-actions"
-        id="startFlowActions"
-        aria-label="Selected practice actions"
-      ></div>
-
-    </div>
-
   </section>
 
   <div class="practice-note">
