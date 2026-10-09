@@ -409,7 +409,7 @@ function updateConditionalControls() {
   if (rankField) rankField.hidden = true;
   if (weekField) weekField.hidden = true;
   if (modeAvailability) {
-    modeAvailability.textContent = "Tier and Training Week will be suggested after attendance from the athletes who check in.";
+    modeAvailability.textContent = "Attendance supplies group rank and tier; verified skill progression is not yet connected. AUTO launch remains blocked until validation is available.";
     modeAvailability.hidden = false;
     modeAvailability.classList.remove("unavailable");
   }
@@ -552,7 +552,7 @@ function updateSummary() {
   } else if (!program.discipline) {
     summaryAvailability.textContent = "Choose a discipline to continue.";
   } else if (selectedMode === "auto") {
-    summaryAvailability.textContent = "Sandman will use basic system logic and available athlete/curriculum context.";
+    summaryAvailability.textContent = "AUTO is not launch-ready: athlete skill progression is not verified. HYBRID can use available curriculum as an editable starting point.";
   } else if (selectedMode === "hybrid") {
     summaryAvailability.textContent = hybridUsable
       ? "Sandman suggestions will be available in Clipboard."
