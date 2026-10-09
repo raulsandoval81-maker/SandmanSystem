@@ -776,7 +776,63 @@ function showQrPanel(url, title = "Scan QR") {
   qrPanel?.classList.add("active");
 }
 
+function renderGroupLessonReferences() {
+  const payload = getPayload();
+  const containerId = "bigClockGroupLessons";
+  let panel = document.getElementById(containerId);
+  const prescriptions = Array.isArray(payload.groupPrescriptions) ? payload.groupPrescriptions : [];
+  const groups = Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [];
+  const mode = String(payload.executionMode || "").toLowerCase();
+  const shouldShow = mode !== "manual" && prescriptions.length > 0 && groups.length > 0;
+  if (!shouldShow) {
+    panel?.remove();
+    return;
+  }
+  if (!panel) {
+    panel = document.createElement("details");
+    panel.id = containerId;
+    panel.style.cssText = "max-width:1100px;margin:12px auto;padding:12px 16px;border:1px solid #666;border-radius:8px;color:inherit";
+    const main = document.querySelector("main.big-screen");
+    main?.parentNode?.insertBefore(panel, main);
+  }
+  if (!panel) return;
+  const wasOpen = panel.open;
+  panel.replaceChildren();
+  const summary = document.createElement("summary");
+  summary.textContent = `Group lessons · ${prescriptions.filter(p => p.status === "ready").length}/${groups.length} mapped (Coach reference)`;
+  panel.append(summary);
+  for (const [index, group] of groups.entries()) {
+    const entry = prescriptions.find(p => String(p.groupId || "") === String(group.id || ""));
+    const line = document.createElement("div");
+    line.style.cssText = "margin-top:10px;line-height:1.7";
+    const heading = document.createElement("strong");
+    heading.textContent = `${group.label || `Mat 1 · Group ${index + 1}`} · ${String(group.tier || "").toUpperCase()} — `;
+    line.append(heading);
+    if (entry?.status !== "ready") {
+      line.append(document.createTextNode("Lesson mapping needs review"));
+    } else {
+      for (const [cardIndex, card] of (entry.cards || []).entries()) {
+        if (cardIndex) line.append(document.createTextNode(" · "));
+        const href = String(card.href || "");
+        if (href.startsWith("/coaches/cards/") && href.endsWith(".html") && !href.includes("..") && !href.includes("?") && !href.includes("#")) {
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = String(card.title || "Skill card");
+          line.append(link);
+        } else {
+          line.append(document.createTextNode(String(card.title || "Skill card")));
+        }
+      }
+    }
+    panel.append(line);
+  }
+  panel.open = wasOpen;
+}
+
 renderLaneIdentity();
+renderGroupLessonReferences();
 render();
 
 setInterval(render, 250);
