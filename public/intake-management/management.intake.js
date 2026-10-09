@@ -144,6 +144,47 @@ function paintInviteHandoff(
   }
 }
 
+function resetIntakeHandoffPanel() {
+  currentHandoffTokenId = "";
+  currentHandoffAudience = "";
+  if ($("invite-link")) $("invite-link").value = "";
+  if ($("invite-route-label")) $("invite-route-label").textContent =
+    "Select an enrollment above to view its secure Intake handoff.";
+  if ($("btn-send-intake-email")) {
+    $("btn-send-intake-email").textContent = "Send Intake Email";
+    $("btn-send-intake-email").disabled = true;
+  }
+  if ($("btn-mark-intake-sent")) $("btn-mark-intake-sent").disabled = true;
+  setIntakeConfirmation("");
+  if ($("invite-status")) $("invite-status").textContent =
+    "No enrollment selected. Select a case to view its existing invitation.";
+}
+
+function selectAwaitingIntakeCase(proposalId) {
+  const item = awaitingProposalMap.get(proposalId);
+  if (!item?.handoff || item.handoff.state !== "active" || !item.handoff.tokenId) {
+    resetIntakeHandoffPanel();
+    return;
+  }
+  paintInviteHandoff(item.handoff.tokenId, item.handoff.intakeAudience, {
+    recovered: true,
+    handoff: item.handoff
+  });
+  const status = $("invite-status");
+  if (status) {
+    const recipient = item.handoff.deliveredTo
+      ? " to " + item.handoff.deliveredTo : "";
+    status.textContent = "✓ Email sent" + recipient +
+      ". Awaiting Parent / Guardian or Athlete submission. No new token created.";
+  }
+  document.querySelectorAll("[data-awaiting-proposal], [data-ready-proposal]")
+    .forEach(card => card.classList.remove("is-selected-case"));
+  const card = document.querySelector(
+    `[data-awaiting-proposal="${CSS.escape(proposalId)}"]`
+  );
+  card?.classList.add("is-selected-case");
+}
+
 function paintSubmittedHandoff(intakeId, intakeAudience) {
   const audience = intakeAudience === "adult_athlete"
     ? "Adult athlete"
@@ -716,6 +757,12 @@ function orientRequestedProposal() {
 }
 
 function wireAwaitingIntakeButtons() {
+  document.querySelectorAll("[data-awaiting-proposal]").forEach(card => {
+    card.addEventListener("click", event => {
+      if (event.target.closest("button")) return;
+      selectAwaitingIntakeCase(card.dataset.awaitingProposal);
+    });
+  });
   document.querySelectorAll("[data-awaiting-open]").forEach((button) => {
     button.addEventListener("click", async () => {
       const item = awaitingProposalMap.get(button.dataset.awaitingOpen);
@@ -747,11 +794,7 @@ function wireAwaitingIntakeButtons() {
       button.textContent = "Sending Remote Email…";
 
       try {
-        await generateIntakeInvite(
-          item.handoff.intakeAudience,
-          item.proposal
-        );
-
+        selectAwaitingIntakeCase(button.dataset.awaitingResend);
         const sendButton = $("btn-send-intake-email");
         if (sendButton) {
           sendButton.click();
@@ -1147,6 +1190,11 @@ async function loadReadyForIntake(managementContext) {
   });
   wireReadyIntakeButtons();
   wireAwaitingIntakeButtons();
+  if (awaitingItems.length === 1 && readyItems.length === 0) {
+    selectAwaitingIntakeCase(String(awaitingItems[0].proposal.proposalId || awaitingItems[0].proposal.id));
+  } else {
+    resetIntakeHandoffPanel();
+  }
   orientRequestedProposal();
 }
 
