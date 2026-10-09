@@ -391,6 +391,8 @@ export const skillCheckCoachCall =
         ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
         practices: matching, scanned: candidates.size,
         exhaustive: false,
+        // Callers must not infer athlete mastery from this partial search.
+        evidenceReadyForAuto: false,
         limitation: "Current Coach's first 50 candidate practices only; historical pagination and cross-Coach access are not supported."
       };
     }
