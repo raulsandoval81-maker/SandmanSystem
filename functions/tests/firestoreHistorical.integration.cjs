@@ -79,11 +79,21 @@ test("Firestore emulator: scoped pagination and cross-scope reconciliation", asy
   const a = await writePractice(5);
   const b = await writePractice(6);
   await writePractice(7, "location-b");
-  const first = await db.collection("practiceSessions")
-    .where("locationId", "==", "location-a")
-    .orderBy(FieldPath.documentId()).limit(20).get();
-  const ids = first.docs.filter(d => d.id.startsWith(prefix)).map(d => d.id);
+  const ids = [];
+  let cursor = "";
+  for (let i = 0; i < 20; i++) {
+    let query = db.collection("practiceSessions")
+      .where("locationId", "==", "location-a")
+      .orderBy(FieldPath.documentId()).limit(1);
+    if (cursor) query = query.startAfter(cursor);
+    const snapshot = await query.get();
+    if (snapshot.empty) break;
+    const id = snapshot.docs[0].id;
+    if (id.startsWith(prefix)) ids.push(id);
+    cursor = id;
+  }
   assert.ok(ids.includes(a) && ids.includes(b));
+  assert.equal(ids.includes(prefix + "7"), false);
   const batches = [];
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i];
