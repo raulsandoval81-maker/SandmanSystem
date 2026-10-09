@@ -438,6 +438,17 @@ export const skillCheckCoachCall =
               && !memorySnap.exists) {
             blockers.add("missing-athlete-session-memory:" + doc.id);
           }
+          // An existing athlete memory with unresolved attendance is a
+          // coverage failure, not proof that this athlete never participated.
+          if (memorySnap.exists && clean(memory.athleteId).toUpperCase() === athleteId
+              && normalizeDiscipline(memory.discipline) === discipline
+              && (!attendanceSnap.exists
+                || clean(attendance.practiceId) !== doc.id
+                || clean(attendance.status).toLowerCase() !== "finalized"
+                || attendance.finalized !== true
+                || !attendanceIncludesAthlete(attendance, athleteId))) {
+            blockers.add("unresolved-athlete-attendance:" + doc.id);
+          }
           if (!attendanceSnap.exists || !memorySnap.exists
             || clean(attendance.practiceId) !== doc.id
             || normalizeDiscipline(attendance.discipline) !== discipline
