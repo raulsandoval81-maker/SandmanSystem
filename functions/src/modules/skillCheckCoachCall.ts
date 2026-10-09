@@ -406,10 +406,26 @@ export const skillCheckCoachCall =
             || !rawScopes.includes(page.scope)
             || page.athleteId !== athleteId || page.discipline !== discipline
             || typeof page.scopeExhausted !== "boolean"
-            || !Array.isArray(page.history) || page.history.length > 50) {
+            || !Array.isArray(page.history) || page.history.length > 50
+            || page.history.some((item: unknown) => {
+              if (!item || typeof item !== "object") return true;
+              const entry = item as Record<string, unknown>;
+              return typeof entry.practiceId !== "string"
+                || typeof entry.sessionDateKey !== "string"
+                || !Array.isArray(entry.verifiedSkills)
+                || entry.verifiedSkills.length > 100
+                || entry.verifiedSkills.some((skill: unknown) => {
+                  if (!skill || typeof skill !== "object") return true;
+                  const value = skill as Record<string, unknown>;
+                  return typeof value.familyId !== "string"
+                    || typeof value.state !== "string"
+                    || typeof value.coachUid !== "string"
+                    || (value.verifiedAt !== null && typeof value.verifiedAt !== "string");
+                });
+            })) {
           throw new HttpsError("invalid-argument", "History preview page mismatch.");
         }
-        pages.push(page as HistoryPage);
+        pages.push(page as unknown as HistoryPage);
       }
       const summary = reconcileHistoryPages(pages, rawScopes as string[], athleteId, discipline);
       return {
