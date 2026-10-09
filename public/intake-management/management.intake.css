@@ -2086,3 +2086,26 @@ body.management-enrollment-page #invite-route-label{
     flex:1 1 auto;
   }
 }
+
+/* Verified enrollment handoff: visible confirmation, not a transient text line. */
+#invite-status.intake-confirmation--success {
+  display: block;
+  padding: 16px 18px;
+  margin: 14px 0;
+  border: 2px solid #16803a;
+  border-radius: 12px;
+  background: #e8f8ed;
+  color: #11552b;
+  font-weight: 750;
+  line-height: 1.55;
+}
+#invite-status.intake-confirmation--error {
+  display: block;
+  padding: 14px 18px;
+  margin: 14px 0;
+  border: 2px solid #b42318;
+  border-radius: 12px;
+  background: #fff0ed;
+  color: #8e1a14;
+  font-weight: 700;
+}
