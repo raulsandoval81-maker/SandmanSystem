@@ -4,6 +4,7 @@ import {
 } from "firebase-functions/v2/https";
 
 import {
+  FieldPath,
   FieldValue,
   Timestamp,
   getFirestore,
@@ -355,17 +356,25 @@ export const skillCheckCoachCall =
     );
 
     if (action === "discover-verified-practices") {
-      // Bounded discovery for the current Coach's own practices. This is not an
-      // exhaustive historical search: pagination and cross-Coach scope need policy.
-      const candidates = await db.collection("practiceSessions")
+      // Deterministic, cursor-paged discovery within the requesting Coach's
+      // scope. Exhaustive history remains unproven until cross-Coach
+      // discovery, page traversal, and chronology are reconciled.
+      const cursor = clean(data.cursor);
+      if (cursor) optionalPracticeId(cursor);
+      const pageSize = 50;
+      let query = db.collection("practiceSessions")
         .where("coachUid", "==", actor.uid)
-        .limit(50)
-        .get();
+        .orderBy(FieldPath.documentId())
+        .limit(pageSize + 1);
+      if (cursor) query = query.startAfter(cursor);
+      const page = await query.get();
+      const hasMore = page.size > pageSize;
+      const candidates = page.docs.slice(0, pageSize);
+      const nextCursor = hasMore ? candidates[candidates.length - 1].id : null;
       const includeEvidence = data.includeEvidence === true;
       const matching: { practiceId: string; sessionDateKey: string }[] = [];
       const history: { practiceId: string; sessionDateKey: string; verifiedSkills: { familyId: string; state: string; verifiedAt: string | null; coachUid: string }[] }[] = [];
       for (const candidate of candidates.docs) {
-        if (matching.length >= 20) break;
         const practiceId = candidate.id;
         const practice = candidate.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
@@ -443,12 +452,14 @@ export const skillCheckCoachCall =
       };
       return {
         ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
-        practices: matching, scanned: candidates.size,
+        practices: matching, scanned: candidates.length,
+        cursor: cursor || null, nextCursor, pageComplete: true,
+        coachScopeExhausted: !hasMore,
         ...(includeEvidence ? { history, familyEvidence, progressionAssessment } : {}),
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
-        limitation: "Current Coach's first 50 candidate practices only; historical pagination and cross-Coach access are not supported."
+        limitation: "Discovery is paged by stable practice ID within the requesting Coach's scope only. Cross-Coach historical coverage and chronological state resolution are not established."
       };
     }
 
