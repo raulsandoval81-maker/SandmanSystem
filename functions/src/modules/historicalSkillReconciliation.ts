@@ -61,12 +61,42 @@ export function reconcileHistoryPages(
     if (visited.has(cursor) && cursorMap.get(cursor)?.nextCursor && !cursorMap.get(cursor)?.scopeExhausted) blockers.add("cursor-cycle");
     if (visited.size !== cursorMap.size) blockers.add("disconnected-page");
   }
+  const practices = [...found.values()].sort((a, b) =>
+    a.sessionDateKey.localeCompare(b.sessionDateKey) || a.practiceId.localeCompare(b.practiceId));
+  const familyTimelines = new Map<string, Array<{
+    practiceId: string; sessionDateKey: string; state: string;
+    coachUid: string; verifiedAt: string | null;
+  }>>();
+  for (const practice of practices) {
+    for (const observation of practice.verifiedSkills) {
+      if (!observation.familyId) continue;
+      const entries = familyTimelines.get(observation.familyId) || [];
+      entries.push({
+        practiceId: practice.practiceId,
+        sessionDateKey: practice.sessionDateKey,
+        state: observation.state,
+        coachUid: observation.coachUid,
+        verifiedAt: observation.verifiedAt,
+      });
+      familyTimelines.set(observation.familyId, entries);
+    }
+  }
+  const skillTimelines = [...familyTimelines.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([familyId, observations]) => ({
+      familyId,
+      observations: observations.sort((a, b) =>
+        a.sessionDateKey.localeCompare(b.sessionDateKey)
+        || (a.verifiedAt || "").localeCompare(b.verifiedAt || "")
+        || a.practiceId.localeCompare(b.practiceId)),
+      currentState: null,
+      eligibleForAuto: false,
+    }));
   blockers.add("historical-transfer-coverage-unverified");
   blockers.add("current-skill-state-unresolved");
   return {
     athleteId, discipline,
-    practices: [...found.values()].sort((a, b) =>
-      a.sessionDateKey.localeCompare(b.sessionDateKey) || a.practiceId.localeCompare(b.practiceId)),
+    practices, skillTimelines,
     blockers: [...blockers].sort(),
     coverageComplete: false as const,
     eligibleForAuto: false as const
