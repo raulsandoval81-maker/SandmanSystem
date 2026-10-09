@@ -294,14 +294,19 @@ function requireHistoricalPracticeReadAccess(
   actor: { uid: string; role: string; staff: Record<string, unknown> },
   practice: Record<string, unknown>,
   athleteLocationId: string,
-  athleteAcademyId: string
+  athleteAcademyId: string,
+  authorizedPriorLocations: readonly string[] = []
 ): void {
   const locationId = clean(practice.locationId);
   const academyId = clean(practice.academyId);
   const admin = normalizeStaffRole(actor.role) === "admin";
   if (locationId) {
-    if (!athleteLocationId || locationId !== athleteLocationId
-        || (!admin && !staffHasLocation(actor.staff, locationId))) {
+    const currentLocationAccess = locationId === athleteLocationId
+      && (admin || staffHasLocation(actor.staff, locationId));
+    // A prior location is read-only and Admin-only, and must be declared
+    // in the server-fetched athlete record. Coach permissions never expand.
+    const verifiedPriorLocationAccess = admin && authorizedPriorLocations.includes(locationId);
+    if (!currentLocationAccess && !verifiedPriorLocationAccess) {
       throw new HttpsError("permission-denied", "Historical practice is outside the athlete's authorized location.");
     }
     return;
@@ -404,10 +409,14 @@ export const skillCheckCoachCall =
           authorized: Boolean(locationId) && (admin || staffHasLocation(actor.staff, locationId)) },
         { scope: "athlete-academy", field: "academyId", value: academyId,
           authorized: Boolean(academyId) && (admin || normalizeStaffScope(actor.staff).academyIds.includes(academyId)) },
+        ...unresolvedTransferLocations.map(id => ({
+          scope: "prior-location:" + id, field: "locationId", value: id,
+          authorized: admin,
+        })),
       ];
       const pages: HistoryPage[] = [];
       const blockers = new Set<string>();
-      if (unresolvedTransferLocations.length) blockers.add("declared-prior-locations-not-traversed");
+      if (unresolvedTransferLocations.length) blockers.add("prior-location-management-verification-required");
       for (const spec of specs) {
         if (!spec.authorized) {
           blockers.add("scope-unavailable:" + spec.scope);
@@ -429,7 +438,10 @@ export const skillCheckCoachCall =
           if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
           // Historical reads use read authorization even for the originating
           // Coach; only Skill Check writes require practice ownership.
-          requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
+          requireHistoricalPracticeReadAccess(
+            actor, practice, locationId, academyId,
+            spec.scope.startsWith("prior-location:") && admin ? unresolvedTransferLocations : []
+          );
           const [attendanceSnap, memorySnap] = await Promise.all([
             db.doc(`attendance_sessions/${doc.id}`).get(),
             db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
@@ -505,6 +517,8 @@ export const skillCheckCoachCall =
         transferCoverage: {
           priorLocationCount: unresolvedTransferLocations.length,
           priorLocationsVerified: false,
+          priorLocationsScanned: specs.filter(spec => spec.scope.startsWith("prior-location:")
+            && spec.authorized && pages.some(page => page.scope === spec.scope && page.scopeExhausted)).length,
           requiresManagementReview: unresolvedTransferLocations.length > 0,
         },
         checkedScopes: specs.map(spec => ({
