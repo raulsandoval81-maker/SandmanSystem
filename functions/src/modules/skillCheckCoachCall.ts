@@ -518,7 +518,7 @@ export const skillCheckCoachCall =
           throw new HttpsError("failed-precondition", "Historical evidence is incomplete.");
         }
         const practice = practiceSnap.data() || {};
-        requirePracticeVerificationAccess(actor, practice);
+        requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId));
         const attendance = attendanceSnap.data() || {};
         const memory = memorySnap.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline
@@ -559,7 +559,7 @@ export const skillCheckCoachCall =
       const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
       if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
       const practice = practiceSnap.data() || {};
-      requirePracticeVerificationAccess(actor, practice);
+      requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId));
       if (normalizeDiscipline(practice.discipline) !== discipline) {
         throw new HttpsError("failed-precondition", "Practice discipline does not match the requested evidence.");
       }
