@@ -282,7 +282,14 @@
         </div>
       </details>
 
-      <section class="adjustment-card">
+      <section class="adjustment-card" id="coachRecoveryQueue">
+<h3>Coach Missing XP Reports</h3>
+<p>Review Coach attendance recovery evidence. Reviewing a report does not award XP. Apply verified corrections separately through the existing XP Adjustment tool below, respecting daily and duplicate limits.</p>
+<button type="button" id="refreshCoachRecovery">Refresh Coach Reports</button>
+<p id="coachRecoveryStatus" role="status"></p>
+<div id="coachRecoveryList">Loading Coach reports…</div>
+</section>
+<section class="adjustment-card">
 
         <p class="adjustment-eyebrow">
           Step 1
@@ -598,5 +605,6 @@
   src="./xp-adjustments.js?v=20261008-7"
 ></script>
 
+<script type="module" src="./coach-recovery-queue.js?v=1"></script>
 </body>
 </html>
