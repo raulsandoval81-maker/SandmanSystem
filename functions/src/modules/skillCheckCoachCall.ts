@@ -473,12 +473,16 @@ export const skillCheckCoachCall =
         }
         if (!exhausted) blockers.add("additional-pages-required:" + spec.scope);
       }
-      const summary = reconcileHistoryPages(pages, pages.map(page => page.scope), athleteId, discipline);
+      const summary = reconcileHistoryPages(pages, [...new Set(pages.map(page => page.scope))], athleteId, discipline);
       return {
         ok: true, diagnosticOnly: true, source: "server-verified-firestore",
         ...summary,
-        checkedScopes: pages.map(page => ({
-          scope: page.scope, scopeExhausted: page.scopeExhausted, nextCursor: page.nextCursor,
+        checkedScopes: specs.map(spec => ({
+          scope: spec.scope,
+          authorized: spec.authorized,
+          pagesRead: pages.filter(page => page.scope === spec.scope).length,
+          scopeExhausted: pages.some(page => page.scope === spec.scope && page.scopeExhausted),
+          nextCursor: [...pages].reverse().find(page => page.scope === spec.scope)?.nextCursor ?? null,
         })),
         blockers: [...new Set([...summary.blockers, ...blockers])].sort(),
         coverageComplete: false, eligibleForAuto: false,
