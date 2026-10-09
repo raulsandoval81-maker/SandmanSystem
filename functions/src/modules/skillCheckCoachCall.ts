@@ -291,15 +291,25 @@ function requirePracticeVerificationAccess(
 function requireHistoricalPracticeReadAccess(
   actor: { uid: string; role: string; staff: Record<string, unknown> },
   practice: Record<string, unknown>,
-  athleteLocationId: string
+  athleteLocationId: string,
+  athleteAcademyId: string
 ): void {
   const locationId = clean(practice.locationId);
-  if (!athleteLocationId || locationId !== athleteLocationId) {
-    throw new HttpsError("permission-denied", "Historical practice is outside the athlete's location.");
+  const academyId = clean(practice.academyId);
+  const admin = normalizeStaffRole(actor.role) === "admin";
+  if (locationId) {
+    if (!athleteLocationId || locationId !== athleteLocationId
+        || (!admin && !staffHasLocation(actor.staff, locationId))) {
+      throw new HttpsError("permission-denied", "Historical practice is outside the athlete's authorized location.");
+    }
+    return;
   }
-  if (normalizeStaffRole(actor.role) !== "admin"
-      && !staffHasLocation(actor.staff, locationId)) {
-    throw new HttpsError("permission-denied", "Historical practice is outside the Coach's authorized location.");
+  // Legacy fallback applies only to practices with no locationId, and only
+  // with an explicit athlete/staff academy match. It never overrides a
+  // conflicting locationId or infers authorization from a coach assignment.
+  if (!academyId || !athleteAcademyId || academyId !== athleteAcademyId
+      || (!admin && !normalizeStaffScope(actor.staff).academyIds.includes(academyId))) {
+    throw new HttpsError("permission-denied", "Historical practice is outside the athlete's authorized academy.");
   }
 }
 
@@ -414,7 +424,7 @@ export const skillCheckCoachCall =
         const practice = candidate.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
         if (scope === "athlete-location") {
-          requireHistoricalPracticeReadAccess(actor, practice, athleteLocationId);
+          requireHistoricalPracticeReadAccess(actor, practice, athleteLocationId, athleteAcademyId);
         } else if (scope === "athlete-academy") {
           // Legacy academy-only records are accepted only when their location
           // is absent and the actor has explicit academy access.
@@ -543,7 +553,7 @@ export const skillCheckCoachCall =
           throw new HttpsError("failed-precondition", "Historical evidence is incomplete.");
         }
         const practice = practiceSnap.data() || {};
-        requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId));
+        requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId), clean(athlete.academyId));
         const attendance = attendanceSnap.data() || {};
         const memory = memorySnap.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline
@@ -584,7 +594,7 @@ export const skillCheckCoachCall =
       const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
       if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
       const practice = practiceSnap.data() || {};
-      requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId));
+      requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId), clean(athlete.academyId));
       if (normalizeDiscipline(practice.discipline) !== discipline) {
         throw new HttpsError("failed-precondition", "Practice discipline does not match the requested evidence.");
       }
