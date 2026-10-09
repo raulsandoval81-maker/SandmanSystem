@@ -157,7 +157,7 @@ async function submit() {
         practiceId, sessionId: room.value, roomValue: room.value,
         locationId: room.locationId, academyId: room.locationId, roomId: room.roomId,
         ...program, schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: "manual", durationMinutes: 60,
+        executionMode: mode === "planned" ? "hybrid" : "manual", durationMinutes: 60,
         source: mode === "quick-start" ? "session-builder-fast-pass" : "attendance-first",
         createdAt: new Date().toISOString()
       };
