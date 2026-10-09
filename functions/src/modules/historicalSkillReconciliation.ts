@@ -36,11 +36,15 @@ export function reconcileHistoryPages(
       }
       if (!page.history) { blockers.add("missing-evidence:" + scope); break; }
       for (const record of page.history) {
-        if (!record.practiceId || !/^\d{4}-\d{2}-\d{2}$/.test(record.sessionDateKey)) {
+        if (!record.practiceId || !/^\d{4}-\d{2}-\d{2}$/.test(record.sessionDateKey)
+          || !Number.isFinite(Date.parse(record.sessionDateKey + "T00:00:00.000Z"))
+          || new Date(record.sessionDateKey + "T00:00:00.000Z").toISOString().slice(0, 10) !== record.sessionDateKey) {
           blockers.add("invalid-practice-date"); continue;
         }
-        if (record.verifiedSkills.some(s => !s.verifiedAt || !Number.isFinite(Date.parse(s.verifiedAt)))) {
-          blockers.add("invalid-verification-date");
+        if (!record.verifiedSkills.length) blockers.add("empty-verified-skill-history");
+        if (record.verifiedSkills.some(s => !s.familyId || !s.coachUid || !s.state
+          || !s.verifiedAt || !Number.isFinite(Date.parse(s.verifiedAt)))) {
+          blockers.add("incomplete-verified-skill-observation");
         }
         const existing = found.get(record.practiceId);
         if (existing && JSON.stringify(existing) !== JSON.stringify(record)) {
@@ -54,7 +58,7 @@ export function reconcileHistoryPages(
       if (!page.nextCursor) { blockers.add("missing-next-cursor"); break; }
       cursor = page.nextCursor;
     }
-    if (visited.has(cursor) && cursorMap.get(cursor)?.nextCursor) blockers.add("cursor-cycle");
+    if (visited.has(cursor) && cursorMap.get(cursor)?.nextCursor && !cursorMap.get(cursor)?.scopeExhausted) blockers.add("cursor-cycle");
     if (visited.size !== cursorMap.size) blockers.add("disconnected-page");
   }
   blockers.add("historical-transfer-coverage-unverified");
