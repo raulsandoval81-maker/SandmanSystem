@@ -24,11 +24,11 @@ const FLOW_STORAGE_KEY = "sandman.coach.practice.flow";
 
 const flows = {
   normal: {
-    title: "Normal Practice",
+    title: "Planned Practice",
     description:
-      "Use the full live workflow when the room has time for check-in, planning, and active execution.",
+      "Use Session Builder, check in athletes, prepare Clipboard, and run the live workout.",
 
-    startHeading: "Open the Canonical Practice",
+    startHeading: "Build a Planned Practice",
     startDescription:
       "Session Builder establishes the normal practice record first. Then check athletes in and run the room.",
 
@@ -65,13 +65,13 @@ const flows = {
   },
 
   "coach-directed": {
-    title: "Coach-Directed / Free Day",
+    title: "Quick Start Practice",
     description:
-      "Use this when the coach needs to run the room directly without building a formal session first.",
+      "Start today's practice without a formal Clipboard build. Keep attendance and the practice record connected.",
 
-    startHeading: "Create the Direct Practice",
+    startHeading: "Start Practice Now",
     startDescription:
-      "Create the Coach-directed canonical practice, then check athletes in and coach the room without a Builder plan.",
+      "Create the practice record, check athletes in, and coach the room without a formal Clipboard plan.",
 
     steps: [
       {
@@ -106,11 +106,11 @@ const flows = {
   },
 
   "after-the-fact": {
-    title: "After-the-Fact / Rush Day",
+    title: "Record Past Practice",
     description:
-      "Use this when the practice already happened and the coach needs to reconstruct the actual session afterward.",
+      "Record a practice that already happened, using its real date, discipline, and participating athletes.",
 
-    startHeading: "Reconstruct the Actual Practice",
+    startHeading: "Record a Past Practice",
     startDescription:
       "Do not create fake historical check-ins. Recover the practice, confirm the real date and discipline, and identify who actually trained.",
 
