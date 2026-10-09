@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc -p .",
     "clean": "rimraf lib",
-    "test": "npm run build && node --test tests/*.test.cjs"
+    "test": "npm run build && node --test tests/historicalSkillReconciliation.test.cjs",
+    "test:integration": "npm run build && node --test tests/firestoreHistorical.integration.cjs"
   },
   "dependencies": {
     "@types/react": "^19.2.14",
