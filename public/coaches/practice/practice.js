@@ -259,7 +259,13 @@ choices.forEach((choice) => {
   choice.setAttribute("aria-pressed", "false");
 
   choice.addEventListener("click", () => {
-    renderFlow(choice.dataset.practiceFlow);
+    const paths = {
+      normal: "/coaches/practice/entry.html?mode=planned",
+      "coach-directed": "/coaches/practice/entry.html?mode=quick-start",
+      "after-the-fact": "/coaches/practice/entry.html?mode=after-the-fact"
+    };
+    const destination = paths[choice.dataset.practiceFlow];
+    if (destination) window.location.assign(destination);
   });
 });
 
