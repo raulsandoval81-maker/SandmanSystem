@@ -1344,8 +1344,18 @@ async function generateIntakeInvite(
       deliveredTo: "",
       exp,
     };
+    // Confirm Firestore persisted the token before reporting success.
+    const verifiedSnap = await getDoc(doc(db, "intakeTokens", newTokenId));
+    const verified = verifiedSnap.exists() ? verifiedSnap.data() : null;
+    if (
+      !verified ||
+      String(verified.proposalId || "").trim() !== proposalId ||
+      String(verified.intakeAudience || "").trim().toLowerCase() !== normalizedAudience ||
+      verified.used === true
+    ) {
+      throw new Error("Intake token could not be verified in Firestore. Do not send email.");
+    }
     handoffCache.set(handoffKey(proposalId, normalizedAudience), cached);
-
     paintInviteHandoff(newTokenId, normalizedAudience);
   } catch (err) {
     console.error(err);
