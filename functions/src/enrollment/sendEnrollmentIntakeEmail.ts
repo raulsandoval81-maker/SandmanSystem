@@ -201,7 +201,7 @@ export const sendEnrollmentIntakeEmail =
 
       if (
         !recipient ||
-        !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipient)
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)
       ) {
         throw new functions.https.HttpsError(
           "failed-precondition",
