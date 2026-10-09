@@ -837,6 +837,38 @@ function createSessionPayload(practiceId = activePracticeId) {
   };
 }
 
+async function resolveGroupPrescriptions(payload) {
+  if (!["auto", "hybrid"].includes(payload.executionMode)) return payload;
+  const program = selectedProgram();
+  const prefix = program?.hybridModelPrefix || "";
+  const groups = Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [];
+  if (!groups.length) return payload;
+  const prescriptions = [];
+  for (const group of groups) {
+    const tier = String(group.tier || "").toLowerCase();
+    const discipline = String(program?.discipline || "").toLowerCase();
+    if (!prefix || discipline === "boxing" || !/^t[0-4]$/.test(tier)) {
+      prescriptions.push({ groupId: group.id, tier, status: "unavailable", cards: [] });
+      continue;
+    }
+    try {
+      const model = await import(`${prefix}-${tier}-waves.js`);
+      const waves = Object.entries(model.WAVE_CARDS || {})
+        .filter(([, cards]) => Array.isArray(cards) && cards.length);
+      const index = Math.max(0, (Number(group.trainingSession || 1) - 1));
+      const [waveKey, cards] = waves[index % waves.length] || ["", []];
+      prescriptions.push({
+        groupId: group.id, tier, waveKey, status: cards.length ? "ready" : "unavailable",
+        cards: cards.map(card => ({ ...card, groupId: group.id, groupLabel: group.label || group.id }))
+      });
+    } catch (error) {
+      console.warn("Group curriculum unavailable", group.id, error);
+      prescriptions.push({ groupId: group.id, tier, status: "unavailable", cards: [] });
+    }
+  }
+  return { ...payload, groupPrescriptions: prescriptions };
+}
+
 function persistSession(payload) {
   try {
     const previous = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
@@ -1007,6 +1039,10 @@ buildBtn.addEventListener("click", async () => {
   }
   buildBtn.disabled = true;
   try {
+    payload = await resolveGroupPrescriptions(payload);
+    if (selectedMode === "auto" && payload.groupPrescriptions?.some(g => g.status !== "ready")) {
+      throw new Error("AUTO cannot start: one or more groups lack an approved lesson. No incomplete prescription was launched.");
+    }
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
 
