@@ -1448,7 +1448,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
         throw new Error("Enter a valid email address before sending Intake.");
       }
       if (!window.confirm(
-        "Send Benjamin's secure enrollment Intake to " + recipientEmail + "? This records the verified recipient in the audit trail."
+        "Send the secure enrollment Intake to " + recipientEmail + "? This records the verified recipient in the audit trail."
       )) {
         throw new Error("Email handoff cancelled; no Intake email was sent.");
       }
