@@ -353,6 +353,48 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "discover-verified-practices") {
+      // Bounded discovery for the current Coach's own practices. This is not an
+      // exhaustive historical search: pagination and cross-Coach scope need policy.
+      const candidates = await db.collection("practiceSessions")
+        .where("coachUid", "==", actor.uid)
+        .limit(50)
+        .get();
+      const matching: { practiceId: string; sessionDateKey: string }[] = [];
+      for (const candidate of candidates.docs) {
+        if (matching.length >= 20) break;
+        const practiceId = candidate.id;
+        const practice = candidate.data() || {};
+        if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+        requirePracticeVerificationAccess(actor, practice);
+        const [attendanceSnap, memorySnap] = await Promise.all([
+          db.doc(`attendance_sessions/${practiceId}`).get(),
+          db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`).get(),
+        ]);
+        if (!attendanceSnap.exists || !memorySnap.exists) continue;
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        if (clean(attendance.practiceId) !== practiceId
+            || normalizeDiscipline(attendance.discipline) !== discipline
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || attendance.finalized !== true
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== practiceId
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
+        const verified = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).limit(1).get();
+        if (verified.empty) continue;
+        matching.push({ practiceId, sessionDateKey: clean(practice.sessionDateKey) });
+      }
+      return {
+        ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
+        practices: matching, scanned: candidates.size,
+        exhaustive: false,
+        limitation: "Current Coach's first 50 candidate practices only; historical pagination and cross-Coach access are not supported."
+      };
+    }
+
     if (action === "load-verified-history") {
       // Explicit practice IDs prevent unbounded collection-group searches and
       // require authorization, finalized attendance, and matching session memory
