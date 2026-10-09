@@ -47,6 +47,13 @@ export function reconcileHistoryPages(
           || !s.verifiedAt || !Number.isFinite(Date.parse(s.verifiedAt)))) {
           blockers.add("incomplete-verified-skill-observation");
         }
+        // Verification may occur after practice, but cannot predate the session.
+        // Retain the evidence for diagnostics while blocking progression.
+        if (record.verifiedSkills.some(observation =>
+          observation.verifiedAt && Number.isFinite(Date.parse(observation.verifiedAt))
+          && observation.verifiedAt.slice(0, 10) < record.sessionDateKey)) {
+          blockers.add("verification-predates-practice");
+        }
         const existing = found.get(record.practiceId);
         if (existing && JSON.stringify(existing) !== JSON.stringify(record)) {
           blockers.add("conflicting-duplicate-practice");
