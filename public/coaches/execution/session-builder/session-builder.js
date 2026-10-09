@@ -793,7 +793,15 @@ function createSessionPayload(practiceId = activePracticeId) {
   const room = selectedRoom();
   if (!program.discipline || !room) return null;
   const shell = shellData();
-  const week = "";
+  let attendanceContext = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(SESSION_KEY) || "{}");
+    if (String(saved.practiceId || "") === String(practiceId || "") && practiceId) {
+      attendanceContext = saved;
+    }
+  } catch {}
+  const groups = Array.isArray(attendanceContext.trainingGroups) ? attendanceContext.trainingGroups : [];
+  const week = String(attendanceContext.week || "");
   return {
     schema: selectedSchema,
     durationMinutes: shell.minutes,
@@ -806,7 +814,10 @@ function createSessionPayload(practiceId = activePracticeId) {
     roomId: room.roomId,
     roomValue: room.value,
     ...program,
-    rank: program.tier,
+    rank: attendanceContext.tier || program.tier,
+    tier: attendanceContext.tier || program.tier,
+    rankLabel: attendanceContext.rankLabel || program.rankLabel || "",
+    trainingGroups: groups,
     week,
     ...getHybridData(week),
     source: "session-builder",
