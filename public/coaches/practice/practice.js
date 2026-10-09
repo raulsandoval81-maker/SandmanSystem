@@ -274,10 +274,7 @@ changePracticeFlow?.addEventListener("click", resetFlow);
 
 async function initializePracticeOperations() {
   const page = document.querySelector(".practice-page");
-  const hero = document.querySelector(".practice-hero");
-  const protectedSections = page
-    ? [...page.children].filter((element) => element !== hero)
-    : [];
+  const protectedSections = page ? [...page.children] : [];
 
   protectedSections.forEach((element) => {
     element.hidden = true;
@@ -289,9 +286,7 @@ async function initializePracticeOperations() {
   notice.setAttribute("aria-live", "polite");
   notice.textContent = "Verifying Coach access…";
 
-  if (hero?.parentNode) {
-    hero.insertAdjacentElement("afterend", notice);
-  }
+  page?.prepend(notice);
 
   try {
     await requireCoach();
