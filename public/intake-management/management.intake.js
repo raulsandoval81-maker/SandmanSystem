@@ -256,9 +256,16 @@ async function resolveExistingEnrollmentHandoff(
   }
 
   // Fallback for older deployments or temporary callable failure.
-  const historySnapshot = await getDocs(
-    collection(db, "proposals", proposalId, "history")
-  );
+  let historySnapshot;
+  try {
+    historySnapshot = await getDocs(
+      collection(db, "proposals", proposalId, "history")
+    );
+  } catch (err) {
+    throw new Error(
+      "Could not verify existing Intake invitations. No new token created. Refresh and retry."
+    );
+  }
 
   const records = historySnapshot.docs
     .map((historyDoc) => ({
@@ -302,7 +309,14 @@ async function resolveExistingEnrollmentHandoff(
       }
     }
 
-    const tokenSnap = await getDoc(doc(db, "intakeTokens", tokenId));
+    let tokenSnap;
+    try {
+      tokenSnap = await getDoc(doc(db, "intakeTokens", tokenId));
+    } catch (err) {
+      throw new Error(
+        "Existing Intake invitation could not be verified. No new token created."
+      );
+    }
     if (!tokenSnap.exists()) continue;
 
     const token = tokenSnap.data() || {};
