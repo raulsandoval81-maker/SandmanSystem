@@ -75,3 +75,35 @@ test("even a complete visible chain never authorizes AUTO", () => {
   assert.equal(result.eligibleForAuto, false);
   assert.equal(result.skillTimelines[0].currentState, null);
 });
+
+test("cursor cycle is reported without mistaking it for a missing page", () => {
+  const result = assess([
+    page("athlete-location", null, "repeat", [practice("p1", "2026-10-01")], false),
+    page("athlete-location", "repeat", "repeat", [practice("p2", "2026-10-02")], false),
+  ]);
+  assert.ok(result.blockers.includes("cursor-cycle:athlete-location"));
+  assert.equal(result.eligibleForAuto, false);
+});
+
+test("unavailable required scope produces an explicit missing-page blocker", () => {
+  const result = assess([
+    page("coach", null, null, [practice("p1", "2026-10-01")]),
+  ], ["coach", "athlete-location"]);
+  assert.ok(result.blockers.includes("missing-page:athlete-location"));
+  assert.equal(result.coverageComplete, false);
+});
+
+test("duplicate page cursor is flagged even if evidence agrees", () => {
+  const same = page("athlete-location", null, null, [practice("p1", "2026-10-01")]);
+  const result = assess([same, same]);
+  assert.ok(result.blockers.includes("duplicate-page-cursor"));
+  assert.equal(result.eligibleForAuto, false);
+});
+
+test("missing page evidence is distinct from a pagination cycle", () => {
+  const incomplete = page("athlete-location", null, null, []);
+  delete incomplete.history;
+  const result = assess([incomplete]);
+  assert.ok(result.blockers.includes("missing-evidence:athlete-location"));
+  assert.equal(result.blockers.some(x => x.startsWith("cursor-cycle")), false);
+});
