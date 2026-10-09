@@ -565,8 +565,11 @@ function renderClipboardTrainingGroups() {
       ? group.athleteNames.join(", ")
       : "";
     const prescription = prescriptions.find(item => item.groupId === group.id);
+    const encodeText = (value) => String(value || "").replace(/[&<>"']/g, character => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[character]);
     const teachingLinks = prescription?.status === "ready"
-      ? prescription.cards.map(card => `<a href="${escapeHtml(card.href || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.title || "Skill card")}</a>`).join(" · ")
+      ? prescription.cards.map(card => `<a href="${encodeText(card.href || "#")}" target="_blank" rel="noopener noreferrer">${encodeText(card.title || "Skill card")}</a>`).join(" · ")
       : (session.executionMode === "manual" ? "" : "Lesson mapping requires review");
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
