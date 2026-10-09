@@ -430,6 +430,14 @@ export const skillCheckCoachCall =
           ]);
           const attendance = attendanceSnap.data() || {};
           const memory = memorySnap.data() || {};
+          if (attendanceSnap.exists && clean(attendance.practiceId) === doc.id
+              && normalizeDiscipline(attendance.discipline) === discipline
+              && clean(attendance.status).toLowerCase() === "finalized"
+              && attendance.finalized === true
+              && attendanceIncludesAthlete(attendance, athleteId)
+              && !memorySnap.exists) {
+            blockers.add("missing-athlete-session-memory:" + doc.id);
+          }
           if (!attendanceSnap.exists || !memorySnap.exists
             || clean(attendance.practiceId) !== doc.id
             || normalizeDiscipline(attendance.discipline) !== discipline
