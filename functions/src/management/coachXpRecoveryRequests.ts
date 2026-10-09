@@ -45,10 +45,29 @@ export const submitCoachXpRecoveryRequest = onCall(async (request) => {
   }
   const note = clean(request.data?.note).slice(0, 1500);
   const ref = db.collection("coachXpRecoveryRequests").doc();
-  await ref.create({
-    requestId: ref.id, coachUid: actor.uid, locationId,
-    entries, note, status: "PENDING_MANAGEMENT",
-    createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+  // Claim each athlete/date transactionally so repeat submissions cannot silently
+  // produce multiple open Management requests for the same earned practice.
+  const claimRefs = entries.map((entry) =>
+    db.collection("coachXpRecoveryClaims").doc(entry.athleteId + "_" + entry.practiceDate));
+  await db.runTransaction(async (tx) => {
+    const claims = await Promise.all(claimRefs.map((claim) => tx.get(claim)));
+    const repeated = claims.findIndex((claim) => claim.exists);
+    if (repeated !== -1) {
+      throw new HttpsError("already-exists",
+        "This athlete/date already has a recovery request: " +
+        entries[repeated].athleteId + " on " + entries[repeated].practiceDate +
+        ". Review the existing case before submitting again.");
+    }
+    tx.create(ref, {
+      requestId: ref.id, coachUid: actor.uid, locationId,
+      entries, note, status: "PENDING_MANAGEMENT",
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp()
+    });
+    claimRefs.forEach((claim, index) => tx.create(claim, {
+      requestId: ref.id, athleteId: entries[index].athleteId,
+      practiceDate: entries[index].practiceDate, locationId,
+      status: "PENDING_MANAGEMENT", createdAt: FieldValue.serverTimestamp()
+    }));
   });
   return { ok: true, requestId: ref.id, status: "PENDING_MANAGEMENT", entries: entries.length };
 });
@@ -86,6 +105,21 @@ export const reviewCoachXpRecoveryRequest = onCall(async (request) => {
     requireStaffLocation(actor, record.locationId);
     if (record.status !== "PENDING_MANAGEMENT") {
       throw new HttpsError("failed-precondition", "This request was already reviewed.");
+    }
+    // Keep a reviewed claim reserved until Management reconciles the XP;
+    // release rejected claims so a Coach can resubmit corrected evidence.
+    if (decision === "REJECTED") {
+      for (const entry of (record.entries || [])) {
+        tx.delete(db.collection("coachXpRecoveryClaims")
+          .doc(clean(entry.athleteId) + "_" + clean(entry.practiceDate)));
+      }
+    } else {
+      for (const entry of (record.entries || [])) {
+        tx.update(db.collection("coachXpRecoveryClaims")
+          .doc(clean(entry.athleteId) + "_" + clean(entry.practiceDate)), {
+            status: "REVIEWED", reviewedAt: FieldValue.serverTimestamp()
+          });
+      }
     }
     tx.update(ref, {
       status: decision, managementNote: note, reviewedBy: actor.uid,
