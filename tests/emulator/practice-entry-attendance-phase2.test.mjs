@@ -161,9 +161,23 @@ test("shared Daily Practice Log survives cross-device read and locks on Final Cl
     /finalized attendance|required before closing/i
   );
 
-  // Empty attendance is a valid verified practice; no XP receipts are required.
+  // Sandman requires at least one verified participant and a valid Daily Grind
+  // receipt before Final Close. This tests the same closeout gate as production.
   await call(practiceModule.finalizePracticeAttendance, "coach-phase2",
-    { practiceId, presentIds: [], notes: "No verified participants" });
+    { practiceId, presentIds: ["F8_PHASE2_A"], notes: "Verified attended practice" });
+  await assert.rejects(
+    () => call(practiceModule.closePracticeSession, "coach-phase2",
+      { practiceId, attendanceSessionId: practiceId }),
+    /Daily Grind must be completed/i
+  );
+  const { awardReceiptKey } = require("../../functions/lib/services/authoritativeXpService.js");
+  const receiptId = awardReceiptKey("F8_PHASE2_A", `attendance:${practiceId}`);
+  await db.doc(`xpAwardReceipts/${receiptId}`).set({
+    result: { ok: true }, athleteId: "F8_PHASE2_A", practiceId
+  });
+  const completed = await call(practiceModule.completePracticeDailyGrind,
+    "coach-phase2", { practiceId, athleteIds: ["F8_PHASE2_A"] });
+  assert.equal(completed.readyForDailyGrind, false);
   const closed = await call(practiceModule.closePracticeSession, "coach-phase2",
     { practiceId, attendanceSessionId: practiceId });
   assert.equal(closed.status, "closed");
