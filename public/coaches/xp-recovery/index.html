@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Missing XP Report | Sandman Coach</title>
+<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
+<style>
+main{max-width:1000px;margin:auto;padding:24px}section{background:var(--panel,#161b22);border:1px solid #606976;border-radius:12px;padding:20px;margin:16px 0}
+label{display:block;margin:12px 0}input,textarea,select{width:100%;padding:11px;margin-top:6px;border-radius:7px;border:1px solid #889;background:#fff;color:#111}
+button{padding:11px 16px;border:0;border-radius:8px;background:#366dce;color:white;cursor:pointer}
+button:disabled{opacity:.6}table{width:100%;border-collapse:collapse}td,th{padding:7px;text-align:left;border-bottom:1px solid #747b8838}
+#result{white-space:pre-wrap} .note{opacity:.8}a{color:inherit}
+</style></head><body class="coach-shell-page" data-coach-page="Missing XP Report" data-coach-area="team">
+<main data-coach-shell-content><a href="/coaches/today/">← Daily Operations</a>
+<h1>Missing Practice XP Report</h1><p>Coach submits evidence. Management verifies and applies approved corrections in XP Management. This form <strong>does not award XP</strong>.</p>
+<p id="access" role="status">Verifying Coach access…</p>
+<section><h2>Submit to Management</h2>
+<form id="recoveryForm">
+<label>Location ID<input id="location" required placeholder="santa-ynez-valley"></label>
+<label>Missing practice entries — one per line<textarea id="entries" rows="8" required placeholder="F8_0001 | 2026-09-28 | 10 | Attended wrestling practice&#10;F8_0002 | 2026-09-28 | 10 | Attended wrestling practice"></textarea></label>
+<p class="note">Format: Athlete ID | YYYY-MM-DD | XP missing (1–15) | optional attendance evidence. Use each practice date separately. Do not include already credited days.</p>
+<label>Coach explanation<textarea id="note" rows="3" maxlength="1500" placeholder="Attendance records or practice IDs supporting the missed credits."></textarea></label>
+<button id="submit" type="submit">Submit XP Recovery Report</button>
+</form><p id="result" role="status" aria-live="polite"></p></section>
+<section><h2>My Submitted Reports</h2><button type="button" id="refresh">Refresh</button><div id="reports">Loading…</div></section></main>
+<script src="/coaches/_ui/coach-shell.js?v=2"></script><script type="module" src="./recovery.js?v=1"></script></body></html>
