@@ -477,9 +477,28 @@ export const skillCheckCoachCall =
         }
         position = pageDocs[pageDocs.length - 1].id;
       }
+      // Reconcile only the server-fetched observations from this invocation.
+      // A single scope traversal does not prove global history completeness.
+      const reconciliation = reconcileHistoryPages([{
+        athleteId, discipline, scope,
+        cursor: null, nextCursor: null, scopeExhausted: true,
+        history,
+      }], [scope], athleteId, discipline);
       return {
         ok: true, athleteId, discipline, scope,
         practices: visited, history, scopeExhausted: exhausted,
+        reconciliation: {
+          practiceCount: reconciliation.practices.length,
+          skillTimelines: reconciliation.skillTimelines,
+          blockers: [...new Set([
+            ...reconciliation.blockers,
+            ...evidenceBlockers,
+            ...(exhausted ? [] : ["additional-scope-pages-required"]),
+            "other-authorized-scopes-not-reconciled",
+          ])].sort(),
+          coverageComplete: false,
+          eligibleForAuto: false,
+        },
         nextCursor: exhausted ? null : position,
         diagnosticOnly: true, coverageComplete: false,
         eligibleForAuto: false,
