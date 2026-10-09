@@ -385,6 +385,95 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "reconcile-server-history-scopes") {
+      // One server-owned page per authorized scope. No client evidence is used.
+      // This is a bounded diagnostic, not an exhaustive-history assertion.
+      const locationId = clean(athlete.locationId);
+      const academyId = clean(athlete.academyId);
+      const admin = normalizeStaffRole(actor.role) === "admin";
+      const specs = [
+        { scope: "coach", field: "coachUid", value: actor.uid, authorized: true },
+        { scope: "athlete-location", field: "locationId", value: locationId,
+          authorized: Boolean(locationId) && (admin || staffHasLocation(actor.staff, locationId)) },
+        { scope: "athlete-academy", field: "academyId", value: academyId,
+          authorized: Boolean(academyId) && (admin || normalizeStaffScope(actor.staff).academyIds.includes(academyId)) },
+      ];
+      const pages: HistoryPage[] = [];
+      const blockers = new Set<string>();
+      for (const spec of specs) {
+        if (!spec.authorized) {
+          blockers.add("scope-unavailable:" + spec.scope);
+          continue;
+        }
+        const snapshot = await db.collection("practiceSessions")
+          .where(spec.field, "==", spec.value)
+          .orderBy(FieldPath.documentId()).limit(51).get();
+        const candidates = snapshot.docs.slice(0, 50);
+        const history: HistoryPage["history"] = [];
+        for (const doc of candidates) {
+          const practice = doc.data() || {};
+          if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+          if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
+          if (spec.scope === "coach") {
+            requirePracticeVerificationAccess(actor, practice);
+          } else {
+            requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
+          }
+          const [attendanceSnap, memorySnap] = await Promise.all([
+            db.doc(`attendance_sessions/${doc.id}`).get(),
+            db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
+          ]);
+          const attendance = attendanceSnap.data() || {};
+          const memory = memorySnap.data() || {};
+          if (!attendanceSnap.exists || !memorySnap.exists
+            || clean(attendance.practiceId) !== doc.id
+            || normalizeDiscipline(attendance.discipline) !== discipline
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || attendance.finalized !== true
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== doc.id
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
+          const evidence = await db.collection(`practiceSessions/${doc.id}/athletes/${athleteId}/verifiedSkills`).get();
+          const verifiedSkills = evidence.docs.map(item => item.data() || {})
+            .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+              && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+              && ALLOWED_STATES.includes(normalizeState(skill.state)))
+            .map(skill => ({
+              familyId: normalizeFamily(skill.familyId),
+              state: normalizeState(skill.state),
+              coachUid: clean(skill.coachUid),
+              verifiedAt: skill.verifiedAt instanceof Timestamp ? skill.verifiedAt.toDate().toISOString() : null,
+            }));
+          if (!verifiedSkills.length || verifiedSkills.length !== evidence.size
+            || verifiedSkills.some(skill => !skill.verifiedAt || !skill.coachUid)) {
+            blockers.add("evidence-incomplete:" + doc.id);
+          }
+          if (verifiedSkills.length) history.push({
+            practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey), verifiedSkills,
+          });
+        }
+        const hasMore = snapshot.size > 50;
+        if (hasMore) blockers.add("additional-pages-required:" + spec.scope);
+        pages.push({
+          athleteId, discipline, scope: spec.scope, cursor: null,
+          nextCursor: hasMore ? candidates[candidates.length - 1].id : null,
+          scopeExhausted: !hasMore, history,
+        });
+      }
+      const summary = reconcileHistoryPages(pages, pages.map(page => page.scope), athleteId, discipline);
+      return {
+        ok: true, diagnosticOnly: true, source: "server-verified-firestore",
+        ...summary,
+        checkedScopes: pages.map(page => ({
+          scope: page.scope, scopeExhausted: page.scopeExhausted, nextCursor: page.nextCursor,
+        })),
+        blockers: [...new Set([...summary.blockers, ...blockers])].sort(),
+        coverageComplete: false, eligibleForAuto: false,
+      };
+    }
+
     if (action === "historical-scope-traversal") {
       // Each invocation traverses a bounded number of pages on the server.
       // Cursors are hints only; no result establishes complete athlete history.
