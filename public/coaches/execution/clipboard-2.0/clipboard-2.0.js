@@ -1273,6 +1273,34 @@ function showLockedPracticeNotice(sessionId) {
   link.href = `/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
 }
 
+function groupActivitiesForBlock(block, session) {
+  if (!["auto", "hybrid"].includes(String(session.executionMode || "").toLowerCase())) return [];
+  const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
+  const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups : [];
+  const adjustments = session.executionMode === "hybrid"
+    ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")]
+        .map(field => [field.dataset.groupId, field.value.trim()]))
+    : {};
+  const slot = String(block.slot || "").toLowerCase();
+  // Do not prescribe a technical activity during warmup, breaks, or other unrelated blocks.
+  const technical = /technique|drill|live|onmat|on-mat|skill/.test(slot);
+  if (!technical) return [];
+  return groups.map(group => {
+    const prescription = prescriptions.find(item => String(item.groupId) === String(group.id));
+    return {
+      groupId: group.id,
+      groupLabel: group.label || "",
+      tier: group.tier || "",
+      status: prescription?.status || "unavailable",
+      waveKey: prescription?.waveKey || "",
+      cards: prescription?.status === "ready" ? (prescription.cards || []).map(card => ({
+        id: card.id || "", title: card.title || "", href: card.href || ""
+      })) : [],
+      coachAdjustment: adjustments[group.id] || ""
+    };
+  });
+}
+
 window.runPractice = async function () {
   const session = getActiveSession();
 
@@ -1316,7 +1344,8 @@ window.runPractice = async function () {
       b.dataset.timerLabel || ""
   }
 }))
-.filter(b => b.minutes > 0);
+.filter(b => b.minutes > 0)
+.map(block => ({ ...block, groupActivities: groupActivitiesForBlock(block, session) }));
 
   let practiceId = String(session.practiceId || "").trim();
   try {
