@@ -31,9 +31,7 @@ function requestedMode() {
     new URLSearchParams(location.search).get("mode") || ""
   ).trim().toLowerCase();
 
-  return mode === "after-the-fact"
-    ? "after-the-fact"
-    : "coach-directed";
+  return ["planned", "quick-start", "after-the-fact"].includes(mode) ? mode : "after-the-fact";
 }
 
 function populateRooms(scopeLocationIds = [], isSystemAdmin = false) {
@@ -85,19 +83,9 @@ function updateModeUI() {
 
   if (keyField) keyField.hidden = mode !== "after-the-fact";
 
-  if (title) {
-    title.textContent =
-      mode === "after-the-fact"
-        ? "Recover Past Practice"
-        : "Coach-Directed Practice";
-  }
+  if (title) title.textContent = mode === "planned" ? "Attendance Setup" : mode === "quick-start" ? "Quick Clock Setup" : "Record Past Practice";
 
-  if (description) {
-    description.textContent =
-      mode === "after-the-fact"
-        ? "Create or recover one historical canonical practice, then verify who actually trained."
-        : "Create or recover today’s Coach-directed canonical practice before athlete check-in.";
-  }
+  if (description) description.textContent = mode === "planned" ? "Choose room and program, then check in athletes before building the workout." : mode === "quick-start" ? "Choose room and program, then open Big Clock without a Builder or attendance detour." : "Recover a real completed practice and verify actual participants.";
 }
 
 function setStatus(message, isError = false) {
@@ -140,25 +128,62 @@ async function submit() {
   try {
     setStatus("Creating canonical practice…");
 
+    if (mode === "planned" || mode === "quick-start") {
+      const openPractice = httpsCallable(functions, "openPracticeSession");
+      const response = await openPractice({
+        liveSessionId: room.value,
+        locationId: room.locationId,
+        academyId: room.locationId,
+        roomId: room.roomId,
+        sessionDateKey,
+        discipline: program.discipline,
+        journey: program.journey || "",
+        program: program.programId,
+        track: program.track || "",
+        schema: mode === "quick-start" ? "fast-practice" : "academy-60",
+        executionMode: "manual",
+        durationMinutes: 60
+      });
+      const practiceId = String(response.data?.practiceId || "").trim();
+      if (!practiceId) throw new Error("Practice identity was not returned.");
+
+      const session = {
+        practiceId, sessionId: room.value, roomValue: room.value,
+        locationId: room.locationId, academyId: room.locationId, roomId: room.roomId,
+        ...program, schema: mode === "quick-start" ? "fast-practice" : "academy-60",
+        executionMode: "manual", durationMinutes: 60,
+        source: mode === "quick-start" ? "session-builder-fast-pass" : "attendance-first",
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem("sandman_session_builder_v1", JSON.stringify(session));
+
+      if (mode === "quick-start") {
+        localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify({
+          source: "session-builder-fast-pass",
+          practiceId, sessionId: room.value, durationMinutes: 60,
+          blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
+        }));
+        location.href = "/coaches/execution/big-clock-2.0/?practiceId=" +
+          encodeURIComponent(practiceId) + "&session=" + encodeURIComponent(room.value) + "&fast=1";
+      } else {
+        location.href = "/coaches/attendance/session.html?practiceId=" +
+          encodeURIComponent(practiceId) + "&flow=builder&return=builder";
+      }
+      return;
+    }
+
     const response = await createOrRecoverPractice({
-      entryMode: mode,
+      entryMode: "after-the-fact",
       locationId: room.locationId,
       roomId: room.roomId,
       sessionDateKey,
       program: program.programId,
       discipline: program.discipline,
-      practiceKey: mode === "after-the-fact" ? practiceKey : ""
+      practiceKey
     });
-
     const practiceId = String(response.data?.practiceId || "").trim();
-
-    if (!practiceId) {
-      throw new Error("Practice identity was not returned.");
-    }
-
-    location.href =
-      "/coaches/attendance/session.html?practiceId=" +
-      encodeURIComponent(practiceId);
+    if (!practiceId) throw new Error("Practice identity was not returned.");
+    location.href = "/coaches/attendance/session.html?practiceId=" + encodeURIComponent(practiceId);
   } catch (error) {
     console.error("[practice-entry] failed", error);
     setStatus(error?.message || "Practice entry failed.", true);
