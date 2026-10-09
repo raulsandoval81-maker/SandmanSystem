@@ -68,6 +68,7 @@ function showDailyGrindHandoff(sessionId) {
   }
 
   link.href = `/coaches/daily-xp/?session=${encodeURIComponent(id)}`;
+  link.hidden = false;
 }
 
 function updatePresentCount() {
@@ -97,6 +98,8 @@ function clearPendingSession() {
   selectedIds.clear();
   if ($("practiceType")) $("practiceType").value = "—";
   setReviewControlsEnabled(false);
+  const handoff = $("continueDailyGrind");
+  if (handoff) handoff.hidden = true;
 }
 
 function renderPendingChoices(pendingDocs) {
@@ -154,11 +157,22 @@ async function loadPracticeReview(practiceId) {
     .toLowerCase();
   if ($("practiceType")) $("practiceType").value = journey || "—";
 
+  const finalized = pendingSession.finalized === true ||
+    String(pendingSession.status || "").toLowerCase() === "finalized";
   renderAthletes();
-  setReviewControlsEnabled(true);
+  setReviewControlsEnabled(!finalized);
+  if (finalized) {
+    showDailyGrindHandoff(practiceId);
+    document.querySelectorAll(".present-check").forEach((check) => { check.disabled = true; });
+  } else {
+    const handoff = $("continueDailyGrind");
+    if (handoff) handoff.hidden = true;
+  }
 
   const dateLabel = pendingSession.sessionDateLabel || pendingSession.sessionDateKey || todayLabel();
-  setStatus(`Review loaded: ${dateLabel} · ${selectedIds.size} selected. Add or remove athletes to match who actually trained.`);
+  setStatus(finalized
+    ? `Attendance finalized: ${dateLabel} · ${selectedIds.size} verified present. This roster is read-only. Continue to Daily Grind.`
+    : `Review loaded: ${dateLabel} · ${selectedIds.size} selected. Add or remove athletes to match who actually trained.`);
 }
 
 function renderAthletes() {
@@ -258,6 +272,11 @@ async function loadPendingSession() {
 
 async function saveAttendance() {
   const saveBtn = $("saveAttendance");
+
+  if (pendingSession?.finalized === true || String(pendingSession?.status || "").toLowerCase() === "finalized") {
+    setStatus("Attendance was already finalized. Continue to Daily Grind; do not submit it again.", true);
+    return;
+  }
 
   if (!pendingSessionRef || !pendingSession) {
     setStatus("No pending session loaded to finalize.", true);
