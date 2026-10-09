@@ -522,7 +522,15 @@ export const skillCheckCoachCall =
         ok: true, athleteId, discipline, practiceIds: matching.map(item => item.practiceId),
         practices: matching, scanned: candidates.length,
         scope, cursor: cursor || null, nextCursor, pageComplete: true,
-        coachScopeExhausted: !hasMore,
+        scopeExhausted: !hasMore,
+        coverageComplete: false,
+        coverageBlockers: [
+          ...(hasMore ? ["additional-pages-required"] : []),
+          "cross-scope-reconciliation-required",
+          "historical-transfer-coverage-unverified",
+          "historical-chronology-unresolved",
+        ],
+        coachScopeExhausted: scope === "coach" && !hasMore,
         ...(includeEvidence ? { history, familyEvidence, progressionAssessment } : {}),
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
