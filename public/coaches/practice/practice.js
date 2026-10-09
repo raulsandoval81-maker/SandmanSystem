@@ -214,7 +214,7 @@ function renderFlow(flowId, options = {}) {
   activeFlowTitle.textContent = flow.title;
   activeFlowDescription.textContent = flow.description;
 
-  startFlowHeading.textContent = flow.startHeading;
+  if (startFlowHeading) startFlowHeading.textContent = flow.startHeading;
   startFlowDescription.textContent = flow.startDescription;
 
   clearElement(startFlowSteps);
