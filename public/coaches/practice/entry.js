@@ -147,7 +147,7 @@ async function submit() {
         program: program.programId,
         track: program.track || "",
         schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: "manual",
+        executionMode: mode === "planned" ? "hybrid" : "manual",
         durationMinutes: 60
       });
       const practiceId = String(response.data?.practiceId || "").trim();
