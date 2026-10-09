@@ -72,7 +72,8 @@ test("location-tagged history outside current athlete location is not imported v
  await db.doc("attendance_sessions/"+id).set({practiceId:id,discipline:"wrestling",status:"finalized",finalized:true,presentIds:[athleteId]});
  await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"wrestling",attendance:{status:"present"}});
  await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/wrestling__double_leg").set({discipline:"wrestling",familyId:"double_leg",state:"MASTERED",coachUid:"test-legacy-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-06T18:00:00Z"))});
- const result=await callable.run({auth:{uid:"test-legacy-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ await db.doc("staff/test-academy-reader").set({role:"coach",status:"active",locationIds:["test-location"],academyIds:["test-academy"]});
+ const result=await callable.run({auth:{uid:"test-academy-reader",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
  assert.equal(result.practices.some(p=>p.practiceId===id),false);
  assert.ok(result.blockers.includes("historical-transfer-coverage-unverified"));
  assert.equal(result.eligibleForAuto,false);
