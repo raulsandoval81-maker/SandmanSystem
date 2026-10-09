@@ -109,3 +109,15 @@ test("Coach cannot read prior-location evidence merely because athlete declares 
  assert.ok(result.checkedScopes.some(scope=>scope.scope==="prior-location:prior-training-location"&&!scope.authorized));
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Admin prior-location scans are capped and explicitly report unscanned transfer history",async()=>{
+ const ids=Array.from({length:12},(_,index)=>"prior-scan-location-"+index);
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:ids});
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.transferCoverage.priorLocationCount,12);
+ assert.equal(result.transferCoverage.priorLocationsNotScanned,2);
+ assert.equal(result.checkedScopes.filter(scope=>scope.scope.startsWith("prior-location:")).length,10);
+ assert.ok(result.blockers.includes("prior-location-scan-limit-exceeded"));
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+});
