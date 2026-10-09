@@ -681,21 +681,6 @@ function suggestedTrainingGroups() {
       return String(a.tier).localeCompare(String(b.tier));
     });
 
-  if (groups.length > 3) {
-    const firstTwo = groups.slice(0, 2);
-    const rest = groups.slice(2);
-    const mergedJourney = rest.some(g => g.journey === "P2L") ? "P2L" : (rest[0]?.journey || "Z2H");
-    const mergedTier = rest[0]?.tier || "T0";
-    const merged = {
-      ageGroup: rest.some(g => /teen|adult/i.test(g.ageGroup)) ? "Teen" : "Mixed Youth",
-      journey: mergedJourney,
-      tier: mergedTier,
-      rank: rankForTier(mergedTier, mergedJourney),
-      athleteIds: rest.flatMap(g => g.athleteIds),
-      athleteNames: rest.flatMap(g => g.athleteNames)
-    };
-    groups = [...firstTwo, merged];
-  }
 
   if (!groups.length) {
     groups = [{
@@ -735,7 +720,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
   const container = $("trainingGroups");
   if (!container) return;
 
-  container.innerHTML = groups.slice(0, 3).map((group, index) => `
+  container.innerHTML = groups.map((group, index) => `
     <section
       class="training-group-card"
       data-training-group="${index}"
@@ -821,7 +806,15 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
 
   container.querySelectorAll(".remove-training-group").forEach((button) => {
     button.addEventListener("click", () => {
-      button.closest(".training-group-card")?.remove();
+      const card = button.closest(".training-group-card");
+      const ids = card?.dataset.athleteIds || "%5B%5D";
+      let assigned = [];
+      try { assigned = JSON.parse(decodeURIComponent(ids)); } catch {}
+      if (assigned.length) {
+        setStatus("This group contains checked-in athletes. Keep it or reassign its athletes before removing it.", true);
+        return;
+      }
+      card?.remove();
       renumberTrainingGroups();
       updateGroupControls();
       updateContextSummary();
@@ -842,17 +835,15 @@ function renumberTrainingGroups() {
 
 function updateGroupControls() {
   const count = document.querySelectorAll(".training-group-card").length;
-  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
+  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = false;
   if ($("trainingGroupHint")) {
-    $("trainingGroupHint").textContent = count >= 3
-      ? "Maximum 3 groups for one practice."
-      : `${count} training group${count === 1 ? "" : "s"} active.`;
+    $("trainingGroupHint").textContent =
+      `${count} training group${count === 1 ? "" : "s"} identified. Groups share one Practice ID. Coach must confirm safe supervision and compatible partner work; no groups are automatically merged.`;
   }
 }
 
 function addTrainingGroup() {
   const current = captureTrainingGroups();
-  if (current.length >= 3) return;
   const previous = current[current.length - 1] || {};
   const journey = previous.journey || (/teen/i.test(previous.ageGroup || "") ? "P2L" : "Z2H");
   current.push({
@@ -927,6 +918,13 @@ async function savePracticeContextToBuilderSession() {
   } catch {}
 
   const trainingGroups = captureTrainingGroups();
+  const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
+  const assignedIds = trainingGroups.flatMap(g => g.athleteIds || []).map(String);
+  if (assignedIds.length !== new Set(assignedIds).size ||
+      assignedIds.some(id => !rosterIds.has(id)) ||
+      rosterIds.size !== new Set(assignedIds).size) {
+    throw new Error("Training group assignments do not match checked-in athletes. Review the grouping before continuing.");
+  }
   const primary = trainingGroups[0] || {
     journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
     tier: "T0",
@@ -1023,7 +1021,12 @@ async function submitForReview() {
   renderCheckedIn();
 
   if (isBuilderFlow() && returnTarget() === "clipboard") {
-    await savePracticeContextToBuilderSession();
+    try {
+      await savePracticeContextToBuilderSession();
+    } catch (error) {
+      setStatus(error?.message || "Review training groups before continuing.", true);
+      return;
+    }
     let sessionId = requestedSessionId();
     if (!sessionId) {
       try {
