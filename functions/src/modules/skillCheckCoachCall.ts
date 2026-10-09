@@ -367,7 +367,9 @@ export const skillCheckCoachCall =
       }
       const attendanceSnap = await db.doc(`attendance_sessions/${practiceId}`).get();
       const attendance = attendanceSnap.data() || {};
-      if (!attendanceSnap.exists || clean(attendance.status).toLowerCase() !== "finalized"
+      if (!attendanceSnap.exists || clean(attendance.practiceId) !== practiceId
+          || normalizeDiscipline(attendance.discipline) !== discipline
+          || clean(attendance.status).toLowerCase() !== "finalized"
           || attendance.finalized !== true || !attendanceIncludesAthlete(attendance, athleteId)) {
         throw new HttpsError("failed-precondition", "Finalized attendance for this athlete is required.");
       }
@@ -375,6 +377,7 @@ export const skillCheckCoachCall =
       const memory = memorySnap.data() || {};
       if (!memorySnap.exists || clean(memory.practiceId) !== practiceId
           || clean(memory.athleteId).toUpperCase() !== athleteId
+          || normalizeDiscipline(memory.discipline) !== discipline
           || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
         throw new HttpsError("failed-precondition", "Matching athlete-session memory is required.");
       }
