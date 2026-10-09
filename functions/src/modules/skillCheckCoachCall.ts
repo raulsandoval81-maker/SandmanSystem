@@ -385,6 +385,55 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "historical-coverage-preflight") {
+      // Server-owned discovery inventory. This deliberately does not claim
+      // completeness from a bounded query or infer any development state.
+      const locationId = clean(athlete.locationId);
+      const academyId = clean(athlete.academyId);
+      const admin = normalizeStaffRole(actor.role) === "admin";
+      const authorizedLocation = Boolean(locationId)
+        && (admin || staffHasLocation(actor.staff, locationId));
+      const authorizedAcademy = Boolean(academyId)
+        && (admin || normalizeStaffScope(actor.staff).academyIds.includes(academyId));
+      const specifications = [
+        { scope: "coach", field: "coachUid", value: actor.uid, enabled: true },
+        { scope: "athlete-location", field: "locationId", value: locationId, enabled: authorizedLocation },
+        { scope: "athlete-academy", field: "academyId", value: academyId, enabled: authorizedAcademy },
+      ];
+      const scopes = [];
+      for (const spec of specifications) {
+        if (!spec.enabled) {
+          scopes.push({ scope: spec.scope, accessible: false, sampled: 0, morePages: null });
+          continue;
+        }
+        const snapshot = await db.collection("practiceSessions")
+          .where(spec.field, "==", spec.value)
+          .orderBy(FieldPath.documentId())
+          .limit(51)
+          .get();
+        const candidates = snapshot.docs.slice(0, 50)
+          .filter(doc => normalizeDiscipline(doc.data().discipline) === discipline)
+          .filter(doc => spec.scope !== "athlete-academy" || !clean(doc.data().locationId));
+        scopes.push({
+          scope: spec.scope, accessible: true, sampled: snapshot.size > 50 ? 50 : snapshot.size,
+          matchingDisciplineSample: candidates.length,
+          morePages: snapshot.size > 50,
+          // This cursor is a discovery hint, not proof of coverage.
+          nextCursor: snapshot.size > 50 ? snapshot.docs[49].id : null,
+        });
+      }
+      return {
+        ok: true, athleteId, discipline, diagnosticOnly: true,
+        scopes, coverageComplete: false, eligibleForAuto: false,
+        blockers: [
+          "sampled-scope-inventory-only",
+          "complete-historical-pagination-required",
+          "cross-scope-evidence-reconciliation-required",
+          "historical-transfers-unverified",
+        ],
+      };
+    }
+
     if (action === "verify-historical-evidence-batch") {
       // Re-read authoritative Firestore records for explicitly requested
       // practices. This does not assert that other historical records do not exist.
