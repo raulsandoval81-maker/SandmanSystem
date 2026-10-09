@@ -862,12 +862,27 @@ async function resolveGroupPrescriptions(payload) {
       // A first-wave fallback is useful for HYBRID editing, but is not evidence
       // of validated athlete progression and must not authorize AUTO execution.
       const progressionVerified = false;
+      // Resolve curriculum-card IDs through the existing canonical skill-family map.
+      // Mapping identifies the evidence to look up; it does not certify mastery.
+      let cardFamilyMap = {};
+      if (discipline === "wrestling") {
+        const { WRESTLING_CARD_FAMILIES } = await import("/coaches/cards/wrestling/family-map.js");
+        const journeyKey = String(program?.journey || "").toLowerCase() === "z2h" ? "r2c" : "p2l";
+        cardFamilyMap = WRESTLING_CARD_FAMILIES?.[journeyKey]?.[tier] || {};
+      }
+      const mappedCards = cards.map(card => ({
+        ...card,
+        familyId: cardFamilyMap[String(card.id || "").toLowerCase()] || "",
+        groupId: group.id,
+        groupLabel: group.label || group.id
+      }));
       prescriptions.push({
         groupId: group.id, tier, waveKey,
         status: cards.length ? "ready" : "unavailable",
         progressionStatus: "unverified",
         progressionVerified,
-        cards: cards.map(card => ({ ...card, groupId: group.id, groupLabel: group.label || group.id }))
+        mappingStatus: mappedCards.every(card => card.familyId) ? "mapped" : "incomplete",
+        cards: mappedCards
       });
     } catch (error) {
       console.warn("Group curriculum unavailable", group.id, error);
