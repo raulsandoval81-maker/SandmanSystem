@@ -1018,6 +1018,14 @@ async function submitForReview() {
       return;
     }
   }
+  if (isBuilderFlow()) {
+    try {
+      await savePracticeContextToBuilderSession();
+    } catch (error) {
+      setStatus(error?.message || "Could not preserve training groups.", true);
+      return;
+    }
+  }
   const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
   await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
 
@@ -1031,12 +1039,6 @@ async function submitForReview() {
   renderCheckedIn();
 
   if (isBuilderFlow() && returnTarget() === "clipboard") {
-    try {
-      await savePracticeContextToBuilderSession();
-    } catch (error) {
-      setStatus(error?.message || "Review training groups before continuing.", true);
-      return;
-    }
     let sessionId = requestedSessionId();
     if (!sessionId) {
       try {
