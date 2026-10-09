@@ -85,6 +85,27 @@ test("declared previous athlete locations remain unverified and require review",
  assert.equal(result.transferCoverage.priorLocationCount,1);
  assert.equal(result.transferCoverage.priorLocationsVerified,false);
  assert.equal(result.transferCoverage.requiresManagementReview,true);
- assert.ok(result.blockers.includes("declared-prior-locations-not-traversed"));
+ assert.ok(result.blockers.includes("prior-location-management-verification-required"));
+ assert.equal(result.eligibleForAuto,false);
+});
+
+test("Admin can inspect declared prior-location evidence without authorizing AUTO",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="test-admin-prior-location";
+ await db.doc("staff/test-admin-transfer").set({role:"admin",status:"active"});
+ await db.doc("practiceSessions/"+id).set({coachUid:"former-coach",locationId:"prior-training-location",discipline:"wrestling",sessionDateKey:"2026-10-05"});
+ await db.doc("attendance_sessions/"+id).set({practiceId:id,discipline:"wrestling",status:"finalized",finalized:true,presentIds:[athleteId]});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"wrestling",attendance:{status:"present"}});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/wrestling__double_leg").set({discipline:"wrestling",familyId:"double_leg",state:"LEARNED",coachUid:"former-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-05T18:00:00Z"))});
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.ok(result.practices.some(p=>p.practiceId===id));
+ assert.equal(result.transferCoverage.priorLocationsScanned,1);
+ assert.equal(result.transferCoverage.priorLocationsVerified,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("Coach cannot read prior-location evidence merely because athlete declares it",async()=>{
+ const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.practices.some(p=>p.practiceId==="test-admin-prior-location"),false);
+ assert.ok(result.checkedScopes.some(scope=>scope.scope==="prior-location:prior-training-location"&&!scope.authorized));
  assert.equal(result.eligibleForAuto,false);
 });
