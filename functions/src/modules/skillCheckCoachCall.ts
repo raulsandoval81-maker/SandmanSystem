@@ -10,6 +10,8 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
+import { reconcileHistoryPages, type HistoryPage } from "./historicalSkillReconciliation";
+
 import {
   normalizeStaffList,
   normalizeStaffRole,
@@ -382,6 +384,45 @@ export const skillCheckCoachCall =
       actor,
       athlete
     );
+
+    if (action === "reconcile-verified-history-preview") {
+      // Diagnostic only: caller-provided discovery pages are untrusted and
+      // cannot authorize curriculum, progression or XP changes.
+      const rawPages: unknown = data.pages;
+      const rawScopes: unknown = data.scopes;
+      if (!Array.isArray(rawPages) || rawPages.length > 100
+          || !Array.isArray(rawScopes) || rawScopes.length > 3
+          || rawScopes.some(scope => !["coach", "athlete-location", "athlete-academy"].includes(scope))
+          || new Set(rawScopes).size !== rawScopes.length) {
+        throw new HttpsError("invalid-argument", "Invalid reconciliation preview inputs.");
+      }
+      const pages: HistoryPage[] = [];
+      for (const raw of rawPages) {
+        if (!raw || typeof raw !== "object") {
+          throw new HttpsError("invalid-argument", "Invalid history page.");
+        }
+        const page = raw as Record<string, unknown>;
+        if (typeof page.scope !== "string"
+            || !rawScopes.includes(page.scope)
+            || page.athleteId !== athleteId || page.discipline !== discipline
+            || typeof page.scopeExhausted !== "boolean"
+            || !Array.isArray(page.history) || page.history.length > 50) {
+          throw new HttpsError("invalid-argument", "History preview page mismatch.");
+        }
+        pages.push(page as HistoryPage);
+      }
+      const summary = reconcileHistoryPages(pages, rawScopes as string[], athleteId, discipline);
+      return {
+        ok: true,
+        diagnosticOnly: true,
+        ...summary,
+        // These inputs are supplied by the client rather than re-fetched
+        // from Firestore; they are never verified source-of-truth evidence.
+        coverageComplete: false,
+        eligibleForAuto: false,
+        blockers: [...new Set([...summary.blockers, "client-supplied-pages-untrusted"])].sort(),
+      };
+    }
 
     if (action === "discover-verified-practices") {
       // Deterministic, cursor-paged discovery within the requesting Coach's
