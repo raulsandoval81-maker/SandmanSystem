@@ -385,6 +385,76 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "verify-historical-evidence-batch") {
+      // Re-read authoritative Firestore records for explicitly requested
+      // practices. This does not assert that other historical records do not exist.
+      const ids: unknown = data.practiceIds;
+      if (!Array.isArray(ids) || ids.length < 1 || ids.length > 20
+          || ids.some(id => typeof id !== "string")) {
+        throw new HttpsError("invalid-argument", "Supply 1–20 practice IDs.");
+      }
+      const practiceIds = ids.map(id => optionalPracticeId(id));
+      if (practiceIds.some(id => !id) || new Set(practiceIds).size !== practiceIds.length) {
+        throw new HttpsError("invalid-argument", "Historical practice IDs must be unique.");
+      }
+      const verifiedHistory = [];
+      for (const practiceId of practiceIds) {
+        const [practiceSnap, attendanceSnap, memorySnap] = await Promise.all([
+          db.doc(`practiceSessions/${practiceId}`).get(),
+          db.doc(`attendance_sessions/${practiceId}`).get(),
+          db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`).get(),
+        ]);
+        if (!practiceSnap.exists || !attendanceSnap.exists || !memorySnap.exists) {
+          throw new HttpsError("failed-precondition", "Historical practice evidence is missing.");
+        }
+        const practice = practiceSnap.data() || {};
+        requireHistoricalPracticeReadAccess(actor, practice, clean(athlete.locationId), clean(athlete.academyId));
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        if (normalizeDiscipline(practice.discipline) !== discipline
+            || clean(attendance.practiceId) !== practiceId
+            || normalizeDiscipline(attendance.discipline) !== discipline
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || attendance.finalized !== true
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== practiceId
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
+          throw new HttpsError("failed-precondition", "Historical attendance and session memory do not agree.");
+        }
+        const evidence = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).get();
+        if (evidence.empty) throw new HttpsError("failed-precondition", "No verified skills in historical practice.");
+        const verifiedSkills = evidence.docs.map(item => item.data() || {})
+          .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+            && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+            && ALLOWED_STATES.includes(normalizeState(skill.state)))
+          .map(skill => ({
+            familyId: normalizeFamily(skill.familyId),
+            state: normalizeState(skill.state),
+            coachUid: clean(skill.coachUid),
+            verifiedAt: skill.verifiedAt instanceof Timestamp ? skill.verifiedAt.toDate().toISOString() : null,
+          }));
+        if (!verifiedSkills.length) {
+          throw new HttpsError("failed-precondition", "No matching verified skill observations.");
+        }
+        verifiedHistory.push({
+          practiceId, sessionDateKey: clean(practice.sessionDateKey), verifiedSkills,
+        });
+      }
+      const summary = reconcileHistoryPages([{
+        athleteId, discipline, scope: "verified-batch",
+        cursor: null, nextCursor: null, scopeExhausted: true,
+        history: verifiedHistory,
+      }], ["verified-batch"], athleteId, discipline);
+      return {
+        ok: true, diagnosticOnly: true, source: "server-verified-firestore",
+        ...summary, coverageComplete: false, eligibleForAuto: false,
+        blockers: [...new Set([...summary.blockers,
+          "explicit-practice-batch-does-not-prove-complete-history"])].sort(),
+      };
+    }
+
     if (action === "reconcile-verified-history-preview") {
       // Diagnostic only: caller-provided discovery pages are untrusted and
       // cannot authorize curriculum, progression or XP changes.
