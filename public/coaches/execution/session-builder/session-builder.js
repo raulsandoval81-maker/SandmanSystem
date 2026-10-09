@@ -856,11 +856,9 @@ async function resolveGroupPrescriptions(payload) {
       const model = await import(`${prefix}-${tier}-waves.js`);
       const waves = Object.entries(model.WAVE_CARDS || {})
         .filter(([, cards]) => Array.isArray(cards) && cards.length);
-      // Training progression is internal; do not use a Coach-selected week/session.
-      // Deterministic selection remains stable when the Coach reopens the same practice.
-      const identity = String(payload.practiceId || "") + ":" + String(group.id || "");
-      const hash = [...identity].reduce((acc, ch) => ((acc * 31) + ch.charCodeAt(0)) >>> 0, 0);
-      const [waveKey, cards] = waves[hash % waves.length] || ["", []];
+      // Start with the first approved mapped wave until authoritative individual
+      // progression records are connected. Never use an arbitrary hash as pedagogy.
+      const [waveKey, cards] = waves[0] || ["", []];
       prescriptions.push({
         groupId: group.id, tier, waveKey, status: cards.length ? "ready" : "unavailable",
         cards: cards.map(card => ({ ...card, groupId: group.id, groupLabel: group.label || group.id }))
