@@ -27,12 +27,13 @@ export function reconcileHistoryPages(
     if (cursorMap.size !== scoped.length) blockers.add("duplicate-page-cursor");
     let cursor = "";
     const visited = new Set<string>();
+    let terminated = false;
     while (!visited.has(cursor)) {
       visited.add(cursor);
       const page = cursorMap.get(cursor);
       if (!page) { blockers.add("missing-page:" + scope); break; }
       if (page.athleteId !== athleteId || page.discipline !== discipline) {
-        blockers.add("identity-mismatch"); break;
+        blockers.add("identity-mismatch"); terminated = true; break;
       }
       if (!page.history) { blockers.add("missing-evidence:" + scope); break; }
       for (const record of page.history) {
@@ -53,12 +54,13 @@ export function reconcileHistoryPages(
       }
       if (page.scopeExhausted) {
         if (page.nextCursor) blockers.add("inconsistent-end-cursor");
+        terminated = true;
         break;
       }
-      if (!page.nextCursor) { blockers.add("missing-next-cursor"); break; }
+      if (!page.nextCursor) { blockers.add("missing-next-cursor"); terminated = true; break; }
       cursor = page.nextCursor;
     }
-    if (visited.has(cursor) && cursorMap.get(cursor)?.nextCursor && !cursorMap.get(cursor)?.scopeExhausted) blockers.add("cursor-cycle");
+    if (!terminated) blockers.add("cursor-cycle:" + scope);
     if (visited.size !== cursorMap.size) blockers.add("disconnected-page");
   }
   const practices = [...found.values()].sort((a, b) =>
