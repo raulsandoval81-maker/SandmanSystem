@@ -50,3 +50,30 @@ test("historical memory without attendance produces a coverage blocker",async()=
  assert.ok(result.blockers.includes("unresolved-athlete-attendance:"+id));
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("authorized academy coach retrieves legacy records without locationId",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="test-legacy-academy";
+ await db.doc("staff/test-legacy-coach").set({role:"coach",status:"active",locationIds:["test-location"],academyIds:["test-academy"]});
+ await db.doc("practiceSessions/"+id).set({coachUid:"test-legacy-coach",academyId:"test-academy",discipline:"wrestling",sessionDateKey:"2026-10-07"});
+ await db.doc("attendance_sessions/"+id).set({practiceId:id,discipline:"wrestling",status:"finalized",finalized:true,presentIds:[athleteId]});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"wrestling",attendance:{status:"present"}});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/wrestling__double_leg").set({discipline:"wrestling",familyId:"double_leg",state:"APPLIED",coachUid:"test-legacy-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-07T18:00:00Z"))});
+ const result=await callable.run({auth:{uid:"test-legacy-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.ok(result.practices.some(p=>p.practiceId===id));
+ assert.ok(result.checkedScopes.some(s=>s.scope==="athlete-academy"&&s.authorized));
+ assert.equal(result.eligibleForAuto,false);
+});
+
+test("location-tagged history outside current athlete location is not imported via legacy academy",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="test-transferred-location";
+ await db.doc("practiceSessions/"+id).set({coachUid:"test-legacy-coach",academyId:"test-academy",locationId:"former-location",discipline:"wrestling",sessionDateKey:"2026-10-06"});
+ await db.doc("attendance_sessions/"+id).set({practiceId:id,discipline:"wrestling",status:"finalized",finalized:true,presentIds:[athleteId]});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"wrestling",attendance:{status:"present"}});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/wrestling__double_leg").set({discipline:"wrestling",familyId:"double_leg",state:"MASTERED",coachUid:"test-legacy-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-06T18:00:00Z"))});
+ const result=await callable.run({auth:{uid:"test-legacy-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.practices.some(p=>p.practiceId===id),false);
+ assert.ok(result.blockers.includes("historical-transfer-coverage-unverified"));
+ assert.equal(result.eligibleForAuto,false);
+});
