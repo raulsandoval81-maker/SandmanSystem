@@ -5,6 +5,7 @@ import {
 
 import {
   FieldValue,
+  Timestamp,
   getFirestore,
 } from "firebase-admin/firestore";
 
@@ -401,7 +402,7 @@ export const skillCheckCoachCall =
               .map(skill => ({
                 familyId: normalizeFamily(skill.familyId),
                 state: normalizeState(skill.state),
-                verifiedAt: skill.verifiedAt?.toDate?.()?.toISOString?.() || null,
+                verifiedAt: skill.verifiedAt instanceof Timestamp ? skill.verifiedAt.toDate().toISOString() : null,
                 coachUid: clean(skill.coachUid),
               })),
           });
