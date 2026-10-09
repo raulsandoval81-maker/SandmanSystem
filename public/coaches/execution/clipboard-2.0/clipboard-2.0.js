@@ -2184,7 +2184,8 @@ function updateSupportLinks() {
   installDrillBlockEditors();
   restoreDraft(storedDraft);
 
-  if (Array.isArray(hybridCards) && hybridCards.length) {
+  // MANUAL must never receive system-selected cards; AUTO/HYBRID share approved prescriptions.
+  if (["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase()) && Array.isArray(hybridCards) && hybridCards.length) {
 
     const existingCards =
       getStoredClipboardCards(CLIPBOARD_KEY)
