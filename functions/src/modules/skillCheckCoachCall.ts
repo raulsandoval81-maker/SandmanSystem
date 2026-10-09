@@ -403,13 +403,17 @@ export const skillCheckCoachCall =
         : [];
       const unresolvedTransferLocations = [...new Set(previousLocations)]
         .filter(id => id !== locationId);
+      // A single callable must not fan out across an unbounded number of
+      // user-declared prior locations. Remaining scopes stay unverified.
+      const priorLocationScanLimit = 10;
+      const priorLocationsToScan = unresolvedTransferLocations.slice(0, priorLocationScanLimit);
       const specs = [
         { scope: "coach", field: "coachUid", value: actor.uid, authorized: true },
         { scope: "athlete-location", field: "locationId", value: locationId,
           authorized: Boolean(locationId) && (admin || staffHasLocation(actor.staff, locationId)) },
         { scope: "athlete-academy", field: "academyId", value: academyId,
           authorized: Boolean(academyId) && (admin || normalizeStaffScope(actor.staff).academyIds.includes(academyId)) },
-        ...unresolvedTransferLocations.map(id => ({
+        ...priorLocationsToScan.map(id => ({
           scope: "prior-location:" + id, field: "locationId", value: id,
           authorized: admin,
         })),
@@ -417,6 +421,9 @@ export const skillCheckCoachCall =
       const pages: HistoryPage[] = [];
       const blockers = new Set<string>();
       if (unresolvedTransferLocations.length) blockers.add("prior-location-management-verification-required");
+      if (unresolvedTransferLocations.length > priorLocationScanLimit) {
+        blockers.add("prior-location-scan-limit-exceeded");
+      }
       for (const spec of specs) {
         if (!spec.authorized) {
           blockers.add("scope-unavailable:" + spec.scope);
@@ -516,6 +523,7 @@ export const skillCheckCoachCall =
         ...summary,
         transferCoverage: {
           priorLocationCount: unresolvedTransferLocations.length,
+          priorLocationsNotScanned: Math.max(0, unresolvedTransferLocations.length - priorLocationScanLimit),
           priorLocationsVerified: false,
           priorLocationsScanned: specs.filter(spec => spec.scope.startsWith("prior-location:")
             && spec.authorized && pages.some(page => page.scope === spec.scope && page.scopeExhausted)).length,
