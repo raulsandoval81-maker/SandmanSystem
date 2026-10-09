@@ -1126,6 +1126,19 @@ async function loadReadyForIntake(managementContext) {
       : `<div class="muted small">No sent intake invitations are awaiting submission.</div>`;
   }
 
+  // Persist verified-token feedback when the queue is rerendered.
+  readyItems.forEach(item => {
+    const proposalId = String(item.proposal?.proposalId || item.proposal?.id || "").trim();
+    const audience = intakeAudienceForProposal(item.proposal, Array.isArray(item.proposal?.lockedSnapshot?.athletes) ? item.proposal.lockedSnapshot.athletes : (item.proposal?.athletes || []));
+    const verified = item.handoff?.state === "active" && item.handoff?.tokenId;
+    if (!verified) return;
+    const selector = audience === "adult_athlete" ? "data-ready-adult" : "data-ready-parent";
+    const button = document.querySelector(`[${selector}="${CSS.escape(proposalId)}"]`);
+    if (button) {
+      button.textContent = "✓ Token Verified";
+      button.classList.add("intake-token-verified");
+    }
+  });
   wireReadyIntakeButtons();
   wireAwaitingIntakeButtons();
   orientRequestedProposal();
