@@ -859,8 +859,14 @@ async function resolveGroupPrescriptions(payload) {
       // Start with the first approved mapped wave until authoritative individual
       // progression records are connected. Never use an arbitrary hash as pedagogy.
       const [waveKey, cards] = waves[0] || ["", []];
+      // A first-wave fallback is useful for HYBRID editing, but is not evidence
+      // of validated athlete progression and must not authorize AUTO execution.
+      const progressionVerified = false;
       prescriptions.push({
-        groupId: group.id, tier, waveKey, status: cards.length ? "ready" : "unavailable",
+        groupId: group.id, tier, waveKey,
+        status: cards.length ? "ready" : "unavailable",
+        progressionStatus: "unverified",
+        progressionVerified,
         cards: cards.map(card => ({ ...card, groupId: group.id, groupLabel: group.label || group.id }))
       });
     } catch (error) {
@@ -1037,8 +1043,8 @@ buildBtn.addEventListener("click", async () => {
     if (selectedMode === "auto" && !payload.trainingGroups?.length) {
       throw new Error("AUTO needs attendance-derived groups before prescribing a lesson. Return to Attendance.");
     }
-    if (selectedMode === "auto" && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready"))) {
-      throw new Error("AUTO cannot start: one or more groups lack an approved lesson. No incomplete prescription was launched.");
+    if (selectedMode === "auto" && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready" || g.progressionVerified !== true))) {
+      throw new Error("AUTO needs verified athlete progression and approved lessons for every group. First-wave fallback is HYBRID-only. No incomplete AUTO lesson was launched.");
     }
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
