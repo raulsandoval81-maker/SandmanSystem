@@ -408,6 +408,10 @@ export const skillCheckCoachCall =
       const field = scope === "coach" ? "coachUid" : scope === "athlete-location" ? "locationId" : "academyId";
       const value = scope === "coach" ? actor.uid : scope === "athlete-location" ? locationId : academyId;
       const visited: { practiceId: string; sessionDateKey: string }[] = [];
+      const history: { practiceId: string; sessionDateKey: string; verifiedSkills: {
+        familyId: string; state: string; verifiedAt: string | null; coachUid: string
+      }[] }[] = [];
+      const evidenceBlockers = new Set<string>();
       let position = cursor;
       let exhausted = false;
       for (let pageIndex = 0; pageIndex < 3; pageIndex++) {
@@ -443,7 +447,28 @@ export const skillCheckCoachCall =
               || clean(memory.athleteId).toUpperCase() !== athleteId
               || normalizeDiscipline(memory.discipline) !== discipline
               || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
-          visited.push({ practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey) });
+          const evidence = await db.collection(`practiceSessions/${doc.id}/athletes/${athleteId}/verifiedSkills`).get();
+          if (evidence.empty) {
+            evidenceBlockers.add("missing-verified-skills");
+            continue;
+          }
+          const verifiedSkills = evidence.docs.map(item => item.data() || {})
+            .filter(skill => normalizeDiscipline(skill.discipline) === discipline
+              && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+              && ALLOWED_STATES.includes(normalizeState(skill.state)))
+            .map(skill => ({
+              familyId: normalizeFamily(skill.familyId),
+              state: normalizeState(skill.state),
+              coachUid: clean(skill.coachUid),
+              verifiedAt: skill.verifiedAt instanceof Timestamp ? skill.verifiedAt.toDate().toISOString() : null,
+            }));
+          if (verifiedSkills.length !== evidence.size || verifiedSkills.some(skill => !skill.coachUid || !skill.verifiedAt)) {
+            evidenceBlockers.add("incomplete-verified-skill-evidence");
+          }
+          if (!verifiedSkills.length) continue;
+          const sessionDateKey = clean(practice.sessionDateKey);
+          visited.push({ practiceId: doc.id, sessionDateKey });
+          history.push({ practiceId: doc.id, sessionDateKey, verifiedSkills });
         }
         if (snapshot.size <= 50) {
           exhausted = true;
@@ -454,13 +479,13 @@ export const skillCheckCoachCall =
       }
       return {
         ok: true, athleteId, discipline, scope,
-        practices: visited, scopeExhausted: exhausted,
+        practices: visited, history, scopeExhausted: exhausted,
         nextCursor: exhausted ? null : position,
         diagnosticOnly: true, coverageComplete: false,
         eligibleForAuto: false,
         blockers: [
           ...(exhausted ? [] : ["further-traversal-pages-required"]),
-          "verified-skill-observations-not-loaded",
+          ...evidenceBlockers,
           "cross-scope-reconciliation-required",
           "historical-transfer-coverage-unverified",
         ],
