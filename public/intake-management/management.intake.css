@@ -2118,3 +2118,11 @@ button.intake-token-verified:not(:disabled) {
   color: #fff !important;
   font-weight: 800;
 }
+
+button.intake-token-verified:disabled {
+  opacity: 1 !important;
+  cursor: default !important;
+  background: #16773a !important;
+  color: #fff !important;
+  border: 2px solid #22a455 !important;
+}
