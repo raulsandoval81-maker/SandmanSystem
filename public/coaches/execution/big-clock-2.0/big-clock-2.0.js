@@ -374,7 +374,8 @@ const playlist = blocks
     cards: Array.isArray(b.cards) ? b.cards : [],
     notes: b.notes || "",
     timer: b.timer || null,
-    drillBlocks: Array.isArray(b.drillBlocks) ? b.drillBlocks : []
+    drillBlocks: Array.isArray(b.drillBlocks) ? b.drillBlocks : [],
+    groupActivities: Array.isArray(b.groupActivities) ? b.groupActivities : []
   }))
     .filter(b => b.minutes > 0);
 
@@ -783,6 +784,9 @@ function renderGroupLessonReferences() {
   const prescriptions = Array.isArray(payload.groupPrescriptions) ? payload.groupPrescriptions : [];
   const groups = Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [];
   const mode = String(payload.executionMode || "").toLowerCase();
+  const state = getState();
+  const activeBlock = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+  const activeGroupActivities = Array.isArray(activeBlock?.groupActivities) ? activeBlock.groupActivities : [];
   const shouldShow = mode !== "manual" && prescriptions.length > 0 && groups.length > 0;
   if (!shouldShow) {
     panel?.remove();
@@ -802,7 +806,8 @@ function renderGroupLessonReferences() {
   summary.textContent = `Group lessons · ${prescriptions.filter(p => p.status === "ready").length}/${groups.length} mapped (Coach reference)`;
   panel.append(summary);
   for (const [index, group] of groups.entries()) {
-    const entry = prescriptions.find(p => String(p.groupId || "") === String(group.id || ""));
+    const entry = activeGroupActivities.find(p => String(p.groupId || "") === String(group.id || ""))
+      || prescriptions.find(p => String(p.groupId || "") === String(group.id || ""));
     const line = document.createElement("div");
     line.style.cssText = "margin-top:10px;line-height:1.7";
     const heading = document.createElement("strong");
@@ -825,6 +830,11 @@ function renderGroupLessonReferences() {
           line.append(document.createTextNode(String(card.title || "Skill card")));
         }
       }
+    }
+    if (mode === "hybrid" && entry?.coachAdjustment) {
+      const adjustment = document.createElement("p");
+      adjustment.textContent = `Coach adjustment: ${entry.coachAdjustment}`;
+      line.append(adjustment);
     }
     panel.append(line);
   }
