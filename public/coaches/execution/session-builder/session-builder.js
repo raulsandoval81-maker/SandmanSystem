@@ -978,7 +978,13 @@ buildBtn.addEventListener("click", async () => {
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
 
-    window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=clipboard&flow=builder`;
+    const attendanceFirstId = sessionStorage.getItem("sandman_attendance_first_practice_id");
+    if (attendanceFirstId === payload.practiceId) {
+      sessionStorage.removeItem("sandman_attendance_first_practice_id");
+      window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(payload.sessionId)}&practiceId=${encodeURIComponent(payload.practiceId)}`;
+    } else {
+      window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=clipboard&flow=builder`;
+    }
   } catch (error) {
     console.error("Session entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
