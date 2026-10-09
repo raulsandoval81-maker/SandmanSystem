@@ -550,6 +550,7 @@ function renderClipboardTrainingGroups() {
 
   const session = getActiveSession();
   const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups : [];
+  const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
   if (!groups.length) {
     el.hidden = true;
     el.innerHTML = "";
@@ -563,12 +564,17 @@ function renderClipboardTrainingGroups() {
     const names = Array.isArray(group.athleteNames) && group.athleteNames.length
       ? group.athleteNames.join(", ")
       : "";
+    const prescription = prescriptions.find(item => item.groupId === group.id);
+    const teachingLinks = prescription?.status === "ready"
+      ? prescription.cards.map(card => `<a href="${escapeHtml(card.href || "#")}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.title || "Skill card")}</a>`).join(" · ")
+      : (session.executionMode === "manual" ? "" : "Lesson mapping requires review");
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
         <span class="clipboard-group-label">Mat 1 · Group ${index + 1}</span>
         <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
         <span>${names ? names : "System-guided group"}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
+        ${teachingLinks ? `<div class="clipboard-group-skills">${teachingLinks}</div>` : ""}
       </article>
     `;
   }).join("");
