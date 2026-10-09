@@ -428,7 +428,7 @@ export const skillCheckCoachCall =
             || normalizeDiscipline(memory.discipline) !== discipline
             || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
         const verified = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`)
-          .limit(includeEvidence ? 100 : 1).get();
+          .get();
         if (verified.empty) continue;
         const sessionDateKey = clean(practice.sessionDateKey);
         matching.push({ practiceId, sessionDateKey });
@@ -501,7 +501,7 @@ export const skillCheckCoachCall =
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
-        limitation: "Discovery is paged by practice ID. Athlete-location mode covers only practiceSessions with a matching locationId; legacy academyId-only records, other locations, and chronological state resolution remain unproven."
+        limitation: "Discovery is paged by practice ID. Athlete-location mode covers only practiceSessions with a matching locationId; legacy academyId-only records, transfers, and chronological state resolution remain unproven."
       };
     }
 
