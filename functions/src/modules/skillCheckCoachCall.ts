@@ -385,6 +385,88 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "historical-scope-traversal") {
+      // Each invocation traverses a bounded number of pages on the server.
+      // Cursors are hints only; no result establishes complete athlete history.
+      const scope = clean(data.scope).toLowerCase();
+      if (!["coach", "athlete-location", "athlete-academy"].includes(scope)) {
+        throw new HttpsError("invalid-argument", "Unsupported traversal scope.");
+      }
+      const locationId = clean(athlete.locationId);
+      const academyId = clean(athlete.academyId);
+      const admin = normalizeStaffRole(actor.role) === "admin";
+      if (scope === "athlete-location" && (!locationId
+          || (!admin && !staffHasLocation(actor.staff, locationId)))) {
+        throw new HttpsError("permission-denied", "Location history is outside authorized scope.");
+      }
+      if (scope === "athlete-academy" && (!academyId
+          || (!admin && !normalizeStaffScope(actor.staff).academyIds.includes(academyId)))) {
+        throw new HttpsError("permission-denied", "Academy history is outside authorized scope.");
+      }
+      const cursor = clean(data.cursor);
+      if (cursor) optionalPracticeId(cursor);
+      const field = scope === "coach" ? "coachUid" : scope === "athlete-location" ? "locationId" : "academyId";
+      const value = scope === "coach" ? actor.uid : scope === "athlete-location" ? locationId : academyId;
+      const visited: { practiceId: string; sessionDateKey: string }[] = [];
+      let position = cursor;
+      let exhausted = false;
+      for (let pageIndex = 0; pageIndex < 3; pageIndex++) {
+        let query = db.collection("practiceSessions")
+          .where(field, "==", value)
+          .orderBy(FieldPath.documentId())
+          .limit(51);
+        if (position) query = query.startAfter(position);
+        const snapshot = await query.get();
+        const pageDocs = snapshot.docs.slice(0, 50);
+        for (const doc of pageDocs) {
+          const practice = doc.data() || {};
+          if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+          if (scope === "athlete-academy" && clean(practice.locationId)) continue;
+          if (scope !== "coach") {
+            requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
+          } else {
+            requirePracticeVerificationAccess(actor, practice);
+          }
+          const [attendanceSnap, memorySnap] = await Promise.all([
+            db.doc(`attendance_sessions/${doc.id}`).get(),
+            db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
+          ]);
+          const attendance = attendanceSnap.data() || {};
+          const memory = memorySnap.data() || {};
+          if (!attendanceSnap.exists || !memorySnap.exists
+              || clean(attendance.practiceId) !== doc.id
+              || normalizeDiscipline(attendance.discipline) !== discipline
+              || clean(attendance.status).toLowerCase() !== "finalized"
+              || attendance.finalized !== true
+              || !attendanceIncludesAthlete(attendance, athleteId)
+              || clean(memory.practiceId) !== doc.id
+              || clean(memory.athleteId).toUpperCase() !== athleteId
+              || normalizeDiscipline(memory.discipline) !== discipline
+              || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") continue;
+          visited.push({ practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey) });
+        }
+        if (snapshot.size <= 50) {
+          exhausted = true;
+          position = "";
+          break;
+        }
+        position = pageDocs[pageDocs.length - 1].id;
+      }
+      return {
+        ok: true, athleteId, discipline, scope,
+        practices: visited, scopeExhausted: exhausted,
+        nextCursor: exhausted ? null : position,
+        diagnosticOnly: true, coverageComplete: false,
+        eligibleForAuto: false,
+        blockers: [
+          ...(exhausted ? [] : ["further-traversal-pages-required"]),
+          "verified-skill-observations-not-loaded",
+          "cross-scope-reconciliation-required",
+          "historical-transfer-coverage-unverified",
+        ],
+      };
+    }
+
     if (action === "historical-coverage-preflight") {
       // Server-owned discovery inventory. This deliberately does not claim
       // completeness from a bounded query or infer any development state.
