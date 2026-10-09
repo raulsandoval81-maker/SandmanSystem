@@ -568,9 +568,18 @@ function renderClipboardTrainingGroups() {
     const encodeText = (value) => String(value || "").replace(/[&<>"']/g, character => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     })[character]);
-    const teachingLinks = prescription?.status === "ready"
-      ? prescription.cards.map(card => `<a href="${encodeText(card.href || "#")}" target="_blank" rel="noopener noreferrer">${encodeText(card.title || "Skill card")}</a>`).join(" · ")
-      : (session.executionMode === "manual" ? "" : "Lesson mapping requires review");
+    const mode = String(session.executionMode || "").toLowerCase();
+    const teachingLinks = mode === "manual" ? "" : prescription?.status === "ready"
+      ? prescription.cards.map(card => {
+          // Only link to local teaching pages. Never turn imported curriculum metadata
+          // into an arbitrary navigation target.
+          const href = String(card.href || "");
+          const safeHref = /^\\/coaches\\/cards\\/[a-z0-9/_-]+\\.html$/i.test(href) ? href : "";
+          return safeHref
+            ? `<a href="${encodeText(safeHref)}" target="_blank" rel="noopener noreferrer">${encodeText(card.title || "Skill card")}</a>`
+            : `<span>${encodeText(card.title || "Skill card")} (link unavailable)</span>`;
+        }).join(" · ")
+      : "Lesson mapping requires review";
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
         <span class="clipboard-group-label">Mat 1 · Group ${index + 1}</span>
