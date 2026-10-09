@@ -401,6 +401,8 @@ export const skillCheckCoachCall =
               .map(skill => ({
                 familyId: normalizeFamily(skill.familyId),
                 state: normalizeState(skill.state),
+                verifiedAt: skill.verifiedAt?.toDate?.()?.toISOString?.() || null,
+                coachUid: clean(skill.coachUid),
               })),
           });
         }
@@ -433,6 +435,8 @@ export const skillCheckCoachCall =
           ? "requires-evidence-reconciliation" : "requires-complete-history",
         evaluatedAthleteCount: 1,
         historyExhaustive: false,
+        chronologyComplete: history.every(practice => /^\\d{4}-\\d{2}-\\d{2}$/.test(practice.sessionDateKey)
+          && practice.verifiedSkills.every(skill => Boolean(skill.verifiedAt))),
         autoEligible: false,
         reason: "Historical discovery is bounded and has no verified chronology for current skill state.",
       };
