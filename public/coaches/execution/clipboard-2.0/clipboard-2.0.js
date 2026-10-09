@@ -2193,8 +2193,14 @@ function updateSupportLinks() {
   installDrillBlockEditors();
   restoreDraft(storedDraft);
 
-  // MANUAL must never receive system-selected cards; AUTO/HYBRID share approved prescriptions.
-  if (["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase()) && Array.isArray(hybridCards) && hybridCards.length) {
+  // A practice-wide card set must not override different tier-specific group prescriptions.
+  // Group teaching cards are rendered separately above. This legacy injection remains
+  // available only to sessions without group prescriptions.
+  const hasGroupPrescriptions = Array.isArray(builderSession.groupPrescriptions)
+    && builderSession.groupPrescriptions.length > 0;
+  if (!hasGroupPrescriptions &&
+      ["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase()) &&
+      Array.isArray(hybridCards) && hybridCards.length) {
 
     const existingCards =
       getStoredClipboardCards(CLIPBOARD_KEY)
