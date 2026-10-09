@@ -66,3 +66,12 @@ test("attendance finalization has no XP or Daily Grind invocation side effects",
   assert.doesNotMatch(review, /closePracticeSession/);
   assert.match(review, /Continue to Daily XP/);
 });
+
+test("finalized attendance review is read-only and resumes Daily Grind rather than allowing re-finalization", async () => {
+  const review = await read("public/coaches/attendance/attendance.js");
+  assert.match(review, /pendingSession\.finalized === true/);
+  assert.match(review, /setReviewControlsEnabled\(!finalized\)/);
+  assert.match(review, /showDailyGrindHandoff\(practiceId\)/);
+  assert.match(review, /check\.disabled = true/);
+  assert.match(review, /Attendance was already finalized/);
+});
