@@ -1145,6 +1145,15 @@ async function generateIntakeInvite(
     }
 
     if (existing?.state === "active") {
+      const verifiedSnap = await getDoc(doc(db, "intakeTokens", existing.tokenId));
+      const verified = verifiedSnap.exists() ? verifiedSnap.data() : null;
+      if (!verified ||
+          String(verified.proposalId || "").trim() !== proposalId ||
+          String(verified.intakeAudience || "").trim().toLowerCase() !== normalizedAudience ||
+          verified.used === true ||
+          (Number(verified.exp || 0) > 0 && Number(verified.exp) <= Date.now())) {
+        throw new Error("Existing Intake token failed Firestore verification. No new token or email created.");
+      }
       paintInviteHandoff(existing.tokenId, normalizedAudience, {
         recovered: true,
         handoff: existing
