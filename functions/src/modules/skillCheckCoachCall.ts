@@ -386,8 +386,8 @@ export const skillCheckCoachCall =
     );
 
     if (action === "reconcile-server-history-scopes") {
-      // One server-owned page per authorized scope. No client evidence is used.
-      // This is a bounded diagnostic, not an exhaustive-history assertion.
+      // Bounded server-owned traversal (up to five pages per authorized scope).
+      // A truncated scan never claims exhaustive athlete history.
       const locationId = clean(athlete.locationId);
       const academyId = clean(athlete.academyId);
       const admin = normalizeStaffRole(actor.role) === "admin";
@@ -405,12 +405,17 @@ export const skillCheckCoachCall =
           blockers.add("scope-unavailable:" + spec.scope);
           continue;
         }
-        const snapshot = await db.collection("practiceSessions")
-          .where(spec.field, "==", spec.value)
-          .orderBy(FieldPath.documentId()).limit(51).get();
-        const candidates = snapshot.docs.slice(0, 50);
-        const history: HistoryPage["history"] = [];
-        for (const doc of candidates) {
+        let cursor = "";
+        let exhausted = false;
+        for (let pageNumber = 0; pageNumber < 5; pageNumber++) {
+          let query = db.collection("practiceSessions")
+            .where(spec.field, "==", spec.value)
+            .orderBy(FieldPath.documentId()).limit(51);
+          if (cursor) query = query.startAfter(cursor);
+          const snapshot = await query.get();
+          const candidates = snapshot.docs.slice(0, 50);
+          const history: HistoryPage["history"] = [];
+          for (const doc of candidates) {
           const practice = doc.data() || {};
           if (normalizeDiscipline(practice.discipline) !== discipline) continue;
           if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
@@ -454,13 +459,19 @@ export const skillCheckCoachCall =
             practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey), verifiedSkills,
           });
         }
-        const hasMore = snapshot.size > 50;
-        if (hasMore) blockers.add("additional-pages-required:" + spec.scope);
-        pages.push({
-          athleteId, discipline, scope: spec.scope, cursor: null,
-          nextCursor: hasMore ? candidates[candidates.length - 1].id : null,
-          scopeExhausted: !hasMore, history,
-        });
+          const hasMore = snapshot.size > 50;
+          const nextCursor = hasMore ? candidates[candidates.length - 1].id : null;
+          pages.push({
+            athleteId, discipline, scope: spec.scope, cursor: cursor || null,
+            nextCursor, scopeExhausted: !hasMore, history,
+          });
+          if (!hasMore) {
+            exhausted = true;
+            break;
+          }
+          cursor = nextCursor!;
+        }
+        if (!exhausted) blockers.add("additional-pages-required:" + spec.scope);
       }
       const summary = reconcileHistoryPages(pages, pages.map(page => page.scope), athleteId, discipline);
       return {
