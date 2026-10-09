@@ -1377,6 +1377,7 @@ window.runPractice = async function () {
     tier: session.tier,
     week: session.week,
     trainingGroups: session.trainingGroups,
+    groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
     carryForwardNote: session.carryForwardNote,
 
     blocks,
@@ -1401,6 +1402,7 @@ window.runPractice = async function () {
     tier: session.tier,
     week: session.week,
     trainingGroups: session.trainingGroups,
+    groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
     carryForwardNote: session.carryForwardNote,
 
     focus:
@@ -1725,6 +1727,7 @@ async function saveCurrentPlanToFirestore() {
     journey: session.journey,
     tier: session.tier,
     trainingGroups: session.trainingGroups,
+    groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
     carryForwardNote: session.carryForwardNote,
 
     singleFocus:
