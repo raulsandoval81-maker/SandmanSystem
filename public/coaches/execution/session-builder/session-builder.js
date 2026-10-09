@@ -715,8 +715,11 @@ function getHybridData(weekValue) {
   const structure = hybridModel.WEEK_STRUCTURE || ["teach", "drill", "live"];
   const phase = structure[(weekNumber - 1) % structure.length] || "teach";
   const cycle = Math.ceil(weekNumber / 6);
-  const waveKeys = Object.keys(hybridModel.SKILL_WAVES || {});
-  const waveKey = waveKeys[(cycle - 1) % waveKeys.length] || "";
+  // Only select waves that have actual linked teaching cards. An empty wave is not a prescription.
+  const waveKeys = Object.keys(hybridModel.WAVE_CARDS || {}).filter(
+    key => Array.isArray(hybridModel.WAVE_CARDS[key]) && hybridModel.WAVE_CARDS[key].length
+  );
+  const waveKey = waveKeys.length ? waveKeys[(cycle - 1) % waveKeys.length] : "";
   return {
     hybridPhase: phase,
     hybridCycle: cycle,
