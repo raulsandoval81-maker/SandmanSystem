@@ -31,11 +31,11 @@ export function reconcileHistoryPages(
     while (!visited.has(cursor)) {
       visited.add(cursor);
       const page = cursorMap.get(cursor);
-      if (!page) { blockers.add("missing-page:" + scope); break; }
+      if (!page) { blockers.add("missing-page:" + scope); terminated = true; break; }
       if (page.athleteId !== athleteId || page.discipline !== discipline) {
         blockers.add("identity-mismatch"); terminated = true; break;
       }
-      if (!page.history) { blockers.add("missing-evidence:" + scope); break; }
+      if (!page.history) { blockers.add("missing-evidence:" + scope); terminated = true; break; }
       for (const record of page.history) {
         if (!record.practiceId || !/^\d{4}-\d{2}-\d{2}$/.test(record.sessionDateKey)
           || !Number.isFinite(Date.parse(record.sessionDateKey + "T00:00:00.000Z"))
