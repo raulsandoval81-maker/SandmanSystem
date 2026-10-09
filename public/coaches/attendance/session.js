@@ -1008,6 +1008,16 @@ async function submitForReview() {
     return;
   }
 
+  if (isBuilderFlow()) {
+    const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
+    const assigned = captureTrainingGroups().flatMap(g => g.athleteIds || []).map(String);
+    if (assigned.length !== new Set(assigned).size ||
+        assigned.some(id => !rosterIds.has(id)) ||
+        new Set(assigned).size !== rosterIds.size) {
+      setStatus("Training groups must account for every checked-in athlete exactly once. Review groups before submitting.", true);
+      return;
+    }
+  }
   const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
   await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
 
