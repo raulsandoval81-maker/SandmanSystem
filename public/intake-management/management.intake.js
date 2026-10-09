@@ -1536,7 +1536,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
       );
       if (!enteredEmail) throw initialError;
       const recipientEmail = enteredEmail.trim().toLowerCase();
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipientEmail)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
         throw new Error("Enter a valid email address before sending Intake.");
       }
       if (!window.confirm(
