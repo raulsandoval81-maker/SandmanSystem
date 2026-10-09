@@ -347,10 +347,19 @@ function populateWeeks() {
 }
 
 function getModelPath() {
-  if (selectedMode === "auto") return "";
-  const prefix = selectedProgram()?.hybridModelPrefix || "";
-  const tier = String(rankSelect?.value || "").toLowerCase();
-  return prefix && tier ? `${prefix}-${tier}-waves.js` : "";
+  // AUTO and HYBRID share approved curriculum. MANUAL receives no prescription.
+  if (!["auto", "hybrid"].includes(selectedMode)) return "";
+  const program = selectedProgram();
+  const prefix = program?.hybridModelPrefix || "";
+  const remembered = readJson(SESSION_KEY, {});
+  const samePractice = Boolean(activePracticeId) &&
+    String(remembered.practiceId || "") === String(activePracticeId);
+  const tier = String(
+    (samePractice && remembered.tier) || effectiveTier() || rankSelect?.value || ""
+  ).toLowerCase();
+  // The existing boxing mappings contain kickboxing-only material. Never prescribe it automatically.
+  if (String(program?.discipline || "").toLowerCase() === "boxing") return "";
+  return prefix && /^t[0-4]$/.test(tier) ? `${prefix}-${tier}-waves.js` : "";
 }
 
 function modelHasConsumableCards(model) {
@@ -984,6 +993,15 @@ buildBtn.addEventListener("click", async () => {
   if (existingDraft && !window.confirm("Starting a new session will replace the unfinished Clipboard draft. Continue?")) return;
   let payload = createSessionPayload();
   if (!payload) return;
+  // Never describe an empty or incorrectly classified curriculum as an AUTO prescription.
+  if (selectedMode === "auto" && (!hybridUsable || !hybridModel || !payload.hybridCards?.length)) {
+    const noticeEl = document.getElementById("dashboardNotice");
+    if (noticeEl) {
+      noticeEl.textContent = "AUTO needs an approved prescribed curriculum for this group. No lesson was created. Use HYBRID only to coach-build a session, or return to Attendance.";
+      noticeEl.hidden = false;
+    }
+    return;
+  }
   buildBtn.disabled = true;
   try {
     payload = await openCanonicalPractice(payload);
