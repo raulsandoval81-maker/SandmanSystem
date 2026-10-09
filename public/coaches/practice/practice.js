@@ -232,17 +232,10 @@ function renderFlow(flowId, options = {}) {
     startFlowActions.appendChild(buildAction(action));
   });
 
-  choicePanel.hidden = true;
+  choicePanel.hidden = false;
   activeFlow.hidden = false;
 
-  sessionStorage.setItem(FLOW_STORAGE_KEY, flowId);
-
-  if (options.scroll !== false) {
-    activeFlow.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  }
+  // Keep all three start choices visible. No floating panel or auto-scroll.
 }
 
 function resetFlow() {
@@ -297,14 +290,8 @@ async function initializePracticeOperations() {
       element.hidden = false;
     });
 
-    const savedFlow =
-      sessionStorage.getItem(FLOW_STORAGE_KEY);
-
-    if (savedFlow && flows[savedFlow]) {
-      renderFlow(savedFlow, {
-        scroll: false
-      });
-    }
+    activeFlow.hidden = true;
+    choicePanel.hidden = false;
   } catch (error) {
     notice.replaceChildren();
 
