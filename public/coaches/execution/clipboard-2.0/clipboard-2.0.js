@@ -565,9 +565,9 @@ function renderClipboardTrainingGroups() {
       : "";
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
-        <span class="clipboard-group-label">Group ${index + 1}</span>
+        <span class="clipboard-group-label">Mat 1 · Group ${index + 1}</span>
         <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
-        <span>Session ${group.trainingSession || session.week || "1"}${names ? ` · ${names}` : ""}</span>
+        <span>${names ? names : "System-guided group"}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
       </article>
     `;
