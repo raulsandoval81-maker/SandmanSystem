@@ -587,6 +587,7 @@ function renderClipboardTrainingGroups() {
         <span>${names ? names : "System-guided group"}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
         ${teachingLinks ? `<div class="clipboard-group-skills">${teachingLinks}</div>` : ""}
+        ${mode === "hybrid" && prescription?.status === "ready" ? `<label>Coach lesson adjustments<textarea class="clipboard-group-lesson-notes" data-group-id="${encodeText(String(group.id || ""))}" aria-label="Coach adjustments for group ${index + 1}" rows="3" placeholder="Add, replace, or modify this group’s lesson and teaching cues"></textarea></label>` : ""}
       </article>
     `;
   }).join("");
@@ -649,6 +650,7 @@ function persistDraft(lifecycle = "editing") {
     blocks: captureDraftBlocks(),
     flexibleOrder: [...document.querySelectorAll("#swappable > .plan-block")].map(block => block.dataset.slot || ""),
     cards: getStoredClipboardCards(CLIPBOARD_KEY),
+    groupLessonAdjustments: Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])),
     updatedAt: new Date().toISOString(),
     launchedAt: lifecycle === "launched" ? new Date().toISOString() : previous.launchedAt || null,
     completedAt: lifecycle === "completed" ? new Date().toISOString() : null
@@ -1378,6 +1380,7 @@ window.runPractice = async function () {
     week: session.week,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 
     blocks,
@@ -1403,6 +1406,7 @@ window.runPractice = async function () {
     week: session.week,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 
     focus:
@@ -1728,6 +1732,7 @@ async function saveCurrentPlanToFirestore() {
     tier: session.tier,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 
     singleFocus:
@@ -2202,6 +2207,11 @@ function updateSupportLinks() {
   attachTimerSelectors();
   updateSupportLinks();
   renderClipboardTrainingGroups();
+  document.querySelectorAll(".clipboard-group-lesson-notes").forEach(field => {
+    const prior = getDraftPayload()?.groupLessonAdjustments || {};
+    field.value = String(prior[field.dataset.groupId] || "");
+    field.addEventListener("input", queueDraftSave);
+  });
   installDrillBlockEditors();
   restoreDraft(storedDraft);
 
