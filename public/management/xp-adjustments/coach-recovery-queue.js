@@ -1,5 +1,5 @@
 import { functions, httpsCallable } from "/assets/js/firebase-init.js";
-import { requireManagement } from "/assets/js/management-guard.js";
+import { requireManagement } from "/management/shared/guards/management-guard.js";
 const $ = id => document.getElementById(id);
 const list = httpsCallable(functions,"listCoachXpRecoveryRequests");
 const review = httpsCallable(functions,"reviewCoachXpRecoveryRequest");
