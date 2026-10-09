@@ -126,3 +126,53 @@ test("Coach location scope fails closed while Admin is permitted", async () => {
   });
   assert.equal(finalized.status, "finalized");
 });
+
+test("shared Daily Practice Log survives cross-device read and locks on Final Close", async () => {
+  const created = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2",
+    afterFactInput("phase2-shared-daily-log"));
+  const practiceId = created.practiceId;
+  const log = {
+    focus: "Wrestling fundamentals",
+    blockNotes: { warmup: "Footwork completed" },
+    teamNotes: "Computer-to-phone-to-computer handoff",
+    eventNotes: "No competition",
+    generalNotes: "Mat sanitized",
+    individualNotes: { F8_PHASE2_A: "Strong positioning" }
+  };
+  const saved = await call(practiceModule.saveDailyPracticeLog, "coach-phase2", { practiceId, log });
+  assert.equal(saved.ok, true);
+
+  // A second device receives the canonical Firestore record rather than browser localStorage.
+  const shared = (await db.doc(`practiceSessions/${practiceId}`).get()).get("dailyPracticeLog");
+  assert.equal(shared.teamNotes, log.teamNotes);
+  assert.equal(shared.individualNotes.F8_PHASE2_A, "Strong positioning");
+  assert.equal(shared.blockNotes.warmup, "Footwork completed");
+  assert.equal(shared.savedBy, "coach-phase2");
+
+  await assert.rejects(
+    () => call(practiceModule.saveDailyPracticeLog, "coach-wrong-phase2", { practiceId, log }),
+    /outside|scope|authorized|owner|permission/i
+  );
+
+  // Final close must not silently succeed before attendance has been finalized.
+  await assert.rejects(
+    () => call(practiceModule.closePracticeSession, "coach-phase2",
+      { practiceId, attendanceSessionId: practiceId }),
+    /finalized attendance|required before closing/i
+  );
+
+  // Empty attendance is a valid verified practice; no XP receipts are required.
+  await call(practiceModule.finalizePracticeAttendance, "coach-phase2",
+    { practiceId, presentIds: [], notes: "No verified participants" });
+  const closed = await call(practiceModule.closePracticeSession, "coach-phase2",
+    { practiceId, attendanceSessionId: practiceId });
+  assert.equal(closed.status, "closed");
+  assert.equal((await db.doc(`practiceSessions/${practiceId}`).get()).get("dailyPracticeLog.teamNotes"),
+    log.teamNotes);
+
+  await assert.rejects(
+    () => call(practiceModule.saveDailyPracticeLog, "coach-phase2",
+      { practiceId, log: { ...log, teamNotes: "Attempt to overwrite closed record" } }),
+    /Closed practice logs cannot be edited/i
+  );
+});
