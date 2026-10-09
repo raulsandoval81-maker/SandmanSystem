@@ -78,3 +78,13 @@ test("location-tagged history outside current athlete location is not imported v
  assert.ok(result.blockers.includes("historical-transfer-coverage-unverified"));
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("declared previous athlete locations remain unverified and require review",async()=>{
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["prior-training-location","test-location"]});
+ const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.transferCoverage.priorLocationCount,1);
+ assert.equal(result.transferCoverage.priorLocationsVerified,false);
+ assert.equal(result.transferCoverage.requiresManagementReview,true);
+ assert.ok(result.blockers.includes("declared-prior-locations-not-traversed"));
+ assert.equal(result.eligibleForAuto,false);
+});
