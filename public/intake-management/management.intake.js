@@ -659,14 +659,13 @@ function orientRequestedProposal() {
 
   if (orientation) {
     orientation.hidden = false;
-    renderManagementLifecycle(orientation, {
-      currentStage: "checkout-enrollment",
-      completedThrough: "review-approve",
-      currentLabel: "Checkout & Enrollment",
-      caseLabel: requestedProposalId,
-      guidance:
-        "Choose who will complete Intake; opening this case does not create an invite."
-    });
+    orientation.innerHTML =
+      '<div class="management-lifecycle__heading">' +
+      '<div><span class="management-lifecycle__eyebrow">Current Case Stage</span>' +
+      '<strong>Checkout &amp; Enrollment</strong></div>' +
+      '<span class="management-lifecycle__case"></span></div>' +
+      '<p class="management-lifecycle__guidance"><strong>Next:</strong> Choose who will complete Intake; opening this case does not create an invite.</p>';
+    orientation.querySelector(".management-lifecycle__case").textContent = requestedProposalId;
   }
 
   if (status) {
