@@ -85,6 +85,13 @@ function inviteUrlForToken(tokenId, intakeAudience = "parent_guardian") {
   return `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
 
+function setIntakeConfirmation(type) {
+  const status = $("invite-status");
+  if (!status) return;
+  status.classList.toggle("intake-confirmation--success", type === "success");
+  status.classList.toggle("intake-confirmation--error", type === "error");
+}
+
 function paintInviteHandoff(
   tokenId,
   intakeAudience,
@@ -130,6 +137,7 @@ function paintInviteHandoff(
     const sentAt = handoff?.deliveredAt
       ? new Date(Number(handoff.deliveredAt)).toLocaleString()
       : "";
+    setIntakeConfirmation("success");
     $("invite-status").textContent = sent
       ? `✓ Secure Intake token confirmed. Invitation recorded as sent by ${method}${destination}${sentAt ? ` on ${sentAt}` : ""}. No new token created.`
       : `✓ Secure ${label.toLowerCase()} Intake token ${recovered ? "already exists" : "created"} and is ready. Email NOT sent yet. Select Send Intake Email to deliver it.`;
@@ -1371,6 +1379,7 @@ async function generateIntakeInvite(
     if ($("invite-status")) {
       $("invite-status").textContent =
         `⚠ ${err?.message || "Error creating intake invite."}`;
+      setIntakeConfirmation("error");
     }
   }
 }
@@ -1475,6 +1484,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
   if ($("invite-status")) {
     $("invite-status").textContent =
       "Sending the intake link to the attached enrollment email…";
+    setIntakeConfirmation("");
   }
 
   try {
@@ -1521,6 +1531,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
       Number(response?.data?.exp || 0);
 
     if ($("invite-status")) {
+      setIntakeConfirmation("success");
       $("invite-status").textContent =
         recipient
           ? `✓ Intake email sent to ${recipient}. Enrollment is now Awaiting Intake.`
@@ -1574,6 +1585,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
     if ($("invite-status")) {
       $("invite-status").textContent =
         `⚠ ${err?.message || "Unable to send intake email."}`;
+      setIntakeConfirmation("error");
     }
 
     button.textContent =
