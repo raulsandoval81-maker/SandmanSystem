@@ -166,6 +166,7 @@ async function submit() {
         location.href = "/coaches/execution/big-clock-2.0/?practiceId=" +
           encodeURIComponent(practiceId) + "&session=" + encodeURIComponent(room.value) + "&fast=1";
       } else {
+        sessionStorage.setItem("sandman_attendance_first_practice_id", practiceId);
         location.href = "/coaches/attendance/session.html?practiceId=" +
           encodeURIComponent(practiceId) + "&flow=builder&return=builder";
       }
