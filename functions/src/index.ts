@@ -367,3 +367,9 @@ export {
 } from "./proposals/submitProposalMembershipChoice";
 
 export { recordProposalMembershipChoice } from "./proposals/recordProposalMembershipChoice";
+
+export {
+  submitCoachXpRecoveryRequest,
+  listCoachXpRecoveryRequests,
+  reviewCoachXpRecoveryRequest,
+} from "./management/coachXpRecoveryRequests";
