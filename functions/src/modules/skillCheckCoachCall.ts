@@ -481,7 +481,9 @@ export const skillCheckCoachCall =
       // A single scope traversal does not prove global history completeness.
       const reconciliation = reconcileHistoryPages([{
         athleteId, discipline, scope,
-        cursor: null, nextCursor: null, scopeExhausted: true,
+        cursor: cursor || null,
+        nextCursor: exhausted ? null : position,
+        scopeExhausted: exhausted,
         history,
       }], [scope], athleteId, discipline);
       return {
