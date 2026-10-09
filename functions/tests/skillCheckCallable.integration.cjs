@@ -41,3 +41,12 @@ test("legacy academy scope is not granted to location-only coaches",async()=>{
  assert.ok(result.blockers.includes("scope-unavailable:athlete-academy"));
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("historical memory without attendance produces a coverage blocker",async()=>{
+ const id="test-memory-unresolved";
+ await db.doc("practiceSessions/"+id).set({coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",discipline:"wrestling",sessionDateKey:"2026-10-09"});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"wrestling",attendance:{status:"present"}});
+ const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.ok(result.blockers.includes("unresolved-athlete-attendance:"+id));
+ assert.equal(result.eligibleForAuto,false);
+});
