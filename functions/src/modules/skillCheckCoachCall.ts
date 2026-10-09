@@ -419,11 +419,9 @@ export const skillCheckCoachCall =
           const practice = doc.data() || {};
           if (normalizeDiscipline(practice.discipline) !== discipline) continue;
           if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
-          if (spec.scope === "coach") {
-            requirePracticeVerificationAccess(actor, practice);
-          } else {
-            requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
-          }
+          // Historical reads use read authorization even for the originating
+          // Coach; only Skill Check writes require practice ownership.
+          requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
           const [attendanceSnap, memorySnap] = await Promise.all([
             db.doc(`attendance_sessions/${doc.id}`).get(),
             db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
@@ -549,11 +547,7 @@ export const skillCheckCoachCall =
           const practice = doc.data() || {};
           if (normalizeDiscipline(practice.discipline) !== discipline) continue;
           if (scope === "athlete-academy" && clean(practice.locationId)) continue;
-          if (scope !== "coach") {
-            requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
-          } else {
-            requirePracticeVerificationAccess(actor, practice);
-          }
+          requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId);
           const [attendanceSnap, memorySnap] = await Promise.all([
             db.doc(`attendance_sessions/${doc.id}`).get(),
             db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
