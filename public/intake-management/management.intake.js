@@ -912,10 +912,17 @@ function wireReadyIntakeButtons() {
       button.disabled = true;
       button.textContent = "Opening…";
       try {
-        await generateIntakeInvite("parent_guardian", proposal);
+        const verified = await generateIntakeInvite("parent_guardian", proposal);
+        if (verified) {
+          button.textContent = "✓ Token Verified";
+          button.classList.add("intake-token-verified");
+          button.setAttribute("aria-label", "Parent / Guardian secure Intake token verified");
+        }
       } finally {
         button.disabled = false;
-        button.textContent = original;
+        if (!button.classList.contains("intake-token-verified")) {
+          button.textContent = original;
+        }
       }
     });
   });
@@ -929,10 +936,17 @@ function wireReadyIntakeButtons() {
       button.disabled = true;
       button.textContent = "Opening…";
       try {
-        await generateIntakeInvite("adult_athlete", proposal);
+        const verified = await generateIntakeInvite("adult_athlete", proposal);
+        if (verified) {
+          button.textContent = "✓ Token Verified";
+          button.classList.add("intake-token-verified");
+          button.setAttribute("aria-label", "Adult Athlete secure Intake token verified");
+        }
       } finally {
         button.disabled = false;
-        button.textContent = original;
+        if (!button.classList.contains("intake-token-verified")) {
+          button.textContent = original;
+        }
       }
     });
   });
@@ -1149,7 +1163,7 @@ async function generateIntakeInvite(
 
     if (existing?.state === "submitted") {
       paintSubmittedHandoff(existing.intakeId, normalizedAudience);
-      return;
+      return false;
     }
 
     if (existing?.state === "active") {
@@ -1166,7 +1180,7 @@ async function generateIntakeInvite(
         recovered: true,
         handoff: existing
       });
-      return;
+      return true;
     }
 
     const newTokenId = crypto.randomUUID()
@@ -1374,6 +1388,7 @@ async function generateIntakeInvite(
     }
     handoffCache.set(handoffKey(proposalId, normalizedAudience), cached);
     paintInviteHandoff(newTokenId, normalizedAudience);
+    return true;
   } catch (err) {
     console.error(err);
     if ($("invite-status")) {
@@ -1381,6 +1396,7 @@ async function generateIntakeInvite(
         `⚠ ${err?.message || "Error creating intake invite."}`;
       setIntakeConfirmation("error");
     }
+    return false;
   }
 }
 
