@@ -916,11 +916,13 @@ function wireReadyIntakeButtons() {
         if (verified) {
           button.textContent = "✓ Token Verified";
           button.classList.add("intake-token-verified");
+          button.disabled = true;
+          button.title = "Secure Intake token verified. Continue with Send Intake Email below.";
           button.setAttribute("aria-label", "Parent / Guardian secure Intake token verified");
         }
       } finally {
-        button.disabled = false;
         if (!button.classList.contains("intake-token-verified")) {
+          button.disabled = false;
           button.textContent = original;
         }
       }
@@ -940,11 +942,13 @@ function wireReadyIntakeButtons() {
         if (verified) {
           button.textContent = "✓ Token Verified";
           button.classList.add("intake-token-verified");
+          button.disabled = true;
+          button.title = "Secure Intake token verified. Continue with Send Intake Email below.";
           button.setAttribute("aria-label", "Adult Athlete secure Intake token verified");
         }
       } finally {
-        button.disabled = false;
         if (!button.classList.contains("intake-token-verified")) {
+          button.disabled = false;
           button.textContent = original;
         }
       }
@@ -1137,6 +1141,8 @@ async function loadReadyForIntake(managementContext) {
     if (button) {
       button.textContent = "✓ Token Verified";
       button.classList.add("intake-token-verified");
+          button.disabled = true;
+          button.title = "Secure Intake token verified. Continue with Send Intake Email below.";
     }
   });
   wireReadyIntakeButtons();
