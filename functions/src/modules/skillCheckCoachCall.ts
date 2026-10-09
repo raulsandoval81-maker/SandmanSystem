@@ -391,6 +391,13 @@ export const skillCheckCoachCall =
       const locationId = clean(athlete.locationId);
       const academyId = clean(athlete.academyId);
       const admin = normalizeStaffRole(actor.role) === "admin";
+      // Explicit location history is a diagnostic signal only; never expands
+      // Coach read permissions without a separate authorized transfer pathway.
+      const previousLocations = Array.isArray(athlete.previousLocationIds)
+        ? athlete.previousLocationIds.map(clean).filter(Boolean)
+        : [];
+      const unresolvedTransferLocations = [...new Set(previousLocations)]
+        .filter(id => id !== locationId);
       const specs = [
         { scope: "coach", field: "coachUid", value: actor.uid, authorized: true },
         { scope: "athlete-location", field: "locationId", value: locationId,
@@ -400,6 +407,7 @@ export const skillCheckCoachCall =
       ];
       const pages: HistoryPage[] = [];
       const blockers = new Set<string>();
+      if (unresolvedTransferLocations.length) blockers.add("declared-prior-locations-not-traversed");
       for (const spec of specs) {
         if (!spec.authorized) {
           blockers.add("scope-unavailable:" + spec.scope);
@@ -494,6 +502,11 @@ export const skillCheckCoachCall =
       return {
         ok: true, diagnosticOnly: true, source: "server-verified-firestore",
         ...summary,
+        transferCoverage: {
+          priorLocationCount: unresolvedTransferLocations.length,
+          priorLocationsVerified: false,
+          requiresManagementReview: unresolvedTransferLocations.length > 0,
+        },
         checkedScopes: specs.map(spec => ({
           scope: spec.scope,
           authorized: spec.authorized,
