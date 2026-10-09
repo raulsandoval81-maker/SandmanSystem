@@ -423,6 +423,7 @@ export const skillCheckCoachCall =
         const practiceId = candidate.id;
         const practice = candidate.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+        if (scope === "athlete-academy" && clean(practice.locationId)) continue;
         if (scope === "athlete-location") {
           requireHistoricalPracticeReadAccess(actor, practice, athleteLocationId, athleteAcademyId);
         } else if (scope === "athlete-academy") {
