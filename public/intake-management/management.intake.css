@@ -2109,3 +2109,12 @@ body.management-enrollment-page #invite-route-label{
   color: #8e1a14;
   font-weight: 700;
 }
+
+/* Confirm the exact audience button only after a verified Firestore token. */
+button.intake-token-verified,
+button.intake-token-verified:not(:disabled) {
+  background: #16773a !important;
+  border-color: #16773a !important;
+  color: #fff !important;
+  font-weight: 800;
+}
