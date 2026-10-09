@@ -1,0 +1,40 @@
+name: Historical Skill Reconciliation Tests
+
+on:
+  push:
+    paths:
+      - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/skillCheckCoachCall.ts'
+      - 'functions/tests/**'
+      - 'functions/package.json'
+      - 'functions/package-lock.json'
+      - '.github/workflows/historical-skill-tests.yml'
+  pull_request:
+    paths:
+      - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/skillCheckCoachCall.ts'
+      - 'functions/tests/**'
+      - 'functions/package.json'
+      - 'functions/package-lock.json'
+      - '.github/workflows/historical-skill-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  functions-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - run: npm ci
+      - run: npm test
