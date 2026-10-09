@@ -697,7 +697,7 @@ function suggestedTrainingGroups() {
   return groups.map((group, index) => ({
     ...group,
     id: `group-${index + 1}`,
-    label: `Group ${index + 1}`,
+    label: `Mat 1 · Group ${index + 1}`,
     trainingSession: String(
       group.trainingSession ||
       prior.trainingGroups?.[index]?.trainingSession ||
@@ -729,7 +729,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     >
       <div class="training-group-head">
         <div>
-          <span class="training-group-kicker">Training Group ${index + 1}</span>
+          <span class="training-group-kicker">Mat 1 · Group ${index + 1}</span>
           <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
         </div>
         ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
@@ -829,7 +829,7 @@ function renumberTrainingGroups() {
   document.querySelectorAll(".training-group-card").forEach((card, index) => {
     card.dataset.trainingGroup = String(index);
     const kicker = card.querySelector(".training-group-kicker");
-    if (kicker) kicker.textContent = `Training Group ${index + 1}`;
+    if (kicker) kicker.textContent = `Mat 1 · Group ${index + 1}`;
   });
 }
 
