@@ -847,7 +847,8 @@ async function resolveGroupPrescriptions(payload) {
   for (const group of groups) {
     const tier = String(group.tier || "").toLowerCase();
     const discipline = String(program?.discipline || "").toLowerCase();
-    if (!prefix || discipline === "boxing" || !/^t[0-4]$/.test(tier)) {
+    const journeyMatches = String(group.journey || "").toLowerCase() === String(program?.journey || "").toLowerCase();
+    if (!prefix || !journeyMatches || discipline === "boxing" || !/^t[0-4]$/.test(tier)) {
       prescriptions.push({ groupId: group.id, tier, status: "unavailable", cards: [] });
       continue;
     }
@@ -1040,7 +1041,7 @@ buildBtn.addEventListener("click", async () => {
   buildBtn.disabled = true;
   try {
     payload = await resolveGroupPrescriptions(payload);
-    if (selectedMode === "auto" && payload.groupPrescriptions?.some(g => g.status !== "ready")) {
+    if (selectedMode === "auto" && payload.trainingGroups?.length && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready"))) {
       throw new Error("AUTO cannot start: one or more groups lack an approved lesson. No incomplete prescription was launched.");
     }
     payload = await openCanonicalPractice(payload);
