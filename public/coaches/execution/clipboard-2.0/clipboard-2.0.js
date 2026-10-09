@@ -549,7 +549,7 @@ function renderClipboardTrainingGroups() {
   if (!el) return;
 
   const session = getActiveSession();
-  const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups.slice(0, 3) : [];
+  const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups : [];
   if (!groups.length) {
     el.hidden = true;
     el.innerHTML = "";
