@@ -515,6 +515,12 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const audit=await acceptedReview.ref.collection("acceptanceDecisions").doc(manifest.manifestId).get();
  assert.equal(audit.data().kind,"HISTORICAL_EVIDENCE_ACCEPTANCE");
  assert.equal(audit.data().xpAwarded,false);
+ const preview=await invoke("preview-accepted-skill-state");
+ assert.equal(preview.blockers.length,0,JSON.stringify(preview.blockers));
+ assert.deepEqual(preview.skillStates.map(item=>({familyId:item.familyId,state:item.state})),
+   [{familyId:"double_leg",state:"LEARNED"}]);
+ assert.ok(preview.unresolvedFamilies.includes("single_leg"));
+ assert.equal(preview.eligibleForAuto,false);
  const duplicate=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
  });
