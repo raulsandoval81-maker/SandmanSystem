@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, reviewTrackReadiness, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, reviewTrackReadiness, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -296,4 +296,15 @@ test("Coach lesson workspace displays provisional readiness for each instruction
  const {spawnSync}=require("node:child_process");
  const check=spawnSync(process.execPath,["--input-type=module","--check"],{input:code,encoding:"utf8"});
  assert.equal(check.status,0,check.stderr);
+});
+
+test("Wrestling proposal distinguishes mandatory foundations from supporting skills",()=>{
+ const review=reviewWrestlingDependencyRoles(WRESTLING_REVIEW_GRAPH,WRESTLING_SUPPORTING_SKILLS);
+ assert.deepEqual(review.issues,[]);
+ assert.equal(review.entries.length,36);
+ const chain=review.entries.find(item=>item.familyId==="chain_wrestling");
+ assert.deepEqual(chain.mandatoryFoundations,["double_leg"]);
+ assert.deepEqual(chain.supportingSkills,["single_leg"]);
+ assert.equal(review.policyApproved,false);
+ assert.equal(review.eligibleForAuto,false);
 });
