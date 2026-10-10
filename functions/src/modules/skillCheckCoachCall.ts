@@ -926,10 +926,17 @@ export const skillCheckCoachCall =
             schemaVersion: 1, athleteId, discipline,
             reviewRevision: typeof review.revision === "number" ? review.revision : 1,
             records, blockers: [...new Set([...summary.blockers, ...blockers])].sort(),
-            checkedScopes: specs.map(spec => ({
-              scope: spec.scope, authorized: spec.authorized,
-              exhausted: pages.some(page => page.scope === spec.scope && page.scopeExhausted),
-            })),
+            checkedScopes: specs.map(spec => {
+              const scanned = pages.filter(page => page.scope === spec.scope);
+              const exhausted = scanned.some(page => page.scopeExhausted);
+              return {
+                scope: spec.scope, authorized: spec.authorized,
+                exhausted, pagesRead: scanned.length,
+                status: !spec.authorized ? "UNAUTHORIZED"
+                  : exhausted ? "BOUNDED_SCAN_EXHAUSTED" : "INCOMPLETE_PAGINATION",
+                nextCursor: scanned.length ? scanned[scanned.length - 1].nextCursor ?? null : null,
+              };
+            }),
             createdBy: actor.uid, createdAt: FieldValue.serverTimestamp(),
             evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
           });
