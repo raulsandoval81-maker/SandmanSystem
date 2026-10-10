@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -641,6 +641,10 @@ export const skillCheckCoachCall =
         members.push({athleteId: id, approved: blockers.length === 0, blockers, skills});
       }
       const preview = previewMixedGroupSkillNeeds(members, requested);
+      const curriculumPrerequisites = discipline === "wrestling"
+        ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
+        : {policyApproved:false, eligibleForAuto:false, byFamily:{},
+          blockers:["prerequisite-policy-unconfigured:" + discipline]};
       if (action === "create-recommended-group-lesson-draft") {
         if (!preview.ready) {
           throw new HttpsError("failed-precondition", "All athlete evidence must be accepted before drafting a recommendation.");
@@ -695,7 +699,7 @@ export const skillCheckCoachCall =
           coachApprovalRequired:true,eligibleForAuto:false}
         : selectSupervisedGroupLesson(preview, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, supervisedSuggestion,
+        ...preview, supervisedSuggestion, curriculumPrerequisites,
         coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
