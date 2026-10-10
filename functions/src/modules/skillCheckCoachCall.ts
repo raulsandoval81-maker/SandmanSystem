@@ -490,6 +490,92 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "verify-evidence-manifest") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Manifest verification requires Admin authority.");
+      }
+      const manifestId = clean(data.manifestId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
+        throw new HttpsError("invalid-argument", "Valid manifestId is required.");
+      }
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const [reviewSnap, manifestSnap] = await Promise.all([
+        reviewRef.get(), reviewRef.collection("evidenceManifests").doc(manifestId).get(),
+      ]);
+      if (!reviewSnap.exists || !manifestSnap.exists) {
+        throw new HttpsError("not-found", "Transfer review or manifest not found.");
+      }
+      const review = reviewSnap.data() || {};
+      const manifest = manifestSnap.data() || {};
+      const blockers: string[] = [];
+      if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") blockers.push("review-not-pending");
+      if (manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+          || clean(manifest.athleteId) !== athleteId
+          || normalizeDiscipline(manifest.discipline) !== discipline) {
+        blockers.push("manifest-identity-invalid");
+      }
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      if (manifest.reviewRevision !== revision) blockers.push("manifest-review-revision-stale");
+      const records = Array.isArray(manifest.records) ? manifest.records : [];
+      if (records.length > 100) throw new HttpsError("failed-precondition", "Manifest exceeds verification limit.");
+      if (!records.length) blockers.push("manifest-empty");
+      const results: Array<{skillEvidencePath: string; valid: boolean; blockers: string[]}> = [];
+      for (const entry of records) {
+        const r = entry as Record<string, unknown>;
+        const practiceId = clean(r.practiceId);
+        const path = clean(r.skillEvidencePath);
+        const base = `practiceSessions/${practiceId}/athletes/${athleteId}`;
+        const errors: string[] = [];
+        if (!/^[a-zA-Z0-9_-]{1,160}$/.test(practiceId)
+            || !path.startsWith(base + "/verifiedSkills/")
+            || path.split("/").length !== 6
+            || clean(r.attendancePath) !== `attendance_sessions/${practiceId}`
+            || clean(r.athleteMemoryPath) !== base) {
+          errors.push("source-path-invalid");
+        } else {
+          const [practiceSnap, attendanceSnap, memorySnap, evidenceSnap] = await Promise.all([
+            db.doc(`practiceSessions/${practiceId}`).get(),
+            db.doc(`attendance_sessions/${practiceId}`).get(),
+            db.doc(base).get(), db.doc(path).get(),
+          ]);
+          const practice = practiceSnap.data() || {};
+          const attendance = attendanceSnap.data() || {};
+          const memory = memorySnap.data() || {};
+          const evidence = evidenceSnap.data() || {};
+          if (!practiceSnap.exists || normalizeDiscipline(practice.discipline) !== discipline
+              || clean(practice.sessionDateKey) !== clean(r.sessionDateKey)) errors.push("practice-changed");
+          if (!attendanceSnap.exists || clean(attendance.practiceId) !== practiceId
+              || normalizeDiscipline(attendance.discipline) !== discipline
+              || clean(attendance.status).toLowerCase() !== "finalized"
+              || attendance.finalized !== true || !attendanceIncludesAthlete(attendance, athleteId)) {
+            errors.push("attendance-changed");
+          }
+          if (!memorySnap.exists || clean(memory.practiceId) !== practiceId
+              || clean(memory.athleteId).toUpperCase() !== athleteId
+              || normalizeDiscipline(memory.discipline) !== discipline
+              || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
+            errors.push("athlete-memory-changed");
+          }
+          if (!evidenceSnap.exists || normalizeDiscipline(evidence.discipline) !== discipline
+              || normalizeFamily(evidence.familyId) !== clean(r.familyId)
+              || normalizeState(evidence.state) !== clean(r.state)
+              || clean(evidence.coachUid) !== clean(r.coachUid)
+              || !(evidence.verifiedAt instanceof Timestamp)
+              || (evidence.verifiedAt instanceof Timestamp
+                && evidence.verifiedAt.toDate().toISOString() !== clean(r.verifiedAt))) {
+            errors.push("skill-evidence-changed");
+          }
+        }
+        results.push({skillEvidencePath: path, valid: errors.length === 0, blockers: errors});
+        if (errors.length) blockers.push("manifest-source-invalid:" + practiceId);
+      }
+      // Verification is not completeness attestation and never grants approval.
+      return {ok: true, diagnosticOnly: true, manifestId, recordCount: results.length,
+        sourceRecordsValid: results.length > 0 && results.every(r => r.valid),
+        records: results, blockers: [...new Set(blockers)].sort(),
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false};
+    }
+
     if (action === "check-transfer-acceptance") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer acceptance checks require Admin authority.");
