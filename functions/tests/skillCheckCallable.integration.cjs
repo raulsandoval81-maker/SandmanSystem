@@ -141,3 +141,22 @@ test("Coach receives review requirement but no Admin transfer-location review de
  assert.equal(result.checkedScopes.some(scope=>scope.scope.startsWith("prior-location:")),false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Admin opens idempotent pending transfer review without approving evidence",async()=>{
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["prior-training-location","test-location"]});
+ const request={auth:{uid:"test-admin-transfer",token:{}},data:{action:"open-transfer-review",athleteId,discipline:"wrestling"}};
+ const first=await callable.run(request);
+ const second=await callable.run(request);
+ assert.equal(first.created,true);
+ assert.equal(second.created,false);
+ assert.equal(first.evidenceApproved,false);
+ assert.equal(first.eligibleForAuto,false);
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling").get();
+ assert.equal(snap.data().status,"PENDING_MANAGEMENT_REVIEW");
+ assert.deepEqual(snap.data().declaredPriorLocationIds,["prior-training-location"]);
+ assert.equal(snap.data().coverageComplete,false);
+ assert.equal(snap.data().evidenceApproved,false);
+});
+test("Coach cannot create transfer review or approve historical evidence",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"open-transfer-review",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
+});
