@@ -485,6 +485,17 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(receipt.data().sourceRecordsValid,true);
  assert.equal(receipt.data().evidenceApproved,false);
  assert.equal(sources.acceptanceReady,false);
+ const certified=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId});
+ assert.equal(certified.certificateIssued,true,JSON.stringify(certified.blockers));
+ assert.equal(certified.observedEvidenceCount,1);
+ const certificate=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/coverageCertificates/"+manifest.manifestId).get();
+ assert.equal(certificate.data().kind,"SERVER_CERTIFIED_FULL_HISTORY");
+ assert.equal(certificate.data().evidenceApproved,false);
+ const acceptance=await invoke("commit-transfer-acceptance",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(acceptance.accepted,false);
+ assert.equal(acceptance.eligibleForAuto,false);
  const assessed=await invoke("assess-history-attestation");
  assert.equal(assessed.attested,false);
  assert.equal(assessed.coverageComplete,false);
