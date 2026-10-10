@@ -715,6 +715,9 @@ export const skillCheckCoachCall =
         : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
         ...preview, supervisedSuggestion, curriculumPrerequisites, curriculumMapAudit, proposedWrestlingAudit, trackReadiness,
+        proposedCurriculumDependencies: discipline === "wrestling"
+          ? requested.map(familyId => ({familyId, prerequisites: WRESTLING_REVIEW_GRAPH[familyId] || [],
+              approved: false})) : [],
         coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
