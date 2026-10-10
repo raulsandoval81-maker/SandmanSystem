@@ -516,3 +516,22 @@ test("Transactional historical acceptance denies missing certification and spoof
    manifestId:"unknown-manifest",verificationReceiptId:"unknown-receipt",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Certification preflight cannot manufacture full-history approval",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"certify-history-coverage",athleteId,discipline:"wrestling",
+   manifestId:"missing-certificate-manifest",
+   coverageComplete:true,evidenceApproved:true,eligibleForAuto:true,
+ }});
+ assert.equal(result.kind,"HISTORY_CERTIFICATION_PREFLIGHT");
+ assert.equal(result.certificateIssued,false);
+ assert.ok(result.blockers.includes("manifest-not-current"));
+ assert.ok(result.blockers.includes("independent-unbounded-scope-reconciliation-required"));
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"certify-history-coverage",athleteId,discipline:"wrestling",
+   manifestId:"missing-certificate-manifest",
+ }}),e=>e.code==="permission-denied");
+});
