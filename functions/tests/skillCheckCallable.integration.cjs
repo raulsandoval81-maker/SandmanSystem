@@ -415,3 +415,31 @@ test("Coaches cannot run integrated historical coverage review",async()=>{
    action:"evaluate-integrated-history-coverage",athleteId,discipline:"wrestling",
  }}),e=>e.code==="permission-denied");
 });
+
+test("History attestation assessment rejects incomplete evidence even with saved manifests",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"assess-history-attestation",athleteId,discipline:"boxing",
+   coverageComplete:true,evidenceApproved:true,eligibleForAuto:true,
+ }});
+ assert.equal(result.kind,"HISTORY_ATTESTATION_ASSESSMENT");
+ assert.equal(result.attested,false);
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.evidenceApproved,false);
+ assert.equal(result.eligibleForAuto,false);
+ assert.ok(result.blockers.includes("independent-full-history-attestation-required"));
+ assert.ok(result.blockers.includes("current-source-reverification-required"));
+});
+test("Unapproved history never produces a current athlete skill-state preview",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"preview-accepted-skill-state",athleteId,discipline:"wrestling",
+   eligibleForAuto:true,evidenceApproved:true,
+ }});
+ assert.deepEqual(result.skillStates,[]);
+ assert.ok(result.unresolvedFamilies.includes("double_leg"));
+ assert.equal(result.eligibleForAuto,false);
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"preview-accepted-skill-state",athleteId,discipline:"wrestling",
+ }}),e=>e.code==="permission-denied");
+});
