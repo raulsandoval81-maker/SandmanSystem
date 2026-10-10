@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, reviewTrackReadiness, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -268,4 +268,18 @@ test("Curriculum map audit exposes missing coverage and refuses cycles",()=>{
  const invalid=auditCurriculumPrerequisiteGraph(["a","b"],{a:["b"],b:["a"]});
  assert.equal(invalid.structurallyValid,false);
  assert.ok(invalid.issues.some(issue=>issue.startsWith("dependency-cycle:")));
+});
+
+test("Instructional readiness distinguishes introduction, practice and extension",()=>{
+ const result=reviewTrackReadiness([
+  {athleteId:"A",approved:true,blockers:[],skills:[]},
+  {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"foundation",state:"LEARNED"}]},
+  {athleteId:"C",approved:true,blockers:[],skills:[{familyId:"foundation",state:"APPLIED"}]},
+  {athleteId:"D",approved:false,blockers:["unverified"],skills:[{familyId:"foundation",state:"MASTERED"}]},
+ ],"next_family",["foundation"]);
+ assert.deepEqual(result.athletes.map(x=>[x.introduce,x.practice,x.extend]),
+   [[true,false,false],[true,true,false],[true,true,true],[false,false,false]]);
+ assert.deepEqual(result.athletes[0].missingForPractice,["foundation"]);
+ assert.equal(result.policyApproved,false);
+ assert.equal(result.eligibleForAuto,false);
 });
