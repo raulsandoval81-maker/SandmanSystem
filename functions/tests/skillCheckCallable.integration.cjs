@@ -557,13 +557,31 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const generated=await invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",
-   tracks:[{athleteId:id,track:"EXTEND"}],
+   tracks:[{athleteId:id,track:"EXTEND"}],practiceId:deliveryPractice,
+   localStoragePracticeId:"attacker-controlled-practice",
+   eligibleAthleteIds:["attacker-controlled-athlete"],
  });
  assert.equal(generated.status,"DRAFT");
  assert.deepEqual(generated.tracks,[{athleteId:id,track:"PRACTICE"}]);
  const generatedRecord=await db.doc("coachLessonPlans/recommended-e2e-lesson").get();
  assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
  assert.equal(generatedRecord.data().eligibleForAuto,false);
+ assert.equal(generatedRecord.data().localStoragePracticeId,undefined);
+ assert.equal(generatedRecord.data().eligibleAthleteIds,undefined);
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"get-group-lesson-plan",athleteId:"RESUME",discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",
+ }}),error=>error.code==="permission-denied");
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"attach-group-lesson-to-practice",athleteId:id,discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+ }}),error=>error.code==="failed-precondition");
+ const interruptedResume=await invoke("get-group-lesson-plan",{
+   athleteId:"RESUME",lessonId:"recommended-e2e-lesson",
+ });
+ assert.equal(interruptedResume.status,"DRAFT");
+ assert.equal(interruptedResume.practiceId,deliveryPractice);
+ assert.deepEqual(interruptedResume.athleteIds,[id]);
  // Full recommended lesson: review -> confirm -> attach -> teach -> recover.
  const reviewed=await invoke("save-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",familyId:"double_leg",athleteIds:[id],
