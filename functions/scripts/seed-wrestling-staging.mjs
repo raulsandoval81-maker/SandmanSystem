@@ -3,7 +3,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { verifyStagingBoundary } from "../../scripts/staging/verify-staging-boundary.mjs";
-import { assertSyntheticWriteSafety } from "./staging-seed-safety.mjs";
+import { assertSyntheticWriteSafety, commitSyntheticManifestTransaction } from "./staging-seed-safety.mjs";
 
 const boundary = await verifyStagingBoundary();
 const { projectId } = boundary;
@@ -91,11 +91,16 @@ try {
     createdUsers.push(uid);
     await auth.setCustomUserClaims(uid, { synthetic: true, environment: "staging" });
   }
-  const batch = db.batch();
-  for (const [path, value] of writes) batch.set(db.doc(path), value, { merge: true });
-  await batch.commit();
+  await commitSyntheticManifestTransaction(db, writes);
 } catch (error) {
-  await Promise.allSettled(createdUsers.map(uid => auth.deleteUser(uid)));
+  const rollback = await Promise.allSettled(createdUsers.map(uid => auth.deleteUser(uid)));
+  const rollbackFailures = rollback
+    .map((result, index) => ({ result, uid: createdUsers[index] }))
+    .filter(item => item.result.status === "rejected")
+    .map(item => new Error(`Auth rollback failed for ${item.uid}: ${item.result.reason?.message || item.result.reason}`));
+  if (rollbackFailures.length) {
+    throw new AggregateError([error, ...rollbackFailures], "Synthetic seed failed and one or more Auth rollbacks also failed.");
+  }
   throw error;
 }
 console.log(`Seeded ${writes.size} synthetic Wrestling staging records in ${projectId}.`);
