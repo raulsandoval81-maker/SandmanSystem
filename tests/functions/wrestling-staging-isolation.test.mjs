@@ -5,6 +5,7 @@ import path from "node:path";
 import test from "node:test";
 import { verifyStagingBoundary } from "../../scripts/staging/verify-staging-boundary.mjs";
 import { validateStagingWebConfig } from "../../scripts/staging/validate-staging-config.mjs";
+import { assertSyntheticWriteSafety } from "../../functions/scripts/staging-seed-safety.mjs";
 
 const read = path => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 
@@ -93,4 +94,41 @@ test("staging deployment is manual, explicit, and bound to verified identities",
   assert.match(deploy, /--config", "firebase\.staging\.json/);
   assert.match(deploy, /--project", boundary\.projectId/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
+});
+
+test("synthetic seed preflight rejects top-level and nested non-synthetic collisions", () => {
+  const paths = [
+    "athletes/staging-athlete-beginner",
+    "practiceSessions/staging-wrestling-practice/athletes/staging-athlete-beginner",
+    "practiceSessions/staging-wrestling-history/athletes/staging-athlete-advanced/verifiedSkills/wrestling__double_leg",
+  ];
+  const snapshots = paths.map(path => ({ ref: { path }, exists: false, get: () => undefined }));
+  assert.doesNotThrow(() => assertSyntheticWriteSafety(snapshots, paths));
+  for (const collisionIndex of [0, 1, 2]) {
+    const collision = snapshots.map((snapshot, index) => index === collisionIndex
+      ? { ref: snapshot.ref, exists: true, get: () => false }
+      : snapshot);
+    assert.throws(() => assertSyntheticWriteSafety(collision, paths), new RegExp(paths[collisionIndex].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+});
+
+test("synthetic seed preflight rejects incomplete or reordered path inspection", () => {
+  const paths = ["one/doc", "two/doc/nested/item"];
+  const snapshots = paths.map(path => ({ ref: { path }, exists: true, get: key => key === "synthetic" }));
+  assert.throws(() => assertSyntheticWriteSafety(snapshots.slice(0, 1), paths), /every intended path/);
+  assert.throws(() => assertSyntheticWriteSafety([...snapshots].reverse(), paths), /ordering mismatch/);
+});
+
+test("Phase 5 fixture includes deterministic mixed readiness and failure scenarios", async () => {
+  const seed = await read("functions/scripts/seed-wrestling-staging.mjs");
+  assert.match(seed, /staging-athlete-beginner/);
+  assert.match(seed, /staging-athlete-intermediate/);
+  assert.match(seed, /staging-athlete-advanced/);
+  assert.match(seed, /missing-evidence/);
+  assert.match(seed, /stale-evidence/);
+  assert.match(seed, /conflicting-evidence/);
+  assert.match(seed, /interrupted-recovery/);
+  assert.match(seed, /duplicate-retry/);
+  assert.match(seed, /eligibleForAuto: false/);
+  assert.match(seed, /xpAwarded: false/);
 });

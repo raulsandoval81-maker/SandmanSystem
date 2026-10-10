@@ -26,6 +26,8 @@ node functions/scripts/seed-wrestling-staging.mjs
 
 The seed command refuses production and requires the explicit acknowledgement, staging-only password, service-account email, and `GOOGLE_APPLICATION_CREDENTIALS` path. It verifies the credential file's actual project and service-account identities before initializing Firebase. Existing fixed-ID Auth or Firestore records must already be marked synthetic or the seed terminates before mutation. Never import production Auth or Firestore data.
 
+The seed constructs its complete write manifest first, including nested athlete-session and verified-skill paths. It reads every intended document before creating Auth users or committing Firestore writes. A missing preflight result, reordered result, or existing non-synthetic document terminates the run. If the Firestore batch fails after new synthetic Auth users are created, the seed attempts to remove those newly created users.
+
 ## Required validation
 
 Use the two synthetic Coach accounts to verify authorized and rejected access. Exercise group loading, all 36 families, evidence reconciliation, mandatory-only readiness, nonblocking supporting skills, mixed tracks, adjustment, confirmation, practice attachment, delivery, retrieval, refresh/recovery, attendance finalization, and cross-practice rejection in authenticated desktop and mobile browser sessions. Record browser/version and evidence. Do not claim browser completion until this has been performed against the isolated project.
