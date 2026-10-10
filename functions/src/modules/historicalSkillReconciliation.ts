@@ -111,3 +111,67 @@ export function reconcileHistoryPages(
     eligibleForAuto: false as const
   };
 }
+
+
+// Read-only mixed-group curriculum preview. Inputs must come from the
+// separately authorized accepted-evidence resolver; this helper never
+// accepts evidence, writes progression, or enables automatic launch.
+export type AcceptedGroupSkillSnapshot = {
+  athleteId: string;
+  approved: boolean;
+  blockers: readonly string[];
+  skills: readonly {familyId: string; state: string}[];
+};
+
+const GROUP_STATE_ORDER = ["NOT_INTRODUCED", "LEARNED", "APPLIED", "MASTERED", "REFINED"] as const;
+
+export function previewMixedGroupSkillNeeds(
+  athletes: readonly AcceptedGroupSkillSnapshot[],
+  requestedFamilies: readonly string[]
+) {
+  const blockers: string[] = [];
+  if (!athletes.length || athletes.length > 30) blockers.push("group-size-invalid");
+  if (!requestedFamilies.length || requestedFamilies.length > 50
+      || new Set(requestedFamilies).size !== requestedFamilies.length
+      || requestedFamilies.some(family => !family.trim())) {
+    blockers.push("curriculum-families-invalid");
+  }
+  const identities = new Set<string>();
+  for (const athlete of athletes) {
+    if (!athlete.athleteId.trim() || identities.has(athlete.athleteId)) {
+      blockers.push("duplicate-or-missing-athlete");
+    }
+    identities.add(athlete.athleteId);
+    if (!athlete.approved || athlete.blockers.length) blockers.push("athlete-evidence-not-ready:" + athlete.athleteId);
+    const skills = new Set<string>();
+    for (const skill of athlete.skills) {
+      if (skills.has(skill.familyId) || !GROUP_STATE_ORDER.includes(skill.state as typeof GROUP_STATE_ORDER[number])) {
+        blockers.push("athlete-skill-state-invalid:" + athlete.athleteId);
+      }
+      skills.add(skill.familyId);
+    }
+  }
+  if (blockers.length) return {
+    ready: false, lessonCandidates: [], blockers: [...new Set(blockers)].sort(),
+    coachReviewRequired: true, eligibleForAuto: false,
+  };
+  const lessonCandidates = requestedFamilies.map(familyId => {
+    const members = athletes.map(athlete => {
+      const state = athlete.skills.find(skill => skill.familyId === familyId)?.state ?? null;
+      const level = state === null ? -1 : GROUP_STATE_ORDER.indexOf(state as typeof GROUP_STATE_ORDER[number]);
+      return {
+        athleteId: athlete.athleteId, currentState: state,
+        track: level < 1 ? "INTRODUCE" : level < 3 ? "PRACTICE" : "EXTEND",
+      };
+    });
+    return {
+      familyId, athletesNeedingIntroduction: members.filter(m => m.track === "INTRODUCE").length,
+      practiceCount: members.filter(m => m.track === "PRACTICE").length,
+      extensionCount: members.filter(m => m.track === "EXTEND").length,
+      members,
+    };
+  }).sort((a,b) => b.athletesNeedingIntroduction - a.athletesNeedingIntroduction
+    || b.practiceCount - a.practiceCount || a.familyId.localeCompare(b.familyId));
+  return {ready: true, lessonCandidates, blockers: [],
+    coachReviewRequired: true, eligibleForAuto: false};
+}
