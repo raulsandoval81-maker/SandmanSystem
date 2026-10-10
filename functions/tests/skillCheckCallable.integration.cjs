@@ -160,3 +160,19 @@ test("Admin opens idempotent pending transfer review without approving evidence"
 test("Coach cannot create transfer review or approve historical evidence",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"open-transfer-review",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
 });
+
+test("Admin review becomes stale when declared athlete locations change",async()=>{
+ const req={auth:{uid:"test-admin-transfer",token:{}},data:{action:"get-transfer-review-status",athleteId,discipline:"wrestling"}};
+ const initial=await callable.run(req);
+ assert.equal(initial.status,"PENDING_MANAGEMENT_REVIEW");
+ assert.equal(initial.stale,false);
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["different-former-location"]});
+ const changed=await callable.run(req);
+ assert.equal(changed.status,"STALE_REVIEW");
+ assert.equal(changed.stale,true);
+ assert.equal(changed.evidenceApproved,false);
+ assert.equal(changed.eligibleForAuto,false);
+});
+test("Coach cannot inspect transfer review location details",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"get-transfer-review-status",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
+});
