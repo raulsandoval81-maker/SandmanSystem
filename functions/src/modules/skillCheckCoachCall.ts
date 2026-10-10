@@ -414,6 +414,36 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "check-transfer-acceptance") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer acceptance checks require Admin authority.");
+      }
+      const snap = await db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`).get();
+      const review = snap.data() || {};
+      const recorded = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
+        : [];
+      const current = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort()
+        : [];
+      const blockers: string[] = [];
+      if (!snap.exists) blockers.push("transfer-review-not-opened");
+      else if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") blockers.push("transfer-review-not-pending");
+      if (JSON.stringify(recorded) !== JSON.stringify(current)) blockers.push("transfer-review-stale");
+      if (current.length === 0) blockers.push("no-declared-prior-locations");
+      if (current.length > 10) blockers.push("prior-location-scan-limit-exceeded");
+      // No durable signed coverage manifest or per-practice acceptance chain exists yet.
+      // Never trust client-provided eligibility fields or previously stored booleans.
+      blockers.push("verified-historical-coverage-manifest-required");
+      blockers.push("verified-evidence-acceptance-chain-required");
+      return {
+        ok: true, diagnosticOnly: true, canAccept: false,
+        blockers: [...new Set(blockers)].sort(),
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+      };
+    }
+
     if (action === "reject-transfer-review") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer review rejection requires Admin authority.");
