@@ -717,6 +717,63 @@ export const skillCheckCoachCall =
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false };
     }
 
+    if (action === "commit-transfer-acceptance") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Only Admin may accept historical transfers.");
+      }
+      const manifestId = clean(data.manifestId);
+      const receiptId = clean(data.verificationReceiptId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)
+          || !/^[a-zA-Z0-9_-]{1,128}$/.test(receiptId)) {
+        throw new HttpsError("invalid-argument", "Manifest and verification receipt IDs are required.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const result = await db.runTransaction(async tx => {
+        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap] =
+          await Promise.all([
+            tx.get(ref),
+            tx.get(ref.collection("evidenceManifests").doc(manifestId)),
+            tx.get(ref.collection("sourceVerificationReceipts").doc(receiptId)),
+            tx.get(ref.collection("coverageCertificates").doc(manifestId)),
+            tx.get(db.doc(`athletes/${athleteId}`)),
+          ]);
+        const review = reviewSnap.data() || {};
+        const manifest = manifestSnap.data() || {};
+        const receipt = receiptSnap.data() || {};
+        const athleteCurrent = athleteSnap.data() || {};
+        const revision = typeof review.revision === "number" ? review.revision : 1;
+        const latestLocations = Array.isArray(athleteCurrent.previousLocationIds)
+          ? [...new Set(athleteCurrent.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== clean(athleteCurrent.locationId)).sort() : [];
+        const reviewLocations = Array.isArray(review.declaredPriorLocationIds)
+          ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+        const blockers: string[] = [];
+        if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW")
+          blockers.push("review-not-pending");
+        if (JSON.stringify(latestLocations) !== JSON.stringify(reviewLocations))
+          blockers.push("declared-location-history-changed");
+        if (!manifestSnap.exists || manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+            || clean(manifest.athleteId) !== athleteId
+            || normalizeDiscipline(manifest.discipline) !== discipline
+            || manifest.reviewRevision !== revision) blockers.push("manifest-missing-or-stale");
+        if (!receiptSnap.exists || receipt.kind !== "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT"
+            || clean(receipt.manifestId) !== manifestId
+            || clean(receipt.athleteId) !== athleteId
+            || normalizeDiscipline(receipt.discipline) !== discipline
+            || receipt.reviewRevision !== revision || receipt.sourceRecordsValid !== true
+            || receipt.reviewCurrent !== true) blockers.push("verified-source-receipt-required");
+        // A receipt is an observation, not a live recheck. Never accept on
+        // receipt validity alone. Full-scope certificates are not issued yet.
+        if (!certificationSnap.exists || certificationSnap.data()?.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
+            || certificationSnap.data()?.reviewRevision !== revision)
+          blockers.push("independent-full-history-certification-required");
+        blockers.push("atomic-current-source-reverification-not-implemented");
+        return {accepted: false, blockers: [...new Set(blockers)].sort()};
+      });
+      return {ok: true, diagnosticOnly: true, kind: "TRANSFER_ACCEPTANCE_TRANSACTION",
+        ...result, coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
+    }
+
     if (action === "check-transfer-acceptance") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer acceptance checks require Admin authority.");
