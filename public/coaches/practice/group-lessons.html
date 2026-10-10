@@ -62,11 +62,18 @@ $("save").onclick=async()=>{
  if(!candidate)return;
  const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
  if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a lesson ID using letters, numbers, dashes or underscores.");return}
+ const coachSelectedTracks=tracks();
  const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
  if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
  const selected=candidate.find(c=>c.familyId===familyId);
  for(const item of selected.members){const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track}
- notify("Recommendation saved as a draft. Review or adjust tracks, then confirm.");
+ const recommended=tracks();
+ if(JSON.stringify(coachSelectedTracks)!==JSON.stringify(recommended)){
+   coachSelectedTracks.forEach(item=>{const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track});
+   const override=await request(params("save-group-lesson-draft",{lessonId,familyId,tracks:coachSelectedTracks}));
+   if(!override){$("confirm").disabled=true;notify("Recommendation saved, but Coach adjustments were not saved. Retry Save Coach adjustments before confirming.");return}
+ }
+ notify("Draft saved with Coach adjustments. Review, then confirm.");
  }};
 $("update").onclick=async()=>{
  if(!saved||confirmed)return;
@@ -82,7 +89,7 @@ $("confirm").onclick=async()=>{
 $("attach").onclick=async()=>{
  if(!confirmed)return;
  const result=await request(params("attach-group-lesson-to-practice",{lessonId:$("lessonId").value.trim(),practiceId:$("practiceId").value.trim()}));
- if(result){attached=true;$("record").disabled=false;notify("Lesson attached to practice. Record actual instruction after teaching.");}
+ if(result){attached=true;$("record").disabled=false;$("practiceId").readOnly=true;$("delivered").value=roster.join(", ");$("attach").disabled=true;notify("Lesson attached to practice. Review athletes actually instructed after teaching.");}
 };
 $("record").onclick=async()=>{
  if(!attached)return;
