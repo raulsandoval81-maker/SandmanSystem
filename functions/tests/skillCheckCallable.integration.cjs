@@ -449,3 +449,48 @@ test("Unapproved history never produces a current athlete skill-state preview",a
    action:"preview-accepted-skill-state",athleteId,discipline:"wrestling",
  }}),e=>e.code==="permission-denied");
 });
+
+test("end-to-end historical intake, scan, manifest, recheck, and attestation remain fail-closed",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="F8_INTEGRATED_E2E";
+ const practiceId="test-e2e-attestation-practice";
+ const auth={uid:"test-admin-transfer",token:{}};
+ await db.doc("athletes/"+id).set({locationId:"test-location",previousLocationIds:["e2e-former-location"]});
+ await db.doc("practiceSessions/"+practiceId).set({
+   coachUid:"former-coach",locationId:"e2e-former-location",
+   discipline:"wrestling",sessionDateKey:"2026-10-03",
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+   practiceId,discipline:"wrestling",status:"finalized",finalized:true,presentIds:[id],
+ });
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({
+   practiceId,athleteId:id,discipline:"wrestling",attendance:{status:"present"},
+ });
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id+"/verifiedSkills/wrestling__double_leg").set({
+   discipline:"wrestling",familyId:"double_leg",state:"LEARNED",
+   coachUid:"former-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-03T18:00:00Z")),
+ });
+ const invoke=(action,extra={})=>callable.run({auth,data:{action,athleteId:id,discipline:"wrestling",...extra}});
+ const opened=await invoke("open-transfer-review");
+ assert.equal(opened.created,true);
+ const scan=await invoke("scan-history-scope-page",{scope:"prior-location:e2e-former-location"});
+ assert.equal(scan.scopeExhausted,true);
+ assert.equal(scan.practices.length,1);
+ const manifest=await invoke("build-verified-evidence-manifest");
+ assert.equal(manifest.recordCount,1);
+ const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId});
+ assert.equal(sources.sourceRecordsValid,true);
+ assert.equal(sources.acceptanceReady,false);
+ const assessed=await invoke("assess-history-attestation");
+ assert.equal(assessed.attested,false);
+ assert.equal(assessed.coverageComplete,false);
+ assert.equal(assessed.eligibleForAuto,false);
+ assert.ok(assessed.blockers.includes("independent-full-history-attestation-required"));
+ const states=await invoke("preview-accepted-skill-state");
+ assert.deepEqual(states.skillStates,[]);
+ await db.doc("practiceSessions/"+practiceId).update({sessionDateKey:"2026-10-02"});
+ const changed=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId});
+ assert.equal(changed.sourceRecordsValid,false);
+ assert.ok(changed.records[0].blockers.includes("practice-changed"));
+ assert.equal(changed.eligibleForAuto,false);
+});
