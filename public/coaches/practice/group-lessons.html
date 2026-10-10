@@ -61,7 +61,7 @@ $("save").onclick=async()=>{
  if(!candidate)return;
  const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
  const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
- if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;
+ if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
  const selected=candidate.find(c=>c.familyId===familyId);
  for(const item of selected.members){const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track}
  notify("Recommendation saved as a draft. Review or adjust tracks, then confirm.");
