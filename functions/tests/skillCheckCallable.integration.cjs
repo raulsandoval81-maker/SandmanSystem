@@ -323,6 +323,9 @@ test("Admin creates server-sourced evidence manifest with precise provenance, wi
  assert.equal(snap.data().records[0].athleteMemoryPath,"practiceSessions/"+id+"/athletes/"+athleteId);
  const verified=await callable.run({auth,data:{action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:result.manifestId}});
  assert.equal(verified.sourceRecordsValid,true);
+ assert.equal(verified.reviewCurrent,true);
+ assert.equal(verified.historicalCoverageVerified,false);
+ assert.equal(verified.acceptanceReady,false);
  assert.equal(verified.evidenceApproved,false);
  assert.equal(verified.eligibleForAuto,false);
  await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system").update({state:"MASTERED"});
