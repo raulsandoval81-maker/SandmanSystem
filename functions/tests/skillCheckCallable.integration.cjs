@@ -295,3 +295,35 @@ test("Coach cannot list transfer coverage audit checkpoints",async()=>{
    action:"list-transfer-coverage-checkpoints",athleteId,discipline:"boxing",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Admin creates server-sourced evidence manifest with precise provenance, without approving it",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="test-manifest-boxing";
+ await db.doc("practiceSessions/"+id).set({coachUid:"test-coach",locationId:"test-location",discipline:"boxing",sessionDateKey:"2026-10-04"});
+ await db.doc("attendance_sessions/"+id).set({practiceId:id,discipline:"boxing",status:"finalized",finalized:true,presentIds:[athleteId]});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId).set({practiceId:id,athleteId,discipline:"boxing",attendance:{status:"present"}});
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system").set({
+   discipline:"boxing",familyId:"jab_system",state:"LEARNED",coachUid:"test-coach",
+   verifiedAt:Timestamp.fromDate(new Date("2026-10-04T18:00:00Z")),
+ });
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"build-verified-evidence-manifest",athleteId,discipline:"boxing",
+   evidenceApproved:true,coverageComplete:true,eligibleForAuto:true,
+ }});
+ assert.equal(result.recordCount,1);
+ assert.equal(result.eligibleForAuto,false);
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/boxing/evidenceManifests/"+result.manifestId).get();
+ assert.equal(snap.data().kind,"SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST");
+ assert.equal(snap.data().evidenceApproved,false);
+ assert.equal(snap.data().coverageComplete,false);
+ assert.equal(snap.data().records.length,1);
+ assert.equal(snap.data().records[0].skillEvidencePath,"practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system");
+ assert.equal(snap.data().records[0].attendancePath,"attendance_sessions/"+id);
+ assert.equal(snap.data().records[0].athleteMemoryPath,"practiceSessions/"+id+"/athletes/"+athleteId);
+});
+test("Coach is denied durable evidence manifest creation",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"build-verified-evidence-manifest",athleteId,discipline:"boxing",
+ }}),e=>e.code==="permission-denied");
+});
