@@ -371,25 +371,6 @@ export const skillCheckCoachCall =
 
     const db = getFirestore();
 
-    const athleteSnap = await db
-      .doc(`athletes/${athleteId}`)
-      .get();
-
-    if (!athleteSnap.exists) {
-      throw new HttpsError(
-        "not-found",
-        `Athlete not found: ${athleteId}`
-      );
-    }
-
-    const athlete =
-      athleteSnap.data() || {};
-
-    requireSkillCheckAthleteAccess(
-      actor,
-      athlete
-    );
-
     if (action === "get-group-lesson-plan") {
       const lessonId = clean(data.lessonId);
       if (!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)) {
@@ -420,6 +401,26 @@ export const skillCheckCoachCall =
         coachNote:clean(plan.coachNote),coachReviewRequired:plan.status === "DRAFT",
         eligibleForAuto:false};
     }
+
+
+    const athleteSnap = await db
+      .doc(`athletes/${athleteId}`)
+      .get();
+
+    if (!athleteSnap.exists) {
+      throw new HttpsError(
+        "not-found",
+        `Athlete not found: ${athleteId}`
+      );
+    }
+
+    const athlete =
+      athleteSnap.data() || {};
+
+    requireSkillCheckAthleteAccess(
+      actor,
+      athlete
+    );
 
     if (action === "attach-group-lesson-to-practice" || action === "record-group-lesson-delivery") {
       const lessonId = clean(data.lessonId);
