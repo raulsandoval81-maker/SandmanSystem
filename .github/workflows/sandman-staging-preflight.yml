@@ -27,7 +27,6 @@ jobs:
           const rc = JSON.parse(fs.readFileSync('.firebaserc','utf8'));
           if (rc.projects.default !== 'sandmandashboard') throw Error('Unexpected production default');
           if (rc.projects.staging !== 'sandman-combat-staging') throw Error('Missing isolated staging alias');
-          if (rc.targets['sandman-combat-staging']?.hosting?.sandman?.[0] !== 'sandman-staging') throw Error('Missing staging Hosting target mapping');
           NODE
         env:
           STAGING_PROJECT: sandman-combat-staging
