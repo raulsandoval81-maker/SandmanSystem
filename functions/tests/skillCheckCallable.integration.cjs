@@ -348,3 +348,36 @@ test("Coach cannot verify saved transfer manifests",async()=>{
    action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:"test-manifest",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Admin scope scan resumes after cursor and never claims history completeness",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const ids=Array.from({length:52},(_,i)=>"test-page-scan-"+String(i).padStart(3,"0"));
+ const batch=db.batch();
+ for(const id of ids) batch.set(db.doc("practiceSessions/"+id),{
+   coachUid:"test-coach",locationId:"scan-only-location",discipline:"wrestling",sessionDateKey:"2026-10-01"
+ });
+ await batch.commit();
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["scan-only-location"]});
+ const scan=cursor=>callable.run({auth,data:{
+   action:"scan-history-scope-page",athleteId,discipline:"wrestling",
+   scope:"prior-location:scan-only-location",...(cursor?{cursor}:{}),
+ }});
+ const first=await scan();
+ assert.equal(first.scopeExhausted,false);
+ assert.equal(first.nextCursor,ids[49]);
+ assert.equal(first.eligibleForAuto,false);
+ const second=await scan(first.nextCursor);
+ assert.equal(second.scopeExhausted,true);
+ assert.equal(second.nextCursor,null);
+ assert.equal(second.eligibleForAuto,false);
+});
+test("Coach and undeclared prior locations cannot use the resumable scan",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"scan-history-scope-page",athleteId,discipline:"wrestling",
+   scope:"athlete-location",
+ }}),e=>e.code==="permission-denied");
+ await assert.rejects(callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+   action:"scan-history-scope-page",athleteId,discipline:"wrestling",
+   scope:"prior-location:unknown-location",
+ }}),e=>e.code==="permission-denied");
+});
