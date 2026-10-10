@@ -583,3 +583,19 @@ test("Server-owned traversal persists two pages and cannot accept a forged curso
  assert.ok(changed.blockers.includes("historical-page-changed:1"));
  assert.equal(changed.coverageComplete,false);
 });
+
+test("Atomic snapshot certificate refuses missing manifests and forged approval",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"certify-bounded-history-snapshot",athleteId,discipline:"wrestling",
+   manifestId:"missing-manifest",coverageComplete:true,evidenceApproved:true,
+ }});
+ assert.equal(result.certificateIssued,false);
+ assert.ok(result.blockers.includes("manifest-invalid"));
+ assert.equal(result.evidenceApproved,false);
+ assert.equal(result.eligibleForAuto,false);
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"certify-bounded-history-snapshot",athleteId,discipline:"wrestling",
+   manifestId:"missing-manifest",
+ }}),e=>e.code==="permission-denied");
+});
