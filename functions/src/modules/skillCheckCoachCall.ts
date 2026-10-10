@@ -414,6 +414,48 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "reject-transfer-review") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer review rejection requires Admin authority.");
+      }
+      const reason = clean(data.reason);
+      if (reason.length < 10 || reason.length > 500) {
+        throw new HttpsError("invalid-argument", "Rejection reason must be 10–500 characters.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const result = await db.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists) throw new HttpsError("failed-precondition", "Open a review before rejecting it.");
+        const review = snap.data() || {};
+        if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") {
+          throw new HttpsError("failed-precondition", "Only pending reviews can be rejected.");
+        }
+        const recorded = Array.isArray(review.declaredPriorLocationIds)
+          ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
+          : [];
+        const current = Array.isArray(athlete.previousLocationIds)
+          ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== clean(athlete.locationId)).sort()
+          : [];
+        if (JSON.stringify(recorded) !== JSON.stringify(current)) {
+          throw new HttpsError("failed-precondition", "Refresh stale transfer history before making a decision.");
+        }
+        const auditRef = ref.collection("decisions").doc();
+        tx.create(auditRef, {
+          action: "REJECTED", reason, actorUid: actor.uid,
+          athleteId, discipline, createdAt: FieldValue.serverTimestamp(),
+        });
+        tx.update(ref, {
+          status: "REJECTED", rejectedReason: reason,
+          decidedBy: actor.uid, decidedAt: FieldValue.serverTimestamp(),
+          evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+        });
+        return auditRef.id;
+      });
+      return { ok: true, status: "REJECTED", decisionId: result,
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+    }
+
     if (action === "refresh-transfer-review") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer review refresh requires Admin authority.");
