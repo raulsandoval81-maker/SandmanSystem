@@ -496,8 +496,19 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const acceptance=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
  });
- assert.equal(acceptance.accepted,false);
+ assert.equal(acceptance.accepted,true,JSON.stringify(acceptance.blockers));
+ assert.equal(acceptance.evidenceApproved,true);
  assert.equal(acceptance.eligibleForAuto,false);
+ const acceptedReview=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling").get();
+ assert.equal(acceptedReview.data().status,"ACCEPTED_HISTORICAL_EVIDENCE");
+ const audit=await acceptedReview.ref.collection("acceptanceDecisions").doc(manifest.manifestId).get();
+ assert.equal(audit.data().kind,"HISTORICAL_EVIDENCE_ACCEPTANCE");
+ assert.equal(audit.data().xpAwarded,false);
+ const duplicate=await invoke("commit-transfer-acceptance",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(duplicate.accepted,false);
+ assert.ok(duplicate.blockers.includes("review-not-pending"));
  const assessed=await invoke("assess-history-attestation");
  assert.equal(assessed.attested,false);
  assert.equal(assessed.coverageComplete,false);
