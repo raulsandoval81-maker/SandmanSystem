@@ -232,7 +232,7 @@ $("save").onclick=async()=>{
  const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
  if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a lesson ID using letters, numbers, dashes or underscores.");return}
  const coachSelectedTracks=tracks();
- const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
+ const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId),practiceId:$("practiceId").value.trim()}));
  if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("groupChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
  const selected=candidate.find(c=>c.familyId===familyId);
  for(const item of selected.members){const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track}
@@ -254,7 +254,7 @@ $("confirm").onclick=async()=>{
  if(!saved||confirmed)return;
  if(hasUnsavedTracks()){notify("You changed instructional tracks. Save Coach adjustments before confirming.");return}
  const result=await request(params("confirm-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
- if(result){confirmed=true;$("confirm").disabled=$("update").disabled=false;$("attach").disabled=false;
+ if(result){confirmed=true;$("confirm").disabled=$("update").disabled=true;$("attach").disabled=false;
  [...$("tracks").querySelectorAll("select")].forEach(el=>el.disabled=true);notify("Lesson confirmed; ready to attach to an existing practice.");}
 };
 $("attach").onclick=async()=>{

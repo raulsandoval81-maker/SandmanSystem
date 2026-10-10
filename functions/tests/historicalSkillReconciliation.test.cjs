@@ -182,6 +182,8 @@ test("Coach must persist track edits before confirming, and can start a new less
  assert.match(html,/function rememberTracks\(\)/);
  assert.match(html,/id="newLesson"/);
  assert.match(html,/newLesson"\)\.onclick/);
+ assert.match(html,/\$\("confirm"\)\.disabled=\$\("update"\)\.disabled=true/);
+ assert.match(html,/create-recommended-group-lesson-draft",\{lessonId,familyId,familyIds:candidate\.map\(c=>c\.familyId\),practiceId:/);
 });
 
 test("Supervised AUTO selects dominant verified group need without executing",()=>{

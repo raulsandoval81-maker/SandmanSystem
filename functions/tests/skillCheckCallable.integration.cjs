@@ -558,16 +558,40 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(tied.supervisedSuggestion.policyApproved,false);
  assert.equal(tied.supervisedSuggestion.coachApprovalRequired,true);
  assert.equal(tied.supervisedSuggestion.eligibleForAuto,false);
+ const deliveryPractice="test-e2e-coach-lesson-practice";
+ await db.doc("practiceSessions/"+deliveryPractice).set({
+   coachUid:"test-admin-transfer",locationId:"test-location",status:"active",
+   discipline:"wrestling",sessionDateKey:"2026-10-09",
+ });
+ await db.doc("attendance_sessions/"+deliveryPractice).set({
+   practiceId:deliveryPractice,status:"pending_review",finalized:false,
+   checkedInIds:[id],discipline:"wrestling",
+ });
  const generated=await invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",
-   tracks:[{athleteId:id,track:"EXTEND"}],
+   tracks:[{athleteId:id,track:"EXTEND"}],practiceId:deliveryPractice,
  });
  assert.equal(generated.status,"DRAFT");
+ assert.equal(generated.idempotent,false);
  assert.deepEqual(generated.tracks,[{athleteId:id,track:"PRACTICE"}]);
+ const retried=await invoke("create-recommended-group-lesson-draft",{
+   lessonId:"recommended-e2e-lesson",athleteIds:[id],
+   familyIds:["double_leg","single_leg"],familyId:"double_leg",
+   practiceId:deliveryPractice,
+ });
+ assert.equal(retried.status,"DRAFT");
+ assert.equal(retried.idempotent,true);
  const generatedRecord=await db.doc("coachLessonPlans/recommended-e2e-lesson").get();
  assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
+ assert.equal(generatedRecord.data().sourcePracticeId,deliveryPractice);
  assert.equal(generatedRecord.data().eligibleForAuto,false);
+ const interruptedResume=await invoke("get-group-lesson-plan",{
+   athleteId:"RESUME",lessonId:"recommended-e2e-lesson",
+ });
+ assert.equal(interruptedResume.status,"DRAFT");
+ assert.equal(interruptedResume.practiceId,deliveryPractice);
+ assert.deepEqual(interruptedResume.athleteIds,[id]);
  // Full recommended lesson: review -> confirm -> attach -> teach -> recover.
  const reviewed=await invoke("save-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",familyId:"double_leg",athleteIds:[id],
@@ -579,10 +603,24 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
    tracks:[{athleteId:id,track:"EXTEND"}],
  });
  assert.equal(approvedPlan.status,"COACH_CONFIRMED");
- const deliveryPractice="test-e2e-coach-lesson-practice";
- await db.doc("practiceSessions/"+deliveryPractice).set({
-   coachUid:"test-admin-transfer",locationId:"test-location",
+ const wrongPractice="test-e2e-wrong-lesson-practice";
+ await db.doc("practiceSessions/"+wrongPractice).set({
+   coachUid:"test-admin-transfer",locationId:"test-location",status:"active",
    discipline:"wrestling",sessionDateKey:"2026-10-09",
+ });
+ await db.doc("attendance_sessions/"+wrongPractice).set({
+   practiceId:wrongPractice,status:"pending_review",finalized:false,
+   checkedInIds:[id],discipline:"wrestling",
+ });
+ await assert.rejects(invoke("attach-group-lesson-to-practice",{
+   lessonId:"recommended-e2e-lesson",practiceId:wrongPractice,
+ }),error=>error.code==="failed-precondition");
+ await db.doc("attendance_sessions/"+deliveryPractice).update({checkedInIds:["ATHLETE_LEFT_GROUP"]});
+ await assert.rejects(invoke("attach-group-lesson-to-practice",{
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+ }),error=>error.code==="failed-precondition");
+ await db.doc("attendance_sessions/"+deliveryPractice).update({
+   status:"finalized",finalized:true,presentIds:[id,"ATHLETE_JOINED_GROUP"],checkedInIds:[id],
  });
  const linked=await invoke("attach-group-lesson-to-practice",{
    lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
@@ -607,7 +645,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  }),error=>error.code==="failed-precondition");
  await assert.rejects(invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
-   familyIds:["double_leg"],familyId:"double_leg",
+   familyIds:["double_leg"],familyId:"double_leg",practiceId:deliveryPractice,
  }),e=>e.code==="already-exists");
  const coachPreview=await callable.run({auth:{uid:"test-coach",token:{}},data:{
    action:"preview-group-lessons",athleteIds:[id],discipline:"wrestling",
@@ -781,6 +819,10 @@ test("Coach can revise and confirm group lesson once without XP or AUTO",async()
  await db.doc("practiceSessions/coach-lesson-practice").set({
    coachUid:"test-coach",locationId:"test-location",discipline:"wrestling",
    sessionDateKey:"2026-10-09",
+ });
+ await db.doc("attendance_sessions/coach-lesson-practice").set({
+   practiceId:"coach-lesson-practice",status:"pending_review",finalized:false,
+   checkedInIds:[athleteId],discipline:"wrestling",
  });
  const attached=await invoke("attach-group-lesson-to-practice",{
    tracks:[{athleteId,track:"PRACTICE"}],practiceId:"coach-lesson-practice",
