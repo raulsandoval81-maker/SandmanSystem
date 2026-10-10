@@ -767,7 +767,75 @@ export const skillCheckCoachCall =
         if (!certificationSnap.exists || certificationSnap.data()?.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
             || certificationSnap.data()?.reviewRevision !== revision)
           blockers.push("independent-full-history-certification-required");
-        blockers.push("atomic-current-source-reverification-not-implemented");
+        // Transactional source reads protect against evidence changing between
+        // the previous receipt and this acceptance attempt.
+        const entries: Record<string, unknown>[] = Array.isArray(manifest.records)
+          ? manifest.records : [];
+        if (!entries.length || entries.length > 50) {
+          blockers.push("manifest-source-count-invalid-for-atomic-recheck");
+        } else {
+          const sourcePaths = new Set<string>();
+          for (const entry of entries) {
+            const practiceId = clean(entry.practiceId);
+            const evidencePath = clean(entry.skillEvidencePath);
+            const base = `practiceSessions/${practiceId}/athletes/${athleteId}`;
+            if (!/^[a-zA-Z0-9_-]{1,160}$/.test(practiceId)
+                || evidencePath.split("/").length !== 6
+                || !evidencePath.startsWith(base + "/verifiedSkills/")
+                || clean(entry.attendancePath) !== `attendance_sessions/${practiceId}`
+                || clean(entry.athleteMemoryPath) !== base
+                || sourcePaths.has(evidencePath)) {
+              blockers.push("invalid-or-duplicate-atomic-source-path");
+              continue;
+            }
+            sourcePaths.add(evidencePath);
+            const [practiceSnap, attendanceSnap, memorySnap, evidenceSnap] =
+              await Promise.all([
+                tx.get(db.doc(`practiceSessions/${practiceId}`)),
+                tx.get(db.doc(`attendance_sessions/${practiceId}`)),
+                tx.get(db.doc(base)),
+                tx.get(db.doc(evidencePath)),
+              ]);
+            const practice = practiceSnap.data() || {};
+            const attendance = attendanceSnap.data() || {};
+            const memory = memorySnap.data() || {};
+            const evidence = evidenceSnap.data() || {};
+            const scope = clean(entry.scope);
+            const sourceLocation = clean(practice.locationId);
+            const locationValid =
+              (scope === "athlete-location" && !!clean(athleteCurrent.locationId)
+                && sourceLocation === clean(athleteCurrent.locationId))
+              || (scope === "athlete-academy" && !sourceLocation
+                && !!clean(athleteCurrent.academyId)
+                && clean(practice.academyId) === clean(athleteCurrent.academyId))
+              || (scope.startsWith("prior-location:")
+                && sourceLocation === scope.slice("prior-location:".length)
+                && latestLocations.includes(sourceLocation))
+              || (scope === "coach" && (
+                (!!clean(athleteCurrent.locationId)
+                  && sourceLocation === clean(athleteCurrent.locationId))
+                || (!sourceLocation && !!clean(athleteCurrent.academyId)
+                  && clean(practice.academyId) === clean(athleteCurrent.academyId))));
+            const valid = practiceSnap.exists && locationValid
+              && normalizeDiscipline(practice.discipline) === discipline
+              && clean(practice.sessionDateKey) === clean(entry.sessionDateKey)
+              && attendanceSnap.exists && clean(attendance.practiceId) === practiceId
+              && normalizeDiscipline(attendance.discipline) === discipline
+              && clean(attendance.status).toLowerCase() === "finalized"
+              && attendance.finalized === true && attendanceIncludesAthlete(attendance, athleteId)
+              && memorySnap.exists && clean(memory.practiceId) === practiceId
+              && clean(memory.athleteId).toUpperCase() === athleteId
+              && normalizeDiscipline(memory.discipline) === discipline
+              && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present"
+              && evidenceSnap.exists && normalizeDiscipline(evidence.discipline) === discipline
+              && normalizeFamily(evidence.familyId) === clean(entry.familyId)
+              && normalizeState(evidence.state) === clean(entry.state)
+              && clean(evidence.coachUid) === clean(entry.coachUid)
+              && evidence.verifiedAt instanceof Timestamp
+              && evidence.verifiedAt.toDate().toISOString() === clean(entry.verifiedAt);
+            if (!valid) blockers.push("atomic-source-recheck-failed:" + practiceId);
+          }
+        }
         return {accepted: false, blockers: [...new Set(blockers)].sort()};
       });
       return {ok: true, diagnosticOnly: true, kind: "TRANSFER_ACCEPTANCE_TRANSACTION",
