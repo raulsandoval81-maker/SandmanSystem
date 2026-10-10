@@ -283,3 +283,17 @@ test("Instructional readiness distinguishes introduction, practice and extension
  assert.equal(result.policyApproved,false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Coach lesson workspace displays provisional readiness for each instructional track",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/result\.trackReadiness\|\|\[\]/);
+ assert.match(html,/renderReadiness\(\)/);
+ assert.match(html,/Coach review only/);
+ assert.match(html,/Prerequisite policy is not configured/);
+ assert.match(html,/Introduce","Practice","Extend/);
+ const code=html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1];
+ const {spawnSync}=require("node:child_process");
+ const check=spawnSync(process.execPath,["--input-type=module","--check"],{input:code,encoding:"utf8"});
+ assert.equal(check.status,0,check.stderr);
+});
