@@ -106,7 +106,7 @@ test("Admin can inspect declared prior-location evidence without authorizing AUT
 test("Coach cannot read prior-location evidence merely because athlete declares it",async()=>{
  const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
  assert.equal(result.practices.some(p=>p.practiceId==="test-admin-prior-location"),false);
- assert.ok(result.checkedScopes.some(scope=>scope.scope==="prior-location:prior-training-location"&&!scope.authorized));
+ assert.equal(result.checkedScopes.some(scope=>scope.scope.startsWith("prior-location:")),false);
  assert.equal(result.eligibleForAuto,false);
 });
 
@@ -138,5 +138,6 @@ test("Coach receives review requirement but no Admin transfer-location review de
  assert.equal(result.transferReview.status,"ADMIN_REVIEW_REQUIRED");
  assert.equal(result.transferReview.evidenceApproved,false);
  assert.equal(Object.hasOwn(result.transferReview,"locations"),false);
+ assert.equal(result.checkedScopes.some(scope=>scope.scope.startsWith("prior-location:")),false);
  assert.equal(result.eligibleForAuto,false);
 });
