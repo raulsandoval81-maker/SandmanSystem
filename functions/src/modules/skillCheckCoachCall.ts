@@ -390,6 +390,72 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "save-group-lesson-draft" || action === "confirm-group-lesson-draft") {
+      const ids = Array.isArray(data.athleteIds)
+        ? data.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
+      const familyId = clean(data.familyId);
+      const lessonId = clean(data.lessonId);
+      if (!ids.length || ids.length > 30 || ids.some((id: string) =>
+            !/^[A-Z0-9_-]{1,128}$/.test(id))
+          || ids.length !== new Set(ids).size
+          || !familiesForDiscipline(discipline).includes(familyId)
+          || !/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)) {
+        throw new HttpsError("invalid-argument", "Valid lesson, family and unique athlete roster required.");
+      }
+      // Explicitly Coach-authored, not a verified AUTO plan or live lesson.
+      const tracks = Array.isArray(data.tracks) ? data.tracks : [];
+      const allowedTracks = new Set(["INTRODUCE", "PRACTICE", "EXTEND"]);
+      if (tracks.length !== ids.length
+          || tracks.some((item: Record<string, unknown>) =>
+            !ids.includes(clean(item.athleteId).toUpperCase())
+            || !allowedTracks.has(clean(item.track)))
+          || new Set(tracks.map((item: Record<string, unknown>) =>
+            clean(item.athleteId).toUpperCase())).size !== ids.length) {
+        throw new HttpsError("invalid-argument", "Exactly one valid instructional track per athlete required.");
+      }
+      for (const id of ids) {
+        const memberSnap = await db.doc(`athletes/${id}`).get();
+        if (!memberSnap.exists) throw new HttpsError("not-found", "Roster athlete not found.");
+        requireSkillCheckAthleteAccess(actor, memberSnap.data() || {});
+      }
+      const planRef = db.doc(`coachLessonPlans/${lessonId}`);
+      const output = await db.runTransaction(async tx => {
+        const saved = await tx.get(planRef);
+        const existing = saved.data() || {};
+        if (saved.exists && (clean(existing.coachUid) !== actor.uid
+            || clean(existing.discipline) !== discipline)) {
+          throw new HttpsError("permission-denied", "Lesson belongs to another Coach or discipline.");
+        }
+        if (action === "confirm-group-lesson-draft") {
+          if (!saved.exists || existing.status !== "DRAFT")
+            throw new HttpsError("failed-precondition", "Only existing drafts can be confirmed once.");
+          if (JSON.stringify(existing.athleteIds) !== JSON.stringify(ids)
+              || clean(existing.familyId) !== familyId
+              || JSON.stringify(existing.tracks) !== JSON.stringify(tracks))
+            throw new HttpsError("failed-precondition", "Draft changed. Review the saved plan before confirmation.");
+          tx.update(planRef, {
+            status: "COACH_CONFIRMED", confirmedAt: FieldValue.serverTimestamp(),
+            confirmedBy: actor.uid, eligibleForAuto: false,
+          });
+          return "COACH_CONFIRMED";
+        }
+        if (saved.exists && existing.status !== "DRAFT")
+          throw new HttpsError("failed-precondition", "Confirmed lessons cannot be overwritten.");
+        tx.set(planRef, {
+          kind: "COACH_AUTHORED_GROUP_LESSON", status: "DRAFT",
+          coachUid: actor.uid, discipline, familyId, athleteIds: ids,
+          tracks: tracks.map((item: Record<string, unknown>) => ({
+            athleteId: clean(item.athleteId).toUpperCase(), track: clean(item.track),
+          })),
+          updatedAt: FieldValue.serverTimestamp(),
+          coachReviewRequired: true, eligibleForAuto: false,
+        });
+        return "DRAFT";
+      });
+      return {ok: true, lessonId, status: output, coachReviewRequired: output === "DRAFT",
+        lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
+    }
+
     if (action === "preview-group-lessons") {
       // Preview-only: all members must have accepted, current evidence.
       const groupAdmin = normalizeStaffRole(actor.role) === "admin";
