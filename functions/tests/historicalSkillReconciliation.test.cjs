@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, reviewTrackReadiness, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, reviewTrackReadiness, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -321,4 +321,20 @@ test("Coach page renders distinct mandatory and supporting curriculum columns",(
  const {spawnSync}=require("node:child_process");
  const checked=spawnSync(process.execPath,["--input-type=module","--check"],{input:module,encoding:"utf8"});
  assert.equal(checked.status,0,checked.stderr);
+});
+
+test("supporting Wrestling skills never block draft track readiness",()=>{
+ const athlete={athleteId:"F8_0001",approved:true,blockers:[],
+   skills:[{familyId:"level_change_entry",state:"APPLIED"}]};
+ const ready=reviewWrestlingRoleReadiness([athlete],"chain_wrestling");
+ assert.ok(ready);
+ assert.deepEqual(ready.mandatoryFoundations,["level_change_entry"]);
+ assert.deepEqual(ready.supportingSkills,["double_leg","single_leg"]);
+ assert.equal(ready.athletes[0].practice,true);
+ assert.equal(ready.athletes[0].extend,true);
+ assert.deepEqual(ready.athletes[0].missingForPractice,[]);
+ assert.equal(ready.eligibleForAuto,false);
+ const withoutFoundation=reviewWrestlingRoleReadiness([{...athlete,skills:[]}],"chain_wrestling");
+ assert.equal(withoutFoundation.athletes[0].practice,false);
+ assert.deepEqual(withoutFoundation.athletes[0].missingForPractice,["level_change_entry"]);
 });
