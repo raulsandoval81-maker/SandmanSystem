@@ -949,8 +949,18 @@ export const skillCheckCoachCall =
             || receipt.reviewCurrent !== true) blockers.push("verified-source-receipt-required");
         // A receipt is an observation, not a live recheck. Never accept on
         // receipt validity alone. Full-scope certificates are not issued yet.
-        if (!certificationSnap.exists || certificationSnap.data()?.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
-            || certificationSnap.data()?.reviewRevision !== revision)
+        const certified = certificationSnap.data() || {};
+        const certifiedPaths = Array.isArray(certified.sourceEvidencePaths)
+          ? certified.sourceEvidencePaths.map(clean).sort() : [];
+        const manifestPaths = Array.isArray(manifest.records)
+          ? manifest.records.map((record: Record<string, unknown>) => clean(record.skillEvidencePath)).sort() : [];
+        if (!certificationSnap.exists || certified.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
+            || certified.reviewRevision !== revision
+            || clean(certified.athleteId) !== athleteId
+            || normalizeDiscipline(certified.discipline) !== discipline
+            || clean(certified.manifestId) !== manifestId
+            || JSON.stringify(certifiedPaths) !== JSON.stringify(manifestPaths)
+            || JSON.stringify(certified.declaredPriorLocationIds) !== JSON.stringify(latestLocations))
           blockers.push("independent-full-history-certification-required");
         // Transactional source reads protect against evidence changing between
         // the previous receipt and this acceptance attempt.
