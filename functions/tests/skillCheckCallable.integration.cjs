@@ -535,3 +535,36 @@ test("Certification preflight cannot manufacture full-history approval",async()=
    manifestId:"missing-certificate-manifest",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Server-owned traversal persists two pages and cannot accept a forged cursor",async()=>{
+ const id="F8_SERVER_TRAVERSAL";
+ const location="traversal-location-only";
+ const auth={uid:"test-admin-transfer",token:{}};
+ await db.doc("athletes/"+id).set({locationId:"test-location",previousLocationIds:[location]});
+ for(let i=0;i<53;i++) {
+   await db.doc("practiceSessions/traversal-"+String(i).padStart(3,"0")).set({
+     locationId:location,discipline:"wrestling",sessionDateKey:"2026-10-01",
+   });
+ }
+ const invoke=(extra={})=>callable.run({auth,data:{
+   action:"advance-server-history-traversal",athleteId:id,discipline:"wrestling",
+   scope:"prior-location:"+location,...extra,
+ }});
+ await assert.rejects(invoke({cursor:"traversal-052"}),e=>e.code==="failed-precondition");
+ await callable.run({auth,data:{action:"open-transfer-review",athleteId:id,discipline:"wrestling"}});
+ const first=await invoke({cursor:"traversal-052",scopeExhausted:true,coverageComplete:true});
+ assert.equal(first.scannedCandidates,50);
+ assert.equal(first.scopeExhausted,false);
+ const second=await invoke({cursor:"traversal-052"});
+ assert.equal(second.scannedCandidates,53);
+ assert.equal(second.scopeExhausted,true);
+ const third=await invoke();
+ assert.equal(third.alreadyExhausted,true);
+ const saved=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/scopeTraversals/prior-location_3Atraversal-location-only").get();
+ assert.equal(saved.data().pagesRead,2);
+ assert.equal(saved.data().coverageComplete,false);
+ const pages=await saved.ref.collection("pages").get();
+ assert.equal(pages.size,2);
+ assert.equal(pages.docs.reduce((total,page)=>total+page.data().candidateIds.length,0),53);
+ assert.equal(second.eligibleForAuto,false);
+});
