@@ -22,7 +22,8 @@ credential and deploys only:
 
 - Hosting site `sandman-combat-staging`, from ignored generated staging assets
 - callable `skillCheckCoachCall` (Node.js 22, Cloud Functions v2, default
-  `us-central1` region)
+  `us-central1` region), explicitly running as
+  `sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com`
 - Firestore rules for `projects/sandman-combat-staging/databases/(default)`
 
 It intentionally does not deploy Storage rules, seed data, other Functions, or
@@ -56,10 +57,11 @@ Grant these roles only in `sandman-combat-staging`:
 | staging deployer | project | `roles/cloudfunctions.developer` | Create/update the one selected Cloud Functions v2 callable and inspect its operation. |
 | staging deployer | project | `roles/serviceusage.serviceUsageConsumer` | Use and inspect the already-enabled project services during Firebase CLI deployment; cannot enable services. |
 | staging deployer | project | `roles/serviceusage.apiKeysViewer` | Firebase CLI requirement for reading the staging web API-key metadata; cannot modify keys. |
-| staging deployer | service account `991554514268-compute@developer.gserviceaccount.com` | `roles/iam.serviceAccountUser` | Permit deployment to act as the Functions runtime/default build identity. Scope this to the service account, not the project. |
-| Compute default service account | project | `roles/cloudbuild.builds.builder` | Execute the Functions source build and write its image/artifacts. The project is new and its effective Cloud Build constraints select the Compute default account. |
-| Compute default service account | project | `roles/datastore.user` | Let `skillCheckCoachCall` read and transactionally update staging Firestore at runtime. |
-| Compute default service account | project | `roles/logging.logWriter` | Let the deployed callable write runtime logs. |
+| staging deployer | service account `991554514268-compute@developer.gserviceaccount.com` | `roles/iam.serviceAccountUser` | Permit deployment to act as the selected Cloud Build identity. Scope this to the service account, not the project. |
+| staging deployer | service account `sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com` | `roles/iam.serviceAccountUser` | Permit deployment to attach the dedicated runtime identity to `skillCheckCoachCall`. Scope this to the service account, not the project. |
+| Compute default service account | project | `roles/cloudbuild.builds.builder` | Execute the Functions source build and write its image/artifacts. Cloud Build currently selects this account. |
+| dedicated Wrestling runtime service account | project | `roles/datastore.user` | Let `skillCheckCoachCall` read and transactionally update staging Firestore at runtime. |
+| dedicated Wrestling runtime service account | project | `roles/logging.logWriter` | Let the deployed callable write runtime logs. |
 
 The WIF principal already has `roles/iam.workloadIdentityUser` on the staging
 deployer service account. Do not add `roles/iam.serviceAccountTokenCreator`,
@@ -87,9 +89,12 @@ default build identity with:
 gcloud builds get-default-service-account --project=sandman-combat-staging
 ```
 
-It must resolve to
-`991554514268-compute@developer.gserviceaccount.com` before granting the
-service-account-specific roles above or running the workflow. The GitHub
+It resolves to `991554514268-compute@developer.gserviceaccount.com`. The deployer
+therefore needs Service Account User on both that build identity and the
+dedicated Wrestling runtime identity. The staging runtime override is accepted
+only when the exact staging project, acknowledgement, and runtime email are all
+present; an ordinary or production Function discovery retains its existing
+default identity. The GitHub
 `staging` environment currently allows only the older
 `pass6/wrestling-staging-activation` branch; add the PR #25 head branch to that
 environment policy before a manual test, without weakening required review.

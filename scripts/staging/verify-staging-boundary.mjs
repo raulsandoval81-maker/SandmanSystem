@@ -1,15 +1,19 @@
 import { readFile } from "node:fs/promises";
 
 export const PRODUCTION_PROJECT_ID = "sandmandashboard";
+export const STAGING_PROJECT_ID = "sandman-combat-staging";
 export const STAGING_PROJECT_NUMBER = "991554514268";
+export const STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT = "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com";
 export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions`;
 
 export async function verifyStagingBoundary(env = process.env) {
   const projectId = String(env.SANDMAN_STAGING_PROJECT_ID || "").trim();
   const expectedEmail = String(env.SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL || "").trim();
+  const runtimeServiceAccount = String(env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT || "").trim();
   const credentialPath = String(env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
-  if (!projectId || projectId === PRODUCTION_PROJECT_ID) throw new Error("A non-production SANDMAN_STAGING_PROJECT_ID is required.");
+  if (projectId !== STAGING_PROJECT_ID || projectId === PRODUCTION_PROJECT_ID) throw new Error("The exact approved staging project ID is required.");
   if (env.SANDMAN_STAGING_ACK !== projectId) throw new Error("SANDMAN_STAGING_ACK must exactly match the staging project ID.");
+  if (runtimeServiceAccount !== STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT) throw new Error("The exact approved staging Wrestling runtime service account is required.");
   if (!expectedEmail || !credentialPath) throw new Error("Explicit staging credential path and service-account email are required.");
 
   let credential;
@@ -27,7 +31,7 @@ export async function verifyStagingBoundary(env = process.env) {
   } else {
     throw new Error("Only the staging service account or approved WIF external credential is accepted.");
   }
-  return { projectId, serviceAccountEmail: expectedEmail, credential };
+  return { projectId, serviceAccountEmail: expectedEmail, runtimeServiceAccount, credential };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

@@ -3,7 +3,11 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { verifyStagingBoundary } from "../../scripts/staging/verify-staging-boundary.mjs";
+import {
+  STAGING_PROJECT_ID,
+  STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+  verifyStagingBoundary,
+} from "../../scripts/staging/verify-staging-boundary.mjs";
 import { validateStagingWebConfig } from "../../scripts/staging/validate-staging-config.mjs";
 import { assertSyntheticWriteSafety } from "../../functions/scripts/staging-seed-safety.mjs";
 
@@ -35,11 +39,11 @@ test("staging preparation and seeding fail closed against production", async () 
 });
 
 test("staging boundary rejects missing configuration and production targeting", async () => {
-  await assert.rejects(verifyStagingBoundary({}), /non-production/);
+  await assert.rejects(verifyStagingBoundary({}), /exact approved staging project/);
   await assert.rejects(verifyStagingBoundary({
     SANDMAN_STAGING_PROJECT_ID: "sandmandashboard",
     SANDMAN_STAGING_ACK: "sandmandashboard",
-  }), /non-production/);
+  }), /exact approved staging project/);
 });
 
 test("staging boundary verifies credential project and service-account identities", async () => {
@@ -47,20 +51,23 @@ test("staging boundary verifies credential project and service-account identitie
   const credentialPath = path.join(directory, "credential.json");
   const base = {
     type: "service_account",
-    project_id: "sandman-stage-a",
-    client_email: "stage-writer@sandman-stage-a.iam.gserviceaccount.com",
+    project_id: STAGING_PROJECT_ID,
+    client_email: "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
     private_key: "-----BEGIN PRIVATE KEY-----\nsynthetic-test-only\n-----END PRIVATE KEY-----\n",
   };
   await writeFile(credentialPath, JSON.stringify(base));
   const env = {
-    SANDMAN_STAGING_PROJECT_ID: "sandman-stage-a",
-    SANDMAN_STAGING_ACK: "sandman-stage-a",
+    SANDMAN_STAGING_PROJECT_ID: STAGING_PROJECT_ID,
+    SANDMAN_STAGING_ACK: STAGING_PROJECT_ID,
     SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: base.client_email,
+    SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
     GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
   };
   const verified = await verifyStagingBoundary(env);
-  assert.equal(verified.projectId, "sandman-stage-a");
+  assert.equal(verified.projectId, STAGING_PROJECT_ID);
+  assert.equal(verified.runtimeServiceAccount, STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT);
   await assert.rejects(verifyStagingBoundary({ ...env, SANDMAN_STAGING_ACK: "wrong" }), /ACK/);
+  await assert.rejects(verifyStagingBoundary({ ...env, SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: "wrong@example.invalid" }), /runtime service account/);
   await assert.rejects(verifyStagingBoundary({ ...env, SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: "wrong@example.invalid" }), /identity/);
   await writeFile(credentialPath, JSON.stringify({ ...base, project_id: "different-stage" }));
   await assert.rejects(verifyStagingBoundary(env), /project identity/);
@@ -100,6 +107,7 @@ test("staging boundary accepts only the approved GitHub WIF provider and deploye
     SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
     SANDMAN_STAGING_ACK: "sandman-combat-staging",
     SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: email,
+    SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
     GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
   };
   assert.equal((await verifyStagingBoundary(env)).serviceAccountEmail, email);
@@ -108,7 +116,12 @@ test("staging boundary accepts only the approved GitHub WIF provider and deploye
 });
 
 test("staging deployment is manual, explicit, and bound to verified identities", async () => {
-  const deploy = await read("scripts/staging/deploy-staging.mjs");
+  const [deploy, workflow, functionSource, productionConfig] = await Promise.all([
+    read("scripts/staging/deploy-staging.mjs"),
+    read(".github/workflows/sandman-staging-preflight.yml"),
+    read("functions/src/modules/skillCheckCoachCall.ts"),
+    read("firebase.json"),
+  ]);
   assert.match(deploy, /verifyStagingBoundary/);
   assert.match(deploy, /validateStagingWebConfig/);
   assert.match(deploy, /DEPLOY:\$\{boundary\.projectId\}/);
@@ -117,6 +130,9 @@ test("staging deployment is manual, explicit, and bound to verified identities",
   assert.match(deploy, /hosting,functions:skillCheckCoachCall,firestore:rules/);
   assert.doesNotMatch(deploy, /,storage/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
+  assert.match(workflow, /SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(functionSource, /resolveSkillCheckRuntimeOptions/);
+  assert.doesNotMatch(productionConfig, /sandman-wrestling-runtime/);
 });
 
 test("synthetic seed preflight rejects top-level and nested non-synthetic collisions", () => {

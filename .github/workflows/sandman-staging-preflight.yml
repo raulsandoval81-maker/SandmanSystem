@@ -24,6 +24,7 @@ jobs:
     env:
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
       SANDMAN_STAGING_ACK: sandman-combat-staging
       SANDMAN_STAGING_DEPLOY_CONFIRM: DEPLOY:sandman-combat-staging
       SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
