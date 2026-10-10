@@ -16,8 +16,24 @@ const read = path => readFile(new URL(`../../${path}`, import.meta.url), "utf8")
 test("Wrestling staging config uses an isolated generated hosting root", async () => {
   const config = JSON.parse(await read("firebase.staging.json"));
   assert.equal(config.hosting.public, ".firebase-staging/public");
+  assert.equal(config.functions.source, ".firebase-staging/functions");
+  assert.equal(config.functions.predeploy, undefined);
   assert.equal(config.firestore.rules, "firestore.rules");
   assert.notEqual(config.hosting.target, "sandman");
+});
+
+test("staging Functions discovery excludes production email and secret exports", async () => {
+  const [stagingEntry, productionEntry, packageSource, prepare] = await Promise.all([
+    read("functions/src/staging.ts"),
+    read("functions/src/index.ts"),
+    read("functions/package.json"),
+    read("scripts/staging/prepare-staging-hosting.mjs"),
+  ]);
+  assert.match(stagingEntry, /skillCheckCoachCall/);
+  assert.doesNotMatch(stagingEntry, /RESEND_API_KEY|sendEnrollmentIntakeEmail|sendGatekeeperEmail/);
+  assert.match(productionEntry, /sendEnrollmentIntakeEmail/);
+  assert.equal(JSON.parse(packageSource).main, "lib/index.js");
+  assert.match(prepare, /functionsPackage\.main = "lib\/staging\.js"/);
 });
 
 test("staging preparation and seeding fail closed against production", async () => {

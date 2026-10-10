@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { validateStagingWebConfig } from "./validate-staging-config.mjs";
@@ -5,9 +6,11 @@ import { validateStagingWebConfig } from "./validate-staging-config.mjs";
 const { projectId, config } = validateStagingWebConfig();
 
 const root = process.cwd();
-const output = path.join(root, ".firebase-staging", "public");
-await rm(path.dirname(output), { recursive: true, force: true });
-await mkdir(path.dirname(output), { recursive: true });
+const stagingRoot = path.join(root, ".firebase-staging");
+const output = path.join(stagingRoot, "public");
+const functionsOutput = path.join(stagingRoot, "functions");
+await rm(stagingRoot, { recursive: true, force: true });
+await mkdir(stagingRoot, { recursive: true });
 await cp(path.join(root, "public"), output, { recursive: true });
 const runtime = `export const runtimeEnvironment = "staging";\nexport const runtimeFirebaseConfig = Object.freeze(${JSON.stringify(config, null, 2)});\n`;
 await writeFile(path.join(output, "assets/js/runtime-environment.js"), runtime, "utf8");
@@ -15,4 +18,24 @@ await writeFile(path.join(output, "staging-environment.json"), JSON.stringify({ 
 
 const source = await readFile(path.join(output, "assets/js/firebase-init.js"), "utf8");
 if (!source.includes("Staging cannot use the production Firebase project")) throw new Error("Staging Firebase fail-closed guard is missing.");
+
+const build = spawnSync("npm", ["run", "build", "--prefix", "functions"], {
+  cwd: root,
+  env: process.env,
+  stdio: "inherit",
+  shell: false,
+});
+if (build.status !== 0) throw new Error("Failed to build the isolated staging Functions package.");
+
+await mkdir(functionsOutput, { recursive: true });
+await cp(path.join(root, "functions", "lib"), path.join(functionsOutput, "lib"), { recursive: true });
+await cp(path.join(root, "functions", "package-lock.json"), path.join(functionsOutput, "package-lock.json"));
+const functionsPackage = JSON.parse(await readFile(path.join(root, "functions", "package.json"), "utf8"));
+functionsPackage.main = "lib/staging.js";
+await writeFile(
+  path.join(functionsOutput, "package.json"),
+  `${JSON.stringify(functionsPackage, null, 2)}\n`,
+  "utf8"
+);
+
 console.log(`Prepared isolated staging hosting for ${projectId}.`);

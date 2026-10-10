@@ -1,8 +1,7 @@
 {
   "functions": {
-    "source": "functions",
-    "runtime": "nodejs22",
-    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+    "source": ".firebase-staging/functions",
+    "runtime": "nodejs22"
   },
   "hosting": {
     "public": ".firebase-staging/public",
