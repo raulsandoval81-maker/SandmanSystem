@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -229,4 +229,16 @@ test("Supervised lesson rotation skips recently delivered families and fails clo
  assert.equal(blocked.ready,false);
  assert.deepEqual(blocked.blockers,["all-candidates-recently-delivered"]);
  assert.equal(blocked.eligibleForAuto,false);
+});
+
+test("Draft curriculum prerequisites identify individual foundation gaps without granting AUTO",()=>{
+ const result=evaluateGroupLessonPrerequisites([
+  {athleteId:"A",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"LEARNED"},{familyId:"level_change_entry",state:"LEARNED"}]},
+  {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"LEARNED"}]},
+ ],["double_leg","stance_motion","chain_wrestling"],PILOT_WRESTLING_PREREQUISITES);
+ assert.deepEqual(result.byFamily.double_leg.missing,[{athleteId:"B",prerequisite:"level_change_entry"}]);
+ assert.equal(result.byFamily.stance_motion.ready,true);
+ assert.ok(result.blockers.includes("prerequisite-policy-unconfigured:chain_wrestling"));
+ assert.equal(result.policyApproved,false);
+ assert.equal(result.eligibleForAuto,false);
 });
