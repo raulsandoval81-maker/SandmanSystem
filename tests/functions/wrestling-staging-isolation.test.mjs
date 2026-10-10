@@ -16,7 +16,7 @@ const read = path => readFile(new URL(`../../${path}`, import.meta.url), "utf8")
 test("Wrestling staging config uses an isolated generated hosting root", async () => {
   const config = JSON.parse(await read("firebase.staging.json"));
   assert.equal(config.hosting.public, ".firebase-staging/public");
-  assert.equal(config.functions.source, ".firebase-staging/functions");
+  assert.equal(config.functions.source, "functions/.firebase-staging");
   assert.equal(config.functions.predeploy, undefined);
   assert.equal(config.firestore.rules, "firestore.rules");
   assert.notEqual(config.hosting.target, "sandman");

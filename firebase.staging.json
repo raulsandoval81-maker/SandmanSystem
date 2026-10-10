@@ -1,6 +1,6 @@
 {
   "functions": {
-    "source": ".firebase-staging/functions",
+    "source": "functions/.firebase-staging",
     "runtime": "nodejs22"
   },
   "hosting": {

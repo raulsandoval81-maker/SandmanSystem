@@ -8,8 +8,11 @@ const { projectId, config } = validateStagingWebConfig();
 const root = process.cwd();
 const stagingRoot = path.join(root, ".firebase-staging");
 const output = path.join(stagingRoot, "public");
-const functionsOutput = path.join(stagingRoot, "functions");
+// Keep the isolated package beneath functions/ so Firebase discovery can use
+// the dependencies installed by `npm ci --prefix functions` in CI.
+const functionsOutput = path.join(root, "functions", ".firebase-staging");
 await rm(stagingRoot, { recursive: true, force: true });
+await rm(functionsOutput, { recursive: true, force: true });
 await mkdir(stagingRoot, { recursive: true });
 await cp(path.join(root, "public"), output, { recursive: true });
 const runtime = `export const runtimeEnvironment = "staging";\nexport const runtimeFirebaseConfig = Object.freeze(${JSON.stringify(config, null, 2)});\n`;
