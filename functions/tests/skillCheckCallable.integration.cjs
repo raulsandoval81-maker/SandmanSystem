@@ -522,14 +522,14 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.ok(preview.unresolvedFamilies.includes("single_leg"));
  assert.equal(preview.eligibleForAuto,false);
  const group=await invoke("preview-group-lessons",{
-   athleteIds:[id],familyIds:["double_leg","single_leg"],
+   athleteIds:[id],familyIds:["double_leg","single_leg","chain_wrestling"],
  });
  assert.equal(group.ready,true,JSON.stringify(group.blockers));
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
  assert.equal(group.curriculumMapAudit.totalFamilies,36);
- assert.equal(group.curriculumMapAudit.mappedFamilies,4);
+ assert.equal(group.curriculumMapAudit.mappedFamilies,36);
  assert.equal(group.proposedWrestlingAudit.mappedFamilies,36);
  assert.deepEqual(group.proposedWrestlingAudit.unmappedFamilies,[]);
  assert.equal(group.proposedWrestlingAudit.structurallyValid,true);
@@ -537,7 +537,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.deepEqual(group.proposedCurriculumDependencies.find(item=>item.familyId==="double_leg").prerequisites,["level_change_entry"]);
  assert.equal(group.proposedCurriculumDependencies.find(item=>item.familyId==="double_leg").approved,false);
  assert.equal(group.curriculumMapAudit.policyApproved,false);
- assert.ok(group.curriculumMapAudit.unmappedFamilies.includes("chain_wrestling"));
+ assert.deepEqual(group.curriculumMapAudit.unmappedFamilies,[]);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").configured,true);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").athletes[0].practice,false);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="single_leg").policyApproved,false);
@@ -545,15 +545,19 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.deepEqual(group.trackReadiness.find(item=>item.familyId==="chain_wrestling").supportingSkills,["double_leg","single_leg"]);
  assert.equal(group.supervisedSuggestion.ready,false);
  assert.equal(group.supervisedSuggestion.selection,null);
- assert.ok(group.supervisedSuggestion.blockers.includes("curriculum-policy-not-approved"));
+ assert.ok(group.supervisedSuggestion.blockers.includes("prerequisites-not-met-or-unconfigured:double_leg"));
+ assert.deepEqual(group.supervisedSuggestion.warnings,["curriculum-policy-not-approved"]);
  assert.equal(group.supervisedSuggestion.coachApprovalRequired,true);
  assert.equal(group.supervisedSuggestion.eligibleForAuto,false);
  const tied=await invoke("preview-group-lessons",{
    athleteIds:[id],familyIds:["single_leg","stance_motion"],
  });
  assert.equal(tied.ready,true);
- assert.equal(tied.supervisedSuggestion.ready,false);
- assert.ok(tied.supervisedSuggestion.blockers.includes("curriculum-policy-not-approved"));
+ assert.equal(tied.supervisedSuggestion.ready,true);
+ assert.equal(tied.supervisedSuggestion.selection.familyId,"stance_motion");
+ assert.equal(tied.supervisedSuggestion.policyApproved,false);
+ assert.equal(tied.supervisedSuggestion.coachApprovalRequired,true);
+ assert.equal(tied.supervisedSuggestion.eligibleForAuto,false);
  const generated=await invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",

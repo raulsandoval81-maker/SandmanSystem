@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -643,14 +643,18 @@ export const skillCheckCoachCall =
       const preview = previewMixedGroupSkillNeeds(members, requested);
       const dependencyRoleReview = discipline === "wrestling"
         ? reviewWrestlingDependencyRoles(WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS) : null;
+      const wrestlingMandatoryGraph = dependencyRoleReview
+        ? Object.fromEntries(dependencyRoleReview.entries.map(entry =>
+          [entry.familyId, entry.mandatoryFoundations]))
+        : null;
       const proposedWrestlingAudit = discipline === "wrestling"
         ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, WRESTLING_REVIEW_GRAPH)
         : null;
       const curriculumMapAudit = discipline === "wrestling"
-        ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, PILOT_WRESTLING_PREREQUISITES)
+        ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, wrestlingMandatoryGraph || {})
         : null;
       const curriculumPrerequisites = discipline === "wrestling"
-        ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
+        ? evaluateGroupLessonPrerequisites(members, requested, wrestlingMandatoryGraph || {})
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
           blockers:["prerequisite-policy-unconfigured:" + discipline]};
       const trackReadiness = requested.map((familyId: string) => {
