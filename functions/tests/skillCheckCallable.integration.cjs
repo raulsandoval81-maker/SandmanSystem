@@ -534,6 +534,8 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.deepEqual(group.proposedWrestlingAudit.unmappedFamilies,[]);
  assert.equal(group.proposedWrestlingAudit.structurallyValid,true);
  assert.equal(group.proposedWrestlingAudit.policyApproved,false);
+ assert.deepEqual(group.proposedCurriculumDependencies.find(item=>item.familyId==="double_leg").prerequisites,["level_change_entry"]);
+ assert.equal(group.proposedCurriculumDependencies.find(item=>item.familyId==="double_leg").approved,false);
  assert.equal(group.curriculumMapAudit.policyApproved,false);
  assert.ok(group.curriculumMapAudit.unmappedFamilies.includes("chain_wrestling"));
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").configured,true);
