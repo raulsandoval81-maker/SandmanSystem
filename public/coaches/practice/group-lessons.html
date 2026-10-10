@@ -91,6 +91,15 @@ $("recommend").onclick=async()=>{
    hint.textContent="Supervised AUTO withheld pending approved prerequisites. Coach choice required. "+(supervised?.suggestedFoundation ? "Suggested foundation to review: "+supervised.suggestedFoundation+". " : "")+(supervised?.blockers||[]).join(", ");
  }
  $("recommendations").append(hint);
+ const audit=result.curriculumMapAudit;
+ if(audit){
+   const coverage=document.createElement("p");
+   coverage.textContent="Wrestling curriculum review: "+audit.mappedFamilies+" of "+audit.totalFamilies
+     +" skill families mapped; "+audit.unmappedFamilies.length+" pending review. "
+     +(audit.structurallyValid?"No structural errors detected.":"Structural issues: "+audit.issues.join(", "))
+     +" Policy not approved for AUTO.";
+   $("recommendations").append(coverage);
+ }
  const prereqs=result.curriculumPrerequisites;
  if(prereqs){
    const warning=document.createElement("p");
