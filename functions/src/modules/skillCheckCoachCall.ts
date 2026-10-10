@@ -773,14 +773,27 @@ export const skillCheckCoachCall =
       } else {
         throw new HttpsError("invalid-argument", "Unknown or unavailable history scope.");
       }
-      let query = db.collection("practiceSessions")
-        .where(field, "==", value).orderBy(FieldPath.documentId()).limit(51);
-      if (cursor) query = query.startAfter(cursor);
-      const snapshot = await query.get();
-      const candidates = snapshot.docs.slice(0, 50);
+      // Server-controlled multi-page handoff: never trust a client assertion
+      // that pages were traversed or that history is complete.
+      const requestedPages = data.pages === undefined ? 1 : Number(data.pages);
+      if (!Number.isInteger(requestedPages) || requestedPages < 1 || requestedPages > 3) {
+        throw new HttpsError("invalid-argument", "pages must be between 1 and 3.");
+      }
       const practices: Array<{practiceId: string; sessionDateKey: string; verifiedSkillCount: number}> = [];
       const blockers: string[] = [];
-      for (const doc of candidates) {
+      let position = cursor;
+      let scannedPages = 0;
+      let scannedCandidates = 0;
+      let exhausted = false;
+      for (let page = 0; page < requestedPages; page++) {
+        let query = db.collection("practiceSessions")
+          .where(field, "==", value).orderBy(FieldPath.documentId()).limit(51);
+        if (position) query = query.startAfter(position);
+        const snapshot = await query.get();
+        const candidates = snapshot.docs.slice(0, 50);
+        scannedPages++;
+        scannedCandidates += candidates.length;
+        for (const doc of candidates) {
         const practice = doc.data() || {};
         if (normalizeDiscipline(practice.discipline) !== discipline) continue;
         if (scope === "athlete-academy" && clean(practice.locationId)) continue;
@@ -809,11 +822,14 @@ export const skillCheckCoachCall =
         if (!evidence.size) blockers.push("no-verified-skills:" + doc.id);
         practices.push({practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey),
           verifiedSkillCount: evidence.size});
+        }
+        const hasMore = snapshot.size > 50;
+        if (!hasMore) { exhausted = true; position = ""; break; }
+        position = candidates[candidates.length - 1].id;
       }
-      const hasMore = snapshot.size > 50;
       return {ok: true, diagnosticOnly: true, scope, inputCursor: cursor || null,
-        nextCursor: hasMore ? candidates[candidates.length - 1].id : null,
-        scopeExhausted: !hasMore, practices,
+        nextCursor: exhausted ? null : position,
+        scopeExhausted: exhausted, scannedPages, scannedCandidates, practices,
         blockers: [...new Set(blockers)].sort(),
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
     }
