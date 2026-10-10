@@ -303,8 +303,8 @@ test("Wrestling proposal distinguishes mandatory foundations from supporting ski
  assert.deepEqual(review.issues,[]);
  assert.equal(review.entries.length,36);
  const chain=review.entries.find(item=>item.familyId==="chain_wrestling");
- assert.deepEqual(chain.mandatoryFoundations,["double_leg"]);
- assert.deepEqual(chain.supportingSkills,["single_leg"]);
+ assert.deepEqual(chain.mandatoryFoundations,["level_change_entry"]);
+ assert.deepEqual(chain.supportingSkills,["double_leg","single_leg"]);
  assert.equal(review.policyApproved,false);
  assert.equal(review.eligibleForAuto,false);
 });
