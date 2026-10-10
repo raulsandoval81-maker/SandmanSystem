@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -654,13 +654,12 @@ export const skillCheckCoachCall =
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
           blockers:["prerequisite-policy-unconfigured:" + discipline]};
       const trackReadiness = requested.map((familyId: string) => {
-        const dependencies = discipline === "wrestling"
-          ? PILOT_WRESTLING_PREREQUISITES[familyId] : undefined;
-        if (!dependencies) return {familyId, configured:false,
+        const advisory = discipline === "wrestling"
+          ? reviewWrestlingRoleReadiness(members, familyId) : null;
+        if (!advisory) return {familyId, configured:false,
           policyApproved:false, eligibleForAuto:false, coachReviewRequired:true,
           athletes:[], blockers:["prerequisite-policy-unconfigured:" + familyId]};
-        return {configured:true, blockers:[],
-          ...reviewTrackReadiness(members, familyId, dependencies)};
+        return {configured:true, blockers:[], ...advisory};
       });
       if (action === "create-recommended-group-lesson-draft") {
         if (!preview.ready) {
