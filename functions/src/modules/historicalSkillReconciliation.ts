@@ -209,3 +209,46 @@ export function selectSupervisedGroupLesson(
     blockers: [], coachApprovalRequired: true, eligibleForAuto: false,
   };
 }
+
+/** Pilot prerequisite graph; explicit entries only. Other families remain unconfigured.
+ * These proposed edges require Coach curriculum approval before enforcement.
+ */
+export const PILOT_WRESTLING_PREREQUISITES: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  stance_motion: [],
+  level_change_entry: ["stance_motion"],
+  double_leg: ["level_change_entry"],
+  single_leg: ["level_change_entry"],
+});
+
+/** Diagnostic only until the program's curriculum authority approves the edges. */
+export function evaluateGroupLessonPrerequisites(
+  athletes: readonly AcceptedGroupSkillSnapshot[],
+  familyIds: readonly string[],
+  graph: Readonly<Record<string, readonly string[]>>
+) {
+  const blockers: string[] = [];
+  const byFamily: Record<string, {ready: boolean; missing: {athleteId: string; prerequisite: string}[]}> = {};
+  for (const family of familyIds) {
+    const dependencies = graph[family];
+    if (!dependencies || dependencies.some(dep => dep === family || !Object.hasOwn(graph, dep))) {
+      blockers.push("prerequisite-policy-unconfigured:" + family);
+      continue;
+    }
+    const missing: {athleteId: string; prerequisite: string}[] = [];
+    for (const athlete of athletes) {
+      if (!athlete.approved || athlete.blockers.length) {
+        blockers.push("athlete-evidence-not-ready:" + athlete.athleteId);
+        continue;
+      }
+      for (const prerequisite of dependencies) {
+        const state = athlete.skills.find(skill => skill.familyId === prerequisite)?.state;
+        if (state !== "LEARNED" && state !== "APPLIED" && state !== "MASTERED" && state !== "REFINED") {
+          missing.push({athleteId: athlete.athleteId, prerequisite});
+        }
+      }
+    }
+    byFamily[family] = {ready: missing.length === 0, missing};
+  }
+  return {policyApproved: false, eligibleForAuto: false, byFamily,
+    blockers: [...new Set(blockers)].sort()};
+}
