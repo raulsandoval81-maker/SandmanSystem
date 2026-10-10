@@ -390,6 +390,37 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "get-group-lesson-plan") {
+      const lessonId = clean(data.lessonId);
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)) {
+        throw new HttpsError("invalid-argument", "Valid lesson ID required.");
+      }
+      const planSnap = await db.doc(`coachLessonPlans/${lessonId}`).get();
+      if (!planSnap.exists) throw new HttpsError("not-found", "Lesson not found.");
+      const plan = planSnap.data() || {};
+      if (clean(plan.coachUid) !== actor.uid || clean(plan.discipline) !== discipline) {
+        throw new HttpsError("permission-denied", "Lesson is outside your Coach authority.");
+      }
+      const ids: string[] = Array.isArray(plan.athleteIds) ? plan.athleteIds : [];
+      if (!ids.length || ids.length > 30) throw new HttpsError("failed-precondition", "Invalid lesson roster.");
+      for (const id of ids) {
+        const member = await db.doc(`athletes/${id}`).get();
+        if (!member.exists) throw new HttpsError("failed-precondition", "Lesson athlete record unavailable.");
+        requireSkillCheckAthleteAccess(actor, member.data() || {});
+      }
+      if (clean(plan.practiceId)) {
+        const practice = await db.doc(`practiceSessions/${clean(plan.practiceId)}`).get();
+        if (!practice.exists) throw new HttpsError("failed-precondition", "Attached practice unavailable.");
+        requirePracticeVerificationAccess(actor, practice.data() || {});
+      }
+      return {ok:true,lessonId,discipline,athleteIds:ids,
+        familyId:clean(plan.familyId),tracks:plan.tracks || [],
+        status:clean(plan.status),deliveryStatus:clean(plan.deliveryStatus),
+        practiceId:clean(plan.practiceId),deliveredAthleteIds:plan.deliveredAthleteIds || [],
+        coachNote:clean(plan.coachNote),coachReviewRequired:plan.status === "DRAFT",
+        eligibleForAuto:false};
+    }
+
     if (action === "attach-group-lesson-to-practice" || action === "record-group-lesson-delivery") {
       const lessonId = clean(data.lessonId);
       const practiceId = clean(data.practiceId);
