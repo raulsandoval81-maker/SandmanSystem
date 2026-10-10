@@ -390,6 +390,45 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "open-transfer-review") {
+      // This is an audit-only handoff, not historical evidence approval.
+      // Management approval will require separate complete-coverage validation.
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer review intake requires Admin authority.");
+      }
+      const locations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId))
+        : [];
+      if (!locations.length) {
+        throw new HttpsError("failed-precondition", "No declared prior locations require review.");
+      }
+      if (locations.length > 100) {
+        throw new HttpsError("failed-precondition", "Transfer location history exceeds review intake limit.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const created = await db.runTransaction(async tx => {
+        const existing = await tx.get(ref);
+        if (existing.exists) return false;
+        tx.create(ref, {
+          athleteId, discipline, status: "PENDING_MANAGEMENT_REVIEW",
+          declaredPriorLocationIds: locations,
+          createdBy: actor.uid,
+          createdAt: FieldValue.serverTimestamp(),
+          evidenceApproved: false,
+          coverageComplete: false,
+          eligibleForAuto: false,
+          schemaVersion: 1,
+        });
+        return true;
+      });
+      return {
+        ok: true, diagnosticOnly: true, created,
+        status: "PENDING_MANAGEMENT_REVIEW",
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+      };
+    }
+
     if (action === "reconcile-server-history-scopes") {
       // Bounded server-owned traversal (up to five pages per authorized scope).
       // A truncated scan never claims exhaustive athlete history.
