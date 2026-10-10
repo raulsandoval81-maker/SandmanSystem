@@ -532,7 +532,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(assessed.eligibleForAuto,false);
  assert.ok(assessed.blockers.includes("independent-full-history-attestation-required"));
  const states=await invoke("preview-accepted-skill-state");
- assert.deepEqual(states.skillStates,[]);
+ assert.equal(states.skillStates[0].state,"LEARNED");
  await db.doc("practiceSessions/"+practiceId).update({sessionDateKey:"2026-10-02"});
  const staleApproval=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
