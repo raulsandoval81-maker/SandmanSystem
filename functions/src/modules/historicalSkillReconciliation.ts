@@ -175,3 +175,31 @@ export function previewMixedGroupSkillNeeds(
   return {ready: true, lessonCandidates, blockers: [],
     coachReviewRequired: true, eligibleForAuto: false};
 }
+
+/** Supervised AUTO picks one existing candidate; it never creates or confirms a lesson. */
+export function selectSupervisedGroupLesson(
+  preview: ReturnType<typeof previewMixedGroupSkillNeeds>
+) {
+  if (!preview.ready || preview.blockers.length || !preview.lessonCandidates.length) {
+    return {ready: false, selection: null, blockers: preview.blockers.length
+      ? preview.blockers : ["no-eligible-lesson"], coachApprovalRequired: true,
+      eligibleForAuto: false};
+  }
+  const first = preview.lessonCandidates[0];
+  const second = preview.lessonCandidates[1];
+  // The existing rank is a heuristic, not proof that two lessons are interchangeable.
+  // A tied top score requires explicit Coach choice instead of a silent tiebreak.
+  const ambiguous = Boolean(second &&
+    first.athletesNeedingIntroduction === second.athletesNeedingIntroduction &&
+    first.practiceCount === second.practiceCount);
+  if (ambiguous) return {
+    ready: false, selection: null, blockers: ["multiple-equivalent-lessons"],
+    coachApprovalRequired: true, eligibleForAuto: false,
+  };
+  return {
+    ready: true,
+    selection: {familyId: first.familyId, members: first.members,
+      reason: "Largest introduction need, then practice need, among requested skill families"},
+    blockers: [], coachApprovalRequired: true, eligibleForAuto: false,
+  };
+}
