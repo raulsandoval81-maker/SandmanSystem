@@ -569,9 +569,26 @@ export const skillCheckCoachCall =
         results.push({skillEvidencePath: path, valid: errors.length === 0, blockers: errors});
         if (errors.length) blockers.push("manifest-source-invalid:" + practiceId);
       }
+      // Expose review readiness independently from source integrity.
+      // Even valid evidence cannot substitute for a complete coverage attestation.
+      const reviewLocations = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+      const currentLocations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort() : [];
+      if (JSON.stringify(reviewLocations) !== JSON.stringify(currentLocations)) {
+        blockers.push("transfer-review-stale");
+      }
+      const manifestBlockers = Array.isArray(manifest.blockers) ? manifest.blockers.map(clean) : [];
+      if (manifestBlockers.length) blockers.push("manifest-historical-coverage-unresolved");
       // Verification is not completeness attestation and never grants approval.
       return {ok: true, diagnosticOnly: true, manifestId, recordCount: results.length,
         sourceRecordsValid: results.length > 0 && results.every(r => r.valid),
+        reviewCurrent: JSON.stringify(reviewLocations) === JSON.stringify(currentLocations)
+          && clean(review.status) === "PENDING_MANAGEMENT_REVIEW"
+          && manifest.reviewRevision === revision,
+        historicalCoverageVerified: false,
+        acceptanceReady: false,
         records: results, blockers: [...new Set(blockers)].sort(),
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false};
     }
