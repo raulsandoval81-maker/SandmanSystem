@@ -528,6 +528,20 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ const generated=await invoke("create-recommended-group-lesson-draft",{
+   lessonId:"recommended-e2e-lesson",athleteIds:[id],
+   familyIds:["double_leg","single_leg"],familyId:"double_leg",
+   tracks:[{athleteId:id,track:"EXTEND"}],
+ });
+ assert.equal(generated.status,"DRAFT");
+ assert.deepEqual(generated.tracks,[{athleteId:id,track:"PRACTICE"}]);
+ const generatedRecord=await db.doc("coachLessonPlans/recommended-e2e-lesson").get();
+ assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
+ assert.equal(generatedRecord.data().eligibleForAuto,false);
+ await assert.rejects(invoke("create-recommended-group-lesson-draft",{
+   lessonId:"recommended-e2e-lesson",athleteIds:[id],
+   familyIds:["double_leg"],familyId:"double_leg",
+ }),e=>e.code==="already-exists");
  const coachPreview=await callable.run({auth:{uid:"test-coach",token:{}},data:{
    action:"preview-group-lessons",athleteIds:[id],discipline:"wrestling",
    familyIds:["double_leg"],
