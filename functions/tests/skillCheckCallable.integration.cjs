@@ -478,6 +478,8 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(scan.practices.length,1);
  const manifest=await invoke("build-verified-evidence-manifest");
  assert.equal(manifest.recordCount,1);
+ assert.ok(manifest.blockers.includes("historical-transfer-coverage-unverified"));
+ assert.ok(manifest.blockers.includes("current-skill-state-unresolved"));
  const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId,recordVerification:true});
  assert.equal(sources.sourceRecordsValid,true);
  assert.ok(sources.verificationReceiptId);
