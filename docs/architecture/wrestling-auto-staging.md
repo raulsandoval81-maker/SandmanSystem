@@ -26,7 +26,7 @@ node functions/scripts/seed-wrestling-staging.mjs
 
 The seed command refuses production and requires the explicit acknowledgement, staging-only password, service-account email, and `GOOGLE_APPLICATION_CREDENTIALS` path. It verifies the credential file's actual project and service-account identities before initializing Firebase. Existing fixed-ID Auth or Firestore records must already be marked synthetic or the seed terminates before mutation. Never import production Auth or Firestore data.
 
-The seed constructs its complete write manifest first, including nested athlete-session and verified-skill paths. It reads every intended document before creating Auth users or committing Firestore writes. A missing preflight result, reordered result, or existing non-synthetic document terminates the run. If the Firestore batch fails after new synthetic Auth users are created, the seed attempts to remove those newly created users.
+The seed constructs its complete write manifest first, including nested athlete-session and verified-skill paths. It reads every intended document before creating Auth users. It then reads and validates the entire manifest again inside the same Firestore transaction that performs the writes, so a concurrent nonsynthetic replacement causes a transaction retry and rejection rather than an overwrite. A missing preflight result, reordered result, or existing non-synthetic document terminates the run. If the Firestore transaction fails after new synthetic Auth users are created, the seed attempts to remove those newly created users and reports every rollback failure. Firebase Auth and Firestore are separate services; this process reduces partial state but does not claim cross-service atomicity.
 
 ## Required validation
 
