@@ -567,4 +567,19 @@ test("Server-owned traversal persists two pages and cannot accept a forged curso
  assert.equal(pages.size,2);
  assert.equal(pages.docs.reduce((total,page)=>total+page.data().candidateIds.length,0),53);
  assert.equal(second.eligibleForAuto,false);
+ const verified=await callable.run({auth,data:{
+   action:"verify-server-history-inventory",athleteId:id,discipline:"wrestling",
+   scope:"prior-location:"+location,
+ }});
+ assert.equal(verified.replayMatched,true);
+ assert.equal(verified.certificateIssued,false);
+ assert.equal(verified.eligibleForAuto,false);
+ await db.doc("practiceSessions/traversal-000").update({locationId:"relocated-after-scan"});
+ const changed=await callable.run({auth,data:{
+   action:"verify-server-history-inventory",athleteId:id,discipline:"wrestling",
+   scope:"prior-location:"+location,
+ }});
+ assert.equal(changed.replayMatched,false);
+ assert.ok(changed.blockers.includes("historical-page-changed:1"));
+ assert.equal(changed.coverageComplete,false);
 });
