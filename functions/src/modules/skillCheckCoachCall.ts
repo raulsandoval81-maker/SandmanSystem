@@ -392,8 +392,9 @@ export const skillCheckCoachCall =
 
     if (action === "preview-group-lessons") {
       // Preview-only: all members must have accepted, current evidence.
-      if (normalizeStaffRole(actor.role) !== "admin") {
-        throw new HttpsError("permission-denied", "Historical group previews require Admin.");
+      const groupAdmin = normalizeStaffRole(actor.role) === "admin";
+      if (!groupAdmin && normalizeStaffRole(actor.role) !== "coach") {
+        throw new HttpsError("permission-denied", "Coach authorization required for group previews.");
       }
       const ids = Array.isArray(data.athleteIds) ? data.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
       const requested = Array.isArray(data.familyIds) ? data.familyIds.map((id: unknown) => clean(id)) : [];
@@ -412,6 +413,9 @@ export const skillCheckCoachCall =
           continue;
         }
         const member = memberSnap.data() || {};
+        // Every roster member must independently pass Coach scope checks;
+        // authorization of the first athlete never grants access to the rest.
+        requireSkillCheckAthleteAccess(actor, member);
         const reviewRef = db.doc(`athletes/${id}/historicalTransferReviews/${discipline}`);
         const reviewSnap = await reviewRef.get();
         const review = reviewSnap.data() || {};
