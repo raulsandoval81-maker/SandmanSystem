@@ -308,3 +308,17 @@ test("Wrestling proposal distinguishes mandatory foundations from supporting ski
  assert.equal(review.policyApproved,false);
  assert.equal(review.eligibleForAuto,false);
 });
+
+test("Coach page renders distinct mandatory and supporting curriculum columns",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/result\.dependencyRoleReview/);
+ assert.match(html,/Proposed mandatory foundations/);
+ assert.match(html,/Proposed supporting skills/);
+ assert.match(html,/Neither role is approved for AUTO/);
+ const module=html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(module);
+ const {spawnSync}=require("node:child_process");
+ const checked=spawnSync(process.execPath,["--input-type=module","--check"],{input:module,encoding:"utf8"});
+ assert.equal(checked.status,0,checked.stderr);
+});
