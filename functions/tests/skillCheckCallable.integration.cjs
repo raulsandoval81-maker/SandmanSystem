@@ -275,3 +275,23 @@ test("Coach cannot persist historical coverage checkpoint",async()=>{
    action:"record-transfer-coverage-checkpoint",athleteId,discipline:"wrestling",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Admin can inspect unverified checkpoints and see whether review revision matches",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const read=()=>callable.run({auth,data:{action:"list-transfer-coverage-checkpoints",athleteId,discipline:"boxing"}});
+ const initial=await read();
+ assert.ok(initial.checkpoints.length>=1);
+ assert.equal(initial.checkpoints[0].currentRevision,true);
+ assert.equal(initial.checkpoints[0].evidenceApproved,false);
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["changed-boxing-history"]});
+ const updated=await callable.run({auth,data:{action:"refresh-transfer-review",athleteId,discipline:"boxing"}});
+ assert.equal(updated.refreshed,true);
+ const old=await read();
+ assert.equal(old.checkpoints[0].currentRevision,false);
+ assert.equal(old.eligibleForAuto,false);
+});
+test("Coach cannot list transfer coverage audit checkpoints",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"list-transfer-coverage-checkpoints",athleteId,discipline:"boxing",
+ }}),e=>e.code==="permission-denied");
+});
