@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -240,5 +240,21 @@ test("Draft curriculum prerequisites identify individual foundation gaps without
  assert.equal(result.byFamily.stance_motion.ready,true);
  assert.ok(result.blockers.includes("prerequisite-policy-unconfigured:chain_wrestling"));
  assert.equal(result.policyApproved,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+
+test("Unapproved prerequisites block AUTO and show a foundational Coach alternative",()=>{
+ const athletes=[
+  {athleteId:"A",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"LEARNED"}]},
+  {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"NOT_INTRODUCED"}]},
+ ];
+ const preview=previewMixedGroupSkillNeeds(athletes,["double_leg","level_change_entry","stance_motion"]);
+ const evaluation=evaluateGroupLessonPrerequisites(athletes,
+   ["double_leg","level_change_entry","stance_motion"],PILOT_WRESTLING_PREREQUISITES);
+ const result=reviewSupervisedPrerequisiteSelection(preview,evaluation);
+ assert.equal(result.ready,false);
+ assert.equal(result.selection,null);
+ assert.equal(result.suggestedFoundation,"stance_motion");
+ assert.ok(result.blockers.includes("prerequisites-not-met-or-unconfigured:double_leg"));
  assert.equal(result.eligibleForAuto,false);
 });
