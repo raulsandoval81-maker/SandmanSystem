@@ -672,3 +672,35 @@ test("Coach group preview cannot read another athlete outside assigned location"
    discipline:"wrestling",familyIds:["double_leg"],
  }}),e=>e.code==="permission-denied");
 });
+
+test("Coach can revise and confirm group lesson once without XP or AUTO",async()=>{
+ const auth={uid:"test-coach",token:{}};
+ const params={athleteId,discipline:"wrestling",lessonId:"coach-reviewed-sample",
+  familyId:"double_leg",athleteIds:[athleteId],
+  tracks:[{athleteId,track:"INTRODUCE"}]};
+ const invoke=(action,overrides={})=>callable.run({auth,data:{action,...params,...overrides}});
+ const draft=await invoke("save-group-lesson-draft");
+ assert.equal(draft.status,"DRAFT");
+ const updated=await invoke("save-group-lesson-draft",{tracks:[{athleteId,track:"PRACTICE"}]});
+ assert.equal(updated.status,"DRAFT");
+ await assert.rejects(invoke("confirm-group-lesson-draft"),e=>e.code==="failed-precondition");
+ const confirmed=await invoke("confirm-group-lesson-draft",{tracks:[{athleteId,track:"PRACTICE"}]});
+ assert.equal(confirmed.status,"COACH_CONFIRMED");
+ assert.equal(confirmed.lessonExecuted,false);
+ assert.equal(confirmed.xpAwarded,false);
+ assert.equal(confirmed.eligibleForAuto,false);
+ const stored=await db.doc("coachLessonPlans/coach-reviewed-sample").get();
+ assert.equal(stored.data().status,"COACH_CONFIRMED");
+ assert.equal(stored.data().eligibleForAuto,false);
+ await assert.rejects(invoke("confirm-group-lesson-draft",{tracks:[{athleteId,track:"PRACTICE"}]}),e=>e.code==="failed-precondition");
+ await assert.rejects(invoke("save-group-lesson-draft"),e=>e.code==="failed-precondition");
+});
+test("Coach cannot save lesson for athlete outside assigned scope",async()=>{
+ await db.doc("athletes/F8_PLAN_OUTSIDE").set({locationId:"different-coach-location"});
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+  action:"save-group-lesson-draft",athleteId,discipline:"wrestling",
+  lessonId:"unauthorized-roster",familyId:"double_leg",
+  athleteIds:[athleteId,"F8_PLAN_OUTSIDE"],
+  tracks:[{athleteId,track:"PRACTICE"},{athleteId:"F8_PLAN_OUTSIDE",track:"INTRODUCE"}],
+ }}),e=>e.code==="permission-denied");
+});
