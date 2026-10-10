@@ -521,6 +521,18 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
    [{familyId:"double_leg",state:"LEARNED"}]);
  assert.ok(preview.unresolvedFamilies.includes("single_leg"));
  assert.equal(preview.eligibleForAuto,false);
+ const group=await invoke("preview-group-lessons",{
+   athleteIds:[id],familyIds:["double_leg","single_leg"],
+ });
+ assert.equal(group.ready,true,JSON.stringify(group.blockers));
+ assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
+ assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
+ assert.equal(group.eligibleForAuto,false);
+ const blockedGroup=await invoke("preview-group-lessons",{
+   athleteIds:[id,"F8_AUTH_SMOKE"],familyIds:["double_leg"],
+ });
+ assert.equal(blockedGroup.ready,false);
+ assert.equal(blockedGroup.lessonCandidates.length,0);
  const duplicate=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
  });
