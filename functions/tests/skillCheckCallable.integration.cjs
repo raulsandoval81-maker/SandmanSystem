@@ -528,6 +528,16 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ assert.equal(group.supervisedSuggestion.ready,true);
+ assert.equal(group.supervisedSuggestion.selection.familyId,"single_leg");
+ assert.equal(group.supervisedSuggestion.coachApprovalRequired,true);
+ assert.equal(group.supervisedSuggestion.eligibleForAuto,false);
+ const tied=await invoke("preview-group-lessons",{
+   athleteIds:[id],familyIds:["single_leg","high_crotch"],
+ });
+ assert.equal(tied.ready,true);
+ assert.equal(tied.supervisedSuggestion.ready,false);
+ assert.deepEqual(tied.supervisedSuggestion.blockers,["multiple-equivalent-lessons"]);
  const generated=await invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",
