@@ -206,3 +206,13 @@ test("Supervised AUTO refuses ties and incomplete evidence",()=>{
  assert.equal(selectSupervisedGroupLesson(blocked).ready,false);
  assert.equal(selectSupervisedGroupLesson(blocked).selection,null);
 });
+
+test("Coach UI displays suggested skill without bypassing review or confirmation",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/list\.value=supervised\.selection\.familyId/);
+ assert.match(html,/Coach review and confirmation required/);
+ assert.match(html,/if\(hasUnsavedTracks\(\)\)/);
+ assert.match(html,/confirm-group-lesson-draft/);
+ assert.match(html,/eligibleForAuto|AUTO and XP remain unchanged/);
+});
