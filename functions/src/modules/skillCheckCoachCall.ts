@@ -593,6 +593,74 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false};
     }
 
+    if (action === "assess-history-attestation") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical attestation requires Admin authority.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const [reviewSnap, manifestsSnap] = await Promise.all([
+        ref.get(), ref.collection("evidenceManifests").limit(51).get(),
+      ]);
+      const review = reviewSnap.data() || {};
+      const currentLocations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort() : [];
+      const reviewLocations = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      const blockers: string[] = [];
+      if (!reviewSnap.exists) blockers.push("review-not-opened");
+      else if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") blockers.push("review-not-pending");
+      if (JSON.stringify(currentLocations) !== JSON.stringify(reviewLocations)) blockers.push("declared-locations-changed");
+      if (manifestsSnap.size === 51) blockers.push("manifest-list-truncated");
+      const matching = manifestsSnap.docs.filter(doc => {
+        const data = doc.data() || {};
+        return data.kind === "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+          && data.reviewRevision === revision && clean(data.athleteId) === athleteId
+          && normalizeDiscipline(data.discipline) === discipline;
+      });
+      if (!matching.length) blockers.push("current-revision-manifest-missing");
+      const manifestSummaries = matching.map(doc => {
+        const data = doc.data() || {};
+        const scopes = Array.isArray(data.checkedScopes) ? data.checkedScopes : [];
+        const sourceBlockers = Array.isArray(data.blockers) ? data.blockers.map(clean) : [];
+        const allScanned = scopes.length > 0
+          && scopes.every((scope: Record<string, unknown>) =>
+            scope.authorized === true && scope.exhausted === true);
+        return {
+          manifestId: doc.id, sourceRecordCount: Array.isArray(data.records) ? data.records.length : 0,
+          boundedScopesExhausted: allScanned,
+          sourceBlockerCount: sourceBlockers.length,
+        };
+      });
+      if (!manifestSummaries.some(item => item.boundedScopesExhausted && item.sourceBlockerCount === 0)) {
+        blockers.push("no-blocker-free-exhausted-manifest");
+      }
+      // Saved manifests cannot establish completeness or validate their own
+      // provenance. Independent, durable cross-scope chain verification remains required.
+      blockers.push("independent-full-history-attestation-required");
+      blockers.push("current-source-reverification-required");
+      blockers.push("management-evidence-acceptance-required");
+      return { ok: true, diagnosticOnly: true, kind: "HISTORY_ATTESTATION_ASSESSMENT",
+        reviewRevision: reviewSnap.exists ? revision : null,
+        manifests: manifestSummaries, blockers: [...new Set(blockers)].sort(),
+        attested: false, evidenceApproved: false, coverageComplete: false,
+        eligibleForAuto: false };
+    }
+
+    if (action === "preview-accepted-skill-state") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Accepted skill-state previews require Admin authority.");
+      }
+      // An accepted, independently verified evidence chain has not been
+      // implemented. Never infer state from unapproved manifestations or claims.
+      return { ok: true, diagnosticOnly: true, athleteId, discipline,
+        skillStates: [], unresolvedFamilies: [...familiesForDiscipline(discipline)],
+        blockers: ["accepted-historical-evidence-unavailable",
+          "independent-full-history-attestation-required"],
+        coverageComplete: false, evidenceApproved: false, eligibleForAuto: false };
+    }
+
     if (action === "check-transfer-acceptance") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer acceptance checks require Admin authority.");
