@@ -414,6 +414,46 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "refresh-transfer-review") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer review refresh requires Admin authority.");
+      }
+      const locations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort()
+        : [];
+      if (!locations.length || locations.length > 100) {
+        throw new HttpsError("failed-precondition", "Declared transfer locations must contain 1–100 locations.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const refreshed = await db.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists) {
+          throw new HttpsError("failed-precondition", "Open a transfer review before refreshing it.");
+        }
+        const current = snap.data() || {};
+        const prior = Array.isArray(current.declaredPriorLocationIds)
+          ? [...new Set(current.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
+          : [];
+        if (JSON.stringify(prior) === JSON.stringify(locations)) return false;
+        const revision = typeof current.revision === "number" && Number.isSafeInteger(current.revision)
+          && current.revision > 0 ? current.revision + 1 : 2;
+        tx.update(ref, {
+          declaredPriorLocationIds: locations,
+          status: "PENDING_MANAGEMENT_REVIEW",
+          revision,
+          updatedBy: actor.uid,
+          updatedAt: FieldValue.serverTimestamp(),
+          evidenceApproved: false,
+          coverageComplete: false,
+          eligibleForAuto: false,
+        });
+        return true;
+      });
+      return { ok: true, refreshed, status: "PENDING_MANAGEMENT_REVIEW",
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+    }
+
     if (action === "open-transfer-review") {
       // This is an audit-only handoff, not historical evidence approval.
       // Management approval will require separate complete-coverage validation.
