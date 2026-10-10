@@ -528,6 +528,9 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").configured,true);
+ assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").athletes[0].practice,false);
+ assert.equal(group.trackReadiness.find(item=>item.familyId==="single_leg").policyApproved,false);
  assert.equal(group.supervisedSuggestion.ready,false);
  assert.equal(group.supervisedSuggestion.selection,null);
  assert.ok(group.supervisedSuggestion.blockers.includes("curriculum-policy-not-approved"));
