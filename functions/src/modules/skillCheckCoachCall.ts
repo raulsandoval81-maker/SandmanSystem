@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -641,6 +641,8 @@ export const skillCheckCoachCall =
         members.push({athleteId: id, approved: blockers.length === 0, blockers, skills});
       }
       const preview = previewMixedGroupSkillNeeds(members, requested);
+      const dependencyRoleReview = discipline === "wrestling"
+        ? reviewWrestlingDependencyRoles(WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS) : null;
       const proposedWrestlingAudit = discipline === "wrestling"
         ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, WRESTLING_REVIEW_GRAPH)
         : null;
@@ -714,7 +716,7 @@ export const skillCheckCoachCall =
           coachApprovalRequired:true,eligibleForAuto:false}
         : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, supervisedSuggestion, curriculumPrerequisites, curriculumMapAudit, proposedWrestlingAudit, trackReadiness,
+        ...preview, supervisedSuggestion, curriculumPrerequisites, curriculumMapAudit, proposedWrestlingAudit, dependencyRoleReview, trackReadiness,
         proposedCurriculumDependencies: discipline === "wrestling"
           ? requested.map((familyId: string) => ({familyId, prerequisites: WRESTLING_REVIEW_GRAPH[familyId] || [],
               approved: false})) : [],
