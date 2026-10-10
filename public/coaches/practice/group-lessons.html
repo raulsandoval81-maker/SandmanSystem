@@ -88,7 +88,7 @@ $("recommend").onclick=async()=>{
    list.value=supervised.selection.familyId;
    hint.textContent="Supervised AUTO suggests "+supervised.selection.familyId+" — "+supervised.selection.reason+". Coach review and confirmation required.";
  }else{
-   hint.textContent="Supervised AUTO did not choose a lesson. Select a family manually; "+(supervised?.blockers||[]).join(", ");
+   hint.textContent="Supervised AUTO withheld pending approved prerequisites. Coach choice required. "+(supervised?.suggestedFoundation ? "Suggested foundation to review: "+supervised.suggestedFoundation+". " : "")+(supervised?.blockers||[]).join(", ");
  }
  $("recommendations").append(hint);
  const prereqs=result.curriculumPrerequisites;
