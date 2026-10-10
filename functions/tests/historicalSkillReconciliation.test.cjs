@@ -163,3 +163,13 @@ test("Coach practice lesson workspace parses as JavaScript module and exposes pr
  }
  assert.ok(html.includes('href="/coaches/practice/"'));
 });
+
+test("Coach review preserves pre-save adjustments and locks practice after attachment",()=>{
+ const fs=require("node:fs");
+ const path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/const coachSelectedTracks=tracks\(\)/);
+ assert.match(html,/save-group-lesson-draft",\{lessonId,familyId,tracks:coachSelectedTracks\}/);
+ assert.match(html,/\$\("practiceId"\)\.readOnly=true/);
+ assert.match(html,/\$\("delivered"\)\.value=roster\.join/);
+});
