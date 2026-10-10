@@ -409,7 +409,7 @@ export const skillCheckCoachCall =
         ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
         : [];
       const stale = JSON.stringify(currentLocations) !== JSON.stringify(recordedLocations);
-      return { ok: true, status: stale ? "STALE_REVIEW" : "PENDING_MANAGEMENT_REVIEW",
+      return { ok: true, status: stale ? "STALE_REVIEW" : clean(review.status) === "REJECTED" ? "REJECTED" : "PENDING_MANAGEMENT_REVIEW",
         stale, recordedLocations, currentLocations,
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
