@@ -108,6 +108,18 @@ $("recommend").onclick=async()=>{
      +draftAudit.issues.length+" structural issues. NOT approved for AUTO.";
    $("recommendations").append(note);
  }
+ const dependencyReview=result.proposedCurriculumDependencies||[];
+ const proposed=document.createElement("section");
+ const proposedHeading=document.createElement("h3");
+ proposedHeading.textContent="Proposed Wrestling dependencies — review only";
+ proposed.append(proposedHeading);
+ for(const entry of dependencyReview){
+   const line=document.createElement("p");
+   line.textContent=entry.familyId+": "+(entry.prerequisites.length?entry.prerequisites.join(", "):"No proposed prerequisites")
+     +" · Not approved";
+   proposed.append(line);
+ }
+ $("recommendations").append(proposed);
  const prereqs=result.curriculumPrerequisites;
  if(prereqs){
    const warning=document.createElement("p");
