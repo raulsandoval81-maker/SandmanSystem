@@ -40,5 +40,15 @@ await writeFile(
   `${JSON.stringify(functionsPackage, null, 2)}\n`,
   "utf8"
 );
+await writeFile(
+  path.join(functionsOutput, ".env.sandman-combat-staging"),
+  [
+    "SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging",
+    "SANDMAN_STAGING_ACK=sandman-combat-staging",
+    "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "",
+  ].join("\n"),
+  "utf8"
+);
 
 console.log(`Prepared isolated staging hosting for ${projectId}.`);

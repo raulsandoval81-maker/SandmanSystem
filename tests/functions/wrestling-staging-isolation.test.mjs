@@ -34,6 +34,13 @@ test("staging Functions discovery excludes production email and secret exports",
   assert.match(productionEntry, /sendEnrollmentIntakeEmail/);
   assert.equal(JSON.parse(packageSource).main, "lib/index.js");
   assert.match(prepare, /functionsPackage\.main = "lib\/staging\.js"/);
+  assert.match(prepare, /\.env\.sandman-combat-staging/);
+  assert.match(prepare, /SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging/);
+  assert.match(prepare, /SANDMAN_STAGING_ACK=sandman-combat-staging/);
+  assert.match(
+    prepare,
+    /SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/
+  );
 });
 
 test("staging preparation and seeding fail closed against production", async () => {
