@@ -455,7 +455,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const id="F8_INTEGRATED_E2E";
  const practiceId="test-e2e-attestation-practice";
  const auth={uid:"test-admin-transfer",token:{}};
- await db.doc("athletes/"+id).set({locationId:"test-location",previousLocationIds:["e2e-former-location"]});
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"]});
  await db.doc("practiceSessions/"+practiceId).set({
    coachUid:"former-coach",locationId:"e2e-former-location",
    discipline:"wrestling",sessionDateKey:"2026-10-03",
