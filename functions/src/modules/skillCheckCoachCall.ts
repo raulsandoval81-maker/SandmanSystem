@@ -674,8 +674,28 @@ export const skillCheckCoachCall =
           familyId, athleteIds: ids, tracks, coachReviewRequired: true,
           lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
       }
+      // Bounded, server-owned delivery history: never trust client recency flags.
+      // If the scope is too large to inspect completely, refuse AUTO selection.
+      const recentSnap = await db.collection("coachLessonPlans")
+        .where("coachUid", "==", actor.uid).limit(101).get();
+      const recentFamilies: string[] = [];
+      const historyTooLarge = recentSnap.size > 100;
+      if (!historyTooLarge) for (const document of recentSnap.docs) {
+        const plan = document.data();
+        const date = plan.recordedAt;
+        if (plan.deliveryStatus !== "RECORDED" || clean(plan.discipline) !== discipline
+            || !(date instanceof Timestamp)
+            || date.toMillis() < Date.now() - 14 * 24 * 60 * 60 * 1000) continue;
+        const delivered: string[] = Array.isArray(plan.deliveredAthleteIds)
+          ? plan.deliveredAthleteIds : [];
+        if (delivered.some(id => ids.includes(id))) recentFamilies.push(clean(plan.familyId));
+      }
+      const supervisedSuggestion = historyTooLarge
+        ? {ready:false,selection:null,blockers:["delivery-history-scope-too-large"],
+          coachApprovalRequired:true,eligibleForAuto:false}
+        : selectSupervisedGroupLesson(preview, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, supervisedSuggestion: selectSupervisedGroupLesson(preview),
+        ...preview, supervisedSuggestion,
         coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
