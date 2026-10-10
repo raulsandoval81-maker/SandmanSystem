@@ -543,7 +543,7 @@ export const skillCheckCoachCall =
               scanAuthorized: Boolean(spec?.authorized),
               scanCompleted: found.some(page => page.scopeExhausted),
               additionalPagesRequired: found.length > 0 && !found.some(page => page.scopeExhausted),
-              practiceCount: new Set(found.flatMap(page => page.history.map(item => item.practiceId))).size,
+              practiceCount: new Set(found.flatMap(page => (page.history ?? []).map(item => item.practiceId))).size,
               reviewRequired: true,
             };
           }),
