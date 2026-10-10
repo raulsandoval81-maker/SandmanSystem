@@ -706,6 +706,26 @@ test("Coach can revise and confirm group lesson once without XP or AUTO",async()
  const stored=await db.doc("coachLessonPlans/coach-reviewed-sample").get();
  assert.equal(stored.data().status,"COACH_CONFIRMED");
  assert.equal(stored.data().eligibleForAuto,false);
+ await db.doc("practiceSessions/coach-lesson-practice").set({
+   coachUid:"test-coach",locationId:"test-location",discipline:"wrestling",
+   sessionDateKey:"2026-10-09",
+ });
+ const attached=await invoke("attach-group-lesson-to-practice",{
+   tracks:[{athleteId,track:"PRACTICE"}],practiceId:"coach-lesson-practice",
+ });
+ assert.equal(attached.deliveryStatus,"READY_FOR_PRACTICE");
+ const delivered=await invoke("record-group-lesson-delivery",{
+   practiceId:"coach-lesson-practice",deliveredAthleteIds:[athleteId],
+   coachNote:"Drilled entries and positioning.",
+ });
+ assert.equal(delivered.deliveryStatus,"RECORDED");
+ assert.equal(delivered.xpAwarded,false);
+ assert.equal(delivered.skillVerified,false);
+ const practicePlan=await db.doc("coachLessonPlans/coach-reviewed-sample").get();
+ assert.deepEqual(practicePlan.data().deliveredAthleteIds,[athleteId]);
+ await assert.rejects(invoke("record-group-lesson-delivery",{
+   practiceId:"coach-lesson-practice",deliveredAthleteIds:[athleteId],
+ }),e=>e.code==="failed-precondition");
  await assert.rejects(invoke("confirm-group-lesson-draft",{tracks:[{athleteId,track:"PRACTICE"}]}),e=>e.code==="failed-precondition");
  await assert.rejects(invoke("save-group-lesson-draft"),e=>e.code==="failed-precondition");
 });
