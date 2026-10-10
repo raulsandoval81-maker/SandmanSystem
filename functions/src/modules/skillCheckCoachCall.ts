@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -697,7 +697,7 @@ export const skillCheckCoachCall =
       const supervisedSuggestion = historyTooLarge
         ? {ready:false,selection:null,blockers:["delivery-history-scope-too-large"],
           coachApprovalRequired:true,eligibleForAuto:false}
-        : selectSupervisedGroupLesson(preview, recentFamilies);
+        : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
         ...preview, supervisedSuggestion, curriculumPrerequisites,
         coverageComplete: false, evidenceApproved: false,
