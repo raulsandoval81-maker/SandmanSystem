@@ -542,6 +542,27 @@ export const skillCheckCoachCall =
           const attendance = attendanceSnap.data() || {};
           const memory = memorySnap.data() || {};
           const evidence = evidenceSnap.data() || {};
+          // Revalidate source location against the scope saved in the manifest.
+          // Moving a practice after evidence collection must invalidate that entry.
+          const sourceScope = clean(r.scope);
+          const sourceLocation = clean(practice.locationId);
+          const sourceAcademy = clean(practice.academyId);
+          const currentLocation = clean(athlete.locationId);
+          const declaredPrior = Array.isArray(athlete.previousLocationIds)
+            ? athlete.previousLocationIds.map(clean).filter(Boolean) : [];
+          const scopeValid =
+            (sourceScope === "athlete-location" && sourceLocation === currentLocation && !!currentLocation)
+            || (sourceScope === "athlete-academy" && !sourceLocation
+              && !!sourceAcademy && sourceAcademy === clean(athlete.academyId))
+            || (sourceScope.startsWith("prior-location:")
+              && sourceLocation === sourceScope.slice("prior-location:".length)
+              && declaredPrior.includes(sourceLocation)
+              && sourceLocation !== currentLocation)
+            || (sourceScope === "coach" && (
+              (sourceLocation === currentLocation && !!currentLocation)
+              || (!sourceLocation && !!sourceAcademy && sourceAcademy === clean(athlete.academyId))
+            ));
+          if (!scopeValid) errors.push("practice-scope-changed");
           if (!practiceSnap.exists || normalizeDiscipline(practice.discipline) !== discipline
               || clean(practice.sessionDateKey) !== clean(r.sessionDateKey)) errors.push("practice-changed");
           if (!attendanceSnap.exists || clean(attendance.practiceId) !== practiceId
