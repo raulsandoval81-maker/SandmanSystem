@@ -750,8 +750,13 @@ export const skillCheckCoachCall =
             || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
             || normalizeDiscipline(manifest.discipline) !== discipline) blockers.push("manifest-invalid");
         if (existingCert.exists) blockers.push("certificate-already-exists");
-        if (Array.isArray(manifest.blockers) && manifest.blockers.length)
-          blockers.push("manifest-has-blockers");
+        const manifestBlockers: string[] = Array.isArray(manifest.blockers)
+          ? manifest.blockers.map(clean) : [];
+        // A prior-location review requirement is resolved by this Admin's
+        // independent atomic reconciliation; other blockers remain fatal.
+        const unresolvedManifestBlockers = manifestBlockers.filter(reason =>
+          reason !== "prior-location-management-verification-required");
+        if (unresolvedManifestBlockers.length) blockers.push("manifest-has-blockers");
         const records: Record<string, unknown>[] = Array.isArray(manifest.records)
           ? manifest.records : [];
         if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
