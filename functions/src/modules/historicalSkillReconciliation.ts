@@ -347,7 +347,7 @@ export const WRESTLING_REVIEW_GRAPH: Readonly<Record<string, readonly string[]>>
   double_leg: ["level_change_entry"], single_leg: ["level_change_entry"],
   setups_ties: ["head_position"], snap_go_behind: ["setups_ties"],
   arm_drag: ["setups_ties"], reattack_reshot: ["shot_defense"],
-  chain_wrestling: ["double_leg", "single_leg"], underhook: ["setups_ties"],
+  chain_wrestling: ["level_change_entry"], underhook: ["setups_ties"],
   two_on_one: ["setups_ties"], upper_body: ["underhook"],
   shot_defense: ["stance_motion"], down_block: ["shot_defense"],
   counter_offense: ["shot_defense"], front_headlock: ["snap_go_behind"],
@@ -362,7 +362,7 @@ export const WRESTLING_REVIEW_GRAPH: Readonly<Record<string, readonly string[]>>
 
 /** Advisory distinctions for draft curriculum review; no policy approval implied. */
 export const WRESTLING_SUPPORTING_SKILLS: Readonly<Record<string, readonly string[]>> = {
- chain_wrestling:["single_leg"], motion_attack_reattack:["angle"],
+ chain_wrestling:["double_leg","single_leg"], motion_attack_reattack:["angle"],
  reattack_reshot:["level_change_entry"], upper_body:["two_on_one"],
  front_headlock:["shot_defense"], bottom_integration:["reversal"],
 };
