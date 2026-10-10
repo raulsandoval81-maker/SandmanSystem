@@ -13,7 +13,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.muted{opacity:.8}table{border-col
 <a href="/coaches/practice/">← Practice Operations</a>
 <h1>Group Lesson Review</h1>
 <p class="muted">Coach-controlled planning. No attendance, XP, rank, promotion, or automatic lesson execution.</p>
-<section><h2>Resume a saved lesson</h2><label for="resumeId">Existing lesson ID</label><input id="resumeId" placeholder="Previously saved lesson ID"><button id="resume">Load lesson</button></section>
+<section><h2>Resume a saved lesson</h2><label for="resumeId">Existing lesson ID</label><input id="resumeId" placeholder="Previously saved lesson ID"><button id="resume">Load lesson</button><button id="newLesson" type="button">Start another lesson</button></section>
 <section><h2>1. Recommend</h2>
 <label for="athletes">Athlete IDs (comma-separated, maximum 30)</label><input id="athletes" placeholder="F8_0001, F8_0002">
 <label for="discipline">Discipline</label><select id="discipline"><option value="wrestling">Wrestling</option><option value="boxing">Boxing</option><option value="muay-thai">Muay Thai</option></select>
@@ -38,11 +38,14 @@ import {functions,httpsCallable} from "/assets/js/firebase-init.js";
 import {requireCoach,coachLoginUrl} from "/assets/js/coach-guard.js";
 const $=id=>document.getElementById(id),call=httpsCallable(functions,"skillCheckCoachCall");
 const ids=raw=>raw.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
-let roster=[],candidate=null,saved=false,confirmed=false,attached=false;
+let roster=[],candidate=null,saved=false,confirmed=false,attached=false,savedTracks=[];
 const notify=(msg)=>{$("notice").textContent=msg;};
 function params(action,extras={}) {return {action,athleteId:roster[0],athleteIds:roster,discipline:$("discipline").value,...extras};}
 async function request(data){try{const result=(await call(data)).data;notify("Operation completed. AUTO and XP remain unchanged.");return result}catch(e){notify(e?.message||String(e));return null}}
 function tracks(){return [...$("tracks").querySelectorAll("select[data-athlete]")].map(s=>({athleteId:s.dataset.athlete,track:s.value}));}
+function rememberTracks(){savedTracks=tracks();}
+function hasUnsavedTracks(){return JSON.stringify(tracks())!==JSON.stringify(savedTracks);}
+$("newLesson").onclick=()=>{location.assign("/coaches/practice/group-lessons.html");};
 $("resume").onclick=async()=>{
  const lessonId=$("resumeId").value.trim();
  if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a valid saved lesson ID.");return}
@@ -61,7 +64,7 @@ $("resume").onclick=async()=>{
  td.textContent=item.athleteId;select.dataset.athlete=item.athleteId;
  for(const value of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=value;opt.textContent=value;select.append(opt)}
  select.value=item.track;select.disabled=confirmed;cell.append(select);tr.append(td,cell);table.append(tr)}
- $("tracks").replaceChildren(table);
+ $("tracks").replaceChildren(table);rememberTracks();
  $("save").disabled=true;$("update").disabled=confirmed;$("confirm").disabled=confirmed;
  $("attach").disabled=!confirmed||attached;$("record").disabled=!attached||result.deliveryStatus==="RECORDED";
  for(const name of ["athletes","discipline","families","familyChoice","recommend"]){$(name).disabled=true}
@@ -69,7 +72,7 @@ $("resume").onclick=async()=>{
  notify("Loaded "+result.status+" lesson. "+(result.deliveryStatus||"Not attached to practice"));
 };
 $("recommend").onclick=async()=>{
- roster=ids($("athletes").value);candidate=null;saved=false;confirmed=false;attached=false;
+ roster=ids($("athletes").value);candidate=null;saved=false;confirmed=false;attached=false;savedTracks=[];
  $("save").disabled=$("update").disabled=$("confirm").disabled=$("attach").disabled=$("record").disabled=true;
  const families=$("families").value.split(",").map(s=>s.trim()).filter(Boolean);
  const result=await request(params("preview-group-lessons",{familyIds:families}));
@@ -99,15 +102,17 @@ $("save").onclick=async()=>{
    const override=await request(params("save-group-lesson-draft",{lessonId,familyId,tracks:coachSelectedTracks}));
    if(!override){$("confirm").disabled=true;notify("Recommendation saved, but Coach adjustments were not saved. Retry Save Coach adjustments before confirming.");return}
  }
+ rememberTracks();
  notify("Draft saved with Coach adjustments. Review, then confirm.");
  }};
 $("update").onclick=async()=>{
  if(!saved||confirmed)return;
  const result=await request(params("save-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
- if(result)notify("Coach adjustments saved. Confirm when ready.");
+ if(result){rememberTracks();$("confirm").disabled=false;notify("Coach adjustments saved. Confirm when ready.");}
 };
 $("confirm").onclick=async()=>{
  if(!saved||confirmed)return;
+ if(hasUnsavedTracks()){notify("You changed instructional tracks. Save Coach adjustments before confirming.");return}
  const result=await request(params("confirm-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
  if(result){confirmed=true;$("confirm").disabled=$("update").disabled=false;$("attach").disabled=false;
  [...$("tracks").querySelectorAll("select")].forEach(el=>el.disabled=true);notify("Lesson confirmed; ready to attach to an existing practice.");}
