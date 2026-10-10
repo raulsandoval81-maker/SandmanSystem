@@ -390,6 +390,64 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "attach-group-lesson-to-practice" || action === "record-group-lesson-delivery") {
+      const lessonId = clean(data.lessonId);
+      const practiceId = clean(data.practiceId);
+      if (!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)
+          || !/^[A-Za-z0-9_-]{1,160}$/.test(practiceId)) {
+        throw new HttpsError("invalid-argument", "Valid lesson and practice IDs required.");
+      }
+      const planRef = db.doc(`coachLessonPlans/${lessonId}`);
+      const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+      const outcome = await db.runTransaction(async tx => {
+        const [planSnap, practiceSnap] = await Promise.all([tx.get(planRef), tx.get(practiceRef)]);
+        const plan = planSnap.data() || {};
+        const practice = practiceSnap.data() || {};
+        if (!planSnap.exists || plan.status !== "COACH_CONFIRMED"
+            || clean(plan.coachUid) !== actor.uid
+            || clean(plan.discipline) !== discipline) {
+          throw new HttpsError("failed-precondition", "Confirmed lesson owned by this Coach required.");
+        }
+        if (!practiceSnap.exists || normalizeDiscipline(practice.discipline) !== discipline) {
+          throw new HttpsError("failed-precondition", "Matching practice required.");
+        }
+        requirePracticeVerificationAccess(actor, practice);
+        if (action === "attach-group-lesson-to-practice") {
+          if (clean(plan.practiceId) && clean(plan.practiceId) !== practiceId) {
+            throw new HttpsError("failed-precondition", "Lesson already assigned to a different practice.");
+          }
+          if (plan.deliveryStatus === "RECORDED") {
+            throw new HttpsError("failed-precondition", "Delivered lesson cannot be reattached.");
+          }
+          tx.update(planRef, {practiceId, deliveryStatus: "READY_FOR_PRACTICE",
+            attachedAt: FieldValue.serverTimestamp(),
+            eligibleForAuto: false});
+          return "READY_FOR_PRACTICE";
+        }
+        if (clean(plan.practiceId) !== practiceId || plan.deliveryStatus !== "READY_FOR_PRACTICE") {
+          throw new HttpsError("failed-precondition", "Attach an undelivered confirmed lesson first.");
+        }
+        const delivered = Array.isArray(data.deliveredAthleteIds)
+          ? data.deliveredAthleteIds.map((value: unknown) => clean(value).toUpperCase()) : [];
+        const roster: string[] = Array.isArray(plan.athleteIds) ? plan.athleteIds : [];
+        if (delivered.length === 0 || new Set(delivered).size !== delivered.length
+            || delivered.some((id: string) => !roster.includes(id))) {
+          throw new HttpsError("invalid-argument", "Delivered athletes must be unique members of the lesson.");
+        }
+        const note = clean(data.coachNote);
+        if (note.length > 500) throw new HttpsError("invalid-argument", "Coach note is too long.");
+        tx.update(planRef, {
+          deliveryStatus: "RECORDED", deliveredAthleteIds: delivered,
+          coachNote: note, recordedAt: FieldValue.serverTimestamp(),
+          recordedBy: actor.uid, eligibleForAuto: false,
+        });
+        return "RECORDED";
+      });
+      return {ok: true, lessonId, practiceId, deliveryStatus: outcome,
+        attendanceFinalized: false, xpAwarded: false, skillVerified: false,
+        eligibleForAuto: false};
+    }
+
     if (action === "save-group-lesson-draft" || action === "confirm-group-lesson-draft") {
       const ids = Array.isArray(data.athleteIds)
         ? data.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
