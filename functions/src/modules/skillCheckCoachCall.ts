@@ -602,12 +602,28 @@ export const skillCheckCoachCall =
       }
       const manifestBlockers = Array.isArray(manifest.blockers) ? manifest.blockers.map(clean) : [];
       if (manifestBlockers.length) blockers.push("manifest-historical-coverage-unresolved");
+      // Store immutable, server-observed rechecks for later independent
+      // review. A receipt records an observation, never permanent validity.
+      const sourceRecordsValid = results.length > 0 && results.every(r => r.valid);
+      const reviewCurrent = JSON.stringify(reviewLocations) === JSON.stringify(currentLocations)
+        && clean(review.status) === "PENDING_MANAGEMENT_REVIEW"
+        && manifest.reviewRevision === revision;
+      let verificationReceiptId: string | null = null;
+      if (data.recordVerification === true) {
+        const receipt = reviewRef.collection("sourceVerificationReceipts").doc();
+        await receipt.create({
+          kind: "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT",
+          athleteId, discipline, manifestId, reviewRevision: revision,
+          sourceRecordsValid, reviewCurrent,
+          records: results, blockers: [...new Set(blockers)].sort(),
+          observedAt: Timestamp.now(), observedBy: actor.uid,
+          historicalCoverageVerified: false, evidenceApproved: false,
+        });
+        verificationReceiptId = receipt.id;
+      }
       // Verification is not completeness attestation and never grants approval.
       return {ok: true, diagnosticOnly: true, manifestId, recordCount: results.length,
-        sourceRecordsValid: results.length > 0 && results.every(r => r.valid),
-        reviewCurrent: JSON.stringify(reviewLocations) === JSON.stringify(currentLocations)
-          && clean(review.status) === "PENDING_MANAGEMENT_REVIEW"
-          && manifest.reviewRevision === revision,
+        verificationReceiptId, sourceRecordsValid, reviewCurrent,
         historicalCoverageVerified: false,
         acceptanceReady: false,
         records: results, blockers: [...new Set(blockers)].sort(),
