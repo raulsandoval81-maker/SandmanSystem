@@ -13,6 +13,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.muted{opacity:.8}table{border-col
 <a href="/coaches/practice/">← Practice Operations</a>
 <h1>Group Lesson Review</h1>
 <p class="muted">Coach-controlled planning. No attendance, XP, rank, promotion, or automatic lesson execution.</p>
+<section><h2>Resume a saved lesson</h2><label for="resumeId">Existing lesson ID</label><input id="resumeId" placeholder="Previously saved lesson ID"><button id="resume">Load lesson</button></section>
 <section><h2>1. Recommend</h2>
 <label for="athletes">Athlete IDs (comma-separated, maximum 30)</label><input id="athletes" placeholder="F8_0001, F8_0002">
 <label for="discipline">Discipline</label><select id="discipline"><option value="wrestling">Wrestling</option><option value="boxing">Boxing</option><option value="muay-thai">Muay Thai</option></select>
@@ -42,6 +43,31 @@ const notify=(msg)=>{$("notice").textContent=msg;};
 function params(action,extras={}) {return {action,athleteId:roster[0],athleteIds:roster,discipline:$("discipline").value,...extras};}
 async function request(data){try{const result=(await call(data)).data;notify("Operation completed. AUTO and XP remain unchanged.");return result}catch(e){notify(e?.message||String(e));return null}}
 function tracks(){return [...$("tracks").querySelectorAll("select[data-athlete]")].map(s=>({athleteId:s.dataset.athlete,track:s.value}));}
+$("resume").onclick=async()=>{
+ const lessonId=$("resumeId").value.trim();
+ if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a valid saved lesson ID.");return}
+ const result=await request({action:"get-group-lesson-plan",athleteId:"RESUME",lessonId,discipline:$("discipline").value});
+ if(!result)return;
+ roster=result.athleteIds;saved=true;confirmed=result.status==="COACH_CONFIRMED";
+ attached=Boolean(result.practiceId);
+ $("athletes").value=roster.join(", ");$("lessonId").value=lessonId;
+ $("practiceId").value=result.practiceId||"";$("delivered").value=(result.deliveredAthleteIds||roster).join(", ");
+ $("note").value=result.coachNote||"";
+ const list=document.createElement("select");list.id="familyChoice";
+ const option=document.createElement("option");option.value=result.familyId;option.textContent=result.familyId;list.append(option);
+ $("recommendations").replaceChildren(list);
+ const table=document.createElement("table");
+ for(const item of result.tracks){const tr=document.createElement("tr"),td=document.createElement("td"),cell=document.createElement("td"),select=document.createElement("select");
+ td.textContent=item.athleteId;select.dataset.athlete=item.athleteId;
+ for(const value of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=value;opt.textContent=value;select.append(opt)}
+ select.value=item.track;select.disabled=confirmed;cell.append(select);tr.append(td,cell);table.append(tr)}
+ $("tracks").replaceChildren(table);
+ $("save").disabled=true;$("update").disabled=confirmed;$("confirm").disabled=confirmed;
+ $("attach").disabled=!confirmed||attached;$("record").disabled=!attached||result.deliveryStatus==="RECORDED";
+ for(const name of ["athletes","discipline","families","familyChoice","recommend"]){$(name).disabled=true}
+ $("lessonId").readOnly=true;$("practiceId").readOnly=attached;
+ notify("Loaded "+result.status+" lesson. "+(result.deliveryStatus||"Not attached to practice"));
+};
 $("recommend").onclick=async()=>{
  roster=ids($("athletes").value);candidate=null;saved=false;confirmed=false;attached=false;
  $("save").disabled=$("update").disabled=$("confirm").disabled=$("attach").disabled=$("record").disabled=true;
