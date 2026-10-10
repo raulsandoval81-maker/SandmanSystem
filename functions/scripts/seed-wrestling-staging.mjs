@@ -3,6 +3,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 
 import { verifyStagingBoundary } from "../../scripts/staging/verify-staging-boundary.mjs";
+import { assertSyntheticWriteSafety } from "./staging-seed-safety.mjs";
 
 const boundary = await verifyStagingBoundary();
 const { projectId } = boundary;
@@ -17,6 +18,56 @@ const users = [
   ["staging-coach-wrestling", "coach.wrestling@example.invalid", "Synthetic Wrestling Coach"],
   ["staging-outsider-coach", "coach.outsider@example.invalid", "Synthetic Outside Coach"],
 ];
+const now = Timestamp.now();
+const historicalDate = Timestamp.fromDate(new Date("2026-09-15T18:00:00.000Z"));
+const staleDate = Timestamp.fromDate(new Date("2020-01-01T18:00:00.000Z"));
+const roster = ["staging-athlete-beginner", "staging-athlete-intermediate", "staging-athlete-advanced"];
+const writes = new Map();
+const stage = (path, value) => {
+  if (writes.has(path)) throw new Error(`Duplicate synthetic seed path ${path}.`);
+  writes.set(path, { ...value, synthetic: true });
+};
+
+stage("staff/staging-coach-wrestling", { role: "coach", status: "active", locationIds: ["staging-location"], academyIds: ["staging-academy"] });
+stage("staff/staging-outsider-coach", { role: "coach", status: "active", locationIds: ["outside-location"] });
+stage("athletes/staging-athlete-beginner", { displayName: "Synthetic Beginner", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("athletes/staging-athlete-intermediate", { displayName: "Synthetic Intermediate", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("athletes/staging-athlete-advanced", { displayName: "Synthetic Advanced", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("families/staging-family", { displayName: "Synthetic Family", athleteIds: roster });
+stage("practiceSessions/staging-wrestling-practice", { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-10-10", status: "open", createdAt: now });
+stage("attendance_sessions/staging-wrestling-practice", { practiceId: "staging-wrestling-practice", discipline: "wrestling", status: "pending", finalized: false, checkedInIds: roster });
+for (const athleteId of roster) {
+  stage(`practiceSessions/staging-wrestling-practice/athletes/${athleteId}`, { practiceId: "staging-wrestling-practice", athleteId, discipline: "wrestling", attendance: { status: "present" } });
+}
+
+const historyPractice = "staging-wrestling-history";
+stage(`practiceSessions/${historyPractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed" });
+stage(`attendance_sessions/${historyPractice}`, { practiceId: historyPractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-intermediate", "staging-athlete-advanced"] });
+for (const athleteId of ["staging-athlete-intermediate", "staging-athlete-advanced"]) {
+  stage(`practiceSessions/${historyPractice}/athletes/${athleteId}`, { practiceId: historyPractice, athleteId, discipline: "wrestling", attendance: { status: "present" } });
+}
+for (const familyId of ["stance_motion", "level_change_entry"]) {
+  stage(`practiceSessions/${historyPractice}/athletes/staging-athlete-intermediate/verifiedSkills/wrestling__${familyId}`, { discipline: "wrestling", familyId, state: "LEARNED", coachUid: "staging-coach-wrestling", verifiedAt: historicalDate });
+}
+for (const familyId of ["stance_motion", "level_change_entry", "angle", "head_position", "distance", "double_leg"]) {
+  stage(`practiceSessions/${historyPractice}/athletes/staging-athlete-advanced/verifiedSkills/wrestling__${familyId}`, { discipline: "wrestling", familyId, state: "APPLIED", coachUid: "staging-coach-wrestling", verifiedAt: historicalDate });
+}
+
+const stalePractice = "staging-wrestling-stale-evidence";
+stage(`practiceSessions/${stalePractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2020-01-01", status: "closed", evidenceScenario: "stale" });
+stage(`attendance_sessions/${stalePractice}`, { practiceId: stalePractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-intermediate"], evidenceScenario: "stale" });
+stage(`practiceSessions/${stalePractice}/athletes/staging-athlete-intermediate`, { practiceId: stalePractice, athleteId: "staging-athlete-intermediate", discipline: "wrestling", attendance: { status: "present" }, evidenceScenario: "stale" });
+stage(`practiceSessions/${stalePractice}/athletes/staging-athlete-intermediate/verifiedSkills/wrestling__single_leg`, { discipline: "wrestling", familyId: "single_leg", state: "LEARNED", coachUid: "staging-coach-wrestling", verifiedAt: staleDate, evidenceScenario: "stale" });
+
+const conflictPractice = "staging-wrestling-conflicting-evidence";
+stage(`practiceSessions/${conflictPractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed", evidenceScenario: "conflicting" });
+stage(`attendance_sessions/${conflictPractice}`, { practiceId: conflictPractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-advanced"], evidenceScenario: "conflicting" });
+stage(`practiceSessions/${conflictPractice}/athletes/staging-athlete-advanced`, { practiceId: conflictPractice, athleteId: "staging-athlete-advanced", discipline: "wrestling", attendance: { status: "present" }, evidenceScenario: "conflicting" });
+stage(`practiceSessions/${conflictPractice}/athletes/staging-athlete-advanced/verifiedSkills/wrestling__double_leg`, { discipline: "wrestling", familyId: "double_leg", state: "LEARNED", coachUid: "staging-coach-wrestling", verifiedAt: historicalDate, evidenceScenario: "conflicting" });
+
+stage("coachLessonPlans/staging-interrupted-draft", { kind: "COACH_AUTHORED_GROUP_LESSON", status: "DRAFT", coachUid: "staging-coach-wrestling", discipline: "wrestling", familyId: "double_leg", athleteIds: roster, tracks: roster.map((athleteId, index) => ({ athleteId, track: ["INTRODUCE", "PRACTICE", "EXTEND"][index] })), sourcePracticeId: "staging-wrestling-practice", eligibleForAuto: false, lessonExecuted: false, xpAwarded: false, scenario: "interrupted-recovery" });
+stage("stagingMetadata/wrestling-auto", { environment: "staging", projectId, syntheticDataOnly: true, unattendedAuto: false, roster, scenarios: ["missing-evidence", "stale-evidence", "conflicting-evidence", "interrupted-recovery", "duplicate-retry"], seededAt: FieldValue.serverTimestamp() });
+
 const existingUsers = new Map();
 for (const [uid, email] of users) {
   try {
@@ -28,41 +79,24 @@ for (const [uid, email] of users) {
   }
 }
 
-const protectedPaths = [
-  "staff/staging-coach-wrestling", "staff/staging-outsider-coach",
-  "athletes/staging-athlete-beginner", "athletes/staging-athlete-advanced",
-  "families/staging-family", "practiceSessions/staging-wrestling-practice",
-  "attendance_sessions/staging-wrestling-practice", "stagingMetadata/wrestling-auto",
-];
-for (const snapshot of await db.getAll(...protectedPaths.map(path => db.doc(path)))) {
-  if (snapshot.exists && snapshot.get("synthetic") !== true && snapshot.get("syntheticDataOnly") !== true) {
-    throw new Error(`Refusing to overwrite non-synthetic Firestore record ${snapshot.ref.path}.`);
-  }
-}
+const intendedPaths = [...writes.keys()];
+const snapshots = await db.getAll(...intendedPaths.map(path => db.doc(path)));
+assertSyntheticWriteSafety(snapshots, intendedPaths);
 
-for (const [uid, email, displayName] of users) {
-  if (existingUsers.has(uid)) await auth.updateUser(uid, { password, displayName, disabled: false });
-  else {
+const createdUsers = [];
+try {
+  for (const [uid, email, displayName] of users) {
+    if (existingUsers.has(uid)) continue;
     await auth.createUser({ uid, email, password, displayName, emailVerified: true });
+    createdUsers.push(uid);
     await auth.setCustomUserClaims(uid, { synthetic: true, environment: "staging" });
   }
+  const batch = db.batch();
+  for (const [path, value] of writes) batch.set(db.doc(path), value, { merge: true });
+  await batch.commit();
+} catch (error) {
+  await Promise.allSettled(createdUsers.map(uid => auth.deleteUser(uid)));
+  throw error;
 }
-const now = Timestamp.now();
-const batch = db.batch();
-const set = (path, value) => batch.set(db.doc(path), value, { merge: true });
-set("staff/staging-coach-wrestling", { role: "coach", status: "active", locationIds: ["staging-location"], academyIds: ["staging-academy"], synthetic: true });
-set("staff/staging-outsider-coach", { role: "coach", status: "active", locationIds: ["outside-location"], synthetic: true });
-set("athletes/staging-athlete-beginner", { displayName: "Synthetic Beginner", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"], synthetic: true });
-set("athletes/staging-athlete-advanced", { displayName: "Synthetic Advanced", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"], synthetic: true });
-set("families/staging-family", { displayName: "Synthetic Family", athleteIds: ["staging-athlete-beginner", "staging-athlete-advanced"], synthetic: true });
-set("practiceSessions/staging-wrestling-practice", { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2099-01-01", status: "open", synthetic: true, createdAt: now });
-set("attendance_sessions/staging-wrestling-practice", { practiceId: "staging-wrestling-practice", discipline: "wrestling", status: "pending", finalized: false, checkedInIds: ["staging-athlete-beginner", "staging-athlete-advanced"], synthetic: true });
-set("practiceSessions/staging-wrestling-practice/athletes/staging-athlete-beginner", { practiceId: "staging-wrestling-practice", athleteId: "staging-athlete-beginner", discipline: "wrestling", attendance: { status: "present" }, synthetic: true });
-set("practiceSessions/staging-wrestling-practice/athletes/staging-athlete-advanced", { practiceId: "staging-wrestling-practice", athleteId: "staging-athlete-advanced", discipline: "wrestling", attendance: { status: "present" }, synthetic: true });
-for (const familyId of ["stance_motion", "level_change_entry", "angle", "head_position", "distance", "double_leg"]) {
-  set(`practiceSessions/staging-wrestling-practice/athletes/staging-athlete-advanced/verifiedSkills/wrestling__${familyId}`, { discipline: "wrestling", familyId, state: "APPLIED", coachUid: "staging-coach-wrestling", verifiedAt: now, synthetic: true });
-}
-set("stagingMetadata/wrestling-auto", { environment: "staging", projectId, syntheticDataOnly: true, unattendedAuto: false, seededAt: FieldValue.serverTimestamp() });
-await batch.commit();
-console.log(`Seeded synthetic Wrestling staging data in ${projectId}.`);
+console.log(`Seeded ${writes.size} synthetic Wrestling staging records in ${projectId}.`);
 await deleteApp(app);
