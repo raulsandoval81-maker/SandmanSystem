@@ -108,18 +108,39 @@ $("recommend").onclick=async()=>{
      +draftAudit.issues.length+" structural issues. NOT approved for AUTO.";
    $("recommendations").append(note);
  }
- const dependencyReview=result.proposedCurriculumDependencies||[];
- const proposed=document.createElement("section");
- const proposedHeading=document.createElement("h3");
- proposedHeading.textContent="Proposed Wrestling dependencies — review only";
- proposed.append(proposedHeading);
- for(const entry of dependencyReview){
-   const line=document.createElement("p");
-   line.textContent=entry.familyId+": "+(entry.prerequisites.length?entry.prerequisites.join(", "):"No proposed prerequisites")
-     +" · Not approved";
-   proposed.append(line);
+ const roleReview=result.dependencyRoleReview;
+ if(roleReview){
+   const section=document.createElement("section");
+   section.setAttribute("aria-label","Wrestling dependency role review");
+   const heading=document.createElement("h3");
+   heading.textContent="Proposed Wrestling foundations and supporting skills";
+   section.append(heading);
+   const description=document.createElement("p");
+   description.textContent="Mandatory and supporting roles are draft coaching proposals. Neither role is approved for AUTO.";
+   section.append(description);
+   const table=document.createElement("table");
+   const header=document.createElement("tr");
+   for(const name of ["Skill family","Proposed mandatory foundations","Proposed supporting skills"]){
+     const th=document.createElement("th");th.textContent=name;header.append(th);
+   }
+   table.append(header);
+   for(const entry of roleReview.entries||[]){
+     const row=document.createElement("tr");
+     for(const value of [entry.familyId,
+       entry.mandatoryFoundations.length?entry.mandatoryFoundations.join(", "):"None proposed",
+       entry.supportingSkills.length?entry.supportingSkills.join(", "):"None proposed"]){
+       const cell=document.createElement("td");cell.textContent=value;row.append(cell);
+     }
+     table.append(row);
+   }
+   section.append(table);
+   if(roleReview.issues?.length){
+     const issues=document.createElement("p");
+     issues.textContent="Review issues: "+roleReview.issues.join(", ");
+     section.append(issues);
+   }
+   $("recommendations").append(section);
  }
- $("recommendations").append(proposed);
  const prereqs=result.curriculumPrerequisites;
  if(prereqs){
    const warning=document.createElement("p");
