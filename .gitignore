@@ -15,6 +15,7 @@ emu-debug.txt
 
 # Firebase cache
 .firebase/
+.firebase-staging/
 
 # Firebase config
 

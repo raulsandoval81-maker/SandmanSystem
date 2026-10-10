@@ -182,6 +182,8 @@ test("Coach must persist track edits before confirming, and can start a new less
  assert.match(html,/function rememberTracks\(\)/);
  assert.match(html,/id="newLesson"/);
  assert.match(html,/newLesson"\)\.onclick/);
+ assert.match(html,/\$\("confirm"\)\.disabled=\$\("update"\)\.disabled=true/);
+ assert.match(html,/create-recommended-group-lesson-draft",\{lessonId,familyId,familyIds:candidate\.map\(c=>c\.familyId\),practiceId:/);
 });
 
 test("Supervised AUTO selects dominant verified group need without executing",()=>{
@@ -243,7 +245,7 @@ test("Draft curriculum prerequisites identify individual foundation gaps without
  assert.equal(result.eligibleForAuto,false);
 });
 
-test("Unapproved prerequisites block AUTO and show a foundational Coach alternative",()=>{
+test("Provisional prerequisites suggest a foundation for Coach review without authorizing AUTO",()=>{
  const athletes=[
   {athleteId:"A",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"LEARNED"}]},
   {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"stance_motion",state:"NOT_INTRODUCED"}]},
@@ -252,10 +254,12 @@ test("Unapproved prerequisites block AUTO and show a foundational Coach alternat
  const evaluation=evaluateGroupLessonPrerequisites(athletes,
    ["double_leg","level_change_entry","stance_motion"],PILOT_WRESTLING_PREREQUISITES);
  const result=reviewSupervisedPrerequisiteSelection(preview,evaluation);
- assert.equal(result.ready,false);
- assert.equal(result.selection,null);
+ assert.equal(result.ready,true);
+ assert.equal(result.selection.familyId,"stance_motion");
  assert.equal(result.suggestedFoundation,"stance_motion");
- assert.ok(result.blockers.includes("prerequisites-not-met-or-unconfigured:double_leg"));
+ assert.deepEqual(result.warnings,["curriculum-policy-not-approved"]);
+ assert.equal(result.policyApproved,false);
+ assert.equal(result.coachApprovalRequired,true);
  assert.equal(result.eligibleForAuto,false);
 });
 
@@ -321,6 +325,19 @@ test("Coach page renders distinct mandatory and supporting curriculum columns",(
  const {spawnSync}=require("node:child_process");
  const checked=spawnSync(process.execPath,["--input-type=module","--check"],{input:module,encoding:"utf8"});
  assert.equal(checked.status,0,checked.stderr);
+});
+
+test("Coach page loads saved practice groups and all 36 Wrestling families",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/id="groupChoice"/);
+ assert.match(html,/sandman_session_builder_v1/);
+ assert.match(html,/applyGroupSelection/);
+ assert.match(html,/const WRESTLING_FAMILIES=\[/);
+ const familyLiteral=html.match(/const WRESTLING_FAMILIES=(\[[^;]+\]);/)?.[1];
+ assert.ok(familyLiteral);
+ assert.equal(JSON.parse(familyLiteral).length,36);
+ assert.match(html,/selectedFamilies\(\)/);
 });
 
 test("supporting Wrestling skills never block draft track readiness",()=>{

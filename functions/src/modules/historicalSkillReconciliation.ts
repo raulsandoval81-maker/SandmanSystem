@@ -272,12 +272,28 @@ export function reviewSupervisedPrerequisiteSelection(
     item.missing.map(gap => gap.prerequisite)))].filter(family =>
       eligibleCandidates.some(candidate => candidate.familyId === family));
   const suggestedFoundation = fallbackFamilies.find(family => !recentlyDeliveredFamilies.includes(family)) || null;
-  // A provisional policy may inform a Coach but NEVER authorize AUTO selection.
+  const reviewedPreview = {
+    ready: preview.ready,
+    lessonCandidates: eligibleCandidates,
+    blockers: [] as never[],
+    coachReviewRequired: true,
+    eligibleForAuto: false,
+  };
+  const recommendation = selectSupervisedGroupLesson(reviewedPreview, recentlyDeliveredFamilies);
+  // Provisional relationships may rank a recommendation for explicit Coach review,
+  // but never approve curriculum policy, execute a lesson, or authorize unattended AUTO.
   return {
-    ready:false, selection:null, coachApprovalRequired:true, eligibleForAuto:false,
-    blockers:["curriculum-policy-not-approved",
+    ...recommendation,
+    policyApproved:false,
+    coachApprovalRequired:true,
+    eligibleForAuto:false,
+    warnings:["curriculum-policy-not-approved"],
+    blockers: recommendation.ready ? [] : [
+      ...preview.blockers,
+      ...recommendation.blockers,
       ...assessment.blockers,
-      ...blockedCandidates.map(item => "prerequisites-not-met-or-unconfigured:" + item.familyId)],
+      ...blockedCandidates.map(item => "prerequisites-not-met-or-unconfigured:" + item.familyId),
+    ],
     blockedCandidates, suggestedFoundation,
     eligibleCandidateFamilies:eligibleCandidates.map(candidate => candidate.familyId),
   };

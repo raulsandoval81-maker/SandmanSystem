@@ -7,6 +7,7 @@ main{max-width:960px;margin:auto;padding:24px;color:inherit}section{border:1px s
 label{display:block;margin:12px 0 5px;font-weight:650}input,select,textarea{display:block;width:100%;max-width:600px;padding:10px;border-radius:8px;border:1px solid #888;background:transparent;color:inherit}
 button{padding:10px 14px;margin:8px 8px 8px 0;border:1px solid #888;border-radius:8px;cursor:pointer;background:#343434;color:#fff}
 button:disabled{opacity:.5;cursor:not-allowed}.muted{opacity:.8}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{padding:10px;border-bottom:1px solid #7775;text-align:left}td select{width:auto}
+#families{min-height:18rem}.field-help{display:block;margin:6px 0 10px;opacity:.8}
 #notice{white-space:pre-wrap}
 </style></head><body class="coach-shell-page" data-coach-page="Group Lesson Review" data-coach-area="practice">
 <main data-coach-shell-content>
@@ -15,9 +16,12 @@ button:disabled{opacity:.5;cursor:not-allowed}.muted{opacity:.8}table{border-col
 <p class="muted">Coach-controlled planning. No attendance, XP, rank, promotion, or automatic lesson execution.</p>
 <section><h2>Resume a saved lesson</h2><label for="resumeId">Existing lesson ID</label><input id="resumeId" placeholder="Previously saved lesson ID"><button id="resume">Load lesson</button><button id="newLesson" type="button">Start another lesson</button></section>
 <section><h2>1. Recommend</h2>
+<label for="groupChoice">Wrestling practice group</label><select id="groupChoice"><option value="manual">Enter athlete IDs manually</option></select>
+<small class="field-help">Groups saved during Practice Check-In appear here. Selecting one fills its verified practice roster.</small>
 <label for="athletes">Athlete IDs (comma-separated, maximum 30)</label><input id="athletes" placeholder="F8_0001, F8_0002">
-<label for="discipline">Discipline</label><select id="discipline"><option value="wrestling">Wrestling</option><option value="boxing">Boxing</option><option value="muay-thai">Muay Thai</option></select>
-<label for="families">Curriculum family IDs (comma-separated)</label><input id="families" value="double_leg">
+<label for="discipline">Discipline</label><select id="discipline" disabled><option value="wrestling">Wrestling</option></select>
+<label for="families">Wrestling curriculum families</label><select id="families" multiple></select>
+<small class="field-help">All 36 families are selected by default. Use Command/Ctrl-click to narrow the Coach review.</small>
 <button id="recommend">Get recommendations</button>
 <div id="recommendations"></div></section>
 <section><h2>2. Review and confirm</h2>
@@ -38,6 +42,7 @@ import {functions,httpsCallable} from "/assets/js/firebase-init.js";
 import {requireCoach,coachLoginUrl} from "/assets/js/coach-guard.js";
 const $=id=>document.getElementById(id),call=httpsCallable(functions,"skillCheckCoachCall");
 const ids=raw=>raw.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+const WRESTLING_FAMILIES=["stance_motion","level_change_entry","angle","head_position","distance","tempo","pressure_footwork","motion_attack_reattack","double_leg","single_leg","setups_ties","snap_go_behind","arm_drag","reattack_reshot","chain_wrestling","underhook","two_on_one","upper_body","shot_defense","down_block","counter_offense","front_headlock","whizzer","scramble","ride_control","return","turn_system","crossface","leg_ride","escape","stand_up","sitout_switch","hip_heist","reversal","survival_recovery","bottom_integration"];
 let roster=[],candidate=null,saved=false,confirmed=false,attached=false,savedTracks=[];
 const notify=(msg)=>{$("notice").textContent=msg;};
 function params(action,extras={}) {return {action,athleteId:roster[0],athleteIds:roster,discipline:$("discipline").value,...extras};}
@@ -45,6 +50,27 @@ async function request(data){try{const result=(await call(data)).data;notify("Op
 function tracks(){return [...$("tracks").querySelectorAll("select[data-athlete]")].map(s=>({athleteId:s.dataset.athlete,track:s.value}));}
 function rememberTracks(){savedTracks=tracks();}
 function hasUnsavedTracks(){return JSON.stringify(tracks())!==JSON.stringify(savedTracks);}
+function selectedFamilies(){return [...$("families").selectedOptions].map(option=>option.value);}
+function readBuilderSession(){try{return JSON.parse(localStorage.getItem("sandman_session_builder_v1")||"{}")}catch{return {}}}
+function initializeWorkflow(){
+ $("families").replaceChildren(...WRESTLING_FAMILIES.map(family=>{const option=document.createElement("option");option.value=family;option.textContent=family.replaceAll("_"," ");option.selected=true;return option}));
+ const session=readBuilderSession(),groups=Array.isArray(session.trainingGroups)?session.trainingGroups:[];
+ groups.forEach((group,index)=>{if(!Array.isArray(group.athleteIds)||!group.athleteIds.length)return;const option=document.createElement("option");option.value=String(index);option.textContent=(group.label||`Group ${index+1}`)+" · "+group.athleteIds.length+" athletes";$("groupChoice").append(option)});
+ const query=new URLSearchParams(location.search),requestedPractice=query.get("practiceId")||"";
+ if(requestedPractice)$("practiceId").value=requestedPractice;
+ else if(session.practiceId)$("practiceId").value=session.practiceId;
+ if(String(session.discipline||"").toLowerCase()==="wrestling")$("discipline").value="wrestling";
+ if(groups.length&&(!requestedPractice||requestedPractice===String(session.practiceId||""))){$("groupChoice").value="0";applyGroupSelection()}
+ const requestedLesson=query.get("lessonId");if(requestedLesson)$("resumeId").value=requestedLesson;
+}
+function applyGroupSelection(){
+ const value=$("groupChoice").value,session=readBuilderSession();
+ if(value==="manual"){$("athletes").readOnly=false;return}
+ const group=(session.trainingGroups||[])[Number(value)];
+ roster=ids((group?.athleteIds||[]).join(","));$("athletes").value=roster.join(", ");$("athletes").readOnly=true;
+ if(session.practiceId)$("practiceId").value=String(session.practiceId);
+}
+$("groupChoice").onchange=applyGroupSelection;
 $("newLesson").onclick=()=>{location.assign("/coaches/practice/group-lessons.html");};
 $("resume").onclick=async()=>{
  const lessonId=$("resumeId").value.trim();
@@ -67,14 +93,16 @@ $("resume").onclick=async()=>{
  $("tracks").replaceChildren(table);rememberTracks();
  $("save").disabled=true;$("update").disabled=confirmed;$("confirm").disabled=confirmed;
  $("attach").disabled=!confirmed||attached;$("record").disabled=!attached||result.deliveryStatus==="RECORDED";
- for(const name of ["athletes","discipline","families","familyChoice","recommend"]){$(name).disabled=true}
+ for(const name of ["groupChoice","athletes","discipline","families","familyChoice","recommend"]){$(name).disabled=true}
  $("lessonId").readOnly=true;$("practiceId").readOnly=attached;
  notify("Loaded "+result.status+" lesson. "+(result.deliveryStatus||"Not attached to practice"));
 };
 $("recommend").onclick=async()=>{
  roster=ids($("athletes").value);candidate=null;saved=false;confirmed=false;attached=false;savedTracks=[];
  $("save").disabled=$("update").disabled=$("confirm").disabled=$("attach").disabled=$("record").disabled=true;
- const families=$("families").value.split(",").map(s=>s.trim()).filter(Boolean);
+ const families=selectedFamilies();
+ if(!roster.length)roster=ids($("athletes").value);
+ if(!roster.length||!families.length){notify("Select a group and at least one curriculum family.");return}
  const result=await request(params("preview-group-lessons",{familyIds:families}));
  $("recommendations").replaceChildren();$("tracks").replaceChildren();
  if(!result)return;
@@ -204,8 +232,8 @@ $("save").onclick=async()=>{
  const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
  if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a lesson ID using letters, numbers, dashes or underscores.");return}
  const coachSelectedTracks=tracks();
- const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
- if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
+ const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId),practiceId:$("practiceId").value.trim()}));
+ if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("groupChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
  const selected=candidate.find(c=>c.familyId===familyId);
  for(const item of selected.members){const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track}
  const recommended=tracks();
@@ -226,7 +254,7 @@ $("confirm").onclick=async()=>{
  if(!saved||confirmed)return;
  if(hasUnsavedTracks()){notify("You changed instructional tracks. Save Coach adjustments before confirming.");return}
  const result=await request(params("confirm-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
- if(result){confirmed=true;$("confirm").disabled=$("update").disabled=false;$("attach").disabled=false;
+ if(result){confirmed=true;$("confirm").disabled=$("update").disabled=true;$("attach").disabled=false;
  [...$("tracks").querySelectorAll("select")].forEach(el=>el.disabled=true);notify("Lesson confirmed; ready to attach to an existing practice.");}
 };
 $("attach").onclick=async()=>{
@@ -239,5 +267,5 @@ $("record").onclick=async()=>{
  const result=await request(params("record-group-lesson-delivery",{lessonId:$("lessonId").value.trim(),practiceId:$("practiceId").value.trim(),deliveredAthleteIds:ids($("delivered").value),coachNote:$("note").value}));
  if(result){$("record").disabled=true;notify("Delivery recorded. Attendance, skill verification, and XP were not changed.");}
 };
-try{await requireCoach()}catch(e){document.querySelector("main").replaceChildren();const link=document.createElement("a");link.href=coachLoginUrl();link.textContent="Sign in as Coach";document.querySelector("main").append(link)}
+try{await requireCoach();initializeWorkflow()}catch(e){document.querySelector("main").replaceChildren();const link=document.createElement("a");link.href=coachLoginUrl();link.textContent="Sign in as Coach";document.querySelector("main").append(link)}
 </script></body></html>

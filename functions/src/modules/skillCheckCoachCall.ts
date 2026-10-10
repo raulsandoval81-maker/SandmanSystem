@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -327,6 +327,15 @@ function attendanceIncludesAthlete(attendance: Record<string, unknown>, athleteI
     || present.some((athlete: any) => clean(athlete?.id || athlete?.uid).toUpperCase() === athleteId);
 }
 
+function lessonPracticeRoster(attendance: Record<string, unknown>): string[] {
+  const finalized = attendance.finalized === true
+    || clean(attendance.status).toLowerCase() === "finalized";
+  const raw = finalized ? attendance.presentIds : attendance.checkedInIds;
+  return Array.isArray(raw)
+    ? [...new Set(raw.map(value => clean(value).toUpperCase()).filter(Boolean))]
+    : [];
+}
+
 export const skillCheckCoachCall =
   onCall(async (req) => {
     if (!req.auth) {
@@ -397,7 +406,8 @@ export const skillCheckCoachCall =
       return {ok:true,lessonId,discipline,athleteIds:ids,
         familyId:clean(plan.familyId),tracks:plan.tracks || [],
         status:clean(plan.status),deliveryStatus:clean(plan.deliveryStatus),
-        practiceId:clean(plan.practiceId),deliveredAthleteIds:plan.deliveredAthleteIds || [],
+        practiceId:clean(plan.practiceId || plan.sourcePracticeId),
+        deliveredAthleteIds:plan.deliveredAthleteIds || [],
         coachNote:clean(plan.coachNote),coachReviewRequired:plan.status === "DRAFT",
         eligibleForAuto:false};
     }
@@ -431,8 +441,11 @@ export const skillCheckCoachCall =
       }
       const planRef = db.doc(`coachLessonPlans/${lessonId}`);
       const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+      const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
       const outcome = await db.runTransaction(async tx => {
-        const [planSnap, practiceSnap] = await Promise.all([tx.get(planRef), tx.get(practiceRef)]);
+        const [planSnap, practiceSnap, attendanceSnap] = await Promise.all([
+          tx.get(planRef), tx.get(practiceRef), tx.get(attendanceRef),
+        ]);
         const plan = planSnap.data() || {};
         const practice = practiceSnap.data() || {};
         if (!planSnap.exists || plan.status !== "COACH_CONFIRMED"
@@ -444,6 +457,17 @@ export const skillCheckCoachCall =
           throw new HttpsError("failed-precondition", "Matching practice required.");
         }
         requirePracticeVerificationAccess(actor, practice);
+        const sourcePracticeId = clean(plan.sourcePracticeId);
+        if (sourcePracticeId && sourcePracticeId !== practiceId) {
+          throw new HttpsError("failed-precondition", "Lesson must remain attached to its selected practice.");
+        }
+        const eligibleRoster = attendanceSnap.exists
+          ? lessonPracticeRoster(attendanceSnap.data() || {}) : [];
+        const lessonRoster: string[] = Array.isArray(plan.athleteIds)
+          ? plan.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
+        if (!eligibleRoster.length || lessonRoster.some(id => !eligibleRoster.includes(id))) {
+          throw new HttpsError("failed-precondition", "Lesson athletes must remain verified participants in this practice.");
+        }
         if (action === "attach-group-lesson-to-practice") {
           if (clean(plan.practiceId) && clean(plan.practiceId) !== practiceId) {
             throw new HttpsError("failed-precondition", "Lesson already assigned to a different practice.");
@@ -451,7 +475,8 @@ export const skillCheckCoachCall =
           if (plan.deliveryStatus === "RECORDED") {
             throw new HttpsError("failed-precondition", "Delivered lesson cannot be reattached.");
           }
-          tx.update(planRef, {practiceId, deliveryStatus: "READY_FOR_PRACTICE",
+          tx.update(planRef, {practiceId, sourcePracticeId: practiceId,
+            deliveryStatus: "READY_FOR_PRACTICE",
             attachedAt: FieldValue.serverTimestamp(),
             eligibleForAuto: false});
           return "READY_FOR_PRACTICE";
@@ -534,6 +559,7 @@ export const skillCheckCoachCall =
         tx.set(planRef, {
           kind: "COACH_AUTHORED_GROUP_LESSON", status: "DRAFT",
           coachUid: actor.uid, discipline, familyId, athleteIds: ids,
+          sourcePracticeId: clean(existing.sourcePracticeId),
           tracks: tracks.map((item: Record<string, unknown>) => ({
             athleteId: clean(item.athleteId).toUpperCase(), track: clean(item.track),
           })),
@@ -643,14 +669,18 @@ export const skillCheckCoachCall =
       const preview = previewMixedGroupSkillNeeds(members, requested);
       const dependencyRoleReview = discipline === "wrestling"
         ? reviewWrestlingDependencyRoles(WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS) : null;
+      const wrestlingMandatoryGraph = dependencyRoleReview
+        ? Object.fromEntries(dependencyRoleReview.entries.map(entry =>
+          [entry.familyId, entry.mandatoryFoundations]))
+        : null;
       const proposedWrestlingAudit = discipline === "wrestling"
         ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, WRESTLING_REVIEW_GRAPH)
         : null;
       const curriculumMapAudit = discipline === "wrestling"
-        ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, PILOT_WRESTLING_PREREQUISITES)
+        ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, wrestlingMandatoryGraph || {})
         : null;
       const curriculumPrerequisites = discipline === "wrestling"
-        ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
+        ? evaluateGroupLessonPrerequisites(members, requested, wrestlingMandatoryGraph || {})
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
           blockers:["prerequisite-policy-unconfigured:" + discipline]};
       const trackReadiness = requested.map((familyId: string) => {
@@ -667,32 +697,61 @@ export const skillCheckCoachCall =
         }
         const lessonId = clean(data.lessonId);
         const familyId = clean(data.familyId);
+        const sourcePracticeId = clean(data.practiceId);
         if (!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)
+            || !/^[A-Za-z0-9_-]{1,160}$/.test(sourcePracticeId)
             || !requested.includes(familyId)) {
-          throw new HttpsError("invalid-argument", "Choose a recommended family and valid lesson ID.");
+          throw new HttpsError("invalid-argument", "Choose a recommended family, valid lesson ID, and practice.");
         }
         const selected = preview.lessonCandidates.find(candidate => candidate.familyId === familyId);
         if (!selected) throw new HttpsError("failed-precondition", "Selected recommendation unavailable.");
+        const [practiceSnap, attendanceSnap] = await Promise.all([
+          db.doc(`practiceSessions/${sourcePracticeId}`).get(),
+          db.doc(`attendance_sessions/${sourcePracticeId}`).get(),
+        ]);
+        const practice = practiceSnap.data() || {};
+        if (!practiceSnap.exists || normalizeDiscipline(practice.discipline) !== discipline) {
+          throw new HttpsError("failed-precondition", "Matching Wrestling practice required.");
+        }
+        requirePracticeVerificationAccess(actor, practice);
+        const eligibleRoster = attendanceSnap.exists
+          ? lessonPracticeRoster(attendanceSnap.data() || {}) : [];
+        if (!eligibleRoster.length || ids.some((id: string) => !eligibleRoster.includes(id))) {
+          throw new HttpsError("failed-precondition", "Selected group must match verified practice participants.");
+        }
         // Generate tracks from server-verified states, not client-provided
         // recommendations. Coach may subsequently revise the draft explicitly.
         const tracks = selected.members.map(item => ({
           athleteId: item.athleteId, track: item.track,
         }));
         const planRef = db.doc(`coachLessonPlans/${lessonId}`);
-        await db.runTransaction(async tx => {
+        const created = await db.runTransaction(async tx => {
           const existing = await tx.get(planRef);
-          if (existing.exists) throw new HttpsError("already-exists", "Lesson ID is already in use.");
+          if (existing.exists) {
+            const saved = existing.data() || {};
+            const sameDraft = saved.status === "DRAFT"
+              && clean(saved.coachUid) === actor.uid
+              && clean(saved.discipline) === discipline
+              && clean(saved.familyId) === familyId
+              && clean(saved.sourcePracticeId) === sourcePracticeId
+              && JSON.stringify(saved.athleteIds) === JSON.stringify(ids)
+              && JSON.stringify(saved.tracks) === JSON.stringify(tracks);
+            if (sameDraft) return false;
+            throw new HttpsError("already-exists", "Lesson ID is already in use.");
+          }
           tx.create(planRef, {
             kind: "COACH_AUTHORED_GROUP_LESSON", status: "DRAFT",
             source: "ACCEPTED_SKILL_RECOMMENDATION", coachUid: actor.uid,
-            discipline, familyId, athleteIds: ids, tracks,
+            discipline, familyId, athleteIds: ids, tracks, sourcePracticeId,
             updatedAt: FieldValue.serverTimestamp(), coachReviewRequired: true,
             eligibleForAuto: false,
           });
+          return true;
         });
         return {ok: true, lessonId, status: "DRAFT", discipline,
           familyId, athleteIds: ids, tracks, coachReviewRequired: true,
-          lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
+          lessonExecuted: false, xpAwarded: false, eligibleForAuto: false,
+          idempotent: !created};
       }
       // Bounded, server-owned delivery history: never trust client recency flags.
       // If the scope is too large to inspect completely, refuse AUTO selection.
