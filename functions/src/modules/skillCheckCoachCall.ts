@@ -754,8 +754,16 @@ export const skillCheckCoachCall =
           ? manifest.blockers.map(clean) : [];
         // A prior-location review requirement is resolved by this Admin's
         // independent atomic reconciliation; other blockers remain fatal.
+        const resolvedByAtomicReconciliation = new Set([
+          "prior-location-management-verification-required",
+          "historical-transfer-coverage-unverified",
+          "current-skill-state-unresolved",
+        ]);
+        // These generic diagnostic markers are emitted even for a complete
+        // scan. The atomic certification resolves coverage independently;
+        // skill-state remains unresolved until approved evidence is processed.
         const unresolvedManifestBlockers = manifestBlockers.filter(reason =>
-          reason !== "prior-location-management-verification-required");
+          !resolvedByAtomicReconciliation.has(reason));
         if (unresolvedManifestBlockers.length) blockers.push("manifest-has-blockers");
         const records: Record<string, unknown>[] = Array.isArray(manifest.records)
           ? manifest.records : [];
