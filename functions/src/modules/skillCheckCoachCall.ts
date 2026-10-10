@@ -641,12 +641,14 @@ export const skillCheckCoachCall =
       };
     }
 
-    if (action === "reconcile-server-history-scopes") {
+    if (action === "reconcile-server-history-scopes" || action === "build-verified-evidence-manifest") {
       // Bounded server-owned traversal (up to five pages per authorized scope).
       // A truncated scan never claims exhaustive athlete history.
       const locationId = clean(athlete.locationId);
       const academyId = clean(athlete.academyId);
       const admin = normalizeStaffRole(actor.role) === "admin";
+      const buildManifest = action === "build-verified-evidence-manifest";
+      if (buildManifest && !admin) throw new HttpsError("permission-denied", "Evidence manifests require Admin authority.");
       // Explicit location history is a diagnostic signal only; never expands
       // Coach read permissions without a separate authorized transfer pathway.
       const previousLocations = Array.isArray(athlete.previousLocationIds)
@@ -670,6 +672,7 @@ export const skillCheckCoachCall =
         })),
       ];
       const pages: HistoryPage[] = [];
+      const manifestEntries: Array<{ practiceId: string; sessionDateKey: string; scope: string; attendancePath: string; athleteMemoryPath: string; skillEvidencePath: string; familyId: string; state: string; coachUid: string; verifiedAt: string }> = [];
       const blockers = new Set<string>();
       if (unresolvedTransferLocations.length) blockers.add("prior-location-management-verification-required");
       if (unresolvedTransferLocations.length > priorLocationScanLimit) {
@@ -750,6 +753,26 @@ export const skillCheckCoachCall =
             || verifiedSkills.some(skill => !skill.verifiedAt || !skill.coachUid)) {
             blockers.add("evidence-incomplete:" + doc.id);
           }
+          if (buildManifest) {
+            for (const skillDoc of evidence.docs) {
+              const skill = skillDoc.data() || {};
+              if (normalizeDiscipline(skill.discipline) !== discipline
+                || !familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+                || !ALLOWED_STATES.includes(normalizeState(skill.state))
+                || !clean(skill.coachUid)
+                || !(skill.verifiedAt instanceof Timestamp)) continue;
+              manifestEntries.push({
+                practiceId: doc.id,
+                sessionDateKey: clean(practice.sessionDateKey),
+                scope: spec.scope,
+                attendancePath: `attendance_sessions/${doc.id}`,
+                athleteMemoryPath: `practiceSessions/${doc.id}/athletes/${athleteId}`,
+                skillEvidencePath: skillDoc.ref.path,
+                familyId: normalizeFamily(skill.familyId), state: normalizeState(skill.state),
+                coachUid: clean(skill.coachUid), verifiedAt: skill.verifiedAt.toDate().toISOString(),
+              });
+            }
+          }
           if (verifiedSkills.length) history.push({
             practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey), verifiedSkills,
           });
@@ -769,6 +792,51 @@ export const skillCheckCoachCall =
         if (!exhausted) blockers.add("additional-pages-required:" + spec.scope);
       }
       const summary = reconcileHistoryPages(pages, [...new Set(pages.map(page => page.scope))], athleteId, discipline);
+      if (buildManifest) {
+        const unique = new Map<string, typeof manifestEntries[number]>();
+        for (const entry of manifestEntries) {
+          const key = entry.skillEvidencePath;
+          const existing = unique.get(key);
+          if (existing && (existing.state !== entry.state || existing.verifiedAt !== entry.verifiedAt)) {
+            blockers.add("conflicting-source-evidence:" + entry.practiceId);
+          } else if (!existing) unique.set(key, entry);
+        }
+        const records = [...unique.values()].sort((a,b) => a.skillEvidencePath.localeCompare(b.skillEvidencePath));
+        if (records.length > 100) throw new HttpsError("resource-exhausted", "Manifest exceeds 100 evidence entries; partitioned export is required.");
+        const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+        const manifestId = await db.runTransaction(async tx => {
+          const reviewSnap = await tx.get(ref);
+          if (!reviewSnap.exists) throw new HttpsError("failed-precondition", "Open a transfer review first.");
+          const review = reviewSnap.data() || {};
+          if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") {
+            throw new HttpsError("failed-precondition", "Only pending reviews can record evidence manifests.");
+          }
+          const recorded = Array.isArray(review.declaredPriorLocationIds)
+            ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+          const current = [...unresolvedTransferLocations].sort();
+          if (JSON.stringify(recorded) !== JSON.stringify(current)) {
+            throw new HttpsError("failed-precondition", "Refresh stale transfer review first.");
+          }
+          const manifestRef = ref.collection("evidenceManifests").doc();
+          tx.create(manifestRef, {
+            kind: "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST",
+            schemaVersion: 1, athleteId, discipline,
+            reviewRevision: typeof review.revision === "number" ? review.revision : 1,
+            records, blockers: [...new Set([...summary.blockers, ...blockers])].sort(),
+            checkedScopes: specs.map(spec => ({
+              scope: spec.scope, authorized: spec.authorized,
+              exhausted: pages.some(page => page.scope === spec.scope && page.scopeExhausted),
+            })),
+            createdBy: actor.uid, createdAt: FieldValue.serverTimestamp(),
+            evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+          });
+          return manifestRef.id;
+        });
+        return { ok: true, manifestId, recordCount: records.length,
+          kind: "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST",
+          blockers: [...new Set([...summary.blockers, ...blockers])].sort(),
+          evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+      }
       return {
         ok: true, diagnosticOnly: true, source: "server-verified-firestore",
         ...summary,
