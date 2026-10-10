@@ -176,3 +176,22 @@ test("Admin review becomes stale when declared athlete locations change",async()
 test("Coach cannot inspect transfer review location details",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"get-transfer-review-status",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
 });
+
+test("Admin refreshes stale transfer review and resets review to pending without evidence approval",async()=>{
+ const request={auth:{uid:"test-admin-transfer",token:{}},data:{action:"refresh-transfer-review",athleteId,discipline:"wrestling"}};
+ const first=await callable.run(request);
+ assert.equal(first.refreshed,true);
+ const status=await callable.run({auth:request.auth,data:{action:"get-transfer-review-status",athleteId,discipline:"wrestling"}});
+ assert.equal(status.stale,false);
+ assert.equal(status.status,"PENDING_MANAGEMENT_REVIEW");
+ const second=await callable.run(request);
+ assert.equal(second.refreshed,false);
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling").get();
+ assert.equal(snap.data().revision,2);
+ assert.equal(snap.data().evidenceApproved,false);
+ assert.equal(snap.data().coverageComplete,false);
+ assert.equal(snap.data().eligibleForAuto,false);
+});
+test("Coach cannot refresh transfer review",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"refresh-transfer-review",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
+});
