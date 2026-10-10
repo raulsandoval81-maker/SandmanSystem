@@ -504,6 +504,11 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const states=await invoke("preview-accepted-skill-state");
  assert.deepEqual(states.skillStates,[]);
  await db.doc("practiceSessions/"+practiceId).update({sessionDateKey:"2026-10-02"});
+ const staleApproval=await invoke("commit-transfer-acceptance",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(staleApproval.accepted,false);
+ assert.ok(staleApproval.blockers.some(blocker=>blocker.startsWith("atomic-source-recheck-failed:")));
  const changed=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId});
  assert.equal(changed.sourceRecordsValid,false);
  assert.ok(changed.records[0].blockers.includes("practice-changed"));
