@@ -257,13 +257,14 @@ test("Coach does not receive Admin coverage snapshot",async()=>{
 test("Admin records durable unverified transfer coverage checkpoint without trusting caller claims",async()=>{
  const auth={uid:"test-admin-transfer",token:{}};
  await db.doc("athletes/"+athleteId).update({previousLocationIds:["different-former-location"]});
+ await callable.run({auth,data:{action:"open-transfer-review",athleteId,discipline:"boxing"}});
  const response=await callable.run({auth,data:{
-   action:"record-transfer-coverage-checkpoint",athleteId,discipline:"wrestling",
+   action:"record-transfer-coverage-checkpoint",athleteId,discipline:"boxing",
    evidenceApproved:true,coverageComplete:true,eligibleForAuto:true,
  }});
  assert.equal(response.kind,"UNVERIFIED_REVIEW_CHECKPOINT");
  assert.equal(response.eligibleForAuto,false);
- const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling/coverageCheckpoints/"+response.checkpointId).get();
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/boxing/coverageCheckpoints/"+response.checkpointId).get();
  assert.equal(snap.data().coverageComplete,false);
  assert.equal(snap.data().evidenceApproved,false);
  assert.equal(snap.data().eligibleForAuto,false);
