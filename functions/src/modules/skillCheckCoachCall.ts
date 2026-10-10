@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -675,7 +675,8 @@ export const skillCheckCoachCall =
           lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
       }
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, coverageComplete: false, evidenceApproved: false,
+        ...preview, supervisedSuggestion: selectSupervisedGroupLesson(preview),
+        coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
 
