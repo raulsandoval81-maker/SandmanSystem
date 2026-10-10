@@ -338,3 +338,24 @@ export function reviewTrackReadiness(
  });
  return {familyId,policyApproved:false,eligibleForAuto:false,coachReviewRequired:true,athletes:results};
 }
+
+/** Draft-only Wrestling sequencing for Coach review; NEVER an approved AUTO graph. */
+export const WRESTLING_REVIEW_GRAPH: Readonly<Record<string, readonly string[]>> = {
+  stance_motion: [], level_change_entry: ["stance_motion"], angle: ["stance_motion"],
+  head_position: ["stance_motion"], distance: ["stance_motion"], tempo: ["stance_motion"],
+  pressure_footwork: ["stance_motion"], motion_attack_reattack: ["level_change_entry"],
+  double_leg: ["level_change_entry"], single_leg: ["level_change_entry"],
+  setups_ties: ["head_position"], snap_go_behind: ["setups_ties"],
+  arm_drag: ["setups_ties"], reattack_reshot: ["shot_defense"],
+  chain_wrestling: ["double_leg", "single_leg"], underhook: ["setups_ties"],
+  two_on_one: ["setups_ties"], upper_body: ["underhook"],
+  shot_defense: ["stance_motion"], down_block: ["shot_defense"],
+  counter_offense: ["shot_defense"], front_headlock: ["snap_go_behind"],
+  whizzer: ["shot_defense"], scramble: ["shot_defense"],
+  ride_control: [], return: ["ride_control"],
+  turn_system: ["ride_control"], crossface: ["ride_control"],
+  leg_ride: ["ride_control"], escape: [],
+  stand_up: ["escape"], sitout_switch: ["escape"],
+  hip_heist: ["escape"], reversal: ["escape"],
+  survival_recovery: ["escape"], bottom_integration: ["stand_up"],
+};
