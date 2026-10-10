@@ -121,3 +121,22 @@ test("Admin prior-location scans are capped and explicitly report unscanned tran
  assert.equal(result.coverageComplete,false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Admin transfer review packet is pending and never approves discovered evidence",async()=>{
+ const ids=["prior-training-location","missing-transfer-location"];
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:ids});
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.transferReview.status,"PENDING_MANAGEMENT_REVIEW");
+ assert.equal(result.transferReview.evidenceApproved,false);
+ assert.deepEqual(result.transferReview.locations.map(item=>item.locationId),ids);
+ assert.ok(result.transferReview.locations.every(item=>item.scanAuthorized&&item.scanCompleted&&item.reviewRequired));
+ assert.ok(result.transferReview.locations.some(item=>item.locationId==="prior-training-location"&&item.practiceCount>=1));
+ assert.equal(result.eligibleForAuto,false);
+});
+test("Coach receives review requirement but no Admin transfer-location review details",async()=>{
+ const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling"}});
+ assert.equal(result.transferReview.status,"ADMIN_REVIEW_REQUIRED");
+ assert.equal(result.transferReview.evidenceApproved,false);
+ assert.equal(Object.hasOwn(result.transferReview,"locations"),false);
+ assert.equal(result.eligibleForAuto,false);
+});
