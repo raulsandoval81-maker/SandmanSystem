@@ -370,6 +370,20 @@ test("Admin scope scan resumes after cursor and never claims history completenes
  assert.equal(second.scopeExhausted,true);
  assert.equal(second.nextCursor,null);
  assert.equal(second.eligibleForAuto,false);
+ const batched=await callable.run({auth,data:{
+   action:"scan-history-scope-page",athleteId,discipline:"wrestling",
+   scope:"prior-location:scan-only-location",pages:2,
+ }});
+ assert.equal(batched.scannedPages,2);
+ assert.equal(batched.scannedCandidates,52);
+ assert.equal(batched.scopeExhausted,true);
+ assert.equal(batched.nextCursor,null);
+ assert.equal(batched.coverageComplete,false);
+ assert.equal(batched.eligibleForAuto,false);
+ await assert.rejects(callable.run({auth,data:{
+   action:"scan-history-scope-page",athleteId,discipline:"wrestling",
+   scope:"prior-location:scan-only-location",pages:4,
+ }}),e=>e.code==="invalid-argument");
 });
 test("Coach and undeclared prior locations cannot use the resumable scan",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
