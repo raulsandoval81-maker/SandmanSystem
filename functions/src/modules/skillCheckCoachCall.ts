@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -645,6 +645,15 @@ export const skillCheckCoachCall =
         ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
           blockers:["prerequisite-policy-unconfigured:" + discipline]};
+      const trackReadiness = requested.map(familyId => {
+        const dependencies = discipline === "wrestling"
+          ? PILOT_WRESTLING_PREREQUISITES[familyId] : undefined;
+        if (!dependencies) return {familyId, configured:false,
+          policyApproved:false, eligibleForAuto:false, coachReviewRequired:true,
+          athletes:[], blockers:["prerequisite-policy-unconfigured:" + familyId]};
+        return {configured:true, blockers:[],
+          ...reviewTrackReadiness(members, familyId, dependencies)};
+      });
       if (action === "create-recommended-group-lesson-draft") {
         if (!preview.ready) {
           throw new HttpsError("failed-precondition", "All athlete evidence must be accepted before drafting a recommendation.");
@@ -699,7 +708,7 @@ export const skillCheckCoachCall =
           coachApprovalRequired:true,eligibleForAuto:false}
         : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, supervisedSuggestion, curriculumPrerequisites,
+        ...preview, supervisedSuggestion, curriculumPrerequisites, trackReadiness,
         coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
