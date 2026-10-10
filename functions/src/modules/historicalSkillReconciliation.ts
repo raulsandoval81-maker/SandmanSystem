@@ -318,3 +318,23 @@ export function auditCurriculumPrerequisiteGraph(
     totalFamilies: families.length, unmappedFamilies: families.filter(f => !Object.prototype.hasOwnProperty.call(graph, f)),
     issues: [...new Set(issues)].sort(), policyApproved: false, eligibleForAuto: false};
 }
+
+/** Advisory track readiness, without approving or activating curriculum policy. */
+export function reviewTrackReadiness(
+ athletes: readonly AcceptedGroupSkillSnapshot[],
+ familyId: string,
+ dependencies: readonly string[]
+) {
+ const results=athletes.map(athlete=>{
+  const evidenceReady=athlete.approved && !athlete.blockers.length;
+  const states=dependencies.map(id=>athlete.skills.find(s=>s.familyId===id)?.state||null);
+  return {athleteId:athlete.athleteId,
+   introduce:evidenceReady,
+   practice:evidenceReady&&states.every(s=>["LEARNED","APPLIED","MASTERED","REFINED"].includes(s||"")),
+   extend:evidenceReady&&states.every(s=>["APPLIED","MASTERED","REFINED"].includes(s||"")),
+   missingForPractice:dependencies.filter((_,i)=>!["LEARNED","APPLIED","MASTERED","REFINED"].includes(states[i]||"")),
+   missingForExtend:dependencies.filter((_,i)=>!["APPLIED","MASTERED","REFINED"].includes(states[i]||"")),
+  };
+ });
+ return {familyId,policyApproved:false,eligibleForAuto:false,coachReviewRequired:true,athletes:results};
+}
