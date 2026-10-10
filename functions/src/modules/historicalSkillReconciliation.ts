@@ -252,3 +252,33 @@ export function evaluateGroupLessonPrerequisites(
   return {policyApproved: false, eligibleForAuto: false, byFamily,
     blockers: [...new Set(blockers)].sort()};
 }
+
+/** Proposed prerequisite sequencing: diagnostic-only until curriculum policy approval. */
+export function reviewSupervisedPrerequisiteSelection(
+  preview: ReturnType<typeof previewMixedGroupSkillNeeds>,
+  assessment: ReturnType<typeof evaluateGroupLessonPrerequisites>,
+  recentlyDeliveredFamilies: readonly string[] = []
+) {
+  const blockedCandidates: {familyId:string; missing:{athleteId:string;prerequisite:string}[]}[] = [];
+  const eligibleCandidates = preview.lessonCandidates.filter(candidate => {
+    const policy = assessment.byFamily[candidate.familyId];
+    if (!policy || !policy.ready) {
+      blockedCandidates.push({familyId:candidate.familyId, missing:policy?.missing || []});
+      return false;
+    }
+    return true;
+  });
+  const fallbackFamilies = [...new Set(blockedCandidates.flatMap(item =>
+    item.missing.map(gap => gap.prerequisite)))].filter(family =>
+      eligibleCandidates.some(candidate => candidate.familyId === family));
+  const suggestedFoundation = fallbackFamilies.find(family => !recentlyDeliveredFamilies.includes(family)) || null;
+  // A provisional policy may inform a Coach but NEVER authorize AUTO selection.
+  return {
+    ready:false, selection:null, coachApprovalRequired:true, eligibleForAuto:false,
+    blockers:["curriculum-policy-not-approved",
+      ...assessment.blockers,
+      ...blockedCandidates.map(item => "prerequisites-not-met-or-unconfigured:" + item.familyId)],
+    blockedCandidates, suggestedFoundation,
+    eligibleCandidateFamilies:eligibleCandidates.map(candidate => candidate.familyId),
+  };
+}
