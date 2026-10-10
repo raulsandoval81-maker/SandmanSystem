@@ -717,6 +717,68 @@ export const skillCheckCoachCall =
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false };
     }
 
+    if (action === "certify-history-coverage") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "History certification requires Admin authority.");
+      }
+      const manifestId = clean(data.manifestId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
+        throw new HttpsError("invalid-argument", "A valid manifestId is required.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const [reviewSnap, manifestSnap] = await Promise.all([
+        ref.get(), ref.collection("evidenceManifests").doc(manifestId).get(),
+      ]);
+      const review = reviewSnap.data() || {};
+      const manifest = manifestSnap.data() || {};
+      const locations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort() : [];
+      const declared = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      const blockers: string[] = [];
+      if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") {
+        blockers.push("review-not-currently-pending");
+      }
+      if (JSON.stringify(locations) !== JSON.stringify(declared)) {
+        blockers.push("declared-location-history-changed");
+      }
+      if (!manifestSnap.exists || manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+          || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
+          || normalizeDiscipline(manifest.discipline) !== discipline) {
+        blockers.push("manifest-not-current");
+      }
+      const scopes: Record<string, unknown>[] = Array.isArray(manifest.checkedScopes)
+        ? manifest.checkedScopes : [];
+      const expectedScopes = ["athlete-location", "athlete-academy",
+        ...locations.map(id => "prior-location:" + id)];
+      for (const scope of expectedScopes) {
+        if (!scopes.some(item => item.scope === scope
+            && item.authorized === true && item.exhausted === true
+            && item.nextCursor == null)) {
+          blockers.push("scope-not-proven-exhausted:" + scope);
+        }
+      }
+      if (scopes.some(item => item.authorized !== true || item.exhausted !== true)) {
+        blockers.push("manifest-contains-incomplete-scope");
+      }
+      if (!Array.isArray(manifest.records) || manifest.records.length === 0) {
+        blockers.push("no-source-evidence");
+      }
+      if (Array.isArray(manifest.blockers) && manifest.blockers.length) {
+        blockers.push("manifest-has-unresolved-blockers");
+      }
+      // Exhausted bounded queries are insufficient: missing historical scopes,
+      // writes during traversal and omitted evidence still need independent proof.
+      blockers.push("independent-unbounded-scope-reconciliation-required");
+      blockers.push("source-snapshot-consistency-required");
+      return {ok: true, diagnosticOnly: true, kind: "HISTORY_CERTIFICATION_PREFLIGHT",
+        manifestId, requiredScopes: expectedScopes,
+        blockers: [...new Set(blockers)].sort(), certificateIssued: false,
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false};
+    }
+
     if (action === "commit-transfer-acceptance") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Only Admin may accept historical transfers.");
