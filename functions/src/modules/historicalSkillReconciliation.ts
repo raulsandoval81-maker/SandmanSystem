@@ -230,7 +230,7 @@ export function evaluateGroupLessonPrerequisites(
   const byFamily: Record<string, {ready: boolean; missing: {athleteId: string; prerequisite: string}[]}> = {};
   for (const family of familyIds) {
     const dependencies = graph[family];
-    if (!dependencies || dependencies.some(dep => dep === family || !Object.hasOwn(graph, dep))) {
+    if (!dependencies || dependencies.some(dep => dep === family || !Object.prototype.hasOwnProperty.call(graph, dep))) {
       blockers.push("prerequisite-policy-unconfigured:" + family);
       continue;
     }
