@@ -385,3 +385,20 @@ export function reviewWrestlingDependencyRoles(
   issues.push("unknown-family:"+family);
  return {entries,issues,policyApproved:false,eligibleForAuto:false};
 }
+
+/** Draft-only readiness: supporting relationships never become blockers. */
+export function reviewWrestlingRoleReadiness(
+ athletes: readonly AcceptedGroupSkillSnapshot[],
+ familyId: string
+) {
+ const roles = reviewWrestlingDependencyRoles(WRESTLING_REVIEW_GRAPH,WRESTLING_SUPPORTING_SKILLS);
+ const entry = roles.entries.find(row => row.familyId === familyId);
+ if (!entry || roles.issues.length) return null;
+ return {
+   ...reviewTrackReadiness(athletes,familyId,entry.mandatoryFoundations),
+   mandatoryFoundations:entry.mandatoryFoundations,
+   supportingSkills:entry.supportingSkills,
+   policyApproved:false,
+   eligibleForAuto:false
+ };
+}
