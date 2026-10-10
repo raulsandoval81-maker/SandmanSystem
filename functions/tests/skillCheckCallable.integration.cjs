@@ -538,6 +538,43 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const generatedRecord=await db.doc("coachLessonPlans/recommended-e2e-lesson").get();
  assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
  assert.equal(generatedRecord.data().eligibleForAuto,false);
+ // Full recommended lesson: review -> confirm -> attach -> teach -> recover.
+ const reviewed=await invoke("save-group-lesson-draft",{
+   lessonId:"recommended-e2e-lesson",familyId:"double_leg",athleteIds:[id],
+   tracks:[{athleteId:id,track:"EXTEND"}],
+ });
+ assert.equal(reviewed.status,"DRAFT");
+ const approvedPlan=await invoke("confirm-group-lesson-draft",{
+   lessonId:"recommended-e2e-lesson",familyId:"double_leg",athleteIds:[id],
+   tracks:[{athleteId:id,track:"EXTEND"}],
+ });
+ assert.equal(approvedPlan.status,"COACH_CONFIRMED");
+ const deliveryPractice="test-e2e-coach-lesson-practice";
+ await db.doc("practiceSessions/"+deliveryPractice).set({
+   coachUid:"test-admin-transfer",locationId:"test-location",
+   discipline:"wrestling",sessionDateKey:"2026-10-09",
+ });
+ const linked=await invoke("attach-group-lesson-to-practice",{
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+ });
+ assert.equal(linked.deliveryStatus,"READY_FOR_PRACTICE");
+ const recorded=await invoke("record-group-lesson-delivery",{
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+   deliveredAthleteIds:[id],coachNote:"Coach observed positional entries.",
+ });
+ assert.equal(recorded.deliveryStatus,"RECORDED");
+ assert.equal(recorded.xpAwarded,false);
+ assert.equal(recorded.skillVerified,false);
+ const recovered=await invoke("get-group-lesson-plan",{
+   athleteId:"RESUME",lessonId:"recommended-e2e-lesson",
+ });
+ assert.equal(recovered.deliveryStatus,"RECORDED");
+ assert.equal(recovered.tracks[0].track,"EXTEND");
+ assert.deepEqual(recovered.deliveredAthleteIds,[id]);
+ assert.equal(recovered.eligibleForAuto,false);
+ await assert.rejects(invoke("record-group-lesson-delivery",{
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,deliveredAthleteIds:[id],
+ }),error=>error.code==="failed-precondition");
  await assert.rejects(invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg"],familyId:"double_leg",
