@@ -359,3 +359,30 @@ export const WRESTLING_REVIEW_GRAPH: Readonly<Record<string, readonly string[]>>
   hip_heist: ["escape"], reversal: ["escape"],
   survival_recovery: ["escape"], bottom_integration: ["stand_up"],
 };
+
+/** Advisory distinctions for draft curriculum review; no policy approval implied. */
+export const WRESTLING_SUPPORTING_SKILLS: Readonly<Record<string, readonly string[]>> = {
+ chain_wrestling:["single_leg"], motion_attack_reattack:["angle"],
+ reattack_reshot:["level_change_entry"], upper_body:["two_on_one"],
+ front_headlock:["shot_defense"], bottom_integration:["reversal"],
+};
+
+export function reviewWrestlingDependencyRoles(
+ graph: Readonly<Record<string, readonly string[]>>,
+ supporting: Readonly<Record<string, readonly string[]>>
+) {
+ const issues:string[]=[];
+ const entries=Object.keys(graph).map(familyId=>{
+  const deps=graph[familyId]||[];
+  const support=supporting[familyId]||[];
+  for(const id of support) if(!Object.prototype.hasOwnProperty.call(graph,id))
+   issues.push("unknown-support:"+familyId+":"+id);
+  for(const id of deps) if(support.includes(id))
+   issues.push("conflicting-role:"+familyId+":"+id);
+  return {familyId, mandatoryFoundations:deps.filter(id=>!support.includes(id)),
+    supportingSkills:support, policyApproved:false};
+ });
+ for(const family of Object.keys(supporting)) if(!Object.prototype.hasOwnProperty.call(graph,family))
+  issues.push("unknown-family:"+family);
+ return {entries,issues,policyApproved:false,eligibleForAuto:false};
+}
