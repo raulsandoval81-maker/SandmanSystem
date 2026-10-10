@@ -345,7 +345,7 @@ export const skillCheckCoachCall =
     const data = req.data || {};
     const action = clean(data.action).toLowerCase();
     const athleteId = clean(
-      data.athleteId || data.uid || (action === "preview-group-lessons" && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
+      data.athleteId || data.uid || ((action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft") && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
     ).toUpperCase();
 
     const discipline =
@@ -456,7 +456,7 @@ export const skillCheckCoachCall =
         lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
     }
 
-    if (action === "preview-group-lessons") {
+    if (action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft") {
       // Preview-only: all members must have accepted, current evidence.
       const groupAdmin = normalizeStaffRole(actor.role) === "admin";
       if (!groupAdmin && normalizeStaffRole(actor.role) !== "coach") {
@@ -551,6 +551,39 @@ export const skillCheckCoachCall =
         members.push({athleteId: id, approved: blockers.length === 0, blockers, skills});
       }
       const preview = previewMixedGroupSkillNeeds(members, requested);
+      if (action === "create-recommended-group-lesson-draft") {
+        if (!preview.ready) {
+          throw new HttpsError("failed-precondition", "All athlete evidence must be accepted before drafting a recommendation.");
+        }
+        const lessonId = clean(data.lessonId);
+        const familyId = clean(data.familyId);
+        if (!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)
+            || !requested.includes(familyId)) {
+          throw new HttpsError("invalid-argument", "Choose a recommended family and valid lesson ID.");
+        }
+        const selected = preview.lessonCandidates.find(candidate => candidate.familyId === familyId);
+        if (!selected) throw new HttpsError("failed-precondition", "Selected recommendation unavailable.");
+        // Generate tracks from server-verified states, not client-provided
+        // recommendations. Coach may subsequently revise the draft explicitly.
+        const tracks = selected.members.map(item => ({
+          athleteId: item.athleteId, track: item.track,
+        }));
+        const planRef = db.doc(`coachLessonPlans/${lessonId}`);
+        await db.runTransaction(async tx => {
+          const existing = await tx.get(planRef);
+          if (existing.exists) throw new HttpsError("already-exists", "Lesson ID is already in use.");
+          tx.create(planRef, {
+            kind: "COACH_AUTHORED_GROUP_LESSON", status: "DRAFT",
+            source: "ACCEPTED_SKILL_RECOMMENDATION", coachUid: actor.uid,
+            discipline, familyId, athleteIds: ids, tracks,
+            updatedAt: FieldValue.serverTimestamp(), coachReviewRequired: true,
+            eligibleForAuto: false,
+          });
+        });
+        return {ok: true, lessonId, status: "DRAFT", discipline,
+          familyId, athleteIds: ids, tracks, coachReviewRequired: true,
+          lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
+      }
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
         ...preview, coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
