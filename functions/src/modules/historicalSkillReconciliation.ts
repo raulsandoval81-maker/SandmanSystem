@@ -178,15 +178,21 @@ export function previewMixedGroupSkillNeeds(
 
 /** Supervised AUTO picks one existing candidate; it never creates or confirms a lesson. */
 export function selectSupervisedGroupLesson(
-  preview: ReturnType<typeof previewMixedGroupSkillNeeds>
+  preview: ReturnType<typeof previewMixedGroupSkillNeeds>,
+  recentlyDeliveredFamilies: readonly string[] = []
 ) {
   if (!preview.ready || preview.blockers.length || !preview.lessonCandidates.length) {
     return {ready: false, selection: null, blockers: preview.blockers.length
       ? preview.blockers : ["no-eligible-lesson"], coachApprovalRequired: true,
       eligibleForAuto: false};
   }
-  const first = preview.lessonCandidates[0];
-  const second = preview.lessonCandidates[1];
+  const recent = new Set(recentlyDeliveredFamilies);
+  const fresh = preview.lessonCandidates.filter(item => !recent.has(item.familyId));
+  if (!fresh.length) return {ready: false, selection: null,
+    blockers: ["all-candidates-recently-delivered"], coachApprovalRequired: true,
+    eligibleForAuto: false};
+  const first = fresh[0];
+  const second = fresh[1];
   // The existing rank is a heuristic, not proof that two lessons are interchangeable.
   // A tied top score requires explicit Coach choice instead of a silent tiebreak.
   const ambiguous = Boolean(second &&
@@ -199,7 +205,7 @@ export function selectSupervisedGroupLesson(
   return {
     ready: true,
     selection: {familyId: first.familyId, members: first.members,
-      reason: "Largest introduction need, then practice need, among requested skill families"},
+      reason: "Highest introduction/practice need among families not recently delivered to this group"},
     blockers: [], coachApprovalRequired: true, eligibleForAuto: false,
   };
 }
