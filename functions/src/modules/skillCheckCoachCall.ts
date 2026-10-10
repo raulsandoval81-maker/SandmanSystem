@@ -390,6 +390,30 @@ export const skillCheckCoachCall =
       athlete
     );
 
+    if (action === "get-transfer-review-status") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer review details require Admin authority.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const snap = await ref.get();
+      if (!snap.exists) {
+        return { ok: true, status: "NOT_OPENED", stale: false,
+          evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+      }
+      const review = snap.data() || {};
+      const currentLocations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort()
+        : [];
+      const recordedLocations = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
+        : [];
+      const stale = JSON.stringify(currentLocations) !== JSON.stringify(recordedLocations);
+      return { ok: true, status: stale ? "STALE_REVIEW" : "PENDING_MANAGEMENT_REVIEW",
+        stale, recordedLocations, currentLocations,
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+    }
+
     if (action === "open-transfer-review") {
       // This is an audit-only handoff, not historical evidence approval.
       // Management approval will require separate complete-coverage validation.
