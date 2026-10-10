@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -122,4 +122,27 @@ test("later verification of a prior practice remains valid evidence", () => {
   const result = assess([page("athlete-location", null, null, [item])]);
   assert.equal(result.blockers.includes("verification-predates-practice"), false);
   assert.equal(result.coverageComplete, false);
+});
+
+test("mixed-group preview gives shared skill with introduction, practice and extension tracks",()=>{
+ const result=previewMixedGroupSkillNeeds([
+  {athleteId:"beginner",approved:true,blockers:[],skills:[]},
+  {athleteId:"developing",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"LEARNED"}]},
+  {athleteId:"advanced",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"MASTERED"}]},
+ ],["double_leg"]);
+ assert.equal(result.ready,true);
+ assert.equal(result.eligibleForAuto,false);
+ assert.equal(result.coachReviewRequired,true);
+ assert.deepEqual(result.lessonCandidates[0].members.map(x=>x.track),["INTRODUCE","PRACTICE","EXTEND"]);
+});
+test("mixed-group preview denies unapproved evidence, conflicts and duplicates",()=>{
+ const result=previewMixedGroupSkillNeeds([
+  {athleteId:"a",approved:false,blockers:["historical-review-pending"],skills:[]},
+  {athleteId:"a",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"UNKNOWN"}]},
+ ],["double_leg"]);
+ assert.equal(result.ready,false);
+ assert.deepEqual(result.lessonCandidates,[]);
+ assert.equal(result.eligibleForAuto,false);
+ assert.ok(result.blockers.includes("duplicate-or-missing-athlete"));
+ assert.ok(result.blockers.includes("athlete-evidence-not-ready:a"));
 });
