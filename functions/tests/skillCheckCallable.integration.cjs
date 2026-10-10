@@ -498,3 +498,21 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.ok(changed.records[0].blockers.includes("practice-changed"));
  assert.equal(changed.eligibleForAuto,false);
 });
+
+test("Transactional historical acceptance denies missing certification and spoofed approvals",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const attempt=await callable.run({auth,data:{
+   action:"commit-transfer-acceptance",athleteId,discipline:"wrestling",
+   manifestId:"unknown-manifest",verificationReceiptId:"unknown-receipt",
+   evidenceApproved:true,coverageComplete:true,eligibleForAuto:true,
+ }});
+ assert.equal(attempt.kind,"TRANSFER_ACCEPTANCE_TRANSACTION");
+ assert.equal(attempt.accepted,false);
+ assert.ok(attempt.blockers.includes("independent-full-history-certification-required"));
+ assert.ok(attempt.blockers.includes("atomic-current-source-reverification-not-implemented"));
+ assert.equal(attempt.eligibleForAuto,false);
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"commit-transfer-acceptance",athleteId,discipline:"wrestling",
+   manifestId:"unknown-manifest",verificationReceiptId:"unknown-receipt",
+ }}),e=>e.code==="permission-denied");
+});
