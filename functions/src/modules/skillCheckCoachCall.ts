@@ -1044,10 +1044,75 @@ export const skillCheckCoachCall =
             if (!valid) blockers.push("atomic-source-recheck-failed:" + practiceId);
           }
         }
-        return {accepted: false, blockers: [...new Set(blockers)].sort()};
+        // Re-query every certified scope in this SAME transaction. Source
+        // document rechecks alone would miss a newly inserted historical skill.
+        if (blockers.length === 0) {
+          const location = clean(athleteCurrent.locationId);
+          const academy = clean(athleteCurrent.academyId);
+          const scopes = [
+            ...(location ? [{scope: "athlete-location", field: "locationId", value: location}] : []),
+            ...(academy ? [{scope: "athlete-academy", field: "academyId", value: academy}] : []),
+            ...latestLocations.map(value => ({scope: "prior-location:" + value, field: "locationId", value})),
+          ];
+          const observed = new Set<string>();
+          for (const spec of scopes) {
+            const practices = await tx.get(db.collection("practiceSessions")
+              .where(spec.field, "==", spec.value)
+              .orderBy(FieldPath.documentId()).limit(51));
+            if (practices.size > 50) {
+              blockers.push("acceptance-scope-exceeds-snapshot-limit:" + spec.scope);
+              continue;
+            }
+            for (const doc of practices.docs) {
+              const practice = doc.data() || {};
+              if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+              if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
+              const base = `practiceSessions/${doc.id}/athletes/${athleteId}`;
+              const [attendanceSnap, memorySnap, evidenceSnap] = await Promise.all([
+                tx.get(db.doc(`attendance_sessions/${doc.id}`)),
+                tx.get(db.doc(base)),
+                tx.get(db.collection(base + "/verifiedSkills")),
+              ]);
+              const attendance = attendanceSnap.data() || {};
+              const memory = memorySnap.data() || {};
+              const present = attendanceSnap.exists
+                && clean(attendance.practiceId) === doc.id
+                && normalizeDiscipline(attendance.discipline) === discipline
+                && clean(attendance.status).toLowerCase() === "finalized"
+                && attendance.finalized === true && attendanceIncludesAthlete(attendance, athleteId);
+              const remembered = memorySnap.exists
+                && clean(memory.practiceId) === doc.id
+                && clean(memory.athleteId).toUpperCase() === athleteId
+                && normalizeDiscipline(memory.discipline) === discipline
+                && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present";
+              if (present !== remembered) blockers.push("acceptance-attendance-conflict:" + doc.id);
+              if (!present || !remembered) continue;
+              if (evidenceSnap.empty) blockers.push("acceptance-skills-missing:" + doc.id);
+              for (const evidence of evidenceSnap.docs) observed.add(evidence.ref.path);
+            }
+          }
+          if (JSON.stringify([...observed].sort()) !== JSON.stringify(certifiedPaths))
+            blockers.push("certified-inventory-changed");
+        }
+        if (blockers.length) return {accepted: false, blockers: [...new Set(blockers)].sort()};
+        const acceptedAt = FieldValue.serverTimestamp();
+        tx.update(ref, {
+          status: "ACCEPTED_HISTORICAL_EVIDENCE", acceptedManifestId: manifestId,
+          acceptedVerificationReceiptId: receiptId, acceptedBy: actor.uid,
+          acceptedAt, evidenceApproved: true, coverageComplete: true,
+          eligibleForAuto: false,
+        });
+        tx.create(ref.collection("acceptanceDecisions").doc(manifestId), {
+          kind: "HISTORICAL_EVIDENCE_ACCEPTANCE", athleteId, discipline,
+          reviewRevision: revision, manifestId, verificationReceiptId: receiptId,
+          sourceEvidencePaths: certifiedPaths, acceptedBy: actor.uid, acceptedAt,
+          eligibleForAuto: false, xpAwarded: false,
+        });
+        return {accepted: true, blockers: []};
       });
-      return {ok: true, diagnosticOnly: true, kind: "TRANSFER_ACCEPTANCE_TRANSACTION",
-        ...result, coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
+      return {ok: true, kind: "TRANSFER_ACCEPTANCE_TRANSACTION",
+        ...result, coverageComplete: result.accepted, evidenceApproved: result.accepted,
+        eligibleForAuto: false};
     }
 
     if (action === "check-transfer-acceptance") {
