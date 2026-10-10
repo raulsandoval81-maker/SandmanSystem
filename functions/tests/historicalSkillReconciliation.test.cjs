@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -182,4 +182,27 @@ test("Coach must persist track edits before confirming, and can start a new less
  assert.match(html,/function rememberTracks\(\)/);
  assert.match(html,/id="newLesson"/);
  assert.match(html,/newLesson"\)\.onclick/);
+});
+
+test("Supervised AUTO selects dominant verified group need without executing",()=>{
+ const group=previewMixedGroupSkillNeeds([
+  {athleteId:"A",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"NOT_INTRODUCED"},{familyId:"single_leg",state:"MASTERED"}]},
+  {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"LEARNED"},{familyId:"single_leg",state:"MASTERED"}]},
+ ],["double_leg","single_leg"]);
+ const auto=selectSupervisedGroupLesson(group);
+ assert.equal(auto.ready,true);
+ assert.equal(auto.selection.familyId,"double_leg");
+ assert.equal(auto.coachApprovalRequired,true);
+ assert.equal(auto.eligibleForAuto,false);
+});
+test("Supervised AUTO refuses ties and incomplete evidence",()=>{
+ const tied=previewMixedGroupSkillNeeds([
+  {athleteId:"A",approved:true,blockers:[],skills:[]}
+ ],["double_leg","single_leg"]);
+ assert.deepEqual(selectSupervisedGroupLesson(tied).blockers,["multiple-equivalent-lessons"]);
+ const blocked=previewMixedGroupSkillNeeds([
+  {athleteId:"A",approved:false,blockers:["missing"],skills:[]}
+ ],["double_leg"]);
+ assert.equal(selectSupervisedGroupLesson(blocked).ready,false);
+ assert.equal(selectSupervisedGroupLesson(blocked).selection,null);
 });
