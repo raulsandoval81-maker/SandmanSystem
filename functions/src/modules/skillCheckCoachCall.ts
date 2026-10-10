@@ -551,7 +551,7 @@ export const skillCheckCoachCall =
           status: unresolvedTransferLocations.length ? "ADMIN_REVIEW_REQUIRED" : "NO_DECLARED_TRANSFER",
           evidenceApproved: false,
         },
-        checkedScopes: specs.map(spec => ({
+        checkedScopes: specs.filter(spec => admin || !spec.scope.startsWith("prior-location:")).map(spec => ({
           scope: spec.scope,
           authorized: spec.authorized,
           pagesRead: pages.filter(page => page.scope === spec.scope).length,
