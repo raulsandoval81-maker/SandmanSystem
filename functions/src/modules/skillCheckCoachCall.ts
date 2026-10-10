@@ -1147,6 +1147,115 @@ export const skillCheckCoachCall =
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
     }
 
+    if (action === "verify-server-history-inventory") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Inventory verification requires Admin authority.");
+      }
+      const scope = clean(data.scope);
+      const scopeId = encodeURIComponent(scope).replace(/%/g, "_");
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const progressRef = reviewRef.collection("scopeTraversals").doc(scopeId);
+      const [reviewSnap, progressSnap] = await Promise.all([reviewRef.get(), progressRef.get()]);
+      const review = reviewSnap.data() || {};
+      const progress = progressSnap.data() || {};
+      const expectedPrior = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort() : [];
+      const declared = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      const blockers: string[] = [];
+      if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW"
+          || JSON.stringify(expectedPrior) !== JSON.stringify(declared)) blockers.push("review-not-current");
+      if (!progressSnap.exists || clean(progress.scope) !== scope
+          || progress.reviewRevision !== revision
+          || clean(progress.locationId) !== clean(athlete.locationId)
+          || clean(progress.academyId) !== clean(athlete.academyId)) blockers.push("traversal-not-current");
+      if (progress.exhausted !== true) blockers.push("scope-not-exhausted");
+      const field = clean(progress.field);
+      const value = clean(progress.value);
+      const authorized = (scope === "athlete-location" && field === "locationId"
+        && !!clean(athlete.locationId) && value === clean(athlete.locationId))
+        || (scope === "athlete-academy" && field === "academyId"
+          && !!clean(athlete.academyId) && value === clean(athlete.academyId))
+        || (scope.startsWith("prior-location:") && field === "locationId"
+          && value === scope.slice("prior-location:".length) && expectedPrior.includes(value));
+      if (!authorized) blockers.push("scope-not-authorized");
+      const pageCount = Number(progress.pagesRead) || 0;
+      if (pageCount < 1 || pageCount > 20) blockers.push("inventory-verification-page-limit");
+      const inventory: Array<{practiceId: string; verifiedSkillPaths: string[]}> = [];
+      if (blockers.length === 0) {
+        let cursor = "";
+        for (let pageNumber = 1; pageNumber <= pageCount; pageNumber++) {
+          const saved = await progressRef.collection("pages")
+            .doc(String(pageNumber).padStart(8, "0")).get();
+          const page = saved.data() || {};
+          const query = db.collection("practiceSessions").where(field, "==", value)
+            .orderBy(FieldPath.documentId()).limit(51);
+          const now = await (cursor ? query.startAfter(cursor) : query).get();
+          const ids = now.docs.slice(0, 50).map(doc => doc.id);
+          const stored = Array.isArray(page.candidateIds) ? page.candidateIds : [];
+          const next = now.size > 50 ? ids[ids.length - 1] : null;
+          if (!saved.exists || page.kind !== "SERVER_OBSERVED_HISTORY_SCOPE_PAGE"
+              || page.reviewRevision !== revision || page.pageNumber !== pageNumber
+              || clean(page.inputCursor) !== cursor
+              || JSON.stringify(stored) !== JSON.stringify(ids)
+              || clean(page.nextCursor) !== clean(next)) {
+            blockers.push("historical-page-changed:" + pageNumber);
+            break;
+          }
+          for (const practiceSnap of now.docs.slice(0, 50)) {
+            const practice = practiceSnap.data() || {};
+            if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+            if (scope === "athlete-academy" && clean(practice.locationId)) continue;
+            const [attendanceSnap, memorySnap] = await Promise.all([
+              db.doc(`attendance_sessions/${practiceSnap.id}`).get(),
+              db.doc(`practiceSessions/${practiceSnap.id}/athletes/${athleteId}`).get(),
+            ]);
+            const attendance = attendanceSnap.data() || {};
+            const memory = memorySnap.data() || {};
+            const present = attendanceSnap.exists
+              && clean(attendance.practiceId) === practiceSnap.id
+              && normalizeDiscipline(attendance.discipline) === discipline
+              && clean(attendance.status).toLowerCase() === "finalized"
+              && attendance.finalized === true && attendanceIncludesAthlete(attendance, athleteId);
+            const remembered = memorySnap.exists
+              && clean(memory.practiceId) === practiceSnap.id
+              && clean(memory.athleteId).toUpperCase() === athleteId
+              && normalizeDiscipline(memory.discipline) === discipline
+              && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present";
+            if (present !== remembered) blockers.push("attendance-memory-mismatch:" + practiceSnap.id);
+            if (!present || !remembered) continue;
+            const evidence = await db.collection(`practiceSessions/${practiceSnap.id}/athletes/${athleteId}/verifiedSkills`).get();
+            const paths: string[] = [];
+            for (const doc of evidence.docs) {
+              const skill = doc.data() || {};
+              if (normalizeDiscipline(skill.discipline) !== discipline
+                  || !familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+                  || !ALLOWED_STATES.includes(normalizeState(skill.state))
+                  || !clean(skill.coachUid) || !(skill.verifiedAt instanceof Timestamp)) {
+                blockers.push("invalid-skill-source:" + doc.ref.path);
+              } else paths.push(doc.ref.path);
+            }
+            if (!paths.length) blockers.push("missing-verified-skill:" + practiceSnap.id);
+            inventory.push({practiceId: practiceSnap.id, verifiedSkillPaths: paths.sort()});
+          }
+          cursor = next || "";
+          if (!next && pageNumber !== pageCount) blockers.push("extra-pages-after-end");
+        }
+        if (cursor) blockers.push("scope-not-fully-replayed");
+        if (Number(progress.scannedCandidates) !== undefined
+            && Number(progress.scannedCandidates) < inventory.length) blockers.push("inventory-count-invalid");
+      }
+      // Read-only replay is not a consistent transaction-wide snapshot. A
+      // successful replay is a useful audit result, not a coverage certificate.
+      return {ok: true, kind: "SERVER_HISTORY_INVENTORY_RECHECK",
+        scope, inventory, blockers: [...new Set(blockers)].sort(),
+        replayMatched: blockers.length === 0, snapshotConsistent: false,
+        certificateIssued: false, evidenceApproved: false,
+        coverageComplete: false, eligibleForAuto: false};
+    }
+
     if (action === "scan-history-scope-page") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Resumable history scans require Admin authority.");
