@@ -253,3 +253,24 @@ test("Coach does not receive Admin coverage snapshot",async()=>{
  assert.equal(result.coverageSnapshot,undefined);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Admin records durable unverified transfer coverage checkpoint without trusting caller claims",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["different-former-location"]});
+ const response=await callable.run({auth,data:{
+   action:"record-transfer-coverage-checkpoint",athleteId,discipline:"wrestling",
+   evidenceApproved:true,coverageComplete:true,eligibleForAuto:true,
+ }});
+ assert.equal(response.kind,"UNVERIFIED_REVIEW_CHECKPOINT");
+ assert.equal(response.eligibleForAuto,false);
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling/coverageCheckpoints/"+response.checkpointId).get();
+ assert.equal(snap.data().coverageComplete,false);
+ assert.equal(snap.data().evidenceApproved,false);
+ assert.equal(snap.data().eligibleForAuto,false);
+ assert.deepEqual(snap.data().declaredPriorLocationIds,["different-former-location"]);
+});
+test("Coach cannot persist historical coverage checkpoint",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"record-transfer-coverage-checkpoint",athleteId,discipline:"wrestling",
+ }}),e=>e.code==="permission-denied");
+});
