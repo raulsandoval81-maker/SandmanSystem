@@ -414,6 +414,47 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "record-transfer-coverage-checkpoint") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
+      }
+      // Persist only authoritative review metadata fetched by this callable.
+      // This is an audit checkpoint, NOT a verified evidence manifest.
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const checkpointId = await db.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        if (!snap.exists) throw new HttpsError("failed-precondition", "Open a transfer review first.");
+        const review = snap.data() || {};
+        if (clean(review.status) !== "PENDING_MANAGEMENT_REVIEW") {
+          throw new HttpsError("failed-precondition", "Only pending reviews can have coverage checkpoints.");
+        }
+        const current = Array.isArray(athlete.previousLocationIds)
+          ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== clean(athlete.locationId)).sort()
+          : [];
+        const recorded = Array.isArray(review.declaredPriorLocationIds)
+          ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort()
+          : [];
+        if (JSON.stringify(current) !== JSON.stringify(recorded)) {
+          throw new HttpsError("failed-precondition", "Refresh stale review before recording a checkpoint.");
+        }
+        const checkpoint = ref.collection("coverageCheckpoints").doc();
+        tx.create(checkpoint, {
+          kind: "UNVERIFIED_REVIEW_CHECKPOINT",
+          athleteId, discipline,
+          reviewRevision: typeof review.revision === "number" ? review.revision : 1,
+          declaredPriorLocationIds: recorded,
+          recordedBy: actor.uid, recordedAt: FieldValue.serverTimestamp(),
+          blockers: ["verified-historical-coverage-manifest-required",
+            "verified-evidence-acceptance-chain-required"],
+          evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+        });
+        return checkpoint.id;
+      });
+      return { ok: true, checkpointId, kind: "UNVERIFIED_REVIEW_CHECKPOINT",
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
+    }
+
     if (action === "check-transfer-acceptance") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Transfer acceptance checks require Admin authority.");
