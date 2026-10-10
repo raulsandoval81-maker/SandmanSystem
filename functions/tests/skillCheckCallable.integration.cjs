@@ -509,7 +509,7 @@ test("Transactional historical acceptance denies missing certification and spoof
  assert.equal(attempt.kind,"TRANSFER_ACCEPTANCE_TRANSACTION");
  assert.equal(attempt.accepted,false);
  assert.ok(attempt.blockers.includes("independent-full-history-certification-required"));
- assert.ok(attempt.blockers.includes("atomic-current-source-reverification-not-implemented"));
+ assert.ok(attempt.blockers.includes("manifest-source-count-invalid-for-atomic-recheck"));
  assert.equal(attempt.eligibleForAuto,false);
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
    action:"commit-transfer-acceptance",athleteId,discipline:"wrestling",
