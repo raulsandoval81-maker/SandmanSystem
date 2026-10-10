@@ -48,7 +48,8 @@ $("recommend").onclick=async()=>{
  const families=$("families").value.split(",").map(s=>s.trim()).filter(Boolean);
  const result=await request(params("preview-group-lessons",{familyIds:families}));
  $("recommendations").replaceChildren();$("tracks").replaceChildren();
- if(!result||!result.ready){notify("No ready group recommendation. Check accepted athlete evidence and authorization.");return}
+ if(!result)return;
+ if(!result.ready){notify("Cannot recommend yet: "+(result.blockers||[]).join(", "));return}
  const list=document.createElement("select");list.id="familyChoice";
  for(const item of result.lessonCandidates){const option=document.createElement("option");option.value=item.familyId;option.textContent=item.familyId;list.append(option)}
  $("recommendations").append(list);candidate=result.lessonCandidates;
@@ -60,6 +61,7 @@ $("recommend").onclick=async()=>{
 $("save").onclick=async()=>{
  if(!candidate)return;
  const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
+ if(!/^[A-Za-z0-9_-]{1,100}$/.test(lessonId)){notify("Enter a lesson ID using letters, numbers, dashes or underscores.");return}
  const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
  if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;$("familyChoice").disabled=true;$("athletes").disabled=true;$("discipline").disabled=true;$("families").disabled=true;$("lessonId").readOnly=true;$("recommend").disabled=true;
  const selected=candidate.find(c=>c.familyId===familyId);
