@@ -1,19 +1,8 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { validateStagingWebConfig } from "./validate-staging-config.mjs";
 
-const productionProject = "sandmandashboard";
-const projectId = String(process.env.SANDMAN_STAGING_PROJECT_ID || "").trim();
-const acknowledgement = process.env.SANDMAN_STAGING_ACK;
-if (!projectId || projectId === productionProject) throw new Error("A non-production SANDMAN_STAGING_PROJECT_ID is required.");
-if (acknowledgement !== projectId) throw new Error("SANDMAN_STAGING_ACK must exactly match the staging project ID.");
-
-let config;
-try { config = JSON.parse(process.env.SANDMAN_STAGING_WEB_CONFIG || ""); }
-catch { throw new Error("SANDMAN_STAGING_WEB_CONFIG must be valid Firebase web-app JSON."); }
-if (config.projectId !== projectId) throw new Error("Web config projectId does not match the approved staging project.");
-for (const key of ["apiKey", "authDomain", "projectId", "appId"]) {
-  if (!String(config[key] || "").trim()) throw new Error(`Staging web config is missing ${key}.`);
-}
+const { projectId, config } = validateStagingWebConfig();
 
 const root = process.cwd();
 const output = path.join(root, ".firebase-staging", "public");
