@@ -108,7 +108,43 @@ $("recommend").onclick=async()=>{
      $("recommendations").append(detail);
    }
  }
- const render=()=>{const selected=candidate.find(c=>c.familyId===list.value);const table=document.createElement("table");const caption=document.createElement("caption");caption.textContent="Review instructional tracks";table.append(caption);
+ const readiness=result.trackReadiness||[];
+ const readinessPanel=document.createElement("section");
+ readinessPanel.setAttribute("aria-label","Provisional instructional readiness");
+ const readinessTitle=document.createElement("h3");
+ readinessTitle.textContent="Instructional readiness — Coach review only";
+ readinessPanel.append(readinessTitle);
+ const renderReadiness=()=>{
+   const entry=readiness.find(item=>item.familyId===list.value);
+   [...readinessPanel.querySelectorAll("[data-readiness-detail]")].forEach(el=>el.remove());
+   const detail=document.createElement("p");
+   detail.dataset.readinessDetail="true";
+   if(!entry?.configured){
+     detail.textContent="Prerequisite policy is not configured for this family. Coach determines readiness.";
+   }else{
+     detail.textContent="Proposed curriculum, not approved for AUTO.";
+     const table=document.createElement("table");
+     table.dataset.readinessDetail="true";
+     const header=document.createElement("tr");
+     for(const label of ["Athlete","Introduce","Practice","Extend"]){
+       const th=document.createElement("th");th.textContent=label;header.append(th);
+     }
+     table.append(header);
+     for(const athlete of entry.athletes){
+       const tr=document.createElement("tr");
+       for(const value of [athlete.athleteId,athlete.introduce?"Possible":"Review evidence",
+         athlete.practice?"Ready":"Missing: "+athlete.missingForPractice.join(", "),
+         athlete.extend?"Ready":"Missing: "+athlete.missingForExtend.join(", ")]){
+         const td=document.createElement("td");td.textContent=value;tr.append(td);
+       }
+       table.append(tr);
+     }
+     readinessPanel.append(table);
+   }
+   readinessPanel.append(detail);
+ };
+ $("recommendations").append(readinessPanel);
+ const render=()=>{renderReadiness();const selected=candidate.find(c=>c.familyId===list.value);const table=document.createElement("table");const caption=document.createElement("caption");caption.textContent="Review instructional tracks";table.append(caption);
  for(const item of selected.members){const tr=document.createElement("tr"),name=document.createElement("td"),cell=document.createElement("td"),select=document.createElement("select");name.textContent=item.athleteId+" · "+(item.currentState||"Unresolved");select.dataset.athlete=item.athleteId;
  for(const val of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=val;opt.textContent=val;select.append(opt)}select.value=item.track;cell.append(select);tr.append(name,cell);table.append(tr)}$("tracks").replaceChildren(table)};
  list.onchange=render;render();$("save").disabled=false;
