@@ -6,7 +6,7 @@ This staging path is intentionally separate from production project `sandmandash
 
 An authorized Firebase owner must create the staging project, enable Blaze billing if Functions deployment requires it, create a Web app and Hosting site, enable Email/Password Authentication, and grant a staging-only deploy service account the minimum roles needed for Hosting, Functions, Firestore rules, and service-account use. No production credential may be copied.
 
-Configure GitHub environment `staging` with required reviewers, variable `SANDMAN_STAGING_PROJECT_ID`, and secrets `FIREBASE_SERVICE_ACCOUNT_SANDMAN_STAGING`, `SANDMAN_STAGING_WEB_CONFIG`, and `SANDMAN_STAGING_TEST_PASSWORD`. The project ID must not be `sandmandashboard`.
+Configure GitHub environment `staging` with required reviewers, variable `SANDMAN_STAGING_PROJECT_ID`, and secrets `FIREBASE_SERVICE_ACCOUNT_SANDMAN_STAGING`, `SANDMAN_STAGING_WEB_CONFIG`, and `SANDMAN_STAGING_TEST_PASSWORD`. Record the dedicated service-account email as `SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL`. The project ID must not be `sandmandashboard`.
 
 ## Guarded preparation
 
@@ -16,7 +16,7 @@ Set `SANDMAN_STAGING_PROJECT_ID` and set `SANDMAN_STAGING_ACK` to exactly the sa
 node scripts/staging/prepare-staging-hosting.mjs
 ```
 
-The command creates ignored `.firebase-staging/public`, replaces only its runtime Firebase configuration, and adds a visible STAGING banner. It refuses the production project or mismatched configuration. Deploy only with `firebase.staging.json` and an explicit staging project ID.
+The command creates ignored `.firebase-staging/public`, replaces only its runtime Firebase configuration, and adds a visible STAGING banner. It refuses the production project or mismatched configuration. For an explicitly authorized deployment, set `SANDMAN_STAGING_DEPLOY_CONFIRM` to `DEPLOY:<staging-project-id>` and run `node scripts/staging/deploy-staging.mjs`. That wrapper rechecks the credential, Web App project, acknowledgement, and explicit target immediately before invoking Firebase with `firebase.staging.json`. Do not invoke Firebase deployment directly.
 
 After authorized staging deployment, seed synthetic records with staging-only Application Default Credentials:
 
@@ -24,7 +24,7 @@ After authorized staging deployment, seed synthetic records with staging-only Ap
 node functions/scripts/seed-wrestling-staging.mjs
 ```
 
-The seed command refuses production and requires the explicit acknowledgement and a staging-only password. Never import production Auth or Firestore data.
+The seed command refuses production and requires the explicit acknowledgement, staging-only password, service-account email, and `GOOGLE_APPLICATION_CREDENTIALS` path. It verifies the credential file's actual project and service-account identities before initializing Firebase. Existing fixed-ID Auth or Firestore records must already be marked synthetic or the seed terminates before mutation. Never import production Auth or Firestore data.
 
 ## Required validation
 

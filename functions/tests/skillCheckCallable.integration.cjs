@@ -571,6 +571,8 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",
    tracks:[{athleteId:id,track:"EXTEND"}],practiceId:deliveryPractice,
+   localStoragePracticeId:"attacker-controlled-practice",
+   eligibleAthleteIds:["attacker-controlled-athlete"],
  });
  assert.equal(generated.status,"DRAFT");
  assert.equal(generated.idempotent,false);
@@ -586,6 +588,16 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
  assert.equal(generatedRecord.data().sourcePracticeId,deliveryPractice);
  assert.equal(generatedRecord.data().eligibleForAuto,false);
+ assert.equal(generatedRecord.data().localStoragePracticeId,undefined);
+ assert.equal(generatedRecord.data().eligibleAthleteIds,undefined);
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"get-group-lesson-plan",athleteId:"RESUME",discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",
+ }}),error=>error.code==="permission-denied");
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"attach-group-lesson-to-practice",athleteId:id,discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+ }}),error=>error.code==="failed-precondition");
  const interruptedResume=await invoke("get-group-lesson-plan",{
    athleteId:"RESUME",lessonId:"recommended-e2e-lesson",
  });
