@@ -529,6 +529,28 @@ export const skillCheckCoachCall =
             && spec.authorized && pages.some(page => page.scope === spec.scope && page.scopeExhausted)).length,
           requiresManagementReview: unresolvedTransferLocations.length > 0,
         },
+        // Explicit Management review packet: discovery never means approval.
+        // Prior-location IDs and per-location findings are Admin-only.
+        transferReview: admin ? {
+          status: unresolvedTransferLocations.length ? "PENDING_MANAGEMENT_REVIEW" : "NO_DECLARED_TRANSFER",
+          evidenceApproved: false,
+          locations: unresolvedTransferLocations.map(id => {
+            const scope = "prior-location:" + id;
+            const spec = specs.find(entry => entry.scope === scope);
+            const found = pages.filter(page => page.scope === scope);
+            return {
+              locationId: id,
+              scanAuthorized: Boolean(spec?.authorized),
+              scanCompleted: found.some(page => page.scopeExhausted),
+              additionalPagesRequired: found.length > 0 && !found.some(page => page.scopeExhausted),
+              practiceCount: new Set(found.flatMap(page => page.history.map(item => item.practiceId))).size,
+              reviewRequired: true,
+            };
+          }),
+        } : {
+          status: unresolvedTransferLocations.length ? "ADMIN_REVIEW_REQUIRED" : "NO_DECLARED_TRANSFER",
+          evidenceApproved: false,
+        },
         checkedScopes: specs.map(spec => ({
           scope: spec.scope,
           authorized: spec.authorized,
