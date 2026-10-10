@@ -1055,6 +1055,98 @@ export const skillCheckCoachCall =
       };
     }
 
+    if (action === "advance-server-history-traversal") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Only Admin may advance historical traversal.");
+      }
+      const scope = clean(data.scope);
+      const locationId = clean(athlete.locationId);
+      const academyId = clean(athlete.academyId);
+      const declared = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== locationId).sort() : [];
+      let field = "";
+      let value = "";
+      if (scope === "athlete-location" && locationId) {
+        field = "locationId"; value = locationId;
+      } else if (scope === "athlete-academy" && academyId) {
+        field = "academyId"; value = academyId;
+      } else if (scope.startsWith("prior-location:") && declared.includes(scope.slice(15))) {
+        field = "locationId"; value = scope.slice(15);
+      } else {
+        throw new HttpsError("invalid-argument", "Unauthorized or unavailable historical scope.");
+      }
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const reviewSnap = await reviewRef.get();
+      const review = reviewSnap.data() || {};
+      const recorded = Array.isArray(review.declaredPriorLocationIds)
+        ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+      if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW"
+          || JSON.stringify(declared) !== JSON.stringify(recorded)) {
+        throw new HttpsError("failed-precondition", "Current pending transfer review is required.");
+      }
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      const traversalId = encodeURIComponent(scope).replace(/%/g, "_");
+      const progressRef = reviewRef.collection("scopeTraversals").doc(traversalId);
+      const progressSnap = await progressRef.get();
+      const prior = progressSnap.data() || {};
+      if (progressSnap.exists && (prior.reviewRevision !== revision
+          || clean(prior.scope) !== scope || clean(prior.locationId) !== locationId
+          || clean(prior.academyId) !== academyId)) {
+        throw new HttpsError("failed-precondition", "Traversal context changed; start a new review.");
+      }
+      if (prior.exhausted === true) {
+        return {ok: true, scope, alreadyExhausted: true,
+          scannedCandidates: prior.scannedCandidates ?? 0,
+          pagesRead: prior.pagesRead ?? 0,
+          scopeExhausted: true, coverageComplete: false,
+          evidenceApproved: false, eligibleForAuto: false};
+      }
+      const previousCursor = clean(prior.nextCursor);
+      let query = db.collection("practiceSessions").where(field, "==", value)
+        .orderBy(FieldPath.documentId()).limit(51);
+      if (previousCursor) query = query.startAfter(previousCursor);
+      const snapshot = await query.get();
+      const candidates = snapshot.docs.slice(0, 50);
+      const nextCursor = snapshot.size > 50 ? candidates[candidates.length - 1].id : null;
+      const pageNumber = (Number(prior.pagesRead) || 0) + 1;
+      const pageRef = progressRef.collection("pages").doc(String(pageNumber).padStart(8, "0"));
+      const result = await db.runTransaction(async tx => {
+        const [currentReview, currentAthlete, currentProgress] = await Promise.all([
+          tx.get(reviewRef), tx.get(db.doc(`athletes/${athleteId}`)), tx.get(progressRef),
+        ]);
+        const current = currentProgress.data() || {};
+        const currentReviewData = currentReview.data() || {};
+        const currentAthleteData = currentAthlete.data() || {};
+        const currentPrior = Array.isArray(currentAthleteData.previousLocationIds)
+          ? [...new Set(currentAthleteData.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== clean(currentAthleteData.locationId)).sort() : [];
+        if (clean(currentReviewData.status) !== "PENDING_MANAGEMENT_REVIEW"
+            || (typeof currentReviewData.revision === "number" ? currentReviewData.revision : 1) !== revision
+            || JSON.stringify(currentPrior) !== JSON.stringify(declared)
+            || clean(currentAthleteData.locationId) !== locationId
+            || clean(currentAthleteData.academyId) !== academyId
+            || clean(current.nextCursor) !== previousCursor
+            || (Number(current.pagesRead) || 0) !== pageNumber - 1 || current.exhausted === true) {
+          throw new HttpsError("aborted", "History traversal changed concurrently; retry.");
+        }
+        const total = (Number(current.scannedCandidates) || 0) + candidates.length;
+        tx.create(pageRef, {
+          kind: "SERVER_OBSERVED_HISTORY_SCOPE_PAGE", scope, reviewRevision: revision,
+          pageNumber, inputCursor: previousCursor || null, nextCursor,
+          candidateIds: candidates.map(doc => doc.id), observedAt: Timestamp.now(),
+        });
+        tx.set(progressRef, {kind: "SERVER_OWNED_SCOPE_TRAVERSAL",
+          scope, field, value, reviewRevision: revision,
+          locationId, academyId, nextCursor, pagesRead: pageNumber,
+          scannedCandidates: total, exhausted: !nextCursor,
+          coverageComplete: false, evidenceApproved: false, eligibleForAuto: false});
+        return {pagesRead: pageNumber, scannedCandidates: total};
+      });
+      return {ok: true, scope, ...result, nextCursor, scopeExhausted: !nextCursor,
+        coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
+    }
+
     if (action === "scan-history-scope-page") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Resumable history scans require Admin authority.");
