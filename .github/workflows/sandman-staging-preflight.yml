@@ -1,0 +1,44 @@
+name: Sandman Staging Safety Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-staging-preflight
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify isolated staging configuration
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard production and check staging target
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${STAGING_PROJECT}" = "sandman-combat-staging"
+          test "${STAGING_PROJECT}" != "sandmandashboard"
+          node - <<'NODE'
+          const fs = require('fs');
+          const rc = JSON.parse(fs.readFileSync('.firebaserc','utf8'));
+          if (rc.projects.default !== 'sandmandashboard') throw Error('Unexpected production default');
+          if (rc.projects.staging !== 'sandman-combat-staging') throw Error('Missing isolated staging alias');
+          if (rc.targets['sandman-combat-staging']?.hosting?.sandman?.[0] !== 'sandman-staging') throw Error('Missing staging Hosting target mapping');
+          NODE
+        env:
+          STAGING_PROJECT: sandman-combat-staging
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
+      - name: Functions TypeScript build and focused unit tests
+        run: npm test --prefix functions
+      - name: No deployment performed
+        run: echo "Preflight only. No authentication, IAM changes, staging deployment or production access."
