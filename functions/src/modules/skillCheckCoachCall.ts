@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -641,6 +641,9 @@ export const skillCheckCoachCall =
         members.push({athleteId: id, approved: blockers.length === 0, blockers, skills});
       }
       const preview = previewMixedGroupSkillNeeds(members, requested);
+      const curriculumMapAudit = discipline === "wrestling"
+        ? auditCurriculumPrerequisiteGraph(WRESTLING_FAMILIES, PILOT_WRESTLING_PREREQUISITES)
+        : null;
       const curriculumPrerequisites = discipline === "wrestling"
         ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
@@ -708,7 +711,7 @@ export const skillCheckCoachCall =
           coachApprovalRequired:true,eligibleForAuto:false}
         : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
-        ...preview, supervisedSuggestion, curriculumPrerequisites, trackReadiness,
+        ...preview, supervisedSuggestion, curriculumPrerequisites, curriculumMapAudit, trackReadiness,
         coverageComplete: false, evidenceApproved: false,
         eligibleForAuto: false};
     }
