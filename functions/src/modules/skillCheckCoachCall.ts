@@ -834,13 +834,15 @@ export const skillCheckCoachCall =
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
     }
 
-    if (action === "reconcile-server-history-scopes" || action === "build-verified-evidence-manifest") {
+    if (action === "reconcile-server-history-scopes" || action === "build-verified-evidence-manifest" || action === "evaluate-integrated-history-coverage") {
       // Bounded server-owned traversal (up to five pages per authorized scope).
       // A truncated scan never claims exhaustive athlete history.
       const locationId = clean(athlete.locationId);
       const academyId = clean(athlete.academyId);
       const admin = normalizeStaffRole(actor.role) === "admin";
       const buildManifest = action === "build-verified-evidence-manifest";
+      const integratedCoverage = action === "evaluate-integrated-history-coverage";
+      if (integratedCoverage && !admin) throw new HttpsError("permission-denied", "Integrated historical coverage review requires Admin authority.");
       if (buildManifest && !admin) throw new HttpsError("permission-denied", "Evidence manifests require Admin authority.");
       // Explicit location history is a diagnostic signal only; never expands
       // Coach read permissions without a separate authorized transfer pathway.
@@ -985,6 +987,38 @@ export const skillCheckCoachCall =
         if (!exhausted) blockers.add("additional-pages-required:" + spec.scope);
       }
       const summary = reconcileHistoryPages(pages, [...new Set(pages.map(page => page.scope))], athleteId, discipline);
+      if (integratedCoverage) {
+        const requiredScopes = specs.map(spec => {
+          const scanned = pages.filter(page => page.scope === spec.scope);
+          const exhausted = scanned.some(page => page.scopeExhausted);
+          return {
+            scope: spec.scope,
+            authorized: spec.authorized,
+            pagesRead: scanned.length,
+            scanExhausted: exhausted,
+            status: !spec.authorized ? "UNAUTHORIZED"
+              : exhausted ? "SCANNED_TO_END" : "MORE_PAGES_REQUIRED",
+            continuationCursor: scanned.length
+              ? scanned[scanned.length - 1].nextCursor ?? null : null,
+            evidencePracticeCount: new Set(scanned.flatMap(page =>
+              (page.history ?? []).map(item => item.practiceId))).size,
+          };
+        });
+        const allScopesScanned = requiredScopes.every(scope => scope.authorized && scope.scanExhausted)
+          && unresolvedTransferLocations.length <= priorLocationScanLimit;
+        const unresolvedBlockers = [...new Set([...summary.blockers, ...blockers])].sort();
+        // Scan exhaustion is only technical discovery coverage, not proof
+        // that declared locations represent the athlete's entire history.
+        return {
+          ok: true, diagnosticOnly: true, kind: "INTEGRATED_HISTORY_COVERAGE_REVIEW",
+          athleteId, discipline, requiredScopes, allScopesScanned,
+          evidencePracticeCount: new Set(pages.flatMap(page =>
+            (page.history ?? []).map(item => item.practiceId))).size,
+          unresolvedBlockers,
+          transferHistoryAttested: false, sourceEvidenceAccepted: false,
+          coverageComplete: false, evidenceApproved: false, eligibleForAuto: false,
+        };
+      }
       if (buildManifest) {
         const unique = new Map<string, typeof manifestEntries[number]>();
         for (const entry of manifestEntries) {
