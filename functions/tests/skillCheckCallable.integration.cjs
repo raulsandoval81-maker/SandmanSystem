@@ -233,3 +233,23 @@ test("Coach cannot invoke historical evidence acceptance preflight",async()=>{
    action:"check-transfer-acceptance",athleteId,discipline:"wrestling",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Admin receives untrusted server coverage snapshot that cannot authorize acceptance",async()=>{
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+   action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling",
+   coverageComplete:true,eligibleForAuto:true,
+ }});
+ assert.equal(result.coverageSnapshot.kind,"UNATTESTED_SERVER_DIAGNOSTIC");
+ assert.equal(result.coverageSnapshot.usableForAcceptance,false);
+ assert.equal(result.coverageSnapshot.coverageComplete,false);
+ assert.ok(result.coverageSnapshot.scopes.some(scope=>scope.scope==="athlete-location"));
+ assert.ok(result.coverageSnapshot.unresolvedBlockers.length>0);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("Coach does not receive Admin coverage snapshot",async()=>{
+ const result=await callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"reconcile-server-history-scopes",athleteId,discipline:"wrestling",
+ }});
+ assert.equal(result.coverageSnapshot,undefined);
+ assert.equal(result.eligibleForAuto,false);
+});
