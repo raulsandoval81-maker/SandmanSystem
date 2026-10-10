@@ -706,6 +706,26 @@ export const skillCheckCoachCall =
         },
         // Explicit Management review packet: discovery never means approval.
         // Prior-location IDs and per-location findings are Admin-only.
+        // Server-derived coverage snapshot for Admin inspection only.
+        // This is not a signed or durable manifest and cannot authorize approval.
+        coverageSnapshot: admin ? {
+          kind: "UNATTESTED_SERVER_DIAGNOSTIC",
+          discipline,
+          scopes: specs.map(spec => {
+            const scanned = pages.filter(page => page.scope === spec.scope);
+            return {
+              scope: spec.scope,
+              authorized: spec.authorized,
+              exhausted: scanned.some(page => page.scopeExhausted),
+              pagesRead: scanned.length,
+              evidencePracticeCount: new Set(scanned.flatMap(page =>
+                (page.history ?? []).map(item => item.practiceId))).size,
+            };
+          }),
+          unresolvedBlockers: [...new Set([...summary.blockers, ...blockers])].sort(),
+          usableForAcceptance: false,
+          coverageComplete: false,
+        } : undefined,
         transferReview: admin ? {
           status: unresolvedTransferLocations.length ? "PENDING_MANAGEMENT_REVIEW" : "NO_DECLARED_TRANSFER",
           evidenceApproved: false,
