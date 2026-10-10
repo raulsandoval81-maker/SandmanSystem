@@ -100,6 +100,14 @@ $("recommend").onclick=async()=>{
      +" Policy not approved for AUTO.";
    $("recommendations").append(coverage);
  }
+ const draftAudit=result.proposedWrestlingAudit;
+ if(draftAudit){
+   const note=document.createElement("p");
+   note.textContent="Wrestling review proposal: "+draftAudit.mappedFamilies+"/"+draftAudit.totalFamilies
+     +" families drafted; "+draftAudit.unmappedFamilies.length+" unmapped; "
+     +draftAudit.issues.length+" structural issues. NOT approved for AUTO.";
+   $("recommendations").append(note);
+ }
  const prereqs=result.curriculumPrerequisites;
  if(prereqs){
    const warning=document.createElement("p");
