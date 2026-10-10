@@ -216,3 +216,17 @@ test("Coach UI displays suggested skill without bypassing review or confirmation
  assert.match(html,/confirm-group-lesson-draft/);
  assert.match(html,/eligibleForAuto|AUTO and XP remain unchanged/);
 });
+
+test("Supervised lesson rotation skips recently delivered families and fails closed if all were taught",()=>{
+ const preview=previewMixedGroupSkillNeeds([
+  {athleteId:"A",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"NOT_INTRODUCED"},{familyId:"single_leg",state:"MASTERED"}]},
+  {athleteId:"B",approved:true,blockers:[],skills:[{familyId:"double_leg",state:"LEARNED"},{familyId:"single_leg",state:"MASTERED"}]},
+ ],["double_leg","single_leg"]);
+ const rotated=selectSupervisedGroupLesson(preview,["double_leg"]);
+ assert.equal(rotated.ready,true);
+ assert.equal(rotated.selection.familyId,"single_leg");
+ const blocked=selectSupervisedGroupLesson(preview,["double_leg","single_leg"]);
+ assert.equal(blocked.ready,false);
+ assert.deepEqual(blocked.blockers,["all-candidates-recently-delivered"]);
+ assert.equal(blocked.eligibleForAuto,false);
+});
