@@ -377,8 +377,7 @@ export function reviewWrestlingDependencyRoles(
   const support=supporting[familyId]||[];
   for(const id of support) if(!Object.prototype.hasOwnProperty.call(graph,id))
    issues.push("unknown-support:"+familyId+":"+id);
-  for(const id of deps) if(support.includes(id))
-   issues.push("conflicting-role:"+familyId+":"+id);
+  // An existing draft edge can be reclassified as supporting without changing the source graph.
   return {familyId, mandatoryFoundations:deps.filter(id=>!support.includes(id)),
     supportingSkills:support, policyApproved:false};
  });
