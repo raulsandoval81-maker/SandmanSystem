@@ -10,7 +10,7 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
-import { reconcileHistoryPages, type HistoryPage } from "./historicalSkillReconciliation";
+import { reconcileHistoryPages, previewMixedGroupSkillNeeds, type HistoryPage } from "./historicalSkillReconciliation";
 
 import {
   normalizeStaffList,
@@ -345,7 +345,7 @@ export const skillCheckCoachCall =
     const data = req.data || {};
     const action = clean(data.action).toLowerCase();
     const athleteId = clean(
-      data.athleteId || data.uid
+      data.athleteId || data.uid || (action === "preview-group-lessons" && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
     ).toUpperCase();
 
     const discipline =
@@ -389,6 +389,102 @@ export const skillCheckCoachCall =
       actor,
       athlete
     );
+
+    if (action === "preview-group-lessons") {
+      // Preview-only: all members must have accepted, current evidence.
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical group previews require Admin.");
+      }
+      const ids = Array.isArray(data.athleteIds) ? data.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
+      const requested = Array.isArray(data.familyIds) ? data.familyIds.map((id: unknown) => clean(id)) : [];
+      if (!ids.length || ids.length > 30 || new Set(ids).size !== ids.length
+          || ids.some((id: string) => !/^[a-zA-Z0-9_-]{1,128}$/.test(id))
+          || !requested.length || requested.length > 50
+          || requested.some((id: string) => !familiesForDiscipline(discipline).includes(id))
+          || new Set(requested).size !== requested.length) {
+        throw new HttpsError("invalid-argument", "Valid unique athlete IDs and curriculum families required.");
+      }
+      const members = [];
+      for (const id of ids) {
+        const memberSnap = await db.doc(`athletes/${id}`).get();
+        if (!memberSnap.exists) {
+          members.push({athleteId: id, approved: false, blockers: ["athlete-not-found"], skills: []});
+          continue;
+        }
+        const member = memberSnap.data() || {};
+        const reviewRef = db.doc(`athletes/${id}/historicalTransferReviews/${discipline}`);
+        const reviewSnap = await reviewRef.get();
+        const review = reviewSnap.data() || {};
+        const manifestId = clean(review.acceptedManifestId);
+        const blockers: string[] = [];
+        if (review.status !== "ACCEPTED_HISTORICAL_EVIDENCE"
+            || review.evidenceApproved !== true || review.coverageComplete !== true
+            || !/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) blockers.push("history-not-accepted");
+        const [manifestSnap, certificateSnap, decisionSnap] = manifestId
+          ? await Promise.all([
+            reviewRef.collection("evidenceManifests").doc(manifestId).get(),
+            reviewRef.collection("coverageCertificates").doc(manifestId).get(),
+            reviewRef.collection("acceptanceDecisions").doc(manifestId).get(),
+          ]) : [null, null, null];
+        const manifest = manifestSnap?.data() || {};
+        const certificate = certificateSnap?.data() || {};
+        const decision = decisionSnap?.data() || {};
+        const records: Record<string, unknown>[] = Array.isArray(manifest.records) ? manifest.records : [];
+        const paths = records.map(entry => clean(entry.skillEvidencePath)).sort();
+        const revision = typeof review.revision === "number" ? review.revision : 1;
+        const previous = Array.isArray(member.previousLocationIds)
+          ? [...new Set(member.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(location => location !== clean(member.locationId)).sort() : [];
+        if (!manifestSnap?.exists || !certificateSnap?.exists || !decisionSnap?.exists
+            || manifest.reviewRevision !== revision || certificate.reviewRevision !== revision
+            || decision.reviewRevision !== revision
+            || certificate.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
+            || decision.kind !== "HISTORICAL_EVIDENCE_ACCEPTANCE"
+            || clean(decision.manifestId) !== manifestId
+            || JSON.stringify(paths) !== JSON.stringify(certificate.sourceEvidencePaths)
+            || JSON.stringify(paths) !== JSON.stringify(decision.sourceEvidencePaths)
+            || JSON.stringify(previous) !== JSON.stringify(certificate.declaredPriorLocationIds)
+            || !records.length || records.length > 50) blockers.push("history-chain-invalid");
+        const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
+        if (!blockers.length) {
+          for (const entry of records) {
+            const path = clean(entry.skillEvidencePath);
+            const practiceId = clean(entry.practiceId);
+            if (!path.startsWith(`practiceSessions/${practiceId}/athletes/${id}/verifiedSkills/`)
+                || path.split("/").length !== 6) {
+              blockers.push("source-path-invalid"); break;
+            }
+            const snap = await db.doc(path).get();
+            const evidence = snap.data() || {};
+            if (!snap.exists || normalizeDiscipline(evidence.discipline) !== discipline
+                || normalizeFamily(evidence.familyId) !== clean(entry.familyId)
+                || normalizeState(evidence.state) !== clean(entry.state)
+                || clean(evidence.coachUid) !== clean(entry.coachUid)
+                || !(evidence.verifiedAt instanceof Timestamp)
+                || evidence.verifiedAt.toDate().toISOString() !== clean(entry.verifiedAt)) {
+              blockers.push("source-changed:" + practiceId); break;
+            }
+            const family = clean(entry.familyId);
+            byFamily.set(family, [...(byFamily.get(family) || []),
+              {state: clean(entry.state), verifiedAt: clean(entry.verifiedAt), practiceId}]);
+          }
+        }
+        const skills: Array<{familyId: string; state: string}> = [];
+        if (!blockers.length) for (const [familyId, observations] of byFamily) {
+          observations.sort((a,b) => b.verifiedAt.localeCompare(a.verifiedAt)
+            || b.practiceId.localeCompare(a.practiceId));
+          const latest = observations.filter(item => item.verifiedAt === observations[0].verifiedAt);
+          if (new Set(latest.map(item => item.state)).size !== 1)
+            blockers.push("conflicting-state:" + familyId);
+          else skills.push({familyId, state: latest[0].state});
+        }
+        members.push({athleteId: id, approved: blockers.length === 0, blockers, skills});
+      }
+      const preview = previewMixedGroupSkillNeeds(members, requested);
+      return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
+        ...preview, coverageComplete: false, evidenceApproved: false,
+        eligibleForAuto: false};
+    }
 
     if (action === "get-transfer-review-status") {
       if (normalizeStaffRole(actor.role) !== "admin") {
