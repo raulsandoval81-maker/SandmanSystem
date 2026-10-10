@@ -657,6 +657,25 @@ export const skillCheckCoachCall =
       if (!manifestSummaries.some(item => item.boundedScopesExhausted && item.sourceBlockerCount === 0)) {
         blockers.push("no-blocker-free-exhausted-manifest");
       }
+      // Every required scope must be present and exhausted in a single
+      // manifest; a collection of unrelated partial manifests is not proof.
+      const expectedScopes = ["athlete-location", "athlete-academy",
+        ...currentLocations.map(id => "prior-location:" + id)];
+      const scopeCoverage = matching.map(doc => {
+        const data = doc.data() || {};
+        const scopes: Record<string, unknown>[] = Array.isArray(data.checkedScopes)
+          ? data.checkedScopes : [];
+        const missing = expectedScopes.filter(name => !scopes.some(scope =>
+          scope.scope === name && scope.authorized === true && scope.exhausted === true));
+        return { manifestId: doc.id, missingScopes: missing };
+      });
+      if (!scopeCoverage.some(item => item.missingScopes.length === 0)) {
+        blockers.push("required-history-scopes-not-exhausted");
+      }
+      if (matching.some(doc => {
+        const data = doc.data() || {};
+        return Array.isArray(data.blockers) && data.blockers.length > 0;
+      })) blockers.push("manifest-has-unresolved-evidence-blockers");
       // Saved manifests cannot establish completeness or validate their own
       // provenance. Independent, durable cross-scope chain verification remains required.
       blockers.push("independent-full-history-attestation-required");
@@ -664,7 +683,7 @@ export const skillCheckCoachCall =
       blockers.push("management-evidence-acceptance-required");
       return { ok: true, diagnosticOnly: true, kind: "HISTORY_ATTESTATION_ASSESSMENT",
         reviewRevision: reviewSnap.exists ? revision : null,
-        manifests: manifestSummaries, blockers: [...new Set(blockers)].sort(),
+        manifests: manifestSummaries, scopeCoverage, blockers: [...new Set(blockers)].sort(),
         attested: false, evidenceApproved: false, coverageComplete: false,
         eligibleForAuto: false };
     }
