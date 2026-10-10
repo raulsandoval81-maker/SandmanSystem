@@ -195,3 +195,23 @@ test("Admin refreshes stale transfer review and resets review to pending without
 test("Coach cannot refresh transfer review",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"refresh-transfer-review",athleteId,discipline:"wrestling"}}),e=>e.code==="permission-denied");
 });
+
+test("Admin rejection is audited, final, and never unlocks progression",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ await db.doc("athletes/"+athleteId).update({previousLocationIds:["different-former-location"]});
+ const result=await callable.run({auth,data:{action:"reject-transfer-review",athleteId,discipline:"wrestling",reason:"Source evidence could not be authenticated."}});
+ assert.equal(result.status,"REJECTED");
+ assert.equal(result.eligibleForAuto,false);
+ const snap=await db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling").get();
+ assert.equal(snap.data().evidenceApproved,false);
+ assert.equal(snap.data().status,"REJECTED");
+ const audit=await db.collection("athletes/"+athleteId+"/historicalTransferReviews/wrestling/decisions").get();
+ assert.equal(audit.size,1);
+ assert.equal(audit.docs[0].data().actorUid,"test-admin-transfer");
+ const status=await callable.run({auth,data:{action:"get-transfer-review-status",athleteId,discipline:"wrestling"}});
+ assert.equal(status.status,"REJECTED");
+ await assert.rejects(callable.run({auth,data:{action:"reject-transfer-review",athleteId,discipline:"wrestling",reason:"Repeat rejection is not allowed."}}),e=>e.code==="failed-precondition");
+});
+test("Coach cannot reject transferred historical evidence",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reject-transfer-review",athleteId,discipline:"wrestling",reason:"Coach is not authorized to reject."}}),e=>e.code==="permission-denied");
+});
