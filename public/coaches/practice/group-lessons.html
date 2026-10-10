@@ -91,6 +91,23 @@ $("recommend").onclick=async()=>{
    hint.textContent="Supervised AUTO did not choose a lesson. Select a family manually; "+(supervised?.blockers||[]).join(", ");
  }
  $("recommendations").append(hint);
+ const prereqs=result.curriculumPrerequisites;
+ if(prereqs){
+   const warning=document.createElement("p");
+   warning.textContent="Curriculum prerequisite review is provisional; not approved for AUTO.";
+   $("recommendations").append(warning);
+   for(const [family,assessment] of Object.entries(prereqs.byFamily||{})){
+     if(assessment.ready)continue;
+     const detail=document.createElement("p");
+     detail.textContent=family+": missing foundations — "+assessment.missing.map(entry=>entry.athleteId+" needs "+entry.prerequisite).join(", ");
+     $("recommendations").append(detail);
+   }
+   if(prereqs.blockers?.length){
+     const detail=document.createElement("p");
+     detail.textContent="Unconfigured prerequisite rules: "+prereqs.blockers.join(", ");
+     $("recommendations").append(detail);
+   }
+ }
  const render=()=>{const selected=candidate.find(c=>c.familyId===list.value);const table=document.createElement("table");const caption=document.createElement("caption");caption.textContent="Review instructional tracks";table.append(caption);
  for(const item of selected.members){const tr=document.createElement("tr"),name=document.createElement("td"),cell=document.createElement("td"),select=document.createElement("select");name.textContent=item.athleteId+" · "+(item.currentState||"Unresolved");select.dataset.athlete=item.athleteId;
  for(const val of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=val;opt.textContent=val;select.append(opt)}select.value=item.track;cell.append(select);tr.append(name,cell);table.append(tr)}$("tracks").replaceChildren(table)};
