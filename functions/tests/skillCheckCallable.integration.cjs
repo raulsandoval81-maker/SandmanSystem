@@ -336,6 +336,12 @@ test("Admin creates server-sourced evidence manifest with precise provenance, wi
  const changed=await callable.run({auth,data:{action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:result.manifestId}});
  assert.equal(changed.sourceRecordsValid,false);
  assert.ok(changed.records[0].blockers.includes("skill-evidence-changed"));
+ await db.doc("practiceSessions/"+id).update({locationId:"unrelated-location"});
+ const relocated=await callable.run({auth,data:{action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:result.manifestId}});
+ assert.equal(relocated.sourceRecordsValid,false);
+ assert.ok(relocated.records[0].blockers.includes("practice-scope-changed"));
+ assert.equal(relocated.acceptanceReady,false);
+ assert.equal(relocated.eligibleForAuto,false);
 });
 test("Coach is denied durable evidence manifest creation",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
