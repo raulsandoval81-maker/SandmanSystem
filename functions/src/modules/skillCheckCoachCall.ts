@@ -708,13 +708,95 @@ export const skillCheckCoachCall =
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Accepted skill-state previews require Admin authority.");
       }
-      // An accepted, independently verified evidence chain has not been
-      // implemented. Never infer state from unapproved manifestations or claims.
-      return { ok: true, diagnosticOnly: true, athleteId, discipline,
-        skillStates: [], unresolvedFamilies: [...familiesForDiscipline(discipline)],
-        blockers: ["accepted-historical-evidence-unavailable",
-          "independent-full-history-attestation-required"],
-        coverageComplete: false, evidenceApproved: false, eligibleForAuto: false };
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const reviewSnap = await reviewRef.get();
+      const review = reviewSnap.data() || {};
+      const manifestId = clean(review.acceptedManifestId);
+      const blockers: string[] = [];
+      if (!reviewSnap.exists || clean(review.status) !== "ACCEPTED_HISTORICAL_EVIDENCE"
+          || review.evidenceApproved !== true || review.coverageComplete !== true
+          || !/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
+        blockers.push("accepted-historical-evidence-unavailable");
+      }
+      const [manifestSnap, certificateSnap, decisionSnap] = manifestId
+        ? await Promise.all([
+          reviewRef.collection("evidenceManifests").doc(manifestId).get(),
+          reviewRef.collection("coverageCertificates").doc(manifestId).get(),
+          reviewRef.collection("acceptanceDecisions").doc(manifestId).get(),
+        ]) : [null, null, null];
+      const manifest = manifestSnap?.data() || {};
+      const certificate = certificateSnap?.data() || {};
+      const decision = decisionSnap?.data() || {};
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      const records: Record<string, unknown>[] = Array.isArray(manifest.records)
+        ? manifest.records : [];
+      const paths = records.map(record => clean(record.skillEvidencePath)).sort();
+      if (!manifestSnap?.exists || !certificateSnap?.exists || !decisionSnap?.exists
+          || manifest.reviewRevision !== revision || certificate.reviewRevision !== revision
+          || decision.reviewRevision !== revision
+          || certificate.kind !== "SERVER_CERTIFIED_FULL_HISTORY"
+          || decision.kind !== "HISTORICAL_EVIDENCE_ACCEPTANCE"
+          || clean(decision.manifestId) !== manifestId
+          || JSON.stringify(paths) !== JSON.stringify(certificate.sourceEvidencePaths)
+          || JSON.stringify(paths) !== JSON.stringify(decision.sourceEvidencePaths)
+          || records.length === 0 || records.length > 50) {
+        blockers.push("accepted-evidence-chain-invalid");
+      }
+      const currentPrior = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== clean(athlete.locationId)).sort() : [];
+      if (JSON.stringify(currentPrior) !== JSON.stringify(certificate.declaredPriorLocationIds)) {
+        blockers.push("accepted-location-history-stale");
+      }
+      const observed: Array<{familyId: string; state: string; verifiedAt: string; practiceId: string}> = [];
+      if (!blockers.length) {
+        for (const entry of records) {
+          const path = clean(entry.skillEvidencePath);
+          const practiceId = clean(entry.practiceId);
+          if (!path.startsWith(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills/`)
+              || path.split("/").length !== 6) {
+            blockers.push("accepted-evidence-path-invalid");
+            continue;
+          }
+          const snap = await db.doc(path).get();
+          const evidence = snap.data() || {};
+          if (!snap.exists || normalizeDiscipline(evidence.discipline) !== discipline
+              || normalizeFamily(evidence.familyId) !== clean(entry.familyId)
+              || normalizeState(evidence.state) !== clean(entry.state)
+              || clean(evidence.coachUid) !== clean(entry.coachUid)
+              || !(evidence.verifiedAt instanceof Timestamp)
+              || evidence.verifiedAt.toDate().toISOString() !== clean(entry.verifiedAt)) {
+            blockers.push("accepted-evidence-changed:" + practiceId);
+            continue;
+          }
+          observed.push({familyId: clean(entry.familyId), state: clean(entry.state),
+            verifiedAt: clean(entry.verifiedAt), practiceId});
+        }
+      }
+      const skillStates: Array<{familyId: string; state: string; observedAt: string; evidenceCount: number}> = [];
+      if (!blockers.length) {
+        const byFamily = new Map<string, typeof observed>();
+        for (const item of observed) byFamily.set(item.familyId, [...(byFamily.get(item.familyId) || []), item]);
+        for (const [familyId, values] of byFamily) {
+          values.sort((a,b) => b.verifiedAt.localeCompare(a.verifiedAt)
+            || b.practiceId.localeCompare(a.practiceId));
+          const latest = values.filter(v => v.verifiedAt === values[0].verifiedAt);
+          if (new Set(latest.map(v => v.state)).size !== 1) {
+            blockers.push("conflicting-latest-state:" + familyId);
+            continue;
+          }
+          skillStates.push({familyId, state: values[0].state,
+            observedAt: values[0].verifiedAt, evidenceCount: values.length});
+        }
+      }
+      const resolved = blockers.length ? [] : skillStates.sort((a,b) => a.familyId.localeCompare(b.familyId));
+      const unresolvedFamilies = familiesForDiscipline(discipline).filter(family =>
+        !resolved.some(item => item.familyId === family));
+      return {ok: true, diagnosticOnly: true, athleteId, discipline,
+        skillStates: resolved, unresolvedFamilies,
+        blockers: [...new Set(blockers)].sort(),
+        coverageComplete: blockers.length === 0, evidenceApproved: blockers.length === 0,
+        eligibleForAuto: false};
     }
 
     if (action === "certify-bounded-history-snapshot") {
