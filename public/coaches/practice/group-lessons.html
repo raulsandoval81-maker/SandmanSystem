@@ -82,6 +82,15 @@ $("recommend").onclick=async()=>{
  const list=document.createElement("select");list.id="familyChoice";
  for(const item of result.lessonCandidates){const option=document.createElement("option");option.value=item.familyId;option.textContent=item.familyId;list.append(option)}
  $("recommendations").append(list);candidate=result.lessonCandidates;
+ const supervised=result.supervisedSuggestion;
+ const hint=document.createElement("p");
+ if(supervised?.ready&&supervised.selection){
+   list.value=supervised.selection.familyId;
+   hint.textContent="Supervised AUTO suggests "+supervised.selection.familyId+" — "+supervised.selection.reason+". Coach review and confirmation required.";
+ }else{
+   hint.textContent="Supervised AUTO did not choose a lesson. Select a family manually; "+(supervised?.blockers||[]).join(", ");
+ }
+ $("recommendations").append(hint);
  const render=()=>{const selected=candidate.find(c=>c.familyId===list.value);const table=document.createElement("table");const caption=document.createElement("caption");caption.textContent="Review instructional tracks";table.append(caption);
  for(const item of selected.members){const tr=document.createElement("tr"),name=document.createElement("td"),cell=document.createElement("td"),select=document.createElement("select");name.textContent=item.athleteId+" · "+(item.currentState||"Unresolved");select.dataset.athlete=item.athleteId;
  for(const val of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=val;opt.textContent=val;select.append(opt)}select.value=item.track;cell.append(select);tr.append(name,cell);table.append(tr)}$("tracks").replaceChildren(table)};
