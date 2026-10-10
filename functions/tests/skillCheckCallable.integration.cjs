@@ -533,7 +533,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.supervisedSuggestion.coachApprovalRequired,true);
  assert.equal(group.supervisedSuggestion.eligibleForAuto,false);
  const tied=await invoke("preview-group-lessons",{
-   athleteIds:[id],familyIds:["single_leg","high_crotch"],
+   athleteIds:[id],familyIds:["single_leg","stance_motion"],
  });
  assert.equal(tied.ready,true);
  assert.equal(tied.supervisedSuggestion.ready,false);
