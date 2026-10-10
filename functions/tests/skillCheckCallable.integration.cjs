@@ -700,6 +700,11 @@ test("Coach can revise and confirm group lesson once without XP or AUTO",async()
  await assert.rejects(invoke("confirm-group-lesson-draft"),e=>e.code==="failed-precondition");
  const confirmed=await invoke("confirm-group-lesson-draft",{tracks:[{athleteId,track:"PRACTICE"}]});
  assert.equal(confirmed.status,"COACH_CONFIRMED");
+ const resumed=await invoke("get-group-lesson-plan",{athleteId:"RESUME",tracks:[]});
+ assert.equal(resumed.status,"COACH_CONFIRMED");
+ assert.deepEqual(resumed.athleteIds,[athleteId]);
+ assert.equal(resumed.tracks[0].track,"PRACTICE");
+ await assert.rejects(callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{action:"get-group-lesson-plan",athleteId:"RESUME",discipline:"wrestling",lessonId:"coach-reviewed-sample"}}),e=>e.code==="permission-denied");
  assert.equal(confirmed.lessonExecuted,false);
  assert.equal(confirmed.xpAwarded,false);
  assert.equal(confirmed.eligibleForAuto,false);
