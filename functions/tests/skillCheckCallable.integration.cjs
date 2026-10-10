@@ -522,7 +522,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.ok(preview.unresolvedFamilies.includes("single_leg"));
  assert.equal(preview.eligibleForAuto,false);
  const group=await invoke("preview-group-lessons",{
-   athleteIds:[id],familyIds:["double_leg","single_leg"],
+   athleteIds:[id],familyIds:["double_leg","single_leg","chain_wrestling"],
  });
  assert.equal(group.ready,true,JSON.stringify(group.blockers));
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
@@ -542,6 +542,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").athletes[0].practice,false);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="single_leg").policyApproved,false);
  assert.deepEqual(group.trackReadiness.find(item=>item.familyId==="double_leg").mandatoryFoundations,["level_change_entry"]);
+ assert.deepEqual(group.trackReadiness.map(item=>item.familyId),["double_leg","single_leg","chain_wrestling"]);
  assert.deepEqual(group.trackReadiness.find(item=>item.familyId==="chain_wrestling").supportingSkills,["double_leg","single_leg"]);
  assert.equal(group.supervisedSuggestion.ready,false);
  assert.equal(group.supervisedSuggestion.selection,null);
@@ -554,16 +555,39 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(tied.ready,true);
  assert.equal(tied.supervisedSuggestion.ready,false);
  assert.ok(tied.supervisedSuggestion.blockers.includes("curriculum-policy-not-approved"));
+ const deliveryPractice="test-e2e-coach-lesson-practice";
+ await db.doc("practiceSessions/"+deliveryPractice).set({
+   coachUid:"test-admin-transfer",locationId:"test-location",
+   discipline:"wrestling",sessionDateKey:"2026-10-09",
+ });
  const generated=await invoke("create-recommended-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",athleteIds:[id],
    familyIds:["double_leg","single_leg"],familyId:"double_leg",
-   tracks:[{athleteId:id,track:"EXTEND"}],
+   tracks:[{athleteId:id,track:"EXTEND"}],practiceId:deliveryPractice,
+   localStoragePracticeId:"attacker-controlled-practice",
+   eligibleAthleteIds:["attacker-controlled-athlete"],
  });
  assert.equal(generated.status,"DRAFT");
  assert.deepEqual(generated.tracks,[{athleteId:id,track:"PRACTICE"}]);
  const generatedRecord=await db.doc("coachLessonPlans/recommended-e2e-lesson").get();
  assert.equal(generatedRecord.data().source,"ACCEPTED_SKILL_RECOMMENDATION");
  assert.equal(generatedRecord.data().eligibleForAuto,false);
+ assert.equal(generatedRecord.data().localStoragePracticeId,undefined);
+ assert.equal(generatedRecord.data().eligibleAthleteIds,undefined);
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"get-group-lesson-plan",athleteId:"RESUME",discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",
+ }}),error=>error.code==="permission-denied");
+ await assert.rejects(callable.run({auth:{uid:"test-other-coach",token:{}},data:{
+   action:"attach-group-lesson-to-practice",athleteId:id,discipline:"wrestling",
+   lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
+ }}),error=>error.code==="failed-precondition");
+ const interruptedResume=await invoke("get-group-lesson-plan",{
+   athleteId:"RESUME",lessonId:"recommended-e2e-lesson",
+ });
+ assert.equal(interruptedResume.status,"DRAFT");
+ assert.equal(interruptedResume.practiceId,"");
+ assert.deepEqual(interruptedResume.athleteIds,[id]);
  // Full recommended lesson: review -> confirm -> attach -> teach -> recover.
  const reviewed=await invoke("save-group-lesson-draft",{
    lessonId:"recommended-e2e-lesson",familyId:"double_leg",athleteIds:[id],
@@ -575,11 +599,6 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
    tracks:[{athleteId:id,track:"EXTEND"}],
  });
  assert.equal(approvedPlan.status,"COACH_CONFIRMED");
- const deliveryPractice="test-e2e-coach-lesson-practice";
- await db.doc("practiceSessions/"+deliveryPractice).set({
-   coachUid:"test-admin-transfer",locationId:"test-location",
-   discipline:"wrestling",sessionDateKey:"2026-10-09",
- });
  const linked=await invoke("attach-group-lesson-to-practice",{
    lessonId:"recommended-e2e-lesson",practiceId:deliveryPractice,
  });

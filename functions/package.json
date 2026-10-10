@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc -p .",
     "clean": "rimraf lib",
-    "test": "npm run build && node --test tests/historicalSkillReconciliation.test.cjs",
+    "test": "npm run build && node --test tests/historicalSkillReconciliation.test.cjs tests/functionRuntimeIdentity.test.cjs",
     "test:integration": "npm run build && node --test tests/*.integration.cjs"
   },
   "dependencies": {

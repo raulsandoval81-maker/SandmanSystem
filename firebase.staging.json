@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "source": "functions/.firebase-staging",
+    "runtime": "nodejs22"
+  },
+  "hosting": {
+    "public": ".firebase-staging/public",
+    "cleanUrls": false,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}
