@@ -744,6 +744,80 @@ export const skillCheckCoachCall =
       };
     }
 
+    if (action === "scan-history-scope-page") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Resumable history scans require Admin authority.");
+      }
+      const scope = clean(data.scope);
+      const cursor = clean(data.cursor);
+      if (cursor && !/^[a-zA-Z0-9_-]{1,160}$/.test(cursor)) {
+        throw new HttpsError("invalid-argument", "Invalid history scan cursor.");
+      }
+      const locationId = clean(athlete.locationId);
+      const academyId = clean(athlete.academyId);
+      const priorLocations = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))]
+          .filter(id => id !== locationId) : [];
+      let field = "";
+      let value = "";
+      if (scope === "athlete-location" && locationId) {
+        field = "locationId"; value = locationId;
+      } else if (scope === "athlete-academy" && academyId) {
+        field = "academyId"; value = academyId;
+      } else if (scope.startsWith("prior-location:")) {
+        value = scope.slice("prior-location:".length);
+        if (!priorLocations.includes(value)) {
+          throw new HttpsError("permission-denied", "Prior location is not declared for this athlete.");
+        }
+        field = "locationId";
+      } else {
+        throw new HttpsError("invalid-argument", "Unknown or unavailable history scope.");
+      }
+      let query = db.collection("practiceSessions")
+        .where(field, "==", value).orderBy(FieldPath.documentId()).limit(51);
+      if (cursor) query = query.startAfter(cursor);
+      const snapshot = await query.get();
+      const candidates = snapshot.docs.slice(0, 50);
+      const practices: Array<{practiceId: string; sessionDateKey: string; verifiedSkillCount: number}> = [];
+      const blockers: string[] = [];
+      for (const doc of candidates) {
+        const practice = doc.data() || {};
+        if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+        if (scope === "athlete-academy" && clean(practice.locationId)) continue;
+        requireHistoricalPracticeReadAccess(actor, practice, locationId, academyId,
+          scope.startsWith("prior-location:") ? priorLocations : []);
+        const [attendanceSnap, memorySnap] = await Promise.all([
+          db.doc(`attendance_sessions/${doc.id}`).get(),
+          db.doc(`practiceSessions/${doc.id}/athletes/${athleteId}`).get(),
+        ]);
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        const present = attendanceSnap.exists
+          && clean(attendance.practiceId) === doc.id
+          && normalizeDiscipline(attendance.discipline) === discipline
+          && clean(attendance.status).toLowerCase() === "finalized"
+          && attendance.finalized === true
+          && attendanceIncludesAthlete(attendance, athleteId);
+        const memoryValid = memorySnap.exists
+          && clean(memory.practiceId) === doc.id
+          && clean(memory.athleteId).toUpperCase() === athleteId
+          && normalizeDiscipline(memory.discipline) === discipline
+          && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present";
+        if (present !== memoryValid) blockers.push("attendance-memory-mismatch:" + doc.id);
+        if (!present || !memoryValid) continue;
+        const evidence = await db.collection(`practiceSessions/${doc.id}/athletes/${athleteId}/verifiedSkills`).get();
+        if (!evidence.size) blockers.push("no-verified-skills:" + doc.id);
+        practices.push({practiceId: doc.id, sessionDateKey: clean(practice.sessionDateKey),
+          verifiedSkillCount: evidence.size});
+      }
+      const hasMore = snapshot.size > 50;
+      return {ok: true, diagnosticOnly: true, scope, inputCursor: cursor || null,
+        nextCursor: hasMore ? candidates[candidates.length - 1].id : null,
+        scopeExhausted: !hasMore, practices,
+        blockers: [...new Set(blockers)].sort(),
+        coverageComplete: false, evidenceApproved: false, eligibleForAuto: false};
+    }
+
     if (action === "reconcile-server-history-scopes" || action === "build-verified-evidence-manifest") {
       // Bounded server-owned traversal (up to five pages per authorized scope).
       // A truncated scan never claims exhaustive athlete history.
