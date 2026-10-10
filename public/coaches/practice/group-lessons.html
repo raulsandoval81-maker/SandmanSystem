@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Group Lesson Review | Sandman Coach</title>
+<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
+<style>
+main{max-width:960px;margin:auto;padding:24px;color:inherit}section{border:1px solid #7775;border-radius:12px;padding:18px;margin:16px 0}
+label{display:block;margin:12px 0 5px;font-weight:650}input,select,textarea{display:block;width:100%;max-width:600px;padding:10px;border-radius:8px;border:1px solid #888;background:transparent;color:inherit}
+button{padding:10px 14px;margin:8px 8px 8px 0;border:1px solid #888;border-radius:8px;cursor:pointer;background:#343434;color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}.muted{opacity:.8}table{border-collapse:collapse;width:100%;margin:12px 0}td,th{padding:10px;border-bottom:1px solid #7775;text-align:left}td select{width:auto}
+#notice{white-space:pre-wrap}
+</style></head><body class="coach-shell-page" data-coach-page="Group Lesson Review" data-coach-area="practice">
+<main data-coach-shell-content>
+<a href="/coaches/practice/">← Practice Operations</a>
+<h1>Group Lesson Review</h1>
+<p class="muted">Coach-controlled planning. No attendance, XP, rank, promotion, or automatic lesson execution.</p>
+<section><h2>1. Recommend</h2>
+<label for="athletes">Athlete IDs (comma-separated, maximum 30)</label><input id="athletes" placeholder="F8_0001, F8_0002">
+<label for="discipline">Discipline</label><select id="discipline"><option value="wrestling">Wrestling</option><option value="boxing">Boxing</option><option value="muay-thai">Muay Thai</option></select>
+<label for="families">Curriculum family IDs (comma-separated)</label><input id="families" value="double_leg">
+<button id="recommend">Get recommendations</button>
+<div id="recommendations"></div></section>
+<section><h2>2. Review and confirm</h2>
+<label for="lessonId">Lesson ID</label><input id="lessonId" placeholder="lesson-2026-10-09-1">
+<div id="tracks"></div><button id="save" disabled>Save recommended draft</button>
+<button id="update" disabled>Save Coach adjustments</button><button id="confirm" disabled>Confirm lesson</button></section>
+<section><h2>3. Practice delivery</h2>
+<label for="practiceId">Existing practice ID</label><input id="practiceId" placeholder="Canonical practice ID">
+<button id="attach" disabled>Attach confirmed lesson</button>
+<label for="delivered">Athletes instructed (comma-separated IDs)</label><input id="delivered">
+<label for="note">Coach delivery note</label><textarea id="note" maxlength="500"></textarea>
+<button id="record" disabled>Record lesson delivery</button></section>
+<p id="notice" role="status" aria-live="polite"></p>
+</main>
+<script src="/coaches/_ui/coach-shell.js?v=3"></script>
+<script type="module">
+import {functions,httpsCallable} from "/assets/js/firebase-init.js";
+import {requireCoach,coachLoginUrl} from "/assets/js/coach-guard.js";
+const $=id=>document.getElementById(id),call=httpsCallable(functions,"skillCheckCoachCall");
+const ids=raw=>raw.split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+let roster=[],candidate=null,saved=false,confirmed=false,attached=false;
+const notify=(msg)=>{$("notice").textContent=msg;};
+function params(action,extras={}) {return {action,athleteId:roster[0],athleteIds:roster,discipline:$("discipline").value,...extras};}
+async function request(data){try{const result=(await call(data)).data;notify("Operation completed. AUTO and XP remain unchanged.");return result}catch(e){notify(e?.message||String(e));return null}}
+function tracks(){return [...$("tracks").querySelectorAll("select[data-athlete]")].map(s=>({athleteId:s.dataset.athlete,track:s.value}));}
+$("recommend").onclick=async()=>{
+ roster=ids($("athletes").value);candidate=null;saved=false;confirmed=false;attached=false;
+ $("save").disabled=$("update").disabled=$("confirm").disabled=$("attach").disabled=$("record").disabled=true;
+ const families=$("families").value.split(",").map(s=>s.trim()).filter(Boolean);
+ const result=await request(params("preview-group-lessons",{familyIds:families}));
+ $("recommendations").replaceChildren();$("tracks").replaceChildren();
+ if(!result||!result.ready){notify("No ready group recommendation. Check accepted athlete evidence and authorization.");return}
+ const list=document.createElement("select");list.id="familyChoice";
+ for(const item of result.lessonCandidates){const option=document.createElement("option");option.value=item.familyId;option.textContent=item.familyId;list.append(option)}
+ $("recommendations").append(list);candidate=result.lessonCandidates;
+ const render=()=>{const selected=candidate.find(c=>c.familyId===list.value);const table=document.createElement("table");const caption=document.createElement("caption");caption.textContent="Review instructional tracks";table.append(caption);
+ for(const item of selected.members){const tr=document.createElement("tr"),name=document.createElement("td"),cell=document.createElement("td"),select=document.createElement("select");name.textContent=item.athleteId+" · "+(item.currentState||"Unresolved");select.dataset.athlete=item.athleteId;
+ for(const val of ["INTRODUCE","PRACTICE","EXTEND"]){const opt=document.createElement("option");opt.value=val;opt.textContent=val;select.append(opt)}select.value=item.track;cell.append(select);tr.append(name,cell);table.append(tr)}$("tracks").replaceChildren(table)};
+ list.onchange=render;render();$("save").disabled=false;
+};
+$("save").onclick=async()=>{
+ if(!candidate)return;
+ const familyId=$("familyChoice").value,lessonId=$("lessonId").value.trim();
+ const result=await request(params("create-recommended-group-lesson-draft",{lessonId,familyId,familyIds:candidate.map(c=>c.familyId)}));
+ if(result){saved=true;$("update").disabled=$("confirm").disabled=false;$("save").disabled=true;
+ const selected=candidate.find(c=>c.familyId===familyId);
+ for(const item of selected.members){const field=[...$("tracks").querySelectorAll("select[data-athlete]")].find(el=>el.dataset.athlete===item.athleteId);if(field)field.value=item.track}
+ notify("Recommendation saved as a draft. Review or adjust tracks, then confirm.");
+ }};
+$("update").onclick=async()=>{
+ if(!saved||confirmed)return;
+ const result=await request(params("save-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
+ if(result)notify("Coach adjustments saved. Confirm when ready.");
+};
+$("confirm").onclick=async()=>{
+ if(!saved||confirmed)return;
+ const result=await request(params("confirm-group-lesson-draft",{lessonId:$("lessonId").value.trim(),familyId:$("familyChoice").value,tracks:tracks()}));
+ if(result){confirmed=true;$("confirm").disabled=$("update").disabled=false;$("attach").disabled=false;
+ [...$("tracks").querySelectorAll("select")].forEach(el=>el.disabled=true);notify("Lesson confirmed; ready to attach to an existing practice.");}
+};
+$("attach").onclick=async()=>{
+ if(!confirmed)return;
+ const result=await request(params("attach-group-lesson-to-practice",{lessonId:$("lessonId").value.trim(),practiceId:$("practiceId").value.trim()}));
+ if(result){attached=true;$("record").disabled=false;notify("Lesson attached to practice. Record actual instruction after teaching.");}
+};
+$("record").onclick=async()=>{
+ if(!attached)return;
+ const result=await request(params("record-group-lesson-delivery",{lessonId:$("lessonId").value.trim(),practiceId:$("practiceId").value.trim(),deliveredAthleteIds:ids($("delivered").value),coachNote:$("note").value}));
+ if(result){$("record").disabled=true;notify("Delivery recorded. Attendance, skill verification, and XP were not changed.");}
+};
+try{await requireCoach()}catch(e){document.querySelector("main").replaceChildren();const link=document.createElement("a");link.href=coachLoginUrl();link.textContent="Sign in as Coach";document.querySelector("main").append(link)}
+</script></body></html>
