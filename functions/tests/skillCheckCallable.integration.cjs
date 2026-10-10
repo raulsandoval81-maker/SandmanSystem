@@ -493,6 +493,17 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const certificate=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/coverageCertificates/"+manifest.manifestId).get();
  assert.equal(certificate.data().kind,"SERVER_CERTIFIED_FULL_HISTORY");
  assert.equal(certificate.data().evidenceApproved,false);
+ const addedPath="practiceSessions/"+practiceId+"/athletes/"+id+"/verifiedSkills/wrestling__single_leg";
+ await db.doc(addedPath).set({
+   discipline:"wrestling",familyId:"single_leg",state:"LEARNED",
+   coachUid:"former-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-03T19:00:00Z")),
+ });
+ const expanded=await invoke("commit-transfer-acceptance",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(expanded.accepted,false);
+ assert.ok(expanded.blockers.includes("certified-inventory-changed"));
+ await db.doc(addedPath).delete();
  const acceptance=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
  });
