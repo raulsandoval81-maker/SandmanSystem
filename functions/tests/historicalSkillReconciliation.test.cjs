@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
+const { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, auditCurriculumPrerequisiteGraph, PILOT_WRESTLING_PREREQUISITES } = require("../lib/modules/historicalSkillReconciliation");
 
 const athleteId = "F8_0001";
 const discipline = "wrestling";
@@ -257,4 +257,15 @@ test("Unapproved prerequisites block AUTO and show a foundational Coach alternat
  assert.equal(result.suggestedFoundation,"stance_motion");
  assert.ok(result.blockers.includes("prerequisites-not-met-or-unconfigured:double_leg"));
  assert.equal(result.eligibleForAuto,false);
+});
+
+test("Curriculum map audit exposes missing coverage and refuses cycles",()=>{
+ const draft=auditCurriculumPrerequisiteGraph(["stance_motion","level_change_entry","double_leg","single_leg","chain_wrestling"],PILOT_WRESTLING_PREREQUISITES);
+ assert.equal(draft.structurallyValid,true);
+ assert.deepEqual(draft.unmappedFamilies,["chain_wrestling"]);
+ assert.equal(draft.policyApproved,false);
+ assert.equal(draft.eligibleForAuto,false);
+ const invalid=auditCurriculumPrerequisiteGraph(["a","b"],{a:["b"],b:["a"]});
+ assert.equal(invalid.structurallyValid,false);
+ assert.ok(invalid.issues.some(issue=>issue.startsWith("dependency-cycle:")));
 });
