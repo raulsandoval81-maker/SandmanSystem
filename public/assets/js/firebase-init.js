@@ -3,11 +3,16 @@
 // All callable functions MUST use this exported `functions` instance.
 // Do NOT re-initialize Firebase or Functions in page-level scripts.
 
+import {
+  runtimeEnvironment,
+  runtimeFirebaseConfig
+} from "./runtime-environment.js";
+
 // ----------------------------------------------------
 // ✅ Firebase Web App Config (REQUIRED)
 // Replace the values with your real project config from Firebase Console.
 // ----------------------------------------------------
-const firebaseConfig = {
+const productionFirebaseConfig = {
   apiKey: "AIzaSyDr8fZgWVCP_qBu2Ev9E2KtVay3lJcWJs4",
   authDomain: "sandmandashboard.firebaseapp.com",
   databaseURL: "https://sandmandashboard-default-rtdb.firebaseio.com",
@@ -16,6 +21,27 @@ const firebaseConfig = {
   messagingSenderId: "889326401061",
   appId: "1:889326401061:web:c259084eac7cd3289471cc"
 };
+
+const firebaseConfig = runtimeFirebaseConfig ?? productionFirebaseConfig;
+
+if (runtimeEnvironment === "staging" && firebaseConfig.projectId === "sandmandashboard") {
+  throw new Error("Staging cannot use the production Firebase project.");
+}
+
+if (runtimeEnvironment !== "production" && runtimeEnvironment !== "staging") {
+  throw new Error(`Unsupported Sandman runtime environment: ${runtimeEnvironment}`);
+}
+
+if (runtimeEnvironment === "staging") {
+  document.documentElement.dataset.sandmanEnvironment = "staging";
+  addEventListener("DOMContentLoaded", () => {
+    const marker = document.createElement("div");
+    marker.setAttribute("role", "status");
+    marker.textContent = `STAGING — synthetic data only — ${firebaseConfig.projectId}`;
+    marker.style.cssText = "position:fixed;z-index:2147483647;top:0;left:0;right:0;padding:6px;text-align:center;background:#8b0000;color:white;font:700 12px system-ui";
+    document.body.prepend(marker);
+  }, { once: true });
+}
 // ---- Core App ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 
