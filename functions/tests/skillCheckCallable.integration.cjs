@@ -321,9 +321,23 @@ test("Admin creates server-sourced evidence manifest with precise provenance, wi
  assert.equal(snap.data().records[0].skillEvidencePath,"practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system");
  assert.equal(snap.data().records[0].attendancePath,"attendance_sessions/"+id);
  assert.equal(snap.data().records[0].athleteMemoryPath,"practiceSessions/"+id+"/athletes/"+athleteId);
+ const verified=await callable.run({auth,data:{action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:result.manifestId}});
+ assert.equal(verified.sourceRecordsValid,true);
+ assert.equal(verified.evidenceApproved,false);
+ assert.equal(verified.eligibleForAuto,false);
+ await db.doc("practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system").update({state:"MASTERED"});
+ const changed=await callable.run({auth,data:{action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:result.manifestId}});
+ assert.equal(changed.sourceRecordsValid,false);
+ assert.ok(changed.records[0].blockers.includes("skill-evidence-changed"));
 });
 test("Coach is denied durable evidence manifest creation",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
    action:"build-verified-evidence-manifest",athleteId,discipline:"boxing",
+ }}),e=>e.code==="permission-denied");
+});
+
+test("Coach cannot verify saved transfer manifests",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"verify-evidence-manifest",athleteId,discipline:"boxing",manifestId:"test-manifest",
  }}),e=>e.code==="permission-denied");
 });
