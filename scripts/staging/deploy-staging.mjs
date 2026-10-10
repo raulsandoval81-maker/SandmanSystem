@@ -12,8 +12,8 @@ if (process.env.SANDMAN_STAGING_DEPLOY_CONFIRM !== `DEPLOY:${boundary.projectId}
 const prepared = spawnSync(process.execPath, ["scripts/staging/prepare-staging-hosting.mjs"], { stdio: "inherit", env: process.env });
 if (prepared.status !== 0) process.exit(prepared.status ?? 1);
 const deployed = spawnSync("npx", [
-  "firebase", "deploy", "--config", "firebase.staging.json",
-  "--project", boundary.projectId, "--only", "hosting,functions,firestore,storage",
+  "--yes", "firebase-tools@15.11.0", "deploy", "--config", "firebase.staging.json",
+  "--project", boundary.projectId, "--only", "hosting,functions:skillCheckCoachCall,firestore:rules",
   "--non-interactive",
 ], { stdio: "inherit", env: process.env, shell: false });
 process.exit(deployed.status ?? 1);

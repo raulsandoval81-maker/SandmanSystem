@@ -1,25 +1,39 @@
-name: Sandman Staging Safety Preflight
+name: Deploy Sandman Staging
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: "Type sandman-combat-staging to authorize this staging deployment"
+        required: true
+        type: string
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
-  group: sandman-staging-preflight
+  group: sandman-staging-deployment
   cancel-in-progress: false
 
 jobs:
-  verify:
-    name: Verify isolated staging configuration
+  deploy:
+    name: Verify and deploy isolated staging
     runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_STAGING_DEPLOY_CONFIRM: DEPLOY:sandman-combat-staging
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
     steps:
       - uses: actions/checkout@v4
-      - name: Guard production and check staging target
+      - name: Guard production and staging target
         shell: bash
         run: |
           set -euo pipefail
+          test "${{ inputs.confirm_project }}" = "${SANDMAN_STAGING_PROJECT_ID}"
           test "${STAGING_PROJECT}" = "sandman-combat-staging"
           test "${STAGING_PROJECT}" != "sandmandashboard"
           node - <<'NODE'
@@ -39,5 +53,18 @@ jobs:
         run: npm ci --prefix functions
       - name: Functions TypeScript build and focused unit tests
         run: npm test --prefix functions
-      - name: No deployment performed
-        run: echo "Preflight only. No authentication, IAM changes, staging deployment or production access."
+      - name: Staging isolation tests
+        run: node --test tests/functions/wrestling-staging-isolation.test.mjs
+      - id: auth
+        name: Authenticate to staging with Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify federated staging identity
+        run: node scripts/staging/verify-staging-boundary.mjs
+      - name: Deploy Hosting, Wrestling callable, and Firestore rules to staging only
+        run: node scripts/staging/deploy-staging.mjs

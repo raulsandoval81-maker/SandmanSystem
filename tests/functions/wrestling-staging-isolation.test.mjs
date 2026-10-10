@@ -65,7 +65,7 @@ test("staging boundary verifies credential project and service-account identitie
   await writeFile(credentialPath, JSON.stringify({ ...base, project_id: "different-stage" }));
   await assert.rejects(verifyStagingBoundary(env), /project identity/);
   await writeFile(credentialPath, "not-json");
-  await assert.rejects(verifyStagingBoundary(env), /valid service-account JSON/);
+  await assert.rejects(verifyStagingBoundary(env), /valid Google credential JSON/);
 });
 
 test("staging web configuration must match the approved project", async () => {
@@ -86,6 +86,27 @@ test("staging web configuration must match the approved project", async () => {
   assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_WEB_CONFIG: JSON.stringify({ authDomain: "x", projectId: "sandman-stage-a", appId: "x" }) }), /missing apiKey/);
 });
 
+test("staging boundary accepts only the approved GitHub WIF provider and deployer", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "sandman-staging-wif-"));
+  const credentialPath = path.join(directory, "credential.json");
+  const email = "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+  const credential = {
+    type: "external_account",
+    audience: "//iam.googleapis.com/projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions",
+    service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${email}:generateAccessToken`,
+  };
+  await writeFile(credentialPath, JSON.stringify(credential));
+  const env = {
+    SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
+    SANDMAN_STAGING_ACK: "sandman-combat-staging",
+    SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: email,
+    GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
+  };
+  assert.equal((await verifyStagingBoundary(env)).serviceAccountEmail, email);
+  await writeFile(credentialPath, JSON.stringify({ ...credential, audience: "//iam.googleapis.com/projects/991554514268/locations/global/workloadIdentityPools/other/providers/other" }));
+  await assert.rejects(verifyStagingBoundary(env), /provider/);
+});
+
 test("staging deployment is manual, explicit, and bound to verified identities", async () => {
   const deploy = await read("scripts/staging/deploy-staging.mjs");
   assert.match(deploy, /verifyStagingBoundary/);
@@ -93,6 +114,8 @@ test("staging deployment is manual, explicit, and bound to verified identities",
   assert.match(deploy, /DEPLOY:\$\{boundary\.projectId\}/);
   assert.match(deploy, /--config", "firebase\.staging\.json/);
   assert.match(deploy, /--project", boundary\.projectId/);
+  assert.match(deploy, /hosting,functions:skillCheckCoachCall,firestore:rules/);
+  assert.doesNotMatch(deploy, /,storage/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
 });
 

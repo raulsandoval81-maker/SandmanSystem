@@ -16,6 +16,7 @@ emu-debug.txt
 # Firebase cache
 .firebase/
 .firebase-staging/
+gha-creds-*.json
 
 # Firebase config
 
