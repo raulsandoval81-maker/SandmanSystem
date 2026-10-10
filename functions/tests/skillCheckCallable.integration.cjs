@@ -478,8 +478,12 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(scan.practices.length,1);
  const manifest=await invoke("build-verified-evidence-manifest");
  assert.equal(manifest.recordCount,1);
- const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId});
+ const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId,recordVerification:true});
  assert.equal(sources.sourceRecordsValid,true);
+ assert.ok(sources.verificationReceiptId);
+ const receipt=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/sourceVerificationReceipts/"+sources.verificationReceiptId).get();
+ assert.equal(receipt.data().sourceRecordsValid,true);
+ assert.equal(receipt.data().evidenceApproved,false);
  assert.equal(sources.acceptanceReady,false);
  const assessed=await invoke("assess-history-attestation");
  assert.equal(assessed.attested,false);
