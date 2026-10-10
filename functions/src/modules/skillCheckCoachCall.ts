@@ -561,7 +561,7 @@ export const skillCheckCoachCall =
           || new Set(requested).size !== requested.length) {
         throw new HttpsError("invalid-argument", "Valid unique athlete IDs and curriculum families required.");
       }
-      const members = [];
+      const members: Array<{athleteId: string; approved: boolean; blockers: string[]; skills: Array<{familyId: string; state: string}>}> = [];
       for (const id of ids) {
         const memberSnap = await db.doc(`athletes/${id}`).get();
         if (!memberSnap.exists) {
@@ -645,7 +645,7 @@ export const skillCheckCoachCall =
         ? evaluateGroupLessonPrerequisites(members, requested, PILOT_WRESTLING_PREREQUISITES)
         : {policyApproved:false, eligibleForAuto:false, byFamily:{},
           blockers:["prerequisite-policy-unconfigured:" + discipline]};
-      const trackReadiness = requested.map(familyId => {
+      const trackReadiness = requested.map((familyId: string) => {
         const dependencies = discipline === "wrestling"
           ? PILOT_WRESTLING_PREREQUISITES[familyId] : undefined;
         if (!dependencies) return {familyId, configured:false,
