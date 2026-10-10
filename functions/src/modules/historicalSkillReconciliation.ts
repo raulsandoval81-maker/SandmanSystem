@@ -282,3 +282,39 @@ export function reviewSupervisedPrerequisiteSelection(
     eligibleCandidateFamilies:eligibleCandidates.map(candidate => candidate.familyId),
   };
 }
+
+/** Validate a proposed curriculum dependency map before any future approval.
+ * Structural validation does not constitute Coach approval.
+ */
+export function auditCurriculumPrerequisiteGraph(
+  families: readonly string[],
+  graph: Readonly<Record<string, readonly string[]>>
+) {
+  const allowed = new Set(families);
+  const issues: string[] = [];
+  for (const [family, dependencies] of Object.entries(graph)) {
+    if (!allowed.has(family)) issues.push("unknown-family:" + family);
+    if (dependencies.length !== new Set(dependencies).size) issues.push("duplicate-prerequisite:" + family);
+    for (const dependency of dependencies) {
+      if (!allowed.has(dependency)) issues.push("unknown-prerequisite:" + family + ":" + dependency);
+      if (!Object.prototype.hasOwnProperty.call(graph, dependency))
+        issues.push("unmapped-prerequisite:" + family + ":" + dependency);
+    }
+  }
+  const visited = new Set<string>();
+  const active = new Set<string>();
+  const visit = (family: string) => {
+    if (active.has(family)) { issues.push("dependency-cycle:" + family); return; }
+    if (visited.has(family)) return;
+    active.add(family);
+    for (const dep of graph[family] || []) {
+      if (Object.prototype.hasOwnProperty.call(graph, dep)) visit(dep);
+    }
+    active.delete(family);
+    visited.add(family);
+  };
+  for (const family of Object.keys(graph)) visit(family);
+  return {structurallyValid: issues.length === 0, mappedFamilies: Object.keys(graph).length,
+    totalFamilies: families.length, unmappedFamilies: families.filter(f => !Object.prototype.hasOwnProperty.call(graph, f)),
+    issues: [...new Set(issues)].sort(), policyApproved: false, eligibleForAuto: false};
+}
