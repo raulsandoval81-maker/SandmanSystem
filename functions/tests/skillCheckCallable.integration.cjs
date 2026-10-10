@@ -528,6 +528,12 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ const coachPreview=await callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"preview-group-lessons",athleteIds:[id],discipline:"wrestling",
+   familyIds:["double_leg"],
+ }});
+ assert.equal(coachPreview.ready,true);
+ assert.equal(coachPreview.eligibleForAuto,false);
  const blockedGroup=await invoke("preview-group-lessons",{
    athleteIds:[id,"F8_AUTH_SMOKE"],familyIds:["double_leg"],
  });
@@ -655,5 +661,14 @@ test("Atomic snapshot certificate refuses missing manifests and forged approval"
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
    action:"certify-bounded-history-snapshot",athleteId,discipline:"wrestling",
    manifestId:"missing-manifest",
+ }}),e=>e.code==="permission-denied");
+});
+
+test("Coach group preview cannot read another athlete outside assigned location",async()=>{
+ const outside="F8_COACH_OUTSIDE";
+ await db.doc("athletes/"+outside).set({locationId:"coach-outside-location"});
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"preview-group-lessons",athleteIds:[athleteId,outside],
+   discipline:"wrestling",familyIds:["double_leg"],
  }}),e=>e.code==="permission-denied");
 });
