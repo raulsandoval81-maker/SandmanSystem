@@ -717,6 +717,129 @@ export const skillCheckCoachCall =
         coverageComplete: false, evidenceApproved: false, eligibleForAuto: false };
     }
 
+    if (action === "certify-bounded-history-snapshot") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical snapshot certification requires Admin.");
+      }
+      const manifestId = clean(data.manifestId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
+        throw new HttpsError("invalid-argument", "Valid manifest ID required.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const certificate = ref.collection("coverageCertificates").doc(manifestId);
+      // All query and record reads occur in ONE Firestore transaction snapshot.
+      // Limit to small histories; never label a truncated history complete.
+      const outcome = await db.runTransaction(async tx => {
+        const [reviewSnap, athleteSnap, manifestSnap, existingCert] = await Promise.all([
+          tx.get(ref), tx.get(db.doc(`athletes/${athleteId}`)),
+          tx.get(ref.collection("evidenceManifests").doc(manifestId)), tx.get(certificate),
+        ]);
+        const review = reviewSnap.data() || {};
+        const current = athleteSnap.data() || {};
+        const manifest = manifestSnap.data() || {};
+        const revision = typeof review.revision === "number" ? review.revision : 1;
+        const previous = Array.isArray(current.previousLocationIds)
+          ? [...new Set(current.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== clean(current.locationId)).sort() : [];
+        const declared = Array.isArray(review.declaredPriorLocationIds)
+          ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+        const blockers: string[] = [];
+        if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW"
+            || JSON.stringify(previous) !== JSON.stringify(declared)) blockers.push("review-stale");
+        if (!manifestSnap.exists || manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+            || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
+            || normalizeDiscipline(manifest.discipline) !== discipline) blockers.push("manifest-invalid");
+        if (existingCert.exists) blockers.push("certificate-already-exists");
+        if (Array.isArray(manifest.blockers) && manifest.blockers.length)
+          blockers.push("manifest-has-blockers");
+        const records: Record<string, unknown>[] = Array.isArray(manifest.records)
+          ? manifest.records : [];
+        if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
+        const location = clean(current.locationId);
+        const academy = clean(current.academyId);
+        const scopes = [
+          ...(location ? [{scope: "athlete-location", field: "locationId", value: location}] : []),
+          ...(academy ? [{scope: "athlete-academy", field: "academyId", value: academy}] : []),
+          ...previous.map(value => ({scope: "prior-location:" + value, field: "locationId", value})),
+        ];
+        if (previous.length > 10 || scopes.length > 12) blockers.push("too-many-history-scopes");
+        if (!location) blockers.push("current-location-missing");
+        // A certificate must capture the complete inventory, not just a valid subset.
+        const observed = new Set<string>();
+        if (!blockers.length) {
+          for (const spec of scopes) {
+            const query = db.collection("practiceSessions").where(spec.field, "==", spec.value)
+              .orderBy(FieldPath.documentId()).limit(51);
+            const practices = await tx.get(query);
+            if (practices.size > 50) {
+              blockers.push("scope-exceeds-atomic-snapshot-limit:" + spec.scope);
+              continue;
+            }
+            for (const practiceDoc of practices.docs) {
+              const practice = practiceDoc.data() || {};
+              if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+              if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
+              const base = `practiceSessions/${practiceDoc.id}/athletes/${athleteId}`;
+              const [attendanceSnap, memorySnap, evidenceSnap] = await Promise.all([
+                tx.get(db.doc(`attendance_sessions/${practiceDoc.id}`)),
+                tx.get(db.doc(base)),
+                tx.get(db.collection(base + "/verifiedSkills")),
+              ]);
+              const attendance = attendanceSnap.data() || {};
+              const memory = memorySnap.data() || {};
+              const present = attendanceSnap.exists
+                && clean(attendance.practiceId) === practiceDoc.id
+                && normalizeDiscipline(attendance.discipline) === discipline
+                && clean(attendance.status).toLowerCase() === "finalized"
+                && attendance.finalized === true && attendanceIncludesAthlete(attendance, athleteId);
+              const remembered = memorySnap.exists
+                && clean(memory.practiceId) === practiceDoc.id
+                && clean(memory.athleteId).toUpperCase() === athleteId
+                && normalizeDiscipline(memory.discipline) === discipline
+                && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present";
+              if (present !== remembered) blockers.push("attendance-memory-mismatch:" + practiceDoc.id);
+              if (!present || !remembered) continue;
+              if (evidenceSnap.empty) blockers.push("missing-skills:" + practiceDoc.id);
+              for (const doc of evidenceSnap.docs) {
+                const evidence = doc.data() || {};
+                const entry = records.find(item => clean(item.skillEvidencePath) === doc.ref.path);
+                if (!entry || normalizeDiscipline(evidence.discipline) !== discipline
+                    || normalizeFamily(evidence.familyId) !== clean(entry.familyId)
+                    || normalizeState(evidence.state) !== clean(entry.state)
+                    || clean(evidence.coachUid) !== clean(entry.coachUid)
+                    || !(evidence.verifiedAt instanceof Timestamp)
+                    || evidence.verifiedAt.toDate().toISOString() !== clean(entry.verifiedAt)
+                    || clean(entry.practiceId) !== practiceDoc.id
+                    || clean(entry.sessionDateKey) !== clean(practice.sessionDateKey)) {
+                  blockers.push("unmatched-or-changed-evidence:" + doc.ref.path);
+                }
+                observed.add(doc.ref.path);
+              }
+            }
+          }
+          for (const record of records) {
+            if (!observed.has(clean(record.skillEvidencePath)))
+              blockers.push("manifest-record-not-in-snapshot:" + clean(record.skillEvidencePath));
+          }
+        }
+        if (blockers.length) return {certificateIssued: false, blockers: [...new Set(blockers)].sort(),
+          observedEvidenceCount: observed.size};
+        // Immutable evidence certification only; no athlete placement or AUTO.
+        tx.create(certificate, {
+          kind: "SERVER_CERTIFIED_FULL_HISTORY", schemaVersion: 1,
+          athleteId, discipline, manifestId, reviewRevision: revision,
+          declaredPriorLocationIds: previous, sourceEvidencePaths: [...observed].sort(),
+          scopeNames: scopes.map(spec => spec.scope),
+          certifiedAt: FieldValue.serverTimestamp(), certifiedBy: actor.uid,
+          evidenceApproved: false, eligibleForAuto: false,
+        });
+        return {certificateIssued: true, blockers: [], observedEvidenceCount: observed.size};
+      });
+      return {ok: true, kind: "BOUNDED_ATOMIC_HISTORY_CERTIFICATION", manifestId,
+        ...outcome, evidenceApproved: false, eligibleForAuto: false,
+        coverageComplete: false};
+    }
+
     if (action === "certify-history-coverage") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "History certification requires Admin authority.");
