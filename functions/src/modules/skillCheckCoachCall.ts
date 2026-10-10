@@ -414,6 +414,41 @@ export const skillCheckCoachCall =
         evidenceApproved: false, coverageComplete: false, eligibleForAuto: false };
     }
 
+    if (action === "list-transfer-coverage-checkpoints") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Transfer checkpoint history requires Admin authority.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const reviewSnap = await ref.get();
+      if (!reviewSnap.exists) {
+        return { ok: true, checkpoints: [], evidenceApproved: false,
+          coverageComplete: false, eligibleForAuto: false };
+      }
+      const review = reviewSnap.data() || {};
+      const revision = typeof review.revision === "number" ? review.revision : 1;
+      // Bound history retrieval; never interpret an audit checkpoint as approval.
+      const snapshot = await ref.collection("coverageCheckpoints")
+        .orderBy(FieldPath.documentId()).limit(50).get();
+      return {
+        ok: true,
+        checkpoints: snapshot.docs.map(doc => {
+          const record = doc.data() || {};
+          return {
+            checkpointId: doc.id,
+            kind: "UNVERIFIED_REVIEW_CHECKPOINT",
+            reviewRevision: record.reviewRevision ?? null,
+            currentRevision: record.reviewRevision === revision,
+            recordedBy: clean(record.recordedBy),
+            evidenceApproved: false,
+            coverageComplete: false,
+            eligibleForAuto: false,
+          };
+        }),
+        truncated: snapshot.size === 50,
+        evidenceApproved: false, coverageComplete: false, eligibleForAuto: false,
+      };
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
