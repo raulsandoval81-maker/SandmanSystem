@@ -318,6 +318,10 @@ test("Admin creates server-sourced evidence manifest with precise provenance, wi
  assert.equal(snap.data().evidenceApproved,false);
  assert.equal(snap.data().coverageComplete,false);
  assert.equal(snap.data().records.length,1);
+ assert.ok(snap.data().checkedScopes.some(scope=>scope.scope==="athlete-location"
+   && scope.status==="BOUNDED_SCAN_EXHAUSTED" && scope.exhausted===true));
+ assert.ok(snap.data().checkedScopes.every(scope=>scope.status!=="VERIFIED_COMPLETE"));
+ assert.equal(snap.data().coverageComplete,false);
  assert.equal(snap.data().records[0].skillEvidencePath,"practiceSessions/"+id+"/athletes/"+athleteId+"/verifiedSkills/boxing__jab_system");
  assert.equal(snap.data().records[0].attendancePath,"attendance_sessions/"+id);
  assert.equal(snap.data().records[0].athleteMemoryPath,"practiceSessions/"+id+"/athletes/"+athleteId);
