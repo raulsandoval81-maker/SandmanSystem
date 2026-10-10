@@ -395,3 +395,23 @@ test("Coach and undeclared prior locations cannot use the resumable scan",async(
    scope:"prior-location:unknown-location",
  }}),e=>e.code==="permission-denied");
 });
+
+test("Integrated historical review reports every scope without asserting full athlete coverage",async()=>{
+ const auth={uid:"test-admin-transfer",token:{}};
+ const result=await callable.run({auth,data:{
+   action:"evaluate-integrated-history-coverage",athleteId,discipline:"wrestling",
+   coverageComplete:true,evidenceApproved:true,eligibleForAuto:true,
+ }});
+ assert.equal(result.kind,"INTEGRATED_HISTORY_COVERAGE_REVIEW");
+ assert.ok(result.requiredScopes.some(s=>s.scope==="athlete-location"));
+ assert.ok(result.requiredScopes.some(s=>s.scope==="prior-location:scan-only-location"));
+ assert.equal(result.transferHistoryAttested,false);
+ assert.equal(result.sourceEvidenceAccepted,false);
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("Coaches cannot run integrated historical coverage review",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"evaluate-integrated-history-coverage",athleteId,discipline:"wrestling",
+ }}),e=>e.code==="permission-denied");
+});
