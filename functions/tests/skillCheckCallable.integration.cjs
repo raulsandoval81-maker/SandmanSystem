@@ -215,3 +215,21 @@ test("Admin rejection is audited, final, and never unlocks progression",async()=
 test("Coach cannot reject transferred historical evidence",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{action:"reject-transfer-review",athleteId,discipline:"wrestling",reason:"Coach is not authorized to reject."}}),e=>e.code==="permission-denied");
 });
+
+test("Admin acceptance preflight fails closed even if caller claims verified coverage",async()=>{
+ const response=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+   action:"check-transfer-acceptance",athleteId,discipline:"wrestling",
+   coverageComplete:true,evidenceApproved:true,eligibleForAuto:true,
+ }});
+ assert.equal(response.canAccept,false);
+ assert.ok(response.blockers.includes("verified-historical-coverage-manifest-required"));
+ assert.ok(response.blockers.includes("verified-evidence-acceptance-chain-required"));
+ assert.equal(response.coverageComplete,false);
+ assert.equal(response.evidenceApproved,false);
+ assert.equal(response.eligibleForAuto,false);
+});
+test("Coach cannot invoke historical evidence acceptance preflight",async()=>{
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"check-transfer-acceptance",athleteId,discipline:"wrestling",
+ }}),e=>e.code==="permission-denied");
+});
