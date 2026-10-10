@@ -146,3 +146,20 @@ test("mixed-group preview denies unapproved evidence, conflicts and duplicates",
  assert.ok(result.blockers.includes("duplicate-or-missing-athlete"));
  assert.ok(result.blockers.includes("athlete-evidence-not-ready:a"));
 });
+
+test("Coach practice lesson workspace parses as JavaScript module and exposes protected workflow",()=>{
+ const fs=require("node:fs");
+ const path=require("node:path");
+ const {spawnSync}=require("node:child_process");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ const code=html.match(/<script type="module">([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(code,"Expected Coach lesson workspace module");
+ const syntax=spawnSync(process.execPath,["--input-type=module","--check"],{input:code,encoding:"utf8"});
+ assert.equal(syntax.status,0,syntax.stderr);
+ for(const action of ["preview-group-lessons","create-recommended-group-lesson-draft",
+   "save-group-lesson-draft","confirm-group-lesson-draft",
+   "attach-group-lesson-to-practice","record-group-lesson-delivery"]) {
+   assert.ok(code.includes(action),"Missing Coach operation: "+action);
+ }
+ assert.ok(html.includes('href="/coaches/practice/"'));
+});
