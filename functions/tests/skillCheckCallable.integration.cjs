@@ -528,6 +528,10 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ assert.equal(group.curriculumMapAudit.totalFamilies,36);
+ assert.equal(group.curriculumMapAudit.mappedFamilies,4);
+ assert.equal(group.curriculumMapAudit.policyApproved,false);
+ assert.ok(group.curriculumMapAudit.unmappedFamilies.includes("chain_wrestling"));
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").configured,true);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").athletes[0].practice,false);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="single_leg").policyApproved,false);
