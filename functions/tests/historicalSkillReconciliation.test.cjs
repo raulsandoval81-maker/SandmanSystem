@@ -173,3 +173,13 @@ test("Coach review preserves pre-save adjustments and locks practice after attac
  assert.match(html,/\$\("practiceId"\)\.readOnly=true/);
  assert.match(html,/\$\("delivered"\)\.value=roster\.join/);
 });
+
+test("Coach must persist track edits before confirming, and can start a new lesson",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.resolve(__dirname,"../../public/coaches/practice/group-lessons.html"),"utf8");
+ assert.match(html,/if\(hasUnsavedTracks\(\)\)/);
+ assert.match(html,/Save Coach adjustments before confirming/);
+ assert.match(html,/function rememberTracks\(\)/);
+ assert.match(html,/id="newLesson"/);
+ assert.match(html,/newLesson"\)\.onclick/);
+});
