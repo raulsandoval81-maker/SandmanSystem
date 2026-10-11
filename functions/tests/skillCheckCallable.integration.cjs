@@ -1069,3 +1069,27 @@ test("consistency pass requires completed recheck and remains diagnostic",async(
  assert.equal(result.eligibleForAuto,false);
  await assert.rejects(invoke("advance-native-consistency-pass",result.revision),e=>e.code==="failed-precondition");
 });
+
+test("post-consistency inventory refresh detects a newly finalized athlete practice",async()=>{
+ const id="F8_INVENTORY_REFRESH",practiceId="refresh-added-practice";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
+  revision:3,consistencyPassExhausted:true,inventoryPracticeIds:[],
+  inventoryRefreshPracticeIds:[],coverageComplete:false,evidenceApproved:false,eligibleForAuto:false
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ const invoke=(revision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+  data:{action:"advance-native-inventory-refresh",athleteId:id,discipline:"wrestling",expectedRevision:revision,
+    inventoryRefreshPracticeIds:["client-forged"],eligibleForAuto:true}});
+ const result=await invoke(3);
+ assert.equal(result.scanExhausted,true);
+ assert.deepEqual(result.added,[practiceId]);
+ assert.equal(result.eligibleForAuto,false);
+ const stored=(await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").get()).data();
+ assert.ok(!stored.inventoryRefreshPracticeIds.includes("client-forged"));
+ assert.equal(stored.coverageComplete,false);
+ await assert.rejects(invoke(result.revision),e=>e.code==="failed-precondition");
+});
