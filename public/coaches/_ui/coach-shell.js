@@ -25,15 +25,15 @@
     { label: "Coach Operations", links: [["Daily Operations", "/coaches/today/", "today"], ["Practice Operations", "/coaches/practice/", "practice"], ["Competition Operations", "/coaches/competition/", "competition"], ["Athlete Operations", "/coaches/athletes/", "athletes"], ["Team Operations", "/coaches/team/", "team"], ["Emergency Operations", "/coaches/safety/", "emergency"], ["System Operations", "/coaches/system/", "system"]]},
     { label: "Workspace", links: [["Settings", "/coaches/settings/", "settings"]] }
   ];
-  const practiceLinks = [["Session Builder", "/coaches/execution/session-builder/", "session-builder"], ["Attendance", "/coaches/attendance/", "attendance"], ["Practice Log", "/coaches/logs/practice-log.html", "practice-log"], ["Execution Tools", "/coaches/execution/", "execution-tools"]];
+  const practiceLinks = [["Session Builder", "/coaches/execution/session-builder/", "session-builder"], ["Attendance", "/coaches/attendance/", "attendance"], ["Post-Practice Clipboard", "/coaches/logs/practice-log.html", "practice-log"], ["Execution Tools", "/coaches/execution/", "execution-tools"]];
   const practiceDrawerLinks = [
     ["Session Builder", "/coaches/execution/session-builder/"],
     ["Attendance", "/coaches/attendance/"],
-    ["Practice Clipboard", "/coaches/execution/clipboard-2.0/"],
+    ["Pre-Practice Clipboard", "/coaches/execution/clipboard-2.0/"],
     ["Big Clock", "/coaches/execution/big-clock-2.0/"],
-    ["Coach Companion", "/coaches/execution/coach-companion/"],
+    ["During-Practice Clipboard", "/coaches/execution/coach-companion/"],
     ["Daily Grind", "/coaches/daily-xp/"],
-    ["Practice Log / Final Close", "/coaches/logs/practice-log.html"],
+    ["Post-Practice Clipboard / Final Close", "/coaches/logs/practice-log.html"],
     ["Curriculum / Skill Cards", "/coaches/cards/"]
   ];
   const declaredContext = String(body.dataset.coachContext || "").trim();
