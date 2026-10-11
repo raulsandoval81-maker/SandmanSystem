@@ -22,8 +22,6 @@ import {
   roomByValue
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
-import { canLaunchAuto } from "/coaches/execution/session-builder/group-decision-policy.js";
-
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
 const DRAFT_KEY = "sandman_clipboard_draft_v1";
@@ -1037,13 +1035,14 @@ buildBtn.addEventListener("click", async () => {
   buildBtn.disabled = true;
   buildBtn.textContent = "Opening practice…";
   try {
-    payload = await resolveGroupPrescriptions(payload);
-    // AUTO must be genuinely driven by checked-in groups, not a stale single-tier fallback.
-    if (selectedMode === "auto" && !payload.trainingGroups?.length) {
-      throw new Error("AUTO needs attendance-derived groups before prescribing a lesson. Return to Attendance.");
-    }
-    if (selectedMode === "auto" && !canLaunchAuto(payload.trainingGroups, payload.groupPrescriptions)) {
-      throw new Error("AUTO needs verified athlete progression and approved lessons for every group. First-wave fallback is HYBRID-only. No incomplete AUTO lesson was launched.");
+    // Session entry is NOT AUTO lesson authorization. Attendance must happen
+    // first; no browser-produced group prescription can authorize AUTO.
+    // Defer all AUTO decisions until canonical checked-in groups and verified
+    // server evidence are available. Keep the eventual execution gate closed.
+    if (selectedMode === "auto") {
+      payload = { ...payload, groupPrescriptions: [], autoPendingVerification: true };
+    } else {
+      payload = await resolveGroupPrescriptions(payload);
     }
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
