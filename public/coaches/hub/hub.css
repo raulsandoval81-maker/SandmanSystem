@@ -594,19 +594,24 @@ a:focus-visible{
   min-width:34px;
   height:34px;
   padding:0 10px;
-  border:1px solid rgba(212,175,55,.40);
+  border:1px solid #ffe28b;
   border-radius:999px;
-  background:rgba(212,175,55,.10);
-  color:var(--bright-gold);
+  background:#f5c84a;
+  color:#111111;
+  box-shadow:0 0 0 1px rgba(0,0,0,.24), 0 2px 8px rgba(0,0,0,.18);
   font-size:.94rem;
   font-weight:950;
   line-height:1;
 }
 
+.home-card__count[hidden]{
+  display:none !important;
+}
+
 .home-card__count[data-zero="true"]{
   border-color:var(--line);
-  background:rgba(255,255,255,.035);
-  color:var(--muted);
+  background:#3d434b;
+  color:#ffffff;
 }
 
 .home-card strong{
