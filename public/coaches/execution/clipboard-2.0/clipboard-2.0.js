@@ -532,7 +532,7 @@ if (builderSession.attendanceRosterVerified === true
           ? "Evidence review required: " + blockers.slice(0, 4).join(", ")
           : "Evidence preview received. Coach review required; AUTO prescription is not authorized.";
       } catch (error) {
-        const code = String(error?.code || "unknown").replace(/^functions\\//, "");
+        const code = String(error?.code || "unknown").replace("functions/", "");
         const message = String(error?.message || "Server verification failed.");
         // A rejected diagnostic preview is not a failed session or permission to
         // bypass verified evidence. Surface the actionable backend reason.
