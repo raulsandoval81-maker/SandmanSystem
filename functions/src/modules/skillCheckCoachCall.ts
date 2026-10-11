@@ -1092,6 +1092,96 @@ export const skillCheckCoachCall =
         evidenceApproved:false,eligibleForAuto:false};
     }
 
+    if (action === "advance-native-full-recheck") {
+      if (normalizeStaffRole(actor.role) !== "admin")
+        throw new HttpsError("permission-denied", "Native full-history recheck requires Admin authority.");
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1)
+        throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const snap = await ref.get();
+      const checkpoint = snap.data() || {};
+      if (!snap.exists || Number(checkpoint.revision) !== expectedRevision)
+        throw new HttpsError("aborted", "Checkpoint revision changed.");
+      if (checkpoint.attendanceScanExhausted !== true || checkpoint.skillScanExhausted !== true)
+        throw new HttpsError("failed-precondition", "Complete discovery before full recheck.");
+      if (checkpoint.fullRecheckExhausted === true)
+        throw new HttpsError("failed-precondition", "Full recheck already exhausted.");
+      const ids = Array.isArray(checkpoint.inventoryPracticeIds)
+        ? checkpoint.inventoryPracticeIds.map(String) : [];
+      const offset = Number(checkpoint.fullRecheckOffset || 0);
+      if (!Number.isSafeInteger(offset) || offset < 0 || offset > ids.length)
+        throw new HttpsError("failed-precondition", "Invalid full recheck offset.");
+      const selected = ids.slice(offset, offset + 10);
+      const evidenceIds = new Set(Array.isArray(checkpoint.evidencePracticeIds)
+        ? checkpoint.evidencePracticeIds.map(String) : []);
+      const issues: string[] = [];
+      for (const id of selected) {
+        optionalPracticeId(id);
+        const [practiceSnap, attendanceSnap, memorySnap, skillsSnap] = await Promise.all([
+          db.doc(`practiceSessions/${id}`).get(),
+          db.doc(`attendance_sessions/${id}`).get(),
+          db.doc(`practiceSessions/${id}/athletes/${athleteId}`).get(),
+          db.collection(`practiceSessions/${id}/athletes/${athleteId}/verifiedSkills`).get(),
+        ]);
+        const practice = practiceSnap.data() || {};
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        if (!practiceSnap.exists || !attendanceSnap.exists || !memorySnap.exists
+            || clean(practice.locationId) !== clean(athlete.locationId)
+            || normalizeDiscipline(practice.discipline) !== discipline
+            || clean(attendance.practiceId) !== id || attendance.finalized !== true
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== id
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string,unknown> | undefined)?.status).toLowerCase() !== "present") {
+          issues.push("recheck-source-changed:" + id);
+          continue;
+        }
+        const verified = !skillsSnap.empty && skillsSnap.docs.every(doc => {
+          const skill = doc.data() || {};
+          return normalizeDiscipline(skill.discipline) === discipline
+            && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+            && ALLOWED_STATES.includes(normalizeState(skill.state))
+            && Boolean(clean(skill.coachUid)) && skill.verifiedAt instanceof Timestamp;
+        });
+        if (verified !== evidenceIds.has(id)) issues.push("recheck-evidence-presence-changed:" + id);
+        if (!skillsSnap.empty && !verified) issues.push("recheck-invalid-evidence:" + id);
+        if (verified && evidenceIds.has(id)) {
+          const recorded = (checkpoint.skillObservationFingerprints || {})[id];
+          const refreshed = skillsSnap.docs.map(doc => {
+            const skill = doc.data() || {};
+            return [doc.id,normalizeFamily(skill.familyId),normalizeState(skill.state),
+              clean(skill.coachUid),skill.verifiedAt.toDate().toISOString()].join("|");
+          }).sort();
+          if (!Array.isArray(recorded) || JSON.stringify(recorded) !== JSON.stringify(refreshed))
+            issues.push("recheck-skill-observations-changed:" + id);
+        }
+      }
+      const result = await db.runTransaction(async tx => {
+        const freshSnap = await tx.get(ref);
+        const fresh = freshSnap.data() || {};
+        if (!freshSnap.exists || Number(fresh.revision) !== expectedRevision
+            || Number(fresh.fullRecheckOffset || 0) !== offset || fresh.fullRecheckExhausted === true)
+          throw new HttpsError("aborted", "Full recheck advanced. Reload.");
+        const nextOffset = offset + selected.length;
+        const allIssues = [...new Set([...(Array.isArray(fresh.fullRecheckIssues)
+          ? fresh.fullRecheckIssues.map(String) : []), ...issues])];
+        const revision = expectedRevision + 1;
+        tx.update(ref, {revision,fullRecheckOffset:nextOffset,
+          fullRecheckExhausted:nextOffset === ids.length,
+          fullRecheckIssues:allIssues,status:"DIAGNOSTIC_FULL_RECHECK",
+          updatedAt:FieldValue.serverTimestamp(),
+          coverageComplete:false,evidenceApproved:false,eligibleForAuto:false});
+        return {revision,recordsChecked:nextOffset,remaining:ids.length-nextOffset,
+          scanExhausted:nextOffset === ids.length,issues:allIssues};
+      });
+      return {ok:true,...result,diagnosticOnly:true,coverageComplete:false,
+        evidenceApproved:false,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
