@@ -24,33 +24,37 @@ const FLOW_STORAGE_KEY = "sandman.coach.practice.flow";
 
 const flows = {
   normal: {
-    title: "Planned Practice",
+    title: "Plan Workout",
     description:
-      "Use Session Builder, check in athletes, prepare Clipboard, and run the live workout.",
+      "Confirm the practice date and Coach, then use Session Builder before attendance and execution.",
 
-    startHeading: "Build a Planned Practice",
+    startHeading: "Plan Workout",
     startDescription:
-      "Session Builder establishes the normal practice record first. Then check athletes in and run the room.",
+      "Start Practice establishes the date and Coach. Session Builder then owns the practice setup before attendance.",
 
     steps: [
       {
-        title: "Open Practice",
-        description: "Session Builder creates the canonical practice."
+        title: "Start Practice",
+        description: "Confirm the practice date and Coach."
       },
       {
-        title: "Check In",
-        description: "Record athletes against that practice."
+        title: "Session Builder",
+        description: "Choose the session, route, length, and build mode."
+      },
+      {
+        title: "Attendance",
+        description: "Check in the athletes who are actually in the room."
       },
       {
         title: "Run Practice",
-        description: "Use the Pre-Practice Clipboard, Big Clock, or During-Practice Clipboard."
+        description: "Continue through the Pre-Practice Clipboard and live execution."
       }
     ],
 
     actions: [
       {
-        label: "Open Session Builder",
-        href: "/coaches/execution/session-builder/",
+        label: "Plan Workout",
+        href: "/coaches/practice/entry.html?mode=planned",
         primary: true
       },
       {
