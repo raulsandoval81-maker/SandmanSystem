@@ -1024,3 +1024,29 @@ test("large native history recheck cannot silently certify a bounded sample",asy
  assert.equal(result.eligibleForAuto,false);
  assert.equal(result.evidenceApproved,false);
 });
+
+test("resumable full-history recheck advances past twenty records without certifying",async()=>{
+ const id="F8_FULL_RECHECK_BATCH";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ const ids=Array.from({length:21},(_,i)=>"full_recheck_"+String(i).padStart(2,"0"));
+ await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
+  kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT",athleteId:id,discipline:"wrestling",
+  revision:1,attendanceScanExhausted:true,skillScanExhausted:true,
+  inventoryPracticeIds:ids,evidencePracticeIds:[],coverageComplete:false,eligibleForAuto:false
+ });
+ const invoke=(revision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+  data:{action:"advance-native-full-recheck",athleteId:id,discipline:"wrestling",expectedRevision:revision}});
+ const first=await invoke(1);
+ assert.equal(first.recordsChecked,10);
+ assert.equal(first.scanExhausted,false);
+ assert.equal(first.eligibleForAuto,false);
+ await assert.rejects(invoke(1),e=>e.code==="aborted");
+ const second=await invoke(first.revision);
+ assert.equal(second.recordsChecked,20);
+ const last=await invoke(second.revision);
+ assert.equal(last.recordsChecked,21);
+ assert.equal(last.scanExhausted,true);
+ assert.equal(last.coverageComplete,false);
+ assert.ok(last.issues.some(x=>x.startsWith("recheck-source-changed:")));
+ await assert.rejects(invoke(last.revision),e=>e.code==="failed-precondition");
+});
