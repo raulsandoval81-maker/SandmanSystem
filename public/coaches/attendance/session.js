@@ -200,6 +200,51 @@ function programMatchesAthlete(athlete = {}) {
   return true;
 }
 
+function rosterJourneyForAthlete(athlete = {}) {
+  const direct = normalizeJourneyCode(
+    athlete.journey ||
+    athlete.programTrack ||
+    athlete.track ||
+    athlete.program ||
+    ""
+  );
+  if (direct) return direct;
+
+  const id = String(athlete.id || athlete.uid || "").toUpperCase();
+  if (id.startsWith("F8_")) return "Z2H";
+  if (id.startsWith("F4_")) return "P2L";
+  return "";
+}
+
+function builderJourneyFilter() {
+  try {
+    const session = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+    return String(session?.attendanceJourneyFilter || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function populateJourneyRosterFilter() {
+  const select = $("journeyRosterFilter");
+  if (!select) return;
+
+  const preferred = normalizeJourneyCode(select.value || builderJourneyFilter());
+  const journeys = [...new Set(athletes.map(rosterJourneyForAthlete).filter(Boolean))];
+  const ordered = ["Z2H", "P2L", "Q2M"].filter(code => journeys.includes(code));
+  const extras = journeys.filter(code => !ordered.includes(code)).sort();
+  const options = [...ordered, ...extras];
+
+  select.innerHTML = '<option value="">Mixed Room · All Journeys</option>';
+  options.forEach(code => {
+    const option = document.createElement("option");
+    option.value = code;
+    option.textContent = journeyDisplay(code);
+    select.appendChild(option);
+  });
+  select.value = options.includes(preferred) ? preferred : "";
+}
+
 function isBuilderFlow() {
   const params = new URLSearchParams(window.location.search);
   return params.get("flow") === "builder";
@@ -331,6 +376,7 @@ if (dateEl) {
 
     console.log("[session] athletes loaded:", athletes.length, athletes);
 
+    populateJourneyRosterFilter();
     applyFilters();
 
     if (!sessionLocked) {
@@ -349,10 +395,12 @@ if (dateEl) {
 
 function applyFilters() {
   const search = String($("searchAthlete")?.value || "").toLowerCase().trim();
+  const journeyFilter = normalizeJourneyCode($("journeyRosterFilter")?.value || "");
 
   filteredAthletes = athletes.filter((athlete) => {
     if (!programMatchesAthlete(athlete)) return false;
     if (checkedIn.has(athlete.id)) return false;
+    if (journeyFilter && rosterJourneyForAthlete(athlete) !== journeyFilter) return false;
 
     const name = athleteName(athlete).toLowerCase();
     const id = String(athlete.id || "").toLowerCase();
@@ -1138,6 +1186,7 @@ function bindEvents() {
   $("addTrainingGroupBtn")?.addEventListener("click", addTrainingGroup);
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
+  $("journeyRosterFilter")?.addEventListener("change", applyFilters);
 
   $("reviewAttendanceBtn")?.addEventListener("click", () => {
     if (!checkedIn.size) {
