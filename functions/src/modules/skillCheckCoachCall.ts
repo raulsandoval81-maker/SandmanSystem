@@ -996,6 +996,74 @@ export const skillCheckCoachCall =
         coverageComplete:false,evidenceApproved:false,eligibleForAuto:false};
     }
 
+    if (action === "recheck-native-history-checkpoint") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Native history recheck requires Admin authority.");
+      }
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1) {
+        throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
+      }
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const snapshot = await ref.get();
+      const current = snapshot.data() || {};
+      if (!snapshot.exists || Number(current.revision) !== expectedRevision) {
+        throw new HttpsError("aborted", "Checkpoint changed. Reload.");
+      }
+      if (current.attendanceScanExhausted !== true || current.skillScanExhausted !== true) {
+        throw new HttpsError("failed-precondition", "Finish both scans before rechecking sources.");
+      }
+      const ids = Array.isArray(current.inventoryPracticeIds) ? current.inventoryPracticeIds.map(String) : [];
+      const evidenceIds = new Set(Array.isArray(current.evidencePracticeIds)
+        ? current.evidencePracticeIds.map(String) : []);
+      // Recheck is bounded; oversized histories cannot be pronounced verified.
+      if (ids.length > 20) return {ok:true,diagnosticOnly:true,
+        blockers:["full-source-recheck-required-for-large-history"],
+        recordsChecked:0,coverageComplete:false,evidenceApproved:false,eligibleForAuto:false};
+      const blockers: string[] = [];
+      for (const id of ids) {
+        optionalPracticeId(id);
+        const [practiceSnap, attendanceSnap, memorySnap, skillsSnap] = await Promise.all([
+          db.doc(`practiceSessions/${id}`).get(),
+          db.doc(`attendance_sessions/${id}`).get(),
+          db.doc(`practiceSessions/${id}/athletes/${athleteId}`).get(),
+          db.collection(`practiceSessions/${id}/athletes/${athleteId}/verifiedSkills`).get(),
+        ]);
+        const practice = practiceSnap.data() || {};
+        const attendance = attendanceSnap.data() || {};
+        const memory = memorySnap.data() || {};
+        if (!practiceSnap.exists || !attendanceSnap.exists || !memorySnap.exists
+            || clean(practice.locationId) !== clean(athlete.locationId)
+            || normalizeDiscipline(practice.discipline) !== discipline
+            || clean(attendance.practiceId) !== id || attendance.finalized !== true
+            || clean(attendance.status).toLowerCase() !== "finalized"
+            || !attendanceIncludesAthlete(attendance, athleteId)
+            || clean(memory.practiceId) !== id
+            || clean(memory.athleteId).toUpperCase() !== athleteId
+            || normalizeDiscipline(memory.discipline) !== discipline
+            || clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() !== "present") {
+          blockers.push("recheck-source-changed:" + id);
+          continue;
+        }
+        const verified = !skillsSnap.empty && skillsSnap.docs.every(doc => {
+          const skill = doc.data() || {};
+          return normalizeDiscipline(skill.discipline) === discipline
+            && familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+            && ALLOWED_STATES.includes(normalizeState(skill.state))
+            && Boolean(clean(skill.coachUid)) && skill.verifiedAt instanceof Timestamp;
+        });
+        if (verified !== evidenceIds.has(id)) blockers.push("recheck-evidence-presence-changed:" + id);
+        if (!skillsSnap.empty && !verified) blockers.push("recheck-invalid-evidence:" + id);
+      }
+      // No persisted approval and no certification: practice ID membership is
+      // insufficient to detect changes to individual skill observations.
+      blockers.push("per-observation-freshness-certification-required");
+      blockers.push("independent-source-coverage-certification-required");
+      return {ok:true,diagnosticOnly:true,recordsChecked:ids.length,
+        blockers:[...new Set(blockers)].sort(),coverageComplete:false,
+        evidenceApproved:false,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
