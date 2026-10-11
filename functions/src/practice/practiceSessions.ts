@@ -323,7 +323,7 @@ export const openPracticeSession = onCall(async (request) => {
       coachUid: existing.exists ? String(current.coachUid || actor.uid) : actor.uid,
       coachRole: existing.exists ? String(current.coachRole || actor.role) : actor.role,
       status: "active",
-      entryMode: "normal",
+      entryMode: existing.exists ? String(current.entryMode || "normal") : "normal",
       ...(sessionDateKey ? { sessionDateKey } : {}),
       discipline,
       journey: String(input.journey || "").trim(),
