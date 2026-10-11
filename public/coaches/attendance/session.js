@@ -323,7 +323,9 @@ if (dateEl) {
       .filter((athlete) => {
         if (!athlete.id) return false;
         const status = String(athlete.rosterStatus || "current").toLowerCase();
-        return status === "current";
+        const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
+        const athleteLocationId = String(athlete.locationId || "").trim();
+        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
       })
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
@@ -472,14 +474,22 @@ async function checkInAthlete(id) {
   };
 
   const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
-  const response = await updateCheckIn({ practiceId: activePractice.practiceId, action: "add", athleteId: id });
-  const attendance = response.data?.attendance || {};
-  checkedIn = new Map((Array.isArray(attendance.checkedIn) ? attendance.checkedIn : [])
-    .map((item) => [item.id || item.uid, item]));
+  try {
+    const response = await updateCheckIn({ practiceId: activePractice.practiceId, action: "add", athleteId: id });
+    const attendance = response.data?.attendance || {};
+    checkedIn = new Map((Array.isArray(attendance.checkedIn) ? attendance.checkedIn : [])
+      .map((item) => [item.id || item.uid, item]));
 
-  setStatus(`${payload.name} checked in.`);
-  applyFilters();
-  renderCheckedIn();
+    setStatus(`${payload.name} checked in.`);
+    applyFilters();
+    renderCheckedIn();
+  } catch (error) {
+    console.error("[session] athlete check-in failed", error);
+    const message = String(error?.message || "Athlete check-in failed.");
+    setStatus(message.includes("outside the practice location")
+      ? "That athlete is not assigned to this practice location."
+      : message, true);
+  }
 }
 
 function renderCheckedIn() {
