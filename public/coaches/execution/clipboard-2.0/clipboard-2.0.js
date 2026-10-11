@@ -10,6 +10,7 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
+import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
 
 
 import {
@@ -461,6 +462,43 @@ if (!SCHEMAS[builderSession.schema] && isRecoverableDraft(storedDraft) && stored
 if (!SCHEMAS[builderSession.schema] && !isRecoverableDraft(storedDraft)) {
   shouldRedirectToBuilder = true;
   window.location.replace("/coaches/execution/session-builder/?notice=choose-session");
+}
+
+// Reconcile locally assembled groups against the server-owned attendance
+// roster before offering any group lesson. This does NOT approve progression.
+if (["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase())
+    && builderSession.practiceId && !shouldRedirectToBuilder) {
+  try {
+    await ensureSignedIn();
+    const verifyPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await verifyPractice({ practiceId: builderSession.practiceId });
+    if (String(result.data?.practice?.status || "").toLowerCase() !== "active") {
+      throw new Error("Practice is no longer active.");
+    }
+    const attendanceSnap = await getDoc(doc(db, "attendance_sessions", builderSession.practiceId));
+    if (!attendanceSnap.exists()) throw new Error("No canonical attendance record was found.");
+    const attendance = attendanceSnap.data() || {};
+    const check = reconcileCheckedInGroups(
+      builderSession.trainingGroups, attendance.checkedInIds
+    );
+    if (!check.ok) throw new Error(check.reason);
+    builderSession = {
+      ...builderSession, attendanceRosterVerified: true,
+      attendanceCheckedInCount: check.checkedInCount,
+      autoPendingVerification: String(builderSession.executionMode).toLowerCase() === "auto"
+    };
+  } catch (error) {
+    console.warn("[clipboard] Canonical attendance check failed", error);
+    builderSession = {
+      ...builderSession, attendanceRosterVerified: false,
+      groupPrescriptions: [],
+      autoPendingVerification: true
+    };
+    const status = document.getElementById("saveStatus");
+    if (status) status.textContent = "Attendance verification needed: " +
+      (error?.message || "Return to Attendance.");
+  }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
 }
 
 const week =
