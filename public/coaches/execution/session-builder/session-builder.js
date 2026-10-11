@@ -858,13 +858,40 @@ async function openCanonicalPractice(payload) {
       liveSessionId: payload.sessionId,
       sessionDateKey: payload.sessionDateKey,
       program: "attendance-routed",
-      discipline: payload.discipline,
+      discipline: "unassigned",
       practiceKey: `history-${payload.sessionId}`
     });
     const practiceId = String(response.data?.practiceId || "").trim();
     if (!practiceId) throw new Error("Historical practice identity was not returned.");
+
+    const bindHistoricalRoute = httpsCallable(functions, "openPracticeSession");
+    await bindHistoricalRoute({
+      practiceId,
+      liveSessionId: payload.sessionId,
+      locationId: payload.locationId,
+      academyId: payload.locationId,
+      roomId: payload.roomId,
+      sessionDateKey: payload.sessionDateKey,
+      discipline: payload.discipline,
+      journey: "",
+      program: "attendance-routed",
+      track: "",
+      tier: payload.tier || "",
+      week: payload.week || "",
+      schema: payload.schema,
+      executionMode: payload.executionMode,
+      durationMinutes: payload.durationMinutes
+    });
+
     activePracticeId = practiceId;
-    return { ...payload, practiceId, entryMode: "after-the-fact", source: "historical-session-builder" };
+    return {
+      ...payload,
+      practiceId,
+      program: "attendance-routed",
+      journey: "",
+      entryMode: "after-the-fact",
+      source: "historical-session-builder"
+    };
   }
 
   const openPractice = httpsCallable(functions, "openPracticeSession");
