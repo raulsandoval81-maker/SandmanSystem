@@ -22,7 +22,8 @@ function safeLocationId(coachContext) {
   const locations = Array.isArray(coachContext?.scope?.locationIds)
     ? coachContext.scope.locationIds
     : [];
-  return String(locations[0] || coachContext?.locationId || "").trim();
+  return String(locations[0] || coachContext?.locationId ||
+    (coachContext?.uid ? "coach-user-" + coachContext.uid : "")).trim();
 }
 
 function summaryDocId(locationId) {
