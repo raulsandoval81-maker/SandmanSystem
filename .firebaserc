@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "sandmandashboard"
+    "default": "sandmandashboard",
+    "staging": "sandman-combat-staging"
   },
   "targets": {
     "sandmandashboard": {
