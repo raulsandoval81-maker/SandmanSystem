@@ -552,10 +552,10 @@ function normalizeAthleteTier(athlete = {}, ladder = ladderForPractice()) {
   if (/^R[0-4]$/.test(direct)) return tierFromLadderKey(direct);
 
   const rank = String(athlete.rankName || athlete.rank || "").trim().toLowerCase();
-  if (!rank) return "T0";
+  if (!rank) return "";
 
   const match = ladder.find((item) => String(item?.name || "").trim().toLowerCase() === rank);
-  return match ? tierFromLadderKey(match.key) : "T0";
+  return match ? tierFromLadderKey(match.key) : "";
 }
 
 function athleteAgeGroup(athlete = {}) {
@@ -665,7 +665,7 @@ function suggestedTrainingGroups() {
     const discipline = disciplineForAthlete(athlete) || String(activePractice?.discipline || "").toLowerCase();
     const athleteLadder = ladderForJourney(journey);
     const tier = normalizeAthleteTier(athlete, athleteLadder);
-    const key = `${discipline}|${journey}|${ageGroup}|${tier}`;
+    const key = `${discipline}|${journey}|${ageGroup}`;
 
     if (!buckets.has(key)) {
       buckets.set(key, {
@@ -673,7 +673,7 @@ function suggestedTrainingGroups() {
         journey,
         discipline,
         tier,
-        rank: rankForTier(tier, journey),
+        rank: tier ? rankForTier(tier, journey) : "",
         athleteIds: [],
         athleteNames: []
       });
@@ -700,8 +700,8 @@ function suggestedTrainingGroups() {
       ageGroup: "Athletes",
       journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
       discipline: String(activePractice?.discipline || "unassigned").toLowerCase(),
-      tier: "T0",
-      rank: rankForTier("T0", normalizeJourneyCode(activePractice?.journey) || "Z2H"),
+      tier: "",
+      rank: "",
       athleteIds: [],
       athleteNames: []
     }];
@@ -724,10 +724,12 @@ function suggestedTrainingGroups() {
 }
 
 function tierOptions(selected = "", journey = activePractice?.journey) {
-  return ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
+  const blank = '<option value=""' + (!selected ? ' selected' : '') + '>Skill Card evidence required</option>';
+  const options = ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
     const tier = tierFromLadderKey(rank.key);
     return `<option value="${tier}"${tier === selected ? " selected" : ""}>${tier} — ${rank.name}</option>`;
   }).join("");
+  return blank + options;
 }
 
 function renderTrainingGroups(groups = suggestedTrainingGroups()) {
@@ -764,8 +766,8 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         </label>
 
         <label>
-          Tier
-          <select class="training-tier">
+          Skill Card Tier
+          <select class="training-tier" disabled>
             ${tierOptions(group.tier, group.journey)}
           </select>
         </label>
@@ -853,7 +855,7 @@ function updateGroupControls() {
   if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} training group${count === 1 ? "" : "s"} generated from attendance. All groups remain on Mat 1 and share one Practice ID.`;
+      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Rank/tier are never inferred here; Skill Card evidence must supply progression.`;
   }
 }
 
@@ -866,8 +868,8 @@ function addTrainingGroup() {
     ageGroup: previous.ageGroup || "Teen",
     journey,
     discipline: previous.discipline || String(activePractice?.discipline || "unassigned").toLowerCase(),
-    tier: previous.tier || "T0",
-    rank: rankForTier(previous.tier || "T0", journey),
+    tier: previous.tier || "",
+    rank: previous.tier ? rankForTier(previous.tier, journey) : "",
     trainingSession: previous.trainingSession || "1",
     carryForwardNote: "",
     athleteIds: [],
@@ -879,7 +881,7 @@ function addTrainingGroup() {
 function captureTrainingGroups() {
   return [...document.querySelectorAll(".training-group-card")].map((card, index) => {
     const journey = String(card.querySelector(".training-journey")?.value || normalizeJourneyCode(activePractice?.journey) || "Z2H").trim();
-    const tier = String(card.querySelector(".training-tier")?.value || "T0").trim();
+    const tier = String(card.querySelector(".training-tier")?.value || "").trim();
     return {
       id: `group-${index + 1}`,
       label: `Group ${String.fromCharCode(65 + index)}`,
@@ -918,9 +920,10 @@ function updateCompositionBanners(groups = captureTrainingGroups()) {
     progress.textContent = groups.length
       ? groups.map((group) => {
           const discipline = disciplineDisplay(group.discipline);
-          const rank = [group.tier, group.rank].filter(Boolean).join(" ");
+          const progress = [group.tier, group.rank].filter(Boolean).join(" ");
           const count = (group.athleteIds || []).length;
-          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), rank].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
+          const evidence = progress || "Skill Card evidence required";
+          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), evidence].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
         }).join(" | ")
       : "Groups will be generated from the athletes who are here.";
   }
