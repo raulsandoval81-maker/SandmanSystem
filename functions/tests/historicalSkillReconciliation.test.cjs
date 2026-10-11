@@ -377,3 +377,30 @@ test("conflicting latest skill states are not silently selected", () => {
   assert.equal(result.approved, false);
   assert.ok(result.blockers.includes("conflicting-state:double_leg"));
 });
+
+const {reconcileNativeHistoryPages} = require("../lib/modules/verifiedProgressionResolver");
+const nativePage = (cursor,nextCursor,scopeExhausted,observations) => ({
+  scope:"athlete-location",cursor,nextCursor,scopeExhausted,observations
+});
+test("exhaustive server-owned native pages produce a read-only verified snapshot", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location"],[
+    nativePage(null,"page1",false,[nativeObservation("LEARNED")]),
+    nativePage("page1",null,true,[]),
+  ]);
+  assert.equal(result.approved,true,JSON.stringify(result.blockers));
+  assert.equal(result.eligibleForAuto,false);
+});
+test("missing native history page fails closed", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location"],[
+    nativePage(null,"missing",false,[nativeObservation()]),
+  ]);
+  assert.equal(result.approved,false);
+  assert.ok(result.blockers.includes("missing-page:athlete-location"));
+});
+test("incomplete final page fails closed", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location"],[
+    nativePage(null,null,false,[nativeObservation()]),
+  ]);
+  assert.equal(result.approved,false);
+  assert.ok(result.blockers.includes("scope-not-exhausted:athlete-location"));
+});
