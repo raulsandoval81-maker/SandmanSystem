@@ -140,10 +140,19 @@
     .practice-start__field input[readonly],
     .practice-start__field input:disabled{
       opacity:1;
-      color:var(--practice-text);
-      -webkit-text-fill-color:var(--practice-text);
+      color:#f7f7f5;
+      -webkit-text-fill-color:#f7f7f5;
       background:#0d131b;
-      border-color:rgba(255,255,255,.18);
+      border-color:rgba(255,255,255,.24);
+    }
+
+    html[data-theme="light"] .practice-start__field input[readonly],
+    html[data-theme="light"] .practice-start__field input:disabled{
+      opacity:1;
+      color:#171717;
+      -webkit-text-fill-color:#171717;
+      background:#fff;
+      border-color:rgba(8,8,8,.30);
     }
 
     .choice-panel{
