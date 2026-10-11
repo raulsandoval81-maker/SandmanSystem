@@ -154,3 +154,36 @@ export function assessIndependentCoverage(
     eligibleForAuto:false as const,
   };
 }
+
+// Compare two independently server-retrieved practice ID inventories before
+// certification. This is a prerequisite check, NOT a signed certificate.
+export function compareNativePracticeInventories(
+  discoveredPracticeIds: readonly string[],
+  independentlyEnumeratedPracticeIds: readonly string[],
+  independentQueryExhausted: boolean,
+  independentQueryAuthorized: boolean,
+) {
+  const blockers = new Set<string>();
+  const valid = (id: string) => KEY.test(id);
+  if (!independentQueryAuthorized) blockers.add("independent-inventory-unauthorized");
+  if (!independentQueryExhausted) blockers.add("independent-inventory-not-exhausted");
+  if (discoveredPracticeIds.some(id => !valid(id)) ||
+      independentlyEnumeratedPracticeIds.some(id => !valid(id))) blockers.add("invalid-practice-id");
+  const discovered = new Set(discoveredPracticeIds);
+  const independent = new Set(independentlyEnumeratedPracticeIds);
+  if (discovered.size !== discoveredPracticeIds.length) blockers.add("duplicate-discovery-practice");
+  if (independent.size !== independentlyEnumeratedPracticeIds.length) blockers.add("duplicate-inventory-practice");
+  const missingFromDiscovery = [...independent].filter(id => !discovered.has(id)).sort();
+  const missingFromInventory = [...discovered].filter(id => !independent.has(id)).sort();
+  if (missingFromDiscovery.length) blockers.add("practice-missing-from-discovery");
+  if (missingFromInventory.length) blockers.add("practice-missing-from-independent-inventory");
+  return {
+    matchingInventories: blockers.size === 0,
+    missingFromDiscovery,
+    missingFromInventory,
+    blockers: [...blockers].sort(),
+    // A matching ID inventory does not certify the contents or full history.
+    coverageComplete: false as const,
+    eligibleForAuto: false as const,
+  };
+}
