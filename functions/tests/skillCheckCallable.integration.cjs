@@ -1051,3 +1051,21 @@ test("resumable full-history recheck advances past twenty records without certif
  assert.ok(last.issues.some(x=>x.startsWith("recheck-source-changed:")));
  await assert.rejects(invoke(last.revision),e=>e.code==="failed-precondition");
 });
+
+test("consistency pass requires completed recheck and remains diagnostic",async()=>{
+ const id="F8_NATIVE_CONSISTENCY_PASS";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ const ref=db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling");
+ await ref.set({revision:1,attendanceScanExhausted:true,skillScanExhausted:true,
+   fullRecheckExhausted:true,inventoryPracticeIds:["missing-consistency-source"],
+   evidencePracticeIds:[],eligibleForAuto:false});
+ const invoke=(action,revision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+   data:{action,athleteId:id,discipline:"wrestling",expectedRevision:revision}});
+ await assert.rejects(invoke("advance-native-consistency-pass",1),e=>e.code==="failed-precondition");
+ const begun=await invoke("begin-native-consistency-pass",1);
+ const result=await invoke("advance-native-consistency-pass",begun.revision);
+ assert.equal(result.scanExhausted,true);
+ assert.ok(result.issues.includes("recheck-source-changed:missing-consistency-source"));
+ assert.equal(result.eligibleForAuto,false);
+ await assert.rejects(invoke("advance-native-consistency-pass",result.revision),e=>e.code==="failed-precondition");
+});
