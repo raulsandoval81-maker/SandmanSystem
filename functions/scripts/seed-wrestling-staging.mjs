@@ -37,20 +37,20 @@ const stage = (path, value) => {
   writes.set(path, { ...value, synthetic: true });
 };
 
-stage("staff/staging-coach-wrestling", { role: "coach", status: "active", locationIds: ["staging-location"], academyIds: ["staging-academy"] });
+stage("staff/staging-coach-wrestling", { role: "coach", status: "active", locationIds: ["santa-ynez-valley"], academyIds: ["staging-academy"] });
 stage("staff/staging-outsider-coach", { role: "coach", status: "active", locationIds: ["outside-location"] });
-stage("athletes/staging-athlete-beginner", { displayName: "Synthetic Beginner", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
-stage("athletes/staging-athlete-intermediate", { displayName: "Synthetic Intermediate", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
-stage("athletes/staging-athlete-advanced", { displayName: "Synthetic Advanced", locationId: "staging-location", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("athletes/staging-athlete-beginner", { displayName: "Synthetic Beginner", locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("athletes/staging-athlete-intermediate", { displayName: "Synthetic Intermediate", locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
+stage("athletes/staging-athlete-advanced", { displayName: "Synthetic Advanced", locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"] });
 stage("families/staging-family", { displayName: "Synthetic Family", athleteIds: roster });
-stage("practiceSessions/staging-wrestling-practice", { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-10-10", status: "open", createdAt: now });
+stage("practiceSessions/staging-wrestling-practice", { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-10-10", status: "open", createdAt: now });
 stage("attendance_sessions/staging-wrestling-practice", { practiceId: "staging-wrestling-practice", discipline: "wrestling", status: "pending", finalized: false, checkedInIds: roster });
 for (const athleteId of roster) {
   stage(`practiceSessions/staging-wrestling-practice/athletes/${athleteId}`, { practiceId: "staging-wrestling-practice", athleteId, discipline: "wrestling", attendance: { status: "present" } });
 }
 
 const historyPractice = "staging-wrestling-history";
-stage(`practiceSessions/${historyPractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed" });
+stage(`practiceSessions/${historyPractice}`, { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed" });
 stage(`attendance_sessions/${historyPractice}`, { practiceId: historyPractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-intermediate", "staging-athlete-advanced"] });
 for (const athleteId of ["staging-athlete-intermediate", "staging-athlete-advanced"]) {
   stage(`practiceSessions/${historyPractice}/athletes/${athleteId}`, { practiceId: historyPractice, athleteId, discipline: "wrestling", attendance: { status: "present" } });
@@ -63,13 +63,13 @@ for (const familyId of ["stance_motion", "level_change_entry", "angle", "head_po
 }
 
 const stalePractice = "staging-wrestling-stale-evidence";
-stage(`practiceSessions/${stalePractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2020-01-01", status: "closed", evidenceScenario: "stale" });
+stage(`practiceSessions/${stalePractice}`, { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2020-01-01", status: "closed", evidenceScenario: "stale" });
 stage(`attendance_sessions/${stalePractice}`, { practiceId: stalePractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-intermediate"], evidenceScenario: "stale" });
 stage(`practiceSessions/${stalePractice}/athletes/staging-athlete-intermediate`, { practiceId: stalePractice, athleteId: "staging-athlete-intermediate", discipline: "wrestling", attendance: { status: "present" }, evidenceScenario: "stale" });
 stage(`practiceSessions/${stalePractice}/athletes/staging-athlete-intermediate/verifiedSkills/wrestling__single_leg`, { discipline: "wrestling", familyId: "single_leg", state: "LEARNED", coachUid: "staging-coach-wrestling", verifiedAt: staleDate, evidenceScenario: "stale" });
 
 const conflictPractice = "staging-wrestling-conflicting-evidence";
-stage(`practiceSessions/${conflictPractice}`, { coachUid: "staging-coach-wrestling", locationId: "staging-location", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed", evidenceScenario: "conflicting" });
+stage(`practiceSessions/${conflictPractice}`, { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed", evidenceScenario: "conflicting" });
 stage(`attendance_sessions/${conflictPractice}`, { practiceId: conflictPractice, discipline: "wrestling", status: "finalized", finalized: true, presentIds: ["staging-athlete-advanced"], evidenceScenario: "conflicting" });
 stage(`practiceSessions/${conflictPractice}/athletes/staging-athlete-advanced`, { practiceId: conflictPractice, athleteId: "staging-athlete-advanced", discipline: "wrestling", attendance: { status: "present" }, evidenceScenario: "conflicting" });
 stage(`practiceSessions/${conflictPractice}/athletes/staging-athlete-advanced/verifiedSkills/wrestling__double_leg`, { discipline: "wrestling", familyId: "double_leg", state: "LEARNED", coachUid: "staging-coach-wrestling", verifiedAt: historicalDate, evidenceScenario: "conflicting" });
