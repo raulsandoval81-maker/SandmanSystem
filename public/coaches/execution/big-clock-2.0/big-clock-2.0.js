@@ -257,6 +257,35 @@ function getSessionPayload() {
   }
 }
 
+function enforcePracticeHandoff() {
+  const query = new URLSearchParams(window.location.search);
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(
+    query.get("practiceId") ||
+    payload.practiceId ||
+    session.practiceId ||
+    ""
+  ).trim();
+  const sessionId = String(
+    query.get("session") ||
+    payload.sessionId ||
+    session.sessionId ||
+    ""
+  ).trim();
+
+  if (!practiceId || !sessionId) {
+    window.location.replace("/coaches/practice/?notice=clock-requires-practice");
+    return false;
+  }
+  return true;
+}
+
+if (!enforcePracticeHandoff()) {
+  throw new Error("Big Clock requires an active practice handoff.");
+}
+
+
 function isFastPass() {
   const payload = getPayload();
   return payload.source === "session-builder-fast-pass"
