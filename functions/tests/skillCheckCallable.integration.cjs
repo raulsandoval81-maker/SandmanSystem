@@ -909,3 +909,39 @@ test("native checkpoint advances attendance inventory using server-owned cursor 
  await assert.rejects(request("test-admin-transfer","advance-native-history-checkpoint",{expectedRevision:1}),
   e=>e.code==="aborted");
 });
+
+test("resumable native skill scan distinguishes attendance-only records from verified skills",async()=>{
+ const id="F8_NATIVE_SKILL_BATCH",practiceId="native-skill-batch";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({
+  coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",
+  discipline:"wrestling",sessionDateKey:"2026-10-11"
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({
+  practiceId,athleteId:id,discipline:"wrestling",attendance:{status:"present"}
+ });
+ const invoke=(action,expectedRevision,extra={})=>callable.run({
+  auth:{uid:"test-admin-transfer",token:{}},
+  data:{action,athleteId:id,discipline:"wrestling",expectedRevision,...extra}
+ });
+ const opened=await invoke("open-native-history-checkpoint",0);
+ await assert.rejects(invoke("advance-native-skill-evidence-checkpoint",opened.revision),
+  e=>e.code==="failed-precondition");
+ const inventory=await invoke("advance-native-history-checkpoint",opened.revision);
+ assert.equal(inventory.scanExhausted,true);
+ const evidence=await invoke("advance-native-skill-evidence-checkpoint",inventory.revision,{
+  evidencePracticeIds:["forged"],eligibleForAuto:true
+ });
+ assert.equal(evidence.skillScanExhausted,true);
+ assert.equal(evidence.verifiedEvidencePracticeCount,0);
+ const checkpoint=await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").get();
+ assert.deepEqual(checkpoint.data().evidencePracticeIds,[]);
+ assert.deepEqual(checkpoint.data().skillEvidenceIssues,[]);
+ assert.equal(checkpoint.data().eligibleForAuto,false);
+ await assert.rejects(invoke("advance-native-skill-evidence-checkpoint",inventory.revision),
+  e=>e.code==="aborted");
+});
