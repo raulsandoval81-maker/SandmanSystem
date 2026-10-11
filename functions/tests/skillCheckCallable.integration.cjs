@@ -1046,6 +1046,7 @@ test("resumable full-history recheck advances past twenty records without certif
  const last=await invoke(second.revision);
  assert.equal(last.recordsChecked,21);
  assert.equal(last.scanExhausted,true);
+ assert.ok(last.issues.includes("cross-batch-atomic-consistency-not-proven"));
  assert.equal(last.coverageComplete,false);
  assert.ok(last.issues.some(x=>x.startsWith("recheck-source-changed:")));
  await assert.rejects(invoke(last.revision),e=>e.code==="failed-precondition");
