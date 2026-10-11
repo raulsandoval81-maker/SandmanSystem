@@ -979,3 +979,30 @@ test("native checkpoint recheck detects attendance changes after completed scans
  assert.equal(after.evidenceApproved,false);
  await assert.rejects(invoke("recheck-native-history-checkpoint",scanned.revision),e=>e.code==="aborted");
 });
+
+test("native recheck detects changed verified skill state after scan",async()=>{
+ const {Timestamp}=require("firebase-admin/firestore");
+ const id="F8_NATIVE_STATE_DRIFT",practiceId="native-state-drift";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({coachUid:"test-coach",
+   locationId:"test-location",academyId:"test-academy",discipline:"wrestling",sessionDateKey:"2026-10-11"});
+ await db.doc("attendance_sessions/"+practiceId).set({practiceId,locationId:"test-location",
+   discipline:"wrestling",status:"finalized",finalized:true,presentIds:[id]});
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({practiceId,athleteId:id,
+   discipline:"wrestling",attendance:{status:"present"}});
+ const skillRef=db.doc("practiceSessions/"+practiceId+"/athletes/"+id+"/verifiedSkills/wrestling__double_leg");
+ await skillRef.set({discipline:"wrestling",familyId:"double_leg",state:"LEARNED",
+   coachUid:"test-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-11T18:00:00Z"))});
+ const invoke=(action,expectedRevision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+   data:{action,athleteId:id,discipline:"wrestling",expectedRevision}});
+ const opened=await invoke("open-native-history-checkpoint",0);
+ const inventory=await invoke("advance-native-history-checkpoint",opened.revision);
+ const evidence=await invoke("advance-native-skill-evidence-checkpoint",inventory.revision);
+ const before=await invoke("recheck-native-history-checkpoint",evidence.revision);
+ assert.equal(before.blockers.includes("recheck-skill-observations-changed:"+practiceId),false);
+ await skillRef.update({state:"APPLIED"});
+ const after=await invoke("recheck-native-history-checkpoint",evidence.revision);
+ assert.ok(after.blockers.includes("recheck-skill-observations-changed:"+practiceId));
+ assert.equal(after.evidenceApproved,false);
+ assert.equal(after.eligibleForAuto,false);
+});
