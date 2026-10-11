@@ -338,3 +338,42 @@ test("supporting Wrestling skills never block draft track readiness",()=>{
  assert.equal(withoutFoundation.athletes[0].practice,false);
  assert.deepEqual(withoutFoundation.athletes[0].missingForPractice,["level_change_entry"]);
 });
+
+const { reconcileVerifiedProgression } = require("../lib/modules/verifiedProgressionResolver");
+const nativeObservation = (state = "LEARNED") => ({
+  practiceId: "practice_A", familyId: "double_leg", state,
+  coachUid: "coach_A", discipline: "wrestling",
+  verifiedAt: "2026-10-11T18:00:00.000Z"
+});
+const nativeInput = (extras = {}) => ({
+  athleteId: "F8_0001", discipline: "wrestling", native: [nativeObservation()],
+  acceptedTransfer: [], nativeCoverageComplete: true,
+  transferRequired: false, transferAccepted: false, ...extras
+});
+test("native Sandman evidence does not require a historical transfer", () => {
+  const result = reconcileVerifiedProgression(nativeInput());
+  assert.equal(result.approved, true);
+  assert.equal(result.evidenceSource, "native");
+  assert.equal(result.eligibleForAuto, false);
+  assert.deepEqual(result.skills, [{familyId:"double_leg",state:"LEARNED"}]);
+});
+test("incomplete native coverage never approves a progression snapshot", () => {
+  const result = reconcileVerifiedProgression(nativeInput({nativeCoverageComplete:false}));
+  assert.equal(result.approved, false);
+  assert.ok(result.blockers.includes("native-history-coverage-unverified"));
+});
+test("unaccepted transfer is never blended into native evidence", () => {
+  const result = reconcileVerifiedProgression(nativeInput({
+    transferRequired:true, acceptedTransfer:[nativeObservation("MASTERED")]
+  }));
+  assert.equal(result.approved, false);
+  assert.ok(result.blockers.includes("transfer-evidence-not-accepted"));
+  assert.equal(result.skills[0].state,"LEARNED");
+});
+test("conflicting latest skill states are not silently selected", () => {
+  const result = reconcileVerifiedProgression(nativeInput({
+    native:[nativeObservation("LEARNED"),nativeObservation("APPLIED")]
+  }));
+  assert.equal(result.approved, false);
+  assert.ok(result.blockers.includes("conflicting-state:double_leg"));
+});
