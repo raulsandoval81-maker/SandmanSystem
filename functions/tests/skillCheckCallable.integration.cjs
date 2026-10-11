@@ -542,7 +542,8 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.trackReadiness.find(item=>item.familyId==="double_leg").athletes[0].practice,false);
  assert.equal(group.trackReadiness.find(item=>item.familyId==="single_leg").policyApproved,false);
  assert.deepEqual(group.trackReadiness.find(item=>item.familyId==="double_leg").mandatoryFoundations,["level_change_entry"]);
- assert.deepEqual(group.trackReadiness.find(item=>item.familyId==="chain_wrestling").supportingSkills,["double_leg","single_leg"]);
+ const chainPreview=await invoke("preview-group-lessons",{athleteIds:[id],familyIds:["chain_wrestling"]});
+ assert.deepEqual(chainPreview.trackReadiness.find(item=>item.familyId==="chain_wrestling").supportingSkills,["double_leg","single_leg"]);
  assert.equal(group.supervisedSuggestion.ready,false);
  assert.equal(group.supervisedSuggestion.selection,null);
  assert.ok(group.supervisedSuggestion.blockers.includes("curriculum-policy-not-approved"));
