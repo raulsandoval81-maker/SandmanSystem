@@ -13,7 +13,22 @@ const prepared = spawnSync(process.execPath, ["scripts/staging/prepare-staging-h
 if (prepared.status !== 0) process.exit(prepared.status ?? 1);
 const deployed = spawnSync("npx", [
   "--yes", "firebase-tools@15.11.0", "deploy", "--config", "firebase.staging.json",
-  "--project", boundary.projectId, "--only", "hosting,functions:skillCheckCoachCall,firestore:rules",
+  "--project", boundary.projectId, "--only", [
+    "hosting",
+    "functions:skillCheckCoachCall",
+    "functions:openPracticeSession",
+    "functions:createOrRecoverCanonicalPractice",
+    "functions:getPracticeAttendanceReview",
+    "functions:updatePracticeCheckIn",
+    "functions:finalizePracticeAttendance",
+    "functions:completePracticeDailyGrind",
+    "functions:savePracticeAthleteInput",
+    "functions:getPracticeSession",
+    "functions:closePracticeSession",
+    "functions:savePracticeSessionMemory",
+    "functions:saveDailyPracticeLog",
+    "firestore:rules",
+  ].join(","),
   "--non-interactive",
 ], { stdio: "inherit", env: process.env, shell: false });
 process.exit(deployed.status ?? 1);
