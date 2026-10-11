@@ -60,11 +60,8 @@ const modeField = document.getElementById("modeField");
 const buildBtn = document.getElementById("buildBtn");
 const modeAvailability = document.getElementById("modeAvailability");
 const summaryAvailability = document.getElementById("summaryAvailability");
-const prePracticeGate = document.getElementById("prePracticeGate");
 const currentSessionSection = document.getElementById("currentSessionSection");
 const newSessionSection = document.getElementById("newSessionSection");
-const setupPrePracticeBtn = document.getElementById("setupPrePracticeBtn");
-const skipCleanSlateBtn = document.getElementById("skipCleanSlateBtn");
 const guidedSetupScreen = document.getElementById("guidedSetupScreen");
 const practiceContextScreen = document.getElementById("practiceContextScreen");
 const continueToContextBtn = document.getElementById("continueToContextBtn");
@@ -578,7 +575,6 @@ function updateSummary() {
 }
 
 function showPrePracticeSetup() {
-  if (prePracticeGate) prePracticeGate.hidden = true;
   if (currentSessionSection) currentSessionSection.hidden = true;
   if (newSessionSection) newSessionSection.hidden = false;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
@@ -592,84 +588,6 @@ function showPracticeContext() {
   updateConditionalControls();
   updateSummary();
   practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-function cleanSlatePayload() {
-  const room = selectedRoom();
-  if (!room) return null;
-  return {
-    schema: "fast-practice",
-    durationMinutes: 60,
-    xpTimeScale: "standard",
-    executionMode: "manual",
-    practiceId: "",
-    sessionId: room.value,
-    locationId: room.locationId,
-    academyId: room.locationId,
-    roomId: room.roomId,
-    roomValue: room.value,
-    program: "",
-    foundry: "",
-    track: "",
-    journey: "",
-    discipline: "unassigned",
-    tier: "",
-    rank: "",
-    rankLabel: "",
-    week: "",
-    hybridPhase: "",
-    hybridCycle: "",
-    hybridWeekInCycle: "",
-    hybridWaveKey: "",
-    hybridWave: [],
-    hybridCards: [],
-    hybridRules: {},
-    source: "session-builder-clean-slate",
-    sessionDateKey: String(practiceEntryIntent().sessionDateKey || ""),
-    createdAt: new Date().toISOString()
-  };
-}
-
-async function skipToPractice() {
-  const existingDraft = getRecoverableDraft();
-  if (existingDraft && !window.confirm("Skip setup and leave the unfinished Clipboard draft?")) return;
-  let payload = cleanSlatePayload();
-  if (!payload) {
-    const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = "Choose a valid room before starting practice.";
-    noticeEl.hidden = false;
-    return;
-  }
-
-  selectedMode = "manual";
-  skipCleanSlateBtn.disabled = true;
-
-  try {
-    payload = await openCanonicalPractice(payload);
-    payload.source = "session-builder-fast-pass";
-    persistSession(payload);
-    const fastClockPayload = {
-      source: "session-builder-fast-pass",
-      practiceId: payload.practiceId,
-      sessionId: payload.sessionId,
-      durationMinutes: 60,
-      blocks: [{
-        title: "Practice",
-        minutes: 60,
-        cards: [],
-        notes: "",
-        drillBlocks: []
-      }]
-    };
-    localStorage.setItem(BIG_CLOCK_PAYLOAD_KEY, JSON.stringify(fastClockPayload));
-    window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&fast=1`;
-  } catch (error) {
-    console.error("Skip-to-practice entry failed", error);
-    const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = error?.message || "Could not start practice.";
-    noticeEl.hidden = false;
-    skipCleanSlateBtn.disabled = false;
-  }
 }
 
 function formatUpdated(value) {
@@ -994,9 +912,6 @@ async function restoreCanonicalPractice(practiceId) {
   document.getElementById("dashboardNotice").textContent = "Practice route restored. Continue with the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
-
-setupPrePracticeBtn?.addEventListener("click", showPrePracticeSetup);
-skipCleanSlateBtn?.addEventListener("click", skipToPractice);
 
 continueToContextBtn?.addEventListener("click", showPracticeContext);
 backToGuidedSetupBtn?.addEventListener("click", () => {
