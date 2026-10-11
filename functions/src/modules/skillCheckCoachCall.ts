@@ -2206,12 +2206,51 @@ export const skillCheckCoachCall =
           currentLocationDiscoveredIds, independentAttendanceIds,
           inventoryExhausted, inventoryAuthorized,
         );
+        // Re-read a bounded set of server-owned verified skill sources to
+        // detect drift between discovery and certification review. This is a
+        // diagnostic sample only; sampling can never prove full coverage.
+        const discoveredObservations = nativePages.flatMap(page => page.observations);
+        const uniqueEvidencePractices = [...new Set(discoveredObservations.map(item => item.practiceId))];
+        const maxRefreshPractices = 20;
+        const refreshedObservations: typeof discoveredObservations = [];
+        let refreshComplete = uniqueEvidencePractices.length <= maxRefreshPractices
+          && nativeReconciliation.blockers.length === 0;
+        if (refreshComplete) {
+          for (const practiceId of uniqueEvidencePractices) {
+            const fresh = await db.collection(`practiceSessions/${practiceId}/athletes/${athleteId}/verifiedSkills`).get();
+            if (fresh.empty) refreshComplete = false;
+            for (const item of fresh.docs) {
+              const skill = item.data() || {};
+              if (normalizeDiscipline(skill.discipline) !== discipline
+                || !familiesForDiscipline(discipline).includes(normalizeFamily(skill.familyId))
+                || !ALLOWED_STATES.includes(normalizeState(skill.state))
+                || !clean(skill.coachUid)
+                || !(skill.verifiedAt instanceof Timestamp)) {
+                refreshComplete = false;
+                continue;
+              }
+              refreshedObservations.push({
+                practiceId, discipline, familyId: normalizeFamily(skill.familyId),
+                state: normalizeState(skill.state), coachUid: clean(skill.coachUid),
+                verifiedAt: skill.verifiedAt.toDate().toISOString(),
+              });
+            }
+          }
+        }
+        const evidenceRefreshComparison = compareNativeEvidenceFingerprints(
+          discoveredObservations, refreshedObservations, refreshComplete
+        );
         // Scan exhaustion is only technical discovery coverage, not proof
         // that declared locations represent the athlete's entire history.
         return {
           ok: true, diagnosticOnly: true, kind: "INTEGRATED_HISTORY_COVERAGE_REVIEW",
           athleteId, discipline, requiredScopes, allScopesScanned,
           independentCoverage,
+          evidenceRefreshComparison: {
+            ...evidenceRefreshComparison, diagnosticOnly: true,
+            sampledPracticeLimit: maxRefreshPractices,
+            sourcePracticeCount: uniqueEvidencePractices.length,
+          },
           attendanceInventoryComparison: {
             ...attendanceInventoryComparison,
             inventorySource: "finalized-attendance-current-location",
