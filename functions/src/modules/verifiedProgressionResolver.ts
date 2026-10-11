@@ -187,3 +187,39 @@ export function compareNativePracticeInventories(
     eligibleForAuto: false as const,
   };
 }
+
+// A candidate evidence manifest is NOT a certificate. On every later review,
+// re-read the server-owned source observations and compare exact fingerprints.
+export type NativeEvidenceFingerprint = {
+  practiceId:string; familyId:string; state:string; coachUid:string; verifiedAt:string;
+};
+export function compareNativeEvidenceFingerprints(
+  recorded:readonly NativeEvidenceFingerprint[],
+  refreshed:readonly NativeEvidenceFingerprint[],
+  sourceRetrievalComplete:boolean,
+) {
+  const blockers=new Set<string>();
+  if (!sourceRetrievalComplete) blockers.add("source-retrieval-incomplete");
+  const identity=(x:NativeEvidenceFingerprint)=>[x.practiceId,x.familyId,x.coachUid,x.verifiedAt].join("|");
+  const value=(x:NativeEvidenceFingerprint)=>identity(x)+"|"+x.state;
+  const baseline=new Map<string,string>(),current=new Map<string,string>();
+  for (const [items,target,label] of [
+    [recorded,baseline,"recorded"],[refreshed,current,"refreshed"]
+  ] as const) for (const item of items) {
+    const id=identity(item);
+    if (!KEY.test(item.practiceId)||!KEY.test(item.coachUid)||!item.familyId||
+        !STATES.has(item.state)||!Number.isFinite(Date.parse(item.verifiedAt))) {
+      blockers.add("invalid-"+label+"-observation");
+    }
+    if (target.has(id)) blockers.add("duplicate-"+label+"-observation");
+    target.set(id,value(item));
+  }
+  const disappeared=[...baseline.keys()].filter(id=>!current.has(id)).sort();
+  const added=[...current.keys()].filter(id=>!baseline.has(id)).sort();
+  const changed=[...baseline.keys()].filter(id=>current.has(id)&&current.get(id)!==baseline.get(id)).sort();
+  if (disappeared.length) blockers.add("source-evidence-removed");
+  if (added.length) blockers.add("source-evidence-added");
+  if (changed.length) blockers.add("source-evidence-changed");
+  return {consistent:blockers.size===0,removed:disappeared,added,changed,
+    blockers:[...blockers].sort(),certificateIssued:false as const,eligibleForAuto:false as const};
+}
