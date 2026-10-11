@@ -4,7 +4,10 @@ import {
   onSnapshot,
   getDocs,
   functions,
-  httpsCallable
+  httpsCallable,
+  doc,
+  setDoc,
+  serverTimestamp
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -48,6 +51,54 @@ const OPEN_ASSESSMENT_STATUSES =
     "ASSESSMENT_NEEDED",
     "IN_ASSESSMENT"
   ]);
+
+const dashboardCounts = {
+  management: 0,
+  strength: 0,
+  honor: 0,
+  conditioning: 0,
+  conditioningRequests: 0,
+  iron: 0,
+  recognition: 0,
+  testing: 0
+};
+
+let dashboardLocationId = "";
+let dashboardWriteTimer = null;
+
+function dashboardSummaryDocId(locationId) {
+  return "coach-dashboard-summary-" +
+    String(locationId || "default").toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+}
+
+function dailyOpenSignalTotal() {
+  return Object.values(dashboardCounts)
+    .reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
+}
+
+function queueDailyDashboardSummary() {
+  if (!dashboardLocationId) return;
+  clearTimeout(dashboardWriteTimer);
+  dashboardWriteTimer = setTimeout(async () => {
+    try {
+      await setDoc(
+        doc(db, "system", dashboardSummaryDocId(dashboardLocationId)),
+        {
+          locationId: dashboardLocationId,
+          counts: {
+            daily: dailyOpenSignalTotal()
+          },
+          dailyBreakdown: { ...dashboardCounts },
+          updatedAt: serverTimestamp(),
+          source: "daily-operations"
+        },
+        { merge: true }
+      );
+    } catch (error) {
+      console.warn("[daily-operations] dashboard summary update failed", error);
+    }
+  }, 250);
+}
 function setCount(el, value) {
   if (el) el.textContent = String(Number(value || 0));
 }
@@ -173,6 +224,13 @@ function subscribeLaneCounts() {
       setCount(countConditioningRequestsEl, conditioningRequests);
       setCount(countIronEl, iron);
 
+      dashboardCounts.strength = strength;
+      dashboardCounts.honor = honor;
+      dashboardCounts.conditioning = conditioning;
+      dashboardCounts.conditioningRequests = conditioningRequests;
+      dashboardCounts.iron = iron;
+      queueDailyDashboardSummary();
+
       renderMiniList(listStrengthEl, strengthIds);
       renderMiniList(listHonorEl, honorIds);
       renderMiniList(listConditioningEl, conditioningIds);
@@ -211,6 +269,8 @@ async function refreshManagementNoticeCount() {
       countManagementNoticesEl,
       count
     );
+    dashboardCounts.management = count;
+    queueDailyDashboardSummary();
 
     if (managementAssessmentSummaryEl) {
       managementAssessmentSummaryEl.textContent =
@@ -522,6 +582,8 @@ async function refreshRecognitionQueue(user) {
     countRecognitionEl,
     items.length
   );
+  dashboardCounts.recognition = items.length;
+  queueDailyDashboardSummary();
 
   renderRecognitionItems(items);
 
@@ -572,6 +634,8 @@ function renderTestingReadiness(recognitionData) {
     countTestingEl,
     testingItems.length
   );
+  dashboardCounts.testing = testingItems.length;
+  queueDailyDashboardSummary();
 }
 
 async function initialize() {
@@ -582,6 +646,12 @@ async function initialize() {
   try {
     const coachContext =
       await requireCoach();
+
+    dashboardLocationId = String(
+      coachContext?.scope?.locationIds?.[0] ||
+      coachContext?.locationId ||
+      ""
+    ).trim();
 
     if (protectedContent) protectedContent.hidden = false;
     if (status) status.hidden = true;
