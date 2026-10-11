@@ -508,7 +508,7 @@ async function loadHub() {
 
   try {
     await loadThreads();
-    void publishTeamUnreadSummary();
+    await publishTeamUnreadSummary();
 
     renderUnread();
     renderRecent();
@@ -566,3 +566,23 @@ openIdEl?.addEventListener(
 );
 
 await loadHub();
+
+// Refresh the authoritative unread count when returning from a thread.
+// Avoid hundreds of persistent per-athlete Firestore listeners.
+let refreshing = false;
+let lastRefreshAt = Date.now();
+async function refreshOnReturn() {
+  if (refreshing || document.visibilityState === "hidden") return;
+  if (Date.now() - lastRefreshAt < 1500) return;
+  refreshing = true;
+  try {
+    await loadHub();
+  } finally {
+    lastRefreshAt = Date.now();
+    refreshing = false;
+  }
+}
+window.addEventListener("focus", () => { void refreshOnReturn(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") void refreshOnReturn();
+});
