@@ -12,7 +12,7 @@ import {
 
 import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
-import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage, compareNativePracticeInventories } from "./verifiedProgressionResolver";
+import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage, compareNativePracticeInventories, compareNativeEvidenceFingerprints } from "./verifiedProgressionResolver";
 
 import {
   normalizeStaffList,
