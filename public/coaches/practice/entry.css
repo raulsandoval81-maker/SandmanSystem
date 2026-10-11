@@ -70,6 +70,8 @@
 
 .entry-card{
   padding:20px;
+  max-width:720px;
+  margin:0 auto;
 }
 
 .entry-grid{
@@ -103,20 +105,6 @@ select{
   background:rgba(255,255,255,.035);
   color:var(--text);
   font:inherit;
-}
-
-.entry-authority{
-  margin-top:16px;
-  padding:14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  background:rgba(255,255,255,.025);
-}
-
-.entry-authority p{
-  margin:5px 0 0;
-  color:var(--muted);
-  line-height:1.5;
 }
 
 .entry-actions{
@@ -162,4 +150,13 @@ select{
   .entry-wide{
     grid-column:auto;
   }
+}
+
+#coachOnHand[readonly]{
+  opacity:.9;
+  cursor:default;
+}
+
+.entry-actions{
+  align-items:center;
 }

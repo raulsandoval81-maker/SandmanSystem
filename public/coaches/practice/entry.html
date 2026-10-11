@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Practice Entry | Sandman Coach</title>
+  <title>Start Practice | Sandman Coach</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/practice/entry.css?v=20261003-1">
+  <link rel="stylesheet" href="/coaches/practice/entry.css?v=20261010-1">
   <link rel="icon" href="data:,">
 </head>
 
@@ -15,10 +15,8 @@
   <header class="entry-hero">
     <div>
       <p class="eyebrow">Practice Operations</p>
-      <h1 id="entryTitle">Practice Entry</h1>
-      <p id="entryDescription">
-        Establish the canonical practice record before attendance.
-      </p>
+      <h1 id="entryTitle">Start Practice</h1>
+      <p id="entryDescription">Open the practice and move straight to attendance.</p>
     </div>
     <a class="secondary-link" href="/coaches/practice/">← Practice Operations</a>
   </header>
@@ -30,10 +28,10 @@
   <section id="entryPanel" class="entry-card" hidden>
     <div class="entry-grid">
       <label>
-        Entry Mode
+        Practice Mode
         <select id="entryMode">
           <option value="planned">Planned Practice</option>
-          <option value="quick-start">Quick Start Practice</option>
+          <option value="quick-start">Quick Start</option>
           <option value="after-the-fact">Record Past Practice</option>
         </select>
       </label>
@@ -44,13 +42,18 @@
       </label>
 
       <label>
-        Room
+        Coach
+        <input id="coachOnHand" type="text" readonly aria-readonly="true">
+      </label>
+
+      <label id="roomField" hidden>
+        Session
         <select id="roomSelect" required></select>
       </label>
 
-      <label>
+      <label id="programField" hidden>
         Program
-        <select id="programSelect" required>
+        <select id="programSelect">
           <option value="">Select Program</option>
         </select>
       </label>
@@ -63,22 +66,11 @@
           maxlength="120"
           placeholder="Example: saturday-rush-1"
         >
-        <small>
-          Required for after-the-fact entry so the same historical practice can be safely recovered without duplication.
-        </small>
       </label>
     </div>
 
-    <div class="entry-authority">
-      <strong>What this does</strong>
-      <p>
-        Creates or recovers one canonical practice record. It does not finalize attendance,
-        award XP, or close the practice.
-      </p>
-    </div>
-
     <div class="entry-actions">
-      <button id="createPractice" type="button">Create / Recover Practice</button>
+      <button id="createPractice" type="button">Continue to Attendance</button>
       <a href="/coaches/practice/">Cancel</a>
     </div>
   </section>
@@ -86,6 +78,6 @@
 </main>
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/practice/entry.js?v=20261009-4"></script>
+<script type="module" src="/coaches/practice/entry.js?v=20261010-1"></script>
 </body>
 </html>
