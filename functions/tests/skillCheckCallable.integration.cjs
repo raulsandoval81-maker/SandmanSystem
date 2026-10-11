@@ -949,3 +949,33 @@ test("resumable native skill scan distinguishes attendance-only records from ver
  await assert.rejects(invoke("advance-native-skill-evidence-checkpoint",inventory.revision),
   e=>e.code==="aborted");
 });
+
+test("native checkpoint recheck detects attendance changes after completed scans",async()=>{
+ const id="F8_NATIVE_RECHECK",practiceId="native-recheck-attendance";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({
+  coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",
+  discipline:"wrestling",sessionDateKey:"2026-10-11"
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({
+  practiceId,athleteId:id,discipline:"wrestling",attendance:{status:"present"}
+ });
+ const invoke=(action,expectedRevision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+  data:{action,athleteId:id,discipline:"wrestling",expectedRevision}});
+ const start=await invoke("open-native-history-checkpoint",0);
+ const scanned=await invoke("advance-native-history-checkpoint",start.revision);
+ const skills=await invoke("advance-native-skill-evidence-checkpoint",scanned.revision);
+ const before=await invoke("recheck-native-history-checkpoint",skills.revision);
+ assert.equal(before.recordsChecked,1);
+ assert.equal(before.eligibleForAuto,false);
+ await db.doc("attendance_sessions/"+practiceId).update({finalized:false});
+ const after=await invoke("recheck-native-history-checkpoint",skills.revision);
+ assert.ok(after.blockers.includes("recheck-source-changed:"+practiceId));
+ assert.equal(after.coverageComplete,false);
+ assert.equal(after.evidenceApproved,false);
+ await assert.rejects(invoke("recheck-native-history-checkpoint",scanned.revision),e=>e.code==="aborted");
+});
