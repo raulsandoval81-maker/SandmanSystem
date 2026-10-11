@@ -69,11 +69,7 @@ function updateModeUI() {
   }
 
   const button = $("createPractice");
-  if (button) {
-    button.textContent = mode === "quick-start"
-      ? "Open Big Clock"
-      : "Continue to Attendance";
-  }
+  if (button) button.textContent = "Continue to Attendance";
 
   const title = $("entryTitle");
   if (title) {
@@ -87,7 +83,7 @@ function updateModeUI() {
   const description = $("entryDescription");
   if (description) {
     description.textContent = mode === "quick-start"
-      ? "Open the practice and go straight to the clock."
+      ? "Check in, let Sandman group the room, then open the clock."
       : historical
         ? "Choose the date, then verify who was there."
         : "Open the practice and move straight to attendance.";
@@ -191,14 +187,12 @@ async function submit() {
         durationMinutes: 60,
         blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
       }));
-      location.href = "/coaches/execution/big-clock-2.0/?practiceId=" +
-        encodeURIComponent(practiceId) + "&session=" + encodeURIComponent(room.value) + "&fast=1";
-      return;
     }
 
     sessionStorage.setItem("sandman_attendance_first_practice_id", practiceId);
+    const returnTarget = mode === "quick-start" ? "clock" : "builder";
     location.href = "/coaches/attendance/session.html?practiceId=" +
-      encodeURIComponent(practiceId) + "&flow=builder&return=builder";
+      encodeURIComponent(practiceId) + "&flow=builder&return=" + encodeURIComponent(returnTarget);
   } catch (error) {
     console.error("[practice-entry] failed", error);
     setStatus(error?.message || "Practice entry failed.", true);
