@@ -25,17 +25,9 @@
     { label: "Coach Operations", links: [["Daily Operations", "/coaches/today/", "today"], ["Practice Operations", "/coaches/practice/", "practice"], ["Competition Operations", "/coaches/competition/", "competition"], ["Athlete Operations", "/coaches/athletes/", "athletes"], ["Team Operations", "/coaches/team/", "team"], ["Emergency Operations", "/coaches/safety/", "emergency"], ["System Operations", "/coaches/system/", "system"]]},
     { label: "Workspace", links: [["Settings", "/coaches/settings/", "settings"]] }
   ];
-  const practiceLinks = [["Session Builder", "/coaches/execution/session-builder/", "session-builder"], ["Attendance", "/coaches/attendance/", "attendance"], ["Post-Practice Clipboard", "/coaches/logs/practice-log.html", "practice-log"], ["Execution Tools", "/coaches/execution/", "execution-tools"]];
-  const practiceDrawerLinks = [
-    ["Session Builder", "/coaches/execution/session-builder/"],
-    ["Attendance", "/coaches/attendance/"],
-    ["Pre-Practice Clipboard", "/coaches/execution/clipboard-2.0/"],
-    ["Big Clock", "/coaches/execution/big-clock-2.0/"],
-    ["During-Practice Clipboard", "/coaches/execution/coach-companion/"],
-    ["Daily Grind", "/coaches/daily-xp/"],
-    ["Post-Practice Clipboard / Final Close", "/coaches/logs/practice-log.html"],
-    ["Curriculum / Skill Cards", "/coaches/cards/"]
-  ];
+  // Practice is one guided lifecycle. Internal stages are intentionally not
+  // exposed as free-standing navigation destinations.
+  const practiceLinks = [];
   const declaredContext = String(body.dataset.coachContext || "").trim();
   const routeContext = practiceLinks.find(([, href]) => currentPath === href || currentPath.startsWith(href))?.[2] || "";
   const activePracticeContext = declaredContext || routeContext;
@@ -57,12 +49,12 @@
   shell.innerHTML = `
     <aside id="coachShellDrawer" class="coach-shell__drawer" aria-label="Coach navigation">
       <div class="coach-shell__drawer-header"><span class="coach-shell__drawer-system">Sandman Combat System™</span><span class="coach-shell__drawer-role">Coach</span></div>
-      <nav class="coach-shell__nav">${navGroups.map((group) => `${group.label ? `<div class="coach-shell__nav-label">${group.label}</div>` : ""}${group.links.map(([label, href, area]) => { const active = area === activeArea; const primary = `<a class="coach-shell__nav-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; if (area !== "practice" || !active) return primary; return `${primary}<div class="coach-shell__nav-sub" aria-label="Practice Operations tools">${practiceDrawerLinks.map(([subLabel, subHref]) => { const normalized = subHref.replace(/\/index\.html$/, "/"); const subActive = currentPath === normalized || currentPath.startsWith(normalized); return `<a class="coach-shell__nav-sublink${subActive ? " is-active" : ""}" href="${subHref}"${subActive ? ' aria-current="page"' : ""}>${subLabel}</a>`; }).join("")}</div>`; }).join("")}`).join("")}</nav>
+      <nav class="coach-shell__nav">${navGroups.map((group) => `${group.label ? `<div class="coach-shell__nav-label">${group.label}</div>` : ""}${group.links.map(([label, href, area]) => { const active = area === activeArea; const primary = `<a class="coach-shell__nav-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; return primary; }).join("")}`).join("")}</nav>
     </aside>
     <div id="coachShellBackdrop" class="coach-shell__backdrop" hidden></div>
     <div class="coach-shell__workspace">
       <header class="coach-shell__header"><div class="coach-shell__header-inner"><div class="coach-shell__header-left"><button id="coachShellMenuToggle" class="coach-shell__menu-toggle" type="button" aria-label="Open Coach navigation" aria-expanded="false" aria-controls="coachShellDrawer">☰</button></div><div class="coach-shell__header-center"><a class="coach-shell__brand" href="/coaches/hub/">Sandman Combat System™</a><div class="coach-shell__page-name">${pageName}</div></div><div class="coach-shell__header-right"></div></div><div class="coach-shell__header-line"></div></header>
-      ${activeArea === "practice" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Practice tools">${practiceLinks.map(([label, href, context]) => { const active = context === activePracticeContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
+      ${activeArea === "practice" && practiceLinks.length ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Practice tools">${practiceLinks.map(([label, href, context]) => { const active = context === activePracticeContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       ${activeArea === "competition" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Competition tools">${competitionLinks.map(([label, href, context]) => { const active = context === activeCompetitionContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       ${activeArea === "team" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Team tools">${teamLinks.map(([label, href, context]) => { const active = context === activeTeamContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       <div class="coach-shell__main"></div>
