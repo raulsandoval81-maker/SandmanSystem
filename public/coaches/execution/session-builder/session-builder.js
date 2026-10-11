@@ -22,6 +22,8 @@ import {
   roomByValue
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
+import { canLaunchAuto } from "/coaches/execution/session-builder/group-decision-policy.js";
+
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
 const DRAFT_KEY = "sandman_clipboard_draft_v1";
@@ -1034,7 +1036,7 @@ buildBtn.addEventListener("click", async () => {
     if (selectedMode === "auto" && !payload.trainingGroups?.length) {
       throw new Error("AUTO needs attendance-derived groups before prescribing a lesson. Return to Attendance.");
     }
-    if (selectedMode === "auto" && (payload.groupPrescriptions?.length !== payload.trainingGroups.length || payload.groupPrescriptions.some(g => g.status !== "ready" || g.progressionVerified !== true))) {
+    if (selectedMode === "auto" && !canLaunchAuto(payload.trainingGroups, payload.groupPrescriptions)) {
       throw new Error("AUTO needs verified athlete progression and approved lessons for every group. First-wave fallback is HYBRID-only. No incomplete AUTO lesson was launched.");
     }
     payload = await openCanonicalPractice(payload);
