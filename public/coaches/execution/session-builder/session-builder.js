@@ -133,6 +133,7 @@ function roomHasGuidedPrograms(room) {
 }
 
 function populateRooms(preferredValue = "") {
+  const entryRoom = String(practiceEntryIntent().roomValue || "");
   const rememberedRoom = readJson(SESSION_KEY, {})?.roomValue || "";
   roomSelect.innerHTML = "";
 
@@ -147,8 +148,10 @@ function populateRooms(preferredValue = "") {
   const remembered = roomByValue(rememberedRoom);
   const guidedDefault = SESSION_ROOMS.find(roomHasGuidedPrograms);
 
+  const entry = roomByValue(entryRoom);
   const selected =
     (preferredRoom && roomHasGuidedPrograms(preferredRoom) ? preferredRoom : null) ||
+    (entry && roomHasGuidedPrograms(entry) ? entry : null) ||
     (remembered && roomHasGuidedPrograms(remembered) ? remembered : null) ||
     guidedDefault ||
     preferredRoom ||
