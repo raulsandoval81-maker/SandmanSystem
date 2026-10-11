@@ -479,3 +479,15 @@ test("large native inventory remains blocked until all pages are exhausted", () 
  assert.ok(result.blockers.includes("independent-inventory-not-exhausted"));
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("conflicting verified states across separately discovered scopes fail closed", () => {
+ const learned=nativeObservation("LEARNED");
+ const applied={...nativeObservation("APPLIED"),practiceId:"practice_B"};
+ const result=reconcileNativeHistoryPages("F8_0001","wrestling",["coach","athlete-location"],[
+  {scope:"coach",cursor:null,nextCursor:null,scopeExhausted:true,observations:[learned]},
+  {scope:"athlete-location",cursor:null,nextCursor:null,scopeExhausted:true,observations:[applied]}
+ ]);
+ assert.equal(result.approved,false);
+ assert.ok(result.blockers.includes("conflicting-state:double_leg"));
+ assert.equal(result.eligibleForAuto,false);
+});
