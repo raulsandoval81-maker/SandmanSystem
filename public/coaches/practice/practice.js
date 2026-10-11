@@ -43,7 +43,7 @@ const flows = {
       },
       {
         title: "Run Practice",
-        description: "Use Clipboard, Clock, or Coach Companion."
+        description: "Use the Pre-Practice Clipboard, Big Clock, or During-Practice Clipboard."
       }
     ],
 

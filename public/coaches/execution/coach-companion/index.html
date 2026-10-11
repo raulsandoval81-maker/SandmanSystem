@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach · Daily Practice Log</title>
+  <title>Coach · During-Practice Clipboard</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3"/>
   <link rel="stylesheet" href="/coaches/execution/coach-companion/coach-companion.css?v=2"/>
   <link rel="icon" href="data:,">
 </head>
 
-<body class="coach-shell-page" data-coach-page="Daily Practice Log" data-coach-area="practice">
+<body class="coach-shell-page" data-coach-page="During-Practice Clipboard" data-coach-area="practice">
 <main class="wrap" data-coach-shell-content>
 
   <div class="page-header">
-    <h1>Daily Practice Log</h1>
+    <h1>During-Practice Clipboard</h1>
     <button id="themeToggle" class="theme-icon-btn" aria-label="Toggle theme">◐</button>
   </div>
 
   <p class="muted">
-    Private coaching notes for the active practice. Review the plan, record observations, then continue to Practice Log / Final Close.
+    Coach-side live practice tools. Review the plan, record team and athlete observations, then continue to the Post-Practice Clipboard.
   </p>
 
   <div class="toolbar-2">
@@ -197,7 +197,7 @@
   <div class="footer-actions">
     <button type="button" onclick="clearSession()">Clear Notes</button>
     <button type="button" onclick="saveDailyPracticeLog()">Save Shared Draft</button>
-    <button type="button" data-end-practice-log onclick="endPractice()">End Daily Practice Log → Final Close</button>
+    <button type="button" data-end-practice-log onclick="endPractice()">Continue to Post-Practice Clipboard</button>
   </div>
 
 </main>
