@@ -1380,14 +1380,16 @@ export const skillCheckCoachCall =
         const missing = hasMore ? [] : [...original].filter(id => !refreshedSet.has(id)).sort();
         const added = [...refreshedSet].filter(id => !original.has(id)).sort();
         const revision = expectedRevision + 1;
+        const inventoryDriftDetected = added.length > 0 || missing.length > 0;
         tx.update(ref, {revision,inventoryRefreshCursor:nextCursor,
           inventoryRefreshExhausted:!hasMore,inventoryRefreshPracticeIds:refreshed,
           inventoryRefreshMissing:missing,inventoryRefreshAdded:added,
+          inventoryDriftDetected,
           status:"DIAGNOSTIC_INVENTORY_REFRESH",
           updatedAt:FieldValue.serverTimestamp(),
           coverageComplete:false,evidenceApproved:false,eligibleForAuto:false});
         return {revision,scanExhausted:!hasMore,refreshedPracticeCount:refreshed.length,
-          added,missing};
+          inventoryDriftDetected,added,missing};
       });
       return {ok:true,...result,diagnosticOnly:true,coverageComplete:false,
         evidenceApproved:false,eligibleForAuto:false};
