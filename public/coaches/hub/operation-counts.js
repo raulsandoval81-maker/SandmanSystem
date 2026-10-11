@@ -60,9 +60,11 @@ async function loadOperationCounts() {
       setDailyStatus("Count unavailable", "No Coach location or user scope.");
       return;
     }
+    const path = "system/" + summaryDocId(locationId);
+    setDailyStatus("Checking count…", path);
     onSnapshot(doc(db, "system", summaryDocId(locationId)), (snapshot) => {
       if (!snapshot.exists()) {
-        setDailyStatus("Count not published", "Open Daily Operations to publish its current total.");
+        setDailyStatus("Count not published · " + summaryDocId(locationId), "Expected Firestore path: " + path);
         return;
       }
       const counts = snapshot.data()?.counts || {};
