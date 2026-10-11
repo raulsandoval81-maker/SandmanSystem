@@ -43,6 +43,7 @@ const sessionTypeButtons = [...document.querySelectorAll("[data-session-type]")]
 const modeButtons = [...document.querySelectorAll("[data-mode]")];
 const durationChoices = document.getElementById("durationChoices");
 const journeySelect = document.getElementById("journeySelect");
+const journeyField = document.getElementById("journeyField");
 const disciplineField = document.getElementById("disciplineField");
 const disciplineFamilySelect = document.getElementById("disciplineFamilySelect");
 const programField = document.getElementById("programField");
