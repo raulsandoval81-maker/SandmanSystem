@@ -9,9 +9,7 @@ import {
 } from "/assets/js/coach-guard.js";
 
 const WORK_KEYS = ["daily", "practice", "competition"];
-const MESSAGE_KEYS = ["athlete", "team"];
-// These are display contracts only. No source is assumed or synthesized.
-const MESSAGE_FIELDS = { athlete: "athleteMessages", team: "teamMessages" };
+// Team communications use Para-Comms. Athlete-to-Coach direct messaging is intentionally disabled.
 const EMERGENCY_FIELD = "emergencyAlerts";
 
 function safeLocationId(coachContext) {
@@ -59,7 +57,7 @@ function renderSummary(summary) {
   const counts = summary?.counts || {};
   WORK_KEYS.forEach((key) => renderIndicator(key, counts[key], "work"));
   // Message counts are scoped to the Coach, not the location.
-  // Athlete messages have no authoritative publisher yet.
+  // Athlete Operations owns development workflows, never direct messages.
   renderIndicator("emergency", summary?.[EMERGENCY_FIELD], "urgent");
 }
 
