@@ -529,14 +529,26 @@ function updateSummary() {
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
   if (summaryMat) summaryMat.textContent = selectedMatLabel();
-  if (summaryJourney) summaryJourney.textContent = journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey";
+  const journeyReady = Boolean(journeySelect?.value);
+  const disciplineReady = Boolean(disciplineFamilySelect?.value);
+
+  journeySelect?.classList.toggle("has-selection", journeyReady);
+  disciplineFamilySelect?.classList.toggle("has-selection", disciplineReady);
+
+  if (summaryJourney) {
+    summaryJourney.textContent = journeyReady
+      ? journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey"
+      : "Select a journey";
+    summaryJourney.classList.toggle("is-pending", !journeyReady);
+  }
   if (summaryDiscipline) {
-    summaryDiscipline.textContent =
-      disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline";
+    summaryDiscipline.textContent = disciplineReady
+      ? disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline"
+      : "Select a discipline";
+    summaryDiscipline.classList.toggle("is-pending", !disciplineReady);
   }
 
-  
-  const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
+  const routeReady = Boolean(journeyReady && disciplineReady);
 
   if (summaryRankRow) summaryRankRow.hidden = false;
   if (summaryRank) {
