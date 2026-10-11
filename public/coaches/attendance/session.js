@@ -104,6 +104,16 @@ function athleteDisciplines(a = {}) {
   return raw.map((value) => String(value).trim().toLowerCase());
 }
 
+function disciplineForAthlete(a = {}) {
+  return String(
+    a.discipline ||
+    a.primaryDiscipline ||
+    (Array.isArray(a.disciplines) ? a.disciplines[0] : "") ||
+    (Array.isArray(a.enrolledDisciplines) ? a.enrolledDisciplines[0] : "") ||
+    ""
+  ).trim().toLowerCase();
+}
+
 function journeyDisplay(value = "") {
   const raw = String(value || "").trim();
   const key = raw.toLowerCase().replace(/[\s_-]+/g, "");
@@ -652,14 +662,16 @@ function suggestedTrainingGroups() {
   present.forEach((athlete) => {
     const ageGroup = athleteAgeGroup(athlete);
     const journey = journeyForAthlete(athlete);
+    const discipline = disciplineForAthlete(athlete) || String(activePractice?.discipline || "").toLowerCase();
     const athleteLadder = ladderForJourney(journey);
     const tier = normalizeAthleteTier(athlete, athleteLadder);
-    const key = `${journey}|${ageGroup}|${tier}`;
+    const key = `${discipline}|${journey}|${ageGroup}|${tier}`;
 
     if (!buckets.has(key)) {
       buckets.set(key, {
         ageGroup,
         journey,
+        discipline,
         tier,
         rank: rankForTier(tier, journey),
         athleteIds: [],
@@ -677,6 +689,7 @@ function suggestedTrainingGroups() {
       const aTeen = a.journey === "P2L" || /teen|adult/i.test(a.ageGroup) ? 1 : 0;
       const bTeen = b.journey === "P2L" || /teen|adult/i.test(b.ageGroup) ? 1 : 0;
       if (aTeen !== bTeen) return aTeen - bTeen;
+      if (a.discipline !== b.discipline) return String(a.discipline).localeCompare(String(b.discipline));
       if (a.journey !== b.journey) return String(a.journey).localeCompare(String(b.journey));
       return String(a.tier).localeCompare(String(b.tier));
     });
@@ -686,6 +699,7 @@ function suggestedTrainingGroups() {
     groups = [{
       ageGroup: "Athletes",
       journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
+      discipline: String(activePractice?.discipline || "unassigned").toLowerCase(),
       tier: "T0",
       rank: rankForTier("T0", normalizeJourneyCode(activePractice?.journey) || "Z2H"),
       athleteIds: [],
@@ -697,7 +711,7 @@ function suggestedTrainingGroups() {
   return groups.map((group, index) => ({
     ...group,
     id: `group-${index + 1}`,
-    label: `Mat 1 · Group ${index + 1}`,
+    label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`,
     trainingSession: String(
       group.trainingSession ||
       prior.trainingGroups?.[index]?.trainingSession ||
@@ -726,6 +740,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       data-training-group="${index}"
       data-athlete-ids="${encodeURIComponent(JSON.stringify(group.athleteIds || []))}"
       data-athlete-names="${encodeURIComponent(JSON.stringify(group.athleteNames || []))}"
+      data-discipline="${group.discipline || ""}"
     >
       <div class="training-group-head">
         <div>
@@ -829,21 +844,22 @@ function renumberTrainingGroups() {
   document.querySelectorAll(".training-group-card").forEach((card, index) => {
     card.dataset.trainingGroup = String(index);
     const kicker = card.querySelector(".training-group-kicker");
-    if (kicker) kicker.textContent = `Mat 1 · Group ${index + 1}`;
+    if (kicker) kicker.textContent = `Mat 1 · Group ${String.fromCharCode(65 + index)}`;
   });
 }
 
 function updateGroupControls() {
   const count = document.querySelectorAll(".training-group-card").length;
-  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = false;
+  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} training group${count === 1 ? "" : "s"} identified. Groups share one Practice ID. Coach must confirm safe supervision and compatible partner work; no groups are automatically merged.`;
+      `${count} training group${count === 1 ? "" : "s"} generated from attendance. All groups remain on Mat 1 and share one Practice ID.`;
   }
 }
 
 function addTrainingGroup() {
   const current = captureTrainingGroups();
+  if (current.length >= 3) return;
   const previous = current[current.length - 1] || {};
   const journey = previous.journey || (/teen/i.test(previous.ageGroup || "") ? "P2L" : "Z2H");
   current.push({
@@ -865,9 +881,10 @@ function captureTrainingGroups() {
     const tier = String(card.querySelector(".training-tier")?.value || "T0").trim();
     return {
       id: `group-${index + 1}`,
-      label: `Group ${index + 1}`,
+      label: `Group ${String.fromCharCode(65 + index)}`,
       ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
       journey,
+      discipline: String(card.dataset.discipline || "").trim().toLowerCase(),
       tier,
       rank: rankForTier(tier, journey),
       trainingSession: String(card.querySelector(".training-session")?.value || "1").trim(),
@@ -884,30 +901,59 @@ function captureTrainingGroups() {
   });
 }
 
+function updateCompositionBanners(groups = captureTrainingGroups()) {
+  const attendance = $("attendanceCompositionBanner");
+  const progress = $("progressCompositionBanner");
+  const presentCount = checkedIn.size;
+  const activeGroups = groups.filter((group) => (group.athleteIds || []).length);
+
+  if (attendance) {
+    attendance.textContent = presentCount
+      ? `${presentCount} athlete${presentCount === 1 ? "" : "s"} present · ${activeGroups.length || groups.length} training group${(activeGroups.length || groups.length) === 1 ? "" : "s"}`
+      : "Waiting for attendance.";
+  }
+
+  if (progress) {
+    progress.textContent = groups.length
+      ? groups.map((group) => {
+          const discipline = disciplineDisplay(group.discipline);
+          const rank = [group.tier, group.rank].filter(Boolean).join(" ");
+          const count = (group.athleteIds || []).length;
+          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), rank].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
+        }).join(" | ")
+      : "Groups will be generated from the athletes who are here.";
+  }
+}
+
 function updateContextSummary() {
   const groups = captureTrainingGroups();
   const summary = groups.map((group) =>
     `${group.label}: ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
   ).join(" | ");
   if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
+  updateCompositionBanners(groups);
 }
 
 function preparePracticeContext() {
   if (!activePractice?.practiceId || !checkedIn.size) {
-    setStatus("Load today's practice and check in an athlete before Practice Groups.", true);
+    setStatus("Load the practice and check in an athlete before Practice Groups.", true);
     showStep(2);
     return;
   }
-  const journey = journeyDisplay(activePractice.journey);
-  const discipline = disciplineDisplay(activePractice.discipline);
-  if (!journey || !discipline) {
-    setStatus("Practice route is incomplete. Return to Session Builder to confirm Journey and discipline.", true);
-    showStep(3);
-    return;
-  }
-  if ($("contextJourney")) $("contextJourney").textContent = journey;
-  if ($("contextDiscipline")) $("contextDiscipline").textContent = discipline;
-  renderTrainingGroups();
+
+  const groups = suggestedTrainingGroups();
+  const journeys = [...new Set(groups.map((group) => group.journey).filter(Boolean))];
+  const disciplines = [...new Set(
+    groups.map((group) => group.discipline).filter((value) => value && value !== "unassigned")
+  )];
+
+  activePractice = {
+    ...activePractice,
+    journey: journeys.length === 1 ? journeys[0] : "",
+    discipline: disciplines.length === 1 ? disciplines[0] : "unassigned"
+  };
+
+  renderTrainingGroups(groups);
   showStep(4);
 }
 
@@ -939,7 +985,10 @@ async function savePracticeContextToBuilderSession() {
 
   const updated = {
     ...session,
-    journey: session.journey || activePractice?.journey || "",
+    journey: activePractice?.journey || primary.journey || session.journey || "",
+    discipline: activePractice?.discipline && activePractice.discipline !== "unassigned"
+      ? activePractice.discipline
+      : (primary.discipline || session.discipline || "unassigned"),
     tier,
     rank: tier,
     rankLabel,
@@ -991,7 +1040,9 @@ async function savePracticeContextToBuilderSession() {
 }
 
 function todayLabel() {
-  return new Date().toLocaleDateString(undefined, {
+  const dateKey = String(activePractice?.sessionDateKey || "").trim();
+  const date = dateKey ? new Date(`${dateKey}T12:00:00`) : new Date();
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric"
