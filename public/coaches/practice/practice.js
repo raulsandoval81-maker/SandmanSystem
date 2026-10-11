@@ -7,6 +7,11 @@ import {
   SESSION_ROOMS
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
+import {
+  functions,
+  httpsCallable
+} from "/assets/js/firebase-init.js";
+
 const choicePanel = document.getElementById("practiceChoicePanel");
 const activeFlow = document.getElementById("activePracticeFlow");
 
@@ -59,6 +64,112 @@ function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
     !allowed.size ||
     allowed.has(String(room.locationId || "").toLowerCase())
   ) || null;
+}
+
+const QUICK_START_STANDARD_BLOCKS = Object.freeze([
+  { slot: "onmat", title: "Announcements / On The Mat Talk", minutes: 2, cards: [], notes: "", drillBlocks: [] },
+  { slot: "warmup", title: "Warm Up / Body Mechanics", minutes: 8, cards: [], notes: "", drillBlocks: [] },
+  { slot: "drills", title: "Review of Prior Week’s Skills", minutes: 10, cards: [], notes: "", drillBlocks: [] },
+  { slot: "technique", title: "Introduction of New Techniques", minutes: 15, cards: [], notes: "", drillBlocks: [] },
+  { slot: "water", title: "Water Break", minutes: 2, cards: [], notes: "", drillBlocks: [] },
+  { slot: "live", title: "Live Session", minutes: 15, cards: [], notes: "", drillBlocks: [] },
+  { slot: "cond", title: "Conditioning / Skill Based Activities", minutes: 5, cards: [], notes: "", drillBlocks: [] },
+  { slot: "offmat", title: "Roll Call / Off The Mat Talk", minutes: 3, cards: [], notes: "", drillBlocks: [] }
+]);
+
+async function openQuickStartPractice(choice) {
+  if (!activeRoom) return;
+  choice.disabled = true;
+
+  try {
+    const dateEl = document.getElementById("practiceDate");
+    const sessionDateKey = String(dateEl && dateEl.dataset.value || todayKey());
+    const openPractice = httpsCallable(functions, "openPracticeSession");
+    const response = await openPractice({
+      liveSessionId: activeRoom.value,
+      locationId: activeRoom.locationId,
+      academyId: activeRoom.locationId,
+      roomId: activeRoom.roomId,
+      sessionDateKey,
+      discipline: "unassigned",
+      journey: "",
+      program: "",
+      track: "",
+      tier: "",
+      week: "",
+      schema: "academy-60",
+      executionMode: "manual",
+      durationMinutes: 60
+    });
+
+    const practiceId = String(response.data && response.data.practiceId || "").trim();
+    if (!practiceId) throw new Error("Practice identity was not returned.");
+
+    const session = {
+      practiceId,
+      sessionId: activeRoom.value,
+      roomValue: activeRoom.value,
+      locationId: activeRoom.locationId,
+      academyId: activeRoom.locationId,
+      roomId: activeRoom.roomId,
+      discipline: "unassigned",
+      journey: "",
+      program: "",
+      track: "",
+      schema: "academy-60",
+      executionMode: "manual",
+      durationMinutes: 60,
+      source: "quick-start-standard",
+      sessionDateKey,
+      createdAt: new Date().toISOString()
+    };
+
+    const clockPayload = {
+      source: "quick-start-standard",
+      practiceId,
+      sessionId: activeRoom.value,
+      executionMode: "manual",
+      schema: "academy-60",
+      durationMinutes: 60,
+      blocks: QUICK_START_STANDARD_BLOCKS.map((block) => ({ ...block }))
+    };
+
+    localStorage.removeItem("sandman_run_state");
+    localStorage.removeItem("sandman_clipboard_v1");
+    localStorage.removeItem("sandman_clipboard_draft_v1");
+    localStorage.setItem("sandman_session_builder_v1", JSON.stringify(session));
+    localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify(clockPayload));
+
+    const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+    await saveMemory({
+      operation: "plan",
+      practiceId,
+      planVersion: 1,
+      plannedBlocks: QUICK_START_STANDARD_BLOCKS.map((block) => ({
+        blockId: block.slot,
+        title: block.title,
+        minutes: block.minutes,
+        cards: []
+      })),
+      plannedCards: []
+    });
+
+    window.location.assign(
+      "/coaches/execution/big-clock-2.0/?practiceId=" +
+      encodeURIComponent(practiceId) +
+      "&session=" +
+      encodeURIComponent(activeRoom.value)
+    );
+  } catch (error) {
+    console.error("[practice] Quick Start failed", error);
+    choice.disabled = false;
+
+    const notice = document.createElement("section");
+    notice.className = "practice-note";
+    notice.setAttribute("role", "alert");
+    notice.textContent = error && error.message ? error.message : "Quick Start could not open Big Clock.";
+    document.querySelector(".practice-page")?.prepend(notice);
+  }
 }
 
 function openPlannedPractice() {
@@ -131,24 +242,20 @@ const flows = {
   "coach-directed": {
     title: "Quick Start Practice",
     description:
-      "Start today's practice without a formal Clipboard build. Keep attendance and the practice record connected.",
+      "Open Big Clock immediately in Manual mode using the standard 60-minute practice structure.",
 
-    startHeading: "Start Practice Now",
+    startHeading: "Quick Start",
     startDescription:
-      "Create the practice record, check athletes in, and coach the room without a formal Clipboard plan.",
+      "Create the canonical practice and run the standard practice structure directly in Big Clock.",
 
     steps: [
       {
         title: "Create Practice",
-        description: "Establish the canonical Coach-directed record."
+        description: "Establish the canonical practice record."
       },
       {
-        title: "Check In",
-        description: "Record athletes against that practice."
-      },
-      {
-        title: "Coach the Room",
-        description: "Run the session directly."
+        title: "Big Clock",
+        description: "Run the standard practice structure in Manual mode."
       }
     ],
 
@@ -330,12 +437,14 @@ choices.forEach((choice) => {
       return;
     }
 
-    const paths = {
-      "coach-directed": "/coaches/practice/entry.html?mode=quick-start",
-      "after-the-fact": "/coaches/practice/entry.html?mode=after-the-fact"
-    };
-    const destination = paths[flowId];
-    if (destination) window.location.assign(destination);
+    if (flowId === "coach-directed") {
+      void openQuickStartPractice(choice);
+      return;
+    }
+
+    if (flowId === "after-the-fact") {
+      window.location.assign("/coaches/practice/entry.html?mode=after-the-fact");
+    }
   });
 });
 

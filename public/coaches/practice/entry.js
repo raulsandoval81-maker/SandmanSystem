@@ -223,7 +223,7 @@ async function submit() {
 }
 
 async function initialize() {
-  if (requestedMode() === "planned") {
+  if (requestedMode() === "planned" || requestedMode() === "quick-start") {
     location.replace("/coaches/practice/");
     return;
   }
