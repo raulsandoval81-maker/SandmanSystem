@@ -66,9 +66,12 @@ jobs:
           service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
+          token_format: access_token
       - name: Verify federated staging identity
         run: node scripts/staging/verify-staging-boundary.mjs
       - name: Deploy Hosting, Wrestling callable, and Firestore rules to staging only
         run: node scripts/staging/deploy-staging.mjs
       - name: Seed synthetic Wrestling staging users and data
+        env:
+          SANDMAN_STAGING_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: node functions/scripts/seed-wrestling-staging.mjs
