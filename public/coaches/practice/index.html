@@ -123,36 +123,19 @@
       text-transform:uppercase;
     }
 
-    .practice-start__field input{
-      width:100%;
+    .practice-start__value{
+      display:flex;
       min-height:44px;
+      align-items:center;
       padding:10px 12px;
       border:1px solid var(--practice-line);
       border-radius:10px;
-      background:#080c12;
+      background:var(--practice-card);
       color:var(--practice-text);
-      font:inherit;
-      font-weight:750;
+      font-size:.95rem;
+      font-weight:850;
       text-transform:none;
       letter-spacing:0;
-    }
-
-    .practice-start__field input[readonly],
-    .practice-start__field input:disabled{
-      opacity:1;
-      color:#f7f7f5;
-      -webkit-text-fill-color:#f7f7f5;
-      background:#0d131b;
-      border-color:rgba(255,255,255,.24);
-    }
-
-    html[data-theme="light"] .practice-start__field input[readonly],
-    html[data-theme="light"] .practice-start__field input:disabled{
-      opacity:1;
-      color:#171717;
-      -webkit-text-fill-color:#171717;
-      background:#fff;
-      border-color:rgba(8,8,8,.30);
     }
 
     .choice-panel{
@@ -631,15 +614,15 @@
   </header>
 
   <section class="practice-start" aria-label="Practice identity">
-    <label class="practice-start__field">
-      Practice Date
-      <input id="practiceDate" type="date" disabled>
-    </label>
+    <div class="practice-start__field">
+      <span>Practice Date</span>
+      <strong id="practiceDate" class="practice-start__value"></strong>
+    </div>
 
-    <label class="practice-start__field">
-      Coach
-      <input id="practiceCoach" type="text" readonly aria-readonly="true">
-    </label>
+    <div class="practice-start__field">
+      <span>Coach</span>
+      <strong id="practiceCoach" class="practice-start__value"></strong>
+    </div>
 
   </section>
 
