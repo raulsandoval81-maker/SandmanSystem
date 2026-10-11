@@ -39,7 +39,9 @@ function coachDisplayName(coach = {}) {
   const staff = coach?.staff || {};
   const user = coach?.user || {};
   return [
+    staff.preferredName,
     staff.displayName,
+    staff.fullName,
     staff.name,
     [staff.firstName, staff.lastName].filter(Boolean).join(" "),
     user.displayName,
