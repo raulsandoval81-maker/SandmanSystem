@@ -213,10 +213,35 @@ html[data-theme="light"]{
 
 .athlete-search{
   min-height:54px !important;
-  margin-bottom:10px;
+  margin-bottom:0;
   font-size:1rem !important;
 }
 
+.attendance-roster-tools{
+  display:grid;
+  grid-template-columns:minmax(190px,.7fr) minmax(240px,1.3fr);
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.attendance-roster-tools label{
+  margin:0;
+}
+
+.attendance-roster-tools label > span{
+  display:block;
+  margin-bottom:5px;
+  color:var(--attendance-muted);
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.attendance-roster-tools select{
+  min-height:54px;
+  width:100%;
+}
 
 .athlete-checkin-list{
   display:grid;
@@ -296,6 +321,10 @@ html[data-theme="light"]{
 }
 
 @media(max-width:720px){
+  .attendance-roster-tools{
+    grid-template-columns:1fr;
+  }
+
   .practice-secondary-fields{
     grid-template-columns:1fr;
   }
