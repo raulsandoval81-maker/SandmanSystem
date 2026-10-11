@@ -833,6 +833,68 @@ export const skillCheckCoachCall =
         evidenceApproved:false,coverageComplete:false,eligibleForAuto:false};
     }
 
+    if (action === "advance-native-history-checkpoint") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Native checkpoint traversal requires Admin authority.");
+      }
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1) {
+        throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
+      }
+      const locationId = clean(athlete.locationId);
+      if (!locationId) throw new HttpsError("failed-precondition", "Athlete location required.");
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const priorSnap = await ref.get();
+      if (!priorSnap.exists || Number(priorSnap.data()?.revision) !== expectedRevision) {
+        throw new HttpsError("aborted", "Checkpoint revision changed. Reload.");
+      }
+      const prior = priorSnap.data() || {};
+      const cursor = clean(prior.attendanceCursor);
+      if (cursor) optionalPracticeId(cursor);
+      const queryBase = db.collection("attendance_sessions")
+        .where("locationId", "==", locationId)
+        .orderBy(FieldPath.documentId()).limit(51);
+      const page = await (cursor ? queryBase.startAfter(cursor) : queryBase).get();
+      const docs = page.docs.slice(0, 50);
+      const additionalPages = page.size > 50;
+      const discovered = docs.filter(snap => {
+        const record = snap.data() || {};
+        return normalizeDiscipline(record.discipline) === discipline
+          && clean(record.status).toLowerCase() === "finalized"
+          && record.finalized === true && attendanceIncludesAthlete(record, athleteId);
+      }).map(snap => snap.id);
+      const nextCursor = additionalPages ? docs[docs.length - 1].id : "";
+      const result = await db.runTransaction(async tx => {
+        const currentSnap = await tx.get(ref);
+        const current = currentSnap.data() || {};
+        if (!currentSnap.exists || Number(current.revision) !== expectedRevision
+            || clean(current.attendanceCursor) !== cursor) {
+          throw new HttpsError("aborted", "Checkpoint advanced. Reload before retry.");
+        }
+        const stored = Array.isArray(current.inventoryPracticeIds)
+          ? current.inventoryPracticeIds.map(String) : [];
+        const combined = [...new Set([...stored, ...discovered])];
+        if (combined.length > 5000) {
+          throw new HttpsError("resource-exhausted", "Native inventory checkpoint exceeded safe bound.");
+        }
+        const nextRevision = expectedRevision + 1;
+        tx.update(ref, {
+          revision:nextRevision, attendanceCursor:nextCursor,
+          attendanceScanExhausted:!additionalPages,
+          inventoryPracticeIds:combined,
+          status:"DIAGNOSTIC_ATTENDANCE_INVENTORY",
+          updatedAt:FieldValue.serverTimestamp(),
+          blockers:["verified-practice-discovery-required",
+            "independent-source-coverage-certification-required"],
+          coverageComplete:false,evidenceApproved:false,eligibleForAuto:false,
+        });
+        return {revision:nextRevision, discoveredThisPage:discovered.length,
+          inventoryPracticeCount:combined.length, scanExhausted:!additionalPages};
+      });
+      return {ok:true,...result,diagnosticOnly:true,
+        coverageComplete:false,evidenceApproved:false,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
