@@ -882,3 +882,30 @@ test("native checkpoint is admin-only, revision-controlled and never accepts cla
  const next=await request("test-admin-transfer","open-native-history-checkpoint",{expectedRevision:1});
  assert.equal(next.revision,2);
 });
+
+test("native checkpoint advances attendance inventory using server-owned cursor and revision",async()=>{
+ const id="F8_NATIVE_RESUME";
+ const practiceId="native-resume-attendance";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ const request=(uid,action,extras={})=>callable.run({auth:{uid,token:{}},data:{
+  action,athleteId:id,discipline:"wrestling",...extras
+ }});
+ const started=await request("test-admin-transfer","open-native-history-checkpoint",{expectedRevision:0});
+ await assert.rejects(request("test-coach","advance-native-history-checkpoint",{expectedRevision:started.revision}),
+  e=>e.code==="permission-denied");
+ const result=await request("test-admin-transfer","advance-native-history-checkpoint",{
+  expectedRevision:started.revision,inventoryPracticeIds:["forged-practice"],coverageComplete:true
+ });
+ assert.equal(result.revision,2);
+ assert.equal(result.eligibleForAuto,false);
+ const snap=await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").get();
+ assert.ok(snap.data().inventoryPracticeIds.includes(practiceId));
+ assert.ok(!snap.data().inventoryPracticeIds.includes("forged-practice"));
+ assert.equal(snap.data().coverageComplete,false);
+ await assert.rejects(request("test-admin-transfer","advance-native-history-checkpoint",{expectedRevision:1}),
+  e=>e.code==="aborted");
+});
