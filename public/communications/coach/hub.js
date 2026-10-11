@@ -23,7 +23,9 @@ import {
   collection,
   getDocs,
   doc,
-  getDoc
+  getDoc,
+  setDoc,
+  serverTimestamp
 } from "/assets/js/firebase-init-para.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
 
@@ -368,6 +370,33 @@ async function loadThreads() {
       });
 }
 
+/* ==========================================================
+   Coach Home Team indicator (Para-Comms is source of truth)
+   Publishes only the eligible, visible unread family threads
+   already loaded by this Coach hub. No duplicate inbox.
+========================================================== */
+async function publishTeamUnreadSummary() {
+  const locationId = String(
+    coachAccess.scope?.locationIds?.[0] ||
+    (coachAccess.uid ? "coach-user-" + coachAccess.uid : "")
+  ).trim();
+  if (!locationId) return;
+  const docId = "coach-dashboard-summary-" +
+    locationId.toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+  const teamMessages = threadRows.filter(
+    (row) => row.data.coachHasUnread === true
+  ).length;
+  try {
+    await setDoc(doc(db, "system", docId), {
+      teamMessages,
+      teamMessagesUpdatedAt: serverTimestamp(),
+      teamMessagesSource: "para-comms-coach-hub"
+    }, { merge: true });
+  } catch (error) {
+    console.warn("[para-comms] Coach Home team unread summary unavailable", error);
+  }
+}
+
 /* =========================
    UNREAD
 ========================= */
@@ -483,6 +512,7 @@ async function loadHub() {
 
   try {
     await loadThreads();
+    void publishTeamUnreadSummary();
 
     renderUnread();
     renderRecent();
