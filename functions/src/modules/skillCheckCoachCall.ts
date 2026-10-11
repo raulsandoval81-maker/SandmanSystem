@@ -1160,6 +1160,22 @@ export const skillCheckCoachCall =
             issues.push("recheck-skill-observations-changed:" + id);
         }
       }
+      // A multi-batch scan is not an atomic snapshot. Re-read the first
+      // previously checked record at completion to surface basic drift; a
+      // successful spot check still never certifies full-source consistency.
+      if (offset > 0 && offset + selected.length === ids.length && ids.length) {
+        const firstId = ids[0];
+        const firstAttendance = await db.doc(`attendance_sessions/${firstId}`).get();
+        const record = firstAttendance.data() || {};
+        if (!firstAttendance.exists || record.finalized !== true
+            || clean(record.status).toLowerCase() !== "finalized"
+            || !attendanceIncludesAthlete(record, athleteId)) {
+          issues.push("cross-batch-source-changed:" + firstId);
+        }
+      }
+      if (offset + selected.length === ids.length && ids.length > 10) {
+        issues.push("cross-batch-atomic-consistency-not-proven");
+      }
       const result = await db.runTransaction(async tx => {
         const freshSnap = await tx.get(ref);
         const fresh = freshSnap.data() || {};
