@@ -65,6 +65,14 @@ const dashboardCounts = {
 
 let dashboardLocationId = "";
 let dashboardWriteTimer = null;
+const dashboardPublishStatus = () => $("dashboard-publish-status");
+function showDashboardPublishStatus(message, details = "") {
+  const el = dashboardPublishStatus();
+  if (!el) return;
+  el.textContent = message;
+  el.title = details;
+}
+
 
 function dashboardSummaryDocId(locationId) {
   return "coach-dashboard-summary-" +
@@ -77,8 +85,12 @@ function dailyOpenSignalTotal() {
 }
 
 function queueDailyDashboardSummary() {
-  if (!dashboardLocationId) return;
+  if (!dashboardLocationId) {
+    showDashboardPublishStatus("Home count: no location scope available");
+    return;
+  }
   clearTimeout(dashboardWriteTimer);
+  showDashboardPublishStatus("Home count: publishing…");
   dashboardWriteTimer = setTimeout(async () => {
     try {
       await setDoc(
@@ -94,8 +106,10 @@ function queueDailyDashboardSummary() {
         },
         { merge: true }
       );
+      showDashboardPublishStatus("Home count: published (" + dailyOpenSignalTotal() + ")");
     } catch (error) {
       console.warn("[daily-operations] dashboard summary update failed", error);
+      showDashboardPublishStatus("Home count: publish failed (" + (error?.code || "unknown error") + ")", error?.message || "");
     }
   }, 250);
 }
@@ -653,6 +667,7 @@ async function initialize() {
       (coachContext?.uid ? "coach-user-" + coachContext.uid : "")
     ).trim();
 
+    showDashboardPublishStatus("Home count: awaiting Daily queue");
     if (protectedContent) protectedContent.hidden = false;
     if (status) status.hidden = true;
 
