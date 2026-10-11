@@ -88,6 +88,7 @@ export function reconcileNativeHistoryPages(
     const cursors = new Map(scoped.map(page => [page.cursor || "", page]));
     if (cursors.size !== scoped.length) blockers.add("duplicate-page-cursor:" + scope);
     let cursor = "";
+    let exhausted = false;
     const visited = new Set<string>();
     while (!visited.has(cursor)) {
       visited.add(cursor);
@@ -95,13 +96,14 @@ export function reconcileNativeHistoryPages(
       if (!page) { blockers.add("missing-page:" + scope); break; }
       observations.push(...page.observations);
       if (page.nextCursor === null) {
+        exhausted = true;
         if (!page.scopeExhausted) blockers.add("scope-not-exhausted:" + scope);
         break;
       }
       if (page.scopeExhausted) blockers.add("inconsistent-exhaustion:" + scope);
       cursor = page.nextCursor;
     }
-    if (visited.has(cursor) && cursor !== "") blockers.add("cursor-cycle:" + scope);
+    if (!exhausted && visited.has(cursor)) blockers.add("cursor-cycle:" + scope);
     if (!scoped.length) blockers.add("missing-scope:" + scope);
   }
   const unique = new Map<string, VerifiedSkillObservation>();
