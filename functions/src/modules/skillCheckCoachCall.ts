@@ -19,6 +19,9 @@ import {
   requireActiveStaff,
   staffHasLocation,
 } from "../services/staffAuthorization";
+import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
+
+const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
 
 const SKILL_CHECK_STAFF_ROLES = Object.freeze([
   "admin",
@@ -328,7 +331,7 @@ function attendanceIncludesAthlete(attendance: Record<string, unknown>, athleteI
 }
 
 export const skillCheckCoachCall =
-  onCall(async (req) => {
+  onCall(skillCheckRuntimeOptions, async (req) => {
     if (!req.auth) {
       throw new HttpsError(
         "unauthenticated",
