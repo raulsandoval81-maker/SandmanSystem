@@ -106,7 +106,7 @@ function queueDailyDashboardSummary() {
         },
         { merge: true }
       );
-      showDashboardPublishStatus("Home count: published (" + dailyOpenSignalTotal() + ")");
+      showDashboardPublishStatus("Home count: published (" + dailyOpenSignalTotal() + ") · " + dashboardSummaryDocId(dashboardLocationId));
     } catch (error) {
       console.warn("[daily-operations] dashboard summary update failed", error);
       showDashboardPublishStatus("Home count: publish failed (" + (error?.code || "unknown error") + ")", error?.message || "");
