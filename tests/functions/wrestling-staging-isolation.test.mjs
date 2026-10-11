@@ -30,6 +30,9 @@ test("staging Functions discovery excludes production email and secret exports",
     read("scripts/staging/prepare-staging-hosting.mjs"),
   ]);
   assert.match(stagingEntry, /skillCheckCoachCall/);
+  assert.match(stagingEntry, /openPracticeSession/);
+  assert.match(stagingEntry, /savePracticeSessionMemory/);
+  assert.match(stagingEntry, /closePracticeSession/);
   assert.doesNotMatch(stagingEntry, /RESEND_API_KEY|sendEnrollmentIntakeEmail|sendGatekeeperEmail/);
   assert.match(productionEntry, /sendEnrollmentIntakeEmail/);
   assert.equal(JSON.parse(packageSource).main, "lib/index.js");
@@ -150,7 +153,11 @@ test("staging deployment is manual, explicit, and bound to verified identities",
   assert.match(deploy, /DEPLOY:\$\{boundary\.projectId\}/);
   assert.match(deploy, /--config", "firebase\.staging\.json/);
   assert.match(deploy, /--project", boundary\.projectId/);
-  assert.match(deploy, /hosting,functions:skillCheckCoachCall,firestore:rules/);
+  assert.match(deploy, /functions:skillCheckCoachCall/);
+  assert.match(deploy, /functions:openPracticeSession/);
+  assert.match(deploy, /functions:savePracticeSessionMemory/);
+  assert.match(deploy, /functions:closePracticeSession/);
+  assert.match(deploy, /firestore:rules/);
   assert.doesNotMatch(deploy, /,storage/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
   assert.match(workflow, /SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
