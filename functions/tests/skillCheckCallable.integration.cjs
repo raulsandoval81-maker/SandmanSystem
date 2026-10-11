@@ -832,3 +832,24 @@ test("Independent attendance inventory flags finalized attendance without skill 
  assert.equal(result.coverageComplete,false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("Integrated source review flags finalized attendance with missing athlete memory",async()=>{
+ const id="F8_MISSING_MEMORY";
+ const practiceId="inventory-missing-memory";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({
+  coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",
+  discipline:"wrestling",sessionDateKey:"2026-10-11"
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+  action:"evaluate-integrated-history-coverage",athleteId:id,discipline:"wrestling"
+ }});
+ assert.ok(result.unresolvedBlockers.includes("missing-athlete-session-memory:"+practiceId));
+ assert.ok(result.independentCoverage.diagnosticBlockers.includes("missing-athlete-session-memory:"+practiceId));
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+});
