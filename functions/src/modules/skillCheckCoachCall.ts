@@ -12,7 +12,7 @@ import {
 
 import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
-import { reconcileVerifiedProgression } from "./verifiedProgressionResolver";
+import { reconcileVerifiedProgression, reconcileNativeHistoryPages } from "./verifiedProgressionResolver";
 
 import {
   normalizeStaffList,
@@ -2150,11 +2150,33 @@ export const skillCheckCoachCall =
         const allScopesScanned = requiredScopes.every(scope => scope.authorized && scope.scanExhausted)
           && unresolvedTransferLocations.length <= priorLocationScanLimit;
         const unresolvedBlockers = [...new Set([...summary.blockers, ...blockers])].sort();
+        const nativeScopes = specs.map(spec => spec.scope);
+        const nativePages = pages.map(page => ({
+          scope: page.scope,
+          cursor: page.cursor ?? null,
+          nextCursor: page.nextCursor ?? null,
+          scopeExhausted: page.scopeExhausted,
+          observations: (page.history ?? []).flatMap(practice => practice.verifiedSkills.map(skill => ({
+            practiceId: practice.practiceId,
+            discipline,
+            familyId: skill.familyId,
+            state: skill.state,
+            coachUid: skill.coachUid,
+            verifiedAt: skill.verifiedAt || "",
+          }))),
+        }));
+        const nativeReconciliation = reconcileNativeHistoryPages(
+          athleteId, discipline, nativeScopes, nativePages,
+          unresolvedTransferLocations.length > 0, false,
+        );
         // Scan exhaustion is only technical discovery coverage, not proof
         // that declared locations represent the athlete's entire history.
         return {
           ok: true, diagnosticOnly: true, kind: "INTEGRATED_HISTORY_COVERAGE_REVIEW",
           athleteId, discipline, requiredScopes, allScopesScanned,
+          nativeReconciliation: { ...nativeReconciliation, approved: false,
+            blockers: [...new Set([...nativeReconciliation.blockers,
+              "integrated-coverage-requires-independent-attestation"])].sort() },
           evidencePracticeCount: new Set(pages.flatMap(page =>
             (page.history ?? []).map(item => item.practiceId))).size,
           unresolvedBlockers,
