@@ -125,7 +125,7 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
   display:block;
 }
 .setup-choice strong{
-  color:var(--gold);
+  color:var(--text);
   font-size:.95rem;
 }
 .setup-choice span{
@@ -140,6 +140,10 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
   background:var(--gold-soft);
   box-shadow:0 0 0 3px var(--selected-ring);
 }
+.setup-choice.active strong,
+.duration-choice.active{
+  color:var(--gold);
+}
 .duration-grid{
   display:grid;
   grid-template-columns:repeat(4,minmax(0,1fr));
@@ -147,7 +151,7 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
 }
 .duration-choice{
   min-height:50px;
-  color:var(--gold);
+  color:var(--text);
   text-align:center;
   font-weight:900;
 }
