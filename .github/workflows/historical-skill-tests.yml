@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
       - 'functions/tests/**'
       - 'functions/package.json'
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
       - 'functions/tests/**'
       - 'functions/package.json'
@@ -24,14 +26,14 @@ permissions:
 
 jobs:
   functions-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     defaults:
       run:
         working-directory: functions
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
@@ -40,18 +42,18 @@ jobs:
       - run: npm test
 
   firestore-emulator-integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: functions/package-lock.json
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
