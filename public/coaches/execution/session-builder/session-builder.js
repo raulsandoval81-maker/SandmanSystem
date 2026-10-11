@@ -846,6 +846,27 @@ function persistSession(payload) {
 
 async function openCanonicalPractice(payload) {
   await requireCoach();
+  const entry = practiceEntryIntent();
+  const historical = String(entry.mode || "") === "after-the-fact";
+
+  if (historical) {
+    const createHistorical = httpsCallable(functions, "createOrRecoverCanonicalPractice");
+    const response = await createHistorical({
+      entryMode: "after-the-fact",
+      locationId: payload.locationId,
+      roomId: payload.roomId,
+      liveSessionId: payload.sessionId,
+      sessionDateKey: payload.sessionDateKey,
+      program: "attendance-routed",
+      discipline: payload.discipline,
+      practiceKey: `history-${payload.sessionId}`
+    });
+    const practiceId = String(response.data?.practiceId || "").trim();
+    if (!practiceId) throw new Error("Historical practice identity was not returned.");
+    activePracticeId = practiceId;
+    return { ...payload, practiceId, entryMode: "after-the-fact", source: "historical-session-builder" };
+  }
+
   const openPractice = httpsCallable(functions, "openPracticeSession");
   const response = await openPractice({
     practiceId: payload.practiceId,
@@ -993,8 +1014,12 @@ buildBtn.addEventListener("click", async () => {
     payload = await openCanonicalPractice(payload);
     persistSession(payload);
 
+    const historical = String(practiceEntryIntent().mode || "") === "after-the-fact";
     const attendanceFirstId = sessionStorage.getItem("sandman_attendance_first_practice_id");
-    if (attendanceFirstId === payload.practiceId) {
+    if (historical) {
+      sessionStorage.removeItem(PRACTICE_ENTRY_KEY);
+      window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=historical&flow=builder`;
+    } else if (attendanceFirstId === payload.practiceId) {
       sessionStorage.removeItem("sandman_attendance_first_practice_id");
       window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(payload.sessionId)}&practiceId=${encodeURIComponent(payload.practiceId)}`;
     } else {
@@ -1027,9 +1052,14 @@ if (searchParams.get("from") === "practice-entry") {
   const entry = practiceEntryIntent();
   const noticeEl = document.getElementById("dashboardNotice");
   const dateLabel = entry.sessionDateKey ? new Date(entry.sessionDateKey + "T12:00:00").toLocaleDateString() : "";
+  const historical = String(entry.mode || "") === "after-the-fact";
   noticeEl.textContent = dateLabel
-    ? `Practice started for ${dateLabel}. Build the session.`
-    : "Practice started. Build the session.";
+    ? historical
+      ? `Recording past practice for ${dateLabel}. Reconstruct the session.`
+      : `Practice started for ${dateLabel}. Build the session.`
+    : historical
+      ? "Recording past practice. Reconstruct the session."
+      : "Practice started. Build the session.";
   noticeEl.hidden = false;
   // Practice Operations already chose the planned lane, so do not show a
   // second start/skip decision here.

@@ -15,9 +15,6 @@ import {
 const $ = (id) => document.getElementById(id);
 const PRACTICE_ENTRY_KEY = "sandman_practice_entry_v1";
 
-const createOrRecoverPractice =
-  httpsCallable(functions, "createOrRecoverCanonicalPractice");
-
 let activeRoom = null;
 
 function todayKey() {
@@ -161,59 +158,21 @@ async function submit() {
       return;
     }
 
-    setStatus(historical ? "Opening past practice…" : "Opening practice…");
-
-    let practiceId = "";
-
     if (historical) {
-      const response = await createOrRecoverPractice({
-        entryMode: "after-the-fact",
-        locationId: room.locationId,
-        roomId: room.roomId,
-        liveSessionId: room.value,
+      sessionStorage.setItem(PRACTICE_ENTRY_KEY, JSON.stringify({
+        mode: "after-the-fact",
         sessionDateKey,
-        program: "attendance-routed",
-        discipline: "unassigned",
-        practiceKey: `rush-${room.value}`
-      });
-      practiceId = String(response.data?.practiceId || "").trim();
-    } else {
-      const openPractice = httpsCallable(functions, "openPracticeSession");
-      const response = await openPractice({
-        liveSessionId: room.value,
-        locationId: room.locationId,
-        academyId: room.locationId,
+        coachName: $("coachOnHand")?.value || "",
+        roomValue: room.value,
         roomId: room.roomId,
-        sessionDateKey,
-        discipline: "unassigned",
-        journey: "",
-        program: "",
-        track: "",
-        schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: mode === "quick-start" ? "manual" : "hybrid",
-        durationMinutes: 60
-      });
-      practiceId = String(response.data?.practiceId || "").trim();
-    }
-
-    if (!practiceId) throw new Error("Practice identity was not returned.");
-
-    persistSession(practiceId, room, mode);
-
-    if (mode === "quick-start") {
-      localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify({
-        source: "session-builder-fast-pass",
-        practiceId,
-        sessionId: room.value,
-        durationMinutes: 60,
-        blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
+        locationId: room.locationId,
+        createdAt: new Date().toISOString()
       }));
+      location.href = "/coaches/execution/session-builder/?from=practice-entry&historical=1";
+      return;
     }
 
-    sessionStorage.setItem("sandman_attendance_first_practice_id", practiceId);
-    const returnTarget = mode === "quick-start" ? "clock" : "builder";
-    location.href = "/coaches/attendance/session.html?practiceId=" +
-      encodeURIComponent(practiceId) + "&flow=builder&return=" + encodeURIComponent(returnTarget);
+    throw new Error("Unsupported Practice Entry mode.");
   } catch (error) {
     console.error("[practice-entry] failed", error);
     setStatus(error?.message || "Practice entry failed.", true);

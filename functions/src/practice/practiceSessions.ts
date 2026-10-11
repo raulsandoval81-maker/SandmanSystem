@@ -75,7 +75,7 @@ function requireCanonicalPracticeProgram(program: unknown, disciplineValue: unkn
   // Attendance-first practices intentionally defer route selection until the
   // checked-in roster is known. This sentinel remains location-scoped and does
   // not prescribe curriculum by itself.
-  if (programId === "attendance-routed" && discipline === "unassigned") {
+  if (programId === "attendance-routed") {
     return { program: programId, discipline, journey: "" };
   }
 
