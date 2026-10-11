@@ -13,6 +13,7 @@ import {
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
 const $ = (id) => document.getElementById(id);
+const PRACTICE_ENTRY_KEY = "sandman_practice_entry_v1";
 
 const createOrRecoverPractice =
   httpsCallable(functions, "createOrRecoverCanonicalPractice");
@@ -58,18 +59,24 @@ function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
   ) || null;
 }
 
-function updateModeUI() {
-  const mode = $("entryMode")?.value || "planned";
+function updateEntryUI() {
+  const mode = requestedMode();
   const historical = mode === "after-the-fact";
 
   const date = $("sessionDateKey");
   if (date) {
-    date.disabled = !historical;
+    date.disabled = mode !== "after-the-fact";
     if (!historical) date.value = todayKey();
   }
 
   const button = $("createPractice");
-  if (button) button.textContent = "Continue to Attendance";
+  if (button) {
+    button.textContent = mode === "planned"
+      ? "Continue to Session Builder"
+      : mode === "quick-start"
+        ? "Continue to Quick Start"
+        : "Continue to Past Practice";
+  }
 
   const title = $("entryTitle");
   if (title) {
@@ -82,11 +89,11 @@ function updateModeUI() {
 
   const description = $("entryDescription");
   if (description) {
-    description.textContent = mode === "quick-start"
-      ? "Check in, let Sandman group the room, then open the clock."
-      : historical
-        ? "Choose the date, then verify who was there."
-        : "Open the practice and move straight to attendance.";
+    description.textContent = mode === "planned"
+      ? "Confirm the practice date and Coach, then continue to Session Builder."
+      : mode === "quick-start"
+        ? "Confirm the Coach, then continue the quick-start practice flow."
+        : "Choose the real practice date and confirm the Coach before recovering the practice.";
   }
 }
 
@@ -121,7 +128,7 @@ function persistSession(practiceId, room, mode) {
 }
 
 async function submit() {
-  const mode = $("entryMode")?.value || "planned";
+  const mode = requestedMode();
   const historical = mode === "after-the-fact";
   const room = activeRoom;
   const sessionDateKey = historical ? ($("sessionDateKey")?.value || "") : todayKey();
@@ -140,6 +147,20 @@ async function submit() {
   if (button) button.disabled = true;
 
   try {
+    if (mode === "planned") {
+      sessionStorage.setItem(PRACTICE_ENTRY_KEY, JSON.stringify({
+        mode,
+        sessionDateKey,
+        coachName: $("coachOnHand")?.value || "",
+        roomValue: room.value,
+        roomId: room.roomId,
+        locationId: room.locationId,
+        createdAt: new Date().toISOString()
+      }));
+      location.href = "/coaches/execution/session-builder/?from=practice-entry";
+      return;
+    }
+
     setStatus(historical ? "Opening past practice…" : "Opening practice…");
 
     let practiceId = "";
@@ -217,12 +238,10 @@ async function initialize() {
     }
 
     if ($("coachOnHand")) $("coachOnHand").value = coachDisplayName(coach);
-    $("entryMode").value = requestedMode();
     $("sessionDateKey").value = todayKey();
 
-    updateModeUI();
+    updateEntryUI();
 
-    $("entryMode")?.addEventListener("change", updateModeUI);
     $("createPractice")?.addEventListener("click", submit);
 
     if (panel) panel.hidden = false;
