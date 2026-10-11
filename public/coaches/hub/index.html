@@ -76,7 +76,7 @@
               href="/coaches/today/"
             >
               <span class="home-card__label">Current Work</span>
-              <strong>Daily Operations</strong>
+              <div class="home-card__title-row"><strong>Daily Operations</strong><span class="home-card__count" data-operation-count="daily" hidden aria-label="Daily Operations open count"></span></div>
               <span>Review today’s open work, alerts, approvals, and follow-ups.</span>
             </a>
 
@@ -85,7 +85,7 @@
               href="/coaches/practice/"
             >
               <span class="home-card__label">Training Day</span>
-              <strong>Practice Operations</strong>
+              <div class="home-card__title-row"><strong>Practice Operations</strong><span class="home-card__count" data-operation-count="practice" hidden aria-label="Practice Operations open count"></span></div>
               <span>Build the practice, take attendance, run the room, and close it out.</span>
             </a>
 
@@ -94,7 +94,7 @@
               href="/coaches/competition/"
             >
               <span class="home-card__label">Events</span>
-              <strong>Competition Operations</strong>
+              <div class="home-card__title-row"><strong>Competition Operations</strong><span class="home-card__count" data-operation-count="competition" hidden aria-label="Competition Operations open count"></span></div>
               <span>Prepare events, rosters, matches, results, and competition closeout.</span>
             </a>
 
@@ -103,7 +103,7 @@
               href="/coaches/athletes/"
             >
               <span class="home-card__label">Development</span>
-              <strong>Athlete Operations</strong>
+              <div class="home-card__title-row"><strong>Athlete Operations</strong><span class="home-card__count" data-operation-count="athlete" hidden aria-label="Athlete Operations open count"></span></div>
               <span>Review athlete progress, assessments, skills, testing, and recognition.</span>
             </a>
 
@@ -112,7 +112,7 @@
               href="/coaches/team/"
             >
               <span class="home-card__label">People</span>
-              <strong>Team Operations</strong>
+              <div class="home-card__title-row"><strong>Team Operations</strong><span class="home-card__count" data-operation-count="team" hidden aria-label="Team Operations open count"></span></div>
               <span>Handle communication, family context, culture, logistics, and team needs.</span>
             </a>
 
@@ -121,7 +121,7 @@
               href="/coaches/safety/"
             >
               <span class="home-card__label">Safety</span>
-              <strong>Emergency Operations</strong>
+              <div class="home-card__title-row"><strong>Emergency Operations</strong><span class="home-card__count" data-operation-count="emergency" hidden aria-label="Emergency Operations open count"></span></div>
               <span>Open emergency contacts, medical reference, protocols, and facility checks.</span>
             </a>
 
@@ -130,7 +130,7 @@
               href="/coaches/system/"
             >
               <span class="home-card__label">Workspace</span>
-              <strong>System Operations</strong>
+              <div class="home-card__title-row"><strong>System Operations</strong><span class="home-card__count" data-operation-count="system" hidden aria-label="System Operations open count"></span></div>
               <span>View schedule, access context, forms, support, diagnostics, and logs.</span>
             </a>
 
@@ -143,5 +143,6 @@
       </main>
 
 <script src="/coaches/_ui/coach-shell.js?v=2"></script>
+<script type="module" src="/coaches/hub/operation-counts.js?v=20261011-1"></script>
 </body>
 </html>
