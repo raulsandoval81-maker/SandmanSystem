@@ -12,7 +12,7 @@ import {
 
 import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
-import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage } from "./verifiedProgressionResolver";
+import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage, compareNativePracticeInventories } from "./verifiedProgressionResolver";
 
 import {
   normalizeStaffList,
@@ -2172,12 +2172,51 @@ export const skillCheckCoachCall =
         const independentCoverage = assessIndependentCoverage(
           requiredScopes, nativeReconciliation.blockers, unresolvedBlockers, unresolvedTransferLocations
         );
+        // Independent current-location inventory from finalized attendance,
+        // not from practiceSessions. Bound the scan and fail closed on overflow.
+        // These IDs are participation evidence, not verified skill history.
+        const independentAttendanceIds: string[] = [];
+        let inventoryExhausted = false;
+        let inventoryAuthorized = Boolean(locationId) && (admin || staffHasLocation(actor.staff, locationId));
+        if (inventoryAuthorized) {
+          let attendanceCursor = "";
+          for (let pageIndex = 0; pageIndex < 5; pageIndex++) {
+            let attendanceQuery = db.collection("attendance_sessions")
+              .where("locationId", "==", locationId)
+              .orderBy(FieldPath.documentId()).limit(51);
+            if (attendanceCursor) attendanceQuery = attendanceQuery.startAfter(attendanceCursor);
+            const attendancePage = await attendanceQuery.get();
+            const slice = attendancePage.docs.slice(0, 50);
+            for (const attendanceDoc of slice) {
+              const record = attendanceDoc.data() || {};
+              if (normalizeDiscipline(record.discipline) === discipline
+                  && clean(record.status).toLowerCase() === "finalized"
+                  && record.finalized === true && attendanceIncludesAthlete(record, athleteId)) {
+                independentAttendanceIds.push(attendanceDoc.id);
+              }
+            }
+            if (attendancePage.size <= 50) { inventoryExhausted = true; break; }
+            attendanceCursor = slice[slice.length - 1].id;
+          }
+        }
+        const currentLocationDiscoveredIds = [...new Set(pages
+          .filter(page => page.scope === "athlete-location")
+          .flatMap(page => (page.history || []).map(item => item.practiceId)))];
+        const attendanceInventoryComparison = compareNativePracticeInventories(
+          currentLocationDiscoveredIds, independentAttendanceIds,
+          inventoryExhausted, inventoryAuthorized,
+        );
         // Scan exhaustion is only technical discovery coverage, not proof
         // that declared locations represent the athlete's entire history.
         return {
           ok: true, diagnosticOnly: true, kind: "INTEGRATED_HISTORY_COVERAGE_REVIEW",
           athleteId, discipline, requiredScopes, allScopesScanned,
           independentCoverage,
+          attendanceInventoryComparison: {
+            ...attendanceInventoryComparison,
+            inventorySource: "finalized-attendance-current-location",
+            certificationScope: "diagnostic-only",
+          },
           nativeReconciliation: { ...nativeReconciliation, approved: false,
             blockers: [...new Set([...nativeReconciliation.blockers,
               "integrated-coverage-requires-independent-attestation"])].sort() },
