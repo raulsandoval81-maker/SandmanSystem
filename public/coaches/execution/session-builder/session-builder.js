@@ -1029,7 +1029,13 @@ buildBtn.addEventListener("click", async () => {
   if (existingDraft && !window.confirm("Starting a new session will replace the unfinished Clipboard draft. Continue?")) return;
   let payload = createSessionPayload();
   if (!payload) return;
+  const buildError = document.getElementById("buildError");
+  if (buildError) {
+    buildError.hidden = true;
+    buildError.textContent = "";
+  }
   buildBtn.disabled = true;
+  buildBtn.textContent = "Opening practice…";
   try {
     payload = await resolveGroupPrescriptions(payload);
     // AUTO must be genuinely driven by checked-in groups, not a stale single-tier fallback.
@@ -1056,9 +1062,16 @@ buildBtn.addEventListener("click", async () => {
   } catch (error) {
     console.error("Session entry failed", error);
     const noticeEl = document.getElementById("dashboardNotice");
-    noticeEl.textContent = error?.message || "Could not start this session.";
+    const message = error?.message || "Could not start this session.";
+    noticeEl.textContent = message;
     noticeEl.hidden = false;
+    if (buildError) {
+      buildError.textContent = message;
+      buildError.hidden = false;
+      buildError.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
     buildBtn.disabled = false;
+    buildBtn.textContent = "Continue to Attendance";
   }
 });
 
