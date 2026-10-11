@@ -223,3 +223,52 @@ export function compareNativeEvidenceFingerprints(
   return {consistent:blockers.size===0,removed:disappeared,added,changed,
     blockers:[...blockers].sort(),certificateIssued:false as const,eligibleForAuto:false as const};
 }
+
+// Pure validation of a resumable native-history checkpoint. Checkpoints are
+// untrusted until reloaded and independently checked by the server.
+export type NativeCertificationCheckpoint = {
+  athleteId:string; discipline:string; revision:number;
+  requiredScopes:readonly string[];
+  completedScopes:readonly string[];
+  continuationScopes:readonly string[];
+  inventoryPracticeIds:readonly string[];
+  evidencePracticeIds:readonly string[];
+};
+export function evaluateNativeCertificationCheckpoint(checkpoint:NativeCertificationCheckpoint) {
+  const blockers=new Set<string>();
+  if (!KEY.test(checkpoint.athleteId)||!checkpoint.discipline||
+      !Number.isSafeInteger(checkpoint.revision)||checkpoint.revision<1)
+    blockers.add("checkpoint-identity-or-revision-invalid");
+  const required=new Set(checkpoint.requiredScopes);
+  const completed=new Set(checkpoint.completedScopes);
+  const pending=new Set(checkpoint.continuationScopes);
+  if (!required.size||required.size!==checkpoint.requiredScopes.length)
+    blockers.add("checkpoint-scopes-invalid");
+  if (completed.size!==checkpoint.completedScopes.length||
+      pending.size!==checkpoint.continuationScopes.length)
+    blockers.add("checkpoint-duplicate-scope");
+  for(const scope of completed) if(!required.has(scope)) blockers.add("checkpoint-unexpected-completed-scope");
+  for(const scope of pending) if(!required.has(scope)) blockers.add("checkpoint-unexpected-continuation");
+  for(const scope of required) {
+    if(completed.has(scope)===pending.has(scope)) blockers.add("checkpoint-scope-state-unresolved:"+scope);
+  }
+  if(checkpoint.inventoryPracticeIds.some(id=>!KEY.test(id))||
+     checkpoint.evidencePracticeIds.some(id=>!KEY.test(id)))
+    blockers.add("checkpoint-invalid-practice-id");
+  if(new Set(checkpoint.inventoryPracticeIds).size!==checkpoint.inventoryPracticeIds.length||
+     new Set(checkpoint.evidencePracticeIds).size!==checkpoint.evidencePracticeIds.length)
+    blockers.add("checkpoint-duplicate-practice");
+  const inventory=new Set(checkpoint.inventoryPracticeIds);
+  const evidence=new Set(checkpoint.evidencePracticeIds);
+  const attendanceWithoutEvidence=[...inventory].filter(id=>!evidence.has(id)).sort();
+  const evidenceOutsideInventory=[...evidence].filter(id=>!inventory.has(id)).sort();
+  if(attendanceWithoutEvidence.length) blockers.add("attendance-without-verified-skill-observations");
+  if(evidenceOutsideInventory.length) blockers.add("evidence-outside-attendance-inventory");
+  // In-progress or completed checkpoints remain candidates, not certificates.
+  return {
+    checkpointStructurallyComplete:blockers.size===0&&pending.size===0,
+    attendanceWithoutEvidence,evidenceOutsideInventory,
+    blockers:[...blockers].sort(),certificateIssued:false as const,
+    coverageComplete:false as const,eligibleForAuto:false as const,
+  };
+}
