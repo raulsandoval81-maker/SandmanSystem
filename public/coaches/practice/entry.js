@@ -153,6 +153,7 @@ async function submit() {
         entryMode: "after-the-fact",
         locationId: room.locationId,
         roomId: room.roomId,
+        liveSessionId: room.value,
         sessionDateKey,
         program: "attendance-routed",
         discipline: "unassigned",
