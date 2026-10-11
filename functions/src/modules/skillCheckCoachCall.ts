@@ -2716,7 +2716,8 @@ export const skillCheckCoachCall =
             }))),
             acceptedTransfer: [],
             nativeCoverageComplete: false,
-            transferRequired: true,
+            transferRequired: Array.isArray(athlete.previousLocationIds)
+              && athlete.previousLocationIds.some((id: unknown) => clean(id) && clean(id) !== clean(athlete.locationId)),
             transferAccepted: false,
           })
         : null;
