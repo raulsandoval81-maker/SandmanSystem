@@ -42,17 +42,17 @@ stage("staff/staging-outsider-coach", { role: "coach", status: "active", locatio
 stage("athletes/staging-athlete-beginner", {
   name: "Synthetic Beginner", displayName: "Synthetic Beginner",
   locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"],
-  discipline: "wrestling", journey: "Z2H", profileType: "youth", tier: "T0", rank: "Shadow"
+  discipline: "wrestling", journey: "Z2H", profileType: "youth"
 });
 stage("athletes/staging-athlete-intermediate", {
   name: "Synthetic Intermediate", displayName: "Synthetic Intermediate",
   locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"],
-  discipline: "wrestling", journey: "Z2H", profileType: "youth", tier: "T2", rank: "Competitor"
+  discipline: "wrestling", journey: "Z2H", profileType: "youth"
 });
 stage("athletes/staging-athlete-advanced", {
   name: "Synthetic Advanced", displayName: "Synthetic Advanced",
   locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"],
-  discipline: "wrestling", journey: "Z2H", profileType: "youth", tier: "T4", rank: "Champion"
+  discipline: "wrestling", journey: "Z2H", profileType: "youth"
 });
 stage("families/staging-family", { displayName: "Synthetic Family", athleteIds: roster });
 stage("practiceSessions/staging-wrestling-practice", { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-10-10", status: "open", createdAt: now });
