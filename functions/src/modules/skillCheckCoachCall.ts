@@ -1330,6 +1330,69 @@ export const skillCheckCoachCall =
         evidenceApproved:false,eligibleForAuto:false};
     }
 
+    if (action === "advance-native-inventory-refresh") {
+      if (normalizeStaffRole(actor.role) !== "admin")
+        throw new HttpsError("permission-denied", "Native inventory refresh requires Admin authority.");
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1)
+        throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
+      const locationId = clean(athlete.locationId);
+      if (!locationId) throw new HttpsError("failed-precondition", "Athlete location required.");
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const snapshot = await ref.get();
+      const checkpoint = snapshot.data() || {};
+      if (!snapshot.exists || Number(checkpoint.revision) !== expectedRevision)
+        throw new HttpsError("aborted", "Checkpoint revision changed.");
+      if (checkpoint.consistencyPassExhausted !== true)
+        throw new HttpsError("failed-precondition", "Complete consistency pass before inventory refresh.");
+      if (checkpoint.inventoryRefreshExhausted === true)
+        throw new HttpsError("failed-precondition", "Inventory refresh already exhausted.");
+      const cursor = clean(checkpoint.inventoryRefreshCursor);
+      if (cursor) optionalPracticeId(cursor);
+      let query = db.collection("attendance_sessions").where("locationId", "==", locationId)
+        .orderBy(FieldPath.documentId()).limit(51);
+      if (cursor) query = query.startAfter(cursor);
+      const page = await query.get();
+      const docs = page.docs.slice(0, 50);
+      const found = docs.filter(doc => {
+        const record = doc.data() || {};
+        return normalizeDiscipline(record.discipline) === discipline
+          && clean(record.status).toLowerCase() === "finalized"
+          && record.finalized === true && attendanceIncludesAthlete(record, athleteId);
+      }).map(doc => doc.id);
+      const hasMore = page.size > 50;
+      const nextCursor = hasMore ? docs[docs.length - 1].id : "";
+      const result = await db.runTransaction(async tx => {
+        const latest = await tx.get(ref);
+        const current = latest.data() || {};
+        if (!latest.exists || Number(current.revision) !== expectedRevision
+            || clean(current.inventoryRefreshCursor) !== cursor
+            || current.inventoryRefreshExhausted === true
+            || current.consistencyPassExhausted !== true)
+          throw new HttpsError("aborted", "Inventory refresh advanced. Reload.");
+        const refreshed = [...new Set([...(Array.isArray(current.inventoryRefreshPracticeIds)
+          ? current.inventoryRefreshPracticeIds.map(String) : []), ...found])];
+        if (refreshed.length > 5000)
+          throw new HttpsError("resource-exhausted", "Refreshed inventory exceeds checkpoint capacity.");
+        const original = new Set(Array.isArray(current.inventoryPracticeIds)
+          ? current.inventoryPracticeIds.map(String) : []);
+        const refreshedSet = new Set(refreshed);
+        const missing = hasMore ? [] : [...original].filter(id => !refreshedSet.has(id)).sort();
+        const added = [...refreshedSet].filter(id => !original.has(id)).sort();
+        const revision = expectedRevision + 1;
+        tx.update(ref, {revision,inventoryRefreshCursor:nextCursor,
+          inventoryRefreshExhausted:!hasMore,inventoryRefreshPracticeIds:refreshed,
+          inventoryRefreshMissing:missing,inventoryRefreshAdded:added,
+          status:"DIAGNOSTIC_INVENTORY_REFRESH",
+          updatedAt:FieldValue.serverTimestamp(),
+          coverageComplete:false,evidenceApproved:false,eligibleForAuto:false});
+        return {revision,scanExhausted:!hasMore,refreshedPracticeCount:refreshed.length,
+          added,missing};
+      });
+      return {ok:true,...result,diagnosticOnly:true,coverageComplete:false,
+        evidenceApproved:false,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
