@@ -58,8 +58,8 @@ function renderIndicator(key, value, kind) {
 function renderSummary(summary) {
   const counts = summary?.counts || {};
   WORK_KEYS.forEach((key) => renderIndicator(key, counts[key], "work"));
-  MESSAGE_KEYS.forEach((key) =>
-    renderIndicator(key, summary?.[MESSAGE_FIELDS[key]], "message"));
+  // Message counts are scoped to the Coach, not the location.
+  // Athlete messages have no authoritative publisher yet.
   renderIndicator("emergency", summary?.[EMERGENCY_FIELD], "urgent");
 }
 
@@ -72,6 +72,13 @@ async function loadOperationCounts() {
       setDailyStatus("Count unavailable", "No Coach location or user scope.");
       return;
     }
+    // Independent Coach-scoped Para-Comms summary. No duplicate inbox queries.
+    onSnapshot(doc(db, "system", "coach-messages-" + coach.uid), (snapshot) => {
+      renderIndicator("team", snapshot.exists() ? snapshot.data()?.teamMessages : null, "message");
+    }, (error) => {
+      console.warn("[coach-home] Para-Comms unread count unavailable", error);
+      renderIndicator("team", null, "message");
+    });
     const path = "system/" + summaryDocId(locationId);
     setDailyStatus("Checking count…", path);
     onSnapshot(doc(db, "system", summaryDocId(locationId)), (snapshot) => {
