@@ -724,10 +724,12 @@ function suggestedTrainingGroups() {
 }
 
 function tierOptions(selected = "", journey = activePractice?.journey) {
-  return ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
+  const blank = '<option value=""' + (!selected ? ' selected' : '') + '>Skill Card evidence required</option>';
+  const options = ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
     const tier = tierFromLadderKey(rank.key);
     return `<option value="${tier}"${tier === selected ? " selected" : ""}>${tier} — ${rank.name}</option>`;
   }).join("");
+  return blank + options;
 }
 
 function renderTrainingGroups(groups = suggestedTrainingGroups()) {
@@ -764,8 +766,8 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         </label>
 
         <label>
-          Tier
-          <select class="training-tier">
+          Skill Card Tier
+          <select class="training-tier" disabled>
             ${tierOptions(group.tier, group.journey)}
           </select>
         </label>
@@ -853,7 +855,7 @@ function updateGroupControls() {
   if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} training group${count === 1 ? "" : "s"} generated from attendance. All groups remain on Mat 1 and share one Practice ID.`;
+      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Rank/tier are never inferred here; Skill Card evidence must supply progression.`;
   }
 }
 
