@@ -31,7 +31,20 @@ function requestedMode() {
     new URLSearchParams(location.search).get("mode") || ""
   ).trim().toLowerCase();
 
-  return ["planned", "quick-start", "after-the-fact"].includes(mode) ? mode : "after-the-fact";
+  return ["planned", "quick-start", "after-the-fact"].includes(mode) ? mode : "planned";
+}
+
+function coachDisplayName(coach = {}) {
+  const staff = coach?.staff || {};
+  const user = coach?.user || {};
+  const explicit = [
+    staff.displayName,
+    staff.name,
+    [staff.firstName, staff.lastName].filter(Boolean).join(" "),
+    user.displayName,
+    coach.email
+  ].map((value) => String(value || "").trim()).find(Boolean);
+  return explicit || "Signed-in Coach";
 }
 
 function populateRooms(scopeLocationIds = [], isSystemAdmin = false) {
@@ -76,45 +89,74 @@ function populatePrograms() {
 }
 
 function updateModeUI() {
-  const mode = $("entryMode")?.value || "coach-directed";
-  const keyField = $("practiceKeyField");
-  const title = $("entryTitle");
-  const description = $("entryDescription");
+  const mode = $("entryMode")?.value || "planned";
+  const historical = mode === "after-the-fact";
+  const roomCount = $("roomSelect")?.options.length || 0;
 
-  if (keyField) keyField.hidden = mode !== "after-the-fact";
-  if ($("sessionDateKey")) {
-    $("sessionDateKey").disabled = mode !== "after-the-fact";
-    if (mode !== "after-the-fact") $("sessionDateKey").value = todayKey();
+  if ($("roomField")) $("roomField").hidden = !historical && roomCount <= 1;
+  if ($("programField")) $("programField").hidden = !historical;
+  if ($("practiceKeyField")) $("practiceKeyField").hidden = !historical;
+
+  const date = $("sessionDateKey");
+  if (date) {
+    date.disabled = !historical;
+    if (!historical) date.value = todayKey();
   }
-  const createButton = $("createPractice");
-  if (createButton) createButton.textContent = mode === "planned" ? "Continue to Attendance" : mode === "quick-start" ? "Open Big Clock" : "Recover Past Practice";
 
-  if (title) title.textContent = mode === "planned" ? "Attendance Setup" : mode === "quick-start" ? "Quick Clock Setup" : "Record Past Practice";
+  const button = $("createPractice");
+  if (button) {
+    button.textContent =
+      mode === "quick-start"
+        ? "Open Big Clock"
+        : historical
+          ? "Continue to Attendance"
+          : "Continue to Attendance";
+  }
 
-  if (description) description.textContent = mode === "planned" ? "Choose room and program, then check in athletes before building the workout." : mode === "quick-start" ? "Choose room and program, then open Big Clock without a Builder or attendance detour." : "Recover a real completed practice and verify actual participants.";
+  const title = $("entryTitle");
+  if (title) {
+    title.textContent =
+      mode === "quick-start"
+        ? "Quick Start"
+        : historical
+          ? "Record Past Practice"
+          : "Start Practice";
+  }
+
+  const description = $("entryDescription");
+  if (description) {
+    description.textContent =
+      mode === "quick-start"
+        ? "Open the practice and go straight to the clock."
+        : historical
+          ? "Recover a completed practice, then verify attendance."
+          : "Open the practice and move straight to attendance.";
+  }
 }
 
 function setStatus(message, isError = false) {
   const status = $("entryStatus");
   if (!status) return;
+  status.hidden = false;
   status.textContent = message;
   status.classList.toggle("is-error", isError);
 }
 
 async function submit() {
-  const mode = $("entryMode")?.value || "coach-directed";
+  const mode = $("entryMode")?.value || "planned";
   const room = roomByValue($("roomSelect")?.value || "");
-  const program = programById($("programSelect")?.value || "");
-  const sessionDateKey = mode === "after-the-fact" ? ($("sessionDateKey")?.value || "") : todayKey();
+  const historical = mode === "after-the-fact";
+  const program = historical ? programById($("programSelect")?.value || "") : null;
+  const sessionDateKey = historical ? ($("sessionDateKey")?.value || "") : todayKey();
   const practiceKey = $("practiceKey")?.value?.trim() || "";
 
   if (!room) {
-    setStatus("Choose a room.", true);
+    setStatus("No permitted practice session is available.", true);
     return;
   }
 
-  if (!program) {
-    setStatus("Choose a program.", true);
+  if (historical && !program) {
+    setStatus("Choose the program for the past practice.", true);
     return;
   }
 
@@ -123,8 +165,8 @@ async function submit() {
     return;
   }
 
-  if (mode === "after-the-fact" && !practiceKey) {
-    setStatus("Practice Key is required for after-the-fact recovery.", true);
+  if (historical && !practiceKey) {
+    setStatus("Practice Key is required for a past practice.", true);
     return;
   }
 
@@ -132,9 +174,9 @@ async function submit() {
   if (button) button.disabled = true;
 
   try {
-    setStatus("Creating canonical practice…");
+    setStatus(historical ? "Recovering practice…" : "Opening practice…");
 
-    if (mode === "planned" || mode === "quick-start") {
+    if (!historical) {
       const openPractice = httpsCallable(functions, "openPracticeSession");
       const response = await openPractice({
         liveSessionId: room.value,
@@ -142,22 +184,31 @@ async function submit() {
         academyId: room.locationId,
         roomId: room.roomId,
         sessionDateKey,
-        discipline: program.discipline,
-        journey: program.journey || "",
-        program: program.programId,
-        track: program.track || "",
+        discipline: "unassigned",
+        journey: "",
+        program: "",
+        track: "",
         schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: mode === "planned" ? "hybrid" : "manual",
+        executionMode: mode === "quick-start" ? "manual" : "hybrid",
         durationMinutes: 60
       });
       const practiceId = String(response.data?.practiceId || "").trim();
       if (!practiceId) throw new Error("Practice identity was not returned.");
 
       const session = {
-        practiceId, sessionId: room.value, roomValue: room.value,
-        locationId: room.locationId, academyId: room.locationId, roomId: room.roomId,
-        ...program, schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: mode === "planned" ? "hybrid" : "manual", durationMinutes: 60,
+        practiceId,
+        sessionId: room.value,
+        roomValue: room.value,
+        locationId: room.locationId,
+        academyId: room.locationId,
+        roomId: room.roomId,
+        discipline: "unassigned",
+        journey: "",
+        program: "",
+        track: "",
+        schema: mode === "quick-start" ? "fast-practice" : "academy-60",
+        executionMode: mode === "quick-start" ? "manual" : "hybrid",
+        durationMinutes: 60,
         source: mode === "quick-start" ? "session-builder-fast-pass" : "attendance-first",
         createdAt: new Date().toISOString()
       };
@@ -166,7 +217,9 @@ async function submit() {
       if (mode === "quick-start") {
         localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify({
           source: "session-builder-fast-pass",
-          practiceId, sessionId: room.value, durationMinutes: 60,
+          practiceId,
+          sessionId: room.value,
+          durationMinutes: 60,
           blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
         }));
         location.href = "/coaches/execution/big-clock-2.0/?practiceId=" +
@@ -214,13 +267,17 @@ async function initialize() {
       throw new Error("No permitted practice rooms are available for this Coach.");
     }
 
+    if ($("coachOnHand")) $("coachOnHand").value = coachDisplayName(coach);
     $("entryMode").value = requestedMode();
     $("sessionDateKey").value = todayKey();
 
     populatePrograms();
     updateModeUI();
 
-    $("roomSelect")?.addEventListener("change", populatePrograms);
+    $("roomSelect")?.addEventListener("change", () => {
+      populatePrograms();
+      updateModeUI();
+    });
     $("entryMode")?.addEventListener("change", updateModeUI);
     $("createPractice")?.addEventListener("click", submit);
 
