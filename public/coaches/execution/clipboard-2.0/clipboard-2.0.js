@@ -2250,7 +2250,7 @@ function updateSupportLinks() {
   const hasGroupPrescriptions = Array.isArray(builderSession.groupPrescriptions)
     && builderSession.groupPrescriptions.length > 0;
   if (!hasGroupPrescriptions &&
-      ["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase()) &&
+      String(builderSession.executionMode || "").toLowerCase() === "hybrid" &&
       Array.isArray(hybridCards) && hybridCards.length) {
 
     const existingCards =
