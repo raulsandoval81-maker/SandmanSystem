@@ -464,6 +464,8 @@ if (!SCHEMAS[builderSession.schema] && !isRecoverableDraft(storedDraft)) {
   window.location.replace("/coaches/execution/session-builder/?notice=choose-session");
 }
 
+let groupEvidenceDiagnostics = {};
+
 // Reconcile locally assembled groups against the server-owned attendance
 // roster before offering any group lesson. This does NOT approve progression.
 if (["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase())
@@ -499,6 +501,44 @@ if (["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLow
       (error?.message || "Return to Attendance.");
   }
   localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+}
+
+// Read-only, server-authorized diagnostics. The returned preview explicitly
+// forbids AUTO authorization; no client result is turned into a prescription.
+if (builderSession.attendanceRosterVerified === true
+    && ["auto", "hybrid"].includes(String(builderSession.executionMode || "").toLowerCase())
+    && String(builderSession.discipline || "").toLowerCase() === "wrestling") {
+  try {
+    const { WRESTLING_CARD_FAMILIES } = await import("/coaches/cards/wrestling/family-map.js");
+    const preview = httpsCallable(functions, "skillCheckCoachCall");
+    for (const group of builderSession.trainingGroups || []) {
+      const ids = Array.isArray(group.athleteIds) ? group.athleteIds.map(String) : [];
+      const journey = String(group.journey || "").toLowerCase();
+      const tier = String(group.tier || "").toLowerCase();
+      const key = ["z2h", "r2c"].includes(journey) ? "r2c" : journey === "p2l" ? "p2l" : "";
+      const familyIds = [...new Set(Object.values(WRESTLING_CARD_FAMILIES?.[key]?.[tier] || {}))].slice(0, 50);
+      if (!ids.length || ids.length > 30 || !familyIds.length) {
+        groupEvidenceDiagnostics[group.id] = "Evidence preview unavailable: group or curriculum mapping incomplete.";
+        continue;
+      }
+      try {
+        const result = (await preview({
+          action: "preview-group-lessons",
+          athleteId: ids[0], athleteIds: ids, discipline: "wrestling", familyIds
+        })).data || {};
+        const blockers = [...new Set([...(result.blockers || []),
+          ...(result.supervisedSuggestion?.blockers || [])])];
+        groupEvidenceDiagnostics[group.id] = blockers.length
+          ? "Evidence review required: " + blockers.slice(0, 4).join(", ")
+          : "Evidence preview received. Coach review required; AUTO prescription is not authorized.";
+      } catch (error) {
+        groupEvidenceDiagnostics[group.id] = "Evidence preview unavailable: " +
+          (error?.message || "Server verification failed.");
+      }
+    }
+  } catch (error) {
+    console.warn("[clipboard] Group evidence diagnostics unavailable", error);
+  }
 }
 
 const week =
@@ -624,6 +664,7 @@ function renderClipboardTrainingGroups() {
         <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
         <span>${names ? names : "System-guided group"}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
+      ${groupEvidenceDiagnostics[group.id] ? `<div class="clipboard-group-skills">${encodeText(groupEvidenceDiagnostics[group.id])}</div>` : ""}
         ${teachingLinks ? `<div class="clipboard-group-skills">${teachingLinks}</div>` : ""}
         ${mode === "hybrid" && prescription?.status === "ready" ? `<label>Coach lesson adjustments<textarea class="clipboard-group-lesson-notes" data-group-id="${encodeText(String(group.id || ""))}" aria-label="Coach adjustments for group ${index + 1}" rows="3" placeholder="Add, replace, or modify this group’s lesson and teaching cues"></textarea></label>` : ""}
       </article>
