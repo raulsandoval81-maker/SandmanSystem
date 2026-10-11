@@ -450,3 +450,23 @@ test("independent coverage reports unauthorized, unfinished and transfer scopes"
  assert.ok(result.diagnosticBlockers.includes("transfer-history-attestation-required"));
  assert.equal(result.evidenceApproved,false);
 });
+
+const {compareNativePracticeInventories} = require("../lib/modules/verifiedProgressionResolver");
+test("independent practice inventory parity never authorizes AUTO", () => {
+ const result=compareNativePracticeInventories(["practice_A","practice_B"],["practice_B","practice_A"],true,true);
+ assert.equal(result.matchingInventories,true);
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("independent inventory detects missing and extra practices", () => {
+ const result=compareNativePracticeInventories(["practice_A","practice_B"],["practice_A","practice_C"],true,true);
+ assert.equal(result.matchingInventories,false);
+ assert.deepEqual(result.missingFromDiscovery,["practice_C"]);
+ assert.deepEqual(result.missingFromInventory,["practice_B"]);
+});
+test("an unauthorized or truncated independent inventory cannot match", () => {
+ const result=compareNativePracticeInventories(["practice_A"],["practice_A"],false,false);
+ assert.equal(result.matchingInventories,false);
+ assert.ok(result.blockers.includes("independent-inventory-not-exhausted"));
+ assert.ok(result.blockers.includes("independent-inventory-unauthorized"));
+});
