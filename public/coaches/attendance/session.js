@@ -1151,7 +1151,9 @@ async function submitForReview() {
   renderAthletes();
   renderCheckedIn();
 
-  if (isBuilderFlow() && returnTarget() === "clipboard") {
+  if (isBuilderFlow() && returnTarget() === "historical") {
+    window.location.href = `/coaches/logs/practice-log.html?practiceId=${encodeURIComponent(activePractice.practiceId)}&historical=1`;
+  } else if (isBuilderFlow() && returnTarget() === "clipboard") {
     let sessionId = requestedSessionId();
     if (!sessionId) {
       try {
