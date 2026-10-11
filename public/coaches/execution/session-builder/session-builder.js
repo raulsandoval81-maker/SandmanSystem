@@ -26,6 +26,7 @@ const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
 const DRAFT_KEY = "sandman_clipboard_draft_v1";
 const BIG_CLOCK_PAYLOAD_KEY = "sandman_big_clock_payload_v2";
+const PRACTICE_ENTRY_KEY = "sandman_practice_entry_v1";
 
 const SESSION_TYPES = Object.freeze({
   academy: { label: "Academy Class", durations: [60, 75, 90, 120], defaultMinutes: 60 },
@@ -87,6 +88,14 @@ function readJson(key, fallback = null) {
     return value ?? fallback;
   } catch {
     return fallback;
+  }
+}
+
+function practiceEntryIntent() {
+  try {
+    return JSON.parse(sessionStorage.getItem(PRACTICE_ENTRY_KEY) || "null") || {};
+  } catch {
+    return {};
   }
 }
 
@@ -613,6 +622,7 @@ function cleanSlatePayload() {
     hybridCards: [],
     hybridRules: {},
     source: "session-builder-clean-slate",
+    sessionDateKey: String(practiceEntryIntent().sessionDateKey || ""),
     createdAt: new Date().toISOString()
   };
 }
@@ -833,6 +843,7 @@ function createSessionPayload(practiceId = activePracticeId) {
     week,
     ...getHybridData(week),
     source: "session-builder",
+    sessionDateKey: String(practiceEntryIntent().sessionDateKey || attendanceContext.sessionDateKey || ""),
     createdAt: new Date().toISOString()
   };
 }
@@ -931,11 +942,13 @@ async function openCanonicalPractice(payload) {
     tier: payload.tier,
     schema: payload.schema,
     executionMode: payload.executionMode,
-    durationMinutes: payload.durationMinutes
+    durationMinutes: payload.durationMinutes,
+    ...(payload.sessionDateKey ? { sessionDateKey: payload.sessionDateKey } : {})
   });
   const practiceId = String(response.data?.practiceId || "").trim();
   if (!practiceId) throw new Error("Practice identity was not returned.");
   activePracticeId = practiceId;
+  sessionStorage.removeItem(PRACTICE_ENTRY_KEY);
   return { ...payload, practiceId };
 }
 
@@ -1091,7 +1104,17 @@ updateModeButtons();
 updateConditionalControls();
 renderDraft();
 
-const notice = new URLSearchParams(window.location.search).get("notice");
+const searchParams = new URLSearchParams(window.location.search);
+const notice = searchParams.get("notice");
+if (searchParams.get("from") === "practice-entry") {
+  const entry = practiceEntryIntent();
+  const noticeEl = document.getElementById("dashboardNotice");
+  const dateLabel = entry.sessionDateKey ? new Date(entry.sessionDateKey + "T12:00:00").toLocaleDateString() : "";
+  noticeEl.textContent = dateLabel
+    ? `Practice started for ${dateLabel}. Choose how you want to build it.`
+    : "Practice started. Choose how you want to build it.";
+  noticeEl.hidden = false;
+}
 if (notice === "choose-session") {
   const noticeEl = document.getElementById("dashboardNotice");
   noticeEl.textContent = "Choose the session setup first.";
