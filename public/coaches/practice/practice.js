@@ -3,6 +3,10 @@ import {
   requireCoach
 } from "/assets/js/coach-guard.js";
 
+import {
+  SESSION_ROOMS
+} from "/coaches/execution/session-builder/session-entry-policy.js";
+
 const choicePanel = document.getElementById("practiceChoicePanel");
 const activeFlow = document.getElementById("activePracticeFlow");
 
@@ -21,6 +25,58 @@ const choices = Array.from(
 );
 
 const FLOW_STORAGE_KEY = "sandman.coach.practice.flow";
+const PRACTICE_ENTRY_KEY = "sandman_practice_entry_v1";
+
+let activeRoom = null;
+
+function todayKey() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function coachDisplayName(coach = {}) {
+  const staff = coach?.staff || {};
+  const user = coach?.user || {};
+  return [
+    staff.displayName,
+    staff.name,
+    [staff.firstName, staff.lastName].filter(Boolean).join(" "),
+    user.displayName,
+    coach.email
+  ].map((value) => String(value || "").trim()).find(Boolean) || "Signed-in Coach";
+}
+
+function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
+  const allowed = new Set(
+    (scopeLocationIds || []).map((id) => String(id || "").trim().toLowerCase())
+  );
+
+  return SESSION_ROOMS.find((room) =>
+    isSystemAdmin ||
+    !allowed.size ||
+    allowed.has(String(room.locationId || "").toLowerCase())
+  ) || null;
+}
+
+function openPlannedPractice() {
+  const date = document.getElementById("practiceDate")?.value || todayKey();
+  const coachName = document.getElementById("practiceCoach")?.value || "";
+
+  if (!activeRoom) return;
+
+  sessionStorage.setItem(PRACTICE_ENTRY_KEY, JSON.stringify({
+    mode: "planned",
+    sessionDateKey: date,
+    coachName,
+    roomValue: activeRoom.value,
+    roomId: activeRoom.roomId,
+    locationId: activeRoom.locationId,
+    createdAt: new Date().toISOString()
+  }));
+
+  window.location.assign("/coaches/execution/session-builder/?from=practice-entry");
+}
 
 const flows = {
   normal: {
@@ -263,12 +319,18 @@ choices.forEach((choice) => {
   choice.setAttribute("aria-pressed", "false");
 
   choice.addEventListener("click", () => {
+    const flowId = choice.dataset.practiceFlow;
+
+    if (flowId === "normal") {
+      openPlannedPractice();
+      return;
+    }
+
     const paths = {
-      normal: "/coaches/practice/entry.html?mode=planned",
       "coach-directed": "/coaches/practice/entry.html?mode=quick-start",
       "after-the-fact": "/coaches/practice/entry.html?mode=after-the-fact"
     };
-    const destination = paths[choice.dataset.practiceFlow];
+    const destination = paths[flowId];
     if (destination) window.location.assign(destination);
   });
 });
@@ -292,7 +354,21 @@ async function initializePracticeOperations() {
   page?.prepend(notice);
 
   try {
-    await requireCoach();
+    const coach = await requireCoach();
+
+    activeRoom = resolvePracticeRoom(
+      coach?.scope?.locationIds || [],
+      coach?.isSystemAdmin === true
+    );
+
+    if (!activeRoom) {
+      throw new Error("No permitted practice location is available for this Coach.");
+    }
+
+    const practiceDate = document.getElementById("practiceDate");
+    const practiceCoach = document.getElementById("practiceCoach");
+    if (practiceDate) practiceDate.value = todayKey();
+    if (practiceCoach) practiceCoach.value = coachDisplayName(coach);
 
     notice.remove();
 

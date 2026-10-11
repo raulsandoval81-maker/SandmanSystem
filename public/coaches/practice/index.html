@@ -101,6 +101,55 @@
       color:var(--practice-gold);
     }
 
+
+    .practice-start{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:14px;
+      margin:0 0 18px;
+      padding:18px;
+      border:1px solid var(--practice-line);
+      border-radius:16px;
+      background:var(--practice-panel);
+    }
+
+    .practice-start__field{
+      display:grid;
+      gap:7px;
+      color:var(--practice-muted);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .practice-start__field input{
+      width:100%;
+      min-height:44px;
+      padding:10px 12px;
+      border:1px solid var(--practice-line);
+      border-radius:10px;
+      background:#080c12;
+      color:var(--practice-text);
+      font:inherit;
+      font-weight:750;
+      text-transform:none;
+      letter-spacing:0;
+    }
+
+    .practice-start__field input[readonly],
+    .practice-start__field input:disabled{
+      opacity:.86;
+    }
+
+    .practice-start__note{
+      grid-column:1 / -1;
+      margin:0;
+      color:var(--practice-muted);
+      font-size:.84rem;
+      line-height:1.45;
+    }
+
     .choice-panel{
       padding:22px;
       border:1px solid var(--practice-line);
@@ -576,6 +625,22 @@
     <h1>Practice Operations</h1>
   </header>
 
+  <section class="practice-start" aria-label="Practice identity">
+    <label class="practice-start__field">
+      Practice Date
+      <input id="practiceDate" type="date" disabled>
+    </label>
+
+    <label class="practice-start__field">
+      Coach
+      <input id="practiceCoach" type="text" readonly aria-readonly="true">
+    </label>
+
+    <p class="practice-start__note">
+      Practice Operations establishes who is coaching and today’s practice date before you choose how to start.
+    </p>
+  </section>
+
   <section
     class="choice-panel"
     id="practiceChoicePanel"
@@ -693,7 +758,7 @@
 </main>
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/practice/practice.js?v=4"></script>
+<script type="module" src="/coaches/practice/practice.js?v=20261011-5"></script>
 
 </body>
 </html>

@@ -223,6 +223,11 @@ async function submit() {
 }
 
 async function initialize() {
+  if (requestedMode() === "planned") {
+    location.replace("/coaches/practice/");
+    return;
+  }
+
   const panel = $("entryPanel");
 
   try {
