@@ -376,13 +376,9 @@ async function loadThreads() {
    already loaded by this Coach hub. No duplicate inbox.
 ========================================================== */
 async function publishTeamUnreadSummary() {
-  const locationId = String(
-    coachAccess.scope?.locationIds?.[0] ||
-    (coachAccess.uid ? "coach-user-" + coachAccess.uid : "")
-  ).trim();
-  if (!locationId) return;
-  const docId = "coach-dashboard-summary-" +
-    locationId.toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+  // Unread conversations belong to the signed-in Coach, not every
+  // Coach sharing a location. Daily keeps its existing location summary.
+  const docId = "coach-messages-" + coachAccess.uid;
   const teamMessages = threadRows.filter(
     (row) => row.data.coachHasUnread === true
   ).length;
