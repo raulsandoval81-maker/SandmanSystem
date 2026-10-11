@@ -71,6 +71,14 @@ function requireSessionDateKey(value: unknown): string {
 function requireCanonicalPracticeProgram(program: unknown, disciplineValue: unknown, locationId: string) {
   const programId = requiredString(program, "program");
   const discipline = normalizePracticeDiscipline(requiredString(disciplineValue, "discipline"));
+
+  // Attendance-first practices intentionally defer route selection until the
+  // checked-in roster is known. This sentinel remains location-scoped and does
+  // not prescribe curriculum by itself.
+  if (programId === "attendance-routed" && discipline === "unassigned") {
+    return { program: programId, discipline, journey: "" };
+  }
+
   const policy = CANONICAL_PRACTICE_PROGRAMS.find((item) => item.program === programId);
   if (!policy || policy.discipline !== discipline || !policy.locations.includes(locationId)) {
     throw new HttpsError("failed-precondition", "This program and discipline are not available at the selected location.");
@@ -396,6 +404,7 @@ export const createOrRecoverCanonicalPractice = onCall(async (request) => {
       locationId, academyId: locationId, discipline, program,
       journey,
       roomId: compactString(input.roomId, 160),
+      liveSessionId: compactString(input.liveSessionId, 160),
       coachUid: actor.uid, coachRole: actor.role,
       status: "active", source: "practice-entry", openedAt: now, updatedAt: now,
     });
@@ -468,9 +477,6 @@ export const updatePracticeCheckIn = onCall(async (request) => {
     requirePracticeLocation(actor, locationId);
     if (String(practice.status || "").toLowerCase() !== "active") {
       throw new HttpsError("failed-precondition", "Check-in requires an active practice.");
-    }
-    if (String(practice.entryMode || "normal") === "after-the-fact") {
-      throw new HttpsError("failed-precondition", "After-the-fact attendance uses verified participants, not historical check-ins.");
     }
     const attendanceSnap = await tx.get(attendanceRef);
     const existing = attendanceSnap.data() || {};
