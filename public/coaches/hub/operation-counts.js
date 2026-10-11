@@ -8,10 +8,11 @@ import {
   requireCoach
 } from "/assets/js/coach-guard.js";
 
-const COUNT_KEYS = [
-  "daily", "practice", "competition", "athlete",
-  "team", "emergency", "system"
-];
+const WORK_KEYS = ["daily", "practice", "competition"];
+const MESSAGE_KEYS = ["athlete", "team"];
+// These are display contracts only. No source is assumed or synthesized.
+const MESSAGE_FIELDS = { athlete: "athleteMessages", team: "teamMessages" };
+const EMERGENCY_FIELD = "emergencyAlerts";
 
 function safeLocationId(coachContext) {
   const locations = Array.isArray(coachContext?.scope?.locationIds)
@@ -33,22 +34,33 @@ function setDailyStatus(message, details = "") {
   el.hidden = false;
 }
 
-function renderCount(key, value) {
+function renderIndicator(key, value, kind) {
   const el = document.querySelector(`[data-operation-count="${key}"]`);
   if (!el) return;
+  // Missing, invalid and zero values do not advertise actionable work.
   const count = Number(value);
-  if (!Number.isFinite(count) || count < 0 || value === null || value === "") {
+  if (value === null || value === "" || !Number.isInteger(count) || count <= 0) {
     el.hidden = true;
     return;
   }
-  const rounded = Math.max(0, Math.trunc(count));
-  el.textContent = String(rounded);
-  el.dataset.zero = String(rounded === 0);
+  el.textContent = String(count);
+  el.dataset.kind = kind;
+  const noun = kind === "message" ? "messages requiring a reply"
+    : kind === "urgent" ? "unresolved urgent safety alerts" : "open actions";
+  el.setAttribute("aria-label", `${key} Operations: ${count} ${noun}`);
   el.hidden = false;
   if (key === "daily") {
-    const status = document.querySelector("[data-operation-status=\"daily\"]");
+    const status = document.querySelector('[data-operation-status="daily"]');
     if (status) status.hidden = true;
   }
+}
+
+function renderSummary(summary) {
+  const counts = summary?.counts || {};
+  WORK_KEYS.forEach((key) => renderIndicator(key, counts[key], "work"));
+  MESSAGE_KEYS.forEach((key) =>
+    renderIndicator(key, summary?.[MESSAGE_FIELDS[key]], "message"));
+  renderIndicator("emergency", summary?.[EMERGENCY_FIELD], "urgent");
 }
 
 async function loadOperationCounts() {
@@ -72,14 +84,16 @@ async function loadOperationCounts() {
         setDailyStatus("Count unavailable", "Summary is missing a Daily Operations total.");
         return;
       }
-      COUNT_KEYS.forEach((key) => {
-        if (Object.prototype.hasOwnProperty.call(counts, key)) {
-          renderCount(key, counts[key]);
-        }
-      });
+      renderSummary(snapshot.data());
       const daily = document.querySelector('[data-operation-count="daily"]');
       if (!daily || daily.hidden) {
-        setDailyStatus("Count unavailable", "Summary includes an invalid Daily Operations total.");
+        // Zero open actions are deliberately badge-free.
+        if (Number(counts.daily) === 0) {
+          const status = document.querySelector('[data-operation-status="daily"]');
+          if (status) status.hidden = true;
+        } else {
+          setDailyStatus("Count unavailable", "Summary includes an invalid Daily Operations total.");
+        }
       }
     }, (error) => {
       console.warn("[coach-home] dashboard summary listener failed", error);
