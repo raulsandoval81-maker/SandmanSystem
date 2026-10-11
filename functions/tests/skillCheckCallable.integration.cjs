@@ -807,3 +807,28 @@ test("Coach cannot save lesson for athlete outside assigned scope",async()=>{
   tracks:[{athleteId,track:"PRACTICE"},{athleteId:"F8_PLAN_OUTSIDE",track:"INTRODUCE"}],
  }}),e=>e.code==="permission-denied");
 });
+
+test("Independent attendance inventory flags finalized attendance without skill observations",async()=>{
+ const id="F8_INVENTORY_ONLY";
+ const practiceId="inventory-attendance-only";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({
+  coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",
+  discipline:"wrestling",sessionDateKey:"2026-10-11"
+ });
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]
+ });
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({
+  practiceId,athleteId:id,discipline:"wrestling",attendance:{status:"present"}
+ });
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+  action:"evaluate-integrated-history-coverage",athleteId:id,discipline:"wrestling"
+ }});
+ assert.equal(result.attendanceInventoryComparison.inventorySource,"finalized-attendance-current-location");
+ assert.ok(result.attendanceInventoryComparison.missingFromDiscovery.includes(practiceId));
+ assert.equal(result.attendanceInventoryComparison.matchingInventories,false);
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+});
