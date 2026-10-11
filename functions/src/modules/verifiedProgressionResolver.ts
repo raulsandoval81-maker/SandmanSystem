@@ -83,6 +83,9 @@ export function reconcileNativeHistoryPages(
   const observations: VerifiedSkillObservation[] = [];
   if (!requiredScopes.length || new Set(requiredScopes).size !== requiredScopes.length)
     blockers.add("native-scopes-unverified");
+  for (const page of pages) {
+    if (!requiredScopes.includes(page.scope)) blockers.add("unexpected-scope:" + page.scope);
+  }
   for (const scope of requiredScopes) {
     const scoped = pages.filter(page => page.scope === scope);
     const cursors = new Map(scoped.map(page => [page.cursor || "", page]));
@@ -105,6 +108,13 @@ export function reconcileNativeHistoryPages(
     }
     if (!exhausted && visited.has(cursor)) blockers.add("cursor-cycle:" + scope);
     if (!scoped.length) blockers.add("missing-scope:" + scope);
+    // A valid chain must consume every returned page. Orphaned pages may
+    // conceal extra practices, even if the reachable chain is exhausted.
+    for (const page of scoped) {
+      if (!visited.has(page.cursor || "")) {
+        blockers.add("unlinked-page:" + scope);
+      }
+    }
   }
   const unique = new Map<string, VerifiedSkillObservation>();
   for (const obs of observations) {
