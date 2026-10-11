@@ -60,8 +60,10 @@ function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
 }
 
 function openPlannedPractice() {
-  const date = document.getElementById("practiceDate")?.value || todayKey();
-  const coachName = document.getElementById("practiceCoach")?.value || "";
+  const dateEl = document.getElementById("practiceDate");
+  const coachEl = document.getElementById("practiceCoach");
+  const date = String(dateEl?.dataset.value || todayKey());
+  const coachName = String(coachEl?.textContent || "").trim();
 
   if (!activeRoom) return;
 
@@ -367,8 +369,12 @@ async function initializePracticeOperations() {
 
     const practiceDate = document.getElementById("practiceDate");
     const practiceCoach = document.getElementById("practiceCoach");
-    if (practiceDate) practiceDate.value = todayKey();
-    if (practiceCoach) practiceCoach.value = coachDisplayName(coach);
+    if (practiceDate) {
+      const dateKey = todayKey();
+      practiceDate.dataset.value = dateKey;
+      practiceDate.textContent = new Date(dateKey + "T12:00:00").toLocaleDateString();
+    }
+    if (practiceCoach) practiceCoach.textContent = coachDisplayName(coach);
 
     notice.remove();
 
