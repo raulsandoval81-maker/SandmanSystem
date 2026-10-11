@@ -470,3 +470,12 @@ test("an unauthorized or truncated independent inventory cannot match", () => {
  assert.ok(result.blockers.includes("independent-inventory-not-exhausted"));
  assert.ok(result.blockers.includes("independent-inventory-unauthorized"));
 });
+
+test("large native inventory remains blocked until all pages are exhausted", () => {
+ const ids=Array.from({length:251},(_,i)=>"practice_"+String(i).padStart(3,"0"));
+ const result=compareNativePracticeInventories(ids.slice(0,250),ids,false,true);
+ assert.equal(result.matchingInventories,false);
+ assert.deepEqual(result.missingFromDiscovery,["practice_250"]);
+ assert.ok(result.blockers.includes("independent-inventory-not-exhausted"));
+ assert.equal(result.eligibleForAuto,false);
+});
