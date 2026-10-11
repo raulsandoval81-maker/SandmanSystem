@@ -1006,3 +1006,21 @@ test("native recheck detects changed verified skill state after scan",async()=>{
  assert.equal(after.evidenceApproved,false);
  assert.equal(after.eligibleForAuto,false);
 });
+
+test("large native history recheck cannot silently certify a bounded sample",async()=>{
+ const id="F8_LARGE_NATIVE_RECHECK";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
+  kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT",athleteId:id,discipline:"wrestling",
+  revision:9,attendanceScanExhausted:true,skillScanExhausted:true,
+  inventoryPracticeIds:Array.from({length:21},(_,i)=>"large_native_"+i),
+  evidencePracticeIds:[],coverageComplete:false,evidenceApproved:false,eligibleForAuto:false
+ });
+ const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+  action:"recheck-native-history-checkpoint",athleteId:id,discipline:"wrestling",expectedRevision:9
+ }});
+ assert.ok(result.blockers.includes("full-source-recheck-required-for-large-history"));
+ assert.equal(result.recordsChecked,0);
+ assert.equal(result.eligibleForAuto,false);
+ assert.equal(result.evidenceApproved,false);
+});
