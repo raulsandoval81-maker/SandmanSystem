@@ -7,8 +7,8 @@ const server = readFileSync(new URL("../../functions/src/modules/skillCheckCoach
 
 test("AUTO never treats the first curriculum wave as verified progression", () => {
   assert.match(builder, /const progressionVerified = false;/);
-  assert.match(builder, /if \(selectedMode === "auto" && \(payload\.groupPrescriptions\?\.length !== payload\.trainingGroups\.length/);
-  assert.match(builder, /g\.progressionVerified !== true/);
+  assert.match(builder, /!canLaunchAuto\(payload\.trainingGroups, payload\.groupPrescriptions\)/);
+  assert.match(readFileSync(new URL("../../public/coaches/execution/session-builder/group-decision-policy.js", import.meta.url), "utf8"), /p\.progressionVerified === true/);
 });
 
 test("server group preview remains diagnostic and cannot authorize AUTO", () => {
