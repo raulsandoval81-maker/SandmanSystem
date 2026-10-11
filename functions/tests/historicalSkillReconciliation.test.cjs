@@ -510,3 +510,32 @@ test("incomplete source refresh cannot validate historical fingerprint",()=>{
  assert.equal(result.consistent,false);
  assert.ok(result.blockers.includes("source-retrieval-incomplete"));
 });
+
+const {evaluateNativeCertificationCheckpoint}=require("../lib/modules/verifiedProgressionResolver");
+const checkpoint=(overrides={})=>({
+ athleteId:"F8_0001",discipline:"wrestling",revision:1,
+ requiredScopes:["athlete-location","coach"],completedScopes:["athlete-location","coach"],
+ continuationScopes:[],inventoryPracticeIds:["practice_A"],evidencePracticeIds:["practice_A"],...overrides
+});
+test("complete structural checkpoint still cannot issue certificate",()=>{
+ const result=evaluateNativeCertificationCheckpoint(checkpoint());
+ assert.equal(result.checkpointStructurallyComplete,true);
+ assert.equal(result.certificateIssued,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("resumable checkpoint identifies unfinished and contradictory scopes",()=>{
+ const result=evaluateNativeCertificationCheckpoint(checkpoint({
+ completedScopes:["athlete-location"],continuationScopes:["athlete-location"]
+ }));
+ assert.equal(result.checkpointStructurallyComplete,false);
+ assert.ok(result.blockers.includes("checkpoint-scope-state-unresolved:athlete-location"));
+ assert.ok(result.blockers.includes("checkpoint-scope-state-unresolved:coach"));
+});
+test("attendance-only and unexpected evidence remain explicit",()=>{
+ const result=evaluateNativeCertificationCheckpoint(checkpoint({
+ inventoryPracticeIds:["practice_A","practice_B"],evidencePracticeIds:["practice_A","practice_C"]
+ }));
+ assert.deepEqual(result.attendanceWithoutEvidence,["practice_B"]);
+ assert.deepEqual(result.evidenceOutsideInventory,["practice_C"]);
+ assert.equal(result.eligibleForAuto,false);
+});
