@@ -7,7 +7,7 @@
   <title>Athlete Check-In | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261010-1" />
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261011-2" />
 </head>
 
 <body class="coach-shell-page attendance-checkin" data-coach-page="Athlete Check-In" data-coach-area="practice">
@@ -34,15 +34,25 @@
 
         <p id="sessionStatus" class="muted" role="status">Loading today's check-ins…</p>
 
-        <label class="athlete-search-label" for="searchAthlete">Find athlete</label>
-        <input
-          id="searchAthlete"
-          class="athlete-search"
-          type="search"
-          inputmode="search"
-          autocomplete="off"
-          placeholder="Type athlete name or ID..."
-        />
+        <div class="attendance-roster-tools">
+          <label>
+            <span>Roster View</span>
+            <select id="journeyRosterFilter">
+              <option value="">Mixed Room · All Journeys</option>
+            </select>
+          </label>
+          <label>
+            <span>Find athlete</span>
+            <input
+              id="searchAthlete"
+              class="athlete-search"
+              type="search"
+              inputmode="search"
+              autocomplete="off"
+              placeholder="Type athlete name or ID..."
+            />
+          </label>
+        </div>
 
         <div id="athleteList" class="athlete-checkin-list"></div>
 
@@ -125,6 +135,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261011-3"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261011-4"></script>
 </body>
 </html>
