@@ -232,36 +232,16 @@ function populateJourneys(preferredJourney = "") {
 }
 
 function populatePrograms(preferredProgramId = "") {
-  const journey = String(journeySelect?.value || "");
   const discipline = String(disciplineFamilySelect?.value || "").trim();
 
-  disciplineSelect.innerHTML = '<option value="">Select Discipline and Journey</option>';
+  disciplineSelect.innerHTML = '<option value="">Select Discipline</option>';
 
-  if (discipline && journey === MIXED_JOURNEY) {
+  if (discipline) {
     const option = document.createElement("option");
     option.value = "attendance-routed";
-    option.textContent = "Mixed Room";
+    option.textContent = "Attendance Routed";
     disciplineSelect.appendChild(option);
     disciplineSelect.value = "attendance-routed";
-    if (programField) programField.hidden = true;
-    return;
-  }
-
-  const programs = availablePrograms()
-    .filter((program) => !discipline || program.discipline === discipline)
-    .filter((program) => !journey || program.journey === journey);
-
-  programs.forEach((program) => {
-    const option = document.createElement("option");
-    option.value = program.programId;
-    option.textContent = program.label;
-    disciplineSelect.appendChild(option);
-  });
-
-  if (programs.some((program) => program.programId === preferredProgramId)) {
-    disciplineSelect.value = preferredProgramId;
-  } else if (journey && discipline && programs.length === 1) {
-    disciplineSelect.value = programs[0].programId;
   }
 
   if (programField) programField.hidden = true;
@@ -350,7 +330,7 @@ function populateRanks(preferredTier = "") {
   blank.value = "";
   const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
   blank.textContent = !routeReady
-    ? "Select Journey and Discipline"
+    ? "Select Discipline"
     : ladder.length
       ? "Let Sandman decide / no tier"
       : "Not needed";
@@ -372,7 +352,7 @@ function populateWeeks() {
   const routeReady = Boolean(journeySelect?.value && disciplineFamilySelect?.value);
   weekSelect.innerHTML = routeReady
     ? '<option value="">Let Sandman decide / select week</option>'
-    : '<option value="">Select Journey and Discipline</option>';
+    : '<option value="">Select Discipline</option>';
 
   if (!routeReady) return;
 
@@ -522,22 +502,15 @@ function shellData() {
 }
 
 function getProgramData() {
-  const program = selectedProgram();
-  const discipline = program?.discipline || String(disciplineFamilySelect?.value || "").trim();
-  const mixedRoom = String(journeySelect?.value || "") === MIXED_JOURNEY;
-  const tier = "";
-  const journey = mixedRoom ? "" : (program?.journey || "");
-  const ladder = RANK_LADDERS[journey] || [];
-  const rankName = ladder.find(rank => tierFromLadderKey(rank.key) === tier)?.name || "";
-
+  const discipline = String(disciplineFamilySelect?.value || "").trim();
   return {
-    program: mixedRoom ? "attendance-routed" : (program?.programId || ""),
-    foundry: mixedRoom ? "" : (program?.foundry || ""),
-    track: mixedRoom ? "" : (program?.track || ""),
-    journey,
+    program: discipline ? "attendance-routed" : "",
+    foundry: "",
+    track: "",
+    journey: "",
     discipline,
-    tier,
-    rankLabel: rankName
+    tier: "",
+    rankLabel: ""
   };
 }
 
@@ -549,7 +522,6 @@ function updateSummary() {
   const summaryShell = document.getElementById("summaryShell");
   const summaryMode = document.getElementById("summaryMode");
   const summaryMat = document.getElementById("summaryMat");
-  const summaryJourney = document.getElementById("summaryJourney");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
   const summaryRankRow = document.getElementById("summaryRankRow");
   const summaryRank = document.getElementById("summaryRank");
@@ -559,18 +531,10 @@ function updateSummary() {
   if (summaryShell) summaryShell.textContent = `${shell.label} · ${shell.minutes} min`;
   if (summaryMode) summaryMode.textContent = ({ auto: "Auto", hybrid: "Hybrid", manual: "Manual" })[selectedMode] || "Hybrid";
   if (summaryMat) summaryMat.textContent = selectedMatLabel();
-  const journeyReady = Boolean(journeySelect?.value);
   const disciplineReady = Boolean(disciplineFamilySelect?.value);
 
-  journeySelect?.classList.toggle("has-selection", journeyReady);
   disciplineFamilySelect?.classList.toggle("has-selection", disciplineReady);
 
-  if (summaryJourney) {
-    summaryJourney.textContent = journeyReady
-      ? journeySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a journey"
-      : "Select a journey";
-    summaryJourney.classList.toggle("is-pending", !journeyReady);
-  }
   if (summaryDiscipline) {
     summaryDiscipline.textContent = disciplineReady
       ? disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline"
@@ -578,12 +542,12 @@ function updateSummary() {
     summaryDiscipline.classList.toggle("is-pending", !disciplineReady);
   }
 
-  const routeReady = Boolean(journeyReady && disciplineReady);
+  const routeReady = disciplineReady;
 
   if (summaryRankRow) summaryRankRow.hidden = false;
   if (summaryRank) {
     const tier = effectiveTier();
-    if (!routeReady) summaryRank.textContent = "Select Journey and Discipline";
+    if (!routeReady) summaryRank.textContent = "Select Discipline";
     else if (!usesRank) summaryRank.textContent = "Not used";
     else if (tier) summaryRank.textContent = optionText(rankSelect) || tier;
     else summaryRank.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
@@ -592,7 +556,7 @@ function updateSummary() {
   if (summaryWeekRow) summaryWeekRow.hidden = false;
   if (summaryWeek) {
     const week = "";
-    if (!routeReady) summaryWeek.textContent = "Select Journey and Discipline";
+    if (!routeReady) summaryWeek.textContent = "Select Discipline";
     else if (!usesWeek) summaryWeek.textContent = "Not used";
     else if (week) summaryWeek.textContent = `Week ${week}`;
     else summaryWeek.textContent = selectedMode === "auto" ? "Sandman chooses" : "Sandman decides / optional";
@@ -600,8 +564,6 @@ function updateSummary() {
 
   if (!disciplineFamilySelect?.value) {
     summaryAvailability.textContent = "Choose a discipline to continue.";
-  } else if (!journeySelect?.value) {
-    summaryAvailability.textContent = "Choose a journey to continue.";
   } else if (selectedMode === "auto") {
     summaryAvailability.textContent = "AUTO is not launch-ready: athlete skill progression is not verified. HYBRID can use available curriculum as an editable starting point.";
   } else if (selectedMode === "hybrid") {
@@ -935,14 +897,10 @@ async function restoreCanonicalPractice(practiceId) {
   if (!room) throw new Error("The practice room is not available in Session Builder.");
   activePracticeId = String(practiceId || "");
   populateRooms(room.value);
-  const restoredJourney = String(practice.journey || "");
   const restoredDiscipline = String(practice.discipline || "").toLowerCase();
   const preferredDiscipline = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
   updateDisciplineAvailability(preferredDiscipline);
-  const restoredMixedRoom = String(practice.program || "") === "attendance-routed"
-    && Boolean(preferredDiscipline)
-    && !restoredJourney;
-  populateJourneys(restoredMixedRoom ? MIXED_JOURNEY : restoredJourney);
+  if (journeySelect) journeySelect.value = "";
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
@@ -999,7 +957,7 @@ roomSelect.addEventListener("change", () => {
 });
 
 disciplineFamilySelect?.addEventListener("change", () => {
-  populateJourneys("");
+  if (journeySelect) journeySelect.value = "";
   populatePrograms("");
   populateRanks();
   populateWeeks();
@@ -1060,7 +1018,6 @@ buildBtn.addEventListener("click", async () => {
 
 populateRooms();
 updateDisciplineAvailability();
-populateJourneys();
 populatePrograms();
 populateWeeks();
 populateRanks();
