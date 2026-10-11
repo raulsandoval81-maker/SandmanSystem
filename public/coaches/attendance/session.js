@@ -744,7 +744,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     >
       <div class="training-group-head">
         <div>
-          <span class="training-group-kicker">Mat 1 · Group ${index + 1}</span>
+          <span class="training-group-kicker">Mat 1 · Group ${String.fromCharCode(65 + index)}</span>
           <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
         </div>
         ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
@@ -865,6 +865,7 @@ function addTrainingGroup() {
   current.push({
     ageGroup: previous.ageGroup || "Teen",
     journey,
+    discipline: previous.discipline || String(activePractice?.discipline || "unassigned").toLowerCase(),
     tier: previous.tier || "T0",
     rank: rankForTier(previous.tier || "T0", journey),
     trainingSession: previous.trainingSession || "1",
@@ -1097,6 +1098,14 @@ async function submitForReview() {
       } catch {}
     }
     window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
+  } else if (isBuilderFlow() && returnTarget() === "clock") {
+    let sessionId = requestedSessionId();
+    if (!sessionId) {
+      try {
+        sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
+      } catch {}
+    }
+    window.location.href = `/coaches/execution/big-clock-2.0/?practiceId=${encodeURIComponent(activePractice.practiceId)}&session=${encodeURIComponent(sessionId)}&fast=1`;
   } else if (isBuilderFlow()) {
     window.location.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}`;
   }
