@@ -1198,6 +1198,31 @@ export const skillCheckCoachCall =
         evidenceApproved:false,eligibleForAuto:false};
     }
 
+    if (action === "begin-native-consistency-pass") {
+      if (normalizeStaffRole(actor.role) !== "admin")
+        throw new HttpsError("permission-denied", "Consistency reviews require Admin authority.");
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 1)
+        throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const result = await db.runTransaction(async tx => {
+        const snap = await tx.get(ref);
+        const record = snap.data() || {};
+        if (!snap.exists || Number(record.revision) !== expectedRevision)
+          throw new HttpsError("aborted", "Checkpoint revision changed.");
+        if (record.fullRecheckExhausted !== true)
+          throw new HttpsError("failed-precondition", "Complete the full recheck first.");
+        const revision = expectedRevision + 1;
+        tx.update(ref, {revision,consistencyPassOffset:0,
+          consistencyPassExhausted:false,consistencyPassIssues:[],
+          status:"DIAGNOSTIC_CONSISTENCY_PASS",
+          updatedAt:FieldValue.serverTimestamp(),
+          coverageComplete:false,evidenceApproved:false,eligibleForAuto:false});
+        return {revision};
+      });
+      return {ok:true,...result,diagnosticOnly:true,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
