@@ -415,6 +415,9 @@ test("Integrated historical review reports every scope without asserting full at
  assert.equal(result.sourceEvidenceAccepted,false);
  assert.equal(result.coverageComplete,false);
  assert.equal(result.eligibleForAuto,false);
+ assert.equal(result.evidenceRefreshComparison.diagnosticOnly,true);
+ assert.equal(result.evidenceRefreshComparison.certificateIssued,false);
+ assert.equal(result.evidenceRefreshComparison.eligibleForAuto,false);
 });
 test("Coaches cannot run integrated historical coverage review",async()=>{
  await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
