@@ -128,3 +128,29 @@ export function reconcileNativeHistoryPages(
   return {...result, approved: result.approved && blockers.size === 0,
     blockers:[...new Set([...result.blockers,...blockers])].sort(), eligibleForAuto:false as const};
 }
+
+// A bounded discovery scan is not independent coverage certification.
+// Report precise gaps while preventing any client or diagnostic caller from
+// turning technically exhausted pages into accepted progression.
+export function assessIndependentCoverage(
+  scopes: readonly {scope:string;authorized:boolean;scanExhausted:boolean}[],
+  reconciliationBlockers: readonly string[],
+  sourceValidationBlockers: readonly string[],
+  declaredPriorLocations: readonly string[],
+) {
+  const blockers = new Set<string>([...reconciliationBlockers,...sourceValidationBlockers]);
+  if (!scopes.length) blockers.add("no-discovery-scopes");
+  for (const scope of scopes) {
+    if (!scope.authorized) blockers.add("scope-not-authorized:" + scope.scope);
+    else if (!scope.scanExhausted) blockers.add("scope-not-exhausted:" + scope.scope);
+  }
+  if (declaredPriorLocations.length) blockers.add("transfer-history-attestation-required");
+  blockers.add("independent-source-coverage-certification-required");
+  return {
+    discoveryScannedToEnd: scopes.length > 0 && scopes.every(s=>s.authorized && s.scanExhausted),
+    diagnosticBlockers:[...blockers].sort(),
+    coverageComplete:false as const,
+    evidenceApproved:false as const,
+    eligibleForAuto:false as const,
+  };
+}
