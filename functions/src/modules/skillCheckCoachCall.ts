@@ -926,6 +926,7 @@ export const skillCheckCoachCall =
       }
       const batch = ids.slice(offset, offset + 10);
       const found: string[] = [];
+      const observationFingerprints: Record<string,string[]> = {};
       const issues: string[] = [];
       for (const id of batch) {
         optionalPracticeId(id);
@@ -962,7 +963,14 @@ export const skillCheckCoachCall =
             && skill.verifiedAt instanceof Timestamp;
         });
         if (!verified) issues.push("skill-evidence-invalid:" + id);
-        else found.push(id);
+        else {
+          found.push(id);
+          observationFingerprints[id] = evidence.docs.map(doc => {
+            const skill = doc.data() || {};
+            return [doc.id, normalizeFamily(skill.familyId), normalizeState(skill.state),
+              clean(skill.coachUid), skill.verifiedAt.toDate().toISOString()].join("|");
+          }).sort();
+        }
       }
       const result = await db.runTransaction(async tx => {
         const snap = await tx.get(ref);
@@ -983,6 +991,9 @@ export const skillCheckCoachCall =
           revision:nextRevision, skillScanOffset:nextOffset,
           skillScanExhausted:nextOffset === ids.length,
           evidencePracticeIds:evidenceIds,
+          skillObservationFingerprints: {
+            ...(current.skillObservationFingerprints || {}), ...observationFingerprints,
+          },
           skillEvidenceIssues:[...new Set([...existingIssues, ...issues])],
           status:"DIAGNOSTIC_SKILL_EVIDENCE",
           updatedAt:FieldValue.serverTimestamp(),
@@ -1053,6 +1064,17 @@ export const skillCheckCoachCall =
             && Boolean(clean(skill.coachUid)) && skill.verifiedAt instanceof Timestamp;
         });
         if (verified !== evidenceIds.has(id)) blockers.push("recheck-evidence-presence-changed:" + id);
+        if (verified && evidenceIds.has(id)) {
+          const expected = (current.skillObservationFingerprints || {})[id];
+          const refreshed = skillsSnap.docs.map(doc => {
+            const skill = doc.data() || {};
+            return [doc.id, normalizeFamily(skill.familyId), normalizeState(skill.state),
+              clean(skill.coachUid), skill.verifiedAt.toDate().toISOString()].join("|");
+          }).sort();
+          if (!Array.isArray(expected) || JSON.stringify(expected) !== JSON.stringify(refreshed)) {
+            blockers.push("recheck-skill-observations-changed:" + id);
+          }
+        }
         if (!skillsSnap.empty && !verified) blockers.push("recheck-invalid-evidence:" + id);
       }
       // No persisted approval and no certification: practice ID membership is
