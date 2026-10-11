@@ -12,6 +12,8 @@ import {
 
 import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
+import { reconcileVerifiedProgression } from "./verifiedProgressionResolver";
+
 import {
   normalizeStaffList,
   normalizeStaffRole,
@@ -2701,6 +2703,23 @@ export const skillCheckCoachCall =
           && practice.verifiedSkills.every(skill => Boolean(skill.verifiedAt)
             && !Number.isNaN(Date.parse(skill.verifiedAt as string)));
       });
+      // Bridge the server-verified practice observations into the unified
+      // resolver. One paged scope is never exhaustive across locations,
+      // Coaches, or transfers; do not authorize progression or AUTO.
+      const nativeEvidencePreview = includeEvidence
+        ? reconcileVerifiedProgression({
+            athleteId, discipline,
+            native: history.flatMap(item => item.verifiedSkills.map(skill => ({
+              practiceId: item.practiceId,
+              discipline, familyId: skill.familyId, state: skill.state,
+              coachUid: skill.coachUid, verifiedAt: skill.verifiedAt || "",
+            }))),
+            acceptedTransfer: [],
+            nativeCoverageComplete: false,
+            transferRequired: true,
+            transferAccepted: false,
+          })
+        : null;
       const progressionAssessment = {
         status: familyEvidence.some(item => item.conflictingStates)
           ? "requires-evidence-reconciliation" : "requires-complete-history",
@@ -2723,7 +2742,7 @@ export const skillCheckCoachCall =
           "historical-chronology-unresolved",
         ],
         coachScopeExhausted: scope === "coach" && !hasMore,
-        ...(includeEvidence ? { history, familyEvidence, progressionAssessment } : {}),
+        ...(includeEvidence ? { history, familyEvidence, progressionAssessment, nativeEvidencePreview } : {}),
         exhaustive: false,
         // Callers must not infer athlete mastery from this partial search.
         evidenceReadyForAuto: false,
