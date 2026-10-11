@@ -913,6 +913,11 @@ export const skillCheckCoachCall =
         throw new HttpsError("aborted", "Checkpoint changed. Reload.");
       }
       const prior = priorSnap.data() || {};
+      // A checkpoint for a large history must remain resumable, never
+      // certifiable simply because a bounded page was traversed.
+      if (Array.isArray(prior.inventoryPracticeIds) && prior.inventoryPracticeIds.length > 5000) {
+        throw new HttpsError("resource-exhausted", "Native history exceeds checkpoint capacity.");
+      }
       if (prior.attendanceScanExhausted !== true) {
         throw new HttpsError("failed-precondition", "Finish attendance inventory before verifying skills.");
       }
@@ -994,6 +999,7 @@ export const skillCheckCoachCall =
           skillObservationFingerprints: {
             ...(current.skillObservationFingerprints || {}), ...observationFingerprints,
           },
+          skillEvidenceFingerprintFormat: "V1_RECORD_ID_FAMILY_STATE_COACH_TIME",
           skillEvidenceIssues:[...new Set([...existingIssues, ...issues])],
           status:"DIAGNOSTIC_SKILL_EVIDENCE",
           updatedAt:FieldValue.serverTimestamp(),
