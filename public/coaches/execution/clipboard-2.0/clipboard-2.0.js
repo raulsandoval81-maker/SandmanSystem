@@ -532,8 +532,16 @@ if (builderSession.attendanceRosterVerified === true
           ? "Evidence review required: " + blockers.slice(0, 4).join(", ")
           : "Evidence preview received. Coach review required; AUTO prescription is not authorized.";
       } catch (error) {
-        groupEvidenceDiagnostics[group.id] = "Evidence preview unavailable: " +
-          (error?.message || "Server verification failed.");
+        const code = String(error?.code || "unknown").replace(/^functions\\//, "");
+        const message = String(error?.message || "Server verification failed.");
+        // A rejected diagnostic preview is not a failed session or permission to
+        // bypass verified evidence. Surface the actionable backend reason.
+        console.warn("[clipboard] Group evidence preview rejected", {
+          groupId: group.id, code, message, details: error?.details || null
+        });
+        groupEvidenceDiagnostics[group.id] =
+          "Evidence preview unavailable (" + code + "): " + message +
+          ". AUTO lesson selection remains unverified.";
       }
     }
   } catch (error) {
