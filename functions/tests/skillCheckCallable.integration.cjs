@@ -938,6 +938,10 @@ test("resumable native skill scan distinguishes attendance-only records from ver
  });
  assert.equal(evidence.skillScanExhausted,true);
  assert.equal(evidence.verifiedEvidencePracticeCount,0);
+ await assert.rejects(invoke("advance-native-skill-evidence-checkpoint",evidence.revision),
+  e=>e.code==="failed-precondition");
+ await assert.rejects(invoke("advance-native-history-checkpoint",evidence.revision),
+  e=>e.code==="failed-precondition");
  const checkpoint=await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").get();
  assert.deepEqual(checkpoint.data().evidencePracticeIds,[]);
  assert.deepEqual(checkpoint.data().skillEvidenceIssues,[]);
