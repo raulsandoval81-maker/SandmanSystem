@@ -95,7 +95,6 @@ function updateModeUI() {
 
   if ($("roomField")) $("roomField").hidden = !historical && roomCount <= 1;
   if ($("programField")) $("programField").hidden = !historical;
-  if ($("practiceKeyField")) $("practiceKeyField").hidden = !historical;
 
   const date = $("sessionDateKey");
   if (date) {
@@ -148,7 +147,7 @@ async function submit() {
   const historical = mode === "after-the-fact";
   const program = historical ? programById($("programSelect")?.value || "") : null;
   const sessionDateKey = historical ? ($("sessionDateKey")?.value || "") : todayKey();
-  const practiceKey = $("practiceKey")?.value?.trim() || "";
+  const practiceKey = historical && room ? `rush-${room.value}` : "";
 
   if (!room) {
     setStatus("No permitted practice session is available.", true);
@@ -162,11 +161,6 @@ async function submit() {
 
   if (!sessionDateKey) {
     setStatus("Choose the practice date.", true);
-    return;
-  }
-
-  if (historical && !practiceKey) {
-    setStatus("Practice Key is required for a past practice.", true);
     return;
   }
 
