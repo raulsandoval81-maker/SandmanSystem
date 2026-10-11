@@ -12,7 +12,7 @@ import {
 
 import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGroupLesson, evaluateGroupLessonPrerequisites, reviewSupervisedPrerequisiteSelection, reviewTrackReadiness, auditCurriculumPrerequisiteGraph, WRESTLING_REVIEW_GRAPH, WRESTLING_SUPPORTING_SKILLS, reviewWrestlingDependencyRoles, reviewWrestlingRoleReadiness, PILOT_WRESTLING_PREREQUISITES, type HistoryPage } from "./historicalSkillReconciliation";
 
-import { reconcileVerifiedProgression, reconcileNativeHistoryPages } from "./verifiedProgressionResolver";
+import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage } from "./verifiedProgressionResolver";
 
 import {
   normalizeStaffList,
@@ -2169,11 +2169,15 @@ export const skillCheckCoachCall =
           athleteId, discipline, nativeScopes, nativePages,
           unresolvedTransferLocations.length > 0, false,
         );
+        const independentCoverage = assessIndependentCoverage(
+          requiredScopes, nativeReconciliation.blockers, unresolvedBlockers, unresolvedTransferLocations
+        );
         // Scan exhaustion is only technical discovery coverage, not proof
         // that declared locations represent the athlete's entire history.
         return {
           ok: true, diagnosticOnly: true, kind: "INTEGRATED_HISTORY_COVERAGE_REVIEW",
           athleteId, discipline, requiredScopes, allScopesScanned,
+          independentCoverage,
           nativeReconciliation: { ...nativeReconciliation, approved: false,
             blockers: [...new Set([...nativeReconciliation.blockers,
               "integrated-coverage-requires-independent-attestation"])].sort() },
