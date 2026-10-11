@@ -856,3 +856,29 @@ test("Integrated source review flags finalized attendance with missing athlete m
  assert.equal(result.coverageComplete,false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("native checkpoint is admin-only, revision-controlled and never accepts claimed evidence",async()=>{
+ const id="F8_NATIVE_CHECKPOINT";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ const request=(uid,action,extras={})=>callable.run({auth:{uid,token:{}},data:{
+  action,athleteId:id,discipline:"wrestling",...extras
+ }});
+ await assert.rejects(request("test-coach","open-native-history-checkpoint",{expectedRevision:0}),
+  e=>e.code==="permission-denied");
+ const first=await request("test-admin-transfer","open-native-history-checkpoint",{
+  expectedRevision:0,coverageComplete:true,eligibleForAuto:true,
+  inventoryPracticeIds:["forged"],evidencePracticeIds:["forged"]
+ });
+ assert.equal(first.revision,1);
+ assert.equal(first.eligibleForAuto,false);
+ const stored=await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").get();
+ assert.deepEqual(stored.data().inventoryPracticeIds,[]);
+ assert.equal(stored.data().coverageComplete,false);
+ await assert.rejects(request("test-admin-transfer","open-native-history-checkpoint",{expectedRevision:0}),
+  e=>e.code==="aborted");
+ const current=await request("test-admin-transfer","get-native-history-checkpoint");
+ assert.equal(current.revision,1);
+ assert.equal(current.evidenceApproved,false);
+ const next=await request("test-admin-transfer","open-native-history-checkpoint",{expectedRevision:1});
+ assert.equal(next.revision,2);
+});
