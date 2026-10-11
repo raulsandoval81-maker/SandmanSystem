@@ -850,24 +850,19 @@ async function openCanonicalPractice(payload) {
   const historical = String(entry.mode || "") === "after-the-fact";
 
   if (historical) {
-    const createHistorical = httpsCallable(functions, "createOrRecoverCanonicalPractice");
-    const response = await createHistorical({
-      entryMode: "after-the-fact",
-      locationId: payload.locationId,
-      roomId: payload.roomId,
-      liveSessionId: payload.sessionId,
-      sessionDateKey: payload.sessionDateKey,
-      program: "attendance-routed",
-      discipline: "unassigned",
-      practiceKey: `history-${payload.sessionId}`
-    });
-    const practiceId = String(response.data?.practiceId || "").trim();
-    if (!practiceId) throw new Error("Historical practice identity was not returned.");
+    // Production's canonical recovery endpoint is still running the older
+    // program/location policy. Historical reconstruction does not need that
+    // endpoint: create an isolated dated practice with openPracticeSession.
+    // Use a history-only liveSessionId so this can never replace today's room pointer.
+    const historicalSessionId = [
+      "history",
+      String(payload.sessionDateKey || "").replace(/[^0-9-]/g, ""),
+      String(payload.sessionId || "").replace(/[^a-z0-9._:-]/gi, "-")
+    ].filter(Boolean).join("-");
 
-    const bindHistoricalRoute = httpsCallable(functions, "openPracticeSession");
-    await bindHistoricalRoute({
-      practiceId,
-      liveSessionId: payload.sessionId,
+    const openHistorical = httpsCallable(functions, "openPracticeSession");
+    const response = await openHistorical({
+      liveSessionId: historicalSessionId,
       locationId: payload.locationId,
       academyId: payload.locationId,
       roomId: payload.roomId,
@@ -883,10 +878,14 @@ async function openCanonicalPractice(payload) {
       durationMinutes: payload.durationMinutes
     });
 
+    const practiceId = String(response.data?.practiceId || "").trim();
+    if (!practiceId) throw new Error("Historical practice identity was not returned.");
+
     activePracticeId = practiceId;
     return {
       ...payload,
       practiceId,
+      sessionId: historicalSessionId,
       program: "attendance-routed",
       journey: "",
       entryMode: "after-the-fact",
