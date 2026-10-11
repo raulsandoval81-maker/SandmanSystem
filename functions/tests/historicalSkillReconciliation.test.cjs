@@ -404,3 +404,29 @@ test("incomplete final page fails closed", () => {
   assert.equal(result.approved,false);
   assert.ok(result.blockers.includes("scope-not-exhausted:athlete-location"));
 });
+
+test("orphaned page cannot hide extra history behind exhausted cursor", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location"],[
+    nativePage(null,null,true,[nativeObservation()]),
+    nativePage("orphan",null,true,[nativeObservation("MASTERED")]),
+  ]);
+  assert.equal(result.approved,false);
+  assert.ok(result.blockers.includes("unlinked-page:athlete-location"));
+});
+test("unexpected history scope cannot silently expand authorized coverage", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location"],[
+    nativePage(null,null,true,[nativeObservation()]),
+    {scope:"prior-location",cursor:null,nextCursor:null,scopeExhausted:true,observations:[nativeObservation("MASTERED")]}
+  ]);
+  assert.equal(result.approved,false);
+  assert.ok(result.blockers.includes("unexpected-scope:prior-location"));
+});
+test("overlapping scopes deduplicate identical evidence without approving AUTO", () => {
+  const result = reconcileNativeHistoryPages("F8_0001","wrestling",["athlete-location","coach"],[
+    nativePage(null,null,true,[nativeObservation()]),
+    {scope:"coach",cursor:null,nextCursor:null,scopeExhausted:true,observations:[nativeObservation()]}
+  ]);
+  assert.equal(result.approved,true,JSON.stringify(result.blockers));
+  assert.equal(result.eligibleForAuto,false);
+  assert.equal(result.skills.length,1);
+});
