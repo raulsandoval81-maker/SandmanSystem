@@ -193,7 +193,7 @@ html[data-theme="light"]{
 
 .practice-secondary-fields{
   display:grid;
-  grid-template-columns:1fr 1.4fr;
+  grid-template-columns:1fr;
   gap:12px;
 }
 
@@ -523,6 +523,32 @@ html[data-theme="light"]{
 /* =========================
    ATTENDANCE PRACTICE GROUPS
 ========================= */
+.attendance-composition-banners{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:14px;
+}
+.composition-banner{
+  display:grid;
+  gap:4px;
+  padding:12px 14px;
+  border:1px solid var(--attendance-line);
+  border-radius:14px;
+  background:var(--attendance-surface);
+}
+.composition-banner span{
+  color:var(--attendance-muted);
+  font-size:.68rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.composition-banner strong{
+  color:var(--attendance-gold);
+  line-height:1.4;
+}
+
 .practice-route-summary{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -609,6 +635,7 @@ html[data-theme="light"]{
   border-radius:12px !important;
 }
 @media(max-width:720px){
+  .attendance-composition-banners,
   .practice-route-summary,
   .training-group-grid{
     grid-template-columns:1fr;

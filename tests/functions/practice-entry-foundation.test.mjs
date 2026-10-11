@@ -61,3 +61,16 @@ test("new callable is exported", async () => {
   const source = await read("functions/src/index.ts");
   assert.match(source, /createOrRecoverCanonicalPractice/);
 });
+
+
+test("attendance-first recovered practice can defer route selection safely", async () => {
+  const source = await read("functions/src/practice/practiceSessions.ts");
+  assert.match(source, /programId === "attendance-routed" && discipline === "unassigned"/);
+  assert.match(source, /liveSessionId: compactString\(input\.liveSessionId/);
+  assert.doesNotMatch(source, /After-the-fact attendance uses verified participants/);
+});
+
+test("historical route binding does not replace the live room pointer", async () => {
+  const source = await read("functions/src/practice/practiceSessions.ts");
+  assert.match(source, /String\(practice\.entryMode \|\| "normal"\) !== "after-the-fact"/);
+});

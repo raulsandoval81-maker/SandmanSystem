@@ -9,16 +9,15 @@ import {
 } from "/assets/js/coach-guard.js";
 
 import {
-  SESSION_ROOMS,
-  programsForLocation,
-  programById,
-  roomByValue
+  SESSION_ROOMS
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
 const createOrRecoverPractice =
   httpsCallable(functions, "createOrRecoverCanonicalPractice");
+
+let activeRoom = null;
 
 function todayKey() {
   const now = new Date();
@@ -47,54 +46,21 @@ function coachDisplayName(coach = {}) {
   return explicit || "Signed-in Coach";
 }
 
-function populateRooms(scopeLocationIds = [], isSystemAdmin = false) {
-  const select = $("roomSelect");
-  if (!select) return;
-
-  select.replaceChildren();
-
+function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
   const allowed = new Set(
     (scopeLocationIds || []).map((id) => String(id || "").trim().toLowerCase())
   );
 
-  SESSION_ROOMS
-    .filter((room) =>
-      isSystemAdmin ||
-      !allowed.size ||
-      allowed.has(String(room.locationId || "").toLowerCase())
-    )
-    .forEach((room) => {
-      const option = document.createElement("option");
-      option.value = room.value;
-      option.textContent = room.label;
-      select.appendChild(option);
-    });
-}
-
-function populatePrograms() {
-  const room = roomByValue($("roomSelect")?.value || "");
-  const select = $("programSelect");
-  if (!select) return;
-
-  select.innerHTML = '<option value="">Select Program</option>';
-
-  programsForLocation(room?.locationId || "")
-    .filter((program) => program.programId !== "manual-build")
-    .forEach((program) => {
-      const option = document.createElement("option");
-      option.value = program.programId;
-      option.textContent = program.label;
-      select.appendChild(option);
-    });
+  return SESSION_ROOMS.find((room) =>
+    isSystemAdmin ||
+    !allowed.size ||
+    allowed.has(String(room.locationId || "").toLowerCase())
+  ) || null;
 }
 
 function updateModeUI() {
   const mode = $("entryMode")?.value || "planned";
   const historical = mode === "after-the-fact";
-  const roomCount = $("roomSelect")?.options.length || 0;
-
-  if ($("roomField")) $("roomField").hidden = !historical && roomCount <= 1;
-  if ($("programField")) $("programField").hidden = !historical;
 
   const date = $("sessionDateKey");
   if (date) {
@@ -103,33 +69,24 @@ function updateModeUI() {
   }
 
   const button = $("createPractice");
-  if (button) {
-    button.textContent =
-      mode === "quick-start"
-        ? "Open Big Clock"
-        : historical
-          ? "Continue to Attendance"
-          : "Continue to Attendance";
-  }
+  if (button) button.textContent = "Continue to Attendance";
 
   const title = $("entryTitle");
   if (title) {
-    title.textContent =
-      mode === "quick-start"
-        ? "Quick Start"
-        : historical
-          ? "Record Past Practice"
-          : "Start Practice";
+    title.textContent = mode === "quick-start"
+      ? "Quick Start"
+      : historical
+        ? "Record Past Practice"
+        : "Start Practice";
   }
 
   const description = $("entryDescription");
   if (description) {
-    description.textContent =
-      mode === "quick-start"
-        ? "Open the practice and go straight to the clock."
-        : historical
-          ? "Recover a completed practice, then verify attendance."
-          : "Open the practice and move straight to attendance.";
+    description.textContent = mode === "quick-start"
+      ? "Check in, let Sandman group the room, then open the clock."
+      : historical
+        ? "Choose the date, then verify who was there."
+        : "Open the practice and move straight to attendance.";
   }
 }
 
@@ -141,21 +98,36 @@ function setStatus(message, isError = false) {
   status.classList.toggle("is-error", isError);
 }
 
+function persistSession(practiceId, room, mode) {
+  const session = {
+    practiceId,
+    sessionId: room.value,
+    roomValue: room.value,
+    locationId: room.locationId,
+    academyId: room.locationId,
+    roomId: room.roomId,
+    discipline: "unassigned",
+    journey: "",
+    program: "",
+    track: "",
+    schema: mode === "quick-start" ? "fast-practice" : "academy-60",
+    executionMode: mode === "quick-start" ? "manual" : "hybrid",
+    durationMinutes: 60,
+    source: mode === "quick-start" ? "session-builder-fast-pass" : "attendance-first",
+    createdAt: new Date().toISOString()
+  };
+  localStorage.setItem("sandman_session_builder_v1", JSON.stringify(session));
+  return session;
+}
+
 async function submit() {
   const mode = $("entryMode")?.value || "planned";
-  const room = roomByValue($("roomSelect")?.value || "");
   const historical = mode === "after-the-fact";
-  const program = historical ? programById($("programSelect")?.value || "") : null;
+  const room = activeRoom;
   const sessionDateKey = historical ? ($("sessionDateKey")?.value || "") : todayKey();
-  const practiceKey = historical && room ? `rush-${room.value}` : "";
 
   if (!room) {
-    setStatus("No permitted practice session is available.", true);
-    return;
-  }
-
-  if (historical && !program) {
-    setStatus("Choose the program for the past practice.", true);
+    setStatus("No permitted practice location is available for this Coach.", true);
     return;
   }
 
@@ -168,9 +140,23 @@ async function submit() {
   if (button) button.disabled = true;
 
   try {
-    setStatus(historical ? "Recovering practice…" : "Opening practice…");
+    setStatus(historical ? "Opening past practice…" : "Opening practice…");
 
-    if (!historical) {
+    let practiceId = "";
+
+    if (historical) {
+      const response = await createOrRecoverPractice({
+        entryMode: "after-the-fact",
+        locationId: room.locationId,
+        roomId: room.roomId,
+        liveSessionId: room.value,
+        sessionDateKey,
+        program: "attendance-routed",
+        discipline: "unassigned",
+        practiceKey: `rush-${room.value}`
+      });
+      practiceId = String(response.data?.practiceId || "").trim();
+    } else {
       const openPractice = httpsCallable(functions, "openPracticeSession");
       const response = await openPractice({
         liveSessionId: room.value,
@@ -186,58 +172,27 @@ async function submit() {
         executionMode: mode === "quick-start" ? "manual" : "hybrid",
         durationMinutes: 60
       });
-      const practiceId = String(response.data?.practiceId || "").trim();
-      if (!practiceId) throw new Error("Practice identity was not returned.");
-
-      const session = {
-        practiceId,
-        sessionId: room.value,
-        roomValue: room.value,
-        locationId: room.locationId,
-        academyId: room.locationId,
-        roomId: room.roomId,
-        discipline: "unassigned",
-        journey: "",
-        program: "",
-        track: "",
-        schema: mode === "quick-start" ? "fast-practice" : "academy-60",
-        executionMode: mode === "quick-start" ? "manual" : "hybrid",
-        durationMinutes: 60,
-        source: mode === "quick-start" ? "session-builder-fast-pass" : "attendance-first",
-        createdAt: new Date().toISOString()
-      };
-      localStorage.setItem("sandman_session_builder_v1", JSON.stringify(session));
-
-      if (mode === "quick-start") {
-        localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify({
-          source: "session-builder-fast-pass",
-          practiceId,
-          sessionId: room.value,
-          durationMinutes: 60,
-          blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
-        }));
-        location.href = "/coaches/execution/big-clock-2.0/?practiceId=" +
-          encodeURIComponent(practiceId) + "&session=" + encodeURIComponent(room.value) + "&fast=1";
-      } else {
-        sessionStorage.setItem("sandman_attendance_first_practice_id", practiceId);
-        location.href = "/coaches/attendance/session.html?practiceId=" +
-          encodeURIComponent(practiceId) + "&flow=builder&return=builder";
-      }
-      return;
+      practiceId = String(response.data?.practiceId || "").trim();
     }
 
-    const response = await createOrRecoverPractice({
-      entryMode: "after-the-fact",
-      locationId: room.locationId,
-      roomId: room.roomId,
-      sessionDateKey,
-      program: program.programId,
-      discipline: program.discipline,
-      practiceKey
-    });
-    const practiceId = String(response.data?.practiceId || "").trim();
     if (!practiceId) throw new Error("Practice identity was not returned.");
-    location.href = "/coaches/attendance/session.html?practiceId=" + encodeURIComponent(practiceId);
+
+    persistSession(practiceId, room, mode);
+
+    if (mode === "quick-start") {
+      localStorage.setItem("sandman_big_clock_payload_v2", JSON.stringify({
+        source: "session-builder-fast-pass",
+        practiceId,
+        sessionId: room.value,
+        durationMinutes: 60,
+        blocks: [{ title: "Practice", minutes: 60, cards: [], notes: "", drillBlocks: [] }]
+      }));
+    }
+
+    sessionStorage.setItem("sandman_attendance_first_practice_id", practiceId);
+    const returnTarget = mode === "quick-start" ? "clock" : "builder";
+    location.href = "/coaches/attendance/session.html?practiceId=" +
+      encodeURIComponent(practiceId) + "&flow=builder&return=" + encodeURIComponent(returnTarget);
   } catch (error) {
     console.error("[practice-entry] failed", error);
     setStatus(error?.message || "Practice entry failed.", true);
@@ -252,26 +207,21 @@ async function initialize() {
   try {
     const coach = await requireCoach();
 
-    populateRooms(
+    activeRoom = resolvePracticeRoom(
       coach?.scope?.locationIds || [],
       coach?.isSystemAdmin === true
     );
 
-    if (!$("roomSelect")?.options.length) {
-      throw new Error("No permitted practice rooms are available for this Coach.");
+    if (!activeRoom) {
+      throw new Error("No permitted practice location is available for this Coach.");
     }
 
     if ($("coachOnHand")) $("coachOnHand").value = coachDisplayName(coach);
     $("entryMode").value = requestedMode();
     $("sessionDateKey").value = todayKey();
 
-    populatePrograms();
     updateModeUI();
 
-    $("roomSelect")?.addEventListener("change", () => {
-      populatePrograms();
-      updateModeUI();
-    });
     $("entryMode")?.addEventListener("change", updateModeUI);
     $("createPractice")?.addEventListener("click", submit);
 
