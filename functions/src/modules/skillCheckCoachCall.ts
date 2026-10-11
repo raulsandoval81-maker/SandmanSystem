@@ -787,6 +787,52 @@ export const skillCheckCoachCall =
       };
     }
 
+    if (action === "get-native-history-checkpoint" || action === "open-native-history-checkpoint") {
+      // Native-history checkpoints are independent of prior-experience reviews.
+      // Neither action accepts client-supplied skill evidence, inventory,
+      // coverage flags, or eligibility conclusions.
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Native certification checkpoints require Admin authority.");
+      }
+      const checkpointRef = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      if (action === "get-native-history-checkpoint") {
+        const snap = await checkpointRef.get();
+        if (!snap.exists) return {ok:true,exists:false,coverageComplete:false,eligibleForAuto:false};
+        const record = snap.data() || {};
+        return {ok:true,exists:true,revision:record.revision || 0,
+          status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
+          blockers:["independent-source-coverage-certification-required"],
+          coverageComplete:false,evidenceApproved:false,eligibleForAuto:false};
+      }
+      const expectedRevision = Number(data.expectedRevision);
+      if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+        throw new HttpsError("invalid-argument", "Expected checkpoint revision required.");
+      }
+      const revision = await db.runTransaction(async tx => {
+        const currentSnap = await tx.get(checkpointRef);
+        const current = currentSnap.data() || {};
+        const currentRevision = currentSnap.exists ? Number(current.revision) : 0;
+        if (currentRevision !== expectedRevision) {
+          throw new HttpsError("aborted", "Checkpoint changed. Reload before restarting review.");
+        }
+        const nextRevision = currentRevision + 1;
+        tx.set(checkpointRef, {
+          kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT", athleteId, discipline,
+          revision:nextRevision, status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
+          actorUid:actor.uid, updatedAt:FieldValue.serverTimestamp(),
+          // Reset on revision change. Never inherit evidence from prior runs.
+          requiredScopes:[], completedScopes:[], continuationScopes:[],
+          inventoryPracticeIds:[], evidencePracticeIds:[],
+          blockers:["server-owned-discovery-required",
+            "independent-source-coverage-certification-required"],
+          evidenceApproved:false,coverageComplete:false,eligibleForAuto:false,
+        });
+        return nextRevision;
+      });
+      return {ok:true,revision,status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
+        evidenceApproved:false,coverageComplete:false,eligibleForAuto:false};
+    }
+
     if (action === "record-transfer-coverage-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical coverage checkpoints require Admin authority.");
