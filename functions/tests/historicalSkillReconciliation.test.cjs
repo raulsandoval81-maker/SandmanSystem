@@ -430,3 +430,23 @@ test("overlapping scopes deduplicate identical evidence without approving AUTO",
   assert.equal(result.eligibleForAuto,false);
   assert.equal(result.skills.length,1);
 });
+
+const {assessIndependentCoverage} = require("../lib/modules/verifiedProgressionResolver");
+test("exhausted scopes are not equivalent to independent source certification", () => {
+ const result=assessIndependentCoverage([{scope:"athlete-location",authorized:true,scanExhausted:true}],[],[],[]);
+ assert.equal(result.discoveryScannedToEnd,true);
+ assert.equal(result.coverageComplete,false);
+ assert.equal(result.eligibleForAuto,false);
+ assert.ok(result.diagnosticBlockers.includes("independent-source-coverage-certification-required"));
+});
+test("independent coverage reports unauthorized, unfinished and transfer scopes", () => {
+ const result=assessIndependentCoverage([
+  {scope:"coach",authorized:false,scanExhausted:false},
+  {scope:"athlete-location",authorized:true,scanExhausted:false}
+ ],["missing-page:athlete-location"],["evidence-incomplete:practice_A"],["prior-location"]);
+ assert.equal(result.discoveryScannedToEnd,false);
+ assert.ok(result.diagnosticBlockers.includes("scope-not-authorized:coach"));
+ assert.ok(result.diagnosticBlockers.includes("scope-not-exhausted:athlete-location"));
+ assert.ok(result.diagnosticBlockers.includes("transfer-history-attestation-required"));
+ assert.equal(result.evidenceApproved,false);
+});
