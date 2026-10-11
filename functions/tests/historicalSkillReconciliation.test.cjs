@@ -491,3 +491,22 @@ test("conflicting verified states across separately discovered scopes fail close
  assert.ok(result.blockers.includes("conflicting-state:double_leg"));
  assert.equal(result.eligibleForAuto,false);
 });
+
+const {compareNativeEvidenceFingerprints}=require("../lib/modules/verifiedProgressionResolver");
+const fingerprint=(state="LEARNED")=>({practiceId:"practice_A",familyId:"double_leg",state,coachUid:"coach_A",verifiedAt:"2026-10-11T18:00:00.000Z"});
+test("identical server evidence is only a candidate for later certification",()=>{
+ const result=compareNativeEvidenceFingerprints([fingerprint()],[fingerprint()],true);
+ assert.equal(result.consistent,true);
+ assert.equal(result.certificateIssued,false);
+ assert.equal(result.eligibleForAuto,false);
+});
+test("changed, added and missing observations invalidate candidate snapshot",()=>{
+ assert.ok(compareNativeEvidenceFingerprints([fingerprint()],[fingerprint("MASTERED")],true).blockers.includes("source-evidence-changed"));
+ assert.ok(compareNativeEvidenceFingerprints([fingerprint()],[],true).blockers.includes("source-evidence-removed"));
+ assert.ok(compareNativeEvidenceFingerprints([],[fingerprint()],true).blockers.includes("source-evidence-added"));
+});
+test("incomplete source refresh cannot validate historical fingerprint",()=>{
+ const result=compareNativeEvidenceFingerprints([fingerprint()],[fingerprint()],false);
+ assert.equal(result.consistent,false);
+ assert.ok(result.blockers.includes("source-retrieval-incomplete"));
+});
