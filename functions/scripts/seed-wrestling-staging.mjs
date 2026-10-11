@@ -1,4 +1,4 @@
-import { cert, deleteApp, initializeApp } from "firebase-admin/app";
+import { applicationDefault, deleteApp, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 
@@ -10,7 +10,7 @@ const { projectId } = boundary;
 const password = String(process.env.SANDMAN_STAGING_TEST_PASSWORD || "");
 if (password.length < 12) throw new Error("Provide a staging-only test password of at least 12 characters.");
 
-const app = initializeApp({ credential: cert(boundary.credential), projectId }, `sandman-staging-${Date.now()}`);
+const app = initializeApp({ credential: applicationDefault(), projectId }, `sandman-staging-${Date.now()}`);
 if (app.options.projectId !== projectId) throw new Error("Initialized Firebase target does not match the authorized staging project.");
 const auth = getAuth(app);
 const db = getFirestore(app);
