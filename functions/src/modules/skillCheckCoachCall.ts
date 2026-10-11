@@ -849,6 +849,9 @@ export const skillCheckCoachCall =
         throw new HttpsError("aborted", "Checkpoint revision changed. Reload.");
       }
       const prior = priorSnap.data() || {};
+      if (prior.attendanceScanExhausted === true) {
+        throw new HttpsError("failed-precondition", "Attendance inventory already exhausted. Restart review to rescan.");
+      }
       const cursor = clean(prior.attendanceCursor);
       if (cursor) optionalPracticeId(cursor);
       const queryBase = db.collection("attendance_sessions")
@@ -868,7 +871,8 @@ export const skillCheckCoachCall =
         const currentSnap = await tx.get(ref);
         const current = currentSnap.data() || {};
         if (!currentSnap.exists || Number(current.revision) !== expectedRevision
-            || clean(current.attendanceCursor) !== cursor) {
+            || clean(current.attendanceCursor) !== cursor
+            || current.attendanceScanExhausted === true) {
           throw new HttpsError("aborted", "Checkpoint advanced. Reload before retry.");
         }
         const stored = Array.isArray(current.inventoryPracticeIds)
@@ -911,6 +915,9 @@ export const skillCheckCoachCall =
       const prior = priorSnap.data() || {};
       if (prior.attendanceScanExhausted !== true) {
         throw new HttpsError("failed-precondition", "Finish attendance inventory before verifying skills.");
+      }
+      if (prior.skillScanExhausted === true) {
+        throw new HttpsError("failed-precondition", "Skill evidence scan already exhausted. Restart review to revalidate.");
       }
       const ids = Array.isArray(prior.inventoryPracticeIds) ? prior.inventoryPracticeIds.map(String) : [];
       const offset = Number(prior.skillScanOffset || 0);
@@ -962,7 +969,8 @@ export const skillCheckCoachCall =
         const current = snap.data() || {};
         if (!snap.exists || Number(current.revision) !== expectedRevision
             || Number(current.skillScanOffset || 0) !== offset
-            || current.attendanceScanExhausted !== true) {
+            || current.attendanceScanExhausted !== true
+            || current.skillScanExhausted === true) {
           throw new HttpsError("aborted", "Checkpoint advanced. Reload.");
         }
         const nextRevision = expectedRevision + 1;
