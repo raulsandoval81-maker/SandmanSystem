@@ -881,3 +881,26 @@ html[data-theme="light"] .secondary-action{
   text-align:center;
 }
 .home-card__count-status[hidden]{ display:none !important; }
+
+/* Action counts, replies and urgent safety signals are visually distinct. */
+.home-card__count[data-kind="message"]{
+  background:#dbeafe;
+  border-color:#93c5fd;
+  color:#102344;
+}
+.home-card__count[data-kind="message"]::before{
+  content:"✉";
+  margin-right:5px;
+  font-size:.8em;
+}
+.home-card__count[data-kind="urgent"]{
+  background:#b91c1c;
+  border-color:#fca5a5;
+  color:#fff;
+}
+.home-card__count[data-kind="urgent"]::before{
+  content:"!";
+  font-weight:950;
+  margin-right:5px;
+}
+.home-card__count[hidden]{display:none !important;}
