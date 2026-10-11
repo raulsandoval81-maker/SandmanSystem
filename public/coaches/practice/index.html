@@ -139,15 +139,11 @@
 
     .practice-start__field input[readonly],
     .practice-start__field input:disabled{
-      opacity:.86;
-    }
-
-    .practice-start__note{
-      grid-column:1 / -1;
-      margin:0;
-      color:var(--practice-muted);
-      font-size:.84rem;
-      line-height:1.45;
+      opacity:1;
+      color:var(--practice-text);
+      -webkit-text-fill-color:var(--practice-text);
+      background:#0d131b;
+      border-color:rgba(255,255,255,.18);
     }
 
     .choice-panel{
@@ -636,9 +632,6 @@
       <input id="practiceCoach" type="text" readonly aria-readonly="true">
     </label>
 
-    <p class="practice-start__note">
-      Practice Operations establishes who is coaching and today’s practice date before you choose how to start.
-    </p>
   </section>
 
   <section
@@ -739,21 +732,6 @@
     </div>
 
   </section>
-
-  <section class="practice-note" aria-labelledby="groupLessonHeading">
-    <h2 id="groupLessonHeading">Group Lesson Planning</h2>
-    <p>Use verified athlete skill evidence to preview a mixed-level lesson, adjust instructional tracks, and confirm your plan before practice.</p>
-    <a href="/coaches/practice/group-lessons.html">Open Group Lesson Review</a>
-    <p>Coach review required. This does not finalize attendance or award XP.</p>
-  </section>
-
-  <div class="practice-note">
-    <strong>Practice authority:</strong>
-    different starts are allowed, but every practice converges on one canonical record.
-    Check-in does not finalize attendance. Attendance does not award XP by itself.
-    Final close happens only after attendance is finalized, Daily Grind is completed,
-    and the practice record is ready to close.
-  </div>
 
 </main>
 
