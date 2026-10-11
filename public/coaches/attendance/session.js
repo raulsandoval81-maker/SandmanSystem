@@ -1169,7 +1169,7 @@ if (isBuilderFlow()) {
   const lead = $("attendanceLead");
   if (label) label.textContent = "Attendance";
   if (title) title.textContent = "Athlete Check-In";
-  if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm Sandman’s Tier and Training Week suggestion.";
+  if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm today’s practice groups and skills.";
 
 
   document.querySelector('[data-step-screen="2"] .eyebrow')?.replaceChildren("Step 1 of 3");
