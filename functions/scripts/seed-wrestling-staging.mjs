@@ -1,4 +1,4 @@
-import { applicationDefault, deleteApp, initializeApp } from "firebase-admin/app";
+import { deleteApp, initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 
@@ -10,7 +10,12 @@ const { projectId } = boundary;
 const password = String(process.env.SANDMAN_STAGING_TEST_PASSWORD || "");
 if (password.length < 12) throw new Error("Provide a staging-only test password of at least 12 characters.");
 
-const app = initializeApp({ credential: applicationDefault(), projectId }, `sandman-staging-${Date.now()}`);
+const accessToken = String(process.env.SANDMAN_STAGING_ACCESS_TOKEN || "").trim();
+if (!accessToken) throw new Error("Missing federated staging access token.");
+const federatedCredential = {
+  getAccessToken: async () => ({ access_token: accessToken, expires_in: 3600 }),
+};
+const app = initializeApp({ credential: federatedCredential, projectId }, `sandman-staging-${Date.now()}`);
 if (app.options.projectId !== projectId) throw new Error("Initialized Firebase target does not match the authorized staging project.");
 const auth = getAuth(app);
 const db = getFirestore(app);
