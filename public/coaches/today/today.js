@@ -650,7 +650,7 @@ async function initialize() {
     dashboardLocationId = String(
       coachContext?.scope?.locationIds?.[0] ||
       coachContext?.locationId ||
-      ""
+      (coachContext?.uid ? "coach-user-" + coachContext.uid : "")
     ).trim();
 
     if (protectedContent) protectedContent.hidden = false;
