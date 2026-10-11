@@ -341,19 +341,24 @@ export const openPracticeSession = onCall(async (request) => {
 
     if (existing.exists) tx.set(practiceRef, practice, { merge: true });
     else tx.create(practiceRef, practice);
-    tx.set(db.doc(`liveSessions/${liveSessionId}`), {
-      practiceId: practiceRef.id,
-      liveSessionId,
-      locationId,
-      academyId: locationId,
-      roomId,
-      coachUid: practice.coachUid,
-      status: "ready",
-      discipline,
-      journey: practice.journey,
-      ...(executionMode ? { executionMode } : {}),
-      updatedAt: now,
-    }, { merge: true });
+
+    // Historical recovery may bind its route after attendance, but it must not
+    // replace the current live-session pointer for the room.
+    if (String(practice.entryMode || "normal") !== "after-the-fact") {
+      tx.set(db.doc(`liveSessions/${liveSessionId}`), {
+        practiceId: practiceRef.id,
+        liveSessionId,
+        locationId,
+        academyId: locationId,
+        roomId,
+        coachUid: practice.coachUid,
+        status: "ready",
+        discipline,
+        journey: practice.journey,
+        ...(executionMode ? { executionMode } : {}),
+        updatedAt: now,
+      }, { merge: true });
+    }
   });
 
   return { ok: true, practiceId: practiceRef.id, liveSessionId, status: "active", idempotent };
