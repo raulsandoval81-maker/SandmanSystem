@@ -205,7 +205,7 @@ function populateJourneys(preferredJourney = "") {
   const programs = availablePrograms().filter((program) => discipline && program.discipline === discipline);
   const journeys = [...new Set(programs.map((program) => program.journey).filter(Boolean))];
 
-  journeySelect.innerHTML = '<option value="">Select Journey</option>';
+  journeySelect.innerHTML = '<option value="">Mixed Room · All Journeys</option>';
   journeys.forEach((journey) => {
     const option = document.createElement("option");
     option.value = journey;
@@ -213,21 +213,7 @@ function populateJourneys(preferredJourney = "") {
     journeySelect.appendChild(option);
   });
 
-  if (journeys.length > 1) {
-    const mixed = document.createElement("option");
-    mixed.value = MIXED_JOURNEY;
-    mixed.textContent = "Mixed Room";
-    journeySelect.appendChild(mixed);
-  }
-
-  if (preferredJourney === MIXED_JOURNEY && journeys.length > 1) {
-    journeySelect.value = MIXED_JOURNEY;
-  } else if (journeys.includes(preferredJourney)) {
-    journeySelect.value = preferredJourney;
-  } else {
-    journeySelect.value = "";
-  }
-
+  journeySelect.value = journeys.includes(preferredJourney) ? preferredJourney : "";
   if (journeyField) journeyField.hidden = !discipline;
 }
 
@@ -523,6 +509,7 @@ function updateSummary() {
   const summaryMode = document.getElementById("summaryMode");
   const summaryMat = document.getElementById("summaryMat");
   const summaryDiscipline = document.getElementById("summaryDiscipline");
+  const summaryJourneyFilter = document.getElementById("summaryJourneyFilter");
   const summaryRankRow = document.getElementById("summaryRankRow");
   const summaryRank = document.getElementById("summaryRank");
   const summaryWeekRow = document.getElementById("summaryWeekRow");
@@ -540,6 +527,11 @@ function updateSummary() {
       ? disciplineFamilySelect?.selectedOptions?.[0]?.textContent?.trim() || "Select a discipline"
       : "Select a discipline";
     summaryDiscipline.classList.toggle("is-pending", !disciplineReady);
+  }
+  if (summaryJourneyFilter) {
+    summaryJourneyFilter.textContent = journeySelect?.value
+      ? journeyLabel(journeySelect.value)
+      : "Mixed Room";
   }
 
   const routeReady = disciplineReady;
@@ -765,6 +757,7 @@ function createSessionPayload(practiceId = activePracticeId) {
     tier: attendanceContext.tier || program.tier,
     rankLabel: attendanceContext.rankLabel || program.rankLabel || "",
     trainingGroups: groups,
+    attendanceJourneyFilter: String(journeySelect?.value || "").trim(),
     week,
     ...getHybridData(week),
     source: "session-builder",
@@ -900,7 +893,11 @@ async function restoreCanonicalPractice(practiceId) {
   const restoredDiscipline = String(practice.discipline || "").toLowerCase();
   const preferredDiscipline = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
   updateDisciplineAvailability(preferredDiscipline);
-  if (journeySelect) journeySelect.value = "";
+  const rememberedSession = readJson(SESSION_KEY, {});
+  const rememberedFilter = String(rememberedSession?.practiceId || "") === String(practiceId || "")
+    ? String(rememberedSession?.attendanceJourneyFilter || "")
+    : "";
+  populateJourneys(rememberedFilter);
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
@@ -924,11 +921,7 @@ backToGuidedSetupBtn?.addEventListener("click", () => {
 });
 
 journeySelect?.addEventListener("change", () => {
-  populatePrograms("");
-  populateRanks();
-  populateWeeks();
-  refreshFocusSuggestion();
-  refreshHybridAvailability();
+  updateSummary();
 });
 
 sessionTypeButtons.forEach(button => button.addEventListener("click", () => {
@@ -957,7 +950,7 @@ roomSelect.addEventListener("change", () => {
 });
 
 disciplineFamilySelect?.addEventListener("change", () => {
-  if (journeySelect) journeySelect.value = "";
+  populateJourneys("");
   populatePrograms("");
   populateRanks();
   populateWeeks();
@@ -1018,6 +1011,7 @@ buildBtn.addEventListener("click", async () => {
 
 populateRooms();
 updateDisciplineAvailability();
+populateJourneys();
 populatePrograms();
 populateWeeks();
 populateRanks();
