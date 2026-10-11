@@ -1114,9 +1114,12 @@ if (searchParams.get("from") === "practice-entry") {
   const noticeEl = document.getElementById("dashboardNotice");
   const dateLabel = entry.sessionDateKey ? new Date(entry.sessionDateKey + "T12:00:00").toLocaleDateString() : "";
   noticeEl.textContent = dateLabel
-    ? `Practice started for ${dateLabel}. Choose how you want to build it.`
-    : "Practice started. Choose how you want to build it.";
+    ? `Practice started for ${dateLabel}. Build the session.`
+    : "Practice started. Build the session.";
   noticeEl.hidden = false;
+  // Practice Operations already chose the planned lane, so do not show a
+  // second start/skip decision here.
+  showPrePracticeSetup();
 }
 if (notice === "choose-session") {
   const noticeEl = document.getElementById("dashboardNotice");
