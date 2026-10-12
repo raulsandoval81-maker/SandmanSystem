@@ -617,6 +617,9 @@ export const skillCheckCoachCall =
             || sourceRevision < 1 || !Number.isSafeInteger(certificate.sourceRevision)
             || certificate.sourceRevision !== sourceRevision)
           blockers.push("source-revision-uncertified-or-stale");
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
+          blockers.push("legacy-history-baseline-unverified");
         const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
         if (!blockers.length) {
           for (const entry of records) {
@@ -2179,6 +2182,9 @@ export const skillCheckCoachCall =
             || certified.sourceRevision !== activeSourceRevision) {
           blockers.push("source-revision-uncertified-or-stale");
         }
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
+          blockers.push("legacy-history-baseline-unverified");
         // Transactional source reads protect against evidence changing between
         // the previous receipt and this acceptance attempt.
         const entries: Record<string, unknown>[] = Array.isArray(manifest.records)
