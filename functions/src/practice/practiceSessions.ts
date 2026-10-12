@@ -418,6 +418,12 @@ export const createOrRecoverCanonicalPractice = onCall(async (request) => {
   return { ok: true, practiceId, status, entryMode, sessionDateKey, idempotent };
 });
 
+function isSantaYnezLompocCrossover(homeLocationId: unknown, hostLocationId: unknown): boolean {
+  const home = String(homeLocationId || "").trim().toLowerCase();
+  const host = String(hostLocationId || "").trim().toLowerCase();
+  return host === "santa-ynez-valley" && ["lompoc", "lompoc-hs", "lompoc-high-school"].includes(home);
+}
+
 export const getPracticeAttendanceReview = onCall(async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
@@ -433,12 +439,14 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
   }
   const [attendanceSnap, rosterSnap, athleteInputSnap] = await Promise.all([
     db.doc(`attendance_sessions/${practiceId}`).get(),
-    db.collection("athletes").where("locationId", "==", locationId).get(),
+    db.collection("athletes").get(),
     db.collection(`practiceSessions/${practiceId}/athletes`).get(),
   ]);
   const roster = rosterSnap.docs
     .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
-    .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
+    .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current" &&
+      (String(athlete.locationId || "") === locationId ||
+        isSantaYnezLompocCrossover(athlete.locationId, locationId)))
     .map((athlete) => ({
       id: athlete.athleteId,
       uid: athlete.uid || athlete.athleteId,
@@ -493,7 +501,11 @@ export const updatePracticeCheckIn = onCall(async (request) => {
       const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
       if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
       athlete = athleteSnap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
+      if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
+        throw new HttpsError("failed-precondition", "Athlete is not on the current roster.");
+      }
+      if (String(athlete.locationId || "") !== locationId &&
+          !isSantaYnezLompocCrossover(athlete.locationId, locationId)) {
         throw new HttpsError("permission-denied", "Athlete is outside the practice location.");
       }
     }
