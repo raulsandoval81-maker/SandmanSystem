@@ -254,12 +254,12 @@ service cloud.firestore {
       // No browser/mobile client may create, certify, overwrite or erase them,
       // including users with Coach, Management, or Admin claims.
       match /historyRevisions/{disciplineId} {
-        allow read, write: if false;
+        allow write: if false;
       }
 
       // Historical certification artifacts are also exclusively server-owned.
       match /historicalTransferReviews/{disciplineId}/{document=**} {
-        allow read, write: if false;
+        allow write: if false;
       }
 
       match /testingLogs/{logId} {
