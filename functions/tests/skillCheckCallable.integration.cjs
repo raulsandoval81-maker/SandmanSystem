@@ -485,7 +485,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(scan.practices.length,1);
  const manifest=await invoke("build-verified-evidence-manifest");
  assert.equal(manifest.recordCount,1);
- const unbound=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId});
+ const unbound=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:"unknown-receipt"});
  assert.equal(unbound.certificateIssued,false);
  assert.ok(unbound.blockers.includes("source-inventory-baseline-unverified"));
  await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({baselineEvidenceManifestId:manifest.manifestId});
@@ -498,7 +498,10 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(receipt.data().sourceRecordsValid,true);
  assert.equal(receipt.data().evidenceApproved,false);
  assert.equal(sources.acceptanceReady,false);
- const certified=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId});
+ const wrongReceipt=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:"unknown-receipt"});
+ assert.equal(wrongReceipt.certificateIssued,false);
+ assert.ok(wrongReceipt.blockers.includes("source-verification-receipt-invalid"));
+ const certified=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId});
  assert.equal(certified.certificateIssued,true,JSON.stringify(certified.blockers));
  assert.equal(certified.observedEvidenceCount,1);
  const certificate=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/coverageCertificates/"+manifest.manifestId).get();
