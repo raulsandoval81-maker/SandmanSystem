@@ -47,6 +47,28 @@ jobs:
       - run: npm ci
       - run: npm test
 
+  historical-authority-rules:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+        working-directory: functions
+      - name: Install isolated rules-test dependencies
+        run: npm install --no-save --package-lock=false @firebase/rules-unit-testing firebase
+        working-directory: functions
+      - name: Enforce historical authority Firestore rules
+        run: npx --yes firebase-tools@14 emulators:exec --only firestore --project demo-sandman-historical 'node functions/tests/historicalAuthority.rules.cjs'
+
   firestore-emulator-integration:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
