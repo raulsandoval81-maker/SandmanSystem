@@ -52,3 +52,37 @@ test("cross-training revisions: concurrent identical requests have one effect", 
   assert.ok(results.every(x => x.status === "fulfilled"), JSON.stringify(results));
   assert.equal(await revision("wrestling"), before + 1);
 });
+
+const normalizeEnrollment = require("../lib/enrollment/syncActivatedEnrollmentPlacement").syncActivatedEnrollmentPlacement;
+test("enrollment location change invalidates every recorded discipline once", async () => {
+  const id = "F8_ENROLL_REV_" + suffix;
+  const ref = db.doc("athletes/" + id);
+  await ref.set({
+    locationId: "lompoc", primaryDiscipline: "wrestling",
+    activeDiscipline: "wrestling", disciplineIds: ["wrestling", "boxing"],
+    disciplines: { wrestling: { locationId: "lompoc" }, boxing: { locationId: "lompoc" } },
+  });
+  const event = {
+    params: { intakeId: "history-revision-test-" + suffix },
+    data: {
+      before: { data: () => ({ status: "submitted" }) },
+      after: { data: () => ({
+        status: "approved", mode: "new_athlete", minted: true,
+        approvedUid: id, locationId: "santa-ynez-valley",
+      }) },
+    },
+  };
+  await normalizeEnrollment.run(event);
+  const athlete = (await ref.get()).data();
+  assert.equal(athlete.locationId, "santa-ynez-valley");
+  assert.equal(athlete.disciplines.wrestling.locationId, "santa-ynez-valley");
+  assert.equal(athlete.disciplines.boxing.locationId, "lompoc");
+  for (const discipline of ["wrestling", "boxing"]) {
+    assert.equal((await ref.collection("historyRevisions").doc(discipline).get()).get("revision"), 1);
+  }
+  await normalizeEnrollment.run(event);
+  for (const discipline of ["wrestling", "boxing"]) {
+    assert.equal((await ref.collection("historyRevisions").doc(discipline).get()).get("revision"), 1,
+      "identical event delivery must not invalidate a second time");
+  }
+});
