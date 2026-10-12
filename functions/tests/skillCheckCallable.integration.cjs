@@ -543,6 +543,13 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ // Revoked verification quarantines even previously accepted historical evidence.
+ const baselineRef=db.doc("athletes/"+id+"/historyRevisions/wrestling");
+ await baselineRef.update({baselineStatus:"PENDING"});
+ const quarantined=await invoke("preview-group-lessons",{athleteIds:[id],familyIds:["double_leg"]});
+ assert.equal(quarantined.ready,false);
+ assert.ok(quarantined.blockers.includes("athlete-evidence-not-ready:"+id));
+ await baselineRef.update({baselineStatus:"VERIFIED_COMPLETE"});
  assert.equal(group.curriculumMapAudit.totalFamilies,36);
  assert.equal(group.curriculumMapAudit.mappedFamilies,4);
  assert.equal(group.proposedWrestlingAudit.mappedFamilies,36);
