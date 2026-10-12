@@ -22,6 +22,7 @@ import {
   staffHasLocation,
 } from "../services/staffAuthorization";
 import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
+import { historicalSourceBaselineIsVerified } from "./historicalCertificateSourceRevision";
 
 const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
 
@@ -1926,6 +1927,8 @@ export const skillCheckCoachCall =
         const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
         if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
           blockers.push("source-revision-baseline-required");
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data()))
+          blockers.push("source-inventory-baseline-unverified");
         const manifestBlockers: string[] = Array.isArray(manifest.blockers)
           ? manifest.blockers.map(clean) : [];
         // A prior-location review requirement is resolved by this Admin's
