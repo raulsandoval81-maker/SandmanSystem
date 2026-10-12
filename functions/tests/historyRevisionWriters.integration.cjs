@@ -121,3 +121,36 @@ test("closeout creates missing athlete memory and invalidates exactly once", asy
   assert.equal((await rev.get()).get("revision"), 1,
     "repeated closeout must not invalidate unchanged memory");
 });
+
+const {addDisciplineToAthlete} = require("../lib/services/addDisciplineToAthlete");
+test("discipline attachment increments revision once; repeat fails without mutation", async () => {
+  const id = "F8_ATTACH_REV_" + suffix;
+  const ref = db.doc("athletes/" + id);
+  await ref.set({primaryDiscipline:"wrestling",activeDiscipline:"wrestling",
+    disciplineIds:["wrestling"],disciplines:{wrestling:{locationId:"lompoc"}}});
+  const input = {existingAthleteUid:id,foundry:"f8",framework:"foundry8",
+    programTrack:"zero2hero",art:"boxing",trackCode:"f8-boxing",
+    ladderKey:"foundry8-boxing",locationId:"lompoc"};
+  const first = await addDisciplineToAthlete(db,"coach-test",input);
+  assert.equal(first.idempotent,false);
+  assert.ok((await ref.get()).data().disciplines.boxing);
+  const rev=ref.collection("historyRevisions").doc("boxing");
+  assert.equal((await rev.get()).get("revision"),1);
+  await assert.rejects(() => addDisciplineToAthlete(db,"coach-test",input),
+    err => err.code === "already-exists");
+  assert.equal((await rev.get()).get("revision"),1);
+});
+test("concurrent discipline attachment commits one revision", async () => {
+  const id = "F8_ATTACH_CONCURRENT_" + suffix;
+  const ref=db.doc("athletes/"+id);
+  await ref.set({primaryDiscipline:"wrestling",disciplines:{wrestling:{}}});
+  const input={existingAthleteUid:id,foundry:"f8",framework:"foundry8",
+    programTrack:"zero2hero",art:"muay-thai",trackCode:"f8-muay-thai",
+    ladderKey:"foundry8-muay-thai"};
+  const results=await Promise.allSettled([
+    addDisciplineToAthlete(db,"coach-test",input),
+    addDisciplineToAthlete(db,"coach-test",input)]);
+  assert.equal(results.filter(x=>x.status==="fulfilled").length,1);
+  assert.equal(results.filter(x=>x.status==="rejected" && x.reason?.code==="already-exists").length,1);
+  assert.equal((await ref.collection("historyRevisions").doc("muay-thai").get()).get("revision"),1);
+});
