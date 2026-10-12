@@ -1,9 +1,12 @@
 import {readFile} from "node:fs/promises";
 import {spawnSync} from "node:child_process";
 import {pathToFileURL} from "node:url";
+import {assertCleanRepositoryEvidence, verifyArtifactManifest} from "./artifact-integrity.mjs";
+import {prepareStagingFunctionArtifact, STAGING_FUNCTION_ARTIFACT_ROOT} from "./prepare-staging-function-artifact.mjs";
 import {
   PRODUCTION_PROJECT_ID,
   STAGING_PROJECT_ID,
+  STAGING_PROJECT_NUMBER,
   STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
   verifyStagingBoundary,
 } from "./verify-staging-boundary.mjs";
@@ -26,7 +29,7 @@ export const APPROVED_STAGING_FUNCTIONS=Object.freeze([
 export const STAGING_MIGRATION_CONFIG="firebase.staging.json";
 
 export async function assertOneFunctionMigrationPlan({
-  functionName,approvedCommit,currentCommit,projectId,acknowledgement,
+  functionName,approvedCommit,currentCommit,projectId,projectNumber,runtimeServiceAccount,acknowledgement,
   confirmation,mode="validate",configPath=STAGING_MIGRATION_CONFIG,
 }={}){
   if(!APPROVED_STAGING_FUNCTIONS.includes(functionName)){
@@ -34,6 +37,10 @@ export async function assertOneFunctionMigrationPlan({
   }
   if(projectId!==STAGING_PROJECT_ID||projectId===PRODUCTION_PROJECT_ID){
     throw new Error("The migration must target the exact approved staging project.");
+  }
+  if(projectNumber!==STAGING_PROJECT_NUMBER) throw new Error("The exact approved staging project number is required.");
+  if(runtimeServiceAccount!==STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT){
+    throw new Error("The exact dedicated staging runtime service account is required.");
   }
   if(acknowledgement!==STAGING_PROJECT_ID){
     throw new Error("The staging acknowledgement is missing or incorrect.");
@@ -51,27 +58,49 @@ export async function assertOneFunctionMigrationPlan({
       config?.firestore?.rules!=="firestore.rules"){
     throw new Error("The reviewed staging Firebase configuration is required.");
   }
-  return {mode,projectId,functionName,approvedCommit,
+  return {mode,projectId,projectNumber,functionName,approvedCommit,
     expectedRuntimeIdentity:STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
     configPath,deployTarget:`functions:${functionName}`};
 }
 
-function parseArguments(argv){
+export function parseArguments(argv){
   const result={mode:"validate"};
+  let functionCount=0;
+  let commitCount=0;
   for(let index=0;index<argv.length;index+=1){
     const argument=argv[index];
     if(argument==="--deploy") result.mode="deploy";
     else if(argument==="--validate") result.mode="validate";
-    else if(argument==="--function") result.functionName=argv[++index];
-    else if(argument==="--commit") result.approvedCommit=argv[++index];
+    else if(argument==="--function"){
+      functionCount+=1;
+      result.functionName=argv[++index];
+    }else if(argument==="--commit"){
+      commitCount+=1;
+      result.approvedCommit=argv[++index];
+    }
     else throw new Error(`Unsupported argument: ${argument}`);
   }
+  if(functionCount!==1) throw new Error("Exactly one --function argument is required.");
+  if(commitCount!==1) throw new Error("Exactly one --commit argument is required.");
   return result;
 }
 
 function run(command,args,env=process.env){
   const result=spawnSync(command,args,{stdio:"inherit",env,shell:false});
   if(result.status!==0) throw new Error(`${command} failed with status ${result.status??"unknown"}.`);
+}
+
+function capture(command,args){
+  const result=spawnSync(command,args,{encoding:"utf8",shell:false});
+  if(result.status!==0) throw new Error(`${command} failed with status ${result.status??"unknown"}.`);
+  return String(result.stdout||"");
+}
+
+export function assertTransportReadyForDeploy(env){
+  if(env.SANDMAN_CALLABLE_TRANSPORT_VERIFIED!=="YES"||
+      env.SANDMAN_CALLABLE_TRANSPORT_EVIDENCE!==`CALLABLE_TRANSPORT:${STAGING_PROJECT_ID}:${STAGING_PROJECT_NUMBER}`){
+    throw new Error("Callable transport remains unresolved; deploy mode is blocked pending separately reviewed staging transport evidence.");
+  }
 }
 
 export async function main(argv=process.argv.slice(2),env=process.env){
@@ -81,21 +110,36 @@ export async function main(argv=process.argv.slice(2),env=process.env){
   const plan=await assertOneFunctionMigrationPlan({...input,
     currentCommit:String(head.stdout||"").trim(),
     projectId:env.SANDMAN_STAGING_PROJECT_ID,
+    projectNumber:env.SANDMAN_STAGING_PROJECT_NUMBER,
+    runtimeServiceAccount:env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
     acknowledgement:env.SANDMAN_STAGING_ACK,
     confirmation:env.SANDMAN_STAGING_MIGRATION_CONFIRM,
   });
-  console.log(JSON.stringify(plan,null,2));
-  if(plan.mode==="validate") return plan;
+  assertCleanRepositoryEvidence({
+    status:capture("git",["status","--porcelain=v1","--untracked-files=all"]),
+    stagedDiff:capture("git",["diff","--cached","--name-only"]),
+    untrackedOrIgnored:capture("git",["ls-files","--others","--ignored","--exclude-standard","--","functions/src","functions/package.json","functions/package-lock.json","functions/tsconfig.json"]),
+    symlinkEntries:capture("git",["ls-files","-s","--","functions/src"]).split("\n").filter(line=>line.startsWith("120000 ")).join("\n"),
+  });
+  const manifest=await prepareStagingFunctionArtifact({approvedCommit:plan.approvedCommit,functionName:plan.functionName});
+  await verifyArtifactManifest(STAGING_FUNCTION_ARTIFACT_ROOT,{
+    approvedCommit:plan.approvedCommit,functionName:plan.functionName,projectId:STAGING_PROJECT_ID,
+    projectNumber:STAGING_PROJECT_NUMBER,runtimeServiceAccount:plan.expectedRuntimeIdentity,
+    deployTarget:plan.deployTarget,firebaseConfig:plan.configPath,
+  });
+  const validated={...plan,artifactManifest:manifest};
+  console.log(JSON.stringify(validated,null,2));
+  if(plan.mode==="validate") return validated;
 
+  assertTransportReadyForDeploy(env);
   const boundary=await verifyStagingBoundary(env);
   if(boundary.projectId!==plan.projectId||boundary.runtimeServiceAccount!==plan.expectedRuntimeIdentity){
     throw new Error("Verified staging boundary does not match the approved migration plan.");
   }
-  run(process.execPath,["scripts/staging/prepare-staging-hosting.mjs"],env);
   run("npx",["--yes","firebase-tools@15.11.0","deploy",
     "--config",plan.configPath,"--project",STAGING_PROJECT_ID,
     "--only",plan.deployTarget,"--non-interactive"],env);
-  return plan;
+  return validated;
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
