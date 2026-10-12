@@ -40,9 +40,10 @@ Do not substitute `nam5`, `us-central1`, another bucket, or another project with
 | Object versioning | Enabled |
 | Retention policy | 30 days, initially unlocked |
 | Lifecycle | Delete live objects after 45 days; delete noncurrent versions 30 days after becoming noncurrent |
+| Soft delete | 7 days |
 | Requester Pays / Rapid | Forbidden |
 
-The 30/45-day values are proposed defaults for the migration checkpoint, not settled business retention requirements. The operator must decide whether legal, insurance, incident-response, or migration timelines require longer retention. Do not lock the retention policy in this change; locking is irreversible. The reviewed lifecycle file is `scripts/staging/recovery-bucket-lifecycle.json`.
+The operator accepted these values for planning in Phase 6C, including the USD 1 initial-export ceiling and no recurring schedule. They do not authorize provisioning or export. Do not lock the retention policy; locking is irreversible. The reviewed lifecycle file is `scripts/staging/recovery-bucket-lifecycle.json`.
 
 ## Least-privilege design
 
@@ -167,11 +168,12 @@ node scripts/staging/validate-recovery-checkpoint-plan.mjs \
 
 ## Approval checklist and blockers
 
-- [ ] Operator accepts `US` multi-region and confirms it satisfies organizational/data-residency requirements.
-- [ ] Billing/Blaze status is independently verified.
-- [ ] Operator chooses or changes the proposed 30-day retention and 45-day lifecycle values.
-- [ ] Expected export size/document count and cost ceiling are approved without reading athlete contents.
+- [x] Operator accepts `US` multi-region for the staging checkpoint.
+- [x] Billing/Blaze status is independently verified.
+- [x] Operator accepts 30-day unlocked retention, 45-day live cleanup, 30-day noncurrent cleanup, and 7-day soft delete.
+- [x] Operator accepts a USD 1 initial-export ceiling and no recurring schedule without reading athlete contents.
 - [ ] Firestore Import/Export page confirms jobs run as the stated service agent.
+- [ ] An authorized gcloud repair makes `gcloud storage --help` pass, or the operator selects Cloud Shell.
 - [ ] Stage B bucket provisioning receives distinct explicit approval.
 - [ ] Bucket read-back passes before any IAM action.
 - [ ] Stage C receives distinct approval only if an explicit bucket binding is actually needed.
