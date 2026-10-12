@@ -610,6 +610,12 @@ export const skillCheckCoachCall =
             || JSON.stringify(paths) !== JSON.stringify(decision.sourceEvidencePaths)
             || JSON.stringify(previous) !== JSON.stringify(certificate.declaredPriorLocationIds)
             || !records.length || records.length > 50) blockers.push("history-chain-invalid");
+        const sourceRevisionSnap = await db.doc(`athletes/${id}/historyRevisions/${discipline}`).get();
+        const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision)
+            || sourceRevision < 1 || !Number.isSafeInteger(certificate.sourceRevision)
+            || certificate.sourceRevision !== sourceRevision)
+          blockers.push("source-revision-uncertified-or-stale");
         const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
         if (!blockers.length) {
           for (const entry of records) {
