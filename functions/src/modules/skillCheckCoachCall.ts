@@ -610,6 +610,20 @@ export const skillCheckCoachCall =
             || JSON.stringify(paths) !== JSON.stringify(decision.sourceEvidencePaths)
             || JSON.stringify(previous) !== JSON.stringify(certificate.declaredPriorLocationIds)
             || !records.length || records.length > 50) blockers.push("history-chain-invalid");
+        // A review revision does not establish source-history freshness. Legacy
+        // certificates without a server-owned source revision cannot be used
+        // to recommend group curriculum.
+        const sourceRevisionSnap = await db.doc(`athletes/${id}/historyRevisions/${discipline}`).get();
+        const currentSourceRevision = sourceRevisionSnap.exists
+          ? Number(sourceRevisionSnap.data()?.revision) : null;
+        const certifiedSourceRevision = certificate.sourceRevision;
+        if (!Number.isSafeInteger(currentSourceRevision)
+            || currentSourceRevision === null || currentSourceRevision < 1
+            || !Number.isSafeInteger(certifiedSourceRevision)
+            || certifiedSourceRevision < 1
+            || certifiedSourceRevision !== currentSourceRevision) {
+          blockers.push("source-revision-uncertified-or-stale");
+        }
         const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
         if (!blockers.length) {
           for (const entry of records) {
