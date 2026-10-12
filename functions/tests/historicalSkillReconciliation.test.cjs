@@ -563,5 +563,5 @@ test("legacy history remains quarantined until a server-verified complete baseli
     assert.equal(verified(record),false);
   }
   assert.equal(verified({baselineStatus:"VERIFIED_COMPLETE",
-    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1}),true);
+    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,revision:1,baselineSourceRevision:1,baselineEvidenceManifestId:"test-manifest"}),true);
 });
