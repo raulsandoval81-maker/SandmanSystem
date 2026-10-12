@@ -1896,9 +1896,10 @@ export const skillCheckCoachCall =
       // All query and record reads occur in ONE Firestore transaction snapshot.
       // Limit to small histories; never label a truncated history complete.
       const outcome = await db.runTransaction(async tx => {
-        const [reviewSnap, athleteSnap, manifestSnap, existingCert] = await Promise.all([
+        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap] = await Promise.all([
           tx.get(ref), tx.get(db.doc(`athletes/${athleteId}`)),
           tx.get(ref.collection("evidenceManifests").doc(manifestId)), tx.get(certificate),
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
         ]);
         const review = reviewSnap.data() || {};
         const current = athleteSnap.data() || {};
@@ -1916,6 +1917,9 @@ export const skillCheckCoachCall =
             || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
             || normalizeDiscipline(manifest.discipline) !== discipline) blockers.push("manifest-invalid");
         if (existingCert.exists) blockers.push("certificate-already-exists");
+        const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
+          blockers.push("source-revision-baseline-required");
         const manifestBlockers: string[] = Array.isArray(manifest.blockers)
           ? manifest.blockers.map(clean) : [];
         // A prior-location review requirement is resolved by this Admin's
@@ -2007,6 +2011,7 @@ export const skillCheckCoachCall =
         tx.create(certificate, {
           kind: "SERVER_CERTIFIED_FULL_HISTORY", schemaVersion: 1,
           athleteId, discipline, manifestId, reviewRevision: revision,
+          sourceRevision,
           declaredPriorLocationIds: previous, sourceEvidencePaths: [...observed].sort(),
           scopeNames: scopes.map(spec => spec.scope),
           certifiedAt: FieldValue.serverTimestamp(), certifiedBy: actor.uid,
@@ -2093,13 +2098,14 @@ export const skillCheckCoachCall =
       }
       const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const result = await db.runTransaction(async tx => {
-        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap] =
+        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap, sourceRevisionSnap] =
           await Promise.all([
             tx.get(ref),
             tx.get(ref.collection("evidenceManifests").doc(manifestId)),
             tx.get(ref.collection("sourceVerificationReceipts").doc(receiptId)),
             tx.get(ref.collection("coverageCertificates").doc(manifestId)),
             tx.get(db.doc(`athletes/${athleteId}`)),
+            tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
           ]);
         const review = reviewSnap.data() || {};
         const manifest = manifestSnap.data() || {};
@@ -2141,6 +2147,13 @@ export const skillCheckCoachCall =
             || JSON.stringify(certifiedPaths) !== JSON.stringify(manifestPaths)
             || JSON.stringify(certified.declaredPriorLocationIds) !== JSON.stringify(latestLocations))
           blockers.push("independent-full-history-certification-required");
+        const activeSourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists
+            || !Number.isSafeInteger(activeSourceRevision) || activeSourceRevision < 1
+            || !Number.isSafeInteger(certified.sourceRevision)
+            || certified.sourceRevision !== activeSourceRevision) {
+          blockers.push("source-revision-uncertified-or-stale");
+        }
         // Transactional source reads protect against evidence changing between
         // the previous receipt and this acceptance attempt.
         const entries: Record<string, unknown>[] = Array.isArray(manifest.records)
