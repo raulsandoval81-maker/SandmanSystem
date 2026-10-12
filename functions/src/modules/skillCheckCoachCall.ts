@@ -2,6 +2,7 @@ import {
   onCall,
   HttpsError,
 } from "firebase-functions/v2/https";
+import { createHash } from "node:crypto";
 
 import {
   FieldPath,
@@ -22,7 +23,10 @@ import {
   staffHasLocation,
 } from "../services/staffAuthorization";
 import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
-import { historicalSourceBaselineIsVerified } from "./historicalCertificateSourceRevision";
+import {
+  historicalBaselineAttestationMatches,
+  historicalSourceBaselineIsVerified,
+} from "./historicalCertificateSourceRevision";
 
 const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
 
@@ -77,6 +81,10 @@ const ALLOWED_STATES = Object.freeze([
   "MASTERED",
   "REFINED",
 ]);
+
+function historicalFingerprint(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
+}
 
 const WRESTLING_FAMILIES = Object.freeze([
   "stance_motion",
@@ -586,12 +594,14 @@ export const skillCheckCoachCall =
         if (review.status !== "ACCEPTED_HISTORICAL_EVIDENCE"
             || review.evidenceApproved !== true || review.coverageComplete !== true
             || !/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) blockers.push("history-not-accepted");
-        const [manifestSnap, certificateSnap, decisionSnap] = manifestId
+        const [manifestSnap, certificateSnap, decisionSnap, attestationSnap, revocationSnap] = manifestId
           ? await Promise.all([
             reviewRef.collection("evidenceManifests").doc(manifestId).get(),
             reviewRef.collection("coverageCertificates").doc(manifestId).get(),
             reviewRef.collection("acceptanceDecisions").doc(manifestId).get(),
-          ]) : [null, null, null];
+            reviewRef.collection("baselineAttestations").doc(manifestId).get(),
+            reviewRef.collection("baselineAttestationRevocations").doc(manifestId).get(),
+          ]) : [null, null, null, null, null];
         const manifest = manifestSnap?.data() || {};
         const certificate = certificateSnap?.data() || {};
         const decision = decisionSnap?.data() || {};
@@ -612,7 +622,8 @@ export const skillCheckCoachCall =
             || JSON.stringify(previous) !== JSON.stringify(certificate.declaredPriorLocationIds)
             || !records.length || records.length > 50) blockers.push("history-chain-invalid");
         const sourceRevisionSnap = await db.doc(`athletes/${id}/historyRevisions/${discipline}`).get();
-        const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        const sourceRevisionRecord = sourceRevisionSnap.data();
+        const sourceRevision = Number(sourceRevisionRecord?.revision);
         if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision)
             || sourceRevision < 1 || !Number.isSafeInteger(certificate.sourceRevision)
             || certificate.sourceRevision !== sourceRevision)
@@ -620,6 +631,19 @@ export const skillCheckCoachCall =
         if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
             || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
           blockers.push("legacy-history-baseline-unverified");
+        const receiptId = clean(review.acceptedVerificationReceiptId)
+          || clean(decision.verificationReceiptId);
+        if (!attestationSnap?.exists || revocationSnap?.exists
+            || !historicalBaselineAttestationMatches(
+              sourceRevisionRecord, attestationSnap.data(), {
+                athleteId: id, discipline, manifestId, verificationReceiptId: receiptId,
+                reviewRevision: revision,
+              })
+            || clean(certificate.baselineAttestationId) !== manifestId
+            || certificate.baselineInventoryFingerprint !== sourceRevisionRecord?.baselineInventoryFingerprint
+            || certificate.baselineScopeFingerprint !== sourceRevisionRecord?.baselineScopeFingerprint) {
+          blockers.push("trusted-baseline-attestation-required");
+        }
         const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
         if (!blockers.length) {
           for (const entry of records) {
@@ -1812,12 +1836,16 @@ export const skillCheckCoachCall =
           || !/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
         blockers.push("accepted-historical-evidence-unavailable");
       }
-      const [manifestSnap, certificateSnap, decisionSnap] = manifestId
+      const [manifestSnap, certificateSnap, decisionSnap, sourceRevisionSnap,
+        attestationSnap, revocationSnap] = manifestId
         ? await Promise.all([
           reviewRef.collection("evidenceManifests").doc(manifestId).get(),
           reviewRef.collection("coverageCertificates").doc(manifestId).get(),
           reviewRef.collection("acceptanceDecisions").doc(manifestId).get(),
-        ]) : [null, null, null];
+          db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`).get(),
+          reviewRef.collection("baselineAttestations").doc(manifestId).get(),
+          reviewRef.collection("baselineAttestationRevocations").doc(manifestId).get(),
+        ]) : [null, null, null, null, null, null];
       const manifest = manifestSnap?.data() || {};
       const certificate = certificateSnap?.data() || {};
       const decision = decisionSnap?.data() || {};
@@ -1841,6 +1869,24 @@ export const skillCheckCoachCall =
           .filter(id => id !== clean(athlete.locationId)).sort() : [];
       if (JSON.stringify(currentPrior) !== JSON.stringify(certificate.declaredPriorLocationIds)) {
         blockers.push("accepted-location-history-stale");
+      }
+      const sourceRevisionRecord = sourceRevisionSnap?.data();
+      const receiptId = clean(review.acceptedVerificationReceiptId)
+        || clean(decision.verificationReceiptId);
+      if (!sourceRevisionSnap?.exists
+          || certificate.sourceRevision !== sourceRevisionRecord?.revision) {
+        blockers.push("accepted-source-revision-stale");
+      }
+      if (!attestationSnap?.exists || revocationSnap?.exists
+          || !historicalBaselineAttestationMatches(
+            sourceRevisionRecord, attestationSnap.data(), {
+              athleteId, discipline, manifestId, verificationReceiptId: receiptId,
+              reviewRevision: revision,
+            })
+          || clean(certificate.baselineAttestationId) !== manifestId
+          || certificate.baselineInventoryFingerprint !== sourceRevisionRecord?.baselineInventoryFingerprint
+          || certificate.baselineScopeFingerprint !== sourceRevisionRecord?.baselineScopeFingerprint) {
+        blockers.push("trusted-baseline-attestation-required");
       }
       const observed: Array<{familyId: string; state: string; verifiedAt: string; practiceId: string}> = [];
       if (!blockers.length) {
@@ -1893,6 +1939,274 @@ export const skillCheckCoachCall =
         eligibleForAuto: false};
     }
 
+    if (action === "establish-historical-baseline") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical baseline attestation requires Admin authority.");
+      }
+      const manifestId = clean(data.manifestId);
+      const verificationReceiptId = clean(data.verificationReceiptId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)
+          || !/^[a-zA-Z0-9_-]{1,128}$/.test(verificationReceiptId)) {
+        throw new HttpsError("invalid-argument", "Manifest and source verification receipt IDs are required.");
+      }
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const sourceRevisionRef = db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`);
+      const attestationRef = reviewRef.collection("baselineAttestations").doc(manifestId);
+      const revocationRef = reviewRef.collection("baselineAttestationRevocations").doc(manifestId);
+      const outcome = await db.runTransaction(async tx => {
+        const [reviewSnap, athleteSnap, manifestSnap, receiptSnap, sourceRevisionSnap,
+          existingAttestationSnap, revocationSnap] = await Promise.all([
+          tx.get(reviewRef), tx.get(db.doc(`athletes/${athleteId}`)),
+          tx.get(reviewRef.collection("evidenceManifests").doc(manifestId)),
+          tx.get(reviewRef.collection("sourceVerificationReceipts").doc(verificationReceiptId)),
+          tx.get(sourceRevisionRef), tx.get(attestationRef), tx.get(revocationRef),
+        ]);
+        const review = reviewSnap.data() || {};
+        const current = athleteSnap.data() || {};
+        const manifest = manifestSnap.data() || {};
+        const receipt = receiptSnap.data() || {};
+        const revisionRecord = sourceRevisionSnap.data() || {};
+        const reviewRevision = typeof review.revision === "number" ? review.revision : 1;
+        const sourceRevision = Number(revisionRecord.revision);
+        const currentLocation = clean(current.locationId);
+        const academy = clean(current.academyId);
+        const previous = Array.isArray(current.previousLocationIds)
+          ? [...new Set(current.previousLocationIds.map(clean).filter(Boolean))]
+            .filter(id => id !== currentLocation).sort() : [];
+        const declared = Array.isArray(review.declaredPriorLocationIds)
+          ? [...new Set(review.declaredPriorLocationIds.map(clean).filter(Boolean))].sort() : [];
+        const scopes = [
+          ...(currentLocation ? [{scope: "athlete-location", field: "locationId", value: currentLocation}] : []),
+          ...(academy ? [{scope: "athlete-academy", field: "academyId", value: academy}] : []),
+          ...previous.map(value => ({scope: "prior-location:" + value, field: "locationId", value})),
+        ];
+        const blockers: string[] = [];
+        if (!reviewSnap.exists || clean(review.status) !== "PENDING_MANAGEMENT_REVIEW"
+            || JSON.stringify(previous) !== JSON.stringify(declared)) blockers.push("review-stale");
+        if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
+          blockers.push("source-revision-baseline-required");
+        if (!currentLocation) blockers.push("current-location-missing");
+        if (previous.length > 10 || scopes.length > 12) blockers.push("too-many-history-scopes");
+        if (!manifestSnap.exists || manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
+            || clean(manifest.athleteId) !== athleteId
+            || normalizeDiscipline(manifest.discipline) !== discipline
+            || manifest.reviewRevision !== reviewRevision) blockers.push("manifest-invalid");
+        const records: Record<string, unknown>[] = Array.isArray(manifest.records)
+          ? manifest.records : [];
+        if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
+        const manifestPaths = records.map(record => clean(record.skillEvidencePath)).sort();
+        if (manifestPaths.some(path => !path)
+            || new Set(manifestPaths).size !== manifestPaths.length) {
+          blockers.push("manifest-evidence-paths-invalid-or-duplicated");
+        }
+        if (!receiptSnap.exists || receipt.kind !== "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT"
+            || clean(receipt.athleteId) !== athleteId
+            || normalizeDiscipline(receipt.discipline) !== discipline
+            || clean(receipt.manifestId) !== manifestId
+            || receipt.reviewRevision !== reviewRevision
+            || receipt.sourceRecordsValid !== true || receipt.reviewCurrent !== true
+            || !Array.isArray(receipt.records)
+            || receipt.records.some((entry: {valid?: boolean}) => entry.valid !== true)) {
+          blockers.push("source-verification-receipt-invalid");
+        }
+        const receiptPaths = Array.isArray(receipt.records)
+          ? receipt.records.map((entry: {skillEvidencePath?: string}) =>
+            clean(entry.skillEvidencePath)).sort() : [];
+        if (JSON.stringify(manifestPaths) !== JSON.stringify(receiptPaths))
+          blockers.push("source-verification-receipt-evidence-mismatch");
+        const allowedManifestBlockers = new Set([
+          "prior-location-management-verification-required",
+          "historical-transfer-coverage-unverified",
+          "current-skill-state-unresolved",
+        ]);
+        const unresolvedManifestBlockers = Array.isArray(manifest.blockers)
+          ? manifest.blockers.map(clean).filter((item: string) => !allowedManifestBlockers.has(item)) : [];
+        if (unresolvedManifestBlockers.length) blockers.push("manifest-has-unresolved-blockers");
+        const checkedScopes: Record<string, unknown>[] = Array.isArray(manifest.checkedScopes)
+          ? manifest.checkedScopes : [];
+        for (const scope of scopes.map(item => item.scope)) {
+          if (!checkedScopes.some(item => item.scope === scope && item.authorized === true
+              && item.exhausted === true && item.nextCursor == null)) {
+            blockers.push("manifest-scope-not-exhausted:" + scope);
+          }
+        }
+        if (revocationSnap.exists) blockers.push("baseline-attestation-revoked");
+
+        const observedEvidence = new Map<string, Record<string, unknown>>();
+        const observedPractices = new Set<string>();
+        if (!blockers.length) {
+          for (const spec of scopes) {
+            const practices = await tx.get(db.collection("practiceSessions")
+              .where(spec.field, "==", spec.value).orderBy(FieldPath.documentId()).limit(51));
+            if (practices.size > 50) {
+              blockers.push("scope-exceeds-atomic-snapshot-limit:" + spec.scope);
+              continue;
+            }
+            for (const practiceDoc of practices.docs) {
+              const practice = practiceDoc.data() || {};
+              if (normalizeDiscipline(practice.discipline) !== discipline) continue;
+              if (spec.scope === "athlete-academy" && clean(practice.locationId)) continue;
+              const base = `practiceSessions/${practiceDoc.id}/athletes/${athleteId}`;
+              const [attendanceSnap, memorySnap, evidenceSnap] = await Promise.all([
+                tx.get(db.doc(`attendance_sessions/${practiceDoc.id}`)),
+                tx.get(db.doc(base)), tx.get(db.collection(base + "/verifiedSkills")),
+              ]);
+              const attendance = attendanceSnap.data() || {};
+              const memory = memorySnap.data() || {};
+              const attendanceNamesAthlete = attendanceSnap.exists
+                && attendanceIncludesAthlete(attendance, athleteId);
+              const memoryNamesAthlete = memorySnap.exists
+                && clean(memory.athleteId).toUpperCase() === athleteId;
+              if (!attendanceNamesAthlete && !memoryNamesAthlete) continue;
+              observedPractices.add(practiceDoc.id);
+              const attendanceValid = attendanceNamesAthlete
+                && clean(attendance.practiceId) === practiceDoc.id
+                && normalizeDiscipline(attendance.discipline) === discipline
+                && clean(attendance.status).toLowerCase() === "finalized"
+                && attendance.finalized === true;
+              const memoryValid = memoryNamesAthlete
+                && clean(memory.practiceId) === practiceDoc.id
+                && normalizeDiscipline(memory.discipline) === discipline
+                && clean((memory.attendance as Record<string, unknown> | undefined)?.status).toLowerCase() === "present";
+              if (!attendanceValid || !memoryValid) {
+                blockers.push("attendance-memory-mismatch:" + practiceDoc.id);
+                continue;
+              }
+              if (evidenceSnap.empty) {
+                blockers.push("missing-skills:" + practiceDoc.id);
+                continue;
+              }
+              for (const evidenceDoc of evidenceSnap.docs) {
+                const evidence = evidenceDoc.data() || {};
+                const matches = records.filter(record =>
+                  clean(record.skillEvidencePath) === evidenceDoc.ref.path);
+                if (matches.length !== 1) {
+                  blockers.push("unmatched-or-duplicated-evidence:" + evidenceDoc.ref.path);
+                  continue;
+                }
+                const record = matches[0];
+                const valid = clean(record.practiceId) === practiceDoc.id
+                  && clean(record.attendancePath) === `attendance_sessions/${practiceDoc.id}`
+                  && clean(record.athleteMemoryPath) === base
+                  && clean(record.sessionDateKey) === clean(practice.sessionDateKey)
+                  && normalizeDiscipline(evidence.discipline) === discipline
+                  && normalizeFamily(evidence.familyId) === clean(record.familyId)
+                  && normalizeState(evidence.state) === clean(record.state)
+                  && clean(evidence.coachUid) === clean(record.coachUid)
+                  && evidence.verifiedAt instanceof Timestamp
+                  && evidence.verifiedAt.toDate().toISOString() === clean(record.verifiedAt);
+                if (!valid) blockers.push("source-evidence-mismatch:" + evidenceDoc.ref.path);
+                observedEvidence.set(evidenceDoc.ref.path, {
+                  path: evidenceDoc.ref.path, practiceId: practiceDoc.id,
+                  attendancePath: `attendance_sessions/${practiceDoc.id}`,
+                  athleteMemoryPath: base,
+                  sessionDateKey: clean(practice.sessionDateKey),
+                  familyId: normalizeFamily(evidence.familyId), state: normalizeState(evidence.state),
+                  coachUid: clean(evidence.coachUid), verifiedAt: evidence.verifiedAt instanceof Timestamp
+                    ? evidence.verifiedAt.toDate().toISOString() : "",
+                });
+              }
+            }
+          }
+          if (JSON.stringify([...observedEvidence.keys()].sort()) !== JSON.stringify(manifestPaths))
+            blockers.push("manifest-inventory-does-not-match-source");
+        }
+        const inventory = [...observedEvidence.values()]
+          .sort((a, b) => clean(a.path).localeCompare(clean(b.path)));
+        const scopeIdentity = scopes.map(item => ({scope: item.scope, value: item.value}));
+        const inventoryFingerprint = historicalFingerprint(inventory);
+        const scopeFingerprint = historicalFingerprint(scopeIdentity);
+        const existing = existingAttestationSnap.data() || {};
+        if (existingAttestationSnap.exists) {
+          const idempotent = existing.kind === "SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION"
+            && existing.sourceRevision === sourceRevision
+            && existing.reviewRevision === reviewRevision
+            && existing.manifestId === manifestId
+            && existing.verificationReceiptId === verificationReceiptId
+            && existing.inventoryFingerprint === inventoryFingerprint
+            && existing.scopeFingerprint === scopeFingerprint
+            && historicalBaselineAttestationMatches(revisionRecord, existing, {
+              athleteId, discipline, manifestId, verificationReceiptId, reviewRevision,
+            });
+          if (!idempotent) blockers.push("baseline-attestation-already-exists");
+          if (blockers.length) return {attested: false, idempotent: false,
+            blockers: [...new Set(blockers)].sort(), attestationId: manifestId};
+          return {attested: true, idempotent: true, blockers: [], attestationId: manifestId,
+            sourceRevision, inventoryCount: inventory.length, practiceCount: observedPractices.size};
+        }
+        if (blockers.length) return {attested: false, idempotent: false,
+          blockers: [...new Set(blockers)].sort(), attestationId: manifestId};
+        const attestedAt = FieldValue.serverTimestamp();
+        tx.create(attestationRef, {
+          kind: "SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION", schemaVersion: 1,
+          athleteId, discipline, sourceRevision, reviewRevision,
+          manifestId, verificationReceiptId,
+          inventoryFingerprint, scopeFingerprint,
+          scopeNames: scopes.map(item => item.scope),
+          practiceIds: [...observedPractices].sort(),
+          sourceEvidencePaths: [...observedEvidence.keys()].sort(),
+          authorizedBy: actor.uid, attestedAt,
+          evidenceApproved: false, eligibleForAuto: false,
+        });
+        tx.set(sourceRevisionRef, {
+          baselineStatus: "VERIFIED_COMPLETE",
+          baselineAuthority: "SERVER_VERIFIED_SOURCE_INVENTORY",
+          baselineVersion: 1, baselineSourceRevision: sourceRevision,
+          baselineEvidenceManifestId: manifestId, baselineAttestationId: manifestId,
+          baselineVerificationReceiptId: verificationReceiptId,
+          baselineInventoryFingerprint: inventoryFingerprint,
+          baselineScopeFingerprint: scopeFingerprint,
+          baselineAttestedBy: actor.uid, baselineAttestedAt: attestedAt,
+        }, {merge: true});
+        return {attested: true, idempotent: false, blockers: [], attestationId: manifestId,
+          sourceRevision, inventoryCount: inventory.length, practiceCount: observedPractices.size};
+      });
+      return {ok: true, kind: "TRUSTED_HISTORICAL_BASELINE_ATTESTATION", ...outcome,
+        evidenceApproved: false, coverageComplete: outcome.attested, eligibleForAuto: false};
+    }
+
+    if (action === "revoke-historical-baseline") {
+      if (normalizeStaffRole(actor.role) !== "admin") {
+        throw new HttpsError("permission-denied", "Historical baseline revocation requires Admin authority.");
+      }
+      const attestationId = clean(data.attestationId);
+      const reason = clean(data.reason);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(attestationId)
+          || reason.length < 10 || reason.length > 500) {
+        throw new HttpsError("invalid-argument", "Attestation ID and a 10–500 character reason are required.");
+      }
+      const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
+      const sourceRevisionRef = db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`);
+      const revoked = await db.runTransaction(async tx => {
+        const attestationRef = reviewRef.collection("baselineAttestations").doc(attestationId);
+        const revocationRef = reviewRef.collection("baselineAttestationRevocations").doc(attestationId);
+        const [attestationSnap, revocationSnap, sourceRevisionSnap] = await Promise.all([
+          tx.get(attestationRef), tx.get(revocationRef), tx.get(sourceRevisionRef),
+        ]);
+        if (!attestationSnap.exists) throw new HttpsError("not-found", "Baseline attestation not found.");
+        if (revocationSnap.exists) return {revoked: true, idempotent: true};
+        const attestation = attestationSnap.data() || {};
+        if (clean(attestation.athleteId) !== athleteId
+            || normalizeDiscipline(attestation.discipline) !== discipline) {
+          throw new HttpsError("failed-precondition", "Baseline attestation identity mismatch.");
+        }
+        tx.create(revocationRef, {
+          kind: "HISTORICAL_BASELINE_ATTESTATION_REVOCATION", schemaVersion: 1,
+          athleteId, discipline, attestationId, reason,
+          revokedBy: actor.uid, revokedAt: FieldValue.serverTimestamp(),
+        });
+        if (sourceRevisionSnap.data()?.baselineAttestationId === attestationId) {
+          tx.set(sourceRevisionRef, {
+            baselineStatus: "REVOKED", baselineRevokedBy: actor.uid,
+            baselineRevokedAt: FieldValue.serverTimestamp(),
+          }, {merge: true});
+        }
+        return {revoked: true, idempotent: false};
+      });
+      return {ok: true, kind: "HISTORICAL_BASELINE_REVOCATION", attestationId,
+        ...revoked, evidenceApproved: false, coverageComplete: false, eligibleForAuto: false};
+    }
+
     if (action === "certify-bounded-history-snapshot") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Historical snapshot certification requires Admin.");
@@ -1910,11 +2224,14 @@ export const skillCheckCoachCall =
       // All query and record reads occur in ONE Firestore transaction snapshot.
       // Limit to small histories; never label a truncated history complete.
       const outcome = await db.runTransaction(async tx => {
-        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap, verificationReceiptSnap] = await Promise.all([
+        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap,
+          verificationReceiptSnap, attestationSnap, revocationSnap] = await Promise.all([
           tx.get(ref), tx.get(db.doc(`athletes/${athleteId}`)),
           tx.get(ref.collection("evidenceManifests").doc(manifestId)), tx.get(certificate),
           tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
           tx.get(ref.collection("sourceVerificationReceipts").doc(verificationReceiptId)),
+          tx.get(ref.collection("baselineAttestations").doc(manifestId)),
+          tx.get(ref.collection("baselineAttestationRevocations").doc(manifestId)),
         ]);
         const review = reviewSnap.data() || {};
         const current = athleteSnap.data() || {};
@@ -1948,6 +2265,12 @@ export const skillCheckCoachCall =
         if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
             || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
           blockers.push("source-inventory-baseline-unverified");
+        if (!attestationSnap.exists || revocationSnap.exists
+            || !historicalBaselineAttestationMatches(
+              sourceRevisionSnap.data(), attestationSnap.data(), {
+                athleteId, discipline, manifestId, verificationReceiptId,
+                reviewRevision: revision,
+              })) blockers.push("trusted-baseline-attestation-required");
         const manifestBlockers: string[] = Array.isArray(manifest.blockers)
           ? manifest.blockers.map(clean) : [];
         // A prior-location review requirement is resolved by this Admin's
@@ -2051,6 +2374,9 @@ export const skillCheckCoachCall =
           kind: "SERVER_CERTIFIED_FULL_HISTORY", schemaVersion: 1,
           athleteId, discipline, manifestId, reviewRevision: revision,
           sourceRevision, sourceVerificationReceiptId: verificationReceiptId,
+          baselineAttestationId: manifestId,
+          baselineInventoryFingerprint: sourceRevisionSnap.data()?.baselineInventoryFingerprint,
+          baselineScopeFingerprint: sourceRevisionSnap.data()?.baselineScopeFingerprint,
           declaredPriorLocationIds: previous, sourceEvidencePaths: [...observed].sort(),
           scopeNames: scopes.map(spec => spec.scope),
           certifiedAt: FieldValue.serverTimestamp(), certifiedBy: actor.uid,
@@ -2137,7 +2463,8 @@ export const skillCheckCoachCall =
       }
       const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const result = await db.runTransaction(async tx => {
-        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap, sourceRevisionSnap] =
+        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap,
+          sourceRevisionSnap, attestationSnap, revocationSnap] =
           await Promise.all([
             tx.get(ref),
             tx.get(ref.collection("evidenceManifests").doc(manifestId)),
@@ -2145,6 +2472,8 @@ export const skillCheckCoachCall =
             tx.get(ref.collection("coverageCertificates").doc(manifestId)),
             tx.get(db.doc(`athletes/${athleteId}`)),
             tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+            tx.get(ref.collection("baselineAttestations").doc(manifestId)),
+            tx.get(ref.collection("baselineAttestationRevocations").doc(manifestId)),
           ]);
         const review = reviewSnap.data() || {};
         const manifest = manifestSnap.data() || {};
@@ -2196,6 +2525,17 @@ export const skillCheckCoachCall =
         if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
             || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
           blockers.push("legacy-history-baseline-unverified");
+        if (!attestationSnap.exists || revocationSnap.exists
+            || !historicalBaselineAttestationMatches(
+              sourceRevisionSnap.data(), attestationSnap.data(), {
+                athleteId, discipline, manifestId, verificationReceiptId: receiptId,
+                reviewRevision: revision,
+              })
+            || clean(certified.baselineAttestationId) !== manifestId
+            || certified.baselineInventoryFingerprint !== sourceRevisionSnap.data()?.baselineInventoryFingerprint
+            || certified.baselineScopeFingerprint !== sourceRevisionSnap.data()?.baselineScopeFingerprint) {
+          blockers.push("trusted-baseline-attestation-required");
+        }
         // Transactional source reads protect against evidence changing between
         // the previous receipt and this acceptance attempt.
         const entries: Record<string, unknown>[] = Array.isArray(manifest.records)

@@ -17,6 +17,8 @@ test("historical baseline and certificate writes are inaccessible to all Firebas
       "athletes/F8_RULES/historicalTransferReviews/wrestling",
       "athletes/F8_RULES/historicalTransferReviews/wrestling/coverageCertificates/test-manifest",
       "athletes/F8_RULES/historicalTransferReviews/wrestling/sourceVerificationReceipts/test-receipt",
+      "athletes/F8_RULES/historicalTransferReviews/wrestling/baselineAttestations/test-manifest",
+      "athletes/F8_RULES/historicalTransferReviews/wrestling/baselineAttestationRevocations/test-manifest",
     ];
     await env.withSecurityRulesDisabled(async context => {
       for (const p of paths) await setDoc(doc(context.firestore(), p), {revision: 1, baselineStatus: "PENDING"});

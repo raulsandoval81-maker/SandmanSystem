@@ -26,6 +26,40 @@ Before any native-history certificate can be issued, every mutation affecting at
 4. Add server-only baseline/revision validation and legacy-history policy.
 5. Run emulator security tests, then production staging verification before any live rollout.
 
+## Trusted historical baseline attestation
+
+`skillCheckCoachCall` now exposes the Admin-only `establish-historical-baseline`
+operation. It is the only supported way to move a legacy athlete/discipline source
+revision to `VERIFIED_COMPLETE`; a manually entered marker is not authority.
+
+The operation re-reads the athlete, pending review, manifest, source-verification
+receipt, source revision, every bounded current/prior location practice, finalized
+attendance, athlete memory, and every verified-skill observation in one Firestore
+transaction. It rejects stale reviews, changed locations, duplicate or mismatched
+paths, unfinished scopes, missing attendance/memory, non-final attendance, more
+than 50 practices in any scope, more than 50 evidence records, more than 10 prior
+locations, and any source inventory that differs from the manifest. These limits
+are intentional fail-closed migration boundaries, not silent truncation.
+
+On success the server creates immutable
+`baselineAttestations/{manifestId}` provenance containing athlete, discipline,
+source and review revisions, manifest and verification-receipt IDs, exact scope,
+practice and evidence identifiers, SHA-256 inventory/scope fingerprints,
+authorized Admin UID, and server timestamp. It then binds those identifiers to
+the source-revision marker in the same transaction. Certificate issuance,
+transfer acceptance, accepted-skill preview, and group lesson preview all read
+and validate the attestation and reject missing, altered, stale, or revoked
+records. `revoke-historical-baseline` creates a server-owned revocation record;
+it never deletes audit history.
+
+Migration remains deliberately supervised. Legacy `VERIFIED_COMPLETE` fields
+without a matching attestation remain quarantined. Administrators must open a
+review, exhaust every declared scope, build and independently verify a manifest,
+then establish the baseline per athlete and discipline. Inventories outside the
+bounds require an explicit future migration design; they must not be split or
+marked complete by hand. Baseline creation and revocation never approve evidence,
+award XP, execute a lesson, or make a record eligible for AUTO.
+
 ## Implementation checkpoint (2026-10-11)
 - Firestore rules now deny direct client mutations of `attendance_sessions` in source; deployment and complete client migration still need staging validation.
 - Canonical attendance finalization in `practiceSessions.ts` now increments `athletes/{athleteId}/historyRevisions/{discipline}` atomically for each present athlete.

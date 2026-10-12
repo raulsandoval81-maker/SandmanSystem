@@ -462,7 +462,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const practiceId="test-e2e-attestation-practice";
  const auth={uid:"test-admin-transfer",token:{}};
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"]});
- await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1,lastMutationKind:"emulator-baseline",baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,baselineSourceRevision:1,baselineEvidenceManifestId:"PENDING_MANIFEST"});
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1,lastMutationKind:"emulator-baseline"});
  await db.doc("practiceSessions/"+practiceId).set({
    coachUid:"former-coach",locationId:"e2e-former-location",
    discipline:"wrestling",sessionDateKey:"2026-10-03",
@@ -488,7 +488,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const unbound=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:"unknown-receipt"});
  assert.equal(unbound.certificateIssued,false);
  assert.ok(unbound.blockers.includes("source-inventory-baseline-unverified"));
- await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({baselineEvidenceManifestId:manifest.manifestId});
+ assert.ok(unbound.blockers.includes("trusted-baseline-attestation-required"));
  assert.ok(manifest.blockers.includes("historical-transfer-coverage-unverified"));
  assert.ok(manifest.blockers.includes("current-skill-state-unresolved"));
  const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId,recordVerification:true});
@@ -498,6 +498,10 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(receipt.data().sourceRecordsValid,true);
  assert.equal(receipt.data().evidenceApproved,false);
  assert.equal(sources.acceptanceReady,false);
+ await assert.rejects(callable.run({auth:{uid:"test-coach",token:{}},data:{
+   action:"establish-historical-baseline",athleteId:id,discipline:"wrestling",
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ }}),error=>error.code==="permission-denied");
  const wrongReceipt=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:"unknown-receipt"});
  assert.equal(wrongReceipt.certificateIssued,false);
  assert.ok(wrongReceipt.blockers.includes("source-verification-receipt-invalid"));
@@ -510,6 +514,23 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(mismatched.certificateIssued,false);
  assert.ok(mismatched.blockers.includes("source-verification-receipt-evidence-mismatch"));
  await receiptRef.update({records:originalReceiptRecords});
+ const established=await invoke("establish-historical-baseline",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(established.attested,true,JSON.stringify(established.blockers));
+ assert.equal(established.attestationId,manifest.manifestId);
+ assert.equal(established.eligibleForAuto,false);
+ const duplicateBaseline=await invoke("establish-historical-baseline",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(duplicateBaseline.idempotent,true);
+ const baselineAttestation=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/baselineAttestations/"+manifest.manifestId).get();
+ assert.equal(baselineAttestation.data().kind,"SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION");
+ assert.equal(baselineAttestation.data().authorizedBy,"test-admin-transfer");
+ assert.equal(baselineAttestation.data().evidenceApproved,false);
+ const baselineMarker=await db.doc("athletes/"+id+"/historyRevisions/wrestling").get();
+ assert.equal(baselineMarker.data().baselineAttestationId,manifest.manifestId);
+ assert.equal(baselineMarker.data().baselineVerificationReceiptId,sources.verificationReceiptId);
  const certified=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId});
  assert.equal(certified.certificateIssued,true,JSON.stringify(certified.blockers));
  assert.equal(certified.observedEvidenceCount,1);
@@ -552,13 +573,6 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
- // Revoked verification quarantines even previously accepted historical evidence.
- const baselineRef=db.doc("athletes/"+id+"/historyRevisions/wrestling");
- await baselineRef.update({baselineStatus:"PENDING"});
- const quarantined=await invoke("preview-group-lessons",{athleteIds:[id],familyIds:["double_leg"]});
- assert.equal(quarantined.ready,false);
- assert.ok(quarantined.blockers.includes("athlete-evidence-not-ready:"+id));
- await baselineRef.update({baselineStatus:"VERIFIED_COMPLETE"});
  assert.equal(group.curriculumMapAudit.totalFamilies,36);
  assert.equal(group.curriculumMapAudit.mappedFamilies,4);
  assert.equal(group.proposedWrestlingAudit.mappedFamilies,36);
@@ -660,6 +674,18 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.ok(assessed.blockers.includes("independent-full-history-attestation-required"));
  const states=await invoke("preview-accepted-skill-state");
  assert.equal(states.skillStates[0].state,"LEARNED");
+ // Server-owned revocation quarantines every dependent consumer.
+ const revoked=await invoke("revoke-historical-baseline",{
+   attestationId:manifest.manifestId,
+   reason:"Evidence verification was revoked by the supervised certification test.",
+ });
+ assert.equal(revoked.revoked,true);
+ const quarantined=await invoke("preview-group-lessons",{athleteIds:[id],familyIds:["double_leg"]});
+ assert.equal(quarantined.ready,false);
+ assert.ok(quarantined.blockers.includes("athlete-evidence-not-ready:"+id));
+ const quarantinedState=await invoke("preview-accepted-skill-state");
+ assert.ok(quarantinedState.blockers.includes("trusted-baseline-attestation-required"));
+ assert.deepEqual(quarantinedState.skillStates,[]);
  // A later canonical history mutation invalidates certificate consumption.
  await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({revision:2});
  const staleGroup=await invoke("preview-group-lessons",{
