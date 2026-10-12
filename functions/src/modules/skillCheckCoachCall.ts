@@ -584,6 +584,48 @@ export const skillCheckCoachCall =
         const reviewRef = db.doc(`athletes/${id}/historicalTransferReviews/${discipline}`);
         const reviewSnap = await reviewRef.get();
         const review = reviewSnap.data() || {};
+        const largeCertificateId = clean(review.acceptedLargeCertificateId);
+        if (largeCertificateId) {
+          const [certificateSnap, runSnap, acceptanceSnap, revocationSnap, sourceRevisionSnap] =
+            await Promise.all([
+              db.doc(`athletes/${id}/largeHistoryCertificates/${largeCertificateId}`).get(),
+              db.doc(`athletes/${id}/largeHistoryCertificationRuns/${largeCertificateId}`).get(),
+              reviewRef.collection("largeHistoryAcceptanceDecisions").doc(largeCertificateId).get(),
+              db.doc(`athletes/${id}/largeHistoryRevocations/${largeCertificateId}`).get(),
+              db.doc(`athletes/${id}/historyRevisions/${discipline}`).get(),
+            ]);
+          const certificate = certificateSnap.data() || {};
+          const run = runSnap.data() || {};
+          const acceptance = acceptanceSnap.data() || {};
+          const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+          const blockers: string[] = [];
+          if (review.status !== "ACCEPTED_HISTORICAL_EVIDENCE"
+              || review.evidenceApproved !== true || review.coverageComplete !== true
+              || !certificateSnap.exists || !runSnap.exists || !acceptanceSnap.exists
+              || revocationSnap.exists
+              || certificate.kind !== "SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE"
+              || certificate.schemaVersion !== 1 || certificate.athleteId !== id
+              || certificate.discipline !== discipline || certificate.runId !== largeCertificateId
+              || run.status !== "CERTIFIED" || run.certificateId !== largeCertificateId
+              || acceptance.kind !== "LARGE_HISTORY_EVIDENCE_ACCEPTANCE"
+              || acceptance.certificateId !== largeCertificateId
+              || acceptance.inventoryRootHash !== certificate.inventoryRootHash
+              || !sourceRevisionSnap.exists || certificate.sourceRevision !== sourceRevision
+              || run.sourceRevision !== sourceRevision
+              || run.inventoryRootHash !== certificate.inventoryRootHash
+              || run.reconciliationRootHash !== certificate.reconciliationRootHash) {
+            blockers.push("large-history-authority-invalid-or-stale");
+          }
+          const skillStates = Array.isArray(certificate.skillStates) ? certificate.skillStates : [];
+          const skills = blockers.length ? [] : skillStates.map((item: Record<string,unknown>) => ({
+            familyId:clean(item.familyId),state:clean(item.state),
+          })).filter((item: {familyId:string;state:string}) =>
+            familiesForDiscipline(discipline).includes(item.familyId) && ALLOWED_STATES.includes(item.state));
+          if (!blockers.length && skills.length !== skillStates.length)
+            blockers.push("large-history-skill-summary-invalid");
+          members.push({athleteId:id,approved:blockers.length===0,blockers,skills:blockers.length?[]:skills});
+          continue;
+        }
         const manifestId = clean(review.acceptedManifestId);
         const blockers: string[] = [];
         if (review.status !== "ACCEPTED_HISTORICAL_EVIDENCE"
@@ -1824,6 +1866,45 @@ export const skillCheckCoachCall =
       const reviewRef = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const reviewSnap = await reviewRef.get();
       const review = reviewSnap.data() || {};
+      const largeCertificateId = clean(review.acceptedLargeCertificateId);
+      if (largeCertificateId) {
+        const [certificateSnap,runSnap,acceptanceSnap,revocationSnap,sourceRevisionSnap] = await Promise.all([
+          db.doc(`athletes/${athleteId}/largeHistoryCertificates/${largeCertificateId}`).get(),
+          db.doc(`athletes/${athleteId}/largeHistoryCertificationRuns/${largeCertificateId}`).get(),
+          reviewRef.collection("largeHistoryAcceptanceDecisions").doc(largeCertificateId).get(),
+          db.doc(`athletes/${athleteId}/largeHistoryRevocations/${largeCertificateId}`).get(),
+          db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`).get(),
+        ]);
+        const certificate=certificateSnap.data()||{},run=runSnap.data()||{},acceptance=acceptanceSnap.data()||{};
+        const sourceRevision=Number(sourceRevisionSnap.data()?.revision);
+        const blockers:string[]=[];
+        if (!reviewSnap.exists || review.status!=="ACCEPTED_HISTORICAL_EVIDENCE"
+            || review.evidenceApproved!==true || review.coverageComplete!==true
+            || !certificateSnap.exists || !runSnap.exists || !acceptanceSnap.exists || revocationSnap.exists
+            || certificate.kind!=="SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE"
+            || certificate.athleteId!==athleteId || certificate.discipline!==discipline
+            || certificate.runId!==largeCertificateId || run.status!=="CERTIFIED"
+            || acceptance.kind!=="LARGE_HISTORY_EVIDENCE_ACCEPTANCE"
+            || acceptance.inventoryRootHash!==certificate.inventoryRootHash
+            || !sourceRevisionSnap.exists || certificate.sourceRevision!==sourceRevision
+            || run.sourceRevision!==sourceRevision || run.inventoryRootHash!==certificate.inventoryRootHash
+            || run.reconciliationRootHash!==certificate.reconciliationRootHash) {
+          blockers.push("large-history-authority-invalid-or-stale");
+        }
+        const skillStates=Array.isArray(certificate.skillStates)?certificate.skillStates:[];
+        const resolved=blockers.length?[]:skillStates.map((item:Record<string,unknown>)=>({
+          familyId:clean(item.familyId),state:clean(item.state),observedAt:clean(item.observedAt),
+          evidenceCount:Number(item.evidenceCount||0),
+        })).filter((item:{familyId:string;state:string})=>
+          familiesForDiscipline(discipline).includes(item.familyId)&&ALLOWED_STATES.includes(item.state));
+        if (!blockers.length&&resolved.length!==skillStates.length) blockers.push("large-history-skill-summary-invalid");
+        const finalStates=blockers.length?[]:resolved;
+        return {ok:true,diagnosticOnly:true,athleteId,discipline,skillStates:finalStates,
+          unresolvedFamilies:familiesForDiscipline(discipline).filter(family=>
+            !finalStates.some((item:{familyId:string})=>item.familyId===family)),
+          blockers:[...new Set(blockers)].sort(),coverageComplete:blockers.length===0,
+          evidenceApproved:blockers.length===0,eligibleForAuto:false};
+      }
       const manifestId = clean(review.acceptedManifestId);
       const blockers: string[] = [];
       if (!reviewSnap.exists || clean(review.status) !== "ACCEPTED_HISTORICAL_EVIDENCE"

@@ -86,6 +86,7 @@ export { markStripeCertificateIssued }
 
 export { coachAction } from "./modules/coachAction";
 export { skillCheckCoachCall } from "./modules/skillCheckCoachCall";
+export { resumableHistoricalCertificationCall } from "./modules/resumableHistoricalCertificationCall";
   /* =========================
    ATHLETE
 ========================= */
