@@ -32,3 +32,11 @@ Before any native-history certificate can be issued, every mutation affecting at
 - Practice-backed verified-skill mutation in `skillCheckCoachCall.ts` increments the same counter in its verification transaction when the verified observation changes.
 - This is **partial writer coverage** only. Other privileged maintenance writers, attendance review transitions, location/scope reassignment, and untracked legacy documents remain audit gates.
 - Do not trust this counter for certificate issuance or AUTO until every relevant mutation path is covered, baseline migration is completed, and staging security/integration tests pass.
+
+## Step 10 — certificate-consumption inspection (2026-10-11)
+
+- In `skillCheckCoachCall.ts`, native-history checkpoint scans and rechecks remain **diagnostic only**: their return values explicitly set `coverageComplete:false`, `evidenceApproved:false`, and `eligibleForAuto:false`. This is the correct fail-closed behavior, not a certification success.
+- The group historical-transfer acceptance path around lines 570–630 validates accepted review revision, manifest/certificate/decision chain, evidence paths and source records. **It does not visibly bind the certificate to `athletes/{id}/historyRevisions/{discipline}` or compare a current source revision to an issued certificate source revision** in that gate. A review revision is not interchangeable with a source-history revision.
+- Before any group AUTO decision, inventory every consumer of `SERVER_CERTIFIED_FULL_HISTORY` and require a server-side source revision read at issue **and** consumption; absent or legacy/unbaselined source revision must fail closed.
+- Do not patch in a comparison against a nonexistent certificate field: first define the server-owned issuance schema and legacy quarantine/backfill policy, then test stale certificates and concurrent mutations.
+- Remaining release gates: exhaustive privileged/client mutation-writer inventory; source-revision discipline/location transfer coverage; legacy baselines or quarantine; emulator negative tests (including stale certificate use); deployed staging Firestore rules and end-to-end staging exercises. All CI green on the draft branch proves only the tests currently present.
