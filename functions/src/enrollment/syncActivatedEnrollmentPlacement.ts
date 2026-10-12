@@ -76,6 +76,22 @@ export const syncActivatedEnrollmentPlacement = onDocumentUpdated(
       ] = locationId;
     }
 
-    await athleteRef.update(update);
+    await db.runTransaction(async (tx) => {
+      const currentSnap = await tx.get(athleteRef);
+      if (!currentSnap.exists) return;
+      const current = currentSnap.data() || {};
+      const oldLocation = clean(current.locationId);
+      tx.update(athleteRef, update);
+      // A location change alters which native practice scopes are relevant.
+      // Invalidate the primary discipline in the same transaction; other
+      // discipline and historical writers remain certification blockers.
+      if (primaryDiscipline && oldLocation !== locationId) {
+        tx.set(athleteRef.collection("historyRevisions").doc(primaryDiscipline), {
+          revision: FieldValue.increment(1),
+          lastMutationKind: "enrollment-location-change",
+          updatedAt: FieldValue.serverTimestamp(),
+        }, {merge:true});
+      }
+    });
   }
 );
