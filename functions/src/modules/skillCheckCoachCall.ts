@@ -878,6 +878,9 @@ export const skillCheckCoachCall =
     const checkpointSourceRevision = Number((await db.doc(
       `athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`
     ).get()).data()?.sourceRevisionAtOpen);
+    const checkpointScopeSnap = await db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`).get();
+    const checkpointLocationAtOpen = clean(checkpointScopeSnap.data()?.locationIdAtOpen);
+    const checkpointPriorLocationsAtOpen = checkpointScopeSnap.data()?.priorLocationIdsAtOpen ?? [];
     if (action === "advance-native-history-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Native checkpoint traversal requires Admin authority.");
@@ -913,7 +916,16 @@ export const skillCheckCoachCall =
       }).map(snap => snap.id);
       const nextCursor = additionalPages ? docs[docs.length - 1].id : "";
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
@@ -1029,7 +1041,16 @@ export const skillCheckCoachCall =
         }
       }
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
@@ -1234,7 +1255,16 @@ export const skillCheckCoachCall =
         issues.push("cross-batch-atomic-consistency-not-proven");
       }
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
@@ -1269,7 +1299,16 @@ export const skillCheckCoachCall =
         throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
       const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
@@ -1378,7 +1417,16 @@ export const skillCheckCoachCall =
         issues.push("cross-batch-atomic-consistency-not-proven");
       }
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
@@ -1438,7 +1486,16 @@ export const skillCheckCoachCall =
       const hasMore = page.size > 50;
       const nextCursor = hasMore ? docs[docs.length - 1].id : "";
       const result = await db.runTransaction(async tx => {
-        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const [sourceSnap, scopeSnap] = await Promise.all([
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(db.doc(`athletes/${athleteId}`)),
+        ]);
+        const scopeRecord = scopeSnap.data() || {};
+        const scopePrior = Array.isArray(scopeRecord.previousLocationIds)
+          ? [...new Set(scopeRecord.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+        if (!scopeSnap.exists || clean(scopeRecord.locationId) !== checkpointLocationAtOpen
+            || JSON.stringify(scopePrior) !== JSON.stringify(checkpointPriorLocationsAtOpen))
+          throw new HttpsError("failed-precondition", "Athlete location scope changed during checkpoint advancement.");
         const trackedRevision = Number(sourceSnap.data()?.revision);
         if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
             || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
