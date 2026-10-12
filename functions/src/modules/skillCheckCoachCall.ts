@@ -1927,7 +1927,8 @@ export const skillCheckCoachCall =
         const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
         if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
           blockers.push("source-revision-baseline-required");
-        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data()))
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
           blockers.push("source-inventory-baseline-unverified");
         const manifestBlockers: string[] = Array.isArray(manifest.blockers)
           ? manifest.blockers.map(clean) : [];
