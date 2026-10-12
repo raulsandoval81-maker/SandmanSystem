@@ -47,11 +47,13 @@ export const upsertAthleteCrossTrainingAssignment = onCall(async (req) => {
   const requestedActiveTo = hasActiveTo ? optionalTimestamp(req.data?.activeTo) : null;
   const assignmentId = crossTrainingAssignmentId(athleteId, hostLocationId, rosterId);
   const ref = db.doc(`athleteCrossTrainingAssignments/${assignmentId}`);
+  let resolvedHomeLocationId = "";
   await db.runTransaction(async (tx) => {
     const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
     if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
     const athlete = athleteSnap.data() || {};
     const homeLocationId = athleteHomeLocationId(athlete);
+    resolvedHomeLocationId = homeLocationId;
     if (!homeLocationId || homeLocationId === hostLocationId) {
       throw new HttpsError("failed-precondition", "Cross-training requires distinct home and host locations.");
     }
@@ -110,5 +112,5 @@ export const upsertAthleteCrossTrainingAssignment = onCall(async (req) => {
       }, { merge: true });
     }
   });
-  return { ok: true, assignmentId, athleteId, hostLocationId, status };
+  return { ok: true, assignmentId, athleteId, homeLocationId: resolvedHomeLocationId, hostLocationId, status };
 });
