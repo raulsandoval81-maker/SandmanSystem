@@ -501,6 +501,15 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const wrongReceipt=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:"unknown-receipt"});
  assert.equal(wrongReceipt.certificateIssued,false);
  assert.ok(wrongReceipt.blockers.includes("source-verification-receipt-invalid"));
+ const receiptRef=db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/sourceVerificationReceipts/"+sources.verificationReceiptId);
+ const originalReceiptRecords=receipt.data().records;
+ await receiptRef.update({records:[]});
+ const mismatched=await invoke("certify-bounded-history-snapshot",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(mismatched.certificateIssued,false);
+ assert.ok(mismatched.blockers.includes("source-verification-receipt-evidence-mismatch"));
+ await receiptRef.update({records:originalReceiptRecords});
  const certified=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId});
  assert.equal(certified.certificateIssued,true,JSON.stringify(certified.blockers));
  assert.equal(certified.observedEvidenceCount,1);
