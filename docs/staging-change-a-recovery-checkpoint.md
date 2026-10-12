@@ -1,6 +1,6 @@
 # Proposed Change A: Staging Recovery Checkpoint
 
-Status: **BLOCKED — explicit staged approvals are required.** This document does not authorize or execute the change. The detailed Phase 6A runbook is `docs/staging-phase-6a-recovery-execution-plan.md`.
+Status: **BLOCKED — explicit staged approvals are required.** This document does not authorize or execute the change. The detailed Phase 6A runbook is `docs/staging-phase-6a-recovery-execution-plan.md`; Phase 6B read-only billing, cost, identity, and CLI evidence is in `docs/staging-phase-6b-operator-verification.md`.
 
 ## Current evidence
 
@@ -20,7 +20,7 @@ Create only after approval:
 - no production principal, cross-project writer, public member, or broad legacy ACL;
 - least-privilege access for the staging Firestore service agent and separately approved recovery operators.
 
-Before creation, confirm billing, organization policy, final retention period, expected export volume, recovery-time objective, recovery-point objective, and legal retention needs.
+Billing and Blaze status, organization policy, aggregate storage scale, and the accepted retention settings were reviewed in Phase 6B. Before creation, confirm the console-only import/export execution identity, decide the bucket soft-delete duration, repair the local Storage CLI or select Cloud Shell, approve the one-export cost ceiling, and retain the existing recovery-time, recovery-point, and legal-retention decisions.
 
 ## Required permissions
 
