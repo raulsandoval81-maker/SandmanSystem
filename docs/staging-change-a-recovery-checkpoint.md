@@ -1,6 +1,6 @@
 # Proposed Change A: Staging Recovery Checkpoint
 
-Status: **BLOCKED — explicit approval and resource creation are required.** This document does not authorize or execute the change.
+Status: **BLOCKED — explicit staged approvals are required.** This document does not authorize or execute the change. The detailed Phase 6A runbook is `docs/staging-phase-6a-recovery-execution-plan.md`.
 
 ## Current evidence
 
@@ -12,11 +12,11 @@ Create only after approval:
 
 - exact name `sandman-combat-staging-firestore-backups`;
 - owned by project `sandman-combat-staging` / `991554514268`;
-- location compatible with Firestore multi-region `nam5` and confirmed against current export-location requirements;
+- proposed location `US` multi-region, selected from current documented geography for `nam5` and subject to operator data-residency/cost approval;
 - Standard storage, not Requester Pays or Rapid;
 - uniform bucket-level access enabled and public access prevention enforced;
 - object versioning enabled;
-- an approved retention policy and lifecycle transition/deletion policy that do not make the recovery objective impossible;
+- proposed unlocked 30-day retention and lifecycle deletion at 45 days for live objects plus 30 days for noncurrent versions, subject to an operator retention decision;
 - no production principal, cross-project writer, public member, or broad legacy ACL;
 - least-privilege access for the staging Firestore service agent and separately approved recovery operators.
 
@@ -24,7 +24,7 @@ Before creation, confirm billing, organization policy, final retention period, e
 
 ## Required permissions
 
-The approving operator needs the minimum bucket-creation/configuration permissions and Firestore export permission. The Firestore service agent `service-991554514268@gcp-sa-firestore.iam.gserviceaccount.com` must have the documented bucket access for export/import. Do not grant project-wide Storage Admin when a bucket-scoped grant is sufficient. Do not add any production identity.
+The approving operator needs the minimum bucket-creation/configuration permissions and Firestore export permission. The Firestore service agent `service-991554514268@gcp-sa-firestore.iam.gserviceaccount.com` has `roles/firestore.serviceAgent`. Current Google documentation says same-project export workflows need no extra bucket permission change, so no IAM grant is initially proposed. If post-creation verification proves otherwise, stop and separately approve only a bucket-scoped `roles/storage.admin` fallback. Never grant project-wide Storage Admin or add a production identity.
 
 ## Proposed export
 
@@ -38,7 +38,7 @@ gcloud firestore export \
   --async
 ```
 
-No export was started in Phase 5.
+No export was started in Phase 5 or Phase 6A.
 
 ## Completion evidence
 
@@ -50,4 +50,4 @@ Recovery readiness additionally requires a separately reviewed import plan, inde
 
 Managed exports bill one document read per exported document; stored output incurs Cloud Storage charges. Imports bill document writes and index updates. Export/import usage may appear only after completion and may not trigger budget alerts during the operation. An export is not an atomic snapshot at its start time and can include concurrent changes. A cancelled export leaves partial objects that cannot be imported.
 
-Approval must explicitly cover bucket creation/configuration, IAM bindings, export cost, export execution, and later restore testing. None is included in the Phase 5 approval.
+Approval must independently cover bucket creation/configuration, any proven-necessary IAM binding, export cost/execution, and later restore testing. None is included in the Phase 6A planning approval.
