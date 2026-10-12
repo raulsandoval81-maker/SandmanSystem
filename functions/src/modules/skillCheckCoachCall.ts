@@ -1966,6 +1966,17 @@ export const skillCheckCoachCall =
         const records: Record<string, unknown>[] = Array.isArray(manifest.records)
           ? manifest.records : [];
         if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
+        // A receipt that checked a different subset cannot authorize this manifest,
+        // even when every entry it happened to check was valid.
+        const manifestEvidencePaths = records.map(item => clean(item.skillEvidencePath)).sort();
+        const receiptEvidencePaths = Array.isArray(receipt.records)
+          ? receipt.records.map((item: {skillEvidencePath?: string}) =>
+            clean(item.skillEvidencePath)).sort() : [];
+        if (new Set(manifestEvidencePaths).size !== manifestEvidencePaths.length
+            || manifestEvidencePaths.some(path => !path)
+            || JSON.stringify(manifestEvidencePaths) !== JSON.stringify(receiptEvidencePaths)) {
+          blockers.push("source-verification-receipt-evidence-mismatch");
+        }
         const location = clean(current.locationId);
         const academy = clean(current.academyId);
         const scopes = [
