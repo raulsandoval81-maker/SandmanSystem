@@ -485,6 +485,9 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(scan.practices.length,1);
  const manifest=await invoke("build-verified-evidence-manifest");
  assert.equal(manifest.recordCount,1);
+ const unbound=await invoke("certify-bounded-history-snapshot",{manifestId:manifest.manifestId});
+ assert.equal(unbound.certificateIssued,false);
+ assert.ok(unbound.blockers.includes("source-inventory-baseline-unverified"));
  await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({baselineEvidenceManifestId:manifest.manifestId});
  assert.ok(manifest.blockers.includes("historical-transfer-coverage-unverified"));
  assert.ok(manifest.blockers.includes("current-skill-state-unresolved"));
