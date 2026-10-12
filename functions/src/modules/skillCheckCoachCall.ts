@@ -865,6 +865,9 @@ export const skillCheckCoachCall =
       }
     }
 
+    const checkpointSourceRevision = Number((await db.doc(
+      `athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`
+    ).get()).data()?.sourceRevisionAtOpen);
     if (action === "advance-native-history-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Native checkpoint traversal requires Admin authority.");
@@ -900,6 +903,12 @@ export const skillCheckCoachCall =
       }).map(snap => snap.id);
       const nextCursor = additionalPages ? docs[docs.length - 1].id : "";
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const currentSnap = await tx.get(ref);
         const current = currentSnap.data() || {};
         if (!currentSnap.exists || Number(current.revision) !== expectedRevision
@@ -1010,6 +1019,12 @@ export const skillCheckCoachCall =
         }
       }
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const snap = await tx.get(ref);
         const current = snap.data() || {};
         if (!snap.exists || Number(current.revision) !== expectedRevision
@@ -1209,6 +1224,12 @@ export const skillCheckCoachCall =
         issues.push("cross-batch-atomic-consistency-not-proven");
       }
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const freshSnap = await tx.get(ref);
         const fresh = freshSnap.data() || {};
         if (!freshSnap.exists || Number(fresh.revision) !== expectedRevision
@@ -1238,6 +1259,12 @@ export const skillCheckCoachCall =
         throw new HttpsError("invalid-argument", "Current checkpoint revision required.");
       const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const snap = await tx.get(ref);
         const record = snap.data() || {};
         if (!snap.exists || Number(record.revision) !== expectedRevision)
@@ -1341,6 +1368,12 @@ export const skillCheckCoachCall =
         issues.push("cross-batch-atomic-consistency-not-proven");
       }
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const freshSnap = await tx.get(ref);
         const fresh = freshSnap.data() || {};
         if (!freshSnap.exists || Number(fresh.revision) !== expectedRevision
@@ -1395,6 +1428,12 @@ export const skillCheckCoachCall =
       const hasMore = page.size > 50;
       const nextCursor = hasMore ? docs[docs.length - 1].id : "";
       const result = await db.runTransaction(async tx => {
+        const sourceSnap = await tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`));
+        const trackedRevision = Number(sourceSnap.data()?.revision);
+        if (!sourceSnap.exists || !Number.isSafeInteger(trackedRevision)
+            || trackedRevision < 1 || trackedRevision !== checkpointSourceRevision) {
+          throw new HttpsError("failed-precondition", "Native source history changed during checkpoint advancement.");
+        }
         const latest = await tx.get(ref);
         const current = latest.data() || {};
         if (!latest.exists || Number(current.revision) !== expectedRevision
