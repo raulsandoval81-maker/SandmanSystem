@@ -637,6 +637,16 @@ export const finalizePracticeAttendance = onCall(async (request) => {
       ...(attendanceSnap.exists ? {} : { createdAt: now }),
     };
     tx.set(attendanceRef, finalizedAttendance, { merge: true });
+    // Finalized participation becomes history evidence. Invalidate each
+    // present athlete's discipline revision in the same transaction.
+    for (const athleteId of requestedPresentIds) {
+      tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`), {
+        revision: FieldValue.increment(1),
+        lastMutationKind: "attendance-finalization",
+        lastPracticeId: practiceId,
+        updatedAt: now,
+      }, { merge: true });
+    }
 
     athletes.forEach((athlete, index) => {
       const recovery = resolveQualifyingRecoveryPractice({
