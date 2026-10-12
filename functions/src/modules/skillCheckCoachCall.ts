@@ -3744,6 +3744,14 @@ export const skillCheckCoachCall =
           && normalizeState(existing.state) === state
           && clean(existing.coachUid) === actor.uid;
         if (!identical) {
+          // Revision update shares the verification transaction. Never
+          // treat the counter as certified until all source writers migrate.
+          tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`), {
+            revision: FieldValue.increment(1),
+            lastMutationKind: "verified-skill-observation",
+            lastPracticeId: practiceId,
+            updatedAt: FieldValue.serverTimestamp(),
+          }, {merge:true});
           tx.set(verificationRef, {
             skillId: familyId,
             familyId,
