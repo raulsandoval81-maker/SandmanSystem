@@ -405,14 +405,18 @@ function applyFilters() {
   const search = String($("searchAthlete")?.value || "").toLowerCase().trim();
   const journeyFilter = normalizeJourneyCode($("journeyRosterFilter")?.value || "");
 
+  const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim().toLowerCase();
   filteredAthletes = athletes.filter((athlete) => {
     if (!programMatchesAthlete(athlete)) return false;
     if (checkedIn.has(athlete.id)) return false;
     if (journeyFilter && rosterJourneyForAthlete(athlete) !== journeyFilter) return false;
 
+    const homeLocationId = String(athlete.locationId || "").trim().toLowerCase();
+    // Keep the regular facility roster visible. Authorized visitors only appear in search results.
+    if (homeLocationId !== practiceLocationId && !search) return false;
+
     const name = athleteName(athlete).toLowerCase();
     const id = String(athlete.id || "").toLowerCase();
-
     return !search || name.includes(search) || id.includes(search);
   });
 
@@ -445,7 +449,7 @@ function renderAthletes() {
         class="athlete-checkin-card"
         data-athlete-id="${athlete.id}"
       >
-        <span class="athlete-main">${attendanceIdentityMarkup(athlete)}</span>
+        <span class="athlete-main">${attendanceIdentityMarkup(athlete)}${String(athlete.locationId || "").trim().toLowerCase() !== String(activePractice?.locationId || activePractice?.academyId || "").trim().toLowerCase() ? '<small class="muted">Visiting · Lompoc</small>' : ""}</span>
         <span class="checkin-action">Check In</span>
       </button>
     `;
