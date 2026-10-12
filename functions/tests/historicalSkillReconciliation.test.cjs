@@ -539,3 +539,16 @@ test("attendance-only and unexpected evidence remain explicit",()=>{
  assert.deepEqual(result.evidenceOutsideInventory,["practice_C"]);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("source-history certificate freshness is fail-closed for legacy and stale revisions", () => {
+  const { historicalCertificateSourceRevisionIsCurrent: current } =
+    require("../lib/modules/historicalCertificateSourceRevision");
+  assert.equal(current(4,4), true);
+  for (const [certified, observed] of [
+    [undefined, 4], [null, 4], [0, 4], [4, undefined], [4, null],
+    [4, 0], [4, 5], [5, 4], ["4", 4], [4, "4"],
+    [Number.NaN, 4], [1.5, 1.5],
+  ]) {
+    assert.equal(current(certified, observed), false, JSON.stringify({certified, observed}));
+  }
+});
