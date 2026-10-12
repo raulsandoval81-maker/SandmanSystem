@@ -753,7 +753,7 @@ test("Atomic snapshot certificate refuses missing manifests and forged approval"
  const auth={uid:"test-admin-transfer",token:{}};
  const result=await callable.run({auth,data:{
    action:"certify-bounded-history-snapshot",athleteId,discipline:"wrestling",
-   manifestId:"missing-manifest",coverageComplete:true,evidenceApproved:true,
+   manifestId:"missing-manifest",verificationReceiptId:"missing-receipt",coverageComplete:true,evidenceApproved:true,
  }});
  assert.equal(result.certificateIssued,false);
  assert.ok(result.blockers.includes("manifest-invalid"));
