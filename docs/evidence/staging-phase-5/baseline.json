@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "observedAtUtc": "2026-10-12T15:23:33Z/2026-10-12T15:28:53Z",
+  "observationMode": "read-only",
+  "activeCliAccount": "raulsandoval81@gmail.com",
+  "cliVersions": {
+    "gcloud": "588.0.0",
+    "firebaseTools": "15.11.0",
+    "node": "22.17.1",
+    "npm": "10.9.2"
+  },
+  "staging": {
+    "projectId": "sandman-combat-staging",
+    "projectNumber": "991554514268",
+    "firebaseApp": {
+      "appId": "1:991554514268:web:d347519f89c22b972a2599",
+      "displayName": "Sandman Combat Staging Web",
+      "platform": "WEB"
+    },
+    "hosting": {
+      "site": "sandman-combat-staging",
+      "type": "DEFAULT_SITE",
+      "defaultUrl": "https://sandman-combat-staging.web.app"
+    },
+    "runtimeServiceAccount": {
+      "email": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+      "disabled": false,
+      "projectRoles": ["roles/datastore.user", "roles/logging.logWriter"]
+    },
+    "deploymentServiceAccount": {
+      "email": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+      "disabled": false,
+      "projectRoles": [
+        "roles/cloudfunctions.admin",
+        "roles/cloudfunctions.developer",
+        "roles/datastore.user",
+        "roles/firebaseauth.admin",
+        "roles/firebasehosting.admin",
+        "roles/firebaserules.admin",
+        "roles/serviceusage.apiKeysViewer",
+        "roles/serviceusage.serviceUsageConsumer"
+      ]
+    },
+    "commonFunctionConfiguration": {
+      "generation": "GEN_2",
+      "runtime": "nodejs22",
+      "region": "us-central1",
+      "state": "ACTIVE",
+      "ingress": "all",
+      "runtimeServiceAccount": "991554514268-compute@developer.gserviceaccount.com",
+      "secretReferenceNames": [],
+      "environmentVariableNames": [
+        "EVENTARC_CLOUD_EVENT_SOURCE",
+        "FIREBASE_CONFIG",
+        "FUNCTION_SIGNATURE_TYPE",
+        "FUNCTION_TARGET",
+        "GCLOUD_PROJECT",
+        "LOG_EXECUTION_ID",
+        "SANDMAN_STAGING_ACK",
+        "SANDMAN_STAGING_PROJECT_ID",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT"
+      ]
+    },
+    "functions": [
+      {"name":"getPracticeSession","service":"getpracticesession","activeRevision":"getpracticesession-00002-lav","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"getPracticeAttendanceReview","service":"getpracticeattendancereview","activeRevision":"getpracticeattendancereview-00002-feg","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"createOrRecoverCanonicalPractice","service":"createorrecovercanonicalpractice","activeRevision":"createorrecovercanonicalpractice-00002-map","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"openPracticeSession","service":"openpracticesession","activeRevision":"openpracticesession-00002-hig","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"updatePracticeCheckIn","service":"updatepracticecheckin","activeRevision":"updatepracticecheckin-00002-bot","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"savePracticeSessionMemory","service":"savepracticesessionmemory","activeRevision":"savepracticesessionmemory-00002-zuz","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"saveDailyPracticeLog","service":"savedailypracticelog","activeRevision":"savedailypracticelog-00002-jex","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"savePracticeAthleteInput","service":"savepracticeathleteinput","activeRevision":"savepracticeathleteinput-00002-gem","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"finalizePracticeAttendance","service":"finalizepracticeattendance","activeRevision":"finalizepracticeattendance-00002-jur","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"completePracticeDailyGrind","service":"completepracticedailygrind","activeRevision":"completepracticedailygrind-00002-kug","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"closePracticeSession","service":"closepracticesession","activeRevision":"closepracticesession-00002-dag","trafficPercent":100,"invokerIamDisabled":null,"serviceIamBindings":[],"revisionCount":2},
+      {"name":"skillCheckCoachCall","service":"skillcheckcoachcall","activeRevision":"skillcheckcoachcall-00015-kah","trafficPercent":100,"invokerIamDisabled":true,"serviceIamBindings":[],"revisionCount":15,"environmentVariableNameDifference":"FUNCTION_SIGNATURE_TYPE absent"}
+    ],
+    "revisionSummary": {
+      "total": 37,
+      "active": 12,
+      "inactiveReady": 25,
+      "inactiveRevisionNames": [
+        "closepracticesession-00001-xay",
+        "completepracticedailygrind-00001-qis",
+        "createorrecovercanonicalpractice-00001-dal",
+        "finalizepracticeattendance-00001-bor",
+        "getpracticeattendancereview-00001-heb",
+        "getpracticesession-00001-nuk",
+        "openpracticesession-00001-vic",
+        "savedailypracticelog-00001-car",
+        "savepracticeathleteinput-00001-lif",
+        "savepracticesessionmemory-00001-bob",
+        "updatepracticecheckin-00001-reh",
+        "skillcheckcoachcall-00001-guv",
+        "skillcheckcoachcall-00002-tst",
+        "skillcheckcoachcall-00003-xey",
+        "skillcheckcoachcall-00004-xed",
+        "skillcheckcoachcall-00005-pox",
+        "skillcheckcoachcall-00006-mem",
+        "skillcheckcoachcall-00007-roc",
+        "skillcheckcoachcall-00008-xat",
+        "skillcheckcoachcall-00009-pal",
+        "skillcheckcoachcall-00010-quk",
+        "skillcheckcoachcall-00011-zaq",
+        "skillcheckcoachcall-00012-qeb",
+        "skillcheckcoachcall-00013-siy",
+        "skillcheckcoachcall-00014-moj"
+      ],
+      "unexpectedServices": [],
+      "unexpectedFunctions": []
+    },
+    "firestore": {
+      "database": "(default)",
+      "location": "nam5",
+      "type": "FIRESTORE_NATIVE",
+      "edition": "STANDARD",
+      "pitr": "DISABLED",
+      "deleteProtection": "DISABLED",
+      "versionRetentionPeriod": "3600s",
+      "backupSchedules": [],
+      "backups": [],
+      "importExportOperations": []
+    },
+    "storage": {
+      "existingBucketNames": [
+        "gcf-v2-sources-991554514268-us-central1",
+        "gcf-v2-uploads-991554514268.us-central1.cloudfunctions.appspot.com"
+      ],
+      "proposedBackupBucket": "sandman-combat-staging-firestore-backups",
+      "proposedBackupBucketExists": false
+    }
+  },
+  "productionNoChangeBaseline": {
+    "projectId": "sandmandashboard",
+    "projectNumber": "889326401061",
+    "functions": [
+      {"name":"getPracticeSession","revision":"getpracticesession-00015-jac"},
+      {"name":"getPracticeAttendanceReview","revision":"getpracticeattendancereview-00006-kuh"},
+      {"name":"createOrRecoverCanonicalPractice","revision":"createorrecovercanonicalpractice-00006-vis"},
+      {"name":"openPracticeSession","revision":"openpracticesession-00019-haq"},
+      {"name":"updatePracticeCheckIn","revision":"updatepracticecheckin-00006-fij"},
+      {"name":"savePracticeSessionMemory","revision":"savepracticesessionmemory-00010-nox"},
+      {"name":"saveDailyPracticeLog","revision":"savedailypracticelog-00001-kex"},
+      {"name":"savePracticeAthleteInput","revision":"savepracticeathleteinput-00006-qaw"},
+      {"name":"finalizePracticeAttendance","revision":"finalizepracticeattendance-00008-koz"},
+      {"name":"completePracticeDailyGrind","revision":"completepracticedailygrind-00006-gih"},
+      {"name":"closePracticeSession","revision":"closepracticesession-00015-kis"},
+      {"name":"skillCheckCoachCall","revision":"skillcheckcoachcall-00016-vuz"}
+    ]
+  },
+  "repository": {
+    "approvedCommit": "cb3cad09c34fa90784ef7eda8ee648bd9d44b709",
+    "workingTreeCleanAtPreflightStart": true,
+    "indexCleanAtPreflightStart": true
+  },
+  "secretsIncluded": false,
+  "credentialsIncluded": false,
+  "athleteDataIncluded": false
+}
