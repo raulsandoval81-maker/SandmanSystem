@@ -164,7 +164,7 @@ test("staging deployment is manual, explicit, and bound to verified identities",
   assert.doesNotMatch(deploy, /,storage/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
   assert.match(workflow, /SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
-  assert.match(functionSource, /resolveSkillCheckRuntimeOptions/);
+  assert.match(functionSource, /resolveStagingCallableRuntimeOptions/);
   assert.doesNotMatch(productionConfig, /sandman-wrestling-runtime/);
 });
 

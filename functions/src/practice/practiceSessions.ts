@@ -5,8 +5,10 @@ import { COACH_STAFF_ROLES, normalizeStaffRole, requireActiveStaff } from "../se
 import { staffLocationIds } from "../schedules/crossTrainingPolicy";
 import { resolveQualifyingRecoveryPractice } from "../modules/decay/decayRecoveryPolicy";
 import { awardReceiptKey } from "../services/authoritativeXpService";
+import { resolveStagingCallableRuntimeOptions } from "../config/functionRuntime";
 
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
+const practiceRuntimeOptions = resolveStagingCallableRuntimeOptions();
 const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
 const MAX_PLAN_VERSION = 10_000;
@@ -234,7 +236,7 @@ function requirePracticeOwner(actor: Awaited<ReturnType<typeof requireActiveStaf
   }
 }
 
-export const openPracticeSession = onCall(async (request) => {
+export const openPracticeSession = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(
     request.auth.uid,
@@ -364,7 +366,7 @@ export const openPracticeSession = onCall(async (request) => {
   return { ok: true, practiceId: practiceRef.id, liveSessionId, status: "active", idempotent };
 });
 
-export const createOrRecoverCanonicalPractice = onCall(async (request) => {
+export const createOrRecoverCanonicalPractice = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const input = request.data || {};
@@ -418,7 +420,7 @@ export const createOrRecoverCanonicalPractice = onCall(async (request) => {
   return { ok: true, practiceId, status, entryMode, sessionDateKey, idempotent };
 });
 
-export const getPracticeAttendanceReview = onCall(async (request) => {
+export const getPracticeAttendanceReview = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -460,7 +462,7 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
   return { ok: true, practiceId, practice, attendance: attendanceSnap.data() || null, roster, athleteInputs };
 });
 
-export const updatePracticeCheckIn = onCall(async (request) => {
+export const updatePracticeCheckIn = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -542,7 +544,7 @@ export const updatePracticeCheckIn = onCall(async (request) => {
   return { ok: true, practiceId, attendance: result };
 });
 
-export const finalizePracticeAttendance = onCall(async (request) => {
+export const finalizePracticeAttendance = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -685,7 +687,7 @@ export const finalizePracticeAttendance = onCall(async (request) => {
   return { ok: true, practiceId, attendanceSessionId: practiceId, status: "finalized", idempotent };
 });
 
-export const completePracticeDailyGrind = onCall(async (request) => {
+export const completePracticeDailyGrind = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -742,7 +744,7 @@ export const completePracticeDailyGrind = onCall(async (request) => {
   return { ok: true, practiceId, readyForDailyGrind: remainingIds.length > 0, remainingIds, idempotent };
 });
 
-export const savePracticeAthleteInput = onCall(async (request) => {
+export const savePracticeAthleteInput = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -798,7 +800,7 @@ export const savePracticeAthleteInput = onCall(async (request) => {
   return { ok: true, practiceId, athleteId };
 });
 
-export const getPracticeSession = onCall(async (request) => {
+export const getPracticeSession = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or staff access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -808,7 +810,7 @@ export const getPracticeSession = onCall(async (request) => {
   return { ok: true, practiceId: snap.id, practice: snap.data() || {} };
 });
 
-export const savePracticeSessionMemory = onCall(async (request) => {
+export const savePracticeSessionMemory = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(
     request.auth.uid,
@@ -934,7 +936,7 @@ export const savePracticeSessionMemory = onCall(async (request) => {
   return { ok: true, practiceId, operation, idempotent };
 });
 
-export const closePracticeSession = onCall(async (request) => {
+export const closePracticeSession = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or staff access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
@@ -1036,7 +1038,7 @@ export const closePracticeSession = onCall(async (request) => {
 
 
 /** Coach-owned, practice-scoped working log. Separate from immutable plan and final reflection. */
-export const saveDailyPracticeLog = onCall(async (request) => {
+export const saveDailyPracticeLog = onCall(practiceRuntimeOptions, async (request) => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
