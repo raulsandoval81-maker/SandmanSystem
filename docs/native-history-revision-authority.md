@@ -25,3 +25,10 @@ Before any native-history certificate can be issued, every mutation affecting at
 3. Add mutation revision update to verified writing transactions.
 4. Add server-only baseline/revision validation and legacy-history policy.
 5. Run emulator security tests, then production staging verification before any live rollout.
+
+## Implementation checkpoint (2026-10-11)
+- Firestore rules now deny direct client mutations of `attendance_sessions` in source; deployment and complete client migration still need staging validation.
+- Canonical attendance finalization in `practiceSessions.ts` now increments `athletes/{athleteId}/historyRevisions/{discipline}` atomically for each present athlete.
+- Practice-backed verified-skill mutation in `skillCheckCoachCall.ts` increments the same counter in its verification transaction when the verified observation changes.
+- This is **partial writer coverage** only. Other privileged maintenance writers, attendance review transitions, location/scope reassignment, and untracked legacy documents remain audit gates.
+- Do not trust this counter for certificate issuance or AUTO until every relevant mutation path is covered, baseline migration is completed, and staging security/integration tests pass.
