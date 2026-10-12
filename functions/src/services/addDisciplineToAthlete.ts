@@ -394,6 +394,15 @@ tx.update(
   athletePatch
 );
 
+// A newly attached discipline changes the athlete's certifiable scope.
+// Keep the revision change atomic with the new discipline record; this is
+// not a certificate or a declaration that earlier source history is complete.
+tx.set(athleteRef.collection("historyRevisions").doc(discipline), {
+  revision: FieldValue.increment(1),
+  lastMutationKind: "discipline-added",
+  updatedAt: now,
+}, { merge: true });
+
 
       if (intakeRef) {
         tx.update(
