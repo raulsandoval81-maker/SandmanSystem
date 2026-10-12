@@ -1898,15 +1898,20 @@ export const skillCheckCoachCall =
       if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
         throw new HttpsError("invalid-argument", "Valid manifest ID required.");
       }
+      const verificationReceiptId = clean(data.verificationReceiptId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(verificationReceiptId)) {
+        throw new HttpsError("invalid-argument", "Source verification receipt required for certification.");
+      }
       const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const certificate = ref.collection("coverageCertificates").doc(manifestId);
       // All query and record reads occur in ONE Firestore transaction snapshot.
       // Limit to small histories; never label a truncated history complete.
       const outcome = await db.runTransaction(async tx => {
-        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap] = await Promise.all([
+        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap, verificationReceiptSnap] = await Promise.all([
           tx.get(ref), tx.get(db.doc(`athletes/${athleteId}`)),
           tx.get(ref.collection("evidenceManifests").doc(manifestId)), tx.get(certificate),
           tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(ref.collection("sourceVerificationReceipts").doc(verificationReceiptId)),
         ]);
         const review = reviewSnap.data() || {};
         const current = athleteSnap.data() || {};
@@ -1924,6 +1929,16 @@ export const skillCheckCoachCall =
             || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
             || normalizeDiscipline(manifest.discipline) !== discipline) blockers.push("manifest-invalid");
         if (existingCert.exists) blockers.push("certificate-already-exists");
+        const receipt = verificationReceiptSnap.data() || {};
+        if (!verificationReceiptSnap.exists
+            || receipt.kind !== "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT"
+            || receipt.athleteId !== athleteId || receipt.discipline !== discipline
+            || receipt.manifestId !== manifestId || receipt.reviewRevision !== revision
+            || receipt.sourceRecordsValid !== true || receipt.reviewCurrent !== true
+            || !Array.isArray(receipt.records)
+            || receipt.records.some((entry: {valid?: boolean}) => entry.valid !== true)) {
+          blockers.push("source-verification-receipt-invalid");
+        }
         const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
         if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
           blockers.push("source-revision-baseline-required");
@@ -2021,7 +2036,7 @@ export const skillCheckCoachCall =
         tx.create(certificate, {
           kind: "SERVER_CERTIFIED_FULL_HISTORY", schemaVersion: 1,
           athleteId, discipline, manifestId, reviewRevision: revision,
-          sourceRevision,
+          sourceRevision, sourceVerificationReceiptId: verificationReceiptId,
           declaredPriorLocationIds: previous, sourceEvidencePaths: [...observed].sort(),
           scopeNames: scopes.map(spec => spec.scope),
           certifiedAt: FieldValue.serverTimestamp(), certifiedBy: actor.uid,
