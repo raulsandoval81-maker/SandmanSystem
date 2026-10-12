@@ -346,6 +346,12 @@ async function checkTodaySessionLock() {
   }
 }
 
+function isSantaYnezLompocCrossover(homeLocationId, hostLocationId) {
+  const home = String(homeLocationId || "").trim().toLowerCase();
+  const host = String(hostLocationId || "").trim().toLowerCase();
+  return host === "santa-ynez-valley" && ["lompoc", "lompoc-hs", "lompoc-high-school"].includes(home);
+}
+
 async function loadAthletes() {
   setStatus("Loading athletes…");
 
@@ -370,7 +376,9 @@ if (dateEl) {
         const status = String(athlete.rosterStatus || "current").toLowerCase();
         const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
         const athleteLocationId = String(athlete.locationId || "").trim();
-        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
+        return status === "current" && Boolean(practiceLocationId) &&
+          (athleteLocationId === practiceLocationId ||
+            isSantaYnezLompocCrossover(athleteLocationId, practiceLocationId));
       })
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
