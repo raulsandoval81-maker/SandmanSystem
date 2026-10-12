@@ -741,9 +741,10 @@ match /messages/{messageId} {
 ---------------------------------------*/
 match /attendance_sessions/{sessionId} {
   allow read: if isCoachOrAdmin();
-  allow create: if request.auth != null;
-  allow update: if request.auth != null;
-  allow delete: if false;
+  // Canonical attendance is written by authorized Cloud Functions using
+  // the Admin SDK. Direct client writes bypass history-revision authority.
+  // Do not reopen this without a server-verified revision migration.
+  allow create, update, delete: if false;
 }
 /* --------------------------------------
    Interest Leads
