@@ -462,6 +462,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const practiceId="test-e2e-attestation-practice";
  const auth={uid:"test-admin-transfer",token:{}};
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"]});
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1,lastMutationKind:"emulator-baseline"});
  await db.doc("practiceSessions/"+practiceId).set({
    coachUid:"former-coach",locationId:"e2e-former-location",
    discipline:"wrestling",sessionDateKey:"2026-10-03",
@@ -498,6 +499,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(certified.observedEvidenceCount,1);
  const certificate=await db.doc("athletes/"+id+"/historicalTransferReviews/wrestling/coverageCertificates/"+manifest.manifestId).get();
  assert.equal(certificate.data().kind,"SERVER_CERTIFIED_FULL_HISTORY");
+ assert.equal(certificate.data().sourceRevision,1);
  assert.equal(certificate.data().evidenceApproved,false);
  const addedPath="practiceSessions/"+practiceId+"/athletes/"+id+"/verifiedSkills/wrestling__single_leg";
  await db.doc(addedPath).set({
