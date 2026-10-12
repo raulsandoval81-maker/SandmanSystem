@@ -262,6 +262,19 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Versioned large-history runs, hash-chain pages, certificates and
+      // revocations are callable-only authority records. Admin claims do not
+      // permit direct client mutation or replacement.
+      match /largeHistoryCertificationRuns/{runId}/{document=**} {
+        allow write: if false;
+      }
+      match /largeHistoryCertificates/{certificateId} {
+        allow write: if false;
+      }
+      match /largeHistoryRevocations/{runId} {
+        allow write: if false;
+      }
+
       match /testingLogs/{logId} {
         allow get, list: if isActiveCoachOrAdmin();
         allow create: if isActiveCoachOrAdmin();

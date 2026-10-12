@@ -599,3 +599,36 @@ test("legacy history remains quarantined until a server-verified complete baseli
   assert.equal(matches(marker,{...attestation,inventory:[{path:"forged/path",practiceId:"practice"}]},expected),false);
   assert.equal(matches(marker,{...attestation,scopeInventory:[{scope:"prior-location:forged",value:"forged"}]},expected),false);
 });
+
+test("large-history page chains reject tampering, gaps, reordering and duplicates",()=>{
+  const {createHistoricalChainPage,verifyHistoricalPageChain,compareHistoricalPasses}=
+    require("../lib/modules/resumableHistoricalCertification");
+  const expected={athleteId:"ATHLETE",discipline:"wrestling",runId:"run",
+    sourceRevision:7,scopeFingerprint:"scope"};
+  const record={practiceId:"p1",practicePath:"practiceSessions/p1",attendancePath:"attendance_sessions/p1",
+    athleteMemoryPath:"practiceSessions/p1/athletes/ATHLETE",sessionDateKey:"2026-10-01",
+    discipline:"wrestling",locationId:"location",academyId:"",scopeId:"location:location",
+    observations:[{evidencePath:"practiceSessions/p1/athletes/ATHLETE/verifiedSkills/one",
+      familyId:"double_leg",state:"LEARNED",coachUid:"coach",verifiedAt:"2026-10-01T18:00:00.000Z"}]};
+  const first=createHistoricalChainPage({kind:"LARGE_HISTORY_INVENTORY_PAGE",schemaVersion:1,...expected,
+    sequence:0,previousPageHash:"GENESIS",cursorBefore:"",cursorAfter:"p1",exhausted:true,
+    records:[record],verifiedRecordCount:1,evidenceCount:1,recordedAt:"2026-10-11T00:00:00.000Z",authorizedBy:"admin"});
+  assert.equal(verifyHistoricalPageChain([first],{...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"}).valid,true);
+  assert.equal(verifyHistoricalPageChain([{...first,records:[{...record,sessionDateKey:"FORGED"}]}],
+    {...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"}).valid,false);
+  assert.equal(verifyHistoricalPageChain([{...first,sequence:1}],
+    {...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"}).valid,false);
+  const second=createHistoricalChainPage({kind:"LARGE_HISTORY_INVENTORY_PAGE",schemaVersion:1,...expected,
+    sequence:1,previousPageHash:first.pageHash,cursorBefore:"p1",cursorAfter:"p2",exhausted:true,
+    records:[],verifiedRecordCount:0,evidenceCount:0,recordedAt:"2026-10-11T00:30:00.000Z",authorizedBy:"admin"});
+  assert.equal(verifyHistoricalPageChain([second,first],
+    {...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"}).valid,false);
+  assert.equal(verifyHistoricalPageChain([first,{...first,sequence:1,previousPageHash:first.pageHash}],
+    {...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"}).valid,false);
+  const reconciled=createHistoricalChainPage({kind:"LARGE_HISTORY_RECONCILIATION_PAGE",schemaVersion:1,...expected,
+    sequence:0,previousPageHash:"GENESIS",cursorBefore:"",cursorAfter:"p1",exhausted:true,
+    records:[record],verifiedRecordCount:1,evidenceCount:1,inventoryPageHash:first.pageHash,
+    recordedAt:"2026-10-11T01:00:00.000Z",authorizedBy:"admin"});
+  assert.deepEqual(compareHistoricalPasses([first],[reconciled]),[]);
+  assert.ok(compareHistoricalPasses([first],[{...reconciled,records:[]}]).length>0);
+});
