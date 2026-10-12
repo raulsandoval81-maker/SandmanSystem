@@ -154,3 +154,18 @@ test("concurrent discipline attachment commits one revision", async () => {
   assert.equal(results.filter(x=>x.status==="rejected" && x.reason?.code==="already-exists").length,1);
   assert.equal((await ref.collection("historyRevisions").doc("muay-thai").get()).get("revision"),1);
 });
+
+test("cross-training rejects invalid transfer without mutating prior assignment or revisions", async () => {
+  const before = {
+    wrestling: await revision("wrestling"),
+    boxing: await revision("boxing"),
+  };
+  const assignment = db.doc("athleteCrossTrainingAssignments/" + uid + "_lompoc_history-test");
+  const prior = (await assignment.get()).data();
+  await assert.rejects(
+    () => assign.run(request(["unregistered-discipline"], {status:"active"})),
+    err => err.code === "failed-precondition");
+  assert.deepEqual((await assignment.get()).data(), prior);
+  assert.equal(await revision("wrestling"), before.wrestling);
+  assert.equal(await revision("boxing"), before.boxing);
+});
