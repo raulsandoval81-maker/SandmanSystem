@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/resumableHistoricalCertification.ts'
+      - 'functions/src/modules/resumableHistoricalCertificationCall.ts'
       - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
       - 'functions/src/practice/practiceSessions.ts'
@@ -16,6 +18,8 @@ on:
   pull_request:
     paths:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
+      - 'functions/src/modules/resumableHistoricalCertification.ts'
+      - 'functions/src/modules/resumableHistoricalCertificationCall.ts'
       - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
       - 'functions/src/practice/practiceSessions.ts'

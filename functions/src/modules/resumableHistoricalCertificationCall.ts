@@ -158,6 +158,34 @@ async function readInventoryPage(tx: FirebaseFirestore.Transaction, input: {
     exhausted:!hasMore, scannedAttendanceCount:docs.length};
 }
 
+async function readIndependentAthleteMemoryInventory(
+  tx: FirebaseFirestore.Transaction, athleteId: string, discipline: string
+) {
+  const maximumRecords = LARGE_HISTORY_MAX_PAGES * LARGE_HISTORY_PAGE_SIZE;
+  const snapshot = await tx.get(db.collectionGroup("athletes")
+    .where("athleteId", "==", athleteId).limit(maximumRecords + 1));
+  if (snapshot.size > maximumRecords) {
+    throw new HttpsError("resource-exhausted",
+      "Independent athlete-memory inventory exceeds the certification limit.");
+  }
+  const practiceIds = new Set<string>();
+  const blockers: string[] = [];
+  for (const memoryDoc of snapshot.docs) {
+    const memory = memoryDoc.data() || {};
+    if (disciplineId(memory.discipline) !== discipline) continue;
+    const segments = memoryDoc.ref.path.split("/");
+    if (segments.length !== 4 || segments[0] !== "practiceSessions"
+        || segments[2] !== "athletes" || clean(segments[3]).toUpperCase() !== athleteId) {
+      blockers.push("unexpected-athlete-memory-path:" + memoryDoc.ref.path);
+      continue;
+    }
+    const practiceId = segments[1];
+    if (practiceIds.has(practiceId)) blockers.push("duplicate-athlete-memory:" + practiceId);
+    practiceIds.add(practiceId);
+  }
+  return {practiceIds:[...practiceIds].sort(),blockers:[...new Set(blockers)].sort()};
+}
+
 export const resumableHistoricalCertificationCall = onCall(async request => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Admin authentication required.");
   const actor = await requireActiveStaff(request.auth.uid, ADMIN_ROLES, "Active Admin authority required.");
@@ -308,8 +336,11 @@ export const resumableHistoricalCertificationCall = onCall(async request => {
       const existingCertificate = await tx.get(certificateRef);
       const revocationSnap = await tx.get(db.doc(`athletes/${athleteId}/largeHistoryRevocations/${runId}`));
       const run = runSnap.data() || {};
-      if (!runSnap.exists || run.status !== "PENDING" || run.phase !== "RECONCILIATION"
-          || run.inventoryExhausted !== true || run.reconciliationExhausted !== true)
+      const alreadyCertified = runSnap.exists && run.status === "CERTIFIED"
+        && run.phase === "COMPLETE" && existingCertificate.exists;
+      if (!runSnap.exists || (!alreadyCertified && (run.status !== "PENDING"
+          || run.phase !== "RECONCILIATION" || run.inventoryExhausted !== true
+          || run.reconciliationExhausted !== true)))
         throw new HttpsError("failed-precondition", "Both inventory passes must be exhausted.");
       if (inventorySnap.size > LARGE_HISTORY_MAX_PAGES || reconciliationSnap.size > LARGE_HISTORY_MAX_PAGES)
         throw new HttpsError("resource-exhausted", "Certification page limit exceeded.");
@@ -319,12 +350,23 @@ export const resumableHistoricalCertificationCall = onCall(async request => {
         throw new HttpsError("failed-precondition", "Historical source or scope changed. Start a new run.");
       const inventory = inventorySnap.docs.map(doc=>doc.data() as HistoricalChainPage);
       const reconciliation = reconciliationSnap.docs.map(doc=>doc.data() as HistoricalChainPage);
+      const independentMembership = await readIndependentAthleteMemoryInventory(tx,athleteId,discipline);
       const expected = {athleteId,discipline,runId,sourceRevision:run.sourceRevision,
         scopeFingerprint:run.scopeFingerprint};
       const inventoryCheck = verifyHistoricalPageChain(inventory,{...expected,kind:"LARGE_HISTORY_INVENTORY_PAGE"});
       const reconciliationCheck = verifyHistoricalPageChain(reconciliation,{...expected,kind:"LARGE_HISTORY_RECONCILIATION_PAGE"});
       const blockers = [...inventoryCheck.blockers,...reconciliationCheck.blockers,
-        ...compareHistoricalPasses(inventory,reconciliation)];
+        ...compareHistoricalPasses(inventory,reconciliation),...independentMembership.blockers];
+      const certifiedPracticeIds = [...new Set(inventory.flatMap(page =>
+        page.records.map(record => record.practiceId)))].sort();
+      const missingFromAttendanceIndex = independentMembership.practiceIds.filter(id =>
+        !certifiedPracticeIds.includes(id));
+      const missingFromMemoryIndex = certifiedPracticeIds.filter(id =>
+        !independentMembership.practiceIds.includes(id));
+      if (missingFromAttendanceIndex.length) blockers.push("attendance-index-incomplete:"+
+        missingFromAttendanceIndex.join("|"));
+      if (missingFromMemoryIndex.length) blockers.push("athlete-memory-index-incomplete:"+
+        missingFromMemoryIndex.join("|"));
       const states = resolveHistoricalSkillStates(inventory);
       blockers.push(...states.blockers);
       if (blockers.length) throw new HttpsError("failed-precondition",
@@ -335,6 +377,7 @@ export const resumableHistoricalCertificationCall = onCall(async request => {
         inventoryRootHash:inventoryCheck.rootHash,reconciliationRootHash:reconciliationCheck.rootHash,
         inventoryPageCount:inventory.length,verifiedPracticeCount:inventoryCheck.recordCount,
         verifiedEvidenceCount:inventoryCheck.evidenceCount,skillStates:states.skillStates,
+        independentMembershipFingerprint:historicalChainHash(independentMembership.practiceIds),
         reconciliationResult:"MATCHED_INDEPENDENT_SOURCE_PASS",certifiedBy:actor.uid,
         certifiedAt:Timestamp.now(),evidenceApproved:false,coverageComplete:true,eligibleForAuto:false};
       if (existingCertificate.exists) {
@@ -344,10 +387,10 @@ export const resumableHistoricalCertificationCall = onCall(async request => {
             || existing.sourceRevision !== certificate.sourceRevision)
           throw new HttpsError("already-exists", "A different immutable certificate already exists.");
       } else tx.create(certificateRef,certificate);
-      tx.update(runRef,{status:"CERTIFIED",phase:"COMPLETE",certificateId:runId,
-        inventoryRootHash:inventoryCheck.rootHash,reconciliationRootHash:reconciliationCheck.rootHash,
-        certifiedAt:Timestamp.now(),certifiedBy:actor.uid,coverageComplete:true,
-        evidenceApproved:false,eligibleForAuto:false,updatedAt:Timestamp.now()});
+      if (!alreadyCertified) tx.update(runRef,{status:"CERTIFIED",phase:"COMPLETE",certificateId:runId,
+          inventoryRootHash:inventoryCheck.rootHash,reconciliationRootHash:reconciliationCheck.rootHash,
+          certifiedAt:Timestamp.now(),certifiedBy:actor.uid,coverageComplete:true,
+          evidenceApproved:false,eligibleForAuto:false,updatedAt:Timestamp.now()});
       return {certificateId:runId,idempotent:existingCertificate.exists,
         verifiedPracticeCount:inventoryCheck.recordCount,verifiedEvidenceCount:inventoryCheck.evidenceCount};
     });
@@ -362,23 +405,39 @@ export const resumableHistoricalCertificationCall = onCall(async request => {
       const runSnap = await tx.get(runRef);
       const certificateSnap = await tx.get(certificateRef);
       const revocationSnap = await tx.get(db.doc(`athletes/${athleteId}/largeHistoryRevocations/${runId}`));
+      const acceptanceRef=reviewRef.collection("largeHistoryAcceptanceDecisions").doc(runId);
+      const existingAcceptance=await tx.get(acceptanceRef);
       const review=reviewSnap.data()||{},run=runSnap.data()||{},certificate=certificateSnap.data()||{};
-      if (!reviewSnap.exists || clean(review.status)!=="PENDING_MANAGEMENT_REVIEW"
+      const idempotentAcceptance=existingAcceptance.exists
+        && clean(review.status)==="ACCEPTED_HISTORICAL_EVIDENCE"
+        && clean(review.acceptedLargeCertificateId)===runId;
+      if (!reviewSnap.exists || (!idempotentAcceptance
+          && clean(review.status)!=="PENDING_MANAGEMENT_REVIEW")
           || !runSnap.exists || run.status!=="CERTIFIED" || !certificateSnap.exists
-          || certificate.kind!=="SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE" || revocationSnap.exists)
+          || certificate.kind!=="SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE" || revocationSnap.exists
+          || Number(review.revision || 1)!==certificate.reviewRevision
+          || run.reviewRevision!==certificate.reviewRevision)
         throw new HttpsError("failed-precondition","Current unrevoked large-history certificate required.");
       const scope=await deriveScopes(tx,athleteId,discipline);
       if (scope.revision!==certificate.sourceRevision || scope.scopeFingerprint!==certificate.scopeFingerprint)
         throw new HttpsError("failed-precondition","Certificate source or scope is stale.");
-      const acceptanceRef=reviewRef.collection("largeHistoryAcceptanceDecisions").doc(runId);
-      tx.create(acceptanceRef,{kind:"LARGE_HISTORY_EVIDENCE_ACCEPTANCE",schemaVersion:1,
-        athleteId,discipline,runId,certificateId:runId,sourceRevision:certificate.sourceRevision,
-        inventoryRootHash:certificate.inventoryRootHash,acceptedBy:actor.uid,acceptedAt:Timestamp.now(),
-        evidenceApproved:true,coverageComplete:true,eligibleForAuto:false,xpAwarded:false});
-      tx.update(reviewRef,{status:"ACCEPTED_HISTORICAL_EVIDENCE",acceptedLargeCertificateId:runId,
-        acceptedLargeRunId:runId,acceptedSourceRevision:certificate.sourceRevision,
-        evidenceApproved:true,coverageComplete:true,acceptedBy:actor.uid,acceptedAt:Timestamp.now(),
-        eligibleForAuto:false});
+      if (existingAcceptance.exists) {
+        const accepted=existingAcceptance.data()||{};
+        if (accepted.certificateId!==runId || accepted.sourceRevision!==certificate.sourceRevision
+            || accepted.reviewRevision!==certificate.reviewRevision
+            || accepted.inventoryRootHash!==certificate.inventoryRootHash)
+          throw new HttpsError("already-exists","A different immutable acceptance already exists.");
+      } else {
+        tx.create(acceptanceRef,{kind:"LARGE_HISTORY_EVIDENCE_ACCEPTANCE",schemaVersion:1,
+          athleteId,discipline,runId,certificateId:runId,sourceRevision:certificate.sourceRevision,
+          reviewRevision:certificate.reviewRevision,inventoryRootHash:certificate.inventoryRootHash,
+          acceptedBy:actor.uid,acceptedAt:Timestamp.now(),evidenceApproved:true,
+          coverageComplete:true,eligibleForAuto:false,xpAwarded:false});
+        tx.update(reviewRef,{status:"ACCEPTED_HISTORICAL_EVIDENCE",acceptedLargeCertificateId:runId,
+          acceptedLargeRunId:runId,acceptedSourceRevision:certificate.sourceRevision,
+          evidenceApproved:true,coverageComplete:true,acceptedBy:actor.uid,acceptedAt:Timestamp.now(),
+          eligibleForAuto:false});
+      }
     });
     return {ok:true,accepted:true,certificateId:runId,evidenceApproved:true,
       coverageComplete:true,eligibleForAuto:false,xpAwarded:false};
