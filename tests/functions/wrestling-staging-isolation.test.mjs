@@ -103,20 +103,21 @@ test("staging boundary verifies credential project and service-account identitie
 
 test("staging web configuration must match the approved project", async () => {
   const valid = {
-    SANDMAN_STAGING_PROJECT_ID: "sandman-stage-a",
-    SANDMAN_STAGING_ACK: "sandman-stage-a",
+    SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
+    SANDMAN_STAGING_ACK: "sandman-combat-staging",
     SANDMAN_STAGING_WEB_CONFIG: JSON.stringify({
-      apiKey: "public-test-key", authDomain: "sandman-stage-a.firebaseapp.com",
-      projectId: "sandman-stage-a", appId: "1:123:web:test",
+      apiKey: "public-test-key", authDomain: "sandman-combat-staging.firebaseapp.com",
+      projectId: "sandman-combat-staging", appId: "1:123:web:test",
     }),
   };
-  assert.equal(validateStagingWebConfig(valid).projectId, "sandman-stage-a");
-  assert.throws(() => validateStagingWebConfig({}), /non-production/);
-  assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_PROJECT_ID: "sandmandashboard", SANDMAN_STAGING_ACK: "sandmandashboard" }), /non-production/);
+  assert.equal(validateStagingWebConfig(valid).projectId, "sandman-combat-staging");
+  assert.throws(() => validateStagingWebConfig({}), /exact approved staging/);
+  assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_PROJECT_ID: "sandmandashboard", SANDMAN_STAGING_ACK: "sandmandashboard" }), /exact approved staging/);
+  assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_PROJECT_ID: "other-stage", SANDMAN_STAGING_ACK: "other-stage" }), /exact approved staging/);
   assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_ACK: "other" }), /ACK/);
   assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_WEB_CONFIG: "bad-json" }), /valid Firebase web-app JSON/);
   assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_WEB_CONFIG: JSON.stringify({ apiKey: "x", authDomain: "x", projectId: "other", appId: "x" }) }), /does not match/);
-  assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_WEB_CONFIG: JSON.stringify({ authDomain: "x", projectId: "sandman-stage-a", appId: "x" }) }), /missing apiKey/);
+  assert.throws(() => validateStagingWebConfig({ ...valid, SANDMAN_STAGING_WEB_CONFIG: JSON.stringify({ authDomain: "x", projectId: "sandman-combat-staging", appId: "x" }) }), /missing apiKey/);
 });
 
 test("staging boundary accepts only the approved GitHub WIF provider and deployer", async () => {
@@ -142,22 +143,24 @@ test("staging boundary accepts only the approved GitHub WIF provider and deploye
 });
 
 test("staging deployment is manual, explicit, and bound to verified identities", async () => {
-  const [deploy, workflow, functionSource, productionConfig] = await Promise.all([
+  const [deploy, plan, workflow, functionSource, productionConfig] = await Promise.all([
     read("scripts/staging/deploy-staging.mjs"),
+    read("scripts/staging/assert-staging-plan.mjs"),
     read(".github/workflows/sandman-staging-preflight.yml"),
     read("functions/src/modules/skillCheckCoachCall.ts"),
     read("firebase.json"),
   ]);
   assert.match(deploy, /verifyStagingBoundary/);
   assert.match(deploy, /validateStagingWebConfig/);
-  assert.match(deploy, /DEPLOY:\$\{boundary\.projectId\}/);
+  assert.match(deploy, /assertStagingDeploymentPlan/);
+  assert.match(deploy, /SANDMAN_STAGING_DEPLOY_CONFIRM/);
   assert.match(deploy, /--config", "firebase\.staging\.json/);
   assert.match(deploy, /--project", boundary\.projectId/);
-  assert.match(deploy, /functions:skillCheckCoachCall/);
-  assert.match(deploy, /functions:openPracticeSession/);
-  assert.match(deploy, /functions:savePracticeSessionMemory/);
-  assert.match(deploy, /functions:closePracticeSession/);
-  assert.match(deploy, /firestore:rules/);
+  assert.match(plan, /functions:skillCheckCoachCall/);
+  assert.match(plan, /functions:openPracticeSession/);
+  assert.match(plan, /functions:savePracticeSessionMemory/);
+  assert.match(plan, /functions:closePracticeSession/);
+  assert.match(plan, /firestore:rules/);
   assert.doesNotMatch(deploy, /,storage/);
   assert.doesNotMatch(deploy, /sandmandashboard/);
   assert.match(workflow, /SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);

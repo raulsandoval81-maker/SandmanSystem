@@ -4,6 +4,7 @@
     "runtime": "nodejs22"
   },
   "hosting": {
+    "site": "sandman-combat-staging",
     "public": ".firebase-staging/public",
     "cleanUrls": false,
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
