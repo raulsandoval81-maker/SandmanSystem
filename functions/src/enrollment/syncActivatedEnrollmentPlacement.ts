@@ -69,15 +69,29 @@ export const syncActivatedEnrollmentPlacement = onDocumentUpdated(
         update[`disciplines.${primaryDiscipline}.placement.locationId`] = locationId;
       }
       tx.update(athleteRef, update);
-      // A location change alters which native practice scopes are relevant.
-      // Invalidate the primary discipline in the same transaction; other
-      // discipline and historical writers remain certification blockers.
-      if (primaryDiscipline && oldLocation !== locationId) {
-        tx.set(athleteRef.collection("historyRevisions").doc(primaryDiscipline), {
-          revision: FieldValue.increment(1),
-          lastMutationKind: "enrollment-location-change",
-          updatedAt: FieldValue.serverTimestamp(),
-        }, {merge:true});
+      // The top-level location participates in historical source discovery for
+      // every discipline. Invalidate all recorded discipline scopes, not just
+      // the primary, when that location changes. Do not relocate secondary
+      // discipline-specific assignments here.
+      if (oldLocation !== locationId) {
+        const nested = current.disciplines && typeof current.disciplines === "object"
+          ? Object.keys(current.disciplines) : [];
+        const ids = Array.isArray(current.disciplineIds) ? current.disciplineIds : [];
+        const disciplines = new Set([
+          ...nested, ...ids, primaryDiscipline,
+          current.activeDiscipline, current.discipline,
+        ].map((value) => clean(value).toLowerCase()).filter(Boolean));
+        for (const discipline of disciplines) {
+          // Avoid an invalid Firestore document path from malformed legacy data.
+          if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(discipline)) {
+            throw new Error("Invalid athlete discipline identity during location normalization.");
+          }
+          tx.set(athleteRef.collection("historyRevisions").doc(discipline), {
+            revision: FieldValue.increment(1),
+            lastMutationKind: "enrollment-location-change",
+            updatedAt: FieldValue.serverTimestamp(),
+          }, { merge: true });
+        }
       }
     });
   }
