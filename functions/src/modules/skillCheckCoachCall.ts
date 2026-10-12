@@ -824,6 +824,9 @@ export const skillCheckCoachCall =
         tx.set(checkpointRef, {
           kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT", athleteId, discipline,
           revision:nextRevision, sourceRevisionAtOpen:sourceRevision,
+          locationIdAtOpen:clean(athlete.locationId),
+          priorLocationIdsAtOpen:Array.isArray(athlete.previousLocationIds)
+            ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))].sort() : [],
           status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
           actorUid:actor.uid, updatedAt:FieldValue.serverTimestamp(),
           // Reset on revision change. Never inherit evidence from prior runs.
@@ -856,6 +859,13 @@ export const skillCheckCoachCall =
         ref.get(), db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`).get(),
       ]);
       const checkpoint = checkpointSnap.data() || {};
+      const priorLocationIds = Array.isArray(athlete.previousLocationIds)
+        ? [...new Set(athlete.previousLocationIds.map(clean).filter(Boolean))].sort() : [];
+      if (checkpoint.locationIdAtOpen !== clean(athlete.locationId)
+          || JSON.stringify(checkpoint.priorLocationIdsAtOpen ?? []) !== JSON.stringify(priorLocationIds)) {
+        throw new HttpsError("failed-precondition",
+          "Athlete history location scope changed. Restart the review.");
+      }
       const sourceRevision = Number(revisionSnap.data()?.revision);
       if (!checkpointSnap.exists || !revisionSnap.exists
           || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1
