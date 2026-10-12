@@ -1158,3 +1158,22 @@ test("native checkpoint exposes changing source revision but never certifies it"
  assert.equal(stale.eligibleForAuto,false);
  assert.equal(opened.evidenceApproved,false);
 });
+
+test("native checkpoint rejects source revision changes before advancing",async()=>{
+ const id="F8_NATIVE_REVISION_GUARD";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ const source=db.doc("athletes/"+id+"/historyRevisions/wrestling");
+ const invoke=(action,expectedRevision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+  data:{action,athleteId:id,discipline:"wrestling",expectedRevision}});
+ const untracked=await invoke("open-native-history-checkpoint",0);
+ await assert.rejects(invoke("advance-native-history-checkpoint",untracked.revision),
+  e=>e.code==="failed-precondition");
+ await source.set({revision:1});
+ const restarted=await invoke("open-native-history-checkpoint",untracked.revision);
+ await source.update({revision:2});
+ await assert.rejects(invoke("advance-native-history-checkpoint",restarted.revision),
+  e=>e.code==="failed-precondition");
+ const refreshed=await invoke("open-native-history-checkpoint",restarted.revision);
+ const advanced=await invoke("advance-native-history-checkpoint",refreshed.revision);
+ assert.equal(advanced.eligibleForAuto,false);
+});
