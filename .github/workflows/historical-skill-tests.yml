@@ -12,6 +12,13 @@ on:
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
       - 'functions/tests/**'
+      - 'functions/scripts/inspect-historical-evidence.mjs'
+      - 'functions/scripts/historical-certification-fixtures.mjs'
+      - 'scripts/staging/**'
+      - 'tests/functions/historical-staging-readiness.test.mjs'
+      - 'tests/functions/wrestling-staging-isolation.test.mjs'
+      - 'firebase.staging.json'
+      - '.firebaserc'
       - 'functions/package.json'
       - 'functions/package-lock.json'
       - '.github/workflows/historical-skill-tests.yml'
@@ -26,6 +33,13 @@ on:
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
       - 'functions/tests/**'
+      - 'functions/scripts/inspect-historical-evidence.mjs'
+      - 'functions/scripts/historical-certification-fixtures.mjs'
+      - 'scripts/staging/**'
+      - 'tests/functions/historical-staging-readiness.test.mjs'
+      - 'tests/functions/wrestling-staging-isolation.test.mjs'
+      - 'firebase.staging.json'
+      - '.firebaserc'
       - 'functions/package.json'
       - 'functions/package-lock.json'
       - '.github/workflows/historical-skill-tests.yml'
@@ -35,6 +49,21 @@ permissions:
   contents: read
 
 jobs:
+  staging-readiness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - run: npm ci
+        working-directory: functions
+      - name: Verify staging isolation, inspection, fixtures, and runner
+        run: node --test tests/functions/wrestling-staging-isolation.test.mjs tests/functions/historical-staging-readiness.test.mjs
+
   functions-tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
