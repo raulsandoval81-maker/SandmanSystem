@@ -918,6 +918,19 @@ const safePriorExperienceValidation =
             athletePatch
           );
 
+          // Attaching a discipline changes this existing athlete's certifiable
+          // historical scope. Keep invalidation atomic with the attachment;
+          // a pre-existing certificate must never survive this writer path.
+          tx.set(
+            existingRef.collection("historyRevisions").doc(requestedDiscipline),
+            {
+              revision: FieldValue.increment(1),
+              lastMutationKind: "enrollment-discipline-added",
+              updatedAt: now,
+            },
+            { merge: true }
+          );
+
           tx.update(
             addSportIntakeRef,
             {
