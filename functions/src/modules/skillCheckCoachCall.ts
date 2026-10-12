@@ -795,11 +795,16 @@ export const skillCheckCoachCall =
         throw new HttpsError("permission-denied", "Native certification checkpoints require Admin authority.");
       }
       const checkpointRef = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const sourceRevisionSnap = await db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`).get();
+      const sourceRevision = sourceRevisionSnap.exists ? Number(sourceRevisionSnap.data()?.revision) : null;
       if (action === "get-native-history-checkpoint") {
         const snap = await checkpointRef.get();
         if (!snap.exists) return {ok:true,exists:false,coverageComplete:false,eligibleForAuto:false};
         const record = snap.data() || {};
         return {ok:true,exists:true,revision:record.revision || 0,
+          sourceRevisionAtOpen:record.sourceRevisionAtOpen ?? null,
+          sourceRevisionNow:sourceRevision,
+          sourceRevisionChanged:sourceRevision === null || record.sourceRevisionAtOpen !== sourceRevision,
           status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
           blockers:["independent-source-coverage-certification-required"],
           coverageComplete:false,evidenceApproved:false,eligibleForAuto:false};
@@ -818,7 +823,8 @@ export const skillCheckCoachCall =
         const nextRevision = currentRevision + 1;
         tx.set(checkpointRef, {
           kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT", athleteId, discipline,
-          revision:nextRevision, status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
+          revision:nextRevision, sourceRevisionAtOpen:sourceRevision,
+          status:"DIAGNOSTIC_PENDING_SERVER_VERIFICATION",
           actorUid:actor.uid, updatedAt:FieldValue.serverTimestamp(),
           // Reset on revision change. Never inherit evidence from prior runs.
           requiredScopes:[], completedScopes:[], continuationScopes:[],
