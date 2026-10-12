@@ -609,6 +609,8 @@ export const skillCheckCoachCall =
               || run.status !== "CERTIFIED" || run.certificateId !== largeCertificateId
               || acceptance.kind !== "LARGE_HISTORY_EVIDENCE_ACCEPTANCE"
               || acceptance.certificateId !== largeCertificateId
+              || acceptance.reviewRevision !== certificate.reviewRevision
+              || Number(review.revision || 1) !== certificate.reviewRevision
               || acceptance.inventoryRootHash !== certificate.inventoryRootHash
               || !sourceRevisionSnap.exists || certificate.sourceRevision !== sourceRevision
               || run.sourceRevision !== sourceRevision
@@ -1882,9 +1884,13 @@ export const skillCheckCoachCall =
             || review.evidenceApproved!==true || review.coverageComplete!==true
             || !certificateSnap.exists || !runSnap.exists || !acceptanceSnap.exists || revocationSnap.exists
             || certificate.kind!=="SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE"
+            || certificate.schemaVersion!==1
             || certificate.athleteId!==athleteId || certificate.discipline!==discipline
             || certificate.runId!==largeCertificateId || run.status!=="CERTIFIED"
             || acceptance.kind!=="LARGE_HISTORY_EVIDENCE_ACCEPTANCE"
+            || acceptance.certificateId!==largeCertificateId
+            || acceptance.reviewRevision!==certificate.reviewRevision
+            || Number(review.revision||1)!==certificate.reviewRevision
             || acceptance.inventoryRootHash!==certificate.inventoryRootHash
             || !sourceRevisionSnap.exists || certificate.sourceRevision!==sourceRevision
             || run.sourceRevision!==sourceRevision || run.inventoryRootHash!==certificate.inventoryRootHash

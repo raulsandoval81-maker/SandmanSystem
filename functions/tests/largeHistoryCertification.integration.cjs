@@ -81,17 +81,32 @@ test("large history resumes across hash-chained inventory and independent reconc
     if(page.exhausted) break;
   }
   assert.equal(reconciliationPages,inventoryPages);
+  const unindexedPracticeId="legacy-memory-only-"+suffix;
+  const unindexedMemory=db.doc("practiceSessions/"+unindexedPracticeId+"/athletes/"+athleteId);
+  await unindexedMemory.set({practiceId:unindexedPracticeId,athleteId,discipline:"wrestling",
+    attendance:{status:"present"}});
+  await assert.rejects(invoke("finalize",{runId:opened.runId}),error=>
+    error.code==="failed-precondition"&&String(error.message).includes("attendance-index-incomplete"));
+  await unindexedMemory.delete();
   const finalized=await invoke("finalize",{runId:opened.runId});
   assert.equal(finalized.coverageComplete,true);
   assert.equal(finalized.evidenceApproved,false);
   assert.equal(finalized.verifiedPracticeCount,55);
   assert.equal(finalized.verifiedEvidenceCount,55);
+  const finalizedRetry=await invoke("finalize",{runId:opened.runId});
+  assert.equal(finalizedRetry.idempotent,true);
   const certificate=await db.doc("athletes/"+athleteId+"/largeHistoryCertificates/"+opened.runId).get();
   assert.equal(certificate.data().kind,"SERVER_CERTIFIED_LARGE_HISTORY_COVERAGE");
   assert.equal(certificate.data().skillStates[0].state,"APPLIED");
+  const reviewRef=db.doc("athletes/"+athleteId+"/historicalTransferReviews/wrestling");
+  await reviewRef.update({revision:2});
+  await assert.rejects(invoke("accept",{runId:opened.runId}),error=>error.code==="failed-precondition");
+  await reviewRef.update({revision:1});
   const accepted=await invoke("accept",{runId:opened.runId});
   assert.equal(accepted.evidenceApproved,true);
   assert.equal(accepted.eligibleForAuto,false);
+  const acceptedRetry=await invoke("accept",{runId:opened.runId});
+  assert.equal(acceptedRetry.accepted,true);
   const preview=await skillCheck.run({auth,data:{action:"preview-accepted-skill-state",athleteId,
     discipline:"wrestling"}});
   assert.equal(preview.blockers.length,0,JSON.stringify(preview.blockers));
