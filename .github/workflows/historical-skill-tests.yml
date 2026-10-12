@@ -25,7 +25,9 @@ on:
       - 'docs/staging-change-b-callable-transport.md'
       - 'docs/evidence/staging-phase-5/**'
       - 'docs/staging-phase-6a-recovery-execution-plan.md'
+      - 'docs/staging-phase-6b-operator-verification.md'
       - 'tests/functions/staging-recovery-checkpoint.test.mjs'
+      - 'tests/functions/staging-phase-6b-readiness.test.mjs'
       - 'scripts/staging/recovery-bucket-lifecycle.json'
       - 'firebase.staging.json'
       - '.firebaserc'
@@ -56,7 +58,9 @@ on:
       - 'docs/staging-change-b-callable-transport.md'
       - 'docs/evidence/staging-phase-5/**'
       - 'docs/staging-phase-6a-recovery-execution-plan.md'
+      - 'docs/staging-phase-6b-operator-verification.md'
       - 'tests/functions/staging-recovery-checkpoint.test.mjs'
+      - 'tests/functions/staging-phase-6b-readiness.test.mjs'
       - 'scripts/staging/recovery-bucket-lifecycle.json'
       - 'firebase.staging.json'
       - '.firebaserc'
@@ -82,7 +86,7 @@ jobs:
       - run: npm ci
         working-directory: functions
       - name: Verify staging isolation, runtime hardening, inspection, fixtures, and runner
-        run: node --test tests/functions/wrestling-staging-isolation.test.mjs tests/functions/historical-staging-readiness.test.mjs tests/functions/staging-runtime-hardening.test.mjs tests/functions/staging-recovery-checkpoint.test.mjs
+        run: node --test tests/functions/wrestling-staging-isolation.test.mjs tests/functions/historical-staging-readiness.test.mjs tests/functions/staging-runtime-hardening.test.mjs tests/functions/staging-recovery-checkpoint.test.mjs tests/functions/staging-phase-6b-readiness.test.mjs
 
   functions-tests:
     runs-on: ubuntu-24.04
