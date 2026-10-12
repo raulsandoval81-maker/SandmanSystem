@@ -16,11 +16,11 @@ Create only after approval:
 - Standard storage, not Requester Pays or Rapid;
 - uniform bucket-level access enabled and public access prevention enforced;
 - object versioning enabled;
-- proposed unlocked 30-day retention and lifecycle deletion at 45 days for live objects plus 30 days for noncurrent versions, subject to an operator retention decision;
+- unlocked 30-day retention, lifecycle deletion at 45 days for live objects plus 30 days for noncurrent versions, and 7-day soft delete, accepted for planning in Phase 6C;
 - no production principal, cross-project writer, public member, or broad legacy ACL;
 - least-privilege access for the staging Firestore service agent and separately approved recovery operators.
 
-Billing and Blaze status, organization policy, aggregate storage scale, and the accepted retention settings were reviewed in Phase 6B. Before creation, confirm the console-only import/export execution identity, decide the bucket soft-delete duration, repair the local Storage CLI or select Cloud Shell, approve the one-export cost ceiling, and retain the existing recovery-time, recovery-point, and legal-retention decisions.
+Billing and Blaze status, organization policy, aggregate storage scale, and retention settings were reviewed in Phase 6B. Phase 6C accepted a USD 1 initial-export ceiling, 7-day soft delete, and no recurring schedule for planning. Before creation, confirm the console-only import/export execution identity, repair the local Storage CLI after separate authorization or select Cloud Shell, and retain the existing recovery-time, recovery-point, and legal-retention decisions.
 
 ## Required permissions
 
