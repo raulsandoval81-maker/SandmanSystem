@@ -49,38 +49,25 @@ export const syncActivatedEnrollmentPlacement = onDocumentUpdated(
     }
 
     const athleteRef = db.doc(`athletes/${athleteUid}`);
-    const athleteSnap = await athleteRef.get();
-
-    if (!athleteSnap.exists) return;
-
-    const athlete = athleteSnap.data() || {};
-    const primaryDiscipline = clean(
-      athlete.primaryDiscipline ||
-      athlete.activeDiscipline ||
-      athlete.discipline
-    ).toLowerCase();
-
-    const update: Record<string, unknown> = {
-      locationId,
-      enrollmentIntakeId: clean(event.params.intakeId),
-      enrollmentProposalId: proposalId || null,
-      "placement.locationId": locationId,
-      updatedAt: FieldValue.serverTimestamp(),
-    };
-
-    if (primaryDiscipline) {
-      update[`disciplines.${primaryDiscipline}.locationId`] =
-        locationId;
-      update[
-        `disciplines.${primaryDiscipline}.placement.locationId`
-      ] = locationId;
-    }
-
     await db.runTransaction(async (tx) => {
       const currentSnap = await tx.get(athleteRef);
       if (!currentSnap.exists) return;
       const current = currentSnap.data() || {};
       const oldLocation = clean(current.locationId);
+      const primaryDiscipline = clean(
+        current.primaryDiscipline || current.activeDiscipline || current.discipline
+      ).toLowerCase();
+      const update: Record<string, unknown> = {
+        locationId,
+        enrollmentIntakeId: clean(event.params.intakeId),
+        enrollmentProposalId: proposalId || null,
+        "placement.locationId": locationId,
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+      if (primaryDiscipline) {
+        update[`disciplines.${primaryDiscipline}.locationId`] = locationId;
+        update[`disciplines.${primaryDiscipline}.placement.locationId`] = locationId;
+      }
       tx.update(athleteRef, update);
       // A location change alters which native practice scopes are relevant.
       // Invalidate the primary discipline in the same transaction; other
