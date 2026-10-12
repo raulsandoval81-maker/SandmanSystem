@@ -637,6 +637,15 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.ok(assessed.blockers.includes("independent-full-history-attestation-required"));
  const states=await invoke("preview-accepted-skill-state");
  assert.equal(states.skillStates[0].state,"LEARNED");
+ // A later canonical history mutation invalidates certificate consumption.
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({revision:2});
+ const staleGroup=await invoke("preview-group-lessons",{
+   athleteIds:[id],familyIds:["double_leg"],
+ });
+ assert.equal(staleGroup.ready,false);
+ assert.ok(staleGroup.blockers.some(blocker=>String(blocker).includes("source-revision-uncertified-or-stale"))
+   || staleGroup.members?.some(member=>member.blockers.includes("source-revision-uncertified-or-stale")));
+ assert.equal(staleGroup.eligibleForAuto,false);
  await db.doc("practiceSessions/"+practiceId).update({sessionDateKey:"2026-10-02"});
  const staleApproval=await invoke("commit-transfer-acceptance",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
