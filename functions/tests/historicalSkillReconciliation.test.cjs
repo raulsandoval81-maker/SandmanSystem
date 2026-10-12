@@ -552,3 +552,16 @@ test("source-history certificate freshness is fail-closed for legacy and stale r
     assert.equal(current(certified, observed), false, JSON.stringify({certified, observed}));
   }
 });
+
+test("legacy history remains quarantined until a server-verified complete baseline", () => {
+  const {historicalSourceBaselineIsVerified: verified} =
+    require("../lib/modules/historicalCertificateSourceRevision");
+  for (const record of [null, {}, {revision: 99}, {revision: 1, baselineStatus: "VERIFIED_COMPLETE"},
+    {baselineStatus:"VERIFIED_COMPLETE", baselineAuthority:"CLIENT_APPROVED",baselineVersion:1},
+    {baselineStatus:"PENDING", baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1},
+    {baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:0}]) {
+    assert.equal(verified(record),false);
+  }
+  assert.equal(verified({baselineStatus:"VERIFIED_COMPLETE",
+    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1}),true);
+});
