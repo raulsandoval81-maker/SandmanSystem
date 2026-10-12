@@ -562,6 +562,23 @@ test("legacy history remains quarantined until a server-verified complete baseli
     {baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:0}]) {
     assert.equal(verified(record),false);
   }
-  assert.equal(verified({baselineStatus:"VERIFIED_COMPLETE",
-    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,revision:1,baselineSourceRevision:1,baselineEvidenceManifestId:"test-manifest"}),true);
+  const marker={baselineStatus:"VERIFIED_COMPLETE",
+    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,revision:1,
+    baselineSourceRevision:1,baselineEvidenceManifestId:"test-manifest",
+    baselineAttestationId:"test-manifest",baselineVerificationReceiptId:"test-receipt",
+    baselineInventoryFingerprint:"a".repeat(64),baselineScopeFingerprint:"b".repeat(64)};
+  assert.equal(verified(marker),true);
+  const {historicalBaselineAttestationMatches: matches} =
+    require("../lib/modules/historicalCertificateSourceRevision");
+  const attestation={kind:"SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION",schemaVersion:1,
+    athleteId:"ATHLETE",discipline:"wrestling",manifestId:"test-manifest",
+    verificationReceiptId:"test-receipt",reviewRevision:3,sourceRevision:1,
+    inventoryFingerprint:"a".repeat(64),scopeFingerprint:"b".repeat(64),
+    authorizedBy:"admin",attestedAt:{seconds:1},sourceEvidencePaths:["evidence/path"],
+    practiceIds:["practice"],scopeNames:["athlete-location"]};
+  const expected={athleteId:"ATHLETE",discipline:"wrestling",manifestId:"test-manifest",
+    verificationReceiptId:"test-receipt",reviewRevision:3};
+  assert.equal(matches(marker,attestation,expected),true);
+  assert.equal(matches(marker,{...attestation,athleteId:"FORGED"},expected),false);
+  assert.equal(matches(marker,{...attestation,sourceEvidencePaths:["evidence/path","evidence/path"]},expected),false);
 });
