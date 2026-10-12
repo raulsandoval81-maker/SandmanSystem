@@ -1135,3 +1135,23 @@ test("practice-backed Skill Check increments source revision only for changed ve
  assert.equal((await ref.get()).data().revision,2);
  assert.equal((await ref.get()).data().lastMutationKind,"verified-skill-observation");
 });
+
+test("native checkpoint exposes changing source revision but never certifies it",async()=>{
+ const id="F8_NATIVE_SOURCE_DRIFT";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ const source=db.doc("athletes/"+id+"/historyRevisions/wrestling");
+ await source.set({revision:4});
+ const invoke=(action,extra={})=>callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
+  action,athleteId:id,discipline:"wrestling",...extra
+ }});
+ const opened=await invoke("open-native-history-checkpoint",{expectedRevision:0});
+ const initial=await invoke("get-native-history-checkpoint");
+ assert.equal(initial.sourceRevisionAtOpen,4);
+ assert.equal(initial.sourceRevisionChanged,false);
+ await source.update({revision:5});
+ const stale=await invoke("get-native-history-checkpoint");
+ assert.equal(stale.sourceRevisionChanged,true);
+ assert.equal(stale.sourceRevisionNow,5);
+ assert.equal(stale.eligibleForAuto,false);
+ assert.equal(opened.evidenceApproved,false);
+});
