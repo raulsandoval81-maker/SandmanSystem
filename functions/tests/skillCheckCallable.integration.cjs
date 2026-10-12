@@ -1177,3 +1177,19 @@ test("native checkpoint rejects source revision changes before advancing",async(
  const advanced=await invoke("advance-native-history-checkpoint",refreshed.revision);
  assert.equal(advanced.eligibleForAuto,false);
 });
+
+test("native checkpoint rejects athlete location scope changes",async()=>{
+ const id="F8_NATIVE_SCOPE_DRIFT";
+ const athleteRef=db.doc("athletes/"+id);
+ await athleteRef.set({locationId:"test-location",academyId:"test-academy",previousLocationIds:[]});
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1});
+ const invoke=(action,expectedRevision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
+  data:{action,athleteId:id,discipline:"wrestling",expectedRevision}});
+ const opened=await invoke("open-native-history-checkpoint",0);
+ await athleteRef.update({previousLocationIds:["historical-location"]});
+ await assert.rejects(invoke("advance-native-history-checkpoint",opened.revision),
+  e=>e.code==="failed-precondition");
+ await athleteRef.update({previousLocationIds:[],locationId:"moved-location"});
+ await assert.rejects(invoke("advance-native-history-checkpoint",opened.revision),
+  e=>e.code==="failed-precondition");
+});
