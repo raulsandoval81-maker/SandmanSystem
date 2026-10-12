@@ -86,3 +86,38 @@ test("enrollment location change invalidates every recorded discipline once", as
       "identical event delivery must not invalidate a second time");
   }
 });
+
+const closePractice = require("../lib/practice/practiceSessions").closePracticeSession;
+const {awardReceiptKey} = require("../lib/services/authoritativeXpService");
+test("closeout creates missing athlete memory and invalidates exactly once", async () => {
+  const id = "F8_CLOSE_REV_" + suffix;
+  const practiceId = "closeout-revision-" + suffix;
+  const coachId = "closeout-coach-" + suffix;
+  await db.doc("staff/" + coachId).set({
+    role: "coach", status: "active", locationIds: ["santa-ynez-valley"],
+  });
+  await db.doc("athletes/" + id).set({ locationId: "santa-ynez-valley" });
+  await db.doc("practiceSessions/" + practiceId).set({
+    practiceId, status: "active", coachUid: coachId,
+    locationId: "santa-ynez-valley", discipline: "wrestling",
+    sessionDateKey: "2026-10-11",
+  });
+  await db.doc("attendance_sessions/" + practiceId).set({
+    practiceId, status: "finalized", finalized: true,
+    discipline: "wrestling", presentIds: [id], present: [{ id }],
+    readyForDailyGrind: false, dailyGrindRemainingIds: [],
+  });
+  await db.doc("xpAwardReceipts/" + awardReceiptKey(id, "attendance:" + practiceId))
+    .set({result: {ok: true}});
+  const payload = {auth: {uid: coachId, token: {}},
+    data: {practiceId, attendanceSessionId: practiceId}};
+  const first = await closePractice.run(payload);
+  assert.equal(first.ok, true);
+  const memory = db.doc("practiceSessions/" + practiceId + "/athletes/" + id);
+  assert.equal((await memory.get()).get("discipline"), "wrestling");
+  const rev = db.doc("athletes/" + id + "/historyRevisions/wrestling");
+  assert.equal((await rev.get()).get("revision"), 1);
+  await closePractice.run(payload);
+  assert.equal((await rev.get()).get("revision"), 1,
+    "repeated closeout must not invalidate unchanged memory");
+});
