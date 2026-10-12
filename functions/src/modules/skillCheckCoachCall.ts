@@ -20,14 +20,14 @@ import {
   requireActiveStaff,
   staffHasLocation,
 } from "../services/staffAuthorization";
-import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
+import { resolveStagingCallableRuntimeOptions } from "../config/functionRuntime";
 import {
   historicalBaselineAttestationMatches,
   historicalEvidenceFingerprint,
   historicalSourceBaselineIsVerified,
 } from "./historicalCertificateSourceRevision";
 
-const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
+const skillCheckRuntimeOptions = resolveStagingCallableRuntimeOptions();
 
 const SKILL_CHECK_STAFF_ROLES = Object.freeze([
   "admin",

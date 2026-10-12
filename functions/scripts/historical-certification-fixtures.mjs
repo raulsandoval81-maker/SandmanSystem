@@ -45,7 +45,9 @@ export function buildSyntheticCertificationFixtures() {
     interruptedCertification:{athleteId:"batch-e-interrupted",expected:"resume-from-server-cursor"},
     revocationAfterAcceptance:{athleteId:"batch-e-revoked",expectedBlocker:"large-history-authority-invalid-or-stale"},
   };
-  return {fixtureOwner:"batch-e-certification",syntheticOnly:true,documents,scenarios};
+  return {fixtureOwner:"batch-e-certification",syntheticOnly:true,documents,scenarios,
+    safety:{eligibleForAuto:false,xpAwarded:false,rankChanged:false,
+      promotionApplied:false,lessonExecutionStarted:false}};
 }
 
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
