@@ -1111,3 +1111,27 @@ test("inventory refresh detects a practice removed from finalized attendance",as
  assert.equal(result.evidenceApproved,false);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("practice-backed Skill Check increments source revision only for changed verification",async()=>{
+ const id="F8_SOURCE_REVISION",practiceId="source-revision-practice";
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
+ await db.doc("practiceSessions/"+practiceId).set({
+  coachUid:"test-coach",locationId:"test-location",academyId:"test-academy",
+  discipline:"wrestling",sessionDateKey:"2026-10-11"});
+ await db.doc("attendance_sessions/"+practiceId).set({
+  practiceId,locationId:"test-location",discipline:"wrestling",
+  status:"finalized",finalized:true,presentIds:[id]});
+ await db.doc("practiceSessions/"+practiceId+"/athletes/"+id).set({
+  practiceId,athleteId:id,discipline:"wrestling",attendance:{status:"present"}});
+ const ref=db.doc("athletes/"+id+"/historyRevisions/wrestling");
+ const save=(state)=>callable.run({auth:{uid:"test-coach",token:{}},data:{
+  action:"save",athleteId:id,discipline:"wrestling",practiceId,familyId:"double_leg",state
+ }});
+ await save("LEARNED");
+ assert.equal((await ref.get()).data().revision,1);
+ await save("LEARNED");
+ assert.equal((await ref.get()).data().revision,1);
+ await save("APPLIED");
+ assert.equal((await ref.get()).data().revision,2);
+ assert.equal((await ref.get()).data().lastMutationKind,"verified-skill-observation");
+});
