@@ -4,6 +4,8 @@ Date: 2026-10-12
 
 Status: **CONDITIONAL — stop at the bucket-provisioning approval boundary.** Phase 6B performed documentation, local validation, and read-only cloud inspection only. It did not create a bucket, change billing or IAM, read athlete documents, start an export/import, deploy, merge, activate AUTO, or begin a canary.
 
+Phase 6C subsequently accepted, for planning only, a USD 1 initial-export ceiling, 7-day soft delete, and no recurring schedule. See `docs/staging-phase-6c-provisioning-prerequisites.md`; CLI repair and provisioning remain unauthorized.
+
 ## Decision summary
 
 | Check | Result | Evidence |
