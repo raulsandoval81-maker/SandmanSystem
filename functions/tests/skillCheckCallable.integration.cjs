@@ -462,7 +462,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const practiceId="test-e2e-attestation-practice";
  const auth={uid:"test-admin-transfer",token:{}};
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"]});
- await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1,lastMutationKind:"emulator-baseline",baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,baselineSourceRevision:1,baselineEvidenceManifestId:"e2e-history-manifest"});
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").set({revision:1,lastMutationKind:"emulator-baseline",baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,baselineSourceRevision:1,baselineEvidenceManifestId:"PENDING_MANIFEST"});
  await db.doc("practiceSessions/"+practiceId).set({
    coachUid:"former-coach",locationId:"e2e-former-location",
    discipline:"wrestling",sessionDateKey:"2026-10-03",
@@ -485,6 +485,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(scan.practices.length,1);
  const manifest=await invoke("build-verified-evidence-manifest");
  assert.equal(manifest.recordCount,1);
+ await db.doc("athletes/"+id+"/historyRevisions/wrestling").update({baselineEvidenceManifestId:manifest.manifestId});
  assert.ok(manifest.blockers.includes("historical-transfer-coverage-unverified"));
  assert.ok(manifest.blockers.includes("current-skill-state-unresolved"));
  const sources=await invoke("verify-evidence-manifest",{manifestId:manifest.manifestId,recordVerification:true});
