@@ -839,6 +839,32 @@ export const skillCheckCoachCall =
         evidenceApproved:false,coverageComplete:false,eligibleForAuto:false};
     }
 
+    // Fail closed before any native review step when source history is
+    // unversioned or has changed since this checkpoint opened. This is
+    // a diagnostic safety gate, not certificate authorization.
+    if ([
+      "advance-native-history-checkpoint",
+      "advance-native-skill-evidence-checkpoint",
+      "recheck-native-history-checkpoint",
+      "advance-native-full-recheck",
+      "begin-native-consistency-pass",
+      "advance-native-consistency-pass",
+      "advance-native-inventory-refresh",
+    ].includes(action)) {
+      const ref = db.doc(`athletes/${athleteId}/nativeHistoryCheckpoints/${discipline}`);
+      const [checkpointSnap, revisionSnap] = await Promise.all([
+        ref.get(), db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`).get(),
+      ]);
+      const checkpoint = checkpointSnap.data() || {};
+      const sourceRevision = Number(revisionSnap.data()?.revision);
+      if (!checkpointSnap.exists || !revisionSnap.exists
+          || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1
+          || checkpoint.sourceRevisionAtOpen !== sourceRevision) {
+        throw new HttpsError("failed-precondition",
+          "Native source revision missing or changed. Restart review after verifying historical coverage.");
+      }
+    }
+
     if (action === "advance-native-history-checkpoint") {
       if (normalizeStaffRole(actor.role) !== "admin") {
         throw new HttpsError("permission-denied", "Native checkpoint traversal requires Admin authority.");
