@@ -2,8 +2,6 @@ import {
   onCall,
   HttpsError,
 } from "firebase-functions/v2/https";
-import { createHash } from "node:crypto";
-
 import {
   FieldPath,
   FieldValue,
@@ -25,6 +23,7 @@ import {
 import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
 import {
   historicalBaselineAttestationMatches,
+  historicalEvidenceFingerprint,
   historicalSourceBaselineIsVerified,
 } from "./historicalCertificateSourceRevision";
 
@@ -81,10 +80,6 @@ const ALLOWED_STATES = Object.freeze([
   "MASTERED",
   "REFINED",
 ]);
-
-function historicalFingerprint(value: unknown): string {
-  return createHash("sha256").update(JSON.stringify(value)).digest("hex");
-}
 
 const WRESTLING_FAMILIES = Object.freeze([
   "stance_motion",
@@ -1955,11 +1950,13 @@ export const skillCheckCoachCall =
       const revocationRef = reviewRef.collection("baselineAttestationRevocations").doc(manifestId);
       const outcome = await db.runTransaction(async tx => {
         const [reviewSnap, athleteSnap, manifestSnap, receiptSnap, sourceRevisionSnap,
-          existingAttestationSnap, revocationSnap] = await Promise.all([
+          existingAttestationSnap, revocationSnap, crossTrainingSnap] = await Promise.all([
           tx.get(reviewRef), tx.get(db.doc(`athletes/${athleteId}`)),
           tx.get(reviewRef.collection("evidenceManifests").doc(manifestId)),
           tx.get(reviewRef.collection("sourceVerificationReceipts").doc(verificationReceiptId)),
           tx.get(sourceRevisionRef), tx.get(attestationRef), tx.get(revocationRef),
+          tx.get(db.collection("athleteCrossTrainingAssignments")
+            .where("athleteId", "==", athleteId).limit(12)),
         ]);
         const review = reviewSnap.data() || {};
         const current = athleteSnap.data() || {};
@@ -1987,6 +1984,21 @@ export const skillCheckCoachCall =
           blockers.push("source-revision-baseline-required");
         if (!currentLocation) blockers.push("current-location-missing");
         if (previous.length > 10 || scopes.length > 12) blockers.push("too-many-history-scopes");
+        if (crossTrainingSnap.size > 10) blockers.push("too-many-cross-training-history-scopes");
+        const coveredLocations = new Set([currentLocation, ...previous].filter(Boolean));
+        const unsupportedCrossTrainingLocations = [...new Set(crossTrainingSnap.docs
+          .filter(doc => {
+            const assignment = doc.data() || {};
+            const disciplines = Array.isArray(assignment.disciplineIds)
+              ? assignment.disciplineIds.map(normalizeDiscipline) : [];
+            return disciplines.includes(discipline);
+          })
+          .map(doc => clean(doc.data()?.hostLocationId))
+          .filter(location => location && !coveredLocations.has(location)))].sort();
+        if (unsupportedCrossTrainingLocations.length) {
+          blockers.push("cross-training-history-scope-not-supported:"
+            + unsupportedCrossTrainingLocations.join(","));
+        }
         if (!manifestSnap.exists || manifest.kind !== "SERVER_SOURCED_UNAPPROVED_EVIDENCE_MANIFEST"
             || clean(manifest.athleteId) !== athleteId
             || normalizeDiscipline(manifest.discipline) !== discipline
@@ -1995,8 +2007,12 @@ export const skillCheckCoachCall =
           ? manifest.records : [];
         if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
         const manifestPaths = records.map(record => clean(record.skillEvidencePath)).sort();
+        const manifestIdentities = records.map(record => [
+          clean(record.practiceId), normalizeFamily(record.familyId),
+        ].join("|"));
         if (manifestPaths.some(path => !path)
-            || new Set(manifestPaths).size !== manifestPaths.length) {
+            || new Set(manifestPaths).size !== manifestPaths.length
+            || new Set(manifestIdentities).size !== manifestIdentities.length) {
           blockers.push("manifest-evidence-paths-invalid-or-duplicated");
         }
         if (!receiptSnap.exists || receipt.kind !== "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT"
@@ -2114,8 +2130,8 @@ export const skillCheckCoachCall =
         const inventory = [...observedEvidence.values()]
           .sort((a, b) => clean(a.path).localeCompare(clean(b.path)));
         const scopeIdentity = scopes.map(item => ({scope: item.scope, value: item.value}));
-        const inventoryFingerprint = historicalFingerprint(inventory);
-        const scopeFingerprint = historicalFingerprint(scopeIdentity);
+        const inventoryFingerprint = historicalEvidenceFingerprint(inventory);
+        const scopeFingerprint = historicalEvidenceFingerprint(scopeIdentity);
         const existing = existingAttestationSnap.data() || {};
         if (existingAttestationSnap.exists) {
           const idempotent = existing.kind === "SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION"
@@ -2142,6 +2158,7 @@ export const skillCheckCoachCall =
           athleteId, discipline, sourceRevision, reviewRevision,
           manifestId, verificationReceiptId,
           inventoryFingerprint, scopeFingerprint,
+          inventory, scopeInventory: scopeIdentity,
           scopeNames: scopes.map(item => item.scope),
           practiceIds: [...observedPractices].sort(),
           sourceEvidencePaths: [...observedEvidence.keys()].sort(),

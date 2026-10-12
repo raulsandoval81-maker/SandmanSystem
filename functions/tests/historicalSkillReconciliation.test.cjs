@@ -553,7 +553,20 @@ test("source-history certificate freshness is fail-closed for legacy and stale r
   }
 });
 
+test("enrollment add-sport writer atomically invalidates historical certification", () => {
+  const fs=require("node:fs");
+  const path=require("node:path");
+  const source=fs.readFileSync(path.resolve(__dirname,"../src/approveAndActivate.ts"),"utf8");
+  const attachment=source.slice(source.indexOf("const athletePatch: Record<string, any>"),
+    source.indexOf("tx.update(\n            addSportIntakeRef"));
+  assert.match(attachment,/historyRevisions/);
+  assert.match(attachment,/enrollment-discipline-added/);
+  assert.match(attachment,/FieldValue\.increment\(1\)/);
+});
+
 test("legacy history remains quarantined until a server-verified complete baseline", () => {
+  const {createHash}=require("node:crypto");
+  const hash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
   const {historicalSourceBaselineIsVerified: verified} =
     require("../lib/modules/historicalCertificateSourceRevision");
   for (const record of [null, {}, {revision: 99}, {revision: 1, baselineStatus: "VERIFIED_COMPLETE"},
@@ -562,18 +575,20 @@ test("legacy history remains quarantined until a server-verified complete baseli
     {baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:0}]) {
     assert.equal(verified(record),false);
   }
+  const inventory=[{path:"evidence/path",practiceId:"practice"}];
+  const scopeInventory=[{scope:"athlete-location",value:"location"}];
   const marker={baselineStatus:"VERIFIED_COMPLETE",
     baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,revision:1,
     baselineSourceRevision:1,baselineEvidenceManifestId:"test-manifest",
     baselineAttestationId:"test-manifest",baselineVerificationReceiptId:"test-receipt",
-    baselineInventoryFingerprint:"a".repeat(64),baselineScopeFingerprint:"b".repeat(64)};
+    baselineInventoryFingerprint:hash(inventory),baselineScopeFingerprint:hash(scopeInventory)};
   assert.equal(verified(marker),true);
   const {historicalBaselineAttestationMatches: matches} =
     require("../lib/modules/historicalCertificateSourceRevision");
   const attestation={kind:"SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION",schemaVersion:1,
     athleteId:"ATHLETE",discipline:"wrestling",manifestId:"test-manifest",
     verificationReceiptId:"test-receipt",reviewRevision:3,sourceRevision:1,
-    inventoryFingerprint:"a".repeat(64),scopeFingerprint:"b".repeat(64),
+    inventoryFingerprint:hash(inventory),scopeFingerprint:hash(scopeInventory),inventory,scopeInventory,
     authorizedBy:"admin",attestedAt:{seconds:1},sourceEvidencePaths:["evidence/path"],
     practiceIds:["practice"],scopeNames:["athlete-location"]};
   const expected={athleteId:"ATHLETE",discipline:"wrestling",manifestId:"test-manifest",
@@ -581,4 +596,6 @@ test("legacy history remains quarantined until a server-verified complete baseli
   assert.equal(matches(marker,attestation,expected),true);
   assert.equal(matches(marker,{...attestation,athleteId:"FORGED"},expected),false);
   assert.equal(matches(marker,{...attestation,sourceEvidencePaths:["evidence/path","evidence/path"]},expected),false);
+  assert.equal(matches(marker,{...attestation,inventory:[{path:"forged/path",practiceId:"practice"}]},expected),false);
+  assert.equal(matches(marker,{...attestation,scopeInventory:[{scope:"prior-location:forged",value:"forged"}]},expected),false);
 });

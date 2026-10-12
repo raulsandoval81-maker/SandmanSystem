@@ -1,3 +1,19 @@
+import { createHash } from "node:crypto";
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, item]) => [key, canonicalize(item)]));
+  }
+  return value;
+}
+
+export function historicalEvidenceFingerprint(value: unknown): string {
+  return createHash("sha256").update(JSON.stringify(canonicalize(value))).digest("hex");
+}
+
 /**
  * Server-owned historical source certificate freshness policy.
  * Absence of a tracked baseline must never count as a verified baseline.
@@ -67,6 +83,15 @@ export function historicalBaselineAttestationMatches(
     ? record.sourceEvidencePaths : [];
   const practiceIds = Array.isArray(record.practiceIds) ? record.practiceIds : [];
   const scopeNames = Array.isArray(record.scopeNames) ? record.scopeNames : [];
+  const inventory = Array.isArray(record.inventory) ? record.inventory : [];
+  const scopeInventory = Array.isArray(record.scopeInventory) ? record.scopeInventory : [];
+  const inventoryPaths = inventory.map((item) =>
+    item && typeof item === "object" ? (item as Record<string, unknown>).path : null);
+  const inventoryPracticeIds = [...new Set(inventory.map((item) =>
+    item && typeof item === "object" ? (item as Record<string, unknown>).practiceId : null))]
+    .filter(Boolean).sort();
+  const inventoryScopeNames = scopeInventory.map((item) =>
+    item && typeof item === "object" ? (item as Record<string, unknown>).scope : null);
   return record.kind === "SERVER_VERIFIED_HISTORICAL_BASELINE_ATTESTATION"
     && record.schemaVersion === 1
     && record.athleteId === expected.athleteId
@@ -77,14 +102,19 @@ export function historicalBaselineAttestationMatches(
     && record.sourceRevision === revision.revision
     && record.inventoryFingerprint === revision.baselineInventoryFingerprint
     && record.scopeFingerprint === revision.baselineScopeFingerprint
+    && historicalEvidenceFingerprint(inventory) === record.inventoryFingerprint
+    && historicalEvidenceFingerprint(scopeInventory) === record.scopeFingerprint
     && record.manifestId === revision.baselineEvidenceManifestId
     && record.verificationReceiptId === revision.baselineVerificationReceiptId
     && typeof record.authorizedBy === "string" && record.authorizedBy.length > 0
     && record.attestedAt != null
     && evidencePaths.length > 0
     && new Set(evidencePaths).size === evidencePaths.length
+    && JSON.stringify(inventoryPaths) === JSON.stringify(evidencePaths)
     && practiceIds.length > 0
     && new Set(practiceIds).size === practiceIds.length
+    && JSON.stringify(inventoryPracticeIds) === JSON.stringify(practiceIds)
     && scopeNames.length > 0
-    && new Set(scopeNames).size === scopeNames.length;
+    && new Set(scopeNames).size === scopeNames.length
+    && JSON.stringify(inventoryScopeNames) === JSON.stringify(scopeNames);
 }

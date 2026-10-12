@@ -514,6 +514,27 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(mismatched.certificateIssued,false);
  assert.ok(mismatched.blockers.includes("source-verification-receipt-evidence-mismatch"));
  await receiptRef.update({records:originalReceiptRecords});
+ const duplicateEvidenceRef=db.doc("practiceSessions/"+practiceId+"/athletes/"+id+"/verifiedSkills/duplicate-double-leg");
+ await duplicateEvidenceRef.set({
+   discipline:"wrestling",familyId:"double_leg",state:"LEARNED",
+   coachUid:"former-coach",verifiedAt:Timestamp.fromDate(new Date("2026-10-03T18:00:00Z")),
+ });
+ const duplicated=await invoke("establish-historical-baseline",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(duplicated.attested,false);
+ assert.ok(duplicated.blockers.some(blocker=>blocker.startsWith("unmatched-or-duplicated-evidence:")));
+ await duplicateEvidenceRef.delete();
+ const crossTrainingRef=db.doc("athleteCrossTrainingAssignments/e2e-unsupported-history-scope");
+ await crossTrainingRef.set({athleteId:id,hostLocationId:"e2e-cross-training-location",
+   homeLocationId:"test-location",disciplineIds:["wrestling"],status:"inactive"});
+ const unsupportedScope=await invoke("establish-historical-baseline",{
+   manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
+ });
+ assert.equal(unsupportedScope.attested,false);
+ assert.ok(unsupportedScope.blockers.includes(
+   "cross-training-history-scope-not-supported:e2e-cross-training-location"));
+ await crossTrainingRef.delete();
  const established=await invoke("establish-historical-baseline",{
    manifestId:manifest.manifestId,verificationReceiptId:sources.verificationReceiptId,
  });
@@ -570,6 +591,17 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
    athleteIds:[id],familyIds:["double_leg","single_leg"],
  });
  assert.equal(group.ready,true,JSON.stringify(group.blockers));
+ // A privileged accidental overwrite cannot preserve authority by leaving the
+ // old fingerprint strings in place: consumers recompute canonical contents.
+ const attestationRef=baselineAttestation.ref;
+ const canonicalInventory=baselineAttestation.data().inventory;
+ await attestationRef.update({inventory:[{...canonicalInventory[0],state:"FORGED"}]});
+ const tampered=await invoke("preview-group-lessons",{
+   athleteIds:[id],familyIds:["double_leg"],
+ });
+ assert.equal(tampered.ready,false);
+ assert.ok(tampered.blockers.includes("athlete-evidence-not-ready:"+id));
+ await attestationRef.update({inventory:canonicalInventory});
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
