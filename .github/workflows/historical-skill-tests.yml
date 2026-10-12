@@ -6,6 +6,7 @@ on:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
       - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
+      - 'functions/src/config/functionRuntime.ts'
       - 'functions/src/practice/practiceSessions.ts'
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
@@ -15,6 +16,7 @@ on:
       - 'scripts/staging/**'
       - 'tests/functions/historical-staging-readiness.test.mjs'
       - 'tests/functions/wrestling-staging-isolation.test.mjs'
+      - 'tests/functions/staging-runtime-hardening.test.mjs'
       - 'firebase.staging.json'
       - '.firebaserc'
       - 'functions/package.json'
@@ -25,6 +27,7 @@ on:
       - 'functions/src/modules/historicalSkillReconciliation.ts'
       - 'functions/src/modules/verifiedProgressionResolver.ts'
       - 'functions/src/modules/skillCheckCoachCall.ts'
+      - 'functions/src/config/functionRuntime.ts'
       - 'functions/src/practice/practiceSessions.ts'
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
@@ -34,6 +37,7 @@ on:
       - 'scripts/staging/**'
       - 'tests/functions/historical-staging-readiness.test.mjs'
       - 'tests/functions/wrestling-staging-isolation.test.mjs'
+      - 'tests/functions/staging-runtime-hardening.test.mjs'
       - 'firebase.staging.json'
       - '.firebaserc'
       - 'functions/package.json'
@@ -57,8 +61,8 @@ jobs:
           cache-dependency-path: functions/package-lock.json
       - run: npm ci
         working-directory: functions
-      - name: Verify staging isolation, inspection, fixtures, and runner
-        run: node --test tests/functions/wrestling-staging-isolation.test.mjs tests/functions/historical-staging-readiness.test.mjs
+      - name: Verify staging isolation, runtime hardening, inspection, fixtures, and runner
+        run: node --test tests/functions/wrestling-staging-isolation.test.mjs tests/functions/historical-staging-readiness.test.mjs tests/functions/staging-runtime-hardening.test.mjs
 
   functions-tests:
     runs-on: ubuntu-24.04
