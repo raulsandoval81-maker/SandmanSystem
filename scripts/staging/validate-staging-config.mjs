@@ -1,8 +1,10 @@
-import { PRODUCTION_PROJECT_ID } from "./verify-staging-boundary.mjs";
+import { PRODUCTION_PROJECT_ID, STAGING_PROJECT_ID } from "./verify-staging-boundary.mjs";
 
 export function validateStagingWebConfig(env = process.env) {
   const projectId = String(env.SANDMAN_STAGING_PROJECT_ID || "").trim();
-  if (!projectId || projectId === PRODUCTION_PROJECT_ID) throw new Error("A non-production SANDMAN_STAGING_PROJECT_ID is required.");
+  if (projectId !== STAGING_PROJECT_ID || projectId === PRODUCTION_PROJECT_ID) {
+    throw new Error("The exact approved staging project ID is required.");
+  }
   if (env.SANDMAN_STAGING_ACK !== projectId) throw new Error("SANDMAN_STAGING_ACK must exactly match the staging project ID.");
   let config;
   try { config = JSON.parse(env.SANDMAN_STAGING_WEB_CONFIG || ""); }
