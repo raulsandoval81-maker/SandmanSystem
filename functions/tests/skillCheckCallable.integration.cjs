@@ -1015,7 +1015,7 @@ test("large native history recheck cannot silently certify a bounded sample",asy
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
  await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
   kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT",athleteId:id,discipline:"wrestling",
-  revision:9,sourceRevisionAtOpen:1,attendanceScanExhausted:true,skillScanExhausted:true,
+  revision:9,sourceRevisionAtOpen:1,locationIdAtOpen:"test-location",priorLocationIdsAtOpen:[],attendanceScanExhausted:true,skillScanExhausted:true,
   inventoryPracticeIds:Array.from({length:21},(_,i)=>"large_native_"+i),
   evidencePracticeIds:[],coverageComplete:false,evidenceApproved:false,eligibleForAuto:false
  });
@@ -1034,7 +1034,7 @@ test("resumable full-history recheck advances past twenty records without certif
  const ids=Array.from({length:21},(_,i)=>"full_recheck_"+String(i).padStart(2,"0"));
  await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
   kind:"NATIVE_HISTORY_REVIEW_CHECKPOINT",athleteId:id,discipline:"wrestling",
-  revision:1,sourceRevisionAtOpen:1,attendanceScanExhausted:true,skillScanExhausted:true,
+  revision:1,sourceRevisionAtOpen:1,locationIdAtOpen:"test-location",priorLocationIdsAtOpen:[],attendanceScanExhausted:true,skillScanExhausted:true,
   inventoryPracticeIds:ids,evidencePracticeIds:[],coverageComplete:false,eligibleForAuto:false
  });
  const invoke=(revision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
@@ -1059,7 +1059,7 @@ test("consistency pass requires completed recheck and remains diagnostic",async(
  const id="F8_NATIVE_CONSISTENCY_PASS";
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
  const ref=db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling");
- await ref.set({revision:1,sourceRevisionAtOpen:1,attendanceScanExhausted:true,skillScanExhausted:true,
+ await ref.set({revision:1,sourceRevisionAtOpen:1,locationIdAtOpen:"test-location",priorLocationIdsAtOpen:[],attendanceScanExhausted:true,skillScanExhausted:true,
    fullRecheckExhausted:true,inventoryPracticeIds:["missing-consistency-source"],
    evidencePracticeIds:[],eligibleForAuto:false});
  const invoke=(action,revision)=>callable.run({auth:{uid:"test-admin-transfer",token:{}},
@@ -1077,7 +1077,7 @@ test("post-consistency inventory refresh detects a newly finalized athlete pract
  const id="F8_INVENTORY_REFRESH",practiceId="refresh-added-practice";
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
  await db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling").set({
-  revision:3,sourceRevisionAtOpen:1,consistencyPassExhausted:true,inventoryPracticeIds:[],
+  revision:3,sourceRevisionAtOpen:1,locationIdAtOpen:"test-location",priorLocationIdsAtOpen:[],consistencyPassExhausted:true,inventoryPracticeIds:[],
   inventoryRefreshPracticeIds:[],coverageComplete:false,evidenceApproved:false,eligibleForAuto:false
  });
  await db.doc("attendance_sessions/"+practiceId).set({
@@ -1102,7 +1102,7 @@ test("inventory refresh detects a practice removed from finalized attendance",as
  const id="F8_REFRESH_REMOVED";
  await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"test-academy"});
  const ref=db.doc("athletes/"+id+"/nativeHistoryCheckpoints/wrestling");
- await ref.set({revision:2,sourceRevisionAtOpen:1,consistencyPassExhausted:true,
+ await ref.set({revision:2,sourceRevisionAtOpen:1,locationIdAtOpen:"test-location",priorLocationIdsAtOpen:[],consistencyPassExhausted:true,
   inventoryPracticeIds:["previously-finalized-practice"],inventoryRefreshPracticeIds:[],
   coverageComplete:false,eligibleForAuto:false});
  const result=await callable.run({auth:{uid:"test-admin-transfer",token:{}},data:{
