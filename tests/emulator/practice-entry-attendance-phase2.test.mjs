@@ -34,7 +34,11 @@ before(async () => {
       discipline: "wrestling", primaryDiscipline: "wrestling", disciplines: ["wrestling"],
       disciplineIds: ["wrestling"], enrolledDisciplines: ["wrestling"],
     }),
-    db.doc("athletes/F4_VISITOR_ACTIVE").set({ fullName: "Approved Lompoc Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", disciplineIds: ["wrestling"] }),
+    db.doc("athletes/F4_VISITOR_ACTIVE").set({
+      uid: "visitor-auth-active", fullName: "Approved Lompoc Visitor", locationId: "lompoc",
+      rosterStatus: "current", journey: "P2L", disciplineIds: ["wrestling"],
+      rank: "Blue", xp: 321, totalXp: 654, promotionState: "review-pending",
+    }),
     db.doc("athletes/F4_VISITOR_INACTIVE").set({ fullName: "Inactive Lompoc Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", disciplineIds: ["wrestling"] }),
     db.doc("athletes/F4_VISITOR_EXPIRED").set({ fullName: "Expired Lompoc Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", disciplineIds: ["wrestling"] }),
     db.doc("athletes/F4_VISITOR_WRONG_DISCIPLINE").set({ fullName: "Wrong Discipline Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", disciplineIds: ["boxing"] }),
@@ -133,6 +137,11 @@ test("after-the-fact create/recover and attendance finalization are transactiona
     const memory = await db.doc(`practiceSessions/${first.practiceId}/athletes/${athleteId}`).get();
     assert.equal(memory.exists, true);
     assert.equal(memory.get("attendanceSessionId"), first.practiceId);
+    const revision = await db.doc(`athletes/${athleteId}/historyRevisions/wrestling`).get();
+    assert.equal(revision.get("revision"), 1);
+    assert.equal(revision.get("lastMutationKind"), "attendance-finalization");
+    assert.equal(revision.get("lastPracticeId"), first.practiceId);
+    assert.ok(revision.get("updatedAt") instanceof admin.firestore.Timestamp);
   }
   assert.equal((await db.collection("xpLogs").get()).empty, true);
 
@@ -143,6 +152,9 @@ test("after-the-fact create/recover and attendance finalization are transactiona
   });
   assert.equal(exactRetry.idempotent, true);
   assert.equal((await db.collection(`practiceSessions/${first.practiceId}/athletes`).get()).size, 2);
+  for (const athleteId of attendance.presentIds) {
+    assert.equal((await db.doc(`athletes/${athleteId}/historyRevisions/wrestling`).get()).get("revision"), 1);
+  }
 
   await assert.rejects(
     () => call(practiceModule.finalizePracticeAttendance, "coach-phase2", {
@@ -225,6 +237,8 @@ test("Santa Ynez review preserves its home roster and exposes only currently app
 });
 
 test("visitor check-in and finalization require matching active Wrestling approval", async () => {
+  const visitorRef = db.doc("athletes/F4_VISITOR_ACTIVE");
+  const visitorBefore = (await visitorRef.get()).data();
   const routed = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2", {
     entryMode: "after-the-fact", sessionDateKey: "2026-09-20", locationId: "santa-ynez-valley",
     discipline: "unassigned", program: "attendance-routed", practiceKey: "phase2-routed-visitor",
@@ -254,6 +268,39 @@ test("visitor check-in and finalization require matching active Wrestling approv
     practiceId: routed.practiceId, presentIds: ["F4_VISITOR_ACTIVE"], notes: "Approved crossover",
   });
   assert.equal(finalized.status, "finalized");
+  const visitorRevisionRef = visitorRef.collection("historyRevisions").doc("wrestling");
+  const visitorRevision = await visitorRevisionRef.get();
+  assert.equal(visitorRevision.get("revision"), 1);
+  assert.equal(visitorRevision.get("lastMutationKind"), "attendance-finalization");
+  assert.equal(visitorRevision.get("lastPracticeId"), routed.practiceId);
+  assert.ok(visitorRevision.get("updatedAt") instanceof admin.firestore.Timestamp);
+
+  const visitorAfter = (await visitorRef.get()).data();
+  for (const field of ["uid", "locationId", "rank", "xp", "totalXp", "promotionState"]) {
+    assert.deepEqual(visitorAfter[field], visitorBefore[field], `${field} must remain unchanged`);
+  }
+  assert.equal((await db.doc("athletes/visitor-auth-active").get()).exists, false);
+
+  const finalizedRetry = await call(practiceModule.finalizePracticeAttendance, "coach-phase2", {
+    practiceId: routed.practiceId, presentIds: ["F4_VISITOR_ACTIVE"], notes: "Approved crossover",
+  });
+  assert.equal(finalizedRetry.idempotent, true);
+  assert.equal((await visitorRevisionRef.get()).get("revision"), 1);
+
+  const rejected = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2", {
+    ...afterFactInput("phase2-rejected-visitor-history"),
+  });
+  const rejectedRevisionRef = db.doc("athletes/F4_VISITOR_UNAPPROVED/historyRevisions/wrestling");
+  assert.equal((await rejectedRevisionRef.get()).exists, false);
+  await assert.rejects(
+    () => call(practiceModule.finalizePracticeAttendance, "coach-phase2", {
+      practiceId: rejected.practiceId,
+      presentIds: ["F4_VISITOR_UNAPPROVED"],
+      notes: "Must not create history",
+    }),
+    /not approved for finalization/i
+  );
+  assert.equal((await rejectedRevisionRef.get()).exists, false);
 
   const scoped = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2", {
     ...afterFactInput("phase2-youth-roster-visitor"),
