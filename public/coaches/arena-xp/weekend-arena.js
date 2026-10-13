@@ -5,6 +5,7 @@ import {
   collection,
   getDocs
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import {
@@ -813,9 +814,7 @@ function applyFilterAndRender() {
 async function loadRoster() {
   setStatus("Loading athletes…", true);
 
-  const snap = await getDocs(
-    collection(db, "athletes")
-  );
+  const snap = await getAuthorizedAthleteSnapshot();
 
   roster = snap.docs.map((documentSnapshot) => {
     return {

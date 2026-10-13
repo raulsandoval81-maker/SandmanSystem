@@ -13,6 +13,7 @@ import {
   limit,
   onSnapshot,
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 import {
   normalizeDisciplineId
 } from "/assets/js/discipline-policy.js";
@@ -470,13 +471,13 @@ async function loadApproved() {
   if (!box) return;
 
   try {
-    const qy = query(
-      collection(db, "athletes"),
-      orderBy("createdAt", "desc"),
-      limit(RECENT_APPROVED_LIMIT)
-    );
-
-    const snaps = await getDocs(qy);
+    const scoped = await getAuthorizedAthleteSnapshot();
+    const snaps = { forEach(callback) {
+      scoped.docs
+        .sort((a, b) => (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0))
+        .slice(0, RECENT_APPROVED_LIMIT)
+        .forEach(callback);
+    }};
 
     let html = "";
 

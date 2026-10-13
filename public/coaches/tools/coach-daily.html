@@ -63,7 +63,7 @@
   </main>
 
   <script type="module">
-    import { db, collection, getDocs } from "../assets/js/firebase-init.js";
+    import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
     import { awardXP } from "../assets/js/xp-api.js";
     import { toast }   from "../assets/js/toast.js";
 
@@ -113,7 +113,7 @@
 
     async function load(){
       statusEl.textContent = "Loading…";
-      const snap = await getDocs(collection(db,"athletes"));
+      const snap = await getAuthorizedAthleteSnapshot();
       cache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
       filter();
       statusEl.textContent = `${cache.length} athletes loaded`;

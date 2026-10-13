@@ -1813,6 +1813,10 @@ function getNotesValue(slotKey) {
 
 async function saveCurrentPlanToFirestore() {
   const session = getActiveSession();
+  const locationId = String(session.locationId || session.academyId || "").trim();
+  if (!currentUser?.uid || !locationId) {
+    throw new Error("Authenticated Coach and practice location are required before saving.");
+  }
 
   const blocksDom = [
     ...document.querySelectorAll("#planBlocks .plan-block:not(.hidden)")
@@ -1838,7 +1842,9 @@ async function saveCurrentPlanToFirestore() {
 
     executionMode: session.executionMode,
     sessionId: session.sessionId,
-    academyId: session.academyId,
+    locationId,
+    academyId: locationId,
+    coachUid: currentUser.uid,
     roomId: session.roomId,
 
     program: session.program,

@@ -759,6 +759,12 @@ function getNotesValue(slotKey) {
 }
 
 async function saveCurrentPlanToFirestore() {
+  const session = getCoachSessionPayload() || {};
+  const locationId = String(session.locationId || session.academyId || "").trim();
+  const coachUid = String(auth.currentUser?.uid || "").trim();
+  if (!coachUid || !locationId) {
+    throw new Error("Authenticated Coach and practice location are required before saving.");
+  }
   const blocksDom = [
     ...document.querySelectorAll("#planBlocks .plan-block:not(.hidden)")
   ];
@@ -773,6 +779,9 @@ async function saveCurrentPlanToFirestore() {
   const totalMinutes = blocks.reduce((sum, b) => sum + b.minutes, 0);
 
   const payload = {
+    locationId,
+    academyId: locationId,
+    coachUid,
     schema: currentSchema,
     singleFocus: currentSchema === "quick-45" ? singleFocusEl.value : null,
 

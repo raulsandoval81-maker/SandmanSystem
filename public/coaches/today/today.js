@@ -9,6 +9,7 @@ import {
   setDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 import {
   requireCoach
@@ -396,10 +397,7 @@ function renderRecognitionItems() {
 async function refreshRecognitionQueue(user) {
   if (!user) return { queue: { testing: [] } };
 
-  const athleteSnapshot =
-    await getDocs(
-      collection(db, "athletes")
-    );
+  const athleteSnapshot = await getAuthorizedAthleteSnapshot();
 
   let serverData = null;
   let readyItems = [];

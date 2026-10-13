@@ -66,6 +66,7 @@ function competitionContextUrl(path, record) {
   if (record.name) params.set("eventName", record.name);
   if (record.startDate) params.set("eventDate", record.startDate);
   if (record.locationName) params.set("location", record.locationName);
+  if (Array.isArray(record.locationIds) && record.locationIds[0]) params.set("locationId", record.locationIds[0]);
   const query = params.toString();
   return query ? `${path}?${query}` : path;
 }

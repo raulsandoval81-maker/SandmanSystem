@@ -13,6 +13,7 @@ import {
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 function localCoachLoginUrl() {
   const returnUrl = window.location.pathname + window.location.search;
@@ -421,7 +422,7 @@ async function loadRemoteRequests() {
   if (!requestContainer) return;
 
   try {
-    const snap = await getDocs(collection(db, "athletes"));
+    const snap = await getAuthorizedAthleteSnapshot();
     const rows = [];
 
     snap.forEach((docSnap) => {

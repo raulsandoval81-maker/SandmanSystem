@@ -1,4 +1,4 @@
-import { db, doc, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
+import { db, doc, ensureSignedIn, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
 
 const totalTimeEl = document.getElementById("totalTime");
 const saveStatusEl = document.getElementById("saveStatus");
@@ -14,7 +14,8 @@ const competitionContext = {
   eventId: String(competitionParams.get("eventId") || competitionParams.get("tournamentId") || "").trim(),
   eventName: String(competitionParams.get("eventName") || "").trim(),
   eventDate: String(competitionParams.get("eventDate") || "").trim(),
-  location: String(competitionParams.get("location") || "").trim()
+  location: String(competitionParams.get("location") || "").trim(),
+  locationId: String(competitionParams.get("locationId") || "").trim()
 };
 
 /* =========================
@@ -334,7 +335,14 @@ document.addEventListener("click", e => {
    SAVE
 ========================= */
 window.savePlan = async function () {
+  const user = await ensureSignedIn();
+  if (!competitionContext.locationId) {
+    throw new Error("A canonical practice location is required before saving.");
+  }
   const payload = {
+    locationId: competitionContext.locationId,
+    academyId: competitionContext.locationId,
+    coachUid: user.uid,
     bleacher: document.querySelector("#planBlocks .plan-block:nth-child(1) .slot")?.textContent.trim() || "",
     warmup: document.querySelector('#planBlocks [data-slot="warmup"] .slot')?.textContent.trim() || "",
     neutral: document.querySelector('#planBlocks [data-slot="neutral"] .slot')?.textContent.trim() || "",

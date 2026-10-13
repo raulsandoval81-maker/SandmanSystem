@@ -595,9 +595,15 @@ window.openBigClock = function () {
 window.savePlan = async function () {
   try {
     const session = getCoachSessionPayload();
+    const user = await ensureSignedIn();
+    const locationId = String(session?.locationId || session?.academyId || "").trim();
+    if (!locationId) throw new Error("Select a practice location before saving.");
 
     await setDoc(doc(db, "practicePlans", session?.practiceId || `legacy-${new Date().toISOString().slice(0, 10)}`), {
       source: "coach-companion",
+      locationId,
+      academyId: locationId,
+      coachUid: user.uid,
 
       schema:
         session?.schema ||

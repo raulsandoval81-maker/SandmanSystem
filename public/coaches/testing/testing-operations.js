@@ -7,6 +7,7 @@ import {
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 const ENDPOINT = "https://us-central1-sandmandashboard.cloudfunctions.net/testRecognitionQueue";
 const $ = (id) => document.getElementById(id);
@@ -106,9 +107,7 @@ async function init() {
     const token = await coach.user.getIdToken();
 
     const athleteSnap =
-      await getDocs(
-        collection(db, "athletes")
-      );
+      await getAuthorizedAthleteSnapshot();
 
     let queueData = null;
 
