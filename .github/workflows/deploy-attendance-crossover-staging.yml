@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-24.04
     environment: staging
     env:
-      RELEASE_COMMIT: 729e30d13c694b09f3a4e8987759e767e45732de
+      RELEASE_COMMIT: c37cbd2cb969e870cdc23ce69f076a56a945a565
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
       SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
@@ -44,7 +44,7 @@ jobs:
       - name: Check out the authorized Attendance release commit
         uses: actions/checkout@v4
         with:
-          ref: 729e30d13c694b09f3a4e8987759e767e45732de
+          ref: c37cbd2cb969e870cdc23ce69f076a56a945a565
           fetch-depth: 1
           persist-credentials: false
 

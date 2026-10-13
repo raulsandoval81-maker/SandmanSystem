@@ -10,7 +10,7 @@ const workflowPath = new URL(
 test("Attendance staging workflow pins the authorized release and staging identity", async () => {
   const source = await readFile(workflowPath, "utf8");
   assert.match(source, /workflow_dispatch:/);
-  assert.match(source, /729e30d13c694b09f3a4e8987759e767e45732de/);
+  assert.match(source, /c37cbd2cb969e870cdc23ce69f076a56a945a565/);
   assert.match(source, /test "\$\(git rev-parse HEAD\)" = "\$\{RELEASE_COMMIT\}"/);
   assert.match(source, /environment: staging/);
   assert.match(source, /group: sandman-staging-deployment/);
