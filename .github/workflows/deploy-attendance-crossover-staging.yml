@@ -1,0 +1,250 @@
+name: Deploy Attendance Crossover to Staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_phase:
+        description: "Choose the separately authorized release phase"
+        required: true
+        type: choice
+        options:
+          - backend-functions
+          - hosting-after-smoke
+      confirm_project:
+        description: "Type sandman-combat-staging"
+        required: true
+        type: string
+      backend_run_id:
+        description: "Hosting only: successful backend deployment GitHub Actions run ID"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: sandman-staging-deployment
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Attendance crossover ${{ inputs.release_phase }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      RELEASE_COMMIT: 729e30d13c694b09f3a4e8987759e767e45732de
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
+    steps:
+      - name: Check out the authorized Attendance release commit
+        uses: actions/checkout@v4
+        with:
+          ref: 729e30d13c694b09f3a4e8987759e767e45732de
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify release identity and manual authorization
+        shell: bash
+        env:
+          REQUESTED_PHASE: ${{ inputs.release_phase }}
+          PROJECT_CONFIRMATION: ${{ inputs.confirm_project }}
+          BACKEND_RUN_ID: ${{ inputs.backend_run_id }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${RELEASE_COMMIT}"
+          test "${PROJECT_CONFIRMATION}" = "${SANDMAN_STAGING_PROJECT_ID}"
+          test "${SANDMAN_STAGING_PROJECT_ID}" = "sandman-combat-staging"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+          test -z "$(git status --porcelain)"
+          case "${REQUESTED_PHASE}" in
+            backend-functions) ;;
+            hosting-after-smoke)
+              [[ "${BACKEND_RUN_ID}" =~ ^[0-9]+$ ]]
+              ;;
+            *) exit 1 ;;
+          esac
+          node - <<'NODE'
+          const fs = require('fs');
+          const rc = JSON.parse(fs.readFileSync('.firebaserc', 'utf8'));
+          if (rc.projects.default !== 'sandmandashboard') throw Error('Unexpected production default');
+          if (rc.projects.staging !== 'sandman-combat-staging') throw Error('Missing isolated staging alias');
+          NODE
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Build Functions TypeScript
+        run: npm --prefix functions run build
+
+      - name: Run Attendance source and syntax checks
+        run: |
+          set -euo pipefail
+          node --check public/coaches/attendance/session.js
+          node --test tests/functions/practice-closeout-phase4.test.mjs tests/functions/cross-training-policy.test.mjs
+          node --test tests/functions/wrestling-staging-isolation.test.mjs
+          git diff --check
+
+      - name: Run focused Attendance and closeout emulator tests
+        run: >-
+          npx --yes firebase-tools@15.11.0 emulators:exec
+          --only firestore
+          --project demo-sandman-attendance-crossover
+          "env SANDMAN_TEST_BUILD_DIR=${GITHUB_WORKSPACE}/functions/lib
+          GCLOUD_PROJECT=demo-sandman-attendance-crossover
+          node --test
+          tests/emulator/practice-entry-attendance-phase2.test.mjs
+          tests/emulator/practice-closeout-phase4.test.mjs"
+
+      - name: Verify authenticated backend run and smoke evidence
+        if: ${{ inputs.release_phase == 'hosting-after-smoke' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BACKEND_RUN_ID: ${{ inputs.backend_run_id }}
+          EXPECTED_REPOSITORY: ${{ github.repository }}
+          EXPECTED_WORKFLOW_SHA: ${{ github.sha }}
+          EXPECTED_WORKFLOW_PATH: .github/workflows/deploy-attendance-crossover-staging.yml
+        run: |
+          set -euo pipefail
+          evidence_dir="${RUNNER_TEMP}/attendance-crossover-evidence"
+          mkdir -p "${evidence_dir}/deployment" "${evidence_dir}/smoke"
+          gh api "repos/${EXPECTED_REPOSITORY}/actions/runs/${BACKEND_RUN_ID}" > "${evidence_dir}/run.json"
+          gh api "repos/${EXPECTED_REPOSITORY}/actions/runs/${BACKEND_RUN_ID}/artifacts?per_page=100" > "${evidence_dir}/artifacts.json"
+          node - "${evidence_dir}" <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const directory = process.argv[2];
+          const run = JSON.parse(fs.readFileSync(path.join(directory, "run.json"), "utf8"));
+          const artifacts = JSON.parse(fs.readFileSync(path.join(directory, "artifacts.json"), "utf8"));
+          const fail = message => { throw new Error(message); };
+          if (run.repository?.full_name !== process.env.EXPECTED_REPOSITORY) fail("Backend run belongs to the wrong repository.");
+          if (run.path !== process.env.EXPECTED_WORKFLOW_PATH) fail("Backend run used the wrong workflow.");
+          if (run.event !== "workflow_dispatch" || run.inputs?.release_phase !== "backend-functions") fail("Referenced run did not execute the backend phase.");
+          if (run.head_sha !== process.env.EXPECTED_WORKFLOW_SHA) fail("Backend and Hosting used different workflow definitions.");
+          if (run.status !== "completed" || run.conclusion !== "success") fail("Backend run did not complete successfully.");
+          const exactArtifact = name => {
+            const matches = (artifacts.artifacts || []).filter(item => item.name === name && item.expired !== true);
+            if (matches.length !== 1) fail(`Expected exactly one unexpired ${name} artifact.`);
+            return matches[0];
+          };
+          const selected = {
+            deployment: exactArtifact("attendance-crossover-backend-deployment"),
+            smoke: exactArtifact("attendance-crossover-smoke-evidence"),
+          };
+          fs.writeFileSync(path.join(directory, "selected.json"), JSON.stringify(selected));
+          NODE
+          deployment_artifact_id="$(node -e "const x=require('${evidence_dir}/selected.json'); process.stdout.write(String(x.deployment.id))")"
+          smoke_artifact_id="$(node -e "const x=require('${evidence_dir}/selected.json'); process.stdout.write(String(x.smoke.id))")"
+          gh api "repos/${EXPECTED_REPOSITORY}/actions/artifacts/${deployment_artifact_id}/zip" > "${evidence_dir}/deployment.zip"
+          gh api "repos/${EXPECTED_REPOSITORY}/actions/artifacts/${smoke_artifact_id}/zip" > "${evidence_dir}/smoke.zip"
+          unzip -q "${evidence_dir}/deployment.zip" -d "${evidence_dir}/deployment"
+          unzip -q "${evidence_dir}/smoke.zip" -d "${evidence_dir}/smoke"
+          node - "${evidence_dir}" <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+          const directory = process.argv[2];
+          const deployment = JSON.parse(fs.readFileSync(path.join(directory, "deployment", "backend-deployment.json"), "utf8"));
+          const smoke = JSON.parse(fs.readFileSync(path.join(directory, "smoke", "smoke-results.json"), "utf8"));
+          const fail = message => { throw new Error(message); };
+          const expected = {
+            repository: process.env.EXPECTED_REPOSITORY,
+            workflow: process.env.EXPECTED_WORKFLOW_PATH,
+            workflowSha: process.env.EXPECTED_WORKFLOW_SHA,
+            releaseCommit: process.env.RELEASE_COMMIT,
+            projectId: process.env.SANDMAN_STAGING_PROJECT_ID,
+            backendRunId: String(process.env.BACKEND_RUN_ID),
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (String(deployment[key] ?? "") !== value || String(smoke[key] ?? "") !== value) fail(`Evidence ${key} mismatch.`);
+          }
+          if (deployment.phase !== "backend-functions" || deployment.deploymentResult !== "success") fail("Backend deployment evidence is not successful.");
+          if (smoke.result !== "passed") fail("Smoke-test result is not passed.");
+          const completedAt = Date.parse(smoke.completedAt);
+          if (!Number.isFinite(completedAt) || completedAt < Date.parse(deployment.completedAt)) fail("Smoke completion timestamp is invalid.");
+          const requiredChecks = ["approvedVisitor", "unauthorizedVisitor", "checkIn", "finalization", "athleteIdentityPreserved"];
+          for (const check of requiredChecks) if (smoke.checks?.[check] !== true) fail(`Smoke check failed or missing: ${check}`);
+          NODE
+
+      - id: auth
+        name: Authenticate only to Sandman staging
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
+
+      - name: Verify federated staging boundary
+        run: node scripts/staging/verify-staging-boundary.mjs
+
+      - name: Prepare isolated staging artifacts
+        run: node scripts/staging/prepare-staging-hosting.mjs
+
+      - name: Verify prepared Functions entry point
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const p=require('./functions/.firebase-staging/package.json'); if(p.main!=='lib/staging.js') throw Error('Unexpected staging Functions entry point')"
+          test -f .firebase-staging/public/coaches/attendance/session.js
+
+      - name: Deploy only the three Attendance Functions
+        if: ${{ inputs.release_phase == 'backend-functions' }}
+        run: >-
+          npx --yes firebase-tools@15.11.0 deploy
+          --config firebase.staging.json
+          --project sandman-combat-staging
+          --only functions:getPracticeAttendanceReview,functions:updatePracticeCheckIn,functions:finalizePracticeAttendance
+          --non-interactive
+
+      - name: Record successful backend deployment run reference
+        if: ${{ inputs.release_phase == 'backend-functions' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/attendance-backend-deployment"
+          node - <<'NODE' > "${RUNNER_TEMP}/attendance-backend-deployment/backend-deployment.json"
+          const evidence = {
+            repository: process.env.GITHUB_REPOSITORY,
+            workflow: ".github/workflows/deploy-attendance-crossover-staging.yml",
+            workflowSha: process.env.GITHUB_SHA,
+            releaseCommit: process.env.RELEASE_COMMIT,
+            projectId: process.env.SANDMAN_STAGING_PROJECT_ID,
+            backendRunId: process.env.GITHUB_RUN_ID,
+            phase: "backend-functions",
+            deploymentResult: "success",
+            completedAt: new Date().toISOString(),
+          };
+          process.stdout.write(JSON.stringify(evidence, null, 2));
+          NODE
+          echo "Backend deployment run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload immutable backend deployment reference
+        if: ${{ inputs.release_phase == 'backend-functions' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attendance-crossover-backend-deployment
+          path: ${{ runner.temp }}/attendance-backend-deployment/backend-deployment.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Deploy Hosting only after separately confirmed backend smoke test
+        if: ${{ inputs.release_phase == 'hosting-after-smoke' }}
+        run: >-
+          npx --yes firebase-tools@15.11.0 deploy
+          --config firebase.staging.json
+          --project sandman-combat-staging
+          --only hosting
+          --non-interactive
