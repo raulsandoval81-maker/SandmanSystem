@@ -7,10 +7,12 @@ import {mkdtemp} from "node:fs/promises";
 import {
   APPROVED_STAGING_FUNCTIONS,
   assertTransportReadyForDeploy,
+  callableTransportEvidence,
   assertOneFunctionMigrationPlan,
   parseArguments,
 } from "../../scripts/staging/migrate-one-function.mjs";
 import {assertCleanRepositoryEvidence, checksumDirectory, verifyArtifactManifest} from "../../scripts/staging/artifact-integrity.mjs";
+import {transportPlan} from "../../scripts/staging/configure-callable-transport.mjs";
 
 const expectedFunctions=[
   "closePracticeSession","completePracticeDailyGrind","createOrRecoverCanonicalPractice",
@@ -75,6 +77,7 @@ test("migration implementation cannot seed data, mutate IAM, or broaden Firebase
   assert.doesNotMatch(source,/seed-wrestling|firestore:rules|storage|set-iam-policy|add-iam-policy-binding/);
   assert.match(source,/assertCleanRepositoryEvidence/);
   assert.match(source,/verifyArtifactManifest/);
+  assert.doesNotMatch(source,/--allow-unauthenticated/);
 });
 
 test("repository-integrity gate rejects dirty, staged, injected, and symlink evidence",()=>{
@@ -104,13 +107,26 @@ test("artifact hashing rejects symbolic links",async()=>{
   await assert.rejects(checksumDirectory(root),/Symbolic links are forbidden/);
 });
 
-test("deploy mode remains blocked until exact separately reviewed transport evidence exists",()=>{
-  assert.throws(()=>assertTransportReadyForDeploy({}),/transport remains unresolved/);
-  assert.throws(()=>assertTransportReadyForDeploy({SANDMAN_CALLABLE_TRANSPORT_VERIFIED:"YES"}),/transport remains unresolved/);
+test("deploy mode requires exact function-bound no-invoker-check evidence",()=>{
+  assert.throws(()=>assertTransportReadyForDeploy({},"getPracticeSession"),/transport remains unresolved/);
+  assert.throws(()=>assertTransportReadyForDeploy({SANDMAN_CALLABLE_TRANSPORT_VERIFIED:"YES"},"getPracticeSession"),/transport remains unresolved/);
+  assert.throws(()=>assertTransportReadyForDeploy({SANDMAN_CALLABLE_TRANSPORT_VERIFIED:"YES",
+    SANDMAN_CALLABLE_TRANSPORT_EVIDENCE:callableTransportEvidence("skillCheckCoachCall")},"getPracticeSession"),/transport remains unresolved/);
   assert.doesNotThrow(()=>assertTransportReadyForDeploy({
     SANDMAN_CALLABLE_TRANSPORT_VERIFIED:"YES",
-    SANDMAN_CALLABLE_TRANSPORT_EVIDENCE:"CALLABLE_TRANSPORT:sandman-combat-staging:991554514268",
-  }));
+    SANDMAN_CALLABLE_TRANSPORT_EVIDENCE:callableTransportEvidence("getPracticeSession"),
+  },"getPracticeSession"));
+});
+
+test("callable transport plan is one-service, staging-only, and nonmutating by default",()=>{
+  const plan=transportPlan({functionName:"getPracticeSession",projectId:"sandman-combat-staging",
+    projectNumber:"991554514268",confirmation:"TRANSPORT:getPracticeSession:sandman-combat-staging"});
+  assert.equal(plan.apply,false);
+  assert.equal(plan.service,"getpracticesession");
+  assert.deepEqual(plan.command,["run","services","update","getpracticesession","--region=us-central1",
+    "--project=sandman-combat-staging","--no-invoker-iam-check","--quiet"]);
+  assert.doesNotMatch(plan.command.join(" "),/add-iam-policy-binding|allUsers|roles\/run.invoker/);
+  assert.throws(()=>transportPlan({...plan,functionName:"hosting"}),/Exactly one approved/);
 });
 
 test("reviewed callable source retains authentication gates and no AUTO eligibility",async()=>{

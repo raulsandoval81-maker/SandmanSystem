@@ -105,9 +105,13 @@ function capture(command,args){
   return String(result.stdout||"");
 }
 
-export function assertTransportReadyForDeploy(env){
+export function callableTransportEvidence(functionName){
+  return `CALLABLE_TRANSPORT:${STAGING_PROJECT_ID}:${STAGING_PROJECT_NUMBER}:${functionName}:NO_INVOKER_IAM_CHECK`;
+}
+
+export function assertTransportReadyForDeploy(env,functionName){
   if(env.SANDMAN_CALLABLE_TRANSPORT_VERIFIED!=="YES"||
-      env.SANDMAN_CALLABLE_TRANSPORT_EVIDENCE!==`CALLABLE_TRANSPORT:${STAGING_PROJECT_ID}:${STAGING_PROJECT_NUMBER}`){
+      env.SANDMAN_CALLABLE_TRANSPORT_EVIDENCE!==callableTransportEvidence(functionName)){
     throw new Error("Callable transport remains unresolved; deploy mode is blocked pending separately reviewed staging transport evidence.");
   }
 }
@@ -140,7 +144,7 @@ export async function main(argv=process.argv.slice(2),env=process.env){
   console.log(JSON.stringify(validated,null,2));
   if(plan.mode==="validate") return validated;
 
-  assertTransportReadyForDeploy(env);
+  assertTransportReadyForDeploy(env,plan.functionName);
   const boundary=await verifyStagingBoundary(env,plan.expectedRuntimeIdentity);
   if(boundary.projectId!==plan.projectId||boundary.runtimeServiceAccount!==plan.expectedRuntimeIdentity){
     throw new Error("Verified staging boundary does not match the approved migration plan.");
@@ -151,7 +155,7 @@ export async function main(argv=process.argv.slice(2),env=process.env){
     `--source=${STAGING_FUNCTION_ARTIFACT_ROOT}`,
     `--build-service-account=projects/${STAGING_PROJECT_ID}/serviceAccounts/${plan.expectedBuildIdentity}`,
     `--run-service-account=${plan.expectedRuntimeIdentity}`,
-    "--trigger-http","--allow-unauthenticated","--serve-all-traffic-latest-revision",
+    "--trigger-http","--serve-all-traffic-latest-revision",
     "--update-labels=deployment-callable=true,deployment-tool=change-c-controlled",
     `--set-env-vars=SANDMAN_STAGING_PROJECT_ID=${STAGING_PROJECT_ID},SANDMAN_STAGING_ACK=${STAGING_PROJECT_ID},SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.attendance},SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.practice},SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.progression}`,
     "--quiet"],env);
