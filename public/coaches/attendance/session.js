@@ -1,7 +1,5 @@
 import {
   db,
-  collection,
-  getDocs,
   doc,
   getDoc,
   functions,
@@ -98,6 +96,7 @@ function athleteDisciplines(a = {}) {
   const raw = [
     a.discipline,
     a.primaryDiscipline,
+    ...(Array.isArray(a.disciplineIds) ? a.disciplineIds : []),
     ...(Array.isArray(a.disciplines) ? a.disciplines : []),
     ...(Array.isArray(a.enrolledDisciplines) ? a.enrolledDisciplines : [])
   ].filter(Boolean);
@@ -354,24 +353,15 @@ async function loadAthletes() {
     await loadCanonicalPractice();
     await checkTodaySessionLock();
 
-    const snap = await getDocs(collection(db, "athletes"));
+    const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
+    const review = await getReview({ practiceId: activePractice.practiceId });
     const dateEl = $("sessionDateLabel");
 if (dateEl) {
   dateEl.textContent = todayLabel();
 }
 
-    athletes = snap.docs
-      .map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() || {})
-      }))
-      .filter((athlete) => {
-        if (!athlete.id) return false;
-        const status = String(athlete.rosterStatus || "current").toLowerCase();
-        const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
-        const athleteLocationId = String(athlete.locationId || "").trim();
-        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
-      })
+    athletes = (Array.isArray(review.data?.roster) ? review.data.roster : [])
+      .filter((athlete) => athlete?.id)
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
     console.log("[session] athletes loaded:", athletes.length, athletes);
@@ -402,9 +392,11 @@ function applyFilters() {
     if (checkedIn.has(athlete.id)) return false;
     if (journeyFilter && rosterJourneyForAthlete(athlete) !== journeyFilter) return false;
 
+    // Keep the regular facility roster visible. Authorized visitors only appear in search results.
+    if (athlete.isVisitor === true && !search) return false;
+
     const name = athleteName(athlete).toLowerCase();
     const id = String(athlete.id || "").toLowerCase();
-
     return !search || name.includes(search) || id.includes(search);
   });
 
@@ -437,7 +429,7 @@ function renderAthletes() {
         class="athlete-checkin-card"
         data-athlete-id="${athlete.id}"
       >
-        <span class="athlete-main">${attendanceIdentityMarkup(athlete)}</span>
+        <span class="athlete-main">${attendanceIdentityMarkup(athlete)}${athlete.isVisitor === true ? '<small class="muted">Visiting · Lompoc</small>' : ""}</span>
         <span class="checkin-action">Check In</span>
       </button>
     `;
@@ -557,7 +549,7 @@ function renderCheckedIn() {
 
   list.innerHTML = Array.from(checkedIn.values()).map((athlete) => `
     <div class="athlete-row checked-athlete-row">
-      <span class="attendance-present-card">${attendanceIdentityMarkup(athlete)}<span class="attendance-present-label">Present</span></span>
+      <span class="attendance-present-card">${attendanceIdentityMarkup(athlete)}${athlete.isVisitor === true ? '<small class="muted">Visiting · Lompoc</small>' : ""}<span class="attendance-present-label">Present</span></span>
 
       <button
         type="button"
@@ -1251,4 +1243,3 @@ if (isBuilderFlow()) {
 // Step 1 is redundant: the practice was selected before Attendance.
 document.querySelector('[data-step-target="1"]')?.setAttribute("hidden", "");
 document.querySelector('[data-step-screen="1"]')?.setAttribute("hidden", "");
-

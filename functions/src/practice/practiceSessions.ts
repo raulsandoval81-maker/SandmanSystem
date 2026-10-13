@@ -5,6 +5,10 @@ import { COACH_STAFF_ROLES, normalizeStaffRole, requireActiveStaff } from "../se
 import { staffLocationIds } from "../schedules/crossTrainingPolicy";
 import { resolveQualifyingRecoveryPractice } from "../modules/decay/decayRecoveryPolicy";
 import { awardReceiptKey } from "../services/authoritativeXpService";
+import {
+  isApprovedLompocVisitorForSantaYnez,
+  visitorDisciplineForCheckIn,
+} from "./crossTrainingAttendancePolicy";
 
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
@@ -431,14 +435,34 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
   if (!["active", "closed"].includes(String(practice.status || "").toLowerCase())) {
     throw new HttpsError("failed-precondition", "Practice attendance is not available in this state.");
   }
-  const [attendanceSnap, rosterSnap, athleteInputSnap] = await Promise.all([
+  const sessionDateKey = requireSessionDateKey(practice.sessionDateKey);
+  const reviewDiscipline = visitorDisciplineForCheckIn(practice);
+  const visitorAssignmentsQuery = locationId === "santa-ynez-valley" && reviewDiscipline === "wrestling"
+    ? db.collection("athleteCrossTrainingAssignments")
+      .where("hostLocationId", "==", "santa-ynez-valley")
+    : null;
+  const [attendanceSnap, rosterSnap, athleteInputSnap, visitorAssignmentsSnap] = await Promise.all([
     db.doc(`attendance_sessions/${practiceId}`).get(),
     db.collection("athletes").where("locationId", "==", locationId).get(),
     db.collection(`practiceSessions/${practiceId}/athletes`).get(),
+    visitorAssignmentsQuery ? visitorAssignmentsQuery.get() : Promise.resolve(null),
   ]);
-  const roster = rosterSnap.docs
+  const homeRoster = rosterSnap.docs
     .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
-    .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
+    .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current");
+  const assignments = visitorAssignmentsSnap?.docs.map((snap) => snap.data() || {}) || [];
+  const visitorIds = [...new Set(assignments.map((assignment) => String(assignment.athleteId || "").trim()).filter(Boolean))];
+  const visitorSnaps = visitorIds.length
+    ? await db.getAll(...visitorIds.map((athleteId) => db.doc(`athletes/${athleteId}`)))
+    : [];
+  const visitors = visitorSnaps
+    .filter((snap) => snap.exists)
+    .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
+    .filter((athlete) => assignments.some((assignment) => isApprovedLompocVisitorForSantaYnez({
+      assignment, athlete, athleteId: athlete.athleteId, practice, practiceDateKey: sessionDateKey,
+      disciplineId: reviewDiscipline,
+    })));
+  const roster = [...homeRoster, ...visitors]
     .map((athlete) => ({
       id: athlete.athleteId,
       uid: athlete.uid || athlete.athleteId,
@@ -447,10 +471,23 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
       fullName: athlete.fullName || "",
       program: athlete.program || "",
       journey: athlete.journey || "",
+      programTrack: athlete.programTrack || "",
+      track: athlete.track || "",
+      trackCode: athlete.trackCode || "",
+      trackKey: athlete.trackKey || "",
       profileType: athlete.profileType || "",
       ladderKey: athlete.ladderKey || "",
       tier: athlete.tier || "",
       rank: athlete.rank || "",
+      locationId: athlete.locationId || "",
+      rosterStatus: athlete.rosterStatus || "current",
+      discipline: athlete.discipline || "",
+      primaryDiscipline: athlete.primaryDiscipline || "",
+      disciplines: Array.isArray(athlete.disciplines) ? athlete.disciplines : [],
+      disciplineIds: Array.isArray(athlete.disciplineIds) ? athlete.disciplineIds : [],
+      enrolledDisciplines: Array.isArray(athlete.enrolledDisciplines) ? athlete.enrolledDisciplines : [],
+      rosterIds: Array.isArray(athlete.rosterIds) ? athlete.rosterIds : [],
+      isVisitor: String(athlete.locationId || "").trim().toLowerCase() !== locationId,
     }));
   const athleteInputs = athleteInputSnap.docs.reduce<Record<string, any>>((result, snap) => {
     const input = snap.data()?.coachInput;
@@ -493,8 +530,22 @@ export const updatePracticeCheckIn = onCall(async (request) => {
       const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
       if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
       athlete = athleteSnap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", "Athlete is outside the practice location.");
+      const isVisitor = String(athlete.locationId || "").trim().toLowerCase() !== locationId;
+      if ((isVisitor && String(athlete.rosterStatus || "").toLowerCase() !== "current")
+        || (!isVisitor && String(athlete.rosterStatus || "current").toLowerCase() !== "current")) {
+        throw new HttpsError("failed-precondition", "Athlete is not on the current roster.");
+      }
+      if (isVisitor) {
+        const visitorAssignments = await tx.get(
+          db.collection("athleteCrossTrainingAssignments").where("athleteId", "==", athleteId)
+        );
+        const sessionDateKey = requireSessionDateKey(practice.sessionDateKey || existing.sessionDateKey);
+        const disciplineId = visitorDisciplineForCheckIn(practice);
+        const approved = visitorAssignments.docs.some((snap) => isApprovedLompocVisitorForSantaYnez({
+          assignment: snap.data() || {}, athlete: athlete || {}, athleteId, practice,
+          practiceDateKey: sessionDateKey, disciplineId,
+        }));
+        if (!approved) throw new HttpsError("permission-denied", "Athlete is not approved for this practice location and date.");
       }
     }
     const checkedIn = new Map<string, Record<string, any>>(
@@ -510,6 +561,8 @@ export const updatePracticeCheckIn = onCall(async (request) => {
         publicName: athlete.publicName || "", fullName: athlete.fullName || "",
         program: athlete.program || "", journey: athlete.journey || "",
         profileType: athlete.profileType || "", tier: athlete.tier || "", rank: athlete.rank || "",
+        locationId: athlete.locationId || "",
+        isVisitor: String(athlete.locationId || "").trim().toLowerCase() !== locationId,
         checkedInAt: Timestamp.now(),
       });
     }
@@ -598,14 +651,32 @@ export const finalizePracticeAttendance = onCall(async (request) => {
     const athleteSnaps = await Promise.all(athleteRefs.map((ref) => tx.get(ref)));
     const athleteSessionRefs = requestedPresentIds.map((athleteId) => db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`));
     const athleteSessionSnaps = await Promise.all(athleteSessionRefs.map((ref) => tx.get(ref)));
+    const visitorIndexes = athleteSnaps
+      .map((snap, index) => String(snap.data()?.locationId || "").trim().toLowerCase() === locationId ? -1 : index)
+      .filter((index) => index >= 0);
+    const visitorAssignmentSnaps = await Promise.all(visitorIndexes.map((index) => tx.get(
+      db.collection("athleteCrossTrainingAssignments").where("athleteId", "==", requestedPresentIds[index])
+    )));
+    const assignmentByAthleteId = new Map(visitorIndexes.map((index, assignmentIndex) => [
+      requestedPresentIds[index], visitorAssignmentSnaps[assignmentIndex],
+    ]));
     const athletes = athleteSnaps.map((snap, index) => {
       if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${requestedPresentIds[index]}`);
       const athlete = snap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", `Athlete is outside the practice location: ${requestedPresentIds[index]}`);
-      }
-      if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
+      const isVisitor = String(athlete.locationId || "").trim().toLowerCase() !== locationId;
+      if ((isVisitor && String(athlete.rosterStatus || "").toLowerCase() !== "current")
+        || (!isVisitor && String(athlete.rosterStatus || "current").toLowerCase() !== "current")) {
         throw new HttpsError("failed-precondition", `Athlete is not on the current roster: ${requestedPresentIds[index]}`);
+      }
+      if (isVisitor) {
+        const assignmentSnap = assignmentByAthleteId.get(requestedPresentIds[index]);
+        const approved = assignmentSnap?.docs.some((assignment) => isApprovedLompocVisitorForSantaYnez({
+          assignment: assignment.data() || {}, athlete, athleteId: requestedPresentIds[index], practice,
+          practiceDateKey: sessionDateKey, disciplineId: practiceDiscipline,
+        })) || false;
+        if (!approved) {
+          throw new HttpsError("permission-denied", `Athlete is not approved for finalization: ${requestedPresentIds[index]}`);
+        }
       }
       return athlete;
     });
