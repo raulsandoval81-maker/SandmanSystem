@@ -40,6 +40,8 @@ async function callableClient(uid, staff = null) {
     get: httpsCallable(functions, "getPracticeSession"),
     close: httpsCallable(functions, "closePracticeSession"),
     saveMemory: httpsCallable(functions, "savePracticeSessionMemory"),
+    finalizeAttendance: httpsCallable(functions, "finalizePracticeAttendance"),
+    dailyGrind: httpsCallable(functions, "completePracticeDailyGrind"),
     skillCheck: httpsCallable(functions, "skillCheckCoachCall"),
     history: httpsCallable(functions, "getAthleteSessionHistory"),
     award: httpsCallable(functions, "incrementXp"),
@@ -60,6 +62,7 @@ function practiceInput(overrides = {}) {
     tier: "T0",
     schema: "standard-60",
     executionMode: "manual",
+    sessionDateKey: "2026-09-22",
     durationMinutes: 60,
     ...overrides,
   };
@@ -87,6 +90,7 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
   const otherManagement = await callableClient("MANAGEMENT_OTHER_LOCATION", { role: "management", status: "active", locationId: "elk-grove" });
   const inactiveCoach = await callableClient("COACH_INACTIVE", { role: "coach", status: "inactive", locationId: "lompoc" });
   const nonStaff = await callableClient("ATHLETE_NOT_STAFF");
+  let practiceAAttendanceAward;
 
   await t.test("non-staff and invalid requests fail closed", async () => {
     await assert.rejects(() => nonStaff.open(practiceInput()), /permission-denied|Active Coach or staff access required/i);
@@ -305,6 +309,18 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(attendance.discipline, "wrestling");
     assert.deepEqual(attendance.presentIds, ["F4_TEST_1"]);
     assert.deepEqual(attendance.removedFromReviewIds, ["F4_TEST_2"]);
+    practiceAAttendanceAward = (await coach.award({
+      uid: "F4_TEST_1",
+      kind: "ATTENDANCE",
+      amount: 10,
+      meta: { attendanceSessionId: practiceAId, sessionId: practiceAId },
+    })).data;
+    assert.equal(practiceAAttendanceAward.idempotent, false);
+    const completed = (await coach.dailyGrind({
+      practiceId: practiceAId,
+      athleteIds: ["F4_TEST_1"],
+    })).data;
+    assert.equal(completed.readyForDailyGrind, false);
   });
 
   const openedB = (await coach.open(practiceInput())).data;
@@ -345,7 +361,7 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     const unchangedAttendance = (await adminDb.doc(`attendance_sessions/${practiceAId}`).get()).data();
     assert.equal(unchangedAttendance.status, "finalized");
     assert.deepEqual(unchangedAttendance.presentIds, ["F4_TEST_1"]);
-    assert.equal((await adminDb.doc("athletes/F4_TEST_1").get()).data().xp, 999);
+    assert.equal((await adminDb.doc("athletes/F4_TEST_1").get()).data().xp, 1000);
     const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
     assert.equal(live.practiceId, practiceBId);
     assert.equal(live.status, "ready");
@@ -406,7 +422,7 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(after.tierSnapshot, before.tierSnapshot);
     assert.deepEqual(after.attendance, before.attendance);
     assert.deepEqual(after.workedCards, before.workedCards);
-    assert.equal((await adminDb.doc("athletes/F4_TEST_1").get()).data().xp, 999);
+    assert.equal((await adminDb.doc("athletes/F4_TEST_1").get()).data().xp, 1000);
 
     await assert.rejects(
       () => coach.skillCheck({ action: "save", athleteId: "F4_TEST_1", discipline: "boxing", familyId: "jab_system", state: "LEARNED", practiceId: practiceAId }),
@@ -457,7 +473,7 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       amount: 10,
       meta: { attendanceSessionId: practiceAId, sessionId: practiceAId },
     };
-    const firstAward = (await coach.award(awardPayload)).data;
+    const firstAward = practiceAAttendanceAward;
     const retryAward = (await coach.award(awardPayload)).data;
     assert.equal(firstAward.idempotent, false);
     assert.equal(retryAward.idempotent, true);
@@ -561,6 +577,16 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
   });
 
   await t.test("closing current practice closes the matching room channel", async () => {
+    await adminDb.doc("athletes/F4_TEST_B").set({
+      fullName: "Practice B Athlete", locationId: "lompoc", rosterStatus: "current",
+      disciplineIds: ["wrestling"], xp: 0, tier: "T0", rank: "Rookie",
+    });
+    await coach.finalizeAttendance({ practiceId: practiceBId, presentIds: ["F4_TEST_B"], notes: "Close B" });
+    await coach.award({
+      uid: "F4_TEST_B", kind: "ATTENDANCE", amount: 10,
+      meta: { attendanceSessionId: practiceBId, sessionId: practiceBId },
+    });
+    await coach.dailyGrind({ practiceId: practiceBId, athleteIds: ["F4_TEST_B"] });
     const closedB = (await coach.close({ practiceId: practiceBId, attendanceSessionId: practiceBId })).data;
     assert.equal(closedB.idempotent, false);
     const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
@@ -622,23 +648,33 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       discipline: "muay-thai",
       program: "road2champion-muay-thai",
     }))).data;
+    await adminDb.doc("athletes/F8_MUAY_1").set({
+      locationId: "lompoc", coachUid: "COACH_ATTENDANCE_V1", rosterStatus: "current",
+      xp: 0, tier: "T0", progressionTier: "T0", curriculumTier: "T0",
+      rank: "Shadow", disciplineIds: ["muay-thai"],
+    });
     await adminDb.doc(`attendance_sessions/${opened.practiceId}`).set({
       practiceId: opened.practiceId,
       status: "finalized",
       finalized: true,
       finalizedAt: new Date("2026-09-22T21:00:00.000Z"),
+      sessionDateKey: "2026-09-22",
       locationId: "lompoc",
       roomId: "mat-muay",
       discipline: "kickboxing",
       presentIds: ["F8_MUAY_1"],
-      present: [{ id: "F8_MUAY_1", rank: "White", tier: "T0", program: "road2champion-muay-thai" }],
+      present: [{ id: "F8_MUAY_1", rank: "Shadow", tier: "T0", program: "road2champion-muay-thai" }],
     });
+    await coach.award({
+      uid: "F8_MUAY_1", kind: "ATTENDANCE", amount: 10,
+      meta: { attendanceSessionId: opened.practiceId, sessionId: opened.practiceId },
+    });
+    await coach.dailyGrind({ practiceId: opened.practiceId, athleteIds: ["F8_MUAY_1"] });
     await coach.close({ practiceId: opened.practiceId, attendanceSessionId: opened.practiceId });
     const athleteSession = (await adminDb.doc(`practiceSessions/${opened.practiceId}/athletes/F8_MUAY_1`).get()).data();
     assert.equal(athleteSession.discipline, "muay-thai");
     assert.deepEqual(athleteSession.workedCards, []);
     assert.deepEqual(athleteSession.workedSkillRefs, []);
-    await adminDb.doc("athletes/F8_MUAY_1").set({ locationId: "lompoc", coachUid: "COACH_ATTENDANCE_V1" });
     await coach.skillCheck({
       action: "save",
       athleteId: "F8_MUAY_1",
@@ -650,8 +686,9 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     const evidence = (await adminDb.doc(`practiceSessions/${opened.practiceId}/athletes/F8_MUAY_1/verifiedSkills/muay-thai__kick_system`).get()).data();
     assert.equal(evidence.discipline, "muay-thai");
     const history = (await coach.history({ practiceId: opened.practiceId, athleteId: "F8_MUAY_1" })).data;
-    assert.deepEqual(history.xp.awards, []);
-    assert.equal(history.xp.total, 0);
+    assert.equal(history.xp.awards.length, 1);
+    assert.equal(history.xp.awards[0].amount, 10);
+    assert.equal(history.xp.total, 10);
   });
 
   await t.test("invalid finalized participant fails close atomically", async () => {
