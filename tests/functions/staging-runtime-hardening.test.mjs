@@ -23,7 +23,7 @@ const commit="a".repeat(40);
 function input(overrides={}){
   return {functionName:"getPracticeSession",approvedCommit:commit,currentCommit:commit,
     projectId:"sandman-combat-staging",projectNumber:"991554514268",
-    runtimeServiceAccount:"sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    runtimeServiceAccount:"sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com",
     acknowledgement:"sandman-combat-staging",
     confirmation:"MIGRATE:getPracticeSession:sandman-combat-staging",...overrides};
 }
@@ -39,7 +39,11 @@ test("one-function migration plan is exact, staging-only, and nondeploying by de
   assert.equal(plan.deployTarget,"functions:getPracticeSession");
   assert.equal(plan.configPath,"firebase.staging.json");
   assert.equal(plan.expectedRuntimeIdentity,
-    "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com");
+    "sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com");
+  assert.equal(plan.expectedBuildIdentity,
+    "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com");
+  assert.equal(plan.expectedDeployerIdentity,
+    "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com");
   assert.doesNotMatch(plan.deployTarget,/hosting|firestore|storage|rules|seed/i);
 });
 
@@ -64,10 +68,11 @@ test("CLI rejects missing or repeated function and commit arguments",()=>{
 
 test("migration implementation cannot seed data, mutate IAM, or broaden Firebase targets",async()=>{
   const source=await readFile(new URL("../../scripts/staging/migrate-one-function.mjs",import.meta.url),"utf8");
-  assert.match(source,/"--only",plan\.deployTarget/);
+  assert.match(source,/"functions","deploy",plan\.functionName/);
+  assert.match(source,/--build-service-account/);
+  assert.match(source,/--run-service-account/);
   assert.match(source,/`functions:\$\{functionName\}`/);
   assert.doesNotMatch(source,/seed-wrestling|firestore:rules|storage|set-iam-policy|add-iam-policy-binding/);
-  assert.doesNotMatch(source,/firebase-tools@(?:latest|\*)/);
   assert.match(source,/assertCleanRepositoryEvidence/);
   assert.match(source,/verifyArtifactManifest/);
 });

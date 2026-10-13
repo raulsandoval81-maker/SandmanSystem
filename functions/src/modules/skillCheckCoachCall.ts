@@ -23,7 +23,7 @@ import {
 } from "../services/staffAuthorization";
 import { resolveStagingCallableRuntimeOptions } from "../config/functionRuntime";
 
-const skillCheckRuntimeOptions = resolveStagingCallableRuntimeOptions();
+const skillCheckRuntimeOptions = resolveStagingCallableRuntimeOptions("progression");
 
 const SKILL_CHECK_STAFF_ROLES = Object.freeze([
   "admin",

@@ -4,16 +4,33 @@ export const PRODUCTION_PROJECT_ID = "sandmandashboard";
 export const STAGING_PROJECT_ID = "sandman-combat-staging";
 export const STAGING_PROJECT_NUMBER = "991554514268";
 export const STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT = "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com";
+export const STAGING_RUNTIME_SERVICE_ACCOUNTS = Object.freeze({
+  attendance: "sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  practice: "sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  progression: "sandman-progression-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+});
+export const STAGING_BUILD_SERVICE_ACCOUNTS = Object.freeze({
+  attendance: "sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com",
+  practice: "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+  progression: "sandman-progression-build@sandman-combat-staging.iam.gserviceaccount.com",
+});
+export const STAGING_DEPLOYER_SERVICE_ACCOUNTS = Object.freeze({
+  attendance: "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+  practice: "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+  progression: "sandman-progression-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+});
 export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions`;
 
-export async function verifyStagingBoundary(env = process.env) {
+export async function verifyStagingBoundary(env = process.env, expectedRuntimeServiceAccount = STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT) {
   const projectId = String(env.SANDMAN_STAGING_PROJECT_ID || "").trim();
   const expectedEmail = String(env.SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL || "").trim();
-  const runtimeServiceAccount = String(env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT || "").trim();
+  const runtimeServiceAccount = String(env.SANDMAN_SELECTED_RUNTIME_SERVICE_ACCOUNT ||
+    env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT || "").trim();
   const credentialPath = String(env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
   if (projectId !== STAGING_PROJECT_ID || projectId === PRODUCTION_PROJECT_ID) throw new Error("The exact approved staging project ID is required.");
   if (env.SANDMAN_STAGING_ACK !== projectId) throw new Error("SANDMAN_STAGING_ACK must exactly match the staging project ID.");
-  if (runtimeServiceAccount !== STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT) throw new Error("The exact approved staging Wrestling runtime service account is required.");
+  if (![...Object.values(STAGING_RUNTIME_SERVICE_ACCOUNTS),STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT].includes(runtimeServiceAccount) ||
+      runtimeServiceAccount !== expectedRuntimeServiceAccount) throw new Error("The exact selected staging runtime service account is required.");
   if (!expectedEmail || !credentialPath) throw new Error("Explicit staging credential path and service-account email are required.");
 
   let credential;

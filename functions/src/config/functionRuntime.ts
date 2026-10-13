@@ -1,6 +1,11 @@
 export const STAGING_PROJECT_ID = "sandman-combat-staging";
-export const STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT =
-  "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com";
+export const STAGING_RUNTIME_SERVICE_ACCOUNTS = Object.freeze({
+  attendance: "sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  practice: "sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  progression: "sandman-progression-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+});
+
+export type StagingFunctionGroup = keyof typeof STAGING_RUNTIME_SERVICE_ACCOUNTS;
 
 type RuntimeEnvironment = Record<string, string | undefined>;
 
@@ -18,13 +23,18 @@ function firebaseConfigProjectId(value: string | undefined): string {
 }
 
 export function resolveStagingCallableRuntimeOptions(
+  group: StagingFunctionGroup,
   env: RuntimeEnvironment = process.env
 ): StagingCallableRuntimeOptions {
   const projectId = String(env.SANDMAN_STAGING_PROJECT_ID || "").trim();
   const acknowledgement = String(env.SANDMAN_STAGING_ACK || "").trim();
-  const runtimeServiceAccount = String(
-    env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT || ""
-  ).trim();
+  const runtimeEnvironmentNames: Record<StagingFunctionGroup, string> = {
+    attendance: "SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT",
+    practice: "SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT",
+    progression: "SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT",
+  };
+  const runtimeServiceAccount = String(env[runtimeEnvironmentNames[group]] || "").trim();
+  const expectedRuntimeServiceAccount = STAGING_RUNTIME_SERVICE_ACCOUNTS[group];
   const platformProjectId = String(
     env.GCLOUD_PROJECT || env.GOOGLE_CLOUD_PROJECT ||
     firebaseConfigProjectId(env.FIREBASE_CONFIG)
@@ -42,8 +52,8 @@ export function resolveStagingCallableRuntimeOptions(
   if (projectId !== STAGING_PROJECT_ID || acknowledgement !== STAGING_PROJECT_ID) {
     throw new Error("Wrestling runtime overrides are allowed only for the approved staging project.");
   }
-  if (runtimeServiceAccount !== STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT) {
-    throw new Error("The approved staging Wrestling runtime service account is required.");
+  if (runtimeServiceAccount !== expectedRuntimeServiceAccount) {
+    throw new Error(`The approved staging ${group} runtime service account is required.`);
   }
   if (platformProjectId && platformProjectId !== STAGING_PROJECT_ID) {
     throw new Error("The platform project does not match the approved staging project.");
@@ -53,4 +63,5 @@ export function resolveStagingCallableRuntimeOptions(
 }
 
 export const resolveSkillCheckRuntimeOptions =
-  resolveStagingCallableRuntimeOptions;
+  (env: RuntimeEnvironment = process.env) =>
+    resolveStagingCallableRuntimeOptions("progression", env);

@@ -3,7 +3,14 @@ import {cp, mkdir, readFile, rm, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
 import {ARTIFACT_MANIFEST_NAME, checksumDirectory, checksumEntries} from "./artifact-integrity.mjs";
-import {STAGING_PROJECT_ID, STAGING_PROJECT_NUMBER, STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT} from "./verify-staging-boundary.mjs";
+import {STAGING_PROJECT_ID, STAGING_PROJECT_NUMBER, STAGING_RUNTIME_SERVICE_ACCOUNTS} from "./verify-staging-boundary.mjs";
+
+const FUNCTION_GROUPS=Object.freeze({
+  getPracticeAttendanceReview:"attendance",updatePracticeCheckIn:"attendance",finalizePracticeAttendance:"attendance",
+  createOrRecoverCanonicalPractice:"practice",openPracticeSession:"practice",getPracticeSession:"practice",closePracticeSession:"practice",
+  savePracticeSessionMemory:"practice",savePracticeAthleteInput:"practice",saveDailyPracticeLog:"practice",
+  completePracticeDailyGrind:"progression",skillCheckCoachCall:"progression",
+});
 
 export const STAGING_FUNCTION_ARTIFACT_ROOT="functions/.firebase-staging";
 const SOURCE_PATHS=["functions/src","functions/package.json","functions/package-lock.json","functions/tsconfig.json"];
@@ -17,6 +24,9 @@ function runCapture(command,args,{encoding="utf8"}={}){
 export async function prepareStagingFunctionArtifact({approvedCommit,functionName,root=process.cwd()}={}){
   if(!/^[0-9a-f]{40}$/i.test(String(approvedCommit||""))) throw new Error("An exact approved commit is required.");
   if(!functionName) throw new Error("An approved function name is required.");
+  const functionGroup=FUNCTION_GROUPS[functionName];
+  if(!functionGroup) throw new Error("The selected function has no approved identity group.");
+  const runtimeServiceAccount=STAGING_RUNTIME_SERVICE_ACCOUNTS[functionGroup];
   const tracked=String(runCapture("git",["ls-files","--",...SOURCE_PATHS])).trim().split("\n").filter(Boolean).sort();
   if(!tracked.length) throw new Error("No tracked function source files were found.");
   const sourceEntries=[];
@@ -36,12 +46,14 @@ export async function prepareStagingFunctionArtifact({approvedCommit,functionNam
   await writeFile(path.join(output,`.env.${STAGING_PROJECT_ID}`),[
     `SANDMAN_STAGING_PROJECT_ID=${STAGING_PROJECT_ID}`,
     `SANDMAN_STAGING_ACK=${STAGING_PROJECT_ID}`,
-    `SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=${STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT}`,
+    `SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.attendance}`,
+    `SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.practice}`,
+    `SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.progression}`,
     "",
   ].join("\n"),"utf8");
   const artifactChecksum=await checksumDirectory(output);
   const manifest={schemaVersion:1,approvedCommit,functionName,projectId:STAGING_PROJECT_ID,
-    projectNumber:STAGING_PROJECT_NUMBER,runtimeServiceAccount:STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+    projectNumber:STAGING_PROJECT_NUMBER,functionGroup,runtimeServiceAccount,
     firebaseConfig:"firebase.staging.json",deployTarget:`functions:${functionName}`,
     sourceChecksum,artifactChecksum};
   await writeFile(path.join(output,ARTIFACT_MANIFEST_NAME),`${JSON.stringify(manifest,null,2)}\n`,"utf8");

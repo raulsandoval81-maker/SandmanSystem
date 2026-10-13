@@ -7,7 +7,9 @@ import {
   PRODUCTION_PROJECT_ID,
   STAGING_PROJECT_ID,
   STAGING_PROJECT_NUMBER,
-  STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+  STAGING_BUILD_SERVICE_ACCOUNTS,
+  STAGING_DEPLOYER_SERVICE_ACCOUNTS,
+  STAGING_RUNTIME_SERVICE_ACCOUNTS,
   verifyStagingBoundary,
 } from "./verify-staging-boundary.mjs";
 
@@ -27,6 +29,12 @@ export const APPROVED_STAGING_FUNCTIONS=Object.freeze([
 ]);
 
 export const STAGING_MIGRATION_CONFIG="firebase.staging.json";
+export const STAGING_FUNCTION_GROUPS=Object.freeze({
+  getPracticeAttendanceReview:"attendance",updatePracticeCheckIn:"attendance",finalizePracticeAttendance:"attendance",
+  createOrRecoverCanonicalPractice:"practice",openPracticeSession:"practice",getPracticeSession:"practice",closePracticeSession:"practice",
+  savePracticeSessionMemory:"practice",savePracticeAthleteInput:"practice",saveDailyPracticeLog:"practice",
+  completePracticeDailyGrind:"progression",skillCheckCoachCall:"progression",
+});
 
 export async function assertOneFunctionMigrationPlan({
   functionName,approvedCommit,currentCommit,projectId,projectNumber,runtimeServiceAccount,acknowledgement,
@@ -39,9 +47,9 @@ export async function assertOneFunctionMigrationPlan({
     throw new Error("The migration must target the exact approved staging project.");
   }
   if(projectNumber!==STAGING_PROJECT_NUMBER) throw new Error("The exact approved staging project number is required.");
-  if(runtimeServiceAccount!==STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT){
-    throw new Error("The exact dedicated staging runtime service account is required.");
-  }
+  const functionGroup=STAGING_FUNCTION_GROUPS[functionName];
+  const expectedRuntimeIdentity=STAGING_RUNTIME_SERVICE_ACCOUNTS[functionGroup];
+  if(runtimeServiceAccount!==expectedRuntimeIdentity) throw new Error("The exact dedicated staging runtime service account is required.");
   if(acknowledgement!==STAGING_PROJECT_ID){
     throw new Error("The staging acknowledgement is missing or incorrect.");
   }
@@ -58,8 +66,9 @@ export async function assertOneFunctionMigrationPlan({
       config?.firestore?.rules!=="firestore.rules"){
     throw new Error("The reviewed staging Firebase configuration is required.");
   }
-  return {mode,projectId,projectNumber,functionName,approvedCommit,
-    expectedRuntimeIdentity:STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+  return {mode,projectId,projectNumber,functionName,functionGroup,approvedCommit,
+    expectedRuntimeIdentity,expectedBuildIdentity:STAGING_BUILD_SERVICE_ACCOUNTS[functionGroup],
+    expectedDeployerIdentity:STAGING_DEPLOYER_SERVICE_ACCOUNTS[functionGroup],
     configPath,deployTarget:`functions:${functionName}`};
 }
 
@@ -111,7 +120,7 @@ export async function main(argv=process.argv.slice(2),env=process.env){
     currentCommit:String(head.stdout||"").trim(),
     projectId:env.SANDMAN_STAGING_PROJECT_ID,
     projectNumber:env.SANDMAN_STAGING_PROJECT_NUMBER,
-    runtimeServiceAccount:env.SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+    runtimeServiceAccount:env.SANDMAN_SELECTED_RUNTIME_SERVICE_ACCOUNT,
     acknowledgement:env.SANDMAN_STAGING_ACK,
     confirmation:env.SANDMAN_STAGING_MIGRATION_CONFIRM,
   });
@@ -132,13 +141,20 @@ export async function main(argv=process.argv.slice(2),env=process.env){
   if(plan.mode==="validate") return validated;
 
   assertTransportReadyForDeploy(env);
-  const boundary=await verifyStagingBoundary(env);
+  const boundary=await verifyStagingBoundary(env,plan.expectedRuntimeIdentity);
   if(boundary.projectId!==plan.projectId||boundary.runtimeServiceAccount!==plan.expectedRuntimeIdentity){
     throw new Error("Verified staging boundary does not match the approved migration plan.");
   }
-  run("npx",["--yes","firebase-tools@15.11.0","deploy",
-    "--config",plan.configPath,"--project",STAGING_PROJECT_ID,
-    "--only",plan.deployTarget,"--non-interactive"],env);
+  run("gcloud",["functions","deploy",plan.functionName,
+    "--gen2","--region=us-central1",`--project=${STAGING_PROJECT_ID}`,
+    "--runtime=nodejs22",`--entry-point=${plan.functionName}`,
+    `--source=${STAGING_FUNCTION_ARTIFACT_ROOT}`,
+    `--build-service-account=projects/${STAGING_PROJECT_ID}/serviceAccounts/${plan.expectedBuildIdentity}`,
+    `--run-service-account=${plan.expectedRuntimeIdentity}`,
+    "--trigger-http","--allow-unauthenticated","--serve-all-traffic-latest-revision",
+    "--update-labels=deployment-callable=true,deployment-tool=change-c-controlled",
+    `--set-env-vars=SANDMAN_STAGING_PROJECT_ID=${STAGING_PROJECT_ID},SANDMAN_STAGING_ACK=${STAGING_PROJECT_ID},SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.attendance},SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.practice},SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.progression}`,
+    "--quiet"],env);
   return validated;
 }
 
