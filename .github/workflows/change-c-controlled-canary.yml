@@ -71,9 +71,21 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: functions/package-lock.json
-      - run: npm ci --prefix functions
-      - run: npm test --prefix functions
-      - run: node --test tests/functions/staging-runtime-hardening.test.mjs tests/functions/wrestling-staging-isolation.test.mjs
+      - name: Test immutable release in an isolated copy
+        shell: bash
+        env:
+          TEST_ROOT: ${{ runner.temp }}/change-c-release-tests-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test ! -e "${TEST_ROOT}"
+          mkdir -p "${TEST_ROOT}"
+          git archive "${SANDMAN_AUTHORIZED_RELEASE_SHA}" | tar -x -C "${TEST_ROOT}"
+          npm ci --prefix "${TEST_ROOT}/functions"
+          npm test --prefix "${TEST_ROOT}/functions"
+          (
+            cd "${TEST_ROOT}"
+            node --test tests/functions/staging-runtime-hardening.test.mjs tests/functions/wrestling-staging-isolation.test.mjs
+          )
       - id: auth
         uses: google-github-actions/auth@v3
         with:
@@ -82,6 +94,15 @@ jobs:
           service_account: ${{ steps.plan.outputs.deployer }}
           create_credentials_file: true
           export_environment_variables: true
+      - name: Verify deployment checkout remains immutable
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          test "$(git diff --cached --name-only)" = ""
+          test "$(git ls-files --others --ignored --exclude-standard -- functions/src functions/package.json functions/package-lock.json functions/tsconfig.json)" = ""
+          test "$(git ls-files -s -- functions/src | awk '$1 == "120000" { print }')" = ""
       - name: Deploy exactly one reviewed callable
         env:
           SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: ${{ steps.plan.outputs.deployer }}
