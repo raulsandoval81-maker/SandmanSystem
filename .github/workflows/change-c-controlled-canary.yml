@@ -4,26 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       release_sha:
-        description: Exact reviewed 40-character release SHA
+        description: Exact authorized first-canary release SHA
         required: true
+        default: dd6877f11e60f91b9afc16917281968609a81867
         type: string
       function_name:
-        description: One approved staging function
+        description: Exact authorized first-canary function
         required: true
         type: choice
         options:
           - getPracticeSession
-          - getPracticeAttendanceReview
-          - createOrRecoverCanonicalPractice
-          - openPracticeSession
-          - savePracticeSessionMemory
-          - saveDailyPracticeLog
-          - updatePracticeCheckIn
-          - finalizePracticeAttendance
-          - savePracticeAthleteInput
-          - closePracticeSession
-          - completePracticeDailyGrind
-          - skillCheckCoachCall
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -49,14 +39,17 @@ jobs:
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       SANDMAN_STAGING_PROJECT_NUMBER: "991554514268"
       SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_AUTHORIZED_RELEASE_SHA: dd6877f11e60f91b9afc16917281968609a81867
+      SANDMAN_AUTHORIZED_FUNCTION: getPracticeSession
+      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-getpracticesession-dd6877f
       SANDMAN_CALLABLE_TRANSPORT_VERIFIED: "YES"
       SANDMAN_CALLABLE_TRANSPORT_EVIDENCE: ${{ inputs.transport_evidence }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.release_sha }}
+          ref: dd6877f11e60f91b9afc16917281968609a81867
           persist-credentials: false
-      - name: Verify immutable source and select exact identity group
+      - name: Verify immutable first-canary authorization
         id: plan
         shell: bash
         env:
@@ -65,18 +58,14 @@ jobs:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
         run: |
           set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
           test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
-          test "$(git rev-parse HEAD)" = "${RELEASE_SHA}"
+          test "${RELEASE_SHA}" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
+          test "${FUNCTION_NAME}" = "${SANDMAN_AUTHORIZED_FUNCTION}"
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
           test "$(git status --porcelain=v1 --untracked-files=all)" = ""
-          case "${FUNCTION_NAME}" in
-            getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) group=attendance ;;
-            createOrRecoverCanonicalPractice|openPracticeSession|getPracticeSession|closePracticeSession|savePracticeSessionMemory|savePracticeAthleteInput|saveDailyPracticeLog) group=practice ;;
-            completePracticeDailyGrind|skillCheckCoachCall) group=progression ;;
-            *) exit 64 ;;
-          esac
-          echo "group=${group}" >> "${GITHUB_OUTPUT}"
-          echo "runtime=sandman-${group}-runtime@sandman-combat-staging.iam.gserviceaccount.com" >> "${GITHUB_OUTPUT}"
-          echo "deployer=sandman-${group}-deployer@sandman-combat-staging.iam.gserviceaccount.com" >> "${GITHUB_OUTPUT}"
+          echo "runtime=sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com" >> "${GITHUB_OUTPUT}"
+          echo "deployer=sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com" >> "${GITHUB_OUTPUT}"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -97,5 +86,17 @@ jobs:
         env:
           SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: ${{ steps.plan.outputs.deployer }}
           SANDMAN_SELECTED_RUNTIME_SERVICE_ACCOUNT: ${{ steps.plan.outputs.runtime }}
-          SANDMAN_STAGING_MIGRATION_CONFIRM: MIGRATE:${{ inputs.function_name }}:sandman-combat-staging
-        run: node scripts/staging/migrate-one-function.mjs --deploy --function "${{ inputs.function_name }}" --commit "${{ inputs.release_sha }}"
+          SANDMAN_STAGING_MIGRATION_CONFIRM: MIGRATE:getPracticeSession:sandman-combat-staging
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          FUNCTION_NAME: ${{ inputs.function_name }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${RELEASE_SHA}" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
+          test "${FUNCTION_NAME}" = "${SANDMAN_AUTHORIZED_FUNCTION}"
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
+          node scripts/staging/migrate-one-function.mjs --deploy \
+            --function getPracticeSession \
+            --commit dd6877f11e60f91b9afc16917281968609a81867
