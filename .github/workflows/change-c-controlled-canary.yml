@@ -41,7 +41,7 @@ jobs:
       SANDMAN_STAGING_ACK: sandman-combat-staging
       SANDMAN_AUTHORIZED_RELEASE_SHA: dd6877f11e60f91b9afc16917281968609a81867
       SANDMAN_AUTHORIZED_FUNCTION: getPracticeSession
-      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-getpracticesession-dd6877f
+      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-canary-dispatcher
       SANDMAN_CALLABLE_TRANSPORT_VERIFIED: "YES"
       SANDMAN_CALLABLE_TRANSPORT_EVIDENCE: ${{ inputs.transport_evidence }}
     steps:
