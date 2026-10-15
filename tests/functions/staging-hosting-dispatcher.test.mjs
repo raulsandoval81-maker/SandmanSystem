@@ -10,7 +10,10 @@ const functionJob = workflow.slice(
   workflow.indexOf("  deploy-one:"),
   workflow.indexOf("  deploy-staging-hosting:")
 );
-const hostingJob = workflow.slice(workflow.indexOf("  deploy-staging-hosting:"));
+const hostingJob = workflow.slice(
+  workflow.indexOf("  deploy-staging-hosting:"),
+  workflow.indexOf("  deploy-cross-location-function:")
+);
 
 test("protected dispatcher selects exactly one independently reviewed deployment scope", () => {
   assert.match(workflow, /deployment_scope:[\s\S]*- change-c-function[\s\S]*- staging-hosting/);
