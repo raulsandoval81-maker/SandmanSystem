@@ -354,7 +354,13 @@ async function loadAthletes() {
     await loadCanonicalPractice();
     await checkTodaySessionLock();
 
-    const snap = await getDocs(collection(db, "athletes"));
+    const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
+    const [rosterResponse, snap] = await Promise.all([
+      getReview({ practiceId: activePractice.practiceId }),
+      getDocs(collection(db, "athletes"))
+    ]);
+    const eligibleIds = new Set((rosterResponse.data?.roster || [])
+      .map((athlete) => String(athlete.id || athlete.athleteId || "")));
     const dateEl = $("sessionDateLabel");
 if (dateEl) {
   dateEl.textContent = todayLabel();
@@ -370,7 +376,8 @@ if (dateEl) {
         const status = String(athlete.rosterStatus || "current").toLowerCase();
         const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
         const athleteLocationId = String(athlete.locationId || "").trim();
-        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
+        return status === "current" && Boolean(practiceLocationId)
+          && (athleteLocationId === practiceLocationId || eligibleIds.has(athlete.id));
       })
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
