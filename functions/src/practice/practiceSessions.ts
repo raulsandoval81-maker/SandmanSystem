@@ -484,6 +484,8 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
     .map((athlete) => ({
       id: athlete.athleteId,
       uid: athlete.uid || athlete.athleteId,
+      visiting: athleteHomeLocationId(athlete) !== locationId,
+      homeLocationId: athleteHomeLocationId(athlete),
       name: athlete.name || athlete.publicName || athlete.fullName || athlete.athleteId,
       publicName: athlete.publicName || "",
       fullName: athlete.fullName || "",
