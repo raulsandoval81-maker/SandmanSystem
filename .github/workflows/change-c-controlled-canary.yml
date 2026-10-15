@@ -103,6 +103,8 @@ jobs:
           test "$(git diff --cached --name-only)" = ""
           test "$(git ls-files --others --ignored --exclude-standard -- functions/src functions/package.json functions/package-lock.json functions/tsconfig.json)" = ""
           test "$(git ls-files -s -- functions/src | awk '$1 == "120000" { print }')" = ""
+      - name: Install reviewed Functions dependencies for deployment build
+        run: npm ci --prefix functions
       - name: Deploy exactly one reviewed callable
         env:
           SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: ${{ steps.plan.outputs.deployer }}
