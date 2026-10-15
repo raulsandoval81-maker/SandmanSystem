@@ -57,14 +57,20 @@ function crossTrainingActive(assignment: Record<string, any>, athlete: Record<st
   const from = assignment.activeFrom?.toMillis?.() ?? 0;
   const to = assignment.activeTo?.toMillis?.() ?? Infinity;
   const assignedDisciplines = Array.isArray(assignment.disciplineIds) ? assignment.disciplineIds : [];
-  return Boolean(home && home !== host && discipline)
+  const athleteDisciplines = athleteScheduleDisciplineIds(athlete);
+  // Attendance-first check-in may precede the Coach selecting a discipline.
+  // In that state only discover a visitor with an approved overlapping
+  // discipline; finalization still requires a concrete practice discipline.
+  const disciplineAllowed = !discipline || discipline === "unassigned"
+    ? assignedDisciplines.some((id: string) => athleteDisciplines.includes(id))
+    : assignedDisciplines.includes(discipline) && athleteDisciplines.includes(discipline);
+  return Boolean(home && home !== host)
     && String(assignment.status || "").toLowerCase() === "active"
     && String(assignment.hostLocationId || "").toLowerCase() === host
     && String(assignment.homeLocationId || "").toLowerCase() === home
     && (!assignedRoster || assignedRoster === practiceRoster)
     && from <= now && now <= to
-    && assignedDisciplines.includes(discipline)
-    && athleteScheduleDisciplineIds(athlete).includes(discipline);
+    && disciplineAllowed;
 }
 
 async function hasPracticeAthleteAccess(
