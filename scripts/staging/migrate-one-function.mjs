@@ -157,7 +157,7 @@ export async function main(argv=process.argv.slice(2),env=process.env){
     `--run-service-account=${plan.expectedRuntimeIdentity}`,
     "--trigger-http","--serve-all-traffic-latest-revision",
     "--update-labels=deployment-callable=true,deployment-tool=change-c-controlled",
-    `--set-env-vars=SANDMAN_STAGING_PROJECT_ID=${STAGING_PROJECT_ID},SANDMAN_STAGING_ACK=${STAGING_PROJECT_ID},SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.attendance},SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.practice},SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.progression}`,
+    `--update-env-vars=SANDMAN_STAGING_PROJECT_ID=${STAGING_PROJECT_ID},SANDMAN_STAGING_ACK=${STAGING_PROJECT_ID},SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.attendance},SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.practice},SANDMAN_PROGRESSION_RUNTIME_SERVICE_ACCOUNT=${STAGING_RUNTIME_SERVICE_ACCOUNTS.progression}`,
     "--quiet"],env);
   return validated;
 }
