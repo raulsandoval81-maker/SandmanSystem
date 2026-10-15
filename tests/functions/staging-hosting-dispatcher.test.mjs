@@ -19,6 +19,18 @@ test("protected dispatcher selects exactly one independently reviewed deployment
   assert.match(functionJob, /--function getPracticeSession/);
 });
 
+test("Hosting dispatch does not require Change C function inputs while the function path fails closed", () => {
+  const releaseInput = workflow.slice(workflow.indexOf("      release_sha:"), workflow.indexOf("      function_name:"));
+  const functionInput = workflow.slice(workflow.indexOf("      function_name:"), workflow.indexOf("      confirm_project:"));
+  const transportInput = workflow.slice(workflow.indexOf("      transport_evidence:"), workflow.indexOf("      hosting_source_sha:"));
+  assert.match(releaseInput, /required: false/);
+  assert.match(functionInput, /required: false/);
+  assert.match(transportInput, /required: false/);
+  assert.match(functionJob, /test "\$\{RELEASE_SHA\}" = "\$\{SANDMAN_AUTHORIZED_RELEASE_SHA\}"/);
+  assert.match(functionJob, /test "\$\{FUNCTION_NAME\}" = "\$\{SANDMAN_AUTHORIZED_FUNCTION\}"/);
+  assert.match(functionJob, /test -n "\$\{SANDMAN_CALLABLE_TRANSPORT_EVIDENCE\}"/);
+});
+
 test("Hosting uses the existing WIF-authorized branch, workflow environment, and staging identity", () => {
   assert.match(hostingJob, /environment: change-c-staging-canary/);
   assert.match(hostingJob, /refs\/heads\/release\/change-c-canary-dispatcher/);

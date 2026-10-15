@@ -12,13 +12,14 @@ on:
           - change-c-function
           - staging-hosting
       release_sha:
-        description: Exact authorized first-canary release SHA
-        required: true
+        description: Exact authorized first-canary release SHA (Change C function only)
+        required: false
         default: 6ca5309c2f7149468b0b45efc18c0271fd5cd311
         type: string
       function_name:
-        description: Exact authorized first-canary function
-        required: true
+        description: Exact authorized first-canary function (Change C function only)
+        required: false
+        default: getPracticeSession
         type: choice
         options:
           - getPracticeSession
@@ -27,8 +28,8 @@ on:
         required: true
         type: string
       transport_evidence:
-        description: Exact function-bound callable transport evidence
-        required: true
+        description: Exact function-bound callable transport evidence (Change C function only)
+        required: false
         type: string
       hosting_source_sha:
         description: Exact approved production-source SHA for staging Hosting
@@ -76,6 +77,7 @@ jobs:
           test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
           test "${RELEASE_SHA}" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
           test "${FUNCTION_NAME}" = "${SANDMAN_AUTHORIZED_FUNCTION}"
+          test -n "${SANDMAN_CALLABLE_TRANSPORT_EVIDENCE}"
           test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
           test "$(git status --porcelain=v1 --untracked-files=all)" = ""
           echo "runtime=sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com" >> "${GITHUB_OUTPUT}"
