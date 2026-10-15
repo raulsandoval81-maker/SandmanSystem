@@ -35,7 +35,7 @@ export async function prepareStagingFunctionArtifact({approvedCommit,functionNam
   const output=path.join(root,STAGING_FUNCTION_ARTIFACT_ROOT);
   await rm(output,{recursive:true,force:true});
   await mkdir(output,{recursive:true});
-  const build=spawnSync("npm",["exec","--prefix","functions","--","tsc","-p","functions/tsconfig.json","--outDir",STAGING_FUNCTION_ARTIFACT_ROOT+"/lib"],{
+  const build=spawnSync(path.join(root,"functions/node_modules/.bin/tsc"),["-p","functions/tsconfig.json","--outDir",STAGING_FUNCTION_ARTIFACT_ROOT+"/lib"],{
     cwd:root,env:process.env,stdio:"inherit",shell:false,
   });
   if(build.status!==0) throw new Error("Failed to compile the isolated staging Functions artifact.");
