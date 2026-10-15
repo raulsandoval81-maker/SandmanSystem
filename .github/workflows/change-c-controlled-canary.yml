@@ -293,6 +293,10 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
       - name: Test and build exact reviewed source in isolation
         shell: bash
         env:
