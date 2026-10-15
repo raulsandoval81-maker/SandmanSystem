@@ -6,7 +6,7 @@ on:
       release_sha:
         description: Exact authorized first-canary release SHA
         required: true
-        default: e21f171febda9393e010d66d540d941006d5c5f3
+        default: 6ca5309c2f7149468b0b45efc18c0271fd5cd311
         type: string
       function_name:
         description: Exact authorized first-canary function
@@ -39,7 +39,7 @@ jobs:
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       SANDMAN_STAGING_PROJECT_NUMBER: "991554514268"
       SANDMAN_STAGING_ACK: sandman-combat-staging
-      SANDMAN_AUTHORIZED_RELEASE_SHA: e21f171febda9393e010d66d540d941006d5c5f3
+      SANDMAN_AUTHORIZED_RELEASE_SHA: 6ca5309c2f7149468b0b45efc18c0271fd5cd311
       SANDMAN_AUTHORIZED_FUNCTION: getPracticeSession
       SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-canary-dispatcher
       SANDMAN_CALLABLE_TRANSPORT_VERIFIED: "YES"
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: e21f171febda9393e010d66d540d941006d5c5f3
+          ref: 6ca5309c2f7149468b0b45efc18c0271fd5cd311
           persist-credentials: false
       - name: Verify immutable first-canary authorization
         id: plan
@@ -120,4 +120,4 @@ jobs:
           test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_RELEASE_SHA}"
           node scripts/staging/migrate-one-function.mjs --deploy \
             --function getPracticeSession \
-            --commit e21f171febda9393e010d66d540d941006d5c5f3
+            --commit 6ca5309c2f7149468b0b45efc18c0271fd5cd311
