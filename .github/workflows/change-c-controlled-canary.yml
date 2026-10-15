@@ -3,6 +3,14 @@ name: Change C controlled staging canary
 on:
   workflow_dispatch:
     inputs:
+      deployment_scope:
+        description: Select the independently reviewed staging deployment scope
+        required: true
+        default: change-c-function
+        type: choice
+        options:
+          - change-c-function
+          - staging-hosting
       release_sha:
         description: Exact authorized first-canary release SHA
         required: true
@@ -22,6 +30,11 @@ on:
         description: Exact function-bound callable transport evidence
         required: true
         type: string
+      hosting_source_sha:
+        description: Exact approved production-source SHA for staging Hosting
+        required: true
+        default: ccdac82cca2af454192f312da89b819830836411
+        type: string
 
 permissions:
   contents: read
@@ -33,6 +46,7 @@ concurrency:
 
 jobs:
   deploy-one:
+    if: inputs.deployment_scope == 'change-c-function'
     runs-on: ubuntu-24.04
     environment: change-c-staging-canary
     env:
@@ -123,3 +137,89 @@ jobs:
           node scripts/staging/migrate-one-function.mjs --deploy \
             --function getPracticeSession \
             --commit 6ca5309c2f7149468b0b45efc18c0271fd5cd311
+
+  deploy-staging-hosting:
+    if: inputs.deployment_scope == 'staging-hosting'
+    runs-on: ubuntu-24.04
+    environment: change-c-staging-canary
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-canary-dispatcher
+      SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA: ccdac82cca2af454192f312da89b819830836411
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
+    steps:
+      - name: Verify immutable Hosting authorization before credentials
+        shell: bash
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          HOSTING_SOURCE_SHA: ${{ inputs.hosting_source_sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${SANDMAN_STAGING_PROJECT_ID}" = "sandman-combat-staging"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+          test "${HOSTING_SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA}"
+      - uses: actions/checkout@v4
+        with:
+          ref: ccdac82cca2af454192f312da89b819830836411
+          persist-credentials: false
+      - name: Verify immutable production frontend source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Test approved production source
+        run: |
+          npm ci --prefix functions
+          npm test --prefix functions
+          node --test tests/functions/wrestling-staging-isolation.test.mjs
+      - name: Prepare isolated staging Hosting
+        run: |
+          node scripts/staging/prepare-staging-hosting.mjs
+          test -f .firebase-staging/public/coaches/practice/index.html
+          test -f .firebase-staging/public/coaches/practice/entry.html
+          test -f .firebase-staging/public/coaches/practice/practice.js
+          test -f .firebase-staging/public/coaches/practice/entry.js
+          grep -q 'runtimeEnvironment = "staging"' .firebase-staging/public/assets/js/runtime-environment.js
+          grep -q '"projectId": "sandman-combat-staging"' .firebase-staging/public/assets/js/runtime-environment.js
+          grep -q '"syntheticDataOnly": true' .firebase-staging/public/staging-environment.json
+          cmp public/coaches/practice/practice.js .firebase-staging/public/coaches/practice/practice.js
+          cmp public/coaches/practice/entry.js .firebase-staging/public/coaches/practice/entry.js
+      - id: auth
+        name: Authenticate through the protected staging dispatcher
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify exact staging identity
+        run: node scripts/staging/verify-staging-boundary.mjs
+      - name: Deploy Hosting ONLY to staging
+        shell: bash
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          HOSTING_SOURCE_SHA: ${{ inputs.hosting_source_sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${HOSTING_SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA}"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA}"
+          npx --yes firebase-tools@15.11.0 deploy \
+            --config firebase.staging.json \
+            --project sandman-combat-staging \
+            --only hosting \
+            --non-interactive
