@@ -11,6 +11,8 @@ on:
         options:
           - change-c-function
           - staging-hosting
+          - cross-location-function
+          - cross-location-hosting
       release_sha:
         description: Exact authorized first-canary release SHA (Change C function only)
         required: false
@@ -35,6 +37,24 @@ on:
         description: Exact approved production-source SHA for staging Hosting
         required: true
         default: ccdac82cca2af454192f312da89b819830836411
+        type: string
+      cross_location_source_sha:
+        description: Exact reviewed PR #93 source SHA (cross-location scopes only)
+        required: false
+        default: dc60d8d83c3ea27c27382545bcd81b4dff202aff
+        type: string
+      cross_location_function:
+        description: Exact cross-location attendance callable (cross-location function only)
+        required: false
+        default: getPracticeAttendanceReview
+        type: choice
+        options:
+          - getPracticeAttendanceReview
+          - updatePracticeCheckIn
+          - finalizePracticeAttendance
+      cross_location_transport_evidence:
+        description: Exact function-bound callable transport evidence (cross-location function only)
+        required: false
         type: string
 
 permissions:
@@ -222,6 +242,208 @@ jobs:
           test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_HOSTING_SOURCE_SHA}"
           npx --yes firebase-tools@15.11.0 deploy \
             --config firebase.staging.json \
+            --project sandman-combat-staging \
+            --only hosting \
+            --non-interactive
+
+  deploy-cross-location-function:
+    if: inputs.deployment_scope == 'cross-location-function'
+    runs-on: ubuntu-24.04
+    environment: change-c-staging-canary
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_PROJECT_NUMBER: "991554514268"
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-canary-dispatcher
+      SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA: dc60d8d83c3ea27c27382545bcd81b4dff202aff
+      SANDMAN_ATTENDANCE_DEPLOYER: sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_ATTENDANCE_BUILD: sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_ATTENDANCE_RUNTIME: sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_SELECTED_RUNTIME_SERVICE_ACCOUNT: sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
+      SANDMAN_CALLABLE_TRANSPORT_EVIDENCE: ${{ inputs.cross_location_transport_evidence }}
+    steps:
+      - name: Verify exact cross-location authorization before credentials
+        id: plan
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.cross_location_source_sha }}
+          FUNCTION_NAME: ${{ inputs.cross_location_function }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "${SANDMAN_STAGING_PROJECT_ID}"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+          test "${SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          case "${FUNCTION_NAME}" in
+            getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;;
+            *) exit 1 ;;
+          esac
+          test "${SANDMAN_CALLABLE_TRANSPORT_EVIDENCE}" = "CALLABLE_TRANSPORT:${SANDMAN_STAGING_PROJECT_ID}:${SANDMAN_STAGING_PROJECT_NUMBER}:${FUNCTION_NAME}:NO_INVOKER_IAM_CHECK"
+          echo "function=${FUNCTION_NAME}" >> "${GITHUB_OUTPUT}"
+      - uses: actions/checkout@v4
+        with:
+          ref: dc60d8d83c3ea27c27382545bcd81b4dff202aff
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Test and build exact reviewed source in isolation
+        shell: bash
+        env:
+          SOURCE_ROOT: ${{ runner.temp }}/cross-location-source-${{ github.run_id }}-${{ github.run_attempt }}
+          FUNCTION_NAME: ${{ steps.plan.outputs.function }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          test ! -e "${SOURCE_ROOT}"
+          mkdir -p "${SOURCE_ROOT}"
+          git archive "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}" | tar -x -C "${SOURCE_ROOT}"
+          npm ci --prefix "${SOURCE_ROOT}/functions"
+          npm test --prefix "${SOURCE_ROOT}/functions"
+          (
+            cd "${SOURCE_ROOT}"
+            node --test tests/functions/cross-training-policy.test.mjs tests/functions/practice-daily-grind-phase3.test.mjs tests/functions/practice-closeout-phase4.test.mjs
+            SANDMAN_TEST_BUILD_DIR="${SOURCE_ROOT}/functions/lib" npx --yes firebase-tools@15.11.0 emulators:exec \
+              --only firestore \
+              --project demo-sandman-cross-location-dispatch \
+              'node --test tests/emulator/cross-location-attendance.test.mjs'
+            node scripts/staging/prepare-staging-hosting.mjs
+            test -f "functions/.firebase-staging/lib/staging.js"
+            grep -q "exports.${FUNCTION_NAME}" "functions/.firebase-staging/lib/staging.js"
+          )
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          echo "SOURCE_ROOT=${SOURCE_ROOT}" >> "${GITHUB_ENV}"
+      - id: auth
+        name: Authenticate through the protected staging dispatcher
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify exact attendance deployment identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module -e 'const boundary = await import("file://" + process.env.SOURCE_ROOT + "/scripts/staging/verify-staging-boundary.mjs"); await boundary.verifyStagingBoundary(process.env, process.env.SANDMAN_ATTENDANCE_RUNTIME);'
+      - name: Deploy exactly one reviewed attendance callable
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.cross_location_source_sha }}
+          FUNCTION_NAME: ${{ steps.plan.outputs.function }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "${SANDMAN_STAGING_PROJECT_ID}"
+          test "${SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          gcloud functions deploy "${FUNCTION_NAME}" \
+            --gen2 \
+            --region=us-central1 \
+            --project="${SANDMAN_STAGING_PROJECT_ID}" \
+            --runtime=nodejs22 \
+            --entry-point="${FUNCTION_NAME}" \
+            --source="${SOURCE_ROOT}/functions/.firebase-staging" \
+            --build-service-account="projects/${SANDMAN_STAGING_PROJECT_ID}/serviceAccounts/${SANDMAN_ATTENDANCE_BUILD}" \
+            --run-service-account="${SANDMAN_ATTENDANCE_RUNTIME}" \
+            --trigger-http \
+            --serve-all-traffic-latest-revision \
+            --update-labels=deployment-callable=true,deployment-tool=cross-location-controlled \
+            --update-env-vars="SANDMAN_STAGING_PROJECT_ID=${SANDMAN_STAGING_PROJECT_ID},SANDMAN_STAGING_ACK=${SANDMAN_STAGING_PROJECT_ID},SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT=${SANDMAN_ATTENDANCE_RUNTIME},SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=${SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT}" \
+            --quiet
+
+  deploy-cross-location-hosting:
+    if: inputs.deployment_scope == 'cross-location-hosting'
+    runs-on: ubuntu-24.04
+    environment: change-c-staging-canary
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_AUTHORIZED_WORKFLOW_REF: refs/heads/release/change-c-canary-dispatcher
+      SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA: dc60d8d83c3ea27c27382545bcd81b4dff202aff
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
+    steps:
+      - name: Verify exact cross-location Hosting authorization before credentials
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.cross_location_source_sha }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "${SANDMAN_STAGING_PROJECT_ID}"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+          test "${SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+      - uses: actions/checkout@v4
+        with:
+          ref: dc60d8d83c3ea27c27382545bcd81b4dff202aff
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Test and prepare exact reviewed Hosting source in isolation
+        shell: bash
+        env:
+          SOURCE_ROOT: ${{ runner.temp }}/cross-location-hosting-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          test ! -e "${SOURCE_ROOT}"
+          mkdir -p "${SOURCE_ROOT}"
+          git archive "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}" | tar -x -C "${SOURCE_ROOT}"
+          npm ci --prefix "${SOURCE_ROOT}/functions"
+          npm test --prefix "${SOURCE_ROOT}/functions"
+          (
+            cd "${SOURCE_ROOT}"
+            node --test tests/functions/cross-training-policy.test.mjs tests/functions/wrestling-staging-isolation.test.mjs
+            node scripts/staging/prepare-staging-hosting.mjs
+            cmp public/coaches/attendance/session.js .firebase-staging/public/coaches/attendance/session.js
+            grep -q 'runtimeEnvironment = "staging"' .firebase-staging/public/assets/js/runtime-environment.js
+            grep -q '"projectId": "sandman-combat-staging"' .firebase-staging/public/assets/js/runtime-environment.js
+            grep -q '"syntheticDataOnly": true' .firebase-staging/public/staging-environment.json
+          )
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          echo "SOURCE_ROOT=${SOURCE_ROOT}" >> "${GITHUB_ENV}"
+      - id: auth
+        name: Authenticate through the protected staging dispatcher
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify exact staging identity
+        run: node "${SOURCE_ROOT}/scripts/staging/verify-staging-boundary.mjs"
+      - name: Deploy reviewed cross-location Hosting ONLY to staging
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.cross_location_source_sha }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "${SANDMAN_AUTHORIZED_WORKFLOW_REF}"
+          test "${CONFIRM_PROJECT}" = "${SANDMAN_STAGING_PROJECT_ID}"
+          test "${SOURCE_SHA}" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git rev-parse HEAD)" = "${SANDMAN_AUTHORIZED_CROSS_LOCATION_SHA}"
+          test "$(git status --porcelain=v1 --untracked-files=all)" = ""
+          npx --yes firebase-tools@15.11.0 deploy \
+            --config "${SOURCE_ROOT}/firebase.staging.json" \
             --project sandman-combat-staging \
             --only hosting \
             --non-interactive
