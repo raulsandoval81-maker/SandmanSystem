@@ -28,6 +28,7 @@ import {
   serverTimestamp
 } from "/assets/js/firebase-init-para.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 const coachAccess = await requireCoach();
 
@@ -331,7 +332,7 @@ function makeCard(
 ========================= */
 
 async function loadThreads() {
-  const athleteSnapshot = await getDocs(collection(db, "athletes"));
+  const athleteSnapshot = await getAuthorizedAthleteSnapshot();
   const assignedLocations = coachAccess.scope?.locationIds || [];
   const eligibleAthleteIds = athleteSnapshot.docs
     .filter((athleteDoc) => {

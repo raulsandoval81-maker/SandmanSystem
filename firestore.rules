@@ -151,7 +151,11 @@ service cloud.firestore {
        Athletes
     ---------------------------------------*/
     match /athletes/{athleteId} {
-      allow get, list: if request.auth != null;
+      allow get: if canReadAthlete(athleteId, resource.data);
+      // Queries are not filters. Staff queries must be constrained so every
+      // possible result is within the caller's authorized scope.
+      allow list: if isAdmin()
+        || canScopedStaffListAthlete(resource.data);
       allow create, delete: if false;
 
       allow update: if request.auth != null && (
@@ -226,7 +230,7 @@ service cloud.firestore {
 
         ||
 (
-  isCoachOrAdmin()
+  (isAdmin() || (isActiveCoach() && canScopedStaffReadAthlete(resource.data)))
   && request.resource.data.diff(resource.data).changedKeys().hasOnly([
     "rosterStatus",
     "updatedAt",
@@ -241,7 +245,7 @@ service cloud.firestore {
 )
         ||
         (
-          isActiveCoachOrAdmin()
+          (isAdmin() || (isActiveCoach() && canScopedStaffReadAthlete(resource.data)))
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
             "testing",
             "tierStatus",
@@ -251,13 +255,22 @@ service cloud.firestore {
       );
 
       match /testingLogs/{logId} {
-        allow get, list: if isActiveCoachOrAdmin();
-        allow create: if isActiveCoachOrAdmin();
+        allow get, list: if canReadAthlete(
+          athleteId,
+          get(/databases/$(database)/documents/athletes/$(athleteId)).data
+        );
+        allow create: if isAdmin()
+          || canScopedStaffReadAthlete(
+            get(/databases/$(database)/documents/athletes/$(athleteId)).data
+          );
         allow update, delete: if false;
       }
 
       match /xpLogs/{logId} {
-        allow get, list: if isCoachOrAdmin();
+        allow get, list: if canReadAthlete(
+          athleteId,
+          get(/databases/$(database)/documents/athletes/$(athleteId)).data
+        );
 
         allow create: if isAdmin()
           && request.resource.data.uid is string
@@ -309,7 +322,8 @@ service cloud.firestore {
 
     match /intakePending/{id} {
       allow create: if false;
-      allow read: if isAdminOrManagement();
+      allow read: if isAdmin()
+        || managementHasLocation(resource.data.locationId);
       allow update, delete: if false;
     }
 
@@ -380,8 +394,7 @@ service cloud.firestore {
     ---------------------------------------*/
     match /system/{docId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
-      allow delete: if false;
+      allow write: if false;
     }
 
     /* --------------------------------------
@@ -684,7 +697,14 @@ match /messages/{messageId} {
        XP Logs
     ---------------------------------------*/
     match /xpLogs/{logId} {
-      allow get, list: if isCoachOrAdmin();
+      allow get, list: if isAdmin()
+        || (
+          resource.data.uid is string
+          && exists(/databases/$(database)/documents/athletes/$(resource.data.uid))
+          && canScopedStaffReadAthlete(
+            get(/databases/$(database)/documents/athletes/$(resource.data.uid)).data
+          )
+        );
 
       allow create: if isAdmin()
         && request.resource.data.uid is string
@@ -704,7 +724,9 @@ match /messages/{messageId} {
       allow get: if request.auth != null
         && request.auth.uid == userId;
 
-      allow list: if isAdminOrManagement();
+      // Management discovery uses searchManagementMembers, which applies
+      // location scope and returns a deliberately shaped response.
+      allow list: if isAdmin();
       // Staff authority is mutated only through the transactional
       // Admin governance callable (Admin SDK), including last-Admin safety.
       allow create, update, delete: if false;
@@ -714,8 +736,9 @@ match /messages/{messageId} {
        Practice Plans
     ---------------------------------------*/
     match /practicePlans/{planId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null;
+      allow read: if canReadPracticeResource(resource.data);
+      allow create: if canCreatePracticeResource(request.resource.data);
+      allow update: if canUpdatePracticeResource(resource.data, request.resource.data);
       allow delete: if false;
     }
 
@@ -731,8 +754,9 @@ match /messages/{messageId} {
        Live Sessions
     ---------------------------------------*/
     match /liveSessions/{sessionId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null;
+      allow read: if canReadPracticeResource(resource.data);
+      allow create: if canCreatePracticeResource(request.resource.data);
+      allow update: if canUpdatePracticeResource(resource.data, request.resource.data);
       allow delete: if false;
     }
 
@@ -740,7 +764,11 @@ match /messages/{messageId} {
    Attendance Sessions
 ---------------------------------------*/
 match /attendance_sessions/{sessionId} {
-  allow read: if isCoachOrAdmin();
+  allow read: if isAdmin()
+    || (
+      (isActiveCoach() || isManagement())
+      && staffHasLocation(resource.data.locationId)
+    );
   // Canonical attendance is written by authorized Cloud Functions using
   // the Admin SDK. Direct client writes bypass history-revision authority.
   // Do not reopen this without a server-verified revision migration.
@@ -2037,6 +2065,90 @@ match /academySettings/{academyId} {
           (staff.get("locationIds", []) is list && locationId in staff.get("locationIds", []))
           || (staff.get("locations", []) is list && locationId in staff.get("locations", []))
           || staff.get("locationId", "") == locationId
+        );
+    }
+
+    function canScopedStaffReadAthlete(athlete) {
+      return isAdmin()
+        || (
+          isManagement()
+          && staffHasLocation(athlete.get("locationId", ""))
+        )
+        || (
+          isActiveCoach()
+          && (
+            staffHasLocation(athlete.get("locationId", ""))
+            || athlete.get("coachUid", "") == request.auth.uid
+            || (
+              athlete.get("coachIds", []) is list
+              && request.auth.uid in athlete.get("coachIds", [])
+            )
+          )
+        );
+    }
+
+    // Collection queries are location-only. Direct Coach assignments outside
+    // the Coach's locations are resolved by document ID or guarded callables;
+    // mixing the two predicates would make an unscoped query provable.
+    function canScopedStaffListAthlete(athlete) {
+      let staff = get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+      return (isManagement() || isActiveCoach())
+        && athlete.locationId is string
+        && (
+          (staff.locationIds is list && athlete.locationId in staff.locationIds)
+          || (staff.locations is list && athlete.locationId in staff.locations)
+          || (staff.locationId is string && athlete.locationId == staff.locationId)
+        );
+    }
+
+    function canReadAthlete(athleteId, athlete) {
+      return isSignedIn()
+        && (
+          request.auth.uid == athleteId
+          || athlete.get("authUid", "") == request.auth.uid
+          || isLinkedParent(athleteId)
+          || canScopedStaffReadAthlete(athlete)
+        );
+    }
+
+    function practiceResourceLocation(data) {
+      return data.get("locationId", data.get("academyId", ""));
+    }
+
+    function practiceResourceOwner(data) {
+      return data.get("coachUid", data.get("coach", ""));
+    }
+
+    function canReadPracticeResource(data) {
+      return isAdmin()
+        || (
+          isActiveCoach()
+          && (
+            staffHasLocation(practiceResourceLocation(data))
+            || practiceResourceOwner(data) == request.auth.uid
+          )
+        );
+    }
+
+    function canCreatePracticeResource(data) {
+      return isAdmin()
+        || (
+          isActiveCoach()
+          && practiceResourceLocation(data) is string
+          && practiceResourceLocation(data).size() > 0
+          && staffHasLocation(practiceResourceLocation(data))
+          && practiceResourceOwner(data) == request.auth.uid
+        );
+    }
+
+    function canUpdatePracticeResource(before, after) {
+      return isAdmin()
+        || (
+          isActiveCoach()
+          && practiceResourceLocation(before) == practiceResourceLocation(after)
+          && practiceResourceOwner(before) == practiceResourceOwner(after)
+          && practiceResourceOwner(before) == request.auth.uid
+          && staffHasLocation(practiceResourceLocation(before))
         );
     }
 

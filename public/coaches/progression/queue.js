@@ -4,6 +4,7 @@ import {
   getDocs,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 const cooldownList = document.getElementById("cooldownList");
 const promotionList = document.getElementById("promotionList");
@@ -94,7 +95,7 @@ function sortByName(list) {
 async function load() {
   await ensureSignedIn();
 
-  const snap = await getDocs(collection(db, "athletes"));
+  const snap = await getAuthorizedAthleteSnapshot();
 
   const cooldown = [];
   const promote = [];

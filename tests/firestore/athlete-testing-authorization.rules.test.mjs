@@ -17,11 +17,14 @@ beforeEach(async () => {
   await env.clearFirestore();
   await env.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
-    await setDoc(doc(db, "staff", "coach-active"), { role: "coach", status: "active" });
+    await setDoc(doc(db, "staff", "coach-active"), {
+      role: "coach", status: "active", locationIds: ["santa-ynez-valley"],
+    });
     await setDoc(doc(db, "staff", "coach-inactive"), { role: "coach", status: "inactive" });
     await setDoc(doc(db, "staff", "admin-active"), { role: "admin", status: "active" });
     await setDoc(doc(db, "athletes", "F8_1000"), {
-      authUid: "athlete-auth", testing: { state: "ACTIVE" }, tierStatus: "active",
+      authUid: "athlete-auth", locationId: "santa-ynez-valley",
+      testing: { state: "ACTIVE" }, tierStatus: "active",
     });
   });
 });

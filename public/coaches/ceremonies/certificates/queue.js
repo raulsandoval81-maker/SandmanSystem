@@ -7,6 +7,7 @@ import {
 import {
   requireCoach
 } from "/assets/js/coach-guard.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 const ENGINE_ENDPOINTS = {
   recognition:
@@ -252,9 +253,7 @@ async function loadQueue() {
     }
 
     const athleteSnapshot =
-      await getDocs(
-        collection(db, "athletes")
-      );
+      await getAuthorizedAthleteSnapshot();
 
     let recognitionData = null;
 

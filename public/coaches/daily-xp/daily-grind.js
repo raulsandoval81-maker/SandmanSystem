@@ -15,6 +15,7 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 import {
   coachLoginUrl,
@@ -662,7 +663,7 @@ async function initializeDailyGrind() {
   }
 }
 
-function subscribe() {
+async function subscribe() {
   if (unsub) {
     unsub();
     unsub = null;
@@ -670,11 +671,8 @@ function subscribe() {
 
   setStatus("Loading athletes…");
 
-  const colRef = collection(db, "athletes");
-
-  unsub = onSnapshot(
-    colRef,
-    (snap) => {
+  try {
+      const snap = await getAuthorizedAthleteSnapshot();
       roster = snap.docs.map((d) => ({
         id: d.id,
         ...d.data()
@@ -688,12 +686,10 @@ function subscribe() {
         console.error("[daily-grind] initialization failed:", error);
         setStatus("Daily Grind could not load Coach data. Refresh after confirming access.");
       });
-    },
-    (err) => {
+  } catch (err) {
       console.error(err);
       setStatus("Athlete load failed. See console.");
-    }
-  );
+  }
 }
 
 function setPillVisible(btn, on) {

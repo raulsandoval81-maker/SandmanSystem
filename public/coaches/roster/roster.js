@@ -8,6 +8,7 @@ import {
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 import {
   coachLoginUrl,
@@ -412,12 +413,7 @@ async function loadRoster() {
     archiveBtn.textContent = isArchiveView() ? "Current" : "Archived";
   }
 
-  const snap = await getDocs(
-    query(
-      collection(db, "athletes"),
-      limit(500)
-    )
-  );
+  const snap = await getAuthorizedAthleteSnapshot();
 
   const journeyList = snap.docs
     .map((d) => ({

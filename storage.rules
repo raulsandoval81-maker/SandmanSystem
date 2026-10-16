@@ -2,7 +2,9 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /{allPaths=**} {
-      allow read, write: if true;
+      // Storage is not an authoritative Sandman data path. Keep browser access
+      // closed until an owner-bound path has a reviewed product requirement.
+      allow read, write: if false;
     }
   }
 }

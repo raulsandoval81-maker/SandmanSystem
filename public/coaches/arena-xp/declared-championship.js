@@ -9,6 +9,7 @@
 import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { LADDER_F4, LADDER_F8, canonicalF8RankName, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 import {
@@ -327,7 +328,7 @@ function render(list) {
 async function load() {
   setStatus("Loading athletes…", true);
 
-  const snap = await getDocs(collection(db, "athletes"));
+  const snap = await getAuthorizedAthleteSnapshot();
   roster = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
   const dev = isDevMode();

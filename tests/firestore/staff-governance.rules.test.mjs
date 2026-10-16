@@ -31,8 +31,8 @@ test("direct client staff authority writes are denied to every role", async () =
   await assertFails(updateDoc(doc(env.unauthenticatedContext().firestore(), "staff", "coach"), { status: "inactive" }));
 });
 
-test("existing staff list visibility remains unchanged for active Admin and Management", async () => {
+test("staff enumeration is Admin-only; Management uses the scoped callable", async () => {
   await assertSucceeds(getDocs(collection(env.authenticatedContext("admin").firestore(), "staff")));
-  await assertSucceeds(getDocs(collection(env.authenticatedContext("management").firestore(), "staff")));
+  await assertFails(getDocs(collection(env.authenticatedContext("management").firestore(), "staff")));
   await assertFails(getDocs(collection(env.authenticatedContext("coach").firestore(), "staff")));
 });

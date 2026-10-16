@@ -8,6 +8,7 @@ import {
   query,
   where,
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 await ensureSignedIn();
 
@@ -279,19 +280,14 @@ function subscribeParentInboxCounts() {
 // -----------------------------
 // TESTING — READY ATHLETES
 // -----------------------------
-function subscribeTestingReady() {
+async function subscribeTestingReady() {
   if (!listTestingEl) return;
-
-const q = query(
-  collection(db, "athletes"),
-  where("testing.state", "==", "READY")
-);
-  onSnapshot(
-    q,
-    (snap) => {
+  try {
+      const scoped = await getAuthorizedAthleteSnapshot();
+      const readyDocs = scoped.docs.filter((item) => item.data()?.testing?.state === "READY");
       listTestingEl.innerHTML = "";
 
-      snap.forEach((docSnap) => {
+      readyDocs.forEach((docSnap) => {
         const data = docSnap.data() || {};
         const uid = docSnap.id;
 
@@ -340,15 +336,13 @@ row.innerHTML = `
 listTestingEl.appendChild(row);
       });
 
-      if (!snap.size) {
+      if (!readyDocs.length) {
         listTestingEl.innerHTML = `<div style="opacity:.6;">No athletes ready</div>`;
       }
-    },
-    (err) => {
+  } catch (err) {
       console.error("[command-center] ready athlete load error:", err);
       listTestingEl.innerHTML = `<div style="opacity:.6;">Testing queue unavailable</div>`;
-    }
-  );
+  }
 }
 
 // -----------------------------

@@ -7,6 +7,7 @@ import {
   getDocs,
   limit
 } from "/assets/js/firebase-init.js";
+import { getAuthorizedAthleteSnapshot } from "/assets/js/authorized-athlete-roster.js";
 
 await ensureSignedIn();
 
@@ -57,20 +58,13 @@ async function findAthlete(term) {
     ["publicName", clean],
     ["name", clean]
   ];
+  const scoped = await getAuthorizedAthleteSnapshot();
 
   for (const [field, value] of checks) {
     if (!value) continue;
 
-    const snap = await getDocs(
-      query(
-        collection(db, "athletes"),
-        where(field, "==", value),
-        limit(1)
-      )
-    );
-
-    if (!snap.empty) {
-      const docSnap = snap.docs[0];
+    const docSnap = scoped.docs.find((candidate) => candidate.data()?.[field] === value);
+    if (docSnap) {
       return {
         id: docSnap.id,
         ...docSnap.data()
