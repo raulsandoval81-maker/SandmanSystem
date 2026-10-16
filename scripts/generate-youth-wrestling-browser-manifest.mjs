@@ -12,6 +12,7 @@ const projection = {
   approvedCounts: serverManifest.R2C_YOUTH_WRESTLING_APPROVED_COUNTS,
   placements: serverManifest.R2C_YOUTH_WRESTLING_PLACEMENTS.map((entry) => ({
     cardId: entry.cardId,
+    originalCardPath: entry.originalCardPath,
     originalCurriculumTier: entry.originalCurriculumTier,
     placement: entry.placement,
     skillTitle: entry.skillTitle,

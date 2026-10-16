@@ -24,6 +24,7 @@ test("browser projection exactly matches the authoritative server manifest", () 
   assert.deepEqual(browserManifest.approvedCounts, R2C_YOUTH_WRESTLING_APPROVED_COUNTS);
   assert.deepEqual(browserManifest.placements, R2C_YOUTH_WRESTLING_PLACEMENTS.map((entry) => ({
     cardId: entry.cardId,
+    originalCardPath: entry.originalCardPath,
     originalCurriculumTier: entry.originalCurriculumTier,
     placement: entry.placement,
     skillTitle: entry.skillTitle,

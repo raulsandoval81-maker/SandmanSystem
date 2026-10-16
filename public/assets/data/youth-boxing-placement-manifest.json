@@ -1,0 +1,1223 @@
+{
+  "version": "r2c-youth-boxing-placement-v1",
+  "approvedCounts": {
+    "T0": 14,
+    "T1": 14,
+    "T2": 23,
+    "T3": 26,
+    "T4": 30,
+    "CHAMPION_EXTENDED_DEVELOPMENT": 14
+  },
+  "placements": [
+    {
+      "cardId": "youth-boxing-t0-stance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-01-stance.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Stance",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-guard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-02-guard.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Guard",
+      "familyId": "block_shell",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-footwork",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-03-footwork.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Footwork",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-04-jab.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Jab",
+      "familyId": "jab_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-cross",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-05-cross.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Cross",
+      "familyId": "cross_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-one-two",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-06-one-two.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "One-Two",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-defense-shell",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-07-defense-shell.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Defense Shell",
+      "familyId": "block_shell",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-distance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-08-distance.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Distance",
+      "familyId": "distance_range",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-combination-1",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-09-combination-1.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Combination 1",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-heavy-bag",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-10-heavy-bag.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Heavy Bag",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-partner-drill",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-11-partner-drill.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Partner Drill",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t0-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-12-finish-standard.html",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-hook",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-01-hook.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T0",
+      "skillTitle": "Hook",
+      "familyId": "hook_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-uppercut",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-02-uppercut.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Uppercut",
+      "familyId": "uppercut",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-double-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-03-double-jab.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Double Jab",
+      "familyId": "jab_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-body-shot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-04-body-shot.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Body Shot",
+      "familyId": "body_attack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-slip",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-05-slip.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T0",
+      "skillTitle": "Slip",
+      "familyId": "slip_head_movement",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-parry",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-06-parry.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Parry",
+      "familyId": "parry",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-hook-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-07-hook-defense.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Hook Defense",
+      "familyId": "block_shell",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-body-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-08-body-defense.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Body Defense",
+      "familyId": "block_shell",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-ring-movement",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-09-ring-movement.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Ring Movement",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-angle-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-10-angle-step.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Angle Step",
+      "familyId": "angles_pivots",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-combination-2",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-11-combination-2.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Combination 2",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t1-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-12-finish-standard.html",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-timing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-01-timing.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Timing",
+      "familyId": "timing_rhythm",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-rhythm",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-02-rhythm.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Rhythm",
+      "familyId": "timing_rhythm",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-counter-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-03-counter-jab.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Counter Jab",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-slip-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-04-slip-counter.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Slip Counter",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-cross-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-05-cross-counter.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Cross Counter",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-hook-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-06-hook-counter.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Hook Counter",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-range-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-07-range-control.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Range Control",
+      "familyId": "distance_range",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-pivot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-08-pivot.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Pivot",
+      "familyId": "angles_pivots",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-exit-angle",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-09-exit-angle.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Exit Angle",
+      "familyId": "angles_pivots",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-reaction-drill",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-10-reaction-drill.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Reaction Drill",
+      "familyId": "defense_reset",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-defense-reset",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-11-defense-reset.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Defense Reset",
+      "familyId": "defense_reset",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t2-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-12-finish-standard.html",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-jab-entry",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-01-jab-entry.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Jab Entry",
+      "familyId": "jab_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-combination-entries",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-02-combination-entries.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Combination Entries",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-pressure-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-03-pressure-step.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Pressure Step",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-three-punch-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-04-three-punch-flow.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Three Punch Flow",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-body-head-combo",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-05-body-head-combo.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Body Head Combo",
+      "familyId": "body_attack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-combination-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-06-combination-flow.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Combination Flow",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-angle-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-07-angle-attack.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Angle Attack",
+      "familyId": "angles_pivots",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-defense-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-08-defense-chain.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Defense Chain",
+      "familyId": "defense_to_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-defense-reset",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-09-defense-reset.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Defense Reset",
+      "familyId": "defense_reset",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-defensive-reactions",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-10-defensive-reactions.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Defensive Reactions",
+      "familyId": "defense_reset",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-ring-position",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-11-ring-position.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Ring Position",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-ring-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-12-ring-awareness.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Ring Awareness",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-partner-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-13-partner-flow.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Partner Flow",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-controlled-sparring",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-14-controlled-sparring.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Controlled Sparring",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t3-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-15-finish-standard.html",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-ringcraft",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-01-ringcraft.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Ringcraft",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-pressure-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-02-pressure-flow.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Pressure Flow",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-setup-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-03-setup-system.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Setup System",
+      "familyId": "feints_setups",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-corner-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-04-corner-pressure.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Corner Pressure",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-inside-boxing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-05-inside-boxing.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Inside Boxing",
+      "familyId": "inside_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-advanced-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-06-advanced-jab.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Advanced Jab",
+      "familyId": "jab_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-advanced-cross",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-07-advanced-cross.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Advanced Cross",
+      "familyId": "cross_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-body-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-08-body-attack.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Body Attack",
+      "familyId": "body_attack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-head-movement",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-09-head-movement.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Head Movement",
+      "familyId": "slip_head_movement",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-combination-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-10-combination-defense.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Combination Defense",
+      "familyId": "defense_to_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-tempo-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-11-tempo-control.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Tempo Control",
+      "familyId": "tempo_pace",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-false-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-12-false-pressure.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "False Pressure",
+      "familyId": "feints_setups",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-rope-escapes",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-13-rope-escapes.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Rope Escapes",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-pocket-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-14-pocket-awareness.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Pocket Awareness",
+      "familyId": "inside_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t4-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-15-finish-standard.html",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-counter-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-01-counter-chain.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Counter Chain",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-reaction-training",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-02-reaction-training.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Reaction Training",
+      "familyId": "defense_reset",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-lead-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-03-lead-hook-system.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Lead Hook System",
+      "familyId": "hook_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-rear-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-04-rear-hook-system.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Rear Hook System",
+      "familyId": "hook_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-counter-punching",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-05-counter-punching.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Counter Punching",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-defensive-layers",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-06-defensive-layers.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Defensive Layers",
+      "familyId": "block_shell",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-offensive-layers",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-07-offensive-layers.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Offensive Layers",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-angle-traps",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-08-angle-traps.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Angle Traps",
+      "familyId": "angles_pivots",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-pace-break",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-09-pace-break.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Pace Break",
+      "familyId": "tempo_pace",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-weapon-selection",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-10-weapon-selection.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Weapon Selection",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-live-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-11-live-rounds.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Live Rounds",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-fight-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-12-fight-awareness.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Fight Awareness",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-chaos-drills",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-13-chaos-drills.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Chaos Drills",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-second-effort",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-14-second-effort.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Second Effort",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t5-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-15-finish-standard.html",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-boxing-iq",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-01-boxing-iq.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Boxing IQ",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-adaptation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-02-adaptation.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Adaptation",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-pressure-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-03-pressure-control.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Pressure Control",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-range-dictation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-04-range-dictation.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Range Dictation",
+      "familyId": "distance_range",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-counter-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-05-counter-pressure.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Counter Pressure",
+      "familyId": "counter_punching",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-corner-traps",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-06-corner-traps.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Corner Traps",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-inside-dominance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-07-inside-dominance.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Inside Dominance",
+      "familyId": "inside_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-chain-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-08-chain-pressure.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Chain Pressure",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-jab-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-09-jab-system.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Jab System",
+      "familyId": "jab_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-cross-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-10-cross-system.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Cross System",
+      "familyId": "cross_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-11-hook-system.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Hook System",
+      "familyId": "hook_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-body-shot-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-12-body-shot-system.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Body Shot System",
+      "familyId": "body_attack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-defense-to-offense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-13-defense-to-offense.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Defense To Offense",
+      "familyId": "defense_to_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-strategy-build",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-14-strategy-build.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Strategy Build",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-opponent-reading",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-15-opponent-reading.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Opponent Reading",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-finish-instinct",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-16-finish-instinct.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Finish Instinct",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-fight-breaking",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-17-fight-breaking.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Fight Breaking",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-weapon-blending",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-18-weapon-blending.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Weapon Blending",
+      "familyId": "combination_flow",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-system-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-19-system-mastery.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "System Mastery",
+      "familyId": "leadership_mastery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t6-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-20-finish-standard.html",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-fatigue-weaponization",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-01-fatigue-weaponization.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Fatigue Weaponization",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-mental-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-02-mental-pressure.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Mental Pressure",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-round-stealing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-03-round-stealing.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Round Stealing",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-live-chaos",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-04-live-chaos.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Live Chaos",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-pressure-layering",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-05-pressure-layering.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Pressure Layering",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-chain-finishing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-06-chain-finishing.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Chain Finishing",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-corner-dictation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-07-corner-dictation.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Corner Dictation",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-mental-fatigue",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-08-mental-fatigue.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Mental Fatigue",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-high-pressure-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-09-high-pressure-rounds.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "High Pressure Rounds",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-chaos-composure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-10-chaos-composure.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Chaos Composure",
+      "familyId": "conditioning_composure",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-fight-management",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-11-fight-management.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Fight Management",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-pressure-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-12-pressure-mastery.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Pressure Mastery",
+      "familyId": "pressure_boxing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-ring-generalship",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-13-ring-generalship.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Ring Generalship",
+      "familyId": "ringcraft",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-complete-boxer",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-14-complete-boxer.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Complete Boxer",
+      "familyId": "leadership_mastery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-leadership-through-boxing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-15-leadership-through-boxing.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Leadership Through Boxing",
+      "familyId": "leadership_mastery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-championship-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-16-championship-rounds.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Championship Rounds",
+      "familyId": "live_application",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-adaptive-strategy",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-17-adaptive-strategy.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Adaptive Strategy",
+      "familyId": "fight_iq",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-system-integration",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-18-system-integration.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "System Integration",
+      "familyId": "leadership_mastery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-boxing-t7-hero-evaluation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-19-hero-evaluation.html",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Extension Evaluation",
+      "familyId": "leadership_mastery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-boxing-t7-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-20-finish-standard.html",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Finish Standard",
+      "familyId": "finishing",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "EXTENSION"
+    }
+  ]
+}
