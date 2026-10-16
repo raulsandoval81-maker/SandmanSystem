@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import {
   athleteHomeLocationId,
   athleteScheduleDisciplineIds,
@@ -39,4 +40,23 @@ test("schedule assignment scope is readable only by the athlete or an active lin
 test("athlete discipline authority preserves multi-discipline and striking aliases", () => {
   assert.deepEqual(athleteScheduleDisciplineIds({ disciplines: { wrestling: {}, boxing: {} } }).sort(), ["boxing", "wrestling"]);
   assert.deepEqual(athleteScheduleDisciplineIds({ disciplines: { kickboxing: {} } }).sort(), ["kickboxing", "muay-thai"]);
+});
+
+test("visiting attendance retains canonical athlete identity for XP receipts", async () => {
+  const practice = await readFile(new URL("../../functions/src/practice/practiceSessions.ts", import.meta.url), "utf8");
+  const xp = await readFile(new URL("../../functions/src/services/authoritativeXpService.ts", import.meta.url), "utf8");
+  assert.match(practice, /athleteCrossTrainingAssignments/);
+  assert.match(practice, /crossTrainingActive\(item\.data\(\), athlete, practice\)/);
+  assert.match(practice, /requestedPresentIds\.map\(\(athleteId\) => db\.doc\(`athletes\/\$\{athleteId\}`\)\)/);
+  assert.match(practice, /presentIds: requestedPresentIds/);
+  assert.match(xp, /presentIds\.includes\(request\.uid\)/);
+  assert.match(xp, /awardReceiptKey\(request\.uid,/);
+});
+
+test("attendance-first visiting eligibility requires approved overlapping discipline", async () => {
+  const source = await readFile(new URL("../../functions/src/practice/practiceSessions.ts", import.meta.url), "utf8");
+  assert.match(source, /discipline === "unassigned"/);
+  assert.match(source, /assignedDisciplines\.some/);
+  assert.match(source, /Choose the practice discipline before finalizing attendance for XP/);
+  assert.match(source, /String\(assignment\.status \|\| ""\)\.toLowerCase\(\) === "active"/);
 });
