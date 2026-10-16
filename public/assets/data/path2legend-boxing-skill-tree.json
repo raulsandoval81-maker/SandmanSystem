@@ -1,0 +1,1094 @@
+{
+  "version": "path2legend-boxing-skill-tree-v1",
+  "journey": "P2L",
+  "discipline": "boxing",
+  "rankNames": {
+    "T0": "Apprentice",
+    "T1": "Warrior",
+    "T2": "Hero",
+    "T3": "Veteran",
+    "T4": "Legend"
+  },
+  "placements": [
+    {
+      "cardId": "adult-p2l-T0-skill-01-stance",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Stance",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-01-stance.html",
+      "familyId": "stance_motion"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-02-guard",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Guard",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-02-guard.html",
+      "familyId": "block_shell"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-03-footwork",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Footwork",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-03-footwork.html",
+      "familyId": "stance_motion"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-04-jab",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Jab",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-04-jab.html",
+      "familyId": "jab_system"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-05-cross",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Cross",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-05-cross.html",
+      "familyId": "cross_system"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-06-one-two",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "One Two",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-06-one-two.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-07-lead-hook",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Lead Hook",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-07-lead-hook.html",
+      "familyId": "hook_system"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-08-rear-hook",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Rear Hook",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-08-rear-hook.html",
+      "familyId": "hook_system"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-09-uppercut",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Uppercut",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-09-uppercut.html",
+      "familyId": "uppercut"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-10-body-shot",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Body Shot",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-10-body-shot.html",
+      "familyId": "body_attack"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-11-slip",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Slip",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-11-slip.html",
+      "familyId": "slip_head_movement"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-12-roll",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Roll",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-12-roll.html",
+      "familyId": "roll"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-13-parry",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Parry",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-13-parry.html",
+      "familyId": "parry"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-14-block",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Block",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-14-block.html",
+      "familyId": "block_shell"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-15-distance",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Distance",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-15-distance.html",
+      "familyId": "distance_range"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-16-angle",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Angle",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-16-angle.html",
+      "familyId": "angles_pivots"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-17-basic-combo",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Basic Combo",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-17-basic-combo.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-18-bag-work",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Bag Work",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-18-bag-work.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-19-partner-drill",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Partner Drill",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-19-partner-drill.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T0-skill-20-boxing-standard",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Boxing Standard",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t0/skill-20-boxing-standard.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-01-timing",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Timing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-01-timing.html",
+      "familyId": "timing_rhythm"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-02-rhythm",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Rhythm",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-02-rhythm.html",
+      "familyId": "timing_rhythm"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-03-feint",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Feint",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-03-feint.html",
+      "familyId": "feints_setups"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-04-counter",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Counter",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-04-counter.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-05-double-jab",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Double Jab",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-05-double-jab.html",
+      "familyId": "jab_system"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-06-jab-entry",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Jab Entry",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-06-jab-entry.html",
+      "familyId": "jab_system"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-07-cross-counter",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Cross Counter",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-07-cross-counter.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-08-hook-counter",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Hook Counter",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-08-hook-counter.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-09-body-head-combo",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Body Head Combo",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-09-body-head-combo.html",
+      "familyId": "body_attack"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-10-range-control",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Range Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-10-range-control.html",
+      "familyId": "distance_range"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-11-pivot",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Pivot",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-11-pivot.html",
+      "familyId": "angles_pivots"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-12-exit-angle",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Exit Angle",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-12-exit-angle.html",
+      "familyId": "angles_pivots"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-13-pressure-step",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Pressure Step",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-13-pressure-step.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-14-defense-reset",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Defense Reset",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-14-defense-reset.html",
+      "familyId": "defense_reset"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-15-combination-flow",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Combination Flow",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-15-combination-flow.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-16-ring-position",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Ring Position",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-16-ring-position.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-17-controlled-sparring",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Controlled Sparring",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-17-controlled-sparring.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-18-fatigue-control",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Fatigue Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-18-fatigue-control.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-19-round-management",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Round Management",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-19-round-management.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-20-live-application",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Live Application",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-20-live-application.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-21-ring-iq",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Ring IQ",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-21-ring-iq.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-22-defensive-reaction",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Defensive Reaction",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-22-defensive-reaction.html",
+      "familyId": "defense_reset"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-23-combination-pressure",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Combination Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-23-combination-pressure.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-24-live-situations",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Live Situations",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-24-live-situations.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T1-skill-25-finish-standard",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Finish Standard",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t1/skill-25-finish-standard.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-01-ringcraft",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Ringcraft",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-01-ringcraft.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-02-pressure-flow",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Pressure Flow",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-02-pressure-flow.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-03-counter-chain",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Counter Chain",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-03-counter-chain.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-04-reaction-training",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Reaction Training",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-04-reaction-training.html",
+      "familyId": "defense_reset"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-05-setup-system",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Setup System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-05-setup-system.html",
+      "familyId": "feints_setups"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-06-corner-pressure",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Corner Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-06-corner-pressure.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-07-inside-boxing",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Inside Boxing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-07-inside-boxing.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-08-dirty-boxing",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Dirty Boxing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-08-dirty-boxing.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-09-advanced-jab",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Advanced Jab",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-09-advanced-jab.html",
+      "familyId": "jab_system"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-10-advanced-cross",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Advanced Cross",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-10-advanced-cross.html",
+      "familyId": "cross_system"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-11-lead-hook-system",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Lead Hook System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-11-lead-hook-system.html",
+      "familyId": "hook_system"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-12-rear-hook-system",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Rear Hook System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-12-rear-hook-system.html",
+      "familyId": "hook_system"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-13-body-attack",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Body Attack",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-13-body-attack.html",
+      "familyId": "body_attack"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-14-head-movement",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Head Movement",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-14-head-movement.html",
+      "familyId": "slip_head_movement"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-15-combination-defense",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Combination Defense",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-15-combination-defense.html",
+      "familyId": "defense_to_offense"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-16-tempo-control",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Tempo Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-16-tempo-control.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-17-false-pressure",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "False Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-17-false-pressure.html",
+      "familyId": "feints_setups"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-18-angle-traps",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Angle Traps",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-18-angle-traps.html",
+      "familyId": "angles_pivots"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-19-rope-escapes",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Rope Escapes",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-19-rope-escapes.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-20-counter-punching",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Counter Punching",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-20-counter-punching.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-21-pocket-awareness",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Pocket Awareness",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-21-pocket-awareness.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-22-defensive-layers",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Defensive Layers",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-22-defensive-layers.html",
+      "familyId": "block_shell"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-23-offensive-layers",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Offensive Layers",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-23-offensive-layers.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-24-pace-break",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Pace Break",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-24-pace-break.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-25-weapon-selection",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Weapon Selection",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-25-weapon-selection.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-26-live-rounds",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Live Rounds",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-26-live-rounds.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-27-fatigue-performance",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Fatigue Performance",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-27-fatigue-performance.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-28-fight-awareness",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Fight Awareness",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-28-fight-awareness.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-29-chaos-drills",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Chaos Drills",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-29-chaos-drills.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T2-skill-30-second-effort",
+      "tier": "T2",
+      "rankName": "Hero",
+      "skillTitle": "Second Effort",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t2/skill-30-second-effort.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-01-boxing-iq",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Boxing IQ",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-01-boxing-iq.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-02-adaptation",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Adaptation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-02-adaptation.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-03-pressure-control",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Pressure Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-03-pressure-control.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-04-range-dictation",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Range Dictation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-04-range-dictation.html",
+      "familyId": "distance_range"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-05-counter-pressure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Counter Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-05-counter-pressure.html",
+      "familyId": "counter_punching"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-06-corner-traps",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Corner Traps",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-06-corner-traps.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-07-inside-dominance",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Inside Dominance",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-07-inside-dominance.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-08-chain-pressure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Chain Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-08-chain-pressure.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-09-jab-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Jab System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-09-jab-system.html",
+      "familyId": "jab_system"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-10-cross-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Cross System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-10-cross-system.html",
+      "familyId": "cross_system"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-11-hook-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Hook System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-11-hook-system.html",
+      "familyId": "hook_system"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-12-body-shot-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Body Shot System",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-12-body-shot-system.html",
+      "familyId": "body_attack"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-13-defense-to-offense",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Defense To Offense",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-13-defense-to-offense.html",
+      "familyId": "defense_to_offense"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-14-fatigue-weaponization",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Fatigue Weaponization",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-14-fatigue-weaponization.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-15-mental-pressure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Mental Pressure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-15-mental-pressure.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-16-round-stealing",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Round Stealing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-16-round-stealing.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-17-live-chaos",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Live Chaos",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-17-live-chaos.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-18-strategy-build",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Strategy Build",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-18-strategy-build.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-19-opponent-reading",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Opponent Reading",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-19-opponent-reading.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-20-finish-instinct",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Finish Instinct",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-20-finish-instinct.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-21-fight-breaking",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Fight Breaking",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-21-fight-breaking.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-22-pressure-layering",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Pressure Layering",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-22-pressure-layering.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-23-weapon-blending",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Weapon Blending",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-23-weapon-blending.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-24-chain-finishing",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Chain Finishing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-24-chain-finishing.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-25-corner-dictation",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Corner Dictation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-25-corner-dictation.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-26-mental-fatigue",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Mental Fatigue",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-26-mental-fatigue.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-27-high-pressure-rounds",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "High Pressure Rounds",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-27-high-pressure-rounds.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-28-chaos-composure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Chaos Composure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-28-chaos-composure.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-29-fight-management",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Fight Management",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-29-fight-management.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T3-skill-30-system-mastery",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "System Mastery",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t3/skill-30-system-mastery.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-01-presence",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Presence",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-01-presence.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-02-command",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Command",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-02-command.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-03-pressure-mastery",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pressure Mastery",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-03-pressure-mastery.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-04-range-manipulation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Range Manipulation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-04-range-manipulation.html",
+      "familyId": "distance_range"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-05-fight-tempo",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fight Tempo",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-05-fight-tempo.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-06-chaos-control",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Chaos Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-06-chaos-control.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-07-ring-command",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Ring Command",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-07-ring-command.html",
+      "familyId": "ringcraft"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-08-inside-mastery",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Inside Mastery",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-08-inside-mastery.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-09-chain-dominance",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Chain Dominance",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-09-chain-dominance.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-10-transition-mastery",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Transition Mastery",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-10-transition-mastery.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-11-pocket-command",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pocket Command",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-11-pocket-command.html",
+      "familyId": "inside_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-12-finish-discipline",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Finish Discipline",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-12-finish-discipline.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-13-counter-finishing",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Counter Finishing",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-13-counter-finishing.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-14-defensive-composure",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Defensive Composure",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-14-defensive-composure.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-15-fatigue-discipline",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fatigue Discipline",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-15-fatigue-discipline.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-16-weapon-adaptation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Weapon Adaptation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-16-weapon-adaptation.html",
+      "familyId": "combination_flow"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-17-opponent-breaking",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Opponent Breaking",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-17-opponent-breaking.html",
+      "familyId": "finishing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-18-live-leadership",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Live Leadership",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-18-live-leadership.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-19-round-command",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Round Command",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-19-round-command.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-20-fight-command",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fight Command",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-20-fight-command.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-21-pressure-layering",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pressure Layering",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-21-pressure-layering.html",
+      "familyId": "pressure_boxing"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-22-reaction-control",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Reaction Control",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-22-reaction-control.html",
+      "familyId": "defense_reset"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-23-pace-manipulation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pace Manipulation",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-23-pace-manipulation.html",
+      "familyId": "tempo_pace"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-24-system-application",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "System Application",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-24-system-application.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-25-high-chaos-rounds",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "High Chaos Rounds",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-25-high-chaos-rounds.html",
+      "familyId": "conditioning_composure"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-26-instinct-refinement",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Instinct Refinement",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-26-instinct-refinement.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-27-fight-awareness",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fight Awareness",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-27-fight-awareness.html",
+      "familyId": "fight_iq"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-28-coach-awareness",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Coach Awareness",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-28-coach-awareness.html",
+      "familyId": "leadership_mastery"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-29-mastery-rounds",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Mastery Rounds",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-29-mastery-rounds.html",
+      "familyId": "live_application"
+    },
+    {
+      "cardId": "adult-p2l-T4-skill-30-legacy-standard",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Legacy Standard",
+      "originalCardPath": "public/coaches/cards/teen/p2l-boxing/t4/skill-30-legacy-standard.html",
+      "familyId": "leadership_mastery"
+    }
+  ]
+}

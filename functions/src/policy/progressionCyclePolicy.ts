@@ -9,7 +9,7 @@ export type ProgressionBase = "F4" | "F8";
 const F4_RANKS = Object.freeze([
   Object.freeze({ tier: "T0", rankName: "Apprentice", xpCap: 1000 }),
   Object.freeze({ tier: "T1", rankName: "Warrior", xpCap: 1600 }),
-  Object.freeze({ tier: "T2", rankName: "Champion", xpCap: 2200 }),
+  Object.freeze({ tier: "T2", rankName: "Hero", xpCap: 2200 }),
   Object.freeze({ tier: "T3", rankName: "Veteran", xpCap: 2800 }),
   Object.freeze({ tier: "T4", rankName: "Legend", xpCap: 3200 }),
 ]);
