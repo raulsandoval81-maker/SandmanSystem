@@ -775,6 +775,8 @@ export const savePracticeAthleteInput = onCall(async (request) => {
     if (!athleteSessionSnap.exists) {
       throw new HttpsError("failed-precondition", "Canonical athlete-session memory is required before athlete input.");
     }
+    const priorInput = athleteSessionSnap.data()?.coachInput || {};
+    if (priorInput.coachObservation === coachObservation && priorInput.developmentNote === developmentNote) return;
     const now = FieldValue.serverTimestamp();
     tx.set(athleteSessionRef, {
       coachInput: {
@@ -784,6 +786,13 @@ export const savePracticeAthleteInput = onCall(async (request) => {
         coachUid: actor.uid,
       },
       updatedAt: now,
+    }, { merge: true });
+    // Athlete-specific source memory changed; invalidate its discipline scope.
+    const discipline = normalizePracticeDiscipline(practice.discipline);
+    if (!discipline || discipline === "unassigned") throw new HttpsError("failed-precondition", "Practice discipline required.");
+    tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`), {
+      revision: FieldValue.increment(1), lastMutationKind: "athlete-coach-input",
+      lastPracticeId: practiceId, updatedAt: now,
     }, { merge: true });
   });
   return { ok: true, practiceId, athleteId };
@@ -1012,6 +1021,14 @@ export const closePracticeSession = onCall(async (request) => {
         athlete,
         now,
       }));
+      // Recovery of missing canonical athlete memory changes certifiable
+      // source contents. Invalidate only for newly created records.
+      tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${attendanceDiscipline}`), {
+        revision: FieldValue.increment(1),
+        lastMutationKind: "athlete-memory-created-at-closeout",
+        lastPracticeId: practiceId,
+        updatedAt: now,
+      }, { merge: true });
     });
   });
   return { ok: true, practiceId, status: "closed", idempotent };

@@ -41,34 +41,51 @@ export const upsertAthleteCrossTrainingAssignment = onCall(async (req) => {
     throw new HttpsError("invalid-argument", "Valid athlete, host location, and status are required.");
   }
 
-  const athleteSnap = await db.doc(`athletes/${athleteId}`).get();
-  if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
-  const athlete = athleteSnap.data() || {};
-  const homeLocationId = athleteHomeLocationId(athlete);
-  if (!homeLocationId || homeLocationId === hostLocationId) {
-    throw new HttpsError("failed-precondition", "Cross-training requires distinct home and host locations.");
-  }
-  if (!canStaffManageCrossTraining(issuer.role, issuer.staff, homeLocationId, hostLocationId)) {
-    throw new HttpsError("permission-denied", "Staff location scope does not authorize this assignment.");
-  }
-  const athleteDisciplines = new Set(athleteScheduleDisciplineIds(athlete));
-  if (!disciplineIds.length || disciplineIds.some((id) => !athleteDisciplines.has(id))) {
-    throw new HttpsError("failed-precondition", "Assignment disciplines must belong to the athlete.");
-  }
 
   const requestedActiveFrom = optionalTimestamp(req.data?.activeFrom);
   const hasActiveTo = Object.prototype.hasOwnProperty.call(req.data || {}, "activeTo");
   const requestedActiveTo = hasActiveTo ? optionalTimestamp(req.data?.activeTo) : null;
   const assignmentId = crossTrainingAssignmentId(athleteId, hostLocationId, rosterId);
   const ref = db.doc(`athleteCrossTrainingAssignments/${assignmentId}`);
+  let resolvedHomeLocationId = "";
   await db.runTransaction(async (tx) => {
+    const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
+    if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
+    const athlete = athleteSnap.data() || {};
+    const homeLocationId = athleteHomeLocationId(athlete);
+    resolvedHomeLocationId = homeLocationId;
+    if (!homeLocationId || homeLocationId === hostLocationId) {
+      throw new HttpsError("failed-precondition", "Cross-training requires distinct home and host locations.");
+    }
+    if (!canStaffManageCrossTraining(issuer.role, issuer.staff, homeLocationId, hostLocationId)) {
+      throw new HttpsError("permission-denied", "Staff location scope does not authorize this assignment.");
+    }
+    const athleteDisciplines = new Set(athleteScheduleDisciplineIds(athlete));
+    if (!disciplineIds.length || disciplineIds.some((id) => !athleteDisciplines.has(id))) {
+      throw new HttpsError("failed-precondition", "Assignment disciplines must belong to the athlete.");
+    }
     const existing = await tx.get(ref);
-    const immutable = existing.exists ? existing.data() || {} : {};
-    const activeFrom = requestedActiveFrom || immutable.activeFrom || Timestamp.now();
-    const activeTo = hasActiveTo ? requestedActiveTo : immutable.activeTo || null;
+    const prior = existing.exists ? existing.data() || {} : {};
+    const activeFrom = requestedActiveFrom || prior.activeFrom || Timestamp.now();
+    const activeTo = hasActiveTo ? requestedActiveTo : prior.activeTo || null;
     if (activeTo && activeTo.toMillis() < activeFrom.toMillis()) {
       throw new HttpsError("invalid-argument", "activeTo must not precede activeFrom.");
     }
+    const previousDisciplines: string[] = Array.isArray(prior.disciplineIds)
+      ? prior.disciplineIds.map((id: unknown) => normalizeScheduleDisciplineId(id)).filter(Boolean) : [];
+    const sameTime = (a: unknown, b: Timestamp | null) =>
+      (a instanceof Timestamp ? a.toMillis() : null) === (b ? b.toMillis() : null);
+    const sameDisciplines = previousDisciplines.length === disciplineIds.length
+      && previousDisciplines.every((id) => disciplineIds.includes(id));
+    const sourceChanged = !existing.exists
+      || prior.homeLocationId !== homeLocationId
+      || prior.hostLocationId !== hostLocationId
+      || prior.status !== status
+      || !sameDisciplines
+      || !sameTime(prior.activeFrom, activeFrom)
+      || !sameTime(prior.activeTo, activeTo);
+    if (!sourceChanged) return;
+    const now = FieldValue.serverTimestamp();
     tx.set(ref, {
       athleteId,
       homeLocationId,
@@ -76,13 +93,24 @@ export const upsertAthleteCrossTrainingAssignment = onCall(async (req) => {
       rosterId,
       disciplineIds,
       status,
-      approvedBy: immutable.approvedBy || issuer.uid,
-      approvedByRole: immutable.approvedByRole || issuer.role,
+      approvedBy: prior.approvedBy || issuer.uid,
+      approvedByRole: prior.approvedByRole || issuer.role,
       activeFrom,
       activeTo,
-      createdAt: immutable.createdAt || FieldValue.serverTimestamp(),
-      updatedAt: FieldValue.serverTimestamp(),
+      createdAt: prior.createdAt || now,
+      updatedAt: now,
     });
+    // Old and new assignment disciplines may both lose or gain history scope.
+    for (const discipline of new Set([...previousDisciplines, ...disciplineIds])) {
+      if (!/^[a-z0-9][a-z0-9_-]{0,127}$/.test(discipline)) {
+        throw new HttpsError("failed-precondition", "Invalid historical discipline identity.");
+      }
+      tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`), {
+        revision: FieldValue.increment(1),
+        lastMutationKind: "cross-training-assignment-change",
+        updatedAt: now,
+      }, { merge: true });
+    }
   });
-  return { ok: true, assignmentId, athleteId, homeLocationId, hostLocationId, status };
+  return { ok: true, assignmentId, athleteId, homeLocationId: resolvedHomeLocationId, hostLocationId, status };
 });

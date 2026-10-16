@@ -539,3 +539,29 @@ test("attendance-only and unexpected evidence remain explicit",()=>{
  assert.deepEqual(result.evidenceOutsideInventory,["practice_C"]);
  assert.equal(result.eligibleForAuto,false);
 });
+
+test("source-history certificate freshness is fail-closed for legacy and stale revisions", () => {
+  const { historicalCertificateSourceRevisionIsCurrent: current } =
+    require("../lib/modules/historicalCertificateSourceRevision");
+  assert.equal(current(4,4), true);
+  for (const [certified, observed] of [
+    [undefined, 4], [null, 4], [0, 4], [4, undefined], [4, null],
+    [4, 0], [4, 5], [5, 4], ["4", 4], [4, "4"],
+    [Number.NaN, 4], [1.5, 1.5],
+  ]) {
+    assert.equal(current(certified, observed), false, JSON.stringify({certified, observed}));
+  }
+});
+
+test("legacy history remains quarantined until a server-verified complete baseline", () => {
+  const {historicalSourceBaselineIsVerified: verified} =
+    require("../lib/modules/historicalCertificateSourceRevision");
+  for (const record of [null, {}, {revision: 99}, {revision: 1, baselineStatus: "VERIFIED_COMPLETE"},
+    {baselineStatus:"VERIFIED_COMPLETE", baselineAuthority:"CLIENT_APPROVED",baselineVersion:1},
+    {baselineStatus:"PENDING", baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1},
+    {baselineStatus:"VERIFIED_COMPLETE",baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:0}]) {
+    assert.equal(verified(record),false);
+  }
+  assert.equal(verified({baselineStatus:"VERIFIED_COMPLETE",
+    baselineAuthority:"SERVER_VERIFIED_SOURCE_INVENTORY",baselineVersion:1,revision:1,baselineSourceRevision:1,baselineEvidenceManifestId:"test-manifest"}),true);
+});

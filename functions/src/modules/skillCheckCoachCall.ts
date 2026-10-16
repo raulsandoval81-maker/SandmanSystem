@@ -22,6 +22,7 @@ import {
   staffHasLocation,
 } from "../services/staffAuthorization";
 import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
+import { historicalSourceBaselineIsVerified } from "./historicalCertificateSourceRevision";
 
 const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
 
@@ -610,6 +611,15 @@ export const skillCheckCoachCall =
             || JSON.stringify(paths) !== JSON.stringify(decision.sourceEvidencePaths)
             || JSON.stringify(previous) !== JSON.stringify(certificate.declaredPriorLocationIds)
             || !records.length || records.length > 50) blockers.push("history-chain-invalid");
+        const sourceRevisionSnap = await db.doc(`athletes/${id}/historyRevisions/${discipline}`).get();
+        const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision)
+            || sourceRevision < 1 || !Number.isSafeInteger(certificate.sourceRevision)
+            || certificate.sourceRevision !== sourceRevision)
+          blockers.push("source-revision-uncertified-or-stale");
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
+          blockers.push("legacy-history-baseline-unverified");
         const byFamily = new Map<string, Array<{state: string; verifiedAt: string; practiceId: string}>>();
         if (!blockers.length) {
           for (const entry of records) {
@@ -1891,14 +1901,20 @@ export const skillCheckCoachCall =
       if (!/^[a-zA-Z0-9_-]{1,128}$/.test(manifestId)) {
         throw new HttpsError("invalid-argument", "Valid manifest ID required.");
       }
+      const verificationReceiptId = clean(data.verificationReceiptId);
+      if (!/^[a-zA-Z0-9_-]{1,128}$/.test(verificationReceiptId)) {
+        throw new HttpsError("invalid-argument", "Source verification receipt required for certification.");
+      }
       const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const certificate = ref.collection("coverageCertificates").doc(manifestId);
       // All query and record reads occur in ONE Firestore transaction snapshot.
       // Limit to small histories; never label a truncated history complete.
       const outcome = await db.runTransaction(async tx => {
-        const [reviewSnap, athleteSnap, manifestSnap, existingCert] = await Promise.all([
+        const [reviewSnap, athleteSnap, manifestSnap, existingCert, sourceRevisionSnap, verificationReceiptSnap] = await Promise.all([
           tx.get(ref), tx.get(db.doc(`athletes/${athleteId}`)),
           tx.get(ref.collection("evidenceManifests").doc(manifestId)), tx.get(certificate),
+          tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
+          tx.get(ref.collection("sourceVerificationReceipts").doc(verificationReceiptId)),
         ]);
         const review = reviewSnap.data() || {};
         const current = athleteSnap.data() || {};
@@ -1916,6 +1932,22 @@ export const skillCheckCoachCall =
             || manifest.reviewRevision !== revision || clean(manifest.athleteId) !== athleteId
             || normalizeDiscipline(manifest.discipline) !== discipline) blockers.push("manifest-invalid");
         if (existingCert.exists) blockers.push("certificate-already-exists");
+        const receipt = verificationReceiptSnap.data() || {};
+        if (!verificationReceiptSnap.exists
+            || receipt.kind !== "UNAPPROVED_SOURCE_VERIFICATION_RECEIPT"
+            || receipt.athleteId !== athleteId || receipt.discipline !== discipline
+            || receipt.manifestId !== manifestId || receipt.reviewRevision !== revision
+            || receipt.sourceRecordsValid !== true || receipt.reviewCurrent !== true
+            || !Array.isArray(receipt.records)
+            || receipt.records.some((entry: {valid?: boolean}) => entry.valid !== true)) {
+          blockers.push("source-verification-receipt-invalid");
+        }
+        const sourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists || !Number.isSafeInteger(sourceRevision) || sourceRevision < 1)
+          blockers.push("source-revision-baseline-required");
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
+          blockers.push("source-inventory-baseline-unverified");
         const manifestBlockers: string[] = Array.isArray(manifest.blockers)
           ? manifest.blockers.map(clean) : [];
         // A prior-location review requirement is resolved by this Admin's
@@ -1934,6 +1966,17 @@ export const skillCheckCoachCall =
         const records: Record<string, unknown>[] = Array.isArray(manifest.records)
           ? manifest.records : [];
         if (!records.length || records.length > 50) blockers.push("manifest-evidence-count-not-supported");
+        // A receipt that checked a different subset cannot authorize this manifest,
+        // even when every entry it happened to check was valid.
+        const manifestEvidencePaths = records.map(item => clean(item.skillEvidencePath)).sort();
+        const receiptEvidencePaths = Array.isArray(receipt.records)
+          ? receipt.records.map((item: {skillEvidencePath?: string}) =>
+            clean(item.skillEvidencePath)).sort() : [];
+        if (new Set(manifestEvidencePaths).size !== manifestEvidencePaths.length
+            || manifestEvidencePaths.some(path => !path)
+            || JSON.stringify(manifestEvidencePaths) !== JSON.stringify(receiptEvidencePaths)) {
+          blockers.push("source-verification-receipt-evidence-mismatch");
+        }
         const location = clean(current.locationId);
         const academy = clean(current.academyId);
         const scopes = [
@@ -2007,6 +2050,7 @@ export const skillCheckCoachCall =
         tx.create(certificate, {
           kind: "SERVER_CERTIFIED_FULL_HISTORY", schemaVersion: 1,
           athleteId, discipline, manifestId, reviewRevision: revision,
+          sourceRevision, sourceVerificationReceiptId: verificationReceiptId,
           declaredPriorLocationIds: previous, sourceEvidencePaths: [...observed].sort(),
           scopeNames: scopes.map(spec => spec.scope),
           certifiedAt: FieldValue.serverTimestamp(), certifiedBy: actor.uid,
@@ -2093,13 +2137,14 @@ export const skillCheckCoachCall =
       }
       const ref = db.doc(`athletes/${athleteId}/historicalTransferReviews/${discipline}`);
       const result = await db.runTransaction(async tx => {
-        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap] =
+        const [reviewSnap, manifestSnap, receiptSnap, certificationSnap, athleteSnap, sourceRevisionSnap] =
           await Promise.all([
             tx.get(ref),
             tx.get(ref.collection("evidenceManifests").doc(manifestId)),
             tx.get(ref.collection("sourceVerificationReceipts").doc(receiptId)),
             tx.get(ref.collection("coverageCertificates").doc(manifestId)),
             tx.get(db.doc(`athletes/${athleteId}`)),
+            tx.get(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`)),
           ]);
         const review = reviewSnap.data() || {};
         const manifest = manifestSnap.data() || {};
@@ -2141,6 +2186,16 @@ export const skillCheckCoachCall =
             || JSON.stringify(certifiedPaths) !== JSON.stringify(manifestPaths)
             || JSON.stringify(certified.declaredPriorLocationIds) !== JSON.stringify(latestLocations))
           blockers.push("independent-full-history-certification-required");
+        const activeSourceRevision = Number(sourceRevisionSnap.data()?.revision);
+        if (!sourceRevisionSnap.exists
+            || !Number.isSafeInteger(activeSourceRevision) || activeSourceRevision < 1
+            || !Number.isSafeInteger(certified.sourceRevision)
+            || certified.sourceRevision !== activeSourceRevision) {
+          blockers.push("source-revision-uncertified-or-stale");
+        }
+        if (!historicalSourceBaselineIsVerified(sourceRevisionSnap.data())
+            || sourceRevisionSnap.data()?.baselineEvidenceManifestId !== manifestId)
+          blockers.push("legacy-history-baseline-unverified");
         // Transactional source reads protect against evidence changing between
         // the previous receipt and this acceptance attempt.
         const entries: Record<string, unknown>[] = Array.isArray(manifest.records)

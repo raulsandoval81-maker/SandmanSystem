@@ -250,6 +250,18 @@ service cloud.firestore {
         )
       );
 
+      // Historical revision and baseline authority are server-controlled.
+      // No browser/mobile client may create, certify, overwrite or erase them,
+      // including users with Coach, Management, or Admin claims.
+      match /historyRevisions/{disciplineId} {
+        allow write: if false;
+      }
+
+      // Historical certification artifacts are also exclusively server-owned.
+      match /historicalTransferReviews/{disciplineId}/{document=**} {
+        allow write: if false;
+      }
+
       match /testingLogs/{logId} {
         allow get, list: if isActiveCoachOrAdmin();
         allow create: if isActiveCoachOrAdmin();
