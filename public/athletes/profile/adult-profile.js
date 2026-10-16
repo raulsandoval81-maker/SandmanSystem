@@ -13,6 +13,7 @@ import {
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 
 import {
+  canonicalPath2LegendRankName,
   getLadderForAthlete
 } from "/assets/js/ladder.service.js";
 
@@ -1026,7 +1027,7 @@ if (typeof combat.tier === "number") {
   // -----------------------------
   // Rank / Color display
   // -----------------------------
-  const rankName =
+  const storedRankName =
     a.rankName ||
     a.tierName ||
     a.rank ||
@@ -1034,6 +1035,7 @@ if (typeof combat.tier === "number") {
     tierInfo?.name ||
     combat.rankName ||
     "Apprentice";
+  const rankName = canonicalPath2LegendRankName(a, storedRankName) || storedRankName;
 
   const rankColor =
     combat.rankColor ||

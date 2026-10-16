@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { BOXING_CARD_FAMILIES } from "../../public/coaches/cards/boxing/family-map.js";
+import { canonicalPath2LegendRankName, getLadderForAthlete, LADDER_F4, LADDER_F8, LADDER_Q2M } from "../../public/assets/js/ladder.service.js";
 import { familyProgressById, groupFiveTierPlacements, progressPresentation } from "../../public/assets/js/simplified-skill-tree-presentation.js";
 
 const expectedCounts = { wrestling: [20, 20, 30, 30, 30], kickboxing: [20, 20, 25, 30, 30], boxing: [20, 25, 30, 30, 30] };
@@ -33,6 +34,43 @@ for (const discipline of Object.keys(expectedCounts)) {
     assert.deepEqual(groupFiveTierPlacements(manifest).map(({ skills }) => skills.length), expectedCounts[discipline]);
   });
 }
+
+test("all 390 Path2Legend Coach Card identities and teaching structures remain intact", () => {
+  const cards = Object.keys(expectedCounts).flatMap((discipline) => cardProjection(discipline));
+  assert.equal(cards.length, 390);
+  assert.equal(new Set(cards.map(({ cardId }) => cardId)).size, 390);
+  for (const card of cards) {
+    const source = readFileSync(card.originalCardPath, "utf8");
+    assert.ok(card.cardId);
+    assert.ok(card.skillTitle);
+    assert.match(source, /<p>A\s+—/);
+    assert.match(source, /<p>B\s+—/);
+    assert.match(source, /<p>C\s+—/);
+  }
+});
+
+test("all active Path2Legend manifests and indexes display T2 Hero", () => {
+  for (const discipline of Object.keys(expectedCounts)) {
+    const manifest = JSON.parse(readFileSync(`public/assets/data/path2legend-${discipline}-skill-tree.json`, "utf8"));
+    assert.equal(manifest.rankNames.T2, "Hero");
+    assert.equal(manifest.placements.filter(({ tier }) => tier === "T2").every(({ rankName }) => rankName === "Hero"), true);
+    assert.doesNotMatch(readFileSync(`public/coaches/cards/teen/p2l-${discipline}/index.html`, "utf8"), /<h2>Champion<\/h2>/);
+    assert.doesNotMatch(readFileSync(`public/athletes/arsenal/combat/p2l/${discipline}/index.html`, "utf8"), />\s*Champion\s*</);
+  }
+});
+
+test("legacy P2L Champion strings display as Hero without changing tier or Quest2Mastery", () => {
+  const legacy = Object.freeze({ uid: "F4_100", programTrack: "Path2Legend", tier: "T2", rankName: "Champion", xpCap: 2200 });
+  assert.equal(canonicalPath2LegendRankName(legacy, legacy.rankName), "Hero");
+  assert.equal(legacy.rankName, "Champion");
+  assert.equal(legacy.tier, "T2");
+  assert.equal(legacy.xpCap, 2200);
+  assert.equal(LADDER_F4[2].name, "Hero");
+  assert.equal(getLadderForAthlete({ ...legacy, rankName: "Hero" }), LADDER_F4);
+  assert.equal(getLadderForAthlete({ uid: "F8_100", tier: "T4", rankName: "Hero" }), LADDER_F8);
+  assert.equal(canonicalPath2LegendRankName({ programTrack: "Quest2Mastery", tier: "T1" }, "Champion"), "Champion");
+  assert.equal(LADDER_Q2M[2].name, "Champion");
+});
 
 test("family-level progress remains distinct from exact-card status", () => {
   const familyProgress = familyProgressById([{ familyId: "double_leg", state: "MASTERED" }]);

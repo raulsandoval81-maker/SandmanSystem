@@ -250,13 +250,13 @@ function displayRankName(id = "", data = {}) {
     data.rankNum != null;
   const displayLadders = {
     z2h: ["Shadow", "Prospect", "Competitor", "Contender", "Champion"],
-    p2l: ["Apprentice", "Warrior", "Champion", "Veteran", "Legend"],
+    p2l: ["Apprentice", "Warrior", "Hero", "Veteran", "Legend"],
     q2m: ["Apprentice", "Warrior", "Hero", "Veteran", "Master"]
   };
 
   if (!hasTierIdentity && storedRank) {
     if (journeyKey === "z2h" && storedRank === "Hero") return "Champion";
-    if (journeyKey !== "z2h" && storedRank === "Champion") return "Hero";
+    if (journeyKey === "p2l" && storedRank === "Champion") return "Hero";
     if (journeyKey === "q2m" && storedRank === "Mastery") return "Master";
     return storedRank;
   }

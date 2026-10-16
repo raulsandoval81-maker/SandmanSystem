@@ -5,7 +5,7 @@
   "rankNames": {
     "T0": "Apprentice",
     "T1": "Warrior",
-    "T2": "Champion",
+    "T2": "Hero",
     "T3": "Veteran",
     "T4": "Legend"
   },
@@ -293,210 +293,210 @@
     {
       "cardId": "teen-t2-pressure-motion",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Pressure Motion",
       "familyId": "pressure_footwork"
     },
     {
       "cardId": "teen-t2-angle-control",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Angle Control",
       "familyId": "angle"
     },
     {
       "cardId": "teen-t2-head-position-control",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Head Position Control",
       "familyId": "head_position"
     },
     {
       "cardId": "teen-t2-distance-management",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Distance Management",
       "familyId": "distance"
     },
     {
       "cardId": "teen-t2-tempo-shift",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Tempo Shift",
       "familyId": "tempo"
     },
     {
       "cardId": "teen-t2-motion-to-reattack",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Motion to Re-Attack",
       "familyId": "motion_attack_reattack"
     },
     {
       "cardId": "teen-t2-chain-wrestling",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Chain Wrestling",
       "familyId": "chain_wrestling"
     },
     {
       "cardId": "teen-t2-setups-system",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Setups System",
       "familyId": "setups_ties"
     },
     {
       "cardId": "teen-t2-underhook-series",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Underhook Series",
       "familyId": "underhook"
     },
     {
       "cardId": "teen-t2-two-on-one-series",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "2-on-1 Series",
       "familyId": "two_on_one"
     },
     {
       "cardId": "teen-t2-arm-drag-chain",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Arm Drag to Chain",
       "familyId": "arm_drag"
     },
     {
       "cardId": "teen-t2-reshot-system",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Re-Shot System",
       "familyId": "reattack_reshot"
     },
     {
       "cardId": "teen-t2-sprawl-to-score",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Sprawl to Score",
       "familyId": "shot_defense"
     },
     {
       "cardId": "teen-t2-front-headlock-system",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Front Headlock System",
       "familyId": "front_headlock"
     },
     {
       "cardId": "teen-t2-down-block-reattack",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Down Block to Re-Attack",
       "familyId": "down_block"
     },
     {
       "cardId": "teen-t2-counter-offense",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Counter-Offense",
       "familyId": "counter_offense"
     },
     {
       "cardId": "teen-t2-scramble-control",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Scramble Control",
       "familyId": "scramble"
     },
     {
       "cardId": "teen-t2-whizzer-defense",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Whizzer Defense",
       "familyId": "whizzer"
     },
     {
       "cardId": "teen-t2-ride-control-system",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Ride Control System",
       "familyId": "ride_control"
     },
     {
       "cardId": "teen-t2-spiral-ride-turn",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Spiral Ride to Turn",
       "familyId": "ride_control"
     },
     {
       "cardId": "teen-t2-crossface-series",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Crossface Series",
       "familyId": "crossface"
     },
     {
       "cardId": "teen-t2-leg-ride-intro",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Leg Ride Intro",
       "familyId": "leg_ride"
     },
     {
       "cardId": "teen-t2-return-to-ride",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Return to Ride",
       "familyId": "return"
     },
     {
       "cardId": "teen-t2-turn-chain",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Turn Chain",
       "familyId": "turn_system"
     },
     {
       "cardId": "teen-t2-escape-system",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Escape System",
       "familyId": "escape"
     },
     {
       "cardId": "teen-t2-standup-chain",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Stand-Up Chain",
       "familyId": "stand_up"
     },
     {
       "cardId": "teen-t2-sitout-switch",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Sit-Out to Switch",
       "familyId": "sitout_switch"
     },
     {
       "cardId": "teen-t2-hip-heist-chain",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Hip Heist Chain",
       "familyId": "hip_heist"
     },
     {
       "cardId": "teen-t2-survival-under-pressure",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Survival Under Pressure",
       "familyId": "survival_recovery"
     },
     {
       "cardId": "teen-t2-bottom-to-score",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Bottom to Score",
       "familyId": "bottom_integration"
     },

@@ -13,6 +13,7 @@ import {
 } from "/assets/js/firebase-init-para.js";
 
 import {
+  canonicalPath2LegendRankName,
   LADDER_F4,
   LADDER_F8,
 } from "/assets/js/ladder.service.js";
@@ -224,6 +225,7 @@ const colorMaps = {
     p2l: {
       Apprentice: "belt-p2l-apprentice",
       Warrior: "belt-p2l-warrior",
+      Hero: "belt-p2l-champion",
       Champion: "belt-p2l-champion",
       Veteran: "belt-p2l-veteran",
       Legend: "belt-p2l-legend"
@@ -489,10 +491,11 @@ function renderAthlete(a = {}) {
 
   const ladder = resolveLadder(combat);
 
-  const tierName =
+  const storedTierName =
     combat.rankName ||
     combat.tierName ||
     getTier(combat);
+  const tierName = canonicalPath2LegendRankName({ ...a, ...combat }, storedTierName) || storedTierName;
 
   const tier = findCurrentTier(
     ladder,

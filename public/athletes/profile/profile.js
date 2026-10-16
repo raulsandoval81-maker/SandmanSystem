@@ -12,7 +12,7 @@ import {
 } from "/assets/js/firebase-init.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 
-import { LADDER_F4 } from "/assets/js/ladder.service.js";
+import { canonicalPath2LegendRankName, LADDER_F4 } from "/assets/js/ladder.service.js";
 import {
   renderAthleteAchievements,
   renderAthleteActivity
@@ -1067,7 +1067,7 @@ const storedStripes = getStoredStripes(a);
   // -----------------------------
   // Rank / Color display
   // -----------------------------
-  const rankName =
+  const storedRankName =
     a.rankName ||
     a.tierName ||
     a.rank ||
@@ -1075,6 +1075,7 @@ const storedStripes = getStoredStripes(a);
     tierInfo?.name ||
     combat.rankName ||
     "Apprentice";
+  const rankName = canonicalPath2LegendRankName(a, storedRankName) || storedRankName;
 
   const rankColor =
     combat.rankColor ||

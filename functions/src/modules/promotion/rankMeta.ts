@@ -40,7 +40,7 @@ const PATH2LEGEND_GRAPPLING: RankLadder = {
     rankColor: "blue",
   },
   T2: {
-    rankName: "Champion",
+    rankName: "Hero",
     rankColor: "purple",
   },
   T3: {
@@ -63,7 +63,7 @@ const PATH2LEGEND_STRIKING: RankLadder = {
     rankColor: "blue",
   },
   T2: {
-    rankName: "Champion",
+    rankName: "Hero",
     rankColor: "purple",
   },
   T3: {

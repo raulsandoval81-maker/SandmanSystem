@@ -5,7 +5,7 @@
   "rankNames": {
     "T0": "Apprentice",
     "T1": "Warrior",
-    "T2": "Champion",
+    "T2": "Hero",
     "T3": "Veteran",
     "T4": "Legend"
   },
@@ -293,175 +293,175 @@
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-01-timing",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Timing",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-02-rhythm",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Rhythm",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-03-feint",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Feint",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-04-counter",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Counter",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-05-double-jab",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Double Jab",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-06-jab-kick-entry",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Jab Kick Entry",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-07-cross-kick-entry",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Cross Kick Entry",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-08-hook-kick-counter",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Hook Kick Counter",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-09-body-head-kick-combo",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Body Head Kick Combo",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-10-range-control",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Range Control",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-11-pivot",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Pivot",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-12-exit-angle",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Exit Angle",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-13-pressure-step",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Pressure Step",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-14-defense-reset",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Defense Reset",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-15-combination-flow",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Combination Flow",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-16-ring-position",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Ring Position",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-17-controlled-sparring",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Controlled Sparring",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-18-fatigue-control",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Fatigue Control",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-19-round-management",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Round Management",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-20-live-application",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Live Application",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-21-kick-catch-reaction",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Kick Catch Reaction",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-22-distance-traps",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Distance Traps",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-23-defensive-reactions",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Defensive Reactions",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-24-pressure-sparring",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Pressure Sparring",
       "familyId": ""
     },
     {
       "cardId": "teen-p2l-kickboxing-t2-skill-25-ring-awareness",
       "tier": "T2",
-      "rankName": "Champion",
+      "rankName": "Hero",
       "skillTitle": "Ring Awareness",
       "familyId": ""
     },

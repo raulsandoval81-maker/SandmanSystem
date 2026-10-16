@@ -37,7 +37,7 @@ export function canonicalF8RankName(athlete = {}) {
 export const LADDER_F4 = [
   { key: "R0", name: "Apprentice", cap: 1000, stripe: 250, stripes: 4 },
   { key: "R1", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
-  { key: "R2", name: "Champion",   cap: 2200, stripe: 550, stripes: 4 },
+  { key: "R2", name: "Hero",       cap: 2200, stripe: 550, stripes: 4 },
   { key: "R3", name: "Veteran",    cap: 2800, stripe: 700, stripes: 4 },
   { key: "R4", name: "Legend",     cap: 3200, stripe: 800, stripes: 4 }
 ];
@@ -53,6 +53,21 @@ export const LADDER_Q2M = [
 
 // Optional alias (if you ever prefer “teen” naming)
 export const LADDER_TEEN = LADDER_F4;
+
+const PATH2LEGEND_RANK_NAMES = Object.freeze({
+  T0: "Apprentice", T1: "Warrior", T2: "Hero", T3: "Veteran", T4: "Legend",
+});
+
+export function canonicalPath2LegendRankName(athlete = {}, fallback = "") {
+  const id = String(athlete.uid || athlete.uidCode || athlete.id || "").trim().toUpperCase();
+  const track = String(athlete.journey || athlete.programTrack || athlete.program || athlete.track || athlete.trackCode || "").trim().toLowerCase();
+  if (/quest2mastery|quest 2 mastery|q2m|adult/.test(track)) return String(fallback || "");
+  const isPath2Legend = id.startsWith("F4_") || /path2legend|path 2 legend|p2l|foundry4/.test(track);
+  if (!isPath2Legend) return String(fallback || "");
+  const tier = String(athlete.progressionTier || athlete.tier || athlete.tierCode || "").trim().toUpperCase();
+  if (PATH2LEGEND_RANK_NAMES[tier]) return PATH2LEGEND_RANK_NAMES[tier];
+  return String(fallback || "").trim() === "Champion" ? "Hero" : String(fallback || "");
+}
 
 // ============================
 // COLORS
@@ -108,6 +123,15 @@ export function getLadderForAthlete(a = {}) {
     track.includes("adult")
   ) {
     return LADDER_Q2M;
+  }
+
+  // Explicit Path2Legend identity wins before legacy rank-name fallbacks.
+  if (
+    track.includes("path2legend") ||
+    track.includes("p2l") ||
+    track.includes("foundry4")
+  ) {
+    return LADDER_F4;
   }
 
   // Foundry 8 / Youth

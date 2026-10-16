@@ -80,6 +80,7 @@ test("successful F8 promotion advances exactly one approved rank", () => {
 test("successful F4 promotion advances exactly one compatible rank", () => {
   assert.deepEqual(promotionRanks("F4").map((rank) => rank.xpCap), [1000, 1600, 2200, 2800, 3200]);
   assert.equal(resolvePromotionTransition("F4", "T1").next.tier, "T2");
+  assert.equal(resolvePromotionTransition("F4", "T1").next.rankName, "Hero");
 });
 
 test("final F8 Champion and F4 Legend cannot promote", () => {
@@ -87,9 +88,12 @@ test("final F8 Champion and F4 Legend cannot promote", () => {
   assert.throws(() => resolvePromotionTransition("F4", "T4"), /F4_FINAL_RANK_CANNOT_PROMOTE/);
 });
 
-test("active F8 promotion metadata uses Road2Champion colors without changing F4", () => {
+test("active promotion metadata keeps Road2Champion Champion and uses Path2Legend Hero", () => {
   assert.deepEqual(RANK_META.youth.F8.T4, { rankName: "Champion", rankColor: "black" });
-  assert.deepEqual(RANK_META.wrestling.F4.T2, { rankName: "Champion", rankColor: "purple" });
+  for (const discipline of ["wrestling", "submission-grappling", "boxing", "kickboxing"]) {
+    assert.deepEqual(RANK_META[discipline].F4.T2, { rankName: "Hero", rankColor: "purple" });
+  }
+  assert.deepEqual(RANK_META.mma.F4.T1, { rankName: "Champion", rankColor: "purple" });
 });
 
 test("legacy athletes get a deterministic non-destructive cycle fallback", () => {

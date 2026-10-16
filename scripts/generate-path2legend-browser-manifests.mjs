@@ -3,8 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const existingRankNames = Object.freeze({ T0: "Apprentice", T1: "Warrior", T2: "Champion", T3: "Veteran", T4: "Legend" });
-const boxingRankNames = Object.freeze({ ...existingRankNames, T2: "Hero" });
+const rankNames = Object.freeze({ T0: "Apprentice", T1: "Warrior", T2: "Hero", T3: "Veteran", T4: "Legend" });
 const expectedCounts = Object.freeze({ wrestling: [20, 20, 30, 30, 30], kickboxing: [20, 20, 25, 30, 30], boxing: [20, 25, 30, 30, 30] });
 const wrestlingFamilyModule = await import(pathToFileURL(path.join(repoRoot, "public/coaches/cards/wrestling/family-map.js")));
 const boxingFamilyModule = await import(pathToFileURL(path.join(repoRoot, "public/coaches/cards/boxing/family-map.js")));
@@ -26,7 +25,6 @@ function cardId(source, cardPath) {
 }
 
 for (const discipline of Object.keys(expectedCounts)) {
-  const rankNames = discipline === "boxing" ? boxingRankNames : existingRankNames;
   const placements = [];
   for (let tierIndex = 0; tierIndex <= 4; tierIndex += 1) {
     const tier = `T${tierIndex}`;
