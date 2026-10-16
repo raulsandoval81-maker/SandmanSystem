@@ -5,7 +5,7 @@ const root = document.getElementById("path2LegendSkillTree");
 const message = document.getElementById("skillTreeMessage");
 const discipline = root?.dataset.discipline || "";
 const manifestUrl = root?.dataset.manifest || "";
-const expectedVersions = Object.freeze({ wrestling: "path2legend-wrestling-skill-tree-v1", kickboxing: "path2legend-kickboxing-skill-tree-v1" });
+const expectedVersions = Object.freeze({ wrestling: "path2legend-wrestling-skill-tree-v1", kickboxing: "path2legend-kickboxing-skill-tree-v1", boxing: "path2legend-boxing-skill-tree-v1" });
 
 function disciplineProgress(athlete) {
   const aliases = discipline === "kickboxing" ? ["kickboxing", "muay-thai", "muayThai"] : [discipline];
@@ -31,7 +31,7 @@ function renderRank(group, currentTier, progress) {
 }
 
 async function loadTree() {
-  if (!root || !["wrestling", "kickboxing"].includes(discipline) || !manifestUrl) throw new Error("Unsupported Path2Legend skill tree");
+  if (!root || !["wrestling", "kickboxing", "boxing"].includes(discipline) || !manifestUrl) throw new Error("Unsupported Path2Legend skill tree");
   const params = new URLSearchParams(window.location.search);
   const athleteId = String(params.get("id") || params.get("athleteId") || "").trim().toUpperCase();
   if (!athleteId) throw new Error("Missing athlete id");

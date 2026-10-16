@@ -3,10 +3,15 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const rankNames = Object.freeze({ T0: "Apprentice", T1: "Warrior", T2: "Champion", T3: "Veteran", T4: "Legend" });
-const expectedCounts = Object.freeze({ wrestling: [20, 20, 30, 30, 30], kickboxing: [20, 20, 25, 30, 30] });
-const familyModule = await import(pathToFileURL(path.join(repoRoot, "public/coaches/cards/wrestling/family-map.js")));
-const wrestlingFamilies = familyModule.WRESTLING_CARD_FAMILIES.p2l;
+const existingRankNames = Object.freeze({ T0: "Apprentice", T1: "Warrior", T2: "Champion", T3: "Veteran", T4: "Legend" });
+const boxingRankNames = Object.freeze({ ...existingRankNames, T2: "Hero" });
+const expectedCounts = Object.freeze({ wrestling: [20, 20, 30, 30, 30], kickboxing: [20, 20, 25, 30, 30], boxing: [20, 25, 30, 30, 30] });
+const wrestlingFamilyModule = await import(pathToFileURL(path.join(repoRoot, "public/coaches/cards/wrestling/family-map.js")));
+const boxingFamilyModule = await import(pathToFileURL(path.join(repoRoot, "public/coaches/cards/boxing/family-map.js")));
+const familyMaps = Object.freeze({
+  wrestling: wrestlingFamilyModule.WRESTLING_CARD_FAMILIES.p2l,
+  boxing: boxingFamilyModule.BOXING_CARD_FAMILIES.p2l,
+});
 
 function cardTitle(source, cardPath) {
   const title = source.match(/<h2>Skill(?:\s+\d+)?\s+—\s+([^<]+)<\/h2>/)?.[1];
@@ -21,6 +26,7 @@ function cardId(source, cardPath) {
 }
 
 for (const discipline of Object.keys(expectedCounts)) {
+  const rankNames = discipline === "boxing" ? boxingRankNames : existingRankNames;
   const placements = [];
   for (let tierIndex = 0; tierIndex <= 4; tierIndex += 1) {
     const tier = `T${tierIndex}`;
@@ -36,12 +42,13 @@ for (const discipline of Object.keys(expectedCounts)) {
       placements.push({
         cardId: cardId(source, absolutePath), tier, rankName: rankNames[tier],
         skillTitle: cardTitle(source, absolutePath),
-        familyId: discipline === "wrestling" ? wrestlingFamilies[`t${tierIndex}`]?.[slug] || "" : "",
+        ...(discipline === "boxing" ? { originalCardPath: path.relative(repoRoot, absolutePath) } : {}),
+        familyId: familyMaps[discipline]?.[`t${tierIndex}`]?.[slug] || "",
       });
     }
   }
   if (new Set(placements.map(({ cardId: id }) => id)).size !== placements.length) throw new Error(`${discipline} Coach Card IDs are not unique`);
-  if (discipline === "wrestling" && placements.some(({ familyId }) => !familyId)) throw new Error("Path2Legend Wrestling family projection is incomplete");
+  if (familyMaps[discipline] && placements.some(({ familyId }) => !familyId)) throw new Error(`Path2Legend ${discipline} family projection is incomplete`);
   const output = { version: `path2legend-${discipline}-skill-tree-v1`, journey: "P2L", discipline, rankNames, placements };
   const outputPath = path.join(repoRoot, `public/assets/data/path2legend-${discipline}-skill-tree.json`);
   await mkdir(path.dirname(outputPath), { recursive: true });
