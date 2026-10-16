@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { COACH_STAFF_ROLES, normalizeStaffRole, requireActiveStaff } from "../services/staffAuthorization";
-import { staffLocationIds } from "../schedules/crossTrainingPolicy";
+import { athleteHomeLocationId, athleteScheduleDisciplineIds, staffLocationIds } from "../schedules/crossTrainingPolicy";
 import { resolveQualifyingRecoveryPractice } from "../modules/decay/decayRecoveryPolicy";
 import { awardReceiptKey } from "../services/authoritativeXpService";
 
@@ -46,6 +46,44 @@ function requirePracticeLocation(actor: Awaited<ReturnType<typeof requireActiveS
   if (!staffLocationIds(actor.staff).includes(locationId)) {
     throw new HttpsError("permission-denied", "Practice location is outside the staff member's authorized scope.");
   }
+}
+
+function crossTrainingActive(assignment: Record<string, any>, athlete: Record<string, any>, practice: Record<string, any>, now = Date.now()): boolean {
+  const host = String(practice.locationId || practice.academyId || "").trim().toLowerCase();
+  const home = athleteHomeLocationId(athlete);
+  const discipline = normalizePracticeDiscipline(practice.discipline);
+  const assignedRoster = String(assignment.rosterId || "").trim();
+  const practiceRoster = String(practice.rosterId || "").trim();
+  const from = assignment.activeFrom?.toMillis?.() ?? 0;
+  const to = assignment.activeTo?.toMillis?.() ?? Infinity;
+  const assignedDisciplines = Array.isArray(assignment.disciplineIds) ? assignment.disciplineIds : [];
+  const athleteDisciplines = athleteScheduleDisciplineIds(athlete);
+  // Attendance-first check-in may precede the Coach selecting a discipline.
+  // In that state only discover a visitor with an approved overlapping
+  // discipline; finalization still requires a concrete practice discipline.
+  const disciplineAllowed = !discipline || discipline === "unassigned"
+    ? assignedDisciplines.some((id: string) => athleteDisciplines.includes(id))
+    : assignedDisciplines.includes(discipline) && athleteDisciplines.includes(discipline);
+  return Boolean(home && home !== host)
+    && String(assignment.status || "").toLowerCase() === "active"
+    && String(assignment.hostLocationId || "").toLowerCase() === host
+    && String(assignment.homeLocationId || "").toLowerCase() === home
+    && (!assignedRoster || assignedRoster === practiceRoster)
+    && from <= now && now <= to
+    && disciplineAllowed;
+}
+
+async function hasPracticeAthleteAccess(
+  tx: FirebaseFirestore.Transaction,
+  db: FirebaseFirestore.Firestore,
+  athleteId: string,
+  athlete: Record<string, any>,
+  practice: Record<string, any>
+): Promise<boolean> {
+  const host = String(practice.locationId || practice.academyId || "").trim().toLowerCase();
+  if (athleteHomeLocationId(athlete) === host) return true;
+  const assignments = await tx.get(db.collection("athleteCrossTrainingAssignments").where("athleteId", "==", athleteId));
+  return assignments.docs.some((item) => crossTrainingActive(item.data(), athlete, practice));
 }
 
 function requireSessionDateKey(value: unknown): string {
@@ -431,17 +469,29 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
   if (!["active", "closed"].includes(String(practice.status || "").toLowerCase())) {
     throw new HttpsError("failed-precondition", "Practice attendance is not available in this state.");
   }
-  const [attendanceSnap, rosterSnap, athleteInputSnap] = await Promise.all([
+  const [attendanceSnap, rosterSnap, athleteInputSnap, visitingSnap] = await Promise.all([
     db.doc(`attendance_sessions/${practiceId}`).get(),
     db.collection("athletes").where("locationId", "==", locationId).get(),
     db.collection(`practiceSessions/${practiceId}/athletes`).get(),
+    db.collection("athleteCrossTrainingAssignments").where("hostLocationId", "==", locationId).get(),
   ]);
-  const roster = rosterSnap.docs
+  const visitingIds = [...new Set(visitingSnap.docs
+    .filter((item) => String(item.data()?.status || "").toLowerCase() === "active")
+    .map((item) => String(item.data()?.athleteId || ""))
+    .filter(Boolean))];
+  const visitingAthletes = await Promise.all(visitingIds.map((id) => db.doc(`athletes/${id}`).get()));
+  const eligibleVisitors = visitingAthletes.filter((snap) => snap.exists && visitingSnap.docs.some(
+    (item) => String(item.data()?.athleteId || "") === snap.id
+      && crossTrainingActive(item.data() || {}, snap.data() || {}, practice)
+  ));
+  const roster = [...new Map([...rosterSnap.docs, ...eligibleVisitors].map((snap) => [snap.id, snap])).values()]
     .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
     .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
     .map((athlete) => ({
       id: athlete.athleteId,
       uid: athlete.uid || athlete.athleteId,
+      visiting: athleteHomeLocationId(athlete) !== locationId,
+      homeLocationId: athleteHomeLocationId(athlete),
       name: athlete.name || athlete.publicName || athlete.fullName || athlete.athleteId,
       publicName: athlete.publicName || "",
       fullName: athlete.fullName || "",
@@ -493,8 +543,11 @@ export const updatePracticeCheckIn = onCall(async (request) => {
       const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
       if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
       athlete = athleteSnap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", "Athlete is outside the practice location.");
+      if (!(await hasPracticeAthleteAccess(tx, db, athleteId, athlete, practice))) {
+        throw new HttpsError("permission-denied", "Athlete has no authorized assignment for this practice location.");
+      }
+      if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
+        throw new HttpsError("failed-precondition", "Athlete is not on the current roster.");
       }
     }
     const checkedIn = new Map<string, Record<string, any>>(
@@ -598,17 +651,17 @@ export const finalizePracticeAttendance = onCall(async (request) => {
     const athleteSnaps = await Promise.all(athleteRefs.map((ref) => tx.get(ref)));
     const athleteSessionRefs = requestedPresentIds.map((athleteId) => db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`));
     const athleteSessionSnaps = await Promise.all(athleteSessionRefs.map((ref) => tx.get(ref)));
-    const athletes = athleteSnaps.map((snap, index) => {
+    const athletes = await Promise.all(athleteSnaps.map(async (snap, index) => {
       if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${requestedPresentIds[index]}`);
       const athlete = snap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", `Athlete is outside the practice location: ${requestedPresentIds[index]}`);
+      if (!(await hasPracticeAthleteAccess(tx, db, requestedPresentIds[index], athlete, practice))) {
+        throw new HttpsError("permission-denied", `Athlete has no authorized assignment for this practice: ${requestedPresentIds[index]}`);
       }
       if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
         throw new HttpsError("failed-precondition", `Athlete is not on the current roster: ${requestedPresentIds[index]}`);
       }
       return athlete;
-    });
+    }));
     const now = FieldValue.serverTimestamp();
     const discipline = normalizePracticeDiscipline(practice.discipline);
     const present = athletes.map((athlete, index) => ({

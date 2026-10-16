@@ -1,7 +1,5 @@
 import {
   db,
-  collection,
-  getDocs,
   doc,
   getDoc,
   functions,
@@ -354,24 +352,17 @@ async function loadAthletes() {
     await loadCanonicalPractice();
     await checkTodaySessionLock();
 
-    const snap = await getDocs(collection(db, "athletes"));
+    // The server returns the authorized roster for this practice, including
+    // approved visitors. Never require a location-wide athlete collection read
+    // or reconstruct visit eligibility in the browser.
+    const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
+    const response = await getReview({ practiceId: activePractice.practiceId });
     const dateEl = $("sessionDateLabel");
-if (dateEl) {
-  dateEl.textContent = todayLabel();
-}
+    if (dateEl) dateEl.textContent = todayLabel();
 
-    athletes = snap.docs
-      .map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() || {})
-      }))
-      .filter((athlete) => {
-        if (!athlete.id) return false;
-        const status = String(athlete.rosterStatus || "current").toLowerCase();
-        const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
-        const athleteLocationId = String(athlete.locationId || "").trim();
-        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
-      })
+    athletes = (Array.isArray(response.data?.roster) ? response.data.roster : [])
+      .filter((athlete) => athlete?.id)
+      .map((athlete) => ({ ...athlete, id: String(athlete.id) }))
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
     console.log("[session] athletes loaded:", athletes.length, athletes);
@@ -398,7 +389,9 @@ function applyFilters() {
   const journeyFilter = normalizeJourneyCode($("journeyRosterFilter")?.value || "");
 
   filteredAthletes = athletes.filter((athlete) => {
-    if (!programMatchesAthlete(athlete)) return false;
+    // The roster is already practice-scoped by the server. Do not hide a
+    // legitimate visitor because their home journey differs from this room.
+    if (!programMatchesAthlete(athlete) && !athlete.visiting) return false;
     if (checkedIn.has(athlete.id)) return false;
     if (journeyFilter && rosterJourneyForAthlete(athlete) !== journeyFilter) return false;
 
