@@ -10,7 +10,7 @@ import { R2C_YOUTH_MUAY_THAI_APPROVED_COUNTS, R2C_YOUTH_MUAY_THAI_PLACEMENTS, R2
 
 const boxingBrowser = JSON.parse(readFileSync("public/assets/data/youth-boxing-placement-manifest.json", "utf8"));
 const muayThaiBrowser = JSON.parse(readFileSync("public/assets/data/youth-muay-thai-placement-manifest.json", "utf8"));
-const projection = (entries) => entries.map(({ cardId, originalCurriculumTier, placement, skillTitle, familyId, familyMappingStatus, curriculumStatus }) => ({ cardId, originalCurriculumTier, placement, skillTitle, familyId, familyMappingStatus, curriculumStatus }));
+const projection = (entries) => entries.map(({ cardId, originalCardPath, originalCurriculumTier, placement, skillTitle, familyId, familyMappingStatus, curriculumStatus }) => ({ cardId, originalCardPath, originalCurriculumTier, placement, skillTitle, familyId, familyMappingStatus, curriculumStatus }));
 
 const specifications = [
   { name: "Boxing", entries: R2C_YOUTH_BOXING_PLACEMENTS, counts: R2C_YOUTH_BOXING_APPROVED_COUNTS, version: R2C_YOUTH_BOXING_PLACEMENT_VERSION, browser: boxingBrowser, families: BOXING_CARD_FAMILIES.r2c },

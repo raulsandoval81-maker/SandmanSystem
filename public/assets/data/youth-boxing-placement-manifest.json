@@ -11,6 +11,7 @@
   "placements": [
     {
       "cardId": "youth-boxing-t0-stance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-01-stance.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Stance",
@@ -20,6 +21,7 @@
     },
     {
       "cardId": "youth-boxing-t0-guard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-02-guard.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Guard",
@@ -29,6 +31,7 @@
     },
     {
       "cardId": "youth-boxing-t0-footwork",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-03-footwork.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Footwork",
@@ -38,6 +41,7 @@
     },
     {
       "cardId": "youth-boxing-t0-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-04-jab.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Jab",
@@ -47,6 +51,7 @@
     },
     {
       "cardId": "youth-boxing-t0-cross",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-05-cross.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Cross",
@@ -56,6 +61,7 @@
     },
     {
       "cardId": "youth-boxing-t0-one-two",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-06-one-two.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "One-Two",
@@ -65,6 +71,7 @@
     },
     {
       "cardId": "youth-boxing-t0-defense-shell",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-07-defense-shell.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Defense Shell",
@@ -74,6 +81,7 @@
     },
     {
       "cardId": "youth-boxing-t0-distance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-08-distance.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Distance",
@@ -83,6 +91,7 @@
     },
     {
       "cardId": "youth-boxing-t0-combination-1",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-09-combination-1.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Combination 1",
@@ -92,6 +101,7 @@
     },
     {
       "cardId": "youth-boxing-t0-heavy-bag",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-10-heavy-bag.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Heavy Bag",
@@ -101,6 +111,7 @@
     },
     {
       "cardId": "youth-boxing-t0-partner-drill",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-11-partner-drill.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Partner Drill",
@@ -110,6 +121,7 @@
     },
     {
       "cardId": "youth-boxing-t0-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t0/skill-12-finish-standard.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Finish Standard",
@@ -119,6 +131,7 @@
     },
     {
       "cardId": "youth-boxing-t1-hook",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-01-hook.html",
       "originalCurriculumTier": "T1",
       "placement": "T0",
       "skillTitle": "Hook",
@@ -128,6 +141,7 @@
     },
     {
       "cardId": "youth-boxing-t1-uppercut",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-02-uppercut.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Uppercut",
@@ -137,6 +151,7 @@
     },
     {
       "cardId": "youth-boxing-t1-double-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-03-double-jab.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Double Jab",
@@ -146,6 +161,7 @@
     },
     {
       "cardId": "youth-boxing-t1-body-shot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-04-body-shot.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Body Shot",
@@ -155,6 +171,7 @@
     },
     {
       "cardId": "youth-boxing-t1-slip",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-05-slip.html",
       "originalCurriculumTier": "T1",
       "placement": "T0",
       "skillTitle": "Slip",
@@ -164,6 +181,7 @@
     },
     {
       "cardId": "youth-boxing-t1-parry",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-06-parry.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Parry",
@@ -173,6 +191,7 @@
     },
     {
       "cardId": "youth-boxing-t1-hook-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-07-hook-defense.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Hook Defense",
@@ -182,6 +201,7 @@
     },
     {
       "cardId": "youth-boxing-t1-body-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-08-body-defense.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Body Defense",
@@ -191,6 +211,7 @@
     },
     {
       "cardId": "youth-boxing-t1-ring-movement",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-09-ring-movement.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Ring Movement",
@@ -200,6 +221,7 @@
     },
     {
       "cardId": "youth-boxing-t1-angle-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-10-angle-step.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Angle Step",
@@ -209,6 +231,7 @@
     },
     {
       "cardId": "youth-boxing-t1-combination-2",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-11-combination-2.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Combination 2",
@@ -218,6 +241,7 @@
     },
     {
       "cardId": "youth-boxing-t1-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t1/skill-12-finish-standard.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Finish Standard",
@@ -227,6 +251,7 @@
     },
     {
       "cardId": "youth-boxing-t2-timing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-01-timing.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Timing",
@@ -236,6 +261,7 @@
     },
     {
       "cardId": "youth-boxing-t2-rhythm",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-02-rhythm.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Rhythm",
@@ -245,6 +271,7 @@
     },
     {
       "cardId": "youth-boxing-t2-counter-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-03-counter-jab.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Counter Jab",
@@ -254,6 +281,7 @@
     },
     {
       "cardId": "youth-boxing-t2-slip-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-04-slip-counter.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Slip Counter",
@@ -263,6 +291,7 @@
     },
     {
       "cardId": "youth-boxing-t2-cross-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-05-cross-counter.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Cross Counter",
@@ -272,6 +301,7 @@
     },
     {
       "cardId": "youth-boxing-t2-hook-counter",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-06-hook-counter.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Hook Counter",
@@ -281,6 +311,7 @@
     },
     {
       "cardId": "youth-boxing-t2-range-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-07-range-control.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Range Control",
@@ -290,6 +321,7 @@
     },
     {
       "cardId": "youth-boxing-t2-pivot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-08-pivot.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Pivot",
@@ -299,6 +331,7 @@
     },
     {
       "cardId": "youth-boxing-t2-exit-angle",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-09-exit-angle.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Exit Angle",
@@ -308,6 +341,7 @@
     },
     {
       "cardId": "youth-boxing-t2-reaction-drill",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-10-reaction-drill.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Reaction Drill",
@@ -317,6 +351,7 @@
     },
     {
       "cardId": "youth-boxing-t2-defense-reset",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-11-defense-reset.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Defense Reset",
@@ -326,6 +361,7 @@
     },
     {
       "cardId": "youth-boxing-t2-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t2/skill-12-finish-standard.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Finish Standard",
@@ -335,6 +371,7 @@
     },
     {
       "cardId": "youth-boxing-t3-jab-entry",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-01-jab-entry.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Jab Entry",
@@ -344,6 +381,7 @@
     },
     {
       "cardId": "youth-boxing-t3-combination-entries",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-02-combination-entries.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Combination Entries",
@@ -353,6 +391,7 @@
     },
     {
       "cardId": "youth-boxing-t3-pressure-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-03-pressure-step.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Pressure Step",
@@ -362,6 +401,7 @@
     },
     {
       "cardId": "youth-boxing-t3-three-punch-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-04-three-punch-flow.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Three Punch Flow",
@@ -371,6 +411,7 @@
     },
     {
       "cardId": "youth-boxing-t3-body-head-combo",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-05-body-head-combo.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Body Head Combo",
@@ -380,6 +421,7 @@
     },
     {
       "cardId": "youth-boxing-t3-combination-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-06-combination-flow.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Combination Flow",
@@ -389,6 +431,7 @@
     },
     {
       "cardId": "youth-boxing-t3-angle-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-07-angle-attack.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Angle Attack",
@@ -398,6 +441,7 @@
     },
     {
       "cardId": "youth-boxing-t3-defense-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-08-defense-chain.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Defense Chain",
@@ -407,6 +451,7 @@
     },
     {
       "cardId": "youth-boxing-t3-defense-reset",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-09-defense-reset.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Defense Reset",
@@ -416,6 +461,7 @@
     },
     {
       "cardId": "youth-boxing-t3-defensive-reactions",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-10-defensive-reactions.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Defensive Reactions",
@@ -425,6 +471,7 @@
     },
     {
       "cardId": "youth-boxing-t3-ring-position",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-11-ring-position.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Ring Position",
@@ -434,6 +481,7 @@
     },
     {
       "cardId": "youth-boxing-t3-ring-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-12-ring-awareness.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Ring Awareness",
@@ -443,6 +491,7 @@
     },
     {
       "cardId": "youth-boxing-t3-partner-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-13-partner-flow.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Partner Flow",
@@ -452,6 +501,7 @@
     },
     {
       "cardId": "youth-boxing-t3-controlled-sparring",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-14-controlled-sparring.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Controlled Sparring",
@@ -461,6 +511,7 @@
     },
     {
       "cardId": "youth-boxing-t3-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t3/skill-15-finish-standard.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Finish Standard",
@@ -470,6 +521,7 @@
     },
     {
       "cardId": "youth-boxing-t4-ringcraft",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-01-ringcraft.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Ringcraft",
@@ -479,6 +531,7 @@
     },
     {
       "cardId": "youth-boxing-t4-pressure-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-02-pressure-flow.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Pressure Flow",
@@ -488,6 +541,7 @@
     },
     {
       "cardId": "youth-boxing-t4-setup-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-03-setup-system.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Setup System",
@@ -497,6 +551,7 @@
     },
     {
       "cardId": "youth-boxing-t4-corner-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-04-corner-pressure.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Corner Pressure",
@@ -506,6 +561,7 @@
     },
     {
       "cardId": "youth-boxing-t4-inside-boxing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-05-inside-boxing.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Inside Boxing",
@@ -515,6 +571,7 @@
     },
     {
       "cardId": "youth-boxing-t4-advanced-jab",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-06-advanced-jab.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Advanced Jab",
@@ -524,6 +581,7 @@
     },
     {
       "cardId": "youth-boxing-t4-advanced-cross",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-07-advanced-cross.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Advanced Cross",
@@ -533,6 +591,7 @@
     },
     {
       "cardId": "youth-boxing-t4-body-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-08-body-attack.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Body Attack",
@@ -542,6 +601,7 @@
     },
     {
       "cardId": "youth-boxing-t4-head-movement",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-09-head-movement.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Head Movement",
@@ -551,6 +611,7 @@
     },
     {
       "cardId": "youth-boxing-t4-combination-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-10-combination-defense.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Combination Defense",
@@ -560,6 +621,7 @@
     },
     {
       "cardId": "youth-boxing-t4-tempo-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-11-tempo-control.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Tempo Control",
@@ -569,6 +631,7 @@
     },
     {
       "cardId": "youth-boxing-t4-false-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-12-false-pressure.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "False Pressure",
@@ -578,6 +641,7 @@
     },
     {
       "cardId": "youth-boxing-t4-rope-escapes",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-13-rope-escapes.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Rope Escapes",
@@ -587,6 +651,7 @@
     },
     {
       "cardId": "youth-boxing-t4-pocket-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-14-pocket-awareness.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Pocket Awareness",
@@ -596,6 +661,7 @@
     },
     {
       "cardId": "youth-boxing-t4-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t4/skill-15-finish-standard.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Finish Standard",
@@ -605,6 +671,7 @@
     },
     {
       "cardId": "youth-boxing-t5-counter-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-01-counter-chain.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Counter Chain",
@@ -614,6 +681,7 @@
     },
     {
       "cardId": "youth-boxing-t5-reaction-training",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-02-reaction-training.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Reaction Training",
@@ -623,6 +691,7 @@
     },
     {
       "cardId": "youth-boxing-t5-lead-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-03-lead-hook-system.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Lead Hook System",
@@ -632,6 +701,7 @@
     },
     {
       "cardId": "youth-boxing-t5-rear-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-04-rear-hook-system.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Rear Hook System",
@@ -641,6 +711,7 @@
     },
     {
       "cardId": "youth-boxing-t5-counter-punching",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-05-counter-punching.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Counter Punching",
@@ -650,6 +721,7 @@
     },
     {
       "cardId": "youth-boxing-t5-defensive-layers",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-06-defensive-layers.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Defensive Layers",
@@ -659,6 +731,7 @@
     },
     {
       "cardId": "youth-boxing-t5-offensive-layers",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-07-offensive-layers.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Offensive Layers",
@@ -668,6 +741,7 @@
     },
     {
       "cardId": "youth-boxing-t5-angle-traps",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-08-angle-traps.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Angle Traps",
@@ -677,6 +751,7 @@
     },
     {
       "cardId": "youth-boxing-t5-pace-break",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-09-pace-break.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Pace Break",
@@ -686,6 +761,7 @@
     },
     {
       "cardId": "youth-boxing-t5-weapon-selection",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-10-weapon-selection.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Weapon Selection",
@@ -695,6 +771,7 @@
     },
     {
       "cardId": "youth-boxing-t5-live-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-11-live-rounds.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Live Rounds",
@@ -704,6 +781,7 @@
     },
     {
       "cardId": "youth-boxing-t5-fight-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-12-fight-awareness.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Fight Awareness",
@@ -713,6 +791,7 @@
     },
     {
       "cardId": "youth-boxing-t5-chaos-drills",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-13-chaos-drills.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Chaos Drills",
@@ -722,6 +801,7 @@
     },
     {
       "cardId": "youth-boxing-t5-second-effort",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-14-second-effort.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Second Effort",
@@ -731,6 +811,7 @@
     },
     {
       "cardId": "youth-boxing-t5-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t5/skill-15-finish-standard.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Finish Standard",
@@ -740,6 +821,7 @@
     },
     {
       "cardId": "youth-boxing-t6-boxing-iq",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-01-boxing-iq.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Boxing IQ",
@@ -749,6 +831,7 @@
     },
     {
       "cardId": "youth-boxing-t6-adaptation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-02-adaptation.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Adaptation",
@@ -758,6 +841,7 @@
     },
     {
       "cardId": "youth-boxing-t6-pressure-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-03-pressure-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Pressure Control",
@@ -767,6 +851,7 @@
     },
     {
       "cardId": "youth-boxing-t6-range-dictation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-04-range-dictation.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Range Dictation",
@@ -776,6 +861,7 @@
     },
     {
       "cardId": "youth-boxing-t6-counter-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-05-counter-pressure.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Counter Pressure",
@@ -785,6 +871,7 @@
     },
     {
       "cardId": "youth-boxing-t6-corner-traps",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-06-corner-traps.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Corner Traps",
@@ -794,6 +881,7 @@
     },
     {
       "cardId": "youth-boxing-t6-inside-dominance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-07-inside-dominance.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Inside Dominance",
@@ -803,6 +891,7 @@
     },
     {
       "cardId": "youth-boxing-t6-chain-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-08-chain-pressure.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Chain Pressure",
@@ -812,6 +901,7 @@
     },
     {
       "cardId": "youth-boxing-t6-jab-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-09-jab-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Jab System",
@@ -821,6 +911,7 @@
     },
     {
       "cardId": "youth-boxing-t6-cross-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-10-cross-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Cross System",
@@ -830,6 +921,7 @@
     },
     {
       "cardId": "youth-boxing-t6-hook-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-11-hook-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Hook System",
@@ -839,6 +931,7 @@
     },
     {
       "cardId": "youth-boxing-t6-body-shot-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-12-body-shot-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Body Shot System",
@@ -848,6 +941,7 @@
     },
     {
       "cardId": "youth-boxing-t6-defense-to-offense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-13-defense-to-offense.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Defense To Offense",
@@ -857,6 +951,7 @@
     },
     {
       "cardId": "youth-boxing-t6-strategy-build",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-14-strategy-build.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Strategy Build",
@@ -866,6 +961,7 @@
     },
     {
       "cardId": "youth-boxing-t6-opponent-reading",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-15-opponent-reading.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Opponent Reading",
@@ -875,6 +971,7 @@
     },
     {
       "cardId": "youth-boxing-t6-finish-instinct",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-16-finish-instinct.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Finish Instinct",
@@ -884,6 +981,7 @@
     },
     {
       "cardId": "youth-boxing-t6-fight-breaking",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-17-fight-breaking.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Fight Breaking",
@@ -893,6 +991,7 @@
     },
     {
       "cardId": "youth-boxing-t6-weapon-blending",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-18-weapon-blending.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Weapon Blending",
@@ -902,6 +1001,7 @@
     },
     {
       "cardId": "youth-boxing-t6-system-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-19-system-mastery.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "System Mastery",
@@ -911,6 +1011,7 @@
     },
     {
       "cardId": "youth-boxing-t6-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t6/skill-20-finish-standard.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Finish Standard",
@@ -920,6 +1021,7 @@
     },
     {
       "cardId": "youth-boxing-t7-fatigue-weaponization",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-01-fatigue-weaponization.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Fatigue Weaponization",
@@ -929,6 +1031,7 @@
     },
     {
       "cardId": "youth-boxing-t7-mental-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-02-mental-pressure.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Mental Pressure",
@@ -938,6 +1041,7 @@
     },
     {
       "cardId": "youth-boxing-t7-round-stealing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-03-round-stealing.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Round Stealing",
@@ -947,6 +1051,7 @@
     },
     {
       "cardId": "youth-boxing-t7-live-chaos",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-04-live-chaos.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Live Chaos",
@@ -956,6 +1061,7 @@
     },
     {
       "cardId": "youth-boxing-t7-pressure-layering",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-05-pressure-layering.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Pressure Layering",
@@ -965,6 +1071,7 @@
     },
     {
       "cardId": "youth-boxing-t7-chain-finishing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-06-chain-finishing.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Chain Finishing",
@@ -974,6 +1081,7 @@
     },
     {
       "cardId": "youth-boxing-t7-corner-dictation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-07-corner-dictation.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Corner Dictation",
@@ -983,6 +1091,7 @@
     },
     {
       "cardId": "youth-boxing-t7-mental-fatigue",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-08-mental-fatigue.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Mental Fatigue",
@@ -992,6 +1101,7 @@
     },
     {
       "cardId": "youth-boxing-t7-high-pressure-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-09-high-pressure-rounds.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "High Pressure Rounds",
@@ -1001,6 +1111,7 @@
     },
     {
       "cardId": "youth-boxing-t7-chaos-composure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-10-chaos-composure.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Chaos Composure",
@@ -1010,6 +1121,7 @@
     },
     {
       "cardId": "youth-boxing-t7-fight-management",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-11-fight-management.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Fight Management",
@@ -1019,6 +1131,7 @@
     },
     {
       "cardId": "youth-boxing-t7-pressure-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-12-pressure-mastery.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Pressure Mastery",
@@ -1028,6 +1141,7 @@
     },
     {
       "cardId": "youth-boxing-t7-ring-generalship",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-13-ring-generalship.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Ring Generalship",
@@ -1037,6 +1151,7 @@
     },
     {
       "cardId": "youth-boxing-t7-complete-boxer",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-14-complete-boxer.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Complete Boxer",
@@ -1046,6 +1161,7 @@
     },
     {
       "cardId": "youth-boxing-t7-leadership-through-boxing",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-15-leadership-through-boxing.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Leadership Through Boxing",
@@ -1055,6 +1171,7 @@
     },
     {
       "cardId": "youth-boxing-t7-championship-rounds",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-16-championship-rounds.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Championship Rounds",
@@ -1064,6 +1181,7 @@
     },
     {
       "cardId": "youth-boxing-t7-adaptive-strategy",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-17-adaptive-strategy.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Adaptive Strategy",
@@ -1073,6 +1191,7 @@
     },
     {
       "cardId": "youth-boxing-t7-system-integration",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-18-system-integration.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "System Integration",
@@ -1082,6 +1201,7 @@
     },
     {
       "cardId": "youth-boxing-t7-hero-evaluation",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-19-hero-evaluation.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Extension Evaluation",
@@ -1091,6 +1211,7 @@
     },
     {
       "cardId": "youth-boxing-t7-finish-standard",
+      "originalCardPath": "public/coaches/cards/youth/z2h-boxing/t7/skill-20-finish-standard.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Finish Standard",

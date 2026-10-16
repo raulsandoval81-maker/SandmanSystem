@@ -11,6 +11,7 @@
   "placements": [
     {
       "cardId": "youth-t0-stance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-01-stance.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Stance",
@@ -20,6 +21,7 @@
     },
     {
       "cardId": "youth-t0-motion",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-02-motion.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Motion",
@@ -29,6 +31,7 @@
     },
     {
       "cardId": "youth-t0-level-change",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-03-level-change.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Level Change",
@@ -38,6 +41,7 @@
     },
     {
       "cardId": "youth-t0-penetration-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-04-penetration-step.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Penetration Step",
@@ -47,6 +51,7 @@
     },
     {
       "cardId": "youth-t0-double-leg",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-05-double-leg.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Double Leg",
@@ -56,6 +61,7 @@
     },
     {
       "cardId": "youth-t0-single-leg",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-06-single-leg.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Single Leg",
@@ -65,6 +71,7 @@
     },
     {
       "cardId": "youth-t0-sprawl",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-07-sprawl.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Sprawl",
@@ -74,6 +81,7 @@
     },
     {
       "cardId": "youth-t0-base",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-08-base.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Base",
@@ -83,6 +91,7 @@
     },
     {
       "cardId": "youth-t0-stand-up",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-09-stand-up.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Stand Up",
@@ -92,6 +101,7 @@
     },
     {
       "cardId": "youth-t0-half-nelson",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-10-half-nelson.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Half Nelson",
@@ -101,6 +111,7 @@
     },
     {
       "cardId": "youth-t0-hand-fight",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-11-hand-fight.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Hand Fight",
@@ -110,6 +121,7 @@
     },
     {
       "cardId": "youth-t0-go-behind",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t0/skill-12-go-behind.html",
       "originalCurriculumTier": "T0",
       "placement": "T0",
       "skillTitle": "Go Behind",
@@ -119,6 +131,7 @@
     },
     {
       "cardId": "youth-t1-stance-motion-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-01-stance-motion-control.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Stance & Motion",
@@ -128,6 +141,7 @@
     },
     {
       "cardId": "youth-t1-level-change-shot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-02-level-change-shot.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Level Change to Shot",
@@ -137,6 +151,7 @@
     },
     {
       "cardId": "youth-t1-double-leg-finish",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-03-double-leg-finish.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Double Leg Finish",
@@ -146,6 +161,7 @@
     },
     {
       "cardId": "youth-t1-single-leg-finish",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-04-single-leg-finish.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Single Leg Finish",
@@ -155,6 +171,7 @@
     },
     {
       "cardId": "youth-t1-snap-down",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-05-snap-down.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Snap Down",
@@ -164,6 +181,7 @@
     },
     {
       "cardId": "youth-t1-go-behind",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-06-go-behind.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Go Behind",
@@ -173,6 +191,7 @@
     },
     {
       "cardId": "youth-t1-sprawl-recover",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-07-sprawl-recover.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Sprawl & Recover",
@@ -182,6 +201,7 @@
     },
     {
       "cardId": "youth-t1-breakdown",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-08-breakdown.html",
       "originalCurriculumTier": "T1",
       "placement": "T0",
       "skillTitle": "Breakdown",
@@ -191,6 +211,7 @@
     },
     {
       "cardId": "youth-t1-ride",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-09-ride.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Ride",
@@ -200,6 +221,7 @@
     },
     {
       "cardId": "youth-t1-escape",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-10-escape.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Escape",
@@ -209,6 +231,7 @@
     },
     {
       "cardId": "youth-t1-front-headlock",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-11-front-headlock.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Front Headlock",
@@ -218,6 +241,7 @@
     },
     {
       "cardId": "youth-t1-mat-return",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t1/skill-12-mat-return.html",
       "originalCurriculumTier": "T1",
       "placement": "T1",
       "skillTitle": "Mat Return",
@@ -227,6 +251,7 @@
     },
     {
       "cardId": "youth-t2-angle-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-01-angle-step.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Angle Step",
@@ -236,6 +261,7 @@
     },
     {
       "cardId": "youth-t2-motion-to-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-02-motion-to-attack.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Motion to Attack",
@@ -245,6 +271,7 @@
     },
     {
       "cardId": "youth-t2-double-leg-drive",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-03-double-leg-drive.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Double Leg (Drive)",
@@ -254,6 +281,7 @@
     },
     {
       "cardId": "youth-t2-single-leg-run-corner",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-04-single-leg-run-corner.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Single Leg (Run Corner)",
@@ -263,6 +291,7 @@
     },
     {
       "cardId": "youth-t2-snap-to-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-05-snap-to-score.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Snap to Score",
@@ -272,6 +301,7 @@
     },
     {
       "cardId": "youth-t2-down-block",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-06-down-block.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Down Block",
@@ -281,6 +311,7 @@
     },
     {
       "cardId": "youth-t2-sprawl-to-spin",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-07-sprawl-to-spin.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Sprawl to Spin",
@@ -290,6 +321,7 @@
     },
     {
       "cardId": "youth-t2-crossface",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-08-crossface.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Crossface",
@@ -299,6 +331,7 @@
     },
     {
       "cardId": "youth-t2-return-to-mat",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-09-return-to-mat.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Return to Mat",
@@ -308,6 +341,7 @@
     },
     {
       "cardId": "youth-t2-sit-out",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-10-sit-out.html",
       "originalCurriculumTier": "T2",
       "placement": "T1",
       "skillTitle": "Sit Out",
@@ -317,6 +351,7 @@
     },
     {
       "cardId": "youth-t2-front-headlock-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-11-front-headlock-control.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Front Headlock Control",
@@ -326,6 +361,7 @@
     },
     {
       "cardId": "youth-t2-chain-finish",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t2/skill-12-chain-finish.html",
       "originalCurriculumTier": "T2",
       "placement": "T2",
       "skillTitle": "Chain Finish",
@@ -335,6 +371,7 @@
     },
     {
       "cardId": "youth-t3-angle-step",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-01-angle-step.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Angle Step",
@@ -344,6 +381,7 @@
     },
     {
       "cardId": "youth-t3-motion-to-attack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-02-motion-to-attack.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Motion to Attack",
@@ -353,6 +391,7 @@
     },
     {
       "cardId": "youth-t3-head-position",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-03-head-position.html",
       "originalCurriculumTier": "T3",
       "placement": "T0",
       "skillTitle": "Head Position",
@@ -362,6 +401,7 @@
     },
     {
       "cardId": "youth-t3-single-leg-finish",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-04-single-leg-finish.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Single Leg (Finish)",
@@ -371,6 +411,7 @@
     },
     {
       "cardId": "youth-t3-double-leg-finish",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-05-double-leg-finish.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Double Leg (Finish)",
@@ -380,6 +421,7 @@
     },
     {
       "cardId": "youth-t3-snap-go-behind",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-06-snap-go-behind.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Snap Down to Go Behind",
@@ -389,6 +431,7 @@
     },
     {
       "cardId": "youth-t3-sprawl-spin",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-07-sprawl-spin.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Sprawl & Spin",
@@ -398,6 +441,7 @@
     },
     {
       "cardId": "youth-t3-counter-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-08-counter-defense.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Counter-Defense",
@@ -407,6 +451,7 @@
     },
     {
       "cardId": "youth-t3-down-block-reattack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-09-down-block-reattack.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Down Block to Re-Attack",
@@ -416,6 +461,7 @@
     },
     {
       "cardId": "youth-t3-crossface",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-10-crossface.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Crossface",
@@ -425,6 +471,7 @@
     },
     {
       "cardId": "youth-t3-cradle",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-11-cradle.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Cradle",
@@ -434,6 +481,7 @@
     },
     {
       "cardId": "youth-t3-ride-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-12-ride-control.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Ride Control",
@@ -443,6 +491,7 @@
     },
     {
       "cardId": "youth-t3-escape",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-13-escape.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Escape",
@@ -452,6 +501,7 @@
     },
     {
       "cardId": "youth-t3-bottom-movement",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-14-bottom-movement.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Bottom Movement",
@@ -461,6 +511,7 @@
     },
     {
       "cardId": "youth-t3-switch",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t3/skill-15-switch.html",
       "originalCurriculumTier": "T3",
       "placement": "T2",
       "skillTitle": "Switch",
@@ -470,6 +521,7 @@
     },
     {
       "cardId": "youth-t4-head-position",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-01-head-position.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Head Position",
@@ -479,6 +531,7 @@
     },
     {
       "cardId": "youth-t4-distance-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-02-distance-control.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Distance Control",
@@ -488,6 +541,7 @@
     },
     {
       "cardId": "youth-t4-tempo-change",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-03-tempo-change.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Tempo Change",
@@ -497,6 +551,7 @@
     },
     {
       "cardId": "youth-t4-setups",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-04-setups.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Setups",
@@ -506,6 +561,7 @@
     },
     {
       "cardId": "youth-t4-re-shot",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-05-re-shot.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Re-Shot",
@@ -515,6 +571,7 @@
     },
     {
       "cardId": "youth-t4-arm-drag",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-06-arm-drag.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Arm Drag",
@@ -524,6 +581,7 @@
     },
     {
       "cardId": "youth-t4-head-arm-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-07-head-arm-defense.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Head & Arm Defense",
@@ -533,6 +591,7 @@
     },
     {
       "cardId": "youth-t4-counter-balance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-08-counter-balance.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Counter Balance",
@@ -542,6 +601,7 @@
     },
     {
       "cardId": "youth-t4-front-headlock-defense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-09-front-headlock-defense.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Front Headlock Defense",
@@ -551,6 +611,7 @@
     },
     {
       "cardId": "youth-t4-ride-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-10-ride-control.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Ride Control",
@@ -560,6 +621,7 @@
     },
     {
       "cardId": "youth-t4-turn-setup",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-11-turn-setup.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Turn Setup",
@@ -569,6 +631,7 @@
     },
     {
       "cardId": "youth-t4-return-to-ride",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-12-return-to-ride.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Return to Ride",
@@ -578,6 +641,7 @@
     },
     {
       "cardId": "youth-t4-hip-heist",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-13-hip-heist.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Hip Heist",
@@ -587,6 +651,7 @@
     },
     {
       "cardId": "youth-t4-avoid-pin",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-14-avoid-pin.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Avoid Pin",
@@ -596,6 +661,7 @@
     },
     {
       "cardId": "youth-t4-escape-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t4/skill-15-escape-chain.html",
       "originalCurriculumTier": "T4",
       "placement": "T3",
       "skillTitle": "Escape Chain",
@@ -605,6 +671,7 @@
     },
     {
       "cardId": "youth-t5-pressure-motion",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-01-pressure-motion.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Pressure Motion",
@@ -614,6 +681,7 @@
     },
     {
       "cardId": "youth-t5-motion-to-reattack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-02-motion-to-reattack.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Motion to Reattack",
@@ -623,6 +691,7 @@
     },
     {
       "cardId": "youth-t5-tempo-change",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-03-tempo-change.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Tempo Change",
@@ -632,6 +701,7 @@
     },
     {
       "cardId": "youth-t5-chain-wrestling",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-04-chain-wrestling.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Chain Wrestling",
@@ -641,6 +711,7 @@
     },
     {
       "cardId": "youth-t5-underhook-series",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-05-underhook-series.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Underhook Series",
@@ -650,6 +721,7 @@
     },
     {
       "cardId": "youth-t5-slide-by",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-06-slide-by.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Slide By",
@@ -659,6 +731,7 @@
     },
     {
       "cardId": "youth-t5-reshot-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-07-reshot-system.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Re-Shot System",
@@ -668,6 +741,7 @@
     },
     {
       "cardId": "youth-t5-front-headlock-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-08-front-headlock-control.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Front Headlock Control",
@@ -677,6 +751,7 @@
     },
     {
       "cardId": "youth-t5-sprawl-to-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-09-sprawl-to-score.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Sprawl to Score",
@@ -686,6 +761,7 @@
     },
     {
       "cardId": "youth-t5-leg-ride-intro",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-10-leg-ride-intro.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Leg Ride Intro",
@@ -695,6 +771,7 @@
     },
     {
       "cardId": "youth-t5-crossface-series",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-11-crossface-series.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Crossface Series",
@@ -704,6 +781,7 @@
     },
     {
       "cardId": "youth-t5-ride-to-return",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-12-ride-to-return.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Ride to Return",
@@ -713,6 +791,7 @@
     },
     {
       "cardId": "youth-t5-escape-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-13-escape-chain.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Escape Chain",
@@ -722,6 +801,7 @@
     },
     {
       "cardId": "youth-t5-hip-heist-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-14-hip-heist-score.html",
       "originalCurriculumTier": "T5",
       "placement": "T4",
       "skillTitle": "Hip Heist to Score",
@@ -731,6 +811,7 @@
     },
     {
       "cardId": "youth-t5-base-under-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t5/skill-15-base-under-pressure.html",
       "originalCurriculumTier": "T5",
       "placement": "T3",
       "skillTitle": "Base Under Pressure",
@@ -740,6 +821,7 @@
     },
     {
       "cardId": "youth-t6-angle-domination",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-01-angle-domination.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Angle Domination",
@@ -749,6 +831,7 @@
     },
     {
       "cardId": "youth-t6-distance-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-02-distance-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T3",
       "skillTitle": "Distance Control",
@@ -758,6 +841,7 @@
     },
     {
       "cardId": "youth-t6-pressure-footwork",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-03-pressure-footwork.html",
       "originalCurriculumTier": "T6",
       "placement": "T3",
       "skillTitle": "Pressure Footwork",
@@ -767,6 +851,7 @@
     },
     {
       "cardId": "youth-t6-tempo-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-04-tempo-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Tempo Control",
@@ -776,6 +861,7 @@
     },
     {
       "cardId": "youth-t6-chain-wrestling",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-05-chain-wrestling.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Chain Wrestling (3)",
@@ -785,6 +871,7 @@
     },
     {
       "cardId": "youth-t6-upper-body-entry",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-06-upper-body-entry.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Upper Body Entry",
@@ -794,6 +881,7 @@
     },
     {
       "cardId": "youth-t6-underhook-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-07-underhook-score.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Underhook to Score",
@@ -803,6 +891,7 @@
     },
     {
       "cardId": "youth-t6-two-on-one-series",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-08-two-on-one-series.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "2-on-1 Series",
@@ -812,6 +901,7 @@
     },
     {
       "cardId": "youth-t6-scramble-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-09-scramble-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Scramble Control",
@@ -821,6 +911,7 @@
     },
     {
       "cardId": "youth-t6-counter-offense",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-10-counter-offense.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Counter-Offense",
@@ -830,6 +921,7 @@
     },
     {
       "cardId": "youth-t6-front-headlock-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-11-front-headlock-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Front Headlock System",
@@ -839,6 +931,7 @@
     },
     {
       "cardId": "youth-t6-whizzer-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-12-whizzer-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T3",
       "skillTitle": "Whizzer Control",
@@ -848,6 +941,7 @@
     },
     {
       "cardId": "youth-t6-leg-ride-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-13-leg-ride-control.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Leg Ride Control",
@@ -857,6 +951,7 @@
     },
     {
       "cardId": "youth-t6-turn-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-14-turn-chain.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Turn Chain",
@@ -866,6 +961,7 @@
     },
     {
       "cardId": "youth-t6-ride-dominance",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-15-ride-dominance.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Ride Dominance",
@@ -875,6 +971,7 @@
     },
     {
       "cardId": "youth-t6-crossface-cradle",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-16-crossface-cradle.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Crossface to Cradle",
@@ -884,6 +981,7 @@
     },
     {
       "cardId": "youth-t6-escape-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-17-escape-system.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Escape System",
@@ -893,6 +991,7 @@
     },
     {
       "cardId": "youth-t6-reversal-chain",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-18-reversal-chain.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Reversal Chain",
@@ -902,6 +1001,7 @@
     },
     {
       "cardId": "youth-t6-survival-pressure",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-19-survival-pressure.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Survival Under Pressure",
@@ -911,6 +1011,7 @@
     },
     {
       "cardId": "youth-t6-bottom-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t6/skill-20-bottom-score.html",
       "originalCurriculumTier": "T6",
       "placement": "T4",
       "skillTitle": "Bottom to Score",
@@ -920,6 +1021,7 @@
     },
     {
       "cardId": "youth-t7-flow-motion",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-01-flow-motion.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Flow Motion",
@@ -929,6 +1031,7 @@
     },
     {
       "cardId": "youth-t7-tempo-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-02-tempo-control.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Tempo Control",
@@ -938,6 +1041,7 @@
     },
     {
       "cardId": "youth-t7-position-awareness",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-03-position-awareness.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Position Awareness",
@@ -947,6 +1051,7 @@
     },
     {
       "cardId": "youth-t7-motion-reattack",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-04-motion-reattack.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Motion to Re-Attack",
@@ -956,6 +1061,7 @@
     },
     {
       "cardId": "youth-t7-multichain-wrestling",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-05-multichain-wrestling.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Multi-Chain Wrestling",
@@ -965,6 +1071,7 @@
     },
     {
       "cardId": "youth-t7-reattack-system",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-06-reattack-system.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Re-Attack System",
@@ -974,6 +1081,7 @@
     },
     {
       "cardId": "youth-t7-upper-body-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-07-upper-body-mastery.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Upper Body Mastery",
@@ -983,6 +1091,7 @@
     },
     {
       "cardId": "youth-t7-tie-to-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-08-tie-to-score.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Tie to Score",
@@ -992,6 +1101,7 @@
     },
     {
       "cardId": "youth-t7-scramble-winning",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-09-scramble-winning.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Scramble Winning",
@@ -1001,6 +1111,7 @@
     },
     {
       "cardId": "youth-t7-counter-domination",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-10-counter-domination.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Counter Domination",
@@ -1010,6 +1121,7 @@
     },
     {
       "cardId": "youth-t7-defense-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-11-defense-control.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Defense Control",
@@ -1019,6 +1131,7 @@
     },
     {
       "cardId": "youth-t7-front-headlock-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-12-front-headlock-score.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Front Headlock to Score",
@@ -1028,6 +1141,7 @@
     },
     {
       "cardId": "youth-t7-ride-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-13-ride-mastery.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Ride Mastery",
@@ -1037,6 +1151,7 @@
     },
     {
       "cardId": "youth-t7-turn-flow",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-14-turn-flow.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Turn Flow",
@@ -1046,6 +1161,7 @@
     },
     {
       "cardId": "youth-t7-chain-turns",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-15-chain-turns.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Chain Turns",
@@ -1055,6 +1171,7 @@
     },
     {
       "cardId": "youth-t7-leg-ride-turn",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-16-leg-ride-turn.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Leg Ride to Turn",
@@ -1064,6 +1181,7 @@
     },
     {
       "cardId": "youth-t7-escape-mastery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-17-escape-mastery.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Escape Mastery",
@@ -1073,6 +1191,7 @@
     },
     {
       "cardId": "youth-t7-reversal-control",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-18-reversal-control.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Reversal Control",
@@ -1082,6 +1201,7 @@
     },
     {
       "cardId": "youth-t7-survival-recovery",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-19-survival-recovery.html",
       "originalCurriculumTier": "T7",
       "placement": "T4",
       "skillTitle": "Survival to Recovery",
@@ -1091,6 +1211,7 @@
     },
     {
       "cardId": "youth-t7-bottom-score",
+      "originalCardPath": "public/coaches/cards/youth/z2h-wrestling/t7/skill-20-bottom-score.html",
       "originalCurriculumTier": "T7",
       "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
       "skillTitle": "Bottom to Score",

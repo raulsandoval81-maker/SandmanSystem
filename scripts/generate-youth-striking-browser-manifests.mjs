@@ -15,6 +15,7 @@ for (const specification of specifications) {
     approvedCounts: manifest[specification.counts],
     placements: manifest[specification.placements].map((entry) => ({
       cardId: entry.cardId,
+      originalCardPath: entry.originalCardPath,
       originalCurriculumTier: entry.originalCurriculumTier,
       placement: entry.placement,
       skillTitle: entry.skillTitle,
