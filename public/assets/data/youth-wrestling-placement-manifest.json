@@ -1,0 +1,1102 @@
+{
+  "version": "r2c-youth-wrestling-placement-v1",
+  "approvedCounts": {
+    "T0": 14,
+    "T1": 14,
+    "T2": 23,
+    "T3": 26,
+    "T4": 30,
+    "CHAMPION_EXTENDED_DEVELOPMENT": 14
+  },
+  "placements": [
+    {
+      "cardId": "youth-t0-stance",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Stance",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-motion",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Motion",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-level-change",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Level Change",
+      "familyId": "level_change_entry",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-penetration-step",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Penetration Step",
+      "familyId": "level_change_entry",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-double-leg",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Double Leg",
+      "familyId": "double_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-single-leg",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Single Leg",
+      "familyId": "single_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-sprawl",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Sprawl",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-base",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Base",
+      "familyId": "escape",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-stand-up",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Stand Up",
+      "familyId": "stand_up",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-half-nelson",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Half Nelson",
+      "familyId": "turn_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-hand-fight",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Hand Fight",
+      "familyId": "setups_ties",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t0-go-behind",
+      "originalCurriculumTier": "T0",
+      "placement": "T0",
+      "skillTitle": "Go Behind",
+      "familyId": "snap_go_behind",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-stance-motion-control",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Stance & Motion",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-level-change-shot",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Level Change to Shot",
+      "familyId": "level_change_entry",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-double-leg-finish",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Double Leg Finish",
+      "familyId": "double_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-single-leg-finish",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Single Leg Finish",
+      "familyId": "single_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-snap-down",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Snap Down",
+      "familyId": "snap_go_behind",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-go-behind",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Go Behind",
+      "familyId": "snap_go_behind",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-sprawl-recover",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Sprawl & Recover",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-breakdown",
+      "originalCurriculumTier": "T1",
+      "placement": "T0",
+      "skillTitle": "Breakdown",
+      "familyId": "ride_control",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-ride",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Ride",
+      "familyId": "ride_control",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-escape",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Escape",
+      "familyId": "escape",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-front-headlock",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Front Headlock",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t1-mat-return",
+      "originalCurriculumTier": "T1",
+      "placement": "T1",
+      "skillTitle": "Mat Return",
+      "familyId": "return",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-angle-step",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Angle Step",
+      "familyId": "angle",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-motion-to-attack",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Motion to Attack",
+      "familyId": "motion_attack_reattack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-double-leg-drive",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Double Leg (Drive)",
+      "familyId": "double_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-single-leg-run-corner",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Single Leg (Run Corner)",
+      "familyId": "single_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-snap-to-score",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Snap to Score",
+      "familyId": "snap_go_behind",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-down-block",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Down Block",
+      "familyId": "down_block",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-sprawl-to-spin",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Sprawl to Spin",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-crossface",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Crossface",
+      "familyId": "crossface",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-return-to-mat",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Return to Mat",
+      "familyId": "return",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-sit-out",
+      "originalCurriculumTier": "T2",
+      "placement": "T1",
+      "skillTitle": "Sit Out",
+      "familyId": "sitout_switch",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-front-headlock-control",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Front Headlock Control",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t2-chain-finish",
+      "originalCurriculumTier": "T2",
+      "placement": "T2",
+      "skillTitle": "Chain Finish",
+      "familyId": "chain_wrestling",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-angle-step",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Angle Step",
+      "familyId": "angle",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-motion-to-attack",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Motion to Attack",
+      "familyId": "motion_attack_reattack",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-head-position",
+      "originalCurriculumTier": "T3",
+      "placement": "T0",
+      "skillTitle": "Head Position",
+      "familyId": "head_position",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-single-leg-finish",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Single Leg (Finish)",
+      "familyId": "single_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-double-leg-finish",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Double Leg (Finish)",
+      "familyId": "double_leg",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-snap-go-behind",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Snap Down to Go Behind",
+      "familyId": "snap_go_behind",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-sprawl-spin",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Sprawl & Spin",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-counter-defense",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Counter-Defense",
+      "familyId": "counter_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-down-block-reattack",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Down Block to Re-Attack",
+      "familyId": "down_block",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-crossface",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Crossface",
+      "familyId": "crossface",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-cradle",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Cradle",
+      "familyId": "turn_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-ride-control",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Ride Control",
+      "familyId": "ride_control",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-escape",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Escape",
+      "familyId": "escape",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-bottom-movement",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Bottom Movement",
+      "familyId": "bottom_integration",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t3-switch",
+      "originalCurriculumTier": "T3",
+      "placement": "T2",
+      "skillTitle": "Switch",
+      "familyId": "reversal",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-head-position",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Head Position",
+      "familyId": "head_position",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-distance-control",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Distance Control",
+      "familyId": "distance",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-tempo-change",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Tempo Change",
+      "familyId": "tempo",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-setups",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Setups",
+      "familyId": "setups_ties",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-re-shot",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Re-Shot",
+      "familyId": "reattack_reshot",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-arm-drag",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Arm Drag",
+      "familyId": "arm_drag",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-head-arm-defense",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Head & Arm Defense",
+      "familyId": "counter_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-counter-balance",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Counter Balance",
+      "familyId": "counter_offense",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-front-headlock-defense",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Front Headlock Defense",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-ride-control",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Ride Control",
+      "familyId": "ride_control",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-turn-setup",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Turn Setup",
+      "familyId": "turn_system",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-return-to-ride",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Return to Ride",
+      "familyId": "return",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-hip-heist",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Hip Heist",
+      "familyId": "hip_heist",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-avoid-pin",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Avoid Pin",
+      "familyId": "survival_recovery",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t4-escape-chain",
+      "originalCurriculumTier": "T4",
+      "placement": "T3",
+      "skillTitle": "Escape Chain",
+      "familyId": "escape",
+      "familyMappingStatus": "AUTHORITATIVE_EXISTING",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-pressure-motion",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Pressure Motion",
+      "familyId": "pressure_footwork",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-motion-to-reattack",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Motion to Reattack",
+      "familyId": "motion_attack_reattack",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-tempo-change",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Tempo Change",
+      "familyId": "tempo",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-chain-wrestling",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Chain Wrestling",
+      "familyId": "chain_wrestling",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-underhook-series",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Underhook Series",
+      "familyId": "underhook",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-slide-by",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Slide By",
+      "familyId": "setups_ties",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-reshot-system",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Re-Shot System",
+      "familyId": "reattack_reshot",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-front-headlock-control",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Front Headlock Control",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-sprawl-to-score",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Sprawl to Score",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-leg-ride-intro",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Leg Ride Intro",
+      "familyId": "leg_ride",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-crossface-series",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Crossface Series",
+      "familyId": "crossface",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-ride-to-return",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Ride to Return",
+      "familyId": "return",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-escape-chain",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Escape Chain",
+      "familyId": "escape",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-hip-heist-score",
+      "originalCurriculumTier": "T5",
+      "placement": "T4",
+      "skillTitle": "Hip Heist to Score",
+      "familyId": "hip_heist",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t5-base-under-pressure",
+      "originalCurriculumTier": "T5",
+      "placement": "T3",
+      "skillTitle": "Base Under Pressure",
+      "familyId": "survival_recovery",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-angle-domination",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Angle Domination",
+      "familyId": "angle",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-distance-control",
+      "originalCurriculumTier": "T6",
+      "placement": "T3",
+      "skillTitle": "Distance Control",
+      "familyId": "distance",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-pressure-footwork",
+      "originalCurriculumTier": "T6",
+      "placement": "T3",
+      "skillTitle": "Pressure Footwork",
+      "familyId": "pressure_footwork",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-tempo-control",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Tempo Control",
+      "familyId": "tempo",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-chain-wrestling",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Chain Wrestling (3)",
+      "familyId": "chain_wrestling",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-upper-body-entry",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Upper Body Entry",
+      "familyId": "upper_body",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-underhook-score",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Underhook to Score",
+      "familyId": "underhook",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-two-on-one-series",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "2-on-1 Series",
+      "familyId": "two_on_one",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-scramble-control",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Scramble Control",
+      "familyId": "scramble",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-counter-offense",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Counter-Offense",
+      "familyId": "counter_offense",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-front-headlock-system",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Front Headlock System",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-whizzer-control",
+      "originalCurriculumTier": "T6",
+      "placement": "T3",
+      "skillTitle": "Whizzer Control",
+      "familyId": "whizzer",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-leg-ride-control",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Leg Ride Control",
+      "familyId": "leg_ride",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-turn-chain",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Turn Chain",
+      "familyId": "turn_system",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-ride-dominance",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Ride Dominance",
+      "familyId": "ride_control",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-crossface-cradle",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Crossface to Cradle",
+      "familyId": "turn_system",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-escape-system",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Escape System",
+      "familyId": "escape",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-reversal-chain",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Reversal Chain",
+      "familyId": "reversal",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-survival-pressure",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Survival Under Pressure",
+      "familyId": "survival_recovery",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t6-bottom-score",
+      "originalCurriculumTier": "T6",
+      "placement": "T4",
+      "skillTitle": "Bottom to Score",
+      "familyId": "bottom_integration",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-flow-motion",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Flow Motion",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-tempo-control",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Tempo Control",
+      "familyId": "tempo",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-position-awareness",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Position Awareness",
+      "familyId": "stance_motion",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-motion-reattack",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Motion to Re-Attack",
+      "familyId": "motion_attack_reattack",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-multichain-wrestling",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Multi-Chain Wrestling",
+      "familyId": "chain_wrestling",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-reattack-system",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Re-Attack System",
+      "familyId": "reattack_reshot",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-upper-body-mastery",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Upper Body Mastery",
+      "familyId": "upper_body",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-tie-to-score",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Tie to Score",
+      "familyId": "setups_ties",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-scramble-winning",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Scramble Winning",
+      "familyId": "scramble",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-counter-domination",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Counter Domination",
+      "familyId": "counter_offense",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-defense-control",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Defense Control",
+      "familyId": "shot_defense",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-front-headlock-score",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Front Headlock to Score",
+      "familyId": "front_headlock",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-ride-mastery",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Ride Mastery",
+      "familyId": "ride_control",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-turn-flow",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Turn Flow",
+      "familyId": "turn_system",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-chain-turns",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Chain Turns",
+      "familyId": "turn_system",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-leg-ride-turn",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Leg Ride to Turn",
+      "familyId": "leg_ride",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-escape-mastery",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Escape Mastery",
+      "familyId": "escape",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-reversal-control",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Reversal Control",
+      "familyId": "reversal",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    },
+    {
+      "cardId": "youth-t7-survival-recovery",
+      "originalCurriculumTier": "T7",
+      "placement": "T4",
+      "skillTitle": "Survival to Recovery",
+      "familyId": "survival_recovery",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "REQUIRED"
+    },
+    {
+      "cardId": "youth-t7-bottom-score",
+      "originalCurriculumTier": "T7",
+      "placement": "CHAMPION_EXTENDED_DEVELOPMENT",
+      "skillTitle": "Bottom to Score",
+      "familyId": "bottom_integration",
+      "familyMappingStatus": "INFERRED_UNRESOLVED",
+      "curriculumStatus": "EXTENSION"
+    }
+  ]
+}

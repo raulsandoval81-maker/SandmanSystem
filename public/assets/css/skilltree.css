@@ -57,3 +57,88 @@
   font-size: 14px;
   color: #d0d6dd;
 }
+
+.simplified-tree .rank-tree {
+  margin-top: 20px;
+  padding: 18px;
+  background: #111c35;
+  border: 1px solid #27304a;
+  border-radius: 12px;
+}
+
+.simplified-tree .rank-tree > h2 {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 14px;
+  color: #ffdd48;
+}
+
+.simplified-tree .rank-tree > h2 span {
+  color: #9aa4b1;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.simplified-tree .skill-family {
+  margin-top: 16px;
+}
+
+.simplified-tree .skill-family h3 {
+  margin: 0 0 8px;
+  color: #d0d6dd;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.simplified-tree .skill-family ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simplified-tree .simple-skill {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) auto;
+  gap: 4px 16px;
+  padding: 11px 12px;
+  background: #0b1120;
+  border: 1px solid #27304a;
+  border-radius: 8px;
+}
+
+.simplified-tree .skill-progress {
+  color: #9aa4b1;
+  font-size: 13px;
+  text-align: right;
+}
+
+.simplified-tree .family-progress {
+  grid-column: 2;
+  color: #d0d6dd;
+}
+
+.simplified-tree .locked-rank,
+.simplified-tree .tree-message {
+  color: #9aa4b1;
+}
+
+.simplified-tree .coach-directed {
+  color: #d0d6dd;
+  font-size: 14px;
+}
+
+@media (max-width: 620px) {
+  .simplified-tree .simple-skill {
+    grid-template-columns: 1fr;
+  }
+
+  .simplified-tree .skill-progress,
+  .simplified-tree .family-progress {
+    grid-column: 1;
+    text-align: left;
+  }
+}
