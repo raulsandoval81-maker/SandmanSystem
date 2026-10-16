@@ -1,0 +1,889 @@
+{
+  "version": "path2legend-kickboxing-skill-tree-v1",
+  "journey": "P2L",
+  "discipline": "kickboxing",
+  "rankNames": {
+    "T0": "Apprentice",
+    "T1": "Warrior",
+    "T2": "Champion",
+    "T3": "Veteran",
+    "T4": "Legend"
+  },
+  "placements": [
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-01-stance",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Stance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-02-guard",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Guard",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-03-footwork",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Footwork",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-04-jab",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Jab",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-05-cross",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Cross",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-06-hook",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Hook",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-07-front-kick",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Front Kick",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-08-round-kick",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Round Kick",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-09-check",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Check",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-10-knee",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Knee",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-11-teep",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Teep",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-12-basic-clinch",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Basic Clinch",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-13-distance",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Distance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-14-angle-step",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Angle Step",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-15-basic-combination",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Basic Combination",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-16-pad-work",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Pad Work",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-17-heavy-bag",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Heavy Bag",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-18-partner-drill",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Partner Drill",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-19-conditioning",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Conditioning",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t0-skill-20-controlled-sparring",
+      "tier": "T0",
+      "rankName": "Apprentice",
+      "skillTitle": "Controlled Sparring",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-01-stance",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Stance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-02-guard",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Guard",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-03-footwork",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Footwork",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-04-jab",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Jab",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-05-cross",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Cross",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-06-one-two",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "One Two",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-07-lead-hook",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Lead Hook",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-08-rear-hook",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Rear Hook",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-09-uppercut",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Uppercut",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-10-body-shot",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Body Shot",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-11-lead-kick",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Lead Kick",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-12-rear-kick",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Rear Kick",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-13-teep",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Teep",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-14-check",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Check",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-15-block",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Block",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-16-distance",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Distance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-17-angle",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Angle",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-18-basic-combo",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Basic Combo",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-19-partner-drill",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Partner Drill",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t1-skill-20-kickboxing-standard",
+      "tier": "T1",
+      "rankName": "Warrior",
+      "skillTitle": "Muay Thai Standard",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-01-timing",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Timing",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-02-rhythm",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Rhythm",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-03-feint",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Feint",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-04-counter",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Counter",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-05-double-jab",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Double Jab",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-06-jab-kick-entry",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Jab Kick Entry",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-07-cross-kick-entry",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Cross Kick Entry",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-08-hook-kick-counter",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Hook Kick Counter",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-09-body-head-kick-combo",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Body Head Kick Combo",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-10-range-control",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Range Control",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-11-pivot",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Pivot",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-12-exit-angle",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Exit Angle",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-13-pressure-step",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Pressure Step",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-14-defense-reset",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Defense Reset",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-15-combination-flow",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Combination Flow",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-16-ring-position",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Ring Position",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-17-controlled-sparring",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Controlled Sparring",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-18-fatigue-control",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Fatigue Control",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-19-round-management",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Round Management",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-20-live-application",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Live Application",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-21-kick-catch-reaction",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Kick Catch Reaction",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-22-distance-traps",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Distance Traps",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-23-defensive-reactions",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Defensive Reactions",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-24-pressure-sparring",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Pressure Sparring",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t2-skill-25-ring-awareness",
+      "tier": "T2",
+      "rankName": "Champion",
+      "skillTitle": "Ring Awareness",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-01-ringcraft",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Ringcraft",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-02-pressure-flow",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Pressure Flow",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-03-counter-chain",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Counter Chain",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-04-reaction-training",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Reaction Training",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-05-setup-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Setup System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-06-corner-pressure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Corner Pressure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-07-inside-kickboxing",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Inside Muay Thai",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-08-clinch-entry",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Clinch Entry",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-09-advanced-jab",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Advanced Jab",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-10-advanced-cross",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Advanced Cross",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-11-lead-hook-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Lead Hook System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-12-rear-kick-system",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Rear Kick System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-13-body-attack",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Body Attack",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-14-head-movement",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Head Movement",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-15-combination-defense",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Combination Defense",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-16-tempo-control",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Tempo Control",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-17-false-pressure",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "False Pressure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-18-angle-traps",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Angle Traps",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-19-rope-escapes",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Rope Escapes",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-20-counter-kicking",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Counter Kicking",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-21-pocket-awareness",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Elbow Fundamentals",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-22-defensive-layers",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Defensive Layers",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-23-offensive-layers",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Offensive Layers",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-24-pace-break",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Pace Break",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-25-weapon-selection",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Weapon Selection",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-26-live-rounds",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Live Rounds",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-27-fatigue-performance",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Fatigue Performance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-28-fight-awareness",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Fight Awareness",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-29-chaos-drills",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Chaos Drills",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t3-skill-30-second-effort",
+      "tier": "T3",
+      "rankName": "Veteran",
+      "skillTitle": "Second Effort",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-01-kickboxing-iq",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Muay Thai IQ",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-02-adaptation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Adaptation",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-03-pressure-control",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pressure Control",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-04-range-dictation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Range Dictation",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-05-counter-pressure",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Counter Pressure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-06-corner-traps",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Corner Traps",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-07-inside-dominance",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Inside Dominance",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-08-chain-pressure",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Chain Pressure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-09-jab-system",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Jab System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-10-cross-system",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Cross System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-11-hook-system",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Hook System",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-12-kick-system",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Eight-Limb Integration",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-13-defense-to-offense",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Defense To Offense",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-14-fatigue-weaponization",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fatigue Weaponization",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-15-mental-pressure",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Mental Pressure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-16-round-stealing",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Round Stealing",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-17-live-chaos",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Live Chaos",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-18-strategy-build",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Strategy Build",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-19-opponent-reading",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Opponent Reading",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-20-finish-instinct",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Finish Instinct",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-21-fight-breaking",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fight Breaking",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-22-pressure-layering",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Pressure Layering",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-23-weapon-blending",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Weapon Blending",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-24-chain-finishing",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Chain Finishing",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-25-corner-dictation",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Corner Dictation",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-26-mental-fatigue",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Mental Fatigue",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-27-high-pressure-rounds",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "High Pressure Rounds",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-28-chaos-composure",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Chaos Composure",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-29-fight-management",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "Fight Management",
+      "familyId": ""
+    },
+    {
+      "cardId": "teen-p2l-kickboxing-t4-skill-30-system-mastery",
+      "tier": "T4",
+      "rankName": "Legend",
+      "skillTitle": "System Mastery",
+      "familyId": ""
+    }
+  ]
+}
