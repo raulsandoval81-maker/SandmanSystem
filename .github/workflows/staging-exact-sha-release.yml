@@ -6,10 +6,10 @@ on:
       release_id:
         description: Reviewed release manifest entry
         required: true
-        default: hybrid-pr99-56cfb703
+        default: hybrid-pr99-5ed90c5c
         type: choice
         options:
-          - hybrid-pr99-56cfb703
+          - hybrid-pr99-5ed90c5c
       action:
         description: Validate only, or execute the approved staging release
         required: true
