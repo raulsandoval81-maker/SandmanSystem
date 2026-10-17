@@ -11,6 +11,7 @@ import {
 } from "/assets/js/firebase-init.js";
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
+import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 
 
 import {
@@ -618,6 +619,9 @@ function getActiveSession() {
     tier: String(builderSession.tier || "").trim(),
     week: String(builderSession.week || "").trim(),
     trainingGroups: Array.isArray(builderSession.trainingGroups) ? builderSession.trainingGroups : [],
+    planningSources: builderSession.planningSources || {},
+    groupPlanning: builderSession.groupPlanning || {},
+    acceptedLessonContent: builderSession.acceptedLessonContent || {},
     carryForwardNote: String(builderSession.carryForwardNote || "").trim()
   };
 }
@@ -651,6 +655,7 @@ function renderClipboardTrainingGroups() {
       ? group.athleteNames.join(", ")
       : "";
     const prescription = prescriptions.find(item => item.groupId === group.id);
+    const planning = session.groupPlanning?.[group.id] || {};
     const encodeText = (value) => String(value || "").replace(/[&<>"']/g, character => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     })[character]);
@@ -672,6 +677,8 @@ function renderClipboardTrainingGroups() {
         <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
         <span>${names ? names : "System-guided group"}</span>
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
+        ${planning.systemSuggestion ? `<em>System suggestion: ${encodeText(planning.systemSuggestion.reason || planning.systemSuggestion.state)}</em>` : ""}
+        ${planning.coachInput?.currentNote ? `<em>Coach plan: ${encodeText(planning.coachInput.currentNote)}</em>` : ""}
       ${groupEvidenceDiagnostics[group.id] ? `<div class="clipboard-group-skills">${encodeText(groupEvidenceDiagnostics[group.id])}</div>` : ""}
         ${teachingLinks ? `<div class="clipboard-group-skills">${teachingLinks}</div>` : ""}
         ${mode === "hybrid" && prescription?.status === "ready" ? `<label>Coach lesson adjustments<textarea class="clipboard-group-lesson-notes" data-group-id="${encodeText(String(group.id || ""))}" aria-label="Coach adjustments for group ${index + 1}" rows="3" placeholder="Add, replace, or modify this group’s lesson and teaching cues"></textarea></label>` : ""}
@@ -1381,8 +1388,10 @@ function groupActivitiesForBlock(block, session) {
       status: prescription?.status || "unavailable",
       waveKey: prescription?.waveKey || "",
       cards: prescription?.status === "ready" ? (prescription.cards || []).map(card => ({
-        id: card.id || "", title: card.title || "", href: card.href || ""
+        id: card.id || "", title: card.title || "", href: card.href || "",
+        familyId: card.familyId || "", discipline: card.discipline || session.discipline || ""
       })) : [],
+      athleteIds: Array.isArray(group.athleteIds) ? group.athleteIds.map(String) : [],
       coachAdjustment: adjustments[group.id] || ""
     };
   });
@@ -1496,6 +1505,9 @@ window.runPractice = async function () {
     week: session.week,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    planningSources: session.planningSources,
+    groupPlanning: session.groupPlanning,
+    acceptedLessonContent: session.acceptedLessonContent,
     groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 
@@ -1522,6 +1534,9 @@ window.runPractice = async function () {
     week: session.week,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    planningSources: session.planningSources,
+    groupPlanning: session.groupPlanning,
+    acceptedLessonContent: session.acceptedLessonContent,
     groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 
@@ -1535,19 +1550,41 @@ window.runPractice = async function () {
 
   try {
     const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
-    const plannedCards = blocks.flatMap(block => block.cards.map((card, index) => ({
-      cardId: card.id || card.href || card.skill || card.family || `${block.slot}-${index}-${card.title}`,
-      blockId: block.slot,
-      title: card.title || "",
-      href: card.href || "",
-      skillId: card.skill || "",
-      familyId: card.family || "",
-      discipline: card.discipline || session.discipline || ""
-    })));
+    const plannedCardMap = new Map();
+    blocks.forEach(block => executableCardsForBlock(block).forEach((card, index) => {
+      const plannedCard = {
+        cardId: card.id || card.href || card.skill || card.family || `${block.slot}-${index}-${card.title}`,
+        blockId: block.slot,
+        title: card.title || "",
+        href: card.href || "",
+        skillId: card.skill || "",
+        familyId: card.familyId || card.family || "",
+        discipline: card.discipline || session.discipline || "",
+        groupId: card.groupId || "",
+        athleteIds: Array.isArray(card.athleteIds) ? card.athleteIds : []
+      };
+      const key = `${plannedCard.cardId}::${plannedCard.groupId}`;
+      if (!plannedCardMap.has(key)) plannedCardMap.set(key, plannedCard);
+    }));
+    const plannedCards = [...plannedCardMap.values()];
     await saveMemory({
       operation: "plan",
       practiceId,
       planVersion: 1,
+      planningContext: {
+        planningSources: session.planningSources,
+        groups: Object.entries(session.groupPlanning || {}).map(([groupId, planning]) => ({
+          groupId,
+          waveKey: planning?.tierWave?.waveKey || "",
+          waveState: planning?.tierWave?.state || "",
+          systemSuggestionState: planning?.systemSuggestion?.state || "",
+          coachDisposition: planning?.coachInput?.disposition || "",
+          originalCarryForwardNote: planning?.coachInput?.originalCarryForwardNote || "",
+          currentCoachNote: planning?.coachInput?.currentNote || "",
+          coachAdjustment: [...document.querySelectorAll(".clipboard-group-lesson-notes")]
+            .find(field => field.dataset.groupId === groupId)?.value || ""
+        }))
+      },
       plannedBlocks: blocks.map(block => ({
         blockId: block.slot,
         title: block.title,
@@ -1848,6 +1885,9 @@ async function saveCurrentPlanToFirestore() {
     tier: session.tier,
     trainingGroups: session.trainingGroups,
     groupPrescriptions: Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [],
+    planningSources: session.planningSources,
+    groupPlanning: session.groupPlanning,
+    acceptedLessonContent: session.acceptedLessonContent,
     groupLessonAdjustments: session.executionMode === "hybrid" ? Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")].map(field => [field.dataset.groupId, field.value])) : {},
     carryForwardNote: session.carryForwardNote,
 

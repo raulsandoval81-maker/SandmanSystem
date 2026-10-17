@@ -115,6 +115,19 @@
           </div>
         </div>
 
+        <section id="hybridPlanningPanel" class="hybrid-planning-panel" hidden>
+          <div class="section-heading compact-heading">
+            <div><span class="eyebrow">Hybrid planning</span><h3>Choose lesson sources</h3></div>
+          </div>
+          <div class="planning-source-grid" aria-label="Hybrid planning sources">
+            <label><input type="checkbox" data-planning-source="tierWaves" checked> <strong>Tier Waves</strong><span>Approved tier curriculum and Coach Cards.</span></label>
+            <label><input type="checkbox" data-planning-source="systemSuggestions" checked> <strong>System Suggestions</strong><span>Evidence-supported recommendations when available.</span></label>
+            <label><input type="checkbox" data-planning-source="coachInput" checked> <strong>Coach Input / Pass It Forward</strong><span>Carry-forward and current Coach instructions.</span></label>
+          </div>
+          <p id="planningSourceStatus" class="availability-note" aria-live="polite"></p>
+          <div id="hybridGroupPlanning" class="hybrid-group-planning"></div>
+        </section>
+
         <aside class="selection-summary" aria-live="polite">
           <span class="eyebrow">Current selection</span>
           <h3 id="summaryShell">Academy Class · 60 min</h3>
@@ -135,6 +148,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261011-47"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261016-1"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -26,8 +27,10 @@ function compactWorkedCard(card, blockId, index) {
     title: item.title || "",
     href: item.href || "",
     skillId: item.skill || "",
-    familyId: item.family || "",
-    discipline: item.discipline || ""
+    familyId: item.familyId || item.family || "",
+    discipline: item.discipline || "",
+    groupId: item.groupId || "",
+    athleteIds: Array.isArray(item.athleteIds) ? item.athleteIds : []
   };
 }
 
@@ -41,8 +44,8 @@ async function updateDurableWorkedMemory({ block = null, started = false, comple
     authReady = true;
   }
   const blockId = block ? String(block.slot || block.blockId || block.title || "").trim() : "";
-  const cards = block && Array.isArray(block.cards)
-    ? block.cards.map((card, index) => compactWorkedCard(card, blockId, index))
+  const cards = block
+    ? executableCardsForBlock(block).map((card, index) => compactWorkedCard(card, blockId, index))
     : [];
   const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
   await saveMemory({
