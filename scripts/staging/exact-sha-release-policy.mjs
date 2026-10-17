@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 export const PRODUCTION_PROJECT_ID = "sandmandashboard";
 export const STAGING_PROJECT_ID = "sandman-combat-staging";
 export const STAGING_PROJECT_NUMBER = "991554514268";
-export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions`;
+export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging`;
 export const TRUSTED_WORKFLOW_REF = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main";
 export const APPROVED_FUNCTIONS = Object.freeze(["savePracticeSessionMemory", "closePracticeSession"]);
 
