@@ -2,7 +2,7 @@
 
 This pathway deploys an application commit without merging that application commit to `main`. The workflow and release manifest remain trusted code on `main`; the application SHA is checked out into a separate directory and cannot replace authentication, authorization, preflight, or deployment commands.
 
-The first approved entry is `hybrid-pr99-56cfb703`, bound to PR #99 commit `56cfb70331bbd490d3f971b37db717ee9ab93385`. A future release requires a reviewed manifest change. Arbitrary workflow input cannot select a different source SHA or broaden the target list.
+The first approved entry is `hybrid-pr99-5ed90c5c`, bound to PR #99 commit `5ed90c5c8eb609e86319a5b5b188642764157dd8`. A future release requires a reviewed manifest change. Arbitrary workflow input cannot select a different source SHA or broaden the target list.
 
 ## Authorization model
 
@@ -21,7 +21,7 @@ Validation mode performs no deployment. It verifies the immutable checkout, runs
 
 The current recorded runtime is the Compute default account, while the approved target is the dedicated Practice runtime. Deployment is blocked unless the protected operator separately supplies:
 
-`MIGRATE_RUNTIME:hybrid-pr99-56cfb703:sandman-combat-staging`
+`MIGRATE_RUNTIME:hybrid-pr99-5ed90c5c:sandman-combat-staging`
 
 That confirmation authorizes the runtime transition only; it does not change IAM.
 
