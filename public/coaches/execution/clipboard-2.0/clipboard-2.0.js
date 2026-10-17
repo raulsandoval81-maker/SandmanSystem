@@ -11,6 +11,7 @@ import {
 } from "/assets/js/firebase-init.js";
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
+import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 
 
 import {
@@ -1387,8 +1388,10 @@ function groupActivitiesForBlock(block, session) {
       status: prescription?.status || "unavailable",
       waveKey: prescription?.waveKey || "",
       cards: prescription?.status === "ready" ? (prescription.cards || []).map(card => ({
-        id: card.id || "", title: card.title || "", href: card.href || ""
+        id: card.id || "", title: card.title || "", href: card.href || "",
+        familyId: card.familyId || "", discipline: card.discipline || session.discipline || ""
       })) : [],
+      athleteIds: Array.isArray(group.athleteIds) ? group.athleteIds.map(String) : [],
       coachAdjustment: adjustments[group.id] || ""
     };
   });
@@ -1547,15 +1550,23 @@ window.runPractice = async function () {
 
   try {
     const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
-    const plannedCards = blocks.flatMap(block => block.cards.map((card, index) => ({
-      cardId: card.id || card.href || card.skill || card.family || `${block.slot}-${index}-${card.title}`,
-      blockId: block.slot,
-      title: card.title || "",
-      href: card.href || "",
-      skillId: card.skill || "",
-      familyId: card.family || "",
-      discipline: card.discipline || session.discipline || ""
-    })));
+    const plannedCardMap = new Map();
+    blocks.forEach(block => executableCardsForBlock(block).forEach((card, index) => {
+      const plannedCard = {
+        cardId: card.id || card.href || card.skill || card.family || `${block.slot}-${index}-${card.title}`,
+        blockId: block.slot,
+        title: card.title || "",
+        href: card.href || "",
+        skillId: card.skill || "",
+        familyId: card.familyId || card.family || "",
+        discipline: card.discipline || session.discipline || "",
+        groupId: card.groupId || "",
+        athleteIds: Array.isArray(card.athleteIds) ? card.athleteIds : []
+      };
+      const key = `${plannedCard.cardId}::${plannedCard.groupId}`;
+      if (!plannedCardMap.has(key)) plannedCardMap.set(key, plannedCard);
+    }));
+    const plannedCards = [...plannedCardMap.values()];
     await saveMemory({
       operation: "plan",
       practiceId,
@@ -1569,7 +1580,9 @@ window.runPractice = async function () {
           systemSuggestionState: planning?.systemSuggestion?.state || "",
           coachDisposition: planning?.coachInput?.disposition || "",
           originalCarryForwardNote: planning?.coachInput?.originalCarryForwardNote || "",
-          currentCoachNote: planning?.coachInput?.currentNote || ""
+          currentCoachNote: planning?.coachInput?.currentNote || "",
+          coachAdjustment: [...document.querySelectorAll(".clipboard-group-lesson-notes")]
+            .find(field => field.dataset.groupId === groupId)?.value || ""
         }))
       },
       plannedBlocks: blocks.map(block => ({

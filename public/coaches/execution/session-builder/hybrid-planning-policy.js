@@ -8,7 +8,11 @@ export const DEFAULT_HYBRID_PLANNING_SOURCES = Object.freeze({
 
 export function normalizePlanningSources(value = {}, mode = "hybrid") {
   if (mode !== "hybrid") return Object.fromEntries(HYBRID_PLANNING_SOURCES.map(key => [key, false]));
-  return Object.fromEntries(HYBRID_PLANNING_SOURCES.map(key => [key, value[key] !== false]));
+  const hasExplicitSelection = HYBRID_PLANNING_SOURCES.some(key => Object.hasOwn(value || {}, key));
+  return Object.fromEntries(HYBRID_PLANNING_SOURCES.map(key => [
+    key,
+    hasExplicitSelection ? value[key] === true : DEFAULT_HYBRID_PLANNING_SOURCES[key]
+  ]));
 }
 
 export function enabledPlanningSources(value = {}, mode = "hybrid") {
@@ -50,4 +54,36 @@ export function acceptedCardsForGroup(planning = {}) {
   return planning?.tierWave?.state === "accepted" && planning?.tierWave?.progressionVerified === false
     ? (Array.isArray(planning.tierWave.cards) ? planning.tierWave.cards : [])
     : [];
+}
+
+export function editableGroupPlanning(prior = {}, group = {}) {
+  const coachInput = prior?.coachInput || {};
+  return {
+    selectedWave: String(prior?.selectedWave || prior?.tierWave?.waveKey || ""),
+    originalCarryForwardNote: String(prior?.originalCarryForwardNote ?? coachInput.originalCarryForwardNote ?? group.carryForwardNote ?? "").trim(),
+    currentNote: String(prior?.currentNote ?? coachInput.currentNote ?? ""),
+    disposition: ["accepted", "edited", "dismissed", "replaced"].includes(prior?.disposition)
+      ? prior.disposition
+      : (["accepted", "edited", "dismissed", "replaced"].includes(coachInput.disposition)
+          ? coachInput.disposition
+          : (group.carryForwardNote ? "accepted" : "replaced"))
+  };
+}
+
+export function executableCardsForBlock(block = {}) {
+  const entries = [];
+  (Array.isArray(block.cards) ? block.cards : []).forEach(card => entries.push({ ...card, groupId: "", athleteIds: [] }));
+  (Array.isArray(block.groupActivities) ? block.groupActivities : [])
+    .filter(activity => activity?.status === "ready")
+    .forEach(activity => (activity.cards || []).forEach(card => entries.push({
+      ...card,
+      groupId: String(activity.groupId || ""),
+      athleteIds: Array.isArray(activity.athleteIds) ? activity.athleteIds.map(String) : []
+    })));
+  const unique = new Map();
+  entries.forEach(card => {
+    const identity = String(card.id || card.cardId || card.href || card.skill || card.family || card.title || "");
+    if (identity) unique.set(`${identity}::${card.groupId || ""}`, card);
+  });
+  return [...unique.values()];
 }

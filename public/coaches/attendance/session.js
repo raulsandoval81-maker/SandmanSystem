@@ -1160,9 +1160,9 @@ async function submitForReview() {
         sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
       } catch {}
     }
-    let executionMode = "manual";
+    let executionMode = String(activePractice?.executionMode || "").toLowerCase();
     try {
-      executionMode = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.executionMode || "manual").toLowerCase();
+      if (!executionMode) executionMode = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.executionMode || "manual").toLowerCase();
     } catch {}
     window.location.href = executionMode === "hybrid"
       ? `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&planning=1`

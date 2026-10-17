@@ -15,6 +15,14 @@ test("HYBRID supports all seven nonempty planning-source combinations", () => {
   }
 });
 
+test("an explicit partial source selection never enables omitted levers", () => {
+  assert.deepEqual(policy.normalizePlanningSources({ tierWaves: true }), {
+    tierWaves: true,
+    systemSuggestions: false,
+    coachInput: false
+  });
+});
+
 test("MANUAL and AUTO cannot inherit HYBRID planning sources", () => {
   assert.deepEqual(policy.enabledPlanningSources(policy.DEFAULT_HYBRID_PLANNING_SOURCES, "manual"), []);
   assert.deepEqual(policy.enabledPlanningSources(policy.DEFAULT_HYBRID_PLANNING_SOURCES, "auto"), []);
@@ -38,6 +46,36 @@ test("missing wave mappings produce no accepted prescription", () => {
   assert.deepEqual(policy.acceptedCardsForGroup(planning), []);
 });
 
+test("rerender recovery preserves nested Coach disposition and current instructions", () => {
+  assert.deepEqual(policy.editableGroupPlanning({
+    tierWave: { waveKey: "top_control" },
+    coachInput: {
+      originalCarryForwardNote: "Original",
+      currentNote: "Revised",
+      disposition: "edited"
+    }
+  }, { carryForwardNote: "Fallback" }), {
+    selectedWave: "top_control",
+    originalCarryForwardNote: "Original",
+    currentNote: "Revised",
+    disposition: "edited"
+  });
+});
+
+test("accepted group cards enter executable content with group roster isolation", () => {
+  const cards = policy.executableCardsForBlock({
+    cards: [{ id: "practice-wide", title: "Warmup" }],
+    groupActivities: [
+      { status: "ready", groupId: "group-1", athleteIds: ["a1"], cards: [{ id: "card-1", familyId: "family-1" }] },
+      { status: "unavailable", groupId: "group-2", athleteIds: ["a2"], cards: [{ id: "card-2" }] }
+    ]
+  });
+  assert.deepEqual(cards.map(card => [card.id, card.groupId, card.athleteIds]), [
+    ["practice-wide", "", []],
+    ["card-1", "group-1", ["a1"]]
+  ]);
+});
+
 test("workflow carries planning provenance without changing AUTO safeguards", () => {
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   const clipboard = fs.readFileSync(path.join(repo, "public/coaches/execution/clipboard-2.0/clipboard-2.0.js"), "utf8");
@@ -48,7 +86,13 @@ test("workflow carries planning provenance without changing AUTO safeguards", ()
   assert.match(builder, /autoPendingVerification: true/);
   assert.match(clipboard, /groupPlanning/);
   assert.match(clipboard, /acceptedLessonContent/);
+  assert.match(clipboard, /executableCardsForBlock\(block\)/);
+  assert.match(fs.readFileSync(path.join(repo, "public/coaches/execution/big-clock-2.0/big-clock-2.0.js"), "utf8"), /executableCardsForBlock\(block\)/);
   assert.match(attendance, /planning=1/);
+  assert.match(attendance, /activePractice\?\.executionMode/);
   assert.match(server, /sessionMemory\.planningContext/);
   assert.match(server, /evidenceEffect: "none"/);
+  assert.match(server, /card\.athleteIds\.includes\(athleteId\)/);
+  assert.match(server, /workedCards: record\.workedCards/);
+  assert.match(server, /workedSkillRefs: record\.workedSkillRefs/);
 });

@@ -25,6 +25,7 @@ import {
   DEFAULT_HYBRID_PLANNING_SOURCES,
   acceptedCardsForGroup,
   composeGroupPlanning,
+  editableGroupPlanning,
   enabledPlanningSources,
   normalizePlanningSources
 } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
@@ -199,8 +200,8 @@ async function renderHybridPlanning() {
   for (const group of groups) {
     const model = planningSources.tierWaves ? await waveModelForGroup(group) : null;
     const waves = Object.entries(model?.WAVE_CARDS || {}).filter(([, value]) => Array.isArray(value) && value.length);
-    const prior = groupPlanningDraft[group.id] || remembered.groupPlanning?.[group.id] || {};
-    const selectedWave = String(prior.selectedWave || prior.tierWave?.waveKey || "");
+    const prior = editableGroupPlanning(groupPlanningDraft[group.id] || remembered.groupPlanning?.[group.id] || {}, group);
+    const selectedWave = prior.selectedWave;
     const waveCards = waves.find(([key]) => key === selectedWave)?.[1] || [];
     cards.push(`<article class="hybrid-group-card" data-group-id="${escapeHtml(group.id)}">
       <h4>${escapeHtml(group.label || group.id)} · ${escapeHtml(group.journey)} ${escapeHtml(String(group.tier || "").toUpperCase())}</h4>
@@ -881,8 +882,8 @@ async function resolveGroupPrescriptions(payload) {
   for (const group of groups) {
     const tier = String(group.tier || "").toLowerCase();
     const discipline = String(group.discipline || "").toLowerCase();
-    const prior = groupPlanningDraft[group.id] || payload.groupPlanning?.[group.id] || {};
-    const selectedWave = String(prior.selectedWave || prior.tierWave?.waveKey || "");
+    const prior = editableGroupPlanning(groupPlanningDraft[group.id] || payload.groupPlanning?.[group.id] || {}, group);
+    const selectedWave = prior.selectedWave;
     const model = await waveModelForGroup(group);
     const cards = Array.isArray(model?.WAVE_CARDS?.[selectedWave]) ? model.WAVE_CARDS[selectedWave] : [];
     if (!planningSources.tierWaves || !selectedWave || !cards.length || !/^t[0-4]$/.test(tier)) {
