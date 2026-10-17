@@ -185,7 +185,7 @@ jobs:
           if-no-files-found: error
 
   deploy-functions:
-    if: inputs.action == 'deploy'
+    if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
     needs: [validate-source, preflight]
     runs-on: ubuntu-24.04
     environment: staging
