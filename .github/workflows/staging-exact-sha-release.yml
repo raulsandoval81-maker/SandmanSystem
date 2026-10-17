@@ -205,11 +205,21 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Guard callable compatibility before any deployment
+      - name: Verify targeted Firebase callable deployment inputs
         run: |
           set -euo pipefail
-          echo "Functions deployment remains disabled: review Firebase callable preservation, service IAM, and current runtime settings first."
-          exit 1
+          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="lib/staging.js") process.exit(64);'
+          test ! -e release-artifacts/functions/.env.production
+          test ! -e release-artifacts/functions/.env.sandmandashboard
+      - name: Deploy one allowlisted Firebase callable (DISABLED BY JOB GUARD)
+        run: |
+          set -euo pipefail
+          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
+          cd release-artifacts
+          npx --yes firebase-tools@15.11.0 deploy --config firebase.functions.json \
+            --project sandman-combat-staging \
+            --only "functions:default:${{ matrix.function_name }}" \
+            --non-interactive
 
   deploy-hosting:
     if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
