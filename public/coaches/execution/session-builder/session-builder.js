@@ -216,7 +216,7 @@ async function renderHybridPlanning() {
     renderHybridPlanning();
   }));
   hybridGroupPlanning.querySelectorAll(".hybrid-note-disposition,.hybrid-coach-note").forEach(input => input.addEventListener("input", () => {
-    const card = input.closest("[data-group-id]");
+    const card = input.closest(".hybrid-group-card");
     const id = input.dataset.groupId;
     groupPlanningDraft[id] = {
       ...(groupPlanningDraft[id] || {}),
@@ -669,10 +669,16 @@ function updateSummary() {
   }
 
   const noHybridSources = selectedMode === "hybrid" && enabledPlanningSources(readPlanningSources()).length === 0;
-  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources;
-  buildBtn.textContent = activePracticeId && new URLSearchParams(window.location.search).get("planning") === "1"
-    ? "Accept Plan and Continue to Clipboard"
-    : "Continue to Attendance";
+  const autoBlocked = selectedMode === "auto";
+  const reviewingPlan = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1";
+  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked;
+  buildBtn.textContent = autoBlocked
+    ? "AUTO Awaiting Certified Authorization"
+    : reviewingPlan && selectedMode === "hybrid"
+      ? "Accept Plan and Continue to Clipboard"
+      : reviewingPlan
+        ? "Continue to Clipboard"
+        : "Continue to Attendance";
 }
 
 function showPrePracticeSetup() {

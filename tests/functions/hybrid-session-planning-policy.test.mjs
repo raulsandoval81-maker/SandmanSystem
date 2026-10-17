@@ -96,3 +96,14 @@ test("workflow carries planning provenance without changing AUTO safeguards", ()
   assert.match(server, /workedCards: record\.workedCards/);
   assert.match(server, /workedSkillRefs: record\.workedSkillRefs/);
 });
+
+test("Session Builder preserves Coach edits across rerenders and labels each mode truthfully", () => {
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  const css = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.css"), "utf8");
+  assert.match(builder, /input\.closest\("\.hybrid-group-card"\)/);
+  assert.match(builder, /autoBlocked = selectedMode === "auto"/);
+  assert.match(builder, /AUTO Awaiting Certified Authorization/);
+  assert.match(builder, /reviewingPlan && selectedMode === "hybrid"[\s\S]*Accept Plan and Continue to Clipboard/);
+  assert.match(builder, /reviewingPlan[\s\S]*Continue to Clipboard/);
+  assert.match(css, /\.entry-mode-row\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
+});
