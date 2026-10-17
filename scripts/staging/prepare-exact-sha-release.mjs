@@ -52,11 +52,17 @@ const build = spawnSync(compiler, ["-p", path.join(sourceRoot, "functions/tsconf
 if (build.status !== 0) throw new Error("Failed to compile the immutable application Functions source.");
 await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
 const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
-packageJson.main = "lib/staging.js";
+packageJson.main = "staging-release-entry.cjs";
 await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
+await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), [
+  'const { setGlobalOptions } = require("firebase-functions/v2/options");',
+  "setGlobalOptions({ preserveExternalChanges: true });",
+  'module.exports = require("./lib/staging.js");',
+  "",
+].join("\n"));
 await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
-  `SANDMAN_STAGING_PROJECT_ID=${release.projectId}`,
-  `SANDMAN_STAGING_ACK=${release.projectId}`,
+  ...Object.entries(release.expectedFunctionConfiguration.environmentVariables)
+    .map(([key, value]) => `${key}=${value}`),
   "",
 ].join("\n"));
 // Use Firebase CLI for onCall functions, never generic gcloud HTTP deployment.

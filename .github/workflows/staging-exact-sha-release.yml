@@ -17,13 +17,10 @@ on:
         type: choice
         options:
           - validate
+          - deploy
       confirm_project:
         description: Type sandman-combat-staging
         required: true
-        type: string
-      runtime_migration_confirmation:
-        description: Required only if a function runtime identity must change
-        required: false
         type: string
 
 permissions:
@@ -91,6 +88,10 @@ jobs:
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
+          grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
+          grep -q 'planning=1' application-source/public/coaches/attendance/session.js
+          grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
+          grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
       - name: Historical reconciliation baseline (reported, not release-gating)
         id: historical-baseline
         continue-on-error: true
@@ -156,22 +157,18 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Read only the affected runtime identities
+      - name: Verify and preserve callable configuration and IAM
         run: |
           set -euo pipefail
           for fn in savePracticeSessionMemory closePracticeSession; do
             gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-before.json"
+            gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-before.json"
+            service="$(node -e 'const d=require(`./${process.argv[1]}-before.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
+            gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-before.json"
           done
           node -e 'const fs=require("fs");const names=["savePracticeSessionMemory","closePracticeSession"];console.log(JSON.stringify(Object.fromEntries(names.map(n=>[n,JSON.parse(fs.readFileSync(`${n}-before.json`)).serviceConfig?.serviceAccountEmail]))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
-      - name: Require separate runtime-migration approval when needed
-        if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
-        working-directory: trusted-tooling
-        env:
-          RELEASE_ID: ${{ inputs.release_id }}
-          CONFIRMATION: ${{ inputs.runtime_migration_confirmation }}
-        run: |
-          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,requireRuntimeMigrationApproval} from "./scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.env.RELEASE_ID); const actual=JSON.parse(await readFile("../runtimes.json","utf8")); requireRuntimeMigrationApproval(r,actual,process.env.CONFIRMATION);'
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions) validateFunctionConfiguration(r,n,JSON.parse(await readFile(`${n}-before.json`,"utf8")));' "${{ inputs.release_id }}"
       - name: Preserve read-only recovery evidence
         uses: actions/upload-artifact@v4
         with:
@@ -182,10 +179,14 @@ jobs:
             hosting-release-before.json
             savePracticeSessionMemory-before.json
             closePracticeSession-before.json
+            savePracticeSessionMemory-function-iam-before.json
+            closePracticeSession-function-iam-before.json
+            savePracticeSessionMemory-run-iam-before.json
+            closePracticeSession-run-iam-before.json
           if-no-files-found: error
 
   deploy-functions:
-    if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
+    if: ${{ inputs.action == 'deploy' }}
     needs: [validate-source, preflight]
     runs-on: ubuntu-24.04
     environment: staging
@@ -208,10 +209,12 @@ jobs:
       - name: Verify targeted Firebase callable deployment inputs
         run: |
           set -euo pipefail
-          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="lib/staging.js") process.exit(64);'
+          node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
           test ! -e release-artifacts/functions/.env.production
           test ! -e release-artifacts/functions/.env.sandmandashboard
-      - name: Deploy one allowlisted Firebase callable (DISABLED BY JOB GUARD)
+          npm ci --omit=dev --prefix release-artifacts/functions
+          node -e 'const f=require("./release-artifacts/functions")[process.argv[1]];if(!f?.__endpoint?.callableTrigger)process.exit(64)' "${{ matrix.function_name }}"
+      - name: Deploy one allowlisted Firebase callable
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
@@ -222,7 +225,7 @@ jobs:
             --non-interactive
 
   deploy-hosting:
-    if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
+    if: ${{ inputs.action == 'deploy' }}
     needs: [validate-source, preflight, deploy-functions]
     runs-on: ubuntu-24.04
     environment: staging
@@ -240,3 +243,71 @@ jobs:
           export_environment_variables: true
       - name: Deploy only the isolated staging Hosting site
         run: npx --yes firebase-tools@15.11.0 deploy --config release-artifacts/firebase.hosting.json --project sandman-combat-staging --only hosting --non-interactive
+
+  verify-deployment:
+    if: ${{ inputs.action == 'deploy' }}
+    needs: [validate-source, preflight, deploy-functions, deploy-hosting]
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: staging-recovery-before-${{ needs.validate-source.outputs.application_sha }}
+          path: before
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Compare callable configuration and IAM after deployment
+        run: |
+          set -euo pipefail
+          for fn in savePracticeSessionMemory closePracticeSession; do
+            gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-after.json"
+            gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-after.json"
+            service="$(node -e 'const d=require(`./${process.argv[1]}-after.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
+            gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-after.json"
+          done
+          node --input-type=module <<'NODE'
+          import { readFile } from "node:fs/promises";
+          import { loadRelease, verifyPreservedDeployment } from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs";
+          const release = await loadRelease("${{ inputs.release_id }}");
+          for (const name of release.functions) {
+            const read = path => readFile(path, "utf8").then(JSON.parse);
+            verifyPreservedDeployment(release, name,
+              await read(`before/${name}-before.json`), await read(`${name}-after.json`),
+              await read(`before/${name}-function-iam-before.json`), await read(`${name}-function-iam-after.json`),
+              await read(`before/${name}-run-iam-before.json`), await read(`${name}-run-iam-after.json`));
+          }
+          NODE
+      - id: hosting-auth
+        name: Authenticate as the isolated Hosting deployer for verification
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
+      - name: Record deployed staging Hosting release
+        env:
+          ACCESS_TOKEN: ${{ steps.hosting-auth.outputs.access_token }}
+        run: |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://firebasehosting.googleapis.com/v1beta1/sites/sandman-combat-staging/releases?pageSize=1" \
+            > hosting-release-after.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: staging-release-after-${{ needs.validate-source.outputs.application_sha }}
+          path: |
+            *-after.json
+            hosting-release-after.json
+          if-no-files-found: error
