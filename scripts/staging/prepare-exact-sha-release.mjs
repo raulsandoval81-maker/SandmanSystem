@@ -57,9 +57,18 @@ await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(pack
 await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
   `SANDMAN_STAGING_PROJECT_ID=${release.projectId}`,
   `SANDMAN_STAGING_ACK=${release.projectId}`,
-  `SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=${release.functionRuntime}`,
   "",
 ].join("\n"));
+// Use Firebase CLI for onCall functions, never generic gcloud HTTP deployment.
+// Source is the immutable compiled release artifact; the named Functions are
+// the only permitted deployment targets. Runtime identity is not migrated.
+await writeFile(path.join(outputRoot, "firebase.functions.json"), `${JSON.stringify({
+  functions: {
+    source: "functions",
+    runtime: "nodejs22",
+    codebase: "default",
+  },
+}, null, 2)}\n`);
 await writeFile(path.join(outputRoot, "firebase.hosting.json"), `${JSON.stringify({
   hosting: {
     site: release.hostingSite,

@@ -95,3 +95,16 @@ test("validation-only workflow cannot dispatch Hosting or Functions deployment",
   assert.match(functionsJob, /^    if: \$\{\{ false \}\}/m);
   assert.match(hostingJob, /^    if: \$\{\{ false \}\}/m);
 });
+
+test("disabled Functions job uses Firebase CLI targeting a single named callable", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const fnJob = workflow.match(/^  deploy-functions:\n([\s\S]*?)(?=^  deploy-hosting:)/m)?.[1];
+  assert.ok(fnJob);
+  assert.match(fnJob, /^    if: \$\{\{ false \}\}/m);
+  assert.match(fnJob, /firebase-tools@15\.11\.0 deploy/);
+  assert.match(fnJob, /functions:default:\$\{\{ matrix\.function_name \}\}/);
+  assert.doesNotMatch(fnJob, /gcloud functions deploy|--trigger-http|--run-service-account/);
+  const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  assert.match(build, /firebase\.functions\.json/);
+  assert.doesNotMatch(build, /SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=\$\{release\.functionRuntime\}/);
+});
