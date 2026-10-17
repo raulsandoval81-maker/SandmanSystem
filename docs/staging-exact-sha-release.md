@@ -34,13 +34,19 @@ That confirmation authorizes the runtime transition only; it does not change IAM
 
 Before deployment, retain fresh descriptions for both affected Functions, including revision, source generation/hash, runtime identity, environment, labels, and traffic. Retain the current Hosting release/version. Recovery is a separately approved redeployment of the recorded prior artifact or Hosting version; this workflow never performs automatic rollback.
 
+## Current release gate (validation only)
+
+The workflow currently exposes **validation only**. Its function and Hosting deployment jobs are deliberately disabled until a reviewed deployment command proves it preserves the current Firebase callable contract, authentication/invoker policy, existing environment/secrets, and runtime settings. Do not use a local or personal-credential deploy as a workaround.
+
+The blocking code gate compiles Functions, runs focused HYBRID regression tests, and checks Session Builder syntax. The historical reconciliation test file is run separately and its result is reported as non-gating technical debt; a failure is **not** a passing result and unrelated regressions are not certified by this focused gate. Before enabling deploy, review the historical failure baseline and update the gate appropriately.
+
 ## Next acceptance sequence
 
 1. Merge only this infrastructure PR after security review.
 2. Confirm WIF bindings and protected-environment reviewers outside the repository.
-3. Dispatch `Controlled exact-SHA staging release` from `main` with action `validate`.
+3. Dispatch `Controlled exact-SHA staging release` from `main` with the only available action, `validate`.
 4. Confirm marker and both runtime descriptions in the run evidence.
 5. Approve the dedicated runtime transition separately if still required.
-6. Dispatch the same manifest with action `deploy` and exact staging confirmation.
+6. After separate code review and approval, add an explicitly safe callable-preserving deployment path; only then permit a staging deploy dispatch.
 7. Record new revisions and Hosting version, then perform the PR #99 Coach-browser acceptance.
 8. Do not merge PR #99 or deploy production as part of staging acceptance.
