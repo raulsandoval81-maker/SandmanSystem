@@ -11,7 +11,7 @@ import {
   validateRemotePreflight,
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
 
-const release = await loadRelease("hybrid-pr99-56cfb703");
+const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -29,7 +29,7 @@ const marker = { projectId: release.projectId, environment: "staging", synthetic
 const runtimes = Object.fromEntries(APPROVED_FUNCTIONS.map(name => [name, release.currentRuntime]));
 
 test("approved application source is a full immutable SHA", () => {
-  assert.equal(validateRelease(release, context()).applicationSha, "56cfb70331bbd490d3f971b37db717ee9ab93385");
+  assert.equal(validateRelease(release, context()).applicationSha, "5ed90c5c8eb609e86319a5b5b188642764157dd8");
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
