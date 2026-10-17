@@ -5,10 +5,12 @@ import {
   APPROVED_FUNCTIONS,
   STAGING_WIF_PROVIDER,
   TRUSTED_WORKFLOW_REF,
+  functionConfiguration,
   loadRelease,
-  requireRuntimeMigrationApproval,
   validateRelease,
+  validateFunctionConfiguration,
   validateRemotePreflight,
+  verifyPreservedDeployment,
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
 
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
@@ -26,7 +28,21 @@ const context = (overrides = {}) => ({
   ...overrides,
 });
 const marker = { projectId: release.projectId, environment: "staging", syntheticDataOnly: true };
-const runtimes = Object.fromEntries(APPROVED_FUNCTIONS.map(name => [name, release.currentRuntime]));
+const runtimes = Object.fromEntries(APPROVED_FUNCTIONS.map(name => [name, release.functionRuntime]));
+const description = name => ({
+  name: `projects/sandman-combat-staging/locations/us-central1/functions/${name}`,
+  environment: "GEN_2",
+  buildConfig: { runtime: "nodejs22", entryPoint: name },
+  serviceConfig: {
+    serviceAccountEmail: release.functionRuntime,
+    availableCpu: "1", availableMemory: "256Mi", timeoutSeconds: 60,
+    maxInstanceCount: 20, maxInstanceRequestConcurrency: 80, ingressSettings: "ALLOW_ALL",
+    environmentVariables: {
+      FIREBASE_CONFIG: "reserved",
+      ...release.expectedFunctionConfiguration.environmentVariables,
+    },
+  },
+});
 
 test("approved application source is a full immutable SHA", () => {
   assert.equal(validateRelease(release, context()).applicationSha, "5ed90c5c8eb609e86319a5b5b188642764157dd8");
@@ -65,11 +81,14 @@ test("unavailable protected authorization is rejected", () => {
   assert.throws(() => validateRelease(release, context({ authorizationAvailable: false })), /authorization is unavailable/);
 });
 
-test("runtime migration requires a release-bound confirmation", () => {
-  assert.throws(() => requireRuntimeMigrationApproval(release, runtimes, ""), /separate explicit approval/);
-  assert.equal(requireRuntimeMigrationApproval(release, runtimes, `MIGRATE_RUNTIME:${release.releaseId}:${release.projectId}`), true);
-  const migrated = Object.fromEntries(APPROVED_FUNCTIONS.map(name => [name, release.functionRuntime]));
-  assert.equal(requireRuntimeMigrationApproval(release, migrated, ""), false);
+test("existing callable runtime settings are exact and runtime migration is rejected", () => {
+  for (const name of APPROVED_FUNCTIONS) {
+    assert.equal(validateFunctionConfiguration(release, name, description(name)).entryPoint, name);
+    const changed = structuredClone(description(name));
+    changed.serviceConfig.serviceAccountEmail = "sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com";
+    assert.throws(() => validateFunctionConfiguration(release, name, changed), /configuration mismatch/);
+  }
+  assert.equal(functionConfiguration(description(APPROVED_FUNCTIONS[0])).region, "us-central1");
 });
 
 test("workflow keeps trusted tooling separate from application source and exact targets", async () => {
@@ -84,27 +103,41 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.doesNotMatch(workflow, /firestore:rules|storage:rules|--only functions(?!:)/);
 });
 
-test("validation-only workflow cannot dispatch Hosting or Functions deployment", async () => {
+test("workflow separates validation from protected explicit deployment", async () => {
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   assert.match(workflow, /- validate\s*\n/);
-  assert.doesNotMatch(workflow, /^\s+- deploy\s*$/m);
+  assert.match(workflow, /^\s+- deploy\s*$/m);
   const functionsJob = workflow.match(/^  deploy-functions:\n([\s\S]*?)(?=^  deploy-hosting:)/m)?.[1];
   const hostingJob = workflow.match(/^  deploy-hosting:\n([\s\S]*)$/m)?.[1];
   assert.ok(functionsJob, "Functions job definition exists");
   assert.ok(hostingJob, "Hosting job definition exists");
-  assert.match(functionsJob, /^    if: \$\{\{ false \}\}/m);
-  assert.match(hostingJob, /^    if: \$\{\{ false \}\}/m);
+  assert.match(functionsJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
+  assert.match(hostingJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
+  assert.match(workflow, /environment: staging/);
 });
 
-test("disabled Functions job uses Firebase CLI targeting a single named callable", async () => {
+test("Functions job preserves external configuration and targets one named callable", async () => {
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   const fnJob = workflow.match(/^  deploy-functions:\n([\s\S]*?)(?=^  deploy-hosting:)/m)?.[1];
   assert.ok(fnJob);
-  assert.match(fnJob, /^    if: \$\{\{ false \}\}/m);
   assert.match(fnJob, /firebase-tools@15\.11\.0 deploy/);
   assert.match(fnJob, /functions:default:\$\{\{ matrix\.function_name \}\}/);
   assert.doesNotMatch(fnJob, /gcloud functions deploy|--trigger-http|--run-service-account/);
   const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
   assert.match(build, /firebase\.functions\.json/);
-  assert.doesNotMatch(build, /SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=\$\{release\.functionRuntime\}/);
+  assert.match(build, /preserveExternalChanges: true/);
+  assert.match(workflow, /callableTrigger/);
+  assert.match(workflow, /get-iam-policy/);
+  assert.doesNotMatch(workflow, /gcloud functions deploy|--trigger-http|--run-service-account/);
+});
+
+test("post-deployment comparison rejects callable configuration or IAM drift", () => {
+  const name = APPROVED_FUNCTIONS[0];
+  const before = description(name);
+  const policy = { bindings: [{ role: "roles/run.invoker", members: ["allUsers"] }] };
+  assert.equal(verifyPreservedDeployment(release, name, before, structuredClone(before), policy, structuredClone(policy), policy, structuredClone(policy)), true);
+  const changed = structuredClone(before);
+  changed.serviceConfig.timeoutSeconds = 61;
+  assert.throws(() => verifyPreservedDeployment(release, name, before, changed, policy, policy, policy, policy), /configuration mismatch|configuration changed/);
+  assert.throws(() => verifyPreservedDeployment(release, name, before, before, policy, {}, policy, policy), /Functions IAM changed/);
 });

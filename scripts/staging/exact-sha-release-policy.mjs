@@ -47,18 +47,80 @@ export function validateRemotePreflight(release, { marker, runtimeByFunction } =
   for (const functionName of APPROVED_FUNCTIONS) {
     const actual = runtimeByFunction?.[functionName];
     if (!actual) throw new Error(`Runtime identity is unverified for ${functionName}.`);
-    if (actual !== release.currentRuntime && actual !== release.functionRuntime) {
+    if (actual !== release.functionRuntime) {
       throw new Error(`Runtime identity is unauthorized for ${functionName}.`);
     }
   }
   return true;
 }
 
-export function requireRuntimeMigrationApproval(release, runtimeByFunction, confirmation) {
-  const migrationNeeded = APPROVED_FUNCTIONS.some((name) => runtimeByFunction[name] !== release.functionRuntime);
-  if (!migrationNeeded) return false;
-  if (!release.runtimeMigrationRequiresApproval || confirmation !== `MIGRATE_RUNTIME:${release.releaseId}:${STAGING_PROJECT_ID}`) {
-    throw new Error("Runtime identity migration requires separate explicit approval.");
+function userEnvironment(environment = {}) {
+  return Object.fromEntries(Object.entries(environment)
+    .filter(([key]) => key.startsWith("SANDMAN_"))
+    .sort(([left], [right]) => left.localeCompare(right)));
+}
+
+export function functionConfiguration(description = {}) {
+  const service = description.serviceConfig || {};
+  return {
+    region: String(description.name || "").split("/")[3] || "",
+    environment: description.environment,
+    runtime: description.buildConfig?.runtime,
+    entryPoint: description.buildConfig?.entryPoint,
+    serviceAccountEmail: service.serviceAccountEmail,
+    availableCpu: service.availableCpu,
+    availableMemory: service.availableMemory,
+    timeoutSeconds: service.timeoutSeconds,
+    maxInstanceCount: service.maxInstanceCount,
+    maxInstanceRequestConcurrency: service.maxInstanceRequestConcurrency,
+    ingressSettings: service.ingressSettings,
+    environmentVariables: userEnvironment(service.environmentVariables),
+    secretEnvironmentVariables: service.secretEnvironmentVariables || [],
+  };
+}
+
+export function validateFunctionConfiguration(release, functionName, description) {
+  if (!APPROVED_FUNCTIONS.includes(functionName)) throw new Error(`Function ${functionName} is not allowlisted.`);
+  const expected = release.expectedFunctionConfiguration || {};
+  const actual = functionConfiguration(description);
+  const wanted = {
+    region: expected.region,
+    environment: expected.environment,
+    runtime: expected.runtime,
+    entryPoint: functionName,
+    serviceAccountEmail: release.functionRuntime,
+    availableCpu: expected.availableCpu,
+    availableMemory: expected.availableMemory,
+    timeoutSeconds: expected.timeoutSeconds,
+    maxInstanceCount: expected.maxInstanceCount,
+    maxInstanceRequestConcurrency: expected.maxInstanceRequestConcurrency,
+    ingressSettings: expected.ingressSettings,
+    environmentVariables: expected.environmentVariables,
+    secretEnvironmentVariables: [],
+  };
+  if (JSON.stringify(actual) !== JSON.stringify(wanted)) {
+    throw new Error(`Staging configuration mismatch for ${functionName}.`);
+  }
+  return actual;
+}
+
+function normalizedPolicy(policy = {}) {
+  return [...(policy.bindings || [])]
+    .map(binding => ({ role: binding.role, members: [...(binding.members || [])].sort(), condition: binding.condition || null }))
+    .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+export function verifyPreservedDeployment(release, functionName, before, after, functionIamBefore, functionIamAfter, runIamBefore, runIamAfter) {
+  const expectedBefore = validateFunctionConfiguration(release, functionName, before);
+  const expectedAfter = validateFunctionConfiguration(release, functionName, after);
+  if (JSON.stringify(expectedBefore) !== JSON.stringify(expectedAfter)) {
+    throw new Error(`Runtime configuration changed for ${functionName}.`);
+  }
+  if (JSON.stringify(normalizedPolicy(functionIamBefore)) !== JSON.stringify(normalizedPolicy(functionIamAfter))) {
+    throw new Error(`Cloud Functions IAM changed for ${functionName}.`);
+  }
+  if (JSON.stringify(normalizedPolicy(runIamBefore)) !== JSON.stringify(normalizedPolicy(runIamAfter))) {
+    throw new Error(`Cloud Run IAM changed for ${functionName}.`);
   }
   return true;
 }
