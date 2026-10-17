@@ -83,3 +83,15 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /closePracticeSession/);
   assert.doesNotMatch(workflow, /firestore:rules|storage:rules|--only functions(?!:)/);
 });
+
+test("validation-only workflow cannot dispatch Hosting or Functions deployment", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /- validate\s*\n/);
+  assert.doesNotMatch(workflow, /^\s+- deploy\s*$/m);
+  const functionsJob = workflow.match(/^  deploy-functions:\n([\s\S]*?)(?=^  deploy-hosting:)/m)?.[1];
+  const hostingJob = workflow.match(/^  deploy-hosting:\n([\s\S]*)$/m)?.[1];
+  assert.ok(functionsJob, "Functions job definition exists");
+  assert.ok(hostingJob, "Hosting job definition exists");
+  assert.match(functionsJob, /^    if: \$\{\{ false \}\}/m);
+  assert.match(hostingJob, /^    if: \$\{\{ false \}\}/m);
+});
