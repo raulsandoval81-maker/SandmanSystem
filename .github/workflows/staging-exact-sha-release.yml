@@ -205,19 +205,11 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Deploy one allowlisted practice callable
+      - name: Guard callable compatibility before any deployment
         run: |
           set -euo pipefail
-          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
-          gcloud functions deploy "${{ matrix.function_name }}" --gen2 --region us-central1 \
-            --project sandman-combat-staging --runtime nodejs22 \
-            --entry-point "${{ matrix.function_name }}" --source release-artifacts/functions \
-            --build-service-account projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
-            --run-service-account sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com \
-            --trigger-http --serve-all-traffic-latest-revision \
-            --update-labels deployment-callable=true,deployment-tool=exact-sha-controlled \
-            --update-env-vars SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com \
-            --quiet
+          echo "Functions deployment remains disabled: review Firebase callable preservation, service IAM, and current runtime settings first."
+          exit 1
 
   deploy-hosting:
     if: ${{ false }} # Deployment deliberately disabled until callable configuration-preservation review
