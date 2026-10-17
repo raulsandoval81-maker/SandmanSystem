@@ -123,6 +123,26 @@ function compactCards(value: unknown, blockId = "") {
   return [...byId.values()];
 }
 
+function compactPlanningContext(value: unknown) {
+  const input: any = value && typeof value === "object" ? value : {};
+  const sourceInput = input.planningSources && typeof input.planningSources === "object" ? input.planningSources : {};
+  const planningSources = {
+    tierWaves: sourceInput.tierWaves === true,
+    systemSuggestions: sourceInput.systemSuggestions === true,
+    coachInput: sourceInput.coachInput === true,
+  };
+  const groups = (Array.isArray(input.groups) ? input.groups : []).slice(0, 3).map((group: any) => ({
+    groupId: compactString(group?.groupId, 120),
+    waveKey: compactString(group?.waveKey, 120),
+    waveState: compactString(group?.waveState, 40),
+    systemSuggestionState: compactString(group?.systemSuggestionState, 80),
+    coachDisposition: compactString(group?.coachDisposition, 40),
+    originalCarryForwardNote: compactString(group?.originalCarryForwardNote, 1000),
+    currentCoachNote: compactString(group?.currentCoachNote, 1000),
+  })).filter((group: any) => group.groupId);
+  return { planningSources, groups, evidenceEffect: "none" };
+}
+
 function normalizePracticeDiscipline(value: unknown): string {
   const discipline = compactString(value, 80).toLowerCase().replace(/[\s_]+/g, "-");
   if (["kickboxing", "kick-boxing", "muaythai", "muay-thai"].includes(discipline)) return "muay-thai";
@@ -837,10 +857,12 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const planVersion = requireBoundedNumber(input.planVersion ?? 1, "planVersion", 1, MAX_PLAN_VERSION, true);
       const plannedBlocks = compactBlocks(input.plannedBlocks);
       const plannedCards = compactCards(input.plannedCards);
+      const planningContext = compactPlanningContext(input.planningContext);
       tx.update(ref, {
         "sessionMemory.planVersion": planVersion,
         "sessionMemory.plannedBlocks": plannedBlocks,
         "sessionMemory.plannedCards": plannedCards,
+        "sessionMemory.planningContext": planningContext,
         "sessionMemory.planSavedAt": now,
         "sessionMemory.planSavedBy": actor.uid,
         updatedAt: now,

@@ -1160,7 +1160,13 @@ async function submitForReview() {
         sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
       } catch {}
     }
-    window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
+    let executionMode = "manual";
+    try {
+      executionMode = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.executionMode || "manual").toLowerCase();
+    } catch {}
+    window.location.href = executionMode === "hybrid"
+      ? `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&planning=1`
+      : `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
   } else if (isBuilderFlow() && returnTarget() === "clock") {
     let sessionId = requestedSessionId();
     if (!sessionId) {
@@ -1251,4 +1257,3 @@ if (isBuilderFlow()) {
 // Step 1 is redundant: the practice was selected before Attendance.
 document.querySelector('[data-step-target="1"]')?.setAttribute("hidden", "");
 document.querySelector('[data-step-screen="1"]')?.setAttribute("hidden", "");
-
