@@ -1,0 +1,228 @@
+name: Controlled exact-SHA staging release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Reviewed release manifest entry
+        required: true
+        default: hybrid-pr99-56cfb703
+        type: choice
+        options:
+          - hybrid-pr99-56cfb703
+      action:
+        description: Validate only, or execute the approved staging release
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - deploy
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+      runtime_migration_confirmation:
+        description: Required only if a function runtime identity must change
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: controlled-exact-sha-staging-release
+  cancel-in-progress: false
+
+jobs:
+  validate-source:
+    runs-on: ubuntu-24.04
+    environment: staging
+    outputs:
+      application_sha: ${{ steps.release.outputs.application_sha }}
+    steps:
+      - name: Check out trusted deployment tooling
+        uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
+      - id: release
+        name: Resolve checked-in reviewed release
+        working-directory: trusted-tooling
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          sha="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID]; if(!r)process.exit(64); process.stdout.write(r.applicationSha)')"
+          test "${#sha}" = 40
+          echo "application_sha=${sha}" >> "${GITHUB_OUTPUT}"
+      - name: Check out immutable application source separately
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.release.outputs.application_sha }}
+          path: application-source
+          persist-credentials: false
+      - name: Verify immutable source and repository identity
+        env:
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          RELEASE_ID: ${{ inputs.release_id }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          STAGING_WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+        run: |
+          set -euo pipefail
+          test "$(git -C application-source rev-parse HEAD)" = "${APPLICATION_SHA}"
+          test "$(git -C application-source status --porcelain=v1 --untracked-files=all)" = ""
+          test "$(git -C application-source config --get remote.origin.url)" = "https://github.com/raulsandoval81-maker/SandmanSystem"
+          cd trusted-tooling
+          node --input-type=module -e 'import {loadRelease,validateRelease} from "./scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.env.RELEASE_ID); validateRelease(r,{repository:process.env.GITHUB_REPOSITORY,workflowRef:process.env.GITHUB_WORKFLOW_REF,checkedOutSha:process.env.APPLICATION_SHA,projectId:"sandman-combat-staging",confirmProject:process.env.CONFIRM_PROJECT,wifProvider:process.env.STAGING_WIF_PROVIDER,hostingDeployer:r.hostingDeployer,functionDeployer:r.functionDeployer,functionRuntime:r.functionRuntime,authorizationAvailable:true});'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: application-source/functions/package-lock.json
+      - name: Test and compile immutable application source
+        run: |
+          set -euo pipefail
+          npm ci --prefix application-source/functions
+          npm test --prefix application-source/functions
+          node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
+      - name: Test trusted release policy
+        working-directory: trusted-tooling
+        run: node --test tests/functions/staging-exact-sha-release.test.mjs
+      - name: Prepare artifacts with trusted tooling
+        run: node trusted-tooling/scripts/staging/prepare-exact-sha-release.mjs "${{ inputs.release_id }}" application-source release-artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: exact-sha-staging-release-${{ steps.release.outputs.application_sha }}
+          path: release-artifacts
+          if-no-files-found: error
+
+  preflight:
+    needs: validate-source
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
+      - id: marker-auth
+        name: Authenticate as the established staging marker reader
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
+      - name: Read only the synthetic marker
+        env:
+          ACCESS_TOKEN: ${{ steps.marker-auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://firestore.googleapis.com/v1/projects/sandman-combat-staging/databases/(default)/documents/stagingMetadata/wrestling-auto" \
+            | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const d=JSON.parse(s),f=d.fields||{}; console.log(JSON.stringify({projectId:f.projectId?.stringValue,environment:f.environment?.stringValue,syntheticDataOnly:f.syntheticDataOnly?.booleanValue}))})' \
+            > marker.json
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            "https://firebasehosting.googleapis.com/v1beta1/sites/sandman-combat-staging/releases?pageSize=1" \
+            > hosting-release-before.json
+      - id: function-auth
+        name: Authenticate as the dedicated Practice deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Read only the affected runtime identities
+        run: |
+          set -euo pipefail
+          for fn in savePracticeSessionMemory closePracticeSession; do
+            gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-before.json"
+          done
+          node -e 'const fs=require("fs");const names=["savePracticeSessionMemory","closePracticeSession"];console.log(JSON.stringify(Object.fromEntries(names.map(n=>[n,JSON.parse(fs.readFileSync(`${n}-before.json`)).serviceConfig?.serviceAccountEmail]))))' > runtimes.json
+          node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
+      - name: Require separate runtime-migration approval when needed
+        if: inputs.action == 'deploy'
+        working-directory: trusted-tooling
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+          CONFIRMATION: ${{ inputs.runtime_migration_confirmation }}
+        run: |
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,requireRuntimeMigrationApproval} from "./scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.env.RELEASE_ID); const actual=JSON.parse(await readFile("../runtimes.json","utf8")); requireRuntimeMigrationApproval(r,actual,process.env.CONFIRMATION);'
+      - name: Preserve read-only recovery evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-recovery-before-${{ needs.validate-source.outputs.application_sha }}
+          path: |
+            marker.json
+            runtimes.json
+            hosting-release-before.json
+            savePracticeSessionMemory-before.json
+            closePracticeSession-before.json
+          if-no-files-found: error
+
+  deploy-functions:
+    if: inputs.action == 'deploy'
+    needs: [validate-source, preflight]
+    runs-on: ubuntu-24.04
+    environment: staging
+    strategy:
+      max-parallel: 1
+      matrix:
+        function_name: [savePracticeSessionMemory, closePracticeSession]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: exact-sha-staging-release-${{ needs.validate-source.outputs.application_sha }}
+          path: release-artifacts
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Deploy one allowlisted practice callable
+        run: |
+          set -euo pipefail
+          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
+          gcloud functions deploy "${{ matrix.function_name }}" --gen2 --region us-central1 \
+            --project sandman-combat-staging --runtime nodejs22 \
+            --entry-point "${{ matrix.function_name }}" --source release-artifacts/functions \
+            --build-service-account projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --run-service-account sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --trigger-http --serve-all-traffic-latest-revision \
+            --update-labels deployment-callable=true,deployment-tool=exact-sha-controlled \
+            --update-env-vars SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_PRACTICE_RUNTIME_SERVICE_ACCOUNT=sandman-practice-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --quiet
+
+  deploy-hosting:
+    if: inputs.action == 'deploy'
+    needs: [validate-source, preflight, deploy-functions]
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: exact-sha-staging-release-${{ needs.validate-source.outputs.application_sha }}
+          path: release-artifacts
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Deploy only the isolated staging Hosting site
+        run: npx --yes firebase-tools@15.11.0 deploy --config release-artifacts/firebase.hosting.json --project sandman-combat-staging --only hosting --non-interactive
