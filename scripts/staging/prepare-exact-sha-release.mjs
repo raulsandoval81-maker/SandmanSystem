@@ -15,7 +15,14 @@ const functionsRoot = path.join(outputRoot, "functions");
 
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
-await cp(path.join(sourceRoot, "public"), hostingRoot, { recursive: true });
+// Exclude only the known empty placeholder whose literal asterisk makes
+// GitHub Actions artifacts non-portable. Never silently omit other files.
+const sourcePublic = path.join(sourceRoot, "public");
+const invalidPlaceholder = path.join(sourcePublic, "vendor", "firebase", "10.13.1", "*.map files");
+await cp(sourcePublic, hostingRoot, {
+  recursive: true,
+  filter: (candidate) => candidate !== invalidPlaceholder,
+});
 
 const webConfig = {
   projectId: release.projectId,
