@@ -940,6 +940,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       if (card) card.dataset.focusConfirmed = tier.value ? card.dataset.focusConfirmed : "false";
       if (rank) rank.value = tier.value ? rankForTier(tier.value, select.value) : "Coach confirmation required";
       updateContextSummary();
+      showHybridStage();
     });
   });
 
@@ -951,6 +952,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       const rank = card?.querySelector(".training-rank");
       if (rank) rank.value = rankForTier(select.value, journey);
       updateContextSummary();
+      showHybridStage();
     });
   });
 
