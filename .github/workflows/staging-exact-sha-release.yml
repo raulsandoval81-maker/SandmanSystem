@@ -179,14 +179,18 @@ jobs:
           firebase_cli_default="sandman-combat-staging@appspot.gserviceaccount.com"
           access_token="$(gcloud auth print-access-token)"
           for service_account in "${runtime}" "${firebase_cli_default}"; do
-            permission="$(curl --fail --silent --show-error \
+            response="$(curl --fail --silent --show-error \
               -H "Authorization: Bearer ${access_token}" \
               -H "Content-Type: application/json" \
               -X POST \
               -d '{"permissions":["iam.serviceAccounts.actAs"]}' \
-              "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions" \
-              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write((JSON.parse(s).permissions||[]).join(",")))')"
-            test "${permission}" = "iam.serviceAccounts.actAs"
+              "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions")"
+            permission="$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.permissions||[]).join(","))' "${response}")"
+            if test "${permission}" != "iam.serviceAccounts.actAs"; then
+              echo "::error title=Missing service-account impersonation permission::The staging deployer lacks iam.serviceAccounts.actAs on ${service_account}. This read-only check made no IAM changes."
+              exit 1
+            fi
+            echo "Verified iam.serviceAccounts.actAs on ${service_account}."
           done
       - name: Preserve read-only recovery evidence
         uses: actions/upload-artifact@v4

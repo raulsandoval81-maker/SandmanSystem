@@ -185,6 +185,8 @@ test("generated endpoints pin the existing Compute runtime and preflight both Ac
   assert.match(workflow, /iam\.serviceAccounts\.actAs/);
   assert.match(workflow, /sandman-combat-staging@appspot\.gserviceaccount\.com/);
   assert.match(workflow, /r\.functionRuntime/);
+  assert.match(workflow, /The staging deployer lacks iam\.serviceAccounts\.actAs on \$\{service_account\}/);
+  assert.match(workflow, /Verified iam\.serviceAccounts\.actAs on \$\{service_account\}/);
   assert.doesNotMatch(workflow, /add-iam-policy-binding|set-iam-policy|roles\/iam\.serviceAccountUser/);
 });
 
