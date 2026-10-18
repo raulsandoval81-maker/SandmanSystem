@@ -29,6 +29,7 @@ import {
   enabledPlanningSources,
   normalizePlanningSources
 } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
+import { resolveRoad2ChampionWrestlingTierWaves } from "/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js";
 
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
@@ -171,7 +172,17 @@ async function waveModelForGroup(group = {}) {
   if (!groupWaveModels.has(path)) {
     groupWaveModels.set(path, import(path).catch(() => null));
   }
-  return groupWaveModels.get(path);
+  const legacyModel = await groupWaveModels.get(path);
+  if (!legacyModel) return null;
+  if (program.programId !== "youth-z2h-wrestling") return legacyModel;
+  const placement = resolveRoad2ChampionWrestlingTierWaves(tier);
+  if (!placement) return null;
+  return {
+    ...legacyModel,
+    WAVE_CARDS: placement.waves,
+    WAVE_FOUNDATIONS: placement.foundations,
+    CROSSWALK_VERSION: placement.version,
+  };
 }
 
 function readPlanningSources() {
@@ -215,7 +226,12 @@ async function renderHybridPlanning() {
   }
   hybridGroupPlanning.innerHTML = cards.join("");
   hybridGroupPlanning.querySelectorAll(".hybrid-wave-select").forEach(select => select.addEventListener("change", () => {
-    groupPlanningDraft[select.dataset.groupId] = { ...(groupPlanningDraft[select.dataset.groupId] || {}), selectedWave: select.value };
+    const group = groups.find(candidate => candidate.id === select.dataset.groupId) || {};
+    groupPlanningDraft[select.dataset.groupId] = {
+      ...(groupPlanningDraft[select.dataset.groupId] || {}),
+      selectedWave: select.value,
+      instructionalTier: String(group.tier || "").toLowerCase(),
+    };
     renderHybridPlanning();
   }));
   hybridGroupPlanning.querySelectorAll(".hybrid-note-disposition,.hybrid-coach-note").forEach(input => input.addEventListener("input", () => {
@@ -918,7 +934,7 @@ async function resolveGroupPrescriptions(payload) {
       }
       const mappedCards = cards.map(card => ({
         ...card,
-        familyId: cardFamilyMap[String(card.id || "").toLowerCase()] || "",
+        familyId: card.familyId || cardFamilyMap[String(card.id || "").toLowerCase()] || "",
         groupId: group.id,
         groupLabel: group.label || group.id
       }));
@@ -928,7 +944,11 @@ async function resolveGroupPrescriptions(payload) {
         contentState: "accepted",
         progressionStatus: "unverified",
         progressionVerified,
-        mappingStatus: mappedCards.every(card => card.familyId) ? "mapped" : "incomplete",
+        mappingStatus: mappedCards.every(card =>
+          card.familyMappingStatus
+            ? card.familyMappingStatus === "AUTHORITATIVE_EXISTING"
+            : Boolean(card.familyId)
+        ) ? "mapped" : "incomplete",
         cards: mappedCards
       });
       groupPlanning[group.id] = composeGroupPlanning({

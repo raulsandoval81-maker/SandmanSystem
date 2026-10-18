@@ -24,6 +24,7 @@ export function composeGroupPlanning({ group = {}, sources = {}, wave = null, pr
   const enabled = normalizePlanningSources(sources, "hybrid");
   const acceptedWave = enabled.tierWaves && wave?.waveKey ? {
     waveKey: String(wave.waveKey),
+    instructionalTier: String(group.tier || "").toLowerCase(),
     cards: Array.isArray(wave.cards) ? wave.cards : [],
     state: "accepted",
     progressionVerified: false,
@@ -58,8 +59,12 @@ export function acceptedCardsForGroup(planning = {}) {
 
 export function editableGroupPlanning(prior = {}, group = {}) {
   const coachInput = prior?.coachInput || {};
+  const currentTier = String(group.tier || "").toLowerCase();
+  const priorTier = String(prior?.instructionalTier || prior?.tierWave?.instructionalTier || "").toLowerCase();
+  const tierChanged = Boolean(priorTier && priorTier !== currentTier);
   return {
-    selectedWave: String(prior?.selectedWave || prior?.tierWave?.waveKey || ""),
+    selectedWave: tierChanged ? "" : String(prior?.selectedWave || prior?.tierWave?.waveKey || ""),
+    ...(currentTier ? { instructionalTier: currentTier } : {}),
     originalCarryForwardNote: String(prior?.originalCarryForwardNote ?? coachInput.originalCarryForwardNote ?? group.carryForwardNote ?? "").trim(),
     currentNote: String(prior?.currentNote ?? coachInput.currentNote ?? ""),
     disposition: ["accepted", "edited", "dismissed", "replaced"].includes(prior?.disposition)
