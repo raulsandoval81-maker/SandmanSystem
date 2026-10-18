@@ -1,0 +1,136 @@
+name: Staging Firebase authorization diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: Type the approved staging project ID
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-firebase-auth-diagnostic
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Confirm staging-only boundary
+        env:
+          REQUESTED_PROJECT: ${{ inputs.project_id }}
+        run: test "${REQUESTED_PROJECT}" = "sandman-combat-staging"
+
+      - name: Authenticate as the dedicated Practice deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - name: Inspect sanitized identity and credential metadata
+        run: |
+          set -euo pipefail
+          active_account="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+          test "${active_account}" = "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com"
+          echo "authenticated_principal=${active_account}"
+          node -e '
+            const fs = require("fs");
+            const value = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, "utf8"));
+            const url = value.service_account_impersonation_url
+              ? new URL(value.service_account_impersonation_url)
+              : null;
+            console.log(JSON.stringify({
+              credential_type: value.type || null,
+              quota_project_id: value.quota_project_id || null,
+              workforce_pool_user_project: value.workforce_pool_user_project || null,
+              impersonation_target: url ? url.pathname.split("/serviceAccounts/")[1]?.split(":")[0] || null : null,
+            }));
+          '
+
+      - name: Verify effective project permissions and OAuth scopes
+        run: |
+          set -euo pipefail
+          access_token="$(gcloud auth print-access-token)"
+          permissions="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${access_token}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"permissions":["firebase.projects.get","serviceusage.services.use"]}' \
+            "https://cloudresourcemanager.googleapis.com/v1/projects/sandman-combat-staging:testIamPermissions")"
+          node -e '
+            const value = JSON.parse(process.argv[1]);
+            const required = ["firebase.projects.get", "serviceusage.services.use"];
+            const allowed = value.permissions || [];
+            console.log(JSON.stringify({
+              required_permissions: required,
+              effective_permissions: allowed,
+              missing_permissions: required.filter((permission) => !allowed.includes(permission)),
+            }));
+          ' "${permissions}"
+          token_info="$(curl --fail --silent --show-error \
+            --data-urlencode "access_token=${access_token}" \
+            "https://oauth2.googleapis.com/tokeninfo")"
+          node -e '
+            const value = JSON.parse(process.argv[1]);
+            console.log(JSON.stringify({
+              token_email: value.email || null,
+              token_audience: value.aud || value.audience || null,
+              oauth_scopes: String(value.scope || "").split(" ").filter(Boolean),
+              expires_in_seconds: value.expires_in || null,
+            }));
+          ' "${token_info}"
+
+      - name: Compare Firebase Admin SDK configuration authorization
+        run: |
+          set -euo pipefail
+          access_token="$(gcloud auth print-access-token)"
+          endpoint="https://firebase.googleapis.com/v1beta1/projects/sandman-combat-staging/adminSdkConfig"
+          normal_status="$(curl --silent --show-error \
+            -H "Authorization: Bearer ${access_token}" \
+            -o normal-response.json -w '%{http_code}' "${endpoint}")"
+          quota_status="$(curl --silent --show-error \
+            -H "Authorization: Bearer ${access_token}" \
+            -H "x-goog-user-project: sandman-combat-staging" \
+            -o quota-response.json -w '%{http_code}' "${endpoint}")"
+          node -e '
+            const fs = require("fs");
+            function sanitizedMessage(value) {
+              if (!value) return null;
+              const redacted = String(value)
+                .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi, "Bearer [REDACTED]")
+                .replace(/\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[REDACTED_JWT]")
+                .replace(/\bAIza[A-Za-z0-9_-]{20,}\b/g, "[REDACTED_API_KEY]")
+                .replace(/\b(authorization)\s*[:=]\s*[^\r\n,;]+/gi, "$1: [REDACTED]")
+                .replace(/\b(access[_-]?token|id[_-]?token|refresh[_-]?token|client[_-]?secret|private[_-]?key|credential)\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED]");
+              return redacted.length > 512 ? `${redacted.slice(0, 512)}…[TRUNCATED]` : redacted;
+            }
+            function sanitized(path, status) {
+              let body = {};
+              try { body = JSON.parse(fs.readFileSync(path, "utf8")); } catch {}
+              return {
+                http_status: Number(status),
+                error: body.error ? {
+                  code: body.error.code || null,
+                  status: body.error.status || null,
+                  message: sanitizedMessage(body.error.message),
+                  reasons: (body.error.details || []).map((detail) => detail.reason).filter(Boolean),
+                } : null,
+                success_fields: body.error ? [] : Object.keys(body).sort(),
+              };
+            }
+            console.log(JSON.stringify({
+              normal_request: sanitized("normal-response.json", process.argv[1]),
+              explicit_quota_project_request: sanitized("quota-response.json", process.argv[2]),
+            }));
+          ' "${normal_status}" "${quota_status}"
+          if test "${normal_status}" -ge 500 || test "${quota_status}" -ge 500; then
+            exit 1
+          fi
