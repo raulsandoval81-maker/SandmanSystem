@@ -34,5 +34,50 @@
       "functionSourceGeneration": "1791696114389655",
       "functionSourceHash": "a0afcbbc841e04604c023e7d0ad692f86ed436a3"
     }
+  },
+  "practice-groups-pr113-27adc626": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 113,
+    "applicationSha": "27adc626925d0ebb5449fc2cffb87c787e0af381",
+    "requiredAncestorSha": "5ed90c5c8eb609e86319a5b5b188642764157dd8",
+    "allowedChangedFiles": [
+      "public/coaches/attendance/attendance.css",
+      "public/coaches/attendance/practice-group-policy.js",
+      "public/coaches/attendance/session.html",
+      "public/coaches/attendance/session.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "public/coaches/execution/session-builder/index.html",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "tests/functions/practice-group-policy.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }

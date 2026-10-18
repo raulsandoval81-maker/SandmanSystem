@@ -10,6 +10,7 @@ on:
         type: choice
         options:
           - hybrid-pr99-5ed90c5c
+          - practice-groups-pr113-27adc626
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -159,6 +160,7 @@ jobs:
     environment: staging
     outputs:
       application_sha: ${{ steps.release.outputs.application_sha }}
+      deploy_functions: ${{ steps.release.outputs.deploy_functions }}
     steps:
       - name: Check out trusted deployment tooling
         uses: actions/checkout@v4
@@ -179,12 +181,15 @@ jobs:
           sha="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID]; if(!r)process.exit(64); process.stdout.write(r.applicationSha)')"
           test "${#sha}" = 40
           echo "application_sha=${sha}" >> "${GITHUB_OUTPUT}"
+          deploy_functions="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];process.stdout.write(r.functions.length ? "true" : "false")')"
+          echo "deploy_functions=${deploy_functions}" >> "${GITHUB_OUTPUT}"
       - name: Check out immutable application source separately
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.release.outputs.application_sha }}
           path: application-source
           persist-credentials: false
+          fetch-depth: 0
       - name: Verify immutable source and repository identity
         env:
           APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
@@ -196,6 +201,13 @@ jobs:
           test "$(git -C application-source rev-parse HEAD)" = "${APPLICATION_SHA}"
           test "$(git -C application-source status --porcelain=v1 --untracked-files=all)" = ""
           test "$(git -C application-source config --get remote.origin.url)" = "https://github.com/raulsandoval81-maker/SandmanSystem"
+          ancestor="$(node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];process.stdout.write(r.requiredAncestorSha||"")')"
+          if test -n "${ancestor}"; then
+            git -C application-source merge-base --is-ancestor "${ancestor}" HEAD
+            git -C application-source diff --name-only "${ancestor}..HEAD" | sort > /tmp/actual-release-files
+            node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(r.allowedChangedFiles.slice().sort().join("\n"))' > /tmp/approved-release-files
+            diff -u /tmp/approved-release-files /tmp/actual-release-files
+          fi
           cd trusted-tooling
           node --input-type=module -e 'import {loadRelease,validateRelease} from "./scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.env.RELEASE_ID); validateRelease(r,{repository:process.env.GITHUB_REPOSITORY,workflowRef:process.env.GITHUB_WORKFLOW_REF,checkedOutSha:process.env.APPLICATION_SHA,projectId:"sandman-combat-staging",confirmProject:process.env.CONFIRM_PROJECT,wifProvider:process.env.STAGING_WIF_PROVIDER,hostingDeployer:r.hostingDeployer,functionDeployer:r.functionDeployer,functionRuntime:r.functionRuntime,authorizationAvailable:true});'
       - uses: actions/setup-node@v4
@@ -209,6 +221,9 @@ jobs:
           npm ci --prefix application-source/functions
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
+          node --test application-source/tests/functions/practice-group-policy.test.mjs
+          node --check application-source/public/coaches/attendance/practice-group-policy.js
+          node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
           grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
           grep -q 'planning=1' application-source/public/coaches/attendance/session.js
@@ -270,7 +285,12 @@ jobs:
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             "https://firebasehosting.googleapis.com/v1beta1/sites/sandman-combat-staging/releases?pageSize=1" \
             > hosting-release-before.json
+          echo '{}' > runtimes.json
+          if test "${{ needs.validate-source.outputs.deploy_functions }}" = "false"; then
+            node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
+          fi
       - id: function-auth
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         name: Authenticate as the dedicated Practice deployer
         uses: google-github-actions/auth@v3
         with:
@@ -280,6 +300,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify and preserve callable configuration and IAM
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
           for fn in savePracticeSessionMemory closePracticeSession; do
@@ -292,6 +313,7 @@ jobs:
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
           node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions) validateFunctionConfiguration(r,n,JSON.parse(await readFile(`${n}-before.json`,"utf8")));' "${{ inputs.release_id }}"
       - name: Verify minimum service-account impersonation permissions
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
         env:
           RELEASE_ID: ${{ inputs.release_id }}
@@ -341,10 +363,12 @@ jobs:
         function_name: [savePracticeSessionMemory, closePracticeSession]
     steps:
       - uses: actions/download-artifact@v4
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         with:
           name: exact-sha-staging-release-${{ needs.validate-source.outputs.application_sha }}
           path: release-artifacts
       - uses: google-github-actions/auth@v3
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
@@ -352,6 +376,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify targeted Firebase callable deployment inputs
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
           node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
@@ -360,6 +385,7 @@ jobs:
           npm ci --omit=dev --prefix release-artifacts/functions
           node -e 'const f=require("./release-artifacts/functions")[process.argv[1]];if(!f?.__endpoint?.callableTrigger)process.exit(64)' "${{ matrix.function_name }}"
       - name: Deploy one allowlisted Firebase callable
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
@@ -404,6 +430,7 @@ jobs:
           name: staging-recovery-before-${{ needs.validate-source.outputs.application_sha }}
           path: before
       - uses: google-github-actions/auth@v3
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
@@ -411,6 +438,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Compare callable configuration and IAM after deployment
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
           for fn in savePracticeSessionMemory closePracticeSession; do
