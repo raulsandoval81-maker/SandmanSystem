@@ -13,6 +13,12 @@ import {
   LADDER_F4,
   LADDER_Q2M
 } from "/assets/js/ladder.service.js";
+import {
+  MAX_TRAINING_GROUPS,
+  moveAthleteBetweenGroups,
+  normalizeTrainingGroup,
+  validateTrainingGroupRoster
+} from "/coaches/attendance/practice-group-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -701,6 +707,14 @@ function rankForTier(tier = "", journey = activePractice?.journey) {
   return ladder.find((item) => tierFromLadderKey(item.key) === tier)?.name || "";
 }
 
+function normalizePracticeGroup(group = {}) {
+  const normalized = normalizeTrainingGroup(group);
+  return {
+    ...normalized,
+    rank: normalized.tier ? rankForTier(normalized.tier, normalized.journey) : ""
+  };
+}
+
 function previousRouteContext() {
   try {
     const value = JSON.parse(localStorage.getItem("sandman_previous_route_context_v1") || "{}");
@@ -732,14 +746,16 @@ function suggestedTrainingGroups() {
         discipline,
         tier,
         rank: tier ? rankForTier(tier, journey) : "",
-        athleteIds: [],
-        athleteNames: []
+        roster: []
       });
     }
 
     const group = buckets.get(key);
-    group.athleteIds.push(String(athlete.id || athlete.uid || ""));
-    group.athleteNames.push(athleteName(athlete));
+    group.roster.push({
+      athleteId: String(athlete.id || athlete.uid || ""),
+      athleteName: athleteName(athlete),
+      tier
+    });
   });
 
   let groups = [...buckets.values()]
@@ -760,29 +776,30 @@ function suggestedTrainingGroups() {
       discipline: String(activePractice?.discipline || "unassigned").toLowerCase(),
       tier: "",
       rank: "",
-      athleteIds: [],
-      athleteNames: []
+      roster: []
     }];
   }
 
   const prior = previousRouteContext();
-  return groups.map((group, index) => ({
-    ...group,
-    id: `group-${index + 1}`,
-    label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`,
-    trainingSession: String(
-      group.trainingSession ||
-      prior.trainingGroups?.[index]?.trainingSession ||
-      prior.week ||
-      activePractice?.week ||
-      "1"
-    ),
-    carryForwardNote: String(prior.trainingGroups?.[index]?.carryForwardNote || "")
-  }));
+  return groups.map((group, index) => normalizePracticeGroup({
+      ...group,
+      id: `group-${index + 1}`,
+      label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`,
+      trainingSession: String(
+        group.trainingSession ||
+        prior.trainingGroups?.[index]?.trainingSession ||
+        prior.week ||
+        activePractice?.week ||
+        "1"
+      ),
+      carryForwardNote: String(prior.trainingGroups?.[index]?.carryForwardNote || ""),
+      instructionalTier: prior.trainingGroups?.[index]?.instructionalTier || "",
+      instructionalFocusConfirmed: prior.trainingGroups?.[index]?.instructionalFocusConfirmed === true
+    }));
 }
 
 function tierOptions(selected = "", journey = activePractice?.journey) {
-  const blank = '<option value=""' + (!selected ? ' selected' : '') + '>Skill Card evidence required</option>';
+  const blank = '<option value=""' + (!selected ? ' selected' : '') + '>Select Coach instructional focus</option>';
   const options = ladderForJourney(normalizeJourneyCode(journey) || journey).map((rank) => {
     const tier = tierFromLadderKey(rank.key);
     return `<option value="${tier}"${tier === selected ? " selected" : ""}>${tier} — ${rank.name}</option>`;
@@ -793,6 +810,14 @@ function tierOptions(selected = "", journey = activePractice?.journey) {
 function renderTrainingGroups(groups = suggestedTrainingGroups()) {
   const container = $("trainingGroups");
   if (!container) return;
+  groups = groups.map((group, index) => normalizePracticeGroup({
+    ...group,
+    id: `group-${index + 1}`,
+    label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`
+  }));
+  const groupOptions = groups.map((group, index) =>
+    `<option value="${group.id}">Group ${String.fromCharCode(65 + index)}</option>`
+  ).join("");
 
   container.innerHTML = groups.map((group, index) => `
     <section
@@ -800,14 +825,28 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       data-training-group="${index}"
       data-athlete-ids="${encodeURIComponent(JSON.stringify(group.athleteIds || []))}"
       data-athlete-names="${encodeURIComponent(JSON.stringify(group.athleteNames || []))}"
+      data-roster="${encodeURIComponent(JSON.stringify(group.roster || []))}"
       data-discipline="${group.discipline || ""}"
+      data-focus-confirmed="${group.instructionalFocusConfirmed === true ? "true" : "false"}"
     >
       <div class="training-group-head">
         <div>
           <span class="training-group-kicker">Mat 1 · Group ${String.fromCharCode(65 + index)}</span>
           <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
         </div>
-        ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
+        ${groups.length > 1 ? '<button type="button" class="remove-training-group" aria-label="Remove empty training group">Remove</button>' : ""}
+      </div>
+
+      <div class="training-group-roster">
+        ${(group.roster || []).length ? group.roster.map((athlete) => `
+          <div class="training-group-athlete">
+            <span><strong>${escapeAttendance(athlete.athleteName)}</strong><small>${athlete.tier ? `${athlete.tier} · ${rankForTier(athlete.tier, group.journey)}` : "Official tier unverified"}</small></span>
+            <label>Assign to
+              <select class="training-athlete-group" data-athlete-id="${escapeAttendance(athlete.athleteId)}">
+                ${groupOptions.replace(`value="${group.id}"`, `value="${group.id}" selected`)}
+              </select>
+            </label>
+          </div>`).join("") : '<p class="muted">Empty group. Move an athlete here or remove it.</p>'}
       </div>
 
       <div class="training-group-grid">
@@ -824,15 +863,20 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         </label>
 
         <label>
-          Skill Card Tier
-          <select class="training-tier" disabled>
+          Athlete Progression
+          <input class="training-progression-tier" type="text" value="${group.progressionTierLabel}" readonly>
+        </label>
+
+        <label>
+          Instructional Focus
+          <select class="training-tier" ${group.tierStatus === "verified" ? "disabled" : ""}>
             ${tierOptions(group.tier, group.journey)}
           </select>
         </label>
 
         <label>
           Rank
-          <input class="training-rank" type="text" value="${group.rank || rankForTier(group.tier, group.journey)}" readonly>
+          <input class="training-rank" type="text" value="${group.tier ? rankForTier(group.tier, group.journey) : "Coach confirmation required"}" readonly>
         </label>
 
         <label>
@@ -856,10 +900,10 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       const tier = card?.querySelector(".training-tier");
       const rank = card?.querySelector(".training-rank");
       if (!tier) return;
-      const previousTier = tier.value || "T0";
+      const previousTier = tier.value;
       tier.innerHTML = tierOptions(previousTier, select.value);
-      if (!tier.value) tier.value = "T0";
-      if (rank) rank.value = rankForTier(tier.value, select.value);
+      if (card) card.dataset.focusConfirmed = tier.value ? card.dataset.focusConfirmed : "false";
+      if (rank) rank.value = tier.value ? rankForTier(tier.value, select.value) : "Coach confirmation required";
       updateContextSummary();
     });
   });
@@ -867,10 +911,18 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
   container.querySelectorAll(".training-tier").forEach((select) => {
     select.addEventListener("change", () => {
       const card = select.closest(".training-group-card");
+      if (card) card.dataset.focusConfirmed = select.value ? "true" : "false";
       const journey = card?.querySelector(".training-journey")?.value || activePractice?.journey;
       const rank = card?.querySelector(".training-rank");
       if (rank) rank.value = rankForTier(select.value, journey);
       updateContextSummary();
+    });
+  });
+
+  container.querySelectorAll(".training-athlete-group").forEach((select) => {
+    select.addEventListener("change", () => {
+      const groupsNow = captureTrainingGroups();
+      renderTrainingGroups(moveAthleteBetweenGroups(groupsNow, select.dataset.athleteId, select.value));
     });
   });
 
@@ -890,9 +942,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         return;
       }
       card?.remove();
-      renumberTrainingGroups();
-      updateGroupControls();
-      updateContextSummary();
+      renderTrainingGroups(captureTrainingGroups());
     });
   });
 
@@ -910,16 +960,16 @@ function renumberTrainingGroups() {
 
 function updateGroupControls() {
   const count = document.querySelectorAll(".training-group-card").length;
-  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
+  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= MAX_TRAINING_GROUPS;
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Rank/tier are never inferred here; Skill Card evidence must supply progression.`;
+      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Athlete tiers remain individual; mixed or unverified groups require a Coach-confirmed instructional focus.`;
   }
 }
 
 function addTrainingGroup() {
   const current = captureTrainingGroups();
-  if (current.length >= 3) return;
+  if (current.length >= MAX_TRAINING_GROUPS) return;
   const previous = current[current.length - 1] || {};
   const journey = previous.journey || (/teen/i.test(previous.ageGroup || "") ? "P2L" : "Z2H");
   current.push({
@@ -930,8 +980,9 @@ function addTrainingGroup() {
     rank: previous.tier ? rankForTier(previous.tier, journey) : "",
     trainingSession: previous.trainingSession || "1",
     carryForwardNote: "",
-    athleteIds: [],
-    athleteNames: []
+    roster: [],
+    instructionalTier: "",
+    instructionalFocusConfirmed: false
   });
   renderTrainingGroups(current);
 }
@@ -940,25 +991,22 @@ function captureTrainingGroups() {
   return [...document.querySelectorAll(".training-group-card")].map((card, index) => {
     const journey = String(card.querySelector(".training-journey")?.value || normalizeJourneyCode(activePractice?.journey) || "Z2H").trim();
     const tier = String(card.querySelector(".training-tier")?.value || "").trim();
-    return {
+    let roster = [];
+    try { roster = JSON.parse(decodeURIComponent(card.dataset.roster || "%5B%5D")); } catch {}
+    return normalizePracticeGroup({
       id: `group-${index + 1}`,
       label: `Group ${String.fromCharCode(65 + index)}`,
       ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
       journey,
       discipline: String(card.dataset.discipline || "").trim().toLowerCase(),
       tier,
+      instructionalTier: tier,
+      instructionalFocusConfirmed: card.dataset.focusConfirmed === "true",
       rank: rankForTier(tier, journey),
       trainingSession: String(card.querySelector(".training-session")?.value || "1").trim(),
       carryForwardNote: String(card.querySelector(".training-note")?.value || "").trim(),
-      athleteIds: (() => {
-        try { return JSON.parse(decodeURIComponent(card.dataset.athleteIds || "%5B%5D")); }
-        catch { return []; }
-      })(),
-      athleteNames: (() => {
-        try { return JSON.parse(decodeURIComponent(card.dataset.athleteNames || "%5B%5D")); }
-        catch { return []; }
-      })()
-    };
+      roster
+    });
   });
 }
 
@@ -978,10 +1026,9 @@ function updateCompositionBanners(groups = captureTrainingGroups()) {
     progress.textContent = groups.length
       ? groups.map((group) => {
           const discipline = disciplineDisplay(group.discipline);
-          const progress = [group.tier, group.rank].filter(Boolean).join(" ");
+          const focus = group.tier ? `Instructional focus ${group.tier} ${rankForTier(group.tier, group.journey)}` : "Instructional focus required";
           const count = (group.athleteIds || []).length;
-          const evidence = progress || "Skill Card evidence required";
-          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), evidence].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
+          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), group.progressionTierLabel, focus].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
         }).join(" | ")
       : "Groups will be generated from the athletes who are here.";
   }
@@ -990,7 +1037,7 @@ function updateCompositionBanners(groups = captureTrainingGroups()) {
 function updateContextSummary() {
   const groups = captureTrainingGroups();
   const summary = groups.map((group) =>
-    `${group.label}: ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
+    `${group.label}: ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.progressionTierLabel} · ${group.tier ? `Focus ${group.tier} ${rankForTier(group.tier, group.journey)}` : "Focus required"} · Session ${group.trainingSession}`
   ).join(" | ");
   if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
   updateCompositionBanners(groups);
@@ -1027,11 +1074,12 @@ async function savePracticeContextToBuilderSession() {
 
   const trainingGroups = captureTrainingGroups();
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
-  const assignedIds = trainingGroups.flatMap(g => g.athleteIds || []).map(String);
-  if (assignedIds.length !== new Set(assignedIds).size ||
-      assignedIds.some(id => !rosterIds.has(id)) ||
-      rosterIds.size !== new Set(assignedIds).size) {
-    throw new Error("Training group assignments do not match checked-in athletes. Review the grouping before continuing.");
+  const rosterCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds]);
+  if (!rosterCheck.ok) {
+    if (rosterCheck.unresolvedFocusGroupIds.length) {
+      throw new Error("Mixed or unverified groups require a Coach-confirmed instructional focus before continuing.");
+    }
+    throw new Error("Training group assignments must include every checked-in athlete exactly once in no more than three groups.");
   }
   const primary = trainingGroups[0] || {
     journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
@@ -1123,11 +1171,11 @@ async function submitForReview() {
 
   if (isBuilderFlow()) {
     const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
-    const assigned = captureTrainingGroups().flatMap(g => g.athleteIds || []).map(String);
-    if (assigned.length !== new Set(assigned).size ||
-        assigned.some(id => !rosterIds.has(id)) ||
-        new Set(assigned).size !== rosterIds.size) {
-      setStatus("Training groups must account for every checked-in athlete exactly once. Review groups before submitting.", true);
+    const rosterCheck = validateTrainingGroupRoster(captureTrainingGroups(), [...rosterIds]);
+    if (!rosterCheck.ok) {
+      setStatus(rosterCheck.unresolvedFocusGroupIds.length
+        ? "Confirm an instructional focus for every mixed or unverified group before submitting."
+        : "Training groups must account for every checked-in athlete exactly once in no more than three groups.", true);
       return;
     }
   }
