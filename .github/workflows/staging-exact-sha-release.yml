@@ -15,6 +15,7 @@ on:
           - hybrid-handoff-pr117-4a8402b9
           - hybrid-stage4-pr120-8a122108
           - hybrid-stage4-fixed-pr122-7c625858
+          - combat-setup-pr125-8a5ae0f2
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -228,7 +229,7 @@ jobs:
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
           node --test application-source/tests/functions/practice-group-policy.test.mjs
-          if test "${RELEASE_ID}" = "hybrid-stage4-pr120-8a122108" || test "${RELEASE_ID}" = "hybrid-stage4-fixed-pr122-7c625858"; then
+          if test "${RELEASE_ID}" = "hybrid-stage4-pr120-8a122108" || test "${RELEASE_ID}" = "hybrid-stage4-fixed-pr122-7c625858" || test "${RELEASE_ID}" = "combat-setup-pr125-8a5ae0f2"; then
             node --test application-source/tests/functions/checkin-hybrid-clipboard-route.test.mjs
             node --test application-source/tests/functions/post-attendance-hybrid-placement.test.mjs
             node --check application-source/public/coaches/attendance/hybrid-group-planning.js
@@ -247,6 +248,11 @@ jobs:
             node --check application-source/public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js
             node --check application-source/public/coaches/execution/session-builder/hybrid-planning-policy.js
           fi
+          if test "${RELEASE_ID}" = "combat-setup-pr125-8a5ae0f2"; then
+            node --test application-source/tests/functions/combined-practice-setup.test.mjs
+            node --test application-source/tests/functions/verified-coach-training-environments.test.mjs
+            node --check application-source/public/coaches/execution/session-builder/session-entry-policy.js
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
@@ -256,11 +262,11 @@ jobs:
           grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
       - name: Session Builder memory inherited baseline (reported, not release-gating)
         id: session-memory-baseline
-        if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' || inputs.release_id == 'hybrid-stage4-pr120-8a122108' || inputs.release_id == 'hybrid-stage4-fixed-pr122-7c625858' }}
+        if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' || inputs.release_id == 'hybrid-stage4-pr120-8a122108' || inputs.release_id == 'hybrid-stage4-fixed-pr122-7c625858' || inputs.release_id == 'combat-setup-pr125-8a5ae0f2' }}
         continue-on-error: true
         run: node --test application-source/tests/functions/session-builder-session-memory.test.mjs
       - name: Record Session Builder memory baseline status
-        if: ${{ always() && (inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' || inputs.release_id == 'hybrid-stage4-pr120-8a122108' || inputs.release_id == 'hybrid-stage4-fixed-pr122-7c625858') }}
+        if: ${{ always() && (inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' || inputs.release_id == 'hybrid-stage4-pr120-8a122108' || inputs.release_id == 'hybrid-stage4-fixed-pr122-7c625858' || inputs.release_id == 'combat-setup-pr125-8a5ae0f2') }}
         env:
           BASELINE_OUTCOME: ${{ steps.session-memory-baseline.outcome }}
         run: |

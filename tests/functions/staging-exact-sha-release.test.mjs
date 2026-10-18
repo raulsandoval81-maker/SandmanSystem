@@ -22,6 +22,7 @@ const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46
 const hybridHandoffRelease = await loadRelease("hybrid-handoff-pr117-4a8402b9");
 const stageFourRelease = await loadRelease("hybrid-stage4-pr120-8a122108");
 const correctedStageFourRelease = await loadRelease("hybrid-stage4-fixed-pr122-7c625858");
+const combatSetupRelease = await loadRelease("combat-setup-pr125-8a5ae0f2");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -135,6 +136,22 @@ test("corrected PR122 Stage IV release is pinned without Function changes", () =
   assert.equal(correctedStageFourRelease.hosting, true);
   assert.deepEqual(correctedStageFourRelease.functions, []);
   assert.deepEqual(correctedStageFourRelease.allowedChangedFiles, stageFourRelease.allowedChangedFiles);
+});
+
+test("Combat Setup PR125 is a pinned Hosting-only staging release", () => {
+  assert.equal(combatSetupRelease.applicationSha, "8a5ae0f232aaa7e93eda814185ebabd2e8e3b5e1");
+  assert.equal(combatSetupRelease.requiredAncestorSha, "7c6258589af2cdaef5f8e0dbb3ec599aad74e7a7");
+  assert.equal(combatSetupRelease.sourcePr, 125);
+  assert.equal(combatSetupRelease.projectId, "sandman-combat-staging");
+  assert.equal(combatSetupRelease.hosting, true);
+  assert.deepEqual(combatSetupRelease.functions, []);
+  assert.deepEqual(combatSetupRelease.allowedChangedFiles, [
+    "public/coaches/execution/session-builder/index.html",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "public/coaches/execution/session-builder/session-entry-policy.js",
+    "tests/functions/combined-practice-setup.test.mjs",
+    "tests/functions/verified-coach-training-environments.test.mjs"
+  ]);
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
