@@ -1067,17 +1067,8 @@ function preparePracticeContext() {
   }
 
   const groups = suggestedTrainingGroups();
-  const journeys = [...new Set(groups.map((group) => group.journey).filter(Boolean))];
-  const disciplines = [...new Set(
-    groups.map((group) => group.discipline).filter((value) => value && value !== "unassigned")
-  )];
-
-  activePractice = {
-    ...activePractice,
-    journey: journeys.length === 1 ? journeys[0] : "",
-    discipline: disciplines.length === 1 ? disciplines[0] : "unassigned"
-  };
-
+  // Athlete group Journeys are roster attributes, not edits to the
+  // server-authoritative practice route. Mixed rooms may contain several.
   renderTrainingGroups(groups);
   showStep(4);
 }
