@@ -19,6 +19,7 @@ import {
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
 const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46b08");
+const hybridHandoffRelease = await loadRelease("hybrid-handoff-pr117-4a8402b9");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -86,6 +87,25 @@ test("PR 115 is independently pinned to its exact SHA and PR 113 ancestor", () =
     "public/coaches/execution/session-builder/session-builder.js",
     "scripts/generate-youth-wrestling-browser-manifest.mjs",
     "tests/functions/road2champion-wrestling-tier-waves.test.mjs",
+  ]);
+});
+
+test("PR 117 is pinned to the PR 115 ancestor and only handoff files", () => {
+  const result = validateRelease(hybridHandoffRelease, context({
+    checkedOutSha: hybridHandoffRelease.applicationSha,
+    hostingDeployer: hybridHandoffRelease.hostingDeployer,
+    functionDeployer: hybridHandoffRelease.functionDeployer,
+    functionRuntime: hybridHandoffRelease.functionRuntime,
+  }));
+  assert.equal(result.applicationSha, "4a8402b914b485de46c13eba4c6664054d18a75b");
+  assert.equal(result.requiredAncestorSha, "18d46b08c152fd296ef95cc302aabc94fd472085");
+  assert.equal(result.sourcePr, 117);
+  assert.equal(result.hosting, true);
+  assert.deepEqual(result.functions, []);
+  assert.deepEqual(result.allowedChangedFiles, [
+    "public/coaches/attendance/session.js",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "tests/functions/checkin-hybrid-clipboard-route.test.mjs",
   ]);
 });
 
