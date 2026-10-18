@@ -141,9 +141,11 @@ test("callable discovery isolates incompatible WIF credentials and restores them
   try {
     await mkdir(path.join(root, "lib"), { recursive: true });
     await mkdir(path.join(root, "node_modules/firebase-functions/v2"), { recursive: true });
-    await copyFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), path.join(root, "staging-release-entry.cjs"));
+    const entryTemplate = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
+    await writeFile(path.join(root, "staging-release-entry.cjs"),
+      entryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime));
     await writeFile(path.join(root, "node_modules/firebase-functions/v2/options.js"),
-      'exports.setGlobalOptions = options => { if (options.preserveExternalChanges !== true) throw new Error("external settings reset"); };\n');
+      `exports.setGlobalOptions = options => { if (options.preserveExternalChanges !== true || options.serviceAccount !== ${JSON.stringify(release.functionRuntime)}) throw new Error("runtime options changed"); };\n`);
     await writeFile(path.join(root, "lib/staging.js"), [
       'if (process.env.GOOGLE_APPLICATION_CREDENTIALS) throw new Error("Admin SDK saw WIF credential file");',
       'if (process.env.GOOGLE_GHA_CREDS_PATH) throw new Error("Admin SDK saw GitHub credential path");',
@@ -171,6 +173,19 @@ test("callable discovery isolates incompatible WIF credentials and restores them
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("generated endpoints pin the existing Compute runtime and preflight both ActAs requirements", async () => {
+  const entry = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
+  const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(entry, /serviceAccount: "__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__"/);
+  assert.match(build, /replace\("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release\.functionRuntime\)/);
+  assert.match(workflow, /:testIamPermissions/);
+  assert.match(workflow, /iam\.serviceAccounts\.actAs/);
+  assert.match(workflow, /sandman-combat-staging@appspot\.gserviceaccount\.com/);
+  assert.match(workflow, /r\.functionRuntime/);
+  assert.doesNotMatch(workflow, /add-iam-policy-binding|set-iam-policy|roles\/iam\.serviceAccountUser/);
 });
 
 test("post-deployment comparison rejects callable configuration or IAM drift", () => {

@@ -169,6 +169,25 @@ jobs:
           node -e 'const fs=require("fs");const names=["savePracticeSessionMemory","closePracticeSession"];console.log(JSON.stringify(Object.fromEntries(names.map(n=>[n,JSON.parse(fs.readFileSync(`${n}-before.json`)).serviceConfig?.serviceAccountEmail]))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
           node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions) validateFunctionConfiguration(r,n,JSON.parse(await readFile(`${n}-before.json`,"utf8")));' "${{ inputs.release_id }}"
+      - name: Verify minimum service-account impersonation permissions
+        working-directory: trusted-tooling
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+        run: |
+          set -euo pipefail
+          runtime="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(!r)process.exit(64);process.stdout.write(r.functionRuntime)')"
+          firebase_cli_default="sandman-combat-staging@appspot.gserviceaccount.com"
+          access_token="$(gcloud auth print-access-token)"
+          for service_account in "${runtime}" "${firebase_cli_default}"; do
+            permission="$(curl --fail --silent --show-error \
+              -H "Authorization: Bearer ${access_token}" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              -d '{"permissions":["iam.serviceAccounts.actAs"]}' \
+              "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions" \
+              | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>process.stdout.write((JSON.parse(s).permissions||[]).join(",")))')"
+            test "${permission}" = "iam.serviceAccounts.actAs"
+          done
       - name: Preserve read-only recovery evidence
         uses: actions/upload-artifact@v4
         with:
