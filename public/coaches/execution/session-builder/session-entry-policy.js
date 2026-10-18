@@ -22,22 +22,6 @@ export const SESSION_ROOMS = Object.freeze([
     environment: "mat-room",
     area: "mat-1",
     label: "Mat Room · Mat 1"
-  }),
-  Object.freeze({
-    value: "solvang-mat-2",
-    roomId: "mat-2",
-    locationId: "santa-ynez-valley",
-    environment: "mat-room",
-    area: "mat-2",
-    label: "Mat Room · Mat 2"
-  }),
-  Object.freeze({
-    value: "solvang-mat-full",
-    roomId: "mat-full",
-    locationId: "santa-ynez-valley",
-    environment: "mat-room",
-    area: "full-room",
-    label: "Mat Room · Full Room"
   })
 ]);
 
