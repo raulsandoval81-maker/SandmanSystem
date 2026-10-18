@@ -109,14 +109,38 @@ test("workflow keeps trusted tooling separate from application source and exact 
 test("workflow separates validation from protected explicit deployment", async () => {
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   assert.match(workflow, /- validate\s*\n/);
+  assert.match(workflow, /- diagnose\s*\n/);
   assert.match(workflow, /^\s+- deploy\s*$/m);
+  const diagnoseJob = workflow.match(/^  diagnose-authorization:\n([\s\S]*?)(?=^  validate-source:)/m)?.[1];
+  const validateJob = workflow.match(/^  validate-source:\n([\s\S]*?)(?=^  preflight:)/m)?.[1];
   const functionsJob = workflow.match(/^  deploy-functions:\n([\s\S]*?)(?=^  deploy-hosting:)/m)?.[1];
   const hostingJob = workflow.match(/^  deploy-hosting:\n([\s\S]*)$/m)?.[1];
+  assert.ok(diagnoseJob, "Diagnostic job definition exists");
+  assert.ok(validateJob, "Validation job definition exists");
   assert.ok(functionsJob, "Functions job definition exists");
   assert.ok(hostingJob, "Hosting job definition exists");
+  assert.match(diagnoseJob, /^    if: \$\{\{ inputs\.action == 'diagnose' \}\}/m);
+  assert.match(validateJob, /^    if: \$\{\{ inputs\.action != 'diagnose' \}\}/m);
   assert.match(functionsJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
   assert.match(hostingJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
   assert.match(workflow, /environment: staging/);
+});
+
+test("diagnostic action stays read-only inside the trusted workflow identity", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const diagnoseJob = workflow.match(/^  diagnose-authorization:\n([\s\S]*?)(?=^  validate-source:)/m)?.[1];
+  assert.ok(diagnoseJob);
+  assert.match(diagnoseJob, /GITHUB_WORKFLOW_REF.*staging-exact-sha-release\.yml@refs\/heads\/main/);
+  assert.match(diagnoseJob, /environment: staging/);
+  assert.match(diagnoseJob, /sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(diagnoseJob, /firebase\.projects\.get/);
+  assert.match(diagnoseJob, /serviceusage\.services\.use/);
+  assert.match(diagnoseJob, /x-goog-user-project: sandman-combat-staging/);
+  assert.match(diagnoseJob, /normal_request/);
+  assert.match(diagnoseJob, /explicit_quota_project_request/);
+  assert.match(diagnoseJob, /message: sanitizedMessage\(body\.error\.message\)/);
+  assert.match(diagnoseJob, /redacted\.slice\(0, 512\)/);
+  assert.doesNotMatch(diagnoseJob, /firebase-tools|firebase deploy|gcloud functions deploy|add-iam-policy-binding|set-iam-policy/);
 });
 
 test("Functions job preserves external configuration and targets one named callable", async () => {
