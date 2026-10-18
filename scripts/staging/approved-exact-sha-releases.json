@@ -79,5 +79,47 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "r2c-wrestling-waves-pr115-18d46b08": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 115,
+    "applicationSha": "18d46b08c152fd296ef95cc302aabc94fd472085",
+    "requiredAncestorSha": "27adc626925d0ebb5449fc2cffb87c787e0af381",
+    "allowedChangedFiles": [
+      "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js",
+      "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js",
+      "public/coaches/execution/session-builder/hybrid-planning-policy.js",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "scripts/generate-youth-wrestling-browser-manifest.mjs",
+      "tests/functions/road2champion-wrestling-tier-waves.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
