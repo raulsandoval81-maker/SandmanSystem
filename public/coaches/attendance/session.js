@@ -15,6 +15,7 @@ import {
 } from "/assets/js/ladder.service.js";
 import {
   MAX_TRAINING_GROUPS,
+  athleteCanJoinTrainingGroup,
   moveAthleteBetweenGroups,
   normalizeTrainingGroup,
   validateTrainingGroupRoster
@@ -744,6 +745,8 @@ function suggestedTrainingGroups() {
         ageGroup,
         journey,
         discipline,
+        locationId: String(activePractice?.locationId || activePractice?.academyId || ""),
+        practiceId: String(activePractice?.practiceId || ""),
         tier,
         rank: tier ? rankForTier(tier, journey) : "",
         roster: []
@@ -754,7 +757,12 @@ function suggestedTrainingGroups() {
     group.roster.push({
       athleteId: String(athlete.id || athlete.uid || ""),
       athleteName: athleteName(athlete),
-      tier
+      tier,
+      journey,
+      discipline,
+      ageGroup,
+      locationId: String(activePractice?.locationId || activePractice?.academyId || ""),
+      practiceId: String(activePractice?.practiceId || "")
     });
   });
 
@@ -774,6 +782,8 @@ function suggestedTrainingGroups() {
       ageGroup: "Athletes",
       journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
       discipline: String(activePractice?.discipline || "unassigned").toLowerCase(),
+      locationId: String(activePractice?.locationId || activePractice?.academyId || ""),
+      practiceId: String(activePractice?.practiceId || ""),
       tier: "",
       rank: "",
       roster: []
@@ -815,10 +825,6 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     id: `group-${index + 1}`,
     label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`
   }));
-  const groupOptions = groups.map((group, index) =>
-    `<option value="${group.id}">Group ${String.fromCharCode(65 + index)}</option>`
-  ).join("");
-
   container.innerHTML = groups.map((group, index) => `
     <section
       class="training-group-card"
@@ -827,6 +833,8 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       data-athlete-names="${encodeURIComponent(JSON.stringify(group.athleteNames || []))}"
       data-roster="${encodeURIComponent(JSON.stringify(group.roster || []))}"
       data-discipline="${group.discipline || ""}"
+      data-location-id="${escapeAttendance(group.locationId || activePractice?.locationId || activePractice?.academyId || "")}"
+      data-practice-id="${escapeAttendance(group.practiceId || activePractice?.practiceId || "")}"
       data-focus-confirmed="${group.instructionalFocusConfirmed === true ? "true" : "false"}"
     >
       <div class="training-group-head">
@@ -843,7 +851,11 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
             <span><strong>${escapeAttendance(athlete.athleteName)}</strong><small>${athlete.tier ? `${athlete.tier} · ${rankForTier(athlete.tier, group.journey)}` : "Official tier unverified"}</small></span>
             <label>Assign to
               <select class="training-athlete-group" data-athlete-id="${escapeAttendance(athlete.athleteId)}">
-                ${groupOptions.replace(`value="${group.id}"`, `value="${group.id}" selected`)}
+                ${groups.map((candidate, candidateIndex) => {
+                  const selected = candidate.id === group.id ? " selected" : "";
+                  const disabled = athleteCanJoinTrainingGroup(athlete, candidate) ? "" : " disabled";
+                  return `<option value="${candidate.id}"${selected}${disabled}>Group ${String.fromCharCode(65 + candidateIndex)}</option>`;
+                }).join("")}
               </select>
             </label>
           </div>`).join("") : '<p class="muted">Empty group. Move an athlete here or remove it.</p>'}
@@ -976,6 +988,8 @@ function addTrainingGroup() {
     ageGroup: previous.ageGroup || "Teen",
     journey,
     discipline: previous.discipline || String(activePractice?.discipline || "unassigned").toLowerCase(),
+    locationId: previous.locationId || String(activePractice?.locationId || activePractice?.academyId || ""),
+    practiceId: previous.practiceId || String(activePractice?.practiceId || ""),
     tier: previous.tier || "",
     rank: previous.tier ? rankForTier(previous.tier, journey) : "",
     trainingSession: previous.trainingSession || "1",
@@ -999,6 +1013,8 @@ function captureTrainingGroups() {
       ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
       journey,
       discipline: String(card.dataset.discipline || "").trim().toLowerCase(),
+      locationId: String(card.dataset.locationId || "").trim(),
+      practiceId: String(card.dataset.practiceId || "").trim(),
       tier,
       instructionalTier: tier,
       instructionalFocusConfirmed: card.dataset.focusConfirmed === "true",
@@ -1076,6 +1092,9 @@ async function savePracticeContextToBuilderSession() {
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
   const rosterCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds]);
   if (!rosterCheck.ok) {
+    if (rosterCheck.incompatibleAssignments.length) {
+      throw new Error("Athletes may only move between groups with the same Journey, discipline, age group, practice location, and practice.");
+    }
     if (rosterCheck.unresolvedFocusGroupIds.length) {
       throw new Error("Mixed or unverified groups require a Coach-confirmed instructional focus before continuing.");
     }
@@ -1173,7 +1192,9 @@ async function submitForReview() {
     const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
     const rosterCheck = validateTrainingGroupRoster(captureTrainingGroups(), [...rosterIds]);
     if (!rosterCheck.ok) {
-      setStatus(rosterCheck.unresolvedFocusGroupIds.length
+      setStatus(rosterCheck.incompatibleAssignments.length
+        ? "Athletes may only move between groups with matching Journey, discipline, age group, practice location, and practice."
+        : rosterCheck.unresolvedFocusGroupIds.length
         ? "Confirm an instructional focus for every mixed or unverified group before submitting."
         : "Training groups must account for every checked-in athlete exactly once in no more than three groups.", true);
       return;

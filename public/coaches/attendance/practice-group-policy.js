@@ -2,6 +2,33 @@ export const MAX_TRAINING_GROUPS = 3;
 
 const VALID_TIER = /^T[0-4]$/;
 
+function normalizeCompatibilityValue(value = "") {
+  return String(value || "").trim().toLowerCase();
+}
+
+function normalizeCompatibilityJourney(value = "") {
+  const key = normalizeCompatibilityValue(value).replace(/[\s_-]+/g, "");
+  if (["z2h", "zero2hero", "road2champion"].includes(key)) return "z2h";
+  if (["p2l", "path2legend"].includes(key)) return "p2l";
+  if (["q2m", "quest2mastery"].includes(key)) return "q2m";
+  return key;
+}
+
+function normalizeCompatibilityDiscipline(value = "") {
+  const key = normalizeCompatibilityValue(value).replace(/[\s_]+/g, "-");
+  return ["kickboxing", "muaythai", "muay-thai"].includes(key) ? "muay-thai" : key;
+}
+
+export function trainingCompatibilityKey(value = {}) {
+  return [
+    normalizeCompatibilityJourney(value.journey),
+    normalizeCompatibilityDiscipline(value.discipline),
+    normalizeCompatibilityValue(value.ageGroup),
+    normalizeCompatibilityValue(value.locationId),
+    normalizeCompatibilityValue(value.practiceId)
+  ].join("|");
+}
+
 export function normalizeVerifiedTier(value = "") {
   const tier = String(value || "").trim().toUpperCase();
   return VALID_TIER.test(tier) ? tier : "";
@@ -28,7 +55,12 @@ export function normalizeTrainingGroup(group = {}) {
   const roster = (Array.isArray(group.roster) ? group.roster : []).map((athlete) => ({
     athleteId: String(athlete?.athleteId || athlete?.id || ""),
     athleteName: String(athlete?.athleteName || athlete?.name || athlete?.athleteId || athlete?.id || ""),
-    tier: normalizeVerifiedTier(athlete?.tier)
+    tier: normalizeVerifiedTier(athlete?.tier),
+    journey: String(athlete?.journey || group.journey || ""),
+    discipline: String(athlete?.discipline || group.discipline || ""),
+    ageGroup: String(athlete?.ageGroup || group.ageGroup || ""),
+    locationId: String(athlete?.locationId || group.locationId || ""),
+    practiceId: String(athlete?.practiceId || group.practiceId || "")
   })).filter((athlete) => athlete.athleteId);
   const summary = summarizeRosterTiers(roster);
   const requestedFocus = normalizeVerifiedTier(group.instructionalTier || group.tier);
@@ -59,6 +91,11 @@ export function normalizeTrainingGroup(group = {}) {
   };
 }
 
+export function athleteCanJoinTrainingGroup(athlete = {}, group = {}) {
+  return Boolean(athlete?.athleteId || athlete?.id)
+    && trainingCompatibilityKey(athlete) === trainingCompatibilityKey(group);
+}
+
 export function moveAthleteBetweenGroups(groups = [], athleteId = "", targetGroupId = "") {
   const id = String(athleteId || "");
   const target = String(targetGroupId || "");
@@ -76,7 +113,8 @@ export function moveAthleteBetweenGroups(groups = [], athleteId = "", targetGrou
       return false;
     })
   }));
-  if (!athlete) return normalized;
+  const targetGroup = normalized.find((group) => String(group.id) === target);
+  if (!athlete || !targetGroup || !athleteCanJoinTrainingGroup(athlete, targetGroup)) return normalized;
 
   return withoutAthlete.map((group) => {
     const membershipChanged = [sourceGroupId, target].includes(String(group.id || ""));
@@ -102,15 +140,19 @@ export function validateTrainingGroupRoster(groups = [], expectedAthleteIds = []
   const unresolvedFocusGroupIds = normalized
     .filter((group) => group.athleteIds.length && !group.instructionalTier)
     .map((group) => String(group.id || ""));
+  const incompatibleAssignments = normalized.flatMap((group) => group.roster
+    .filter((athlete) => !athleteCanJoinTrainingGroup(athlete, group))
+    .map((athlete) => ({ athleteId: athlete.athleteId, groupId: String(group.id || "") })));
 
   return {
     ok: normalized.length > 0 && normalized.length <= MAX_TRAINING_GROUPS
       && !duplicateIds.length && !missingIds.length && !unexpectedIds.length
-      && !unresolvedFocusGroupIds.length,
+      && !unresolvedFocusGroupIds.length && !incompatibleAssignments.length,
     duplicateIds,
     missingIds,
     unexpectedIds,
     unresolvedFocusGroupIds,
+    incompatibleAssignments,
     groupCount: normalized.length
   };
 }
