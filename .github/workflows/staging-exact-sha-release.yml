@@ -11,6 +11,7 @@ on:
         options:
           - hybrid-pr99-5ed90c5c
           - practice-groups-pr113-27adc626
+          - r2c-wrestling-waves-pr115-18d46b08
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -216,12 +217,25 @@ jobs:
           cache: npm
           cache-dependency-path: application-source/functions/package-lock.json
       - name: Compile and run blocking HYBRID regression tests
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
         run: |
           set -euo pipefail
           npm ci --prefix application-source/functions
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
           node --test application-source/tests/functions/practice-group-policy.test.mjs
+          if test "${RELEASE_ID}" = "r2c-wrestling-waves-pr115-18d46b08"; then
+            node application-source/scripts/generate-youth-wrestling-browser-manifest.mjs
+            git -C application-source diff --exit-code -- \
+              public/assets/data/youth-wrestling-placement-manifest.json \
+              public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js
+            node --test application-source/tests/functions/road2champion-wrestling-tier-waves.test.mjs
+            node --test application-source/tests/functions/practice-closeout-phase4.test.mjs
+            node --check application-source/public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js
+            node --check application-source/public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js
+            node --check application-source/public/coaches/execution/session-builder/hybrid-planning-policy.js
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
@@ -229,6 +243,17 @@ jobs:
           grep -q 'planning=1' application-source/public/coaches/attendance/session.js
           grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
           grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
+      - name: Session Builder memory inherited baseline (reported, not release-gating)
+        id: session-memory-baseline
+        if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' }}
+        continue-on-error: true
+        run: node --test application-source/tests/functions/session-builder-session-memory.test.mjs
+      - name: Record Session Builder memory baseline status
+        if: ${{ always() && inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' }}
+        env:
+          BASELINE_OUTCOME: ${{ steps.session-memory-baseline.outcome }}
+        run: |
+          echo "Session Builder memory inherited baseline: ${BASELINE_OUTCOME}. Compare with PR #113 before release approval; this status does not waive new Tier Wave failures." >> "$GITHUB_STEP_SUMMARY"
       - name: Historical reconciliation baseline (reported, not release-gating)
         id: historical-baseline
         continue-on-error: true
