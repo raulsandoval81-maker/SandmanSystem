@@ -712,16 +712,31 @@ function updateSummary() {
         : "Continue to Attendance";
 }
 
+async function showVerifiedLeadCoach() {
+  const coachLabel = document.getElementById("coachForPractice");
+  if (!coachLabel) return;
+  try {
+    const coach = await requireCoach();
+    const staff = coach.staff || {};
+    const displayName = [staff.preferredName, staff.displayName, staff.fullName, staff.name,
+      [staff.firstName, staff.lastName].filter(Boolean).join(" "), coach.email]
+      .map(value => String(value || "").trim()).find(Boolean) || "Authorized Coach";
+    coachLabel.textContent = `Lead Coach: ${displayName} · Verified staff account`;
+    coachLabel.dataset.coachUid = coach.uid;
+  } catch (error) {
+    coachLabel.textContent = "Unable to verify Lead Coach. Practice cannot start without Coach authorization.";
+    delete coachLabel.dataset.coachUid;
+  }
+}
+
 function showPrePracticeSetup() {
   if (currentSessionSection) currentSessionSection.hidden = true;
   if (newSessionSection) newSessionSection.hidden = false;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
   if (practiceContextScreen) practiceContextScreen.hidden = false;
-  const coachName = String(practiceEntryIntent().coachName || "").trim();
   const coachLabel = document.getElementById("coachForPractice");
-  if (coachLabel) coachLabel.textContent = coachName
-    ? `Coach from Practice Operations: ${coachName} (display only; authorization remains with signed-in Coach)`
-    : "Lead Coach: Signed-in authorized Coach (identity not separately assigned)";
+  if (coachLabel) coachLabel.textContent = "Verifying Lead Coach account…";
+  showVerifiedLeadCoach();
   updateSummary();
 }
 
@@ -1240,6 +1255,11 @@ buildBtn.addEventListener("click", async () => {
         track: String(practice.track || "")
       };
     } else {
+      const verifiedCoach = await requireCoach();
+      const coachLabel = document.getElementById("coachForPractice");
+      if (!verifiedCoach.uid || coachLabel?.dataset.coachUid !== verifiedCoach.uid) {
+        throw new Error("Lead Coach verification is incomplete. Reopen Practice Setup.");
+      }
       payload = await openCanonicalPractice(payload);
     }
     persistSession(payload);
