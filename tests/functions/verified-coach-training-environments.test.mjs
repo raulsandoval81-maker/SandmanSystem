@@ -27,10 +27,11 @@ test("configured facility areas use unique canonical room and session identifier
   assert.equal(new Set(ids).size, ids.length);
   assert.equal(new Set(scoped).size, scoped.length);
   const santa = SESSION_ROOMS.filter(r => r.locationId === "santa-ynez-valley");
-  for(const name of ["Mat Room · Mat 1", "Mat Room · Mat 2", "Mat Room · Full Room"]) {
+  for(const name of ["Mat Room · Mat 1"]) {
     assert.ok(santa.some(room => room.label === name), name);
   }
   assert.equal(SESSION_ROOMS.find(room => room.value === "solvang-mat-1")?.roomId, "mat-1");
   assert.ok(SESSION_ROOMS.every(room => room.environment === "mat-room"), "Combat Session Builder must exclude Weight Room and Classroom");
+  assert.equal(santa.length, 1, "Only the actually configured launch mat may be selected");
   assert.match(setup, /SESSION_ROOMS\.filter\(room => !entryLocationId \|\| room\.locationId === entryLocationId\)/);
 });
