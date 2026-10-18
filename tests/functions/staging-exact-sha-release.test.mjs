@@ -18,6 +18,7 @@ import {
 
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
+const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46b08");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -66,6 +67,28 @@ test("PR 113 is independently pinned to its exact SHA and PR 99 ancestor", () =>
   assert.equal(result.allowedChangedFiles.length, 9);
 });
 
+test("PR 115 is independently pinned to its exact SHA and PR 113 ancestor", () => {
+  const result = validateRelease(wrestlingWavesRelease, context({
+    checkedOutSha: wrestlingWavesRelease.applicationSha,
+    hostingDeployer: wrestlingWavesRelease.hostingDeployer,
+    functionDeployer: wrestlingWavesRelease.functionDeployer,
+    functionRuntime: wrestlingWavesRelease.functionRuntime,
+  }));
+  assert.equal(result.applicationSha, "18d46b08c152fd296ef95cc302aabc94fd472085");
+  assert.equal(result.requiredAncestorSha, "27adc626925d0ebb5449fc2cffb87c787e0af381");
+  assert.equal(result.sourcePr, 115);
+  assert.deepEqual(result.functions, []);
+  assert.equal(result.hosting, true);
+  assert.deepEqual(result.allowedChangedFiles, [
+    "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js",
+    "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js",
+    "public/coaches/execution/session-builder/hybrid-planning-policy.js",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "scripts/generate-youth-wrestling-browser-manifest.mjs",
+    "tests/functions/road2champion-wrestling-tier-waves.test.mjs",
+  ]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -87,6 +110,7 @@ test("unexpected function target is rejected", () => {
 
 test("Hosting-only releases skip callable runtime preflight but preserve the synthetic marker gate", () => {
   assert.equal(validateRemotePreflight(practiceGroupsRelease, { marker, runtimeByFunction: {} }), true);
+  assert.equal(validateRemotePreflight(wrestlingWavesRelease, { marker, runtimeByFunction: {} }), true);
   assert.throws(() => validateRemotePreflight(practiceGroupsRelease, {
     marker: { ...marker, syntheticDataOnly: false }, runtimeByFunction: {},
   }), /marker/);
@@ -123,6 +147,9 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /ref: \$\{\{ steps\.release\.outputs\.application_sha \}\}/);
   assert.match(workflow, /merge-base --is-ancestor/);
   assert.match(workflow, /approved-release-files/);
+  assert.match(workflow, /r2c-wrestling-waves-pr115-18d46b08/);
+  assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
+  assert.match(workflow, /road2champion-wrestling-tier-wave-crosswalk\.js/);
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /refs\/heads\/main/);
   assert.match(workflow, /--only hosting/);
