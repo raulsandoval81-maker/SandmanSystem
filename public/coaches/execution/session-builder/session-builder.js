@@ -133,7 +133,7 @@ function selectedRoom() {
 }
 
 function selectedMatLabel() {
-  return "Mat 1";
+  return selectedRoom()?.label || "Training area unavailable";
 }
 
 
@@ -257,8 +257,11 @@ function populateRooms(preferredValue = "") {
   const entryRoom = String(practiceEntryIntent().roomValue || "");
   const rememberedRoom = readJson(SESSION_KEY, {})?.roomValue || "";
   roomSelect.innerHTML = "";
+  // Display only configured rooms for the current practice-entry location.
+  // Never create synthetic room IDs to satisfy a UI option.
+  const entryLocationId = String(practiceEntryIntent().locationId || "").trim();
 
-  SESSION_ROOMS.forEach((room) => {
+  SESSION_ROOMS.filter(room => !entryLocationId || room.locationId === entryLocationId).forEach((room) => {
     const option = document.createElement("option");
     option.value = room.value;
     option.textContent = room.label;
@@ -270,14 +273,15 @@ function populateRooms(preferredValue = "") {
   const guidedDefault = SESSION_ROOMS.find(roomHasGuidedPrograms);
 
   const entry = roomByValue(entryRoom);
+  const available = SESSION_ROOMS.filter(room => !entryLocationId || room.locationId === entryLocationId);
   const selected =
-    (preferredRoom && roomHasGuidedPrograms(preferredRoom) ? preferredRoom : null) ||
-    (entry && roomHasGuidedPrograms(entry) ? entry : null) ||
-    (remembered && roomHasGuidedPrograms(remembered) ? remembered : null) ||
-    guidedDefault ||
-    preferredRoom ||
-    remembered ||
-    SESSION_ROOMS[0];
+    (preferredRoom && available.includes(preferredRoom) && roomHasGuidedPrograms(preferredRoom) ? preferredRoom : null) ||
+    (entry && available.includes(entry) && roomHasGuidedPrograms(entry) ? entry : null) ||
+    (remembered && available.includes(remembered) && roomHasGuidedPrograms(remembered) ? remembered : null) ||
+    (guidedDefault && available.includes(guidedDefault) ? guidedDefault : null) ||
+    (preferredRoom && available.includes(preferredRoom) ? preferredRoom : null) ||
+    (remembered && available.includes(remembered) ? remembered : null) ||
+    available[0];
 
   if (selected) roomSelect.value = selected.value;
 }
@@ -712,16 +716,20 @@ function showPrePracticeSetup() {
   if (currentSessionSection) currentSessionSection.hidden = true;
   if (newSessionSection) newSessionSection.hidden = false;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
-  if (practiceContextScreen) practiceContextScreen.hidden = true;
+  if (practiceContextScreen) practiceContextScreen.hidden = false;
+  const coachName = String(practiceEntryIntent().coachName || "").trim();
+  const coachLabel = document.getElementById("coachForPractice");
+  if (coachLabel) coachLabel.textContent = coachName
+    ? `Coach from Practice Operations: ${coachName} (display only; authorization remains with signed-in Coach)`
+    : "Lead Coach: Signed-in authorized Coach (identity not separately assigned)";
   updateSummary();
 }
 
 function showPracticeContext() {
-  if (guidedSetupScreen) guidedSetupScreen.hidden = true;
-  if (practiceContextScreen) practiceContextScreen.hidden = false;
+  // Stage I now combines setup and route. No intermediate navigation.
+  showPrePracticeSetup();
   updateConditionalControls();
   updateSummary();
-  practiceContextScreen?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function formatUpdated(value) {
@@ -1113,17 +1121,13 @@ async function restoreCanonicalPractice(practiceId) {
   refreshFocusSuggestion({ apply: false });
   roomSelect.disabled = true;
   await refreshHybridAvailability();
-  showPracticeContext();
-  document.getElementById("dashboardNotice").textContent = "Practice route restored. Continue with the same practice.";
+  showPrePracticeSetup();
+  document.getElementById("dashboardNotice").textContent = "Existing practice restored. Review its setup and continue with the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
 
 continueToContextBtn?.addEventListener("click", showPracticeContext);
-backToGuidedSetupBtn?.addEventListener("click", () => {
-  if (practiceContextScreen) practiceContextScreen.hidden = true;
-  if (currentSessionSection) currentSessionSection.hidden = true;
-  if (guidedSetupScreen) guidedSetupScreen.hidden = false;
-});
+// Setup and route now appear together; there is no extra Back action.
 
 journeySelect?.addEventListener("change", () => {
   updateSummary();

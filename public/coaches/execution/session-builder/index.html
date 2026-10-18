@@ -21,7 +21,8 @@
 
   <section id="newSessionSection" class="dashboard-section new-session-section">
     <div id="guidedSetupScreen">
-      <p class="eyebrow">I — Practice Setup</p>
+      <p id="coachForPractice" class="availability-note">Lead Coach: Confirming from Practice Operations…</p>
+      <p class="eyebrow">I — Practice Setup · Discipline · Route</p>
       <div class="setup-step">
         <div class="section-heading">
           <div>
@@ -31,8 +32,9 @@
 
         <div class="mat-session-identity">
           <div class="mat-session-room">
-            <span class="eyebrow">Physical mat</span>
-            <strong>Mat 1</strong>
+            <label for="roomSelect">Configured Training Area</label>
+            <select id="roomSelect" class="dashboard-select"></select>
+            <small class="muted">Only areas configured for this academy are available. Additional areas can be configured later.</small>
           </div>
         </div>
       </div>
@@ -77,19 +79,15 @@
         </div>
         <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
-      <div class="screen-actions">
-        <button id="continueToContextBtn" class="primary-action" type="button">Continue to Practice Route</button>
-      </div>
     </div>
-
-    <div id="practiceContextScreen" hidden>
-      <p class="eyebrow">II — Practice Route</p>
+    <div id="practiceContextScreen">
+      <p class="eyebrow">Discipline &amp; Check-In Roster</p>
       <div class="screen-heading">
         <div>
-                    <h2>What are you coaching?</h2>
+                    <h2>Discipline &amp; Check-In Roster</h2>
           <p id="contextLead">Choose the discipline. Attendance will use the checked-in athlete data to determine groups, journeys, and skills.</p>
         </div>
-        <button id="backToGuidedSetupBtn" class="secondary-button" type="button">Back</button>
+
       </div>
 
       <div class="context-layout">
@@ -146,7 +144,6 @@
       </div>
     </div>
 
-    <select id="roomSelect" hidden aria-hidden="true"></select>
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
