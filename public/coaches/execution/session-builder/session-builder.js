@@ -1206,7 +1206,36 @@ buildBtn.addEventListener("click", async () => {
     } else {
       payload = await resolveGroupPrescriptions(payload);
     }
-    payload = await openCanonicalPractice(payload);
+    const reviewingExistingPlan = Boolean(activePracticeId)
+      && new URLSearchParams(window.location.search).get("planning") === "1";
+    if (reviewingExistingPlan) {
+      // The practice was already opened and checked in. Lesson acceptance
+      // must not call openPracticeSession again with the builder's blank Journey.
+      const getPractice = httpsCallable(functions, "getPracticeSession");
+      const response = await getPractice({ practiceId: activePracticeId });
+      const practice = response.data?.practice || {};
+      if (String(practice.status || "").toLowerCase() !== "active") {
+        throw new Error("This practice is no longer active.");
+      }
+      const canonicalLocation = String(practice.locationId || practice.academyId || "");
+      if (canonicalLocation !== String(payload.locationId || "")) {
+        throw new Error("Practice location changed. Return to the existing practice.");
+      }
+      const canonicalDiscipline = String(practice.discipline || "").toLowerCase();
+      if (canonicalDiscipline && canonicalDiscipline !== "unassigned"
+          && canonicalDiscipline !== String(payload.discipline || "").toLowerCase()) {
+        throw new Error("Practice discipline changed. Return to the existing practice.");
+      }
+      payload = {
+        ...payload,
+        practiceId: activePracticeId,
+        journey: String(practice.journey || ""),
+        program: String(practice.program || payload.program || ""),
+        track: String(practice.track || "")
+      };
+    } else {
+      payload = await openCanonicalPractice(payload);
+    }
     persistSession(payload);
 
     const historical = String(practiceEntryIntent().mode || "") === "after-the-fact";
