@@ -249,11 +249,11 @@ jobs:
           grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
       - name: Session Builder memory inherited baseline (reported, not release-gating)
         id: session-memory-baseline
-        if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' }}
+        if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' }}
         continue-on-error: true
         run: node --test application-source/tests/functions/session-builder-session-memory.test.mjs
       - name: Record Session Builder memory baseline status
-        if: ${{ always() && inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' }}
+        if: ${{ always() && (inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9') }}
         env:
           BASELINE_OUTCOME: ${{ steps.session-memory-baseline.outcome }}
         run: |
