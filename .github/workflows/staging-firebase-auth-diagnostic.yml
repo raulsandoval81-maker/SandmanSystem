@@ -102,6 +102,16 @@ jobs:
             -o quota-response.json -w '%{http_code}' "${endpoint}")"
           node -e '
             const fs = require("fs");
+            function sanitizedMessage(value) {
+              if (!value) return null;
+              const redacted = String(value)
+                .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi, "Bearer [REDACTED]")
+                .replace(/\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[REDACTED_JWT]")
+                .replace(/\bAIza[A-Za-z0-9_-]{20,}\b/g, "[REDACTED_API_KEY]")
+                .replace(/\b(authorization)\s*[:=]\s*[^\r\n,;]+/gi, "$1: [REDACTED]")
+                .replace(/\b(access[_-]?token|id[_-]?token|refresh[_-]?token|client[_-]?secret|private[_-]?key|credential)\s*[:=]\s*[^\s,;]+/gi, "$1=[REDACTED]");
+              return redacted.length > 512 ? `${redacted.slice(0, 512)}…[TRUNCATED]` : redacted;
+            }
             function sanitized(path, status) {
               let body = {};
               try { body = JSON.parse(fs.readFileSync(path, "utf8")); } catch {}
@@ -110,7 +120,7 @@ jobs:
                 error: body.error ? {
                   code: body.error.code || null,
                   status: body.error.status || null,
-                  message: body.error.message || null,
+                  message: sanitizedMessage(body.error.message),
                   reasons: (body.error.details || []).map((detail) => detail.reason).filter(Boolean),
                 } : null,
                 success_fields: body.error ? [] : Object.keys(body).sort(),

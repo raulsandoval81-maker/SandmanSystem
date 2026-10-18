@@ -21,6 +21,12 @@ test("diagnostic verifies permissions, identity, scopes, and quota behavior with
   assert.match(workflow, /x-goog-user-project: sandman-combat-staging/);
   assert.match(workflow, /normal_request/);
   assert.match(workflow, /explicit_quota_project_request/);
+  assert.match(workflow, /Bearer \[REDACTED\]/);
+  assert.match(workflow, /\[REDACTED_JWT\]/);
+  assert.match(workflow, /\[REDACTED_API_KEY\]/);
+  assert.match(workflow, /redacted\.slice\(0, 512\)/);
+  assert.match(workflow, /…\[TRUNCATED\]/);
+  assert.match(workflow, /message: sanitizedMessage\(body\.error\.message\)/);
   assert.doesNotMatch(workflow, /echo .*access_token|console\.log\([^\n]*access_token/);
 });
 
