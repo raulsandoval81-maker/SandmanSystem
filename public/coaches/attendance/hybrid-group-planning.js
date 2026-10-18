@@ -43,7 +43,7 @@ export function renderAttendanceHybridPlanning(host, groups, state, onChange) {
     section.querySelector(".attendance-hybrid-wave")?.addEventListener("change", event => {
       state.groupPlanning[group.id] = { ...(state.groupPlanning[group.id] || {}), selectedWave: event.target.value,
         instructionalTier: String(group.tier || "").toLowerCase() };
-      onChange();
+      onChange(true);
     });
     section.querySelector(".attendance-hybrid-note")?.addEventListener("input", event => {
       state.groupPlanning[group.id] = { ...(state.groupPlanning[group.id] || {}),
