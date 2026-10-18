@@ -21,7 +21,30 @@ import {
   validateTrainingGroupRoster
 } from "/coaches/attendance/practice-group-policy.js";
 
+import { renderAttendanceHybridPlanning } from "/coaches/attendance/hybrid-group-planning.js";
+
 const $ = (id) => document.getElementById(id);
+const hybridStageState = { planningSources: {}, groupPlanning: {} };
+function isHybridPractice() {
+  let mode = String(activePractice?.executionMode || "").toLowerCase();
+  if (!mode) {
+    try {
+      const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+      if (String(remembered.practiceId || "") === String(activePractice?.practiceId || "")) mode = String(remembered.executionMode || "").toLowerCase();
+    } catch {}
+  }
+  return mode === "hybrid";
+}
+function showHybridStage() {
+  const host = $("postAttendanceHybridPlanning");
+  if (!host) return;
+  host.hidden = !isBuilderFlow() || !isHybridPractice();
+  if (host.hidden) return;
+  renderAttendanceHybridPlanning(host, captureTrainingGroups(), hybridStageState, refresh => {
+    if (refresh) showHybridStage();
+  });
+}
+
 
 const LADDER_BY_JOURNEY = Object.freeze({
   Z2H: LADDER_YOUTH,
@@ -917,6 +940,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       if (card) card.dataset.focusConfirmed = tier.value ? card.dataset.focusConfirmed : "false";
       if (rank) rank.value = tier.value ? rankForTier(tier.value, select.value) : "Coach confirmation required";
       updateContextSummary();
+      showHybridStage();
     });
   });
 
@@ -928,6 +952,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       const rank = card?.querySelector(".training-rank");
       if (rank) rank.value = rankForTier(select.value, journey);
       updateContextSummary();
+      showHybridStage();
     });
   });
 
@@ -960,6 +985,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
 
   updateGroupControls();
   updateContextSummary();
+  showHybridStage();
 }
 
 function renumberTrainingGroups() {
@@ -1069,6 +1095,13 @@ function preparePracticeContext() {
   const groups = suggestedTrainingGroups();
   // Athlete group Journeys are roster attributes, not edits to the
   // server-authoritative practice route. Mixed rooms may contain several.
+  try {
+    const prior = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+    if (prior.practiceId === activePractice.practiceId) {
+      hybridStageState.planningSources = prior.planningSources || { tierWaves: true, systemSuggestions: true, coachInput: true };
+      hybridStageState.groupPlanning = prior.groupPlanning || {};
+    }
+  } catch {}
   renderTrainingGroups(groups);
   showStep(4);
 }
@@ -1080,6 +1113,11 @@ async function savePracticeContextToBuilderSession() {
   } catch {}
 
   const trainingGroups = captureTrainingGroups();
+  if (isHybridPractice() && !Object.keys(hybridStageState.planningSources).length) {
+    const remembered = session.practiceId === activePractice?.practiceId ? session : {};
+    hybridStageState.planningSources = remembered.planningSources || { tierWaves: true, systemSuggestions: true, coachInput: true };
+    hybridStageState.groupPlanning = remembered.groupPlanning || {};
+  }
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
   const rosterCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds]);
   if (!rosterCheck.ok) {
@@ -1115,6 +1153,18 @@ async function savePracticeContextToBuilderSession() {
     week,
     trainingSession: week,
     trainingGroups,
+    ...(isHybridPractice() ? {
+      planningSources: hybridStageState.planningSources,
+      groupPlanning: Object.fromEntries(trainingGroups.map(group => {
+        const prior = hybridStageState.groupPlanning[group.id] || {};
+        return [group.id, {
+          ...prior,
+          selectedWave: String(prior.instructionalTier || "").toLowerCase() === String(group.tier || "").toLowerCase()
+            ? String(prior.selectedWave || "") : "",
+          instructionalTier: String(group.tier || "").toLowerCase()
+        }];
+      }))
+    } : {}),
     carryForwardNote: primary.carryForwardNote,
     practiceId: activePractice?.practiceId || session.practiceId || ""
   };
