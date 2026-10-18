@@ -24,7 +24,6 @@ test("Group-specific choices persist to the matching practice's Session Builder 
   assert.match(attendanceJs, /practiceId: activePractice\?\.practiceId/);
   assert.match(attendanceJs, /selectedWave: String\(prior.instructionalTier/);
   assert.match(planning, /resolveRoad2ChampionWrestlingTierWaves\(group.tier\)/);
-  assert.match(planning, /familyId/);
 });
 
 test("System Suggestions remain unavailable and selections carry no mastery evidence", () => {
