@@ -191,8 +191,10 @@ function readPlanningSources() {
 
 async function renderHybridPlanning() {
   if (!hybridPlanningPanel) return;
-  hybridPlanningPanel.hidden = selectedMode !== "hybrid";
-  if (selectedMode !== "hybrid") return;
+  const reviewingCheckedInPlan = selectedMode === "hybrid" && Boolean(activePracticeId)
+    && new URLSearchParams(window.location.search).get("planning") === "1";
+  hybridPlanningPanel.hidden = !reviewingCheckedInPlan;
+  if (!reviewingCheckedInPlan) return;
   planningSources = readPlanningSources();
   const enabled = enabledPlanningSources(planningSources);
   const remembered = readJson(SESSION_KEY, {});
