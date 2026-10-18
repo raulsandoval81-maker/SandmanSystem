@@ -1264,7 +1264,7 @@ if (isBuilderFlow()) {
   const title = $("attendanceTitle");
   const lead = $("attendanceLead");
   if (label) label.textContent = "Attendance";
-  if (title) title.textContent = "Athlete Check-In";
+  if (title) title.textContent = "III — Athlete Check-In";
   if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm today’s practice groups and skills.";
 
 
