@@ -12,6 +12,7 @@ on:
           - hybrid-pr99-5ed90c5c
           - practice-groups-pr113-27adc626
           - r2c-wrestling-waves-pr115-18d46b08
+          - hybrid-handoff-pr117-4a8402b9
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -225,7 +226,10 @@ jobs:
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
           node --test application-source/tests/functions/practice-group-policy.test.mjs
-          if test "${RELEASE_ID}" = "r2c-wrestling-waves-pr115-18d46b08"; then
+          if test "${RELEASE_ID}" = "hybrid-handoff-pr117-4a8402b9"; then
+            node --test application-source/tests/functions/checkin-hybrid-clipboard-route.test.mjs
+          fi
+          if test "${RELEASE_ID}" = "r2c-wrestling-waves-pr115-18d46b08" || test "${RELEASE_ID}" = "hybrid-handoff-pr117-4a8402b9"; then
             node application-source/scripts/generate-youth-wrestling-browser-manifest.mjs
             git -C application-source diff --exit-code -- \
               public/assets/data/youth-wrestling-placement-manifest.json \
