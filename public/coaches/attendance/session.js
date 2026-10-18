@@ -1142,30 +1142,9 @@ async function savePracticeContextToBuilderSession() {
     trainingGroups
   }));
 
-  if (tier && activePractice?.practiceId) {
-    try {
-      const openPractice = httpsCallable(functions, "openPracticeSession");
-      await openPractice({
-        practiceId: activePractice.practiceId,
-        liveSessionId: activePractice.liveSessionId || activePractice.sessionId || "",
-        locationId: activePractice.locationId || activePractice.academyId || "",
-        academyId: activePractice.academyId || activePractice.locationId || "",
-        roomId: activePractice.roomId || "",
-        discipline: activePractice.discipline || "",
-        journey: activePractice.journey || "",
-        program: activePractice.program || "",
-        track: activePractice.track || "",
-        tier,
-        week,
-        schema: activePractice.schema || session.schema || "academy-60",
-        executionMode: activePractice.executionMode || session.executionMode || "hybrid",
-        durationMinutes: Number(activePractice.durationMinutes || session.durationMinutes || 60)
-      });
-      activePractice = { ...activePractice, tier, week };
-    } catch (error) {
-      console.warn("[session] practice tier/session sync skipped", error);
-    }
-  }
+  // Keep instructional tier and session in the builder draft only.
+  // Once check-in begins, openPracticeSession must not be called to rewrite
+  // a canonical practice Journey or other immutable routing fields.
 }
 
 function todayLabel() {
