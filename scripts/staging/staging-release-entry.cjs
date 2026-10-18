@@ -19,7 +19,10 @@ if (isolateGithubWif) {
 
 try {
   const { setGlobalOptions } = require("firebase-functions/v2/options");
-  setGlobalOptions({ preserveExternalChanges: true });
+  setGlobalOptions({
+    preserveExternalChanges: true,
+    serviceAccount: "__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__",
+  });
   module.exports = require("./lib/staging.js");
 } finally {
   if (isolateGithubWif) {
