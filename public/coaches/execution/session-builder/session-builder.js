@@ -203,8 +203,11 @@ async function renderHybridPlanning() {
     const prior = editableGroupPlanning(groupPlanningDraft[group.id] || remembered.groupPlanning?.[group.id] || {}, group);
     const selectedWave = prior.selectedWave;
     const waveCards = waves.find(([key]) => key === selectedWave)?.[1] || [];
+    const progressionLabel = String(group.progressionTierLabel || group.progressionTier || "Tier Unverified");
+    const focusLabel = group.tier ? `${String(group.tier).toUpperCase()} ${group.rank || ""}`.trim() : "not confirmed";
     cards.push(`<article class="hybrid-group-card" data-group-id="${escapeHtml(group.id)}">
-      <h4>${escapeHtml(group.label || group.id)} · ${escapeHtml(group.journey)} ${escapeHtml(String(group.tier || "").toUpperCase())}</h4>
+      <h4>${escapeHtml(group.label || group.id)} · ${escapeHtml(group.journey)} · ${escapeHtml(progressionLabel)}</h4>
+      <p class="${group.tier ? "" : "planning-unavailable"}"><strong>Instructional focus:</strong> ${escapeHtml(focusLabel)}${group.tierStatus === "mixed" ? " · Mixed-tier curriculum requires Coach judgment and differentiated instruction." : ""}</p>
       ${planningSources.tierWaves ? (waves.length ? `<label>Tier Wave<select class="hybrid-wave-select" data-group-id="${escapeHtml(group.id)}"><option value="">Select and accept a wave</option>${waves.map(([key]) => `<option value="${escapeHtml(key)}"${key === selectedWave ? " selected" : ""}>${escapeHtml(key.replaceAll("_", " "))}</option>`).join("")}</select></label><div class="hybrid-wave-cards">${waveCards.map(card => safeCoachCardHref(card.href) ? `<a href="${escapeHtml(safeCoachCardHref(card.href))}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.title || card.id)}</a>` : `<span>${escapeHtml(card.title || card.id)} (link unavailable)</span>`).join("")}</div><p>Curriculum placement only. Selecting a wave accepts it for this lesson; it does not verify athlete progression.</p>` : '<p class="planning-unavailable">Tier Wave mapping unavailable for this Journey, discipline, or tier.</p>') : ""}
       ${planningSources.systemSuggestions ? '<p class="planning-unavailable"><strong>System Suggestions:</strong> unavailable until authoritative athlete-history recommendations are connected. No diagnostic preview is treated as verified.</p>' : ""}
       ${planningSources.coachInput ? `<p><strong>Original carry-forward:</strong> ${escapeHtml(group.carryForwardNote || "None recorded")}</p><label>Use prior note<select class="hybrid-note-disposition" data-group-id="${escapeHtml(group.id)}"><option value="accepted"${prior.disposition === "accepted" ? " selected" : ""}>Accept</option><option value="edited"${prior.disposition === "edited" ? " selected" : ""}>Edit</option><option value="dismissed"${prior.disposition === "dismissed" ? " selected" : ""}>Dismiss</option><option value="replaced"${prior.disposition === "replaced" ? " selected" : ""}>Replace</option></select></label><label>Current Coach instructions<textarea class="hybrid-coach-note" data-group-id="${escapeHtml(group.id)}" rows="3" placeholder="Instructions for this practice">${escapeHtml(prior.currentNote || "")}</textarea></label><p>Coach observations remain unverified until the normal evidence process is completed.</p>` : ""}
@@ -671,9 +674,15 @@ function updateSummary() {
   const noHybridSources = selectedMode === "hybrid" && enabledPlanningSources(readPlanningSources()).length === 0;
   const autoBlocked = selectedMode === "auto";
   const reviewingPlan = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1";
-  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked;
+  const rememberedGroups = readJson(SESSION_KEY, {})?.trainingGroups || [];
+  const unresolvedGroupFocus = reviewingPlan && rememberedGroups.some((group) =>
+    Array.isArray(group?.athleteIds) && group.athleteIds.length && !String(group?.tier || "").trim()
+  );
+  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked || unresolvedGroupFocus;
   buildBtn.textContent = autoBlocked
     ? "AUTO Awaiting Certified Authorization"
+    : unresolvedGroupFocus
+      ? "Confirm Group Instructional Focus"
     : reviewingPlan && selectedMode === "hybrid"
       ? "Accept Plan and Continue to Clipboard"
       : reviewingPlan

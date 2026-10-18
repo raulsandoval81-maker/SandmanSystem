@@ -628,6 +628,25 @@ html[data-theme="light"]{
   font-size:.9rem;
   line-height:1.35;
 }
+.training-group-roster{
+  display:grid;
+  gap:8px;
+  margin-bottom:12px;
+}
+.training-group-athlete{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 10px;
+  border:1px solid var(--attendance-line);
+  border-radius:11px;
+  background:var(--attendance-surface);
+}
+.training-group-athlete > span{display:grid;gap:2px;min-width:0}
+.training-group-athlete small{color:var(--attendance-muted)}
+.training-group-athlete label{margin:0!important;min-width:120px}
+.training-group-athlete select{min-height:36px;padding:6px 8px}
 .remove-training-group{
   min-height:32px !important;
   padding:5px 10px !important;
@@ -674,6 +693,8 @@ html[data-theme="light"]{
     flex-direction:column;
   }
   .training-group-actions button{width:100%}
+  .training-group-athlete{align-items:stretch;flex-direction:column}
+  .training-group-athlete label{width:100%}
 }
 
 

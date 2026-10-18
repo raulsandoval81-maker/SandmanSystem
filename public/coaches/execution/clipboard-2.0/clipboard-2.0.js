@@ -654,6 +654,10 @@ function renderClipboardTrainingGroups() {
     const names = Array.isArray(group.athleteNames) && group.athleteNames.length
       ? group.athleteNames.join(", ")
       : "";
+    const progressionLabel = String(group.progressionTierLabel || group.progressionTier || "Tier Unverified");
+    const individualTiers = Array.isArray(group.roster)
+      ? group.roster.map((athlete) => `${athlete.athleteName || athlete.athleteId}: ${athlete.tier || "unverified"}`).join(" · ")
+      : "";
     const prescription = prescriptions.find(item => item.groupId === group.id);
     const planning = session.groupPlanning?.[group.id] || {};
     const encodeText = (value) => String(value || "").replace(/[&<>"']/g, character => ({
@@ -674,8 +678,10 @@ function renderClipboardTrainingGroups() {
     return `
       <article class="clipboard-group-chip" data-tier="${tier}">
         <span class="clipboard-group-label">Mat 1 · Group ${index + 1}</span>
-        <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${tier} ${group.rank || ""}</strong>
+        <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${encodeText(progressionLabel)}</strong>
+        <span>Coach-confirmed instructional focus: ${tier} ${group.rank || ""}</span>
         <span>${names ? names : "System-guided group"}</span>
+        ${individualTiers ? `<small>${encodeText(individualTiers)}</small>` : ""}
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
         ${planning.systemSuggestion ? `<em>System suggestion: ${encodeText(planning.systemSuggestion.reason || planning.systemSuggestion.state)}</em>` : ""}
         ${planning.coachInput?.currentNote ? `<em>Coach plan: ${encodeText(planning.coachInput.currentNote)}</em>` : ""}
