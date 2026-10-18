@@ -42,39 +42,27 @@ if (!firebaseInit.includes("Staging cannot use the production Firebase project")
   throw new Error("Application source lacks the staging Firebase fail-closed guard.");
 }
 
-const compiler = path.join(sourceRoot, "functions/node_modules/.bin/tsc");
-const build = spawnSync(compiler, ["-p", path.join(sourceRoot, "functions/tsconfig.json"), "--outDir", path.join(functionsRoot, "lib")], {
-  cwd: sourceRoot,
-  env: process.env,
-  stdio: "inherit",
-  shell: false,
-});
-if (build.status !== 0) throw new Error("Failed to compile the immutable application Functions source.");
-await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
-const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
-packageJson.main = "staging-release-entry.cjs";
-await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
-const stagingEntryTemplate = await readFile(new URL("./staging-release-entry.cjs", import.meta.url), "utf8");
-const stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
-if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) {
-  throw new Error("Staging runtime service-account placeholder was not resolved.");
+if (release.functions.length) {
+  const compiler = path.join(sourceRoot, "functions/node_modules/.bin/tsc");
+  const build = spawnSync(compiler, ["-p", path.join(sourceRoot, "functions/tsconfig.json"), "--outDir", path.join(functionsRoot, "lib")], {
+    cwd: sourceRoot, env: process.env, stdio: "inherit", shell: false,
+  });
+  if (build.status !== 0) throw new Error("Failed to compile the immutable application Functions source.");
+  await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
+  const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
+  packageJson.main = "staging-release-entry.cjs";
+  await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
+  const stagingEntryTemplate = await readFile(new URL("./staging-release-entry.cjs", import.meta.url), "utf8");
+  const stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
+  if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) throw new Error("Staging runtime service-account placeholder was not resolved.");
+  await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
+  await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
+    ...Object.entries(release.expectedFunctionConfiguration.environmentVariables).map(([key, value]) => `${key}=${value}`), "",
+  ].join("\n"));
+  await writeFile(path.join(outputRoot, "firebase.functions.json"), `${JSON.stringify({
+    functions: { source: "functions", runtime: "nodejs22", codebase: "default" },
+  }, null, 2)}\n`);
 }
-await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
-await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
-  ...Object.entries(release.expectedFunctionConfiguration.environmentVariables)
-    .map(([key, value]) => `${key}=${value}`),
-  "",
-].join("\n"));
-// Use Firebase CLI for onCall functions, never generic gcloud HTTP deployment.
-// Source is the immutable compiled release artifact; the named Functions are
-// the only permitted deployment targets. Runtime identity is not migrated.
-await writeFile(path.join(outputRoot, "firebase.functions.json"), `${JSON.stringify({
-  functions: {
-    source: "functions",
-    runtime: "nodejs22",
-    codebase: "default",
-  },
-}, null, 2)}\n`);
 await writeFile(path.join(outputRoot, "firebase.hosting.json"), `${JSON.stringify({
   hosting: {
     site: release.hostingSite,
@@ -88,6 +76,7 @@ await writeFile(path.join(outputRoot, "release-evidence.json"), `${JSON.stringif
   applicationSha: release.applicationSha,
   projectId: release.projectId,
   hostingSite: release.hostingSite,
+  hosting: release.hosting !== false,
   functions: release.functions,
   recovery: release.recovery,
 }, null, 2)}\n`);

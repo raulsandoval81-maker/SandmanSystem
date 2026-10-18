@@ -22,11 +22,18 @@ export function validateRelease(release, context = {}) {
   }
   if (context.workflowRef !== TRUSTED_WORKFLOW_REF) throw new Error("Workflow must run from trusted main.");
   if (!exactSha.test(String(release.applicationSha || ""))) throw new Error("Application source must be a full immutable SHA.");
+  if (release.requiredAncestorSha && !exactSha.test(String(release.requiredAncestorSha))) {
+    throw new Error("Required application ancestor must be a full immutable SHA.");
+  }
+  if (release.requiredAncestorSha && (!Array.isArray(release.allowedChangedFiles) || !release.allowedChangedFiles.length)) {
+    throw new Error("An ancestor-pinned release requires an explicit changed-file allowlist.");
+  }
   if (context.checkedOutSha !== release.applicationSha) throw new Error("Application checkout does not match the approved SHA.");
   if (release.projectId !== STAGING_PROJECT_ID || release.projectId === PRODUCTION_PROJECT_ID || context.projectId !== STAGING_PROJECT_ID) {
     throw new Error("Only the exact staging Firebase project is authorized.");
   }
   if (release.hostingSite !== STAGING_PROJECT_ID) throw new Error("Hosting site is not the isolated staging site.");
+  if (release.hosting === false) throw new Error("The isolated staging Hosting target is required.");
   if (context.confirmProject !== STAGING_PROJECT_ID) throw new Error("Explicit staging project confirmation is required.");
   if (context.wifProvider !== STAGING_WIF_PROVIDER) throw new Error("Wrong staging WIF provider.");
   if (context.hostingDeployer !== release.hostingDeployer) throw new Error("Wrong Hosting deployer identity.");
@@ -34,7 +41,9 @@ export function validateRelease(release, context = {}) {
   if (context.functionRuntime !== release.functionRuntime) throw new Error("Wrong function runtime identity.");
   if (context.authorizationAvailable !== true) throw new Error("Protected deployment authorization is unavailable.");
   const functions = [...(release.functions || [])];
-  if (functions.length !== APPROVED_FUNCTIONS.length || functions.some((name, index) => name !== APPROVED_FUNCTIONS[index])) {
+  const isApprovedCallableSet = functions.length === APPROVED_FUNCTIONS.length
+    && functions.every((name, index) => name === APPROVED_FUNCTIONS[index]);
+  if (functions.length && !isApprovedCallableSet) {
     throw new Error("Unexpected function target in approved release.");
   }
   return release;
@@ -44,7 +53,7 @@ export function validateRemotePreflight(release, { marker, runtimeByFunction } =
   if (!marker || marker.projectId !== STAGING_PROJECT_ID || marker.environment !== "staging" || marker.syntheticDataOnly !== true) {
     throw new Error("Staging synthetic-data marker is missing or invalid.");
   }
-  for (const functionName of APPROVED_FUNCTIONS) {
+  for (const functionName of release.functions || []) {
     const actual = runtimeByFunction?.[functionName];
     if (!actual) throw new Error(`Runtime identity is unverified for ${functionName}.`);
     if (actual !== release.functionRuntime) {

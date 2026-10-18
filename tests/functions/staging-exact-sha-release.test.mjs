@@ -17,6 +17,7 @@ import {
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
 
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
+const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -51,6 +52,20 @@ test("approved application source is a full immutable SHA", () => {
   assert.equal(validateRelease(release, context()).applicationSha, "5ed90c5c8eb609e86319a5b5b188642764157dd8");
 });
 
+test("PR 113 is independently pinned to its exact SHA and PR 99 ancestor", () => {
+  const result = validateRelease(practiceGroupsRelease, context({
+    checkedOutSha: practiceGroupsRelease.applicationSha,
+    hostingDeployer: practiceGroupsRelease.hostingDeployer,
+    functionDeployer: practiceGroupsRelease.functionDeployer,
+    functionRuntime: practiceGroupsRelease.functionRuntime,
+  }));
+  assert.equal(result.applicationSha, "27adc626925d0ebb5449fc2cffb87c787e0af381");
+  assert.equal(result.requiredAncestorSha, "5ed90c5c8eb609e86319a5b5b188642764157dd8");
+  assert.deepEqual(result.functions, []);
+  assert.equal(result.hosting, true);
+  assert.equal(result.allowedChangedFiles.length, 9);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -68,6 +83,13 @@ test("wrong WIF provider and deployer identities are rejected", () => {
 
 test("unexpected function target is rejected", () => {
   assert.throws(() => validateRelease({ ...release, functions: [...release.functions, "openPracticeSession"] }, context()), /Unexpected function/);
+});
+
+test("Hosting-only releases skip callable runtime preflight but preserve the synthetic marker gate", () => {
+  assert.equal(validateRemotePreflight(practiceGroupsRelease, { marker, runtimeByFunction: {} }), true);
+  assert.throws(() => validateRemotePreflight(practiceGroupsRelease, {
+    marker: { ...marker, syntheticDataOnly: false }, runtimeByFunction: {},
+  }), /marker/);
 });
 
 test("missing or incorrect synthetic marker is rejected", () => {
@@ -99,6 +121,9 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /path: trusted-tooling/);
   assert.match(workflow, /path: application-source/);
   assert.match(workflow, /ref: \$\{\{ steps\.release\.outputs\.application_sha \}\}/);
+  assert.match(workflow, /merge-base --is-ancestor/);
+  assert.match(workflow, /approved-release-files/);
+  assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /refs\/heads\/main/);
   assert.match(workflow, /--only hosting/);
   assert.match(workflow, /savePracticeSessionMemory/);
@@ -123,6 +148,7 @@ test("workflow separates validation from protected explicit deployment", async (
   assert.match(validateJob, /^    if: \$\{\{ inputs\.action != 'diagnose' \}\}/m);
   assert.match(functionsJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
   assert.match(hostingJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
+  assert.match(functionsJob, /needs\.validate-source\.outputs\.deploy_functions == 'true'/);
   assert.match(workflow, /environment: staging/);
 });
 
@@ -162,6 +188,12 @@ test("Functions job preserves external configuration and targets one named calla
   assert.match(workflow, /callableTrigger/);
   assert.match(workflow, /get-iam-policy/);
   assert.doesNotMatch(workflow, /gcloud functions deploy|--trigger-http|--run-service-account/);
+});
+
+test("artifact preparation omits Functions for a Hosting-only immutable release", async () => {
+  const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  assert.match(build, /if \(release\.functions\.length\)/);
+  assert.match(build, /hosting: release\.hosting !== false/);
 });
 
 test("callable discovery isolates incompatible WIF credentials and restores them", async () => {
