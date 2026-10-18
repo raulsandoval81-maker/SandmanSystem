@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import {
   APPROVED_FUNCTIONS,
@@ -124,11 +127,50 @@ test("Functions job preserves external configuration and targets one named calla
   assert.match(fnJob, /functions:default:\$\{\{ matrix\.function_name \}\}/);
   assert.doesNotMatch(fnJob, /gcloud functions deploy|--trigger-http|--run-service-account/);
   const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  const entry = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
   assert.match(build, /firebase\.functions\.json/);
-  assert.match(build, /preserveExternalChanges: true/);
+  assert.match(entry, /preserveExternalChanges: true/);
+  assert.match(entry, /GOOGLE_APPLICATION_CREDENTIALS/);
   assert.match(workflow, /callableTrigger/);
   assert.match(workflow, /get-iam-policy/);
   assert.doesNotMatch(workflow, /gcloud functions deploy|--trigger-http|--run-service-account/);
+});
+
+test("callable discovery isolates incompatible WIF credentials and restores them", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "sandman-wif-discovery-"));
+  try {
+    await mkdir(path.join(root, "lib"), { recursive: true });
+    await mkdir(path.join(root, "node_modules/firebase-functions/v2"), { recursive: true });
+    await copyFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), path.join(root, "staging-release-entry.cjs"));
+    await writeFile(path.join(root, "node_modules/firebase-functions/v2/options.js"),
+      'exports.setGlobalOptions = options => { if (options.preserveExternalChanges !== true) throw new Error("external settings reset"); };\n');
+    await writeFile(path.join(root, "lib/staging.js"), [
+      'if (process.env.GOOGLE_APPLICATION_CREDENTIALS) throw new Error("Admin SDK saw WIF credential file");',
+      'if (process.env.GOOGLE_GHA_CREDS_PATH) throw new Error("Admin SDK saw GitHub credential path");',
+      'if (process.env.CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE) throw new Error("Admin SDK saw Cloud SDK override");',
+      'exports.savePracticeSessionMemory = { __endpoint: { callableTrigger: {} } };',
+      'exports.closePracticeSession = { __endpoint: { callableTrigger: {} } };',
+      '',
+    ].join("\n"));
+    const runner = [
+      'const entry = require("./staging-release-entry.cjs");',
+      'for (const name of ["savePracticeSessionMemory", "closePracticeSession"]) if (!entry[name]?.__endpoint?.callableTrigger) process.exit(64);',
+      'for (const name of ["GOOGLE_APPLICATION_CREDENTIALS", "GOOGLE_GHA_CREDS_PATH", "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE"]) if (process.env[name] !== "/tmp/external-account.json") process.exit(65);',
+    ].join("\n");
+    const result = spawnSync(process.execPath, ["-e", runner], {
+      cwd: root,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        GOOGLE_APPLICATION_CREDENTIALS: "/tmp/external-account.json",
+        GOOGLE_GHA_CREDS_PATH: "/tmp/external-account.json",
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: "/tmp/external-account.json",
+      },
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("post-deployment comparison rejects callable configuration or IAM drift", () => {

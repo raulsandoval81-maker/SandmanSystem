@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { loadRelease } from "./exact-sha-release-policy.mjs";
@@ -54,12 +54,7 @@ await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functio
 const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
 packageJson.main = "staging-release-entry.cjs";
 await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
-await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), [
-  'const { setGlobalOptions } = require("firebase-functions/v2/options");',
-  "setGlobalOptions({ preserveExternalChanges: true });",
-  'module.exports = require("./lib/staging.js");',
-  "",
-].join("\n"));
+await copyFile(new URL("./staging-release-entry.cjs", import.meta.url), path.join(functionsRoot, "staging-release-entry.cjs"));
 await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
   ...Object.entries(release.expectedFunctionConfiguration.environmentVariables)
     .map(([key, value]) => `${key}=${value}`),
