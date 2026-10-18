@@ -20,6 +20,7 @@ const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
 const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46b08");
 const hybridHandoffRelease = await loadRelease("hybrid-handoff-pr117-4a8402b9");
+const stageFourRelease = await loadRelease("hybrid-stage4-pr120-8a122108");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -106,6 +107,22 @@ test("PR 117 is pinned to the PR 115 ancestor and only handoff files", () => {
     "public/coaches/attendance/session.js",
     "public/coaches/execution/session-builder/session-builder.js",
     "tests/functions/checkin-hybrid-clipboard-route.test.mjs",
+  ]);
+});
+
+test("PR 120 staging release preserves exact source, ancestor and Hosting-only guard", () => {
+  assert.equal(stageFourRelease.sourcePr, 120);
+  assert.equal(stageFourRelease.applicationSha, "8a122108c3e2e82f89ba93a99ce167b208e84b09");
+  assert.equal(stageFourRelease.requiredAncestorSha, "44180e5c309a0e6388aae2161833c02d13602cc6");
+  assert.equal(stageFourRelease.projectId, "sandman-combat-staging");
+  assert.equal(stageFourRelease.hosting, true);
+  assert.deepEqual(stageFourRelease.functions, []);
+  assert.deepEqual(stageFourRelease.allowedChangedFiles, [
+    "public/coaches/attendance/hybrid-group-planning.js",
+    "public/coaches/attendance/session.html",
+    "public/coaches/attendance/session.js",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs"
   ]);
 });
 
