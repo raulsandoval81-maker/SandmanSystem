@@ -133,6 +133,10 @@ test("diagnostic action stays read-only inside the trusted workflow identity", a
   assert.match(diagnoseJob, /GITHUB_WORKFLOW_REF.*staging-exact-sha-release\.yml@refs\/heads\/main/);
   assert.match(diagnoseJob, /environment: staging/);
   assert.match(diagnoseJob, /sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(diagnoseJob, /value\.type !== "external_account" \|\| impersonationTarget !== expected/);
+  assert.match(diagnoseJob, /authenticated_principal: impersonationTarget/);
+  assert.match(diagnoseJob, /value\.email !== expected/);
+  assert.doesNotMatch(diagnoseJob, /gcloud auth list/);
   assert.match(diagnoseJob, /firebase\.projects\.get/);
   assert.match(diagnoseJob, /serviceusage\.services\.use/);
   assert.match(diagnoseJob, /x-goog-user-project: sandman-combat-staging/);
