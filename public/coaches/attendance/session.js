@@ -25,7 +25,16 @@ import { renderAttendanceHybridPlanning } from "/coaches/attendance/hybrid-group
 
 const $ = (id) => document.getElementById(id);
 const hybridStageState = { planningSources: {}, groupPlanning: {} };
-function isHybridPractice() { return String(activePractice?.executionMode || "").toLowerCase() === "hybrid"; }
+function isHybridPractice() {
+  let mode = String(activePractice?.executionMode || "").toLowerCase();
+  if (!mode) {
+    try {
+      const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+      if (String(remembered.practiceId || "") === String(activePractice?.practiceId || "")) mode = String(remembered.executionMode || "").toLowerCase();
+    } catch {}
+  }
+  return mode === "hybrid";
+}
 function showHybridStage() {
   const host = $("postAttendanceHybridPlanning");
   if (!host) return;
