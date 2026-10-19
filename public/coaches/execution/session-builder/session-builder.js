@@ -719,7 +719,7 @@ async function showVerifiedLeadCoach() {
     const coach = await requireCoach();
     const staff = coach.staff || {};
     const displayName = [staff.preferredName, staff.displayName, staff.fullName, staff.name,
-      [staff.firstName, staff.lastName].filter(Boolean).join(" "), coach.email]
+      [staff.firstName, staff.lastName].filter(Boolean).join(" "), coach.user?.displayName, coach.email]
       .map(value => String(value || "").trim()).find(Boolean) || "Authorized Coach";
     coachLabel.textContent = `Lead Coach: ${displayName} · Verified staff account`;
     coachLabel.dataset.coachUid = coach.uid;
@@ -1291,6 +1291,9 @@ buildBtn.addEventListener("click", async () => {
     buildBtn.textContent = "Continue to Attendance";
   }
 });
+
+// Resolve authenticated Lead Coach on every entry path, including direct links.
+showVerifiedLeadCoach();
 
 populateRooms();
 updateDisciplineAvailability();
