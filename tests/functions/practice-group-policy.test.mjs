@@ -288,6 +288,14 @@ test("Attendance, Session Builder, Clipboard, memory, and progression boundaries
   assert.match(attendance, /suggestTierAwareTrainingGroups\(roster/);
   assert.match(attendance, /currentPlanningMode\(\) === "hybrid"/);
   assert.match(attendance, /restoreCoachGroupOverrides\(suggested, prior\.trainingGroups\)/);
+  assert.match(attendance, /class="training-athlete-group"/);
+  assert.match(attendance, /moveAthleteBetweenGroups\(captureTrainingGroups\(\)/);
+  assert.match(attendance, /athleteCanJoinTrainingGroup\(athlete, candidate\)/);
+  assert.match(attendance, /<select class="training-tier">/);
+  assert.match(attendance, /instructionalFocusConfirmed/);
+  assert.match(attendance, /validateTrainingGroupRoster\(trainingGroups/);
+  assert.match(attendance, /localStorage\.setItem\("sandman_training_groups_v1"/);
+  assert.match(builder, /attendanceContext\.trainingGroups/);
   assert.match(attendance, /syntheticPlacementCertified/);
   assert.match(clipboard, /trainingGroups: session\.trainingGroups/);
   assert.doesNotMatch(attendance, /systemSuggestions.*(?:available|enabled).*true/i);
