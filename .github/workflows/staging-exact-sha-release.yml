@@ -240,18 +240,16 @@ jobs:
           npm ci --prefix application-source/functions
           npm --prefix application-source/functions run build
           node --test application-source/tests/functions/hybrid-session-planning-policy.test.mjs
-          # The historical practice-group-policy test may not be present in every
-          # immutable application snapshot. Never silently omit grouping tests:
-          # fall back to the current tier-aware grouping test with an explicit gate.
-          if test -f application-source/tests/functions/practice-group-policy.test.mjs; then
-            node --test application-source/tests/functions/practice-group-policy.test.mjs
-          elif test -f application-source/tests/functions/tier-aware-practice-groups.test.mjs; then
-            node --test application-source/tests/functions/tier-aware-practice-groups.test.mjs
-          else
-            echo "::error::No approved practice grouping test is present at the pinned application SHA."
-            git -C application-source ls-tree -r --name-only HEAD -- tests/functions/ | grep -E 'group|practice' || true
+          # Fail with actionable checkout evidence rather than Node's ambiguous
+          # "Could not find" message. Do not skip any required regression test.
+          echo "Pinned application revision: $(git -C application-source rev-parse HEAD)"
+          git -C application-source ls-files --error-unmatch tests/functions/practice-group-policy.test.mjs
+          test -f application-source/tests/functions/practice-group-policy.test.mjs || {
+            echo "::error::Required practice-group-policy test is absent from immutable source checkout."
+            git -C application-source ls-tree -r --name-only HEAD tests/functions | grep -E 'group|practice' || true
             exit 1
-          fi
+          }
+          node --test application-source/tests/functions/practice-group-policy.test.mjs
           if test "${RELEASE_ID}" = "hybrid-stage4-pr120-8a122108" || test "${RELEASE_ID}" = "hybrid-stage4-fixed-pr122-7c625858" || test "${RELEASE_ID}" = "combat-setup-pr125-8a5ae0f2" || test "${RELEASE_ID}" = "combat-setup-fixed-pr127-fcd6f016" || test "${RELEASE_ID}" = "combat-setup-regexfix-pr129-b7545f30" || test "${RELEASE_ID}" = "combat-setup-final-pr131-ea296f66" || test "${RELEASE_ID}" = "hybrid-handoff-pr133-8af57906" || test "${RELEASE_ID}" = "combat-setup-pr138-ca4e23be"; then
             node --test application-source/tests/functions/checkin-hybrid-clipboard-route.test.mjs
             node --test application-source/tests/functions/post-attendance-hybrid-placement.test.mjs
