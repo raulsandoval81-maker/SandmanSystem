@@ -485,5 +485,48 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "combat-setup-pr138-ca4e23be": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 138,
+    "applicationSha": "ca4e23bec9ae63f162d690b20249133281755ea9",
+    "requiredAncestorSha": "b7545f30bf0a4eba009c5d94edc7464e82275345",
+    "allowedChangedFiles": [
+      "public/coaches/attendance/session.js",
+      "public/coaches/execution/session-builder/index.html",
+      "public/coaches/execution/session-builder/session-builder.css",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "tests/functions/attendance-submitted-resume.test.mjs",
+      "tests/functions/combined-practice-setup.test.mjs",
+      "tests/functions/hybrid-clipboard-handoff-recovery.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
