@@ -32,6 +32,7 @@ const pr150GroupsRelease = await loadRelease("tier-aware-groups-pr150-36374e8d")
 const pr152UnifiedRelease = await loadRelease("unified-hybrid-pr152-0c2dc9d8");
 const pr155AlignedRelease = await loadRelease("unified-hybrid-pr155-34fa3550");
 const pr158AlignedRelease = await loadRelease("unified-hybrid-pr158-93379221");
+const pr161ConsolidatedRelease = await loadRelease("hybrid-four-groups-pr161-0e25eb7e");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -331,6 +332,21 @@ test("PR158 corrected source remains pinned to staging and the two practice Func
   ]);
 });
 
+test("PR160/161 consolidated staging release preserves immutable safety boundaries", () => {
+  const result = validateRelease(pr161ConsolidatedRelease, context({
+    checkedOutSha: pr161ConsolidatedRelease.applicationSha,
+    hostingDeployer: pr161ConsolidatedRelease.hostingDeployer,
+    functionDeployer: pr161ConsolidatedRelease.functionDeployer,
+    functionRuntime: pr161ConsolidatedRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 161);
+  assert.equal(result.applicationSha, "0e25eb7e81670d2e958950b0b95198ae7978c486");
+  assert.equal(result.requiredAncestorSha, "9337922168002df4533596c4f991d94ff8041d83");
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+  assert.equal(result.allowedChangedFiles.length, 12);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -395,6 +411,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /unified-hybrid-pr152-0c2dc9d8/);
   assert.match(workflow, /unified-hybrid-pr155-34fa3550/);
   assert.match(workflow, /unified-hybrid-pr158-93379221/);
+  assert.match(workflow, /hybrid-four-groups-pr161-0e25eb7e/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
