@@ -1,0 +1,113 @@
+name: Seed 24-Athlete Mixed-Journey Staging Roster
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: "Type sandman-combat-staging"
+        required: true
+        type: string
+      confirm_seed:
+        description: "Type SEED-24-SYNTHETIC-WRESTLERS"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: sandman-staging-mixed-journey-roster-seed
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    name: Verify and seed synthetic Wrestling roster
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+    steps:
+      - name: Reject unapproved ref or target before credentials
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SEED: ${{ inputs.confirm_seed }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${CONFIRM_SEED}" = "SEED-24-SYNTHETIC-WRESTLERS"
+          test "${SANDMAN_STAGING_PROJECT_ID}" = "sandman-combat-staging"
+          test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Verify approved seed lineage
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor 1538b5904830d43a2fbe669490a6290e7e626b98 HEAD
+          test -f functions/scripts/seed-mixed-journey-class-staging.mjs
+          test -f functions/scripts/staging-seed-safety.mjs
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install existing Functions dependencies
+        run: npm ci --prefix functions
+
+      - name: Run focused seed and staging-boundary tests
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/functions/staging-mixed-journey-roster.test.mjs \
+            tests/functions/wrestling-staging-isolation.test.mjs \
+            tests/functions/staging-mixed-journey-seed-workflow.test.mjs
+
+      - id: auth
+        name: Authenticate with approved staging-only WIF identity
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Verify federated identity and read-only Firestore access
+        run: |
+          set -euo pipefail
+          node scripts/staging/verify-staging-boundary.mjs
+          gcloud auth application-default print-access-token >/dev/null
+          database_name="$(gcloud firestore databases describe \
+            --database='(default)' \
+            --project=sandman-combat-staging \
+            --format='value(name)')"
+          test "${database_name}" = "projects/sandman-combat-staging/databases/(default)"
+
+      - name: Execute existing additive synthetic roster seed once
+        env:
+          SANDMAN_STAGING_SEED_AUDIT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        run: node functions/scripts/seed-mixed-journey-class-staging.mjs
+
+      - name: Record non-sensitive workflow summary
+        run: |
+          {
+            echo "### Synthetic Wrestling staging roster"
+            echo "- Project: sandman-combat-staging"
+            echo "- Seed: functions/scripts/seed-mixed-journey-class-staging.mjs"
+            echo "- Expected roster: 24 synthetic athletes (15 R2C / 9 P2L)"
+            echo "- Added documents: 21"
+            echo "- Historical fixtures preserved: 3"
+            echo "- Audit run: ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          } >> "${GITHUB_STEP_SUMMARY}"
