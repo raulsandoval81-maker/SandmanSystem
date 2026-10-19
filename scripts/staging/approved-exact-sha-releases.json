@@ -528,5 +528,48 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "checkin-hybrid-pr140-59632c80": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 140,
+    "applicationSha": "59632c801ba37a173047322a34aef2e68d818644",
+    "requiredAncestorSha": "ca4e23bec9ae63f162d690b20249133281755ea9",
+    "allowedChangedFiles": [
+      "public/coaches/attendance/attendance.css",
+      "public/coaches/attendance/hybrid-group-planning.js",
+      "public/coaches/attendance/practice-group-policy.js",
+      "public/coaches/attendance/session.html",
+      "public/coaches/attendance/session.js",
+      "tests/functions/post-attendance-hybrid-placement.test.mjs",
+      "tests/functions/practice-group-policy.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
