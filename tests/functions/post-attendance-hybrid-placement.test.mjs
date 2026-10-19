@@ -23,7 +23,7 @@ test("Attendance retains Practice Operations navigation and Stage IV stays prima
   assert.match(attendanceHtml, /class="attendance-header"/);
   assert.match(attendanceHtml, /← Practice Operations/);
   assert.match(attendanceHtml, /<h1 id="attendanceTitle">Athlete Check-In<\/h1>/);
-  assert.match(attendanceHtml, /<h1 class="attendance-workflow-heading">IV — Practice Groups<\/h1>/);
+  assert.match(attendanceHtml, /<h1 class="attendance-workflow-heading">Practice Groups<\/h1>/);
 });
 
 test("Stage IV keeps compact responsive group editors and the acknowledged Group D limit", () => {
