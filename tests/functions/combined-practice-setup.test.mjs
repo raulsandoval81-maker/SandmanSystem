@@ -24,13 +24,29 @@ test("training rooms are selected from configured rooms and scoped to practice l
   assert.match(js, /roomByValue\(roomSelect\?\.value \|\| ""\)/);
   assert.match(policy, /export const SESSION_ROOMS/);
 });
-test("coach display does not forge an authorized coach identity or alter practice opening", () => {
-  assert.match(js, /async function showVerifiedLeadCoach\(\)/);
-  assert.match(js, /const coach = await requireCoach\(\)/);
-  assert.match(js, /coachLabel\.dataset\.coachUid = coach\.uid/);
-  assert.match(js, /const verifiedCoach = await requireCoach\(\)/);
-  assert.match(js, /coachLabel\?\.dataset\.coachUid !== verifiedCoach\.uid/);
-  assert.doesNotMatch(js, /practiceEntryIntent\(\)\.coachName/);
-  assert.match(js, /openCanonicalPractice\(payload\)/);
-  assert.match(js, /getPracticeSession/);
+test("Lead Coach display and practice opening use the verified staff identity", () => {
+  const displayStart = js.indexOf("async function showVerifiedLeadCoach()");
+  const displayEnd = js.indexOf("function showPrePracticeSetup()", displayStart);
+  const buildStart = js.indexOf('buildBtn.addEventListener("click"');
+  const buildSection = js.slice(buildStart);
+  const existingStart = buildSection.indexOf("if (reviewingExistingPlan)");
+  const newPracticeStart = buildSection.indexOf("} else {", existingStart);
+  const existingPracticeSection = buildSection.slice(existingStart, newPracticeStart);
+  const newPracticeSection = buildSection.slice(newPracticeStart, buildSection.indexOf("persistSession(payload)", newPracticeStart));
+
+  assert.ok(displayStart >= 0 && displayEnd > displayStart);
+  const displaySection = js.slice(displayStart, displayEnd);
+  assert.match(displaySection, /const coach = await requireCoach\(\)/);
+  assert.match(displaySection, /const staff = coach\.staff \|\| \{\}/);
+  assert.match(displaySection, /Verified staff account/);
+  assert.match(displaySection, /coachLabel\.dataset\.coachUid = coach\.uid/);
+  assert.doesNotMatch(displaySection, /practiceEntryIntent\(\)\.coachName/);
+
+  assert.match(newPracticeSection, /const verifiedCoach = await requireCoach\(\)/);
+  assert.match(newPracticeSection, /coachLabel\?\.dataset\.coachUid !== verifiedCoach\.uid/);
+  assert.match(newPracticeSection, /payload = await openCanonicalPractice\(payload\)/);
+
+  assert.match(existingPracticeSection, /getPracticeSession/);
+  assert.match(existingPracticeSection, /practiceId:\s*activePracticeId/);
+  assert.doesNotMatch(existingPracticeSection, /openCanonicalPractice\(payload\)/);
 });
