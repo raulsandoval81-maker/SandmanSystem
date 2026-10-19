@@ -25,8 +25,12 @@ test("training rooms are selected from configured rooms and scoped to practice l
   assert.match(policy, /export const SESSION_ROOMS/);
 });
 test("coach display does not forge an authorized coach identity or alter practice opening", () => {
-  assert.match(js, /practiceEntryIntent\(\).coachName/);
-  assert.match(js, /display only; authorization remains with signed-in Coach/);
+  assert.match(js, /async function showVerifiedLeadCoach\(\)/);
+  assert.match(js, /const coach = await requireCoach\(\)/);
+  assert.match(js, /coachLabel\.dataset\.coachUid = coach\.uid/);
+  assert.match(js, /const verifiedCoach = await requireCoach\(\)/);
+  assert.match(js, /coachLabel\?\.dataset\.coachUid !== verifiedCoach\.uid/);
+  assert.doesNotMatch(js, /practiceEntryIntent\(\)\.coachName/);
   assert.match(js, /openCanonicalPractice\(payload\)/);
   assert.match(js, /getPracticeSession/);
 });
