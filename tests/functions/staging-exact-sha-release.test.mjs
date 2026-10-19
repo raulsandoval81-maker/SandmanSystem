@@ -24,6 +24,7 @@ const stageFourRelease = await loadRelease("hybrid-stage4-pr120-8a122108");
 const correctedStageFourRelease = await loadRelease("hybrid-stage4-fixed-pr122-7c625858");
 const combatSetupRelease = await loadRelease("combat-setup-pr125-8a5ae0f2");
 const correctedCombatRelease = await loadRelease("combat-setup-fixed-pr127-fcd6f016");
+const finalCombatRelease = await loadRelease("combat-setup-regexfix-pr129-b7545f30");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -164,6 +165,16 @@ test("corrected PR127 Combat release retains staging-only Hosting guard", () => 
   assert.deepEqual(correctedCombatRelease.functions, []);
   assert.deepEqual(correctedCombatRelease.allowedChangedFiles,
     [...combatSetupRelease.allowedChangedFiles, "tests/functions/checkin-hybrid-clipboard-route.test.mjs"].sort());
+});
+
+test("corrected PR129 Combat release pins only the approved staging revision", () => {
+  assert.equal(finalCombatRelease.applicationSha, "b7545f30bf0a4eba009c5d94edc7464e82275345");
+  assert.equal(finalCombatRelease.requiredAncestorSha, correctedCombatRelease.requiredAncestorSha);
+  assert.equal(finalCombatRelease.sourcePr, 129);
+  assert.equal(finalCombatRelease.projectId, "sandman-combat-staging");
+  assert.equal(finalCombatRelease.hosting, true);
+  assert.deepEqual(finalCombatRelease.functions, []);
+  assert.deepEqual(finalCombatRelease.allowedChangedFiles, correctedCombatRelease.allowedChangedFiles);
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
