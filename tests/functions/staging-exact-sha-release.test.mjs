@@ -23,6 +23,7 @@ const hybridHandoffRelease = await loadRelease("hybrid-handoff-pr117-4a8402b9");
 const stageFourRelease = await loadRelease("hybrid-stage4-pr120-8a122108");
 const correctedStageFourRelease = await loadRelease("hybrid-stage4-fixed-pr122-7c625858");
 const combatSetupRelease = await loadRelease("combat-setup-pr125-8a5ae0f2");
+const correctedCombatRelease = await loadRelease("combat-setup-fixed-pr127-fcd6f016");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -152,6 +153,17 @@ test("Combat Setup PR125 is a pinned Hosting-only staging release", () => {
     "tests/functions/combined-practice-setup.test.mjs",
     "tests/functions/verified-coach-training-environments.test.mjs"
   ]);
+});
+
+test("corrected PR127 Combat release retains staging-only Hosting guard", () => {
+  assert.equal(correctedCombatRelease.applicationSha, "fcd6f016d29a436a43c984b93edfa8e7aa664546");
+  assert.equal(correctedCombatRelease.requiredAncestorSha, "7c6258589af2cdaef5f8e0dbb3ec599aad74e7a7");
+  assert.equal(correctedCombatRelease.sourcePr, 127);
+  assert.equal(correctedCombatRelease.projectId, "sandman-combat-staging");
+  assert.equal(correctedCombatRelease.hosting, true);
+  assert.deepEqual(correctedCombatRelease.functions, []);
+  assert.deepEqual(correctedCombatRelease.allowedChangedFiles,
+    [...combatSetupRelease.allowedChangedFiles, "tests/functions/checkin-hybrid-clipboard-route.test.mjs"].sort());
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
