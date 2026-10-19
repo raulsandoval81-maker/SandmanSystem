@@ -1,9 +1,9 @@
 export const HYBRID_PLANNING_SOURCES = Object.freeze(["tierWaves", "systemSuggestions", "coachInput"]);
 
 export const DEFAULT_HYBRID_PLANNING_SOURCES = Object.freeze({
-  tierWaves: true,
-  systemSuggestions: true,
-  coachInput: true
+  tierWaves: false,
+  systemSuggestions: false,
+  coachInput: false
 });
 
 export function normalizePlanningSources(value = {}, mode = "hybrid") {

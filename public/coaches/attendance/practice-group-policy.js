@@ -235,6 +235,10 @@ export function restoreCoachGroupOverrides(suggestedGroups = [], priorGroups = [
   const suggested = (Array.isArray(suggestedGroups) ? suggestedGroups : []).map(normalizeTrainingGroup);
   const prior = (Array.isArray(priorGroups) ? priorGroups : []).slice(0, MAX_TRAINING_GROUPS);
   if (!prior.length) return suggested;
+  // A provisional two-group fallback from an earlier visit must not suppress
+  // a new four-group tier-aware suggestion. Preserve deliberate Coach layouts.
+  const priorIsProvisional = prior.every(group => group.instructionalFocusConfirmed !== true && !normalizeDisplayedTier(group.instructionalTier || group.tier));
+  if (priorIsProvisional && suggested.length > prior.length) return suggested;
 
   const currentAthletes = new Map(suggested.flatMap((group) => group.roster.map((athlete) => [athlete.athleteId, athlete])));
   const restored = prior.map((group) => normalizeTrainingGroup({

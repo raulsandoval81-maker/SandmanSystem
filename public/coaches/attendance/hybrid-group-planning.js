@@ -28,7 +28,7 @@ function groupHeading(group) {
 export function renderAttendanceHybridPlanning(host, groups, state, onChange) {
   if (!host) return;
   const options = normalizePlanningSources(state.planningSources || {}, "hybrid");
-  const expanded = state.expandedSources ||= { tierWaves: true, systemSuggestions: false, coachInput: false };
+  const expanded = state.expandedSources ||= { tierWaves: false, systemSuggestions: false, coachInput: false };
   host.hidden = false;
   host.innerHTML = `<div class="hybrid-attendance-heading"><h3>HYBRID Instructional Sources</h3>
     <p>Expand a source to review it. Coach accepts the final group lesson before Clipboard.</p></div>

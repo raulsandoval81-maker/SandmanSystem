@@ -717,7 +717,8 @@ function updateSummary() {
     summaryAvailability.textContent = "Coach controls the build in Practice Clipboard.";
   }
 
-  const noHybridSources = selectedMode === "hybrid" && enabledPlanningSources(readPlanningSources()).length === 0;
+  // A Coach-built HYBRID lesson may begin with zero optional sources.
+  const noHybridSources = false;
   const autoBlocked = selectedMode === "auto";
   const reviewingPlan = canonicalPracticeRestored && Boolean(activePracticeId) && hybridReviewRequested;
   const rememberedGroups = readJson(SESSION_KEY, {})?.trainingGroups || [];

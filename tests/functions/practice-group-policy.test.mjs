@@ -383,3 +383,19 @@ test("Attendance, Session Builder, Clipboard, memory, and progression boundaries
   assert.doesNotMatch(attendance, /systemSuggestions.*(?:available|enabled).*true/i);
   assert.doesNotMatch(policy.normalizeTrainingGroup.toString(), /\b(?:xp|promotion|testing|certif)/i);
 });
+
+// Earlier provisional two-group staging memory must not mask tier separation.
+test("provisional two-group memory yields to four tier-aware Journey groups", () => {
+  const roster = ["T0", "T0", "T2", "T2", "T3", "T4", "T2"].map((tier, i) => rosterAthlete(`r2c-${i}`, tier))
+    .concat(["T0", "T0", "T0", "T1", "T1", "T2", "T3", "T4"].map((tier, i) => rosterAthlete(`p2l-${i}`, tier, "P2L")));
+  const suggested = policy.suggestTierAwareTrainingGroups(roster, { maxGroups: 4 });
+  assert.equal(suggested.length, 4);
+  const previous = [
+    policy.normalizeTrainingGroup({ ...compatibleGroup({ journey: "Z2H", ageGroup: "Youth" }), roster: roster.slice(0, 7) }),
+    policy.normalizeTrainingGroup({ ...compatibleGroup({ journey: "P2L", ageGroup: "Teen" }), roster: roster.slice(7) })
+  ];
+  const restored = policy.restoreCoachGroupOverrides(suggested, previous);
+  assertCompleteSuggestion(restored, roster);
+  assert.equal(restored.length, 4);
+  assert.equal(restored.every(group => new Set(group.roster.map(a => a.journey)).size === 1), true);
+});
