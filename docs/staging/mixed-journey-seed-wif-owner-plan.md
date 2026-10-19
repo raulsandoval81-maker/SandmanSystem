@@ -27,7 +27,7 @@ gcloud iam workload-identity-pools providers create-oidc sandman-mixed-journey-s
   --workload-identity-pool=sandman-github-staging \
   --display-name="Sandman mixed-journey staging seed" \
   --issuer-uri=https://token.actions.githubusercontent.com \
-  --attribute-mapping='google.subject="seed24:" + assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref,attribute.workflow_ref=assertion.workflow_ref,attribute.event_name=assertion.event_name' \
+  --attribute-mapping='google.subject="seed24:" + assertion.sub,attribute.ref=assertion.ref,attribute.workflow_ref=assertion.workflow_ref,attribute.event_name=assertion.event_name' \
   --attribute-condition="assertion.sub == 'repo:raulsandoval81-maker/SandmanSystem:environment:staging' && assertion.repository == 'raulsandoval81-maker/SandmanSystem' && assertion.ref == 'refs/heads/main' && assertion.workflow_ref == 'raulsandoval81-maker/SandmanSystem/.github/workflows/seed-mixed-journey-staging-roster.yml@refs/heads/main' && assertion.event_name == 'workflow_dispatch'"
 
 gcloud iam service-accounts add-iam-policy-binding \
