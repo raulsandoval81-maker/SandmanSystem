@@ -788,3 +788,58 @@ html[data-theme="light"]{
 .attendance-rank-neutral{color:var(--attendance-muted)}
 .attendance-present-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
 .attendance-present-label{font-size:.73rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:#4ade80}
+
+/* Practice Groups: readable group boundaries and contained coaching controls. */
+.training-groups{gap:24px}
+.training-group-card{
+  padding:20px;
+  border:1px solid rgba(212,175,55,.38);
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.training-group-head{
+  padding-bottom:16px;
+  margin-bottom:16px;
+  border-bottom:1px solid var(--attendance-line);
+}
+.training-group-head > div{gap:8px}
+.training-group-kicker{display:block;font-weight:850;letter-spacing:.045em}
+.training-group-head strong{
+  display:block;
+  font-size:1rem;
+  line-height:1.55;
+  overflow-wrap:anywhere;
+}
+.training-group-head small{display:block;line-height:1.55}
+.training-group-editor{border-top:0}
+.training-group-editor > summary{
+  display:block;
+  padding:12px 14px;
+  border:1px solid var(--attendance-line);
+  border-radius:10px;
+  background:var(--attendance-surface);
+  line-height:1.5;
+}
+.training-group-editor-body{display:grid;gap:20px;padding-top:18px}
+.training-group-roster{gap:10px;margin-bottom:0}
+.training-group-athlete{padding:12px;gap:14px}
+.training-group-athlete strong{line-height:1.45}
+.training-group-grid{
+  gap:16px;
+  padding:18px 0;
+  border-top:1px solid var(--attendance-line);
+  border-bottom:1px solid var(--attendance-line);
+}
+.training-group-grid label{display:grid;gap:7px;min-width:0;line-height:1.45}
+.training-carry-forward{display:grid;gap:9px;margin-top:0!important}
+.training-carry-forward textarea{width:100%;min-height:96px}
+.hybrid-attendance-sources{gap:14px}
+.hybrid-source-content{gap:16px;padding:4px 16px 16px}
+.hybrid-planning-group{gap:12px;padding:16px}
+.hybrid-planning-group-head{padding-bottom:9px;border-bottom:1px solid var(--attendance-line)}
+@media(max-width:720px){
+  .training-group-card{padding:15px}
+  .training-groups{gap:18px}
+  .training-group-grid{padding:14px 0}
+  .training-group-athlete label{flex-wrap:wrap;white-space:normal}
+  .training-group-athlete select{max-width:100%}
+}
