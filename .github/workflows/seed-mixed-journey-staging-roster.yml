@@ -3,12 +3,19 @@ name: Seed 24-Athlete Mixed-Journey Staging Roster
 on:
   workflow_dispatch:
     inputs:
+      operation:
+        description: "Choose the approved synthetic roster operation"
+        required: true
+        type: choice
+        options:
+          - seed-roster
+          - backfill-tier-display
       confirm_project:
         description: "Type sandman-combat-staging"
         required: true
         type: string
       confirm_seed:
-        description: "Type SEED-24-SYNTHETIC-WRESTLERS"
+        description: "Type the operation-specific confirmation phrase"
         required: true
         type: string
 
@@ -36,11 +43,16 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           CONFIRM_SEED: ${{ inputs.confirm_seed }}
+          OPERATION: ${{ inputs.operation }}
         run: |
           set -euo pipefail
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
-          test "${CONFIRM_SEED}" = "SEED-24-SYNTHETIC-WRESTLERS"
+          case "${OPERATION}" in
+            seed-roster) test "${CONFIRM_SEED}" = "SEED-24-SYNTHETIC-WRESTLERS" ;;
+            backfill-tier-display) test "${CONFIRM_SEED}" = "BACKFILL-21-SYNTHETIC-TIERS" ;;
+            *) exit 1 ;;
+          esac
           test "${SANDMAN_STAGING_PROJECT_ID}" = "sandman-combat-staging"
           test "${SANDMAN_STAGING_PROJECT_ID}" != "sandmandashboard"
 
@@ -70,6 +82,7 @@ jobs:
           set -euo pipefail
           node --test \
             tests/functions/staging-mixed-journey-roster.test.mjs \
+            tests/functions/staging-mixed-journey-tier-backfill.test.mjs \
             tests/functions/wrestling-staging-isolation.test.mjs \
             tests/functions/staging-mixed-journey-seed-workflow.test.mjs
 
@@ -97,18 +110,31 @@ jobs:
           test "${database_name}" = "projects/sandman-combat-staging/databases/(default)"
 
       - name: Execute existing additive synthetic roster seed once
+        if: inputs.operation == 'seed-roster'
         env:
           SANDMAN_STAGING_SEED_AUDIT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         run: node functions/scripts/seed-mixed-journey-class-staging.mjs
 
+      - name: Backfill synthetic tier display fields once
+        if: inputs.operation == 'backfill-tier-display'
+        env:
+          SANDMAN_STAGING_TIER_BACKFILL_ACK: ${{ inputs.confirm_seed }}
+        run: node functions/scripts/backfill-mixed-journey-tier-display-staging.mjs
+
       - name: Record non-sensitive workflow summary
+        env:
+          OPERATION: ${{ inputs.operation }}
         run: |
           {
             echo "### Synthetic Wrestling staging roster"
             echo "- Project: sandman-combat-staging"
-            echo "- Seed: functions/scripts/seed-mixed-journey-class-staging.mjs"
+            echo "- Operation: ${OPERATION}"
             echo "- Expected roster: 24 synthetic athletes (15 R2C / 9 P2L)"
-            echo "- Added documents: 21"
+            if test "${OPERATION}" = "seed-roster"; then
+              echo "- Additive seed target: 21 documents"
+            else
+              echo "- Tier/rank display backfill target: 21 existing documents"
+            fi
             echo "- Historical fixtures preserved: 3"
             echo "- Audit run: ${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           } >> "${GITHUB_STEP_SUMMARY}"
