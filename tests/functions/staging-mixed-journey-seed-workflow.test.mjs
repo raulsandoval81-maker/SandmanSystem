@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/seed-mixed-journey-staging-roster.yml", import.meta.url), "utf8");
+const ownerPlan = await readFile(new URL("../../docs/staging/mixed-journey-seed-wif-owner-plan.md", import.meta.url), "utf8");
 
 test("mixed-journey seed workflow is manual, protected, and staging-only", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -44,4 +45,12 @@ test("workflow pins approved seed ancestry and focused verification", () => {
   assert.match(workflow, /wrestling-staging-isolation\.test\.mjs/);
   assert.match(workflow, /staging-mixed-journey-seed-workflow\.test\.mjs/);
   assert.match(workflow, /24 synthetic athletes \(15 R2C \/ 9 P2L\)/);
+});
+
+test("dedicated provider omits repository mapping and uses the exact generated subject binding", () => {
+  assert.match(ownerPlan, /google\.subject="seed24:" \+ assertion\.sub/);
+  assert.doesNotMatch(ownerPlan, /attribute\.repository=assertion\.repository/);
+  assert.match(ownerPlan, /assertion\.repository == 'raulsandoval81-maker\/SandmanSystem'/);
+  assert.match(ownerPlan, /assertion\.sub == 'repo:raulsandoval81-maker\/SandmanSystem:environment:staging'/);
+  assert.match(ownerPlan, /subject\/seed24:repo:raulsandoval81-maker\/SandmanSystem:environment:staging/);
 });
