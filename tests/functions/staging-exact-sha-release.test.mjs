@@ -30,6 +30,7 @@ const pr133HandoffRelease = await loadRelease("hybrid-handoff-pr133-8af57906");
 const pr138CombatRelease = await loadRelease("combat-setup-pr138-ca4e23be");
 const pr150GroupsRelease = await loadRelease("tier-aware-groups-pr150-36374e8d");
 const pr152UnifiedRelease = await loadRelease("unified-hybrid-pr152-0c2dc9d8");
+const pr155AlignedRelease = await loadRelease("unified-hybrid-pr155-34fa3550");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -288,6 +289,27 @@ test("PR152 unified HYBRID release pins the merge lineage and exact deployment s
   ]);
 });
 
+test("PR155 staging retry is isolated and pinned to the corrected immutable SHA", () => {
+  const result = validateRelease(pr155AlignedRelease, context({
+    checkedOutSha: pr155AlignedRelease.applicationSha,
+    hostingDeployer: pr155AlignedRelease.hostingDeployer,
+    functionDeployer: pr155AlignedRelease.functionDeployer,
+    functionRuntime: pr155AlignedRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 155);
+  assert.equal(result.applicationSha, "34fa3550d17c351492d629cbd61b0a3ea25bb59e");
+  assert.equal(result.requiredAncestorSha, "0c2dc9d8063b7a4e6bb2405bd46306c3bbc6a445");
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/session-builder-entry-policy.test.mjs",
+    "tests/functions/session-builder-session-memory.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs",
+  ]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -350,6 +372,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /combat-setup-pr138-ca4e23be/);
   assert.match(workflow, /tier-aware-groups-pr150-36374e8d/);
   assert.match(workflow, /unified-hybrid-pr152-0c2dc9d8/);
+  assert.match(workflow, /unified-hybrid-pr155-34fa3550/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
