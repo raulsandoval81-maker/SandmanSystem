@@ -11,13 +11,17 @@ export const SESSION_ROOMS = Object.freeze([
     value: "lompoc-mat-1",
     roomId: "mat-1",
     locationId: "lompoc",
-    label: "Mat 1 · Session A"
+    environment: "mat-room",
+    area: "full-room",
+    label: "Mat Room · Full Room"
   }),
   Object.freeze({
     value: "solvang-mat-1",
     roomId: "mat-1",
     locationId: "santa-ynez-valley",
-    label: "Mat 1 · Session B"
+    environment: "mat-room",
+    area: "mat-1",
+    label: "Mat Room · Mat 1"
   })
 ]);
 

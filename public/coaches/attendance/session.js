@@ -23,9 +23,34 @@ import {
   suggestTierAwareTrainingGroups,
   validateTrainingGroupRoster
 } from "/coaches/attendance/practice-group-policy.js";
+import { renderAttendanceHybridPlanning } from "/coaches/attendance/hybrid-group-planning.js";
 
 const $ = (id) => document.getElementById(id);
 let fourGroupExceptionAcknowledged = false;
+const hybridStageState = { planningSources: {}, groupPlanning: {} };
+
+function isHybridPractice() {
+  let mode = String(activePractice?.executionMode || "").toLowerCase();
+  if (!mode) {
+    try {
+      const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+      if (String(remembered.practiceId || "") === String(activePractice?.practiceId || "")) {
+        mode = String(remembered.executionMode || "").toLowerCase();
+      }
+    } catch {}
+  }
+  return mode === "hybrid";
+}
+
+function showHybridStage() {
+  const host = $("postAttendanceHybridPlanning");
+  if (!host) return;
+  host.hidden = !isBuilderFlow() || !isHybridPractice();
+  if (host.hidden) return;
+  renderAttendanceHybridPlanning(host, captureTrainingGroups(), hybridStageState, refresh => {
+    if (refresh) showHybridStage();
+  });
+}
 
 const LADDER_BY_JOURNEY = Object.freeze({
   Z2H: LADDER_YOUTH,
@@ -82,10 +107,54 @@ function showStep(step) {
 }
 
 function setStatus(msg, isError = false) {
+  if (currentStep === 4) {
+    setPracticeContextStatus(msg, isError);
+    return;
+  }
   const el = $("sessionStatus");
   if (!el) return;
   el.textContent = msg;
   el.style.color = isError ? "#ff8a8a" : "#9ca3af";
+}
+
+function setPracticeContextStatus(msg, isError = false) {
+  const el = $("practiceContextStatus");
+  if (!el) return;
+  el.textContent = String(msg || "");
+  el.hidden = !el.textContent;
+  el.classList.toggle("is-error", isError);
+  el.setAttribute("aria-live", isError ? "assertive" : "polite");
+}
+
+function clearPracticeContextValidation() {
+  document.querySelectorAll(".training-group-card.has-validation-error").forEach((card) => {
+    card.classList.remove("has-validation-error");
+    card.querySelector(".training-tier")?.removeAttribute("aria-invalid");
+  });
+  setPracticeContextStatus("");
+}
+
+function revealUnconfirmedFocusGroups(groupIds = []) {
+  const targets = new Set(groupIds.map(String));
+  const labels = [];
+  let firstFocus = null;
+  document.querySelectorAll(".training-group-card").forEach((card, index) => {
+    const groupId = `group-${index + 1}`;
+    if (!targets.has(groupId)) return;
+    const label = `Group ${String.fromCharCode(65 + index)}`;
+    labels.push(label);
+    card.classList.add("has-validation-error");
+    const editor = card.querySelector(".training-group-editor");
+    if (editor) editor.open = true;
+    const focus = card.querySelector(".training-tier");
+    focus?.setAttribute("aria-invalid", "true");
+    firstFocus ||= focus;
+  });
+  if (firstFocus) requestAnimationFrame(() => {
+    firstFocus.scrollIntoView({ behavior: "smooth", block: "center" });
+    firstFocus.focus({ preventScroll: true });
+  });
+  return labels;
 }
 
 function athleteName(a = {}) {
@@ -879,6 +948,10 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
       </div>
 
+      <details class="training-group-editor">
+        <summary>Edit Group ${String.fromCharCode(65 + index)} assignments and instruction</summary>
+        <div class="training-group-editor-body">
+
       <div class="training-group-roster">
         ${(group.roster || []).map((athlete) => `
           <div class="training-group-athlete">
@@ -928,6 +1001,8 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         Carry Forward Note
         <textarea class="training-note" placeholder="What needs another touch next time?">${group.carryForwardNote || ""}</textarea>
       </label>
+        </div>
+      </details>
     </section>
   `).join("");
 
@@ -950,17 +1025,22 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       if (card) card.dataset.focusConfirmed = "false";
       if (rank) rank.value = rankForTier(tier.value, select.value);
       updateContextSummary();
+      showHybridStage();
     });
   });
 
   container.querySelectorAll(".training-tier").forEach((select) => {
     select.addEventListener("change", () => {
       const card = select.closest(".training-group-card");
+      card?.classList.remove("has-validation-error");
+      select.removeAttribute("aria-invalid");
+      setPracticeContextStatus("");
       const journey = card?.querySelector(".training-journey")?.value || activePractice?.journey;
       const rank = card?.querySelector(".training-rank");
       if (rank) rank.value = rankForTier(select.value, journey);
       if (card) card.dataset.focusConfirmed = String(Boolean(select.value));
       updateContextSummary();
+      showHybridStage();
     });
   });
 
@@ -988,6 +1068,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
 
   updateGroupControls();
   updateContextSummary();
+  showHybridStage();
 }
 
 function renumberTrainingGroups() {
@@ -1115,16 +1196,19 @@ function preparePracticeContext() {
   const prior = previousRouteContext();
   fourGroupExceptionAcknowledged = groups.length > NORMAL_TRAINING_GROUP_CAPACITY
     && prior.fourGroupExceptionAcknowledged === true;
-  const journeys = [...new Set(groups.map((group) => group.journey).filter(Boolean))];
-  const disciplines = [...new Set(
-    groups.map((group) => group.discipline).filter((value) => value && value !== "unassigned")
-  )];
-
-  activePractice = {
-    ...activePractice,
-    journey: journeys.length === 1 ? journeys[0] : "",
-    discipline: disciplines.length === 1 ? disciplines[0] : "unassigned"
-  };
+  // Group Journeys and instructional focus are planning attributes. They must
+  // never rewrite the server-authoritative route of the canonical practice.
+  try {
+    const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+    if (String(remembered.practiceId || "") === String(activePractice.practiceId || "")) {
+      hybridStageState.planningSources = remembered.planningSources || {
+        tierWaves: true,
+        systemSuggestions: true,
+        coachInput: true
+      };
+      hybridStageState.groupPlanning = remembered.groupPlanning || {};
+    }
+  } catch {}
 
   renderTrainingGroups(groups);
   showStep(4);
@@ -1137,6 +1221,15 @@ async function savePracticeContextToBuilderSession() {
   } catch {}
 
   const trainingGroups = captureTrainingGroups();
+  if (isHybridPractice() && !Object.keys(hybridStageState.planningSources).length) {
+    const remembered = session.practiceId === activePractice?.practiceId ? session : {};
+    hybridStageState.planningSources = remembered.planningSources || {
+      tierWaves: true,
+      systemSuggestions: true,
+      coachInput: true
+    };
+    hybridStageState.groupPlanning = remembered.groupPlanning || {};
+  }
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
   const assignedIds = trainingGroups.flatMap(g => g.athleteIds || []).map(String);
   if (assignedIds.length !== new Set(assignedIds).size ||
@@ -1188,6 +1281,19 @@ async function savePracticeContextToBuilderSession() {
     trainingSession: week,
     trainingGroups,
     fourGroupExceptionAcknowledged,
+    ...(isHybridPractice() ? {
+      planningSources: hybridStageState.planningSources,
+      groupPlanning: Object.fromEntries(trainingGroups.map(group => {
+        const priorPlanning = hybridStageState.groupPlanning[group.id] || {};
+        return [group.id, {
+          ...priorPlanning,
+          selectedWave: String(priorPlanning.instructionalTier || "").toLowerCase() === String(group.tier || "").toLowerCase()
+            ? String(priorPlanning.selectedWave || "")
+            : "",
+          instructionalTier: String(group.tier || "").toLowerCase()
+        }];
+      }))
+    } : {}),
     carryForwardNote: primary.carryForwardNote,
     practiceId: activePractice?.practiceId || session.practiceId || ""
   };
@@ -1207,30 +1313,8 @@ async function savePracticeContextToBuilderSession() {
     fourGroupExceptionAcknowledged
   }));
 
-  if (tier && activePractice?.practiceId) {
-    try {
-      const openPractice = httpsCallable(functions, "openPracticeSession");
-      await openPractice({
-        practiceId: activePractice.practiceId,
-        liveSessionId: activePractice.liveSessionId || activePractice.sessionId || "",
-        locationId: activePractice.locationId || activePractice.academyId || "",
-        academyId: activePractice.academyId || activePractice.locationId || "",
-        roomId: activePractice.roomId || "",
-        discipline: activePractice.discipline || "",
-        journey: activePractice.journey || "",
-        program: activePractice.program || "",
-        track: activePractice.track || "",
-        tier,
-        week,
-        schema: activePractice.schema || session.schema || "academy-60",
-        executionMode: activePractice.executionMode || session.executionMode || "hybrid",
-        durationMinutes: Number(activePractice.durationMinutes || session.durationMinutes || 60)
-      });
-      activePractice = { ...activePractice, tier, week };
-    } catch (error) {
-      console.warn("[session] practice tier/session sync skipped", error);
-    }
-  }
+  // Check-In continues the existing canonical practice. It must not call
+  // openPracticeSession or rewrite Journey, discipline, XP, rank, or progress.
 }
 
 function todayLabel() {
@@ -1242,7 +1326,18 @@ function todayLabel() {
     year: "numeric"
   });
 }
+let attendanceSubmissionPending = false;
+
+async function authoritativeAttendanceStatus() {
+  const snap = await getDoc(doc(db, "attendance_sessions", activePractice.practiceId));
+  return snap.exists() ? String(snap.data()?.status || "") : "";
+}
+
 async function submitForReview() {
+  if (attendanceSubmissionPending) {
+    setStatus("Attendance submission is already in progress.");
+    return;
+  }
   if (!sessionRef || !sessionId) {
     setStatus("Start a session first.", true);
     return;
@@ -1254,12 +1349,23 @@ async function submitForReview() {
   }
 
   if (isBuilderFlow()) {
+    clearPracticeContextValidation();
     const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
-    const assigned = captureTrainingGroups().flatMap(g => g.athleteIds || []).map(String);
-    if (assigned.length !== new Set(assigned).size ||
-        assigned.some(id => !rosterIds.has(id)) ||
-        new Set(assigned).size !== rosterIds.size) {
-      setStatus("Training groups must account for every checked-in athlete exactly once. Review groups before submitting.", true);
+    const rosterCheck = validateTrainingGroupRoster(captureTrainingGroups(), [...rosterIds], {
+      requireFocus: currentPlanningMode() === "hybrid",
+      fourGroupAcknowledged: fourGroupExceptionAcknowledged
+    });
+    if (!rosterCheck.ok) {
+      let message = "Training groups must account for every checked-in athlete exactly once.";
+      if (rosterCheck.fourGroupAcknowledgementRequired) {
+        message = "Acknowledge the two-class recommendation before continuing with Group D.";
+      } else if (rosterCheck.incompatibleAssignments.length) {
+        message = "Athletes may only move between groups with matching Journey, discipline, age group, practice location, and practice.";
+      } else if (rosterCheck.unresolvedFocusGroupIds.length) {
+        const labels = revealUnconfirmedFocusGroups(rosterCheck.unresolvedFocusGroupIds);
+        message = `${labels.join(" and ") || "A mixed or unverified group"}: confirm an instructional focus before continuing.`;
+      }
+      setStatus(message, true);
       return;
     }
   }
@@ -1271,8 +1377,29 @@ async function submitForReview() {
       return;
     }
   }
-  const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
-  await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
+  attendanceSubmissionPending = true;
+  try {
+    const status = await authoritativeAttendanceStatus();
+    if (status === "finalized") {
+      sessionLocked = true;
+      setStatus("Attendance is finalized. Return to Practice Operations; it cannot be submitted again.", true);
+      return;
+    }
+    if (status !== "pending_review") {
+      const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+      try {
+        await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
+      } catch (error) {
+        const latestStatus = await authoritativeAttendanceStatus();
+        if (latestStatus !== "pending_review") throw error;
+      }
+    }
+  } catch (error) {
+    setStatus(error?.message || "Could not verify attendance submission. Try again.", true);
+    return;
+  } finally {
+    attendanceSubmissionPending = false;
+  }
 
   sessionLocked = true;
 
@@ -1292,7 +1419,13 @@ async function submitForReview() {
         sessionId = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.sessionId || "");
       } catch {}
     }
-    window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
+    let executionMode = String(activePractice?.executionMode || "").toLowerCase();
+    try {
+      if (!executionMode) executionMode = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.executionMode || "manual").toLowerCase();
+    } catch {}
+    window.location.href = executionMode === "hybrid"
+      ? `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&planning=1`
+      : `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
   } else if (isBuilderFlow() && returnTarget() === "clock") {
     let sessionId = requestedSessionId();
     if (!sessionId) {
