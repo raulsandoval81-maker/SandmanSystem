@@ -696,6 +696,26 @@ html[data-theme="light"]{
 .training-group-actions button{
   border-radius:12px !important;
 }
+.four-group-warning{
+  display:grid;
+  gap:8px;
+  margin-top:12px;
+  padding:14px;
+  border:2px solid var(--attendance-gold);
+  border-radius:14px;
+  background:rgba(212,175,55,.1);
+}
+.four-group-warning[hidden]{display:none}
+.four-group-warning strong{color:var(--attendance-gold)}
+.four-group-warning p{margin:0;line-height:1.5}
+.four-group-warning label{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin:0 !important;
+  font-weight:800;
+}
+.four-group-warning input{margin-top:3px}
 @media(max-width:720px){
   .attendance-composition-banners,
   .practice-route-summary,

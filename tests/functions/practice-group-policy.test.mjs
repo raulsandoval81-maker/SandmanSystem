@@ -44,12 +44,12 @@ test("three historical fixtures receive deterministic tier-aware groups", () => 
   assert.deepEqual(groups.map((group) => group.progressionTier), ["T0", "T2", "T4"]);
 });
 
-test("ten mixed-Journey athletes preserve Journey boundaries and use at most three groups", () => {
+test("ten mixed-Journey athletes use Group D when instructional partitions require it", () => {
   const roster = ["T0", "T0", "T1", "T2", "T3", "T4"].map((tier, index) => rosterAthlete(`r2c-${index}`, tier))
     .concat(["T0", "T1", "T2", "T4"].map((tier, index) => rosterAthlete(`p2l-${index}`, tier, "P2L")));
   const groups = policy.suggestTierAwareTrainingGroups(roster);
   assertCompleteSuggestion(groups, roster);
-  assert.equal(groups.length, 3);
+  assert.equal(groups.length, 4);
   assert.equal(groups.every((group) => new Set(group.roster.map(({ journey }) => journey)).size === 1), true);
   assert.equal(groups.some((group) => group.tierStatus === "mixed" && /Provisional fallback/.test(group.instructionalRecommendation)), true);
 });
@@ -61,7 +61,7 @@ test("all 24 synthetic athletes are assigned exactly once with conservative revi
     .concat(p2lTiers.map((tier, index) => rosterAthlete(`p2l-${index}`, tier, "P2L")));
   const groups = policy.suggestTierAwareTrainingGroups(roster);
   assertCompleteSuggestion(groups, roster);
-  assert.equal(groups.length, 3);
+  assert.equal(groups.length, 4);
   for (const group of groups) {
     assert.equal(group.instructionalFocusConfirmed, false);
     assert.equal(group.tier, "");
@@ -81,18 +81,56 @@ test("missing tiers stay explicit and never inherit certified focus", () => {
   assert.equal(groups[0].tier, "");
 });
 
-test("more than three compatibility partitions never silently omit an athlete", () => {
+test("four compatible instructional partitions trigger Group D but three do not", () => {
+  const three = ["T0", "T2", "T4"].map((tier, index) => rosterAthlete(`three-${index}`, tier));
+  assert.equal(policy.suggestTierAwareTrainingGroups(three).length, policy.NORMAL_TRAINING_GROUP_CAPACITY);
+  const four = ["T0", "T1", "T2", "T4"].map((tier, index) => rosterAthlete(`four-${index}`, tier));
+  const groups = policy.suggestTierAwareTrainingGroups(four);
+  assertCompleteSuggestion(groups, four);
+  assert.equal(groups.length, policy.MAX_TRAINING_GROUPS);
+});
+
+test("seventeen mixed-room athletes deterministically use four groups", () => {
+  const roster = Array.from({ length: 10 }, (_, index) => rosterAthlete(`r2c-${index}`, `T${index % 5}`))
+    .concat(Array.from({ length: 7 }, (_, index) => rosterAthlete(`p2l-${index}`, `T${index % 5}`, "P2L")));
+  const first = policy.suggestTierAwareTrainingGroups(roster);
+  const second = policy.suggestTierAwareTrainingGroups([...roster].reverse());
+  assertCompleteSuggestion(first, roster);
+  assert.equal(first.length, 4);
+  assert.deepEqual(first.map((group) => group.roster.map((entry) => entry.tier)), second.map((group) => group.roster.map((entry) => entry.tier)));
+});
+
+test("more than four compatibility partitions never silently omit an athlete and fail closed", () => {
   const roster = [
     rosterAthlete("one", "T0", "Z2H", { discipline: "wrestling" }),
     rosterAthlete("two", "T1", "Z2H", { discipline: "boxing" }),
     rosterAthlete("three", "T2", "P2L", { discipline: "wrestling" }),
     rosterAthlete("four", "T3", "P2L", { discipline: "boxing" }),
+    rosterAthlete("five", "T4", "Q2M", { discipline: "mma", ageGroup: "Adult" }),
   ];
   const groups = policy.suggestTierAwareTrainingGroups(roster);
   assertCompleteSuggestion(groups, roster);
-  assert.equal(groups.length, 3);
+  assert.equal(groups.length, 4);
   assert.equal(groups.some(({ incompatibleOverflow }) => incompatibleOverflow), true);
   assert.equal(policy.validateTrainingGroupRoster(groups, roster.map(({ athleteId }) => athleteId)).ok, false);
+});
+
+test("four groups require Coach acknowledgement and preserve Group D restoration", () => {
+  const roster = ["T0", "T1", "T2", "T4"].map((tier, index) => rosterAthlete(`athlete-${index}`, tier));
+  const groups = policy.suggestTierAwareTrainingGroups(roster).map((group, index) => policy.normalizeTrainingGroup({
+    ...group,
+    instructionalTier: group.progressionTier,
+    instructionalFocusConfirmed: true,
+    trainingSession: String(index + 1)
+  }));
+  assert.equal(policy.validateTrainingGroupRoster(groups, roster.map(({ athleteId }) => athleteId)).ok, false);
+  const accepted = policy.validateTrainingGroupRoster(groups, roster.map(({ athleteId }) => athleteId), { fourGroupAcknowledged: true });
+  assert.equal(accepted.ok, true);
+  assert.equal(accepted.fourGroupAcknowledgementRequired, true);
+  const restored = policy.restoreCoachGroupOverrides(policy.suggestTierAwareTrainingGroups(roster), JSON.parse(JSON.stringify(groups)));
+  assert.equal(restored.length, 4);
+  assert.deepEqual(restored.map(({ athleteIds }) => athleteIds), groups.map(({ athleteIds }) => athleteIds));
+  assert.deepEqual(restored.map(({ trainingSession }) => trainingSession), ["1", "2", "3", "4"]);
 });
 
 test("Coach grouping and focus overrides restore by athlete identity rather than group position", () => {
@@ -293,7 +331,7 @@ test("established Journey and Muay Thai aliases share compatibility without weak
   assert.equal(policy.athleteCanJoinTrainingGroup(athleteEntry, target), true);
 });
 
-test("roster validation rejects duplicates, missing athletes, cross-practice IDs, unresolved focus, and more than three groups", () => {
+test("roster validation rejects duplicates, missing athletes, cross-practice IDs, unresolved focus, and more than four groups", () => {
   const confirmed = (id, roster) => policy.normalizeTrainingGroup({
     ...compatibleGroup({ id, roster, instructionalTier: "T2", instructionalFocusConfirmed: true })
   });
@@ -304,8 +342,8 @@ test("roster validation rejects duplicates, missing athletes, cross-practice IDs
   assert.deepEqual(policy.validateTrainingGroupRoster([policy.normalizeTrainingGroup(compatibleGroup({ id: "group-1", roster: [athlete("one", "")] }))], ["one"]).unresolvedFocusGroupIds, ["group-1"]);
   assert.equal(policy.validateTrainingGroupRoster([
     confirmed("group-1", [athlete("one", "T1")]),
-    confirmed("group-2", []), confirmed("group-3", []), confirmed("group-4", [])
-  ], ["one"]).ok, false);
+    confirmed("group-2", []), confirmed("group-3", []), confirmed("group-4", []), confirmed("group-5", [])
+  ], ["one"], { fourGroupAcknowledged: true }).ok, false);
 });
 
 test("roster validation reports incompatible assignments without changing progression", () => {
@@ -335,6 +373,9 @@ test("Attendance, Session Builder, Clipboard, memory, and progression boundaries
   assert.match(attendance, /<select class="training-tier">/);
   assert.match(attendance, /instructionalFocusConfirmed/);
   assert.match(attendance, /validateTrainingGroupRoster\(trainingGroups/);
+  assert.match(attendance, /fourGroupExceptionAcknowledged/);
+  assert.match(attendance, /two-class recommendation/);
+  assert.match(builder, /trainingGroups: groups/);
   assert.match(attendance, /localStorage\.setItem\("sandman_training_groups_v1"/);
   assert.match(builder, /attendanceContext\.trainingGroups/);
   assert.match(attendance, /syntheticPlacementCertified/);

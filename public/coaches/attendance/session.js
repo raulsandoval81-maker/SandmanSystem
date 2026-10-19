@@ -15,6 +15,7 @@ import {
 } from "/assets/js/ladder.service.js";
 import {
   MAX_TRAINING_GROUPS,
+  NORMAL_TRAINING_GROUP_CAPACITY,
   athleteCanJoinTrainingGroup,
   moveAthleteBetweenGroups,
   normalizeTrainingGroup,
@@ -24,6 +25,7 @@ import {
 } from "/coaches/attendance/practice-group-policy.js";
 
 const $ = (id) => document.getElementById(id);
+let fourGroupExceptionAcknowledged = false;
 
 const LADDER_BY_JOURNEY = Object.freeze({
   Z2H: LADDER_YOUTH,
@@ -854,6 +856,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     id: `group-${index + 1}`,
     label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`
   }));
+  if (groups.length <= NORMAL_TRAINING_GROUP_CAPACITY) fourGroupExceptionAcknowledged = false;
 
   container.innerHTML = groups.map((group, index) => `
     <section
@@ -997,16 +1000,24 @@ function renumberTrainingGroups() {
 
 function updateGroupControls() {
   const count = document.querySelectorAll(".training-group-card").length;
-  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= 3;
+  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= MAX_TRAINING_GROUPS;
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Rank/tier are never inferred here; Skill Card evidence must supply progression.`;
+      count < NORMAL_TRAINING_GROUP_CAPACITY
+        ? `${count} of ${NORMAL_TRAINING_GROUP_CAPACITY} normal groups in use.`
+        : count === NORMAL_TRAINING_GROUP_CAPACITY
+          ? "Three normal groups in use. Add Group D only when compatibility or instructional separation requires it."
+          : "Exceptional four-group plan. Two separate classes are recommended for optimal instruction.";
   }
+  const warning = $("fourGroupWarning");
+  const acknowledgement = $("fourGroupAcknowledgement");
+  if (warning) warning.hidden = count <= NORMAL_TRAINING_GROUP_CAPACITY;
+  if (acknowledgement) acknowledgement.checked = count > NORMAL_TRAINING_GROUP_CAPACITY && fourGroupExceptionAcknowledged;
 }
 
 function addTrainingGroup() {
   const current = captureTrainingGroups();
-  if (current.length >= 3) return;
+  if (current.length >= MAX_TRAINING_GROUPS) return;
   const previous = current[current.length - 1] || {};
   const journey = previous.journey || (/teen/i.test(previous.ageGroup || "") ? "P2L" : "Z2H");
   current.push({
@@ -1101,6 +1112,9 @@ function preparePracticeContext() {
   }
 
   const groups = suggestedTrainingGroups();
+  const prior = previousRouteContext();
+  fourGroupExceptionAcknowledged = groups.length > NORMAL_TRAINING_GROUP_CAPACITY
+    && prior.fourGroupExceptionAcknowledged === true;
   const journeys = [...new Set(groups.map((group) => group.journey).filter(Boolean))];
   const disciplines = [...new Set(
     groups.map((group) => group.discipline).filter((value) => value && value !== "unassigned")
@@ -1130,9 +1144,15 @@ async function savePracticeContextToBuilderSession() {
       rosterIds.size !== new Set(assignedIds).size) {
     throw new Error("Training group assignments do not match checked-in athletes. Review the grouping before continuing.");
   }
-  if (currentPlanningMode() === "hybrid") {
-    const groupCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds]);
-    if (!groupCheck.ok) {
+  const groupCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds], {
+    requireFocus: currentPlanningMode() === "hybrid",
+    fourGroupAcknowledged: fourGroupExceptionAcknowledged
+  });
+  if (!groupCheck.ok) {
+    if (groupCheck.fourGroupAcknowledgementRequired && !fourGroupExceptionAcknowledged) {
+      throw new Error("Acknowledge the two-class recommendation before continuing with four groups.");
+    }
+    if (currentPlanningMode() === "hybrid") {
       if (groupCheck.incompatibleAssignments.length) {
         throw new Error("Athletes may move only between groups with the same Journey, discipline, age group, location, and practice.");
       }
@@ -1141,6 +1161,7 @@ async function savePracticeContextToBuilderSession() {
       }
       throw new Error("Review the HYBRID training groups before continuing.");
     }
+    throw new Error("Review the training groups before continuing.");
   }
   const primary = trainingGroups[0] || {
     journey: normalizeJourneyCode(activePractice?.journey) || "Z2H",
@@ -1166,6 +1187,7 @@ async function savePracticeContextToBuilderSession() {
     week,
     trainingSession: week,
     trainingGroups,
+    fourGroupExceptionAcknowledged,
     carryForwardNote: primary.carryForwardNote,
     practiceId: activePractice?.practiceId || session.practiceId || ""
   };
@@ -1181,7 +1203,8 @@ async function savePracticeContextToBuilderSession() {
     discipline: activePractice?.discipline || "",
     tier,
     week,
-    trainingGroups
+    trainingGroups,
+    fourGroupExceptionAcknowledged
   }));
 
   if (tier && activePractice?.practiceId) {
@@ -1295,6 +1318,10 @@ function bindEvents() {
   $("finishContextBtn")?.addEventListener("click", submitForReview);
   $("backToReviewBtn")?.addEventListener("click", () => showStep(3));
   $("addTrainingGroupBtn")?.addEventListener("click", addTrainingGroup);
+  $("fourGroupAcknowledgement")?.addEventListener("change", (event) => {
+    fourGroupExceptionAcknowledged = event.target.checked === true;
+    updateGroupControls();
+  });
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
   $("journeyRosterFilter")?.addEventListener("change", applyFilters);

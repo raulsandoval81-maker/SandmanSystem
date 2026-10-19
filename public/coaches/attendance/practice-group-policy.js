@@ -1,4 +1,5 @@
-export const MAX_TRAINING_GROUPS = 3;
+export const NORMAL_TRAINING_GROUP_CAPACITY = 3;
+export const MAX_TRAINING_GROUPS = 4;
 
 const VALID_TIER = /^T[0-4]$/;
 
@@ -74,7 +75,6 @@ export function suggestTierAwareTrainingGroups(roster = [], options = {}) {
   const athletes = (Array.isArray(roster) ? roster : [])
     .map((athlete) => ({ ...athlete, tier: normalizeDisplayedTier(athlete?.tier) }))
     .filter((athlete) => athlete.athleteId || athlete.id);
-  const maxGroups = Math.max(1, Math.min(MAX_TRAINING_GROUPS, Number(options.maxGroups) || MAX_TRAINING_GROUPS));
   const partitions = new Map();
 
   athletes.forEach((athlete) => {
@@ -84,9 +84,16 @@ export function suggestTierAwareTrainingGroups(roster = [], options = {}) {
   });
 
   const orderedPartitions = [...partitions.values()].sort((a, b) => a.key.localeCompare(b.key));
+  const instructionalPartitionCount = orderedPartitions.reduce((count, partition) =>
+    count + new Set(partition.roster.map((athlete) => athlete.tier || "unknown")).size, 0);
+  const needsExceptionalGroup = orderedPartitions.length > NORMAL_TRAINING_GROUP_CAPACITY
+    || instructionalPartitionCount > NORMAL_TRAINING_GROUP_CAPACITY;
+  const defaultCapacity = needsExceptionalGroup ? MAX_TRAINING_GROUPS : NORMAL_TRAINING_GROUP_CAPACITY;
+  const requestedCapacity = Object.hasOwn(options, "maxGroups") ? Number(options.maxGroups) : defaultCapacity;
+  const maxGroups = Math.max(1, Math.min(MAX_TRAINING_GROUPS, requestedCapacity || defaultCapacity));
   if (orderedPartitions.length > maxGroups) {
-    // The three-group operating limit cannot truthfully represent more than
-    // three incompatible rosters. Keep every athlete visible and fail closed
+    // The exceptional four-group limit cannot truthfully represent more than
+    // four incompatible rosters. Keep every athlete visible and fail closed
     // for Coach resolution instead of dropping anyone.
     const retained = orderedPartitions.slice(0, maxGroups - 1);
     const overflow = orderedPartitions.slice(maxGroups - 1);
@@ -249,7 +256,12 @@ export function restoreCoachGroupOverrides(suggestedGroups = [], priorGroups = [
   }
 
   const normalized = restored.filter((group) => group.roster.length).map(normalizeTrainingGroup);
-  const check = validateTrainingGroupRoster(normalized, [...currentAthletes.keys()], { requireFocus: false });
+  const check = validateTrainingGroupRoster(normalized, [...currentAthletes.keys()], {
+    requireFocus: false,
+    // Restoration preserves a prior Coach layout; continuation still requires
+    // the current screen's explicit four-group acknowledgement.
+    fourGroupAcknowledged: true
+  });
   return check.ok ? normalized.map((group, index) => ({ ...group, id: `group-${index + 1}` })) : suggested;
 }
 
@@ -306,15 +318,19 @@ export function validateTrainingGroupRoster(groups = [], expectedAthleteIds = []
     .filter((athlete) => !athleteCanJoinTrainingGroup(athlete, group))
     .map((athlete) => ({ athleteId: athlete.athleteId, groupId: String(group.id || "") })));
 
+  const fourGroupAcknowledgementRequired = normalized.length > NORMAL_TRAINING_GROUP_CAPACITY;
+
   return {
     ok: normalized.length > 0 && normalized.length <= MAX_TRAINING_GROUPS
       && !duplicateIds.length && !missingIds.length && !unexpectedIds.length
-      && (options.requireFocus === false || !unresolvedFocusGroupIds.length) && !incompatibleAssignments.length,
+      && (options.requireFocus === false || !unresolvedFocusGroupIds.length) && !incompatibleAssignments.length
+      && (!fourGroupAcknowledgementRequired || options.fourGroupAcknowledged === true),
     duplicateIds,
     missingIds,
     unexpectedIds,
     unresolvedFocusGroupIds,
     incompatibleAssignments,
+    fourGroupAcknowledgementRequired,
     groupCount: normalized.length
   };
 }
