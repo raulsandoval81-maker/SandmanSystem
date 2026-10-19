@@ -14,7 +14,8 @@ test("canonical practiceId survives Clipboard, Clock, Companion, and Practice Lo
   ]);
   assert.match(clipboard, /practiceId:\s*session\.practiceId/);
   assert.match(clock, /payload\.practiceId\s*\|\|\s*session\.practiceId/);
-  assert.match(companion, /practiceId:\s*session\?\.practiceId\s*\|\|\s*""/);
+  assert.match(companion, /practiceId:\s*String\(payload\.practiceId\s*\|\|\s*live\.practiceId\s*\|\|\s*""\)\.trim\(\)/);
+  assert.match(companion, /practiceId:\s*session\.practiceId/);
   assert.match(practiceLog, /sessionSource\.practiceId\s*\|\|\s*payload\?\.practiceId/);
 });
 
