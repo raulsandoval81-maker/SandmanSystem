@@ -124,3 +124,13 @@ test("Session Builder preserves Coach edits across rerenders and labels each mod
   assert.match(builder, /reviewingPlan[\s\S]*Continue to Clipboard/);
   assert.match(css, /\.entry-mode-row\{display:grid;grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);
 });
+
+test("HYBRID instructional sources start opt-in while MANUAL remains unrestricted", () => {
+  assert.deepEqual(policy.normalizePlanningSources({}, "hybrid"), {
+    tierWaves: false, systemSuggestions: false, coachInput: false
+  });
+  assert.deepEqual(policy.enabledPlanningSources({}, "hybrid"), []);
+  assert.deepEqual(policy.enabledPlanningSources({ tierWaves: true }, "hybrid"), ["tierWaves"]);
+  const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
+  assert.match(builder, /const noHybridSources = false/);
+});
