@@ -37,6 +37,8 @@ test("Existing HYBRID plan uses canonical practice identity rather than reopenin
   assert.match(section, /practiceId:\s*activePracticeId/);
   assert.match(section, /journey:\s*String\(practice\.journey/);
   assert.match(section, /if \(reviewingExistingPlan\)\s*\{/);
-  assert.match(section, /else\s*\{\s*payload = await openCanonicalPractice\(payload\)/);
+  assert.match(section, /else\\s*\\{\\s*const verifiedCoach = await requireCoach\\(\\)/);
+  assert.match(section, /coachLabel\\?\\.dataset\\.coachUid !== verifiedCoach\\.uid/);
+  assert.match(section, /payload = await openCanonicalPractice\\(payload\\)/);
   assert.match(section, /persistSession\(payload\)/);
 });
