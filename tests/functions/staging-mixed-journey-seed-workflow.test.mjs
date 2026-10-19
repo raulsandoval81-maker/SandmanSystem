@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/seed-mixed-journey-staging-roster.yml", import.meta.url), "utf8");
+const ownerPlan = await readFile(new URL("../../docs/staging/mixed-journey-seed-wif-owner-plan.md", import.meta.url), "utf8");
 
 test("mixed-journey seed workflow is manual, protected, and staging-only", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -15,10 +16,12 @@ test("mixed-journey seed workflow is manual, protected, and staging-only", () =>
   assert.doesNotMatch(workflow, /firebase(?:-tools)?[^\n]*(?:deploy|use)/i);
 });
 
-test("workflow reuses approved WIF identity and boundary validator without credentials", () => {
+test("workflow uses its dedicated WIF provider and boundary validator without credentials", () => {
   assert.match(workflow, /permissions:\s*\n\s*contents: read\s*\n\s*id-token: write/);
   assert.match(workflow, /google-github-actions\/auth@v3/);
-  assert.match(workflow, /providers\/sandman-github-actions/);
+  assert.match(workflow, /providers\/sandman-mixed-journey-seed/);
+  assert.doesNotMatch(workflow, /providers\/sandman-github-actions/);
+  assert.doesNotMatch(workflow, /providers\/sandman-hybrid-staging/);
   assert.match(workflow, /service_account: sandman-staging-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
   assert.match(workflow, /node scripts\/staging\/verify-staging-boundary\.mjs/);
   assert.match(workflow, /sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
@@ -42,4 +45,12 @@ test("workflow pins approved seed ancestry and focused verification", () => {
   assert.match(workflow, /wrestling-staging-isolation\.test\.mjs/);
   assert.match(workflow, /staging-mixed-journey-seed-workflow\.test\.mjs/);
   assert.match(workflow, /24 synthetic athletes \(15 R2C \/ 9 P2L\)/);
+});
+
+test("dedicated provider omits repository mapping and uses the exact generated subject binding", () => {
+  assert.match(ownerPlan, /google\.subject="seed24:" \+ assertion\.sub/);
+  assert.doesNotMatch(ownerPlan, /attribute\.repository=assertion\.repository/);
+  assert.match(ownerPlan, /assertion\.repository == 'raulsandoval81-maker\/SandmanSystem'/);
+  assert.match(ownerPlan, /assertion\.sub == 'repo:raulsandoval81-maker\/SandmanSystem:environment:staging'/);
+  assert.match(ownerPlan, /subject\/seed24:repo:raulsandoval81-maker\/SandmanSystem:environment:staging/);
 });

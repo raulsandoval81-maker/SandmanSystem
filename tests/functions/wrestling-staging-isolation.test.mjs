@@ -5,6 +5,8 @@ import path from "node:path";
 import test from "node:test";
 import {
   STAGING_PROJECT_ID,
+  STAGING_SEED_WIF_PROVIDER,
+  STAGING_WIF_PROVIDER,
   STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
   verifyStagingBoundary,
 } from "../../scripts/staging/verify-staging-boundary.mjs";
@@ -137,7 +139,31 @@ test("staging boundary accepts only the approved GitHub WIF provider and deploye
     GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
   };
   assert.equal((await verifyStagingBoundary(env)).serviceAccountEmail, email);
+  await assert.rejects(verifyStagingBoundary({ ...env, SANDMAN_STAGING_WIF_PROVIDER: "projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/unapproved" }), /not approved/);
   await writeFile(credentialPath, JSON.stringify({ ...credential, audience: "//iam.googleapis.com/projects/991554514268/locations/global/workloadIdentityPools/other/providers/other" }));
+  await assert.rejects(verifyStagingBoundary(env), /provider/);
+});
+
+test("staging boundary accepts an explicitly pinned seed provider and rejects provider drift", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "sandman-staging-seed-wif-"));
+  const credentialPath = path.join(directory, "credential.json");
+  const email = "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+  const credential = {
+    type: "external_account",
+    audience: `//iam.googleapis.com/${STAGING_SEED_WIF_PROVIDER}`,
+    service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${email}:generateAccessToken`,
+  };
+  await writeFile(credentialPath, JSON.stringify(credential));
+  const env = {
+    SANDMAN_STAGING_PROJECT_ID: STAGING_PROJECT_ID,
+    SANDMAN_STAGING_ACK: STAGING_PROJECT_ID,
+    SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: email,
+    SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+    SANDMAN_STAGING_WIF_PROVIDER: STAGING_SEED_WIF_PROVIDER,
+    GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
+  };
+  assert.equal((await verifyStagingBoundary(env)).serviceAccountEmail, email);
+  await writeFile(credentialPath, JSON.stringify({ ...credential, audience: `//iam.googleapis.com/${STAGING_WIF_PROVIDER}` }));
   await assert.rejects(verifyStagingBoundary(env), /provider/);
 });
 
