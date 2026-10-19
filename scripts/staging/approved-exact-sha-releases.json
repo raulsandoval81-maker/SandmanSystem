@@ -367,5 +367,47 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "combat-setup-final-pr131-ea296f66": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 131,
+    "applicationSha": "ea296f66538aa93e11a7c793433c6eaf9732370e",
+    "requiredAncestorSha": "7c6258589af2cdaef5f8e0dbb3ec599aad74e7a7",
+    "allowedChangedFiles": [
+      "public/coaches/execution/session-builder/index.html",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "public/coaches/execution/session-builder/session-entry-policy.js",
+      "tests/functions/checkin-hybrid-clipboard-route.test.mjs",
+      "tests/functions/combined-practice-setup.test.mjs",
+      "tests/functions/verified-coach-training-environments.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
