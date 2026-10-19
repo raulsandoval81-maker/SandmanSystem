@@ -1197,7 +1197,14 @@ function todayLabel() {
     year: "numeric"
   });
 }
+let attendanceSubmissionPending = false;
+async function authoritativeAttendanceStatus() {
+  const snap = await getDoc(doc(db, "attendance_sessions", activePractice.practiceId));
+  return snap.exists() ? String(snap.data()?.status || "") : "";
+}
+
 async function submitForReview() {
+  if (attendanceSubmissionPending) return;
   if (!sessionRef || !sessionId) {
     setStatus("Start a session first.", true);
     return;
@@ -1228,8 +1235,30 @@ async function submitForReview() {
       return;
     }
   }
-  const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
-  await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
+  attendanceSubmissionPending = true;
+  try {
+    const status = await authoritativeAttendanceStatus();
+    if (status === "finalized") {
+      sessionLocked = true;
+      setStatus("Attendance is finalized. Return to Practice Operations; it cannot be submitted again.", true);
+      return;
+    }
+    if (status !== "pending_review") {
+      const updateCheckIn = httpsCallable(functions, "updatePracticeCheckIn");
+      try {
+        await updateCheckIn({ practiceId: activePractice.practiceId, action: "submit" });
+      } catch (error) {
+        // If another request submitted attendance, verify canonical state before resuming.
+        const latestStatus = await authoritativeAttendanceStatus();
+        if (latestStatus !== "pending_review") throw error;
+      }
+    }
+  } catch (error) {
+    setStatus(error?.message || "Could not verify attendance submission. Try again.", true);
+    return;
+  } finally {
+    attendanceSubmissionPending = false;
+  }
 
   sessionLocked = true;
 
