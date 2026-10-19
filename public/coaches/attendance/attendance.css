@@ -628,6 +628,39 @@ html[data-theme="light"]{
   font-size:.9rem;
   line-height:1.35;
 }
+.training-group-roster{
+  display:grid;
+  gap:8px;
+  margin-bottom:12px;
+}
+.training-group-athlete{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 10px;
+  border:1px solid var(--attendance-line);
+  border-radius:10px;
+  background:rgba(0,0,0,.16);
+}
+.training-group-athlete > span{
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+.training-group-athlete small{
+  color:var(--attendance-muted);
+}
+.training-group-athlete label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin:0 !important;
+  white-space:nowrap;
+}
+.training-group-athlete select{
+  min-width:108px;
+}
 .remove-training-group{
   min-height:32px !important;
   padding:5px 10px !important;
@@ -663,6 +696,26 @@ html[data-theme="light"]{
 .training-group-actions button{
   border-radius:12px !important;
 }
+.four-group-warning{
+  display:grid;
+  gap:8px;
+  margin-top:12px;
+  padding:14px;
+  border:2px solid var(--attendance-gold);
+  border-radius:14px;
+  background:rgba(212,175,55,.1);
+}
+.four-group-warning[hidden]{display:none}
+.four-group-warning strong{color:var(--attendance-gold)}
+.four-group-warning p{margin:0;line-height:1.5}
+.four-group-warning label{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin:0 !important;
+  font-weight:800;
+}
+.four-group-warning input{margin-top:3px}
 @media(max-width:720px){
   .attendance-composition-banners,
   .practice-route-summary,
@@ -674,6 +727,13 @@ html[data-theme="light"]{
     flex-direction:column;
   }
   .training-group-actions button{width:100%}
+  .training-group-athlete{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .training-group-athlete label{
+    justify-content:space-between;
+  }
 }
 
 
