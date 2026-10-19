@@ -646,6 +646,38 @@ html[data-theme="light"]{
   font-weight:900;
 }
 .training-group-editor-body{padding-top:12px}
+.training-group-card.has-validation-error{
+  border-color:#ff8a8a;
+  box-shadow:0 0 0 2px rgba(255,138,138,.16);
+}
+.training-group-card.has-validation-error .training-group-editor > summary{color:#ffb1b1}
+.practice-context-submit{
+  display:grid;
+  justify-items:end;
+  gap:8px;
+  max-width:min(100%,520px);
+}
+.practice-context-status{
+  margin:0;
+  padding:9px 11px;
+  border:1px solid var(--attendance-line);
+  border-radius:10px;
+  background:var(--attendance-surface);
+  color:var(--attendance-muted);
+  font-size:.8rem;
+  font-weight:750;
+  line-height:1.4;
+  text-align:left;
+}
+.practice-context-status.is-error{
+  border-color:rgba(255,138,138,.72);
+  background:rgba(127,29,29,.2);
+  color:#ffb1b1;
+}
+@media(max-width:560px){
+  .practice-context-submit{width:100%;justify-items:stretch}
+  .practice-context-submit .primary{width:100%}
+}
 .training-group-roster{
   display:grid;
   gap:8px;

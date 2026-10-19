@@ -11,7 +11,7 @@ test("duplicate submit is avoided on canonical pending_review and finalized fail
   assert.match(submit, /status === "finalized"/);
   assert.match(submit, /status !== "pending_review"/);
   assert.match(submit, /latestStatus !== "pending_review"/);
-  assert.match(submit, /if \(attendanceSubmissionPending\) return/);
+  assert.match(submit, /if \(attendanceSubmissionPending\) \{[\s\S]*Attendance submission is already in progress\.[\s\S]*return;/);
 });
 test("existing builder flow still routes to hybrid planning with same practice", () => {
   assert.match(submit, /executionMode === "hybrid"/);

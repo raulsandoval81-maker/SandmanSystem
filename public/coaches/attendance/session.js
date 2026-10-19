@@ -101,10 +101,56 @@ function showStep(step) {
 }
 
 function setStatus(msg, isError = false) {
+  if (currentStep === 4) {
+    setPracticeContextStatus(msg, isError);
+    return;
+  }
   const el = $("sessionStatus");
   if (!el) return;
   el.textContent = msg;
   el.style.color = isError ? "#ff8a8a" : "#9ca3af";
+}
+
+function setPracticeContextStatus(msg, isError = false) {
+  const el = $("practiceContextStatus");
+  if (!el) return;
+  el.textContent = String(msg || "");
+  el.hidden = !el.textContent;
+  el.classList.toggle("is-error", isError);
+  el.setAttribute("aria-live", isError ? "assertive" : "polite");
+}
+
+function clearPracticeContextValidation() {
+  document.querySelectorAll(".training-group-card.has-validation-error").forEach((card) => {
+    card.classList.remove("has-validation-error");
+    card.querySelector(".training-tier")?.removeAttribute("aria-invalid");
+  });
+  setPracticeContextStatus("");
+}
+
+function revealUnconfirmedFocusGroups(groupIds = []) {
+  const targets = new Set(groupIds.map(String));
+  const labels = [];
+  let firstFocus = null;
+  document.querySelectorAll(".training-group-card").forEach((card, index) => {
+    const groupId = `group-${index + 1}`;
+    if (!targets.has(groupId)) return;
+    const label = `Group ${String.fromCharCode(65 + index)}`;
+    labels.push(label);
+    card.classList.add("has-validation-error");
+    const editor = card.querySelector(".training-group-editor");
+    if (editor) editor.open = true;
+    const focus = card.querySelector(".training-tier");
+    focus?.setAttribute("aria-invalid", "true");
+    firstFocus ||= focus;
+  });
+  if (firstFocus) {
+    requestAnimationFrame(() => {
+      firstFocus.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstFocus.focus({ preventScroll: true });
+    });
+  }
+  return labels;
 }
 
 function athleteName(a = {}) {
@@ -955,6 +1001,9 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
     select.addEventListener("change", () => {
       const card = select.closest(".training-group-card");
       if (card) card.dataset.focusConfirmed = select.value ? "true" : "false";
+      card?.classList.remove("has-validation-error");
+      select.removeAttribute("aria-invalid");
+      setPracticeContextStatus("");
       const journey = card?.querySelector(".training-journey")?.value || activePractice?.journey;
       const rank = card?.querySelector(".training-rank");
       if (rank) rank.value = rankForTier(select.value, journey);
@@ -1218,7 +1267,10 @@ async function authoritativeAttendanceStatus() {
 }
 
 async function submitForReview() {
-  if (attendanceSubmissionPending) return;
+  if (attendanceSubmissionPending) {
+    setStatus("Attendance submission is already in progress.");
+    return;
+  }
   if (!sessionRef || !sessionId) {
     setStatus("Start a session first.", true);
     return;
@@ -1230,14 +1282,18 @@ async function submitForReview() {
   }
 
   if (isBuilderFlow()) {
+    clearPracticeContextValidation();
     const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
     const rosterCheck = validateTrainingGroupRoster(captureTrainingGroups(), [...rosterIds]);
     if (!rosterCheck.ok) {
-      setStatus(rosterCheck.incompatibleAssignments.length
-        ? "Athletes may only move between groups with matching Journey, discipline, age group, practice location, and practice."
-        : rosterCheck.unresolvedFocusGroupIds.length
-        ? "Confirm an instructional focus for every mixed or unverified group before submitting."
-        : "Training groups must account for every checked-in athlete exactly once in no more than three groups.", true);
+      let message = "Training groups must account for every checked-in athlete exactly once in no more than three groups.";
+      if (rosterCheck.incompatibleAssignments.length) {
+        message = "Athletes may only move between groups with matching Journey, discipline, age group, practice location, and practice.";
+      } else if (rosterCheck.unresolvedFocusGroupIds.length) {
+        const labels = revealUnconfirmedFocusGroups(rosterCheck.unresolvedFocusGroupIds);
+        message = `${labels.join(" and ") || "A mixed or unverified group"}: confirm an instructional focus before continuing.`;
+      }
+      setStatus(message, true);
       return;
     }
   }
