@@ -24,6 +24,6 @@ test("handoff reports its stage and restores the correct action on failure", () 
   assert.match(click, /Verifying existing practice…/);
   assert.match(click, /Opening Clipboard…/);
   assert.match(click, /console\.error\("Session entry failed", error\)/);
-  assert.match(click, /get\("planning"\) === "1" \? "Accept Plan and Continue to Clipboard" : "Continue to Attendance"/);
+  assert.match(click, /canonicalPracticeRestored && Boolean\(activePracticeId\) && hybridReviewRequested \? "Accept Plan and Continue to Clipboard" : "Continue to Attendance"/);
   assert.match(click, /window\.location\.href = `\/coaches\/execution\/clipboard-2\.0\/\?session=/);
 });

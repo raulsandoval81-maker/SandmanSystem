@@ -408,6 +408,10 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
 .hybrid-planning-panel{grid-column:1/-1;padding:20px;border:1px solid var(--gold-line);border-radius:15px;background:var(--soft-surface)}
 .hybrid-planning-panel .compact-heading{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
 .hybrid-planning-panel h3{font-size:1.18rem;color:var(--gold)}
+.hybrid-review-state #practiceContextScreen{margin-top:0;padding-top:0;border-top:0}
+.hybrid-review-state .dashboard-header{border-color:var(--gold-line);background:linear-gradient(145deg,var(--panel),var(--soft-surface))}
+.hybrid-review-state .dashboard-header h1{color:var(--gold)}
+.hybrid-review-state .context-layout{margin-top:0}
 .planning-source-grid{gap:12px}
 .planning-source-grid label{min-height:74px;padding:13px;border:1px solid var(--line)}
 .planning-source-grid label:has(input:checked){border-color:var(--gold-line);background:var(--gold-soft)}

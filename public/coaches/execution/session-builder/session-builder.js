@@ -80,6 +80,12 @@ const hybridPlanningPanel = document.getElementById("hybridPlanningPanel");
 const hybridGroupPlanning = document.getElementById("hybridGroupPlanning");
 const planningSourceStatus = document.getElementById("planningSourceStatus");
 const planningSourceInputs = [...document.querySelectorAll("[data-planning-source]")];
+const sessionBuilderHeading = document.getElementById("sessionBuilderHeading");
+const sessionBuilderLead = document.getElementById("sessionBuilderLead");
+const practiceContextIntro = document.getElementById("practiceContextIntro");
+const practiceRoutingControls = document.getElementById("practiceRoutingControls");
+const pageSearchParams = new URLSearchParams(window.location.search);
+const hybridReviewRequested = pageSearchParams.get("planning") === "1";
 
 let selectedSessionType = "academy";
 let selectedDuration = 60;
@@ -94,8 +100,26 @@ let suggestedTier = "";
 let suggestedWeek = "";
 let planningSources = { ...DEFAULT_HYBRID_PLANNING_SOURCES };
 let groupPlanningDraft = {};
+let canonicalPracticeRestored = false;
+let practiceRestoreFailed = false;
 const groupWaveModels = new Map();
 const MIXED_JOURNEY = "__mixed__";
+
+function setHybridReviewPresentation(active) {
+  const enabled = Boolean(active && canonicalPracticeRestored && selectedMode === "hybrid" && activePracticeId);
+  document.body.classList.toggle("hybrid-review-state", enabled);
+  if (guidedSetupScreen) guidedSetupScreen.hidden = enabled;
+  if (practiceContextIntro) practiceContextIntro.hidden = enabled;
+  if (practiceRoutingControls) practiceRoutingControls.hidden = enabled;
+  if (sessionBuilderHeading) {
+    sessionBuilderHeading.textContent = enabled ? "HYBRID — Review Group Lessons" : "Session Builder · Practice Setup";
+  }
+  if (sessionBuilderLead) {
+    sessionBuilderLead.textContent = enabled
+      ? "Review each checked-in group’s lesson sources, then accept the plan for Clipboard."
+      : "Plan the shell. Build the practice in Clipboard.";
+  }
+}
 
 function readJson(key, fallback = null) {
   try {
@@ -191,8 +215,8 @@ function readPlanningSources() {
 
 async function renderHybridPlanning() {
   if (!hybridPlanningPanel) return;
-  const reviewingCheckedInPlan = selectedMode === "hybrid" && Boolean(activePracticeId)
-    && new URLSearchParams(window.location.search).get("planning") === "1";
+  const reviewingCheckedInPlan = canonicalPracticeRestored && selectedMode === "hybrid"
+    && Boolean(activePracticeId) && hybridReviewRequested;
   hybridPlanningPanel.hidden = !reviewingCheckedInPlan;
   if (!reviewingCheckedInPlan) return;
   planningSources = readPlanningSources();
@@ -695,14 +719,17 @@ function updateSummary() {
 
   const noHybridSources = selectedMode === "hybrid" && enabledPlanningSources(readPlanningSources()).length === 0;
   const autoBlocked = selectedMode === "auto";
-  const reviewingPlan = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1";
+  const reviewingPlan = canonicalPracticeRestored && Boolean(activePracticeId) && hybridReviewRequested;
   const rememberedGroups = readJson(SESSION_KEY, {})?.trainingGroups || [];
   const unresolvedGroupFocus = reviewingPlan && rememberedGroups.some((group) =>
     Array.isArray(group?.athleteIds) && group.athleteIds.length && !String(group?.tier || "").trim()
   );
-  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked || unresolvedGroupFocus;
+  const reviewRestoreBlocked = hybridReviewRequested && !canonicalPracticeRestored;
+  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked || unresolvedGroupFocus || reviewRestoreBlocked;
   buildBtn.textContent = autoBlocked
     ? "AUTO Awaiting Certified Authorization"
+    : reviewRestoreBlocked
+      ? practiceRestoreFailed ? "Practice Review Unavailable" : "Restoring Practice…"
     : unresolvedGroupFocus
       ? "Confirm Group Instructional Focus"
     : reviewingPlan && selectedMode === "hybrid"
@@ -730,6 +757,7 @@ async function showVerifiedLeadCoach() {
 }
 
 function showPrePracticeSetup() {
+  setHybridReviewPresentation(false);
   if (currentSessionSection) currentSessionSection.hidden = true;
   if (newSessionSection) newSessionSection.hidden = false;
   if (guidedSetupScreen) guidedSetupScreen.hidden = false;
@@ -1094,6 +1122,8 @@ async function openCanonicalPractice(payload) {
 }
 
 async function restoreCanonicalPractice(practiceId) {
+  canonicalPracticeRestored = false;
+  practiceRestoreFailed = false;
   await requireCoach();
   showPrePracticeSetup();
   const getPractice = httpsCallable(functions, "getPracticeSession");
@@ -1135,9 +1165,14 @@ async function restoreCanonicalPractice(practiceId) {
   }
   refreshFocusSuggestion({ apply: false });
   roomSelect.disabled = true;
-  await refreshHybridAvailability();
   showPrePracticeSetup();
-  document.getElementById("dashboardNotice").textContent = "Existing practice restored. Review its setup and continue with the same practice.";
+  canonicalPracticeRestored = true;
+  await refreshHybridAvailability();
+  setHybridReviewPresentation(hybridReviewRequested);
+  updateSummary();
+  document.getElementById("dashboardNotice").textContent = hybridReviewRequested && selectedMode === "hybrid"
+    ? "Existing practice restored. Review the checked-in group lessons and continue with the same practice."
+    : "Existing practice restored. Review its setup and continue with the same practice.";
   document.getElementById("dashboardNotice").hidden = false;
 }
 
@@ -1206,6 +1241,17 @@ document.getElementById("discardDraftBtn")?.addEventListener("click", () => {
 });
 
 buildBtn.addEventListener("click", async () => {
+  if (hybridReviewRequested && !canonicalPracticeRestored) {
+    const message = practiceRestoreFailed
+      ? "The canonical practice could not be restored. Return to Practice Groups and try again."
+      : "Wait for the canonical practice to finish restoring before reviewing this plan.";
+    const buildError = document.getElementById("buildError");
+    if (buildError) {
+      buildError.textContent = message;
+      buildError.hidden = false;
+    }
+    return;
+  }
   const existingDraft = getRecoverableDraft();
   if (existingDraft && !window.confirm("Starting a new session will replace the unfinished Clipboard draft. Continue?")) return;
   let payload = createSessionPayload();
@@ -1227,8 +1273,8 @@ buildBtn.addEventListener("click", async () => {
     } else {
       payload = await resolveGroupPrescriptions(payload);
     }
-    const reviewingExistingPlan = Boolean(activePracticeId)
-      && new URLSearchParams(window.location.search).get("planning") === "1";
+    const reviewingExistingPlan = canonicalPracticeRestored && Boolean(activePracticeId)
+      && hybridReviewRequested;
     if (reviewingExistingPlan) {
       // The practice was already opened and checked in. Lesson acceptance
       // must not call openPracticeSession again with the builder's blank Journey.
@@ -1268,7 +1314,7 @@ buildBtn.addEventListener("click", async () => {
     persistSession(payload);
 
     const historical = String(practiceEntryIntent().mode || "") === "after-the-fact";
-    const reviewingHybridPlan = selectedMode === "hybrid" && new URLSearchParams(window.location.search).get("planning") === "1";
+    const reviewingHybridPlan = canonicalPracticeRestored && selectedMode === "hybrid" && hybridReviewRequested;
     const attendanceFirstId = sessionStorage.getItem("sandman_attendance_first_practice_id");
     if (historical) {
       sessionStorage.removeItem(PRACTICE_ENTRY_KEY);
@@ -1291,7 +1337,7 @@ buildBtn.addEventListener("click", async () => {
       buildError.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     buildBtn.disabled = false;
-    buildBtn.textContent = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1" ? "Accept Plan and Continue to Clipboard" : "Continue to Attendance";
+    buildBtn.textContent = canonicalPracticeRestored && Boolean(activePracticeId) && hybridReviewRequested ? "Accept Plan and Continue to Clipboard" : "Continue to Attendance";
   }
 });
 
@@ -1307,7 +1353,7 @@ updateModeButtons();
 updateConditionalControls();
 renderDraft();
 
-const searchParams = new URLSearchParams(window.location.search);
+const searchParams = pageSearchParams;
 const notice = searchParams.get("notice");
 if (searchParams.get("from") === "practice-entry") {
   const entry = practiceEntryIntent();
@@ -1336,9 +1382,13 @@ const requestedPracticeId = String(new URLSearchParams(window.location.search).g
 if (requestedPracticeId) {
   restoreCanonicalPractice(requestedPracticeId).catch((error) => {
     console.error("Practice restore failed", error);
+    canonicalPracticeRestored = false;
+    practiceRestoreFailed = true;
+    setHybridReviewPresentation(false);
     const noticeEl = document.getElementById("dashboardNotice");
     noticeEl.textContent = error?.message || "Could not restore the canonical practice.";
     noticeEl.hidden = false;
+    updateSummary();
     refreshHybridAvailability();
   });
 } else {

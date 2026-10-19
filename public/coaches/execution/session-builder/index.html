@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261018-hierarchy1">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261018-hybrid-review1">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
 <main class="dashboard-wrap" data-coach-shell-content>
   <header class="dashboard-header">
     <div>
-      <h1>Session Builder · Practice Setup</h1>
-      <p>Plan the shell. Build the practice in Clipboard.</p>
+      <h1 id="sessionBuilderHeading">Session Builder · Practice Setup</h1>
+      <p id="sessionBuilderLead">Plan the shell. Build the practice in Clipboard.</p>
     </div>
   </header>
 
@@ -81,17 +81,19 @@
       </div>
     </div>
     <div id="practiceContextScreen" aria-label="Discipline and lesson planning">
-      <p class="eyebrow">II — Discipline &amp; Roster</p>
-      <div class="screen-heading">
-        <div>
-                    <h2>Discipline &amp; Check-In Roster</h2>
-          <p id="contextLead">Choose the discipline. Attendance will use the checked-in athlete data to determine groups, journeys, and skills.</p>
-        </div>
+      <div id="practiceContextIntro">
+        <p class="eyebrow">II — Discipline &amp; Roster</p>
+        <div class="screen-heading">
+          <div>
+            <h2>Discipline &amp; Check-In Roster</h2>
+            <p id="contextLead">Choose the discipline. Attendance will use the checked-in athlete data to determine groups, journeys, and skills.</p>
+          </div>
 
+        </div>
       </div>
 
       <div class="context-layout">
-        <div class="details-panel context-details">
+        <div id="practiceRoutingControls" class="details-panel context-details">
           <div class="field" id="disciplineField">
             <label for="disciplineFamilySelect">Discipline</label>
             <select id="disciplineFamilySelect" class="dashboard-select">
@@ -147,6 +149,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261018-1"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261018-hybrid-review1"></script>
 </body>
 </html>
