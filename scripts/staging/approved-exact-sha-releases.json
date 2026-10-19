@@ -694,5 +694,71 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "unified-hybrid-pr152-0c2dc9d8": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 152,
+    "applicationSha": "0c2dc9d8063b7a4e6bb2405bd46306c3bbc6a445",
+    "requiredAncestorSha": "d4720ee180ff0508b4402aa3231d0c77b8cb1d8d",
+    "allowedChangedFiles": [
+      ".github/workflows/deploy-sandman-hosting.yml",
+      "functions/src/practice/practiceSessions.ts",
+      "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js",
+      "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js",
+      "public/coaches/attendance/attendance.css",
+      "public/coaches/attendance/hybrid-group-planning.js",
+      "public/coaches/attendance/session.html",
+      "public/coaches/attendance/session.js",
+      "public/coaches/execution/big-clock-2.0/big-clock-2.0.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "public/coaches/execution/session-builder/hybrid-planning-policy.js",
+      "public/coaches/execution/session-builder/index.html",
+      "public/coaches/execution/session-builder/session-builder.css",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "public/coaches/execution/session-builder/session-entry-policy.js",
+      "tests/functions/attendance-step3-status.test.mjs",
+      "tests/functions/attendance-submitted-resume.test.mjs",
+      "tests/functions/checkin-hybrid-clipboard-route.test.mjs",
+      "tests/functions/combined-practice-setup.test.mjs",
+      "tests/functions/hybrid-clipboard-handoff-recovery.test.mjs",
+      "tests/functions/hybrid-review-presentation.test.mjs",
+      "tests/functions/hybrid-session-planning-policy.test.mjs",
+      "tests/functions/post-attendance-hybrid-placement.test.mjs",
+      "tests/functions/road2champion-wrestling-tier-waves.test.mjs",
+      "tests/functions/verified-coach-training-environments.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [
+      "savePracticeSessionMemory",
+      "closePracticeSession"
+    ],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    }
   }
 }
