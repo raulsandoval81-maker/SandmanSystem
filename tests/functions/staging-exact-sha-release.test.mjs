@@ -28,6 +28,7 @@ const finalCombatRelease = await loadRelease("combat-setup-regexfix-pr129-b7545f
 const pr131Release = await loadRelease("combat-setup-final-pr131-ea296f66");
 const pr133HandoffRelease = await loadRelease("hybrid-handoff-pr133-8af57906");
 const pr138CombatRelease = await loadRelease("combat-setup-pr138-ca4e23be");
+const pr150GroupsRelease = await loadRelease("tier-aware-groups-pr150-36374e8d");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -221,6 +222,28 @@ test("PR138 Combat release pins the reviewed lineage as Hosting-only", () => {
   ]);
 });
 
+test("PR150 tier-aware groups release pins the merged five-file Hosting-only change", () => {
+  const result = validateRelease(pr150GroupsRelease, context({
+    checkedOutSha: pr150GroupsRelease.applicationSha,
+    hostingDeployer: pr150GroupsRelease.hostingDeployer,
+    functionDeployer: pr150GroupsRelease.functionDeployer,
+    functionRuntime: pr150GroupsRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 150);
+  assert.equal(result.applicationSha, "36374e8d806513503868ae8a664cddae7780eea9");
+  assert.equal(result.requiredAncestorSha, "21824f473f0b942ed3353bd00a0015c966c98148");
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.hosting, true);
+  assert.deepEqual(result.functions, []);
+  assert.deepEqual(result.allowedChangedFiles, [
+    "public/coaches/attendance/attendance.css",
+    "public/coaches/attendance/practice-group-policy.js",
+    "public/coaches/attendance/session.html",
+    "public/coaches/attendance/session.js",
+    "tests/functions/practice-group-policy.test.mjs",
+  ]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -281,9 +304,13 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /approved-release-files/);
   assert.match(workflow, /r2c-wrestling-waves-pr115-18d46b08/);
   assert.match(workflow, /combat-setup-pr138-ca4e23be/);
+  assert.match(workflow, /tier-aware-groups-pr150-36374e8d/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
+  assert.match(workflow, /MAX_TRAINING_GROUPS = 4/);
+  assert.match(workflow, /fourGroupAcknowledgement/);
+  assert.match(workflow, /! grep -q 'trainingGroups\.slice\(0, 3\)'/);
   assert.match(workflow, /road2champion-wrestling-tier-wave-crosswalk\.js/);
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /refs\/heads\/main/);

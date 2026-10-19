@@ -25,6 +25,7 @@ on:
           - checkin-hybrid-pr140-59632c80
           - hybrid-review-pr142-bd0e1f2e
           - checkin-step3-pr144-f87dc84b
+          - tier-aware-groups-pr150-36374e8d
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -268,12 +269,26 @@ jobs:
           if test "${RELEASE_ID}" = "combat-setup-pr138-ca4e23be"; then
             node --test application-source/tests/functions/attendance-submitted-resume.test.mjs
           fi
+          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d"; then
+            node --test application-source/tests/functions/checkin-hybrid-clipboard-route.test.mjs
+            node --test application-source/tests/functions/post-attendance-hybrid-placement.test.mjs
+            node --test application-source/tests/functions/hybrid-clipboard-handoff-recovery.test.mjs
+            node --test application-source/tests/functions/attendance-submitted-resume.test.mjs
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
           grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
           grep -q 'planning=1' application-source/public/coaches/attendance/session.js
-          grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
+          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d"; then
+            grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3' application-source/public/coaches/attendance/practice-group-policy.js
+            grep -q 'MAX_TRAINING_GROUPS = 4' application-source/public/coaches/attendance/practice-group-policy.js
+            grep -q 'fourGroupAcknowledgement' application-source/public/coaches/attendance/session.html
+            grep -q 'trainingGroups: groups' application-source/public/coaches/execution/session-builder/session-builder.js
+            ! grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
+          else
+            grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
+          fi
           grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
       - name: Session Builder memory inherited baseline (reported, not release-gating)
         id: session-memory-baseline
