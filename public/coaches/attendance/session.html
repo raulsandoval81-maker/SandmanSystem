@@ -7,7 +7,7 @@
   <title>Athlete Check-In | Sandman Combat</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3" />
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261018-2" />
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=20261018-step3-status1" />
 </head>
 
 <body class="coach-shell-page attendance-checkin" data-coach-page="Athlete Check-In" data-coach-area="practice">
@@ -120,13 +120,16 @@
 
         <div class="screen-actions screen-actions--split">
           <button id="backToReviewBtn" type="button">← Review Attendance</button>
-          <button id="finishContextBtn" class="primary" type="button">Continue to Clipboard</button>
+          <div class="practice-context-submit">
+            <p id="practiceContextStatus" class="practice-context-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
+            <button id="finishContextBtn" class="primary" type="button" aria-describedby="practiceContextStatus">Continue to Clipboard</button>
+          </div>
         </div>
       </section>
     </section>
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261018-2"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261018-step3-status1"></script>
 </body>
 </html>
