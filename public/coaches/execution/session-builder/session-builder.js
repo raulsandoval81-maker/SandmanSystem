@@ -1216,7 +1216,7 @@ buildBtn.addEventListener("click", async () => {
     buildError.textContent = "";
   }
   buildBtn.disabled = true;
-  buildBtn.textContent = "Opening practice…";
+  buildBtn.textContent = "Preparing lesson…";
   try {
     // Session entry is NOT AUTO lesson authorization. Attendance must happen
     // first; no browser-produced group prescription can authorize AUTO.
@@ -1232,7 +1232,8 @@ buildBtn.addEventListener("click", async () => {
     if (reviewingExistingPlan) {
       // The practice was already opened and checked in. Lesson acceptance
       // must not call openPracticeSession again with the builder's blank Journey.
-      const getPractice = httpsCallable(functions, "getPracticeSession");
+      buildBtn.textContent = "Verifying existing practice…";
+      const getPractice = httpsCallable(functions, "getPracticeSession", { timeout: 15000 });
       const response = await getPractice({ practiceId: activePracticeId });
       const practice = response.data?.practice || {};
       if (String(practice.status || "").toLowerCase() !== "active") {
@@ -1260,8 +1261,10 @@ buildBtn.addEventListener("click", async () => {
       if (!verifiedCoach.uid || coachLabel?.dataset.coachUid !== verifiedCoach.uid) {
         throw new Error("Lead Coach verification is incomplete. Reopen Practice Setup.");
       }
+      buildBtn.textContent = "Opening practice…";
       payload = await openCanonicalPractice(payload);
     }
+    buildBtn.textContent = "Opening Clipboard…";
     persistSession(payload);
 
     const historical = String(practiceEntryIntent().mode || "") === "after-the-fact";
@@ -1288,7 +1291,7 @@ buildBtn.addEventListener("click", async () => {
       buildError.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     buildBtn.disabled = false;
-    buildBtn.textContent = "Continue to Attendance";
+    buildBtn.textContent = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1" ? "Accept Plan and Continue to Clipboard" : "Continue to Attendance";
   }
 });
 
