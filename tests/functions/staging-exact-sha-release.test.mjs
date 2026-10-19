@@ -27,6 +27,7 @@ const correctedCombatRelease = await loadRelease("combat-setup-fixed-pr127-fcd6f
 const finalCombatRelease = await loadRelease("combat-setup-regexfix-pr129-b7545f30");
 const pr131Release = await loadRelease("combat-setup-final-pr131-ea296f66");
 const pr133HandoffRelease = await loadRelease("hybrid-handoff-pr133-8af57906");
+const pr138CombatRelease = await loadRelease("combat-setup-pr138-ca4e23be");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -202,6 +203,24 @@ test("PR133 HYBRID handoff release stays scoped to staged Hosting changes", () =
   ]);
 });
 
+test("PR138 Combat release pins the reviewed lineage as Hosting-only", () => {
+  assert.equal(pr138CombatRelease.applicationSha, "ca4e23bec9ae63f162d690b20249133281755ea9");
+  assert.equal(pr138CombatRelease.requiredAncestorSha, finalCombatRelease.applicationSha);
+  assert.equal(pr138CombatRelease.sourcePr, 138);
+  assert.equal(pr138CombatRelease.projectId, "sandman-combat-staging");
+  assert.equal(pr138CombatRelease.hosting, true);
+  assert.deepEqual(pr138CombatRelease.functions, []);
+  assert.deepEqual(pr138CombatRelease.allowedChangedFiles, [
+    "public/coaches/attendance/session.js",
+    "public/coaches/execution/session-builder/index.html",
+    "public/coaches/execution/session-builder/session-builder.css",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "tests/functions/attendance-submitted-resume.test.mjs",
+    "tests/functions/combined-practice-setup.test.mjs",
+    "tests/functions/hybrid-clipboard-handoff-recovery.test.mjs"
+  ]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -261,7 +280,10 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /merge-base --is-ancestor/);
   assert.match(workflow, /approved-release-files/);
   assert.match(workflow, /r2c-wrestling-waves-pr115-18d46b08/);
+  assert.match(workflow, /combat-setup-pr138-ca4e23be/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
+  assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
+  assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
   assert.match(workflow, /road2champion-wrestling-tier-wave-crosswalk\.js/);
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /refs\/heads\/main/);
