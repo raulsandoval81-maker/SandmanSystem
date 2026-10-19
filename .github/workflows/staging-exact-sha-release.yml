@@ -244,6 +244,11 @@ jobs:
           # "Could not find" message. Do not skip any required regression test.
           echo "Pinned application revision: $(git -C application-source rev-parse HEAD)"
           git -C application-source ls-files --error-unmatch tests/functions/practice-group-policy.test.mjs
+          # Restore this test only from the same approved immutable commit if
+          # the runner worktree lost it; never fetch unreviewed code or skip it.
+          if ! test -f application-source/tests/functions/practice-group-policy.test.mjs; then
+            git -C application-source restore --source=HEAD --worktree -- tests/functions/practice-group-policy.test.mjs
+          fi
           test -f application-source/tests/functions/practice-group-policy.test.mjs || {
             echo "::error::Required practice-group-policy test is absent from immutable source checkout."
             git -C application-source ls-tree -r --name-only HEAD tests/functions | grep -E 'group|practice' || true
