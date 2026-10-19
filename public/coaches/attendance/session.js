@@ -13,6 +13,11 @@ import {
   LADDER_F4,
   LADDER_Q2M
 } from "/assets/js/ladder.service.js";
+import {
+  MAX_TRAINING_GROUPS,
+  restoreCoachGroupOverrides,
+  suggestTierAwareTrainingGroups
+} from "/coaches/attendance/practice-group-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -712,17 +717,59 @@ function previousRouteContext() {
   }
 }
 
+function currentPlanningMode() {
+  const direct = String(activePractice?.executionMode || "").trim().toLowerCase();
+  if (direct) return direct;
+  try {
+    const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+    if (String(remembered.practiceId || "") === String(activePractice?.practiceId || "")) {
+      return String(remembered.executionMode || "").trim().toLowerCase();
+    }
+  } catch {}
+  return "manual";
+}
+
 function suggestedTrainingGroups() {
   const present = checkedInAthletes();
-  const ladder = ladderForPractice();
   const buckets = new Map();
-
-  present.forEach((athlete) => {
+  const roster = present.map((athlete) => {
     const ageGroup = athleteAgeGroup(athlete);
     const journey = journeyForAthlete(athlete);
     const discipline = disciplineForAthlete(athlete) || String(activePractice?.discipline || "").toLowerCase();
     const athleteLadder = ladderForJourney(journey);
     const tier = normalizeAthleteTier(athlete, athleteLadder);
+    return {
+      athleteId: String(athlete.id || athlete.uid || ""),
+      athleteName: athleteName(athlete),
+      tier,
+      tierProvenance: athlete.syntheticPlacement === true ? "synthetic-display-placement" : "athlete-tier-display",
+      syntheticPlacement: athlete.syntheticPlacement === true,
+      syntheticPlacementCertified: athlete.syntheticPlacementCertified === true,
+      syntheticPlacementSource: String(athlete.syntheticPlacementSource || ""),
+      journey,
+      discipline,
+      ageGroup,
+      locationId: String(activePractice?.locationId || activePractice?.academyId || ""),
+      practiceId: String(activePractice?.practiceId || "")
+    };
+  });
+
+  if (currentPlanningMode() === "hybrid") {
+    const suggested = suggestTierAwareTrainingGroups(roster, { maxGroups: MAX_TRAINING_GROUPS });
+    const prior = previousRouteContext();
+    return restoreCoachGroupOverrides(suggested, prior.trainingGroups).map((group, index) => ({
+      ...group,
+      id: `group-${index + 1}`,
+      label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`,
+      tier: group.instructionalTier || "",
+      rank: rankForTier(group.instructionalTier || "", group.journey),
+      trainingSession: String(group.trainingSession || prior.week || activePractice?.week || "1"),
+      carryForwardNote: String(group.carryForwardNote || "")
+    }));
+  }
+
+  roster.forEach((athlete) => {
+    const { ageGroup, journey, discipline, tier } = athlete;
     const key = `${discipline}|${journey}|${ageGroup}`;
 
     if (!buckets.has(key)) {
@@ -738,8 +785,8 @@ function suggestedTrainingGroups() {
     }
 
     const group = buckets.get(key);
-    group.athleteIds.push(String(athlete.id || athlete.uid || ""));
-    group.athleteNames.push(athleteName(athlete));
+    group.athleteIds.push(athlete.athleteId);
+    group.athleteNames.push(athlete.athleteName);
   });
 
   let groups = [...buckets.values()]
@@ -806,6 +853,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         <div>
           <span class="training-group-kicker">Mat 1 · Group ${String.fromCharCode(65 + index)}</span>
           <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
+          ${group.instructionalRecommendation ? `<small>${group.instructionalRecommendation}</small>` : ""}
         </div>
         ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
       </div>
@@ -1251,4 +1299,3 @@ if (isBuilderFlow()) {
 // Step 1 is redundant: the practice was selected before Attendance.
 document.querySelector('[data-step-target="1"]')?.setAttribute("hidden", "");
 document.querySelector('[data-step-screen="1"]')?.setAttribute("hidden", "");
-
