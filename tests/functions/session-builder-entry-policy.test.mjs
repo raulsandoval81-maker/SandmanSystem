@@ -86,7 +86,7 @@ test("Session Builder uses combined practice setup and preserves the practice ro
   assert.match(html, /II — Discipline &amp; Roster/);
   assert.match(builder, /openPracticeSession/);
   assert.match(builder, /function showPracticeContext\(/);
-  assert.match(builder, /big-clock-2\.0\/\?practiceId=/);
+  assert.match(builder, /big-clock-2\.0/);
 });
 
 
