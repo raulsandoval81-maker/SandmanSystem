@@ -91,6 +91,35 @@ export function normalizeTrainingGroup(group = {}) {
   };
 }
 
+export function tierWaveEligibility(group = {}) {
+  const normalized = normalizeTrainingGroup(group);
+  const rosterJourneys = [...new Set(normalized.roster
+    .map((athlete) => normalizeCompatibilityJourney(athlete.journey))
+    .filter(Boolean))];
+  const groupJourney = normalizeCompatibilityJourney(normalized.journey);
+
+  if (!normalized.roster.length) {
+    return { eligible: false, reason: "empty_group", message: "Add an athlete before selecting a Tier Wave." };
+  }
+  if (rosterJourneys.length > 1) {
+    return { eligible: false, reason: "mixed_journeys", message: "Mixed Journeys do not share Tier Waves. Use Coach-directed planning or separate Journey-specific groups." };
+  }
+  if (!groupJourney || (rosterJourneys[0] && rosterJourneys[0] !== groupJourney)) {
+    return { eligible: false, reason: "journey_mismatch", message: "The group Journey does not match the athlete roster. Tier Waves remain unavailable." };
+  }
+  if (!normalized.instructionalTier || (normalized.tierStatus !== "verified" && !normalized.instructionalFocusConfirmed)) {
+    return { eligible: false, reason: "focus_unconfirmed", message: "Confirm the instructional focus and pacing before selecting a Tier Wave." };
+  }
+
+  return {
+    eligible: true,
+    reason: normalized.tierStatus === "verified" ? "same_tier" : "mixed_tiers_confirmed",
+    journey: groupJourney,
+    tier: normalized.instructionalTier,
+    coachConfirmationRequired: normalized.tierStatus !== "verified"
+  };
+}
+
 export function athleteCanJoinTrainingGroup(athlete = {}, group = {}) {
   return Boolean(athlete?.athleteId || athlete?.id)
     && trainingCompatibilityKey(athlete) === trainingCompatibilityKey(group);

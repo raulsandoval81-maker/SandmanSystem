@@ -863,11 +863,15 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       <div class="training-group-head">
         <div>
           <span class="training-group-kicker">Mat 1 · Group ${String.fromCharCode(65 + index)}</span>
-          <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
+          <strong>${escapeAttendance(group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned")}</strong>
+          <small>${escapeAttendance([journeyDisplay(group.journey), group.progressionTierLabel, group.tier ? `Focus ${group.tier}` : "Focus required"].filter(Boolean).join(" · "))}</small>
         </div>
         ${groups.length > 1 ? '<button type="button" class="remove-training-group" aria-label="Remove empty training group">Remove</button>' : ""}
       </div>
 
+      <details class="training-group-editor">
+        <summary>Edit Group ${String.fromCharCode(65 + index)} assignments and instruction</summary>
+        <div class="training-group-editor-body">
       <div class="training-group-roster">
         ${(group.roster || []).length ? group.roster.map((athlete) => `
           <div class="training-group-athlete">
@@ -922,10 +926,13 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
         </label>
       </div>
 
-      <label class="training-carry-forward">
-        Carry Forward Note
-        <textarea class="training-note" placeholder="What needs another touch next time?">${group.carryForwardNote || ""}</textarea>
-      </label>
+      <div class="training-carry-forward">
+        <span>Carry Forward Reference</span>
+        <p>${escapeAttendance(group.carryForwardNote || "No prior post-practice note is available for this group.")}</p>
+        <input class="training-note" type="hidden" value="${escapeAttendance(group.carryForwardNote || "")}">
+      </div>
+        </div>
+      </details>
     </section>
   `).join("");
 
@@ -998,10 +1005,17 @@ function renumberTrainingGroups() {
 
 function updateGroupControls() {
   const count = document.querySelectorAll(".training-group-card").length;
-  if ($("addTrainingGroupBtn")) $("addTrainingGroupBtn").disabled = count >= MAX_TRAINING_GROUPS;
+  if ($("addTrainingGroupBtn")) {
+    const atLimit = count >= MAX_TRAINING_GROUPS;
+    $("addTrainingGroupBtn").disabled = atLimit;
+    $("addTrainingGroupBtn").hidden = atLimit;
+    $("addTrainingGroupBtn").setAttribute("aria-disabled", String(atLimit));
+  }
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
-      `${count} attendance group${count === 1 ? "" : "s"} on Mat 1. Athlete tiers remain individual; mixed or unverified groups require a Coach-confirmed instructional focus.`;
+      count >= MAX_TRAINING_GROUPS
+        ? "Three-group limit reached. Athlete tiers remain individual."
+        : `${count} of ${MAX_TRAINING_GROUPS} groups in use. Add a group to separate compatible athletes when needed.`;
   }
 }
 
@@ -1339,15 +1353,6 @@ bindEvents();
 configureBuilderReturn();
 
 if (isBuilderFlow()) {
-  const label = $("attendanceFlowLabel");
-  const title = $("attendanceTitle");
-  const lead = $("attendanceLead");
-  if (label) label.textContent = "Attendance";
-  if (title) title.textContent = "III — Athlete Check-In";
-  if (lead) lead.textContent = "Find your name, check in, review attendance, then confirm today’s practice groups and skills.";
-
-
-  document.querySelector('[data-step-screen="2"] .eyebrow')?.replaceChildren("Step 1 of 3");
   document.querySelector('[data-step-screen="3"] .eyebrow')?.replaceChildren("Step 2 of 3");
   document.querySelector('[data-step-screen="4"] .eyebrow')?.replaceChildren("Step 3 of 3");
 
