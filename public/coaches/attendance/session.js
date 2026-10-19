@@ -1085,7 +1085,7 @@ function updateGroupControls() {
   if ($("trainingGroupHint")) {
     $("trainingGroupHint").textContent =
       count < NORMAL_TRAINING_GROUP_CAPACITY
-        ? `${count} of ${NORMAL_TRAINING_GROUP_CAPACITY} normal groups in use.`
+        ? `${count} groups in use · Group ${String.fromCharCode(65 + count)} can be added (normal limit ${NORMAL_TRAINING_GROUP_CAPACITY}; Group D by exception).`
         : count === NORMAL_TRAINING_GROUP_CAPACITY
           ? "Three normal groups in use. Add Group D only when compatibility or instructional separation requires it."
           : "Exceptional four-group plan. Two separate classes are recommended for optimal instruction.";
