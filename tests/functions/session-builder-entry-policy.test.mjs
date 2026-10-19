@@ -11,7 +11,8 @@ const policy = await import(pathToFileURL(policyPath));
 
 test("rooms carry explicit canonical location identity", () => {
   assert.deepEqual(policy.roomByValue("lompoc-mat-1"), {
-    value: "lompoc-mat-1", roomId: "mat-1", locationId: "lompoc", label: "Lompoc Mat 1"
+    value: "lompoc-mat-1", roomId: "mat-1", locationId: "lompoc",
+    environment: "mat-room", area: "full-room", label: "Mat Room · Full Room"
   });
   assert.equal(policy.roomByValue("solvang-mat-1").locationId, "santa-ynez-valley");
 });
@@ -78,14 +79,14 @@ test("Auto, Manual, and Hybrid use the shared Builder and Clipboard spine", () =
 });
 
 
-test("Session Builder starts with Pre-Practice Setup or Skip to Practice", () => {
+test("Session Builder uses combined practice setup and preserves the practice route", () => {
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
-  assert.match(html, /Set Up Pre-Practice/);
-  assert.match(html, /Skip to Practice/);
-  assert.match(builder, /executionMode:\s*"manual"/);
-  assert.match(builder, /discipline:\s*"unassigned"/);
-  assert.match(builder, /big-clock-2\.0\/\?practiceId=/);
+  assert.match(html, /I — Practice Setup/);
+  assert.match(html, /II — Discipline &amp; Roster/);
+  assert.match(builder, /openPracticeSession/);
+  assert.match(builder, /function showPracticeContext\(/);
+  assert.match(builder, /big-clock-2\.0/);
 });
 
 
@@ -121,19 +122,19 @@ test("guided setup separates session type, duration, and build mode", () => {
 });
 
 
-test("guided setup opens Screen 3 Practice Route with journey-led discipline dropdowns", () => {
+test("combined setup preserves journey and discipline controls without an intermediate screen", () => {
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
 
   assert.match(html, /id="guidedSetupScreen"/);
-  assert.match(html, /id="practiceContextScreen" hidden/);
-  assert.match(html, /Continue to Practice Route/);
-  assert.match(html, /Screen 3 · Practice Route/);
+  assert.match(html, /id="practiceContextScreen" aria-label="Discipline and lesson planning"/);
+  assert.match(html, /Continue to Attendance/);
+  assert.match(html, /II — Discipline &amp; Roster/);
   assert.match(html, /id="journeySelect"/);
   assert.match(html, /id="disciplineFamilySelect" class="dashboard-select"/);
   assert.doesNotMatch(html, /data-discipline=/);
-  assert.doesNotMatch(html, /<label for="roomSelect">Room<\/label>/);
-  assert.match(html, /<select id="roomSelect" hidden/);
+  assert.match(html, /Configured Training Area/);
+  assert.match(html, /<select id="roomSelect" class="dashboard-select"/);
   assert.match(builder, /function showPracticeContext\(/);
   assert.match(builder, /function populateJourneys\(/);
   assert.match(builder, /function updateDisciplineAvailability\(/);
@@ -152,13 +153,13 @@ test("Session Builder excludes fitness discipline from guided practice", () => {
 
 
 
-test("practice route is Screen 3, attendance is Screen 4, Clipboard is Screen 5", () => {
+test("combined practice route proceeds to attendance and Clipboard", () => {
   const builderHtml = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builderJs = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
   const attendanceHtml = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.html"), "utf8");
   const attendanceJs = fs.readFileSync(path.join(repo, "public/coaches/attendance/session.js"), "utf8");
 
-  assert.match(builderHtml, /Screen 3 · Practice Route/);
+  assert.match(builderHtml, /II — Discipline &amp; Roster/);
   assert.match(builderHtml, /Continue to Attendance/);
   assert.match(builderHtml, /id="journeySelect"/);
   assert.match(builderJs, /populateJourneys/);
@@ -175,17 +176,17 @@ test("practice route is Screen 3, attendance is Screen 4, Clipboard is Screen 5"
 });
 
 
-test("focus tier and week follow Auto, Hybrid, and Manual behavior", () => {
+test("tier and week suggestions remain behind mode-aware code paths", () => {
   const html = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/index.html"), "utf8");
   const builder = fs.readFileSync(path.join(repo, "public/coaches/execution/session-builder/session-builder.js"), "utf8");
 
-  assert.match(html, /id="rankSuggestion"/);
-  assert.match(html, /id="weekSuggestion"/);
+  assert.match(html, /data-mode="hybrid"/);
+  assert.match(html, /data-mode="manual"/);
   assert.match(builder, /function matchingPriorFocus\(/);
   assert.match(builder, /function refreshFocusSuggestion\(/);
-  assert.match(builder, /System choice/);
-  assert.match(builder, /Suggested/);
-  assert.match(builder, /Coach choice/);
-  assert.match(builder, /Sandman chooses/);
+  assert.match(builder, /suggestedTier/);
+  assert.match(builder, /suggestedWeek/);
+  assert.match(builder, /selectedMode === "hybrid"/);
+  assert.match(builder, /selectedMode === "auto"/);
   assert.doesNotMatch(builder, /disciplineButtons/);
 });
