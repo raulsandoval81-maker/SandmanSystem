@@ -26,6 +26,7 @@ const combatSetupRelease = await loadRelease("combat-setup-pr125-8a5ae0f2");
 const correctedCombatRelease = await loadRelease("combat-setup-fixed-pr127-fcd6f016");
 const finalCombatRelease = await loadRelease("combat-setup-regexfix-pr129-b7545f30");
 const pr131Release = await loadRelease("combat-setup-final-pr131-ea296f66");
+const pr133HandoffRelease = await loadRelease("hybrid-handoff-pr133-8af57906");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -186,6 +187,19 @@ test("PR131 Combat release pins the repaired Setup test on staging Hosting only"
   assert.equal(pr131Release.hosting, true);
   assert.deepEqual(pr131Release.functions, []);
   assert.deepEqual(pr131Release.allowedChangedFiles, finalCombatRelease.allowedChangedFiles);
+});
+
+test("PR133 HYBRID handoff release stays scoped to staged Hosting changes", () => {
+  assert.equal(pr133HandoffRelease.applicationSha, "8af57906ed241e32a80e151ae844dff7c0b4bb6c");
+  assert.equal(pr133HandoffRelease.requiredAncestorSha, pr131Release.applicationSha);
+  assert.equal(pr133HandoffRelease.sourcePr, 133);
+  assert.equal(pr133HandoffRelease.projectId, "sandman-combat-staging");
+  assert.equal(pr133HandoffRelease.hosting, true);
+  assert.deepEqual(pr133HandoffRelease.functions, []);
+  assert.deepEqual(pr133HandoffRelease.allowedChangedFiles, [
+    "public/coaches/execution/session-builder/session-builder.js",
+    "tests/functions/hybrid-clipboard-handoff-recovery.test.mjs"
+  ]);
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
