@@ -86,7 +86,8 @@ test("Session Builder uses combined practice setup and preserves the practice ro
   assert.match(html, /II — Discipline &amp; Roster/);
   assert.match(builder, /openPracticeSession/);
   assert.match(builder, /function showPracticeContext\(/);
-  assert.match(builder, /big-clock-2\.0/);
+  assert.match(builder, /clipboard-2\.0/);
+  assert.match(builder, /return=clipboard&flow=builder/);
 });
 
 
@@ -165,11 +166,13 @@ test("combined practice route proceeds to attendance and Clipboard", () => {
   assert.match(builderJs, /populateJourneys/);
   assert.match(builderJs, /return=clipboard&flow=builder/);
   assert.match(attendanceHtml, /Finish Attendance/);
-  assert.match(attendanceHtml, /data-quick-search="a">A/);
-  assert.match(attendanceHtml, /data-quick-search="e">E/);
-  assert.match(attendanceHtml, /data-quick-search="i">I/);
-  assert.match(attendanceHtml, /data-quick-search="o">O/);
-  assert.match(attendanceHtml, /data-quick-search="u">U/);
+  assert.match(attendanceHtml, /id="searchAthlete"/);
+  assert.match(attendanceHtml, /class="athlete-search"/);
+
+
+
+
+
   assert.doesNotMatch(attendanceHtml, /Session Builder · Screen 3/);
   assert.doesNotMatch(attendanceJs, /athlete-number/);
   assert.match(attendanceJs, /clipboard-2\.0/);
