@@ -5,22 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261011-21">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261018-hybrid-review1">
   <link rel="icon" href="data:,">
 </head>
 <body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
 <main class="dashboard-wrap" data-coach-shell-content>
   <header class="dashboard-header">
     <div>
-      <h1>Session Builder</h1>
-      <p>Plan the shell. Build the practice in Clipboard.</p>
+      <h1 id="sessionBuilderHeading">Session Builder · Practice Setup</h1>
+      <p id="sessionBuilderLead">Plan the shell. Build the practice in Clipboard.</p>
     </div>
   </header>
 
   <div id="dashboardNotice" class="dashboard-notice" hidden></div>
 
   <section id="newSessionSection" class="dashboard-section new-session-section">
-    <div id="guidedSetupScreen">
+    <div id="guidedSetupScreen" aria-label="Practice setup">
+      <p id="coachForPractice" class="availability-note">Lead Coach: Confirming from Practice Operations…</p>
+      <div class="setup-area-heading"><span class="eyebrow">I — Practice Setup</span><h2>Session essentials</h2><p>Choose the location, session format, duration and build mode.</p></div>
       <div class="setup-step">
         <div class="section-heading">
           <div>
@@ -30,8 +32,9 @@
 
         <div class="mat-session-identity">
           <div class="mat-session-room">
-            <span class="eyebrow">Physical mat</span>
-            <strong>Mat 1</strong>
+            <label for="roomSelect">Configured Training Area</label>
+            <select id="roomSelect" class="dashboard-select"></select>
+            <small class="muted">Only areas configured for this academy are available. Additional areas can be configured later.</small>
           </div>
         </div>
       </div>
@@ -76,22 +79,21 @@
         </div>
         <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
-      <div class="screen-actions">
-        <button id="continueToContextBtn" class="primary-action" type="button">Continue to Practice Route</button>
-      </div>
     </div>
+    <div id="practiceContextScreen" aria-label="Discipline and lesson planning">
+      <div id="practiceContextIntro">
+        <p class="eyebrow">II — Discipline &amp; Roster</p>
+        <div class="screen-heading">
+          <div>
+            <h2>Discipline &amp; Check-In Roster</h2>
+            <p id="contextLead">Choose the discipline. Attendance will use the checked-in athlete data to determine groups, journeys, and skills.</p>
+          </div>
 
-    <div id="practiceContextScreen" hidden>
-      <div class="screen-heading">
-        <div>
-                    <h2>What are you coaching?</h2>
-          <p id="contextLead">Choose the discipline. Attendance will use the checked-in athlete data to determine groups, journeys, and skills.</p>
         </div>
-        <button id="backToGuidedSetupBtn" class="secondary-button" type="button">Back</button>
       </div>
 
       <div class="context-layout">
-        <div class="details-panel context-details">
+        <div id="practiceRoutingControls" class="details-panel context-details">
           <div class="field" id="disciplineField">
             <label for="disciplineFamilySelect">Discipline</label>
             <select id="disciplineFamilySelect" class="dashboard-select">
@@ -115,9 +117,9 @@
           </div>
         </div>
 
-        <section id="hybridPlanningPanel" class="hybrid-planning-panel" hidden>
+        <section id="hybridPlanningPanel" class="hybrid-planning-panel" aria-label="HYBRID lesson planning" hidden>
           <div class="section-heading compact-heading">
-            <div><span class="eyebrow">Hybrid planning</span><h3>Choose lesson sources</h3></div>
+            <div><span class="eyebrow">III — HYBRID Planning</span><h3>Choose lesson sources</h3><p class="planning-intro">One practice. Separate instructional plans for each checked-in group.</p></div>
           </div>
           <div class="planning-source-grid" aria-label="Hybrid planning sources">
             <label><input type="checkbox" data-planning-source="tierWaves" checked> <strong>Tier Waves</strong><span>Approved tier curriculum and Coach Cards.</span></label>
@@ -125,11 +127,11 @@
             <label><input type="checkbox" data-planning-source="coachInput" checked> <strong>Coach Input / Pass It Forward</strong><span>Carry-forward and current Coach instructions.</span></label>
           </div>
           <p id="planningSourceStatus" class="availability-note" aria-live="polite"></p>
-          <div id="hybridGroupPlanning" class="hybrid-group-planning"></div>
+          <div class="group-planning-heading"><h4>Instructional groups</h4><p>Set a wave and review curriculum independently for each group.</p></div><div id="hybridGroupPlanning" class="hybrid-group-planning"></div>
         </section>
 
         <aside class="selection-summary" aria-live="polite">
-          <span class="eyebrow">Current selection</span>
+          <span class="eyebrow">IV — Review &amp; Continue</span>
           <h3 id="summaryShell">Academy Class · 60 min</h3>
           <dl>
             <div><dt>Mode</dt><dd id="summaryMode">Hybrid</dd></div>
@@ -144,10 +146,9 @@
       </div>
     </div>
 
-    <select id="roomSelect" hidden aria-hidden="true"></select>
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261018-1"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261018-hybrid-review1"></script>
 </body>
 </html>

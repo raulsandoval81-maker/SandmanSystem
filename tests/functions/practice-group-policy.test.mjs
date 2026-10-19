@@ -60,6 +60,50 @@ test("mixed curriculum focus exists only after explicit Coach confirmation", () 
   assert.equal(confirmed.progressionTierLabel, "Mixed Tiers");
 });
 
+test("Tier Waves allow same-Journey groups and require confirmed focus for mixed tiers", () => {
+  const sameTier = policy.normalizeTrainingGroup(compatibleGroup({
+    id: "group-1",
+    roster: [athlete("one", "T2"), athlete("two", "T2")]
+  }));
+  assert.deepEqual(policy.tierWaveEligibility(sameTier), {
+    eligible: true,
+    reason: "same_tier",
+    journey: "z2h",
+    tier: "T2",
+    coachConfirmationRequired: false
+  });
+
+  const roster = [athlete("one", "T1"), athlete("two", "T4")];
+  const unconfirmed = policy.normalizeTrainingGroup(compatibleGroup({ id: "group-1", roster }));
+  assert.equal(policy.tierWaveEligibility(unconfirmed).reason, "focus_unconfirmed");
+  const confirmed = policy.normalizeTrainingGroup(compatibleGroup({
+    id: "group-1", roster, instructionalTier: "T2", instructionalFocusConfirmed: true
+  }));
+  assert.deepEqual(policy.tierWaveEligibility(confirmed), {
+    eligible: true,
+    reason: "mixed_tiers_confirmed",
+    journey: "z2h",
+    tier: "T2",
+    coachConfirmationRequired: true
+  });
+  assert.deepEqual(confirmed.athleteTiers, { one: "T1", two: "T4" });
+});
+
+test("mixed or mismatched Journeys cannot share a Tier Wave", () => {
+  const mixed = policy.normalizeTrainingGroup(compatibleGroup({
+    id: "group-1",
+    roster: [athlete("youth", "T2"), athlete("teen", "T2", { journey: "P2L" })],
+    instructionalTier: "T2",
+    instructionalFocusConfirmed: true
+  }));
+  assert.equal(policy.tierWaveEligibility(mixed).reason, "mixed_journeys");
+
+  const mismatch = policy.normalizeTrainingGroup(compatibleGroup({
+    id: "group-1", journey: "P2L", roster: [athlete("youth", "T2")]
+  }));
+  assert.equal(policy.tierWaveEligibility(mismatch).reason, "journey_mismatch");
+});
+
 test("Coach reassignment moves one athlete exactly once and recalculates group tiers", () => {
   const groups = [
     policy.normalizeTrainingGroup(compatibleGroup({ id: "group-1", roster: [athlete("one", "T1"), athlete("two", "T4")] })),

@@ -389,3 +389,47 @@ html[data-theme="light"]{--card:#f7f0e3;--soft-surface:rgba(8,8,8,.035);--contro
     width:100%;
   }
 }
+
+/* Session Builder visual hierarchy — presentation only; preserve all form IDs and behavior. */
+#guidedSetupScreen,#practiceContextScreen{min-width:0}
+.setup-area-heading{margin:0 0 16px;padding:4px 2px 14px;border-bottom:2px solid var(--gold-line)}
+.setup-area-heading h2{margin:5px 0;font-size:clamp(1.2rem,2.5vw,1.5rem);color:var(--text)}
+.setup-area-heading p,.planning-intro,.group-planning-heading p{margin:4px 0 0;color:var(--muted);font-size:.81rem;line-height:1.45}
+#coachForPractice{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:var(--soft-surface)}
+#guidedSetupScreen .setup-step{margin:0 0 12px;padding:16px;border:1px solid var(--line);border-radius:13px;background:var(--soft-surface)}
+#guidedSetupScreen .setup-step:last-of-type{border-bottom:1px solid var(--line);margin-bottom:0}
+#guidedSetupScreen .setup-step .section-heading{margin-bottom:12px}
+#guidedSetupScreen .setup-step .section-heading h2{font-size:1.07rem;line-height:1.3}
+#practiceContextScreen{margin-top:20px;padding-top:20px;border-top:2px solid var(--gold-line)}
+#practiceContextScreen > .eyebrow{display:block;margin:0 0 7px}
+#practiceContextScreen .screen-heading{margin-bottom:12px}
+.context-layout{align-items:start;grid-template-columns:minmax(0,1fr) minmax(260px,.55fr);gap:16px}
+.context-details{padding:17px;border-color:var(--line);background:var(--soft-surface)}
+.hybrid-planning-panel{grid-column:1/-1;padding:20px;border:1px solid var(--gold-line);border-radius:15px;background:var(--soft-surface)}
+.hybrid-planning-panel .compact-heading{margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.hybrid-planning-panel h3{font-size:1.18rem;color:var(--gold)}
+.hybrid-review-state #practiceContextScreen{margin-top:0;padding-top:0;border-top:0}
+.hybrid-review-state .dashboard-header{border-color:var(--gold-line);background:linear-gradient(145deg,var(--panel),var(--soft-surface))}
+.hybrid-review-state .dashboard-header h1{color:var(--gold)}
+.hybrid-review-state .context-layout{margin-top:0}
+.planning-source-grid{gap:12px}
+.planning-source-grid label{min-height:74px;padding:13px;border:1px solid var(--line)}
+.planning-source-grid label:has(input:checked){border-color:var(--gold-line);background:var(--gold-soft)}
+#planningSourceStatus{margin:12px 0 0;padding:9px 11px;border-radius:9px;background:var(--card)}
+.group-planning-heading{margin:22px 0 12px;padding-top:14px;border-top:1px solid var(--line)}
+.group-planning-heading h4{margin:0;color:var(--text);font-size:1rem}
+.hybrid-group-planning{gap:16px;margin-top:0}
+.hybrid-group-card{min-width:0;padding:18px;border:1px solid var(--control-line);border-left:4px solid var(--gold);border-radius:13px;background:var(--card);box-shadow:0 8px 18px rgba(0,0,0,.10)}
+.hybrid-group-card h4{margin:0 0 13px;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:1.08rem;line-height:1.4}
+.hybrid-group-card > label{display:block;margin-top:15px;font-size:.82rem;font-weight:800;color:var(--text)}
+.hybrid-group-card > p{margin:10px 0;line-height:1.5}
+.hybrid-group-card select,.hybrid-group-card textarea{min-height:44px;margin-top:8px}
+.hybrid-wave-cards{gap:9px;margin:12px 0 16px}
+.hybrid-wave-cards a,.hybrid-wave-cards span{display:inline-flex;align-items:center;min-height:34px;padding:7px 10px;border:1px solid var(--control-line);border-radius:9px;background:var(--soft-surface);font-size:.78rem;line-height:1.35}
+.hybrid-wave-cards a:hover,.hybrid-wave-cards a:focus-visible{border-color:var(--gold);color:var(--gold)}
+.selection-summary{grid-column:1/-1;padding:18px;border-color:var(--gold-line);background:var(--gold-soft)}
+.selection-summary dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px}
+.selection-summary h3{font-size:1.18rem}
+.selection-summary .build-action{max-width:380px}
+@media(max-width:800px){.context-layout{grid-template-columns:1fr}.selection-summary dl{grid-template-columns:1fr}}
+@media(max-width:560px){#guidedSetupScreen .setup-step{padding:13px}.hybrid-planning-panel,.hybrid-group-card{padding:14px}.selection-summary{padding:14px}.selection-summary .build-action{max-width:none}.hybrid-wave-cards a{max-width:100%;overflow-wrap:anywhere}}
