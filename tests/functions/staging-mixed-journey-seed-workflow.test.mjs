@@ -15,10 +15,12 @@ test("mixed-journey seed workflow is manual, protected, and staging-only", () =>
   assert.doesNotMatch(workflow, /firebase(?:-tools)?[^\n]*(?:deploy|use)/i);
 });
 
-test("workflow reuses approved WIF identity and boundary validator without credentials", () => {
+test("workflow uses its dedicated WIF provider and boundary validator without credentials", () => {
   assert.match(workflow, /permissions:\s*\n\s*contents: read\s*\n\s*id-token: write/);
   assert.match(workflow, /google-github-actions\/auth@v3/);
-  assert.match(workflow, /providers\/sandman-github-actions/);
+  assert.match(workflow, /providers\/sandman-mixed-journey-seed/);
+  assert.doesNotMatch(workflow, /providers\/sandman-github-actions/);
+  assert.doesNotMatch(workflow, /providers\/sandman-hybrid-staging/);
   assert.match(workflow, /service_account: sandman-staging-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
   assert.match(workflow, /node scripts\/staging\/verify-staging-boundary\.mjs/);
   assert.match(workflow, /sandman-wrestling-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
