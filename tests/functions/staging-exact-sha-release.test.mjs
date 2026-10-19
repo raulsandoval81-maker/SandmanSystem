@@ -29,6 +29,7 @@ const pr131Release = await loadRelease("combat-setup-final-pr131-ea296f66");
 const pr133HandoffRelease = await loadRelease("hybrid-handoff-pr133-8af57906");
 const pr138CombatRelease = await loadRelease("combat-setup-pr138-ca4e23be");
 const pr150GroupsRelease = await loadRelease("tier-aware-groups-pr150-36374e8d");
+const pr152UnifiedRelease = await loadRelease("unified-hybrid-pr152-0c2dc9d8");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -244,6 +245,49 @@ test("PR150 tier-aware groups release pins the merged five-file Hosting-only cha
   ]);
 });
 
+test("PR152 unified HYBRID release pins the merge lineage and exact deployment scope", () => {
+  const result = validateRelease(pr152UnifiedRelease, context({
+    checkedOutSha: pr152UnifiedRelease.applicationSha,
+    hostingDeployer: pr152UnifiedRelease.hostingDeployer,
+    functionDeployer: pr152UnifiedRelease.functionDeployer,
+    functionRuntime: pr152UnifiedRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 152);
+  assert.equal(result.applicationSha, "0c2dc9d8063b7a4e6bb2405bd46306c3bbc6a445");
+  assert.equal(result.requiredAncestorSha, "d4720ee180ff0508b4402aa3231d0c77b8cb1d8d");
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.hosting, true);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/deploy-sandman-hosting.yml",
+    "functions/src/practice/practiceSessions.ts",
+    "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-crosswalk.js",
+    "public/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js",
+    "public/coaches/attendance/attendance.css",
+    "public/coaches/attendance/hybrid-group-planning.js",
+    "public/coaches/attendance/session.html",
+    "public/coaches/attendance/session.js",
+    "public/coaches/execution/big-clock-2.0/big-clock-2.0.js",
+    "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+    "public/coaches/execution/clipboard-2.0/index.html",
+    "public/coaches/execution/session-builder/hybrid-planning-policy.js",
+    "public/coaches/execution/session-builder/index.html",
+    "public/coaches/execution/session-builder/session-builder.css",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "public/coaches/execution/session-builder/session-entry-policy.js",
+    "tests/functions/attendance-step3-status.test.mjs",
+    "tests/functions/attendance-submitted-resume.test.mjs",
+    "tests/functions/checkin-hybrid-clipboard-route.test.mjs",
+    "tests/functions/combined-practice-setup.test.mjs",
+    "tests/functions/hybrid-clipboard-handoff-recovery.test.mjs",
+    "tests/functions/hybrid-review-presentation.test.mjs",
+    "tests/functions/hybrid-session-planning-policy.test.mjs",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs",
+    "tests/functions/road2champion-wrestling-tier-waves.test.mjs",
+    "tests/functions/verified-coach-training-environments.test.mjs"
+  ]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -305,6 +349,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /r2c-wrestling-waves-pr115-18d46b08/);
   assert.match(workflow, /combat-setup-pr138-ca4e23be/);
   assert.match(workflow, /tier-aware-groups-pr150-36374e8d/);
+  assert.match(workflow, /unified-hybrid-pr152-0c2dc9d8/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
