@@ -23,6 +23,7 @@ on:
           - session-hierarchy-pr135-a6b674e3
           - combat-setup-pr138-ca4e23be
           - checkin-hybrid-pr140-59632c80
+          - hybrid-review-pr142-bd0e1f2e
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
