@@ -30,6 +30,7 @@ jobs:
       SANDMAN_STAGING_ACK: sandman-combat-staging
       SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
       SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-mixed-journey-seed
     steps:
       - name: Reject unapproved ref or target before credentials
         env:
@@ -77,7 +78,7 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
-          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-mixed-journey-seed
           service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
