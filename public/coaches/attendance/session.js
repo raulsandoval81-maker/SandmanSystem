@@ -844,8 +844,13 @@ function tierOptions(selected = "", journey = activePractice?.journey) {
 function renderTrainingGroups(groups = suggestedTrainingGroups()) {
   const container = $("trainingGroups");
   if (!container) return;
+  const hybridPlanning = currentPlanningMode() === "hybrid";
   groups = groups.map((group, index) => normalizeTrainingGroup({
     ...group,
+    instructionalTier: group.instructionalTier || group.tier || "",
+    instructionalFocusConfirmed: hybridPlanning
+      ? group.instructionalFocusConfirmed === true
+      : Boolean(group.instructionalTier || group.tier),
     id: `group-${index + 1}`,
     label: `Mat 1 · Group ${String.fromCharCode(65 + index)}`
   }));

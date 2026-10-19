@@ -158,6 +158,45 @@ test("a homogeneous tier display remains provisional until Coach confirms instru
   assert.equal(group.instructionalFocusConfirmed, false);
 });
 
+test("legacy MANUAL athleteIds and athleteNames normalize without losing identity or selections", () => {
+  const group = policy.normalizeTrainingGroup({
+    ...compatibleGroup({ id: "group-1" }),
+    athleteIds: ["one", "two"],
+    athleteNames: ["Athlete One", "Athlete Two"],
+    tier: "T2",
+    instructionalTier: "T2",
+    instructionalFocusConfirmed: true,
+    trainingSession: "7"
+  });
+  assert.deepEqual(group.athleteIds, ["one", "two"]);
+  assert.deepEqual(group.athleteNames, ["Athlete One", "Athlete Two"]);
+  assert.deepEqual(group.roster.map(({ athleteId, athleteName }) => ({ athleteId, athleteName })), [
+    { athleteId: "one", athleteName: "Athlete One" },
+    { athleteId: "two", athleteName: "Athlete Two" }
+  ]);
+  assert.equal(group.tier, "T2");
+  assert.equal(group.trainingSession, "7");
+});
+
+test("MANUAL Check-In group payload survives Session Builder and Clipboard contracts", () => {
+  const manual = policy.normalizeTrainingGroup({
+    ...compatibleGroup({ id: "group-1" }),
+    athleteIds: ["one", "two"],
+    athleteNames: ["Athlete One", "Athlete Two"],
+    tier: "T1",
+    instructionalTier: "T1",
+    instructionalFocusConfirmed: true,
+    trainingSession: "4",
+    carryForwardNote: "Coach-selected review"
+  });
+  const stored = JSON.parse(JSON.stringify({ executionMode: "manual", trainingGroups: [manual] }));
+  assert.deepEqual(stored.trainingGroups[0].athleteIds, ["one", "two"]);
+  assert.deepEqual(stored.trainingGroups[0].athleteNames, ["Athlete One", "Athlete Two"]);
+  assert.equal(stored.trainingGroups[0].tier, "T1");
+  assert.equal(stored.trainingGroups[0].trainingSession, "4");
+  assert.equal(stored.trainingGroups[0].carryForwardNote, "Coach-selected review");
+});
+
 test("mixed curriculum focus exists only after explicit Coach confirmation", () => {
   const roster = [athlete("one", "T1"), athlete("two", "T4")];
   assert.equal(policy.normalizeTrainingGroup(compatibleGroup({ roster, instructionalTier: "T2" })).tier, "");
@@ -288,6 +327,8 @@ test("Attendance, Session Builder, Clipboard, memory, and progression boundaries
   assert.match(attendance, /suggestTierAwareTrainingGroups\(roster/);
   assert.match(attendance, /currentPlanningMode\(\) === "hybrid"/);
   assert.match(attendance, /restoreCoachGroupOverrides\(suggested, prior\.trainingGroups\)/);
+  assert.match(attendance, /const hybridPlanning = currentPlanningMode\(\) === "hybrid"/);
+  assert.match(attendance, /: Boolean\(group\.instructionalTier \|\| group\.tier\)/);
   assert.match(attendance, /class="training-athlete-group"/);
   assert.match(attendance, /moveAthleteBetweenGroups\(captureTrainingGroups\(\)/);
   assert.match(attendance, /athleteCanJoinTrainingGroup\(athlete, candidate\)/);

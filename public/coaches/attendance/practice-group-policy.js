@@ -149,7 +149,14 @@ export function suggestTierAwareTrainingGroups(roster = [], options = {}) {
 }
 
 export function normalizeTrainingGroup(group = {}) {
-  const roster = (Array.isArray(group.roster) ? group.roster : []).map((athlete) => ({
+  const sourceRoster = Array.isArray(group.roster)
+    ? group.roster
+    : (Array.isArray(group.athleteIds) ? group.athleteIds : []).map((athleteId, index) => ({
+        athleteId,
+        athleteName: Array.isArray(group.athleteNames) ? group.athleteNames[index] : athleteId,
+        tier: group.progressionTier || group.tier || ""
+      }));
+  const roster = sourceRoster.map((athlete) => ({
     athleteId: String(athlete?.athleteId || athlete?.id || ""),
     athleteName: String(athlete?.athleteName || athlete?.name || athlete?.athleteId || athlete?.id || ""),
     tier: normalizeDisplayedTier(athlete?.tier),
