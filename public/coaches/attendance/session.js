@@ -1202,9 +1202,9 @@ function preparePracticeContext() {
     const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
     if (String(remembered.practiceId || "") === String(activePractice.practiceId || "")) {
       hybridStageState.planningSources = remembered.planningSources || {
-        tierWaves: true,
-        systemSuggestions: true,
-        coachInput: true
+        tierWaves: false,
+        systemSuggestions: false,
+        coachInput: false
       };
       hybridStageState.groupPlanning = remembered.groupPlanning || {};
     }
