@@ -9,6 +9,8 @@ test("mixed-journey seed requires isolated staging authorization and transaction
   assert.match(script, /verifyStagingBoundary\(\)/);
   assert.match(script, /assertSyntheticWriteSafety\(existing, existingPaths\)/);
   assert.match(script, /commitSyntheticManifestTransaction\(db, writes\)/);
+  assert.match(script, /originalUpdateTimes/);
+  assert.match(script, /Verified roster distribution is invalid/);
   assert.doesNotMatch(script, /collection\(["']?(?:athletes|attendance_sessions)["']?\).*delete/);
   assert.doesNotMatch(script, /sandmandashboard/);
 });
@@ -21,6 +23,7 @@ test("mixed-journey seed preserves original three and adds 12 R2C plus 9 P2L wit
   assert.match(script, /scenarios\.filter\(a => a\.journey === "Z2H"\)\.length !== 12/);
   assert.match(script, /scenarios\.filter\(a => a\.journey === "P2L"\)\.length !== 9/);
   assert.match(script, /rosterIds\.length !== 24/);
+  assert.match(script, /verifiedR2C !== 15 \|\| verifiedP2L !== 9/);
   assert.match(script, /syntheticScenarioTier: athlete\.scenarioTier/);
   assert.doesNotMatch(script, /\b(?:progressionTier|rankName|xpAwarded):/);
   assert.doesNotMatch(script, /writes\.set\(`(?:practiceSessions|attendance_sessions)\//);
