@@ -107,6 +107,9 @@ function compactCards(value: unknown, blockId = "") {
     const skillId = compactString(item?.skillId || item?.skill, 120);
     const familyId = compactString(item?.familyId || item?.family, 120);
     const cardId = compactString(item?.cardId || item?.id || href || skillId || familyId, 500);
+    const groupId = compactString(item?.groupId, 120);
+    const athleteIds = [...new Set((Array.isArray(item?.athleteIds) ? item.athleteIds : [])
+      .map((athleteId: unknown) => compactString(athleteId, 160)).filter(Boolean))].slice(0, 100);
     if (!cardId) throw new HttpsError("invalid-argument", "Every session-memory card requires an identity.");
     return {
       cardId,
@@ -116,11 +119,34 @@ function compactCards(value: unknown, blockId = "") {
       skillId,
       familyId,
       discipline: normalizePracticeDiscipline(item?.discipline),
+      groupId,
+      athleteIds,
     };
   });
   const byId = new Map<string, (typeof cards)[number]>();
-  cards.forEach((card) => byId.set(card.cardId, card));
+  cards.forEach((card) => byId.set(`${card.cardId}::${card.groupId}`, card));
   return [...byId.values()];
+}
+
+function compactPlanningContext(value: unknown) {
+  const input: any = value && typeof value === "object" ? value : {};
+  const sourceInput = input.planningSources && typeof input.planningSources === "object" ? input.planningSources : {};
+  const planningSources = {
+    tierWaves: sourceInput.tierWaves === true,
+    systemSuggestions: sourceInput.systemSuggestions === true,
+    coachInput: sourceInput.coachInput === true,
+  };
+  const groups = (Array.isArray(input.groups) ? input.groups : []).slice(0, 3).map((group: any) => ({
+    groupId: compactString(group?.groupId, 120),
+    waveKey: compactString(group?.waveKey, 120),
+    waveState: compactString(group?.waveState, 40),
+    systemSuggestionState: compactString(group?.systemSuggestionState, 80),
+    coachDisposition: compactString(group?.coachDisposition, 40),
+    originalCarryForwardNote: compactString(group?.originalCarryForwardNote, 1000),
+    currentCoachNote: compactString(group?.currentCoachNote, 1000),
+    coachAdjustment: compactString(group?.coachAdjustment, 2000),
+  })).filter((group: any) => group.groupId);
+  return { planningSources, groups, evidenceEffect: "none" };
 }
 
 function normalizePracticeDiscipline(value: unknown): string {
@@ -144,14 +170,15 @@ function finalizedParticipants(attendance: Record<string, any>) {
   return [...byId.entries()].map(([athleteId, athlete]) => ({ athleteId, athlete }));
 }
 
-function athleteSessionWorkedMemory(practice: Record<string, any>, discipline: string) {
+function athleteSessionWorkedMemory(practice: Record<string, any>, discipline: string, athleteId: string) {
   const source = Array.isArray(practice?.sessionMemory?.workedCards)
     ? practice.sessionMemory.workedCards
     : [];
   const cards = compactCards(source)
-    .filter((card) => !card.discipline || card.discipline === discipline)
-    .map(({ cardId, blockId, skillId, familyId, title }) => ({
-      cardId, blockId, skillId, familyId, title,
+    .filter((card) => (!card.discipline || card.discipline === discipline)
+      && (!card.groupId || !card.athleteIds.length || card.athleteIds.includes(athleteId)))
+    .map(({ cardId, blockId, skillId, familyId, title, groupId }) => ({
+      cardId, blockId, skillId, familyId, title, groupId,
     }));
   const skillMap = new Map<string, { skillId: string; familyId: string }>();
   cards.forEach(({ skillId, familyId }) => {
@@ -171,7 +198,7 @@ function athleteSessionRecord(args: {
   now: FirebaseFirestore.FieldValue;
 }) {
   const discipline = normalizePracticeDiscipline(args.attendance.discipline || args.practice.discipline);
-  const worked = athleteSessionWorkedMemory(args.practice, discipline);
+  const worked = athleteSessionWorkedMemory(args.practice, discipline, args.athleteId);
   return {
     practiceId: args.practiceId,
     attendanceSessionId: args.practiceId,
@@ -837,10 +864,12 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const planVersion = requireBoundedNumber(input.planVersion ?? 1, "planVersion", 1, MAX_PLAN_VERSION, true);
       const plannedBlocks = compactBlocks(input.plannedBlocks);
       const plannedCards = compactCards(input.plannedCards);
+      const planningContext = compactPlanningContext(input.planningContext);
       tx.update(ref, {
         "sessionMemory.planVersion": planVersion,
         "sessionMemory.plannedBlocks": plannedBlocks,
         "sessionMemory.plannedCards": plannedCards,
+        "sessionMemory.planningContext": planningContext,
         "sessionMemory.planSavedAt": now,
         "sessionMemory.planSavedBy": actor.uid,
         updatedAt: now,
@@ -859,19 +888,20 @@ export const savePracticeSessionMemory = onCall(async (request) => {
         (Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : []).map((block: any) => String(block.blockId || ""))
       );
       const plannedCards = new Set(
-        (Array.isArray(memory.plannedCards) ? memory.plannedCards : []).map((card: any) => String(card.cardId || ""))
+        (Array.isArray(memory.plannedCards) ? memory.plannedCards : []).map((card: any) => `${String(card.cardId || "")}::${String(card.groupId || "")}`)
       );
       if (incomingBlocks.some((block) => !plannedBlocks.has(block.blockId))
-        || incomingCards.some((card) => !plannedCards.has(card.cardId))) {
+        || incomingCards.some((card) => !plannedCards.has(`${card.cardId}::${card.groupId}`))) {
         throw new HttpsError("failed-precondition", "Worked memory must reference the saved practice plan.");
       }
       const blockMap = new Map(priorBlocks.map((block: any) => [String(block.blockId || ""), block]));
       incomingBlocks.forEach((block) => {
         if (!blockMap.has(block.blockId)) blockMap.set(block.blockId, { ...block, completedAt });
       });
-      const cardMap = new Map(priorCards.map((card: any) => [String(card.cardId || ""), card]));
+      const cardMap = new Map(priorCards.map((card: any) => [`${String(card.cardId || "")}::${String(card.groupId || "")}`, card]));
       incomingCards.forEach((card) => {
-        if (!cardMap.has(card.cardId)) cardMap.set(card.cardId, { ...card, completedAt });
+        const key = `${card.cardId}::${card.groupId}`;
+        if (!cardMap.has(key)) cardMap.set(key, { ...card, completedAt });
       });
       const patch: Record<string, any> = {
         "sessionMemory.workedBlocks": [...blockMap.values()].slice(0, 20),
@@ -1002,16 +1032,28 @@ export const closePracticeSession = onCall(async (request) => {
 
     if (!canSeedAthleteMemory) return;
     participants.forEach(({ athleteId, athlete }, index) => {
-      if (athleteMemorySnaps[index].exists) return;
       const now = FieldValue.serverTimestamp();
-      tx.create(athleteMemoryRefs[index], athleteSessionRecord({
+      const record = athleteSessionRecord({
         practiceId,
         attendance,
         practice,
         athleteId,
         athlete,
         now,
-      }));
+      });
+      if (athleteMemorySnaps[index].exists) {
+        // Attendance creates the immutable session identity before practice runs.
+        // Closeout adds only what was actually worked; it does not rewrite attendance,
+        // verification, XP, rank, or promotion history.
+        tx.set(athleteMemoryRefs[index], {
+          workedCards: record.workedCards,
+          workedSkillRefs: record.workedSkillRefs,
+          finalizedAt: record.finalizedAt,
+          updatedAt: now,
+        }, { merge: true });
+      } else {
+        tx.create(athleteMemoryRefs[index], record);
+      }
     });
   });
   return { ok: true, practiceId, status: "closed", idempotent };

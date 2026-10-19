@@ -21,6 +21,14 @@ import {
   programsForLocation,
   roomByValue
 } from "/coaches/execution/session-builder/session-entry-policy.js";
+import {
+  DEFAULT_HYBRID_PLANNING_SOURCES,
+  acceptedCardsForGroup,
+  composeGroupPlanning,
+  editableGroupPlanning,
+  enabledPlanningSources,
+  normalizePlanningSources
+} from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
@@ -67,6 +75,10 @@ const guidedSetupScreen = document.getElementById("guidedSetupScreen");
 const practiceContextScreen = document.getElementById("practiceContextScreen");
 const continueToContextBtn = document.getElementById("continueToContextBtn");
 const backToGuidedSetupBtn = document.getElementById("backToGuidedSetupBtn");
+const hybridPlanningPanel = document.getElementById("hybridPlanningPanel");
+const hybridGroupPlanning = document.getElementById("hybridGroupPlanning");
+const planningSourceStatus = document.getElementById("planningSourceStatus");
+const planningSourceInputs = [...document.querySelectorAll("[data-planning-source]")];
 
 let selectedSessionType = "academy";
 let selectedDuration = 60;
@@ -79,6 +91,9 @@ let modeWasForced = false;
 let activePracticeId = "";
 let suggestedTier = "";
 let suggestedWeek = "";
+let planningSources = { ...DEFAULT_HYBRID_PLANNING_SOURCES };
+let groupPlanningDraft = {};
+const groupWaveModels = new Map();
 const MIXED_JOURNEY = "__mixed__";
 
 function readJson(key, fallback = null) {
@@ -123,6 +138,92 @@ function selectedMatLabel() {
 
 function selectedProgram() {
   return programById(disciplineSelect?.value || "");
+}
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[character]);
+}
+
+function safeCoachCardHref(value = "") {
+  const href = String(value || "");
+  return href.startsWith("/coaches/cards/") && href.endsWith(".html") && !href.includes("..") && !href.includes("?") && !href.includes("#")
+    ? href
+    : "";
+}
+
+function programForGroup(group = {}) {
+  const journey = String(group.journey || "").toUpperCase();
+  const discipline = String(group.discipline || "").toLowerCase();
+  return SESSION_PROGRAMS.find(program =>
+    String(program.journey || "").toUpperCase() === journey &&
+    String(program.discipline || "").toLowerCase() === discipline
+  ) || null;
+}
+
+async function waveModelForGroup(group = {}) {
+  const program = programForGroup(group);
+  const tier = String(group.tier || "").toLowerCase();
+  const prefix = program?.hybridModelPrefix || "";
+  if (!prefix || !/^t[0-4]$/.test(tier)) return null;
+  const path = `${prefix}-${tier}-waves.js`;
+  if (!groupWaveModels.has(path)) {
+    groupWaveModels.set(path, import(path).catch(() => null));
+  }
+  return groupWaveModels.get(path);
+}
+
+function readPlanningSources() {
+  return normalizePlanningSources(Object.fromEntries(planningSourceInputs.map(input => [input.dataset.planningSource, input.checked])), selectedMode);
+}
+
+async function renderHybridPlanning() {
+  if (!hybridPlanningPanel) return;
+  hybridPlanningPanel.hidden = selectedMode !== "hybrid";
+  if (selectedMode !== "hybrid") return;
+  planningSources = readPlanningSources();
+  const enabled = enabledPlanningSources(planningSources);
+  const remembered = readJson(SESSION_KEY, {});
+  const groups = String(remembered.practiceId || "") === String(activePracticeId || "")
+    ? (Array.isArray(remembered.trainingGroups) ? remembered.trainingGroups.slice(0, 3) : [])
+    : [];
+  planningSourceStatus.textContent = enabled.length
+    ? `${enabled.length} planning source${enabled.length === 1 ? "" : "s"} enabled. Coach approval is required before curriculum cards enter the lesson.`
+    : "No HYBRID source is enabled. Enable a source or switch to MANUAL.";
+  planningSourceStatus.classList.toggle("unavailable", !enabled.length);
+  if (!groups.length) {
+    hybridGroupPlanning.innerHTML = '<p class="empty-state">Complete Attendance and Practice Groups first. You will return here to review each group’s plan.</p>';
+    return;
+  }
+  const cards = [];
+  for (const group of groups) {
+    const model = planningSources.tierWaves ? await waveModelForGroup(group) : null;
+    const waves = Object.entries(model?.WAVE_CARDS || {}).filter(([, value]) => Array.isArray(value) && value.length);
+    const prior = editableGroupPlanning(groupPlanningDraft[group.id] || remembered.groupPlanning?.[group.id] || {}, group);
+    const selectedWave = prior.selectedWave;
+    const waveCards = waves.find(([key]) => key === selectedWave)?.[1] || [];
+    cards.push(`<article class="hybrid-group-card" data-group-id="${escapeHtml(group.id)}">
+      <h4>${escapeHtml(group.label || group.id)} · ${escapeHtml(group.journey)} ${escapeHtml(String(group.tier || "").toUpperCase())}</h4>
+      ${planningSources.tierWaves ? (waves.length ? `<label>Tier Wave<select class="hybrid-wave-select" data-group-id="${escapeHtml(group.id)}"><option value="">Select and accept a wave</option>${waves.map(([key]) => `<option value="${escapeHtml(key)}"${key === selectedWave ? " selected" : ""}>${escapeHtml(key.replaceAll("_", " "))}</option>`).join("")}</select></label><div class="hybrid-wave-cards">${waveCards.map(card => safeCoachCardHref(card.href) ? `<a href="${escapeHtml(safeCoachCardHref(card.href))}" target="_blank" rel="noopener noreferrer">${escapeHtml(card.title || card.id)}</a>` : `<span>${escapeHtml(card.title || card.id)} (link unavailable)</span>`).join("")}</div><p>Curriculum placement only. Selecting a wave accepts it for this lesson; it does not verify athlete progression.</p>` : '<p class="planning-unavailable">Tier Wave mapping unavailable for this Journey, discipline, or tier.</p>') : ""}
+      ${planningSources.systemSuggestions ? '<p class="planning-unavailable"><strong>System Suggestions:</strong> unavailable until authoritative athlete-history recommendations are connected. No diagnostic preview is treated as verified.</p>' : ""}
+      ${planningSources.coachInput ? `<p><strong>Original carry-forward:</strong> ${escapeHtml(group.carryForwardNote || "None recorded")}</p><label>Use prior note<select class="hybrid-note-disposition" data-group-id="${escapeHtml(group.id)}"><option value="accepted"${prior.disposition === "accepted" ? " selected" : ""}>Accept</option><option value="edited"${prior.disposition === "edited" ? " selected" : ""}>Edit</option><option value="dismissed"${prior.disposition === "dismissed" ? " selected" : ""}>Dismiss</option><option value="replaced"${prior.disposition === "replaced" ? " selected" : ""}>Replace</option></select></label><label>Current Coach instructions<textarea class="hybrid-coach-note" data-group-id="${escapeHtml(group.id)}" rows="3" placeholder="Instructions for this practice">${escapeHtml(prior.currentNote || "")}</textarea></label><p>Coach observations remain unverified until the normal evidence process is completed.</p>` : ""}
+    </article>`);
+  }
+  hybridGroupPlanning.innerHTML = cards.join("");
+  hybridGroupPlanning.querySelectorAll(".hybrid-wave-select").forEach(select => select.addEventListener("change", () => {
+    groupPlanningDraft[select.dataset.groupId] = { ...(groupPlanningDraft[select.dataset.groupId] || {}), selectedWave: select.value };
+    renderHybridPlanning();
+  }));
+  hybridGroupPlanning.querySelectorAll(".hybrid-note-disposition,.hybrid-coach-note").forEach(input => input.addEventListener("input", () => {
+    const card = input.closest(".hybrid-group-card");
+    const id = input.dataset.groupId;
+    groupPlanningDraft[id] = {
+      ...(groupPlanningDraft[id] || {}),
+      disposition: card.querySelector(".hybrid-note-disposition")?.value || "dismissed",
+      currentNote: card.querySelector(".hybrid-coach-note")?.value || ""
+    };
+  }));
 }
 
 function roomHasGuidedPrograms(room) {
@@ -407,6 +508,7 @@ function updateModeButtons() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   });
+  renderHybridPlanning();
 }
 
 function updateConditionalControls() {
@@ -566,8 +668,17 @@ function updateSummary() {
     summaryAvailability.textContent = "Coach controls the build in Practice Clipboard.";
   }
 
-  buildBtn.disabled = !program.discipline || !selectedRoom();
-  buildBtn.textContent = "Continue to Attendance";
+  const noHybridSources = selectedMode === "hybrid" && enabledPlanningSources(readPlanningSources()).length === 0;
+  const autoBlocked = selectedMode === "auto";
+  const reviewingPlan = Boolean(activePracticeId) && new URLSearchParams(window.location.search).get("planning") === "1";
+  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked;
+  buildBtn.textContent = autoBlocked
+    ? "AUTO Awaiting Certified Authorization"
+    : reviewingPlan && selectedMode === "hybrid"
+      ? "Accept Plan and Continue to Clipboard"
+      : reviewingPlan
+        ? "Continue to Clipboard"
+        : "Continue to Attendance";
 }
 
 function showPrePracticeSetup() {
@@ -757,6 +868,8 @@ function createSessionPayload(practiceId = activePracticeId) {
     tier: attendanceContext.tier || program.tier,
     rankLabel: attendanceContext.rankLabel || program.rankLabel || "",
     trainingGroups: groups,
+    planningSources: selectedMode === "hybrid" ? readPlanningSources() : {},
+    groupPlanning: selectedMode === "hybrid" ? (attendanceContext.groupPlanning || {}) : {},
     attendanceJourneyFilter: String(journeySelect?.value || "").trim(),
     week,
     ...getHybridData(week),
@@ -767,36 +880,31 @@ function createSessionPayload(practiceId = activePracticeId) {
 }
 
 async function resolveGroupPrescriptions(payload) {
-  if (!["auto", "hybrid"].includes(payload.executionMode)) return payload;
-  const program = selectedProgram();
-  const prefix = program?.hybridModelPrefix || "";
+  if (payload.executionMode !== "hybrid") return payload;
   const groups = Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [];
   if (!groups.length) return payload;
   const prescriptions = [];
+  const groupPlanning = {};
   for (const group of groups) {
     const tier = String(group.tier || "").toLowerCase();
-    const discipline = String(program?.discipline || "").toLowerCase();
-    const journeyMatches = String(group.journey || "").toLowerCase() === String(program?.journey || "").toLowerCase();
-    if (!prefix || !journeyMatches || discipline === "boxing" || !/^t[0-4]$/.test(tier)) {
+    const discipline = String(group.discipline || "").toLowerCase();
+    const prior = editableGroupPlanning(groupPlanningDraft[group.id] || payload.groupPlanning?.[group.id] || {}, group);
+    const selectedWave = prior.selectedWave;
+    const model = await waveModelForGroup(group);
+    const cards = Array.isArray(model?.WAVE_CARDS?.[selectedWave]) ? model.WAVE_CARDS[selectedWave] : [];
+    if (!planningSources.tierWaves || !selectedWave || !cards.length || !/^t[0-4]$/.test(tier)) {
       prescriptions.push({ groupId: group.id, tier, status: "unavailable", cards: [] });
+      groupPlanning[group.id] = composeGroupPlanning({ group, sources: planningSources, wave: null, prior });
       continue;
     }
     try {
-      const model = await import(`${prefix}-${tier}-waves.js`);
-      const waves = Object.entries(model.WAVE_CARDS || {})
-        .filter(([, cards]) => Array.isArray(cards) && cards.length);
-      // Start with the first approved mapped wave until authoritative individual
-      // progression records are connected. Never use an arbitrary hash as pedagogy.
-      const [waveKey, cards] = waves[0] || ["", []];
-      // A first-wave fallback is useful for HYBRID editing, but is not evidence
-      // of validated athlete progression and must not authorize AUTO execution.
       const progressionVerified = false;
       // Resolve curriculum-card IDs through the existing canonical skill-family map.
       // Mapping identifies the evidence to look up; it does not certify mastery.
       let cardFamilyMap = {};
       if (discipline === "wrestling") {
         const { WRESTLING_CARD_FAMILIES } = await import("/coaches/cards/wrestling/family-map.js");
-        const journeyKey = String(program?.journey || "").toLowerCase() === "z2h" ? "r2c" : "p2l";
+        const journeyKey = String(group.journey || "").toLowerCase() === "z2h" ? "r2c" : "p2l";
         cardFamilyMap = WRESTLING_CARD_FAMILIES?.[journeyKey]?.[tier] || {};
       }
       const mappedCards = cards.map(card => ({
@@ -806,19 +914,33 @@ async function resolveGroupPrescriptions(payload) {
         groupLabel: group.label || group.id
       }));
       prescriptions.push({
-        groupId: group.id, tier, waveKey,
-        status: cards.length ? "ready" : "unavailable",
+        groupId: group.id, tier, waveKey: selectedWave,
+        status: "ready",
+        contentState: "accepted",
         progressionStatus: "unverified",
         progressionVerified,
         mappingStatus: mappedCards.every(card => card.familyId) ? "mapped" : "incomplete",
         cards: mappedCards
       });
+      groupPlanning[group.id] = composeGroupPlanning({
+        group,
+        sources: planningSources,
+        wave: { waveKey: selectedWave, cards: mappedCards },
+        prior
+      });
     } catch (error) {
       console.warn("Group curriculum unavailable", group.id, error);
       prescriptions.push({ groupId: group.id, tier, status: "unavailable", cards: [] });
+      groupPlanning[group.id] = composeGroupPlanning({ group, sources: planningSources, wave: null, prior });
     }
   }
-  return { ...payload, groupPrescriptions: prescriptions };
+  return {
+    ...payload,
+    planningSources: normalizePlanningSources(planningSources, "hybrid"),
+    groupPlanning,
+    groupPrescriptions: prescriptions,
+    acceptedLessonContent: Object.fromEntries(Object.entries(groupPlanning).map(([groupId, planning]) => [groupId, acceptedCardsForGroup(planning)]))
+  };
 }
 
 function persistSession(payload) {
@@ -948,6 +1070,11 @@ async function restoreCanonicalPractice(practiceId) {
   populatePrograms(String(practice.program || ""));
   setShell(String(practice.schema || "academy-60"));
   selectedMode = normalizeExecutionMode(practice.executionMode, "manual");
+  planningSources = normalizePlanningSources(rememberedSession.planningSources || DEFAULT_HYBRID_PLANNING_SOURCES, selectedMode);
+  groupPlanningDraft = rememberedSession.groupPlanning || {};
+  planningSourceInputs.forEach(input => {
+    input.checked = Boolean(planningSources[input.dataset.planningSource]);
+  });
   populateRanks(String(practice.tier || ""));
   if (weekSelect && practice.week && [...weekSelect.options].some((option) => option.value === String(practice.week))) {
     weekSelect.value = String(practice.week);
@@ -983,6 +1110,12 @@ modeButtons.forEach(button => button.addEventListener("click", () => {
   refreshFocusSuggestion();
   updateModeButtons();
   updateConditionalControls();
+  updateSummary();
+}));
+
+planningSourceInputs.forEach(input => input.addEventListener("change", () => {
+  planningSources = readPlanningSources();
+  renderHybridPlanning();
   updateSummary();
 }));
 
@@ -1048,11 +1181,12 @@ buildBtn.addEventListener("click", async () => {
     persistSession(payload);
 
     const historical = String(practiceEntryIntent().mode || "") === "after-the-fact";
+    const reviewingHybridPlan = selectedMode === "hybrid" && new URLSearchParams(window.location.search).get("planning") === "1";
     const attendanceFirstId = sessionStorage.getItem("sandman_attendance_first_practice_id");
     if (historical) {
       sessionStorage.removeItem(PRACTICE_ENTRY_KEY);
       window.location.href = `/coaches/attendance/session.html?practiceId=${encodeURIComponent(payload.practiceId)}&session=${encodeURIComponent(payload.sessionId)}&return=historical&flow=builder`;
-    } else if (attendanceFirstId === payload.practiceId) {
+    } else if (reviewingHybridPlan || attendanceFirstId === payload.practiceId) {
       sessionStorage.removeItem("sandman_attendance_first_practice_id");
       window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(payload.sessionId)}&practiceId=${encodeURIComponent(payload.practiceId)}`;
     } else {
