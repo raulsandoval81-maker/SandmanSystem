@@ -20,6 +20,7 @@ on:
           - combat-setup-regexfix-pr129-b7545f30
           - combat-setup-final-pr131-ea296f66
           - hybrid-handoff-pr133-8af57906
+          - session-hierarchy-pr135-a6b674e3
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
