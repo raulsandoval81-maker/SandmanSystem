@@ -86,3 +86,15 @@ test("HYBRID fallback is opt-in and four-group submission honors the visible Coa
   const submit = attendanceJs.slice(attendanceJs.indexOf("async function submitForReview()"));
   assert.match(submit, /fourGroupExceptionAcknowledged = \$\("fourGroupAcknowledgement"\)\?\.checked === true/);
 });
+
+test("four-group validation distinguishes missing acknowledgment from missing focus", () => {
+  assert.match(attendanceJs, /fourGroupAcknowledgementRequired && !fourGroupExceptionAcknowledged/);
+  assert.match(attendanceJs, /fourGroupExceptionAcknowledged \|\|= acknowledgement\.checked === true/);
+  assert.match(attendanceJs, /acknowledgement\.checked = fourGroupExceptionAcknowledged/);
+});
+
+test("legacy HYBRID source selections do not override the OFF default", () => {
+  assert.match(attendanceJs, /planningSourcesExplicitlySelected === true \? \(remembered\.planningSources \|\| \{\}\)/);
+  assert.match(attendanceJs, /planningSourcesExplicitlySelected: hybridStageState\.planningSourcesExplicitlySelected === true/);
+  assert.match(attendanceJs, /hybridStageState\.planningSourcesExplicitlySelected = false/);
+});
