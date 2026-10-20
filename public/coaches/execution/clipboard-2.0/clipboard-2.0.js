@@ -725,6 +725,23 @@ async function clipboardWavesForGroup(group) {
     return policy.resolveRoad2ChampionWrestlingTierWaves(tier)?.waves || legacy?.WAVE_CARDS || {};
   } catch { return legacy?.WAVE_CARDS || {}; }
 }
+// Room-wide HYBRID coordination is instructional only, never tier certification.
+function waveCardIdentity(card) {
+  return String(card.familyId || card.manifestFamilyId || card.id || card.title || "").trim().toLowerCase();
+}
+function suggestedWaveForRoom(models, groups) {
+  // One shared Wave theme across the room avoids four unrelated mini-lessons.
+  const counts = new Map();
+  models.forEach(waves => Object.keys(waves || {}).forEach(key => {
+    if (Array.isArray(waves[key]) && waves[key].length) counts.set(key, (counts.get(key) || 0) + 1);
+  }));
+  const focus = String(builderSession.focus || builderSession.weekFocus || "").toLowerCase();
+  return [...counts.keys()].sort((a,b) =>
+    (counts.get(b) - counts.get(a)) ||
+    (Number(focus.includes(b.replaceAll("_"," "))) - Number(focus.includes(a.replaceAll("_"," ")))) ||
+    a.localeCompare(b)
+  )[0] || "";
+}
 function renderWaveBlockPlacements() {
   document.querySelectorAll(".clipboard-wave-placements").forEach(el => el.remove());
   const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
@@ -732,18 +749,26 @@ function renderWaveBlockPlacements() {
   for (const block of document.querySelectorAll("#planBlocks .plan-block")) {
     const slot = block.dataset.slot || "";
     if (!/^(drills|technique|live|onmat)$/.test(slot)) continue;
-    const entries = prescriptions.flatMap(p => (p.status === "ready" ? p.cards || [] : [])
-      .filter(card => placements[p.groupId]?.[String(card.id || card.cardId || card.title || "")] === slot)
-      .map(card => ({groupId:p.groupId,title:card.title || card.id || "Skill"})));
-    if (!entries.length) continue;
+    const shared = new Map();
+    for (const prescription of prescriptions) {
+      if (prescription.status !== "ready") continue;
+      for (const card of prescription.cards || []) {
+        if (placements[prescription.groupId]?.[String(card.id || card.cardId || card.title || "")] !== slot) continue;
+        const identity = waveCardIdentity(card);
+        if (!identity) continue;
+        if (!shared.has(identity)) shared.set(identity, { title:card.title || card.id || "Skill", groups:[] });
+        shared.get(identity).groups.push(prescription.groupId);
+      }
+    }
+    if (!shared.size) continue;
     const box = document.createElement("div");
     box.className = "clipboard-wave-placements";
     const heading = document.createElement("strong");
-    heading.textContent = "HYBRID · Coach-approved group work";
+    heading.textContent = "HYBRID · Shared core skills";
     box.append(heading);
-    for (const entry of entries) {
+    for (const skill of shared.values()) {
       const item = document.createElement("p");
-      item.textContent = entry.groupId + " · " + entry.title;
+      item.textContent = skill.title + " · " + skill.groups.join(", ");
       box.append(item);
     }
     block.append(box);
@@ -769,8 +794,8 @@ async function initClipboardHybridPlanning() {
   const models = await Promise.all(groups.map(group => clipboardWavesForGroup(group)));
   function updatePrescriptions() {
     const prescriptions = groups.map((group,index) => {
-      const selected = builderSession.clipboardWaveSelections?.[group.id] || "";
-      const cards = waveCheck.checked && selected && Array.isArray(models[index]?.[selected])
+      const selected = waveCheck.checked ? (builderSession.clipboardWaveSelections?.[group.id] || "") : "";
+      const cards = selected && Array.isArray(models[index]?.[selected])
         ? models[index][selected].map(card => ({...card, groupId:group.id,groupLabel:group.label || group.id})) : [];
       return {
         groupId:group.id, tier:String(group.tier || ""), waveKey:selected,
@@ -793,62 +818,69 @@ async function initClipboardHybridPlanning() {
     saveClipboardPlanning();
     renderWaveBlockPlacements();
   }
+  function applySystemWaves() {
+    builderSession.clipboardWaveSelections ||= {};
+    builderSession.clipboardWavePlacements ||= {};
+    const sharedWave = suggestedWaveForRoom(models, groups);
+    groups.forEach((group,index) => {
+      const waves = models[index] || {};
+      const available = Object.keys(waves).filter(key => Array.isArray(waves[key]) && waves[key].length);
+      const selection = available.includes(sharedWave) ? sharedWave : (available[0] || "");
+      const priorSelection = builderSession.clipboardWaveSelections[group.id];
+      if (priorSelection !== selection) {
+        builderSession.clipboardWaveSelections[group.id] = selection;
+        builderSession.clipboardWavePlacements[group.id] = {};
+      }
+      const placements = builderSession.clipboardWavePlacements[group.id] ||= {};
+      for (const card of waves[selection] || []) {
+        const cardId = String(card.id || card.cardId || card.title || "");
+        if (cardId && !Object.hasOwn(placements, cardId)) placements[cardId] = "technique";
+      }
+    });
+  }
   function render() {
     container.replaceChildren();
     if (coachCheck.checked) {
-      const info = document.createElement("p");
-      info.className = "muted";
+      const info = document.createElement("p"); info.className = "muted";
       info.textContent = "Coach carry-forward notes remain available in Training Groups.";
       container.append(info);
     }
     if (!waveCheck.checked) { updatePrescriptions(); return; }
+    applySystemWaves();
+    const summary = document.createElement("p");
+    summary.className = "muted";
+    summary.textContent = "System-selected Waves · shared core skills shown once across groups. Instructional suggestions only; unverified tiers remain unverified.";
+    container.append(summary);
     groups.forEach((group,index) => {
       const section = document.createElement("section");
       section.className = "clipboard-hybrid-group";
       const title = document.createElement("strong");
-      title.textContent = (group.label || "Group " + (index+1)) + " · " + String(group.journey || "");
+      const wave = builderSession.clipboardWaveSelections[group.id] || "";
+      title.textContent = (group.label || "Group " + (index+1)) + " · " + (wave ? wave.replaceAll("_"," ") : "No approved Wave available");
       section.append(title);
-      const waves = models[index] || {};
-      const waveSelect = document.createElement("select");
-      waveSelect.setAttribute("aria-label","Wave for "+(group.label || group.id));
-      const empty = new Option("Select shared principle / Wave","");waveSelect.add(empty);
-      Object.entries(waves).filter(([,cards])=>Array.isArray(cards)&&cards.length).forEach(([key]) =>
-        waveSelect.add(new Option(key.replaceAll("_"," "),key)));
-      waveSelect.value = builderSession.clipboardWaveSelections?.[group.id] || "";
-      section.append(waveSelect);
-      if (!waveSelect.options.length || waveSelect.options.length === 1) {
-        const warn = document.createElement("p");warn.className="muted";
-        warn.textContent="Wave catalog unavailable for this group; manual instruction remains available.";
-        section.append(warn);
-      }
-      waveSelect.addEventListener("change",() => {
-        builderSession.clipboardWaveSelections ||= {};
-        builderSession.clipboardWaveSelections[group.id] = waveSelect.value;
-        builderSession.clipboardWavePlacements ||= {};
-        builderSession.clipboardWavePlacements[group.id] = {};
-        updatePrescriptions();render();
-      });
-      const selectedCards = Array.isArray(waves[waveSelect.value]) ? waves[waveSelect.value] : [];
-      if (selectedCards.length) {
+      const cards = models[index]?.[wave] || [];
+      if (!cards.length) {
+        const unavailable = document.createElement("p"); unavailable.className="muted";
+        unavailable.textContent = "Approved curriculum unavailable. Use manual instruction.";
+        section.append(unavailable);
+      } else {
         const details = document.createElement("details");
-        const summary = document.createElement("summary");
-        summary.textContent = selectedCards.length + " approved curriculum cards · choose lesson blocks";
-        details.append(summary);
-        for (const card of selectedCards) {
-          const row = document.createElement("label");row.className="clipboard-wave-card-row";
-          const name = document.createElement("span");name.textContent=card.title || card.id;
+        const heading = document.createElement("summary");
+        heading.textContent = "Coach adjustments · " + cards.length + " skill cards";
+        details.append(heading);
+        for (const card of cards) {
+          const row = document.createElement("label"); row.className="clipboard-wave-card-row";
+          const name = document.createElement("span"); name.textContent = card.title || card.id;
           const select = document.createElement("select");
           select.setAttribute("aria-label","Lesson block for "+(card.title || card.id));
           [["","Not placed"],["drills","Previous Skills / Drills"],["technique","New Techniques"],["live","Live Session"],["onmat","On-Mat Talk"]].forEach(([value,label])=>select.add(new Option(label,value)));
           const id = String(card.id || card.cardId || card.title || "");
-          select.value=builderSession.clipboardWavePlacements?.[group.id]?.[id] || "";
+          select.value = builderSession.clipboardWavePlacements?.[group.id]?.[id] || "";
           select.addEventListener("change",()=>{
-            builderSession.clipboardWavePlacements ||= {};
-            builderSession.clipboardWavePlacements[group.id] ||= {};
-            builderSession.clipboardWavePlacements[group.id][id]=select.value;
+            builderSession.clipboardWavePlacements[group.id][id] = select.value;
             saveClipboardPlanning();renderWaveBlockPlacements();
           });
-          row.append(name,select);details.append(row);
+          row.append(name,select); details.append(row);
         }
         section.append(details);
       }
