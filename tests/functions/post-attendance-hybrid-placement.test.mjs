@@ -145,6 +145,6 @@ test("rank rims resolve by Journey and tier, with striking gray at entry", () =>
   assert.match(attendanceJs, /index === 0 && striking/);
   assert.doesNotMatch(attendanceJs, /\/champion\|legend\|hero\|black\//);
   for (const rim of ["white", "gray", "yellow", "orange", "green", "blue", "purple", "brown", "black"]) {
-    assert.match(attendanceCss, new RegExp("\\.attendance-rank-" + rim + "\\\{"));
+    assert.ok(attendanceCss.includes(".attendance-rank-" + rim + "{"));
   }
 });
