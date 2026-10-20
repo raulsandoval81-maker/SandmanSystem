@@ -229,7 +229,7 @@ function attendanceIdentityMarkup(a = {}) {
   const route = [journey, discipline, [tier, rank].filter(Boolean).join(" · ")].filter(Boolean).join(" · ");
   // Display only: resolve the belt rim from the Journey, tier, and discipline.
   // Never infer a belt color from rank-name keywords.
-  const tierCode = /^T[0-4]$/i.test(tier) ? tier.toUpperCase() : "";
+  const tierCode = normalizeAthleteTier({ ...a, ...item }, ladderForJourney(normalizeJourneyCode(item.journey || item.programTrack || item.program || activePractice?.journey)));
   const striking = /^(boxing|muay thai|muay-thai|muaythai|kickboxing|striking)$/i.test(discipline);
   const palette = journey === "Road2Champion"
     ? ["white", "yellow", "orange", "green", "black"]
