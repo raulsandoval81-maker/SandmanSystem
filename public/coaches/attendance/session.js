@@ -1239,9 +1239,9 @@ async function savePracticeContextToBuilderSession() {
   if (isHybridPractice() && !Object.keys(hybridStageState.planningSources).length) {
     const remembered = session.practiceId === activePractice?.practiceId ? session : {};
     hybridStageState.planningSources = remembered.planningSources || {
-      tierWaves: true,
-      systemSuggestions: true,
-      coachInput: true
+      tierWaves: false,
+      systemSuggestions: false,
+      coachInput: false
     };
     hybridStageState.groupPlanning = remembered.groupPlanning || {};
   }
@@ -1349,6 +1349,11 @@ async function authoritativeAttendanceStatus() {
 }
 
 async function submitForReview() {
+  // Treat the checked Coach acknowledgment as authoritative at submission.
+  // Rerendering group controls must not invalidate an explicit selection.
+  if (isBuilderFlow() && document.querySelectorAll(".training-group-card").length > NORMAL_TRAINING_GROUP_CAPACITY) {
+    fourGroupExceptionAcknowledged = $("fourGroupAcknowledgement")?.checked === true;
+  }
   if (attendanceSubmissionPending) {
     setStatus("Attendance submission is already in progress.");
     return;
