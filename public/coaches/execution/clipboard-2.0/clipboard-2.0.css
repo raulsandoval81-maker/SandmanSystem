@@ -1836,3 +1836,13 @@ body.clock-mode .clock-toggle{
   #clipboardRoot .plan-block.running-now,
   #clipboardRoot.run-mode{animation:none}
 }
+
+/* Clipboard group details are reference material, not a second planning page. */
+.clipboard-training-groups-disclosure { margin: 12px 0; border: 1px solid var(--line, #7776); border-radius: 10px; }
+.clipboard-training-groups-disclosure[hidden] { display: none; }
+.clipboard-training-groups-disclosure > summary { cursor: pointer; padding: 12px 14px; font-weight: 700; list-style: none; }
+.clipboard-training-groups-disclosure > summary::-webkit-details-marker { display: none; }
+.clipboard-training-groups-disclosure > summary::before { content: "›"; display: inline-block; margin-right: 10px; transition: transform .15s ease; }
+.clipboard-training-groups-disclosure[open] > summary::before { transform: rotate(90deg); }
+.clipboard-training-groups-disclosure > summary:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.clipboard-training-groups-disclosure .clipboard-training-groups { padding: 0 12px 12px; }
