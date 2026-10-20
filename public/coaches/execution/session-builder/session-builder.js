@@ -86,6 +86,22 @@ const practiceContextIntro = document.getElementById("practiceContextIntro");
 const practiceRoutingControls = document.getElementById("practiceRoutingControls");
 const pageSearchParams = new URLSearchParams(window.location.search);
 const hybridReviewRequested = pageSearchParams.get("planning") === "1";
+// Retired after Attendance -> Clipboard became the canonical HYBRID handoff.
+// Handle old bookmarks without exposing the duplicate lesson-review screen.
+// Clipboard performs its normal server-side practice/roster validation.
+if (hybridReviewRequested) {
+  const requestedPracticeId = String(pageSearchParams.get("practiceId") || "").trim();
+  let remembered = {};
+  try {
+    remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+  } catch {}
+  const samePractice = requestedPracticeId
+    && requestedPracticeId === String(remembered?.practiceId || "").trim();
+  const rememberedSessionId = samePractice ? String(remembered?.sessionId || "").trim() : "";
+  window.location.replace(rememberedSessionId
+    ? `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(rememberedSessionId)}&practiceId=${encodeURIComponent(requestedPracticeId)}`
+    : "/coaches/practice/");
+}
 
 let selectedSessionType = "academy";
 let selectedDuration = 60;

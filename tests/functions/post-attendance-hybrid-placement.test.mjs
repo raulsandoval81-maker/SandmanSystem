@@ -14,11 +14,21 @@ const builder = file("public/coaches/execution/session-builder/session-builder.j
 const clipboard = file("public/coaches/execution/clipboard-2.0/clipboard-2.0.js");
 const clipboardHtml = file("public/coaches/execution/clipboard-2.0/index.html");
 
-test("HYBRID selections appear after checked-in training groups, not on entry", () => {
-  assert.ok(attendanceHtml.indexOf('id="postAttendanceHybridPlanning"') > attendanceHtml.indexOf('id="trainingGroups"'));
-  assert.match(attendanceJs, /renderAttendanceHybridPlanning\(host, captureTrainingGroups\(\), hybridStageState/);
-  assert.match(builder, /hybridPlanningPanel.hidden = !reviewingCheckedInPlan/);
-  assert.match(builder, /get\("planning"\) === "1"/);
+test("Attendance omits duplicate HYBRID instructional controls and hands off to Clipboard", () => {
+  assert.doesNotMatch(attendanceHtml, /id="postAttendanceHybridPlanning"/);
+  assert.match(attendanceHtml, /id="trainingGroups"/);
+  assert.match(attendanceHtml, /id="fourGroupAcknowledgement"/);
+  assert.match(attendanceHtml, /id="finishContextBtn"[^>]*>Continue to Clipboard/);
+  assert.match(attendanceJs, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(clipboardHtml, /id="clipboardHybridPlanning"/);
+});
+
+test("legacy HYBRID planning URLs cannot reopen the duplicate review page", () => {
+  assert.match(builder, /if \(hybridReviewRequested\) \{/);
+  assert.match(builder, /requestedPracticeId === String\(remembered\?\.practiceId/);
+  assert.match(builder, /window\.location\.replace\(rememberedSessionId/);
+  assert.match(builder, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(builder, /: "\/coaches\/practice\/"\)/);
 });
 
 test("Attendance uses matching compact step headings without redundant navigation", () => {
