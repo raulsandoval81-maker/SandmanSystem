@@ -1559,7 +1559,7 @@ function groupActivitiesForBlock(block, session) {
       groupId: group.id,
       groupLabel: group.label || "",
       tier: group.tier || "",
-      status: prescription?.status || "unavailable",
+      status: prescription?.status === "ready" && (prescription.cards || []).some(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot) ? "ready" : "unavailable",
       waveKey: prescription?.waveKey || "",
       cards: prescription?.status === "ready" ? (prescription.cards || []).filter(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot).map(card => ({
         id: card.id || "", title: card.title || "", href: card.href || "",
