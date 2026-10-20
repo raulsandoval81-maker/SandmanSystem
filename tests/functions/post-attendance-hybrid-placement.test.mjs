@@ -31,6 +31,14 @@ test("legacy HYBRID planning URLs cannot reopen the duplicate review page", () =
   assert.match(builder, /: "\/coaches\/practice\/"\)/);
 });
 
+test("Session Builder HTML redirects retired planning links before UI initialization", () => {
+  const html = file("public/coaches/execution/session-builder/index.html");
+  assert.match(html, /params\.get\("planning"\) !== "1"/);
+  assert.match(html, /practiceId === String\(remembered\.practiceId/);
+  assert.match(html, /window\.location\.replace\(sessionId/);
+  assert.match(html, /session-builder\.js\?v=20261020-clipboard-direct2/);
+});
+
 test("Attendance uses matching compact step headings without redundant navigation", () => {
   assert.doesNotMatch(attendanceHtml, /class="attendance-header"/);
   assert.doesNotMatch(attendanceHtml, /← Practice Operations/);

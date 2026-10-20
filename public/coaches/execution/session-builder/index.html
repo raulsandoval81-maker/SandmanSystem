@@ -4,6 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Session Builder</title>
+  <script>
+    // Retired HYBRID review links must navigate away before cached page UI renders.
+    // No practice is opened or mutated by this compatibility redirect.
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("planning") !== "1") return;
+      const practiceId = String(params.get("practiceId") || "").trim();
+      let remembered = {};
+      try {
+        remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
+      } catch {}
+      const sessionId = practiceId && practiceId === String(remembered.practiceId || "").trim()
+        ? String(remembered.sessionId || "").trim() : "";
+      window.location.replace(sessionId
+        ? "/coaches/execution/clipboard-2.0/?session=" + encodeURIComponent(sessionId) + "&practiceId=" + encodeURIComponent(practiceId)
+        : "/coaches/practice/");
+    })();
+  </script>
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
   <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=20261018-hybrid-review1">
   <link rel="icon" href="data:,">
@@ -149,6 +167,6 @@
   </section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261018-hybrid-review1"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=20261020-clipboard-direct2"></script>
 </body>
 </html>
