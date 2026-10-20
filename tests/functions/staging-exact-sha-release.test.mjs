@@ -358,7 +358,12 @@ test("PR163 corrected source remains restricted to staging", () => {
   assert.equal(result.sourcePr, 163);
   assert.equal(result.projectId, "sandman-combat-staging");
   assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
-  assert.deepEqual(result.allowedChangedFiles, ["tests/functions/post-attendance-hybrid-placement.test.mjs"]);
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
 });
 
 test("invalid and unapproved source revisions are rejected", async () => {
