@@ -990,5 +990,50 @@
       "captureFunctionStateBeforeDeploy": true,
       "preserveFunctionConfigurationAndIam": true
     }
+  },
+  "hybrid-ack-pr169-4942bbdf": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 169,
+    "applicationSha": "4942bbdf4869a56bf6697558c8b2a20bd0dd9c7a",
+    "requiredAncestorSha": "5682e26d1f3780bd18591f9d477c323ad0cc9140",
+    "allowedChangedFiles": [
+      ".github/workflows/staging-exact-sha-release.yml",
+      "public/coaches/attendance/session.js",
+      "scripts/staging/approved-exact-sha-releases.json",
+      "tests/functions/post-attendance-hybrid-placement.test.mjs",
+      "tests/functions/staging-exact-sha-release.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [
+      "savePracticeSessionMemory",
+      "closePracticeSession"
+    ],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    }
   }
 }

@@ -35,6 +35,7 @@ const pr158AlignedRelease = await loadRelease("unified-hybrid-pr158-93379221");
 const pr161ConsolidatedRelease = await loadRelease("hybrid-four-groups-pr161-0e25eb7e");
 const pr163CorrectedRelease = await loadRelease("hybrid-four-groups-pr163-9dbc15b0");
 const pr167AttendanceRelease = await loadRelease("attendance-step2-pr167-5682e26d");
+const pr169HybridAckRelease = await loadRelease("hybrid-ack-pr169-4942bbdf");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -387,6 +388,26 @@ test("PR167 attendance transition release uses exact staged source and five-file
   assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
 });
 
+test("PR169 HYBRID acknowledgment release remains restricted to staging and five reviewed files", () => {
+  const result = validateRelease(pr169HybridAckRelease, context({
+    checkedOutSha: pr169HybridAckRelease.applicationSha,
+    hostingDeployer: pr169HybridAckRelease.hostingDeployer,
+    functionDeployer: pr169HybridAckRelease.functionDeployer,
+    functionRuntime: pr169HybridAckRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 169);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.applicationSha, "4942bbdf4869a56bf6697558c8b2a20bd0dd9c7a");
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "public/coaches/attendance/session.js",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -454,6 +475,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /hybrid-four-groups-pr161-0e25eb7e/);
   assert.match(workflow, /hybrid-four-groups-pr163-9dbc15b0/);
   assert.match(workflow, /attendance-step2-pr167-5682e26d/);
+  assert.match(workflow, /hybrid-ack-pr169-4942bbdf/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
