@@ -46,8 +46,10 @@ test("failed restoration never enables review presentation or plan acceptance", 
   assert.match(js, /canonicalPracticeRestored && Boolean\(activePracticeId\)\s*&& hybridReviewRequested/);
 });
 
-test("checked-in groups and canonical practiceId remain on the existing HYBRID handoff", () => {
-  assert.match(attendance, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}&planning=1/);
+test("checked-in groups and canonical practiceId reach Clipboard directly while legacy recovery remains gated", () => {
+  assert.match(attendance, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(attendance, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}/);
+  assert.doesNotMatch(attendance, /planning=1/);
   assert.match(js, /String\(remembered\.practiceId \|\| ""\) === String\(activePracticeId \|\| ""\)/);
   assert.match(js, /Array\.isArray\(remembered\.trainingGroups\)/);
   assert.match(js, /getPractice\(\{ practiceId: activePracticeId \}\)/);
