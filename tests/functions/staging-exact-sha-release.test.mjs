@@ -33,6 +33,7 @@ const pr152UnifiedRelease = await loadRelease("unified-hybrid-pr152-0c2dc9d8");
 const pr155AlignedRelease = await loadRelease("unified-hybrid-pr155-34fa3550");
 const pr158AlignedRelease = await loadRelease("unified-hybrid-pr158-93379221");
 const pr161ConsolidatedRelease = await loadRelease("hybrid-four-groups-pr161-0e25eb7e");
+const pr163CorrectedRelease = await loadRelease("hybrid-four-groups-pr163-9dbc15b0");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -347,6 +348,19 @@ test("PR160/161 consolidated staging release preserves immutable safety boundari
   assert.equal(result.allowedChangedFiles.length, 12);
 });
 
+test("PR163 corrected source remains restricted to staging", () => {
+  const result = validateRelease(pr163CorrectedRelease, context({
+    checkedOutSha: pr163CorrectedRelease.applicationSha,
+    hostingDeployer: pr163CorrectedRelease.hostingDeployer,
+    functionDeployer: pr163CorrectedRelease.functionDeployer,
+    functionRuntime: pr163CorrectedRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 163);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+  assert.deepEqual(result.allowedChangedFiles, ["tests/functions/post-attendance-hybrid-placement.test.mjs"]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -412,6 +426,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /unified-hybrid-pr155-34fa3550/);
   assert.match(workflow, /unified-hybrid-pr158-93379221/);
   assert.match(workflow, /hybrid-four-groups-pr161-0e25eb7e/);
+  assert.match(workflow, /hybrid-four-groups-pr163-9dbc15b0/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
