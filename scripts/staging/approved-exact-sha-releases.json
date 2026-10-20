@@ -1081,5 +1081,52 @@
       "captureFunctionStateBeforeDeploy": true,
       "preserveFunctionConfigurationAndIam": true
     }
+  },
+  "clipboard-handoff-pr175-3ac894ff": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 175,
+    "applicationSha": "3ac894ff68ef238dc5a38a03a1ad3c8499e8a8da",
+    "requiredAncestorSha": "e331687695b7484989311c06d05b31fff008c04a",
+    "allowedChangedFiles": [
+      ".github/workflows/staging-exact-sha-release.yml",
+      "public/coaches/attendance/attendance.css",
+      "public/coaches/attendance/session.js",
+      "public/coaches/execution/session-builder/session-builder.js",
+      "scripts/staging/approved-exact-sha-releases.json",
+      "tests/functions/post-attendance-hybrid-placement.test.mjs",
+      "tests/functions/staging-exact-sha-release.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [
+      "savePracticeSessionMemory",
+      "closePracticeSession"
+    ],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    }
   }
 }
