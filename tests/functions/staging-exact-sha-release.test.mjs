@@ -46,6 +46,7 @@ const pr185FixedRelease = await loadRelease("clipboard-hybrid-pr185-1848238c");
 const pr187ValidatorRelease = await loadRelease("clipboard-hybrid-pr187-f4ff13f7");
 const pr189CleanupRelease = await loadRelease("clipboard-cleanup-pr189-9484b8ab");
 const pr191RedirectRelease = await loadRelease("clipboard-redirect-pr191-55e27c81");
+const pr193WavesRelease = await loadRelease("clipboard-waves-pr193-c750a4cb");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -622,6 +623,24 @@ test("PR191 pre-render HYBRID redirect uses only the approved staging SHA", () =
     "scripts/staging/approved-exact-sha-releases.json",
     "tests/functions/post-attendance-hybrid-placement.test.mjs",
     "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+});
+
+test("PR193 automatic HYBRID Wave coordination pins staging-only source", () => {
+  const result = validateRelease(pr193WavesRelease, context({
+    checkedOutSha: pr193WavesRelease.applicationSha,
+    hostingDeployer: pr193WavesRelease.hostingDeployer,
+    functionDeployer: pr193WavesRelease.functionDeployer,
+    functionRuntime: pr193WavesRelease.functionRuntime
+  }));
+  assert.equal(result.sourcePr, 193);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.applicationSha, "c750a4cbe953c03e498d223295c5bd6279a80217");
+  assert.deepEqual(result.allowedChangedFiles, [
+    "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+    "public/coaches/execution/clipboard-2.0/index.html",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs"
   ]);
   assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
 });
