@@ -697,6 +697,170 @@ function renderClipboardTrainingGroups() {
   }).join("");
 }
 
+
+const HYBRID_WAVE_PREFIXES = {
+  Z2H: "/assets/js/hybrid/youth/youth-zero-to-hero-wrestling",
+  P2L: "/assets/js/hybrid/teen/teen-path-to-legend-wrestling"
+};
+const clipboardWaveModels = new Map();
+function saveClipboardPlanning() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+  queueDraftSave();
+}
+async function clipboardWavesForGroup(group) {
+  if (String(builderSession.discipline || "").toLowerCase() !== "wrestling") return {};
+  const journey = String(group.journey || "").toUpperCase();
+  const prefix = HYBRID_WAVE_PREFIXES[journey];
+  if (!prefix) return {};
+  // T0 is a browsing fallback, never a progression or Coach-confirmed tier.
+  const tier = /^t[0-4]$/i.test(String(group.tier || "")) ? String(group.tier).toLowerCase() : "t0";
+  const key = prefix + "-" + tier;
+  if (!clipboardWaveModels.has(key)) {
+    clipboardWaveModels.set(key, import(key + "-waves.js").catch(() => null));
+  }
+  const legacy = await clipboardWaveModels.get(key);
+  if (journey !== "Z2H") return legacy?.WAVE_CARDS || {};
+  try {
+    const policy = await import("/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js");
+    return policy.resolveRoad2ChampionWrestlingTierWaves(tier)?.waves || legacy?.WAVE_CARDS || {};
+  } catch { return legacy?.WAVE_CARDS || {}; }
+}
+function renderWaveBlockPlacements() {
+  document.querySelectorAll(".clipboard-wave-placements").forEach(el => el.remove());
+  const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
+  const placements = builderSession.clipboardWavePlacements || {};
+  for (const block of document.querySelectorAll("#planBlocks .plan-block")) {
+    const slot = block.dataset.slot || "";
+    if (!/^(drills|technique|live|onmat)$/.test(slot)) continue;
+    const entries = prescriptions.flatMap(p => (p.status === "ready" ? p.cards || [] : [])
+      .filter(card => placements[p.groupId]?.[String(card.id || card.cardId || card.title || "")] === slot)
+      .map(card => ({groupId:p.groupId,title:card.title || card.id || "Skill"})));
+    if (!entries.length) continue;
+    const box = document.createElement("div");
+    box.className = "clipboard-wave-placements";
+    const heading = document.createElement("strong");
+    heading.textContent = "HYBRID · Coach-approved group work";
+    box.append(heading);
+    for (const entry of entries) {
+      const item = document.createElement("p");
+      item.textContent = entry.groupId + " · " + entry.title;
+      box.append(item);
+    }
+    block.append(box);
+  }
+}
+async function initClipboardHybridPlanning() {
+  const panel = document.getElementById("clipboardHybridPlanning");
+  const waveCheck = document.getElementById("clipboardTierWaves");
+  const coachCheck = document.getElementById("clipboardCoachInput");
+  const container = document.getElementById("clipboardWaveGroups");
+  if (!panel || !waveCheck || !coachCheck || !container) return;
+  if (String(builderSession.executionMode || "").toLowerCase() !== "hybrid") return;
+  panel.hidden = false;
+  const existingSources = builderSession.planningSources || {};
+  builderSession.planningSources = {
+    tierWaves: existingSources.tierWaves === true,
+    systemSuggestions: false,
+    coachInput: existingSources.coachInput === true
+  };
+  waveCheck.checked = builderSession.planningSources.tierWaves;
+  coachCheck.checked = builderSession.planningSources.coachInput;
+  const groups = builderSession.trainingGroups || [];
+  const models = await Promise.all(groups.map(group => clipboardWavesForGroup(group)));
+  function updatePrescriptions() {
+    const prescriptions = groups.map((group,index) => {
+      const selected = builderSession.clipboardWaveSelections?.[group.id] || "";
+      const cards = waveCheck.checked && selected && Array.isArray(models[index]?.[selected])
+        ? models[index][selected].map(card => ({...card, groupId:group.id,groupLabel:group.label || group.id})) : [];
+      return {
+        groupId:group.id, tier:String(group.tier || ""), waveKey:selected,
+        status:cards.length ? "ready" : "unavailable",
+        contentState:cards.length ? "accepted" : "unavailable",
+        progressionVerified:false, progressionStatus:"unverified",
+        cards
+      };
+    });
+    builderSession.groupPrescriptions = prescriptions;
+    builderSession.groupPlanning = Object.fromEntries(prescriptions.map(p => [p.groupId, {
+      ...(builderSession.groupPlanning?.[p.groupId] || {}),
+      sources:builderSession.planningSources,
+      tierWave:p.status === "ready" ? {
+        waveKey:p.waveKey, cards:p.cards, state:"accepted", progressionVerified:false,
+        provenance:"approved-tier-wave"
+      } : null
+    }]));
+    builderSession.acceptedLessonContent = Object.fromEntries(prescriptions.map(p => [p.groupId,p.cards]));
+    saveClipboardPlanning();
+    renderWaveBlockPlacements();
+  }
+  function render() {
+    container.replaceChildren();
+    if (coachCheck.checked) {
+      const info = document.createElement("p");
+      info.className = "muted";
+      info.textContent = "Coach carry-forward notes remain available in Training Groups.";
+      container.append(info);
+    }
+    if (!waveCheck.checked) { updatePrescriptions(); return; }
+    groups.forEach((group,index) => {
+      const section = document.createElement("section");
+      section.className = "clipboard-hybrid-group";
+      const title = document.createElement("strong");
+      title.textContent = (group.label || "Group " + (index+1)) + " · " + String(group.journey || "");
+      section.append(title);
+      const waves = models[index] || {};
+      const waveSelect = document.createElement("select");
+      waveSelect.setAttribute("aria-label","Wave for "+(group.label || group.id));
+      const empty = new Option("Select shared principle / Wave","");waveSelect.add(empty);
+      Object.entries(waves).filter(([,cards])=>Array.isArray(cards)&&cards.length).forEach(([key]) =>
+        waveSelect.add(new Option(key.replaceAll("_"," "),key)));
+      waveSelect.value = builderSession.clipboardWaveSelections?.[group.id] || "";
+      section.append(waveSelect);
+      if (!waveSelect.options.length || waveSelect.options.length === 1) {
+        const warn = document.createElement("p");warn.className="muted";
+        warn.textContent="Wave catalog unavailable for this group; manual instruction remains available.";
+        section.append(warn);
+      }
+      waveSelect.addEventListener("change",() => {
+        builderSession.clipboardWaveSelections ||= {};
+        builderSession.clipboardWaveSelections[group.id] = waveSelect.value;
+        builderSession.clipboardWavePlacements ||= {};
+        builderSession.clipboardWavePlacements[group.id] = {};
+        updatePrescriptions();render();
+      });
+      const selectedCards = Array.isArray(waves[waveSelect.value]) ? waves[waveSelect.value] : [];
+      if (selectedCards.length) {
+        const details = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = selectedCards.length + " approved curriculum cards · choose lesson blocks";
+        details.append(summary);
+        for (const card of selectedCards) {
+          const row = document.createElement("label");row.className="clipboard-wave-card-row";
+          const name = document.createElement("span");name.textContent=card.title || card.id;
+          const select = document.createElement("select");
+          select.setAttribute("aria-label","Lesson block for "+(card.title || card.id));
+          [["","Not placed"],["drills","Previous Skills / Drills"],["technique","New Techniques"],["live","Live Session"],["onmat","On-Mat Talk"]].forEach(([value,label])=>select.add(new Option(label,value)));
+          const id = String(card.id || card.cardId || card.title || "");
+          select.value=builderSession.clipboardWavePlacements?.[group.id]?.[id] || "";
+          select.addEventListener("change",()=>{
+            builderSession.clipboardWavePlacements ||= {};
+            builderSession.clipboardWavePlacements[group.id] ||= {};
+            builderSession.clipboardWavePlacements[group.id][id]=select.value;
+            saveClipboardPlanning();renderWaveBlockPlacements();
+          });
+          row.append(name,select);details.append(row);
+        }
+        section.append(details);
+      }
+      container.append(section);
+    });
+    updatePrescriptions();
+  }
+  waveCheck.addEventListener("change",()=>{builderSession.planningSources.tierWaves=waveCheck.checked;render();});
+  coachCheck.addEventListener("change",()=>{builderSession.planningSources.coachInput=coachCheck.checked;render();});
+  render();
+}
+
 let draftSaveTimer = null;
 
 function drillBlockId() {
@@ -1397,7 +1561,7 @@ function groupActivitiesForBlock(block, session) {
       tier: group.tier || "",
       status: prescription?.status || "unavailable",
       waveKey: prescription?.waveKey || "",
-      cards: prescription?.status === "ready" ? (prescription.cards || []).map(card => ({
+      cards: prescription?.status === "ready" ? (prescription.cards || []).filter(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot).map(card => ({
         id: card.id || "", title: card.title || "", href: card.href || "",
         familyId: card.familyId || "", discipline: card.discipline || session.discipline || ""
       })) : [],
@@ -2373,6 +2537,7 @@ function updateSupportLinks() {
   attachTimerSelectors();
   updateSupportLinks();
   renderClipboardTrainingGroups();
+  void initClipboardHybridPlanning();
   document.querySelectorAll(".clipboard-group-lesson-notes").forEach(field => {
     const prior = getDraftPayload()?.groupLessonAdjustments || {};
     field.value = String(prior[field.dataset.groupId] || "");
