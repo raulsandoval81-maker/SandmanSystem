@@ -44,6 +44,7 @@ const pr181HybridRelease = await loadRelease("clipboard-hybrid-pr181-afe54629");
 const pr183FixedRelease = await loadRelease("clipboard-hybrid-fix-pr183-dd89f6d3");
 const pr185FixedRelease = await loadRelease("clipboard-hybrid-pr185-1848238c");
 const pr187ValidatorRelease = await loadRelease("clipboard-hybrid-pr187-f4ff13f7");
+const pr189CleanupRelease = await loadRelease("clipboard-cleanup-pr189-9484b8ab");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -583,6 +584,27 @@ test("PR187 validator correction is restricted to staging exact SHA", () => {
   assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
 });
 
+test("PR189 Attendance cleanup stages only the approved six-file SHA", () => {
+  const result = validateRelease(pr189CleanupRelease, context({
+    checkedOutSha: pr189CleanupRelease.applicationSha,
+    hostingDeployer: pr189CleanupRelease.hostingDeployer,
+    functionDeployer: pr189CleanupRelease.functionDeployer,
+    functionRuntime: pr189CleanupRelease.functionRuntime
+  }));
+  assert.equal(result.sourcePr, 189);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.applicationSha, "9484b8ab15e54cdef0913cf9be1fdeb4669d7ab1");
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "public/coaches/attendance/session.html",
+    "public/coaches/execution/session-builder/session-builder.js",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -659,6 +681,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /clipboard-hybrid-fix-pr183-dd89f6d3/);
   assert.match(workflow, /clipboard-hybrid-pr185-1848238c/);
   assert.match(workflow, /clipboard-hybrid-pr187-f4ff13f7/);
+  assert.match(workflow, /clipboard-cleanup-pr189-9484b8ab/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
