@@ -98,3 +98,25 @@ test("legacy HYBRID source selections do not override the OFF default", () => {
   assert.match(attendanceJs, /planningSourcesExplicitlySelected: hybridStageState\.planningSourcesExplicitlySelected === true/);
   assert.match(attendanceJs, /hybridStageState\.planningSourcesExplicitlySelected = false/);
 });
+
+test("Practice Groups presents progress and context as readable per-group summaries", () => {
+  assert.match(attendanceJs, /progress\.replaceChildren\(\)/);
+  assert.match(attendanceJs, /attendance-group-overview-item/);
+  assert.match(attendanceJs, /attendance-context-overview-item/);
+  assert.match(attendanceJs, /Focus not confirmed/);
+  assert.doesNotMatch(attendanceJs.slice(attendanceJs.indexOf("function updateCompositionBanners("), attendanceJs.indexOf("function preparePracticeContext()")), /Skill Card evidence required/);
+  assert.match(attendanceCss, /\.attendance-group-overview/);
+  assert.match(attendanceCss, /\.attendance-context-overview/);
+});
+
+test("four-group validation distinguishes missing acknowledgment from missing focus", () => {
+  assert.match(attendanceJs, /fourGroupAcknowledgementRequired && !fourGroupExceptionAcknowledged/);
+  assert.match(attendanceJs, /fourGroupExceptionAcknowledged \|\|= acknowledgement\.checked === true/);
+  assert.match(attendanceJs, /acknowledgement\.checked = fourGroupExceptionAcknowledged/);
+});
+
+test("legacy HYBRID source selections do not override the OFF default", () => {
+  assert.match(attendanceJs, /planningSourcesExplicitlySelected === true \? \(remembered\.planningSources \|\| \{\}\)/);
+  assert.match(attendanceJs, /planningSourcesExplicitlySelected: hybridStageState\.planningSourcesExplicitlySelected === true/);
+  assert.match(attendanceJs, /hybridStageState\.planningSourcesExplicitlySelected = false/);
+});
