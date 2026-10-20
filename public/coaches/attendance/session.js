@@ -1173,24 +1173,52 @@ function updateCompositionBanners(groups = captureTrainingGroups()) {
   }
 
   if (progress) {
-    progress.textContent = groups.length
-      ? groups.map((group) => {
-          const discipline = disciplineDisplay(group.discipline);
-          const progress = [group.tier, group.rank].filter(Boolean).join(" ");
-          const count = (group.athleteIds || []).length;
-          const evidence = progress || "Skill Card evidence required";
-          return `${group.label.replace("Mat 1 · ", "")}: ${[discipline, journeyDisplay(group.journey), evidence].filter(Boolean).join(" · ")} · ${count} athlete${count === 1 ? "" : "s"}`;
-        }).join(" | ")
-      : "Groups will be generated from the athletes who are here.";
+    progress.replaceChildren();
+    if (!groups.length) {
+      progress.textContent = "Groups will be generated from the athletes who are here.";
+    } else {
+      const list = document.createElement("div");
+      list.className = "attendance-group-overview";
+      for (const group of groups) {
+        const item = document.createElement("div");
+        item.className = "attendance-group-overview-item";
+        const name = document.createElement("strong");
+        name.textContent = group.label.replace("Mat 1 · ", "");
+        const details = document.createElement("span");
+        const count = (group.athleteIds || []).length;
+        const focus = group.tier ? `Focus ${group.tier}` : "Focus not confirmed";
+        details.textContent = `${journeyDisplay(group.journey)} · ${disciplineDisplay(group.discipline)} · ${count} athlete${count === 1 ? "" : "s"} · ${focus}`;
+        item.append(name, details);
+        list.append(item);
+      }
+      progress.append(list);
+    }
   }
 }
 
 function updateContextSummary() {
   const groups = captureTrainingGroups();
-  const summary = groups.map((group) =>
-    `${group.label}: ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${journeyDisplay(group.journey)} · ${group.tier} ${group.rank} · Session ${group.trainingSession}`
-  ).join(" | ");
-  if ($("contextSummary")) $("contextSummary").textContent = summary || "Waiting for attendance.";
+  const host = $("contextSummary");
+  if (host) {
+    host.replaceChildren();
+    if (!groups.length) {
+      host.textContent = "Waiting for attendance.";
+    } else {
+      const list = document.createElement("div");
+      list.className = "attendance-context-overview";
+      for (const group of groups) {
+        const item = document.createElement("div");
+        item.className = "attendance-context-overview-item";
+        const label = document.createElement("strong");
+        label.textContent = group.label.replace("Mat 1 · ", "");
+        const detail = document.createElement("span");
+        detail.textContent = `${journeyDisplay(group.journey)} · ${displayTrainingAgeGroup(group.ageGroup) || "Athletes"} · ${group.tier ? `Focus ${group.tier}` : "Focus not confirmed"} · Session ${group.trainingSession}`;
+        item.append(label, detail);
+        list.append(item);
+      }
+      host.append(list);
+    }
+  }
   updateCompositionBanners(groups);
 }
 
