@@ -636,20 +636,24 @@ function groupJourneyDisplay(value = "") {
 
 function renderClipboardTrainingGroups() {
   const el = document.getElementById("clipboardTrainingGroups");
-  if (!el) return;
+  const disclosure = document.getElementById("clipboardTrainingGroupsDisclosure");
+  const summary = document.getElementById("clipboardTrainingGroupsSummary");
+  if (!el || !disclosure || !summary) return;
 
   const session = getActiveSession();
   const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups : [];
   const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
   if (!groups.length) {
-    el.hidden = true;
+    disclosure.hidden = true;
     el.innerHTML = "";
     return;
   }
 
-  el.hidden = false;
+  disclosure.hidden = false;
+  const athleteCount = new Set(groups.flatMap(group => Array.isArray(group.athleteIds) ? group.athleteIds.map(String) : [])).size;
+  summary.textContent = `Training Groups (${groups.length}) · ${athleteCount} athletes · View details`;
   el.innerHTML = groups.map((group, index) => {
-    const tier = String(group.tier || "T0").toUpperCase();
+    const tier = String(group.tier || "").toUpperCase();
     const note = String(group.carryForwardNote || "").trim();
     const names = Array.isArray(group.athleteNames) && group.athleteNames.length
       ? group.athleteNames.join(", ")
@@ -679,7 +683,7 @@ function renderClipboardTrainingGroups() {
       <article class="clipboard-group-chip" data-tier="${tier}">
         <span class="clipboard-group-label">Mat 1 · Group ${index + 1}</span>
         <strong>${String(group.ageGroup || "Athletes").replace(/^Youth(?:\s+7\s*[–-]\s*10)?$/i, "Youth").replace(/^Teen(?:\s*14\s*\+)?$/i, "Teen")} · ${groupJourneyDisplay(group.journey)} · ${encodeText(progressionLabel)}</strong>
-        <span>Coach-confirmed instructional focus: ${tier} ${group.rank || ""}</span>
+        <span>Instructional focus: ${tier ? `${encodeText(tier)} ${encodeText(group.rank || "")}` : "Not confirmed"}</span>
         <span>${names ? names : "System-guided group"}</span>
         ${individualTiers ? `<small>${encodeText(individualTiers)}</small>` : ""}
         ${note ? `<em>Carry forward: ${note}</em>` : ""}
