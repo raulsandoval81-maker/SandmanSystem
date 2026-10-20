@@ -41,6 +41,7 @@ const pr175ClipboardRelease = await loadRelease("clipboard-handoff-pr175-3ac894f
 const pr177AttendanceRelease = await loadRelease("attendance-rims-pr177-29511f23");
 const pr179ClipboardRelease = await loadRelease("clipboard-groups-pr179-56428746");
 const pr181HybridRelease = await loadRelease("clipboard-hybrid-pr181-afe54629");
+const pr183FixedRelease = await loadRelease("clipboard-hybrid-fix-pr183-dd89f6d3");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -522,6 +523,25 @@ test("PR181 HYBRID Clipboard deployment is scoped to staging exact SHA", () => {
   assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
 });
 
+test("PR183 corrected Clipboard validation stages only the exact approved source", () => {
+  const result = validateRelease(pr183FixedRelease, context({
+    checkedOutSha: pr183FixedRelease.applicationSha,
+    hostingDeployer: pr183FixedRelease.hostingDeployer,
+    functionDeployer: pr183FixedRelease.functionDeployer,
+    functionRuntime: pr183FixedRelease.functionRuntime
+  }));
+  assert.equal(result.sourcePr, 183);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.applicationSha, "dd89f6d3ffa346b71df8ee6e17133883b937b6f4");
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/hybrid-session-planning-policy.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -595,6 +615,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /attendance-rims-pr177-29511f23/);
   assert.match(workflow, /clipboard-groups-pr179-56428746/);
   assert.match(workflow, /clipboard-hybrid-pr181-afe54629/);
+  assert.match(workflow, /clipboard-hybrid-fix-pr183-dd89f6d3/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
