@@ -1495,9 +1495,9 @@ async function submitForReview() {
     try {
       if (!executionMode) executionMode = String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.executionMode || "manual").toLowerCase();
     } catch {}
-    window.location.href = executionMode === "hybrid"
-      ? `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(activePractice.practiceId)}&planning=1`
-      : `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
+    // Both MANUAL and HYBRID now enter the same checked-in Clipboard.
+    // Clipboard owns optional HYBRID source and Wave selection.
+    window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(activePractice.practiceId)}`;
   } else if (isBuilderFlow() && returnTarget() === "clock") {
     let sessionId = requestedSessionId();
     if (!sessionId) {
