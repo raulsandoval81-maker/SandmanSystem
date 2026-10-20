@@ -13,8 +13,9 @@ test("duplicate submit is avoided on canonical pending_review and finalized fail
   assert.match(submit, /latestStatus !== "pending_review"/);
   assert.match(submit, /if \(attendanceSubmissionPending\) \{[\s\S]*Attendance submission is already in progress\.[\s\S]*return;/);
 });
-test("existing builder flow still routes to hybrid planning with same practice", () => {
-  assert.match(submit, /executionMode === "hybrid"/);
-  assert.match(submit, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}&planning=1/);
+test("existing builder flow routes directly to Clipboard with the same practice", () => {
+  assert.match(submit, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(submit, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}/);
+  assert.doesNotMatch(submit, /planning=1/);
   assert.match(submit, /setStatus\(error\?\.message/);
 });
