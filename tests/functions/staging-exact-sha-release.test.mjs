@@ -34,6 +34,7 @@ const pr155AlignedRelease = await loadRelease("unified-hybrid-pr155-34fa3550");
 const pr158AlignedRelease = await loadRelease("unified-hybrid-pr158-93379221");
 const pr161ConsolidatedRelease = await loadRelease("hybrid-four-groups-pr161-0e25eb7e");
 const pr163CorrectedRelease = await loadRelease("hybrid-four-groups-pr163-9dbc15b0");
+const pr167AttendanceRelease = await loadRelease("attendance-step2-pr167-5682e26d");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -366,6 +367,26 @@ test("PR163 corrected source remains restricted to staging", () => {
   ]);
 });
 
+test("PR167 attendance transition release uses exact staged source and five-file allowlist", () => {
+  const result = validateRelease(pr167AttendanceRelease, context({
+    checkedOutSha: pr167AttendanceRelease.applicationSha,
+    hostingDeployer: pr167AttendanceRelease.hostingDeployer,
+    functionDeployer: pr167AttendanceRelease.functionDeployer,
+    functionRuntime: pr167AttendanceRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 167);
+  assert.equal(result.projectId, "sandman-combat-staging");
+  assert.equal(result.applicationSha, "5682e26d1f3780bd18591f9d477c323ad0cc9140");
+  assert.deepEqual(result.allowedChangedFiles, [
+    ".github/workflows/staging-exact-sha-release.yml",
+    "public/coaches/attendance/session.js",
+    "scripts/staging/approved-exact-sha-releases.json",
+    "tests/functions/post-attendance-hybrid-placement.test.mjs",
+    "tests/functions/staging-exact-sha-release.test.mjs"
+  ]);
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory", "closePracticeSession"]);
+});
+
 test("invalid and unapproved source revisions are rejected", async () => {
   assert.throws(() => validateRelease(release, context({ checkedOutSha: "a".repeat(40) })), /approved SHA/);
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
@@ -432,6 +453,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /unified-hybrid-pr158-93379221/);
   assert.match(workflow, /hybrid-four-groups-pr161-0e25eb7e/);
   assert.match(workflow, /hybrid-four-groups-pr163-9dbc15b0/);
+  assert.match(workflow, /attendance-step2-pr167-5682e26d/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
