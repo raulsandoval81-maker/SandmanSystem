@@ -66,3 +66,13 @@ test("all planning modes retain canonical attendance and groups outside HYBRID-o
   assert.match(attendanceJs, /planningSources: hybridStageState\.planningSources/);
   assert.match(attendanceJs, /carryForwardNote: primary\.carryForwardNote/);
 });
+
+test("Practice Groups transition never silently strands Coach on attendance review", () => {
+  const start = attendanceJs.indexOf("function preparePracticeContext()");
+  const end = attendanceJs.indexOf("async function savePracticeContextToBuilderSession()", start);
+  const transition = attendanceJs.slice(start, end);
+  assert.match(transition, /showStep\(4\);\s*try\s*\{\s*renderTrainingGroups\(groups\)/);
+  assert.match(transition, /Practice Groups suggestion failed/);
+  assert.match(transition, /Practice Groups rendering failed/);
+  assert.match(transition, /setPracticeContextStatus\(/);
+});
