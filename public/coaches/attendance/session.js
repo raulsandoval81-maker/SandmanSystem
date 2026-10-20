@@ -27,7 +27,7 @@ import { renderAttendanceHybridPlanning } from "/coaches/attendance/hybrid-group
 
 const $ = (id) => document.getElementById(id);
 let fourGroupExceptionAcknowledged = false;
-const hybridStageState = { planningSources: {}, groupPlanning: {} };
+const hybridStageState = { planningSources: {}, groupPlanning: {}, planningSourcesExplicitlySelected: false };
 
 function isHybridPractice() {
   let mode = String(activePractice?.executionMode || "").toLowerCase();
@@ -48,7 +48,7 @@ function showHybridStage() {
   host.hidden = !isBuilderFlow() || !isHybridPractice();
   if (host.hidden) return;
   renderAttendanceHybridPlanning(host, captureTrainingGroups(), hybridStageState, refresh => {
-    if (refresh) showHybridStage();
+    if (refresh) { hybridStageState.planningSourcesExplicitlySelected = true; showHybridStage(); }
   });
 }
 
@@ -1093,7 +1093,16 @@ function updateGroupControls() {
   const warning = $("fourGroupWarning");
   const acknowledgement = $("fourGroupAcknowledgement");
   if (warning) warning.hidden = count <= NORMAL_TRAINING_GROUP_CAPACITY;
-  if (acknowledgement) acknowledgement.checked = count > NORMAL_TRAINING_GROUP_CAPACITY && fourGroupExceptionAcknowledged;
+  if (acknowledgement) {
+    if (count > NORMAL_TRAINING_GROUP_CAPACITY) {
+      // Preserve a Coach's currently checked decision across UI refreshes.
+      fourGroupExceptionAcknowledged ||= acknowledgement.checked === true;
+      acknowledgement.checked = fourGroupExceptionAcknowledged;
+    } else {
+      fourGroupExceptionAcknowledged = false;
+      acknowledgement.checked = false;
+    }
+  }
 }
 
 function addTrainingGroup() {
@@ -1204,16 +1213,20 @@ function preparePracticeContext() {
   const prior = previousRouteContext();
   fourGroupExceptionAcknowledged = groups.length > NORMAL_TRAINING_GROUP_CAPACITY
     && prior.fourGroupExceptionAcknowledged === true;
+  hybridStageState.planningSources = { tierWaves: false, systemSuggestions: false, coachInput: false };
+  hybridStageState.planningSourcesExplicitlySelected = false;
+  hybridStageState.groupPlanning = {};
   // Group Journeys and instructional focus are planning attributes. They must
   // never rewrite the server-authoritative route of the canonical practice.
   try {
     const remembered = JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}");
     if (String(remembered.practiceId || "") === String(activePractice.practiceId || "")) {
-      hybridStageState.planningSources = remembered.planningSources || {
+      hybridStageState.planningSources = remembered.planningSourcesExplicitlySelected === true ? (remembered.planningSources || {}) : {
         tierWaves: false,
         systemSuggestions: false,
         coachInput: false
       };
+      hybridStageState.planningSourcesExplicitlySelected = remembered.planningSourcesExplicitlySelected === true;
       hybridStageState.groupPlanning = remembered.groupPlanning || {};
     }
   } catch {}
@@ -1238,11 +1251,12 @@ async function savePracticeContextToBuilderSession() {
   const trainingGroups = captureTrainingGroups();
   if (isHybridPractice() && !Object.keys(hybridStageState.planningSources).length) {
     const remembered = session.practiceId === activePractice?.practiceId ? session : {};
-    hybridStageState.planningSources = remembered.planningSources || {
+    hybridStageState.planningSources = remembered.planningSourcesExplicitlySelected === true ? (remembered.planningSources || {}) : {
       tierWaves: false,
       systemSuggestions: false,
       coachInput: false
     };
+    hybridStageState.planningSourcesExplicitlySelected = remembered.planningSourcesExplicitlySelected === true;
     hybridStageState.groupPlanning = remembered.groupPlanning || {};
   }
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
@@ -1298,6 +1312,7 @@ async function savePracticeContextToBuilderSession() {
     fourGroupExceptionAcknowledged,
     ...(isHybridPractice() ? {
       planningSources: hybridStageState.planningSources,
+      planningSourcesExplicitlySelected: hybridStageState.planningSourcesExplicitlySelected === true,
       groupPlanning: Object.fromEntries(trainingGroups.map(group => {
         const priorPlanning = hybridStageState.groupPlanning[group.id] || {};
         return [group.id, {
@@ -1377,7 +1392,7 @@ async function submitForReview() {
     });
     if (!rosterCheck.ok) {
       let message = "Training groups must account for every checked-in athlete exactly once.";
-      if (rosterCheck.fourGroupAcknowledgementRequired) {
+      if (rosterCheck.fourGroupAcknowledgementRequired && !fourGroupExceptionAcknowledged) {
         message = "Acknowledge the two-class recommendation before continuing with Group D.";
       } else if (rosterCheck.incompatibleAssignments.length) {
         message = "Athletes may only move between groups with matching Journey, discipline, age group, practice location, and practice.";
