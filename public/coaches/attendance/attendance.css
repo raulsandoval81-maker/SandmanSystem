@@ -889,3 +889,9 @@ html[data-theme="light"]{
   .attendance-group-overview-item,
   .attendance-context-overview-item{padding:12px}
 }
+
+/* Compact, scan-friendly athlete roster under every Practice Group heading. */
+.training-group-name-list{margin:10px 0 12px;padding-left:1.35rem;list-style:disc outside}
+.training-group-name-list li{padding:2px 0;line-height:1.45;overflow-wrap:anywhere}
+.training-group-name-list li::marker{color:var(--attendance-muted)}
+.training-group-empty-roster{margin:8px 0;color:var(--attendance-muted)}

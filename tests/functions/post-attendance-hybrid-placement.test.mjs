@@ -120,3 +120,11 @@ test("legacy HYBRID source selections do not override the OFF default", () => {
   assert.match(attendanceJs, /planningSourcesExplicitlySelected: hybridStageState\.planningSourcesExplicitlySelected === true/);
   assert.match(attendanceJs, /hybridStageState\.planningSourcesExplicitlySelected = false/);
 });
+
+test("Practice Groups displays one safely escaped athlete per bullet", () => {
+  assert.match(attendanceJs, /training-group-name-list/);
+  assert.match(attendanceJs, /group\.athleteNames\.map\(name =>/);
+  assert.match(attendanceJs, /escapeAttendance\(name\)/);
+  assert.doesNotMatch(attendanceJs, /group\.athleteNames\.join\(", "\)/);
+  assert.match(attendanceCss, /list-style:disc outside/);
+});
