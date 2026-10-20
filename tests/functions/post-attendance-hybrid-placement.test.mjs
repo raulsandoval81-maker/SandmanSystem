@@ -23,6 +23,14 @@ test("Attendance omits duplicate HYBRID instructional controls and hands off to 
   assert.match(clipboardHtml, /id="clipboardHybridPlanning"/);
 });
 
+test("legacy HYBRID planning URLs cannot reopen the duplicate review page", () => {
+  assert.match(builder, /if \(hybridReviewRequested\) \{/);
+  assert.match(builder, /requestedPracticeId === String\(remembered\?\.practiceId/);
+  assert.match(builder, /window\.location\.replace\(rememberedSessionId/);
+  assert.match(builder, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(builder, /: "\/coaches\/practice\/"\)/);
+});
+
 test("Attendance uses matching compact step headings without redundant navigation", () => {
   assert.doesNotMatch(attendanceHtml, /class="attendance-header"/);
   assert.doesNotMatch(attendanceHtml, /← Practice Operations/);
