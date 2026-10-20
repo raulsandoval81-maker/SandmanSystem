@@ -908,7 +908,10 @@
     "applicationSha": "9dbc15b0fe523ff6bab8ce9401e9517886fda6d0",
     "requiredAncestorSha": "0e25eb7e81670d2e958950b0b95198ae7978c486",
     "allowedChangedFiles": [
-      "tests/functions/post-attendance-hybrid-placement.test.mjs"
+      ".github/workflows/staging-exact-sha-release.yml",
+      "scripts/staging/approved-exact-sha-releases.json",
+      "tests/functions/post-attendance-hybrid-placement.test.mjs",
+      "tests/functions/staging-exact-sha-release.test.mjs"
     ],
     "projectId": "sandman-combat-staging",
     "hostingSite": "sandman-combat-staging",
