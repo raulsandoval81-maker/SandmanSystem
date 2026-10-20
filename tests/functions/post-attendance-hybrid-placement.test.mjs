@@ -76,3 +76,13 @@ test("Practice Groups transition never silently strands Coach on attendance revi
   assert.match(transition, /Practice Groups rendering failed/);
   assert.match(transition, /setPracticeContextStatus\(/);
 });
+
+test("HYBRID fallback is opt-in and four-group submission honors the visible Coach approval", () => {
+  const start = attendanceJs.indexOf("async function savePracticeContextToBuilderSession()");
+  const end = attendanceJs.indexOf("function todayLabel()", start);
+  const save = attendanceJs.slice(start, end);
+  assert.match(save, /tierWaves: false,\s*systemSuggestions: false,\s*coachInput: false/);
+  assert.doesNotMatch(save, /tierWaves: true,\s*systemSuggestions: true,\s*coachInput: true/);
+  const submit = attendanceJs.slice(attendanceJs.indexOf("async function submitForReview()"));
+  assert.match(submit, /fourGroupExceptionAcknowledged = \$\("fourGroupAcknowledgement"\)\?\.checked === true/);
+});
