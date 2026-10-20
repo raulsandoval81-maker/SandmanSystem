@@ -1295,7 +1295,7 @@ async function savePracticeContextToBuilderSession() {
     throw new Error("Training group assignments do not match checked-in athletes. Review the grouping before continuing.");
   }
   const groupCheck = validateTrainingGroupRoster(trainingGroups, [...rosterIds], {
-    requireFocus: currentPlanningMode() === "hybrid",
+    requireFocus: false,
     fourGroupAcknowledged: fourGroupExceptionAcknowledged
   });
   if (!groupCheck.ok) {
@@ -1415,7 +1415,7 @@ async function submitForReview() {
     clearPracticeContextValidation();
     const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
     const rosterCheck = validateTrainingGroupRoster(captureTrainingGroups(), [...rosterIds], {
-      requireFocus: currentPlanningMode() === "hybrid",
+      requireFocus: false,
       fourGroupAcknowledged: fourGroupExceptionAcknowledged
     });
     if (!rosterCheck.ok) {
