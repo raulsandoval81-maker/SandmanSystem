@@ -32,14 +32,16 @@ test("missing instructional focus names and opens each affected Group editor", (
   assert.doesNotMatch(submit, /finishContextBtn[^\n]*disabled/);
 });
 
-test("valid attendance submits once and keeps the canonical HYBRID Review route", () => {
+test("valid attendance submits once and goes directly to the canonical Clipboard", () => {
   assert.ok(submitStart >= 0 && submitEnd > submitStart);
   assert.match(submit, /if \(attendanceSubmissionPending\)/);
   assert.match(submit, /attendanceSubmissionPending = true/);
   assert.equal((submit.match(/action: "submit"/g) || []).length, 1);
   assert.match(submit, /if \(status !== "pending_review"\)/);
   assert.match(submit, /if \(latestStatus !== "pending_review"\) throw error/);
-  assert.match(submit, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}&planning=1/);
+  assert.match(submit, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(submit, /practiceId=\$\{encodeURIComponent\(activePractice\.practiceId\)\}/);
+  assert.doesNotMatch(submit, /planning=1/);
   assert.match(submit, /attendanceSubmissionPending = false/);
 });
 
