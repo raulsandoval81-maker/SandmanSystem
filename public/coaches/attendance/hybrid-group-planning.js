@@ -21,8 +21,17 @@ function sourceSection(key, options, expanded) {
   </details>`;
 }
 
+function journeyLabel(value = "") {
+  const raw = String(value || "").trim();
+  const key = raw.toLowerCase().replace(/[\\s_-]+/g, "");
+  if (["z2h", "zero2hero", "road2champion"].includes(key)) return "Road2Champion";
+  if (["p2l", "path2legend"].includes(key)) return "Path2Legend";
+  if (["q2m", "quest2mastery"].includes(key)) return "Quest2Mastery";
+  return raw;
+}
+
 function groupHeading(group) {
-  return `<div class="hybrid-planning-group-head"><strong>${escape(group.label)}</strong><span>${escape(group.journey)} · ${escape(group.progressionTierLabel || group.tier || "Tier Unverified")}</span></div>`;
+  return `<div class="hybrid-planning-group-head"><strong>${escape(group.label)}</strong><span>${escape(journeyLabel(group.journey))} · ${escape(group.progressionTierLabel || group.tier || "Tier Unverified")}</span></div>`;
 }
 
 export function renderAttendanceHybridPlanning(host, groups, state, onChange) {
