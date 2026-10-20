@@ -843,3 +843,49 @@ html[data-theme="light"]{
   .training-group-athlete label{flex-wrap:wrap;white-space:normal}
   .training-group-athlete select{max-width:100%}
 }
+/* Practice Groups information hierarchy: scanning beats long gold paragraphs. */
+.attendance-group-overview,
+.attendance-context-overview{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:8px;
+  text-align:left;
+}
+.attendance-group-overview-item,
+.attendance-context-overview-item{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:13px 14px;
+  border:1px solid var(--attendance-line);
+  border-radius:10px;
+  background:var(--attendance-surface);
+  min-width:0;
+}
+.attendance-group-overview-item strong,
+.attendance-context-overview-item strong{
+  color:var(--attendance-ink);
+  font-size:.86rem;
+  line-height:1.35;
+}
+.attendance-group-overview-item span,
+.attendance-context-overview-item span{
+  color:var(--attendance-muted);
+  font-size:.84rem;
+  font-weight:600;
+  line-height:1.5;
+  overflow-wrap:anywhere;
+}
+.attendance-composition-banners{gap:14px}
+.composition-banner{min-width:0}
+.training-group-card{scroll-margin-top:90px}
+.training-group-head small{font-size:.84rem}
+#practiceContextStep .attendance-practice-details,
+#practiceContextStep .context-summary{margin-top:22px}
+@media(max-width:720px){
+  .attendance-group-overview,
+  .attendance-context-overview{grid-template-columns:1fr}
+  .attendance-group-overview-item,
+  .attendance-context-overview-item{padding:12px}
+}
