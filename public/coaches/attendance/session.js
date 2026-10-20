@@ -1210,8 +1210,15 @@ function preparePracticeContext() {
     }
   } catch {}
 
-  renderTrainingGroups(groups);
+  // Establish the next screen before rendering optional group planning. If a
+  // HYBRID suggestion renderer fails, Coach must not be trapped on Step 2.
   showStep(4);
+  try {
+    renderTrainingGroups(groups);
+  } catch (error) {
+    console.error("[attendance] Practice Groups rendering failed", error);
+    setPracticeContextStatus(error?.message || "Could not display Practice Groups. Please retry.");
+  }
 }
 
 async function savePracticeContextToBuilderSession() {
