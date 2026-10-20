@@ -11,6 +11,8 @@ const attendanceJs = file("public/coaches/attendance/session.js");
 const attendanceCss = file("public/coaches/attendance/attendance.css");
 const planning = file("public/coaches/attendance/hybrid-group-planning.js");
 const builder = file("public/coaches/execution/session-builder/session-builder.js");
+const clipboard = file("public/coaches/execution/clipboard-2.0/clipboard-2.0.js");
+const clipboardHtml = file("public/coaches/execution/clipboard-2.0/index.html");
 
 test("HYBRID selections appear after checked-in training groups, not on entry", () => {
   assert.ok(attendanceHtml.indexOf('id="postAttendanceHybridPlanning"') > attendanceHtml.indexOf('id="trainingGroups"'));
@@ -147,4 +149,30 @@ test("rank rims resolve by Journey and tier, with striking gray at entry", () =>
   for (const rim of ["white", "gray", "yellow", "orange", "green", "blue", "purple", "brown", "black"]) {
     assert.ok(attendanceCss.includes(".attendance-rank-" + rim + "{"));
   }
+});
+
+
+test("checked-in HYBRID now enters Clipboard directly with canonical practice identity", () => {
+  assert.match(attendanceJs, /Both MANUAL and HYBRID now enter the same checked-in Clipboard/);
+  assert.doesNotMatch(attendanceJs, /executionMode === "hybrid"\s*\? `\/coaches\/execution\/session-builder\/\?practiceId=/);
+  assert.match(attendanceJs, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
+  assert.match(clipboard, /reconcileCheckedInGroups\(/);
+});
+test("HYBRID curriculum selection and explicit block placement belong in Clipboard", () => {
+  assert.match(clipboardHtml, /id="clipboardHybridPlanning"/);
+  assert.match(clipboardHtml, /id="clipboardTierWaves"/);
+  assert.match(clipboard, /function initClipboardHybridPlanning\(/);
+  assert.match(clipboard, /clipboardWavePlacements/);
+  assert.match(clipboard, /progressionVerified:false/);
+  assert.match(clipboard, /systemSuggestions: false/);
+  assert.match(clipboard, /clipboardWavePlacements\?\.\[group\.id\]/);
+  assert.match(clipboard, /renderWaveBlockPlacements\(\)/);
+});
+test("Clipboard preserves existing timeline markup and action handlers", () => {
+  assert.match(clipboardHtml, /id="planBlocks"/);
+  assert.match(clipboardHtml, /id="block-drills"/);
+  assert.match(clipboardHtml, /id="block-technique"/);
+  assert.match(clipboardHtml, /id="block-live"/);
+  assert.match(clipboardHtml, /onclick="runPractice\(\)"/);
+  assert.match(clipboard, /groupActivitiesForBlock\(block, session\)/);
 });
