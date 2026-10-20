@@ -19,10 +19,11 @@ test("HYBRID selections appear after checked-in training groups, not on entry", 
   assert.match(builder, /get\("planning"\) === "1"/);
 });
 
-test("Attendance retains Practice Operations navigation and Stage IV stays primary", () => {
-  assert.match(attendanceHtml, /class="attendance-header"/);
-  assert.match(attendanceHtml, /← Practice Operations/);
-  assert.match(attendanceHtml, /<h1 id="attendanceTitle">Athlete Check-In<\/h1>/);
+test("Attendance uses matching compact step headings without redundant navigation", () => {
+  assert.doesNotMatch(attendanceHtml, /class="attendance-header"/);
+  assert.doesNotMatch(attendanceHtml, /← Practice Operations/);
+  assert.match(attendanceHtml, /<h2>Check In Athletes<\/h2>/);
+  assert.match(attendanceHtml, /<h2>Review Attendance<\/h2>/);
   assert.match(attendanceHtml, /<h1 class="attendance-workflow-heading">Practice Groups<\/h1>/);
 });
 
@@ -135,4 +136,15 @@ test("Attendance hands off valid groups without demanding instructional focus", 
   const save = attendanceJs.slice(attendanceJs.indexOf("async function savePracticeContextToBuilderSession()"), attendanceJs.indexOf("function todayLabel()"));
   assert.match(save, /requireFocus: false/);
   assert.match(submit, /fourGroupAcknowledged: fourGroupExceptionAcknowledged/);
+});
+
+test("rank rims resolve by Journey and tier, with striking gray at entry", () => {
+  assert.match(attendanceJs, /journey === "Road2Champion"/);
+  assert.match(attendanceJs, /"white", "yellow", "orange", "green", "black"/);
+  assert.match(attendanceJs, /"white", "blue", "purple", "brown", "black"/);
+  assert.match(attendanceJs, /index === 0 && striking/);
+  assert.doesNotMatch(attendanceJs, /\/champion\|legend\|hero\|black\//);
+  for (const rim of ["white", "gray", "yellow", "orange", "green", "blue", "purple", "brown", "black"]) {
+    assert.ok(attendanceCss.includes(".attendance-rank-" + rim + "{"));
+  }
 });
