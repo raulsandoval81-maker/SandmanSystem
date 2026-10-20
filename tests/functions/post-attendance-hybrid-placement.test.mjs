@@ -128,3 +128,11 @@ test("Practice Groups displays one safely escaped athlete per bullet", () => {
   assert.doesNotMatch(attendanceJs, /group\.athleteNames\.join\(", "\)/);
   assert.match(attendanceCss, /list-style:disc outside/);
 });
+
+test("Attendance hands off valid groups without demanding instructional focus", () => {
+  const submit = attendanceJs.slice(attendanceJs.indexOf("async function submitForReview()"));
+  assert.match(submit, /requireFocus: false/);
+  const save = attendanceJs.slice(attendanceJs.indexOf("async function savePracticeContextToBuilderSession()"), attendanceJs.indexOf("function todayLabel()"));
+  assert.match(save, /requireFocus: false/);
+  assert.match(submit, /fourGroupAcknowledged: fourGroupExceptionAcknowledged/);
+});
