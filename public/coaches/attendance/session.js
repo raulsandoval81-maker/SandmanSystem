@@ -1213,6 +1213,9 @@ function preparePracticeContext() {
   const prior = previousRouteContext();
   fourGroupExceptionAcknowledged = groups.length > NORMAL_TRAINING_GROUP_CAPACITY
     && prior.fourGroupExceptionAcknowledged === true;
+  hybridStageState.planningSources = { tierWaves: false, systemSuggestions: false, coachInput: false };
+  hybridStageState.planningSourcesExplicitlySelected = false;
+  hybridStageState.groupPlanning = {};
   // Group Journeys and instructional focus are planning attributes. They must
   // never rewrite the server-authoritative route of the canonical practice.
   try {
@@ -1248,11 +1251,12 @@ async function savePracticeContextToBuilderSession() {
   const trainingGroups = captureTrainingGroups();
   if (isHybridPractice() && !Object.keys(hybridStageState.planningSources).length) {
     const remembered = session.practiceId === activePractice?.practiceId ? session : {};
-    hybridStageState.planningSources = remembered.planningSources || {
+    hybridStageState.planningSources = remembered.planningSourcesExplicitlySelected === true ? (remembered.planningSources || {}) : {
       tierWaves: false,
       systemSuggestions: false,
       coachInput: false
     };
+    hybridStageState.planningSourcesExplicitlySelected = remembered.planningSourcesExplicitlySelected === true;
     hybridStageState.groupPlanning = remembered.groupPlanning || {};
   }
   const rosterIds = new Set(checkedInAthletes().map(a => String(a.id || a.uid || "")).filter(Boolean));
