@@ -721,18 +721,12 @@ function updateSummary() {
   const noHybridSources = false;
   const autoBlocked = selectedMode === "auto";
   const reviewingPlan = canonicalPracticeRestored && Boolean(activePracticeId) && hybridReviewRequested;
-  const rememberedGroups = readJson(SESSION_KEY, {})?.trainingGroups || [];
-  const unresolvedGroupFocus = reviewingPlan && rememberedGroups.some((group) =>
-    Array.isArray(group?.athleteIds) && group.athleteIds.length && !String(group?.tier || "").trim()
-  );
   const reviewRestoreBlocked = hybridReviewRequested && !canonicalPracticeRestored;
-  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked || unresolvedGroupFocus || reviewRestoreBlocked;
+  buildBtn.disabled = !program.discipline || !selectedRoom() || noHybridSources || autoBlocked || reviewRestoreBlocked;
   buildBtn.textContent = autoBlocked
     ? "AUTO Awaiting Certified Authorization"
     : reviewRestoreBlocked
       ? practiceRestoreFailed ? "Practice Review Unavailable" : "Restoring Practice…"
-    : unresolvedGroupFocus
-      ? "Confirm Group Instructional Focus"
     : reviewingPlan && selectedMode === "hybrid"
       ? "Accept Plan and Continue to Clipboard"
       : reviewingPlan
