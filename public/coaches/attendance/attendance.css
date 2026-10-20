@@ -779,13 +779,22 @@ html[data-theme="light"]{
 .attendance-identity{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0}
 .attendance-identity strong{font-weight:850}
 .attendance-identity small{color:var(--attendance-muted);overflow-wrap:anywhere}
-.attendance-route{display:inline-flex;align-items:center;max-width:100%;padding:5px 9px;border:1px solid currentColor;border-radius:9px;font-size:.76rem;font-weight:700;line-height:1.4;overflow-wrap:anywhere}
-.attendance-rank-white{color:#cbd5e1;background:rgba(203,213,225,.08)}
-.attendance-rank-yellow{color:#facc15;background:rgba(250,204,21,.08)}
-.attendance-rank-orange{color:#fb923c;background:rgba(251,146,60,.08)}
-.attendance-rank-green{color:#4ade80;background:rgba(74,222,128,.08)}
-.attendance-rank-black{color:#e5e7eb;background:#1f2937;border-color:#6b7280}
-.attendance-rank-neutral{color:var(--attendance-muted)}
+.attendance-route{
+  display:inline-flex;align-items:center;max-width:100%;
+  padding:5px 9px;border:2px solid var(--rank-rim,#9ca3af);
+  border-radius:9px;font-size:.76rem;font-weight:750;line-height:1.4;
+  color:#202020;background:#f8f7f3;overflow-wrap:anywhere;
+}
+.attendance-rank-white{--rank-rim:#c7cbd1}
+.attendance-rank-gray{--rank-rim:#858b93}
+.attendance-rank-yellow{--rank-rim:#e0b900}
+.attendance-rank-orange{--rank-rim:#ed850b}
+.attendance-rank-green{--rank-rim:#21954c}
+.attendance-rank-blue{--rank-rim:#2671b8}
+.attendance-rank-purple{--rank-rim:#854bb9}
+.attendance-rank-brown{--rank-rim:#8b542e}
+.attendance-rank-black{--rank-rim:#151515}
+.attendance-rank-neutral{--rank-rim:#9ca3af}
 .attendance-present-card{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:0}
 .attendance-present-label{font-size:.73rem;font-weight:850;letter-spacing:.06em;text-transform:uppercase;color:#4ade80}
 
@@ -895,3 +904,8 @@ html[data-theme="light"]{
 .training-group-name-list li{padding:2px 0;line-height:1.45;overflow-wrap:anywhere}
 .training-group-name-list li::marker{color:var(--attendance-muted)}
 .training-group-empty-roster{margin:8px 0;color:var(--attendance-muted)}
+
+/* The Coach shell already identifies Athlete Check-In. Each attendance screen
+   owns its compact step number, title and controls without a duplicate intro. */
+.attendance-page{padding-top:8px}
+.coach-shell__main > .attendance-page{padding-top:0}
