@@ -942,7 +942,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       <div class="training-group-head">
         <div>
           <span class="training-group-kicker">Mat 1 · Group ${String.fromCharCode(65 + index)}</span>
-          <strong>${group.athleteNames.length ? group.athleteNames.join(", ") : "Coach assigned"}</strong>
+          ${group.athleteNames.length ? `<ul class="training-group-name-list">${group.athleteNames.map(name => `<li>${escapeAttendance(name)}</li>`).join("")}</ul>` : `<p class="training-group-empty-roster">Coach assigned</p>`}
           ${group.instructionalRecommendation ? `<small>${group.instructionalRecommendation}</small>` : ""}
         </div>
         ${index > 0 ? '<button type="button" class="remove-training-group" aria-label="Remove training group">Remove</button>' : ""}
