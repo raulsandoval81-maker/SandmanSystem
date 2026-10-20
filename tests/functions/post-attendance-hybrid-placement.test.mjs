@@ -176,14 +176,18 @@ test("checked-in HYBRID now enters Clipboard directly with canonical practice id
   assert.match(attendanceJs, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);
   assert.match(clipboard, /reconcileCheckedInGroups\(/);
 });
-test("HYBRID curriculum selection and explicit block placement belong in Clipboard", () => {
+test("HYBRID system-selects Waves with room-wide shared skill consolidation", () => {
   assert.match(clipboardHtml, /id="clipboardHybridPlanning"/);
   assert.match(clipboardHtml, /id="clipboardTierWaves"/);
   assert.match(clipboard, /function initClipboardHybridPlanning\(/);
   assert.match(clipboard, /clipboardWavePlacements/);
   assert.match(clipboard, /progressionVerified:false/);
   assert.match(clipboard, /systemSuggestions: false/);
-  assert.match(clipboard, /clipboardWavePlacements\?\.\[group\.id\]/);
+  assert.match(clipboard, /suggestedWaveForRoom\(models, groups\)/);
+  assert.match(clipboard, /function applySystemWaves\(\)/);
+  assert.match(clipboard, /waveCardIdentity\(card\)/);
+  assert.match(clipboard, /shared core skills shown once across groups/);
+  assert.doesNotMatch(clipboard, /Select shared principle \/ Wave/);
   assert.match(clipboard, /renderWaveBlockPlacements\(\)/);
 });
 test("Clipboard preserves existing timeline markup and action handlers", () => {
