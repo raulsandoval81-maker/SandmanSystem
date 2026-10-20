@@ -227,8 +227,17 @@ function attendanceIdentityMarkup(a = {}) {
   const tier = String(item.tier || a.tier || "").trim();
   const rank = String(item.rank || a.rank || "").trim();
   const route = [journey, discipline, [tier, rank].filter(Boolean).join(" · ")].filter(Boolean).join(" · ");
-  const lower = rank.toLowerCase();
-  const color = /shadow|apprentice|white/.test(lower) ? "white" : /prospect|yellow/.test(lower) ? "yellow" : /competitor|orange/.test(lower) ? "orange" : /contender|green/.test(lower) ? "green" : /champion|legend|hero|black/.test(lower) ? "black" : "neutral";
+  // Display only: resolve the belt rim from the Journey, tier, and discipline.
+  // Never infer a belt color from rank-name keywords.
+  const tierCode = /^T[0-4]$/i.test(tier) ? tier.toUpperCase() : "";
+  const striking = /^(boxing|muay thai|muay-thai|muaythai|kickboxing|striking)$/i.test(discipline);
+  const palette = journey === "Road2Champion"
+    ? ["white", "yellow", "orange", "green", "black"]
+    : journey === "Path2Legend" || journey === "Quest2Mastery"
+      ? ["white", "blue", "purple", "brown", "black"]
+      : [];
+  const index = tierCode ? Number(tierCode.slice(1)) : -1;
+  const color = index === 0 && striking && palette.length ? "gray" : (palette[index] || "neutral");
   return '<span class="attendance-identity"><strong>' + escapeAttendance(athleteName(item)) +
     '</strong><small>' + escapeAttendance(id) + '</small><span class="attendance-route attendance-rank-' +
     color + '">' + escapeAttendance(route || "Training details not assigned") + '</span></span>';
