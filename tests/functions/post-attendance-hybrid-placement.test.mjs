@@ -86,3 +86,11 @@ test("HYBRID fallback is opt-in and four-group submission honors the visible Coa
   const submit = attendanceJs.slice(attendanceJs.indexOf("async function submitForReview()"));
   assert.match(submit, /fourGroupExceptionAcknowledged = \$\("fourGroupAcknowledgement"\)\?\.checked === true/);
 });
+
+test("HYBRID source headings use public Journey labels while internal codes remain compatible", () => {
+  assert.match(planning, /function journeyLabel\(value = ""\)/);
+  assert.match(planning, /return "Road2Champion"/);
+  assert.match(planning, /return "Path2Legend"/);
+  assert.match(planning, /return "Quest2Mastery"/);
+  assert.match(planning, /escape\(journeyLabel\(group\.journey\)\)/);
+});
