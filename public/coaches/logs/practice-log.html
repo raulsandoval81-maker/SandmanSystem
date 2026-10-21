@@ -34,13 +34,15 @@
       <option value="">No program selected</option>
     </select>
 
-    <label for="practiceTier">Focus Tier</label>
+    <label for="practiceTier">Practice-Wide Focus Tier (optional)</label>
+    <p class="muted">Mixed-group athlete tiers remain separate; this does not certify group or athlete placement.</p>
     <input id="practiceTier" type="text" placeholder="Optional tier / rank focus" />
 
     <label for="practiceWeek">Training Week</label>
     <input id="practiceWeek" type="number" min="1" max="36" placeholder="Optional week" />
 
-    <label for="practiceDuration">Actual Duration</label>
+    <label for="practiceDuration">Practice Duration (scheduled / recorded allocation)</label>
+    <p class="muted">This field updates the canonical practice duration, not measured elapsed time. Do not use it as a confirmed actual-duration metric.</p>
     <input id="practiceDuration" type="number" min="1" max="480" placeholder="Minutes" />
 
     <button id="savePracticeDetailsBtn" type="button">Save Practice Details</button>
@@ -56,7 +58,7 @@
       No session data.
     </div>
 
-    <label for="tierWeek">Tier Week</label>
+    <label for="tierWeek">Tier Week (reflection note; separate from Training Week)</label>
 
     <input
       id="tierWeek"
@@ -152,7 +154,7 @@
 
 <script
   type="module"
-  src="/coaches/logs/practice-log.js?v=20261008-5"
+  src="/coaches/logs/practice-log.js?v=20261021-1"
 ></script>
 
 </body>
