@@ -71,6 +71,12 @@ export function compilePracticeTimeline(plan) {
     events.push({ type: "block-start", atSeconds: offset, blockId: block.id, label: block.title });
     const rule = block.timer.execution;
     let subSeconds = 0;
+    if (rule && block.drills.length) {
+      errors.push({ blockId: block.id, code: "CONFLICTING_TIMER_AND_DRILLS" });
+      offset += block.seconds;
+      events.push({ type: "block-end", atSeconds: offset, blockId: block.id });
+      continue;
+    }
     if (rule) {
       for (let round = 1; round <= rule.rounds; round++) {
         const begin = blockStart + subSeconds;
@@ -101,6 +107,8 @@ export function compilePracticeTimeline(plan) {
   if (expectedSeconds !== null && expectedSeconds !== offset) {
     errors.push({ code: "PRACTICE_DURATION_MISMATCH", allocatedSeconds: expectedSeconds, requestedSeconds: offset });
   }
+  // Invalid timelines must not supply executable events past their parent boundaries.
+  if (errors.length) return { version: EXECUTION_CONTRACT_VERSION, totalSeconds: offset, blocks, events: [], errors, valid: false };
   events.sort((a,b) => a.atSeconds - b.atSeconds);
   return { version: EXECUTION_CONTRACT_VERSION, totalSeconds: offset, blocks, events, errors, valid: errors.length === 0 };
 }
