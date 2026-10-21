@@ -46,6 +46,20 @@ function displayJourney(value) {
   return String(value || "—");
 }
 
+function isManualIdentityEntry(practice) {
+  if (!practice) return false;
+  const mode = String(practice.entryMode || practice.schema || "").toLowerCase();
+  return ["fast-practice", "manual-build", "manual-entry"].includes(mode) ||
+    String(practice.program || "").toLowerCase() === "manual-build";
+}
+
+function updateIdentityVisibility() {
+  const identityCard = document.getElementById("practiceDetailsCard");
+  if (identityCard) identityCard.hidden = !isManualIdentityEntry(canonicalPractice);
+  const tierWeekField = document.getElementById("tierWeekField");
+  if (tierWeekField) tierWeekField.hidden = !isManualIdentityEntry(canonicalPractice);
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -309,9 +323,11 @@ function renderSummary() {
     </p>
 
     <p>
-      <strong>Tier:</strong>
-      ${escapeHtml(sessionSource.tier || "—")}
+      <strong>Practice focus tier:</strong>
+      ${escapeHtml(sessionSource.tier || "Not specified (group tiers remain separate)")}
     </p>
+    <p><strong>Training week:</strong> ${escapeHtml(canonicalPractice?.week || sessionSource.week || "Not recorded")}</p>
+    <p><strong>Training stage:</strong> ${escapeHtml(canonicalPractice?.stage || "Not recorded; no inferred stage")}</p>
 
 
     <p>
@@ -537,6 +553,7 @@ function populatePracticePrograms() {
 
 async function savePracticeDetails() {
   if (!canonicalPractice || !requestedPracticeId) throw new Error("Canonical practice is required.");
+  if (!isManualIdentityEntry(canonicalPractice)) throw new Error("System-routed practice identity is inherited and cannot be edited here.");
   const selected = programById(practiceProgram?.value || "");
   const discipline = String(selected?.discipline || practiceDiscipline?.value || "").trim();
   if (!["wrestling", "boxing", "muay-thai"].includes(discipline)) throw new Error("Combat Post-Practice requires Wrestling, Boxing, or Muay Thai.");
@@ -593,6 +610,7 @@ async function loadCanonicalPractice() {
   canonicalAthleteInputs = response.data?.athleteInputs || {};
   if (!canonicalPractice) throw new Error("Canonical practice not found.");
   populatePracticePrograms();
+  updateIdentityVisibility();
   payload = payload || { source: "canonical-practice", blocks: [] };
   sessionSource = {
     ...sessionSource,
@@ -601,6 +619,7 @@ async function loadCanonicalPractice() {
     journey: canonicalPractice.journey || "",
     track: canonicalPractice.track || "",
     tier: canonicalPractice.tier || "",
+    week: canonicalPractice.week || "",
     trainingGroups: canonicalPractice.trainingGroups || sessionSource.trainingGroups || [],
     schema: canonicalPractice.entryMode || "normal",
   };
