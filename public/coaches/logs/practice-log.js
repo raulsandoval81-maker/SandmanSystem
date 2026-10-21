@@ -39,6 +39,35 @@ const practiceWeek = document.getElementById("practiceWeek");
 const practiceDuration = document.getElementById("practiceDuration");
 const practiceDetailsStatus = document.getElementById("practiceDetailsStatus");
 
+const saveBtn = document.getElementById("saveBtn");
+const dailyGrindStep = document.getElementById("dailyGrindStep");
+let saveInProgress = false;
+let inputRevision = 0;
+
+function showSaveCheckpoint(saved) {
+  if (dailyGrindStep) dailyGrindStep.hidden = !saved;
+  if (saveBtn) saveBtn.hidden = saved;
+}
+
+function markPracticeInputChanged() {
+  inputRevision += 1;
+  showSaveCheckpoint(false);
+  if (statusEl) statusEl.textContent = "Unsaved changes — save the practice log before continuing to XP.";
+}
+
+// The next step is earned only by a successful durable save of this practice.
+document.addEventListener("input", (event) => {
+  if (event.target.closest("#athleteInput, #worked, #needs, #standout, #coachNote, #tierWeek")) {
+    markPracticeInputChanged();
+  }
+});
+document.addEventListener("change", (event) => {
+  if (event.target.closest("#fear, #athleteInput, #practiceDetailsCard")) {
+    markPracticeInputChanged();
+  }
+});
+
+
 function displayJourney(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (["z2h", "zero2hero", "zero-to-hero", "zero2hero™", "r2c", "road2champion"].includes(normalized)) return "Road2Champion";
@@ -654,7 +683,16 @@ async function loadCanonicalPractice() {
 }
 
 async function saveLog() {
-
+  if (saveInProgress) return;
+  if (!canonicalPractice || !requestedPracticeId) {
+    if (statusEl) statusEl.textContent = "Canonical practice not loaded — cannot continue to XP."; 
+    return;
+  }
+  saveInProgress = true;
+  const savingRevision = inputRevision;
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Saving practice log…"; }
+  if (statusEl) statusEl.textContent = "Saving practice and athlete notes…";
+  try {
   const blocks = getBlocks();
 
   const cards =
@@ -777,17 +815,31 @@ async function saveLog() {
       }
     } catch (error) {
       console.error("Durable practice reflection save failed", error);
-      if (statusEl) statusEl.textContent = error?.message || "Saved locally; durable save failed.";
+      showSaveCheckpoint(false);
+      if (statusEl) statusEl.textContent = "Practice log not fully saved. " + (error?.message || "Please try again.");
       return;
     }
   }
 
-  if (statusEl) {
-    statusEl.textContent = practiceId ? "Saved practice and athlete input." : "Saved locally (legacy session).";
+  if (savingRevision !== inputRevision) {
+    showSaveCheckpoint(false);
+    if (statusEl) statusEl.textContent = "Notes changed while saving. Save again before continuing to XP.";
+    return;
+  }
+  showSaveCheckpoint(true);
+  if (statusEl) statusEl.textContent = "Practice Log saved successfully. Continue to Daily Grind XP.";
+  } catch (error) {
+    showSaveCheckpoint(false);
+    console.error("Practice Log save failed", error);
+    if (statusEl) statusEl.textContent = error?.message || "Practice Log save failed. Try again.";
+  } finally {
+    saveInProgress = false;
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Save Practice Log"; }
   }
 }
 
 async function initializePracticeLog() {
+  showSaveCheckpoint(false);
   try {
     await requireCoach();
     await loadCanonicalPractice();
