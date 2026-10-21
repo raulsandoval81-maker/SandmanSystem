@@ -909,3 +909,26 @@ html[data-theme="light"]{
    owns its compact step number, title and controls without a duplicate intro. */
 .attendance-page{padding-top:8px}
 .coach-shell__main > .attendance-page{padding-top:0}
+
+/* Verified attendance completes under the roster, then XP becomes the next step. */
+.attendance-page .attendance-finish{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  scroll-margin-top:96px;
+}
+.attendance-page .attendance-finish h2{margin:0 0 6px}
+.attendance-page .attendance-finish p{margin:0 0 8px}
+.attendance-page .attendance-finish #saveAttendance{
+  flex:0 0 auto;
+  border-radius:12px;
+  padding:14px 20px;
+}
+.attendance-page #practiceXpPanel{scroll-margin-top:96px}
+.attendance-page #practiceXpPanel[hidden],
+.attendance-page .attendance-finish [hidden]{display:none!important}
+@media(max-width:720px){
+  .attendance-page .attendance-finish{flex-direction:column;align-items:stretch}
+  .attendance-page .attendance-finish #saveAttendance{width:100%}
+}
