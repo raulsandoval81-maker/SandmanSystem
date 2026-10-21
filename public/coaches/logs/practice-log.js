@@ -114,7 +114,9 @@ function getCardsFromBlocks(blocks) {
         title: card.title || "",
         href: card.href || "",
 
-        skill: card.skill || "",
+        skill: card.skill || card.skillId || "",
+        groupId: String(card.groupId || ""),
+        athleteIds: Array.isArray(card.athleteIds) ? card.athleteIds.map(String) : [],
 
         discipline:
           card.discipline ||
@@ -425,9 +427,27 @@ function renderAthleteInputs() {
     getCardsFromBlocks(getBlocks())
   );
 
-  const skillLabels = skillsWorked
-    .map((item) => item.title || item.skill)
-    .filter(Boolean);
+  // Do not present room-wide skills as athlete-specific instruction.
+  const workedCards = getCardsFromBlocks(getBlocks());
+  const groups = Array.isArray(canonicalPractice?.trainingGroups)
+    ? canonicalPractice.trainingGroups
+    : Array.isArray(sessionSource.trainingGroups) ? sessionSource.trainingGroups : [];
+  const athleteGroups = new Map();
+  groups.forEach((group) => {
+    const ids = Array.isArray(group.athleteIds) ? group.athleteIds : [];
+    ids.forEach((id) => {
+      const key = String(id);
+      if (!athleteGroups.has(key)) athleteGroups.set(key, new Set());
+      athleteGroups.get(key).add(String(group.id || group.groupId || ""));
+    });
+  });
+  function labelsForAthlete(athleteId) {
+    const groupIds = athleteGroups.get(athleteId) || new Set();
+    return [...new Set(workedCards.filter((card) =>
+      (Array.isArray(card.athleteIds) && card.athleteIds.includes(athleteId)) ||
+      (card.groupId && groupIds.has(card.groupId))
+    ).map((card) => card.title || card.skill).filter(Boolean))];
+  }
 
   if (!presentIds.length) {
     athleteInputEl.innerHTML =
@@ -439,11 +459,10 @@ function renderAthleteInputs() {
     const athlete = roster.get(athleteId) || {};
     const input = canonicalAthleteInputs[athleteId] || {};
 
-    const skillsHtml = skillLabels.length
-      ? skillLabels
-          .map((label) => `<li>${escapeHtml(label)}</li>`)
-          .join("")
-      : `<li class="muted">No session skills captured.</li>`;
+    const athleteSkills = labelsForAthlete(athleteId);
+    const skillsHtml = athleteSkills.length
+      ? athleteSkills.map((label) => `<li>${escapeHtml(label)}</li>`).join("")
+      : `<li class="muted">No athlete-specific worked skills verified; review group execution.</li>`;
 
     return `
       <article
@@ -460,7 +479,7 @@ function renderAthleteInputs() {
         </h3>
 
         <div class="athlete-skills-worked">
-          <strong>Skills Worked Today</strong>
+          <strong>Worked Skills Linked to Athlete / Group (instruction only)</strong>
           <ul>
             ${skillsHtml}
           </ul>
@@ -545,7 +564,7 @@ async function savePracticeDetails() {
     ...sessionSource,
     discipline: canonicalPractice.discipline,
     journey: canonicalPractice.journey,
-    track: canonicalPractice.program,
+    track: canonicalPractice.track || "",
     tier: canonicalPractice.tier
   };
   renderSummary();
@@ -569,6 +588,8 @@ async function loadCanonicalPractice() {
     discipline: canonicalPractice.discipline || "",
     journey: canonicalPractice.journey || "",
     track: canonicalPractice.program || "",
+    tier: canonicalPractice.tier || "",
+    trainingGroups: canonicalPractice.trainingGroups || sessionSource.trainingGroups || [],
     schema: canonicalPractice.entryMode || "normal",
   };
   const sharedLog = canonicalPractice.dailyPracticeLog || null;
