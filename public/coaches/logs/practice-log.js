@@ -41,6 +41,13 @@ const practiceWeek = document.getElementById("practiceWeek");
 const practiceDuration = document.getElementById("practiceDuration");
 const practiceDetailsStatus = document.getElementById("practiceDetailsStatus");
 
+function displayJourney(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (["z2h", "zero2hero", "zero-to-hero", "zero2hero™", "r2c", "road2champion"].includes(normalized)) return "Road2Champion";
+  if (["p2l", "path2legend"].includes(normalized)) return "Path2Legend";
+  return String(value || "—");
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -306,7 +313,7 @@ function renderSummary() {
 
     <p>
       <strong>Journey:</strong>
-      ${escapeHtml(sessionSource.journey || "—")}
+      ${escapeHtml(displayJourney(sessionSource.journey))}
     </p>
 
     <p>
