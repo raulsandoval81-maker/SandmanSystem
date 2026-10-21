@@ -12,6 +12,7 @@ import {
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
+import { compilePracticeTimeline } from "/coaches/execution/engine/practice-execution-contract.mjs";
 
 
 import {
@@ -1649,6 +1650,23 @@ window.runPractice = async function () {
 .filter(b => b.minutes > 0)
 .map(block => ({ ...block, groupActivities: groupActivitiesForBlock(block, session) }));
 
+  // V1 execution contract: validate before opening the practice; never overwrite a
+  // canonical plan when child timing exceeds its Clipboard allocation.
+  const executionTimeline = compilePracticeTimeline({ blocks });
+  if (!executionTimeline.valid) {
+    const first = executionTimeline.errors[0];
+    setStatus(`Timer configuration requires review: ${first.code}${first.blockId ? " (" + first.blockId + ")" : ""}. Nothing was launched.`);
+    return;
+  }
+  // Read-only compatibility artifact. The existing Big Clock payload and timing
+  // execution remain unchanged until the next explicitly reviewed integration PR.
+  const executionContract = {
+    version: executionTimeline.version,
+    totalSeconds: executionTimeline.totalSeconds,
+    blocks: executionTimeline.blocks,
+    events: executionTimeline.events
+  };
+
   let practiceId = String(session.practiceId || "").trim();
   try {
     const openPractice = httpsCallable(functions, "openPracticeSession");
@@ -1718,6 +1736,7 @@ window.runPractice = async function () {
     carryForwardNote: session.carryForwardNote,
 
     blocks,
+    executionContract,
     autoStart: false,
     createdAt: new Date().toISOString()
   };
