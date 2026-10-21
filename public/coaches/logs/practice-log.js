@@ -284,7 +284,7 @@ function updateCloseoutLinks() {
 
   if (dailyGrindLink) {
     dailyGrindLink.href = practiceId
-      ? `/coaches/daily-xp/?session=${encodeURIComponent(practiceId)}`
+      ? `/coaches/attendance/?session=${encodeURIComponent(practiceId)}`
       : "/coaches/daily-xp/";
   }
 }
@@ -834,7 +834,7 @@ async function saveLog() {
     return;
   }
   showSaveCheckpoint(true);
-  if (statusEl) statusEl.textContent = "Practice Log saved successfully. Continue to Daily Grind XP.";
+  if (statusEl) statusEl.textContent = "Practice Log saved successfully. Continue to Attendance & Daily Grind XP.";
   } catch (error) {
     showSaveCheckpoint(false);
     console.error("Practice Log save failed", error);
