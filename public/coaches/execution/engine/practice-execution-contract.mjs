@@ -128,3 +128,33 @@ export function normalizeAudioSettings(input = {}) {
     announceWarnings: input.announceWarnings !== false
   };
 }
+
+/**
+ * Resolve the currently active interval for a compiled parent block.
+ * Returns null for legacy timing, preserving existing Big Clock behavior.
+ * Elapsed is measured from parent-block start. The parent block remains
+ * authoritative; the remainder of a partially occupied block is unassigned.
+ */
+export function getActiveCombatInterval(block, elapsedSeconds = 0) {
+  const rule = block?.timer?.execution;
+  if (!rule || !(rule.rounds > 0 && rule.workSeconds > 0)) return null;
+  const elapsed = Math.max(0, Math.floor(Number(elapsedSeconds) || 0));
+  let cursor = 0;
+  for (let round = 1; round <= rule.rounds; round++) {
+    const workEnd = cursor + rule.workSeconds;
+    if (elapsed < workEnd) {
+      return { phase: "work", round, rounds: rule.rounds,
+        remainingSeconds: workEnd - elapsed, label: block.timer.label || block.title || "",
+        linkedSkillIds: rule.linkedSkillIds || [] };
+    }
+    cursor = workEnd;
+    if (round < rule.rounds && rule.restSeconds > 0) {
+      const restEnd = cursor + rule.restSeconds;
+      if (elapsed < restEnd) return { phase: "rest", round, rounds: rule.rounds,
+        remainingSeconds: restEnd - elapsed, label: "Rest", linkedSkillIds: [] };
+      cursor = restEnd;
+    }
+  }
+  return { phase: "complete", round: rule.rounds, rounds: rule.rounds,
+    remainingSeconds: 0, label: "", linkedSkillIds: [] };
+}
