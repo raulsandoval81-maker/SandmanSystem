@@ -8,6 +8,7 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
+import { getActiveCombatInterval } from "/coaches/execution/engine/practice-execution-contract.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -567,6 +568,10 @@ function render() {
     return;
   }
 
+  // Optional v1 execution contract. Older sessions keep their existing display.
+  const executionPlan = getPayload().executionContract;
+  const compiledBlock = executionPlan?.valid === false ? null
+    : Array.isArray(executionPlan?.blocks) ? executionPlan.blocks[Number(data.index || 0)] : null;
   const playlist = Array.isArray(data.playlist)
     ? data.playlist
     : [];
@@ -598,8 +603,12 @@ if (actionEl) {
   const timerLabel =
     current?.timer?.label || "";
 
-  actionEl.textContent =
-    timerLabel || "";
+  const elapsedForInterval = Math.floor((Date.now() - (data.blockStartedAt || Date.now())) / 1000);
+  const activeInterval = compiledBlock?.id === (current?.slot || current?.title)
+    ? getActiveCombatInterval(compiledBlock, elapsedForInterval) : null;
+  actionEl.textContent = activeInterval && activeInterval.phase !== "complete"
+    ? `${activeInterval.label} · ${activeInterval.phase === "rest" ? "Rest" : "Work"} · Round ${activeInterval.round}/${activeInterval.rounds} · ${format(activeInterval.remainingSeconds)}`
+    : timerLabel || "";
 }
 
   const now =
