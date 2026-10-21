@@ -127,20 +127,20 @@
       placeholder="Optional whole-practice context..."
     ></textarea>
 
-    <button id="saveBtn">
+    <button id="saveBtn" type="button">
       Save Practice Log
     </button>
 
-    <div id="status" class="muted">
+    <div id="status" class="muted" role="status" aria-live="polite">
       Ready
     </div>
 
   </section>
 
-  <section class="card">
-    <h2>Next: Daily Grind XP</h2>
+  <section id="dailyGrindStep" class="card" hidden>
+    <h2>Practice Log Saved</h2>
     <p class="muted">
-      Attendance was handled earlier in the practice workflow. Review and save team and individual notes here, then continue to Daily Grind XP. This step does not finalize attendance or close the practice.
+      Your practice evaluation was saved successfully. Continue to Daily Grind XP for this practice. This step does not close the practice.
     </p>
     <div id="closeoutActions" class="final-close-actions">
       <a id="dailyGrindLink" href="/coaches/daily-xp/">Continue to Daily Grind XP →</a>
@@ -153,7 +153,7 @@
 
 <script
   type="module"
-  src="/coaches/logs/practice-log.js?v=20261021-4"
+  src="/coaches/logs/practice-log.js?v=20261021-5"
 ></script>
 
 </body>
