@@ -684,8 +684,10 @@ async function loadCanonicalPractice() {
 
 async function saveLog() {
   if (saveInProgress) return;
-  if (!canonicalPractice || !requestedPracticeId) {
-    if (statusEl) statusEl.textContent = "Canonical practice not loaded — cannot continue to XP."; 
+  // A legacy practice without an ID may still be archived locally, but never unlock XP.
+  // A known canonical ID that fails to load must not silently fall back to local-only.
+  if (!canonicalPractice && requestedPracticeId) {
+    if (statusEl) statusEl.textContent = "Canonical practice not loaded — cannot continue to XP.";
     return;
   }
   saveInProgress = true;
@@ -789,6 +791,11 @@ async function saveLog() {
   );
 
   const practiceId = String(requestedPracticeId || sessionSource.practiceId || payload?.practiceId || "").trim();
+  if (!practiceId) {
+    showSaveCheckpoint(false);
+    if (statusEl) statusEl.textContent = "Saved locally (legacy session). Daily Grind XP requires a canonical practice.";
+    return;
+  }
   if (practiceId) {
     try {
       const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");

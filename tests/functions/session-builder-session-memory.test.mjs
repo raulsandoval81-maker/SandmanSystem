@@ -38,5 +38,9 @@ test("Practice Log keeps local compatibility and never fabricates practice ident
   assert.match(source, /localStorage\.setItem\(\s*LOG_KEY/);
   assert.match(source, /if \(practiceId\)/);
   assert.match(source, /Saved locally \(legacy session\)/);
+  assert.match(source, /if \(!canonicalPractice && requestedPracticeId\)/);
+  assert.match(source, /if \(!practiceId\)/);
+  assert.match(source, /showSaveCheckpoint\(false\)/);
+  assert.match(source, /Daily Grind XP requires a canonical practice/);
   assert.doesNotMatch(source, /collection\([^)]+practiceSessions/);
 });
