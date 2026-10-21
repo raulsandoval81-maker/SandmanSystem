@@ -16,9 +16,9 @@
   <h1>Post-Practice Clipboard</h1>
   <p class="muted">Review what happened, finish athlete and team notes, and complete Final Close.</p>
 
-  <section id="practiceDetailsCard" class="card">
-    <h2>Practice Identity</h2>
-    <p class="muted">Inherited from the canonical practice. Edit only to correct a recorded Combat practice.</p>
+  <section id="practiceDetailsCard" class="card" hidden>
+    <h2>Manual Practice Details</h2>
+    <p class="muted">Only for explicitly manual or fast-entry practices. Normal Session Builder practices inherit identity, training week, and stage from their canonical records.</p>
 
     <label for="practiceDiscipline">Discipline</label>
     <select id="practiceDiscipline">
@@ -57,7 +57,8 @@
       No session data.
     </div>
 
-    <label for="tierWeek">Tier Week (reflection note; separate from Training Week)</label>
+    <div id="tierWeekField" hidden>
+    <label for="tierWeek">Tier Week (legacy manual reflection note)</label>
 
     <input
       id="tierWeek"
@@ -65,6 +66,7 @@
       min="1"
       placeholder="Example: 2"
     />
+    </div>
 
   </section>
 
@@ -136,14 +138,12 @@
   </section>
 
   <section class="card">
-    <h2>Final Close</h2>
+    <h2>Next: Daily Grind XP</h2>
     <p class="muted">
-      Finalized attendance and completed Daily Grind are required. Notes are optional.
+      Attendance was handled earlier in the practice workflow. Review and save team and individual notes here, then continue to Daily Grind XP. This step does not finalize attendance or close the practice.
     </p>
     <div id="closeoutActions" class="final-close-actions">
-      <a id="finalizeAttendanceLink" href="/coaches/attendance/">Finalize Attendance</a>
-      <a id="dailyGrindLink" href="/coaches/daily-xp/">Open Daily Grind</a>
-      <button id="closeBtn" type="button">Close Practice</button>
+      <a id="dailyGrindLink" href="/coaches/daily-xp/">Continue to Daily Grind XP →</a>
     </div>
   </section>
 
@@ -153,7 +153,7 @@
 
 <script
   type="module"
-  src="/coaches/logs/practice-log.js?v=20261021-2"
+  src="/coaches/logs/practice-log.js?v=20261021-4"
 ></script>
 
 </body>

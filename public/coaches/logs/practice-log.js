@@ -31,8 +31,6 @@ let canonicalAthleteInputs = {};
 const summary = document.getElementById("sessionSummary");
 const statusEl = document.getElementById("status");
 const athleteInputEl = document.getElementById("athleteInput");
-const closeBtn = document.getElementById("closeBtn");
-const finalizeAttendanceLink = document.getElementById("finalizeAttendanceLink");
 const dailyGrindLink = document.getElementById("dailyGrindLink");
 const practiceDiscipline = document.getElementById("practiceDiscipline");
 const practiceProgram = document.getElementById("practiceProgram");
@@ -46,6 +44,20 @@ function displayJourney(value) {
   if (["z2h", "zero2hero", "zero-to-hero", "zero2hero™", "r2c", "road2champion"].includes(normalized)) return "Road2Champion";
   if (["p2l", "path2legend"].includes(normalized)) return "Path2Legend";
   return String(value || "—");
+}
+
+function isManualIdentityEntry(practice) {
+  if (!practice) return false;
+  const mode = String(practice.entryMode || practice.schema || "").toLowerCase();
+  return ["fast-practice", "manual-build", "manual-entry"].includes(mode) ||
+    String(practice.program || "").toLowerCase() === "manual-build";
+}
+
+function updateIdentityVisibility() {
+  const identityCard = document.getElementById("practiceDetailsCard");
+  if (identityCard) identityCard.hidden = !isManualIdentityEntry(canonicalPractice);
+  const tierWeekField = document.getElementById("tierWeekField");
+  if (tierWeekField) tierWeekField.hidden = !isManualIdentityEntry(canonicalPractice);
 }
 
 function escapeHtml(value) {
@@ -241,12 +253,6 @@ function updateCloseoutLinks() {
     ""
   ).trim();
 
-  if (finalizeAttendanceLink) {
-    finalizeAttendanceLink.href = practiceId
-      ? `/coaches/attendance/?session=${encodeURIComponent(practiceId)}`
-      : "/coaches/attendance/";
-  }
-
   if (dailyGrindLink) {
     dailyGrindLink.href = practiceId
       ? `/coaches/daily-xp/?session=${encodeURIComponent(practiceId)}`
@@ -317,9 +323,11 @@ function renderSummary() {
     </p>
 
     <p>
-      <strong>Tier:</strong>
-      ${escapeHtml(sessionSource.tier || "—")}
+      <strong>Practice focus tier:</strong>
+      ${escapeHtml(sessionSource.tier || "Not specified (group tiers remain separate)")}
     </p>
+    <p><strong>Training week:</strong> ${escapeHtml(canonicalPractice?.week || sessionSource.week || "Not recorded")}</p>
+    <p><strong>Training stage:</strong> ${escapeHtml(canonicalPractice?.stage || "Not recorded; no inferred stage")}</p>
 
 
     <p>
@@ -545,6 +553,7 @@ function populatePracticePrograms() {
 
 async function savePracticeDetails() {
   if (!canonicalPractice || !requestedPracticeId) throw new Error("Canonical practice is required.");
+  if (!isManualIdentityEntry(canonicalPractice)) throw new Error("System-routed practice identity is inherited and cannot be edited here.");
   const selected = programById(practiceProgram?.value || "");
   const discipline = String(selected?.discipline || practiceDiscipline?.value || "").trim();
   if (!["wrestling", "boxing", "muay-thai"].includes(discipline)) throw new Error("Combat Post-Practice requires Wrestling, Boxing, or Muay Thai.");
@@ -601,6 +610,7 @@ async function loadCanonicalPractice() {
   canonicalAthleteInputs = response.data?.athleteInputs || {};
   if (!canonicalPractice) throw new Error("Canonical practice not found.");
   populatePracticePrograms();
+  updateIdentityVisibility();
   payload = payload || { source: "canonical-practice", blocks: [] };
   sessionSource = {
     ...sessionSource,
@@ -609,6 +619,7 @@ async function loadCanonicalPractice() {
     journey: canonicalPractice.journey || "",
     track: canonicalPractice.track || "",
     tier: canonicalPractice.tier || "",
+    week: canonicalPractice.week || "",
     trainingGroups: canonicalPractice.trainingGroups || sessionSource.trainingGroups || [],
     schema: canonicalPractice.entryMode || "normal",
   };
@@ -640,7 +651,6 @@ async function loadCanonicalPractice() {
   setValue("standout", reflection.standout);
   setValue("coachNote", reflection.coachNote);
   renderAthleteInputs();
-  if (closeBtn) closeBtn.hidden = canonicalPractice.status === "closed";
 }
 
 async function saveLog() {
@@ -777,19 +787,6 @@ async function saveLog() {
   }
 }
 
-async function finalClose() {
-  if (!canonicalPractice || !requestedPracticeId) throw new Error("A canonical practice is required for final close.");
-  const closePractice = httpsCallable(functions, "closePracticeSession");
-  const response = await closePractice({
-    practiceId: requestedPracticeId,
-    attendanceSessionId: requestedPracticeId,
-  });
-  canonicalPractice.status = response.data?.status || "closed";
-  if (closeBtn) closeBtn.hidden = true;
-  renderSummary();
-  if (statusEl) statusEl.textContent = response.data?.idempotent ? "Practice was already closed." : "Practice closed.";
-}
-
 async function initializePracticeLog() {
   try {
     await requireCoach();
@@ -824,13 +821,6 @@ document.getElementById("savePracticeDetailsBtn")?.addEventListener("click", () 
   savePracticeDetails().catch((error) => {
     console.error("Practice details save failed", error);
     if (practiceDetailsStatus) practiceDetailsStatus.textContent = error?.message || "Unable to save practice details.";
-  });
-});
-
-closeBtn?.addEventListener("click", () => {
-  finalClose().catch((error) => {
-    console.error("Practice final close failed", error);
-    if (statusEl) statusEl.textContent = error?.message || "Unable to close practice.";
   });
 });
 
