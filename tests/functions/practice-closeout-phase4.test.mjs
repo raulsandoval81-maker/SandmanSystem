@@ -40,7 +40,7 @@ test("Practice Log loads canonical state by practiceId and keeps local fallback"
   assert.match(html, /id="athleteInput"/);
   assert.match(html, /id="saveBtn"/);
   assert.match(html, /id="dailyGrindLink"/);
-  assert.match(html, /Continue to Daily Grind XP/);
+  assert.match(html, /Continue to Attendance &amp; Daily Grind/);
   assert.doesNotMatch(html, /id="closeBtn"/);
   assert.doesNotMatch(html, /id="finalizeAttendanceLink"/);
   assert.match(source, /\/coaches\/daily-xp\/\?session=\$\{encodeURIComponent\(practiceId\)\}/);
