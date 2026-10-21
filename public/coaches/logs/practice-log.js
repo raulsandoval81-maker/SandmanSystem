@@ -31,8 +31,6 @@ let canonicalAthleteInputs = {};
 const summary = document.getElementById("sessionSummary");
 const statusEl = document.getElementById("status");
 const athleteInputEl = document.getElementById("athleteInput");
-const closeBtn = document.getElementById("closeBtn");
-const finalizeAttendanceLink = document.getElementById("finalizeAttendanceLink");
 const dailyGrindLink = document.getElementById("dailyGrindLink");
 const practiceDiscipline = document.getElementById("practiceDiscipline");
 const practiceProgram = document.getElementById("practiceProgram");
@@ -240,12 +238,6 @@ function updateCloseoutLinks() {
     payload?.practiceId ||
     ""
   ).trim();
-
-  if (finalizeAttendanceLink) {
-    finalizeAttendanceLink.href = practiceId
-      ? `/coaches/attendance/?session=${encodeURIComponent(practiceId)}`
-      : "/coaches/attendance/";
-  }
 
   if (dailyGrindLink) {
     dailyGrindLink.href = practiceId
@@ -640,7 +632,6 @@ async function loadCanonicalPractice() {
   setValue("standout", reflection.standout);
   setValue("coachNote", reflection.coachNote);
   renderAthleteInputs();
-  if (closeBtn) closeBtn.hidden = canonicalPractice.status === "closed";
 }
 
 async function saveLog() {
@@ -777,19 +768,6 @@ async function saveLog() {
   }
 }
 
-async function finalClose() {
-  if (!canonicalPractice || !requestedPracticeId) throw new Error("A canonical practice is required for final close.");
-  const closePractice = httpsCallable(functions, "closePracticeSession");
-  const response = await closePractice({
-    practiceId: requestedPracticeId,
-    attendanceSessionId: requestedPracticeId,
-  });
-  canonicalPractice.status = response.data?.status || "closed";
-  if (closeBtn) closeBtn.hidden = true;
-  renderSummary();
-  if (statusEl) statusEl.textContent = response.data?.idempotent ? "Practice was already closed." : "Practice closed.";
-}
-
 async function initializePracticeLog() {
   try {
     await requireCoach();
@@ -824,13 +802,6 @@ document.getElementById("savePracticeDetailsBtn")?.addEventListener("click", () 
   savePracticeDetails().catch((error) => {
     console.error("Practice details save failed", error);
     if (practiceDetailsStatus) practiceDetailsStatus.textContent = error?.message || "Unable to save practice details.";
-  });
-});
-
-closeBtn?.addEventListener("click", () => {
-  finalClose().catch((error) => {
-    console.error("Practice final close failed", error);
-    if (statusEl) statusEl.textContent = error?.message || "Unable to close practice.";
   });
 });
 
