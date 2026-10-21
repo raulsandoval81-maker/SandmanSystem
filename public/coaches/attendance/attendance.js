@@ -333,6 +333,7 @@ async function loadPracticeReview(practiceId) {
   if (finalizeButton) finalizeButton.hidden = finalized;
   if (finalized) {
     showPracticeXp(practiceId);
+    requestAnimationFrame(revealPracticeXp);
     document.querySelectorAll(".present-check").forEach((check) => { check.disabled = true; });
   } else {
     const handoff = $("continueDailyGrind");
