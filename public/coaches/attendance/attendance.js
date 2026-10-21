@@ -13,7 +13,7 @@ import { XP_URL } from "/assets/js/coach-endpoints.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
-document.body.dataset.attendanceBuild = "integrated-xp1";
+document.body.dataset.attendanceBuild = "integrated-xp2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -50,10 +50,18 @@ function todayLabel() {
 }
 
 function setStatus(msg, isError = false) {
-  const el = $("saveStatus");
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = isError ? "#ff8a8a" : "#9ca3af";
+  for (const id of ["saveStatus", "attendanceFinishStatus"]) {
+    const el = $(id);
+    if (!el) continue;
+    el.textContent = msg;
+    el.style.color = isError ? "#ff8a8a" : "";
+  }
+}
+
+function revealPracticeXp() {
+  const panel = $("practiceXpPanel");
+  if (!panel || panel.hidden) return;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showDailyGrindHandoff(sessionId) {
@@ -321,8 +329,11 @@ async function loadPracticeReview(practiceId) {
     String(pendingSession.status || "").toLowerCase() === "finalized";
   renderAthletes();
   setReviewControlsEnabled(!finalized);
+  const finalizeButton = $("saveAttendance");
+  if (finalizeButton) finalizeButton.hidden = finalized;
   if (finalized) {
     showPracticeXp(practiceId);
+    requestAnimationFrame(revealPracticeXp);
     document.querySelectorAll(".present-check").forEach((check) => { check.disabled = true; });
   } else {
     const handoff = $("continueDailyGrind");
@@ -463,11 +474,12 @@ async function saveAttendance() {
 
     await loadPracticeReview(finalizedSessionId);
     setStatus(`Attendance finalized for ${presentIds.length} athlete(s). Choose Daily Grind XP below.`);
+    revealPracticeXp();
   } catch (error) {
     console.error("[attendance] finalize failed", error);
     setStatus("Attendance finalize failed: " + safeXpError(error) + ". No XP was issued.", true);
   } finally {
-    if (saveBtn) saveBtn.disabled = !pendingSessionRef;
+    if (saveBtn) saveBtn.disabled = !pendingSessionRef || pendingSession?.finalized === true;
   }
 }
 

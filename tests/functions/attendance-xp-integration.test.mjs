@@ -45,3 +45,20 @@ test("standalone Coach XP Tool preserves original Daily Grind without Session Bu
   assert.match(daily, /COACH_VERIFIED_PRACTICE_SOURCE/);
   assert.match(daily, /requestCoachVerifiedPracticeEvidence/);
 });
+
+test("finalize control follows the roster and opens the XP step", async () => {
+  const [html, js, css] = await Promise.all([
+    read("public/coaches/attendance/index.html"),
+    read("public/coaches/attendance/attendance.js"),
+    read("public/coaches/attendance/attendance.css"),
+  ]);
+  const roster = html.indexOf('id="athleteList"');
+  const button = html.indexOf('id="saveAttendance"');
+  const xp = html.indexOf('id="practiceXpPanel"');
+  assert.ok(roster >= 0 && button > roster && xp > button);
+  assert.match(html, /Finalize Attendance &amp; Continue to XP/);
+  assert.match(js, /await loadPracticeReview\(finalizedSessionId\);[\s\S]*revealPracticeXp\(\)/);
+  assert.match(js, /panel\.scrollIntoView/);
+  assert.match(js, /finalizeButton\.hidden = finalized/);
+  assert.match(css, /#practiceXpPanel\[hidden\]/);
+});
