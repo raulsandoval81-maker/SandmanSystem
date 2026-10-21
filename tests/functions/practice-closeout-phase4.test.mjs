@@ -46,6 +46,26 @@ test("Practice Log loads canonical state by practiceId and keeps local fallback"
   assert.match(source, /\/coaches\/daily-xp\/\?session=\$\{encodeURIComponent\(practiceId\)\}/);
 });
 
+test("Post-Practice unlocks Daily Grind only after successful durable save", async () => {
+  const [source, html] = await Promise.all([
+    read("public/coaches/logs/practice-log.js"),
+    read("public/coaches/logs/practice-log.html"),
+  ]);
+  assert.match(html, /id="dailyGrindStep" class="card" hidden/);
+  assert.match(html, /id="status"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(source, /if \(!canonicalPractice \|\| !requestedPracticeId\)/);
+  assert.match(source, /await saveMemory\(/);
+  assert.match(source, /await Promise\.all\(cards\.map\(\(card\) => saveAthleteInput/);
+  assert.match(source, /if \(savingRevision !== inputRevision\)/);
+  assert.match(source, /showSaveCheckpoint\(true\)/);
+  assert.match(source, /showSaveCheckpoint\(false\)/);
+  assert.match(source, /saveInProgress/);
+  assert.match(source, /markPracticeInputChanged/);
+  assert.match(source, /saveBtn\.hidden = saved/);
+  assert.match(source, /dailyGrindStep\.hidden = !saved/);
+  assert.match(source, /Practice Log saved successfully/);
+});
+
 test("history returns athlete observations and canonical practice reflection", async () => {
   const source = await read("functions/src/practice/getAthleteSessionHistory.ts");
   assert.match(source, /coachInput: athleteSession\.coachInput \|\| null/);
