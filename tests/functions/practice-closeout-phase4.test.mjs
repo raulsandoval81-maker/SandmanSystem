@@ -33,10 +33,17 @@ test("Practice Log loads canonical state by practiceId and keeps local fallback"
   assert.match(source, /params\.get\("practiceId"\).*params\.get\("practice"\)/s);
   assert.match(source, /httpsCallable\(functions, "getPracticeAttendanceReview"\)/);
   assert.match(source, /httpsCallable\(functions, "savePracticeAthleteInput"\)/);
-  assert.match(source, /httpsCallable\(functions, "closePracticeSession"\)/);
+  assert.match(source, /httpsCallable\(functions, "savePracticeSessionMemory"\)/);
+  assert.match(source, /operation: "reflection"/);
+  assert.doesNotMatch(source, /httpsCallable\(functions, "closePracticeSession"\)/);
   assert.match(source, /localStorage\.setItem\(\s*LOG_KEY/);
   assert.match(html, /id="athleteInput"/);
-  assert.match(html, /id="closeBtn"/);
+  assert.match(html, /id="saveBtn"/);
+  assert.match(html, /id="dailyGrindLink"/);
+  assert.match(html, /Continue to Daily Grind XP/);
+  assert.doesNotMatch(html, /id="closeBtn"/);
+  assert.doesNotMatch(html, /id="finalizeAttendanceLink"/);
+  assert.match(source, /\/coaches\/daily-xp\/\?session=\$\{encodeURIComponent\(practiceId\)\}/);
 });
 
 test("history returns athlete observations and canonical practice reflection", async () => {
