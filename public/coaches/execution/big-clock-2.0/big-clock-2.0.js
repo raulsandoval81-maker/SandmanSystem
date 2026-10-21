@@ -402,6 +402,7 @@ function startFromPayload() {
 
 const playlist = blocks
   .map(b => ({
+    slot: b.slot || "",
     title: b.title || b.slot || "Block",
     minutes: Number(b.minutes || 0),
     cards: Array.isArray(b.cards) ? b.cards : [],
