@@ -43,7 +43,7 @@ test("Practice Log loads canonical state by practiceId and keeps local fallback"
   assert.match(html, /Continue to Attendance &amp; Daily Grind/);
   assert.doesNotMatch(html, /id="closeBtn"/);
   assert.doesNotMatch(html, /id="finalizeAttendanceLink"/);
-  assert.match(source, /\\/coaches\\/attendance\\/\\?session=\\$\\{encodeURIComponent\\(practiceId\\)\\}/);
+  assert.ok(source.includes("/coaches/attendance/?session=${encodeURIComponent(practiceId)}"));
 });
 
 test("Post-Practice unlocks Daily Grind only after successful durable save", async () => {
@@ -53,7 +53,7 @@ test("Post-Practice unlocks Daily Grind only after successful durable save", asy
   ]);
   assert.match(html, /id="dailyGrindStep" class="card" hidden/);
   assert.match(html, /id="status"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(source, /if \(!canonicalPractice \|\| !requestedPracticeId\)/);
+  assert.ok(source.includes("if (!canonicalPractice && requestedPracticeId)"));
   assert.match(source, /await saveMemory\(/);
   assert.match(source, /await Promise\.all\(cards\.map\(\(card\) => saveAthleteInput/);
   assert.match(source, /if \(savingRevision !== inputRevision\)/);
