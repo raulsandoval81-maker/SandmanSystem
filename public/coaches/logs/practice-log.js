@@ -271,6 +271,16 @@ function renderSummary() {
 
   const structure =
     getStructure(blocks);
+  const plannedBlocks = Array.isArray(canonicalPractice?.sessionMemory?.plannedBlocks)
+    ? canonicalPractice.sessionMemory.plannedBlocks : [];
+  const plannedMinutes = plannedBlocks.reduce((sum, block) => sum + Number(block.minutes || 0), 0);
+  const groups = Array.isArray(canonicalPractice?.trainingGroups)
+    ? canonicalPractice.trainingGroups
+    : Array.isArray(sessionSource.trainingGroups) ? sessionSource.trainingGroups : [];
+  const checkedIn = Array.isArray(canonicalAttendance?.checkedInIds)
+    ? canonicalAttendance.checkedInIds.length : null;
+  const verified = Array.isArray(canonicalAttendance?.presentIds)
+    ? canonicalAttendance.presentIds.length : null;
 
   summary.innerHTML = `
 
@@ -306,7 +316,7 @@ function renderSummary() {
 
 
     <p>
-      <strong>Total:</strong>
+      <strong>Worked block allocation:</strong>
       ${structure.totalMinutes} min
       ·
       <strong>Live:</strong>
@@ -317,6 +327,9 @@ function renderSummary() {
     </p>
 
     ${canonicalPractice ? `
+      <p><strong>Planned duration:</strong> ${plannedMinutes || canonicalPractice.durationMinutes || "Not recorded"} min · <strong>Actual elapsed:</strong> Unverified</p>
+      <p><strong>Training groups:</strong> ${groups.length ? groups.length : "Not available in practice record"} · <strong>Checked in:</strong> ${checkedIn ?? "Not available"} · <strong>Verified present:</strong> ${verified ?? "Not available"}</p>
+      ${plannedMinutes > structure.totalMinutes ? '<p class="muted">The worked-block record is incomplete relative to the plan; do not interpret worked minutes as actual elapsed time.</p>' : ""}
       <p><strong>Practice:</strong> ${escapeHtml(requestedPracticeId)}</p>
       <p><strong>Date:</strong> ${escapeHtml(canonicalAttendance?.sessionDateKey || canonicalPractice.sessionDateKey || "—")}</p>
       <p><strong>Status:</strong> ${escapeHtml(canonicalPractice.status || "—")} · <strong>Verified:</strong> ${Array.isArray(canonicalAttendance?.presentIds) ? canonicalAttendance.presentIds.length : 0}</p>
@@ -504,7 +517,7 @@ function renderAthleteInputs() {
 function populatePracticePrograms() {
   if (!practiceProgram || !canonicalPractice) return;
   const locationId = String(canonicalPractice.locationId || canonicalPractice.academyId || "").trim();
-  const programs = programsForLocation(locationId).filter((program) => program.programId !== "manual-build");
+  const programs = programsForLocation(locationId).filter((program) => program.programId !== "manual-build" && ["wrestling", "boxing", "muay-thai"].includes(String(program.discipline || "").toLowerCase()));
   practiceProgram.innerHTML = '<option value="">No program selected</option>';
   programs.forEach((program) => {
     const option = document.createElement("option");
@@ -527,7 +540,7 @@ async function savePracticeDetails() {
   if (!canonicalPractice || !requestedPracticeId) throw new Error("Canonical practice is required.");
   const selected = programById(practiceProgram?.value || "");
   const discipline = String(selected?.discipline || practiceDiscipline?.value || "").trim();
-  if (!discipline) throw new Error("Choose the discipline that was actually practiced.");
+  if (!["wrestling", "boxing", "muay-thai"].includes(discipline)) throw new Error("Combat Post-Practice requires Wrestling, Boxing, or Muay Thai.");
   const durationMinutes = Math.max(1, Math.min(480, Number(practiceDuration?.value || canonicalPractice.durationMinutes || 60)));
   const week = String(practiceWeek?.value || "").trim();
   const tier = String(practiceTier?.value || "").trim();
@@ -587,7 +600,7 @@ async function loadCanonicalPractice() {
     practiceId: requestedPracticeId,
     discipline: canonicalPractice.discipline || "",
     journey: canonicalPractice.journey || "",
-    track: canonicalPractice.program || "",
+    track: canonicalPractice.track || "",
     tier: canonicalPractice.tier || "",
     trainingGroups: canonicalPractice.trainingGroups || sessionSource.trainingGroups || [],
     schema: canonicalPractice.entryMode || "normal",
