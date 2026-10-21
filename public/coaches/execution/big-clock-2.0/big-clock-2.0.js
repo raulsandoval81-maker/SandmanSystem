@@ -8,6 +8,7 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
+import { practiceRunIdentity, restorePracticeRun } from "/coaches/execution/engine/big-clock-state-identity.mjs";
 import { getActiveCombatInterval } from "/coaches/execution/engine/practice-execution-contract.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
@@ -178,18 +179,35 @@ function format(totalSeconds = 0) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function currentRunIdentity() {
+  const query = new URLSearchParams(window.location.search);
+  return practiceRunIdentity({
+    queryPracticeId: query.get("practiceId"),
+    querySessionId: query.get("session"),
+    payload: getPayload(),
+    session: getSessionPayload()
+  });
+}
 function getState() {
   try {
-    return JSON.parse(localStorage.getItem(STATE_KEY) || "{}");
+    return restorePracticeRun(
+      JSON.parse(localStorage.getItem(STATE_KEY) || "{}"),
+      currentRunIdentity()
+    );
   } catch {
     return {};
   }
 }
 
 async function setState(state) {
+  const identity = currentRunIdentity();
+  if (!identity.practiceId || !identity.sessionId) {
+    throw new Error("Cannot save a Big Clock run without practice and session identity.");
+  }
+  const scopedState = { ...state, ...identity };
   localStorage.setItem(
     STATE_KEY,
-    JSON.stringify(state)
+    JSON.stringify(scopedState)
   );
 
   try {
@@ -546,8 +564,8 @@ function render() {
   }
   // Never show the ready overlay over a running, paused, or completed session.
   const ready = document.getElementById("readyScreen");
-  if (ready && (data.running || data.paused || data.complete)) {
-    ready.classList.add("hidden");
+  if (ready) {
+    ready.classList.toggle("hidden", Boolean(data.running || data.paused || data.complete));
   }
 
   const statusEl = document.getElementById("status");
