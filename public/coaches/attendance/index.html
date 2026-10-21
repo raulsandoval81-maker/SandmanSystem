@@ -18,7 +18,7 @@
     <div>
       <h1>Attendance &amp; Daily Grind</h1>
       <p class="muted">
-        Verify participation, finalize attendance, then award Daily Grind XP from the same roster.
+        Review the roster, finalize verified attendance at the bottom, then assign Daily Grind XP here without leaving this page.
       </p>
     </div>
 
@@ -49,11 +49,6 @@
         Clear All
       </button>
 
-      <button id="saveAttendance"
-              class="pill primary"
-              type="button" disabled>
-        Finalize Attendance
-      </button>
     </div>
 
     <div class="save-meta">
@@ -78,8 +73,17 @@
 
   </section>
 
+  <section class="card attendance-finish" id="attendanceFinish">
+    <div>
+      <h2>Finish Attendance</h2>
+      <p class="muted">Confirm the checked athletes actually trained. Finalizing locks the verified roster and opens Daily Grind XP below.</p>
+      <p id="attendanceFinishStatus" class="muted" role="status" aria-live="polite">Review the participants above to continue.</p>
+    </div>
+    <button id="saveAttendance" class="pill primary" type="button" disabled>Finalize Attendance &amp; Continue to XP →</button>
+  </section>
+
   <section class="card" id="practiceXpPanel" hidden>
-    <h2>Daily Grind XP</h2>
+    <h2>Daily Grind XP · Verified Roster</h2>
     <p class="muted">Verified participants only. Select earned credit for each athlete; XP is issued by the existing authoritative engine.</p>
     <div id="practiceXpRows" class="athlete-list"></div>
     <div class="action-row" style="margin-top:16px">
@@ -92,7 +96,7 @@
 
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/attendance/attendance.js?v=integrated-xp1"></script>
+<script type="module" src="/coaches/attendance/attendance.js?v=integrated-xp2"></script>
 
 </body>
 </html>
