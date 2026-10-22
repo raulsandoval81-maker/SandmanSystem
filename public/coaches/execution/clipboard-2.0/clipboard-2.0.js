@@ -727,6 +727,18 @@ async function clipboardWavesForGroup(group) {
   } catch { return legacy?.WAVE_CARDS || {}; }
 }
 // Room-wide HYBRID coordination is instructional only, never tier certification.
+const WAVE_BLOCK_DESTINATIONS = Object.freeze([
+  ["", "Not placed"],
+  ["drills", "Review of Prior Week's Skills"],
+  ["technique", "Introduction of New Techniques"],
+  ["live", "Live Session"],
+  ["cond", "Conditioning / Skill Activities"]
+]);
+const WAVE_BLOCK_KEYS = new Set(WAVE_BLOCK_DESTINATIONS.map(([key]) => key));
+function normalizedWavePlacement(value) {
+  // Older drafts could place skills in On-the-Mat Talk; don't carry that forward.
+  return WAVE_BLOCK_KEYS.has(String(value || "")) ? String(value || "") : "";
+}
 function waveCardIdentity(card) {
   return String(card.familyId || card.manifestFamilyId || card.id || card.title || "").trim().toLowerCase();
 }
@@ -749,12 +761,12 @@ function renderWaveBlockPlacements() {
   const placements = builderSession.clipboardWavePlacements || {};
   for (const block of document.querySelectorAll("#planBlocks .plan-block")) {
     const slot = block.dataset.slot || "";
-    if (!/^(drills|technique|live|onmat)$/.test(slot)) continue;
+    if (!/^(drills|technique|live|cond)$/.test(slot)) continue;
     const shared = new Map();
     for (const prescription of prescriptions) {
       if (prescription.status !== "ready") continue;
       for (const card of prescription.cards || []) {
-        if (placements[prescription.groupId]?.[String(card.id || card.cardId || card.title || "")] !== slot) continue;
+        if (normalizedWavePlacement(placements[prescription.groupId]?.[String(card.id || card.cardId || card.title || "")]) !== slot) continue;
         const identity = waveCardIdentity(card);
         if (!identity) continue;
         if (!shared.has(identity)) shared.set(identity, { title:card.title || card.id || "Skill", groups:[] });
@@ -836,6 +848,7 @@ async function initClipboardHybridPlanning() {
       for (const card of waves[selection] || []) {
         const cardId = String(card.id || card.cardId || card.title || "");
         if (cardId && !Object.hasOwn(placements, cardId)) placements[cardId] = "technique";
+        else if (cardId) placements[cardId] = normalizedWavePlacement(placements[cardId]);
       }
     });
   }
@@ -874,9 +887,9 @@ async function initClipboardHybridPlanning() {
           const name = document.createElement("span"); name.textContent = card.title || card.id;
           const select = document.createElement("select");
           select.setAttribute("aria-label","Lesson block for "+(card.title || card.id));
-          [["","Not placed"],["drills","Previous Skills / Drills"],["technique","New Techniques"],["live","Live Session"],["onmat","On-Mat Talk"]].forEach(([value,label])=>select.add(new Option(label,value)));
+          WAVE_BLOCK_DESTINATIONS.forEach(([value,label])=>select.add(new Option(label,value)));
           const id = String(card.id || card.cardId || card.title || "");
-          select.value = builderSession.clipboardWavePlacements?.[group.id]?.[id] || "";
+          select.value = normalizedWavePlacement(builderSession.clipboardWavePlacements?.[group.id]?.[id]);
           select.addEventListener("change",()=>{
             builderSession.clipboardWavePlacements[group.id][id] = select.value;
             saveClipboardPlanning();renderWaveBlockPlacements();
