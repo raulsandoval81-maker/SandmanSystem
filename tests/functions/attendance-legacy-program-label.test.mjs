@@ -13,3 +13,18 @@ test("legacy youth display uses Road2Champion without rewriting identity or XP r
   assert.match(source, /uid\.textContent = id/);
   assert.match(source, /const youth = \/f8\|z2h\|r2c/);
 });
+
+test("bulk XP is visible only on finalized attendance and can be overridden per athlete", async () => {
+  const source = await readFile(jsPath, "utf8");
+  const html = await readFile(new URL("../../public/coaches/attendance/index.html", import.meta.url), "utf8");
+  assert.match(html, /id="bulkXpChoices"[^>]*hidden/);
+  assert.match(html, /id="bulkXp10"/);
+  assert.match(html, /id="bulkXp5"/);
+  assert.match(source, /bulk\.hidden = !finalized/);
+  assert.match(source, /creditedAthletes\.has\(id\)/);
+  assert.match(source, /athleteXpOptions\(athlete\)\.includes\(amount\)/);
+  assert.match(source, /selectCardXp\(controls, amountInput, selectionStatus, amount\)/);
+  assert.match(source, /if \(choices\.some\(x => !x\.value\)\)/);
+  assert.match(source, /completePracticeDailyGrind/);
+  assert.match(source, /closePracticeSession/);
+});
