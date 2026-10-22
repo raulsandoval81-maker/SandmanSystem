@@ -742,6 +742,36 @@ function normalizedWavePlacement(value) {
 function waveCardIdentity(card) {
   return String(card.familyId || card.manifestFamilyId || card.id || card.title || "").trim().toLowerCase();
 }
+function sharedWaveCardKey(card) {
+  // Only unify the exact same lesson card. Related families in different
+  // tiers may have distinct teaching progressions and must remain separate.
+  return JSON.stringify([
+    String(card.id || card.cardId || ""),
+    String(card.href || ""),
+    String(card.title || "")
+  ]);
+}
+function collectSharedWaveCards(groups, models, selections) {
+  const shared = new Map();
+  groups.forEach((group, index) => {
+    const wave = selections?.[group.id] || "";
+    const cards = models[index]?.[wave] || [];
+    cards.forEach(card => {
+      const cardId = String(card.id || card.cardId || card.title || "");
+      if (!cardId) return;
+      const key = sharedWaveCardKey(card);
+      if (!shared.has(key)) shared.set(key, {
+        card, participants: []
+      });
+      shared.get(key).participants.push({
+        groupId: group.id,
+        groupLabel: group.label || group.id,
+        cardId
+      });
+    });
+  });
+  return [...shared.values()];
+}
 function suggestedWaveForRoom(models, groups) {
   // One shared Wave theme across the room avoids four unrelated mini-lessons.
   const counts = new Map();
@@ -853,6 +883,7 @@ async function initClipboardHybridPlanning() {
     });
   }
   function render() {
+    const previouslyOpen = container.querySelector(".clipboard-hybrid-group > details")?.open === true;
     container.replaceChildren();
     if (coachCheck.checked) {
       const info = document.createElement("p"); info.className = "muted";
@@ -865,41 +896,89 @@ async function initClipboardHybridPlanning() {
     summary.className = "muted";
     summary.textContent = "System-selected Waves · shared core skills shown once across groups. Instructional suggestions only; unverified tiers remain unverified.";
     container.append(summary);
-    groups.forEach((group,index) => {
-      const section = document.createElement("section");
-      section.className = "clipboard-hybrid-group";
+    const sharedCards = collectSharedWaveCards(groups, models, builderSession.clipboardWaveSelections);
+    const section = document.createElement("section");
+    section.className = "clipboard-hybrid-group";
+    const heading = document.createElement("strong");
+    heading.textContent = "Shared lesson placements · " + sharedCards.length + " distinct skill cards";
+    section.append(heading);
+    const details = document.createElement("details");
+    details.open = previouslyOpen;
+    const toggle = document.createElement("summary");
+    toggle.textContent = "Coach adjustments · organize shared skills by Clipboard block";
+    details.append(toggle);
+    const setPlacement = (participant, value) => {
+      builderSession.clipboardWavePlacements ||= {};
+      builderSession.clipboardWavePlacements[participant.groupId] ||= {};
+      builderSession.clipboardWavePlacements[participant.groupId][participant.cardId] = value;
+    };
+    const placementFor = participant =>
+      normalizedWavePlacement(builderSession.clipboardWavePlacements?.[participant.groupId]?.[participant.cardId]);
+    const buildSelect = (label) => {
+      const select = document.createElement("select");
+      select.setAttribute("aria-label", label);
+      WAVE_BLOCK_DESTINATIONS.forEach(([value, text]) => select.add(new Option(text, value)));
+      return select;
+    };
+    for (const item of sharedCards) {
+      const row = document.createElement("div");
+      row.className = "clipboard-wave-card-row clipboard-shared-wave-card";
+      const identity = document.createElement("span");
       const title = document.createElement("strong");
-      const wave = builderSession.clipboardWaveSelections[group.id] || "";
-      title.textContent = (group.label || "Group " + (index+1)) + " · " + (wave ? wave.replaceAll("_"," ") : "No approved Wave available");
-      section.append(title);
-      const cards = models[index]?.[wave] || [];
-      if (!cards.length) {
-        const unavailable = document.createElement("p"); unavailable.className="muted";
-        unavailable.textContent = "Approved curriculum unavailable. Use manual instruction.";
-        section.append(unavailable);
-      } else {
-        const details = document.createElement("details");
-        const heading = document.createElement("summary");
-        heading.textContent = "Coach adjustments · " + cards.length + " skill cards";
-        details.append(heading);
-        for (const card of cards) {
-          const row = document.createElement("label"); row.className="clipboard-wave-card-row";
-          const name = document.createElement("span"); name.textContent = card.title || card.id;
-          const select = document.createElement("select");
-          select.setAttribute("aria-label","Lesson block for "+(card.title || card.id));
-          WAVE_BLOCK_DESTINATIONS.forEach(([value,label])=>select.add(new Option(label,value)));
-          const id = String(card.id || card.cardId || card.title || "");
-          select.value = normalizedWavePlacement(builderSession.clipboardWavePlacements?.[group.id]?.[id]);
-          select.addEventListener("change",()=>{
-            builderSession.clipboardWavePlacements[group.id][id] = select.value;
-            saveClipboardPlanning();renderWaveBlockPlacements();
-          });
-          row.append(name,select); details.append(row);
-        }
-        section.append(details);
+      title.textContent = item.card.title || item.card.id || "Skill";
+      const membership = document.createElement("small");
+      membership.textContent = item.participants.map(p => p.groupLabel).join(" · ");
+      identity.append(title, membership);
+      row.append(identity);
+      const sharedSelect = buildSelect("Lesson block for " + title.textContent + " · all listed groups");
+      const placements = item.participants.map(placementFor);
+      const common = placements.every(p => p === placements[0]);
+      if (common) sharedSelect.value = placements[0] || "";
+      else {
+        const mixed = new Option("Different placements · choose to align", "__mixed__");
+        sharedSelect.add(mixed, 0);
+        sharedSelect.value = "__mixed__";
       }
-      container.append(section);
-    });
+      sharedSelect.addEventListener("change", () => {
+        if (sharedSelect.value === "__mixed__") return;
+        item.participants.forEach(p => setPlacement(p, sharedSelect.value));
+        saveClipboardPlanning();
+        render();
+      });
+      row.append(sharedSelect);
+      if (item.participants.length > 1) {
+        const overrides = document.createElement("details");
+        overrides.className = "clipboard-shared-wave-overrides";
+        const overridesToggle = document.createElement("summary");
+        overridesToggle.textContent = "Individual group adjustments";
+        overrides.append(overridesToggle);
+        for (const participant of item.participants) {
+          const individual = document.createElement("label");
+          individual.className = "clipboard-wave-card-row";
+          const groupLabel = document.createElement("span");
+          groupLabel.textContent = participant.groupLabel;
+          const groupSelect = buildSelect("Lesson block for " + title.textContent + " · " + participant.groupLabel);
+          groupSelect.value = placementFor(participant);
+          groupSelect.addEventListener("change", () => {
+            setPlacement(participant, groupSelect.value);
+            saveClipboardPlanning();
+            render();
+          });
+          individual.append(groupLabel, groupSelect);
+          overrides.append(individual);
+        }
+        row.append(overrides);
+      }
+      details.append(row);
+    }
+    if (!sharedCards.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No approved Wave cards are available. Continue with manual instruction.";
+      details.append(empty);
+    }
+    section.append(details);
+    container.append(section);
     updatePrescriptions();
   }
   waveCheck.addEventListener("change",()=>{builderSession.planningSources.tierWaves=waveCheck.checked;render();});
