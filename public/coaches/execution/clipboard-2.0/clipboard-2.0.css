@@ -1856,3 +1856,21 @@ body.clock-mode .clock-toggle{
 .clipboard-wave-card-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; }
 .clipboard-wave-placements { margin: 10px 0; border: 1px solid var(--line, #7776); border-radius: 8px; padding: 10px; }
 .clipboard-wave-placements p { margin: 5px 0; }
+
+
+/* One shared HYBRID lesson control, with opt-in per-group overrides. */
+.clipboard-shared-wave-card{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(175px,260px);
+  gap:10px 18px;border-bottom:1px solid var(--line,#7776);
+  padding:12px 2px;align-items:center;
+}
+.clipboard-shared-wave-card > span{display:grid;gap:5px;min-width:0}
+.clipboard-shared-wave-card > span strong{overflow-wrap:anywhere}
+.clipboard-shared-wave-card > span small{color:var(--muted,#b8b8b8);line-height:1.4}
+.clipboard-shared-wave-overrides{grid-column:1/-1;border-top:1px dashed var(--line,#7776);padding-top:5px}
+.clipboard-shared-wave-overrides > summary{cursor:pointer;font-size:.78rem;opacity:.85}
+.clipboard-shared-wave-overrides .clipboard-wave-card-row{padding-left:12px}
+@media(max-width:650px){
+  .clipboard-shared-wave-card{grid-template-columns:minmax(0,1fr)}
+  .clipboard-shared-wave-card > select{width:100%}
+}
