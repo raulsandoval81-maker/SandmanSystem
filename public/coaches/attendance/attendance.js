@@ -13,7 +13,7 @@ import { XP_URL } from "/assets/js/coach-endpoints.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
-document.body.dataset.attendanceBuild = "single-approval-auto-close2";
+document.body.dataset.attendanceBuild = "bulk-xp-only3";
 
 const $ = (id) => document.getElementById(id);
 
@@ -333,12 +333,49 @@ async function loadPracticeReview(practiceId) {
     : `Review loaded: ${dateLabel} · ${selectedIds.size} selected. Add or remove athletes to match who actually trained.`);
 }
 
+function selectCardXp(controls, amountInput, selectionStatus, amount) {
+  amountInput.value = String(amount);
+  controls.querySelectorAll(".xp-choice").forEach(button => {
+    const active = button.dataset.amount === String(amount);
+    button.classList.toggle("is-selected", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  selectionStatus.textContent = "+" + amount + " XP selected · not issued";
+}
+
+function applyXpToAll(amount) {
+  if (issuingPracticeXp || pendingSession?.finalized !== true || !pendingSessionId) return;
+  let changed = 0;
+  let skipped = 0;
+  for (const athlete of reviewAthletes) {
+    const id = String(athlete.id || athlete.uid || "");
+    if (!selectedIds.has(id) || creditedAthletes.has(id)) continue;
+    if (!athleteXpOptions(athlete).includes(amount)) {
+      skipped++;
+      continue;
+    }
+    const input = [...document.querySelectorAll(".practice-xp-amount")]
+      .find(el => el.dataset.athleteId === id);
+    const row = input?.closest(".athlete-row");
+    const controls = row?.querySelector(".xp-choice-group");
+    const label = row?.querySelector(".xp-selection-status");
+    if (!input || !controls || !label || input.disabled) continue;
+    selectCardXp(controls, input, label, amount);
+    changed++;
+  }
+  const status = $("bulkXpStatus");
+  if (status) status.textContent = changed + " verified athletes set to +" + amount + " XP. Adjust individual cards below." +
+    (skipped ? " " + skipped + " ineligible athletes were skipped." : "");
+}
+
 function renderAthletes() {
   const list = $("athleteList");
   const meta = $("countMeta");
   if (!list) return;
   const finalized = pendingSession?.finalized === true
     || String(pendingSession?.status || "").toLowerCase() === "finalized";
+  const bulk = $("bulkXpChoices");
+  if (bulk) bulk.hidden = !finalized;
   if (meta) meta.textContent = finalized
     ? selectedIds.size + " verified · " + practiceDurationMinutes + "-minute practice"
     : reviewAthletes.length + " athlete(s) in review";
@@ -411,13 +448,7 @@ function renderAthletes() {
           button.setAttribute("aria-pressed", "false");
           button.addEventListener("click", () => {
             if (issuingPracticeXp || creditedAthletes.has(id)) return;
-            amountInput.value = String(amount);
-            controls.querySelectorAll(".xp-choice").forEach(option => {
-              const active = option === button;
-              option.classList.toggle("is-selected", active);
-              option.setAttribute("aria-pressed", String(active));
-            });
-            selectionStatus.textContent = "+" + amount + " XP selected · not issued";
+            selectCardXp(controls, amountInput, selectionStatus, amount);
           });
           controls.append(button);
         }
@@ -541,6 +572,8 @@ function bindEvents() {
   });
 
   $("saveAttendance")?.addEventListener("click", saveAttendance);
+  $("bulkXp10")?.addEventListener("click", () => applyXpToAll(10));
+  $("bulkXp5")?.addEventListener("click", () => applyXpToAll(5));
   $("issuePracticeXp")?.addEventListener("click", issueVerifiedPracticeXp);
 }
 

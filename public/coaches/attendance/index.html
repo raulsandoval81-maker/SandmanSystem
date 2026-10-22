@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3"/>
-  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=single-roster-approval2"/>
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css?v=bulk-xp-only3"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -65,6 +65,15 @@
       <span id="countMeta" class="muted"></span>
     </div>
 
+    <div id="bulkXpChoices" class="bulk-xp-choices" hidden>
+      <strong>Set XP for all verified athletes</strong>
+      <div class="action-row">
+        <button id="bulkXp10" class="pill" type="button">All +10 XP</button>
+        <button id="bulkXp5" class="pill" type="button">All +5 XP</button>
+      </div>
+      <p id="bulkXpStatus" class="muted" role="status" aria-live="polite">Choose a starting amount, then adjust individual athlete cards below.</p>
+    </div>
+
     <div id="athleteList" class="athlete-list">
       <p class="muted">
         Loading attendance...
@@ -93,7 +102,7 @@
 
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/attendance/attendance.js?v=single-approval-auto-close2"></script>
+<script type="module" src="/coaches/attendance/attendance.js?v=bulk-xp-only3"></script>
 
 </body>
 </html>
