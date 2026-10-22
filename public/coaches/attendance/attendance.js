@@ -13,7 +13,7 @@ import { XP_URL } from "/assets/js/coach-endpoints.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
-document.body.dataset.attendanceBuild = "single-roster-smart-xp1";
+document.body.dataset.attendanceBuild = "single-approval-auto-close2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -113,14 +113,11 @@ function showPracticeXp(practiceId) {
   panel.hidden = false;
   // Render the very same cards in XP mode; never clone the athlete roster.
   renderAthletes();
-  const close = $("practiceXpCloseout");
-  if (close) close.hidden = true;
-  if ($("finalClosePractice")) $("finalClosePractice").hidden = true;
   if ($("issuePracticeXp")) $("issuePracticeXp").hidden = false;
   const status = $("practiceXpStatus");
   const verifiedCount = reviewAthletes.filter(a => selectedIds.has(String(a.id || a.uid || ""))).length;
   if (status) status.textContent = practiceDurationMinutes > 0
-    ? verifiedCount + " verified participants · " + practiceDurationMinutes + "-minute practice. Choose an eligible XP amount on each verified card before issuing."
+    ? verifiedCount + " verified participants · " + practiceDurationMinutes + "-minute practice. Choose an eligible XP amount on each verified card before approval."
     : "Practice duration could not be verified. XP cannot be issued until the practice record is corrected.";
   const issue = $("issuePracticeXp");
   if (issue) issue.disabled = !(practiceDurationMinutes > 0);
@@ -133,8 +130,8 @@ async function issueVerifiedPracticeXp() {
   const button = $("issuePracticeXp");
   const status = $("practiceXpStatus");
   const choices = [...document.querySelectorAll(".practice-xp-amount")].filter(x => !creditedAthletes.has(x.dataset.athleteId));
-  if (!choices.length) {
-    if (status) status.textContent = "No new awards selected. Refresh to verify the practice record.";
+  if (!choices.length && creditedAthletes.size !== selectedIds.size) {
+    if (status) status.textContent = "No pending XP choices. Refresh to verify the practice record.";
     return;
   }
   if (choices.some(x => !x.value)) {
@@ -198,43 +195,24 @@ async function issueVerifiedPracticeXp() {
     const complete = httpsCallable(functions, "completePracticeDailyGrind");
     const result = await complete({ practiceId: pendingSessionId, athleteIds: [...creditedAthletes] });
     if (result.data?.readyForDailyGrind === false) {
-      if (status) status.textContent = "Daily Grind complete for all verified participants. Final Close is now available.";
-      const closeButton = $("finalClosePractice");
-      if (closeButton) closeButton.hidden = false;
+      if (status) status.textContent = "XP verified. Closing practice…";
+      const close = httpsCallable(functions, "closePracticeSession");
+      const response = await close({ practiceId: pendingSessionId, attendanceSessionId: pendingSessionId });
+      if (response.data?.status !== "closed") throw new Error("Practice close was not confirmed.");
+      if (status) status.textContent = "Session XP approved and practice closed. Attendance, XP and verified history are preserved.";
       if (button) button.hidden = true;
     } else if (status) {
-      status.textContent = "XP recorded. Additional verified participants still require Daily Grind credit.";
+      status.textContent = "XP recorded. Additional verified participants still require Daily Grind credit. Practice remains open.";
     }
   } catch (error) {
     console.error("[attendance-xp] issue or completion failed", error);
-    if (status) status.textContent = "XP completion not confirmed: " + safeXpError(error) + ". Check award history before retrying.";
+    if (status) status.textContent = "XP approval or practice close not confirmed: " + safeXpError(error) + ". Existing awards are preserved. Verify session status before retrying.";
   } finally {
     issuingPracticeXp = false;
     if (button) button.disabled = false;
   }
 }
 
-async function finalCloseVerifiedPractice() {
-  if (!pendingSessionId || pendingSession?.finalized !== true || issuingPracticeXp) return;
-  const button = $("finalClosePractice");
-  const status = $("practiceXpStatus");
-  if (button) button.disabled = true;
-  try {
-    await requireCoach();
-    const close = httpsCallable(functions, "closePracticeSession");
-    const response = await close({ practiceId: pendingSessionId, attendanceSessionId: pendingSessionId });
-    if (response.data?.status !== "closed") throw new Error("Practice close was not confirmed.");
-    if (status) status.textContent = "Practice closed successfully. Attendance, XP and verified history are preserved.";
-    if (button) button.hidden = true;
-    const next = $("practiceXpCloseout");
-    if (next) next.hidden = false;
-  } catch (error) {
-    console.error("[attendance-xp] final close failed", error);
-    if (status) status.textContent = "Final Close blocked: " + safeXpError(error) + ". Existing awards are preserved.";
-  } finally {
-    if (button) button.disabled = false;
-  }
-}
 
 function updatePresentCount() {
   const el = $("presentCount");
@@ -564,7 +542,6 @@ function bindEvents() {
 
   $("saveAttendance")?.addEventListener("click", saveAttendance);
   $("issuePracticeXp")?.addEventListener("click", issueVerifiedPracticeXp);
-  $("finalClosePractice")?.addEventListener("click", finalCloseVerifiedPractice);
 }
 
 bindEvents();
