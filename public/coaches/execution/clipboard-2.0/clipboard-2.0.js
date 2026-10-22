@@ -883,6 +883,7 @@ async function initClipboardHybridPlanning() {
     });
   }
   function render() {
+    const previouslyOpen = container.querySelector(".clipboard-hybrid-group > details")?.open === true;
     container.replaceChildren();
     if (coachCheck.checked) {
       const info = document.createElement("p"); info.className = "muted";
@@ -902,6 +903,7 @@ async function initClipboardHybridPlanning() {
     heading.textContent = "Shared lesson placements · " + sharedCards.length + " distinct skill cards";
     section.append(heading);
     const details = document.createElement("details");
+    details.open = previouslyOpen;
     const toggle = document.createElement("summary");
     toggle.textContent = "Coach adjustments · organize shared skills by Clipboard block";
     details.append(toggle);
