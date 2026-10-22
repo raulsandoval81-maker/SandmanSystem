@@ -1,0 +1,117 @@
+name: Staging XP HTTP endpoint (isolated bootstrap)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Validate or deploy the staging XP endpoint
+        required: true
+        type: choice
+        options:
+          - validate
+          - deploy
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-xp-http-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  xp-http:
+    name: Validate and optionally deploy xpHttp to staging only
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      TARGET_PROJECT: sandman-combat-staging
+      APPROVED_APPLICATION_SHA: fe378b4a7dd7e0391f14874d8f5b39e9a5504153
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_STAGING_ACK: sandman-combat-staging
+      SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
+      SANDMAN_STAGING_WEB_CONFIG: '{"projectId":"sandman-combat-staging","appId":"1:991554514268:web:d347519f89c22b972a2599","storageBucket":"sandman-combat-staging.firebasestorage.app","apiKey":"AIzaSyAdUNx3-YYon4GEqGAOaLYK2N-3bfEefZI","authDomain":"sandman-combat-staging.firebaseapp.com","messagingSenderId":"991554514268"}'
+    steps:
+      - name: Check explicit project and trusted workflow ref
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$CONFIRM_PROJECT" = "$TARGET_PROJECT"
+          test "$TARGET_PROJECT" != "sandmandashboard"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.APPROVED_APPLICATION_SHA }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify immutable reviewed application and staging export
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$APPROVED_APPLICATION_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          grep -Fq 'export { xpHttp } from "./modules/xpHttp";' functions/src/staging.ts
+          grep -Fq 'verifyIdToken(bearer)' functions/src/modules/xpHttp.ts
+          grep -Fq 'requireCoachAthleteAccessById(actor, payload.uid)' functions/src/modules/xpHttp.ts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Compile, test, and package isolated staging Functions
+        run: |
+          set -euo pipefail
+          npm ci --prefix functions
+          npm test --prefix functions
+          node --test tests/functions/staging-xp-route-contract.test.mjs
+          node scripts/staging/prepare-staging-hosting.mjs
+          node - <<'NODE'
+          const func = require("./functions/.firebase-staging");
+          if (!func.xpHttp?.__endpoint?.httpsTrigger || func.xpHttp.__endpoint?.callableTrigger) {
+            throw new Error("The staging XP export must be an HTTP endpoint.");
+          }
+          const fs = require("fs");
+          const cfg = JSON.parse(fs.readFileSync("firebase.staging.json","utf8"));
+          if (cfg.functions.source !== "functions/.firebase-staging") throw new Error("Wrong Functions source.");
+          if (JSON.parse(fs.readFileSync(".firebase-staging/public/staging-environment.json","utf8")).projectId !== "sandman-combat-staging") throw new Error("Wrong staging marker.");
+          NODE
+      - name: Authenticate with dedicated staging Practice deployer
+        if: ${{ inputs.action == 'deploy' }}
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Deploy xpHttp only, never Hosting or another Function
+        if: ${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          test "$TARGET_PROJECT" = "sandman-combat-staging"
+          npx --yes firebase-tools@15.11.0 deploy \
+            --config firebase.staging.json \
+            --project sandman-combat-staging \
+            --only functions:xpHttp \
+            --non-interactive
+      - name: Verify deployed staging XP endpoint
+        if: ${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          gcloud functions describe xpHttp --gen2 --region us-central1 --project sandman-combat-staging --format=json > xpHttp-after.json
+          node - <<'NODE'
+          const d = require("./xpHttp-after.json");
+          if (!d.name.endsWith("/locations/us-central1/functions/xpHttp")) throw new Error("Wrong function identity.");
+          if (d.buildConfig?.runtime !== "nodejs22") throw new Error("Wrong runtime.");
+          if (d.serviceConfig?.serviceAccountEmail !== "991554514268-compute@developer.gserviceaccount.com") throw new Error("Unexpected runtime identity. Review before Hosting release.");
+          NODE
+          status="$(curl --silent --output /tmp/staging-xp-response --write-out '%{http_code}' \
+            -X POST -H 'Content-Type: application/json' -d '{"data":{}}' \
+            https://us-central1-sandman-combat-staging.cloudfunctions.net/xpHttp)"
+          test "$status" = 401 || { echo "::error::Expected a 401 without Coach authentication, got $status"; exit 1; }
+          echo "xpHttp deployed and rejected unauthenticated POST as expected."
