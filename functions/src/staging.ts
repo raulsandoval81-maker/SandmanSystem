@@ -20,3 +20,6 @@ export {
   savePracticeSessionMemory,
   saveDailyPracticeLog,
 } from "./practice/practiceSessions";
+
+// Existing authenticated XP HTTP service, isolated to the staging Firebase project.
+export { xpHttp } from "./modules/xpHttp";
