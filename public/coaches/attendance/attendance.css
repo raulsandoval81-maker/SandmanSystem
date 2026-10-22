@@ -932,3 +932,56 @@ html[data-theme="light"]{
   .attendance-page .attendance-finish{flex-direction:column;align-items:stretch}
   .attendance-page .attendance-finish #saveAttendance{width:100%}
 }
+
+
+/* A single attendance roster transitions into the XP stage after finalization. */
+.attendance-page .single-roster-athlete{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:10px 16px;padding:15px 17px;border-radius:14px;
+}
+.attendance-page .single-roster-athlete .athlete-main{
+  display:flex;flex-direction:column;gap:3px;min-width:180px;flex:1 1 230px;
+}
+.attendance-page .attendance-card-choice{
+  display:flex;align-items:center;gap:13px;width:100%;cursor:pointer;
+}
+.attendance-page .attendance-card-choice input{width:20px;height:20px;flex:none;accent-color:var(--attendance-gold)}
+.attendance-page .single-roster-athlete.is-present{border-color:rgba(77,187,114,.38)}
+.attendance-page .single-roster-athlete.is-absent{opacity:.55}
+.attendance-page .xp-attendance-flag{
+  font-size:.72rem;font-weight:800;color:#76dfa0;white-space:nowrap;
+}
+.attendance-page .single-roster-athlete.is-absent .xp-attendance-flag{color:var(--attendance-muted)}
+.attendance-page .xp-choice-group{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));
+  gap:9px;width:100%;padding-top:11px;border-top:1px solid var(--attendance-line);
+}
+.attendance-page .xp-choice{
+  appearance:none;border:2px solid transparent;border-radius:12px;
+  min-height:47px;padding:9px 13px;font-size:.86rem;font-weight:900;
+  line-height:1.2;color:#182022;cursor:pointer;
+  transition:border-color .13s ease,box-shadow .13s ease,transform .13s ease;
+}
+.attendance-page .xp-choice--5{background:#f6df91;border-color:#bb9a38}
+.attendance-page .xp-choice--10{background:#a7dfb7;border-color:#3c9560}
+.attendance-page .xp-choice--15{background:#ebaaa7;border-color:#b75b58}
+.attendance-page .xp-choice--20{background:#c7b6ee;border-color:#8462c4}
+.attendance-page .xp-choice:hover:not(:disabled){filter:brightness(1.09)}
+.attendance-page .xp-choice.is-selected{
+  border-color:#fff;outline:2px solid var(--attendance-gold);
+  outline-offset:2px;box-shadow:0 0 0 3px rgba(0,0,0,.2);
+}
+.attendance-page .xp-choice.is-selected::before{content:"✓ ";font-weight:1000}
+.attendance-page .xp-choice:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.attendance-page .xp-choice:disabled{cursor:default;opacity:.72}
+.attendance-page .xp-selection-status{
+  display:block;width:100%;font-size:.75rem;color:var(--attendance-muted);
+  font-weight:750;
+}
+.attendance-page .single-roster-athlete.is-credited .xp-selection-status{color:#76dfa0}
+.attendance-page .roster-card{scroll-margin-top:96px}
+@media(max-width:720px){
+  .attendance-page .single-roster-athlete{align-items:stretch;gap:12px}
+  .attendance-page .xp-choice-group{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .attendance-page .xp-attendance-flag{white-space:normal}
+}
