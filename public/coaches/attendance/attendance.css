@@ -1020,3 +1020,24 @@ html[data-theme="light"] .attendance-review .single-roster-athlete .xp-selection
   color:#4b524d;
 }
 html[data-theme="light"] .attendance-review .single-roster-athlete.is-absent {background:#f0eeeb}
+
+
+/* Bulk XP assignment is a starting selection, not an award or attendance change. */
+.attendance-review .bulk-xp-choices {
+  display:grid;
+  gap:10px;
+  padding:14px 16px;
+  margin:0 0 16px;
+  border:1px solid var(--attendance-line);
+  border-radius:14px;
+  background:var(--attendance-surface);
+}
+.attendance-review .bulk-xp-choices[hidden] {display:none!important}
+.attendance-review .bulk-xp-choices strong {color:var(--attendance-text)}
+.attendance-review .bulk-xp-choices .action-row {justify-content:flex-start}
+.attendance-review .bulk-xp-choices button {border-radius:12px;min-width:116px}
+.attendance-review .bulk-xp-choices p {margin:0;line-height:1.45}
+@media(max-width:540px){
+  .attendance-review .bulk-xp-choices .action-row {display:grid;grid-template-columns:1fr 1fr}
+  .attendance-review .bulk-xp-choices button {min-width:0}
+}
