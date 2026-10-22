@@ -13,7 +13,7 @@ import { XP_URL } from "/assets/js/coach-endpoints.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
-document.body.dataset.attendanceBuild = "integrated-xp2";
+document.body.dataset.attendanceBuild = "single-roster-smart-xp1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -24,6 +24,7 @@ let pendingSessionId = null;
 let pendingSession = null;
 let practiceDurationMinutes = 60;
 const creditedAthletes = new Set();
+const creditedAmounts = new Map();
 let issuingPracticeXp = false;
 
 function setReviewControlsEnabled(enabled) {
@@ -61,7 +62,8 @@ function setStatus(msg, isError = false) {
 function revealPracticeXp() {
   const panel = $("practiceXpPanel");
   if (!panel || panel.hidden) return;
-  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  const roster = document.querySelector(".roster-card");
+  (roster || panel).scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function showDailyGrindHandoff(sessionId) {
@@ -91,53 +93,37 @@ function safeXpError(error) {
 }
 
 function athleteXpOptions(athlete) {
-  const base = String(athlete.trackBase || athlete.track || athlete.trackCode || athlete.journey || "").toLowerCase();
-  const youth = /f8|z2h|road2champion/.test(base);
-  if (youth || practiceDurationMinutes < 90) return [5, 10];
-  return practiceDurationMinutes >= 120 ? [10, 20] : [5, 10, 15];
+  // Presentation only: the authoritative XP service still validates each award.
+  // Both time and tier come from the server-provided practice and athlete roster.
+  if (!Number.isFinite(practiceDurationMinutes) || practiceDurationMinutes <= 0) return [];
+  const identity = [athlete.id, athlete.trackBase, athlete.track, athlete.trackCode,
+    athlete.journey, athlete.program, athlete.ladderKey].join(" ").toLowerCase();
+  const youth = /f8|z2h|r2c|road2champion|youth/.test(identity);
+  if (youth) return [5, 10];
+  const tier = String(athlete.tier || athlete.tierCode || athlete.rank || "").toUpperCase();
+  const apprentice = tier === "T0" || tier === "APPRENTICE" || !tier;
+  if (apprentice || practiceDurationMinutes < 90) return [5, 10];
+  if (practiceDurationMinutes < 120) return [5, 10, 15];
+  return [5, 10, 15, 20];
 }
 
 function showPracticeXp(practiceId) {
   const panel = $("practiceXpPanel");
-  const rows = $("practiceXpRows");
-  if (!panel || !rows || !practiceId) return;
+  if (!panel || !practiceId) return;
   panel.hidden = false;
-  rows.replaceChildren();
-  const verified = reviewAthletes.filter(a => selectedIds.has(String(a.id || a.uid || "")));
-  for (const athlete of verified) {
-    const id = String(athlete.id || athlete.uid || "");
-    const row = document.createElement("label");
-    row.className = "athlete-row";
-    const info = document.createElement("span");
-    info.className = "athlete-main";
-    const name = document.createElement("strong");
-    name.textContent = athleteName(athlete);
-    const uid = document.createElement("span");
-    uid.className = "muted";
-    uid.textContent = id;
-    info.append(name, uid);
-    const select = document.createElement("select");
-    select.className = "practice-xp-amount";
-    select.dataset.athleteId = id;
-    select.setAttribute("aria-label", "Daily Grind XP for " + athleteName(athlete));
-    for (const [value, label] of [["", "Choose XP"], ...athleteXpOptions(athlete).map(v => [String(v), "+" + v + " XP"])]) {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = label;
-      select.append(option);
-    }
-    if (creditedAthletes.has(id)) {
-      select.disabled = true;
-      select.replaceChildren(new Option("Credited", ""));
-    }
-    row.append(info, select);
-    rows.append(row);
-  }
+  // Render the very same cards in XP mode; never clone the athlete roster.
+  renderAthletes();
   const close = $("practiceXpCloseout");
   if (close) close.hidden = true;
   if ($("finalClosePractice")) $("finalClosePractice").hidden = true;
+  if ($("issuePracticeXp")) $("issuePracticeXp").hidden = false;
   const status = $("practiceXpStatus");
-  if (status) status.textContent = verified.length + " verified participants · " + practiceDurationMinutes + "-minute practice. Choose an amount for every athlete before issuing.";
+  const verifiedCount = reviewAthletes.filter(a => selectedIds.has(String(a.id || a.uid || ""))).length;
+  if (status) status.textContent = practiceDurationMinutes > 0
+    ? verifiedCount + " verified participants · " + practiceDurationMinutes + "-minute practice. Choose an eligible XP amount on each verified card before issuing."
+    : "Practice duration could not be verified. XP cannot be issued until the practice record is corrected.";
+  const issue = $("issuePracticeXp");
+  if (issue) issue.disabled = !(practiceDurationMinutes > 0);
   const legacy = $("continueDailyGrind");
   if (legacy) legacy.hidden = true;
 }
@@ -153,6 +139,14 @@ async function issueVerifiedPracticeXp() {
   }
   if (choices.some(x => !x.value)) {
     if (status) status.textContent = "Choose an eligible XP amount for every remaining verified participant first.";
+    return;
+  }
+  const verified = reviewAthletes.filter(a => selectedIds.has(String(a.id || a.uid || "")));
+  if (choices.length !== verified.length - creditedAthletes.size || choices.some(choice => {
+    const athlete = verified.find(a => String(a.id || a.uid || "") === choice.dataset.athleteId);
+    return !athlete || !athleteXpOptions(athlete).includes(Number(choice.value));
+  })) {
+    if (status) status.textContent = "One or more XP choices are unavailable for this Journey, Tier, or practice duration.";
     return;
   }
   issuingPracticeXp = true;
@@ -183,8 +177,15 @@ async function issueVerifiedPracticeXp() {
         const data = result.result || result.data || result;
         if (!response.ok || !data.ok) throw new Error(data.message || data.error?.message || raw.slice(0, 160) || "XP request rejected.");
         creditedAthletes.add(athleteId);
+        creditedAmounts.set(athleteId, Number(choice.value));
+        const athleteCard = choice.closest(".athlete-row");
+        if (athleteCard) {
+          athleteCard.classList.add("is-credited");
+          athleteCard.querySelectorAll(".xp-choice").forEach(control => { control.disabled = true; });
+          const label = athleteCard.querySelector(".xp-selection-status");
+          if (label) label.textContent = (data.idempotent ? "Already credited" : "Credited") + " · +" + choice.value + " XP";
+        }
         choice.disabled = true;
-        choice.replaceChildren(new Option(data.idempotent ? "Already credited" : "Credited", ""));
         succeeded += 1;
       } catch (error) {
         failures.push(athleteId + ": " + safeXpError(error));
@@ -262,6 +263,7 @@ function clearPendingSession() {
   selectedIds.clear();
   practiceDurationMinutes = 60;
   creditedAthletes.clear();
+  creditedAmounts.clear();
   if ($("practiceXpPanel")) $("practiceXpPanel").hidden = true;
   if ($("practiceType")) $("practiceType").value = "—";
   setReviewControlsEnabled(false);
@@ -314,7 +316,9 @@ async function loadPracticeReview(practiceId) {
   };
 
   reviewAthletes = Array.isArray(data.roster) ? data.roster : [];
-  practiceDurationMinutes = Number(pendingSession.durationMinutes || data.practice?.durationMinutes || 60);
+  const trustedDuration = pendingSession.durationMinutes ?? data.practice?.durationMinutes;
+  practiceDurationMinutes = Number(trustedDuration);
+  if (!Number.isFinite(practiceDurationMinutes) || practiceDurationMinutes <= 0) practiceDurationMinutes = 0;
   const initialPresent = Array.isArray(pendingSession.presentIds) && pendingSession.presentIds.length
     ? pendingSession.presentIds
     : (Array.isArray(pendingSession.checkedInIds) ? pendingSession.checkedInIds : []);
@@ -351,52 +355,109 @@ function renderAthletes() {
   const list = $("athleteList");
   const meta = $("countMeta");
   if (!list) return;
+  const finalized = pendingSession?.finalized === true
+    || String(pendingSession?.status || "").toLowerCase() === "finalized";
+  if (meta) meta.textContent = finalized
+    ? selectedIds.size + " verified · " + practiceDurationMinutes + "-minute practice"
+    : reviewAthletes.length + " athlete(s) in review";
 
-  if (meta) meta.textContent = `${reviewAthletes.length} athlete(s) in review`;
-
-  if (!pendingSessionRef) {
-    list.innerHTML = `<p class="muted">No pending attendance session found.</p>`;
+  list.replaceChildren();
+  if (!pendingSessionRef || !reviewAthletes.length) {
+    const message = document.createElement("p");
+    message.className = "muted";
+    message.textContent = !pendingSessionRef
+      ? "No pending attendance session found."
+      : "No checked-in athletes found for this session.";
+    list.append(message);
     updatePresentCount();
     return;
   }
+  for (const athlete of reviewAthletes) {
+    const id = String(athlete.id || athlete.uid || "");
+    const present = selectedIds.has(id);
+    const row = document.createElement("div");
+    row.className = "athlete-row single-roster-athlete";
+    if (finalized) row.classList.add(present ? "is-present" : "is-absent");
+    const info = document.createElement("span");
+    info.className = "athlete-main";
+    const name = document.createElement("strong");
+    name.textContent = athleteName(athlete);
+    const uid = document.createElement("span");
+    uid.className = "muted";
+    uid.textContent = id;
+    const program = document.createElement("span");
+    program.className = "muted";
+    program.textContent = athleteProgram(athlete) || "—";
+    info.append(name, uid, program);
 
-  if (!reviewAthletes.length) {
-    list.innerHTML = `<p class="muted">No checked-in athletes found for this session.</p>`;
-    updatePresentCount();
-    return;
+    if (!finalized) {
+      const attendanceLabel = document.createElement("label");
+      attendanceLabel.className = "attendance-card-choice";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "present-check";
+      checkbox.dataset.athleteId = id;
+      checkbox.checked = present;
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedIds.add(id);
+        else selectedIds.delete(id);
+        updatePresentCount();
+      });
+      attendanceLabel.append(checkbox, info);
+      row.append(attendanceLabel);
+    } else {
+      const flag = document.createElement("span");
+      flag.className = "xp-attendance-flag";
+      flag.textContent = present ? "✓ Verified present" : "Not present · no XP";
+      row.append(info, flag);
+      if (present) {
+        const options = athleteXpOptions(athlete);
+        const controls = document.createElement("div");
+        controls.className = "xp-choice-group";
+        controls.setAttribute("role", "group");
+        controls.setAttribute("aria-label", "Daily Grind XP for " + athleteName(athlete));
+        const amountInput = document.createElement("input");
+        amountInput.type = "hidden";
+        amountInput.className = "practice-xp-amount";
+        amountInput.dataset.athleteId = id;
+        for (const amount of options) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "xp-choice xp-choice--" + amount;
+          button.textContent = "+" + amount + " XP";
+          button.dataset.amount = String(amount);
+          button.setAttribute("aria-pressed", "false");
+          button.addEventListener("click", () => {
+            if (issuingPracticeXp || creditedAthletes.has(id)) return;
+            amountInput.value = String(amount);
+            controls.querySelectorAll(".xp-choice").forEach(option => {
+              const active = option === button;
+              option.classList.toggle("is-selected", active);
+              option.setAttribute("aria-pressed", String(active));
+            });
+            selectionStatus.textContent = "+" + amount + " XP selected · not issued";
+          });
+          controls.append(button);
+        }
+        const selectionStatus = document.createElement("span");
+        selectionStatus.className = "xp-selection-status";
+        selectionStatus.setAttribute("aria-live", "polite");
+        selectionStatus.textContent = options.length ? "Choose earned XP" : "No eligible XP amount · verify practice details";
+        if (creditedAthletes.has(id)) {
+          amountInput.value = String(creditedAmounts.get(id) || "");
+          amountInput.disabled = true;
+          controls.querySelectorAll(".xp-choice").forEach(button => {
+            button.disabled = true;
+            button.classList.toggle("is-selected", button.dataset.amount === amountInput.value);
+          });
+          selectionStatus.textContent = "Credited · +" + (creditedAmounts.get(id) || "?") + " XP";
+          row.classList.add("is-credited");
+        }
+        row.append(amountInput, controls, selectionStatus);
+      }
+    }
+    list.append(row);
   }
-
-  list.innerHTML = reviewAthletes.map((athlete) => {
-    const id = athlete.id || athlete.uid;
-    const checked = selectedIds.has(id) ? "checked" : "";
-
-    return `
-      <label class="athlete-row">
-        <input
-          type="checkbox"
-          class="present-check"
-          data-athlete-id="${id}"
-          ${checked}
-        />
-
-        <span class="athlete-main">
-          <strong>${athleteName(athlete)}</strong>
-          <span class="muted">${id}</span>
-          <span class="muted">${athleteProgram(athlete) || "—"}</span>
-        </span>
-      </label>
-    `;
-  }).join("");
-
-  document.querySelectorAll(".present-check").forEach((check) => {
-    check.addEventListener("change", () => {
-      const id = check.dataset.athleteId;
-      if (check.checked) selectedIds.add(id);
-      else selectedIds.delete(id);
-      updatePresentCount();
-    });
-  });
-
   updatePresentCount();
 }
 
@@ -473,7 +534,7 @@ async function saveAttendance() {
     const finalizedSessionId = pendingSessionId;
 
     await loadPracticeReview(finalizedSessionId);
-    setStatus(`Attendance finalized for ${presentIds.length} athlete(s). Choose Daily Grind XP below.`);
+    setStatus(`Attendance finalized for ${presentIds.length} athlete(s). Assign Daily Grind XP on the verified cards above.`);
     revealPracticeXp();
   } catch (error) {
     console.error("[attendance] finalize failed", error);

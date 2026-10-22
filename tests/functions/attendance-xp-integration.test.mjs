@@ -58,7 +58,43 @@ test("finalize control follows the roster and opens the XP step", async () => {
   assert.ok(roster >= 0 && button > roster && xp > button);
   assert.match(html, /Finalize Attendance &amp; Continue to XP/);
   assert.match(js, /await loadPracticeReview\(finalizedSessionId\);[\s\S]*revealPracticeXp\(\)/);
-  assert.match(js, /panel\.scrollIntoView/);
+  assert.match(js, /scrollIntoView/);
   assert.match(js, /finalizeButton\.hidden = finalized/);
   assert.match(css, /#practiceXpPanel\[hidden\]/);
+});
+
+test("one verified participant roster becomes the XP card surface after finalization", async () => {
+  const [html, js, css] = await Promise.all([
+    read("public/coaches/attendance/index.html"),
+    read("public/coaches/attendance/attendance.js"),
+    read("public/coaches/attendance/attendance.css"),
+  ]);
+  assert.match(html, /id="athleteList"/);
+  assert.doesNotMatch(html, /id="practiceXpRows"/);
+  assert.match(html, /id="practiceXpPanel" hidden/);
+  assert.match(js, /\/\/ Render the very same cards in XP mode; never clone the athlete roster\./);
+  assert.match(js, /renderAthletes\(\);/);
+  assert.match(js, /practice-xp-amount/);
+  assert.match(js, /aria-pressed/);
+  assert.match(js, /creditedAthletes\.has\(id\)/);
+  assert.match(css, /\.xp-choice--5/);
+  assert.match(css, /\.xp-choice--10/);
+  assert.match(css, /\.xp-choice--15/);
+  assert.match(css, /\.xp-choice--20/);
+});
+
+test("XP options are fail-closed on missing duration and T0 limits", async () => {
+  const [js, backend] = await Promise.all([
+    read("public/coaches/attendance/attendance.js"),
+    read("functions/src/services/authoritativeXpService.ts"),
+  ]);
+  assert.match(js, /!Number\.isFinite\(practiceDurationMinutes\) \|\| practiceDurationMinutes <= 0/);
+  assert.match(js, /if \(youth\) return \[5, 10\]/);
+  assert.match(js, /const apprentice = tier === "T0" \|\| tier === "APPRENTICE" \|\| !tier/);
+  assert.match(js, /if \(apprentice \|\| practiceDurationMinutes < 90\) return \[5, 10\]/);
+  assert.match(js, /if \(practiceDurationMinutes < 120\) return \[5, 10, 15\]/);
+  assert.match(js, /return \[5, 10, 15, 20\]/);
+  assert.match(js, /!athleteXpOptions\(athlete\)\.includes\(Number\(choice\.value\)\)/);
+  assert.match(backend, /APPRENTICE_PRACTICE_XP_CEILING/);
+  assert.match(backend, /durationMinutes >= 120 \? 20 : durationMinutes >= 90 \? 15 : 10/);
 });
