@@ -23,8 +23,10 @@ test("bulk XP selection is isolated from attendance and authorizes no awards", a
   assert.match(source, /closePracticeSession/);
 });
 
-test("bulk XP change does not rename the historical Journey code", async () => {
+test("bulk XP and renamed Journey display preserve historical IDs and XP policy aliases", async () => {
   const source = await readFile(new URL("attendance.js", base), "utf8");
-  assert.match(source, /return String\(a\.program \|\| a\.journey/);
-  assert.doesNotMatch(source, /return "Road2Champion"/);
+  assert.match(source, /uid\.textContent = id/);
+  assert.match(source, /const id = String\(athlete\.id \|\| athlete\.uid \|\| ""\)/);
+  assert.match(source, /const youth = \/f8\|z2h\|r2c\|road2champion\|youth\//);
+  assert.match(source, /return "Road2Champion"/);
 });
