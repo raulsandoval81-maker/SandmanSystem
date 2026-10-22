@@ -138,7 +138,7 @@ async function issueVerifiedPracticeXp() {
     return;
   }
   if (choices.some(x => !x.value)) {
-    if (status) status.textContent = "Choose an eligible XP amount for every remaining verified participant first.";
+    if (status) status.textContent = "Select an XP amount on every verified athlete card before approval.";
     return;
   }
   const verified = reviewAthletes.filter(a => selectedIds.has(String(a.id || a.uid || "")));
@@ -335,6 +335,10 @@ async function loadPracticeReview(practiceId) {
   setReviewControlsEnabled(!finalized);
   const finalizeButton = $("saveAttendance");
   if (finalizeButton) finalizeButton.hidden = finalized;
+  const attendanceFinish = $("attendanceFinish");
+  if (attendanceFinish) attendanceFinish.hidden = finalized;
+  const reviewActions = document.querySelector(".attendance-review .toolbar-card .action-row");
+  if (reviewActions) reviewActions.hidden = finalized;
   if (finalized) {
     showPracticeXp(practiceId);
     requestAnimationFrame(revealPracticeXp);

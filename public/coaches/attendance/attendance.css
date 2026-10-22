@@ -985,3 +985,38 @@ html[data-theme="light"]{
   .attendance-page .xp-choice-group{grid-template-columns:repeat(2,minmax(0,1fr))}
   .attendance-page .xp-attendance-flag{white-space:normal}
 }
+
+
+/* Review-only: finished attendance controls leave the XP approval workspace. */
+.attendance-review #attendanceFinish[hidden],
+.attendance-review .toolbar-card .action-row[hidden] { display:none!important; }
+.attendance-review .toolbar-card:has(.action-row[hidden]) {
+  justify-content:flex-end;
+}
+/* Stable contrast for the single roster across shell themes. */
+.attendance-review .single-roster-athlete {
+  background:#202321;
+  color:#f5f5f2;
+  border-color:rgba(255,255,255,.22);
+}
+.attendance-review .single-roster-athlete .athlete-main strong {color:#fff}
+.attendance-review .single-roster-athlete .athlete-main .muted,
+.attendance-review .single-roster-athlete .xp-selection-status {
+  color:#cbd0cc;
+}
+.attendance-review .single-roster-athlete.is-absent {opacity:1;background:#282726}
+.attendance-review .single-roster-athlete.is-absent .athlete-main {opacity:.64}
+.attendance-review #practiceXpPanel {
+  border-color:rgba(212,175,55,.52);
+}
+html[data-theme="light"] .attendance-review .single-roster-athlete {
+  background:#fffefa;
+  color:#202321;
+  border-color:rgba(0,0,0,.2);
+}
+html[data-theme="light"] .attendance-review .single-roster-athlete .athlete-main strong {color:#1b201b}
+html[data-theme="light"] .attendance-review .single-roster-athlete .athlete-main .muted,
+html[data-theme="light"] .attendance-review .single-roster-athlete .xp-selection-status {
+  color:#4b524d;
+}
+html[data-theme="light"] .attendance-review .single-roster-athlete.is-absent {background:#f0eeeb}
