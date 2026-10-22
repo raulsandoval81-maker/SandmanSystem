@@ -39,7 +39,13 @@ function athleteName(a = {}) {
 }
 
 function athleteProgram(a = {}) {
-  return String(a.program || a.journey || a.track || a.trackCode || a.ladderKey || "").toLowerCase();
+  const raw = String(a.program || a.journey || a.track || a.trackCode || a.ladderKey || "").trim();
+  const key = raw.toLowerCase().replace(/[\s_-]/g, "");
+  // Display name only. Preserve legacy Journey codes and immutable athlete IDs
+  // so attendance, XP and historical progression continue to resolve.
+  if (["z2h", "zero2hero", "r2c", "road2champion"].includes(key)) return "Road2Champion";
+  if (["p2l", "path2legend"].includes(key)) return "Path2Legend";
+  return raw || "—";
 }
 
 function todayLabel() {
