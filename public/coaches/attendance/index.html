@@ -84,18 +84,16 @@
 
   <section class="card" id="practiceXpPanel" hidden>
     <h2>Session XP Approval</h2>
-    <p class="muted">Choose XP on each verified athlete card above, then approve once. Awards remain subject to server validation.</p>
+    <p class="muted">Choose XP on each verified athlete card, then approve. Sandman verifies awards and closes the practice when complete.</p>
     <div class="action-row" style="margin-top:16px">
       <button id="issuePracticeXp" class="pill primary" type="button">Approve Session XP</button>
     </div>
     <p id="practiceXpStatus" class="muted" role="status" aria-live="polite"></p>
-    <button id="finalClosePractice" class="pill primary" type="button" hidden>Final Close Practice</button>
-    <a id="practiceXpCloseout" class="pill" href="/coaches/practice/" hidden>Return to Practice Operations →</a>
   </section>
 
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-<script type="module" src="/coaches/attendance/attendance.js?v=single-roster-approval2"></script>
+<script type="module" src="/coaches/attendance/attendance.js?v=single-approval-auto-close2"></script>
 
 </body>
 </html>
