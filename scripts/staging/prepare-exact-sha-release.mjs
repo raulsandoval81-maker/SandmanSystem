@@ -69,6 +69,7 @@ await writeFile(path.join(outputRoot, "firebase.hosting.json"), `${JSON.stringif
     public: hostingRoot,
     cleanUrls: false,
     ignore: ["firebase.json", "**/.*", "**/node_modules/**"],
+    rewrites: [{ source: "/xp", function: { functionId: "xpHttp", region: "us-central1" } }],
   },
 }, null, 2)}\n`);
 await writeFile(path.join(outputRoot, "release-evidence.json"), `${JSON.stringify({
