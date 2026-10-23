@@ -518,17 +518,19 @@ jobs:
               gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-before.json"
               service="$(node -e 'const d=require(`./${process.argv[1]}-before.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
               gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-before.json"
+              gcloud run services describe "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-service-before.json"
             else
               rm -f "${fn}-describe.json"
               node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(!(r.newFunctions||[]).includes(process.argv[1]))process.exit(64)' "${fn}"
               printf '{"absent":true}\n' > "${fn}-before.json"
               printf '{"absent":true}\n' > "${fn}-function-iam-before.json"
               printf '{"absent":true}\n' > "${fn}-run-iam-before.json"
+              printf '{"absent":true}\n' > "${fn}-run-service-before.json"
             fi
           done <<< "${functions}"
           node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(JSON.stringify(Object.fromEntries(r.functions.map(n=>{const d=JSON.parse(fs.readFileSync(`${n}-before.json`));return[n,d.absent?"__absent__":d.serviceConfig?.serviceAccountEmail]}))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
-          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent)validateFunctionConfiguration(r,n,d)}' "${{ inputs.release_id }}"
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration,verifyInvokerPolicy} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent){validateFunctionConfiguration(r,n,d);verifyInvokerPolicy(r,n,JSON.parse(await readFile(`${n}-run-service-before.json`,"utf8")),JSON.parse(await readFile(`${n}-function-iam-before.json`,"utf8")),JSON.parse(await readFile(`${n}-run-iam-before.json`,"utf8")))}}' "${{ inputs.release_id }}"
       - name: Verify minimum service-account impersonation permissions
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
@@ -661,15 +663,17 @@ jobs:
             gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-after.json"
             service="$(node -e 'const d=require(`./${process.argv[1]}-after.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
             gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-after.json"
+            gcloud run services describe "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-service-after.json"
           done <<< "${functions}"
           node --input-type=module <<'NODE'
           import { readFile } from "node:fs/promises";
-          import { loadRelease, validateFunctionConfiguration, verifyPreservedDeployment } from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs";
+          import { loadRelease, validateFunctionConfiguration, verifyPreservedDeployment, verifyInvokerPolicy } from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs";
           const release = await loadRelease("${{ inputs.release_id }}");
           for (const name of release.functions) {
             const read = path => readFile(path, "utf8").then(JSON.parse);
             const before = await read(`before/${name}-before.json`);
             const after = await read(`${name}-after.json`);
+            verifyInvokerPolicy(release, name, await read(`${name}-run-service-after.json`), await read(`${name}-function-iam-after.json`), await read(`${name}-run-iam-after.json`));
             if (before.absent) {
               validateFunctionConfiguration(release, name, after);
             } else {
