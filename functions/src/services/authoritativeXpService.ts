@@ -322,8 +322,10 @@ export function classifyAthlete(athlete: any, documentId = ""): AthleteBase {
   const markers = [athlete?.trackBase, athlete?.track, athlete?.programTrack,
     athlete?.trackCode, athlete?.journey, athlete?.program]
     .map((value) => String(value ?? "").toUpperCase()).join(" ");
-  const f8 = id.startsWith("F8_") || /(^|\W)F8(\W|$)|FOUNDRY8|YOUTH/.test(markers);
-  const f4 = id.startsWith("F4_") || /(^|\W)F4(\W|$)|FOUNDRY4|PATH2LEGEND|TEEN/.test(markers);
+  const f8 = id.startsWith("F8_")
+    || /(^|\W)(F8|Z2H|ROAD2CHAMPION)(\W|$)|FOUNDRY8|YOUTH/.test(markers);
+  const f4 = id.startsWith("F4_")
+    || /(^|\W)(F4|P2L|PATH2LEGEND)(\W|$)|FOUNDRY4|TEEN/.test(markers);
   const adult = /ADULT|Q2M|QUEST2MASTERY|MASTERY/.test(markers);
   const matches = [f8, f4, adult].filter(Boolean).length;
   if (matches !== 1) {
