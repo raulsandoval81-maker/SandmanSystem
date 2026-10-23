@@ -30,7 +30,7 @@ jobs:
     environment: staging
     env:
       TARGET_PROJECT: sandman-combat-staging
-      APPROVED_APPLICATION_SHA: fe378b4a7dd7e0391f14874d8f5b39e9a5504153
+      APPROVED_APPLICATION_SHA: 7b99d529acd4ca2c12c9bd428b8e78251eb4cf8e
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       SANDMAN_STAGING_ACK: sandman-combat-staging
       SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
