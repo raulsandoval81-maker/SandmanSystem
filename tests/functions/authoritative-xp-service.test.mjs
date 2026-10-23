@@ -24,9 +24,14 @@ const f8 = (overrides = {}) => {
   return { uid: "F8_1000", trackBase: "F8", tier, progressionTier: tier,
     xp: 100, xpCap: 600, xpDaily: 900, xpArena: 500, xpFightIQ: 200, ...overrides };
 };
-const req = (kind, amount, meta = {}) => normalizeXpRequest({
-  uid: "athlete", kind, amount, meta,
-});
+const req = (kind, amount, meta = {}) => {
+  const attendance = ["ATTENDANCE", "DAILY_GRIND"].includes(String(kind).toUpperCase());
+  const trustedMeta = attendance ? {
+    practiceEvidenceKey: `practice-evidence-v1:2026-10-23:wrestling:${meta.attendanceSessionId || "unit-practice"}`,
+    ...meta,
+  } : meta;
+  return normalizeXpRequest({ uid: "athlete", kind, amount, meta: trustedMeta });
+};
 const plan = (athlete, request, monthly = {}, championshipAwarded = 0, extra = {}) =>
   buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly, championshipAwarded, ...extra });
 
@@ -200,7 +205,11 @@ test("F8 practice is +5/+10 only and uses active XP", () => {
 test("F8 practice permits two qualifying sessions per discipline and no more than 20 daily XP", () => {
   const request = req("ATTENDANCE", 10, { discipline: "wrestling" });
   assert.deepEqual(plan(f8(), request, {}, 0, { practiceState: { count: 1, xp: 10 } }).practiceStateAfter,
-    { count: 2, xp: 20 });
+    {
+      count: 2,
+      xp: 20,
+      evidenceKeys: ["practice-evidence-v1:2026-10-23:wrestling:unit-practice"],
+    });
   assert.throws(() => plan(f8(), request, {}, 0, { practiceState: { count: 2, xp: 20 } }),
     /DAILY_PRACTICE_LIMIT/);
 });
