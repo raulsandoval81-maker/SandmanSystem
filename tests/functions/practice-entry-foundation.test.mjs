@@ -8,7 +8,7 @@ const read = (path) => readFile(new URL(path, root), "utf8");
 test("normal Session Builder practice remains compatible and gains canonical metadata", async () => {
   const source = await read("functions/src/practice/practiceSessions.ts");
   assert.match(source, /export const openPracticeSession/);
-  assert.match(source, /entryMode:\s*"normal"/);
+  assert.match(source, /entryMode: existing\.exists \? String\(current\.entryMode \|\| "normal"\) : "normal"/);
   assert.match(source, /liveSessions\/\$\{liveSessionId\}/);
   assert.match(source, /source:\s*"session-builder"/);
 });
