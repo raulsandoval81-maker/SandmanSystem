@@ -286,6 +286,14 @@ async function loadPracticeReview(practiceId) {
   const getReview = httpsCallable(functions, "getPracticeAttendanceReview");
   const response = await getReview({ practiceId });
   const data = response.data || {};
+  document.getElementById("syntheticAttendanceWarning")?.remove();
+  if (data.practice?.sessionMemory?.syntheticExecution?.synthetic === true) {
+    const warning = document.createElement("p");
+    warning.id = "syntheticAttendanceWarning";
+    warning.className = "notice warning";
+    warning.textContent = "STAGING SYNTHETIC TEST — attendance and XP apply only to the designated test athlete; 0 real training minutes and no worked cards were recorded.";
+    document.querySelector(".attendance-review")?.prepend(warning);
+  }
   pendingSessionRef = { id: practiceId };
   pendingSessionId = practiceId;
   pendingSession = data.attendance || {

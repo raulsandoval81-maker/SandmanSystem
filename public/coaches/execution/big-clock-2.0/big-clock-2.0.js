@@ -7,6 +7,8 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { requireCoach } from "/assets/js/coach-guard.js?v=2";
+import { runtimeEnvironment } from "/assets/js/runtime-environment.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { practiceRunIdentity, restorePracticeRun } from "/coaches/execution/engine/big-clock-state-identity.mjs";
 import { getActiveCombatInterval } from "/coaches/execution/engine/practice-execution-contract.mjs";
@@ -20,6 +22,7 @@ let authReady = false;
 let audioCtx = null;
 let lastBeepKey = "";
 let fastPassMinutes = 60;
+let syntheticTestContext = null;
 
 function compactWorkedCard(card, blockId, index) {
   const item = typeof card === "object" && card ? card : { title: String(card || "") };
@@ -391,13 +394,11 @@ async function prepareFastPassPractice() {
 
 function configureEndAction() {
   const action = document.getElementById("sessionEndPrimaryAction");
-  if (!action || !isFastPass()) return;
-  const payload = getPayload();
-  const session = getSessionPayload();
-  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  if (!action || (!isFastPass() && !getState().synthetic)) return;
+  const practiceId = currentRunIdentity().practiceId;
   action.textContent = "Post Practice Input";
   action.href = practiceId
-    ? `/coaches/logs/practice-log.html?practiceId=${encodeURIComponent(practiceId)}&fast=1`
+    ? `/coaches/logs/practice-log.html?practiceId=${encodeURIComponent(practiceId)}${getState().synthetic ? "&synthetic=1" : "&fast=1"}`
     : "/coaches/logs/practice-log.html";
 }
 
@@ -457,7 +458,7 @@ function renderComplete({
   cuesEl
 }) {
   if (statusEl) {
-    statusEl.textContent = "COMPLETE";
+    statusEl.textContent = getState().synthetic ? "SYNTHETIC TEST COMPLETE" : "COMPLETE";
     statusEl.className = "status complete";
   }
 
@@ -479,12 +480,65 @@ function renderComplete({
   }
 
   if (nextEl) {
-    nextEl.textContent = "Practice Complete";
+    nextEl.textContent = getState().synthetic
+      ? "Synthetic test only · 0 training minutes · no worked cards"
+      : "Practice Complete";
   }
 
   document
     .getElementById("sessionEndActions")
     ?.classList.remove("hidden");
+  configureEndAction();
+}
+
+async function loadSyntheticCompletionControl() {
+  if (runtimeEnvironment !== "staging") return;
+  const practiceId = currentRunIdentity().practiceId;
+  if (!practiceId) return;
+  try {
+    await requireCoach();
+    const response = await httpsCallable(functions, "getPracticeSession")({ practiceId });
+    const practice = response.data?.practice || {};
+    const athleteId = String(practice.syntheticTestAthleteId || "").trim();
+    if (practice.synthetic !== true || practice.syntheticTestCompletionEnabled !== true || !athleteId) return;
+    syntheticTestContext = { practiceId, athleteId };
+    document.getElementById("syntheticCompletionPanel")?.classList.remove("hidden");
+    if (practice.sessionMemory?.syntheticExecution?.synthetic === true) {
+      await setState({ ...getState(), running: false, paused: false, complete: true, synthetic: true, updatedAt: Date.now() });
+      render();
+    }
+  } catch (error) {
+    console.warn("Synthetic completion control unavailable:", error);
+  }
+}
+
+async function completeSyntheticTestSession() {
+  if (runtimeEnvironment !== "staging" || !syntheticTestContext) return;
+  const confirmed = window.confirm(
+    "Complete this designated STAGING SYNTHETIC test session now? No training minutes or worked cards will be recorded."
+  );
+  if (!confirmed) return;
+  const button = document.getElementById("completeTestSession");
+  const status = document.getElementById("syntheticCompletionStatus");
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Verifying Coach and synthetic records…";
+  try {
+    await requireCoach();
+    const complete = httpsCallable(functions, "completeSyntheticPracticeForTesting");
+    const result = await complete({
+      ...syntheticTestContext,
+      confirmation: "COMPLETE SYNTHETIC TEST SESSION",
+    });
+    if (result.data?.synthetic !== true || result.data?.realTraining !== false) {
+      throw new Error("Server did not return verified synthetic completion evidence.");
+    }
+    await setState({ ...getState(), running: false, paused: false, complete: true, synthetic: true, updatedAt: Date.now() });
+    if (status) status.textContent = "Synthetic completion recorded. No real training evidence was created.";
+    render();
+  } catch (error) {
+    if (status) status.textContent = error?.message || "Synthetic completion was rejected.";
+    if (button) button.disabled = false;
+  }
 }
 
 function getActiveDrill(current, elapsedSeconds = 0) {
@@ -904,6 +958,8 @@ function renderGroupLessonReferences() {
 renderLaneIdentity();
 renderGroupLessonReferences();
 render();
+document.getElementById("completeTestSession")?.addEventListener("click", completeSyntheticTestSession);
+loadSyntheticCompletionControl();
 
 setInterval(render, 250);
 

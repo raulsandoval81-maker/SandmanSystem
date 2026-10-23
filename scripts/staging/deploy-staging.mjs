@@ -27,6 +27,7 @@ const deployed = spawnSync("npx", [
     "functions:closePracticeSession",
     "functions:savePracticeSessionMemory",
     "functions:saveDailyPracticeLog",
+    "functions:completeSyntheticPracticeForTesting",
     "firestore:rules",
   ].join(","),
   "--non-interactive",
