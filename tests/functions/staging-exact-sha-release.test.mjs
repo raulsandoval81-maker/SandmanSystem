@@ -16,6 +16,32 @@ import {
   verifyPreservedDeployment,
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
 
+test("attendance release accepts correctly configured environment variables regardless of manifest key order", async () => {
+  const attendance = await loadRelease("cross-academy-pr253-e9980457");
+  const cfg = attendance.expectedFunctionConfiguration;
+  const name = "getPracticeAttendanceReview";
+  const env = Object.fromEntries(Object.entries(cfg.environmentVariables).sort(([a], [b]) => a.localeCompare(b)));
+  const description = {
+    name: `projects/sandman-combat-staging/locations/us-central1/functions/${name}`,
+    environment: "GEN_2",
+    buildConfig: { runtime: "nodejs22", entryPoint: name,
+      serviceAccount: `projects/sandman-combat-staging/serviceAccounts/${attendance.functionBuild}` },
+    serviceConfig: {
+      serviceAccountEmail: attendance.functionRuntime,
+      availableCpu: cfg.availableCpu,
+      availableMemory: cfg.availableMemory,
+      timeoutSeconds: cfg.timeoutSeconds,
+      maxInstanceCount: cfg.maxInstanceCount,
+      maxInstanceRequestConcurrency: cfg.maxInstanceRequestConcurrency,
+      ingressSettings: cfg.ingressSettings,
+      environmentVariables: env,
+    },
+  };
+  assert.equal(validateFunctionConfiguration(attendance, name, description).entryPoint, name);
+  description.serviceConfig.environmentVariables.SANDMAN_STAGING_ACK = "wrong-project";
+  assert.throws(() => validateFunctionConfiguration(attendance, name, description), /configuration mismatch/);
+});
+
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
 const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46b08");

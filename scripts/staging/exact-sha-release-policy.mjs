@@ -121,7 +121,7 @@ export function validateFunctionConfiguration(release, functionName, description
     maxInstanceCount: expected.maxInstanceCount,
     maxInstanceRequestConcurrency: expected.maxInstanceRequestConcurrency,
     ingressSettings: expected.ingressSettings,
-    environmentVariables: expected.environmentVariables,
+    environmentVariables: userEnvironment(expected.environmentVariables),
     secretEnvironmentVariables: [],
   };
   if (JSON.stringify(actual) !== JSON.stringify(wanted)) {
