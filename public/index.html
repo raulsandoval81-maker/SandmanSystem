@@ -206,6 +206,67 @@ html[data-theme="light"] .gateway-title{
     transform:rotate(45deg);
   }
 
+
+  /* ACTIVE ACADEMY — direct entry ahead of optional city search */
+  .gateway-active-academy{
+    display:block;
+    margin:2rem auto 0;
+    padding:1.65rem 1.25rem;
+    border:1px solid rgba(212,175,55,.55);
+    border-radius:18px;
+    background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(255,255,255,.018));
+    text-align:center;
+    text-decoration:none;
+    color:#fff;
+    transition:border-color .18s ease,background .18s ease;
+  }
+  .gateway-active-academy:hover,
+  .gateway-active-academy:focus-visible{
+    border-color:var(--gold-light);
+    background:linear-gradient(180deg,rgba(212,175,55,.16),rgba(255,255,255,.03));
+  }
+  .gateway-active-academy:focus-visible{
+    outline:3px solid var(--gold-light);
+    outline-offset:3px;
+  }
+  .gateway-active-academy__eyebrow{
+    display:block;
+    margin-bottom:.55rem;
+    color:var(--gold-light);
+    font-size:.74rem;
+    font-weight:900;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+  }
+  .gateway-active-academy__title{
+    display:block;
+    font-size:clamp(1.8rem,5.5vw,2.65rem);
+    font-weight:900;
+    line-height:1.08;
+    text-transform:uppercase;
+  }
+  .gateway-active-academy__tagline{
+    display:block;
+    margin-top:.65rem;
+    color:#fff;
+    font-weight:800;
+    line-height:1.4;
+  }
+  .gateway-active-academy__details{
+    display:block;
+    margin:.75rem 0;
+    color:#dbdbdf;
+    font-size:.95rem;
+  }
+  .gateway-active-academy__action{
+    display:block;
+    margin-top:.95rem;
+    color:var(--gold-light);
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+
   /* -----------------------------------------
      FINDER
   ------------------------------------------ */
@@ -690,6 +751,24 @@ html[data-theme="light"] .gateway-title{
 
     </section>
 
+
+    <!-- PRIMARY ACTIVE ACADEMY — city discovery remains available below -->
+    <a class="gateway-active-academy" href="/locations/santa-ynez-valley/">
+      <span data-lang-block="en">
+        <span class="gateway-active-academy__eyebrow">Now Training in Solvang, California</span>
+        <span class="gateway-active-academy__title">Santa Ynez Valley</span>
+        <span class="gateway-active-academy__tagline">Rooted in Solvang. Built for the Valley.</span>
+        <span class="gateway-active-academy__details">Wrestling · Boxing · Muay Thai</span>
+        <span class="gateway-active-academy__action">Enter Academy →</span>
+      </span>
+      <span data-lang-block="es" class="hidden-lang">
+        <span class="gateway-active-academy__eyebrow">Entrenando en Solvang, California</span>
+        <span class="gateway-active-academy__title">Valle de Santa Ynez</span>
+        <span class="gateway-active-academy__tagline">Con raíces en Solvang. Para todo el Valle.</span>
+        <span class="gateway-active-academy__details">Lucha · Boxeo · Muay Thai</span>
+        <span class="gateway-active-academy__action">Entrar a la Academia →</span>
+      </span>
+    </a>
 
     <!-- FIND YOUR ACADEMY -->
 
