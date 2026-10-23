@@ -732,6 +732,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /road2champion-wrestling-tier-wave-crosswalk\.js/);
   assert.match(workflow, /fetch-depth: 0/);
   assert.match(workflow, /refs\/heads\/main/);
+  assert.match(workflow, /if test "\$\{RELEASE_ID\}" = "xp-client-auth-pr240-ee96af6a"; then\s+\(\s+cd application-source\s+node --test\s+\\/);
   assert.match(workflow, /--only hosting/);
   assert.match(workflow, /savePracticeSessionMemory/);
   assert.match(workflow, /closePracticeSession/);
