@@ -92,6 +92,7 @@ export function functionConfiguration(description = {}) {
     runtime: description.buildConfig?.runtime,
     entryPoint: description.buildConfig?.entryPoint,
     serviceAccountEmail: service.serviceAccountEmail,
+    buildServiceAccount: description.buildConfig?.serviceAccount,
     availableCpu: service.availableCpu,
     availableMemory: service.availableMemory,
     timeoutSeconds: service.timeoutSeconds,
@@ -113,6 +114,7 @@ export function validateFunctionConfiguration(release, functionName, description
     runtime: expected.runtime,
     entryPoint: functionName,
     serviceAccountEmail: release.functionRuntime,
+    buildServiceAccount: release.expectedInvokerIamDisabled === true ? `projects/${STAGING_PROJECT_ID}/serviceAccounts/${release.functionBuild}` : actual.buildServiceAccount,
     availableCpu: expected.availableCpu,
     availableMemory: expected.availableMemory,
     timeoutSeconds: expected.timeoutSeconds,
@@ -132,6 +134,19 @@ function normalizedPolicy(policy = {}) {
   return [...(policy.bindings || [])]
     .map(binding => ({ role: binding.role, members: [...(binding.members || [])].sort(), condition: binding.condition || null }))
     .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+export function verifyInvokerPolicy(release, functionName, serviceDescription, functionIam, runIam) {
+  if (release.expectedInvokerIamDisabled !== true) return true;
+  if (!APPROVED_FUNCTIONS.includes(functionName)) throw new Error("Unapproved callable.");
+  const annotations = serviceDescription?.metadata?.annotations || {};
+  if (annotations["run.googleapis.com/invoker-iam-disabled"] !== "true") {
+    throw new Error(`Invoker IAM baseline mismatch for ${functionName}.`);
+  }
+  if (normalizedPolicy(functionIam).length || normalizedPolicy(runIam).length) {
+    throw new Error(`Unexpected IAM bindings for ${functionName}.`);
+  }
+  return true;
 }
 
 export function verifyPreservedDeployment(release, functionName, before, after, functionIamBefore, functionIamAfter, runIamBefore, runIamAfter) {
