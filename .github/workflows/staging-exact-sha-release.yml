@@ -60,6 +60,7 @@ on:
           - bulk-xp-z2h-pr227-f160377
           - bulk-xp-fixed-pr229-3fbb3e0
           - xp-http-headers-pr231-fe378b4
+          - xp-client-auth-pr240-ee96af6a
           - single-roster-pr217-7beb0a6
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
@@ -364,6 +365,24 @@ jobs:
             node --test application-source/tests/functions/attendance-session-xp-approval-ui.test.mjs
             node --test application-source/tests/functions/attendance-xp-integration.test.mjs
             node --check application-source/public/coaches/attendance/attendance.js
+          fi
+          if test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a"; then
+            node --test \
+              application-source/tests/functions/active-xp-client-contract.test.mjs \
+              application-source/tests/functions/daily-grind-coach-auth.test.mjs \
+              application-source/tests/functions/attendance-session-xp-approval-ui.test.mjs \
+              application-source/tests/functions/attendance-xp-integration.test.mjs \
+              application-source/tests/functions/authoritative-xp-idempotency.test.mjs \
+              application-source/tests/functions/authoritative-xp-service.test.mjs \
+              application-source/tests/functions/coach-verified-practice-xp.test.mjs \
+              application-source/tests/functions/experience-authority.test.mjs \
+              application-source/tests/functions/practice-attendance-lanes.test.mjs \
+              application-source/tests/functions/progression-cycle-promotion.test.mjs \
+              application-source/tests/functions/staging-xp-route-contract.test.mjs
+            node --check application-source/public/assets/js/authoritative-xp-client.js
+            node --check application-source/public/assets/js/xp-api.js
+            node --check application-source/public/coaches/attendance/attendance.js
+            node --check application-source/public/coaches/daily-xp/daily-grind.js
           fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
