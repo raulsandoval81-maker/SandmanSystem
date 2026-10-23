@@ -139,6 +139,26 @@ export function programsForLocation(locationId) {
   return SESSION_PROGRAMS.filter((program) => program.allowedLocationIds.includes(canonical));
 }
 
+export function authorizedPracticeRooms(scopeLocationIds = [], isSystemAdmin = false) {
+  const allowed = new Set(
+    (Array.isArray(scopeLocationIds) ? scopeLocationIds : [])
+      .map((id) => String(id || "").trim().toLowerCase())
+      .filter(Boolean)
+  );
+  if (!isSystemAdmin && !allowed.size) return [];
+  return SESSION_ROOMS.filter((room) =>
+    isSystemAdmin || allowed.has(String(room.locationId || "").toLowerCase())
+  );
+}
+
+export function resolvePreferredPracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
+  const available = authorizedPracticeRooms(scopeLocationIds, isSystemAdmin);
+  return available.find((room) => programsForLocation(room.locationId)
+    .some((program) => !["manual-build", "fitness-striking"].includes(program.programId)))
+    || available[0]
+    || null;
+}
+
 export function normalizeExecutionMode(value, fallback = "manual") {
   const mode = String(value || "").trim().toLowerCase();
   return SESSION_ENTRY_MODES.includes(mode) ? mode : fallback;
