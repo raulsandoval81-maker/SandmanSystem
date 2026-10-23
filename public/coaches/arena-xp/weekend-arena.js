@@ -6,7 +6,7 @@ import {
   getDocs
 } from "/assets/js/firebase-init.js";
 
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import {
   LADDER_F4,
   LADDER_F8,
@@ -1004,11 +1004,6 @@ async function giveToOne(id, awardKind) {
     `tr[data-id="${id}"]`
   );
 
-  const coachUid =
-    window.COACH_UID ||
-    localStorage.getItem("coachUid") ||
-    "DEV_COACH";
-
   const payload = buildPayload(
     athlete.uidCode ||
     athlete.uid ||
@@ -1016,63 +1011,11 @@ async function giveToOne(id, awardKind) {
     awardKind
   );
 
-  const response = await fetch(XP_URL, {
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json",
-      "x-coach-uid": String(
-        coachUid
-      ).trim()
-    },
-
-    body: JSON.stringify({
-      data: payload
-    })
-  });
-
-  const text = await response
-    .text()
-    .catch(() => "");
-
-  if (!response.ok) {
-    console.error(
-      "XP ERR:",
-      response.status,
-      text
-    );
-
-    return {
-      ok: false,
-      delta: 0,
-      error:
-        `HTTP ${response.status}` +
-        (text ? ` · ${text}` : "")
-    };
-  }
-
-  let raw = null;
-
+  let data;
   try {
-    raw = text
-      ? JSON.parse(text)
-      : null;
-  } catch {
-    raw = null;
-  }
-
-  const data =
-    parseFunctionJson(raw) || {};
-
-  if (!data.ok) {
-    return {
-      ok: false,
-      delta: 0,
-      error:
-        data.error ||
-        data.reason ||
-        "Blocked"
-    };
+    data = await postAuthoritativeXp(payload);
+  } catch (error) {
+    return { ok: false, delta: 0, error: error?.message || "XP request rejected" };
   }
 
   const delta = Number(

@@ -77,6 +77,10 @@
               <input id="eventName" placeholder="CA Fall Open"/>
             </div>
             <div style="flex:1">
+              <label for="tournamentId">Tournament ID</label>
+              <input id="tournamentId" placeholder="Required stable event ID"/>
+            </div>
+            <div style="flex:1">
               <label for="division">Division / Weight</label>
               <input id="division" placeholder="12U • 70lb"/>
             </div>
@@ -150,17 +154,19 @@
   const saveInjury     = document.getElementById("saveInjury");
 
   // function URLs (emulator)
-import { XP_URL, ARENA_URL, ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
+import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 
   // 1) XP button → XP function + arena log function
   async function sendXp(kind, delta){
     const uid       = athleteId.value.trim();
     const eventName = eventNameEl.value.trim();
+    const tournamentId = document.getElementById("tournamentId").value.trim();
     const division  = divisionEl.value.trim();
     const note      = coachNote.value.trim();
 
-    if(!uid){
-      statusEl.textContent = "Add athlete first.";
+    if(!uid || !tournamentId){
+      statusEl.textContent = "Athlete and Tournament ID are required.";
       return;
     }
 
@@ -168,55 +174,28 @@ import { XP_URL, ARENA_URL, ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
 
     // A. send XP
     try {
-      const res = await fetch(XP_URL, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          data:{
+      const data = await postAuthoritativeXp({
             uid,
-            event: kind,            // e.g. "ARENA/BATTLE"
+            kind,
             amount: delta,
             note,
             meta:{
               source: "coach-console",
+              tournamentId,
               eventName,
               division
             }
-          }
-        })
       });
-      const data = await res.json();
-      statusEl.textContent = data.ok ? `XP applied: ${kind}` : (data.error || "XP error");
+      const applied = Number(data.delta ?? data.amount ?? delta);
+      statusEl.textContent = data.idempotent ? `Already applied: ${kind}` : `XP applied: ${kind} (+${applied})`;
     } catch (err) {
       console.error(err);
-      statusEl.textContent = "XP call failed.";
+      statusEl.textContent = `XP rejected: ${err?.message || "request failed"}`;
+      return;
     }
 
-    // B. log it through arena endpoint so Firestore is consistent
-    try {
-      await fetch(ARENA_URL, {
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          data:{
-            athleteUid: uid,
-            eventName,
-            division,
-            // translate your button kind → flags
-            battle: kind === "ARENA/BATTLE",
-            podium: kind === "ARENA/PODIUM",
-            matchIq: kind === "ARENA/STYLEIQ",
-            style: kind === "ARENA/STYLEIQ" ? "style" : null,
-            penalty: kind === "COACH_PENALTY",
-            note
-          }
-        })
-      });
-    } catch (err) {
-      console.error("[arena-log] failed:", err);
-    }
-
-    // C. still add to realtime feed
+    // The authoritative XP service owns the durable award log and receipt.
+    // This separate feed is presentation-only.
     await addDoc(collection(db,"tournamentFeed"),{
       text: `${uid} → ${kind} (${delta})${note ? " · " + note : ""}`,
       athleteId: uid,

@@ -9,7 +9,7 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
@@ -154,30 +154,18 @@ async function issueVerifiedPracticeXp() {
   issuingPracticeXp = true;
   if (button) button.disabled = true;
   try {
-    const access = await requireCoach();
-    const user = access?.user || auth.currentUser;
-    if (!user || user.isAnonymous || auth.currentUser?.uid !== user.uid) throw new Error("Active Coach authentication required.");
-    const token = await user.getIdToken();
+    await requireCoach();
     let succeeded = 0;
     const failures = [];
     for (const choice of choices) {
       const athleteId = choice.dataset.athleteId;
       try {
-        const response = await fetch(XP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-          body: JSON.stringify({ data: {
+        const data = await postAuthoritativeXp({
             uid: athleteId, kind: "DAILY_GRIND", amount: Number(choice.value),
             lane: "combat", meta: { lane: "combat", source: "daily-grind",
               attendanceSessionId: pendingSessionId, sessionId: pendingSessionId,
               durationMinutes: practiceDurationMinutes }
-          } })
         });
-        const raw = await response.text();
-        let result = {};
-        try { result = JSON.parse(raw || "{}"); } catch { /* keep HTTP error */ }
-        const data = result.result || result.data || result;
-        if (!response.ok || !data.ok) throw new Error(data.message || data.error?.message || raw.slice(0, 160) || "XP request rejected.");
         creditedAthletes.add(athleteId);
         creditedAmounts.set(athleteId, Number(choice.value));
         const athleteCard = choice.closest(".athlete-row");
@@ -185,7 +173,9 @@ async function issueVerifiedPracticeXp() {
           athleteCard.classList.add("is-credited");
           athleteCard.querySelectorAll(".xp-choice").forEach(control => { control.disabled = true; });
           const label = athleteCard.querySelector(".xp-selection-status");
-          if (label) label.textContent = (data.idempotent ? "Already credited" : "Credited") + " · +" + choice.value + " XP";
+          if (label) label.textContent = data.idempotent
+            ? "Already credited · no additional XP"
+            : "Credited · +" + Number(data.delta ?? choice.value) + " XP";
         }
         choice.disabled = true;
         succeeded += 1;

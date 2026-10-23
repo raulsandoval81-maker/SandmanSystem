@@ -458,13 +458,24 @@ async function giveToOne(id, kind) {
 
   }
 
-  const res = await awardXP({
-    uid,
-    kind: bodyData.kind,
-    amount: bodyData.amount,
-    note: "",
-    meta: bodyData.meta,
-  });
+  let res;
+  try {
+    res = await awardXP({
+      uid,
+      kind: bodyData.kind,
+      amount: bodyData.amount,
+      note: "",
+      meta: bodyData.meta,
+    });
+  } catch (error) {
+    a.xp = before;
+    if (row) {
+      const cap = xpCapForAthlete(a);
+      const line = row.querySelector(`[data-xpline="${id}"]`);
+      if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
+    }
+    return { ok: false, delta: 0, error: error?.message || "XP request rejected" };
+  }
 
   if (!res?.ok || res.blocked) {
     a.xp = before;
@@ -524,6 +535,7 @@ async function bulkGive(kind, label) {
 
     let ok = 0;
     let xp = 0;
+    let failed = 0;
 
     for (const id of ids) {
       const r = await giveToOne(id, kind);
@@ -531,6 +543,7 @@ async function bulkGive(kind, label) {
         ok++;
         xp += r.delta;
       } else if (r.error) {
+        failed++;
         setStatus(r.error, false);
       }
     }
@@ -542,7 +555,7 @@ async function bulkGive(kind, label) {
     if (kind === "style" && ok > 0) onStyleIqAwarded();
 
     await load();
-    setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`, true);
+    setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}${failed ? ` • Rejected:${failed}` : ""}`, failed === 0);
   } catch (e) {
     setStatus(e?.message || "Save failed", false);
   } finally {

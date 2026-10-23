@@ -2,7 +2,7 @@
 import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { LADDER_F4, LADDER_F8, canonicalF8RankName, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
@@ -423,11 +423,6 @@ async function giveToOne(id, kind) {
 
   const row = document.querySelector(`tr[data-id="${id}"]`);
 
-  const coachUid =
-    window.COACH_UID ||
-    localStorage.getItem("coachUid") ||
-    "DEV_COACH";
-
   const mapped = mapArenaAward(kind);
 
   const payload = {
@@ -444,43 +439,11 @@ async function giveToOne(id, kind) {
     },
   };
 
-  const res = await fetch(XP_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-coach-uid": String(coachUid).trim(),
-    },
-    body: JSON.stringify({ data: payload }),
-  });
-
-  const text = await res.text().catch(() => "");
-
-  if (!res.ok) {
-    console.log("XP ERR:", res.status, text);
-
-    return {
-      ok: false,
-      delta: 0,
-      error: `HTTP ${res.status}${text ? " · " + text : ""}`,
-    };
-  }
-
-  console.log("XP OK:", res.status, text);
-
-  let raw = null;
-
+  let data;
   try {
-    raw = text ? JSON.parse(text) : null;
-  } catch {}
-
-  const data = parseFunctionJson(raw) || {};
-
-  if (!data.ok) {
-    return {
-      ok: false,
-      delta: 0,
-      error: data.error || "Blocked",
-    };
+    data = await postAuthoritativeXp(payload);
+  } catch (error) {
+    return { ok: false, delta: 0, error: error?.message || "XP request rejected" };
   }
 
   const delta = Number(data.delta ?? payload.amount ?? 0);
@@ -541,6 +504,7 @@ async function bulkGive(kind, label) {
 
     let ok = 0;
     let xp = 0;
+    let failed = 0;
 
     for (const id of ids) {
       const r = await giveToOne(id, kind);
@@ -549,6 +513,8 @@ async function bulkGive(kind, label) {
         ok++;
         xp += r.delta;
         receipts++;
+      } else {
+        failed++;
       }
     }
 
@@ -560,8 +526,8 @@ async function bulkGive(kind, label) {
     await load();
 
     setStatus(
-      `Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`,
-      true
+      `Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}${failed ? ` • Rejected:${failed}` : ""}`,
+      failed === 0
     );
   } catch (e) {
     setStatus(e?.message || "Save failed", false);

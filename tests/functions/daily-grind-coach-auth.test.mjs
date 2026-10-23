@@ -6,6 +6,10 @@ const source = fs.readFileSync(
   new URL("../../public/coaches/daily-xp/daily-grind.js", import.meta.url),
   "utf8"
 );
+const client = fs.readFileSync(
+  new URL("../../public/assets/js/authoritative-xp-client.js", import.meta.url),
+  "utf8"
+);
 
 test("Daily Grind uses the protected Coach guard and never generic anonymous auth", () => {
   assert.match(source, /from "\/assets\/js\/coach-guard\.js"/);
@@ -23,11 +27,14 @@ test("startup subscribes only after Coach authorization succeeds", () => {
   assert.match(source, /await bootstrapDailyGrind\(\)/);
 });
 
-test("award path revalidates and uses the verified non-anonymous Coach user", () => {
-  assert.match(source, /const access = await requireDailyGrindCoach\(\)/);
-  assert.match(source, /const user = access\.user/);
-  assert.match(source, /user\.isAnonymous/);
-  assert.match(source, /"Authorization": `Bearer \$\{idToken\}`/);
+test("award path revalidates through the shared authenticated XP client", () => {
+  assert.match(source, /await requireDailyGrindCoach\(\)/);
+  assert.match(source, /await postAuthoritativeXp\(payload\)/);
+  assert.match(client, /const access = await requireCoach\(\)/);
+  assert.match(client, /user\.isAnonymous/);
+  assert.match(client, /await user\.getIdToken\(\)/);
+  assert.match(client, /Authorization: `Bearer \$\{token\}`/);
+  assert.doesNotMatch(client, /x-coach-uid/i);
 });
 
 test("authentication failure chooses one Coach login destination", () => {

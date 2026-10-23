@@ -45,29 +45,26 @@
 
   <!-- Firebase callable hook -->
   <script type="module">
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-functions.js";
-    import { app } from "../assets/js/firebase-app.js";
-
-    const functions = getFunctions(app);
-    const incrementXp = httpsCallable(functions, "incrementXp");
+    import { awardXP } from "/assets/js/xp-api.js";
 
     async function callIncrement(uid, payload){
       try{
-        await incrementXp({ uid, ...payload });
-        alert(`${payload.kind} logged → ${uid}`);
+        const result = await awardXP({ uid, ...payload });
+        const applied = Number(result?.delta ?? result?.amount ?? payload.amount ?? 0);
+        alert(result?.idempotent ? `${payload.kind} was already logged → ${uid}` : `${payload.kind} +${applied} logged → ${uid}`);
         closeDrawer();
       }catch(e){
         console.error(e);
-        alert("Error logging XP");
+        alert(e?.message || "Error logging XP");
       }
     }
 
-    async function logTournamentXP({ uid, result, amount, note }) {
-      return callIncrement(uid, { kind:"TOURNAMENT", amount, meta:{ result, note } });
+    async function logTournamentXP({ uid, kind, amount, note, tournamentId }) {
+      return callIncrement(uid, { kind, amount, meta:{ tournamentId, note, source:"coach-weekly" } });
     }
 
-    async function logPrestige({ uid, level, xp, note }) {
-      return callIncrement(uid, { kind:"PRESTIGE", amount: xp, meta:{ level, note } });
+    async function logChampionship({ uid, result, note, tournamentId, matchCount }) {
+      return callIncrement(uid, { kind:`CHAMPIONSHIP/${result}`, meta:{ tournamentId, result, note, matchCount, source:"coach-weekly" } });
     }
 
     // Drawer wiring
@@ -83,40 +80,46 @@
     window.logShow = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logTournamentXP({ uid, result:"SHOW", amount:10, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logTournamentXP({ uid, kind:"ARENA/BATTLE", amount:10, note, tournamentId });
     };
     window.logPlace = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logTournamentXP({ uid, result:"PLACE", amount:5, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logTournamentXP({ uid, kind:"ARENA/PODIUM", amount:5, note, tournamentId });
     };
     window.logStyle = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logTournamentXP({ uid, result:"STYLE", amount:5, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logTournamentXP({ uid, kind:"ARENA/STYLEIQ", amount:5, note, tournamentId });
     };
 
     // Prestige buttons
-    window.logLion = () => {
+    window.logCompete = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logPrestige({ uid, level:"state", xp:25, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logChampionship({ uid, result:"COMPETE", note, tournamentId, matchCount:3 });
     };
-    window.logTiger = () => {
+    window.logChampionshipPlace = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logPrestige({ uid, level:"regional", xp:50, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logChampionship({ uid, result:"PLACE", note, tournamentId, matchCount:3 });
     };
-    window.logBear = () => {
+    window.logChampion = () => {
       const uid = document.getElementById("uid").value.trim();
       const note = document.getElementById("note").value.trim();
-      if (!uid) return alert("Enter UID");
-      logPrestige({ uid, level:"national", xp:75, note });
+      const tournamentId = document.getElementById("tournamentId").value.trim();
+      if (!uid || !tournamentId) return alert("Enter UID and Tournament ID");
+      logChampionship({ uid, result:"CHAMPION", note, tournamentId, matchCount:3 });
     };
   </script>
 </head>
@@ -180,6 +183,9 @@
       <label for="note">Note (optional)</label>
       <input id="note" class="control" placeholder="Bracket/mat/opponent or title" />
 
+      <label for="tournamentId">Tournament ID (required)</label>
+      <input id="tournamentId" class="control" placeholder="Stable event ID" />
+
       <div class="subtle">Tournament</div>
       <div class="btnbar">
         <button class="btn" onclick="logShow()">+10 Show</button>
@@ -187,14 +193,14 @@
         <button class="btn secondary" onclick="logStyle()">+5 Style</button>
       </div>
 
-      <div class="subtle" style="margin-top:.4rem">Prestige (outside monthly tourney caps)</div>
+      <div class="subtle" style="margin-top:.4rem">Declared Championship (requires three matches)</div>
       <div class="btnbar">
-        <button class="btn" onclick="logLion()">Lion — State (+25)</button>
-        <button class="btn secondary" onclick="logTiger()">Tiger — Regional (+50)</button>
-        <button class="btn secondary" onclick="logBear()">Bear — National (+75)</button>
+        <button class="btn" onclick="logCompete()">Compete (+15)</button>
+        <button class="btn secondary" onclick="logChampionshipPlace()">Place (+30)</button>
+        <button class="btn secondary" onclick="logChampion()">Champion (+50)</button>
       </div>
 
-      <p class="muted">Server rules: style ≤1 per tournament; Prestige yearly maxes enforced per config.</p>
+      <p class="muted">Server rules: Arena layers and monthly caps remain enforced; Championship results use the established cumulative totals.</p>
     </div>
   </aside>
 

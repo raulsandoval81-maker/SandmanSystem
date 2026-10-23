@@ -9,7 +9,7 @@
 import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { LADDER_F4, LADDER_F8, canonicalF8RankName, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
@@ -474,29 +474,12 @@ async function giveToOne(id, kind) {
       ? buildDeclaredChampionshipPayload(uid, kind)
       : buildArenaPayload(uid, kind);
 
-  const coachUid =
-    window.COACH_UID ||
-    localStorage.getItem("coachUid") ||
-    "DEV_COACH";
-
-  const res = await fetch(XP_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-coach-uid": String(coachUid).trim(),
-    },
-    body: JSON.stringify({ data: bodyData }),
-  });
-
-  if (!res.ok) return { ok: false, delta: 0, error: `HTTP ${res.status}` };
-
-  let raw = null;
+  let data;
   try {
-    raw = await res.json();
-  } catch {}
-
-  const data = parseFunctionJson(raw) || {};
-  if (!data.ok) return { ok: false, delta: 0, error: data.error || "Blocked" };
+    data = await postAuthoritativeXp(bodyData);
+  } catch (error) {
+    return { ok: false, delta: 0, error: error?.message || "XP request rejected" };
+  }
 
   const delta = Number(data.delta ?? bodyData.amount ?? 0);
 
@@ -547,6 +530,7 @@ async function bulkGive(kind, label) {
 
     let ok = 0;
     let xp = 0;
+    let failed = 0;
 
     for (const id of ids) {
       const r = await giveToOne(id, kind);
@@ -554,6 +538,7 @@ async function bulkGive(kind, label) {
         ok++;
         xp += r.delta;
       } else if (r.error) {
+        failed++;
         setStatus(r.error, false);
       }
     }
@@ -565,7 +550,7 @@ async function bulkGive(kind, label) {
     if (kind === "style" && ok > 0) onStyleIqAwarded();
 
     await load();
-    setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`, true);
+    setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}${failed ? ` • Rejected:${failed}` : ""}`, failed === 0);
   } catch (e) {
     setStatus(e?.message || "Save failed", false);
   } finally {
