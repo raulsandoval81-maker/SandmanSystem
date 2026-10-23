@@ -29,6 +29,16 @@ before(async () => {
     db.doc("staff/admin-phase2").set({ role: "admin", status: "active" }),
     db.doc("athletes/F8_PHASE2_A").set({ fullName: "Athlete A", locationId: "santa-ynez-valley", rosterStatus: "current", journey: "Z2H", rank: "White", tier: "T0" }),
     db.doc("athletes/F8_PHASE2_B").set({ fullName: "Athlete B", locationId: "santa-ynez-valley", rosterStatus: "current", journey: "Z2H", rank: "White", tier: "T0" }),
+    db.doc("athletes/F4_PHASE2_VISITOR").set({ fullName: "Lompoc Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0" }),
+    db.doc("athletes/F4_PHASE2_UNAUTHORIZED").set({ fullName: "Unauthorized Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0", membershipStatus: "active", financialStatus: "current", visitorAuthorized: true }),
+    db.doc("athleteCrossTrainingAssignments/F4_PHASE2_VISITOR_santa-ynez-valley_general").set({
+      athleteId: "F4_PHASE2_VISITOR",
+      homeLocationId: "lompoc",
+      hostLocationId: "santa-ynez-valley",
+      disciplineIds: ["wrestling"],
+      status: "active",
+      approvedBy: "management-lompoc",
+    }),
   ]);
 });
 
@@ -113,6 +123,64 @@ test("checked-in evidence remains separate from the verified present roster", as
   assert.deepEqual(attendance.checkedInIds, ["F8_PHASE2_A", "F8_PHASE2_B"]);
   assert.deepEqual(attendance.presentIds, ["F8_PHASE2_A"]);
   assert.deepEqual(attendance.removedFromReviewIds, ["F8_PHASE2_B"]);
+});
+
+test("authorized cross-academy visitor is discoverable, reviewable, and finalized without changing home enrollment", async () => {
+  const created = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2", {
+    ...afterFactInput("phase2-cross-academy"), entryMode: "coach-directed",
+  });
+  const search = await call(practiceModule.searchPracticeAttendanceAthletes, "coach-phase2", {
+    practiceId: created.practiceId,
+  });
+  assert.equal(search.athletes.some((athlete) => athlete.id === "F8_PHASE2_A" && athlete.attendanceEligibility === "local"), true);
+  assert.equal(search.athletes.some((athlete) => athlete.id === "F4_PHASE2_VISITOR" && athlete.attendanceEligibility === "visitor"), true);
+  assert.equal(search.athletes.some((athlete) => athlete.id === "F4_PHASE2_UNAUTHORIZED"), false);
+  await assert.rejects(
+    () => call(practiceModule.searchPracticeAttendanceAthletes, "coach-wrong-phase2", { practiceId: created.practiceId }),
+    /outside the staff member's authorized scope/i
+  );
+
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId: created.practiceId, action: "add", athleteId: "F8_PHASE2_A",
+  });
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId: created.practiceId, action: "add", athleteId: "F4_PHASE2_VISITOR",
+  });
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId: created.practiceId, action: "remove", athleteId: "F4_PHASE2_VISITOR",
+  });
+  const correctedReview = await call(practiceModule.getPracticeAttendanceReview, "coach-phase2", {
+    practiceId: created.practiceId,
+  });
+  assert.equal(correctedReview.roster.some((athlete) => athlete.id === "F4_PHASE2_VISITOR"), false);
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId: created.practiceId, action: "add", athleteId: "F4_PHASE2_VISITOR",
+  });
+  await assert.rejects(
+    () => call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+      practiceId: created.practiceId, action: "add", athleteId: "F4_PHASE2_UNAUTHORIZED",
+      visitorAuthorized: true,
+    }),
+    /ACTIVE_CROSS_TRAINING_ASSIGNMENT_REQUIRED/i
+  );
+
+  const review = await call(practiceModule.getPracticeAttendanceReview, "coach-phase2", {
+    practiceId: created.practiceId,
+  });
+  assert.equal(review.roster.some((athlete) => athlete.id === "F4_PHASE2_VISITOR" && athlete.homeLocationId === "lompoc"), true);
+
+  await call(practiceModule.finalizePracticeAttendance, "coach-phase2", {
+    practiceId: created.practiceId,
+    presentIds: ["F8_PHASE2_A", "F4_PHASE2_VISITOR"],
+    notes: "Verified cross-academy attendance",
+  });
+  const attendance = (await db.doc(`attendance_sessions/${created.practiceId}`).get()).data();
+  const visitorEvidence = attendance.present.find((athlete) => athlete.id === "F4_PHASE2_VISITOR");
+  assert.equal(visitorEvidence.attendanceEligibility, "visitor");
+  assert.equal(visitorEvidence.homeLocationId, "lompoc");
+  assert.equal(visitorEvidence.attendanceLocationId, "santa-ynez-valley");
+  assert.equal(visitorEvidence.crossTrainingAssignmentId, "F4_PHASE2_VISITOR_santa-ynez-valley_general");
+  assert.equal((await db.doc("athletes/F4_PHASE2_VISITOR").get()).get("locationId"), "lompoc");
 });
 
 test("Coach location scope fails closed while Admin is permitted", async () => {

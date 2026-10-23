@@ -268,6 +268,7 @@ export {
   openPracticeSession,
   createOrRecoverCanonicalPractice,
   getPracticeAttendanceReview,
+  searchPracticeAttendanceAthletes,
   updatePracticeCheckIn,
   finalizePracticeAttendance,
   completePracticeDailyGrind,

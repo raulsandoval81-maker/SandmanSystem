@@ -1,7 +1,5 @@
 import {
   db,
-  collection,
-  getDocs,
   doc,
   getDoc,
   functions,
@@ -443,24 +441,14 @@ async function loadAthletes() {
     await loadCanonicalPractice();
     await checkTodaySessionLock();
 
-    const snap = await getDocs(collection(db, "athletes"));
+    const searchAttendanceAthletes = httpsCallable(functions, "searchPracticeAttendanceAthletes");
+    const response = await searchAttendanceAthletes({ practiceId: activePractice.practiceId });
     const dateEl = $("sessionDateLabel");
 if (dateEl) {
   dateEl.textContent = todayLabel();
 }
 
-    athletes = snap.docs
-      .map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() || {})
-      }))
-      .filter((athlete) => {
-        if (!athlete.id) return false;
-        const status = String(athlete.rosterStatus || "current").toLowerCase();
-        const practiceLocationId = String(activePractice?.locationId || activePractice?.academyId || "").trim();
-        const athleteLocationId = String(athlete.locationId || "").trim();
-        return status === "current" && Boolean(practiceLocationId) && athleteLocationId === practiceLocationId;
-      })
+    athletes = (Array.isArray(response.data?.athletes) ? response.data.athletes : [])
       .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
 
     console.log("[session] athletes loaded:", athletes.length, athletes);

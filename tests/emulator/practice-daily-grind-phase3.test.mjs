@@ -45,7 +45,20 @@ async function attendanceAward(id, practiceId) {
 
 before(async () => {
   await db.doc("staff/coach-phase3").set({ role: "coach", status: "active", locationIds: ["santa-ynez-valley"] });
-  await Promise.all(["F8_P3_NORMAL", "F8_P3_DIRECTED", "F8_P3_AFTER", "F8_P3_ABSENT", "F8_P3_OVERLAP", "F8_P3_AMBIGUOUS"].map(athlete));
+  await Promise.all([
+    ...["F8_P3_NORMAL", "F8_P3_DIRECTED", "F8_P3_AFTER", "F8_P3_ABSENT", "F8_P3_OVERLAP", "F8_P3_AMBIGUOUS"].map(athlete),
+    db.doc("athletes/F4_P3_VISITOR").set({
+      fullName: "Lompoc XP Visitor", locationId: "lompoc", rosterStatus: "current",
+      journey: "P2L", trackBase: "F4", primaryDiscipline: "wrestling",
+      discipline: "wrestling", disciplineIds: ["wrestling"], xp: 0, xpCap: 800,
+      stripeCount: 0, progressionTier: "T0", tier: "T0", rankName: "Apprentice",
+      testing: { state: "ACTIVE" }, tierStatus: "active",
+    }),
+    db.doc("athleteCrossTrainingAssignments/F4_P3_VISITOR_santa-ynez-valley_general").set({
+      athleteId: "F4_P3_VISITOR", homeLocationId: "lompoc", hostLocationId: "santa-ynez-valley",
+      disciplineIds: ["wrestling"], status: "active", approvedBy: "management-lompoc",
+    }),
+  ]);
 });
 after(async () => admin.app().delete());
 
@@ -82,6 +95,21 @@ test("absent athlete fails and readiness remains recoverable", async () => {
   const practiceId = await reconstructed("F8_P3_AFTER", "after-the-fact", "2026-09-24", "absent-check");
   await assert.rejects(() => attendanceAward("F8_P3_ABSENT", practiceId), /ATHLETE_NOT_PRESENT/);
   assert.equal((await db.doc(`attendance_sessions/${practiceId}`).get()).get("readyForDailyGrind"), true);
+});
+
+test("authorized visitor earns attendance XP exactly once against the permanent athlete identity", async () => {
+  const id = "F4_P3_VISITOR";
+  const practiceId = await reconstructed(id, "coach-directed", "2026-09-25", "visitor-xp");
+  const first = await attendanceAward(id, practiceId);
+  const retry = await attendanceAward(id, practiceId);
+  assert.equal(first.idempotent, false);
+  assert.equal(retry.idempotent, true);
+  assert.equal(retry.delta, 0);
+  assert.equal(retry.logId, first.logId);
+  const athleteSnap = await db.doc(`athletes/${id}`).get();
+  assert.equal(athleteSnap.get("locationId"), "lompoc");
+  assert.equal(athleteSnap.get("xp"), 10);
+  assert.equal((await db.doc(`xpLogs/${first.logId}`).get()).get("meta.attendanceSessionId"), practiceId);
 });
 
 test("exact Coach-Verified overlap aliases idempotently without a second award", async () => {

@@ -2,7 +2,11 @@ import { createHash } from "node:crypto";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { COACH_STAFF_ROLES, normalizeStaffRole, requireActiveStaff } from "../services/staffAuthorization";
-import { staffLocationIds } from "../schedules/crossTrainingPolicy";
+import {
+  classifyPracticeAthleteEligibility,
+  PracticeAthleteEligibility,
+  staffLocationIds,
+} from "../schedules/crossTrainingPolicy";
 import { resolveQualifyingRecoveryPractice } from "../modules/decay/decayRecoveryPolicy";
 import { awardReceiptKey } from "../services/authoritativeXpService";
 
@@ -96,6 +100,40 @@ function canonicalPracticeId(identity: string) {
 
 function compactString(value: unknown, max = 240): string {
   return String(value ?? "").trim().slice(0, max);
+}
+
+function attendanceAthleteSummary(athleteId: string, athlete: Record<string, any>, eligibility?: PracticeAthleteEligibility) {
+  return {
+    id: athleteId,
+    uid: athlete.uid || athleteId,
+    name: athlete.name || athlete.publicName || athlete.fullName || athleteId,
+    publicName: athlete.publicName || "",
+    fullName: athlete.fullName || "",
+    program: athlete.program || "",
+    journey: athlete.journey || "",
+    profileType: athlete.profileType || "",
+    ladderKey: athlete.ladderKey || "",
+    tier: athlete.tier || "",
+    rank: athlete.rank || "",
+    homeLocationId: eligibility?.homeLocationId || "",
+    attendanceLocationId: eligibility?.hostLocationId || "",
+    attendanceEligibility: eligibility?.kind || "local",
+    crossTrainingAssignmentId: eligibility?.assignmentId || "",
+  };
+}
+
+async function resolvePracticeAthleteEligibility(
+  reader: { get: (target: any) => Promise<any> },
+  db: FirebaseFirestore.Firestore,
+  args: { athleteId: string; athlete: Record<string, any>; hostLocationId: string; disciplineId: string; }
+): Promise<PracticeAthleteEligibility> {
+  const assignmentsSnap = await reader.get(
+    db.collection("athleteCrossTrainingAssignments").where("athleteId", "==", args.athleteId)
+  );
+  return classifyPracticeAthleteEligibility({
+    ...args,
+    assignments: assignmentsSnap.docs.map((snap: any) => ({ id: snap.id, ...(snap.data() || {}) })),
+  });
 }
 
 function compactCards(value: unknown, blockId = "") {
@@ -463,28 +501,72 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
     db.collection("athletes").where("locationId", "==", locationId).get(),
     db.collection(`practiceSessions/${practiceId}/athletes`).get(),
   ]);
-  const roster = rosterSnap.docs
+  const localRoster = rosterSnap.docs
     .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
     .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
-    .map((athlete) => ({
-      id: athlete.athleteId,
-      uid: athlete.uid || athlete.athleteId,
-      name: athlete.name || athlete.publicName || athlete.fullName || athlete.athleteId,
-      publicName: athlete.publicName || "",
-      fullName: athlete.fullName || "",
-      program: athlete.program || "",
-      journey: athlete.journey || "",
-      profileType: athlete.profileType || "",
-      ladderKey: athlete.ladderKey || "",
-      tier: athlete.tier || "",
-      rank: athlete.rank || "",
+    .map((athlete) => attendanceAthleteSummary(athlete.athleteId, athlete, {
+      eligible: true, kind: "local", athleteId: athlete.athleteId,
+      homeLocationId: locationId, hostLocationId: locationId, assignmentId: "", reason: "LOCAL_ENROLLMENT",
     }));
+  const localIds = new Set(localRoster.map((athlete) => athlete.id));
+  const checkedInVisitors = (Array.isArray(attendanceSnap.data()?.checkedIn) ? attendanceSnap.data()?.checkedIn : [])
+    .filter((athlete: any) => athlete?.attendanceEligibility === "visitor" && !localIds.has(String(athlete.id || athlete.uid || "")))
+    .map((athlete: any) => ({ ...athlete, id: String(athlete.id || athlete.uid || ""), uid: athlete.uid || athlete.id }));
+  const roster = [...localRoster, ...checkedInVisitors];
   const athleteInputs = athleteInputSnap.docs.reduce<Record<string, any>>((result, snap) => {
     const input = snap.data()?.coachInput;
     if (input && typeof input === "object") result[snap.id] = input;
     return result;
   }, {});
   return { ok: true, practiceId, practice, attendance: attendanceSnap.data() || null, roster, athleteInputs };
+});
+
+export const searchPracticeAttendanceAthletes = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
+  const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+  const search = compactString(request.data?.search, 120).toLowerCase();
+  const db = getFirestore();
+  const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
+  if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
+  const practice = practiceSnap.data() || {};
+  const hostLocationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
+  requirePracticeLocation(actor, hostLocationId);
+  if (String(practice.status || "").toLowerCase() !== "active") {
+    throw new HttpsError("failed-precondition", "Athlete search requires an active practice.");
+  }
+  const disciplineId = normalizePracticeDiscipline(practice.discipline);
+  const [localSnap, assignmentsSnap] = await Promise.all([
+    db.collection("athletes").where("locationId", "==", hostLocationId).get(),
+    db.collection("athleteCrossTrainingAssignments").where("hostLocationId", "==", hostLocationId).get(),
+  ]);
+  const assignmentsByAthlete = new Map<string, Array<Record<string, any> & { id: string }>>();
+  assignmentsSnap.docs.forEach((snap) => {
+    const assignment = { id: snap.id, ...(snap.data() || {}) } as Record<string, any> & { id: string };
+    const athleteId = String(assignment.athleteId || assignment.athleteUid || "").trim();
+    if (!athleteId) return;
+    assignmentsByAthlete.set(athleteId, [...(assignmentsByAthlete.get(athleteId) || []), assignment]);
+  });
+  const local = localSnap.docs.map((snap) => ({ id: snap.id, data: snap.data() || {}, assignments: [] as Array<Record<string, any>> }));
+  const visitorIds = [...assignmentsByAthlete.keys()].filter((athleteId) => !local.some((item) => item.id === athleteId));
+  const visitorSnaps = visitorIds.length ? await db.getAll(...visitorIds.map((athleteId) => db.doc(`athletes/${athleteId}`))) : [];
+  const candidates = [
+    ...local,
+    ...visitorSnaps.filter((snap) => snap.exists).map((snap) => ({
+      id: snap.id, data: snap.data() || {}, assignments: assignmentsByAthlete.get(snap.id) || [],
+    })),
+  ];
+  const athletes = candidates.flatMap((candidate) => {
+    const eligibility = classifyPracticeAthleteEligibility({
+      athleteId: candidate.id, athlete: candidate.data, hostLocationId, disciplineId,
+      assignments: candidate.assignments,
+    });
+    if (!eligibility.eligible) return [];
+    const summary = attendanceAthleteSummary(candidate.id, candidate.data, eligibility);
+    const haystack = `${summary.name} ${summary.publicName} ${summary.fullName} ${summary.id}`.toLowerCase();
+    return search && !haystack.includes(search) ? [] : [summary];
+  }).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  return { ok: true, practiceId, hostLocationId, athletes };
 });
 
 export const updatePracticeCheckIn = onCall(async (request) => {
@@ -516,12 +598,17 @@ export const updatePracticeCheckIn = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "This attendance record is already submitted.");
     }
     let athlete: Record<string, any> | null = null;
+    let attendanceEligibility: PracticeAthleteEligibility | null = null;
     if (action === "add") {
       const athleteSnap = await tx.get(db.doc(`athletes/${athleteId}`));
       if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
       athlete = athleteSnap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", "Athlete is outside the practice location.");
+      attendanceEligibility = await resolvePracticeAthleteEligibility(tx, db, {
+        athleteId, athlete, hostLocationId: locationId,
+        disciplineId: normalizePracticeDiscipline(practice.discipline),
+      });
+      if (!attendanceEligibility.eligible) {
+        throw new HttpsError("permission-denied", `Athlete is not authorized for this practice: ${attendanceEligibility.reason}`);
       }
     }
     const checkedIn = new Map<string, Record<string, any>>(
@@ -532,11 +619,7 @@ export const updatePracticeCheckIn = onCall(async (request) => {
     const now = FieldValue.serverTimestamp();
     if (action === "add" && athlete) {
       checkedIn.set(athleteId, {
-        id: athleteId, uid: athlete.uid || athleteId,
-        name: athlete.name || athlete.publicName || athlete.fullName || athleteId,
-        publicName: athlete.publicName || "", fullName: athlete.fullName || "",
-        program: athlete.program || "", journey: athlete.journey || "",
-        profileType: athlete.profileType || "", tier: athlete.tier || "", rank: athlete.rank || "",
+        ...attendanceAthleteSummary(athleteId, athlete, attendanceEligibility || undefined),
         checkedInAt: Timestamp.now(),
       });
     }
@@ -625,27 +708,29 @@ export const finalizePracticeAttendance = onCall(async (request) => {
     const athleteSnaps = await Promise.all(athleteRefs.map((ref) => tx.get(ref)));
     const athleteSessionRefs = requestedPresentIds.map((athleteId) => db.doc(`practiceSessions/${practiceId}/athletes/${athleteId}`));
     const athleteSessionSnaps = await Promise.all(athleteSessionRefs.map((ref) => tx.get(ref)));
+    const assignmentSnaps = await Promise.all(requestedPresentIds.map((athleteId) => tx.get(
+      db.collection("athleteCrossTrainingAssignments").where("athleteId", "==", athleteId)
+    )));
     const athletes = athleteSnaps.map((snap, index) => {
       if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${requestedPresentIds[index]}`);
-      const athlete = snap.data() || {};
-      if (String(athlete.locationId || "") !== locationId) {
-        throw new HttpsError("permission-denied", `Athlete is outside the practice location: ${requestedPresentIds[index]}`);
-      }
-      if (String(athlete.rosterStatus || "current").toLowerCase() !== "current") {
-        throw new HttpsError("failed-precondition", `Athlete is not on the current roster: ${requestedPresentIds[index]}`);
-      }
-      return athlete;
+      return snap.data() || {};
     });
     const now = FieldValue.serverTimestamp();
     const discipline = normalizePracticeDiscipline(practice.discipline);
-    const present = athletes.map((athlete, index) => ({
-      id: requestedPresentIds[index], uid: athlete.uid || requestedPresentIds[index],
-      name: athlete.name || athlete.publicName || athlete.fullName || requestedPresentIds[index],
-      publicName: athlete.publicName || "", fullName: athlete.fullName || "",
-      program: athlete.program || "", journey: athlete.journey || "",
-      profileType: athlete.profileType || "", ladderKey: athlete.ladderKey || "",
-      tier: athlete.tier || "", rank: athlete.rank || "",
+    const eligibility = athletes.map((athlete, index) => classifyPracticeAthleteEligibility({
+      athleteId: requestedPresentIds[index], athlete, hostLocationId: locationId, disciplineId: discipline,
+      assignments: assignmentSnaps[index].docs.map((snap: any) => ({ id: snap.id, ...(snap.data() || {}) })),
     }));
+    const deniedIndex = eligibility.findIndex((item) => !item.eligible);
+    if (deniedIndex >= 0) {
+      throw new HttpsError(
+        "permission-denied",
+        `Athlete is not authorized for this practice: ${requestedPresentIds[deniedIndex]} (${eligibility[deniedIndex].reason})`
+      );
+    }
+    const present = athletes.map((athlete, index) => attendanceAthleteSummary(
+      requestedPresentIds[index], athlete, eligibility[index]
+    ));
     const checkedIn = Array.isArray(existing.checkedIn) ? existing.checkedIn : [];
     const checkedInIds = Array.isArray(existing.checkedInIds) ? existing.checkedInIds : [];
     const removedFromReviewIds = checkedInIds.filter((id: unknown) => !requestedPresentIds.includes(String(id)));
