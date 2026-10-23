@@ -37,9 +37,14 @@ const f4 = (overrides = {}) => ({
   uid: "F4_2000", trackBase: "F4", tier: "T1", xp: 100, xpCap: 1600,
   ...overrides,
 });
-const request = (kind, amount, meta = {}) => normalizeXpRequest({
-  uid: "F8_2000", kind, amount, meta,
-});
+const request = (kind, amount, meta = {}) => {
+  const attendance = ["ATTENDANCE", "DAILY_GRIND"].includes(String(kind).toUpperCase());
+  const trustedMeta = attendance ? {
+    practiceEvidenceKey: `practice-evidence-v1:2026-10-23:wrestling:${meta.attendanceSessionId || "unit-practice"}`,
+    ...meta,
+  } : meta;
+  return normalizeXpRequest({ uid: "F8_2000", kind, amount, meta: trustedMeta });
+};
 const plan = (athlete, req, extra = {}, monthly = {}) => buildAwardPlan({
   athlete, athleteId: athlete.uid, request: req, monthly, ...extra,
 });
@@ -74,7 +79,11 @@ test("two separately identified F8 practices in one discipline/day can reach 20"
     attendanceSessionId: "attendance-2", sessionId: "mat-1", discipline: "wrestling",
   });
   const out = plan(f8(), req, { practiceState: { count: 1, xp: 10 } });
-  assert.deepEqual(out.practiceStateAfter, { count: 2, xp: 20 });
+  assert.deepEqual(out.practiceStateAfter, {
+    count: 2,
+    xp: 20,
+    evidenceKeys: ["practice-evidence-v1:2026-10-23:wrestling:attendance-2"],
+  });
 });
 
 test("a third F8 practice in one discipline/day is rejected", () => {
