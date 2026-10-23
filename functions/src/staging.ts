@@ -23,3 +23,7 @@ export {
 
 // Existing authenticated XP HTTP service, isolated to the staging Firebase project.
 export { xpHttp } from "./modules/xpHttp";
+
+// Staging-only, server-authorized synthetic completion. Deliberately absent
+// from src/index.ts so no production deployment can expose this callable.
+export { completeSyntheticPracticeForTesting } from "./staging/syntheticPracticeCompletion";

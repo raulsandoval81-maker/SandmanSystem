@@ -42,7 +42,7 @@ stage("staff/staging-outsider-coach", { role: "coach", status: "active", locatio
 stage("athletes/staging-athlete-beginner", {
   name: "Synthetic Beginner", displayName: "Synthetic Beginner",
   locationId: "santa-ynez-valley", academyId: "staging-academy", coachIds: ["staging-coach-wrestling"],
-  discipline: "wrestling", journey: "Z2H", profileType: "youth"
+  discipline: "wrestling", journey: "Z2H", profileType: "youth", syntheticTestXpEnabled: true
 });
 stage("athletes/staging-athlete-intermediate", {
   name: "Synthetic Intermediate", displayName: "Synthetic Intermediate",
@@ -60,6 +60,27 @@ stage("attendance_sessions/staging-wrestling-practice", { practiceId: "staging-w
 for (const athleteId of roster) {
   stage(`practiceSessions/staging-wrestling-practice/athletes/${athleteId}`, { practiceId: "staging-wrestling-practice", athleteId, discipline: "wrestling", attendance: { status: "present" } });
 }
+
+const syntheticClockPractice = "staging-synthetic-clock-practice";
+const syntheticClockAthlete = "staging-athlete-beginner";
+stage(`practiceSessions/${syntheticClockPractice}`, {
+  practiceId: syntheticClockPractice, coachUid: "staging-coach-wrestling",
+  locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling",
+  journey: "Z2H", program: "youth-z2h-wrestling", sessionDateKey: "2026-10-10",
+  status: "active", liveSessionId: "staging-synthetic-clock-live", roomId: "staging-mat-1",
+  syntheticTestCompletionEnabled: true, syntheticTestAthleteId: syntheticClockAthlete, createdAt: now,
+});
+stage(`attendance_sessions/${syntheticClockPractice}`, {
+  practiceId: syntheticClockPractice, sessionId: syntheticClockPractice, discipline: "wrestling",
+  status: "pending", finalized: false,
+  checkedIn: [{ id: syntheticClockAthlete, uid: syntheticClockAthlete, name: "Synthetic Beginner" }],
+  checkedInIds: [syntheticClockAthlete], checkedInCount: 1,
+  syntheticTestCompletionEnabled: true, syntheticTestAthleteId: syntheticClockAthlete,
+});
+stage(`practiceSessions/${syntheticClockPractice}/athletes/${syntheticClockAthlete}`, {
+  practiceId: syntheticClockPractice, athleteId: syntheticClockAthlete, discipline: "wrestling",
+  attendance: { status: "present" }, syntheticTestCompletionEnabled: true,
+});
 
 const historyPractice = "staging-wrestling-history";
 stage(`practiceSessions/${historyPractice}`, { coachUid: "staging-coach-wrestling", locationId: "santa-ynez-valley", academyId: "staging-academy", discipline: "wrestling", sessionDateKey: "2026-09-15", status: "closed" });

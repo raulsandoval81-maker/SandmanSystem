@@ -715,3 +715,13 @@ body{
 /* Keep My Practice Log QR unobtrusive at lower-left during execution. */
 .live-companion-tools{left:clamp(12px,2vw,28px);right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 16px);align-items:flex-start}
 @media(max-width:700px){.live-companion-tools{left:12px;right:auto;top:auto;bottom:calc(env(safe-area-inset-bottom) + 12px)}}
+
+.synthetic-completion{
+  width:min(92vw,560px);margin:18px auto 0;padding:14px 16px;
+  border:2px solid #ff9f1c;border-radius:14px;background:#2a1605;color:#fff;text-align:center;
+}
+.synthetic-completion strong{display:block;color:#ffbd59;letter-spacing:.08em}
+.synthetic-completion p{margin:7px 0 12px;font-size:.84rem;line-height:1.4}
+.synthetic-completion button{min-height:46px;padding:10px 18px;border:0;border-radius:10px;background:#ff9f1c;color:#17100a;font-weight:900;cursor:pointer}
+.synthetic-completion button:disabled{opacity:.55;cursor:wait}
+.synthetic-completion span{display:block;min-height:1.2em;margin-top:9px;font-size:.8rem}

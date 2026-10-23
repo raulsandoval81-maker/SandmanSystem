@@ -371,6 +371,9 @@ function renderSummary() {
     </p>
 
     ${canonicalPractice ? `
+      ${canonicalPractice.sessionMemory?.syntheticExecution?.synthetic === true
+        ? '<p class="warning"><strong>STAGING SYNTHETIC TEST:</strong> 0 real training minutes and no worked cards. This marker is authoritative and must remain attached to this test record.</p>'
+        : ""}
       <p><strong>Planned duration:</strong> ${plannedMinutes || canonicalPractice.durationMinutes || "Not recorded"} min · <strong>Actual elapsed:</strong> Unverified</p>
       <p><strong>Training groups:</strong> ${groups.length ? groups.length : "Not available in practice record"} · <strong>Checked in:</strong> ${checkedIn ?? "Not available"} · <strong>Verified present:</strong> ${verified ?? "Not available"}</p>
       ${plannedMinutes > structure.totalMinutes ? '<p class="muted">The worked-block record is incomplete relative to the plan; do not interpret worked minutes as actual elapsed time.</p>' : ""}

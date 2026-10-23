@@ -98,6 +98,23 @@ function compactString(value: unknown, max = 240): string {
   return String(value ?? "").trim().slice(0, max);
 }
 
+function requireSyntheticTestRoster(practice: Record<string, any>, athleteIds: string[], requireCompletion = false): void {
+  if (practice.syntheticTestCompletionEnabled !== true) return;
+  const configuredProject = String(process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || "").trim();
+  let firebaseProject = "";
+  try { firebaseProject = String(JSON.parse(process.env.FIREBASE_CONFIG || "{}").projectId || "").trim(); } catch { /* fail closed below */ }
+  if ((configuredProject || firebaseProject) !== "sandman-combat-staging" || practice.synthetic !== true) {
+    throw new HttpsError("failed-precondition", "Synthetic test attendance is restricted to the isolated staging project.");
+  }
+  const designated = String(practice.syntheticTestAthleteId || "").trim();
+  if (!designated || athleteIds.length !== 1 || athleteIds[0] !== designated) {
+    throw new HttpsError("failed-precondition", "Synthetic test attendance is restricted to its designated test athlete.");
+  }
+  if (requireCompletion && practice.sessionMemory?.syntheticExecution?.synthetic !== true) {
+    throw new HttpsError("failed-precondition", "Authoritative synthetic completion evidence is required before attendance finalization.");
+  }
+}
+
 function compactCards(value: unknown, blockId = "") {
   if (!Array.isArray(value)) return [];
   if (value.length > 80) throw new HttpsError("invalid-argument", "Session memory cannot contain more than 80 cards.");
@@ -466,6 +483,8 @@ export const getPracticeAttendanceReview = onCall(async (request) => {
   const roster = rosterSnap.docs
     .map((snap): Record<string, any> => ({ athleteId: snap.id, ...(snap.data() || {}) }))
     .filter((athlete) => String(athlete.rosterStatus || "current").toLowerCase() === "current")
+    .filter((athlete) => practice.syntheticTestCompletionEnabled !== true
+      || athlete.athleteId === String(practice.syntheticTestAthleteId || ""))
     .map((athlete) => ({
       id: athlete.athleteId,
       uid: athlete.uid || athlete.athleteId,
@@ -512,6 +531,15 @@ export const updatePracticeCheckIn = onCall(async (request) => {
     }
     const attendanceSnap = await tx.get(attendanceRef);
     const existing = attendanceSnap.data() || {};
+    if (practice.syntheticTestCompletionEnabled === true) {
+      if (action === "remove") {
+        throw new HttpsError("failed-precondition", "The designated synthetic test athlete cannot be removed from this test session.");
+      }
+      const syntheticIds = action === "add"
+        ? [athleteId]
+        : Array.isArray(existing.checkedInIds) ? existing.checkedInIds.map(String) : [];
+      requireSyntheticTestRoster(practice, syntheticIds);
+    }
     if (["pending_review", "finalized"].includes(String(existing.status || "").toLowerCase())) {
       throw new HttpsError("failed-precondition", "This attendance record is already submitted.");
     }
@@ -588,6 +616,7 @@ export const finalizePracticeAttendance = onCall(async (request) => {
     const [practiceSnap, attendanceSnap] = await Promise.all([tx.get(practiceRef), tx.get(attendanceRef)]);
     if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
     const practice = practiceSnap.data() || {};
+    requireSyntheticTestRoster(practice, requestedPresentIds, true);
     const locationId = requiredString(practice.locationId || practice.academyId, "practice locationId");
     requirePracticeLocation(actor, locationId);
     const practiceDiscipline = normalizePracticeDiscipline(practice.discipline);
