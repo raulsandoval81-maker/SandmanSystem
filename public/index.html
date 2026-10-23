@@ -270,7 +270,12 @@ html[data-theme="light"] .gateway-title{
     text-transform:uppercase;
   }
 
-  .finder__intro{
+  .finder .finder__heading{
+    font-size:clamp(1.05rem,3vw,1.4rem);
+    letter-spacing:.055em;
+  }
+
+    .finder__intro{
     max-width:570px;
     margin:.7rem auto 1.3rem;
     color:var(--muted);
@@ -782,26 +787,13 @@ html[data-theme="light"] .gateway-title{
     <section class="finder">
 
       <div data-lang-block="en">
-
-
-        <p class="finder__intro">
-          Search by city to find an academy
-          currently available in your area.
-        </p>
-
+        <h2 class="finder__heading">Find Your Sandman Academy</h2>
+        <p class="finder__intro">Explore other locations or bring Sandman to your community.</p>
       </div>
 
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-
-        <p class="finder__intro">
-          Busca por ciudad para encontrar una academia
-          disponible actualmente en tu área.
-        </p>
-
+      <div data-lang-block="es" class="hidden-lang">
+        <h2 class="finder__heading">Encuentra Tu Academia Sandman</h2>
+        <p class="finder__intro">Explora otras sedes o trae Sandman a tu comunidad.</p>
       </div>
 
 
