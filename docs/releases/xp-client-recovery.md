@@ -8,11 +8,12 @@ Daily Grind, Attendance review, Weekend Arena, Duel Arena, Declared Championship
 
 ## Active callable clients
 
-Championship Arena and Coach Weekly submit through `awardXP` and the `incrementXp` callable. The shared callable gateway now invokes `requireCoach` before submission; Firebase Functions supplies the signed session token to the callable. Coach Weekly now uses explicit Arena and Championship kinds and requires a stable tournament identity.
+Championship Arena submits through `awardXP` and the `incrementXp` callable. The shared callable gateway now invokes `requireCoach` before submission; Firebase Functions supplies the signed session token to the callable.
 
 ## Retired and non-production paths
 
 - `public/coaches/tools/coach-daily.html` is a legacy bulk Attendance shortcut that cannot supply authoritative attendance evidence. It remains in source for historical reference, but the active Tools navigation now routes to canonical Daily Grind.
+- `public/coaches/tools/coach-weekly.html` is an owner-confirmed placeholder. Its existing page and navigation link are preserved unchanged, and it is excluded from V1 XP release certification.
 - `public/dev/` XP tools are development-only and are not production Coach entry points.
 - `public/assets/js/service.js` exposes an unused legacy callable wrapper; no active page imports it.
 
