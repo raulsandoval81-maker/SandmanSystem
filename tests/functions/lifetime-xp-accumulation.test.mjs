@@ -21,7 +21,12 @@ function f8(overrides = {}) {
 }
 
 function request(kind, amount, meta = {}) {
-  return normalizeXpRequest({ uid: "F8_LIFE", kind, amount, meta });
+  const trustedMeta = kind === "ATTENDANCE" ? {
+    attendanceSessionId: "lifetime-accumulation-practice",
+    practiceEvidenceKey: "practice-evidence-v1:2026-10-23:wrestling:lifetime-accumulation-practice",
+    ...meta,
+  } : meta;
+  return normalizeXpRequest({ uid: "F8_LIFE", kind, amount, meta: trustedMeta });
 }
 
 test("positive Active Rank XP accumulates Lifetime XP 1:1", () => {
