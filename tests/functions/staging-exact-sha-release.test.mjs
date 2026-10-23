@@ -739,6 +739,29 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.doesNotMatch(workflow, /firestore:rules|storage:rules|--only functions(?!:)/);
 });
 
+test("PR240 validation selects direct Clipboard routing and four-group safeguards", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const lines = workflow.split("\n");
+  const conditionBefore = assertion => {
+    const assertionIndex = lines.findIndex(line => line.includes(assertion));
+    assert.ok(assertionIndex > 0, `Missing workflow assertion: ${assertion}`);
+    return lines[assertionIndex - 1];
+  };
+
+  assert.match(
+    conditionBefore("grep -Fq '/coaches/execution/clipboard-2.0/?session='"),
+    /xp-client-auth-pr240-ee96af6a/
+  );
+  assert.match(
+    conditionBefore("grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3'"),
+    /xp-client-auth-pr240-ee96af6a/
+  );
+  assert.equal(
+    lines.filter(line => line.includes("grep -q 'autoBlocked = selectedMode === \"auto\"'")).length,
+    1
+  );
+});
+
 test("workflow separates validation from protected explicit deployment", async () => {
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   assert.match(workflow, /- validate\s*\n/);
