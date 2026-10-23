@@ -76,6 +76,75 @@ export function crossTrainingAssignmentId(athleteId: string, hostLocationId: str
   return `${cleanScheduleValue(athleteId)}_${normalizeScheduleLocationId(hostLocationId)}_${roster}`;
 }
 
+function assignmentDateMillis(value: any): number | null {
+  if (!value) return null;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  if (Number.isFinite(value.seconds)) return Number(value.seconds) * 1000;
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+export type PracticeAthleteEligibility = {
+  eligible: boolean;
+  kind: "local" | "visitor" | "unauthorized";
+  athleteId: string;
+  homeLocationId: string;
+  hostLocationId: string;
+  assignmentId: string;
+  reason: string;
+};
+
+export function classifyPracticeAthleteEligibility(args: {
+  athleteId: unknown;
+  athlete: Record<string, any>;
+  hostLocationId: unknown;
+  disciplineId: unknown;
+  assignments?: Array<Record<string, any> & { id?: string }>;
+  now?: Date;
+}): PracticeAthleteEligibility {
+  const athleteId = cleanScheduleValue(args.athleteId);
+  const homeLocationId = athleteHomeLocationId(args.athlete);
+  const hostLocationId = normalizeScheduleLocationId(args.hostLocationId);
+  const disciplineId = normalizeScheduleDisciplineId(args.disciplineId);
+  const rosterStatus = cleanScheduleValue(args.athlete.rosterStatus || "current").toLowerCase();
+  const denied = (reason: string): PracticeAthleteEligibility => ({
+    eligible: false, kind: "unauthorized", athleteId, homeLocationId, hostLocationId,
+    assignmentId: "", reason,
+  });
+  if (!athleteId || !homeLocationId || !hostLocationId) return denied("MISSING_ATTENDANCE_IDENTITY");
+  if (rosterStatus !== "current") return denied("ATHLETE_NOT_CURRENT");
+  if (homeLocationId === hostLocationId) {
+    return { eligible: true, kind: "local", athleteId, homeLocationId, hostLocationId, assignmentId: "", reason: "LOCAL_ENROLLMENT" };
+  }
+  if (!disciplineId || disciplineId === "unassigned") return denied("VISITOR_DISCIPLINE_REQUIRED");
+
+  const nowMillis = (args.now || new Date()).getTime();
+  const assignment = (args.assignments || []).find((candidate) => {
+    const status = cleanScheduleValue(candidate.status).toLowerCase();
+    const disciplines = new Set(
+      (Array.isArray(candidate.disciplineIds) ? candidate.disciplineIds : [candidate.disciplineId])
+        .map(normalizeScheduleDisciplineId).filter(Boolean)
+    );
+    const from = assignmentDateMillis(candidate.activeFrom);
+    const to = assignmentDateMillis(candidate.activeTo);
+    return status === "active"
+      && cleanScheduleValue(candidate.approvedBy)
+      && cleanScheduleValue(candidate.athleteId || candidate.athleteUid) === athleteId
+      && normalizeScheduleLocationId(candidate.homeLocationId) === homeLocationId
+      && normalizeScheduleLocationId(candidate.hostLocationId) === hostLocationId
+      && disciplines.has(disciplineId)
+      && (from === null || from <= nowMillis)
+      && (to === null || to >= nowMillis);
+  });
+  if (!assignment) return denied("ACTIVE_CROSS_TRAINING_ASSIGNMENT_REQUIRED");
+  return {
+    eligible: true, kind: "visitor", athleteId, homeLocationId, hostLocationId,
+    assignmentId: cleanScheduleValue(assignment.id || assignment.assignmentId),
+    reason: "AUTHORIZED_CROSS_TRAINING",
+  };
+}
+
 export function canReadAthleteScheduleScope(
   callerUid: unknown,
   athleteAuthUid: unknown,

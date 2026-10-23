@@ -24,6 +24,22 @@ test("Coach-Directed check-in uses server-authorized mutations without changing 
   assert.doesNotMatch(checkIn, /\bsetDoc\(|\bupdateDoc\(/);
 });
 
+test("attendance discovery is host-scoped and visitor permission is resolved by one shared server policy", async () => {
+  const [server, policy, checkIn] = await Promise.all([
+    read("functions/src/practice/practiceSessions.ts"),
+    read("functions/src/schedules/crossTrainingPolicy.ts"),
+    read("public/coaches/attendance/session.js"),
+  ]);
+  assert.match(server, /export const searchPracticeAttendanceAthletes/);
+  assert.match(server, /where\("hostLocationId", "==", hostLocationId\)/);
+  assert.match(server, /resolvePracticeAthleteEligibility[\s\S]*export const updatePracticeCheckIn/);
+  const finalizer = server.slice(server.indexOf("export const finalizePracticeAttendance"), server.indexOf("export const getPracticeSession"));
+  assert.match(finalizer, /classifyPracticeAthleteEligibility/);
+  assert.match(policy, /ACTIVE_CROSS_TRAINING_ASSIGNMENT_REQUIRED/);
+  assert.match(checkIn, /httpsCallable\(functions, "searchPracticeAttendanceAthletes"\)/);
+  assert.doesNotMatch(checkIn, /collection\(db,\s*["']athletes["']\)/);
+});
+
 test("After-the-Fact finalization uses canonical date and never fabricates check-in evidence", async () => {
   const server = await read("functions/src/practice/practiceSessions.ts");
   assert.match(server, /sessionDateKey = requireSessionDateKey\(practice\.sessionDateKey/);
