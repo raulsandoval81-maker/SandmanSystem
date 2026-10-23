@@ -37,13 +37,10 @@ test("shared HTTP client requires a non-anonymous Coach and reports only server 
   assert.match(source, /throw new AuthoritativeXpRequestError/);
 });
 
-test("callable XP producers also require the protected Coach guard", () => {
+test("the active callable XP gateway requires the protected Coach guard", () => {
   const gateway = read("public/assets/js/xp-api.js");
-  const weekly = read("public/coaches/tools/coach-weekly.html");
   assert.match(gateway, /await requireCoach\(\);[\s\S]*await _incrementXp\(payload\)/);
   assert.doesNotMatch(gateway, /signInAnonymously/);
-  assert.match(weekly, /import \{ awardXP \} from "\/assets\/js\/xp-api\.js"/);
-  assert.doesNotMatch(weekly, /httpsCallable\([^)]*incrementXp/);
 });
 
 test("Arena Log supplies canonical kind and stable tournament identity", () => {
@@ -54,14 +51,10 @@ test("Arena Log supplies canonical kind and stable tournament identity", () => {
   assert.match(source, /XP rejected:/);
 });
 
-test("Coach Weekly no longer sends ambiguous legacy Tournament or Prestige awards", () => {
-  const source = read("public/coaches/tools/coach-weekly.html");
-  assert.match(source, /kind:"ARENA\/BATTLE"/);
-  assert.match(source, /kind:"ARENA\/PODIUM"/);
-  assert.match(source, /kind:"ARENA\/STYLEIQ"/);
-  assert.match(source, /kind:`CHAMPIONSHIP\/\$\{result\}`/);
-  assert.doesNotMatch(source, /kind:"TOURNAMENT"/);
-  assert.doesNotMatch(source, /kind:"PRESTIGE"/);
+test("Coach Weekly is documented as a preserved placeholder outside V1 certification", () => {
+  const inventory = read("docs/releases/xp-client-recovery.md");
+  assert.match(inventory, /coach-weekly\.html[^\n]*owner-confirmed placeholder/i);
+  assert.match(inventory, /excluded from V1 XP release certification/i);
 });
 
 test("failed optimistic Championship awards restore the displayed XP", () => {
