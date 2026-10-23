@@ -47,6 +47,7 @@ const pr187ValidatorRelease = await loadRelease("clipboard-hybrid-pr187-f4ff13f7
 const pr189CleanupRelease = await loadRelease("clipboard-cleanup-pr189-9484b8ab");
 const pr191RedirectRelease = await loadRelease("clipboard-redirect-pr191-55e27c81");
 const pr193WavesRelease = await loadRelease("clipboard-waves-pr193-c750a4cb");
+const pr253CrossAcademyRelease = await loadRelease("cross-academy-pr253-e9980457");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -650,6 +651,52 @@ test("invalid and unapproved source revisions are rejected", async () => {
   await assert.rejects(loadRelease("unreviewed-release"), /not approved/);
 });
 
+test("PR253 cross-academy release pins the exact source, Hosting client, and attendance callables", () => {
+  const result = validateRelease(pr253CrossAcademyRelease, context({
+    checkedOutSha: pr253CrossAcademyRelease.applicationSha,
+    hostingDeployer: pr253CrossAcademyRelease.hostingDeployer,
+    functionDeployer: pr253CrossAcademyRelease.functionDeployer,
+    functionRuntime: pr253CrossAcademyRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 253);
+  assert.equal(result.applicationSha, "e998045771fd2f0d92cba5615185175fd8299dfd");
+  assert.equal(result.requiredAncestorSha, "d052d1de915faf0ed16eca4c0134f00fd2b78289");
+  assert.equal(result.hosting, true);
+  assert.ok(result.allowedChangedFiles.includes("public/coaches/attendance/session.js"));
+  assert.deepEqual(result.functions, [
+    "searchPracticeAttendanceAthletes",
+    "getPracticeAttendanceReview",
+    "updatePracticeCheckIn",
+    "finalizePracticeAttendance",
+  ]);
+  assert.deepEqual(result.newFunctions, ["searchPracticeAttendanceAthletes"]);
+  assert.equal(validateRemotePreflight(result, {
+    marker,
+    runtimeByFunction: Object.fromEntries(result.functions.map(name => [
+      name,
+      result.newFunctions.includes(name) ? "__absent__" : result.functionRuntime,
+    ])),
+  }), true);
+  assert.throws(() => validateRelease({
+    ...result,
+    functions: result.functions.slice(0, -1),
+  }, context({
+    checkedOutSha: result.applicationSha,
+    hostingDeployer: result.hostingDeployer,
+    functionDeployer: result.functionDeployer,
+    functionRuntime: result.functionRuntime,
+  })), /Unexpected function/);
+  assert.throws(() => validateRelease({
+    ...result,
+    newFunctions: ["finalizePracticeAttendance"],
+  }, context({
+    checkedOutSha: result.applicationSha,
+    hostingDeployer: result.hostingDeployer,
+    functionDeployer: result.functionDeployer,
+    functionRuntime: result.functionRuntime,
+  })), /Unexpected new function/);
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });
@@ -723,6 +770,7 @@ test("workflow keeps trusted tooling separate from application source and exact 
   assert.match(workflow, /clipboard-hybrid-pr187-f4ff13f7/);
   assert.match(workflow, /clipboard-cleanup-pr189-9484b8ab/);
   assert.match(workflow, /clipboard-redirect-pr191-55e27c81/);
+  assert.match(workflow, /cross-academy-pr253-e9980457/);
   assert.match(workflow, /road2champion-wrestling-tier-waves\.test\.mjs/);
   assert.match(workflow, /hybrid-clipboard-handoff-recovery\.test\.mjs/);
   assert.match(workflow, /attendance-submitted-resume\.test\.mjs/);
@@ -760,6 +808,27 @@ test("PR240 validation selects direct Clipboard routing and four-group safeguard
     lines.filter(line => line.includes("grep -q 'autoBlocked = selectedMode === \"auto\"'")).length,
     1
   );
+});
+
+test("PR253 validation uses modern Attendance branches and manifest-driven callable safeguards", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const lines = workflow.split("\n");
+  const conditionBefore = assertion => {
+    const assertionIndex = lines.findIndex(line => line.includes(assertion));
+    assert.ok(assertionIndex > 0, `Missing workflow assertion: ${assertion}`);
+    return lines[assertionIndex - 1];
+  };
+
+  assert.match(conditionBefore("grep -Fq '/coaches/execution/clipboard-2.0/?session='"), /cross-academy-pr253-e9980457/);
+  assert.match(conditionBefore("grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3'"), /cross-academy-pr253-e9980457/);
+  assert.match(workflow, /function_matrix=.*JSON\.stringify/);
+  assert.match(workflow, /fromJSON\(needs\.validate-source\.outputs\.function_matrix\)/);
+  assert.match(workflow, /r\.functions\.map\(n=>\{const d=JSON\.parse/);
+  assert.match(workflow, /d\.absent\?"__absent__"/);
+  assert.match(workflow, /if \(before\.absent\)/);
+  assert.match(workflow, /searchPracticeAttendanceAthletes\|getPracticeAttendanceReview\|updatePracticeCheckIn\|finalizePracticeAttendance/);
+  assert.match(workflow, /tests\/functions\/cross-training-policy\.test\.mjs/);
+  assert.match(workflow, /tests\/functions\/practice-attendance-lanes\.test\.mjs/);
 });
 
 test("workflow separates validation from protected explicit deployment", async () => {
