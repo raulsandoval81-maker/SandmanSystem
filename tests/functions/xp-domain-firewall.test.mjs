@@ -92,7 +92,11 @@ test("authoritative XP uses accepted delta for one componentized Lifetime mutati
     uid: athlete.uid,
     kind: "ATTENDANCE",
     amount: 10,
-    meta: { attendanceSessionId: "session-1", sessionId: "practice-1" },
+    meta: {
+      attendanceSessionId: "session-1",
+      sessionId: "practice-1",
+      practiceEvidenceKey: "practice-evidence-v1:2026-10-23:wrestling:session-1",
+    },
   });
   const plan = buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} });
   const lifetime = buildLifetimeAwardUpdate(athlete, plan, "wrestling");
