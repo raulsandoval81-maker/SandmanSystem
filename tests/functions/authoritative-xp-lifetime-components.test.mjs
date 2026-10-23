@@ -25,7 +25,11 @@ function athlete(base, overrides = {}) {
 }
 
 function request(uid, kind, amount) {
-  return normalizeXpRequest({ uid, kind, amount, meta: {} });
+  const meta = kind === "ATTENDANCE" ? {
+    attendanceSessionId: "lifetime-components-practice",
+    practiceEvidenceKey: "practice-evidence-v1:2026-10-23:wrestling:lifetime-components-practice",
+  } : {};
+  return normalizeXpRequest({ uid, kind, amount, meta });
 }
 
 function lifetimeUpdate(base, kind, amount, overrides = {}) {
