@@ -62,6 +62,7 @@ on:
           - xp-http-headers-pr231-fe378b4
           - xp-client-auth-pr240-ee96af6a
           - single-roster-pr217-7beb0a6
+          - cross-academy-pr253-e9980457
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -212,6 +213,7 @@ jobs:
     outputs:
       application_sha: ${{ steps.release.outputs.application_sha }}
       deploy_functions: ${{ steps.release.outputs.deploy_functions }}
+      function_matrix: ${{ steps.release.outputs.function_matrix }}
     steps:
       - name: Check out trusted deployment tooling
         uses: actions/checkout@v4
@@ -234,6 +236,8 @@ jobs:
           echo "application_sha=${sha}" >> "${GITHUB_OUTPUT}"
           deploy_functions="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];process.stdout.write(r.functions.length ? "true" : "false")')"
           echo "deploy_functions=${deploy_functions}" >> "${GITHUB_OUTPUT}"
+          function_matrix="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];process.stdout.write(JSON.stringify(r.functions.length ? r.functions : ["__hosting_only__"]))')"
+          echo "function_matrix=${function_matrix}" >> "${GITHUB_OUTPUT}"
       - name: Check out immutable application source separately
         uses: actions/checkout@v4
         with:
@@ -387,19 +391,30 @@ jobs:
               node --check public/coaches/daily-xp/daily-grind.js
             )
           fi
+          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
+            (
+              cd application-source
+              node --test \
+                tests/functions/cross-training-policy.test.mjs \
+                tests/functions/practice-attendance-lanes.test.mjs \
+                tests/functions/authoritative-xp-idempotency.test.mjs \
+                tests/functions/practice-closeout-phase4.test.mjs
+              node --check public/coaches/attendance/session.js
+            )
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
           # New Clipboard-first releases intentionally bypass the retired HYBRID
           # planning detour; retain legacy source checks for historical IDs.
-          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a"; then
+          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
             grep -Fq '/coaches/execution/clipboard-2.0/?session=' application-source/public/coaches/attendance/session.js
             ! grep -Fq 'planning=1' application-source/public/coaches/attendance/session.js
           else
             grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
             grep -q 'planning=1' application-source/public/coaches/attendance/session.js
           fi
-          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a"; then
+          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
             grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'MAX_TRAINING_GROUPS = 4' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'fourGroupAcknowledgement' application-source/public/coaches/attendance/session.html
@@ -492,17 +507,28 @@ jobs:
           export_environment_variables: true
       - name: Verify and preserve callable configuration and IAM
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
         run: |
           set -euo pipefail
-          for fn in savePracticeSessionMemory closePracticeSession; do
-            gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-before.json"
-            gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-before.json"
-            service="$(node -e 'const d=require(`./${process.argv[1]}-before.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
-            gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-before.json"
-          done
-          node -e 'const fs=require("fs");const names=["savePracticeSessionMemory","closePracticeSession"];console.log(JSON.stringify(Object.fromEntries(names.map(n=>[n,JSON.parse(fs.readFileSync(`${n}-before.json`)).serviceConfig?.serviceAccountEmail]))))' > runtimes.json
+          functions="$(node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(r.functions.join("\n"))')"
+          while IFS= read -r fn; do
+            if gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-describe.json"; then
+              mv "${fn}-describe.json" "${fn}-before.json"
+              gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-before.json"
+              service="$(node -e 'const d=require(`./${process.argv[1]}-before.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
+              gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-before.json"
+            else
+              rm -f "${fn}-describe.json"
+              node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(!(r.newFunctions||[]).includes(process.argv[1]))process.exit(64)' "${fn}"
+              printf '{"absent":true}\n' > "${fn}-before.json"
+              printf '{"absent":true}\n' > "${fn}-function-iam-before.json"
+              printf '{"absent":true}\n' > "${fn}-run-iam-before.json"
+            fi
+          done <<< "${functions}"
+          node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(JSON.stringify(Object.fromEntries(r.functions.map(n=>{const d=JSON.parse(fs.readFileSync(`${n}-before.json`));return[n,d.absent?"__absent__":d.serviceConfig?.serviceAccountEmail]}))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
-          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions) validateFunctionConfiguration(r,n,JSON.parse(await readFile(`${n}-before.json`,"utf8")));' "${{ inputs.release_id }}"
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent)validateFunctionConfiguration(r,n,d)}' "${{ inputs.release_id }}"
       - name: Verify minimum service-account impersonation permissions
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
@@ -535,12 +561,7 @@ jobs:
             marker.json
             runtimes.json
             hosting-release-before.json
-            savePracticeSessionMemory-before.json
-            closePracticeSession-before.json
-            savePracticeSessionMemory-function-iam-before.json
-            closePracticeSession-function-iam-before.json
-            savePracticeSessionMemory-run-iam-before.json
-            closePracticeSession-run-iam-before.json
+            *-before.json
           if-no-files-found: error
 
   deploy-functions:
@@ -551,7 +572,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        function_name: [savePracticeSessionMemory, closePracticeSession]
+        function_name: ${{ fromJSON(needs.validate-source.outputs.function_matrix) }}
     steps:
       - uses: actions/download-artifact@v4
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
@@ -579,7 +600,7 @@ jobs:
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
-          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession) ;; *) exit 64 ;; esac
+          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;; *) exit 64 ;; esac
           cd release-artifacts
           npx --yes firebase-tools@15.11.0 deploy --config firebase.functions.json \
             --project sandman-combat-staging \
@@ -630,24 +651,32 @@ jobs:
           export_environment_variables: true
       - name: Compare callable configuration and IAM after deployment
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
         run: |
           set -euo pipefail
-          for fn in savePracticeSessionMemory closePracticeSession; do
+          functions="$(node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(r.functions.join("\n"))')"
+          while IFS= read -r fn; do
             gcloud functions describe "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-after.json"
             gcloud functions get-iam-policy "${fn}" --gen2 --region us-central1 --project sandman-combat-staging --format=json > "${fn}-function-iam-after.json"
             service="$(node -e 'const d=require(`./${process.argv[1]}-after.json`);process.stdout.write(d.serviceConfig.service.split("/").at(-1))' "${fn}")"
             gcloud run services get-iam-policy "${service}" --region us-central1 --project sandman-combat-staging --format=json > "${fn}-run-iam-after.json"
-          done
+          done <<< "${functions}"
           node --input-type=module <<'NODE'
           import { readFile } from "node:fs/promises";
-          import { loadRelease, verifyPreservedDeployment } from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs";
+          import { loadRelease, validateFunctionConfiguration, verifyPreservedDeployment } from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs";
           const release = await loadRelease("${{ inputs.release_id }}");
           for (const name of release.functions) {
             const read = path => readFile(path, "utf8").then(JSON.parse);
-            verifyPreservedDeployment(release, name,
-              await read(`before/${name}-before.json`), await read(`${name}-after.json`),
-              await read(`before/${name}-function-iam-before.json`), await read(`${name}-function-iam-after.json`),
-              await read(`before/${name}-run-iam-before.json`), await read(`${name}-run-iam-after.json`));
+            const before = await read(`before/${name}-before.json`);
+            const after = await read(`${name}-after.json`);
+            if (before.absent) {
+              validateFunctionConfiguration(release, name, after);
+            } else {
+              verifyPreservedDeployment(release, name, before, after,
+                await read(`before/${name}-function-iam-before.json`), await read(`${name}-function-iam-after.json`),
+                await read(`before/${name}-run-iam-before.json`), await read(`${name}-run-iam-after.json`));
+            }
           }
           NODE
       - id: hosting-auth

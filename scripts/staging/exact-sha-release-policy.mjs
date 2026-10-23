@@ -5,7 +5,16 @@ export const STAGING_PROJECT_ID = "sandman-combat-staging";
 export const STAGING_PROJECT_NUMBER = "991554514268";
 export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging`;
 export const TRUSTED_WORKFLOW_REF = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main";
-export const APPROVED_FUNCTIONS = Object.freeze(["savePracticeSessionMemory", "closePracticeSession"]);
+const APPROVED_FUNCTION_SETS = Object.freeze([
+  Object.freeze(["savePracticeSessionMemory", "closePracticeSession"]),
+  Object.freeze([
+    "searchPracticeAttendanceAthletes",
+    "getPracticeAttendanceReview",
+    "updatePracticeCheckIn",
+    "finalizePracticeAttendance",
+  ]),
+]);
+export const APPROVED_FUNCTIONS = Object.freeze([...new Set(APPROVED_FUNCTION_SETS.flat())]);
 
 const exactSha = /^[0-9a-f]{40}$/;
 
@@ -41,10 +50,15 @@ export function validateRelease(release, context = {}) {
   if (context.functionRuntime !== release.functionRuntime) throw new Error("Wrong function runtime identity.");
   if (context.authorizationAvailable !== true) throw new Error("Protected deployment authorization is unavailable.");
   const functions = [...(release.functions || [])];
-  const isApprovedCallableSet = functions.length === APPROVED_FUNCTIONS.length
-    && functions.every((name, index) => name === APPROVED_FUNCTIONS[index]);
+  const isApprovedCallableSet = APPROVED_FUNCTION_SETS.some(approved =>
+    functions.length === approved.length
+      && functions.every((name, index) => name === approved[index]));
   if (functions.length && !isApprovedCallableSet) {
     throw new Error("Unexpected function target in approved release.");
+  }
+  const newFunctions = [...(release.newFunctions || [])];
+  if (newFunctions.some(name => name !== "searchPracticeAttendanceAthletes" || !functions.includes(name))) {
+    throw new Error("Unexpected new function target in approved release.");
   }
   return release;
 }
@@ -56,6 +70,7 @@ export function validateRemotePreflight(release, { marker, runtimeByFunction } =
   for (const functionName of release.functions || []) {
     const actual = runtimeByFunction?.[functionName];
     if (!actual) throw new Error(`Runtime identity is unverified for ${functionName}.`);
+    if (actual === "__absent__" && (release.newFunctions || []).includes(functionName)) continue;
     if (actual !== release.functionRuntime) {
       throw new Error(`Runtime identity is unauthorized for ${functionName}.`);
     }

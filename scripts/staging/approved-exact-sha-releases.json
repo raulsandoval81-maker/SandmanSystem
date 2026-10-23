@@ -2352,5 +2352,59 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "cross-academy-pr253-e9980457": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 253,
+    "applicationSha": "e998045771fd2f0d92cba5615185175fd8299dfd",
+    "requiredAncestorSha": "d052d1de915faf0ed16eca4c0134f00fd2b78289",
+    "allowedChangedFiles": [
+      "functions/src/index.ts",
+      "functions/src/practice/practiceSessions.ts",
+      "functions/src/schedules/crossTrainingPolicy.ts",
+      "functions/src/staging.ts",
+      "public/coaches/attendance/session.js",
+      "tests/emulator/practice-daily-grind-phase3.test.mjs",
+      "tests/emulator/practice-entry-attendance-phase2.test.mjs",
+      "tests/functions/cross-training-policy.test.mjs",
+      "tests/functions/practice-attendance-lanes.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [
+      "searchPracticeAttendanceAthletes",
+      "getPracticeAttendanceReview",
+      "updatePracticeCheckIn",
+      "finalizePracticeAttendance"
+    ],
+    "newFunctions": [
+      "searchPracticeAttendanceAthletes"
+    ],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    }
   }
 }
