@@ -29,7 +29,8 @@ test("After-the-Fact finalization uses canonical date and never fabricates check
   assert.match(server, /sessionDateKey = requireSessionDateKey\(practice\.sessionDateKey/);
   assert.match(server, /checkedIn = Array\.isArray\(existing\.checkedIn\) \? existing\.checkedIn : \[\]/);
   assert.match(server, /checkedInIds = Array\.isArray\(existing\.checkedInIds\) \? existing\.checkedInIds : \[\]/);
-  assert.match(server, /After-the-fact attendance uses verified participants, not historical check-ins/);
+  assert.match(server, /presentIds: requestedPresentIds/);
+  assert.match(server, /removedFromReviewIds = checkedInIds\.filter/);
 });
 
 test("review can add or remove roster athletes and presentIds is authoritative", async () => {
@@ -62,16 +63,18 @@ test("attendance finalization has no XP or Daily Grind invocation side effects",
     read("public/coaches/attendance/attendance.js"),
   ]);
   const finalizer = server.slice(server.indexOf("export const finalizePracticeAttendance"), server.indexOf("export const getPracticeSession"));
+  const reviewFinalizer = review.slice(review.indexOf("async function saveAttendance"), review.indexOf("function bindEvents"));
   assert.doesNotMatch(finalizer, /awardXpAuthoritatively|dispatchAuthoritativeXp|\/xp/);
-  assert.doesNotMatch(review, /closePracticeSession/);
-  assert.match(review, /Continue to Daily XP/);
+  assert.doesNotMatch(reviewFinalizer, /XP_URL|completePracticeDailyGrind|closePracticeSession/);
+  assert.match(review, /Continue to Daily Grind/);
 });
 
 test("finalized attendance review is read-only and resumes Daily Grind rather than allowing re-finalization", async () => {
   const review = await read("public/coaches/attendance/attendance.js");
   assert.match(review, /pendingSession\.finalized === true/);
   assert.match(review, /setReviewControlsEnabled\(!finalized\)/);
-  assert.match(review, /showDailyGrindHandoff\(practiceId\)/);
+  assert.match(review, /showPracticeXp\(practiceId\)/);
+  assert.match(review, /requestAnimationFrame\(revealPracticeXp\)/);
   assert.match(review, /check\.disabled = true/);
   assert.match(review, /Attendance was already finalized/);
 });

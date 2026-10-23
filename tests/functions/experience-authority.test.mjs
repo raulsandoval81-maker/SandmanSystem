@@ -99,13 +99,12 @@ test("completed assessment rejects missing assessing Coach UID", () => {
 });
 
 for (const invalidYears of [-1, 4, 99, 1.5, "banana", null]) {
-  test(`completed assessment rejects invalid years: ${String(invalidYears)}`, () => {
-    assert.throws(
-      () =>
-        resolveVerifiedExperienceYears(
-          completed(invalidYears)
-        ),
-      /invalid prior-experience value/
+  test(`completed legacy assessment grants zero recognition for invalid years: ${String(invalidYears)}`, () => {
+    assert.equal(
+      resolveVerifiedExperienceYears(
+        completed(invalidYears)
+      ),
+      0
     );
   });
 }
