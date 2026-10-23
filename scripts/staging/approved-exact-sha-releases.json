@@ -2298,5 +2298,59 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "xp-client-auth-pr240-ee96af6a": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 240,
+    "applicationSha": "ee96af6a04ec66963fc33013d68ba1f9257a6bf5",
+    "requiredAncestorSha": "aff6c0746f66c68e5651d0dbe52a87f0aa2ce5d6",
+    "allowedChangedFiles": [
+      "docs/releases/xp-client-recovery.md",
+      "public/assets/js/authoritative-xp-client.js",
+      "public/assets/js/xp-api.js",
+      "public/coaches/arena-xp/championship-arena.js",
+      "public/coaches/arena-xp/declared-championship.js",
+      "public/coaches/arena-xp/duel-arena.js",
+      "public/coaches/arena-xp/weekend-arena.js",
+      "public/coaches/attendance/attendance.js",
+      "public/coaches/daily-xp/daily-grind.js",
+      "public/coaches/lanes/conditioning/review.js",
+      "public/coaches/lanes/honor/review.js",
+      "public/coaches/lanes/strength/review.js",
+      "public/coaches/tools/arena-log.html",
+      "public/coaches/tools/index.html",
+      "tests/emulator/xp-http-auth.test.mjs",
+      "tests/functions/active-xp-client-contract.test.mjs",
+      "tests/functions/daily-grind-coach-auth.test.mjs",
+      "tests/functions/progression-cycle-promotion.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "functions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
