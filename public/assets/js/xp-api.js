@@ -2,6 +2,7 @@
 // Single gateway to the incrementXp callable (back/forward compatible)
 
 import { functions } from "/assets/js/firebase-init.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const _incrementXp = httpsCallable(functions, "incrementXp");
@@ -94,6 +95,20 @@ function assertAmount(payload) {
     return;
   }
 
+  if (k.startsWith("CHAMPIONSHIP/")) {
+    const expected = {
+      "CHAMPIONSHIP/COMPETE": 15,
+      "CHAMPIONSHIP/PLACE": 30,
+      "CHAMPIONSHIP/CHAMPION": 50,
+    }[k];
+    if (!expected) throw new Error(`${k} is not a supported Championship result`);
+    if (payload.amount !== undefined && Number(payload.amount) !== expected) {
+      throw new Error(`${k} amount must be ${expected}`);
+    }
+    delete payload.amount;
+    return;
+  }
+
 
   /* =========================
      Everything else (Combat etc.)
@@ -123,6 +138,7 @@ export async function awardXP(arg1, arg2) {
   // ✅ enforce amount rules before calling server
   assertAmount(payload);
 
+  await requireCoach();
   const { data } = await _incrementXp(payload);
   return data;
 }

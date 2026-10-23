@@ -21,9 +21,22 @@ const passSource = readFileSync("functions/src/modules/passAthleteTest.ts", "utf
 const promoteSource = readFileSync("functions/src/modules/promotion/promoteTierAction.ts", "utf8");
 const indexSource = readFileSync("functions/src/index.ts", "utf8");
 
+function attendanceRequest(uid, amount, key) {
+  return normalizeXpRequest({
+    uid,
+    kind: "ATTENDANCE",
+    amount,
+    meta: {
+      attendanceSessionId: `synthetic-${key}`,
+      practiceEvidenceKey: `practice-evidence-v1:2026-10-23:wrestling:${key}`,
+      durationMinutes: 60,
+    },
+  });
+}
+
 test("reaching the XP cap does not auto-promote", () => {
   const athlete = { uid: "F8_1", trackBase: "F8", tier: "T0", progressionTier: "T0", xp: 795 };
-  const request = normalizeXpRequest({ uid: athlete.uid, kind: "ATTENDANCE", amount: 10 });
+  const request = attendanceRequest(athlete.uid, 10, "cap-boundary");
   const out = buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} });
   assert.equal(out.tier, "T0");
   assert.equal(out.afterXp, 800);
@@ -133,7 +146,7 @@ test("next award after promotion starts from zero and ignores old buckets", () =
     uid: "F8_2", trackBase: "F8", tier: "T1", progressionTier: "T1", xp: 0, xpCap: 1600,
     xpDaily: 800, xpArena: 250, xpStrength: 100, xpHonor: 100,
   };
-  const request = normalizeXpRequest({ uid: athlete.uid, kind: "ATTENDANCE", amount: 10 });
+  const request = attendanceRequest(athlete.uid, 10, "new-cycle");
   const out = buildAwardPlan({ athlete, athleteId: athlete.uid, request,
     monthly: { attendance: 10, strength: 10, honor: 10 } });
   assert.equal(out.beforeXp, 0);
@@ -143,7 +156,7 @@ test("next award after promotion starts from zero and ignores old buckets", () =
 
 test("monthly values remain safeguards and never become active XP", () => {
   const athlete = { uid: "F4_2", trackBase: "F4", tier: "T1", xp: 0, xpDaily: 9999 };
-  const request = normalizeXpRequest({ uid: athlete.uid, kind: "ATTENDANCE", amount: 10 });
+  const request = attendanceRequest(athlete.uid, 10, "monthly-guard");
   const out = buildAwardPlan({ athlete, athleteId: athlete.uid, request,
     monthly: { attendance: 100, arena: 70 } });
   assert.equal(out.beforeXp, 0);

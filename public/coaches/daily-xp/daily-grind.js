@@ -21,11 +21,9 @@ import {
   isCoachAuthenticationError,
   requireCoach
 } from "/assets/js/coach-guard.js";
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js?v=2";
 import { normalizeDisciplineId } from "/assets/js/discipline-policy.js";
-
-console.log("XP_URL =", XP_URL);
 
 window.addEventListener("error", (e) => {
   const el = document.getElementById("pageStatus");
@@ -914,43 +912,8 @@ async function issueAwardForSelection(award) {
     });
 
     try {
-      const access = await requireDailyGrindCoach();
-      const user = access.user;
-
-      if (!user || user.isAnonymous || auth.currentUser?.uid !== user.uid) {
-        throw new Error("Coach authentication required.");
-      }
-
-      const idToken =
-        await user.getIdToken();
-
-      const res = await fetch(XP_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`
-        },
-        body: JSON.stringify({
-          data: payload
-        })
-      });
-
-      const text = await res.text().catch(() => "");
-
-      if (!res.ok) {
-        console.log("XP ERR:", res.status, text);
-        setStatus(`HTTP ${res.status}${text ? " · " + text : ""}`);
-        continue;
-      }
-
-      console.log("XP OK:", res.status, text);
-
-      let raw = null;
-      try {
-        raw = text ? JSON.parse(text) : null;
-      } catch {}
-
-      const data = parseFunctionJson(raw) || {};
+      await requireDailyGrindCoach();
+      const data = await postAuthoritativeXp(payload);
 
       if (data.ok) {
         okCount += 1;

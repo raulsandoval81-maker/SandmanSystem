@@ -9,7 +9,7 @@ import {
   getDoc,
 } from "/assets/js/firebase-init.js";
 
-import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
 
 function localCoachLoginUrl() {
@@ -46,10 +46,6 @@ function safeWhen(ts) {
   } catch {
     return "Unknown time";
   }
-}
-
-function coachUid() {
-  return window.COACH_UID || localStorage.getItem("coachUid") || "DEV_COACH";
 }
 
 function badge(status = "pending") {
@@ -123,34 +119,7 @@ async function awardXp({ athleteId, primaryLane = "strength", amount, note = "",
     },
   };
 
-  const res = await fetch(XP_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-coach-uid": String(coachUid()).trim(),
-    },
-    body: JSON.stringify({ data: payload }),
-  });
-
-  const text = await res.text().catch(() => "");
-
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status}${text ? " · " + text : ""}`);
-  }
-
-  let raw = null;
-  try {
-    raw = text ? JSON.parse(text) : null;
-  } catch {
-    raw = null;
-  }
-
-  const data = parseFunctionJson(raw) || {};
-  if (!data.ok) {
-    throw new Error(`XP not ok${text ? " · " + text : ""}`);
-  }
-
-  return data;
+  return postAuthoritativeXp(payload);
 }
 
 async function patchSession({ athleteId, key, patch }) {
