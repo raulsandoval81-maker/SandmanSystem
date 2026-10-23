@@ -12,6 +12,7 @@ import {
   emitParentSignalsBestEffort,
   normalizeXpRequest,
   persistedStripeCount,
+  requestAwardIdentity,
 } from "../../functions/lib/services/authoritativeXpService.js";
 
 const f4 = (overrides = {}) => ({
@@ -35,6 +36,54 @@ test("classification is positive and fails closed for ambiguous or unknown athle
   assert.equal(classifyAthlete({ uid: "A_1", trackBase: "ADULT" }), "ADULT");
   assert.throws(() => classifyAthlete({ uid: "F8_1", trackBase: "F4" }), /AMBIGUOUS/);
   assert.throws(() => classifyAthlete({ uid: "X_1" }), /UNCLASSIFIED/);
+});
+
+test("canonical and legacy journey aliases map to their authoritative program bases", () => {
+  for (const journey of ["Z2H", "ROAD2CHAMPION"]) {
+    assert.equal(classifyAthlete({ journey }, "staging-athlete"), "F8");
+  }
+  for (const journey of ["P2L", "PATH2LEGEND"]) {
+    assert.equal(classifyAthlete({ journey }, "staging-athlete"), "F4");
+  }
+});
+
+test("program markers remain authoritative and fail closed", () => {
+  assert.throws(
+    () => classifyAthlete({ journey: "Z2H", programTrack: "PATH2LEGEND" }, "staging-athlete"),
+    /AMBIGUOUS_ATHLETE_PROGRAM/
+  );
+  assert.throws(
+    () => classifyAthlete({ profileType: "youth" }, "staging-athlete"),
+    /UNCLASSIFIED_ATHLETE_PROGRAM/
+  );
+  assert.throws(
+    () => classifyAthlete({ profileType: "teen" }, "staging-athlete"),
+    /UNCLASSIFIED_ATHLETE_PROGRAM/
+  );
+});
+
+test("journey-classified Daily Grind awards preserve XP values and stable identity", () => {
+  const attendance = req("DAILY_GRIND", 10, {
+    attendanceSessionId: "staging-practice-1",
+    practiceEvidenceKey: "practice-evidence-v1:2026-10-23:wrestling:staging-practice-1",
+  });
+  const youth = { journey: "Z2H", tier: "T0", progressionTier: "T0", xp: 100 };
+  const teen = { journey: "P2L", tier: "T1", xp: 100 };
+
+  assert.equal(plan(youth, attendance).afterXp, 110);
+  assert.equal(plan(teen, attendance).afterXp, 110);
+  assert.equal(requestAwardIdentity(attendance), "attendance:staging-practice-1");
+  assert.equal(
+    requestAwardIdentity(req("DAILY_GRIND", 10, {
+      attendanceSessionId: "staging-practice-1",
+      practiceEvidenceKey: "ignored-for-receipt-identity",
+    })),
+    "attendance:staging-practice-1"
+  );
+  assert.throws(() => plan(youth, req("DAILY_GRIND", 15, {
+    attendanceSessionId: "staging-practice-2",
+    practiceEvidenceKey: "practice-evidence-v1:2026-10-23:wrestling:staging-practice-2",
+  })), /F8 practice amount is not approved/);
 });
 
 test("HTTP and callable adapters share the same authoritative dispatcher contract", async () => {
