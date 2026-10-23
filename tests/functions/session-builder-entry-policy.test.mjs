@@ -17,6 +17,18 @@ test("rooms carry explicit canonical location identity", () => {
   assert.equal(policy.roomByValue("solvang-mat-1").locationId, "santa-ynez-valley");
 });
 
+test("authorized practice routing prefers a guided room without broadening Coach scope", () => {
+  assert.equal(policy.resolvePreferredPracticeRoom(["lompoc", "santa-ynez-valley"]).value, "solvang-mat-1");
+  assert.equal(policy.resolvePreferredPracticeRoom(["santa-ynez-valley"]).value, "solvang-mat-1");
+  assert.equal(policy.resolvePreferredPracticeRoom(["lompoc"]).value, "lompoc-mat-1");
+  assert.equal(policy.resolvePreferredPracticeRoom([], false), null);
+  assert.deepEqual(policy.authorizedPracticeRooms(["unknown-location"], false), []);
+});
+
+test("system administrators prefer the configured guided room", () => {
+  assert.equal(policy.resolvePreferredPracticeRoom([], true).value, "solvang-mat-1");
+});
+
 test("program availability is filtered by canonical location", () => {
   const santaYnez = policy.programsForLocation("santa-ynez-valley").map((item) => item.programId);
   const lompoc = policy.programsForLocation("lompoc").map((item) => item.programId);

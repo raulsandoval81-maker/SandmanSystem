@@ -4,7 +4,7 @@ import {
 } from "/assets/js/coach-guard.js";
 
 import {
-  SESSION_ROOMS
+  resolvePreferredPracticeRoom
 } from "/coaches/execution/session-builder/session-entry-policy.js";
 
 import {
@@ -52,18 +52,6 @@ function coachDisplayName(coach = {}) {
     user.displayName,
     coach.email
   ].map((value) => String(value || "").trim()).find(Boolean) || "Signed-in Coach";
-}
-
-function resolvePracticeRoom(scopeLocationIds = [], isSystemAdmin = false) {
-  const allowed = new Set(
-    (scopeLocationIds || []).map((id) => String(id || "").trim().toLowerCase())
-  );
-
-  return SESSION_ROOMS.find((room) =>
-    isSystemAdmin ||
-    !allowed.size ||
-    allowed.has(String(room.locationId || "").toLowerCase())
-  ) || null;
 }
 
 const QUICK_START_STANDARD_BLOCKS = Object.freeze([
@@ -469,7 +457,7 @@ async function initializePracticeOperations() {
   try {
     const coach = await requireCoach();
 
-    activeRoom = resolvePracticeRoom(
+    activeRoom = resolvePreferredPracticeRoom(
       coach?.scope?.locationIds || [],
       coach?.isSystemAdmin === true
     );
