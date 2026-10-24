@@ -1096,6 +1096,9 @@ test("missing IAM grants and inconclusive responses are reported separately", ()
   const malformed = evaluateTroubleshooterResponse({ status: 200, body: { allowPolicyExplanation: {} } }, check);
   assert.equal(missing.result, "MISSING");
   assert.equal(malformed.result, "INCONCLUSIVE");
+  assert.deepEqual(malformed.diagnosticEvidence, {
+    reason: "missing_overall_access_state", overallAccessState: null, allowAccessState: null, denyAccessState: null,
+  });
   const summary = summarizePermissionResults([missing, malformed]);
   assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1, apiErrors: 0,
     resourceNotFound: 0, inspectionDenied: 0 });
@@ -1116,6 +1119,56 @@ test("successful Policy Troubleshooter v3 authorization uses overallAccessState"
   assert.ok(results.every(value => value.result === "GRANTED"));
   assert.equal(seen[0].accessTuple.principal, pr253CrossAcademyRelease.functionBuild);
   assert.ok(!("access" in results[0]));
+});
+
+test("unknown and conditional Policy Troubleshooter states expose only sanitized enum diagnostics", () => {
+  const check = { category: "build-account", principal: pr253CrossAcademyRelease.functionBuild,
+    permission: "storage.objects.get", resource: "staging-resource" };
+  const conditional = evaluateTroubleshooterResponse({ status: 200, body: {
+    overallAccessState: "UNKNOWN_CONDITIONAL",
+    allowPolicyExplanation: { allowAccessState: "UNKNOWN_INFO", policies: [{ bindings: ["do-not-log"] }] },
+    denyPolicyExplanation: { denyAccessState: "DENY_ACCESS_STATE_UNSPECIFIED", policies: [{ rules: ["do-not-log"] }] },
+    accessTuple: { principal: "do-not-log@example.com" },
+  } }, check);
+  assert.equal(conditional.result, "INCONCLUSIVE");
+  assert.deepEqual(conditional.diagnosticEvidence, {
+    reason: "inconclusive_overall_access_state",
+    overallAccessState: "UNKNOWN_CONDITIONAL",
+    allowAccessState: "UNKNOWN_INFO",
+    denyAccessState: "DENY_ACCESS_STATE_UNSPECIFIED",
+  });
+  assert.doesNotMatch(JSON.stringify(conditional), /do-not-log/);
+  assert.equal(summarizePermissionResults([conditional]).authorized, false);
+
+  const unknown = evaluateTroubleshooterResponse({ status: 200, body: {
+    overallAccessState: "FUTURE_STATE Bearer secret-token",
+    allowPolicyExplanation: { allowAccessState: "access_token=secret" },
+  } }, check);
+  assert.equal(unknown.result, "INCONCLUSIVE");
+  assert.equal(unknown.diagnosticEvidence.reason, "unknown_overall_access_state");
+  assert.doesNotMatch(JSON.stringify(unknown.diagnosticEvidence), /secret-token|access_token=secret/);
+  assert.match(unknown.detail, /overallAccessState/);
+  assert.equal(summarizePermissionResults([unknown]).authorized, false);
+});
+
+test("missing and malformed Policy Troubleshooter states have distinct fail-closed diagnostics", () => {
+  const check = { category: "build-account", principal: pr253CrossAcademyRelease.functionBuild,
+    permission: "logging.logEntries.create", resource: "staging-resource" };
+  const missing = evaluateTroubleshooterResponse({ status: 200, body: {
+    allowPolicyExplanation: { allowAccessState: "CAN_ACCESS" },
+    denyPolicyExplanation: { denyAccessState: "DENY_ACCESS_STATE_UNSPECIFIED" },
+  } }, check);
+  const malformedState = evaluateTroubleshooterResponse({ status: 200, body: {
+    overallAccessState: { unsafe: true }, allowPolicyExplanation: { allowAccessState: 1 },
+  } }, check);
+  const malformedResponse = evaluateTroubleshooterResponse({ status: 200, body: "not-an-object" }, check);
+  assert.equal(missing.diagnosticEvidence.reason, "missing_overall_access_state");
+  assert.equal(missing.diagnosticEvidence.allowAccessState, "CAN_ACCESS");
+  assert.equal(malformedState.diagnosticEvidence.reason, "malformed_overall_access_state");
+  assert.equal(malformedState.diagnosticEvidence.overallAccessState, "[MALFORMED_STATE]");
+  assert.equal(malformedResponse.diagnosticEvidence.reason, "malformed_response");
+  assert.ok([missing, malformedState, malformedResponse].every(value => value.result === "INCONCLUSIVE"));
+  assert.equal(summarizePermissionResults([missing, malformedState, malformedResponse]).authorized, false);
 });
 
 test("a complete supported authorization response grants the quota-aware preflight", async () => {
@@ -1145,6 +1198,7 @@ test("malformed transport responses and invalid principal formats fail closed", 
     fetchImpl: async () => ({ status: 200, text: async () => "not-json" }),
   });
   assert.equal(results[0].result, "INCONCLUSIVE");
+  assert.equal(results[0].diagnosticEvidence.reason, "malformed_response");
   assert.equal(summarizePermissionResults(results).authorized, false);
 });
 
