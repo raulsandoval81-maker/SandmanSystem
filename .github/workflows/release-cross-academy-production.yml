@@ -84,6 +84,7 @@ jobs:
           const a=require(process.argv[2]);
           if(a.project_id!=='sandmandashboard')throw Error('Credential does not belong to production project');
           NODE
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/firebase-sa.json" --project=sandmandashboard --quiet
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
       - name: Capture existing production function state (read-only)
         shell: bash
