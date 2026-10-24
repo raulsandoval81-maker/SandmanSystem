@@ -845,7 +845,7 @@ html[data-theme="light"] .gateway-title{
             class="interest-button"
             type="button"
           >
-            Want Sandman Academy in Your Community?
+            Request Sandman in Your Area
           </button>
 
         </div>
@@ -869,7 +869,7 @@ html[data-theme="light"] .gateway-title{
             class="interest-button"
             type="button"
           >
-            ¿Quieres una Academia Sandman en tu comunidad?
+            Solicita Sandman en tu zona
           </button>
 
         </div>
@@ -969,6 +969,7 @@ html[data-theme="light"] .gateway-title{
     </p>
 
     <p
+      id="academySearchNoteEs"
       class="local-note hidden-lang"
       data-lang-block="es"
     >
@@ -1013,6 +1014,7 @@ html[data-theme="light"] .gateway-title{
       const resultArea = document.getElementById("academyResultArea");
       const resultLink = document.getElementById("academyResultLink");
       const noResult = document.getElementById("academyNoResult");
+      const searchNotes = [document.getElementById("academySearchNote"), document.getElementById("academySearchNoteEs")];
 
       if (
         !form ||
@@ -1197,6 +1199,7 @@ html[data-theme="light"] .gateway-title{
         }
 
         hideResults();
+        searchNotes.forEach(note => { if (note) note.style.display = "none"; });
 
         if (!locations.length) {
           await loadLocations();
