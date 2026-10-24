@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadRelease, STAGING_PROJECT_ID } from "./exact-sha-release-policy.mjs";
@@ -6,6 +6,7 @@ import { permissionPlan } from "./gcloud-function-release.mjs";
 
 const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot";
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
+const CANNOT_ACCESS = new Set([2, "CANNOT_ACCESS"]);
 
 export function sanitizeErrorBody(value) {
   const body = typeof value === "string" ? value : JSON.stringify(value ?? {});
@@ -13,7 +14,7 @@ export function sanitizeErrorBody(value) {
     .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi, "Bearer [REDACTED]")
     .replace(/\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[REDACTED_JWT]")
     .replace(/("?(?:access[_-]?token|id[_-]?token|refresh[_-]?token|private[_-]?key|credential)"?\s*[:=]\s*)"?[^\s,;\"}]+"?/gi, "$1[REDACTED]")
-    .slice(0, 1024);
+    .slice(0, 2048);
 }
 
 export function policyTroubleshooterPrincipal(serviceAccount) {
@@ -23,99 +24,128 @@ export function policyTroubleshooterPrincipal(serviceAccount) {
   return serviceAccount;
 }
 
-export function evaluateTroubleshooterResponse({ status, body }, check) {
-  if (!Number.isInteger(status) || !body || typeof body !== "object" || Array.isArray(body)) {
-    return { ...check, result: "ERROR", status: Number.isInteger(status) ? status : null,
-      detail: "Malformed Policy Troubleshooter response." };
-  }
-  if (status !== 200) {
-    return { ...check, result: "ERROR", status, detail: sanitizeErrorBody(body) };
-  }
-  const state = body.overallAccessState;
-  if (CAN_ACCESS.has(state)) return { ...check, result: "GRANTED", status, overallAccessState: state };
-  if (state === "CANNOT_ACCESS" || state === 2) return { ...check, result: "MISSING", status, overallAccessState: state };
-  return { ...check, result: "UNKNOWN", status, overallAccessState: state ?? null,
-    detail: "Policy Troubleshooter did not return a conclusive overallAccessState." };
+function apiFailure(status, body, check) {
+  const result = status === 404 || body?.error?.status === "NOT_FOUND" ? "RESOURCE_NOT_FOUND" : "API_ERROR";
+  return { ...check, result, status, detail: sanitizeErrorBody(body) };
 }
 
-function resourceForPermission(release, permission) {
-  const project = `//cloudresourcemanager.googleapis.com/projects/${release.projectId}`;
-  if (permission.startsWith("resourcemanager.") || permission.startsWith("serviceusage.")) return [project];
-  if (permission === "cloudfunctions.locations.list") {
-    return [`//cloudfunctions.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}`];
+export function evaluateTroubleshooterResponse({ status, body }, check) {
+  if (!Number.isInteger(status) || !body || typeof body !== "object" || Array.isArray(body)) {
+    return { ...check, result: "INCONCLUSIVE", status: Number.isInteger(status) ? status : null,
+      detail: "Malformed Policy Troubleshooter response." };
   }
-  if (permission === "cloudfunctions.operations.get") {
-    return [`//cloudfunctions.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/operations/preflight-placeholder`];
+  if (status !== 200) return apiFailure(status, body, check);
+  const state = body.overallAccessState;
+  if (CAN_ACCESS.has(state)) return { ...check, result: "GRANTED", status, overallAccessState: state };
+  if (CANNOT_ACCESS.has(state)) return { ...check, result: "MISSING", status, overallAccessState: state };
+  const keys = Object.keys(body).sort().join(",") || "none";
+  return { ...check, result: "INCONCLUSIVE", status, overallAccessState: state ?? null,
+    detail: `Policy Troubleshooter response lacked a conclusive top-level overallAccessState (keys: ${keys}).` };
+}
+
+export function evaluateTestIamPermissionsResponse({ status, body }, check) {
+  if (!Number.isInteger(status) || !body || typeof body !== "object" || Array.isArray(body)) {
+    return check.permissions.map(permission => ({ ...check, permission, result: "INCONCLUSIVE",
+      status: Number.isInteger(status) ? status : null, detail: "Malformed testIamPermissions response." }));
   }
-  if (permission.startsWith("cloudfunctions.functions.")) {
-    return release.functions.map(name => `//cloudfunctions.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/functions/${name}`);
+  if (status !== 200) return check.permissions.map(permission => apiFailure(status, body, { ...check, permission }));
+  if (!Array.isArray(body.permissions) || body.permissions.some(value => typeof value !== "string")) {
+    return check.permissions.map(permission => ({ ...check, permission, result: "INCONCLUSIVE", status,
+      detail: "testIamPermissions response did not contain a valid permissions array." }));
   }
-  if (permission.startsWith("run.services.")) {
-    return release.functions.map(name => `//run.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${name.toLowerCase()}`);
-  }
-  throw new Error(`No authorized resource mapping for ${permission}.`);
+  const granted = new Set(body.permissions);
+  return check.permissions.map(permission => ({ ...check, permission,
+    result: granted.has(permission) ? "GRANTED" : "MISSING", status }));
+}
+
+function functionResource(release, name) {
+  return `//cloudfunctions.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/functions/${name}`;
 }
 
 export function permissionChecks(release) {
   if (release.projectId !== STAGING_PROJECT_ID) throw new Error("Permission verification is staging-only.");
   const plan = permissionPlan(release);
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];
-  const deployer = plan.deployer.flatMap(permission => resourceForPermission(release, permission).map(resource => ({
-    category: "routine-deployer", principal: policyTroubleshooterPrincipal(release.functionDeployer), permission, resource,
-  })));
-  const actAs = plan.serviceAccounts.flatMap(target => target.permissions.map(permission => ({
-    category: "service-account-actAs", principal: policyTroubleshooterPrincipal(release.functionDeployer), permission,
-    resource: `//iam.googleapis.com/projects/${release.projectId}/serviceAccounts/${target.account}`,
-  })));
-  const build = plan.build.map(permission => ({
-    category: "build-account", principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
-    resource: release.buildPermissionResources[permission],
-  }));
-  return [...deployer, ...actAs, ...build];
+  const region = release.expectedFunctionConfiguration.region;
+  const base = `projects/${release.projectId}/locations/${region}`;
+  const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
+  const existingFunctions = release.functions.filter(name => !(release.newFunctions || []).includes(name));
+  return [
+    { method: "GET", category: "routine-deployer", principal: deployer,
+      permission: "cloudfunctions.locations.list", resource: `//cloudfunctions.googleapis.com/projects/${release.projectId}/locations`,
+      url: `https://cloudfunctions.googleapis.com/v2/projects/${release.projectId}/locations` },
+    { method: "TEST_IAM", category: "routine-deployer", principal: deployer,
+      permissions: ["resourcemanager.projects.get", "serviceusage.services.use"],
+      resource: `//cloudresourcemanager.googleapis.com/projects/${release.projectId}`,
+      url: `https://cloudresourcemanager.googleapis.com/v1/projects/${release.projectId}:testIamPermissions` },
+    ...existingFunctions.map(name => ({ method: "TEST_IAM", category: "routine-deployer", principal: deployer,
+      permissions: ["cloudfunctions.functions.update", "cloudfunctions.functions.sourceCodeSet"],
+      resource: functionResource(release, name),
+      url: `https://cloudfunctions.googleapis.com/v2/${base}/functions/${name}:testIamPermissions` })),
+    ...plan.serviceAccounts.map(target => ({ method: "TEST_IAM", category: "service-account-actAs", principal: deployer,
+      permissions: target.permissions, resource: `//iam.googleapis.com/projects/${release.projectId}/serviceAccounts/${target.account}`,
+      url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
+    ...plan.build.map(permission => ({ method: "TROUBLESHOOT", category: "build-account",
+      principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
+      resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL })),
+  ];
+}
+
+async function responseBody(response) {
+  const text = await response.text();
+  try { return JSON.parse(text); } catch { return { error: { message: sanitizeErrorBody(text || "Empty response body.") } }; }
 }
 
 export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = fetch } = {}) {
   if (!accessToken) throw new Error("A short-lived Google access token is required.");
   const results = [];
   for (const check of checks) {
-    let response;
     try {
-      response = await fetchImpl(TROUBLESHOOT_URL, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ accessTuple: {
-          principal: check.principal,
-          fullResourceName: check.resource,
-          permission: check.permission,
-        } }),
+      const troubleshoot = check.method === "TROUBLESHOOT";
+      const testIam = check.method === "TEST_IAM";
+      const response = await fetchImpl(check.url, {
+        method: troubleshoot || testIam ? "POST" : "GET",
+        headers: { Authorization: `Bearer ${accessToken}`, ...(troubleshoot || testIam ? { "Content-Type": "application/json" } : {}) },
+        ...(troubleshoot ? { body: JSON.stringify({ accessTuple: {
+          principal: check.principal, fullResourceName: check.resource, permission: check.permission,
+        } }) } : {}),
+        ...(testIam ? { body: JSON.stringify({ permissions: check.permissions }) } : {}),
       });
-      const text = await response.text();
-      let body;
-      try { body = JSON.parse(text); } catch { body = { error: { message: sanitizeErrorBody(text || "Empty response body.") } }; }
-      results.push(evaluateTroubleshooterResponse({ status: response.status, body }, check));
+      const body = await responseBody(response);
+      if (troubleshoot) results.push(evaluateTroubleshooterResponse({ status: response.status, body }, check));
+      else if (testIam) results.push(...evaluateTestIamPermissionsResponse({ status: response.status, body }, check));
+      else if (response.status === 200) results.push({ ...check, result: "GRANTED", status: response.status });
+      else results.push(apiFailure(response.status, body, check));
     } catch (error) {
-      results.push({ ...check, result: "ERROR", status: null, detail: sanitizeErrorBody(error?.message || error) });
+      const permissions = check.permissions || [check.permission];
+      results.push(...permissions.map(permission => ({ ...check, permission, result: "API_ERROR", status: null,
+        detail: sanitizeErrorBody(error?.message || error) })));
     }
   }
   return results;
 }
 
 export function summarizePermissionResults(results) {
-  const missing = results.filter(value => value.result === "MISSING");
-  const inconclusive = results.filter(value => value.result === "UNKNOWN" || value.result === "ERROR");
-  return { authorized: missing.length === 0 && inconclusive.length === 0,
-    totals: { checks: results.length, granted: results.filter(value => value.result === "GRANTED").length,
-      missing: missing.length, inconclusive: inconclusive.length }, missing, inconclusive };
+  const byResult = result => results.filter(value => value.result === result);
+  const missing = byResult("MISSING");
+  const inconclusive = byResult("INCONCLUSIVE");
+  const apiErrors = byResult("API_ERROR");
+  const resourceNotFound = byResult("RESOURCE_NOT_FOUND");
+  return { authorized: missing.length === 0 && inconclusive.length === 0 && apiErrors.length === 0 && resourceNotFound.length === 0,
+    totals: { checks: results.length, granted: byResult("GRANTED").length, missing: missing.length,
+      inconclusive: inconclusive.length, apiErrors: apiErrors.length, resourceNotFound: resourceNotFound.length },
+    missing, inconclusive, apiErrors, resourceNotFound };
 }
 
 async function main() {
   const [releaseId, reportPath = "permission-verification.json"] = process.argv.slice(2);
   const release = await loadRelease(releaseId);
-  const results = await verifyPermissionChecks(permissionChecks(release), { accessToken: process.env.GOOGLE_OAUTH_ACCESS_TOKEN });
+  const checks = permissionChecks(release);
+  const results = await verifyPermissionChecks(checks, { accessToken: process.env.GOOGLE_OAUTH_ACCESS_TOKEN });
   const summary = summarizePermissionResults(results);
-  await writeFile(reportPath, `${JSON.stringify({ releaseId, ...summary, results }, null, 2)}\n`);
-  console.log(JSON.stringify({ releaseId, ...summary.totals }));
-  for (const item of [...summary.missing, ...summary.inconclusive]) {
+  await writeFile(reportPath, `${JSON.stringify({ releaseId, requestCount: checks.length, ...summary, results }, null, 2)}\n`);
+  console.log(JSON.stringify({ releaseId, requestCount: checks.length, ...summary.totals }));
+  for (const item of [...summary.missing, ...summary.inconclusive, ...summary.apiErrors, ...summary.resourceNotFound]) {
     console.error(`::error title=${item.result} permission check::${item.principal} ${item.permission} on ${item.resource}; HTTP ${item.status ?? "transport"}; ${item.detail || item.overallAccessState || "no detail"}`);
   }
   if (!summary.authorized) process.exit(1);
