@@ -531,17 +531,27 @@ jobs:
           node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(JSON.stringify(Object.fromEntries(r.functions.map(n=>{const d=JSON.parse(fs.readFileSync(`${n}-before.json`));return[n,d.absent?"__absent__":d.serviceConfig?.serviceAccountEmail]}))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
           node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration,verifyInvokerPolicy} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent){validateFunctionConfiguration(r,n,d);verifyInvokerPolicy(r,n,JSON.parse(await readFile(`${n}-run-service-before.json`,"utf8")),JSON.parse(await readFile(`${n}-function-iam-before.json`,"utf8")),JSON.parse(await readFile(`${n}-run-iam-before.json`,"utf8")))}}' "${{ inputs.release_id }}"
-      - name: Verify minimum service-account impersonation permissions
+          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" && test "${{ inputs.action }}" = "deploy"; then
+            node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];const missing=r.newFunctions.filter(n=>JSON.parse(fs.readFileSync(`${n}-before.json`)).absent);if(missing.length){console.error(`::error title=Separate callable bootstrap required::${missing.join(", ")} must be created by the separately approved bootstrap before the routine release can run.`);process.exit(1)}'
+          fi
+          node trusted-tooling/scripts/staging/gcloud-function-release.mjs rollback-evidence "${{ inputs.release_id }}" unused . > rollback-evidence.json
+      - name: Verify all routine deployer and service-account permissions
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
         env:
           RELEASE_ID: ${{ inputs.release_id }}
         run: |
           set -euo pipefail
-          runtime="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(!r)process.exit(64);process.stdout.write(r.functionRuntime)')"
-          firebase_cli_default="sandman-combat-staging@appspot.gserviceaccount.com"
+          node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r)))' > ../permission-plan.json
           access_token="$(gcloud auth print-access-token)"
-          for service_account in "${runtime}" "${firebase_cli_default}"; do
+          project_permissions="$(node -e 'const p=require("../permission-plan.json");process.stdout.write(JSON.stringify({permissions:p.deployer}))')"
+          if test "$(node -e 'process.stdout.write(String(require("../permission-plan.json").deployer.length))')" != "0"; then
+            response="$(curl --fail --silent --show-error -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" -X POST -d "${project_permissions}" "https://cloudresourcemanager.googleapis.com/v1/projects/sandman-combat-staging:testIamPermissions")"
+            node -e 'const plan=require("../permission-plan.json"),actual=JSON.parse(process.argv[1]).permissions||[];const missing=plan.deployer.filter(p=>!actual.includes(p));console.log(JSON.stringify({principal:process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL||"dedicated function deployer",required:plan.deployer,effective:actual,missing}));if(missing.length){console.error(`::error title=Missing aggregate deployer permissions::${missing.join(", ")}`);process.exit(1)}' "${response}"
+          fi
+          service_accounts="$(node -e 'const p=require("../permission-plan.json");console.log(p.serviceAccounts.map(x=>x.account).join("\n"))')"
+          missing_accounts=""
+          while IFS= read -r service_account; do
             response="$(curl --fail --silent --show-error \
               -H "Authorization: Bearer ${access_token}" \
               -H "Content-Type: application/json" \
@@ -550,11 +560,30 @@ jobs:
               "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions")"
             permission="$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.permissions||[]).join(","))' "${response}")"
             if test "${permission}" != "iam.serviceAccounts.actAs"; then
-              echo "::error title=Missing service-account impersonation permission::The staging deployer lacks iam.serviceAccounts.actAs on ${service_account}. This read-only check made no IAM changes."
+              missing_accounts="${missing_accounts}${service_account}\n"
+            else
+              echo "Verified iam.serviceAccounts.actAs on ${service_account}."
+            fi
+          done <<< "${service_accounts}"
+          if test -n "${missing_accounts}"; then
+            echo "::error title=Missing aggregate service-account permissions::iam.serviceAccounts.actAs is missing on: $(printf '%b' "${missing_accounts}" | tr '\n' ' ')"
+            exit 1
+          fi
+          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
+            missing_build=""
+            node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];for(const [permission,resource] of Object.entries(r.buildPermissionResources))console.log(`${permission}\t${resource}`)' > ../build-permission-checks.tsv
+            while IFS=$'\t' read -r permission resource; do
+              payload="$(node -e 'console.log(JSON.stringify({accessTuple:{principal:`//iam.googleapis.com/projects/-/serviceAccounts/${process.argv[1]}`,fullResourceName:process.argv[2],permission:process.argv[3]}))' "sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com" "${resource}" "${permission}")"
+              status="$(curl --silent --show-error -o ../build-permission-response.json -w '%{http_code}' -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" -X POST -d "${payload}" "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot")"
+              granted="$(node -e 'const fs=require("fs");let d={};try{d=JSON.parse(fs.readFileSync(process.argv[1]))}catch{};process.stdout.write(d.access===1||d.access==="GRANTED"?"true":"false")' ../build-permission-response.json)"
+              if test "${status}" != "200" || test "${granted}" != "true"; then missing_build="${missing_build}${permission} on ${resource}\n"; fi
+            done < ../build-permission-checks.tsv
+            if test -n "${missing_build}"; then
+              echo "::error title=Build identity permission certification failed::$(printf '%b' "${missing_build}" | tr '\n' '; ')"
+              echo "The preflight identity also requires policytroubleshooter.iam.troubleshoot to certify these grants without impersonating the build account."
               exit 1
             fi
-            echo "Verified iam.serviceAccounts.actAs on ${service_account}."
-          done
+          fi
       - name: Preserve read-only recovery evidence
         uses: actions/upload-artifact@v4
         with:
@@ -563,6 +592,9 @@ jobs:
             marker.json
             runtimes.json
             hosting-release-before.json
+            permission-plan.json
+            build-permission-checks.tsv
+            rollback-evidence.json
             *-before.json
           if-no-files-found: error
 
@@ -576,6 +608,10 @@ jobs:
       matrix:
         function_name: ${{ fromJSON(needs.validate-source.outputs.function_matrix) }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         with:
@@ -589,7 +625,7 @@ jobs:
           service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
-      - name: Verify targeted Firebase callable deployment inputs
+      - name: Verify targeted callable deployment inputs
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
@@ -598,16 +634,28 @@ jobs:
           test ! -e release-artifacts/functions/.env.sandmandashboard
           npm ci --omit=dev --prefix release-artifacts/functions
           node -e 'const f=require("./release-artifacts/functions")[process.argv[1]];if(!f?.__endpoint?.callableTrigger)process.exit(64)' "${{ matrix.function_name }}"
-      - name: Deploy one allowlisted Firebase callable
+      - name: Deploy one allowlisted callable
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;; *) exit 64 ;; esac
-          cd release-artifacts
-          npx --yes firebase-tools@15.11.0 deploy --config firebase.functions.json \
-            --project sandman-combat-staging \
-            --only "functions:default:${{ matrix.function_name }}" \
-            --non-interactive
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457"; then
+            export SANDMAN_BOOTSTRAP_VERIFIED=true
+            node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \
+              "${{ inputs.release_id }}" "${{ matrix.function_name }}" release-artifacts/functions
+          else
+            cd release-artifacts
+            npx --yes firebase-tools@15.11.0 deploy --config firebase.functions.json \
+              --project sandman-combat-staging \
+              --only "functions:default:${{ matrix.function_name }}" \
+              --non-interactive
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && inputs.release_id == 'cross-academy-pr253-e9980457' }}
+        with:
+          name: function-deploy-receipt-${{ matrix.function_name }}-${{ needs.validate-source.outputs.application_sha }}
+          path: function-deploy-receipt.json
+          if-no-files-found: warn
 
   deploy-hosting:
     if: ${{ inputs.action == 'deploy' }}

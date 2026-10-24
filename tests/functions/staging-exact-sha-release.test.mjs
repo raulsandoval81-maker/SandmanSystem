@@ -15,6 +15,14 @@ import {
   validateRemotePreflight,
   verifyPreservedDeployment,
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
+import {
+  BUILD_ACCOUNT_PERMISSIONS,
+  GCLOUD_DEPLOYER_PERMISSIONS,
+  bootstrapPlan,
+  deploymentPlan,
+  permissionPlan,
+  rollbackEvidence,
+} from "../../scripts/staging/gcloud-function-release.mjs";
 
 test("attendance release accepts correctly configured environment variables regardless of manifest key order", async () => {
   const attendance = await loadRelease("cross-academy-pr253-e9980457");
@@ -47,7 +55,7 @@ test("cross-academy release pins the dedicated attendance deployer and selects i
   assert.equal(attendance.functionDeployer, "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com");
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   const selector = "inputs.release_id == 'cross-academy-pr253-e9980457'";
-  assert.equal(workflow.split(selector).length - 1, 3);
+  assert.equal(workflow.split(selector).length - 1, 4);
   assert.match(workflow, /release\.functionDeployer !== \(process\.env\.RELEASE_ID/);
 });
 
@@ -705,6 +713,10 @@ test("PR253 cross-academy release pins the exact source, Hosting client, and att
     "finalizePracticeAttendance",
   ]);
   assert.deepEqual(result.newFunctions, ["searchPracticeAttendanceAthletes"]);
+  assert.equal(result.functionDeploymentTool, "gcloud-gen2");
+  assert.deepEqual(result.bootstrap, {
+    function: "searchPracticeAttendanceAthletes", approvalRequired: true, routineDeployMayCreate: false,
+  });
   assert.equal(validateRemotePreflight(result, {
     marker,
     runtimeByFunction: Object.fromEntries(result.functions.map(name => [
@@ -914,7 +926,7 @@ test("Functions job preserves external configuration and targets one named calla
   assert.ok(fnJob);
   assert.match(fnJob, /firebase-tools@15\.11\.0 deploy/);
   assert.match(fnJob, /functions:default:\$\{\{ matrix\.function_name \}\}/);
-  assert.doesNotMatch(fnJob, /gcloud functions deploy|--trigger-http|--run-service-account/);
+  assert.match(fnJob, /gcloud-function-release\.mjs deploy/);
   const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
   const entry = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
   assert.match(build, /firebase\.functions\.json/);
@@ -922,7 +934,6 @@ test("Functions job preserves external configuration and targets one named calla
   assert.match(entry, /GOOGLE_APPLICATION_CREDENTIALS/);
   assert.match(workflow, /callableTrigger/);
   assert.match(workflow, /get-iam-policy/);
-  assert.doesNotMatch(workflow, /gcloud functions deploy|--trigger-http|--run-service-account/);
 });
 
 test("artifact preparation omits Functions for a Hosting-only immutable release", async () => {
@@ -970,7 +981,7 @@ test("callable discovery isolates incompatible WIF credentials and restores them
   }
 });
 
-test("generated endpoints pin the existing Compute runtime and preflight both ActAs requirements", async () => {
+test("generated endpoints pin dedicated runtime/build identities without App Engine default access", async () => {
   const entry = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
   const build = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
@@ -978,11 +989,68 @@ test("generated endpoints pin the existing Compute runtime and preflight both Ac
   assert.match(build, /replace\("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release\.functionRuntime\)/);
   assert.match(workflow, /:testIamPermissions/);
   assert.match(workflow, /iam\.serviceAccounts\.actAs/);
-  assert.match(workflow, /sandman-combat-staging@appspot\.gserviceaccount\.com/);
+  assert.doesNotMatch(workflow, /sandman-combat-staging@appspot\.gserviceaccount\.com/);
+  assert.match(workflow, /policytroubleshooter\.googleapis\.com\/v3\/iam:troubleshoot/);
+  assert.match(workflow, /buildPermissionResources/);
   assert.match(workflow, /r\.functionRuntime/);
-  assert.match(workflow, /The staging deployer lacks iam\.serviceAccounts\.actAs on \$\{service_account\}/);
+  assert.match(workflow, /Missing aggregate service-account permissions/);
   assert.match(workflow, /Verified iam\.serviceAccounts\.actAs on \$\{service_account\}/);
   assert.doesNotMatch(workflow, /add-iam-policy-binding|set-iam-policy|roles\/iam\.serviceAccountUser/);
+});
+
+test("PR253 gcloud plan is immutable, exact, and never uses the App Engine default identity", () => {
+  const name = "getPracticeAttendanceReview";
+  const plan = deploymentPlan(pr253CrossAcademyRelease, name, "/tmp/immutable-functions");
+  const joined = plan.args.join(" ");
+  assert.equal(plan.executable, "gcloud");
+  assert.match(joined, /functions deploy getPracticeAttendanceReview --gen2/);
+  assert.match(joined, /--project=sandman-combat-staging/);
+  assert.match(joined, /--run-service-account=sandman-attendance-runtime@/);
+  assert.match(joined, /--build-service-account=projects\/sandman-combat-staging\/serviceAccounts\/sandman-attendance-build@/);
+  assert.match(joined, /--update-env-vars=/);
+  assert.doesNotMatch(joined, /--set-env-vars=/);
+  assert.doesNotMatch(joined, /appspot|sandmandashboard|--allow-unauthenticated/);
+  assert.throws(() => deploymentPlan(pr253CrossAcademyRelease, "xpHttp", "/tmp/functions"), /allowlist/);
+  assert.throws(() => deploymentPlan(pr253CrossAcademyRelease, "searchPracticeAttendanceAthletes", "/tmp/functions"), /bootstrap/);
+  assert.equal(deploymentPlan(pr253CrossAcademyRelease, "searchPracticeAttendanceAthletes", "/tmp/functions", "update", { bootstrapVerified: true }).functionName,
+    "searchPracticeAttendanceAthletes");
+});
+
+test("new callable bootstrap is a separate approval plan preserving callable application auth", () => {
+  const plan = bootstrapPlan(pr253CrossAcademyRelease, "/tmp/immutable-functions");
+  assert.equal(plan.approvalRequired, true);
+  assert.equal(plan.deploy.mode, "bootstrap");
+  assert.equal(plan.deploy.functionName, "searchPracticeAttendanceAthletes");
+  assert.equal(plan.preserveCallableApplicationAuth, true);
+  assert.ok(plan.invokerConfiguration.args.includes("--no-invoker-iam-check"));
+  assert.ok(!plan.deploy.args.includes("--allow-unauthenticated"));
+});
+
+test("aggregate permission plan covers deployer, runtime, build, and build execution", () => {
+  const plan = permissionPlan(pr253CrossAcademyRelease);
+  assert.deepEqual(plan.deployer, [...GCLOUD_DEPLOYER_PERMISSIONS].sort());
+  assert.deepEqual(plan.build, [...BUILD_ACCOUNT_PERMISSIONS].sort());
+  assert.deepEqual(plan.serviceAccounts.map(value => value.account), [
+    pr253CrossAcademyRelease.functionRuntime, pr253CrossAcademyRelease.functionBuild,
+  ]);
+  assert.ok(plan.serviceAccounts.every(value => value.permissions.includes("iam.serviceAccounts.actAs")));
+});
+
+test("rollback evidence is complete and identifies separately approved deletion for a partial bootstrap", () => {
+  const descriptions = Object.fromEntries(pr253CrossAcademyRelease.functions.map(name => [name, {
+    updateTime: "2026-10-23T00:00:00Z",
+    buildConfig: { serviceAccount: `projects/sandman-combat-staging/serviceAccounts/${pr253CrossAcademyRelease.functionBuild}`,
+      source: { storageSource: { bucket: "gcf-v2-sources-991554514268-us-central1", object: `${name}.zip`, generation: "7" } } },
+    serviceConfig: { serviceAccountEmail: pr253CrossAcademyRelease.functionRuntime },
+  }]));
+  descriptions.searchPracticeAttendanceAthletes = { absent: true };
+  const evidence = rollbackEvidence(pr253CrossAcademyRelease, descriptions);
+  assert.equal(evidence.applicationSha, pr253CrossAcademyRelease.applicationSha);
+  assert.equal(evidence.functions.find(value => value.name === "searchPracticeAttendanceAthletes").rollback,
+    "delete-new-function-with-separate-approval");
+  assert.equal(evidence.functions.find(value => value.name === "finalizePracticeAttendance").source.generation, "7");
+  delete descriptions.finalizePracticeAttendance.buildConfig.source;
+  assert.throws(() => rollbackEvidence(pr253CrossAcademyRelease, descriptions), /immutable rollback source/);
 });
 
 test("post-deployment comparison rejects callable configuration or IAM drift", () => {

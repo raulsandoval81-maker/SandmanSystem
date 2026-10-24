@@ -80,5 +80,7 @@ await writeFile(path.join(outputRoot, "release-evidence.json"), `${JSON.stringif
   hosting: release.hosting !== false,
   functions: release.functions,
   recovery: release.recovery,
+  functionDeploymentTool: release.functionDeploymentTool || "firebase-cli",
+  bootstrap: release.bootstrap || null,
 }, null, 2)}\n`);
 console.log(`Prepared immutable staging artifacts for ${releaseId}.`);

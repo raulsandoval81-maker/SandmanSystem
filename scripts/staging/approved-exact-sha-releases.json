@@ -2385,6 +2385,19 @@
     "functionDeployer": "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com",
     "functionRuntime": "sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com",
     "functionBuild": "sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeploymentTool": "gcloud-gen2",
+    "bootstrap": {
+      "function": "searchPracticeAttendanceAthletes",
+      "approvalRequired": true,
+      "routineDeployMayCreate": false
+    },
+    "buildPermissionResources": {
+      "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1",
+      "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
+    },
     "expectedFunctionConfiguration": {
       "region": "us-central1",
       "environment": "GEN_2",
