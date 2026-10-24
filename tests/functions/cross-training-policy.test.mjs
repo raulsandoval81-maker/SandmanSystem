@@ -45,7 +45,7 @@ test("athlete discipline authority preserves multi-discipline and striking alias
 test("practice eligibility distinguishes local enrollment from an approved visitor", () => {
   const local = classifyPracticeAthleteEligibility({
     athleteId: "F8_LOCAL",
-    athlete: { locationId: "santa-ynez-valley", rosterStatus: "current" },
+    athlete: { locationId: "santa-ynez-valley", rosterStatus: "current", disciplines: { wrestling: {} } },
     hostLocationId: "santa-ynez-valley",
     disciplineId: "wrestling",
   });
@@ -98,4 +98,21 @@ test("practice visitor eligibility fails closed for fabricated, mismatched, expi
   assert.equal(classifyPracticeAthleteEligibility({
     ...base, athlete: { ...base.athlete, rosterStatus: "inactive" }, assignments: [],
   }).reason, "ATHLETE_NOT_CURRENT");
+});
+
+test("local attendance is discipline-scoped, not journey- or academy-wide", () => {
+  const local = (athlete, disciplineId) => classifyPracticeAthleteEligibility({
+    athleteId: "F4_LOCAL",
+    athlete: { locationId: "santa-ynez-valley", rosterStatus: "current", ...athlete },
+    hostLocationId: "santa-ynez-valley",
+    disciplineId,
+  });
+  assert.equal(local({ disciplines: { boxing: {} } }, "wrestling").reason, "LOCAL_DISCIPLINE_ENROLLMENT_REQUIRED");
+  assert.equal(local({ disciplines: { wrestling: {} } }, "boxing").eligible, false);
+  assert.equal(local({ disciplines: { wrestling: {}, boxing: {} } }, "wrestling").eligible, true);
+  assert.equal(local({ disciplines: { wrestling: {}, boxing: {} } }, "boxing").eligible, true);
+  assert.equal(local({ disciplineIds: ["wrestling"] }, "wrestling").eligible, true);
+  assert.equal(local({ disciplines: { wrestling: {} } }, "unassigned").eligible, false);
+  assert.equal(local({}, "wrestling").eligible, false);
+  assert.equal(local({ disciplines: { muaythai: {} } }, "kickboxing").eligible, true);
 });
