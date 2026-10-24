@@ -42,6 +42,15 @@ test("attendance release accepts correctly configured environment variables rega
   assert.throws(() => validateFunctionConfiguration(attendance, name, description), /configuration mismatch/);
 });
 
+test("cross-academy release pins the dedicated attendance deployer and selects it for preflight and deployments", async () => {
+  const attendance = await loadRelease("cross-academy-pr253-e9980457");
+  assert.equal(attendance.functionDeployer, "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com");
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  const selector = "inputs.release_id == 'cross-academy-pr253-e9980457'";
+  assert.equal(workflow.split(selector).length - 1, 3);
+  assert.match(workflow, /release\.functionDeployer !== \(process\.env\.RELEASE_ID/);
+});
+
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
 const practiceGroupsRelease = await loadRelease("practice-groups-pr113-27adc626");
 const wrestlingWavesRelease = await loadRelease("r2c-wrestling-waves-pr115-18d46b08");
