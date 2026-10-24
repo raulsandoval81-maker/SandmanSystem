@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       confirm_sha:
-        description: Type e9980457 exactly
+        description: Type c93c2e5 exactly
         required: true
         type: string
 
@@ -40,17 +40,17 @@ jobs:
           test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${{ inputs.confirm_project }}" = "sandmandashboard"
-          test "${{ inputs.confirm_sha }}" = "e9980457"
+          test "${{ inputs.confirm_sha }}" = "c93c2e5"
       - name: Checkout immutable approved application
         uses: actions/checkout@v4
         with:
-          ref: e998045771fd2f0d92cba5615185175fd8299dfd
+          ref: c93c2e53924fbb34e8fcc40d187a9d8e80086d50
           persist-credentials: false
       - name: Confirm application and only four exports
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "e998045771fd2f0d92cba5615185175fd8299dfd"
+          test "$(git rev-parse HEAD)" = "c93c2e53924fbb34e8fcc40d187a9d8e80086d50"
           test -f functions/tsconfig.json
           node - <<'NODE'
           const fs = require('fs');
@@ -71,6 +71,11 @@ jobs:
         run: |
           npm ci --prefix functions
           npm --prefix functions run build
+      - name: Validate discipline-specific roster eligibility regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/functions/cross-training-policy.test.mjs
       - name: Prepare isolated precompiled attendance-only package
         shell: bash
         run: |
