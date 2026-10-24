@@ -98,7 +98,7 @@ jobs:
           ].join('\n');
           fs.writeFileSync(dir+'entry.cjs',entry);
           fs.writeFileSync('attendance-production/firebase.json',JSON.stringify({
-            functions: {source:'functions',runtime:'nodejs22',codebase:'attendance-production'}
+            functions: {source:'functions',runtime:'nodejs22',codebase:'default'}
           },null,2)+'\n');
           NODE
           node -e 'const p=require("./attendance-production/functions/package.json");if(p.main!=="entry.cjs"||p.scripts["gcp-build"]!==""||p.scripts.build)process.exit(64)'
@@ -153,7 +153,7 @@ jobs:
           npx --yes firebase-tools@15.11.0 deploy \
             --config attendance-production/firebase.json \
             --project sandmandashboard \
-            --only functions:attendance-production:searchPracticeAttendanceAthletes,functions:attendance-production:getPracticeAttendanceReview,functions:attendance-production:updatePracticeCheckIn,functions:attendance-production:finalizePracticeAttendance \
+            --only functions:searchPracticeAttendanceAthletes,functions:getPracticeAttendanceReview,functions:updatePracticeCheckIn,functions:finalizePracticeAttendance \
             --non-interactive
       - name: Read post-deployment function status
         if: ${{ inputs.mode == 'deploy' }}
