@@ -788,12 +788,12 @@ html[data-theme="light"] .gateway-title{
 
       <div data-lang-block="en">
         <h2 class="finder__heading">Find Your Sandman Academy</h2>
-        <p class="finder__intro">Find a Sandman Academy near you, or share your interest in a future location.</p>
+        <p class="finder__intro">Search for a location or suggest your community for future expansion.</p>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
         <h2 class="finder__heading">Encuentra Tu Academia Sandman</h2>
-        <p class="finder__intro">Encuentra una Academia Sandman cerca de ti o comparte tu interés en una futura sede.</p>
+        <p class="finder__intro">Busca una sede o sugiere tu comunidad para una futura expansión.</p>
       </div>
 
 
@@ -959,23 +959,6 @@ html[data-theme="light"] .gateway-title{
     </article>
 
 
-    <p
-      id="academySearchNote"
-      class="local-note"
-      data-lang-block="en"
-    >
-      Search above to find a Sandman Academy currently available
-      in your community.
-    </p>
-
-    <p
-      id="academySearchNoteEs"
-      class="local-note hidden-lang"
-      data-lang-block="es"
-    >
-      Busca arriba para encontrar una Academia Sandman disponible
-      actualmente en tu comunidad.
-    </p>
 
   </main>
 
@@ -1014,7 +997,6 @@ html[data-theme="light"] .gateway-title{
       const resultArea = document.getElementById("academyResultArea");
       const resultLink = document.getElementById("academyResultLink");
       const noResult = document.getElementById("academyNoResult");
-      const searchNotes = [document.getElementById("academySearchNote"), document.getElementById("academySearchNoteEs")];
 
       if (
         !form ||
@@ -1199,7 +1181,6 @@ html[data-theme="light"] .gateway-title{
         }
 
         hideResults();
-        searchNotes.forEach(note => { if (note) note.style.display = "none"; });
 
         if (!locations.length) {
           await loadLocations();
