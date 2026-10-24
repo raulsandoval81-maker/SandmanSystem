@@ -612,6 +612,9 @@ jobs:
           node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
           test ! -e release-artifacts/functions/.env.production
           test ! -e release-artifacts/functions/.env.sandmandashboard
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457"; then
+            node -e 'const p=require("./release-artifacts/functions/package.json");if(p.scripts?.build!==undefined||p.scripts?.["gcp-build"]!=="")throw Error("Precompiled staging artifact must explicitly disable Cloud Build scripts");'
+          fi
           npm ci --omit=dev --prefix release-artifacts/functions
           node -e 'const f=require("./release-artifacts/functions")[process.argv[1]];if(!f?.__endpoint?.callableTrigger)process.exit(64)' "${{ matrix.function_name }}"
       - name: Deploy one allowlisted callable
