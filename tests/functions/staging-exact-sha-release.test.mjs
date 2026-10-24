@@ -24,6 +24,7 @@ import {
   rollbackEvidence,
 } from "../../scripts/staging/gcloud-function-release.mjs";
 import {
+  evaluateTestIamPermissionsResponse,
   evaluateTroubleshooterResponse,
   permissionChecks,
   policyTroubleshooterPrincipal,
@@ -1045,16 +1046,19 @@ test("aggregate permission plan covers deployer, runtime, build, and build execu
   assert.ok(plan.serviceAccounts.every(value => value.permissions.includes("iam.serviceAccounts.actAs")));
 });
 
-test("permission preflight routes checks to service-specific resources without project testIamPermissions", async () => {
+test("permission preflight batches supported checks on real staging resources", async () => {
   const checks = permissionChecks(pr253CrossAcademyRelease);
-  assert.ok(checks.some(value => value.permission === "cloudfunctions.functions.update" &&
-    value.resource.startsWith("//cloudfunctions.googleapis.com/")));
-  assert.ok(checks.some(value => value.permission === "run.services.getIamPolicy" &&
-    value.resource.startsWith("//run.googleapis.com/")));
-  assert.ok(checks.some(value => value.permission === "iam.serviceAccounts.actAs" &&
-    value.resource.startsWith("//iam.googleapis.com/")));
+  assert.equal(checks.length, 12);
+  assert.equal(checks.filter(value => value.method === "TROUBLESHOOT").length, 5);
+  assert.ok(checks.some(value => value.method === "TEST_IAM" &&
+    value.permissions.includes("cloudfunctions.functions.update") && value.resource.includes("getPracticeAttendanceReview")));
+  assert.ok(checks.some(value => value.method === "TEST_IAM" &&
+    value.permissions.includes("iam.serviceAccounts.actAs") && value.resource.startsWith("//iam.googleapis.com/")));
   assert.ok(checks.some(value => value.category === "build-account" &&
     value.resource.startsWith("//artifactregistry.googleapis.com/")));
+  assert.ok(checks.some(value => value.method === "GET" && value.permission === "cloudfunctions.locations.list"));
+  assert.ok(!checks.some(value => value.resource.includes("preflight-placeholder")));
+  assert.ok(!checks.some(value => value.resource.includes("searchPracticeAttendanceAthletes")));
   assert.ok(!checks.some(value => value.permission === "policytroubleshooter.iam.troubleshoot"));
   assert.ok(checks.every(value => value.principal.includes("@") && !value.principal.startsWith("//iam.googleapis.com/")));
   assert.throws(() => permissionChecks({ ...pr253CrossAcademyRelease, projectId: "sandmandashboard" }), /staging-only/);
@@ -1064,15 +1068,15 @@ test("permission preflight routes checks to service-specific resources without p
   assert.doesNotMatch(preflight, /cloudresourcemanager\.googleapis\.com\/v1\/projects\/sandman-combat-staging:testIamPermissions/);
 });
 
-test("Policy Troubleshooter HTTP 400 is sanitized, retained, and fails closed", async () => {
-  const [check] = permissionChecks(pr253CrossAcademyRelease);
+test("Policy Troubleshooter HTTP 400 is an API error, sanitized, retained, and fails closed", async () => {
+  const check = permissionChecks(pr253CrossAcademyRelease).find(value => value.method === "TROUBLESHOOT");
   const results = await verifyPermissionChecks([check], {
     accessToken: "not-logged",
     fetchImpl: async () => ({ status: 400, text: async () => JSON.stringify({ error: {
       code: 400, message: "Invalid permission; Authorization: Bearer secret-token", status: "INVALID_ARGUMENT",
     } }) }),
   });
-  assert.equal(results[0].result, "ERROR");
+  assert.equal(results[0].result, "API_ERROR");
   assert.equal(results[0].status, 400);
   assert.match(results[0].detail, /INVALID_ARGUMENT/);
   assert.doesNotMatch(results[0].detail, /secret-token/);
@@ -1085,14 +1089,14 @@ test("missing IAM grants and inconclusive responses are reported separately", ()
   const missing = evaluateTroubleshooterResponse({ status: 200, body: { overallAccessState: "CANNOT_ACCESS" } }, check);
   const malformed = evaluateTroubleshooterResponse({ status: 200, body: { allowPolicyExplanation: {} } }, check);
   assert.equal(missing.result, "MISSING");
-  assert.equal(malformed.result, "UNKNOWN");
+  assert.equal(malformed.result, "INCONCLUSIVE");
   const summary = summarizePermissionResults([missing, malformed]);
-  assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1 });
+  assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1, apiErrors: 0, resourceNotFound: 0 });
   assert.equal(summary.authorized, false);
 });
 
 test("successful Policy Troubleshooter v3 authorization uses overallAccessState", async () => {
-  const checks = permissionChecks(pr253CrossAcademyRelease).slice(0, 2);
+  const checks = permissionChecks(pr253CrossAcademyRelease).filter(value => value.method === "TROUBLESHOOT").slice(0, 2);
   const seen = [];
   const results = await verifyPermissionChecks(checks, {
     accessToken: "short-lived-token",
@@ -1103,20 +1107,83 @@ test("successful Policy Troubleshooter v3 authorization uses overallAccessState"
   });
   assert.equal(summarizePermissionResults(results).authorized, true);
   assert.ok(results.every(value => value.result === "GRANTED"));
-  assert.equal(seen[0].accessTuple.principal, pr253CrossAcademyRelease.functionDeployer);
+  assert.equal(seen[0].accessTuple.principal, pr253CrossAcademyRelease.functionBuild);
   assert.ok(!("access" in results[0]));
+});
+
+test("a complete supported authorization response grants the quota-aware preflight", async () => {
+  const checks = permissionChecks(pr253CrossAcademyRelease);
+  const results = await verifyPermissionChecks(checks, {
+    accessToken: "short-lived-token",
+    fetchImpl: async (_url, init) => {
+      if (init.method === "GET") return { status: 200, text: async () => "{}" };
+      const request = JSON.parse(init.body);
+      if (request.accessTuple) {
+        return { status: 200, text: async () => JSON.stringify({ overallAccessState: "CAN_ACCESS" }) };
+      }
+      return { status: 200, text: async () => JSON.stringify({ permissions: request.permissions }) };
+    },
+  });
+  assert.equal(checks.filter(value => value.method === "TROUBLESHOOT").length, 5);
+  assert.equal(summarizePermissionResults(results).authorized, true);
+  assert.ok(results.every(value => value.result === "GRANTED"));
 });
 
 test("malformed transport responses and invalid principal formats fail closed", async () => {
   assert.throws(() => policyTroubleshooterPrincipal("//iam.googleapis.com/projects/-/serviceAccounts/x@example.com"), /email address/);
   assert.equal(sanitizeErrorBody("access_token=secret").includes("secret"), false);
-  const [check] = permissionChecks(pr253CrossAcademyRelease);
+  const check = permissionChecks(pr253CrossAcademyRelease).find(value => value.method === "TROUBLESHOOT");
   const results = await verifyPermissionChecks([check], {
     accessToken: "short-lived-token",
     fetchImpl: async () => ({ status: 200, text: async () => "not-json" }),
   });
-  assert.equal(results[0].result, "UNKNOWN");
+  assert.equal(results[0].result, "INCONCLUSIVE");
   assert.equal(summarizePermissionResults(results).authorized, false);
+});
+
+test("batched testIamPermissions identifies granted and genuinely missing permissions", () => {
+  const check = { method: "TEST_IAM", category: "routine-deployer", principal: pr253CrossAcademyRelease.functionDeployer,
+    permissions: ["cloudfunctions.functions.update", "cloudfunctions.functions.sourceCodeSet"], resource: "real-function" };
+  const results = evaluateTestIamPermissionsResponse({ status: 200,
+    body: { permissions: ["cloudfunctions.functions.update"] } }, check);
+  assert.deepEqual(results.map(value => value.result), ["GRANTED", "MISSING"]);
+  assert.equal(summarizePermissionResults(results).authorized, false);
+});
+
+test("malformed testIamPermissions responses are inconclusive rather than missing", () => {
+  const check = { method: "TEST_IAM", category: "routine-deployer", principal: pr253CrossAcademyRelease.functionDeployer,
+    permissions: ["cloudfunctions.functions.update"], resource: "real-function" };
+  const [result] = evaluateTestIamPermissionsResponse({ status: 200, body: { unexpected: true } }, check);
+  assert.equal(result.result, "INCONCLUSIVE");
+  assert.equal(summarizePermissionResults([result]).authorized, false);
+});
+
+test("quota errors, invalid resources, and missing resources remain distinct and fail closed", () => {
+  const check = { category: "build-account", principal: pr253CrossAcademyRelease.functionBuild,
+    permission: "storage.objects.get", resource: "staging-resource" };
+  const quota = evaluateTroubleshooterResponse({ status: 429,
+    body: { error: { status: "RESOURCE_EXHAUSTED", message: "quota" } } }, check);
+  const invalid = evaluateTroubleshooterResponse({ status: 400,
+    body: { error: { status: "INVALID_ARGUMENT", message: "invalid resource" } } }, check);
+  const absent = evaluateTroubleshooterResponse({ status: 404,
+    body: { error: { status: "NOT_FOUND", message: "not deployed" } } }, check);
+  assert.equal(quota.result, "API_ERROR");
+  assert.equal(invalid.result, "API_ERROR");
+  assert.equal(absent.result, "RESOURCE_NOT_FOUND");
+  const summary = summarizePermissionResults([quota, invalid, absent]);
+  assert.equal(summary.totals.apiErrors, 2);
+  assert.equal(summary.totals.resourceNotFound, 1);
+  assert.equal(summary.authorized, false);
+});
+
+test("the not-yet-deployed callable is excluded while bootstrap and operation permissions remain required", () => {
+  const checks = permissionChecks(pr253CrossAcademyRelease);
+  assert.ok(!checks.some(value => value.resource.includes("searchPracticeAttendanceAthletes")));
+  const plan = permissionPlan(pr253CrossAcademyRelease);
+  assert.ok(plan.deployer.includes("cloudfunctions.operations.get"));
+  assert.ok(plan.deployer.includes("cloudfunctions.functions.get"));
+  assert.deepEqual(pr253CrossAcademyRelease.newFunctions, ["searchPracticeAttendanceAthletes"]);
+  assert.equal(pr253CrossAcademyRelease.bootstrap.approvalRequired, true);
 });
 
 test("rollback evidence is complete and identifies separately approved deletion for a partial bootstrap", () => {
