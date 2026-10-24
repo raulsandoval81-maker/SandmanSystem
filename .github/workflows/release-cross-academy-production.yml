@@ -1,0 +1,130 @@
+name: Cross-Academy Attendance Production Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inspect production first; deploy requires a separate explicit run
+        required: true
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - deploy
+      confirm_project:
+        description: Type sandmandashboard exactly
+        required: true
+        type: string
+      confirm_sha:
+        description: Type e9980457 exactly
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-attendance-functions
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Pinned production attendance release
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Enforce production boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${{ inputs.confirm_project }}" = "sandmandashboard"
+          test "${{ inputs.confirm_sha }}" = "e9980457"
+      - name: Checkout immutable approved application
+        uses: actions/checkout@v4
+        with:
+          ref: e998045771fd2f0d92cba5615185175fd8299dfd
+          persist-credentials: false
+      - name: Confirm application and only four exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "e998045771fd2f0d92cba5615185175fd8299dfd"
+          test -f functions/tsconfig.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const code = fs.readFileSync('functions/src/index.ts','utf8');
+          for (const name of ['searchPracticeAttendanceAthletes','getPracticeAttendanceReview','updatePracticeCheckIn','finalizePracticeAttendance']) {
+            if (!code.includes(name)) throw new Error('Missing approved export: '+name);
+          }
+          const rc = JSON.parse(fs.readFileSync('.firebaserc','utf8'));
+          if (rc.projects.default !== 'sandmandashboard') throw Error('Unexpected production project');
+          NODE
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install and compile immutable Functions
+        run: |
+          npm ci --prefix functions
+          npm --prefix functions run build
+      - name: Authenticate existing production deployment account
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          node - "$RUNNER_TEMP/firebase-sa.json" <<'NODE'
+          const a=require(process.argv[2]);
+          if(a.project_id!=='sandmandashboard')throw Error('Credential does not belong to production project');
+          NODE
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Capture existing production function state (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p production-before
+          for fn in searchPracticeAttendanceAthletes getPracticeAttendanceReview updatePracticeCheckIn finalizePracticeAttendance; do
+            if gcloud functions describe "$fn" --gen2 --project sandmandashboard --region us-central1 --format=json > "production-before/$fn.json" 2>"production-before/$fn.stderr"; then
+              echo "$fn EXISTS" >> production-before/inventory.txt
+            elif grep -Eq 'NOT_FOUND|not found|does not exist|404' "production-before/$fn.stderr"; then
+              echo '{"absent":true}' > "production-before/$fn.json"
+              echo "$fn ABSENT" >> production-before/inventory.txt
+            else
+              cat "production-before/$fn.stderr" >&2
+              exit 1
+            fi
+          done
+          cat production-before/inventory.txt
+      - name: Preserve pre-release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-attendance-before-${{ github.run_id }}
+          path: production-before/
+          if-no-files-found: error
+      - name: Stop after read-only preflight
+        if: ${{ inputs.mode == 'preflight' }}
+        run: echo "Production inventory and compiled release validated. No deployment performed."
+      - name: Deploy only four approved production attendance functions
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes firebase-tools@15.11.0 deploy \
+            --project sandmandashboard \
+            --only functions:searchPracticeAttendanceAthletes,functions:getPracticeAttendanceReview,functions:updatePracticeCheckIn,functions:finalizePracticeAttendance \
+            --non-interactive
+      - name: Read post-deployment function status
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for fn in searchPracticeAttendanceAthletes getPracticeAttendanceReview updatePracticeCheckIn finalizePracticeAttendance; do
+            test "$(gcloud functions describe "$fn" --gen2 --project sandmandashboard --region us-central1 --format='value(state)')" = "ACTIVE"
+          done
