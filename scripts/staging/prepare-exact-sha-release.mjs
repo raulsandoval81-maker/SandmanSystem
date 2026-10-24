@@ -53,7 +53,8 @@ if (release.functions.length) {
   packageJson.main = "staging-release-entry.cjs";
   // The immutable source was compiled above; Cloud Build must not run tsc again
   // because the deployable artifact intentionally omits tsconfig.json and TS sources.
-  if (packageJson.scripts) delete packageJson.scripts.build;
+  packageJson.scripts = { ...(packageJson.scripts || {}), "gcp-build": "" };
+  delete packageJson.scripts.build;
   await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
   const stagingEntryTemplate = await readFile(new URL("./staging-release-entry.cjs", import.meta.url), "utf8");
   const stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
