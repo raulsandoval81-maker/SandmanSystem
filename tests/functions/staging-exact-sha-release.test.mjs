@@ -1091,7 +1091,8 @@ test("missing IAM grants and inconclusive responses are reported separately", ()
   assert.equal(missing.result, "MISSING");
   assert.equal(malformed.result, "INCONCLUSIVE");
   const summary = summarizePermissionResults([missing, malformed]);
-  assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1, apiErrors: 0, resourceNotFound: 0 });
+  assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1, apiErrors: 0,
+    resourceNotFound: 0, inspectionDenied: 0 });
   assert.equal(summary.authorized, false);
 });
 
@@ -1176,12 +1177,49 @@ test("quota errors, invalid resources, and missing resources remain distinct and
   assert.equal(summary.authorized, false);
 });
 
+test("all five build-policy inspection denials remain explicit verification errors", async () => {
+  const checks = permissionChecks(pr253CrossAcademyRelease).filter(value => value.method === "TROUBLESHOOT");
+  const inspectionByResource = new Map([
+    ["artifactregistry.googleapis.com", "artifactregistry.repositories.getIamPolicy"],
+    ["cloudresourcemanager.googleapis.com", "resourcemanager.projects.getIamPolicy"],
+    ["storage.googleapis.com", "storage.buckets.getIamPolicy"],
+  ]);
+  const results = await verifyPermissionChecks(checks, {
+    accessToken: "short-lived-token",
+    fetchImpl: async (_url, init) => {
+      const { accessTuple } = JSON.parse(init.body);
+      const [resourceApi, inspectionPermission] = [...inspectionByResource]
+        .find(([api]) => accessTuple.fullResourceName.includes(api));
+      assert.ok(resourceApi);
+      return { status: 403, text: async () => JSON.stringify({ error: {
+        code: 403, status: "PERMISSION_DENIED", message: "Policy inspection denied",
+        details: [{ "@type": "type.googleapis.com/google.rpc.ErrorInfo", reason: "IAM_PERMISSION_DENIED",
+          domain: "iam.googleapis.com", metadata: { permission: inspectionPermission,
+            resource: accessTuple.fullResourceName.replace(/^\/\//, "") } }],
+      } }) };
+    },
+  });
+  const summary = summarizePermissionResults(results);
+  assert.equal(results.length, 5);
+  assert.ok(results.every(value => value.result === "INSPECTION_DENIED"));
+  assert.deepEqual(new Set(results.map(value => value.inspectionPermission)), new Set([
+    "artifactregistry.repositories.getIamPolicy",
+    "resourcemanager.projects.getIamPolicy",
+    "storage.buckets.getIamPolicy",
+  ]));
+  assert.equal(summary.totals.inspectionDenied, 5);
+  assert.equal(summary.totals.missing, 0);
+  assert.equal(summary.totals.apiErrors, 0);
+  assert.equal(summary.authorized, false);
+});
+
 test("the not-yet-deployed callable is excluded while bootstrap and operation permissions remain required", () => {
   const checks = permissionChecks(pr253CrossAcademyRelease);
   assert.ok(!checks.some(value => value.resource.includes("searchPracticeAttendanceAthletes")));
   const plan = permissionPlan(pr253CrossAcademyRelease);
   assert.ok(plan.deployer.includes("cloudfunctions.operations.get"));
   assert.ok(plan.deployer.includes("cloudfunctions.functions.get"));
+  assert.ok(plan.deployer.includes("serviceusage.services.use"));
   assert.deepEqual(pr253CrossAcademyRelease.newFunctions, ["searchPracticeAttendanceAthletes"]);
   assert.equal(pr253CrossAcademyRelease.bootstrap.approvalRequired, true);
 });

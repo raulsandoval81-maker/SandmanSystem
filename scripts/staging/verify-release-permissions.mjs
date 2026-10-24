@@ -25,8 +25,14 @@ export function policyTroubleshooterPrincipal(serviceAccount) {
 }
 
 function apiFailure(status, body, check) {
-  const result = status === 404 || body?.error?.status === "NOT_FOUND" ? "RESOURCE_NOT_FOUND" : "API_ERROR";
-  return { ...check, result, status, detail: sanitizeErrorBody(body) };
+  const inspectionPermission = body?.error?.details?.find(value =>
+    value?.["@type"] === "type.googleapis.com/google.rpc.ErrorInfo" &&
+    value?.reason === "IAM_PERMISSION_DENIED" &&
+    String(value?.metadata?.permission || "").endsWith(".getIamPolicy"))?.metadata?.permission;
+  const result = inspectionPermission ? "INSPECTION_DENIED"
+    : status === 404 || body?.error?.status === "NOT_FOUND" ? "RESOURCE_NOT_FOUND" : "API_ERROR";
+  return { ...check, result, status, ...(inspectionPermission ? { inspectionPermission } : {}),
+    detail: sanitizeErrorBody(body) };
 }
 
 export function evaluateTroubleshooterResponse({ status, body }, check) {
@@ -131,10 +137,13 @@ export function summarizePermissionResults(results) {
   const inconclusive = byResult("INCONCLUSIVE");
   const apiErrors = byResult("API_ERROR");
   const resourceNotFound = byResult("RESOURCE_NOT_FOUND");
-  return { authorized: missing.length === 0 && inconclusive.length === 0 && apiErrors.length === 0 && resourceNotFound.length === 0,
+  const inspectionDenied = byResult("INSPECTION_DENIED");
+  return { authorized: missing.length === 0 && inconclusive.length === 0 && apiErrors.length === 0 &&
+      resourceNotFound.length === 0 && inspectionDenied.length === 0,
     totals: { checks: results.length, granted: byResult("GRANTED").length, missing: missing.length,
-      inconclusive: inconclusive.length, apiErrors: apiErrors.length, resourceNotFound: resourceNotFound.length },
-    missing, inconclusive, apiErrors, resourceNotFound };
+      inconclusive: inconclusive.length, apiErrors: apiErrors.length, resourceNotFound: resourceNotFound.length,
+      inspectionDenied: inspectionDenied.length },
+    missing, inconclusive, apiErrors, resourceNotFound, inspectionDenied };
 }
 
 async function main() {
@@ -145,7 +154,8 @@ async function main() {
   const summary = summarizePermissionResults(results);
   await writeFile(reportPath, `${JSON.stringify({ releaseId, requestCount: checks.length, ...summary, results }, null, 2)}\n`);
   console.log(JSON.stringify({ releaseId, requestCount: checks.length, ...summary.totals }));
-  for (const item of [...summary.missing, ...summary.inconclusive, ...summary.apiErrors, ...summary.resourceNotFound]) {
+  for (const item of [...summary.missing, ...summary.inconclusive, ...summary.apiErrors, ...summary.resourceNotFound,
+    ...summary.inspectionDenied]) {
     console.error(`::error title=${item.result} permission check::${item.principal} ${item.permission} on ${item.resource}; HTTP ${item.status ?? "transport"}; ${item.detail || item.overallAccessState || "no detail"}`);
   }
   if (!summary.authorized) process.exit(1);
