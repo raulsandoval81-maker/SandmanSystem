@@ -23,6 +23,14 @@ import {
   permissionPlan,
   rollbackEvidence,
 } from "../../scripts/staging/gcloud-function-release.mjs";
+import {
+  evaluateTroubleshooterResponse,
+  permissionChecks,
+  policyTroubleshooterPrincipal,
+  sanitizeErrorBody,
+  summarizePermissionResults,
+  verifyPermissionChecks,
+} from "../../scripts/staging/verify-release-permissions.mjs";
 
 test("attendance release accepts correctly configured environment variables regardless of manifest key order", async () => {
   const attendance = await loadRelease("cross-academy-pr253-e9980457");
@@ -990,11 +998,12 @@ test("generated endpoints pin dedicated runtime/build identities without App Eng
   assert.match(workflow, /:testIamPermissions/);
   assert.match(workflow, /iam\.serviceAccounts\.actAs/);
   assert.doesNotMatch(workflow, /sandman-combat-staging@appspot\.gserviceaccount\.com/);
-  assert.match(workflow, /policytroubleshooter\.googleapis\.com\/v3\/iam:troubleshoot/);
-  assert.match(workflow, /buildPermissionResources/);
+  const verifier = await readFile(new URL("../../scripts/staging/verify-release-permissions.mjs", import.meta.url), "utf8");
+  assert.match(verifier, /policytroubleshooter\.googleapis\.com\/v3\/iam:troubleshoot/);
+  assert.match(verifier, /buildPermissionResources/);
   assert.match(workflow, /r\.functionRuntime/);
   assert.match(workflow, /Missing aggregate service-account permissions/);
-  assert.match(workflow, /Verified iam\.serviceAccounts\.actAs on \$\{service_account\}/);
+  assert.match(verifier, /service-account-actAs/);
   assert.doesNotMatch(workflow, /add-iam-policy-binding|set-iam-policy|roles\/iam\.serviceAccountUser/);
 });
 
@@ -1034,6 +1043,80 @@ test("aggregate permission plan covers deployer, runtime, build, and build execu
     pr253CrossAcademyRelease.functionRuntime, pr253CrossAcademyRelease.functionBuild,
   ]);
   assert.ok(plan.serviceAccounts.every(value => value.permissions.includes("iam.serviceAccounts.actAs")));
+});
+
+test("permission preflight routes checks to service-specific resources without project testIamPermissions", async () => {
+  const checks = permissionChecks(pr253CrossAcademyRelease);
+  assert.ok(checks.some(value => value.permission === "cloudfunctions.functions.update" &&
+    value.resource.startsWith("//cloudfunctions.googleapis.com/")));
+  assert.ok(checks.some(value => value.permission === "run.services.getIamPolicy" &&
+    value.resource.startsWith("//run.googleapis.com/")));
+  assert.ok(checks.some(value => value.permission === "iam.serviceAccounts.actAs" &&
+    value.resource.startsWith("//iam.googleapis.com/")));
+  assert.ok(checks.some(value => value.category === "build-account" &&
+    value.resource.startsWith("//artifactregistry.googleapis.com/")));
+  assert.ok(!checks.some(value => value.permission === "policytroubleshooter.iam.troubleshoot"));
+  assert.ok(checks.every(value => value.principal.includes("@") && !value.principal.startsWith("//iam.googleapis.com/")));
+  assert.throws(() => permissionChecks({ ...pr253CrossAcademyRelease, projectId: "sandmandashboard" }), /staging-only/);
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const preflight = workflow.match(/^  preflight:\n([\s\S]*?)(?=^  deploy-functions:)/m)?.[1];
+  assert.ok(preflight);
+  assert.doesNotMatch(preflight, /cloudresourcemanager\.googleapis\.com\/v1\/projects\/sandman-combat-staging:testIamPermissions/);
+});
+
+test("Policy Troubleshooter HTTP 400 is sanitized, retained, and fails closed", async () => {
+  const [check] = permissionChecks(pr253CrossAcademyRelease);
+  const results = await verifyPermissionChecks([check], {
+    accessToken: "not-logged",
+    fetchImpl: async () => ({ status: 400, text: async () => JSON.stringify({ error: {
+      code: 400, message: "Invalid permission; Authorization: Bearer secret-token", status: "INVALID_ARGUMENT",
+    } }) }),
+  });
+  assert.equal(results[0].result, "ERROR");
+  assert.equal(results[0].status, 400);
+  assert.match(results[0].detail, /INVALID_ARGUMENT/);
+  assert.doesNotMatch(results[0].detail, /secret-token/);
+  assert.equal(summarizePermissionResults(results).authorized, false);
+});
+
+test("missing IAM grants and inconclusive responses are reported separately", () => {
+  const check = { category: "routine-deployer", principal: pr253CrossAcademyRelease.functionDeployer,
+    permission: "cloudfunctions.functions.update", resource: "//cloudfunctions.googleapis.com/projects/p/locations/r/functions/f" };
+  const missing = evaluateTroubleshooterResponse({ status: 200, body: { overallAccessState: "CANNOT_ACCESS" } }, check);
+  const malformed = evaluateTroubleshooterResponse({ status: 200, body: { allowPolicyExplanation: {} } }, check);
+  assert.equal(missing.result, "MISSING");
+  assert.equal(malformed.result, "UNKNOWN");
+  const summary = summarizePermissionResults([missing, malformed]);
+  assert.deepEqual(summary.totals, { checks: 2, granted: 0, missing: 1, inconclusive: 1 });
+  assert.equal(summary.authorized, false);
+});
+
+test("successful Policy Troubleshooter v3 authorization uses overallAccessState", async () => {
+  const checks = permissionChecks(pr253CrossAcademyRelease).slice(0, 2);
+  const seen = [];
+  const results = await verifyPermissionChecks(checks, {
+    accessToken: "short-lived-token",
+    fetchImpl: async (_url, init) => {
+      seen.push(JSON.parse(init.body));
+      return { status: 200, text: async () => JSON.stringify({ overallAccessState: "CAN_ACCESS" }) };
+    },
+  });
+  assert.equal(summarizePermissionResults(results).authorized, true);
+  assert.ok(results.every(value => value.result === "GRANTED"));
+  assert.equal(seen[0].accessTuple.principal, pr253CrossAcademyRelease.functionDeployer);
+  assert.ok(!("access" in results[0]));
+});
+
+test("malformed transport responses and invalid principal formats fail closed", async () => {
+  assert.throws(() => policyTroubleshooterPrincipal("//iam.googleapis.com/projects/-/serviceAccounts/x@example.com"), /email address/);
+  assert.equal(sanitizeErrorBody("access_token=secret").includes("secret"), false);
+  const [check] = permissionChecks(pr253CrossAcademyRelease);
+  const results = await verifyPermissionChecks([check], {
+    accessToken: "short-lived-token",
+    fetchImpl: async () => ({ status: 200, text: async () => "not-json" }),
+  });
+  assert.equal(results[0].result, "UNKNOWN");
+  assert.equal(summarizePermissionResults(results).authorized, false);
 });
 
 test("rollback evidence is complete and identifies separately approved deletion for a partial bootstrap", () => {
