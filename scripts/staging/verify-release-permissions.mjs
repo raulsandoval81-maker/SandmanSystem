@@ -7,6 +7,7 @@ import { permissionPlan } from "./gcloud-function-release.mjs";
 const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot";
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
 const CANNOT_ACCESS = new Set([2, "CANNOT_ACCESS"]);
+const INCONCLUSIVE_ACCESS = new Set([3, 4, "UNKNOWN_INFO", "UNKNOWN_CONDITIONAL"]);
 
 export function sanitizeErrorBody(value) {
   const body = typeof value === "string" ? value : JSON.stringify(value ?? {});
@@ -24,6 +25,29 @@ export function policyTroubleshooterPrincipal(serviceAccount) {
   return serviceAccount;
 }
 
+function diagnosticState(value) {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string" && typeof value !== "number") return "[MALFORMED_STATE]";
+  return sanitizeErrorBody(String(value)).slice(0, 128);
+}
+
+function troubleshooterDiagnostic(body) {
+  const overallAccessState = diagnosticState(body?.overallAccessState);
+  const allowAccessState = diagnosticState(body?.allowPolicyExplanation?.allowAccessState);
+  const denyAccessState = diagnosticState(body?.denyPolicyExplanation?.denyAccessState);
+  let reason = "unknown_overall_access_state";
+  if (body?.__malformedResponse === true || !body || typeof body !== "object" || Array.isArray(body)) {
+    reason = "malformed_response";
+  } else if (body.overallAccessState === undefined || body.overallAccessState === null) {
+    reason = "missing_overall_access_state";
+  } else if (diagnosticState(body.overallAccessState) === "[MALFORMED_STATE]") {
+    reason = "malformed_overall_access_state";
+  } else if (INCONCLUSIVE_ACCESS.has(body.overallAccessState)) {
+    reason = "inconclusive_overall_access_state";
+  }
+  return { reason, overallAccessState, allowAccessState, denyAccessState };
+}
+
 function apiFailure(status, body, check) {
   const inspectionPermission = body?.error?.details?.find(value =>
     value?.["@type"] === "type.googleapis.com/google.rpc.ErrorInfo" &&
@@ -36,17 +60,20 @@ function apiFailure(status, body, check) {
 }
 
 export function evaluateTroubleshooterResponse({ status, body }, check) {
-  if (!Number.isInteger(status) || !body || typeof body !== "object" || Array.isArray(body)) {
+  if (!Number.isInteger(status) || !body || typeof body !== "object" || Array.isArray(body) ||
+      body.__malformedResponse === true) {
+    const diagnosticEvidence = troubleshooterDiagnostic(body);
     return { ...check, result: "INCONCLUSIVE", status: Number.isInteger(status) ? status : null,
-      detail: "Malformed Policy Troubleshooter response." };
+      diagnosticEvidence, detail: `Malformed Policy Troubleshooter response; diagnostic=${JSON.stringify(diagnosticEvidence)}.` };
   }
   if (status !== 200) return apiFailure(status, body, check);
   const state = body.overallAccessState;
   if (CAN_ACCESS.has(state)) return { ...check, result: "GRANTED", status, overallAccessState: state };
   if (CANNOT_ACCESS.has(state)) return { ...check, result: "MISSING", status, overallAccessState: state };
-  const keys = Object.keys(body).sort().join(",") || "none";
-  return { ...check, result: "INCONCLUSIVE", status, overallAccessState: state ?? null,
-    detail: `Policy Troubleshooter response lacked a conclusive top-level overallAccessState (keys: ${keys}).` };
+  const diagnosticEvidence = troubleshooterDiagnostic(body);
+  return { ...check, result: "INCONCLUSIVE", status, overallAccessState: diagnosticEvidence.overallAccessState,
+    diagnosticEvidence,
+    detail: `Policy Troubleshooter response was inconclusive; diagnostic=${JSON.stringify(diagnosticEvidence)}.` };
 }
 
 export function evaluateTestIamPermissionsResponse({ status, body }, check) {
@@ -99,7 +126,7 @@ export function permissionChecks(release) {
 
 async function responseBody(response) {
   const text = await response.text();
-  try { return JSON.parse(text); } catch { return { error: { message: sanitizeErrorBody(text || "Empty response body.") } }; }
+  try { return JSON.parse(text); } catch { return { __malformedResponse: true }; }
 }
 
 export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = fetch } = {}) {
