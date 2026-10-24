@@ -60,6 +60,19 @@ export function validateRelease(release, context = {}) {
   if (newFunctions.some(name => name !== "searchPracticeAttendanceAthletes" || !functions.includes(name))) {
     throw new Error("Unexpected new function target in approved release.");
   }
+  if (release.functionDeploymentTool === "gcloud-gen2") {
+    if (!release.functionBuild?.endsWith(`@${STAGING_PROJECT_ID}.iam.gserviceaccount.com`)) throw new Error("Dedicated build identity is required.");
+    if (release.bootstrap?.approvalRequired !== true || release.bootstrap?.routineDeployMayCreate !== false ||
+        !newFunctions.includes(release.bootstrap?.function)) {
+      throw new Error("New callable bootstrap must be separately approved.");
+    }
+    const buildChecks = release.buildPermissionResources || {};
+    for (const permission of ["artifactregistry.repositories.downloadArtifacts", "artifactregistry.repositories.uploadArtifacts", "logging.logEntries.create", "storage.objects.get", "storage.objects.list"]) {
+      if (!String(buildChecks[permission] || "").includes(STAGING_PROJECT_ID) && !String(buildChecks[permission] || "").includes(STAGING_PROJECT_NUMBER)) {
+        throw new Error(`Build permission resource is not staging-scoped: ${permission}.`);
+      }
+    }
+  }
   return release;
 }
 
