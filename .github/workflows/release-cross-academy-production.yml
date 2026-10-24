@@ -71,6 +71,39 @@ jobs:
         run: |
           npm ci --prefix functions
           npm --prefix functions run build
+      - name: Prepare isolated precompiled attendance-only package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p attendance-production/functions
+          cp -R functions/lib attendance-production/functions/lib
+          cp functions/package-lock.json attendance-production/functions/package-lock.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const dir = 'attendance-production/functions/';
+          const packageJson = JSON.parse(fs.readFileSync('functions/package.json','utf8'));
+          packageJson.main = 'entry.cjs';
+          packageJson.scripts = {'gcp-build': ''};
+          fs.writeFileSync(dir+'package.json', JSON.stringify(packageJson,null,2)+'\n');
+          const names = ['searchPracticeAttendanceAthletes','getPracticeAttendanceReview','updatePracticeCheckIn','finalizePracticeAttendance'];
+          const entry = [
+            "const admin = require('firebase-admin');",
+            "if (!admin.apps.length) admin.initializeApp();",
+            "const { setGlobalOptions } = require('firebase-functions/v2/options');",
+            "setGlobalOptions({ preserveExternalChanges: true });",
+            "const approved = require('./lib/practice/practiceSessions.js');",
+            ...names.map(n=>"exports."+n+" = approved."+n+";"),
+            ...names.map(n=>"if (!exports."+n+") throw Error('Missing attendance export "+n+"');"),
+            ""
+          ].join('\n');
+          fs.writeFileSync(dir+'entry.cjs',entry);
+          fs.writeFileSync('attendance-production/firebase.json',JSON.stringify({
+            functions: {source:'functions',runtime:'nodejs22',codebase:'attendance-production'}
+          },null,2)+'\n');
+          NODE
+          node -e 'const p=require("./attendance-production/functions/package.json");if(p.main!=="entry.cjs"||p.scripts["gcp-build"]!==""||p.scripts.build)process.exit(64)'
+          npm ci --omit=dev --prefix attendance-production/functions
+          node -e 'const f=require("./attendance-production/functions");const names=["searchPracticeAttendanceAthletes","getPracticeAttendanceReview","updatePracticeCheckIn","finalizePracticeAttendance"];if(names.some(n=>!f[n]?.__endpoint?.callableTrigger)||Object.keys(f).sort().join()!==names.sort().join())process.exit(64)'
       - name: Authenticate existing production deployment account
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
@@ -118,8 +151,9 @@ jobs:
         run: |
           set -euo pipefail
           npx --yes firebase-tools@15.11.0 deploy \
+            --config attendance-production/firebase.json \
             --project sandmandashboard \
-            --only functions:searchPracticeAttendanceAthletes,functions:getPracticeAttendanceReview,functions:updatePracticeCheckIn,functions:finalizePracticeAttendance \
+            --only functions:attendance-production:searchPracticeAttendanceAthletes,functions:attendance-production:getPracticeAttendanceReview,functions:attendance-production:updatePracticeCheckIn,functions:attendance-production:finalizePracticeAttendance \
             --non-interactive
       - name: Read post-deployment function status
         if: ${{ inputs.mode == 'deploy' }}
