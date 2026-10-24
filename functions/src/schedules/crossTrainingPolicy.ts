@@ -115,6 +115,12 @@ export function classifyPracticeAthleteEligibility(args: {
   if (!athleteId || !homeLocationId || !hostLocationId) return denied("MISSING_ATTENDANCE_IDENTITY");
   if (rosterStatus !== "current") return denied("ATHLETE_NOT_CURRENT");
   if (homeLocationId === hostLocationId) {
+    // Academy membership alone does not authorize every discipline.
+    // Mixed rooms combine journeys, never Wrestling/Boxing/Muay Thai tracks.
+    const enrolled = athleteScheduleDisciplineIds(args.athlete);
+    if (!disciplineId || disciplineId === "unassigned" || !enrolled.includes(disciplineId)) {
+      return denied("LOCAL_DISCIPLINE_ENROLLMENT_REQUIRED");
+    }
     return { eligible: true, kind: "local", athleteId, homeLocationId, hostLocationId, assignmentId: "", reason: "LOCAL_ENROLLMENT" };
   }
   if (!disciplineId || disciplineId === "unassigned") return denied("VISITOR_DISCIPLINE_REQUIRED");
