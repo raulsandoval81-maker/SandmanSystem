@@ -59,12 +59,12 @@ test("attendance release accepts correctly configured environment variables rega
   assert.throws(() => validateFunctionConfiguration(attendance, name, description), /configuration mismatch/);
 });
 
-test("cross-academy release pins the dedicated attendance deployer and selects it for preflight and deployments", async () => {
+test("cross-academy release pins the dedicated attendance deployer for diagnostics, preflight, and deployments", async () => {
   const attendance = await loadRelease("cross-academy-pr253-e9980457");
   assert.equal(attendance.functionDeployer, "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com");
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   const selector = "inputs.release_id == 'cross-academy-pr253-e9980457'";
-  assert.equal(workflow.split(selector).length - 1, 4);
+  assert.equal(workflow.split(selector).length - 1, 7);
   assert.match(workflow, /release\.functionDeployer !== \(process\.env\.RELEASE_ID/);
 });
 
@@ -914,7 +914,13 @@ test("diagnostic action stays read-only inside the trusted workflow identity", a
   assert.ok(diagnoseJob);
   assert.match(diagnoseJob, /GITHUB_WORKFLOW_REF.*staging-exact-sha-release\.yml@refs\/heads\/main/);
   assert.match(diagnoseJob, /environment: staging/);
+  assert.match(diagnoseJob, /inputs\.release_id == 'cross-academy-pr253-e9980457'/);
+  assert.match(diagnoseJob, /sandman-attendance-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
   assert.match(diagnoseJob, /sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(diagnoseJob, /service_account: \$\{\{ inputs\.release_id == 'cross-academy-pr253-e9980457'/);
+  assert.equal((diagnoseJob.match(/EXPECTED_FUNCTION_DEPLOYER:/g) || []).length, 2);
+  assert.equal((diagnoseJob.match(/const expected = process\.env\.EXPECTED_FUNCTION_DEPLOYER/g) || []).length, 2);
+  assert.doesNotMatch(diagnoseJob, /const expected = "sandman-practice-deployer/);
   assert.match(diagnoseJob, /value\.type !== "external_account" \|\| impersonationTarget !== expected/);
   assert.match(diagnoseJob, /authenticated_principal: impersonationTarget/);
   assert.match(diagnoseJob, /value\.email !== expected/);

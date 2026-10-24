@@ -114,15 +114,17 @@ jobs:
                 release.functionDeployer !== (process.env.RELEASE_ID === "cross-academy-pr253-e9980457" ? "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com" : "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com") ||
                 !/^[0-9a-f]{40}$/.test(release.applicationSha)) process.exit(64);
           '
-      - name: Authenticate as the dedicated Practice deployer
+      - name: Authenticate as the release's dedicated Functions deployer
         uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Inspect and verify sanitized identity and credential metadata
+        env:
+          EXPECTED_FUNCTION_DEPLOYER: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           node -e '
@@ -131,7 +133,7 @@ jobs:
             const url = value.service_account_impersonation_url ? new URL(value.service_account_impersonation_url) : null;
             const encodedTarget = url?.pathname.split("/serviceAccounts/")[1]?.split(":")[0] || "";
             const impersonationTarget = decodeURIComponent(encodedTarget);
-            const expected = "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+            const expected = process.env.EXPECTED_FUNCTION_DEPLOYER;
             if (value.type !== "external_account" || impersonationTarget !== expected) process.exit(64);
             console.log(JSON.stringify({
               authenticated_principal: impersonationTarget,
@@ -142,6 +144,8 @@ jobs:
             }));
           '
       - name: Verify effective project permissions and OAuth scopes
+        env:
+          EXPECTED_FUNCTION_DEPLOYER: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           access_token="$(gcloud auth print-access-token)"
@@ -163,7 +167,7 @@ jobs:
             "https://oauth2.googleapis.com/tokeninfo")"
           node -e '
             const value = JSON.parse(process.argv[1]);
-            const expected = "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+            const expected = process.env.EXPECTED_FUNCTION_DEPLOYER;
             if (value.email !== expected) process.exit(64);
             console.log(JSON.stringify({token_email: value.email || null,
               token_audience: value.aud || value.audience || null,
