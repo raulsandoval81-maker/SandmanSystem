@@ -14,7 +14,6 @@ export const GCLOUD_DEPLOYER_PERMISSIONS = Object.freeze([
   "resourcemanager.projects.get",
   "run.services.get",
   "run.services.getIamPolicy",
-  "policytroubleshooter.iam.troubleshoot",
   "serviceusage.services.use",
 ]);
 

@@ -544,43 +544,19 @@ jobs:
           set -euo pipefail
           node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r)))' > ../permission-plan.json
           access_token="$(gcloud auth print-access-token)"
-          project_permissions="$(node -e 'const p=require("../permission-plan.json");process.stdout.write(JSON.stringify({permissions:p.deployer}))')"
-          if test "$(node -e 'process.stdout.write(String(require("../permission-plan.json").deployer.length))')" != "0"; then
-            response="$(curl --fail --silent --show-error -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" -X POST -d "${project_permissions}" "https://cloudresourcemanager.googleapis.com/v1/projects/sandman-combat-staging:testIamPermissions")"
-            node -e 'const plan=require("../permission-plan.json"),actual=JSON.parse(process.argv[1]).permissions||[];const missing=plan.deployer.filter(p=>!actual.includes(p));console.log(JSON.stringify({principal:process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL||"dedicated function deployer",required:plan.deployer,effective:actual,missing}));if(missing.length){console.error(`::error title=Missing aggregate deployer permissions::${missing.join(", ")}`);process.exit(1)}' "${response}"
-          fi
-          service_accounts="$(node -e 'const p=require("../permission-plan.json");console.log(p.serviceAccounts.map(x=>x.account).join("\n"))')"
-          missing_accounts=""
-          while IFS= read -r service_account; do
-            response="$(curl --fail --silent --show-error \
-              -H "Authorization: Bearer ${access_token}" \
-              -H "Content-Type: application/json" \
-              -X POST \
-              -d '{"permissions":["iam.serviceAccounts.actAs"]}' \
-              "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions")"
-            permission="$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.permissions||[]).join(","))' "${response}")"
-            if test "${permission}" != "iam.serviceAccounts.actAs"; then
-              missing_accounts="${missing_accounts}${service_account}\n"
-            else
-              echo "Verified iam.serviceAccounts.actAs on ${service_account}."
-            fi
-          done <<< "${service_accounts}"
-          if test -n "${missing_accounts}"; then
-            echo "::error title=Missing aggregate service-account permissions::iam.serviceAccounts.actAs is missing on: $(printf '%b' "${missing_accounts}" | tr '\n' ' ')"
-            exit 1
-          fi
           if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
-            missing_build=""
-            node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];for(const [permission,resource] of Object.entries(r.buildPermissionResources))console.log(`${permission}\t${resource}`)' > ../build-permission-checks.tsv
-            while IFS=$'\t' read -r permission resource; do
-              payload="$(node -e 'console.log(JSON.stringify({accessTuple:{principal:`//iam.googleapis.com/projects/-/serviceAccounts/${process.argv[1]}`,fullResourceName:process.argv[2],permission:process.argv[3]}))' "sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com" "${resource}" "${permission}")"
-              status="$(curl --silent --show-error -o ../build-permission-response.json -w '%{http_code}' -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" -X POST -d "${payload}" "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot")"
-              granted="$(node -e 'const fs=require("fs");let d={};try{d=JSON.parse(fs.readFileSync(process.argv[1]))}catch{};process.stdout.write(d.access===1||d.access==="GRANTED"?"true":"false")' ../build-permission-response.json)"
-              if test "${status}" != "200" || test "${granted}" != "true"; then missing_build="${missing_build}${permission} on ${resource}\n"; fi
-            done < ../build-permission-checks.tsv
-            if test -n "${missing_build}"; then
-              echo "::error title=Build identity permission certification failed::$(printf '%b' "${missing_build}" | tr '\n' '; ')"
-              echo "The preflight identity also requires policytroubleshooter.iam.troubleshoot to certify these grants without impersonating the build account."
+            GOOGLE_OAUTH_ACCESS_TOKEN="${access_token}" node ./scripts/staging/verify-release-permissions.mjs \
+              "${RELEASE_ID}" ../permission-verification.json
+          else
+            service_accounts="$(node -e 'const p=require("../permission-plan.json");console.log(p.serviceAccounts.map(x=>x.account).join("\n"))')"
+            missing_accounts=""
+            while IFS= read -r service_account; do
+              response="$(curl --fail --silent --show-error -H "Authorization: Bearer ${access_token}" -H "Content-Type: application/json" -X POST -d '{"permissions":["iam.serviceAccounts.actAs"]}' "https://iam.googleapis.com/v1/projects/sandman-combat-staging/serviceAccounts/${service_account}:testIamPermissions")"
+              permission="$(node -e 'const d=JSON.parse(process.argv[1]);process.stdout.write((d.permissions||[]).join(","))' "${response}")"
+              if test "${permission}" != "iam.serviceAccounts.actAs"; then missing_accounts="${missing_accounts}${service_account}\n"; fi
+            done <<< "${service_accounts}"
+            if test -n "${missing_accounts}"; then
+              echo "::error title=Missing aggregate service-account permissions::iam.serviceAccounts.actAs is missing on: $(printf '%b' "${missing_accounts}" | tr '\n' ' ')"
               exit 1
             fi
           fi
@@ -593,7 +569,7 @@ jobs:
             runtimes.json
             hosting-release-before.json
             permission-plan.json
-            build-permission-checks.tsv
+            permission-verification.json
             rollback-evidence.json
             *-before.json
           if-no-files-found: error
