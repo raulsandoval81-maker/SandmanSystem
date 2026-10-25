@@ -673,11 +673,17 @@ async function updatePendingGuest(action, id) {
   try {
     const response = await update({ practiceId: activePractice.practiceId, action, athleteId: id });
     const record = response.data?.attendance || {};
-    checkedIn = new Map((record.checkedIn || []).map(a => [a.id || a.uid, a]));
-    pendingGuests = new Map((record.pendingGuests || []).map(a => [a.id, a]));
+    const nextCheckedIn = new Map((record.checkedIn || []).map(a => [a.id || a.uid, a]));
+    const nextPendingGuests = new Map((record.pendingGuests || []).map(a => [a.id, a]));
+    if (action === "approve_guest" && (!nextCheckedIn.has(id) || nextPendingGuests.has(id))) {
+      throw new Error("Guest approval did not complete. Refresh attendance before trying again.");
+    }
+    checkedIn = nextCheckedIn;
+    pendingGuests = nextPendingGuests;
     applyFilters();
     renderCheckedIn();
-    if (action === "approve_guest") setStatus("Guest eligibility verified. Athlete added to attendance.");
+    if (action === "approve_guest") setStatus("Guest verified and checked in with the regular attendance roster.");
+    if (action === "remove_guest") setStatus("Guest arrival request removed.");
   } catch (error) {
     setStatus(String(error?.message || "Guest review failed."), true);
   }
