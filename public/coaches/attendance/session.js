@@ -1516,27 +1516,39 @@ function bindEvents() {
     updateGroupControls();
   });
 
-  $("findGuestAthlete")?.addEventListener("click", async () => {
+  // One field searches local athletes by name or ID. A complete Sandman ID
+  // can also discover a visitor; discovery never grants guest admission.
+  let guestLookupSequence = 0;
+  let guestLookupTimer;
+  const searchInput = $("searchAthlete");
+  searchInput?.addEventListener("input", () => {
+    applyFilters();
+    clearTimeout(guestLookupTimer);
+    const seq = ++guestLookupSequence;
     const out = $("guestLookupStatus");
-    const guestLookupId = String($("guestAthleteId")?.value || "").trim();
-    if (!guestLookupId || !activePractice?.practiceId || sessionLocked) {
-      if (out) out.textContent = "Enter a visiting athlete ID in an active practice.";
-      return;
-    }
-    if (out) out.textContent = "Looking up visiting athlete…";
-    try {
-      const lookup = httpsCallable(functions, "searchPracticeAttendanceAthletes");
-      const response = await lookup({ practiceId: activePractice.practiceId, guestLookupId });
-      const candidate = response.data?.guestCandidate;
-      if (out) out.textContent = candidate
-        ? `${candidate.name} · ${candidate.id} · Home: ${candidate.homeLocationId} · ${disciplineDisplay(candidate.discipline)}. Guest authorization required before check-in.`
-        : "No matching current visitor with this practice discipline was found.";
-    } catch (error) {
-      if (out) out.textContent = "Guest lookup could not be completed.";
-      console.error("[session] guest discovery", error);
-    }
+    if (out) { out.hidden = true; out.textContent = ""; }
+    const value = String(searchInput.value || "").trim();
+    // Prevent server lookups on partial names and every keystroke.
+    if (!/^F[48]_[0-9]{4,}$/i.test(value) || !activePractice?.practiceId || sessionLocked) return;
+    // Local athletes are already searchable and check-in eligible in the roster.
+    if (athletes.some((athlete) => String(athlete.id || "").toLowerCase() === value.toLowerCase())) return;
+    guestLookupTimer = setTimeout(async () => {
+      if (out) { out.hidden = false; out.textContent = "Checking visiting athlete ID…"; }
+      try {
+        const lookup = httpsCallable(functions, "searchPracticeAttendanceAthletes");
+        const response = await lookup({ practiceId: activePractice.practiceId, guestLookupId: value });
+        if (seq !== guestLookupSequence) return;
+        const candidate = response.data?.guestCandidate;
+        if (out) out.textContent = candidate
+          ? `${candidate.name} · ${candidate.id} · Home: ${candidate.homeLocationId} · ${disciplineDisplay(candidate.discipline)}. Guest admission approval required before check-in.`
+          : "No eligible visiting athlete found for that ID and practice discipline.";
+      } catch (error) {
+        if (seq !== guestLookupSequence) return;
+        if (out) out.textContent = "Visiting athlete lookup could not be completed.";
+        console.error("[session] guest discovery", error);
+      }
+    }, 350);
   });
-  $("searchAthlete")?.addEventListener("input", applyFilters);
   $("journeyRosterFilter")?.addEventListener("change", applyFilters);
 
   $("reviewAttendanceBtn")?.addEventListener("click", () => {
