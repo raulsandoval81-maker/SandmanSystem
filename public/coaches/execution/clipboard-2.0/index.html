@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Coach · Pre-Practice Clipboard</title>
 
-  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=20261020-hybrid-handoff"/>
+  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=20261025-unified-planning"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -277,6 +277,22 @@
 
   </div>
 
+  <dialog id="activityLibrary" class="activity-library" aria-labelledby="activityLibraryTitle">
+    <div class="activity-library-head">
+      <div>
+        <span class="clipboard-handoff-kicker">Approved curriculum</span>
+        <h2 id="activityLibraryTitle">Add activity to <span id="activityLibraryBlock">practice</span></h2>
+      </div>
+      <button type="button" class="activity-library-close" data-close-activity-library aria-label="Close curriculum library">×</button>
+    </div>
+    <div class="activity-library-filters">
+      <label>Find teaching material <input id="activityLibrarySearch" type="search" placeholder="Search skill, family, tier…"></label>
+      <label>Training group <select id="activityLibraryGroup"><option value="">All compatible groups</option></select></label>
+    </div>
+    <p id="activityLibraryStatus" class="muted">Loading approved Sandman curriculum…</p>
+    <div id="activityLibraryCards" class="activity-library-cards"></div>
+  </dialog>
+
   <section class="clipboard-handoff" aria-label="Practice handoff">
     <div class="clipboard-handoff-copy">
       <span class="clipboard-handoff-kicker">Practice Ready</span>
@@ -307,7 +323,7 @@
 
 <script
   type="module"
-  src="/coaches/execution/clipboard-2.0/clipboard-2.0.js?v=20261025-planning-context1">
+  src="/coaches/execution/clipboard-2.0/clipboard-2.0.js?v=20261025-unified-planning">
 </script>
 
 </body>

@@ -47,6 +47,7 @@ test("six-athlete, three-group planning context restores every athlete exactly o
       "group-3": { selectedWave: "wave_a", coachInput: { currentNote: "One-step instruction" } },
     },
     groupLessonAdjustments: { "group-1": "Shared stance", "group-2": "T1 finish", "group-3": "Youth finish" },
+    clipboardPlan: { practiceId: "practice-six", schema: "standard-60", focus: "Finish safely", blocks: [] },
   };
   const restored = restorePlanningContext(
     { practiceId: "practice-six", executionMode: "hybrid" },
@@ -63,6 +64,7 @@ test("six-athlete, three-group planning context restores every athlete exactly o
   assert.equal(restored.groupPlanning["group-2"].coachInput.currentNote, "Differentiate finishes");
   assert.equal(restored.groupLessonAdjustments["group-3"], "Youth finish");
   assert.equal(restored.planningContextRevision, 8);
+  assert.equal(restored.clipboardPlan.focus, "Finish safely");
 });
 
 test("planning context never restores into a different practice", () => {
@@ -81,10 +83,12 @@ test("planning payload preserves Coach-owned planning fields without AUTO author
     planningSourcesExplicitlySelected: true,
     groupPlanning: { "group-1": { selectedWave: "wave_a" } },
     groupLessonAdjustments: { "group-1": "Coach adjustment" },
+    clipboardPlan: { practiceId: "practice-six", blocks: [] },
   });
   assert.equal(payload.trainingGroups.length, 3);
   assert.equal(payload.groupPlanning["group-1"].selectedWave, "wave_a");
   assert.equal(payload.groupLessonAdjustments["group-1"], "Coach adjustment");
+  assert.equal(payload.clipboardPlan.practiceId, "practice-six");
   assert.equal(Object.hasOwn(payload, "eligibleForAuto"), false);
   assert.equal(Object.hasOwn(payload, "autoApproved"), false);
 });

@@ -268,6 +268,64 @@ function compactPracticePlanningDraft(value: unknown, practiceId: string) {
   const groupLessonAdjustments = Object.fromEntries(groups.map((group: any) => [
     group.id, compactString(adjustmentsInput[group.id], 2000),
   ]));
+  const planInput: any = input.clipboardPlan && typeof input.clipboardPlan === "object" ? input.clipboardPlan : null;
+  const allowedGroupIds = new Set(groups.map((group: any) => group.id));
+  const clipboardPlan = planInput ? {
+    version: 1,
+    practiceId,
+    schema: compactString(planInput.schema, 80),
+    focus: compactString(planInput.focus, 4000),
+    flexibleOrder: (Array.isArray(planInput.flexibleOrder) ? planInput.flexibleOrder : [])
+      .slice(0, 20).map((slot: unknown) => compactString(slot, 80)).filter(Boolean),
+    blocks: (Array.isArray(planInput.blocks) ? planInput.blocks : []).slice(0, 20).map((block: any) => {
+      const blockId = compactString(block?.slot || block?.blockId, 80);
+      const cards = compactCards(block?.cards, blockId).map((card: any) => {
+        const sourceCard = (Array.isArray(block?.cards) ? block.cards : [])
+          .find((candidate: any) => compactString(candidate?.cardId || candidate?.id || candidate?.href || candidate?.skill, 500) === card.cardId) || {};
+        const requestedGroupIds = [...new Set(sourceCard.groupIds || [])]
+          .map((groupId: unknown) => compactString(groupId, 120)).filter(Boolean);
+        if (requestedGroupIds.some((groupId: string) => !allowedGroupIds.has(groupId))) {
+          throw new HttpsError("failed-precondition", "Planned curriculum references a group outside this practice.");
+        }
+        return {
+          ...card,
+          groupIds: requestedGroupIds,
+          provenance: compactString(sourceCard.provenance, 160),
+          tier: compactString(sourceCard.tier, 20),
+          journey: compactString(sourceCard.journey, 80),
+          category: compactString(sourceCard.category, 80),
+          lane: compactString(sourceCard.lane || blockId, 80),
+        };
+      });
+      const timer = block?.timer && typeof block.timer === "object" ? block.timer : {};
+      const execution = timer.execution && typeof timer.execution === "object" ? timer.execution : null;
+      return {
+        slot: blockId,
+        title: compactString(block?.title || block?.label, 160),
+        minutes: requireBoundedNumber(block?.minutes, "block minutes", 0, 240),
+        notes: compactString(block?.notes || block?.text, 4000),
+        visible: block?.visible !== false,
+        cards,
+        timer: {
+          pack: compactString(timer.pack, 120), preset: compactString(timer.preset, 120), label: compactString(timer.label, 160),
+          execution: execution ? {
+            rounds: requireBoundedNumber(execution.rounds, "timer rounds", 0, 100, true),
+            workSeconds: requireBoundedNumber(execution.workSeconds, "timer workSeconds", 0, 7200, true),
+            restSeconds: requireBoundedNumber(execution.restSeconds, "timer restSeconds", 0, 3600, true),
+            warningSeconds: requireBoundedNumber(execution.warningSeconds, "timer warningSeconds", 0, 600, true),
+            linkedSkillIds: (Array.isArray(execution.linkedSkillIds) ? execution.linkedSkillIds : [])
+              .slice(0, 80).map((id: unknown) => compactString(id, 120)).filter(Boolean),
+          } : null,
+        },
+        drillBlocks: (Array.isArray(block?.drillBlocks) ? block.drillBlocks : []).slice(0, 40).map((drill: any) => ({
+          id: compactString(drill?.id, 120), name: compactString(drill?.name, 160),
+          minutes: requireBoundedNumber(drill?.minutes, "drill minutes", 0, 240),
+          goal: compactString(drill?.goal, 500), cueLevel: compactString(drill?.cueLevel, 40),
+          coachingCues: compactString(drill?.coachingCues, 2000), flowCues: compactString(drill?.flowCues, 2000),
+        })),
+      };
+    }).filter((block: any) => block.slot && block.minutes > 0),
+  } : null;
   return {
     version: 1,
     practiceId,
@@ -277,6 +335,7 @@ function compactPracticePlanningDraft(value: unknown, practiceId: string) {
     planningSourcesExplicitlySelected: input.planningSourcesExplicitlySelected === true,
     groupPlanning,
     groupLessonAdjustments,
+    clipboardPlan,
     evidenceEffect: "none",
     eligibleForAuto: false,
     autoApproved: false,
@@ -1131,6 +1190,9 @@ export const savePracticePlanningContext = onCall(async (request) => {
       throw new HttpsError("failed-precondition", "Practice Group context does not match the canonical practice.");
     }
     const currentRevision = Number(practice.planningContextDraft?.revision || 0);
+    if (currentRevision > 0 && expectedRevision == null) {
+      throw new HttpsError("aborted", "A planning revision is required. Reload before saving again.");
+    }
     if (expectedRevision != null && expectedRevision !== currentRevision) {
       throw new HttpsError("aborted", "Practice Groups changed on another device. Reload before saving again.");
     }

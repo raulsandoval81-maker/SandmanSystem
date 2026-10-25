@@ -14,6 +14,12 @@ import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/att
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { compilePracticeTimeline } from "/coaches/execution/engine/practice-execution-contract.mjs";
 import {
+  buildApprovedCatalog,
+  canonicalRestoreDecision,
+  normalizeClipboardPlan,
+  planReadiness
+} from "/coaches/execution/clipboard-2.0/unified-planning-model.mjs";
+import {
   planningContextPayload,
   restorePlanningContext
 } from "/coaches/execution/session-builder/practice-planning-context.js";
@@ -459,6 +465,7 @@ const blockEls = {
 const storedDraft = getDraftPayload();
 let builderSession = getSessionPayload();
 let shouldRedirectToBuilder = false;
+let canonicalRestoreBlocked = false;
 
 const requestedPracticeId = String(
   new URLSearchParams(window.location.search).get("practiceId")
@@ -490,9 +497,17 @@ if (requestedPracticeId && !requestedPracticeId.includes("/")) {
       tier: builderSession.tier || practice.tier || "",
       week: builderSession.week || practice.week || "",
     }, { practiceId: requestedPracticeId, ...practice });
+    const decision = canonicalRestoreDecision({
+      requestedPracticeId,
+      canonicalPracticeId: practice.practiceId || requestedPracticeId,
+      restored: builderSession.planningContextRestored === true
+    });
+    canonicalRestoreBlocked = decision.blocked;
     localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
   } catch (error) {
     console.warn("[clipboard] Canonical planning restore failed", error);
+    canonicalRestoreBlocked = canonicalRestoreDecision({ requestedPracticeId, canonicalPracticeId: "", restored: false }).blocked;
+    builderSession = { ...builderSession, canonicalPlanningRestoreFailed: canonicalRestoreBlocked };
   }
 }
 
@@ -760,6 +775,9 @@ function groupLessonAdjustmentsSnapshot() {
 async function performCanonicalPlanningSave() {
   const session = getActiveSession();
   if (!session.practiceId || !session.trainingGroups.length) return;
+  if (canonicalRestoreBlocked || builderSession.canonicalPlanningRestoreFailed) {
+    throw new Error("Canonical planning could not be restored. Reload before editing; local data was not saved over the practice.");
+  }
   const savePlanningContext = httpsCallable(functions, "savePracticePlanningContext");
   const groupLessonAdjustments = groupLessonAdjustmentsSnapshot();
   const response = await savePlanningContext({
@@ -767,7 +785,10 @@ async function performCanonicalPlanningSave() {
     expectedRevision: builderSession.planningContextRestored
       ? Number(builderSession.planningContextRevision || 0)
       : undefined,
-    planningContext: planningContextPayload(builderSession, { groupLessonAdjustments }),
+    planningContext: planningContextPayload(builderSession, {
+      groupLessonAdjustments,
+      clipboardPlan: captureCanonicalPlan()
+    }),
   });
   builderSession = {
     ...builderSession,
@@ -1106,9 +1127,38 @@ function captureDraftBlocks() {
     timer: {
       pack: block.dataset.timerPack || "",
       preset: block.dataset.timerPreset || "",
-      label: block.dataset.timerLabel || ""
-    }
+      label: block.dataset.timerLabel || "",
+      execution: block.dataset.timerRounds ? {
+        rounds: Number(block.dataset.timerRounds || 0),
+        workSeconds: Number(block.dataset.timerWorkSeconds || 0),
+        restSeconds: Number(block.dataset.timerRestSeconds || 0),
+        warningSeconds: Number(block.dataset.timerWarningSeconds || 0),
+        linkedSkillIds: getBlockCards(block).map(card => card.skill).filter(Boolean)
+      } : null
+    },
+    cards: getBlockCards(block)
   }));
+}
+
+function captureCanonicalPlan() {
+  return normalizeClipboardPlan({
+    practiceId: builderSession.practiceId,
+    schema: currentSchema,
+    focus: document.getElementById("slot-note")?.value || "",
+    blocks: captureDraftBlocks().map(block => ({ ...block, title: document.getElementById(`title-${block.slot}`)?.textContent || block.slot })),
+    flexibleOrder: [...document.querySelectorAll("#swappable > .plan-block")].map(block => block.dataset.slot || "")
+  }, builderSession.practiceId);
+}
+
+function draftFromCanonicalPlan(plan) {
+  const normalized = normalizeClipboardPlan(plan, builderSession.practiceId);
+  return {
+    version: 1, lifecycle: "editing", schema: normalized.schema || currentSchema,
+    session: builderSession, focus: normalized.focus, blocks: normalized.blocks,
+    flexibleOrder: normalized.flexibleOrder,
+    cards: normalized.blocks.flatMap(block => block.cards.map(card => ({ ...card, lane: block.slot }))),
+    groupLessonAdjustments: builderSession.groupLessonAdjustments || {}
+  };
 }
 
 function persistDraft(lifecycle = "editing") {
@@ -1146,8 +1196,11 @@ function queueDraftSave() {
 
 function restoreDraft(draft) {
   if (!isRecoverableDraft(draft)) return false;
+  const draftPracticeId = String(draft.session?.practiceId || draft.practiceId || "").trim();
+  const activePracticeId = String(builderSession.practiceId || "").trim();
+  if (activePracticeId && draftPracticeId !== activePracticeId) return false;
 
-  if (localStorage.getItem(CLIPBOARD_KEY) === null && Array.isArray(draft.cards)) {
+  if (Array.isArray(draft.cards)) {
     localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(draft.cards));
   }
 
@@ -1175,10 +1228,21 @@ function restoreDraft(draft) {
     block.dataset.timerPack = timer.pack || "";
     block.dataset.timerPreset = timer.preset || "";
     block.dataset.timerLabel = timer.label || "";
+    block.dataset.timerRounds = timer.execution?.rounds || "";
+    block.dataset.timerWorkSeconds = timer.execution?.workSeconds || "";
+    block.dataset.timerRestSeconds = timer.execution?.restSeconds || "";
+    block.dataset.timerWarningSeconds = timer.execution?.warningSeconds || "";
     const select = block.querySelector(".block-timer-select");
     if (select && timer.pack) {
       select.value = `${timer.pack}|||${timer.preset || ""}|||${timer.label || ""}`;
     }
+    block.querySelectorAll("[data-timer-field]").forEach(input => {
+      const field = input.dataset.timerField;
+      input.value = field === "rounds" ? (timer.execution?.rounds || "")
+        : field === "workSeconds" ? (timer.execution?.workSeconds || "")
+        : field === "restSeconds" ? (timer.execution?.restSeconds || "")
+        : (timer.execution?.warningSeconds || "");
+    });
 
     renderSavedDrillBlocks(block, saved.drillBlocks || []);
   });
@@ -1357,6 +1421,12 @@ function attachTimerSelectors() {
 
           </select>
         </label>
+        <div class="timer-execution-fields" aria-label="Work and rest settings">
+          <label>Rounds<input type="number" min="0" max="100" data-timer-field="rounds" placeholder="0"></label>
+          <label>Work sec<input type="number" min="0" max="7200" data-timer-field="workSeconds" placeholder="0"></label>
+          <label>Rest sec<input type="number" min="0" max="3600" data-timer-field="restSeconds" placeholder="0"></label>
+          <label>Warning sec<input type="number" min="0" max="600" data-timer-field="warningSeconds" placeholder="0"></label>
+        </div>
       `;
 
       const head =
@@ -1376,8 +1446,19 @@ block.dataset.timerPreset = preset || "";
 block.dataset.timerLabel = label || "";
 
 queueDraftSave();
+queueCanonicalPlanningSave();
 
       });
+      wrap.querySelectorAll("[data-timer-field]").forEach(input => input.addEventListener("input", () => {
+        const key = input.dataset.timerField;
+        const datasetKey = key === "rounds" ? "timerRounds"
+          : key === "workSeconds" ? "timerWorkSeconds"
+          : key === "restSeconds" ? "timerRestSeconds" : "timerWarningSeconds";
+        block.dataset[datasetKey] = String(Math.max(0, Number(input.value || 0)) || "");
+        queueDraftSave();
+        queueCanonicalPlanningSave();
+        updatePlanningReadiness();
+      }));
     });
 }
 
@@ -1590,6 +1671,116 @@ function cardMatchesSession(card) {
   return true;
 }
 
+let approvedActivityCatalog = [];
+let activityLibraryTarget = "technique";
+let replacingActivityCard = null;
+
+function groupLabel(groupId) {
+  const group = (builderSession.trainingGroups || []).find(item => String(item.id) === String(groupId));
+  return group?.label || groupId;
+}
+
+function decoratePlanningCard(cardEl) {
+  if (!cardEl || cardEl.querySelector(".clip-card-planning")) return;
+  let ids = [];
+  try { ids = JSON.parse(cardEl.dataset.groupIds || "[]"); } catch { ids = []; }
+  const controls = document.createElement("div");
+  controls.className = "clip-card-planning";
+  controls.innerHTML = `
+    <span class="clip-card-groups">${escapeHtml(ids.length ? ids.map(groupLabel).join(" · ") : "Group assignment required")}</span>
+    <button type="button" data-card-move="up" aria-label="Move activity up">↑</button>
+    <button type="button" data-card-move="down" aria-label="Move activity down">↓</button>
+    <button type="button" data-card-replace>Replace</button>
+    <button type="button" data-card-remove>Remove</button>`;
+  cardEl.append(controls);
+}
+
+function syncPlanningCards() {
+  const cards = [...document.querySelectorAll("#planBlocks .plan-block")].flatMap(block =>
+    getBlockCards(block).map(card => ({ ...card, lane: block.dataset.slot || card.lane }))
+  );
+  localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(cards));
+  queueDraftSave();
+  queueCanonicalPlanningSave();
+  updatePlanningReadiness();
+}
+
+function renderActivityLibrary() {
+  const search = String(document.getElementById("activityLibrarySearch")?.value || "").toLowerCase();
+  const selectedGroup = String(document.getElementById("activityLibraryGroup")?.value || "");
+  const list = document.getElementById("activityLibraryCards");
+  const status = document.getElementById("activityLibraryStatus");
+  if (!list || !status) return;
+  const cards = approvedActivityCatalog.filter(card =>
+    (!selectedGroup || card.compatibleGroupIds.includes(selectedGroup))
+    && (!search || [card.title, card.family, card.skill, card.tier, card.journey].join(" ").toLowerCase().includes(search))
+  );
+  status.textContent = cards.length
+    ? `${cards.length} approved card${cards.length === 1 ? "" : "s"}. Adding to ${activityLibraryTarget}; no mastery is inferred.`
+    : "No compatible approved curriculum cards match this filter.";
+  list.replaceChildren(...cards.map(card => {
+    const row = document.createElement("article");
+    row.className = "activity-library-card";
+    row.innerHTML = `<strong>${escapeHtml(card.title || card.id)}</strong>
+      <p>${escapeHtml([card.journey, card.tier, card.family].filter(Boolean).join(" · "))}</p>
+      <small>${escapeHtml(card.compatibleGroupIds.map(groupLabel).join(" · "))} · ${escapeHtml(card.provenance)}</small>
+      <button type="button">Add</button>`;
+    row.querySelector("button").addEventListener("click", () => {
+      const groupIds = selectedGroup ? [selectedGroup] : [...card.compatibleGroupIds];
+      const planned = { ...card, lane: activityLibraryTarget, groupIds,
+        athleteIds: [...new Set((builderSession.trainingGroups || []).filter(group => groupIds.includes(group.id)).flatMap(group => group.athleteIds || []))] };
+      const target = document.getElementById(activityLibraryTarget === "warmup" ? "cards-warmup-body" : `cards-${activityLibraryTarget}`);
+      if (!target) return;
+      if (replacingActivityCard) replacingActivityCard.remove();
+      replacingActivityCard = null;
+      appendCardToSlot(target, planned);
+      decoratePlanningCard(target.lastElementChild);
+      syncPlanningCards();
+      document.getElementById("activityLibrary")?.close();
+    });
+    return row;
+  }));
+}
+
+function openActivityLibrary(slot, replaceCard = null) {
+  activityLibraryTarget = slot || "technique";
+  replacingActivityCard = replaceCard;
+  const dialog = document.getElementById("activityLibrary");
+  const blockName = document.getElementById(`title-${activityLibraryTarget}`)?.textContent || activityLibraryTarget;
+  const title = document.getElementById("activityLibraryBlock");
+  if (title) title.textContent = blockName;
+  renderActivityLibrary();
+  dialog?.showModal();
+}
+
+async function loadApprovedActivityCatalog() {
+  const groups = builderSession.trainingGroups || [];
+  const models = await Promise.all(groups.map(group => clipboardWavesForGroup(group)));
+  const sources = groups.map((group, index) => ({
+    groupId: group.id,
+    provenance: "approved-tier-wave",
+    cards: Object.values(models[index] || {}).flat()
+  }));
+  approvedActivityCatalog = buildApprovedCatalog(groups, sources);
+  const select = document.getElementById("activityLibraryGroup");
+  groups.forEach(group => select?.add(new Option(`${group.label || group.id} · ${group.journey || ""} ${group.tier || ""}`, group.id)));
+  renderActivityLibrary();
+}
+
+function updatePlanningReadiness() {
+  if (!document.getElementById("planBlocks")) return;
+  const readiness = planReadiness(captureCanonicalPlan(), builderSession.trainingGroups || []);
+  const total = document.getElementById("totalTime");
+  if (total) {
+    total.classList.add("planning-readiness");
+    total.classList.toggle("ready", readiness.ready);
+    total.classList.toggle("review", !readiness.ready);
+    total.title = readiness.review.join("\n");
+    total.textContent = total.textContent.replace(/ · (Ready|Review required).*$/, "")
+      + (readiness.ready ? " · Ready" : ` · Review required (${readiness.review.length})`);
+  }
+}
+
 function renderClipboardList() {
 
   clearClipboardSlots();
@@ -1728,6 +1919,7 @@ if (
     }
 
     appendCardToSlot(slotEl, card);
+    decoratePlanningCard(slotEl.lastElementChild);
 
   });
 
@@ -1753,7 +1945,6 @@ function showLockedPracticeNotice(sessionId) {
 }
 
 function groupActivitiesForBlock(block, session) {
-  if (!["auto", "hybrid"].includes(String(session.executionMode || "").toLowerCase())) return [];
   const prescriptions = Array.isArray(builderSession.groupPrescriptions) ? builderSession.groupPrescriptions : [];
   const groups = Array.isArray(session.trainingGroups) ? session.trainingGroups : [];
   const adjustments = session.executionMode === "hybrid"
@@ -1762,20 +1953,26 @@ function groupActivitiesForBlock(block, session) {
     : {};
   const slot = String(block.slot || "").toLowerCase();
   // Do not prescribe a technical activity during warmup, breaks, or other unrelated blocks.
-  const technical = /technique|drill|live|onmat|on-mat|skill/.test(slot);
+  const technical = /technique|drill|live|onmat|on-mat|skill|cond/.test(slot);
   if (!technical) return [];
   return groups.map(group => {
     const prescription = prescriptions.find(item => String(item.groupId) === String(group.id));
+    const assignedCards = (block.cards || []).filter(card => Array.isArray(card.groupIds) && card.groupIds.includes(String(group.id)));
+    const prescribedCards = prescription?.status === "ready" ? (prescription.cards || [])
+      .filter(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot)
+      .map(card => ({ ...card, provenance: card.provenance || "approved-tier-wave" })) : [];
+    const cards = [...assignedCards, ...prescribedCards];
     return {
       groupId: group.id,
       groupLabel: group.label || "",
       tier: group.tier || "",
-      status: prescription?.status === "ready" && (prescription.cards || []).some(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot) ? "ready" : "unavailable",
+      status: cards.length ? "ready" : "unavailable",
       waveKey: prescription?.waveKey || "",
-      cards: prescription?.status === "ready" ? (prescription.cards || []).filter(card => builderSession.clipboardWavePlacements?.[group.id]?.[String(card.id || card.cardId || card.title || "")] === slot).map(card => ({
-        id: card.id || "", title: card.title || "", href: card.href || "",
-        familyId: card.familyId || "", discipline: card.discipline || session.discipline || ""
-      })) : [],
+      cards: cards.map(card => ({
+        id: card.id || card.cardId || "", title: card.title || "", href: card.href || "",
+        familyId: card.familyId || card.family || "", skillId: card.skillId || card.skill || "",
+        discipline: card.discipline || session.discipline || "", provenance: card.provenance || "approved-curriculum"
+      })),
       athleteIds: Array.isArray(group.athleteIds) ? group.athleteIds.map(String) : [],
       coachAdjustment: adjustments[group.id] || ""
     };
@@ -1831,7 +2028,15 @@ window.runPractice = async function () {
       b.dataset.timerPreset || "",
 
     label:
-      b.dataset.timerLabel || ""
+      b.dataset.timerLabel || "",
+
+    execution: b.dataset.timerRounds ? {
+      rounds: Number(b.dataset.timerRounds || 0),
+      workSeconds: Number(b.dataset.timerWorkSeconds || 0),
+      restSeconds: Number(b.dataset.timerRestSeconds || 0),
+      warningSeconds: Number(b.dataset.timerWarningSeconds || 0),
+      linkedSkillIds: getBlockCards(b).map(card => card.skill).filter(Boolean)
+    } : null
   }
 }))
 .filter(b => b.minutes > 0)
@@ -2119,7 +2324,9 @@ document.addEventListener("input", e => {
   }
 
   recalcTotal();
+  updatePlanningReadiness();
   queueDraftSave();
+  queueCanonicalPlanningSave();
 });
 
 document.addEventListener("click", e => {
@@ -2149,6 +2356,8 @@ document.addEventListener("click", e => {
   }
 
   queueDraftSave();
+  queueCanonicalPlanningSave();
+  updatePlanningReadiness();
 });
 document.addEventListener("click", (e) => {
   const add = e.target.closest("[data-add-drill-block]");
@@ -2212,7 +2421,10 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("input", (e) => {
-  if (e.target.closest(".drill-subblock")) queueDraftSave();
+  if (e.target.closest(".drill-subblock")) {
+    queueDraftSave();
+    queueCanonicalPlanningSave();
+  }
 });
 
 document.addEventListener("change", (e) => {
@@ -2225,20 +2437,35 @@ document.addEventListener("click", (e) => {
 
   const slotKey = btn.dataset.addSlot;
 
-  console.log("ADD SLOT CLICKED:", slotKey);
-
-  localStorage.setItem(
-    "sandman_pending_add_lane",
-    slotKey
-  );
-persistDraft("editing");
-localStorage.setItem(
-  RETURN_TO_KEY,
-  ALL_IN_ONE_RETURN
-);
-
-openDisciplineCards();
+  openActivityLibrary(slotKey);
 });
+
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-close-activity-library]")) {
+    replacingActivityCard = null;
+    document.getElementById("activityLibrary")?.close();
+    return;
+  }
+  const card = e.target.closest(".clip-card");
+  if (!card) return;
+  if (e.target.closest("[data-card-remove]")) {
+    card.remove();
+    syncPlanningCards();
+  } else if (e.target.closest("[data-card-replace]")) {
+    openActivityLibrary(card.closest(".plan-block")?.dataset.slot, card);
+  } else if (e.target.closest("[data-card-move]")) {
+    const direction = e.target.closest("[data-card-move]").dataset.cardMove;
+    if (direction === "up" && card.previousElementSibling?.classList.contains("clip-card")) {
+      card.parentElement.insertBefore(card, card.previousElementSibling);
+    } else if (direction === "down" && card.nextElementSibling?.classList.contains("clip-card")) {
+      card.parentElement.insertBefore(card.nextElementSibling, card);
+    }
+    syncPlanningCards();
+  }
+});
+
+document.getElementById("activityLibrarySearch")?.addEventListener("input", renderActivityLibrary);
+document.getElementById("activityLibraryGroup")?.addEventListener("change", renderActivityLibrary);
 
 document.addEventListener("click", (e) => {
   const link = e.target.closest("a.library-btn, a.clip-title-link");
@@ -2249,6 +2476,8 @@ document.addEventListener("click", (e) => {
 document.addEventListener("input", (e) => {
   if (e.target.matches("#slot-note, .slot-notes-input")) {
     queueDraftSave();
+    queueCanonicalPlanningSave();
+    updatePlanningReadiness();
   }
 });
 /* =========================
@@ -2785,7 +3014,16 @@ function updateSupportLinks() {
     });
   });
   installDrillBlockEditors();
-  restoreDraft(storedDraft);
+  const canonicalDraft = builderSession.clipboardPlan
+    ? draftFromCanonicalPlan(builderSession.clipboardPlan)
+    : null;
+  if (canonicalRestoreBlocked) {
+    setStatus("Canonical planning could not be restored. Editing and launch are blocked; local data was not applied.");
+    document.querySelectorAll("#planBlocks input, #planBlocks textarea, #planBlocks button, .clipboard-clock-action")
+      .forEach(control => { control.disabled = true; });
+  } else {
+    restoreDraft(canonicalDraft || storedDraft);
+  }
 
   // A practice-wide card set must not override different tier-specific group prescriptions.
   // Group teaching cards are rendered separately above. This legacy injection remains
@@ -2856,7 +3094,9 @@ function updateSupportLinks() {
   }
 
   renderClipboardList();
-  persistDraft("editing");
+  void loadApprovedActivityCatalog();
+  updatePlanningReadiness();
+  if (!canonicalRestoreBlocked) persistDraft("editing");
 
   const hybridIdentityEl =
     document.getElementById("hybridIdentity");
