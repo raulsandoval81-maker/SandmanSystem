@@ -65,7 +65,7 @@ test("cross-academy release pins the dedicated attendance deployer for diagnosti
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   const selector = "inputs.release_id == 'cross-academy-pr253-e9980457'";
   assert.equal(workflow.split(selector).length - 1, 7);
-  assert.match(workflow, /release\.functionDeployer !== \(process\.env\.RELEASE_ID/);
+  assert.match(workflow, /release\.functionDeployer !== \(\["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228"\]\.includes\(process\.env\.RELEASE_ID\)/);
 });
 
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
@@ -100,6 +100,7 @@ const pr189CleanupRelease = await loadRelease("clipboard-cleanup-pr189-9484b8ab"
 const pr191RedirectRelease = await loadRelease("clipboard-redirect-pr191-55e27c81");
 const pr193WavesRelease = await loadRelease("clipboard-waves-pr193-c750a4cb");
 const pr253CrossAcademyRelease = await loadRelease("cross-academy-pr253-e9980457");
+const pr280GuestSelfCheckInRelease = await loadRelease("guest-self-checkin-pr280-ef643228");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -753,6 +754,46 @@ test("PR253 cross-academy release pins the exact source, Hosting client, and att
   })), /Unexpected new function/);
 });
 
+test("PR280 guest self-check-in has a separate exact authorization and one callable", () => {
+  const result = validateRelease(pr280GuestSelfCheckInRelease, context({
+    checkedOutSha: pr280GuestSelfCheckInRelease.applicationSha,
+    hostingDeployer: pr280GuestSelfCheckInRelease.hostingDeployer,
+    functionDeployer: pr280GuestSelfCheckInRelease.functionDeployer,
+    functionRuntime: pr280GuestSelfCheckInRelease.functionRuntime,
+  }));
+  assert.equal(result.sourcePr, 280);
+  assert.equal(result.applicationSha, "ef643228c4a54a4324ef2058a5134888caf1417e");
+  assert.equal(result.requiredAncestorSha, "be72d6d4d8dd6f009a28a2475ccfc1ef304596fc");
+  assert.deepEqual(result.functions, ["updatePracticeCheckIn"]);
+  assert.deepEqual(result.newFunctions, []);
+  assert.equal(result.hostingBaselineSha, pr253CrossAcademyRelease.applicationSha);
+  assert.deepEqual(result.hostingFiles, [
+    "public/coaches/attendance/session.html",
+    "public/coaches/attendance/session.js",
+  ]);
+  assert.equal(validateRemotePreflight(result, {
+    marker,
+    runtimeByFunction: { updatePracticeCheckIn: result.functionRuntime },
+  }), true);
+});
+
+test("PR280 rejects broadened callables and Hosting overlays", () => {
+  const releaseContext = context({
+    checkedOutSha: pr280GuestSelfCheckInRelease.applicationSha,
+    hostingDeployer: pr280GuestSelfCheckInRelease.hostingDeployer,
+    functionDeployer: pr280GuestSelfCheckInRelease.functionDeployer,
+    functionRuntime: pr280GuestSelfCheckInRelease.functionRuntime,
+  });
+  assert.throws(() => validateRelease({
+    ...pr280GuestSelfCheckInRelease,
+    functions: ["updatePracticeCheckIn", "getPracticeAttendanceReview"],
+  }, releaseContext), /Unexpected function/);
+  assert.throws(() => validateRelease({
+    ...pr280GuestSelfCheckInRelease,
+    hostingFiles: [...pr280GuestSelfCheckInRelease.hostingFiles, "public/index.html"],
+  }, releaseContext), /outside the reviewed application diff/);
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });
@@ -917,7 +958,7 @@ test("diagnostic action stays read-only inside the trusted workflow identity", a
   assert.match(diagnoseJob, /inputs\.release_id == 'cross-academy-pr253-e9980457'/);
   assert.match(diagnoseJob, /sandman-attendance-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
   assert.match(diagnoseJob, /sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
-  assert.match(diagnoseJob, /service_account: \$\{\{ inputs\.release_id == 'cross-academy-pr253-e9980457'/);
+  assert.match(diagnoseJob, /service_account: \$\{\{ \(inputs\.release_id == 'cross-academy-pr253-e9980457'/);
   assert.equal((diagnoseJob.match(/EXPECTED_FUNCTION_DEPLOYER:/g) || []).length, 2);
   assert.equal((diagnoseJob.match(/const expected = process\.env\.EXPECTED_FUNCTION_DEPLOYER/g) || []).length, 2);
   assert.doesNotMatch(diagnoseJob, /const expected = "sandman-practice-deployer/);

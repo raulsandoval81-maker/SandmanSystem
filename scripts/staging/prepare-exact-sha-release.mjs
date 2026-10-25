@@ -1,4 +1,5 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { loadRelease } from "./exact-sha-release-policy.mjs";
@@ -19,10 +20,32 @@ await mkdir(outputRoot, { recursive: true });
 // GitHub Actions artifacts non-portable. Never silently omit other files.
 const sourcePublic = path.join(sourceRoot, "public");
 const invalidPlaceholder = path.join(sourcePublic, "vendor", "firebase", "10.13.1", "*.map files");
-await cp(sourcePublic, hostingRoot, {
-  recursive: true,
-  filter: (candidate) => candidate !== invalidPlaceholder,
-});
+if (release.hostingBaselineSha) {
+  const archiveRoot = await mkdtemp(path.join(os.tmpdir(), "sandman-hosting-baseline-"));
+  const archive = path.join(archiveRoot, "public.tar");
+  try {
+    const archived = spawnSync("git", ["-C", sourceRoot, "archive", "--format=tar", `--output=${archive}`, release.hostingBaselineSha, "public"],
+      { stdio: "inherit", shell: false });
+    if (archived.status !== 0) throw new Error("Failed to read the immutable Hosting baseline.");
+    const extracted = spawnSync("tar", ["-xf", archive, "-C", archiveRoot], { stdio: "inherit", shell: false });
+    if (extracted.status !== 0) throw new Error("Failed to extract the immutable Hosting baseline.");
+    await cp(path.join(archiveRoot, "public"), hostingRoot, { recursive: true,
+      filter: candidate => candidate !== path.join(archiveRoot, "public", "vendor", "firebase", "10.13.1", "*.map files") });
+    for (const file of release.hostingFiles) {
+      const relative = path.relative("public", file);
+      const destination = path.join(hostingRoot, relative);
+      await mkdir(path.dirname(destination), { recursive: true });
+      await cp(path.join(sourceRoot, file), destination);
+    }
+  } finally {
+    await rm(archiveRoot, { recursive: true, force: true });
+  }
+} else {
+  await cp(sourcePublic, hostingRoot, {
+    recursive: true,
+    filter: (candidate) => candidate !== invalidPlaceholder,
+  });
+}
 
 const webConfig = {
   projectId: release.projectId,
@@ -51,13 +74,18 @@ if (release.functions.length) {
   await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
   const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
   packageJson.main = "staging-release-entry.cjs";
+  if (release.releaseId === "guest-self-checkin-pr280-ef643228") delete packageJson.dependencies?.resend;
   // The immutable source was compiled above; Cloud Build must not run tsc again
   // because the deployable artifact intentionally omits tsconfig.json and TS sources.
   packageJson.scripts = { ...(packageJson.scripts || {}), "gcp-build": "" };
   delete packageJson.scripts.build;
   await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
   const stagingEntryTemplate = await readFile(new URL("./staging-release-entry.cjs", import.meta.url), "utf8");
-  const stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
+  let stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
+  if (release.releaseId === "guest-self-checkin-pr280-ef643228") {
+    stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
+      'module.exports = { updatePracticeCheckIn: require("./lib/practice/practiceSessions.js").updatePracticeCheckIn };');
+  }
   if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) throw new Error("Staging runtime service-account placeholder was not resolved.");
   await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
   await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
@@ -82,6 +110,8 @@ await writeFile(path.join(outputRoot, "release-evidence.json"), `${JSON.stringif
   projectId: release.projectId,
   hostingSite: release.hostingSite,
   hosting: release.hosting !== false,
+  hostingBaselineSha: release.hostingBaselineSha || null,
+  hostingFiles: release.hostingFiles || null,
   functions: release.functions,
   recovery: release.recovery,
   functionDeploymentTool: release.functionDeploymentTool || "firebase-cli",
