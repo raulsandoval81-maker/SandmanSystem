@@ -34,10 +34,10 @@ jobs:
           PROJECT: ${{ inputs.confirm_project }}
         run: |
           test "$PROJECT" = "sandmandashboard"
-      - name: Checkout approved guest authorization attendance fix
+      - name: Checkout approved single-action guest verification UI
         uses: actions/checkout@v5
         with:
-          ref: bd4f97618b91b1044784ac1f39c17d621225bb4b
+          ref: 80279fa46badd503f0758e171610e53cb0f2f719
           persist-credentials: false
       - name: Validate Attendance assets and script
         shell: bash
@@ -53,6 +53,8 @@ jobs:
           grep -q 'nextPendingGuests.has(id)' public/coaches/attendance/session.js
           grep -q 'authorizeGuestForTodayAndCheckIn' public/coaches/attendance/session.js
           grep -q 'upsertAthleteCrossTrainingAssignment' public/coaches/attendance/session.js
+          grep -q 'offerAuthorization' public/coaches/attendance/session.js
+          grep -q 'No active guest authorization was verified' public/coaches/attendance/session.js
           ! grep -q 'id="guestAthleteId"' public/coaches/attendance/session.html
           ! grep -q 'id="findGuestAthlete"' public/coaches/attendance/session.html
       - name: Authenticate Firebase
