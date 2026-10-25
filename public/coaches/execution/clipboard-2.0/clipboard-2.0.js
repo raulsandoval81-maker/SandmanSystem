@@ -1941,7 +1941,8 @@ function showLockedPracticeNotice(sessionId) {
     link.textContent = "Return to Existing Practice";
     actions.prepend(link);
   }
-  link.href = `/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`;
+  const practiceId = String(getActiveSession().practiceId || "").trim();
+  link.href = `/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(practiceId)}`;
 }
 
 function groupActivitiesForBlock(block, session) {
@@ -2241,6 +2242,14 @@ window.runPractice = async function () {
 
     status: "ready",
     currentBlockIndex: 0,
+    executionRevision: 0,
+    runState: {
+      status: "ready",
+      revision: 0,
+      index: 0,
+      elapsedSeconds: 0,
+      anchorEpochMs: 0
+    },
 
     payload: clockPayload,
 
@@ -2271,7 +2280,7 @@ try {
   document.body.classList.add("run-mode");
 
   window.location.href =
-    `/coaches/execution/big-clock-2.0/?session=${encodeURIComponent(session.sessionId)}`;
+    `/coaches/execution/big-clock-2.0/?session=${encodeURIComponent(session.sessionId)}&practiceId=${encodeURIComponent(practiceId)}`;
 };
 
 document.addEventListener("click", (e) => {

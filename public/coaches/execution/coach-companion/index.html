@@ -29,6 +29,32 @@
     </div>
   </div>
 
+  <section class="live-control-surface" aria-labelledby="liveControlTitle">
+    <div class="live-control-heading">
+      <div>
+        <p class="live-kicker">Synchronized with Big Clock</p>
+        <h2 id="liveControlTitle">Live Practice Control</h2>
+      </div>
+      <span id="liveSyncStatus" class="live-sync" role="status">Connecting…</span>
+    </div>
+    <div class="live-now">
+      <div><span>Current</span><strong id="liveCurrentBlock">Ready to begin</strong><small id="liveCurrentActivity">No activity assigned</small></div>
+      <div><span>Remaining</span><strong id="liveRemaining">00:00</strong><small id="livePhase">Continuous block</small></div>
+      <div><span>Upcoming</span><strong id="liveUpcoming">Final activity</strong><small id="liveProgressText">0% complete</small></div>
+    </div>
+    <div class="live-progress"><div id="liveProgress"></div></div>
+    <div id="liveGroupInstructions" class="live-groups" aria-label="Group instructions"></div>
+    <div class="live-controls" aria-label="Live practice controls">
+      <button id="liveStart" type="button">Start</button>
+      <button id="livePause" type="button">Pause</button>
+      <button id="liveResume" type="button">Resume</button>
+      <button id="liveBack" type="button">Previous</button>
+      <button id="liveRepeat" type="button">Repeat</button>
+      <button id="liveSkip" type="button">Skip</button>
+      <button id="liveReset" class="danger" type="button">Reset</button>
+    </div>
+  </section>
+
   <div id="planBlocks">
 
     <div class="plan-block" id="block-onmat" data-slot="onmat" data-minutes="3">
@@ -204,6 +230,6 @@
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=7"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=20261025-1"></script>
 </body>
 </html>

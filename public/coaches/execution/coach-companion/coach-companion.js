@@ -4,10 +4,17 @@ import {
   doc,
   getDoc,
   setDoc,
+  onSnapshot,
   serverTimestamp,
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import {
+  blockDurationSeconds,
+  currentAndNextActivity,
+  materializeLiveState,
+  totalPracticeProgress
+} from "/coaches/execution/engine/live-execution-state.mjs";
 
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
@@ -107,6 +114,23 @@ const blockEls = Object.fromEntries(
 const saveStatusEl = document.getElementById("saveStatus");
 const totalTimeEl = document.getElementById("totalTime");
 const focusEl = document.getElementById("slot-note");
+let liveSessionDocument = null;
+let liveExecutionState = { status: "ready", revision: 0, index: 0, elapsedSeconds: 0, anchorEpochMs: 0 };
+let liveUnsubscribe = null;
+let liveRenderTimer = null;
+let liveCommandPending = false;
+let liveServerClockOffsetMs = 0;
+
+function acceptLiveExecutionState(state) {
+  liveExecutionState = state || liveExecutionState;
+  if (Number(liveExecutionState.updatedAtEpochMs) > 0) {
+    liveServerClockOffsetMs = Date.now() - Number(liveExecutionState.updatedAtEpochMs);
+  }
+}
+
+function liveCanonicalNow() {
+  return Date.now() - liveServerClockOffsetMs;
+}
 
 async function waitForAuth() {
   try {
@@ -249,13 +273,147 @@ function renderCardTitle(container, card) {
 
   container.appendChild(el);
 }
+
+function livePlaylist() {
+  const payload = liveSessionDocument?.payload || liveSessionDocument || {};
+  return Array.isArray(payload.blocks) ? payload.blocks : [];
+}
+
+function livePayload() {
+  return liveSessionDocument?.payload || liveSessionDocument || {};
+}
+
+function liveItemTitle(item) {
+  return typeof item === "string" ? item : item?.name || item?.title || item?.label || "";
+}
+
+function liveTime(seconds) {
+  const safe = Math.max(0, Math.ceil(Number(seconds) || 0));
+  return `${String(Math.floor(safe / 60)).padStart(2, "0")}:${String(safe % 60).padStart(2, "0")}`;
+}
+
+function liveInterval(block, elapsedSeconds) {
+  const timer = block?.timer?.execution || block?.timer || {};
+  const work = Number(timer.workSeconds || 0);
+  const rest = Number(timer.restSeconds || 0);
+  const rounds = Number(timer.rounds || 0);
+  if (!work || !rounds) return timer.label || "Continuous block";
+  const cycle = Math.max(1, work + Math.max(0, rest));
+  const within = elapsedSeconds % cycle;
+  const resting = rest > 0 && within >= work;
+  const round = Math.min(rounds, Math.floor(elapsedSeconds / cycle) + 1);
+  return `${resting ? "REST" : "WORK"} · Round ${round}/${rounds} · ${liveTime(resting ? cycle - within : work - within)}`;
+}
+
+function groupNames(group) {
+  if (Array.isArray(group?.athleteNames)) return group.athleteNames.filter(Boolean).join(", ");
+  return (group?.athletes || []).map(athlete => athlete.displayName || athlete.name).filter(Boolean).join(", ");
+}
+
+function liveGroupInstruction(block, group) {
+  const assignment = (block?.groupActivities || []).find(item => String(item.groupId) === String(group.id || group.groupId));
+  const cards = Array.isArray(assignment?.cards) ? assignment.cards.map(card => card.title).filter(Boolean).join(" · ") : "";
+  return assignment?.coachAdjustment || cards || assignment?.instruction || "Shared room instruction";
+}
+
+function renderLiveGroups(block) {
+  const target = document.getElementById("liveGroupInstructions");
+  if (!target) return;
+  target.replaceChildren();
+  for (const group of livePayload().trainingGroups || []) {
+    const card = document.createElement("article");
+    const heading = document.createElement("strong");
+    const instruction = document.createElement("span");
+    heading.textContent = `${group.label || group.id || "Group"}: ${groupNames(group)}`;
+    instruction.textContent = liveGroupInstruction(block, group);
+    card.append(heading, instruction);
+    target.append(card);
+  }
+}
+
+function updateLiveButtons(status) {
+  const allow = (id, enabled) => {
+    const button = document.getElementById(id);
+    if (button) button.disabled = liveCommandPending || !enabled;
+  };
+  allow("liveStart", status === "ready");
+  allow("livePause", status === "running");
+  allow("liveResume", status === "paused");
+  allow("liveBack", ["running", "paused"].includes(status) && liveExecutionState.index > 0);
+  allow("liveRepeat", ["running", "paused"].includes(status));
+  allow("liveSkip", ["running", "paused"].includes(status));
+  allow("liveReset", status !== "ready");
+}
+
+function renderLiveControl() {
+  const blocks = livePlaylist();
+  if (!blocks.length) return;
+  const state = materializeLiveState(liveExecutionState, liveCanonicalNow(), blocks);
+  const block = blocks[state.index] || null;
+  const activities = currentAndNextActivity(state, blocks, liveCanonicalNow());
+  const progress = totalPracticeProgress(state, blocks, liveCanonicalNow());
+  const setText = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = value; };
+  setText("liveCurrentBlock", block?.title || (state.status === "completed" ? "Practice complete" : "Ready to begin"));
+  setText("liveCurrentActivity", liveItemTitle(activities.currentActivity) || "No activity assigned");
+  setText("liveRemaining", liveTime(Math.max(0, blockDurationSeconds(block) - state.elapsedSeconds)));
+  setText("livePhase", liveInterval(block, state.elapsedSeconds));
+  setText("liveUpcoming", liveItemTitle(activities.nextActivity) || "Final activity");
+  setText("liveProgressText", `${Math.round(progress.ratio * 100)}% complete`);
+  const fill = document.getElementById("liveProgress");
+  if (fill) fill.style.width = `${progress.ratio * 100}%`;
+  const sync = document.getElementById("liveSyncStatus");
+  if (sync && !sync.dataset.conflict) sync.textContent = `Synchronized · revision ${state.revision}`;
+  renderLiveGroups(block);
+  updateLiveButtons(state.status);
+}
+
+async function sendLiveCommand(command, options = {}) {
+  const session = getCoachSessionPayload();
+  if (!session?.practiceId || !session?.sessionId || liveCommandPending) return;
+  liveCommandPending = true;
+  updateLiveButtons(liveExecutionState.status);
+  const sync = document.getElementById("liveSyncStatus");
+  if (sync) { delete sync.dataset.conflict; sync.textContent = "Synchronizing…"; }
+  try {
+    const update = httpsCallable(functions, "updatePracticeExecutionState");
+    const response = await update({
+      practiceId: session.practiceId,
+      sessionId: session.sessionId,
+      command,
+      expectedRevision: liveExecutionState.revision,
+      confirmReset: Boolean(options.confirmReset)
+    });
+    acceptLiveExecutionState(response.data?.state);
+    renderLiveControl();
+  } catch (error) {
+    if (sync) {
+      sync.dataset.conflict = "true";
+      sync.textContent = /revision|stale|aborted/i.test(error?.message || "")
+        ? "Another device changed this practice. Latest state restored; review before retrying."
+        : `Control failed: ${error?.message || "Unknown error"}`;
+    }
+  } finally {
+    liveCommandPending = false;
+    updateLiveButtons(liveExecutionState.status);
+  }
+}
+
+function bindLiveControls() {
+  const commands = { liveStart:"start", livePause:"pause", liveResume:"resume", liveBack:"back", liveRepeat:"repeat", liveSkip:"skip" };
+  Object.entries(commands).forEach(([id, command]) => document.getElementById(id)?.addEventListener("click", () => sendLiveCommand(command)));
+  document.getElementById("liveReset")?.addEventListener("click", () => {
+    if (window.confirm("Reset this live practice? Existing execution evidence remains in the audit trail.")) {
+      void sendLiveCommand("reset", { confirmReset:true });
+    }
+  });
+}
+
 async function hydrateFromLiveSession() {
 
   const params =
     new URLSearchParams(window.location.search);
 
-  const sessionId =
-    params.get("session");
+  const sessionId = params.get("session") || params.get("sessionId");
 
   if (!sessionId) return;
 
@@ -272,6 +430,8 @@ async function hydrateFromLiveSession() {
     }
 
 const live = snap.data();
+liveSessionDocument = live;
+acceptLiveExecutionState(live.runState);
 
 console.log("LIVE SESSION", live);
 
@@ -311,6 +471,19 @@ const coachPayload = {
     );
 
     setStatus("Live session loaded.");
+
+    liveUnsubscribe?.();
+    liveUnsubscribe = onSnapshot(doc(db, "liveSessions", sessionId), snapshot => {
+      if (!snapshot.exists()) return;
+      const next = snapshot.data();
+      if (String(next.practiceId || "") !== String(coachPayload.practiceId || "")) return;
+      liveSessionDocument = next;
+      acceptLiveExecutionState(next.runState);
+      renderLiveControl();
+    }, error => {
+      const sync = document.getElementById("liveSyncStatus");
+      if (sync) sync.textContent = `Synchronization unavailable: ${error.message}`;
+    });
 
   } catch (err) {
 console.error("HYDRATE ERROR", err);
@@ -543,13 +716,14 @@ function getLiveSessionLinks() {
 
   const sessionId =
     session?.sessionId || "lompoc-mat-1";
+  const identity = `session=${encodeURIComponent(sessionId)}&practiceId=${encodeURIComponent(session?.practiceId || "")}`;
 
   return {
     clock:
-      `/coaches/execution/big-clock-2.0/?session=${encodeURIComponent(sessionId)}`,
+      `/coaches/execution/big-clock-2.0/?${identity}`,
 
     companion:
-      `/coaches/execution/coach-companion/?session=${encodeURIComponent(sessionId)}`
+      `/coaches/execution/coach-companion/?${identity}`
   };
 }
 
@@ -757,6 +931,10 @@ function escapeHtml(value) {
 
   await hydrateFromLiveSession();
 
+  bindLiveControls();
+  renderLiveControl();
+  liveRenderTimer = window.setInterval(renderLiveControl, 250);
+
   hydrationComplete = true;
 
   renderCoachSession();
@@ -792,3 +970,8 @@ function escapeHtml(value) {
   document.querySelectorAll(".slot-notes-input").forEach(autoGrow);
   if (focusEl) autoGrow(focusEl);
 })();
+
+window.addEventListener("beforeunload", () => {
+  liveUnsubscribe?.();
+  if (liveRenderTimer) window.clearInterval(liveRenderTimer);
+});
