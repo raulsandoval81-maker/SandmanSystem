@@ -1,0 +1,150 @@
+name: Guest Self-Check-In Production Function
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Inspect only, or deploy after approval
+        required: true
+        type: choice
+        default: preflight
+        options: [preflight, deploy]
+      confirm_project:
+        description: Type sandmandashboard
+        required: true
+        type: string
+      confirm_sha:
+        description: Type ef643228
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-attendance-functions
+  cancel-in-progress: false
+
+jobs:
+  guest-function:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Enforce production boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "${{ inputs.confirm_project }}" = "sandmandashboard"
+          test "${{ inputs.confirm_sha }}" = "ef643228"
+      - name: Checkout immutable guest implementation
+        uses: actions/checkout@v4
+        with:
+          ref: ef643228c4a54a4324ef2058a5134888caf1417e
+          persist-credentials: false
+      - name: Verify immutable source and guest boundaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "ef643228c4a54a4324ef2058a5134888caf1417e"
+          grep -q 'action === "request_guest"' functions/src/practice/practiceSessions.ts
+          grep -q 'action === "approve_guest"' functions/src/practice/practiceSessions.ts
+          node --check public/coaches/attendance/session.js
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Compile pinned source
+        run: |
+          npm ci --prefix functions
+          npm --prefix functions run build
+          node --test tests/functions/practice-attendance-lanes.test.mjs
+      - name: Prepare single-callable package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p guest-production/functions
+          cp -R functions/lib guest-production/functions/lib
+          cp functions/package-lock.json guest-production/functions/package-lock.json
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('functions/package.json','utf8'));
+          p.main='entry.cjs';
+          delete p.dependencies?.resend;
+          p.scripts={'gcp-build':''};
+          fs.writeFileSync('guest-production/functions/package.json',JSON.stringify(p,null,2)+'\n');
+          fs.writeFileSync('guest-production/functions/entry.cjs',[
+            "const admin=require('firebase-admin');",
+            "if(!admin.apps.length)admin.initializeApp();",
+            "const {setGlobalOptions}=require('firebase-functions/v2/options');",
+            "setGlobalOptions({preserveExternalChanges:true});",
+            "exports.updatePracticeCheckIn=require('./lib/practice/practiceSessions.js').updatePracticeCheckIn;",
+            ""
+          ].join('\n'));
+          fs.writeFileSync('guest-production/firebase.json',JSON.stringify({
+            functions:{source:'functions',runtime:'nodejs22',codebase:'default'}
+          },null,2)+'\n');
+          NODE
+          npm ci --omit=dev --prefix guest-production/functions
+          node -e 'const e=require("./guest-production/functions");if(Object.keys(e).join()!=="updatePracticeCheckIn"||!e.updatePracticeCheckIn?.__endpoint?.callableTrigger)process.exit(64)'
+          test ! -d guest-production/functions/node_modules/resend
+      - name: Authenticate existing production service account
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          node - "$RUNNER_TEMP/firebase-sa.json" <<'NODE'
+          const c=require(process.argv[2]);if(c.project_id!=='sandmandashboard')throw Error('Wrong project credential');
+          NODE
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/firebase-sa.json" --project=sandmandashboard --quiet
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Capture existing function configuration and IAM
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p production-before
+          gcloud functions describe updatePracticeCheckIn --gen2 --project=sandmandashboard --region=us-central1 --format=json > production-before/function.json
+          gcloud functions get-iam-policy updatePracticeCheckIn --gen2 --project=sandmandashboard --region=us-central1 --format=json > production-before/function-iam.json
+          service="$(node -e 'const x=require("./production-before/function.json");if(x.state!=="ACTIVE")process.exit(64);process.stdout.write(x.serviceConfig.service.split("/").at(-1))')"
+          echo "$service" > production-before/run-service-name.txt
+          gcloud run services get-iam-policy "$service" --project=sandmandashboard --region=us-central1 --format=json > production-before/run-iam.json
+          node -e 'const f=require("./production-before/function.json");if(f.buildConfig?.runtime!=="nodejs22")throw Error("Unexpected runtime");'
+      - name: Store rollback evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: guest-production-before-${{ github.run_id }}
+          path: production-before/
+          if-no-files-found: error
+      - name: Deploy only the existing guest attendance callable
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes firebase-tools@15.11.0 deploy --config guest-production/firebase.json \
+            --project sandmandashboard --only functions:default:updatePracticeCheckIn --non-interactive
+      - name: Verify deployed function and preserved IAM
+        if: ${{ inputs.mode == 'deploy' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud functions describe updatePracticeCheckIn --gen2 --project=sandmandashboard --region=us-central1 --format=json > production-after.json
+          test "$(node -e 'process.stdout.write(require("./production-after.json").state)')" = "ACTIVE"
+          service="$(cat production-before/run-service-name.txt)"
+          gcloud functions get-iam-policy updatePracticeCheckIn --gen2 --project=sandmandashboard --region=us-central1 --format=json > function-iam-after.json
+          gcloud run services get-iam-policy "$service" --project=sandmandashboard --region=us-central1 --format=json > run-iam-after.json
+          node <<'NODE'
+          const fs=require('fs');const read=p=>JSON.parse(fs.readFileSync(p));
+          const stable=p=>JSON.stringify((p.bindings||[]).map(x=>({role:x.role,members:[...(x.members||[])].sort(),condition:x.condition||null})).sort((a,b)=>a.role.localeCompare(b.role)));
+          if(stable(read('production-before/function-iam.json'))!==stable(read('function-iam-after.json')))throw Error('Function IAM changed');
+          if(stable(read('production-before/run-iam.json'))!==stable(read('run-iam-after.json')))throw Error('Run IAM changed');
+          const a=read('production-before/function.json'),b=read('production-after.json');
+          if(a.serviceConfig.serviceAccountEmail!==b.serviceConfig.serviceAccountEmail)throw Error('Runtime identity changed');
+          if(JSON.stringify(a.serviceConfig.secretEnvironmentVariables||[])!==JSON.stringify(b.serviceConfig.secretEnvironmentVariables||[]))throw Error('Secret bindings changed');
+          NODE
