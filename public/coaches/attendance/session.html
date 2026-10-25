@@ -41,19 +41,12 @@
               type="search"
               inputmode="search"
               autocomplete="off"
-              placeholder="Type athlete name or ID..."
+              placeholder="Search name or Sandman ID..."
             />
           </label>
         </div>
 
-        <div class="attendance-card" style="margin:12px 0;padding:12px">
-          <strong>Visiting athlete · another Sandman city</strong>
-          <p class="muted">Find an existing athlete by exact Sandman ID. A match does not authorize check-in; a one-day guest admission must be approved first.</p>
-          <label for="guestAthleteId">Visiting athlete ID</label>
-          <input id="guestAthleteId" type="text" autocomplete="off" placeholder="e.g. F4_0001" />
-          <button id="findGuestAthlete" type="button">Find visiting athlete</button>
-          <p id="guestLookupStatus" class="muted" role="status" aria-live="polite"></p>
-        </div>
+        <p id="guestLookupStatus" class="muted" role="status" aria-live="polite" hidden></p>
         <div id="athleteList" class="athlete-checkin-list"></div>
 
         <div class="screen-actions">
@@ -139,6 +132,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261024-guest-discovery1"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261024-unified-search1"></script>
 </body>
 </html>
