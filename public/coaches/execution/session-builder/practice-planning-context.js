@@ -11,6 +11,7 @@ export function planningContextPayload(session = {}, overrides = {}) {
       ?? session.planningSourcesExplicitlySelected === true,
     groupPlanning: overrides.groupPlanning || session.groupPlanning || {},
     groupLessonAdjustments: overrides.groupLessonAdjustments || session.groupLessonAdjustments || {},
+    clipboardPlan: overrides.clipboardPlan || session.clipboardPlan || null,
   };
 }
 
@@ -30,6 +31,7 @@ export function restorePlanningContext(session = {}, practice = {}) {
     planningSourcesExplicitlySelected: draft.planningSourcesExplicitlySelected === true,
     groupPlanning: draft.groupPlanning || {},
     groupLessonAdjustments: draft.groupLessonAdjustments || {},
+    clipboardPlan: draft.clipboardPlan || null,
     planningContextRevision: Number(draft.revision || 0),
     planningContextRestored: true,
   };
