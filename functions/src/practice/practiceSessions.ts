@@ -673,7 +673,7 @@ export const updatePracticeCheckIn = onCall(async (request) => {
         disciplineId: normalizePracticeDiscipline(practice.discipline),
       });
       if (!attendanceEligibility.eligible || attendanceEligibility.kind !== "visitor") {
-        throw new HttpsError("permission-denied", "Guest requires an approved, active cross-training assignment before verification.");
+        throw new HttpsError("permission-denied", `Guest cannot be checked in: ${attendanceEligibility.reason}. Confirm an approved, active cross-training assignment for this practice location and discipline.`);
       }
       pendingGuests.delete(athleteId);
     }
