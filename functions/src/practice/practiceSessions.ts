@@ -4,6 +4,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { COACH_STAFF_ROLES, normalizeStaffRole, requireActiveStaff } from "../services/staffAuthorization";
 import {
   classifyPracticeAthleteEligibility,
+  athleteScheduleDisciplineIds,
   PracticeAthleteEligibility,
   staffLocationIds,
 } from "../schedules/crossTrainingPolicy";
@@ -526,6 +527,7 @@ export const searchPracticeAttendanceAthletes = onCall(async (request) => {
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
   const search = compactString(request.data?.search, 120).toLowerCase();
+  const guestLookupId = compactString(request.data?.guestLookupId, 160);
   const db = getFirestore();
   const practiceSnap = await db.doc(`practiceSessions/${practiceId}`).get();
   if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
@@ -536,6 +538,26 @@ export const searchPracticeAttendanceAthletes = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "Athlete search requires an active practice.");
   }
   const disciplineId = normalizePracticeDiscipline(practice.discipline);
+  // An exact-ID guest lookup is discovery, never permission to check in.
+  // Do not expose a cross-city name-search directory to location-scoped coaches.
+  if (guestLookupId) {
+    const id = requireDocumentId(guestLookupId, "guestLookupId");
+    const visitorSnap = await db.doc(`athletes/${id}`).get();
+    if (!visitorSnap.exists) return { ok: true, practiceId, guestCandidate: null };
+    const visitor = visitorSnap.data() || {};
+    const homeLocationId = String(visitor.locationId || visitor.academyLocationId || "").trim().toLowerCase();
+    const tracks = athleteScheduleDisciplineIds(visitor);
+    const current = String(visitor.rosterStatus || "current").trim().toLowerCase() === "current";
+    if (!homeLocationId || homeLocationId === hostLocationId || !current || !tracks.includes(disciplineId)) {
+      return { ok: true, practiceId, guestCandidate: null };
+    }
+    return { ok: true, practiceId, guestCandidate: {
+      id, name: visitor.name || visitor.publicName || visitor.fullName || id,
+      homeLocationId, discipline: disciplineId,
+      journey: visitor.journey || visitor.programTrack || "",
+      status: "approval-required",
+    }};
+  }
   const [localSnap, assignmentsSnap] = await Promise.all([
     db.collection("athletes").where("locationId", "==", hostLocationId).get(),
     db.collection("athleteCrossTrainingAssignments").where("hostLocationId", "==", hostLocationId).get(),

@@ -1516,6 +1516,26 @@ function bindEvents() {
     updateGroupControls();
   });
 
+  $("findGuestAthlete")?.addEventListener("click", async () => {
+    const out = $("guestLookupStatus");
+    const guestLookupId = String($("guestAthleteId")?.value || "").trim();
+    if (!guestLookupId || !activePractice?.practiceId || sessionLocked) {
+      if (out) out.textContent = "Enter a visiting athlete ID in an active practice.";
+      return;
+    }
+    if (out) out.textContent = "Looking up visiting athlete…";
+    try {
+      const lookup = httpsCallable(functions, "searchPracticeAttendanceAthletes");
+      const response = await lookup({ practiceId: activePractice.practiceId, guestLookupId });
+      const candidate = response.data?.guestCandidate;
+      if (out) out.textContent = candidate
+        ? `${candidate.name} · ${candidate.id} · Home: ${candidate.homeLocationId} · ${disciplineDisplay(candidate.discipline)}. Guest authorization required before check-in.`
+        : "No matching current visitor with this practice discipline was found.";
+    } catch (error) {
+      if (out) out.textContent = "Guest lookup could not be completed.";
+      console.error("[session] guest discovery", error);
+    }
+  });
   $("searchAthlete")?.addEventListener("input", applyFilters);
   $("journeyRosterFilter")?.addEventListener("change", applyFilters);
 
