@@ -667,6 +667,35 @@ function renderCheckedIn() {
     });
   });
 }
+async function authorizeGuestForTodayAndCheckIn(id) {
+  if (sessionLocked || !activePractice?.practiceId) return;
+  const hostLocationId = String(activePractice.locationId || activePractice.academyId || "").trim();
+  const disciplineId = String(activePractice.discipline || "").trim();
+  if (!hostLocationId || !disciplineId || disciplineId === "unassigned") {
+    setStatus("Choose the host location and practice discipline before authorizing a visitor.", true);
+    return;
+  }
+  // Explicit Coach action only. A short-lived assignment authorizes this practice
+  // discipline; the existing server independently verifies Coach scope and eligibility.
+  const approvedAt = new Date();
+  const expiresAt = new Date(approvedAt.getTime() + 12 * 60 * 60 * 1000);
+  try {
+    const authorize = httpsCallable(functions, "upsertAthleteCrossTrainingAssignment");
+    await authorize({
+      athleteId: id,
+      hostLocationId,
+      disciplineIds: [disciplineId],
+      rosterId: activePractice.practiceId,
+      status: "active",
+      activeFrom: approvedAt.toISOString(),
+      activeTo: expiresAt.toISOString()
+    });
+    await updatePendingGuest("approve_guest", id);
+  } catch (error) {
+    console.error("[session] guest authorization failed", error);
+    setStatus(String(error?.message || "Guest authorization failed; athlete remains pending."), true);
+  }
+}
 async function updatePendingGuest(action, id) {
   if (sessionLocked || !activePractice?.practiceId) return;
   const update = httpsCallable(functions, "updatePracticeCheckIn");
@@ -700,12 +729,12 @@ function renderPendingGuestReview() {
     const summary = document.createElement("span");
     summary.textContent = `${guest.name} · ${guest.id} · Pending verification / guest authorization`;
     row.append(summary);
-    for (const [action, label] of [["approve_guest", "Verify & Check In"], ["remove_guest", "Remove Request"]]) {
+    for (const [action, label] of [["approve_guest", "Verify & Check In"], ["authorize_guest", "Authorize Today & Check In"], ["remove_guest", "Remove Request"]]) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = label;
       button.disabled = sessionLocked;
-      button.addEventListener("click", () => void updatePendingGuest(action, guest.id));
+      button.addEventListener("click", () => void (action === "authorize_guest" ? authorizeGuestForTodayAndCheckIn(guest.id) : updatePendingGuest(action, guest.id)));
       row.append(button);
     }
     list.append(row);
