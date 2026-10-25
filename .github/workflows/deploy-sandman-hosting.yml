@@ -1,9 +1,20 @@
 name: Deploy Sandman Hosting
 
 on:
-  # Production Hosting requires a deliberate, authorized workflow dispatch.
-  # Merging application PRs must not automatically deploy LIVE.
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Attendance-only overlay (preflight or deploy). Full site deploy remains separate.
+        type: choice
+        required: true
+        default: preflight
+        options:
+          - preflight
+          - deploy
+      confirm_project:
+        description: Type sandmandashboard exactly
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -13,19 +24,107 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy Firebase Hosting
+  attendance:
+    name: Preserve live Hosting and overlay Attendance files
     runs-on: ubuntu-24.04
-
+    environment: production
     steps:
-      - name: Checkout approved commit
+      - name: Confirm scoped production release
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          test "$PROJECT" = "sandmandashboard"
+      - name: Checkout approved guest-discovery implementation
         uses: actions/checkout@v5
-
-      - name: Deploy Sandman Hosting to production
-        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
-          projectId: sandmandashboard
-          target: sandman
-          channelId: live
-          entryPoint: .
+          ref: 9014fcdc5c4cb6b16965a6d7a79bf12bd8ecbf04
+          persist-credentials: false
+      - name: Validate Attendance assets and script
+        shell: bash
+        run: |
+          test -f public/coaches/attendance/session.html
+          test -f public/coaches/attendance/session.js
+          grep -q 'guestAthleteId' public/coaches/attendance/session.html
+          grep -q 'findGuestAthlete' public/coaches/attendance/session.js
+      - name: Authenticate Firebase
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Google authentication library
+        run: python -m pip install google-auth requests
+      - name: Preserve live site and overlay exact Attendance files
+        env:
+          MODE: ${{ inputs.mode }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os,json,hashlib,gzip,urllib.request,urllib.parse
+          import google.auth
+          from google.auth.transport.requests import Request
+          SITE="sandman-main"
+          BASE="https://firebasehosting.googleapis.com/v1beta1/"
+          creds,_=google.auth.default(scopes=["https://www.googleapis.com/auth/firebase"])
+          creds.refresh(Request())
+          def api(method,path,data=None):
+              req=urllib.request.Request(BASE+path,data=None if data is None else json.dumps(data).encode(),method=method,headers={"Authorization":"Bearer "+creds.token,"Content-Type":"application/json"})
+              with urllib.request.urlopen(req,timeout=40) as r:return json.load(r)
+          release=api("GET",f"sites/{SITE}/releases?pageSize=1")["releases"][0]
+          version=release["version"]
+          version_name=version["name"]
+          assert version_name.startswith(f"sites/{SITE}/versions/"),version_name
+          oldfiles={}
+          page=""
+          while True:
+              q="?pageSize=1000"+("&pageToken="+urllib.parse.quote(page) if page else "")
+              res=api("GET",version_name+"/files"+q)
+              for entry in res.get("files",[]):
+                  oldfiles[entry["path"]]=entry["hash"]
+              page=res.get("nextPageToken","")
+              if not page:break
+          assert len(oldfiles)>100 and "/coaches/attendance/session.html" in oldfiles and "/coaches/attendance/session.js" in oldfiles, "Live site manifest unexpectedly small"
+          newfiles=dict(oldfiles)
+          payloads={}
+          for name in ("session.html","session.js"):
+              path="/coaches/attendance/"+name
+              content=open("public"+path,"rb").read()
+              assert len(content)>1000,path
+              compressed=gzip.compress(content,mtime=0)
+              digest=hashlib.sha256(compressed).hexdigest()
+              newfiles[path]=digest
+              payloads[digest]=compressed
+          changed=[key for key in newfiles if newfiles[key]!=oldfiles.get(key)]
+          assert set(changed)=={"/coaches/attendance/session.html","/coaches/attendance/session.js"},changed
+          print("Live version:",version_name)
+          print("Existing files preserved:",len(oldfiles)-2)
+          print("Files to replace:",changed)
+          if os.environ.get("MODE")!="deploy":
+              print("PREVIEW ONLY: no Hosting version created")
+              raise SystemExit(0)
+          config=version.get("config")
+          assert isinstance(config,dict) and config, "Missing live Hosting configuration"
+          new_version=api("POST",f"sites/{SITE}/versions",{"config":config})
+          new_name=new_version["name"]
+          assert new_name.startswith(f"sites/{SITE}/versions/"),new_name
+          uploads={}
+          for i in range(0,len(newfiles),900):
+              subset=dict(list(newfiles.items())[i:i+900])
+              result=api("POST",new_name+":populateFiles",{"files":subset})
+              upload_url=result["uploadUrl"]
+              for h in result.get("uploadRequiredHashes",[]):
+                  assert h in payloads,"Unexpected existing asset upload required; abort release"
+                  uploads[h]=upload_url
+          for h,url in uploads.items():
+              req=urllib.request.Request(url+"/"+h,data=payloads[h],method="POST",headers={"Authorization":"Bearer "+creds.token,"Content-Type":"application/octet-stream"})
+              with urllib.request.urlopen(req,timeout=40) as r:assert r.status in (200,201,204)
+          api("PATCH",new_name+"?updateMask=status%2Cconfig",{"status":"FINALIZED","config":config})
+          # Prevent overriding an independent deployment that occurred during this run.
+          latest=api("GET",f"sites/{SITE}/releases?pageSize=1")["releases"][0]
+          assert latest["version"]["name"]==version_name,"Live Hosting changed during preparation. Abort."
+          result=api("POST",f"sites/{SITE}/releases?versionName="+urllib.parse.quote(new_name,safe="/"),{})
+          print("Released:",result["name"])
+          
+          PY
