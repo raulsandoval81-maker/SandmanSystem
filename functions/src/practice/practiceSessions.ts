@@ -188,6 +188,101 @@ function compactPlanningContext(value: unknown) {
   return { planningSources, groups, evidenceEffect: "none" };
 }
 
+function compactPracticePlanningDraft(value: unknown, practiceId: string) {
+  const input: any = value && typeof value === "object" ? value : {};
+  const groups = (Array.isArray(input.trainingGroups) ? input.trainingGroups : []).slice(0, 4).map((group: any, index: number) => {
+    const groupId = compactString(group?.id || group?.groupId || `group-${index + 1}`, 120);
+    const athleteIds = [...new Set((Array.isArray(group?.athleteIds) ? group.athleteIds : [])
+      .map((athleteId: unknown) => requireDocumentId(athleteId, "group athleteId")))];
+    const athleteNames = (Array.isArray(group?.athleteNames) ? group.athleteNames : [])
+      .slice(0, athleteIds.length).map((name: unknown) => compactString(name, 160));
+    const rosterById = new Map((Array.isArray(group?.roster) ? group.roster : []).map((athlete: any) => [
+      String(athlete?.athleteId || athlete?.id || ""), athlete,
+    ]));
+    const roster = athleteIds.map((athleteId, athleteIndex) => {
+      const athlete: any = rosterById.get(athleteId) || {};
+      return {
+        athleteId,
+        athleteName: compactString(athlete?.athleteName || athlete?.name || athleteNames[athleteIndex] || athleteId, 160),
+        tier: compactString(athlete?.tier, 20).toUpperCase(),
+        tierProvenance: compactString(athlete?.tierProvenance, 120),
+        syntheticPlacement: athlete?.syntheticPlacement === true,
+        syntheticPlacementCertified: athlete?.syntheticPlacementCertified === true,
+        syntheticPlacementSource: compactString(athlete?.syntheticPlacementSource, 160),
+        journey: compactString(athlete?.journey || group?.journey, 80),
+        discipline: normalizePracticeDiscipline(athlete?.discipline || group?.discipline),
+        ageGroup: compactString(athlete?.ageGroup || group?.ageGroup, 80),
+        locationId: compactString(athlete?.locationId || group?.locationId, 160),
+        practiceId,
+      };
+    });
+    return {
+      id: groupId,
+      label: compactString(group?.label || `Group ${String.fromCharCode(65 + index)}`, 120),
+      ageGroup: compactString(group?.ageGroup, 80),
+      journey: compactString(group?.journey, 80),
+      discipline: normalizePracticeDiscipline(group?.discipline),
+      locationId: compactString(group?.locationId, 160),
+      practiceId,
+      tier: compactString(group?.tier || group?.instructionalTier, 20).toUpperCase(),
+      instructionalTier: compactString(group?.instructionalTier || group?.tier, 20).toUpperCase(),
+      instructionalFocusConfirmed: group?.instructionalFocusConfirmed === true,
+      rank: compactString(group?.rank, 120),
+      trainingSession: compactString(group?.trainingSession, 40),
+      carryForwardNote: compactString(group?.carryForwardNote, 2000),
+      athleteIds,
+      athleteNames: roster.map((athlete) => athlete.athleteName),
+      roster,
+    };
+  });
+  if (!groups.length) throw new HttpsError("failed-precondition", "At least one Practice Group is required.");
+  const planningSourcesInput = input.planningSources && typeof input.planningSources === "object" ? input.planningSources : {};
+  const planningSources = {
+    tierWaves: planningSourcesInput.tierWaves === true,
+    systemSuggestions: planningSourcesInput.systemSuggestions === true,
+    coachInput: planningSourcesInput.coachInput === true,
+  };
+  const groupPlanningInput = input.groupPlanning && typeof input.groupPlanning === "object" ? input.groupPlanning : {};
+  const groupPlanning = Object.fromEntries(groups.map((group: any) => {
+    const planning: any = groupPlanningInput[group.id] || {};
+    return [group.id, {
+      selectedWave: compactString(planning.selectedWave, 120),
+      instructionalTier: compactString(planning.instructionalTier || group.instructionalTier, 20).toLowerCase(),
+      tierWave: planning.tierWave && typeof planning.tierWave === "object" ? {
+        waveKey: compactString(planning.tierWave.waveKey, 120),
+        state: compactString(planning.tierWave.state, 40),
+      } : null,
+      systemSuggestion: planning.systemSuggestion && typeof planning.systemSuggestion === "object" ? {
+        state: compactString(planning.systemSuggestion.state, 80),
+        reason: compactString(planning.systemSuggestion.reason, 1000),
+      } : null,
+      coachInput: planning.coachInput && typeof planning.coachInput === "object" ? {
+        disposition: compactString(planning.coachInput.disposition, 40),
+        originalCarryForwardNote: compactString(planning.coachInput.originalCarryForwardNote, 1000),
+        currentNote: compactString(planning.coachInput.currentNote, 2000),
+      } : null,
+    }];
+  }));
+  const adjustmentsInput = input.groupLessonAdjustments && typeof input.groupLessonAdjustments === "object"
+    ? input.groupLessonAdjustments : {};
+  const groupLessonAdjustments = Object.fromEntries(groups.map((group: any) => [
+    group.id, compactString(adjustmentsInput[group.id], 2000),
+  ]));
+  return {
+    version: 1,
+    practiceId,
+    trainingGroups: groups,
+    fourGroupExceptionAcknowledged: input.fourGroupExceptionAcknowledged === true,
+    planningSources,
+    planningSourcesExplicitlySelected: input.planningSourcesExplicitlySelected === true,
+    groupPlanning,
+    groupLessonAdjustments,
+    evidenceEffect: "none",
+    eligibleForAuto: false,
+    autoApproved: false,
+  };
+}
+
 function normalizePracticeDiscipline(value: unknown): string {
   const discipline = compactString(value, 80).toLowerCase().replace(/[\s_]+/g, "-");
   if (["kickboxing", "kick-boxing", "muaythai", "muay-thai"].includes(discipline)) return "muay-thai";
@@ -976,6 +1071,83 @@ export const getPracticeSession = onCall(async (request) => {
   if (!snap.exists) throw new HttpsError("not-found", "Practice not found.");
   requirePracticeLocation(actor, requiredString(snap.data()?.locationId || snap.data()?.academyId, "practice locationId"));
   return { ok: true, practiceId: snap.id, practice: snap.data() || {} };
+});
+
+export const savePracticePlanningContext = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
+  const actor = await requireActiveStaff(
+    request.auth.uid,
+    PRACTICE_STAFF_ROLES,
+    "Active Coach or Admin access required."
+  );
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+  const expectedRevision = request.data?.expectedRevision == null
+    ? null
+    : requireBoundedNumber(request.data.expectedRevision, "expectedRevision", 0, MAX_PLAN_VERSION, true);
+  const db = getFirestore();
+  const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+  const attendanceRef = db.doc(`attendance_sessions/${practiceId}`);
+  let revision = 0;
+
+  await db.runTransaction(async (tx) => {
+    const [practiceSnap, attendanceSnap] = await Promise.all([
+      tx.get(practiceRef),
+      tx.get(attendanceRef),
+    ]);
+    if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
+    if (!attendanceSnap.exists) throw new HttpsError("failed-precondition", "Canonical attendance is required before saving Practice Groups.");
+    const practice = practiceSnap.data() || {};
+    const attendance = attendanceSnap.data() || {};
+    requirePracticeOwner(actor, practice);
+    if (String(practice.status || "").toLowerCase() !== "active") {
+      throw new HttpsError("failed-precondition", "Closed practices cannot change Practice Groups.");
+    }
+    if (String(attendance.practiceId || practiceId) !== practiceId) {
+      throw new HttpsError("failed-precondition", "Attendance does not belong to this practice.");
+    }
+    const draft = compactPracticePlanningDraft(request.data?.planningContext, practiceId);
+    const checkedInIds = [...new Set((Array.isArray(attendance.checkedInIds) ? attendance.checkedInIds : [])
+      .map((athleteId: unknown) => requireDocumentId(athleteId, "checked-in athleteId")))];
+    const assignedIds = draft.trainingGroups.flatMap((group: any) => group.athleteIds);
+    if (!checkedInIds.length || assignedIds.length !== new Set(assignedIds).size || !sameIds(checkedInIds, assignedIds)) {
+      throw new HttpsError("failed-precondition", "Practice Groups must contain every checked-in athlete exactly once.");
+    }
+    const locationId = String(practice.locationId || practice.academyId || "");
+    const groupIds = draft.trainingGroups.map((group: any) => group.id);
+    const incompatibleGroup = draft.trainingGroups.find((group: any) =>
+      group.practiceId !== practiceId
+      || group.locationId !== locationId
+      || (practice.discipline && practice.discipline !== "unassigned"
+        && normalizePracticeDiscipline(group.discipline) !== normalizePracticeDiscipline(practice.discipline))
+      || group.roster.some((athlete: any) =>
+        athlete.practiceId !== practiceId
+        || athlete.locationId !== group.locationId
+        || normalizePracticeDiscipline(athlete.discipline) !== normalizePracticeDiscipline(group.discipline)
+        || compactString(athlete.journey, 80).toLowerCase() !== compactString(group.journey, 80).toLowerCase()
+        || compactString(athlete.ageGroup, 80).toLowerCase() !== compactString(group.ageGroup, 80).toLowerCase()
+      )
+    );
+    if (new Set(groupIds).size !== groupIds.length || incompatibleGroup) {
+      throw new HttpsError("failed-precondition", "Practice Group context does not match the canonical practice.");
+    }
+    const currentRevision = Number(practice.planningContextDraft?.revision || 0);
+    if (expectedRevision != null && expectedRevision !== currentRevision) {
+      throw new HttpsError("aborted", "Practice Groups changed on another device. Reload before saving again.");
+    }
+    revision = currentRevision + 1;
+    const now = FieldValue.serverTimestamp();
+    tx.update(practiceRef, {
+      planningContextDraft: {
+        ...draft,
+        revision,
+        savedBy: actor.uid,
+        savedAt: now,
+      },
+      updatedAt: now,
+    });
+  });
+
+  return { ok: true, practiceId, revision, eligibleForAuto: false };
 });
 
 export const savePracticeSessionMemory = onCall(async (request) => {

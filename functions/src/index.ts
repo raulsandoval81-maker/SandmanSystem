@@ -274,6 +274,7 @@ export {
   completePracticeDailyGrind,
   savePracticeAthleteInput,
   getPracticeSession,
+  savePracticePlanningContext,
   closePracticeSession,
   savePracticeSessionMemory,
   saveDailyPracticeLog,

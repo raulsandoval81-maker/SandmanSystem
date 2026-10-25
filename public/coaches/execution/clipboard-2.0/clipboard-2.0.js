@@ -13,6 +13,10 @@ import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { compilePracticeTimeline } from "/coaches/execution/engine/practice-execution-contract.mjs";
+import {
+  planningContextPayload,
+  restorePlanningContext
+} from "/coaches/execution/session-builder/practice-planning-context.js";
 
 
 import {
@@ -456,6 +460,42 @@ const storedDraft = getDraftPayload();
 let builderSession = getSessionPayload();
 let shouldRedirectToBuilder = false;
 
+const requestedPracticeId = String(
+  new URLSearchParams(window.location.search).get("practiceId")
+  || builderSession.practiceId
+  || ""
+).trim();
+if (requestedPracticeId && !requestedPracticeId.includes("/")) {
+  try {
+    await ensureSignedIn();
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId: requestedPracticeId });
+    const practice = result.data?.practice || {};
+    if (String(practice.status || "").toLowerCase() !== "active") {
+      throw new Error("This practice is no longer active.");
+    }
+    builderSession = restorePlanningContext({
+      ...builderSession,
+      practiceId: requestedPracticeId,
+      schema: builderSession.schema || practice.schema || "academy-60",
+      executionMode: builderSession.executionMode || practice.executionMode || "manual",
+      sessionId: builderSession.sessionId || practice.liveSessionId || SESSION_PARAM,
+      academyId: builderSession.academyId || practice.academyId || practice.locationId || "",
+      locationId: builderSession.locationId || practice.locationId || practice.academyId || "",
+      roomId: builderSession.roomId || practice.roomId || "",
+      program: builderSession.program || practice.program || "",
+      track: builderSession.track || practice.track || "",
+      journey: builderSession.journey || practice.journey || "",
+      discipline: builderSession.discipline || practice.discipline || "",
+      tier: builderSession.tier || practice.tier || "",
+      week: builderSession.week || practice.week || "",
+    }, { practiceId: requestedPracticeId, ...practice });
+    localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+  } catch (error) {
+    console.warn("[clipboard] Canonical planning restore failed", error);
+  }
+}
+
 if (!SCHEMAS[builderSession.schema] && isRecoverableDraft(storedDraft) && storedDraft.session) {
   builderSession = storedDraft.session;
   localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
@@ -707,6 +747,52 @@ const clipboardWaveModels = new Map();
 function saveClipboardPlanning() {
   localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
   queueDraftSave();
+  queueCanonicalPlanningSave();
+}
+
+let canonicalPlanningSaveTimer = 0;
+let canonicalPlanningSaveChain = Promise.resolve();
+function groupLessonAdjustmentsSnapshot() {
+  return Object.fromEntries([...document.querySelectorAll(".clipboard-group-lesson-notes")]
+    .map((field) => [field.dataset.groupId, field.value.trim()]));
+}
+
+async function performCanonicalPlanningSave() {
+  const session = getActiveSession();
+  if (!session.practiceId || !session.trainingGroups.length) return;
+  const savePlanningContext = httpsCallable(functions, "savePracticePlanningContext");
+  const groupLessonAdjustments = groupLessonAdjustmentsSnapshot();
+  const response = await savePlanningContext({
+    practiceId: session.practiceId,
+    expectedRevision: builderSession.planningContextRestored
+      ? Number(builderSession.planningContextRevision || 0)
+      : undefined,
+    planningContext: planningContextPayload(builderSession, { groupLessonAdjustments }),
+  });
+  builderSession = {
+    ...builderSession,
+    groupLessonAdjustments,
+    planningContextRevision: Number(response.data?.revision || 0),
+    planningContextRestored: true,
+  };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+}
+
+function saveCanonicalPlanningContext() {
+  canonicalPlanningSaveChain = canonicalPlanningSaveChain
+    .catch(() => {})
+    .then(performCanonicalPlanningSave);
+  return canonicalPlanningSaveChain;
+}
+
+function queueCanonicalPlanningSave() {
+  window.clearTimeout(canonicalPlanningSaveTimer);
+  canonicalPlanningSaveTimer = window.setTimeout(() => {
+    saveCanonicalPlanningContext().catch((error) => {
+      console.warn("[clipboard] Practice Group save failed", error);
+      setStatus(error?.message || "Practice Group changes are saved on this device only.");
+    });
+  }, 500);
 }
 async function clipboardWavesForGroup(group) {
   if (String(builderSession.discipline || "").toLowerCase() !== "wrestling") return {};
@@ -1704,6 +1790,15 @@ window.runPractice = async function () {
     return;
   }
 
+  try {
+    window.clearTimeout(canonicalPlanningSaveTimer);
+    await saveCanonicalPlanningContext();
+  } catch (error) {
+    console.error("Practice Group save failed", error);
+    setStatus(error?.message || "Could not preserve Practice Groups before launch.");
+    return;
+  }
+
   const blocks = [
     ...document.querySelectorAll("#planBlocks .plan-block:not(.hidden)")
   ]
@@ -2682,9 +2777,12 @@ function updateSupportLinks() {
   renderClipboardTrainingGroups();
   void initClipboardHybridPlanning();
   document.querySelectorAll(".clipboard-group-lesson-notes").forEach(field => {
-    const prior = getDraftPayload()?.groupLessonAdjustments || {};
+    const prior = builderSession.groupLessonAdjustments || getDraftPayload()?.groupLessonAdjustments || {};
     field.value = String(prior[field.dataset.groupId] || "");
-    field.addEventListener("input", queueDraftSave);
+    field.addEventListener("input", () => {
+      queueDraftSave();
+      queueCanonicalPlanningSave();
+    });
   });
   installDrillBlockEditors();
   restoreDraft(storedDraft);
