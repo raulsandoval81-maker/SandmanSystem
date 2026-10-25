@@ -51,7 +51,6 @@ jobs:
           grep -q 'action === "request_guest"' functions/src/practice/practiceSessions.ts
           grep -q 'action === "approve_guest"' functions/src/practice/practiceSessions.ts
           node --check public/coaches/attendance/session.js
-          node --test tests/functions/practice-attendance-lanes.test.mjs
       - name: Setup Node 22
         uses: actions/setup-node@v4
         with:
@@ -62,6 +61,7 @@ jobs:
         run: |
           npm ci --prefix functions
           npm --prefix functions run build
+          node --test tests/functions/practice-attendance-lanes.test.mjs
       - name: Prepare single-callable package
         shell: bash
         run: |
