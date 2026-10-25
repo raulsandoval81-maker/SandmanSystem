@@ -13,21 +13,23 @@ test("canonical practiceId survives Clipboard, Clock, Companion, and Practice Lo
     read("public/coaches/logs/practice-log.js"),
   ]);
   assert.match(clipboard, /practiceId:\s*session\.practiceId/);
-  assert.match(clock, /payload\.practiceId\s*\|\|\s*session\.practiceId/);
+  assert.match(clock, /params\.get\("practiceId"\)/);
+  assert.match(clock, /initialPayload\.practiceId !== practiceId/);
   assert.match(companion, /practiceId:\s*String\(payload\.practiceId\s*\|\|\s*live\.practiceId\s*\|\|\s*""\)\.trim\(\)/);
   assert.match(companion, /practiceId:\s*session\.practiceId/);
   assert.match(practiceLog, /sessionSource\.practiceId\s*\|\|\s*payload\?\.practiceId/);
 });
 
-test("planned and worked memory use separate explicit server operations", async () => {
+test("planned and completed work remain separate explicit server operations", async () => {
   const [clipboard, clock, server] = await Promise.all([
     read("public/coaches/execution/clipboard-2.0/clipboard-2.0.js"),
     read("public/coaches/execution/big-clock-2.0/big-clock-2.0.js"),
     read("functions/src/practice/practiceSessions.ts"),
   ]);
   assert.match(clipboard, /operation:\s*"plan"/);
-  assert.match(clock, /operation:\s*"worked"/);
-  assert.match(clock, /updateDurableWorkedMemory\(\{ block: current/);
+  assert.match(clock, /updatePracticeExecutionState/);
+  assert.match(server, /result\.event\?\.disposition === "completed"/);
+  assert.match(server, /disposition, elapsedSeconds/);
   assert.doesNotMatch(clock, /plannedCards.*workedCards/s);
   assert.match(server, /"sessionMemory\.plannedCards"/);
   assert.match(server, /"sessionMemory\.workedCards"/);

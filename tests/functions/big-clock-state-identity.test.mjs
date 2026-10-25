@@ -27,9 +27,10 @@ test("URL handoff has explicit priority and missing identifiers fail closed",()=
   });
   assert.equal(matchingPracticeRun(completed,{practiceId:"",sessionId:a.sessionId}),false);
 });
-test("Big Clock UI uses scoped recovery and returns new practice to ready overlay",()=>{
+test("Big Clock UI uses canonical reload recovery and keeps local snapshots practice scoped",()=>{
   const src=readFileSync(new URL("../../public/coaches/execution/big-clock-2.0/big-clock-2.0.js",import.meta.url),"utf8");
-  assert.match(src,/restorePracticeRun\(/);
-  assert.match(src,/const scopedState = \{ \.\.\.state, \.\.\.identity \}/);
-  assert.match(src,/ready\.classList\.toggle\("hidden", Boolean\(data\.running \|\| data\.paused \|\| data\.complete\)\)/);
+  assert.match(src,/onSnapshot\(reference/);
+  assert.match(src,/const scopedState = \{ \.\.\.state, practiceId, sessionId \}/);
+  assert.match(src,/sandman:big-clock:\$\{practiceId\}:\$\{sessionId\}/);
+  assert.match(src,/ready\.classList\.toggle\("hidden", state\.status !== "ready"\)/);
 });

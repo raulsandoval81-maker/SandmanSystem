@@ -103,7 +103,7 @@ test("workflow carries planning provenance without changing AUTO safeguards", ()
   assert.match(clipboard, /groupPlanning/);
   assert.match(clipboard, /acceptedLessonContent/);
   assert.match(clipboard, /executableCardsForBlock\(block\)/);
-  assert.match(fs.readFileSync(path.join(repo, "public/coaches/execution/big-clock-2.0/big-clock-2.0.js"), "utf8"), /executableCardsForBlock\(block\)/);
+  assert.match(fs.readFileSync(path.join(repo, "public/coaches/execution/big-clock-2.0/big-clock-2.0.js"), "utf8"), /block\?\.groupActivities/);
   // Checked-in HYBRID now goes directly to Clipboard; the old planning=1 route is intentionally bypassed.
   assert.match(attendance, /Both MANUAL and HYBRID now enter the same checked-in Clipboard/);
   assert.match(attendance, /\/coaches\/execution\/clipboard-2\.0\/\?session=/);

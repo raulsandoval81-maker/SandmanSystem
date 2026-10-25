@@ -16,6 +16,7 @@ const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-i
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
 const MAX_PLAN_VERSION = 10_000;
 const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
+const LIVE_EXECUTION_COMMANDS = new Set(["start", "pause", "resume", "advance", "skip", "back", "repeat", "reset"]);
 const CANONICAL_PRACTICE_PROGRAMS = Object.freeze([
   { program: "youth-z2h-wrestling", discipline: "wrestling", journey: "Z2H", locations: ["santa-ynez-valley"] },
   { program: "youth-z2h-muay-thai", discipline: "muay-thai", journey: "Z2H", locations: ["santa-ynez-valley"] },
@@ -445,6 +446,48 @@ function compactBlocks(value: unknown) {
   const byId = new Map<string, (typeof blocks)[number]>();
   blocks.forEach((block) => byId.set(block.blockId, block));
   return [...byId.values()];
+}
+
+function materializedExecutionState(state: any, blocks: any[], nowMs: number) {
+  const index = Math.min(Math.max(0, Math.floor(Number(state?.index) || 0)), Math.max(0, blocks.length - 1));
+  const durationSeconds = Math.round(Math.max(0, Number(blocks[index]?.minutes) || 0) * 60);
+  const anchored = state?.status === "running"
+    ? Math.max(0, Math.floor((nowMs - Number(state?.anchorEpochMs || nowMs)) / 1000)) : 0;
+  const elapsedSeconds = Math.min(durationSeconds, Math.max(0, Math.floor(Number(state?.elapsedSeconds) || 0)) + anchored);
+  return { ...state, index, elapsedSeconds, durationSeconds, remainingSeconds: Math.max(0, durationSeconds - elapsedSeconds) };
+}
+
+function transitionExecutionState(state: any, command: string, blocks: any[], nowMs: number) {
+  const current = materializedExecutionState(state || { status: "ready", revision: 0 }, blocks, nowMs);
+  const status = String(current.status || "ready");
+  const evidence = (disposition: string) => ({
+    sequence: Number(current.revision || 0) + 1,
+    blockId: String(blocks[current.index]?.blockId || ""), blockIndex: current.index,
+    disposition, elapsedSeconds: current.elapsedSeconds, atEpochMs: nowMs,
+  });
+  let next: any;
+  let event: any = null;
+  if (command === "start" && status === "ready") next = { ...current, status: "running", index: 0, elapsedSeconds: 0, anchorEpochMs: nowMs };
+  else if (command === "pause" && status === "running") next = { ...current, status: "paused", anchorEpochMs: 0 };
+  else if (command === "resume" && status === "paused") next = { ...current, status: "running", anchorEpochMs: nowMs };
+  else if (["advance", "skip"].includes(command) && ["running", "paused"].includes(status)) {
+    if (command === "advance" && current.remainingSeconds > 0) throw new HttpsError("failed-precondition", "The active block still has time remaining.");
+    event = evidence(command === "advance" ? "completed" : "skipped");
+    const index = current.index + 1;
+    next = index >= blocks.length
+      ? { ...current, status: "completed", elapsedSeconds: current.durationSeconds, anchorEpochMs: 0 }
+      : { ...current, status, index, elapsedSeconds: 0, anchorEpochMs: status === "running" ? nowMs : 0 };
+  } else if (command === "back" && ["running", "paused"].includes(status)) {
+    event = evidence("left-for-previous");
+    next = { ...current, index: Math.max(0, current.index - 1), elapsedSeconds: 0, anchorEpochMs: status === "running" ? nowMs : 0 };
+  } else if (command === "repeat" && ["running", "paused"].includes(status)) {
+    event = evidence("repeated");
+    next = { ...current, elapsedSeconds: 0, anchorEpochMs: status === "running" ? nowMs : 0 };
+  } else if (command === "reset") {
+    event = evidence("reset");
+    next = { ...current, status: "ready", index: 0, elapsedSeconds: 0, anchorEpochMs: 0 };
+  } else throw new HttpsError("failed-precondition", `Command ${command} is not valid while ${status}.`);
+  return { state: { ...next, revision: Number(current.revision || 0) + 1, updatedAtEpochMs: nowMs }, event };
 }
 
 function requirePracticeOwner(actor: Awaited<ReturnType<typeof requireActiveStaff>>, practice: Record<string, any>) {
@@ -1210,6 +1253,79 @@ export const savePracticePlanningContext = onCall(async (request) => {
   });
 
   return { ok: true, practiceId, revision, eligibleForAuto: false };
+});
+
+export const updatePracticeExecutionState = onCall(async (request) => {
+  if (!request.auth) throw new HttpsError("unauthenticated", "Staff authentication required.");
+  const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
+  const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
+  const liveSessionId = requireDocumentId(request.data?.sessionId, "sessionId");
+  const command = compactString(request.data?.command, 20).toLowerCase();
+  if (!LIVE_EXECUTION_COMMANDS.has(command)) throw new HttpsError("invalid-argument", "Unsupported execution command.");
+  if (command === "reset" && request.data?.confirmReset !== true) {
+    throw new HttpsError("failed-precondition", "Reset requires explicit Coach confirmation.");
+  }
+  const expectedRevision = requireBoundedNumber(request.data?.expectedRevision, "expectedRevision", 0, MAX_PLAN_VERSION, true);
+  const db = getFirestore();
+  const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+  const liveRef = db.doc(`liveSessions/${liveSessionId}`);
+  let result: any = null;
+  await db.runTransaction(async tx => {
+    const [practiceSnap, liveSnap] = await Promise.all([tx.get(practiceRef), tx.get(liveRef)]);
+    if (!practiceSnap.exists || !liveSnap.exists) throw new HttpsError("not-found", "Practice execution session not found.");
+    const practice = practiceSnap.data() || {};
+    const live = liveSnap.data() || {};
+    requirePracticeOwner(actor, practice);
+    if (String(practice.status || "").toLowerCase() !== "active") throw new HttpsError("failed-precondition", "Closed practices cannot change execution state.");
+    if (String(practice.liveSessionId || "") !== liveSessionId || String(live.practiceId || "") !== practiceId) {
+      throw new HttpsError("failed-precondition", "Live session does not belong to this practice.");
+    }
+    const blocks = Array.isArray(practice.sessionMemory?.plannedBlocks) ? practice.sessionMemory.plannedBlocks : [];
+    if (!blocks.length) throw new HttpsError("failed-precondition", "A saved practice plan is required before execution.");
+    const current = practice.sessionMemory?.executionState || { status: "ready", revision: 0, index: 0, elapsedSeconds: 0 };
+    if (Number(current.revision || 0) !== expectedRevision) {
+      throw new HttpsError("aborted", "Practice state changed on another device. The latest state has been restored.");
+    }
+    const nowMs = Timestamp.now().toMillis();
+    result = transitionExecutionState(current, command, blocks, nowMs);
+    const priorEvidence = Array.isArray(practice.sessionMemory?.executionEvidence)
+      ? practice.sessionMemory.executionEvidence : [];
+    const executionEvidence = result.event ? [...priorEvidence, result.event].slice(-200) : priorEvidence;
+    const now = FieldValue.serverTimestamp();
+    const patch: Record<string, any> = {
+      "sessionMemory.executionState": result.state,
+      "sessionMemory.executionEvidence": executionEvidence,
+      "sessionMemory.executionUpdatedAt": now,
+      updatedAt: now,
+    };
+    if (command === "start" && !practice.sessionMemory?.executionStartedAt) patch["sessionMemory.executionStartedAt"] = now;
+    if (result.state.status === "completed" && !practice.sessionMemory?.executionCompletedAt) patch["sessionMemory.executionCompletedAt"] = now;
+    if (result.event?.disposition === "completed") {
+      const block = blocks[result.event.blockIndex];
+      const completedAt = Timestamp.fromMillis(nowMs);
+      const plannedCards = (Array.isArray(practice.sessionMemory?.plannedCards) ? practice.sessionMemory.plannedCards : [])
+        .filter((card: any) => String(card.blockId || "") === String(block.blockId || ""));
+      const workedBlocks = Array.isArray(practice.sessionMemory?.workedBlocks) ? [...practice.sessionMemory.workedBlocks] : [];
+      const workedCards = Array.isArray(practice.sessionMemory?.workedCards) ? [...practice.sessionMemory.workedCards] : [];
+      if (!workedBlocks.some((item: any) => item.blockId === block.blockId)) workedBlocks.push({ ...block, completedAt });
+      plannedCards.forEach((card: any) => {
+        if (!workedCards.some((item: any) => item.cardId === card.cardId && item.groupId === card.groupId)) workedCards.push({ ...card, completedAt });
+      });
+      patch["sessionMemory.workedBlocks"] = workedBlocks.slice(0, 20);
+      patch["sessionMemory.workedCards"] = workedCards.slice(0, 80);
+    }
+    tx.update(practiceRef, patch);
+    tx.set(liveRef, {
+      practiceId,
+      liveSessionId,
+      status: result.state.status,
+      currentBlockIndex: result.state.index,
+      runState: result.state,
+      executionRevision: result.state.revision,
+      updatedAt: now,
+    }, { merge: true });
+  });
+  return { ok: true, practiceId, sessionId: liveSessionId, state: result.state, evidence: result.event || null };
 });
 
 export const savePracticeSessionMemory = onCall(async (request) => {
