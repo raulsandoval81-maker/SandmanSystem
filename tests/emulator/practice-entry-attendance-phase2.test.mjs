@@ -29,8 +29,8 @@ before(async () => {
     db.doc("staff/admin-phase2").set({ role: "admin", status: "active" }),
     db.doc("athletes/F8_PHASE2_A").set({ fullName: "Athlete A", locationId: "santa-ynez-valley", rosterStatus: "current", journey: "Z2H", rank: "White", tier: "T0" }),
     db.doc("athletes/F8_PHASE2_B").set({ fullName: "Athlete B", locationId: "santa-ynez-valley", rosterStatus: "current", journey: "Z2H", rank: "White", tier: "T0" }),
-    db.doc("athletes/F4_PHASE2_VISITOR").set({ fullName: "Lompoc Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0" }),
-    db.doc("athletes/F4_PHASE2_UNAUTHORIZED").set({ fullName: "Unauthorized Visitor", locationId: "lompoc", rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0", membershipStatus: "active", financialStatus: "current", visitorAuthorized: true }),
+    db.doc("athletes/F4_PHASE2_VISITOR").set({ fullName: "Lompoc Visitor", locationId: "lompoc", disciplineIds: ["wrestling"], rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0" }),
+    db.doc("athletes/F4_PHASE2_UNAUTHORIZED").set({ fullName: "Unauthorized Visitor", locationId: "lompoc", disciplineIds: ["wrestling"], rosterStatus: "current", journey: "P2L", rank: "White", tier: "T0", membershipStatus: "active", financialStatus: "current", visitorAuthorized: true }),
     db.doc("athleteCrossTrainingAssignments/F4_PHASE2_VISITOR_santa-ynez-valley_general").set({
       athleteId: "F4_PHASE2_VISITOR",
       homeLocationId: "lompoc",
@@ -181,6 +181,52 @@ test("authorized cross-academy visitor is discoverable, reviewable, and finalize
   assert.equal(visitorEvidence.attendanceLocationId, "santa-ynez-valley");
   assert.equal(visitorEvidence.crossTrainingAssignmentId, "F4_PHASE2_VISITOR_santa-ynez-valley_general");
   assert.equal((await db.doc("athletes/F4_PHASE2_VISITOR").get()).get("locationId"), "lompoc");
+});
+
+test("guest arrival stays pending until coach verification, with rejection and duplicate requests safe", async () => {
+  const created = await call(practiceModule.createOrRecoverCanonicalPractice, "coach-phase2", {
+    ...afterFactInput("phase2-guest-arrival"), entryMode: "coach-directed",
+  });
+  const practiceId = created.practiceId;
+
+  await assert.rejects(
+    () => call(practiceModule.updatePracticeCheckIn, "coach-wrong-phase2", {
+      practiceId, action: "request_guest", athleteId: "F4_PHASE2_VISITOR",
+    }),
+    /outside the staff member's authorized scope/i
+  );
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+      practiceId, action: "request_guest", athleteId: "F4_PHASE2_VISITOR",
+    });
+  }
+  let attendance = (await db.doc(`attendance_sessions/${practiceId}`).get()).data();
+  assert.equal(attendance.pendingGuests.length, 1);
+  assert.equal(attendance.pendingGuests[0].status, "pending-verification");
+  assert.deepEqual(attendance.checkedInIds, []);
+  assert.deepEqual(attendance.checkedIn, []);
+
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId, action: "request_guest", athleteId: "F4_PHASE2_UNAUTHORIZED",
+  });
+  await assert.rejects(
+    () => call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+      practiceId, action: "approve_guest", athleteId: "F4_PHASE2_UNAUTHORIZED",
+    }),
+    /approved, active cross-training assignment/i
+  );
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId, action: "remove_guest", athleteId: "F4_PHASE2_UNAUTHORIZED",
+  });
+
+  await call(practiceModule.updatePracticeCheckIn, "coach-phase2", {
+    practiceId, action: "approve_guest", athleteId: "F4_PHASE2_VISITOR",
+  });
+  attendance = (await db.doc(`attendance_sessions/${practiceId}`).get()).data();
+  assert.deepEqual(attendance.pendingGuests, []);
+  assert.deepEqual(attendance.checkedInIds, ["F4_PHASE2_VISITOR"]);
+  assert.equal(attendance.checkedIn[0].attendanceEligibility, "visitor");
 });
 
 test("Coach location scope fails closed while Admin is permitted", async () => {

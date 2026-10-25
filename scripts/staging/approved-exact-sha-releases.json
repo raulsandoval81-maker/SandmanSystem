@@ -2421,5 +2421,63 @@
       "preserveFunctionConfigurationAndIam": true
     },
     "expectedInvokerIamDisabled": true
+  },
+  "guest-self-checkin-pr280-ef643228": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 280,
+    "applicationSha": "ef643228c4a54a4324ef2058a5134888caf1417e",
+    "requiredAncestorSha": "be72d6d4d8dd6f009a28a2475ccfc1ef304596fc",
+    "allowedChangedFiles": [
+      "functions/src/practice/practiceSessions.ts",
+      "public/coaches/attendance/session.html",
+      "public/coaches/attendance/session.js"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "e998045771fd2f0d92cba5615185175fd8299dfd",
+    "hostingFiles": [
+      "public/coaches/attendance/session.html",
+      "public/coaches/attendance/session.js"
+    ],
+    "functions": [
+      "updatePracticeCheckIn"
+    ],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionBuild": "sandman-attendance-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeploymentTool": "gcloud-gen2",
+    "buildPermissionResources": {
+      "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1",
+      "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
+    },
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+        "SANDMAN_ATTENDANCE_RUNTIME_SERVICE_ACCOUNT": "sandman-attendance-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    },
+    "expectedInvokerIamDisabled": true
   }
 }

@@ -63,6 +63,7 @@ on:
           - xp-client-auth-pr240-ee96af6a
           - single-roster-pr217-7beb0a6
           - cross-academy-pr253-e9980457
+          - guest-self-checkin-pr280-ef643228
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -111,7 +112,7 @@ jobs:
             const release = require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];
             if (!release || release.projectId !== "sandman-combat-staging" ||
                 release.repository !== "raulsandoval81-maker/SandmanSystem" ||
-                release.functionDeployer !== (process.env.RELEASE_ID === "cross-academy-pr253-e9980457" ? "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com" : "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com") ||
+                release.functionDeployer !== (["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228"].includes(process.env.RELEASE_ID) ? "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com" : "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com") ||
                 !/^[0-9a-f]{40}$/.test(release.applicationSha)) process.exit(64);
           '
       - name: Authenticate as the release's dedicated Functions deployer
@@ -119,12 +120,12 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Inspect and verify sanitized identity and credential metadata
         env:
-          EXPECTED_FUNCTION_DEPLOYER: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           node -e '
@@ -145,7 +146,7 @@ jobs:
           '
       - name: Verify effective project permissions and OAuth scopes
         env:
-          EXPECTED_FUNCTION_DEPLOYER: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           access_token="$(gcloud auth print-access-token)"
@@ -406,9 +407,20 @@ jobs:
               node --check public/coaches/attendance/session.js
             )
           fi
+          if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then
+            (
+              cd application-source
+              node --test \
+                tests/functions/practice-attendance-lanes.test.mjs \
+                ../trusted-tooling/tests/functions/guest-self-checkin-release.test.mjs
+              node --check public/coaches/attendance/session.js
+            )
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
+          validation_release_id="${RELEASE_ID}"
+          if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then RELEASE_ID="cross-academy-pr253-e9980457"; fi
           # New Clipboard-first releases intentionally bypass the retired HYBRID
           # planning detour; retain legacy source checks for historical IDs.
           if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
@@ -428,6 +440,7 @@ jobs:
             grep -q 'trainingGroups.slice(0, 3)' application-source/public/coaches/execution/session-builder/session-builder.js
           fi
           grep -q 'autoBlocked = selectedMode === "auto"' application-source/public/coaches/execution/session-builder/session-builder.js
+          RELEASE_ID="${validation_release_id}"
       - name: Session Builder memory inherited baseline (reported, not release-gating)
         id: session-memory-baseline
         if: ${{ inputs.release_id == 'r2c-wrestling-waves-pr115-18d46b08' || inputs.release_id == 'hybrid-handoff-pr117-4a8402b9' || inputs.release_id == 'hybrid-stage4-pr120-8a122108' || inputs.release_id == 'hybrid-stage4-fixed-pr122-7c625858' || inputs.release_id == 'combat-setup-pr125-8a5ae0f2' || inputs.release_id == 'combat-setup-fixed-pr127-fcd6f016' || inputs.release_id == 'combat-setup-regexfix-pr129-b7545f30' || inputs.release_id == 'combat-setup-final-pr131-ea296f66' || inputs.release_id == 'hybrid-handoff-pr133-8af57906' || inputs.release_id == 'combat-setup-pr138-ca4e23be' }}
@@ -506,7 +519,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify and preserve callable configuration and IAM
@@ -548,7 +561,7 @@ jobs:
           set -euo pipefail
           node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r)))' > ../permission-plan.json
           access_token="$(gcloud auth print-access-token)"
-          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457"; then
+          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then
             GOOGLE_OAUTH_ACCESS_TOKEN="${access_token}" node ./scripts/staging/verify-release-permissions.mjs \
               "${RELEASE_ID}" ../permission-verification.json
           else
@@ -602,7 +615,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify targeted callable deployment inputs
@@ -612,7 +625,7 @@ jobs:
           node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
           test ! -e release-artifacts/functions/.env.production
           test ! -e release-artifacts/functions/.env.sandmandashboard
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228"; then
             node -e 'const p=require("./release-artifacts/functions/package.json");if(p.scripts?.build!==undefined||p.scripts?.["gcp-build"]!=="")throw Error("Precompiled staging artifact must explicitly disable Cloud Build scripts");'
           fi
           npm ci --omit=dev --prefix release-artifacts/functions
@@ -622,7 +635,7 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;; *) exit 64 ;; esac
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228"; then
             export SANDMAN_BOOTSTRAP_VERIFIED=true
             node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \
               "${{ inputs.release_id }}" "${{ matrix.function_name }}" release-artifacts/functions
@@ -634,7 +647,7 @@ jobs:
               --non-interactive
           fi
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && inputs.release_id == 'cross-academy-pr253-e9980457' }}
+        if: ${{ always() && (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') }}
         with:
           name: function-deploy-receipt-${{ matrix.function_name }}-${{ needs.validate-source.outputs.application_sha }}
           path: function-deploy-receipt.json
@@ -679,7 +692,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ inputs.release_id == 'cross-academy-pr253-e9980457' && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Compare callable configuration and IAM after deployment

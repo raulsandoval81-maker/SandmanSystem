@@ -7,6 +7,7 @@ export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/location
 export const TRUSTED_WORKFLOW_REF = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main";
 const APPROVED_FUNCTION_SETS = Object.freeze([
   Object.freeze(["savePracticeSessionMemory", "closePracticeSession"]),
+  Object.freeze(["updatePracticeCheckIn"]),
   Object.freeze([
     "searchPracticeAttendanceAthletes",
     "getPracticeAttendanceReview",
@@ -49,6 +50,16 @@ export function validateRelease(release, context = {}) {
   if (context.functionDeployer !== release.functionDeployer) throw new Error("Wrong function deployer identity.");
   if (context.functionRuntime !== release.functionRuntime) throw new Error("Wrong function runtime identity.");
   if (context.authorizationAvailable !== true) throw new Error("Protected deployment authorization is unavailable.");
+  if (release.hostingBaselineSha || release.hostingFiles) {
+    if (!exactSha.test(String(release.hostingBaselineSha || ""))) throw new Error("Hosting baseline must be a full immutable SHA.");
+    if (!Array.isArray(release.hostingFiles) || !release.hostingFiles.length ||
+        release.hostingFiles.some(file => !/^public\/[A-Za-z0-9._/-]+$/.test(file) || file.includes(".."))) {
+      throw new Error("Hosting overlay requires an explicit safe file allowlist.");
+    }
+    if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file))) {
+      throw new Error("Hosting overlay contains a file outside the reviewed application diff.");
+    }
+  }
   const functions = [...(release.functions || [])];
   const isApprovedCallableSet = APPROVED_FUNCTION_SETS.some(approved =>
     functions.length === approved.length
@@ -62,8 +73,8 @@ export function validateRelease(release, context = {}) {
   }
   if (release.functionDeploymentTool === "gcloud-gen2") {
     if (!release.functionBuild?.endsWith(`@${STAGING_PROJECT_ID}.iam.gserviceaccount.com`)) throw new Error("Dedicated build identity is required.");
-    if (release.bootstrap?.approvalRequired !== true || release.bootstrap?.routineDeployMayCreate !== false ||
-        !newFunctions.includes(release.bootstrap?.function)) {
+    if (newFunctions.length && (release.bootstrap?.approvalRequired !== true || release.bootstrap?.routineDeployMayCreate !== false ||
+        !newFunctions.includes(release.bootstrap?.function))) {
       throw new Error("New callable bootstrap must be separately approved.");
     }
     const buildChecks = release.buildPermissionResources || {};
