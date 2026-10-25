@@ -34,10 +34,10 @@ jobs:
           PROJECT: ${{ inputs.confirm_project }}
         run: |
           test "$PROJECT" = "sandmandashboard"
-      - name: Checkout approved unified athlete search
+      - name: Checkout approved guest arrival and coach review
         uses: actions/checkout@v5
         with:
-          ref: 1961a528e8b26ac1701b06d09fbe42863d303739
+          ref: ef643228c4a54a4324ef2058a5134888caf1417e
           persist-credentials: false
       - name: Validate Attendance assets and script
         shell: bash
@@ -47,6 +47,8 @@ jobs:
           grep -q 'searchAthlete' public/coaches/attendance/session.html
           grep -q 'guestLookupStatus' public/coaches/attendance/session.html
           grep -q 'guestLookupId: value' public/coaches/attendance/session.js
+          grep -q 'pendingGuestReview' public/coaches/attendance/session.html
+          grep -q 'action:"request_guest"' public/coaches/attendance/session.js
           ! grep -q 'id="guestAthleteId"' public/coaches/attendance/session.html
           ! grep -q 'id="findGuestAthlete"' public/coaches/attendance/session.html
       - name: Authenticate Firebase
