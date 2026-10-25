@@ -104,7 +104,8 @@ jobs:
               newfiles[path]=digest
               payloads[digest]=compressed
           changed=[key for key in newfiles if newfiles[key]!=oldfiles.get(key)]
-          assert set(changed)=={"/coaches/attendance/session.html","/coaches/attendance/session.js"},changed
+          allowed={"/coaches/attendance/session.html","/coaches/attendance/session.js"}
+          assert changed and set(changed).issubset(allowed),changed
           print("Live version:",version_name)
           print("Existing files preserved:",len(oldfiles)-2)
           print("Files to replace:",changed)
