@@ -34,18 +34,21 @@ jobs:
           PROJECT: ${{ inputs.confirm_project }}
         run: |
           test "$PROJECT" = "sandmandashboard"
-      - name: Checkout approved guest-discovery implementation
+      - name: Checkout approved unified athlete search
         uses: actions/checkout@v5
         with:
-          ref: 9014fcdc5c4cb6b16965a6d7a79bf12bd8ecbf04
+          ref: 1961a528e8b26ac1701b06d09fbe42863d303739
           persist-credentials: false
       - name: Validate Attendance assets and script
         shell: bash
         run: |
           test -f public/coaches/attendance/session.html
           test -f public/coaches/attendance/session.js
-          grep -q 'guestAthleteId' public/coaches/attendance/session.html
-          grep -q 'findGuestAthlete' public/coaches/attendance/session.js
+          grep -q 'searchAthlete' public/coaches/attendance/session.html
+          grep -q 'guestLookupStatus' public/coaches/attendance/session.html
+          grep -q 'guestLookupId: value' public/coaches/attendance/session.js
+          ! grep -q 'id="guestAthleteId"' public/coaches/attendance/session.html
+          ! grep -q 'id="findGuestAthlete"' public/coaches/attendance/session.html
       - name: Authenticate Firebase
         uses: google-github-actions/auth@v2
         with:
