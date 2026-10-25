@@ -34,10 +34,10 @@ jobs:
           PROJECT: ${{ inputs.confirm_project }}
         run: |
           test "$PROJECT" = "sandmandashboard"
-      - name: Checkout approved single-action guest verification UI
+      - name: Checkout approved Practice Groups compatibility fix
         uses: actions/checkout@v5
         with:
-          ref: 80279fa46badd503f0758e171610e53cb0f2f719
+          ref: aa8439d19f7238b036df876e293baa148dd239c6
           persist-credentials: false
       - name: Validate Attendance assets and script
         shell: bash
@@ -54,6 +54,8 @@ jobs:
           grep -q 'authorizeGuestForTodayAndCheckIn' public/coaches/attendance/session.js
           grep -q 'upsertAthleteCrossTrainingAssignment' public/coaches/attendance/session.js
           grep -q 'offerAuthorization' public/coaches/attendance/session.js
+          grep -q 'data-canonical-age-group' public/coaches/attendance/session.js
+          grep -q 'dataset.canonicalAgeGroup' public/coaches/attendance/session.js
           grep -q 'No active guest authorization was verified' public/coaches/attendance/session.js
           ! grep -q 'id="guestAthleteId"' public/coaches/attendance/session.html
           ! grep -q 'id="findGuestAthlete"' public/coaches/attendance/session.html
