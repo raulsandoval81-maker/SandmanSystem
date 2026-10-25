@@ -1,0 +1,63 @@
+name: Diagnose Production Guest Check-In 403
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandmandashboard
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Confirm read-only production diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "${{ inputs.confirm_project }}" = "sandmandashboard"
+      - name: Authenticate existing production inspection account
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Inspect function and Cloud Run invocation settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud functions describe updatePracticeCheckIn --gen2 --project=sandmandashboard --region=us-central1 --format=json > "$RUNNER_TEMP/function.json"
+          service="$(node -e 'const f=require(process.argv[1]);if(f.state!=="ACTIVE")process.exit(1);console.log(f.serviceConfig.service.split("/").at(-1))' "$RUNNER_TEMP/function.json")"
+          gcloud run services describe "$service" --project=sandmandashboard --region=us-central1 --format=json > "$RUNNER_TEMP/run.json"
+          gcloud run services get-iam-policy "$service" --project=sandmandashboard --region=us-central1 --format=json > "$RUNNER_TEMP/iam.json"
+          node - "$RUNNER_TEMP/function.json" "$RUNNER_TEMP/run.json" "$RUNNER_TEMP/iam.json" <<'NODE'
+          const fs=require('fs');
+          const [f,s,p]=process.argv.slice(2).map(x=>JSON.parse(fs.readFileSync(x,'utf8')));
+          const bindings=p.bindings||[];
+          const invokers=bindings.filter(b=>b.role==='roles/run.invoker').flatMap(b=>b.members||[]);
+          const annotations=s.metadata?.annotations||{};
+          const disabled=annotations['run.googleapis.com/invoker-iam-disabled']||s.annotations?.['run.googleapis.com/invoker-iam-disabled']||'not set';
+          console.log('Function state:',f.state);
+          console.log('Function runtime:',f.buildConfig?.runtime);
+          console.log('Cloud Run invoker IAM disabled annotation:',disabled);
+          console.log('Cloud Run allUsers invoker:',invokers.includes('allUsers'));
+          console.log('Cloud Run allAuthenticatedUsers invoker:',invokers.includes('allAuthenticatedUsers'));
+          console.log('Cloud Run invoker binding count:',bindings.filter(b=>b.role==='roles/run.invoker').length);
+          NODE
+      - name: Check unauthenticated browser preflight response (read only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://us-central1-sandmandashboard.cloudfunctions.net/updatePracticeCheckIn"
+          curl -sS -D "$RUNNER_TEMP/headers.txt" -o "$RUNNER_TEMP/body.txt" --max-time 20 -X OPTIONS "$url" \
+            -H "Origin: https://sandmancombat.com" \
+            -H "Access-Control-Request-Method: POST" \
+            -H "Access-Control-Request-Headers: content-type,authorization" \
+            -w 'OPTIONS HTTP status: %{http_code}\n' || true
+          grep -Ei '^(content-type|access-control-allow-origin|access-control-allow-methods|www-authenticate):' "$RUNNER_TEMP/headers.txt" || true
+          echo "Read-only diagnostics complete. No IAM, deployment, or data changes performed."
