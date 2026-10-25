@@ -16,7 +16,7 @@ on:
         required: true
         type: string
       confirm_sha:
-        description: Type c93c2e5 exactly
+        description: Type 9014fcd exactly
         required: true
         type: string
 
@@ -40,17 +40,17 @@ jobs:
           test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${{ inputs.confirm_project }}" = "sandmandashboard"
-          test "${{ inputs.confirm_sha }}" = "c93c2e5"
+          test "${{ inputs.confirm_sha }}" = "9014fcd"
       - name: Checkout immutable approved application
         uses: actions/checkout@v4
         with:
-          ref: c93c2e53924fbb34e8fcc40d187a9d8e80086d50
+          ref: 9014fcdc5c4cb6b16965a6d7a79bf12bd8ecbf04
           persist-credentials: false
       - name: Confirm application and only four exports
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "c93c2e53924fbb34e8fcc40d187a9d8e80086d50"
+          test "$(git rev-parse HEAD)" = "9014fcdc5c4cb6b16965a6d7a79bf12bd8ecbf04"
           test -f functions/tsconfig.json
           node - <<'NODE'
           const fs = require('fs');
@@ -76,6 +76,20 @@ jobs:
         run: |
           set -euo pipefail
           node --test tests/functions/cross-training-policy.test.mjs
+      - name: Verify exact-ID guest discovery and fail-closed check-in
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const backend = fs.readFileSync('functions/src/practice/practiceSessions.ts','utf8');
+          const ui = fs.readFileSync('public/coaches/attendance/session.js','utf8');
+          const html = fs.readFileSync('public/coaches/attendance/session.html','utf8');
+          if (!backend.includes('guestLookupId')) throw Error('Guest discovery backend missing');
+          if (!backend.includes('if (!attendanceEligibility.eligible)')) throw Error('Check-in authorization missing');
+          if (!backend.includes('const deniedIndex = eligibility.findIndex')) throw Error('Finalize authorization missing');
+          if (!ui.includes('findGuestAthlete') || !html.includes('guestAthleteId')) throw Error('Guest lookup UI missing');
+          NODE
       - name: Prepare isolated precompiled attendance-only package
         shell: bash
         run: |
