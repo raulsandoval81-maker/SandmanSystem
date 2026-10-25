@@ -1049,7 +1049,7 @@ function renderTrainingGroups(groups = suggestedTrainingGroups()) {
       <div class="training-group-grid">
         <label>
           Age Group
-          <input class="training-age-group" type="text" value="${displayTrainingAgeGroup(group.ageGroup)}" placeholder="Youth">
+          <input class="training-age-group" type="text" value="${escapeAttendance(displayTrainingAgeGroup(group.ageGroup))}" data-canonical-age-group="${escapeAttendance(group.ageGroup || "")}" placeholder="Youth">
         </label>
 
         <label>
@@ -1218,7 +1218,12 @@ function captureTrainingGroups() {
     return {
       id: `group-${index + 1}`,
       label: `Group ${String.fromCharCode(65 + index)}`,
-      ageGroup: String(card.querySelector(".training-age-group")?.value || "").trim(),
+      ageGroup: (() => {
+        const input = card.querySelector(".training-age-group");
+        const shown = String(input?.value || "").trim();
+        const canonical = String(input?.dataset.canonicalAgeGroup || "").trim();
+        return canonical && shown === displayTrainingAgeGroup(canonical) ? canonical : shown;
+      })(),
       journey,
       discipline: String(card.dataset.discipline || "").trim().toLowerCase(),
       locationId: String(card.dataset.locationId || "").trim(),
