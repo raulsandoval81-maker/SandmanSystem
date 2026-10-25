@@ -22,16 +22,10 @@ import {
   validateTrainingGroupRoster
 } from "/coaches/attendance/practice-group-policy.js";
 import { renderAttendanceHybridPlanning } from "/coaches/attendance/hybrid-group-planning.js";
-import {
-  planningContextPayload,
-  planningContextRosterIds,
-  restorePlanningContext
-} from "/coaches/execution/session-builder/practice-planning-context.js";
 
 const $ = (id) => document.getElementById(id);
 let fourGroupExceptionAcknowledged = false;
 const hybridStageState = { planningSources: {}, groupPlanning: {}, planningSourcesExplicitlySelected: false };
-let canonicalPlanningSession = {};
 
 function isHybridPractice() {
   let mode = String(activePractice?.executionMode || "").toLowerCase();
@@ -410,7 +404,6 @@ async function loadCanonicalPractice() {
     discipline,
     journey
   };
-  canonicalPlanningSession = restorePlanningContext({ practiceId }, activePractice);
   sessionId = practiceId;
   sessionRef = doc(db, "attendance_sessions", practiceId);
   if ($("practiceIdentity")) {
@@ -895,14 +888,6 @@ function currentPlanningMode() {
 
 function suggestedTrainingGroups() {
   const present = checkedInAthletes();
-  const restoredGroups = Array.isArray(canonicalPlanningSession.trainingGroups)
-    ? canonicalPlanningSession.trainingGroups : [];
-  const presentIds = present.map((athlete) => String(athlete.id || athlete.uid || "")).filter(Boolean).sort();
-  const restoredIds = planningContextRosterIds(canonicalPlanningSession).sort();
-  if (restoredGroups.length && presentIds.length === restoredIds.length
-      && presentIds.every((athleteId, index) => athleteId === restoredIds[index])) {
-    return restoredGroups;
-  }
   const buckets = new Map();
   const roster = present.map((athlete) => {
     const ageGroup = athleteAgeGroup(athlete);
@@ -1457,18 +1442,6 @@ async function savePracticeContextToBuilderSession() {
     carryForwardNote: primary.carryForwardNote,
     practiceId: activePractice?.practiceId || session.practiceId || ""
   };
-
-  const savePlanningContext = httpsCallable(functions, "savePracticePlanningContext");
-  const saved = await savePlanningContext({
-    practiceId: activePractice.practiceId,
-    expectedRevision: canonicalPlanningSession.planningContextRestored
-      ? Number(canonicalPlanningSession.planningContextRevision || 0)
-      : undefined,
-    planningContext: planningContextPayload(updated),
-  });
-  updated.planningContextRevision = Number(saved.data?.revision || 0);
-  updated.planningContextRestored = true;
-  canonicalPlanningSession = { ...updated };
 
   localStorage.setItem("sandman_session_builder_v1", JSON.stringify(updated));
   localStorage.setItem("sandman_tier", tier);

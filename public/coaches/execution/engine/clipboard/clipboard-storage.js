@@ -8,8 +8,6 @@ export function getBlockCards(blockEl) {
       const cardEl = el.closest(".clip-card");
 
       return {
-        id: cardEl?.dataset.cardId || el.getAttribute("href") || el.textContent.trim(),
-        cardId: cardEl?.dataset.cardId || "",
         title: el.textContent.trim(),
         href: el.tagName === "A" ? el.getAttribute("href") : "",
 
@@ -19,22 +17,10 @@ export function getBlockCards(blockEl) {
         journey: cardEl?.dataset.journey || "",
         family: cardEl?.dataset.family || "",
         category: cardEl?.dataset.category || "",
-        lane: cardEl?.dataset.lane || "",
-        provenance: cardEl?.dataset.provenance || "",
-        groupIds: parseList(cardEl?.dataset.groupIds),
-        athleteIds: parseList(cardEl?.dataset.athleteIds)
+        lane: cardEl?.dataset.lane || ""
       };
     })
     .filter(card => card.title);
-}
-
-function parseList(value) {
-  try {
-    const result = JSON.parse(value || "[]");
-    return Array.isArray(result) ? result.map(String) : [];
-  } catch {
-    return [];
-  }
 }
 
 export function getStoredClipboardCards(storageKey) {

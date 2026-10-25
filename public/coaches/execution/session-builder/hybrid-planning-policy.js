@@ -77,13 +77,7 @@ export function editableGroupPlanning(prior = {}, group = {}) {
 
 export function executableCardsForBlock(block = {}) {
   const entries = [];
-  (Array.isArray(block.cards) ? block.cards : []).forEach(card => {
-    const groupIds = Array.isArray(card.groupIds) ? card.groupIds.map(String).filter(Boolean) : [];
-    if (groupIds.length) groupIds.forEach(groupId => entries.push({ ...card, groupId,
-      athleteIds: Array.isArray(card.athleteIds) ? card.athleteIds.map(String) : [] }));
-    else entries.push({ ...card, groupId: String(card.groupId || ""),
-      athleteIds: Array.isArray(card.athleteIds) ? card.athleteIds.map(String) : [] });
-  });
+  (Array.isArray(block.cards) ? block.cards : []).forEach(card => entries.push({ ...card, groupId: "", athleteIds: [] }));
   (Array.isArray(block.groupActivities) ? block.groupActivities : [])
     .filter(activity => activity?.status === "ready")
     .forEach(activity => (activity.cards || []).forEach(card => entries.push({
