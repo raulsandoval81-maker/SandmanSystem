@@ -596,10 +596,10 @@ export const updatePracticeCheckIn = onCall(async (request) => {
   const actor = await requireActiveStaff(request.auth.uid, PRACTICE_STAFF_ROLES, "Active Coach or Admin access required.");
   const practiceId = requireDocumentId(request.data?.practiceId, "practiceId");
   const action = compactString(request.data?.action, 20).toLowerCase();
-  if (!new Set(["start", "add", "remove", "submit"]).has(action)) {
+  if (!new Set(["start", "add", "remove", "submit", "request_guest", "approve_guest", "remove_guest"]).has(action)) {
     throw new HttpsError("invalid-argument", "Unsupported check-in action.");
   }
-  const athleteId = ["add", "remove"].includes(action)
+  const athleteId = ["add", "remove", "request_guest", "approve_guest", "remove_guest"].includes(action)
     ? requireDocumentId(request.data?.athleteId, "athleteId") : "";
   const db = getFirestore();
   const practiceRef = db.doc(`practiceSessions/${practiceId}`);
@@ -633,13 +633,57 @@ export const updatePracticeCheckIn = onCall(async (request) => {
         throw new HttpsError("permission-denied", `Athlete is not authorized for this practice: ${attendanceEligibility.reason}`);
       }
     }
+    // Arrival requests are not verified attendance. They carry no XP or group rights.
+    const pendingGuests = new Map<string, Record<string, any>>(
+      (Array.isArray(existing.pendingGuests) ? existing.pendingGuests : [])
+        .map((item: any): [string, Record<string, any>] => [String(item.id || ""), item])
+        .filter(([id]) => Boolean(id))
+    );
+    if (action === "request_guest") {
+      const guestSnap = await tx.get(db.doc(`athletes/${athleteId}`));
+      if (!guestSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
+      const guest = guestSnap.data() || {};
+      const homeLocationId = String(guest.locationId || guest.academyLocationId || "").trim().toLowerCase();
+      const tracks = athleteScheduleDisciplineIds(guest);
+      const disciplineId = normalizePracticeDiscipline(practice.discipline);
+      if (!homeLocationId || homeLocationId === locationId ||
+          String(guest.rosterStatus || "current").toLowerCase() !== "current" ||
+          !tracks.includes(disciplineId)) {
+        throw new HttpsError("permission-denied", "Not eligible to request visiting check-in.");
+      }
+      if (pendingGuests.size >= 100 && !pendingGuests.has(athleteId)) {
+        throw new HttpsError("resource-exhausted", "Guest arrival list is full.");
+      }
+      pendingGuests.set(athleteId, {
+        id: athleteId,
+        name: String(guest.name || guest.publicName || guest.fullName || athleteId).slice(0, 160),
+        homeLocationId,
+        status: "pending-verification",
+        requestedAt: Timestamp.now(),
+      });
+    }
+    if (action === "remove_guest") pendingGuests.delete(athleteId);
+    if (action === "approve_guest") {
+      if (!pendingGuests.has(athleteId)) throw new HttpsError("failed-precondition", "Guest arrival request not found.");
+      const guestSnap = await tx.get(db.doc(`athletes/${athleteId}`));
+      if (!guestSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
+      athlete = guestSnap.data() || {};
+      attendanceEligibility = await resolvePracticeAthleteEligibility(tx, db, {
+        athleteId, athlete, hostLocationId: locationId,
+        disciplineId: normalizePracticeDiscipline(practice.discipline),
+      });
+      if (!attendanceEligibility.eligible || attendanceEligibility.kind !== "visitor") {
+        throw new HttpsError("permission-denied", "Guest requires an approved, active cross-training assignment before verification.");
+      }
+      pendingGuests.delete(athleteId);
+    }
     const checkedIn = new Map<string, Record<string, any>>(
       (Array.isArray(existing.checkedIn) ? existing.checkedIn : [])
         .map((item: any): [string, Record<string, any>] => [String(item.id || item.uid || ""), item])
         .filter(([id]) => Boolean(id))
     );
     const now = FieldValue.serverTimestamp();
-    if (action === "add" && athlete) {
+    if ((action === "add" || action === "approve_guest") && athlete) {
       checkedIn.set(athleteId, {
         ...attendanceAthleteSummary(athleteId, athlete, attendanceEligibility || undefined),
         checkedInAt: Timestamp.now(),
@@ -665,6 +709,7 @@ export const updatePracticeCheckIn = onCall(async (request) => {
       status: action === "submit" ? "pending_review" : "draft",
       readyForDailyGrind: false, finalized: false,
       checkedIn: values, checkedInIds: ids, checkedInCount: ids.length,
+      pendingGuests: [...pendingGuests.values()],
       updatedAt: now, source: "athlete-check-in",
       ...(attendanceSnap.exists ? {} : { createdAt: now }),
       ...(action === "submit" ? { submittedAt: now, submittedBy: actor.uid } : {}),
