@@ -690,13 +690,13 @@ async function authorizeGuestForTodayAndCheckIn(id) {
       activeFrom: approvedAt.toISOString(),
       activeTo: expiresAt.toISOString()
     });
-    await updatePendingGuest("approve_guest", id);
+    await updatePendingGuest("approve_guest", id, false);
   } catch (error) {
     console.error("[session] guest authorization failed", error);
     setStatus(String(error?.message || "Guest authorization failed; athlete remains pending."), true);
   }
 }
-async function updatePendingGuest(action, id) {
+async function updatePendingGuest(action, id, offerAuthorization = true) {
   if (sessionLocked || !activePractice?.practiceId) return;
   const update = httpsCallable(functions, "updatePracticeCheckIn");
   try {
@@ -714,6 +714,13 @@ async function updatePendingGuest(action, id) {
     if (action === "approve_guest") setStatus("Guest verified and checked in with the regular attendance roster.");
     if (action === "remove_guest") setStatus("Guest arrival request removed.");
   } catch (error) {
+    const code = String(error?.code || "").toLowerCase();
+    if (action === "approve_guest" && offerAuthorization &&
+        code.includes("permission-denied") &&
+        window.confirm("No active guest authorization was verified. Authorize this athlete for today's practice discipline and check in?")) {
+      await authorizeGuestForTodayAndCheckIn(id);
+      return;
+    }
     setStatus(String(error?.message || "Guest review failed."), true);
   }
 }
@@ -729,12 +736,13 @@ function renderPendingGuestReview() {
     const summary = document.createElement("span");
     summary.textContent = `${guest.name} · ${guest.id} · Pending verification / guest authorization`;
     row.append(summary);
-    for (const [action, label] of [["approve_guest", "Verify & Check In"], ["authorize_guest", "Authorize Today & Check In"], ["remove_guest", "Remove Request"]]) {
+    for (const [action, label] of [["approve_guest", "Verify & Check In"], ["remove_guest", "Remove"]]) {
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = label;
       button.disabled = sessionLocked;
-      button.addEventListener("click", () => void (action === "authorize_guest" ? authorizeGuestForTodayAndCheckIn(guest.id) : updatePendingGuest(action, guest.id)));
+      if (action === "remove_guest") button.classList.add("attendance-secondary-action");
+      button.addEventListener("click", () => void updatePendingGuest(action, guest.id));
       row.append(button);
     }
     list.append(row);
