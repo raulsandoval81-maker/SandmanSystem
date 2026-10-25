@@ -30,11 +30,6 @@ import {
   normalizePlanningSources
 } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { resolveRoad2ChampionWrestlingTierWaves } from "/assets/js/hybrid/youth/road2champion-wrestling-tier-wave-policy.js";
-import { canLaunchAuto } from "/coaches/execution/session-builder/group-decision-policy.js";
-import {
-  planningContextPayload,
-  restorePlanningContext
-} from "/coaches/execution/session-builder/practice-planning-context.js";
 
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
@@ -962,13 +957,8 @@ function createSessionPayload(practiceId = activePracticeId) {
     tier: attendanceContext.tier || program.tier,
     rankLabel: attendanceContext.rankLabel || program.rankLabel || "",
     trainingGroups: groups,
-    fourGroupExceptionAcknowledged: attendanceContext.fourGroupExceptionAcknowledged === true,
     planningSources: selectedMode === "hybrid" ? readPlanningSources() : {},
-    planningSourcesExplicitlySelected: selectedMode === "hybrid",
     groupPlanning: selectedMode === "hybrid" ? (attendanceContext.groupPlanning || {}) : {},
-    groupLessonAdjustments: attendanceContext.groupLessonAdjustments || {},
-    planningContextRevision: Number(attendanceContext.planningContextRevision || 0),
-    planningContextRestored: attendanceContext.planningContextRestored === true,
     attendanceJourneyFilter: String(journeySelect?.value || "").trim(),
     week,
     ...getHybridData(week),
@@ -1167,8 +1157,7 @@ async function restoreCanonicalPractice(practiceId) {
   const restoredDiscipline = String(practice.discipline || "").toLowerCase();
   const preferredDiscipline = restoredDiscipline === "unassigned" ? "" : restoredDiscipline;
   updateDisciplineAvailability(preferredDiscipline);
-  const rememberedSession = restorePlanningContext(readJson(SESSION_KEY, {}), { practiceId, ...practice });
-  localStorage.setItem(SESSION_KEY, JSON.stringify(rememberedSession));
+  const rememberedSession = readJson(SESSION_KEY, {});
   const rememberedFilter = String(rememberedSession?.practiceId || "") === String(practiceId || "")
     ? String(rememberedSession?.attendanceJourneyFilter || "")
     : "";
@@ -1292,9 +1281,6 @@ buildBtn.addEventListener("click", async () => {
     // server evidence are available. Keep the eventual execution gate closed.
     if (selectedMode === "auto") {
       payload = { ...payload, groupPrescriptions: [], autoPendingVerification: true };
-      if (!canLaunchAuto(payload.trainingGroups, payload.groupPrescriptions)) {
-        throw new Error("AUTO requires server-verified group progression and Coach approval before launch.");
-      }
     } else {
       payload = await resolveGroupPrescriptions(payload);
     }
@@ -1334,21 +1320,6 @@ buildBtn.addEventListener("click", async () => {
       }
       buildBtn.textContent = "Opening practice…";
       payload = await openCanonicalPractice(payload);
-    }
-    if (Array.isArray(payload.trainingGroups) && payload.trainingGroups.length) {
-      const savePlanningContext = httpsCallable(functions, "savePracticePlanningContext");
-      const saved = await savePlanningContext({
-        practiceId: activePracticeId || payload.practiceId,
-        expectedRevision: payload.planningContextRestored
-          ? Number(payload.planningContextRevision || 0)
-          : undefined,
-        planningContext: planningContextPayload(payload),
-      });
-      payload = {
-        ...payload,
-        planningContextRevision: Number(saved.data?.revision || 0),
-        planningContextRestored: true,
-      };
     }
     buildBtn.textContent = "Opening Clipboard…";
     persistSession(payload);

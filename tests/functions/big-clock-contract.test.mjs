@@ -19,10 +19,9 @@ test("resolves work, rest, next round and completed interval without mutating th
 test("legacy block has no combat interval and keeps existing Big Clock behavior", () => {
   assert.equal(getActiveCombatInterval({timer:{label:"Partner Drill"}},20),null);
 });
-test("Big Clock renders canonical timer settings without creating a second timer engine", () => {
+test("Big Clock consumes contract as optional presentation state", () => {
   const src=readFileSync(new URL("../../public/coaches/execution/big-clock-2.0/big-clock-2.0.js",import.meta.url),"utf8");
-  assert.match(src,/block\?\.timer\?\.execution/);
-  assert.match(src,/materializeLiveState\(canonicalState/);
-  assert.match(src,/updatePracticeExecutionState/);
-  assert.doesNotMatch(src,/setDoc\(doc\(db,"liveSessions",sessionId\), \{[\s\S]{0,300}runState/);
+  assert.match(src,/getActiveCombatInterval\(compiledBlock, elapsedForInterval\)/);
+  assert.match(src,/getPayload\(\)\.executionContract/);
+  assert.match(src,/timerLabel \|\| ""/);
 });

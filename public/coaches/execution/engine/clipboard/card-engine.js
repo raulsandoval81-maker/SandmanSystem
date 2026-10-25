@@ -128,11 +128,6 @@ export function makeClipCard(card) {
   el.dataset.family = resolvedFamily;
   el.dataset.category = card.category || "";
   el.dataset.lane = card.lane || "";
-  el.dataset.cardId = card.cardId || card.id || href || card.skill || "";
-  el.dataset.provenance = card.provenance || card.source || "";
-  el.dataset.groupIds = JSON.stringify(Array.isArray(card.groupIds)
-    ? card.groupIds : (card.groupId ? [card.groupId] : []));
-  el.dataset.athleteIds = JSON.stringify(Array.isArray(card.athleteIds) ? card.athleteIds : []);
 
   if (category === "mat-talk") {
     el.innerHTML = `
