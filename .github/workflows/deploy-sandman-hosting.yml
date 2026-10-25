@@ -34,10 +34,10 @@ jobs:
           PROJECT: ${{ inputs.confirm_project }}
         run: |
           test "$PROJECT" = "sandmandashboard"
-      - name: Checkout approved guest roster confirmation fix
+      - name: Checkout approved guest authorization attendance fix
         uses: actions/checkout@v5
         with:
-          ref: cdf30416c8b0450fc26f0baf41c24ffcfa43f616
+          ref: bd4f97618b91b1044784ac1f39c17d621225bb4b
           persist-credentials: false
       - name: Validate Attendance assets and script
         shell: bash
@@ -51,12 +51,29 @@ jobs:
           grep -q 'approve_guest' public/coaches/attendance/session.js
           grep -q 'nextCheckedIn.has(id)' public/coaches/attendance/session.js
           grep -q 'nextPendingGuests.has(id)' public/coaches/attendance/session.js
+          grep -q 'authorizeGuestForTodayAndCheckIn' public/coaches/attendance/session.js
+          grep -q 'upsertAthleteCrossTrainingAssignment' public/coaches/attendance/session.js
           ! grep -q 'id="guestAthleteId"' public/coaches/attendance/session.html
           ! grep -q 'id="findGuestAthlete"' public/coaches/attendance/session.html
       - name: Authenticate Firebase
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Verify production authorization callable exists before Hosting release
+        shell: bash
+        run: |
+          set -euo pipefail
+          gcloud functions describe upsertAthleteCrossTrainingAssignment \
+            --gen2 --project=sandmandashboard --region=us-central1 \
+            --format=json > "$RUNNER_TEMP/guest-authorization-function.json"
+          node - "$RUNNER_TEMP/guest-authorization-function.json" <<'NODE'
+          const fs = require('fs');
+          const fn = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+          if (fn.state !== 'ACTIVE' || fn.buildConfig?.runtime !== 'nodejs22') {
+            throw Error('Guest authorization callable not active on Node 22 in production.');
+          }
+          console.log('Guest authorization function exists and is ACTIVE.');
+          NODE
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
