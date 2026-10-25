@@ -67,6 +67,11 @@
           </div>
         </div>
 
+        <section id="pendingGuestReview" class="attendance-card" hidden aria-label="Pending visiting athletes">
+          <h3>Guest arrivals · Coach verification required</h3>
+          <p class="muted">Athletes can register an arrival, but visitors are not admitted to practice, groups, or XP until an approved cross-training assignment is verified.</p>
+          <div id="pendingGuestList"></div>
+        </section>
         <p id="checkedCount" class="checked-summary">0 checked in</p>
         <div id="checkedList" class="checked-review-list"></div>
 
@@ -132,6 +137,6 @@
   </main>
 
   <script src="/coaches/_ui/coach-shell.js?v=3"></script>
-  <script type="module" src="/coaches/attendance/session.js?v=20261024-unified-search1"></script>
+  <script type="module" src="/coaches/attendance/session.js?v=20261024-guest-arrival-review1"></script>
 </body>
 </html>

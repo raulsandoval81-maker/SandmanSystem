@@ -59,6 +59,7 @@ const LADDER_BY_JOURNEY = Object.freeze({
 let athletes = [];
 let filteredAthletes = [];
 let checkedIn = new Map();
+let pendingGuests = new Map();
 let sessionRef = null;
 let sessionId = null;
 let sessionLocked = false;
@@ -89,7 +90,7 @@ function showStep(step) {
       if (target === 2) {
         button.disabled = !sessionRef || !sessionId;
       } else if (target === 3) {
-        button.disabled = !checkedIn.size;
+        button.disabled = !checkedIn.size && !pendingGuests.size;
       } else if (target === 4) {
         button.disabled = !isBuilderFlow() || !checkedIn.size;
       } else {
@@ -532,6 +533,7 @@ async function startSession() {
     setStatus("Attendance is already submitted. Review the existing check-ins.", true);
     const existing = await getDoc(doc(db, "attendance_sessions", activePractice.practiceId));
     if (existing.exists()) {
+      pendingGuests = new Map((Array.isArray(existing.data()?.pendingGuests) ? existing.data().pendingGuests : []).map(a => [a.id, a]));
       checkedIn = new Map((Array.isArray(existing.data()?.checkedIn) ? existing.data().checkedIn : [])
         .map(athlete => [athlete.id || athlete.uid, athlete]));
       renderAthletes();
@@ -545,6 +547,7 @@ async function startSession() {
   const existing = await getDoc(sessionRef);
   if (existing.exists()) {
     const data = existing.data() || {};
+    pendingGuests = new Map((Array.isArray(data.pendingGuests) ? data.pendingGuests : []).map(a => [a.id, a]));
     checkedIn = new Map((Array.isArray(data.checkedIn) ? data.checkedIn : [])
       .map((athlete) => [athlete.id || athlete.uid, athlete]));
     setStatus(`Existing check-in loaded for ${todayLabel()}.`);
@@ -620,6 +623,7 @@ async function checkInAthlete(id) {
 function renderCheckedIn() {
   const count = $("checkedCount");
   const list = $("checkedList");
+  renderPendingGuestReview();
 
   if (count) count.textContent = `${checkedIn.size} checked in`;
   if ($("checkedCountTop")) {
@@ -628,7 +632,7 @@ function renderCheckedIn() {
   if (!list) return;
 
   if (!checkedIn.size) {
-    list.innerHTML = `<p class="muted">No athletes checked in yet.</p>`;
+    list.innerHTML = `<p class="muted">No verified athletes checked in yet.</p>`;
     return;
   }
 
@@ -662,6 +666,44 @@ function renderCheckedIn() {
       renderCheckedIn();
     });
   });
+}
+async function updatePendingGuest(action, id) {
+  if (sessionLocked || !activePractice?.practiceId) return;
+  const update = httpsCallable(functions, "updatePracticeCheckIn");
+  try {
+    const response = await update({ practiceId: activePractice.practiceId, action, athleteId: id });
+    const record = response.data?.attendance || {};
+    checkedIn = new Map((record.checkedIn || []).map(a => [a.id || a.uid, a]));
+    pendingGuests = new Map((record.pendingGuests || []).map(a => [a.id, a]));
+    applyFilters();
+    renderCheckedIn();
+    if (action === "approve_guest") setStatus("Guest eligibility verified. Athlete added to attendance.");
+  } catch (error) {
+    setStatus(String(error?.message || "Guest review failed."), true);
+  }
+}
+function renderPendingGuestReview() {
+  const section = $("pendingGuestReview");
+  const list = $("pendingGuestList");
+  if (!section || !list) return;
+  section.hidden = pendingGuests.size === 0;
+  list.replaceChildren();
+  for (const guest of pendingGuests.values()) {
+    const row = document.createElement("div");
+    row.className = "athlete-row checked-athlete-row";
+    const summary = document.createElement("span");
+    summary.textContent = `${guest.name} · ${guest.id} · Pending verification / guest authorization`;
+    row.append(summary);
+    for (const [action, label] of [["approve_guest", "Verify & Check In"], ["remove_guest", "Remove Request"]]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.disabled = sessionLocked;
+      button.addEventListener("click", () => void updatePendingGuest(action, guest.id));
+      row.append(button);
+    }
+    list.append(row);
+  }
 }
 function ladderForJourney(journey = activePractice?.journey) {
   return LADDER_BY_JOURNEY[String(journey || "").toUpperCase()] || [];
@@ -1539,9 +1581,31 @@ function bindEvents() {
         const response = await lookup({ practiceId: activePractice.practiceId, guestLookupId: value });
         if (seq !== guestLookupSequence) return;
         const candidate = response.data?.guestCandidate;
-        if (out) out.textContent = candidate
-          ? `${candidate.name} · ${candidate.id} · Home: ${candidate.homeLocationId} · ${disciplineDisplay(candidate.discipline)}. Guest admission approval required before check-in.`
-          : "No eligible visiting athlete found for that ID and practice discipline.";
+        if (out) {
+          out.replaceChildren();
+          if (candidate) {
+            const info = document.createElement("span");
+            info.textContent = `${candidate.name} · ${candidate.id} · Home: ${candidate.homeLocationId}. `;
+            const button = document.createElement("button");
+            button.type = "button";
+            button.textContent = pendingGuests.has(candidate.id) ? "Arrival Recorded" : "Check In — Pending Coach Verification";
+            button.disabled = pendingGuests.has(candidate.id);
+            button.addEventListener("click", async () => {
+              button.disabled = true;
+              try {
+                const update = httpsCallable(functions, "updatePracticeCheckIn");
+                const result = await update({practiceId: activePractice.practiceId, action:"request_guest", athleteId:candidate.id});
+                pendingGuests = new Map((result.data?.attendance?.pendingGuests || []).map(a => [a.id, a]));
+                out.textContent = "Arrival recorded. Coach verifies your eligibility on the next screen.";
+                renderCheckedIn();
+              } catch (error) {
+                out.textContent = String(error?.message || "Could not register guest arrival.");
+                button.disabled = false;
+              }
+            });
+            out.append(info, button);
+          } else out.textContent = "No eligible visiting athlete found for that ID and practice discipline.";
+        }
       } catch (error) {
         if (seq !== guestLookupSequence) return;
         if (out) out.textContent = "Visiting athlete lookup could not be completed.";
@@ -1552,7 +1616,7 @@ function bindEvents() {
   $("journeyRosterFilter")?.addEventListener("change", applyFilters);
 
   $("reviewAttendanceBtn")?.addEventListener("click", () => {
-    if (!checkedIn.size) {
+    if (!checkedIn.size && !pendingGuests.size) {
       setStatus("Check in at least one athlete before review.", true);
       return;
     }
