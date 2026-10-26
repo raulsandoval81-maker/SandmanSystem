@@ -789,3 +789,35 @@ a {
 .xp-tool-title{
   margin:1.25rem 0 .35rem;
 }
+
+
+/* Management Home: admissions support is distinct from the conversion pipeline. */
+.admissions-support-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 420px;
+  gap: 12px;
+}
+.dashboard-grid > *,
+.pending-grid > *,
+.admissions-support-grid > * {
+  min-width: 0;
+}
+@media (max-width: 620px) {
+  .management-wrap { padding: 16px 12px 32px; }
+  .management-wrap .dashboard-section { margin-top: 22px; }
+  .management-wrap .section-heading { margin-bottom: 10px; }
+  .management-wrap .dashboard-grid,
+  .management-wrap .pending-grid,
+  .management-wrap .admissions-support-grid { gap: 10px; }
+  .management-wrap .dashboard-tile { padding: 15px 16px 42px; min-height: 128px; }
+  .management-wrap .dashboard-tile h3 { font-size: 1.04rem; }
+  .management-wrap .dashboard-tile p { line-height: 1.38; }
+  .management-wrap .dashboard-tile .tile-detail { margin-bottom: 0; }
+  .management-wrap .tile-action { left: 16px; bottom: 14px; }
+  .management-wrap .scope-strip { margin-bottom: 18px; }
+  .management-wrap .scope-item { padding: 10px 14px; }
+  .management-wrap .scope-item p { overflow-wrap: anywhere; }
+  .management-wrap .tile-pulse { flex-wrap: wrap; }
+  .management-wrap .tile-metric { min-width: 0; }
+}

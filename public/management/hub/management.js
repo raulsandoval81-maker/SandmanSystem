@@ -479,9 +479,9 @@ async function loadManagementDashboard(
     const activeProposals =
       proposals.filter(
         (proposal) =>
-          clean(
-            proposal.status
-          ).toUpperCase() !== "VOID"
+          !["VOID", "PAID"].includes(
+            clean(proposal.status).toUpperCase()
+          )
       );
 
     const reviewConfirmReady =

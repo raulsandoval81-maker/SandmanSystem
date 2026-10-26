@@ -299,34 +299,6 @@
 
         </section>
 
-        <section class="dashboard-section management-flow-section">
-
-          <div class="section-heading">
-            <div>
-              <p class="section-label">Case Movement</p>
-              <h2>Where the Family Is — and What Happens Next</h2>
-              <p class="flow-intro">Management follows the family through one controlled path. Each stage has an owning workspace and a clear handoff.</p>
-            </div>
-          </div>
-
-          <div class="management-flow" aria-label="Management enrollment pipeline">
-            <a class="flow-step" href="/connect/leads/"><span class="flow-number">1</span><strong>Lead</strong><small>Admissions</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step" href="/connect/appointments/"><span class="flow-number">2</span><strong>Appointment</strong><small>Admissions</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step" href="/connect/proposals/"><span class="flow-number">3</span><strong>Proposal</strong><small>Management</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step" href="/connect/proposals/"><span class="flow-number">4</span><strong>Review &amp; Confirm</strong><small>Family handoff</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step" href="/management/billing/"><span class="flow-number">5</span><strong>Payment</strong><small>Stripe</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step flow-step--primary" href="/intake-management/"><span class="flow-number">6</span><strong>Management Enrollment</strong><small>Intake &amp; activation</small></a>
-            <span class="flow-arrow" aria-hidden="true">→</span>
-            <a class="flow-step" href="/management/xp-adjustments/"><span class="flow-number">7</span><strong>XP Management</strong><small>Assessment · placement · XP</small></a>
-          </div>
-
-        </section>
-
         <section class="dashboard-section">
 
           <div class="section-heading">
@@ -347,9 +319,6 @@
               class="dashboard-tile"
               href="/management/inbox/"
             >
-              <span class="tile-category">
-                Communications
-              </span>
 
               <h3>
                 Inbox
@@ -382,9 +351,6 @@
               class="dashboard-tile"
               href="/connect/leads/"
             >
-              <span class="tile-category">
-                Admissions
-              </span>
 
               <h3>
                 Leads
@@ -413,35 +379,10 @@
               </span>
             </a>
 
-            <a
-              class="dashboard-tile"
-              href="/connect/admissions-requests/"
-            >
-              <span class="tile-category">
-                Admissions
-              </span>
-
-              <h3>
-                Promotions
-              </h3>
-
-              <p>
-                Manage Try a Class, promotional visits,
-                and approved Open Practice access.
-              </p>
-
-              <span class="tile-action">
-                Open →
-              </span>
-            </a>
-
-            <a
+<a
               class="dashboard-tile"
               href="/connect/appointments/"
             >
-              <span class="tile-category">
-                Admissions
-              </span>
 
               <h3>
                 Appointments
@@ -474,9 +415,6 @@
               class="dashboard-tile"
               href="/connect/proposals/"
             >
-              <span class="tile-category">
-                Admissions
-              </span>
 
               <h3>
                 Proposals
@@ -509,9 +447,6 @@
               class="dashboard-tile dashboard-tile--primary"
               href="/intake-management/"
             >
-              <span class="tile-category">
-                Enrollment
-              </span>
 
               <h3>
                 Enrollment
@@ -540,8 +475,53 @@
               </span>
             </a>
 
+
+            <a class="dashboard-tile" href="/management/members/">
+            
+            <h3>
+            Members
+            </h3>
+            
+            <p>
+            Manage Parent and Athlete account
+            access for existing Sandman members.
+            </p>
+            
+            <span class="tile-action">
+            Open →
+            </span>
+            </a>
+
           </div>
 
+        </section>
+
+        <section class="dashboard-section admissions-support-section">
+          <div class="section-heading">
+            <div>
+              <p class="section-label">Optional Admissions Support</p>
+              <h2>Promotions &amp; Trial Visits</h2>
+            </div>
+          </div>
+          <div class="admissions-support-grid">
+            <a
+              class="dashboard-tile"
+              href="/connect/admissions-requests/"
+            >
+              <h3>
+                Promotions
+              </h3>
+
+              <p>
+                Manage Try a Class, promotional visits,
+                and approved Open Practice access.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+          </div>
         </section>
 
         <section class="dashboard-section">
@@ -560,26 +540,7 @@
 
           <div class="pending-grid">
 
-            <a class="dashboard-tile" href="/management/members/">
-              <span class="tile-category">
-                Participants
-              </span>
-
-              <h3>
-                Members
-              </h3>
-
-              <p>
-                Manage Parent and Athlete account
-                access for existing Sandman members.
-              </p>
-
-              <span class="tile-action">
-                Open →
-              </span>
-            </a>
-
-            <a
+<a
               class="dashboard-tile"
               href="/management/billing/"
             >
