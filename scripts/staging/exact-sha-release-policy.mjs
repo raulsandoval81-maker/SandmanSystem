@@ -44,7 +44,15 @@ export function validateRelease(release, context = {}) {
     throw new Error("Only the exact staging Firebase project is authorized.");
   }
   if (release.hostingSite !== STAGING_PROJECT_ID) throw new Error("Hosting site is not the isolated staging site.");
-  if (release.hosting === false) throw new Error("The isolated staging Hosting target is required.");
+  if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778") {
+    throw new Error("Hosting-disabled releases require their own reviewed authorization.");
+  }
+  if (release.releaseId === "attendance-admin-init-pr308-0b06a778" &&
+      (release.hosting !== false || release.functions?.length !== 1 ||
+       release.functions[0] !== "updatePracticeCheckIn" ||
+       (release.hostingFiles || []).length || release.hostingBaselineSha)) {
+    throw new Error("PR308 is attendance-callable-only and must not deploy Hosting.");
+  }
   if (context.confirmProject !== STAGING_PROJECT_ID) throw new Error("Explicit staging project confirmation is required.");
   if (context.wifProvider !== STAGING_WIF_PROVIDER) throw new Error("Wrong staging WIF provider.");
   if (context.hostingDeployer !== release.hostingDeployer) throw new Error("Wrong Hosting deployer identity.");
