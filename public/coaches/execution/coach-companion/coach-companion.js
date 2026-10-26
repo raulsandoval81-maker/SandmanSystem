@@ -8,6 +8,7 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import { buildActualsSubmission, summarizeObservedExecution } from "/coaches/execution/engine/practice-execution-actuals.mjs";
 
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
@@ -119,6 +120,8 @@ async function waitForAuth() {
 
 let activeCoachSession = null;
 let hydrationComplete = false;
+let canonicalPractice = null;
+let actualsLocked = false;
 
 function getCoachSessionPayload() {
   if (activeCoachSession?.blocks?.length) {
@@ -534,6 +537,94 @@ function getCompanionBlocks() {
     })
     .filter(Boolean);
 }
+
+function plannedActualsBlocks() {
+  const session = getCoachSessionPayload();
+  return (session?.blocks || []).map((block, index) => ({
+    blockId: String(block.slot || block.blockId || block.title || `block-${index + 1}`),
+    title: block.title || block.label || block.slot || "Block",
+    drills: (block.drillBlocks || []).map(drill => {
+      const schedule = drill.innerDrill || {};
+      return {
+        id: String(drill.id || ""), name: drill.name || "Drill",
+        phases: Array.isArray(schedule["phases"]) ? schedule["phases"] : [],
+        groupIds: Array.isArray(schedule.assignedGroupIds) ? schedule.assignedGroupIds : []
+      };
+    })
+  }));
+}
+
+function actualsRosterOptions() {
+  const groups = getCoachSessionPayload()?.trainingGroups || [];
+  const athletes = new Map();
+  groups.forEach(group => (group.athleteIds || []).forEach((id, index) => {
+    if (id) athletes.set(String(id), String(group.athleteNames?.[index] || id));
+  }));
+  return { groups, athletes };
+}
+
+function renderActualsReview() {
+  const target = document.getElementById("actualsRows");
+  const status = document.getElementById("actualsStatus");
+  if (!target || !status || !canonicalPractice) return;
+  const memory = canonicalPractice.sessionMemory || {};
+  const planned = plannedActualsBlocks();
+  const observed = summarizeObservedExecution(planned, memory.executionObservations || []);
+  const stored = memory.verifiedActuals || memory.actualsDraft || null;
+  actualsLocked = Boolean(memory.verifiedActuals);
+  const savedByKey = new Map((stored?.entries || []).map(entry => [`${entry.blockId}::${entry.drillId || ""}`, entry]));
+  const { groups, athletes } = actualsRosterOptions();
+  const groupOptions = ['<option value="">No group attribution</option>', ...groups.map(group => `<option value="${escapeHtml(group.id)}">${escapeHtml(group.label || group.id)}</option>`)].join("");
+  const athleteOptions = ['<option value="">No athlete attribution</option>', ...[...athletes].map(([id,name]) => `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`)].join("");
+  target.innerHTML = observed.map((item, index) => {
+    const saved = savedByKey.get(`${item.blockId}::${item.drillId}`) || {};
+    const outcome = saved.outcome || (item.status === "partial" ? "modified" : item.status === "not-observed" ? "not-observed" : item.status);
+    return `<div class="actuals-row" data-actual-index="${index}" data-block-id="${escapeHtml(item.blockId)}" data-drill-id="${escapeHtml(item.drillId)}">
+      <h3>${escapeHtml(item.name)}</h3>
+      <p>Planned · ${escapeHtml(item.blockId)} &nbsp; | &nbsp; Observed · ${escapeHtml(item.status)}${item.elapsedSeconds ? ` at ${item.elapsedSeconds}s parent-block elapsed` : ""}. Timer evidence does not identify participants.</p>
+      <label>Coach report<select data-actual-outcome ${actualsLocked ? "disabled" : ""}>${["completed","modified","skipped","not-observed"].map(value => `<option value="${value}"${value === outcome ? " selected" : ""}>${value}</option>`).join("")}</select></label>
+      <label>Performed seconds<input data-actual-seconds type="number" min="0" max="28800" step="1" value="${Number(saved.executedSeconds || 0)}" ${actualsLocked ? "disabled" : ""}></label>
+      <label>Group<select data-actual-group ${actualsLocked ? "disabled" : ""}>${groupOptions}</select></label>
+      <label>Athlete<select data-actual-athlete ${actualsLocked ? "disabled" : ""}>${athleteOptions}</select></label>
+      <label>Short note<input data-actual-note maxlength="500" value="${escapeHtml(saved.note || "")}" ${actualsLocked ? "disabled" : ""}></label>
+    </div>`;
+  }).join("") || '<p>No approved practice blocks are available for actuals review.</p>';
+  target.querySelectorAll(".actuals-row").forEach(row => {
+    const saved = savedByKey.get(`${row.dataset.blockId}::${row.dataset.drillId || ""}`) || {};
+    row.querySelector("[data-actual-group]").value = saved.groupIds?.[0] || "";
+    row.querySelector("[data-actual-athlete]").value = saved.athleteIds?.[0] || "";
+  });
+  document.getElementById("saveActualsDraftBtn").disabled = actualsLocked;
+  document.getElementById("verifyActualsBtn").disabled = actualsLocked;
+  status.textContent = actualsLocked
+    ? "Coach verified actuals are locked. The server recorded the verification actor and time."
+    : memory.actualsDraft ? "A server-saved draft is loaded. Review and explicitly verify when ready."
+      : "Review Big Clock observations, correct the Coach report, then save a draft or verify.";
+}
+
+function collectActualEntries() {
+  return [...document.querySelectorAll(".actuals-row")].map(row => ({
+    blockId: row.dataset.blockId, drillId: row.dataset.drillId || "", phaseId: "",
+    outcome: row.querySelector("[data-actual-outcome]").value,
+    executedSeconds: Number(row.querySelector("[data-actual-seconds]").value || 0),
+    groupIds: [row.querySelector("[data-actual-group]").value].filter(Boolean),
+    athleteIds: [row.querySelector("[data-actual-athlete]").value].filter(Boolean),
+    note: row.querySelector("[data-actual-note]").value
+  }));
+}
+
+async function persistActuals(operation) {
+  if (actualsLocked) return;
+  const practiceId = getCoachSessionPayload()?.practiceId;
+  const planVersion = Number(canonicalPractice?.sessionMemory?.planVersion || 0);
+  const verificationId = operation === "actuals-verify" ? `${practiceId}-${planVersion}-coach-actuals` : "";
+  const submission = buildActualsSubmission({ practiceId, planVersion, entries: collectActualEntries(), verificationId });
+  const save = httpsCallable(functions, "savePracticeSessionMemory");
+  await save({ operation, ...submission });
+  const getPractice = httpsCallable(functions, "getPracticeSession");
+  canonicalPractice = (await getPractice({ practiceId })).data?.practice || canonicalPractice;
+  renderActualsReview();
+}
 /* =========================
    LIVE SESSION LINKS
 ========================= */
@@ -728,6 +819,29 @@ document.addEventListener("input", e => {
   }
 });
 
+document.getElementById("saveActualsDraftBtn")?.addEventListener("click", async () => {
+  try {
+    setStatus("Saving actuals draft…");
+    await persistActuals("actuals-draft");
+    setStatus("Actuals draft saved to the canonical practice.");
+  } catch (error) {
+    console.error("Actuals draft save failed", error);
+    setStatus(error?.message || "Actuals draft could not be saved.");
+  }
+});
+
+document.getElementById("verifyActualsBtn")?.addEventListener("click", async () => {
+  if (!window.confirm("Verify these actuals? Verified evidence is locked and cannot be overwritten.")) return;
+  try {
+    setStatus("Verifying actuals…");
+    await persistActuals("actuals-verify");
+    setStatus("Coach actuals verified. No XP, attendance, mastery, or closeout action was performed.");
+  } catch (error) {
+    console.error("Actuals verification failed", error);
+    setStatus(error?.message || "Actuals could not be verified.");
+  }
+});
+
 window.addEventListener("storage", e => {
 
   if (!hydrationComplete) return;
@@ -768,7 +882,9 @@ function escapeHtml(value) {
     try {
       const getPractice = httpsCallable(functions, "getPracticeSession");
       const response = await getPractice({ practiceId });
-      const shared = response.data?.practice?.dailyPracticeLog;
+      canonicalPractice = response.data?.practice || null;
+      renderActualsReview();
+      const shared = canonicalPractice?.dailyPracticeLog;
       if (shared && !localStorage.getItem(notesDraftKey())) {
         BLOCK_KEYS.forEach(slot => {
           const el = document.getElementById("notes-" + slot);

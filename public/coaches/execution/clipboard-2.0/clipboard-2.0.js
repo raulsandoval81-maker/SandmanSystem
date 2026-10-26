@@ -2018,6 +2018,7 @@ window.runPractice = async function () {
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    planVersion: 1,
     practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,
@@ -2048,6 +2049,7 @@ window.runPractice = async function () {
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    planVersion: 1,
     practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,

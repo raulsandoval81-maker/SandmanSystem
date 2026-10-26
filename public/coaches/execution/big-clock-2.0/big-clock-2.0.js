@@ -17,6 +17,7 @@ import {
   resumeRunClock,
   seekRunClock
 } from "/coaches/execution/engine/practice-execution-contract.mjs";
+import { executionObservation } from "/coaches/execution/engine/practice-execution-actuals.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -65,6 +66,25 @@ async function updateDurableWorkedMemory({ block = null, started = false, comple
     workedBlocks: block ? [{ blockId, title: block.title || blockId, minutes: Number(block.minutes || 0), cards }] : [],
     workedCards: cards
   });
+}
+
+async function recordExecutionObservation(action, state = getState()) {
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  const sessionId = String(payload.sessionId || session.sessionId || SESSION_PARAM || "").trim();
+  const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+  const block = executionBlockAt(state.index) || current;
+  if (!practiceId || !sessionId || !block) return;
+  const elapsedSeconds = getRunElapsedSeconds(state);
+  const active = executionBlockAt(state.index) ? getActiveInnerDrill(block, elapsedSeconds) : null;
+  const observation = executionObservation({
+    practiceId, sessionId, planVersion: Number(payload.planVersion || 1), action, block, active,
+    elapsedSeconds, eventId: `${sessionId.slice(0, 100)}:${Date.now()}:${action}`
+  });
+  if (!authReady) { await ensureSignedIn(); authReady = true; }
+  const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+  await saveMemory({ operation: "execution-observation", practiceId, observation });
 }
 
 ensureSignedIn()
@@ -458,6 +478,7 @@ const playlist = blocks
     blockElapsedSeconds: 0,
     updatedAt: Date.now()
   });
+  recordExecutionObservation("start").catch(error => console.warn("Execution observation sync failed:", error));
 }
 
 function renderComplete({
@@ -716,6 +737,7 @@ if (actionEl) {
       updateDurableWorkedMemory({ block: current }).catch(error => {
         console.warn("Worked block memory sync failed:", error);
       });
+      recordExecutionObservation("advance", data).catch(error => console.warn("Execution observation sync failed:", error));
 
       setState({
         ...data,
@@ -732,6 +754,7 @@ if (actionEl) {
       updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
         console.warn("Execution completion memory sync failed:", error);
       });
+      recordExecutionObservation("complete", data).catch(error => console.warn("Execution observation sync failed:", error));
 
       setState({
         ...data,
@@ -783,6 +806,8 @@ if (actionEl) {
 window.togglePracticePause = function () {
   const state = getState();
   if (state.complete || (!state.running && !state.paused)) return;
+  recordExecutionObservation(state.paused ? "resume" : "pause", state)
+    .catch(error => console.warn("Execution observation sync failed:", error));
   setState(state.paused ? resumeRunClock(state) : pauseRunClock(state));
   render();
 };
@@ -795,6 +820,7 @@ window.skipPracticePhase = function () {
   const compiledBlock = executionBlockAt(state.index);
   const elapsed = getRunElapsedSeconds(state);
   const active = compiledBlock ? getActiveInnerDrill(compiledBlock, elapsed) : null;
+  recordExecutionObservation("skip", state).catch(error => console.warn("Execution observation sync failed:", error));
   if (active?.phaseEndsAtSeconds > elapsed) {
     setState(seekRunClock(state, active.phaseEndsAtSeconds));
     render();
@@ -813,6 +839,7 @@ window.completePracticeNow = function () {
   updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
     console.warn("Execution completion memory sync failed:", error);
   });
+  recordExecutionObservation("early-complete", state).catch(error => console.warn("Execution observation sync failed:", error));
   setState({ ...state, running: false, paused: false, complete: true,
     blockElapsedSeconds: getRunElapsedSeconds(state), updatedAt: Date.now() });
   render();
