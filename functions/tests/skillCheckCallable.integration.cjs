@@ -461,7 +461,7 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  const id="F8_INTEGRATED_E2E";
  const practiceId="test-e2e-attestation-practice";
  const auth={uid:"test-admin-transfer",token:{}};
- await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"]});
+ await db.doc("athletes/"+id).set({locationId:"test-location",academyId:"e2e-test-academy",previousLocationIds:["e2e-former-location"],journey:"P2L",tier:"T0"});
  await db.doc("practiceSessions/"+practiceId).set({
    coachUid:"former-coach",locationId:"e2e-former-location",
    discipline:"wrestling",sessionDateKey:"2026-10-03",
@@ -534,6 +534,27 @@ test("end-to-end historical intake, scan, manifest, recheck, and attestation rem
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="double_leg").members[0].track,"PRACTICE");
  assert.equal(group.lessonCandidates.find(item=>item.familyId==="single_leg").members[0].track,"INTRODUCE");
  assert.equal(group.eligibleForAuto,false);
+ const assemblySource=await invoke("preview-auto-lesson-assembly",{
+   athleteIds:[id],familyIds:["double_leg"],
+   groups:[{groupId:"apprentice-group",athleteIds:[id]}],
+   recommendation:{familyId:"single_leg",track:"EXTEND"},
+   sourceEvidenceAccepted:true,authorizationStatus:"AUTO_AUTHORIZED",eligibleForAuto:true,
+ });
+ assert.equal(assemblySource.issuedBy,"skillCheckCoachCall");
+ assert.equal(assemblySource.recommendations[0].familyId,"double_leg");
+ assert.deepEqual(assemblySource.recommendations[0].athletes.map(item=>item.track),["PRACTICE"]);
+ assert.equal(assemblySource.recommendations[0].rankName,"Apprentice");
+ assert.equal(assemblySource.authorizationStatus,"DIAGNOSTIC_ONLY");
+ assert.equal(assemblySource.sourceEvidenceAccepted,true);
+ assert.ok(assemblySource.blockers.includes("curriculum-policy-not-approved"));
+ assert.equal(assemblySource.previewOnly,true);
+ assert.equal(assemblySource.authoritative,false);
+ assert.equal(assemblySource.eligibleForAuto,false);
+ assert.equal(assemblySource.coachApprovalRequired,true);
+ await assert.rejects(invoke("preview-auto-lesson-assembly",{
+   athleteIds:[id],familyIds:["double_leg"],
+   groups:[{groupId:"wrong-roster",athleteIds:["F4_NOT_AUTHORIZED"]}],
+ }),error=>error.code==="invalid-argument");
  assert.equal(group.curriculumMapAudit.totalFamilies,36);
  assert.equal(group.curriculumMapAudit.mappedFamilies,4);
  assert.equal(group.proposedWrestlingAudit.mappedFamilies,36);
