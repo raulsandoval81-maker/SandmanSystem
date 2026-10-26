@@ -1242,6 +1242,11 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const version = Number(control.version || 0);
       const expectedVersion = requireBoundedNumber(input.expectedVersion ?? 0, "expected command version", 0, MAX_PLAN_VERSION, true);
       if (control.command?.commandId === command.commandId) { idempotent = true; return; }
+      // Single outstanding command: never accept another until the controller acknowledges it.
+      // This rejects rapid commands rather than silently overwriting an accepted instruction.
+      if (Number(control.appliedVersion || 0) < version) {
+        throw new HttpsError("failed-precondition", "Previous execution command is awaiting Big Clock acknowledgment. Retry after it is applied.");
+      }
       if (expectedVersion !== version) {
         throw new HttpsError("aborted", "Execution command is stale. Reload the authoritative session state.");
       }
