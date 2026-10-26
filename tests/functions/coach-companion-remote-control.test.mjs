@@ -59,3 +59,28 @@ test("Big Clock applies commands and Companion remains optional for Closeout", (
   assert.match(companion, /Continue to Post-Practice Clipboard|practice-log\.html/);
   assert.doesNotMatch(companion, /awardXp|finalizeXp/);
 });
+
+test("rapid commands are rejected until Big Clock acknowledges the pending command", () => {
+  const server = fs.readFileSync(new URL("../../functions/src/practice/practiceSessions.ts", import.meta.url), "utf8");
+  const issue = server.slice(server.indexOf('if (operation === "execution-command")'), server.indexOf('if (operation === "execution-state")'));
+  assert.match(issue, /control\.appliedVersion\s*\|\|\s*0/);
+  assert.match(issue, /< version[\s\S]*Previous execution command is awaiting Big Clock acknowledgment/);
+  assert.match(issue, /expectedVersion !== version/);
+  for (const [first, second] of [["pause", "resume"], ["skip", "advance"], ["start", "pause"]]) {
+    assert.ok(command(first).commandId !== command(second).commandId);
+    const acceptedVersion = 1;
+    const appliedVersion = 0;
+    assert.equal(appliedVersion < acceptedVersion, true, second + " must await " + first + " acknowledgment");
+    assert.equal(acceptedVersion < acceptedVersion, false, "next command may proceed only after acknowledgment");
+  }
+});
+
+test("Big Clock retries a lost acknowledgment without replaying an applied command", () => {
+  const clock = fs.readFileSync(new URL("../../public/coaches/execution/big-clock-2.0/big-clock-2.0.js", import.meta.url), "utf8");
+  const poll = clock.slice(clock.indexOf("function subscribeRemoteControl()"), clock.indexOf("function matLaneLabel()"));
+  assert.match(poll, /current\.remoteCommandVersion\s*\|\|\s*0\) === version/);
+  assert.match(poll, /control\.appliedVersion\s*\|\|\s*0\) < version/);
+  assert.match(poll, /await setState\(current\)/);
+  assert.match(poll, /return;[\s\S]*applyExecutionCommand\(current, control\.command/);
+  assert.match(poll, /await setState\(next\)/);
+});
