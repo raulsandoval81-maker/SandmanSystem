@@ -1850,6 +1850,17 @@ const proposalGroups = [
 
   {
     key:
+      "PAID_HISTORY",
+
+    title:
+      "Paid — Continued to Enrollment",
+
+    description:
+      "Paid proposals retained for history. Continue Intake and activation in Management Enrollment."
+  },
+
+  {
+    key:
       "CLOSED",
 
     title:
@@ -1875,10 +1886,11 @@ function proposalGroupKey(
     "CLIENT_SIGNED"
   ].includes(status)) return "REVIEW_APPROVE";
 
+  if (status === "PAID") return "PAID_HISTORY";
+
   if ([
     "READY_FOR_CHECKOUT",
-    "CHECKOUT_CREATED",
-    "PAID"
+    "CHECKOUT_CREATED"
   ].includes(status)) return "CHECKOUT_ENROLLMENT";
 
   return "CLOSED";
@@ -2033,6 +2045,7 @@ async function loadProposalQueue() {
       REVIEW_APPROVE: 0,
       DRAFT: 0,
       CHECKOUT_ENROLLMENT: 0,
+      PAID_HISTORY: 0,
       CLOSED: 0
     };
 
@@ -2054,7 +2067,7 @@ async function loadProposalQueue() {
   if (countsEl) {
     countsEl.innerHTML = `
       <span class="proposal-count">
-        <strong>${proposals.length}</strong>
+        <strong>${proposals.length - counts.PAID_HISTORY - counts.CLOSED}</strong>
         <small>Active Records</small>
       </span>
 
@@ -2070,7 +2083,7 @@ async function loadProposalQueue() {
 
       <span class="proposal-count proposal-count--ready">
         <strong>${counts.CHECKOUT_ENROLLMENT}</strong>
-        <small>Checkout / Paid</small>
+        <small>Checkout Pending</small>
       </span>
     `;
   }
