@@ -413,7 +413,10 @@ jobs:
             (
               cd application-source
               node --test tests/functions/staging-practice-admin-initialization.test.mjs
-              node --test ../trusted-tooling/tests/functions/staging-exact-sha-release.test.mjs
+            (
+              cd trusted-tooling
+              node --test tests/functions/staging-exact-sha-release.test.mjs
+            )
             )
           fi
           if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then
