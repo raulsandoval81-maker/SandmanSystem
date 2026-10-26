@@ -863,6 +863,31 @@ test("PR305 validation uses Clipboard-first routing and four-group safeguards", 
   assert.equal(result.applicationSha, "11539235059ed69a226aa2b6b5a58fee9007d9b5");
 });
 
+test("PR308 staging attendance cold-start recovery is immutable and function-only", async () => {
+  const release = await loadRelease("attendance-admin-init-pr308-0b06a778");
+  const approved = context({
+    checkedOutSha: release.applicationSha,
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+  });
+  assert.equal(validateRelease(release, approved), release);
+  assert.equal(release.applicationSha, "0b06a778e66f532589695ef96642f41b7c092985");
+  assert.deepEqual(release.allowedChangedFiles, [
+    "functions/src/services/staffAuthorization.ts",
+    "tests/functions/staging-practice-admin-initialization.test.mjs",
+  ]);
+  assert.equal(release.hosting, false);
+  assert.deepEqual(release.functions, ["updatePracticeCheckIn"]);
+  assert.deepEqual(release.newFunctions, []);
+  assert.throws(() => validateRelease({ ...release, hosting: true }, approved), /must not deploy Hosting/);
+  assert.throws(() => validateRelease({ ...release, functions: ["savePracticeSessionMemory"] }, approved), /attendance-callable-only/);
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(workflow, /attendance-admin-init-pr308-0b06a778/);
+  assert.match(workflow, /Explicitly skip Hosting for attendance-only recovery/);
+  assert.match(workflow, /Assert Hosting was not modified for attendance-only recovery/);
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });
