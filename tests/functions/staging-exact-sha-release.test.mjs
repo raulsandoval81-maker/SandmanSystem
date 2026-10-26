@@ -848,6 +848,21 @@ test("PR305 rejects a second callable or unrelated Hosting file", async () => {
   }, releaseContext), /outside the reviewed application diff/);
 });
 
+test("PR305 validation uses Clipboard-first routing and four-group safeguards", async () => {
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  const lines = workflow.split("\n");
+  const conditionBefore = pattern => {
+    const assertionIndex = lines.findIndex(line => line.includes(pattern));
+    assert.notEqual(assertionIndex, -1, `missing workflow assertion: ${pattern}`);
+    return lines.slice(0, assertionIndex).findLast(line => line.trimStart().startsWith("if test \"${RELEASE_ID}\""));
+  };
+  const releaseId = "coach-companion-remote-pr305-11539235";
+  assert.match(conditionBefore("/coaches/execution/clipboard-2.0/?session="), new RegExp(releaseId));
+  assert.match(conditionBefore("NORMAL_TRAINING_GROUP_CAPACITY = 3"), new RegExp(releaseId));
+  const result = await loadRelease(releaseId);
+  assert.equal(result.applicationSha, "11539235059ed69a226aa2b6b5a58fee9007d9b5");
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });
