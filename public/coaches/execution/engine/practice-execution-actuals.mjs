@@ -49,15 +49,16 @@ export function resolveNextPlanVersion(savedVersion) {
 }
 
 /** Return deterministic milestones crossed by the existing parent-block clock. */
-export function completedExecutionMilestones(block, elapsedSeconds = 0) {
+export function completedExecutionMilestones(block, elapsedSeconds = 0, excludedMilestones = []) {
   const elapsed = seconds(elapsedSeconds);
+  const excluded = new Set(Array.isArray(excludedMilestones) ? excludedMilestones.map(text) : []);
   const milestones = [];
   let cursor = 0;
   for (const drill of Array.isArray(block?.drills) ? block.drills : []) {
     let phaseCursor = cursor;
     for (const phase of Array.isArray(drill?.phases) ? drill.phases : []) {
       phaseCursor += seconds(phase.seconds);
-      if (phaseCursor <= elapsed) milestones.push({
+      if (phaseCursor <= elapsed && !excluded.has(`phase:${text(drill?.id)}:${text(phase?.id)}`)) milestones.push({
         action: "phase-complete", elapsedSeconds: phaseCursor,
         active: { drill, phase, phaseRemainingSeconds: 0 }
       });
@@ -65,7 +66,7 @@ export function completedExecutionMilestones(block, elapsedSeconds = 0) {
     const drillSeconds = seconds(drill?.seconds)
       || (Array.isArray(drill?.phases) ? drill.phases.reduce((sum, phase) => sum + seconds(phase.seconds), 0) : 0);
     cursor += drillSeconds;
-    if (drillSeconds > 0 && cursor <= elapsed) milestones.push({
+    if (drillSeconds > 0 && cursor <= elapsed && !excluded.has(`drill:${text(drill?.id)}`)) milestones.push({
       action: "drill-complete", elapsedSeconds: cursor,
       active: { drill, phase: null, phaseRemainingSeconds: 0 }
     });

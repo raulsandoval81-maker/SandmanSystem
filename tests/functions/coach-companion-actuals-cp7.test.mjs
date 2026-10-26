@@ -58,6 +58,14 @@ test("parent-clock milestones identify only drills and phases actually crossed",
   assert.ok(completedExecutionMilestones(block, 60).some(item => item.action === "drill-complete" && item.active.drill.id === "d2"));
 });
 
+test("jumped-over phases and their drills never become completion milestones", () => {
+  const block = { drills: [{ id: "d1", seconds: 30, phases: [
+    { id: "p1", seconds: 10 }, { id: "p2", seconds: 20 }
+  ] }] };
+  const milestones = completedExecutionMilestones(block, 30, ["phase:d1:p1", "drill:d1"]);
+  assert.deepEqual(milestones.map(item => `${item.action}:${item.active.phase?.id || ""}`), ["phase-complete:p2"]);
+});
+
 test("rapid observations persist serially, retain failed work, and retry idempotently", async () => {
   const calls = [];
   let failOnce = true;

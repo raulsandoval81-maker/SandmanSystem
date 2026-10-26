@@ -140,7 +140,7 @@ function recordExecutionObservation(action, state = getState(), options = {}) {
 
 function recordCompletedMilestones(state, compiledBlock, elapsedSeconds) {
   if (!compiledBlock) return;
-  completedExecutionMilestones(compiledBlock, elapsedSeconds).forEach(milestone => {
+  completedExecutionMilestones(compiledBlock, elapsedSeconds, state.skippedMilestones).forEach(milestone => {
     const drillId = milestone.active?.drill?.id || "drill";
     const phaseId = milestone.active?.phase?.id || "all";
     recordExecutionObservation(milestone.action, state, {
@@ -892,7 +892,10 @@ window.skipPracticePhase = function () {
   const active = compiledBlock ? getActiveInnerDrill(compiledBlock, elapsed) : null;
   recordExecutionObservation("skip", state);
   if (active?.phaseEndsAtSeconds > elapsed) {
-    setState(seekRunClock(state, active.phaseEndsAtSeconds));
+    const excluded = new Set(Array.isArray(state.skippedMilestones) ? state.skippedMilestones : []);
+    if (active.drill?.id && active.phase?.id) excluded.add(`phase:${active.drill.id}:${active.phase.id}`);
+    if (active.drill?.id) excluded.add(`drill:${active.drill.id}`);
+    setState({ ...seekRunClock(state, active.phaseEndsAtSeconds), skippedMilestones: [...excluded] });
     render();
     return;
   }
