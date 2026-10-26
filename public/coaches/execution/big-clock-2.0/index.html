@@ -8,7 +8,7 @@
   <title>Sandman Big Screen</title>
 
   <link rel="stylesheet"
-        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=20261008-11" />
+        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=20261026-1" />
 </head>
 
 <body>
@@ -124,6 +124,7 @@ No active block
     </div>
     <div id="drillName" class="drill-name"></div>
     <div id="drillGoal" class="drill-goal"></div>
+    <div id="drillContext" class="drill-context"></div>
     <div id="drillFlow" class="drill-flow"></div>
   </section>
 
@@ -141,6 +142,12 @@ Next: —
   </div>
 
 </main>
+
+<div id="practiceControls" class="practice-controls hidden" aria-label="Practice timer controls">
+  <button id="pausePracticeBtn" type="button" onclick="togglePracticePause()">Pause</button>
+  <button id="skipPracticeBtn" type="button" onclick="skipPracticePhase()">Skip</button>
+  <button id="completePracticeBtn" type="button" onclick="completePracticeNow()">Complete</button>
+</div>
 
 <div class="brand">
   Sandman Combat
@@ -162,7 +169,7 @@ Continue to During-Practice Clipboard
 
 <script
   type="module"
-  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=20261009-24">
+  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=20261026-1">
 </script>
 
 </body>
