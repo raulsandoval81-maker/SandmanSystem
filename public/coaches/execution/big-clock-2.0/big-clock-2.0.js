@@ -373,7 +373,15 @@ function subscribeRemoteControl() {
     const version = Number(control.version || 0);
     let current = getState();
     remoteControlVersion = version;
-    if (!control.command || version <= Number(current.remoteCommandVersion || 0)) return;
+    if (!control.command || version <= Number(current.remoteCommandVersion || 0)) {
+      // The command can be applied locally even when its remote acknowledgment failed.
+      // Retry only the acknowledgment; never execute the same command a second time.
+      if (version > 0 && Number(current.remoteCommandVersion || 0) === version
+          && Number(control.appliedVersion || 0) < version) {
+        await setState(current);
+      }
+      return;
+    }
     if (control.command.type === "start" && !Array.isArray(current.playlist)) {
       startFromPayload();
       current = getState();
@@ -415,7 +423,7 @@ function subscribeRemoteControl() {
     if (control.command.type === "advance") recordExecutionObservation("advance", current);
     if (control.command.type === "end") recordExecutionObservation("early-complete", current);
     next.remoteCommandVersion = version;
-    void setState(next);
+    await setState(next);
     render();
     } catch (error) { console.warn("Remote execution control unavailable:", error); }
     finally { if (remoteControlPoll) setTimeout(poll, 1000); }
