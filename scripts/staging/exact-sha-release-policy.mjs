@@ -7,6 +7,7 @@ export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/location
 export const TRUSTED_WORKFLOW_REF = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main";
 const APPROVED_FUNCTION_SETS = Object.freeze([
   Object.freeze(["savePracticeSessionMemory", "closePracticeSession"]),
+  Object.freeze(["savePracticeSessionMemory"]),
   Object.freeze(["updatePracticeCheckIn"]),
   Object.freeze([
     "searchPracticeAttendanceAthletes",
@@ -65,6 +66,10 @@ export function validateRelease(release, context = {}) {
     functions.length === approved.length
       && functions.every((name, index) => name === approved[index]));
   if (functions.length && !isApprovedCallableSet) {
+    throw new Error("Unexpected function target in approved release.");
+  }
+  if (release.functionScope === "savePracticeSessionMemory-only" &&
+      (functions.length !== 1 || functions[0] !== "savePracticeSessionMemory")) {
     throw new Error("Unexpected function target in approved release.");
   }
   const newFunctions = [...(release.newFunctions || [])];

@@ -64,6 +64,7 @@ on:
           - single-roster-pr217-7beb0a6
           - cross-academy-pr253-e9980457
           - guest-self-checkin-pr280-ef643228
+          - coach-companion-remote-pr305-11539235
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -414,6 +415,18 @@ jobs:
                 tests/functions/practice-attendance-lanes.test.mjs \
                 ../trusted-tooling/tests/functions/guest-self-checkin-release.test.mjs
               node --check public/coaches/attendance/session.js
+            )
+          fi
+          if test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235"; then
+            (
+              cd application-source
+              node --test \
+                tests/functions/coach-companion-remote-control.test.mjs \
+                tests/functions/coach-companion-actuals-cp7.test.mjs \
+                tests/functions/big-clock-inner-drill-execution.test.mjs
+              node --check public/coaches/execution/big-clock-2.0/big-clock-2.0.js
+              node --check public/coaches/execution/coach-companion/coach-companion.js
+              node --check public/coaches/execution/engine/practice-remote-control.mjs
             )
           fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js

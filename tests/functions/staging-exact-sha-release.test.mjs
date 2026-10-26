@@ -794,6 +794,60 @@ test("PR280 rejects broadened callables and Hosting overlays", () => {
   }, releaseContext), /outside the reviewed application diff/);
 });
 
+test("PR305 Coach Companion remote control is pinned to seven files and one callable", async () => {
+  const result = await loadRelease("coach-companion-remote-pr305-11539235");
+  const releaseContext = context({
+    checkedOutSha: result.applicationSha,
+    hostingDeployer: result.hostingDeployer,
+    functionDeployer: result.functionDeployer,
+    functionRuntime: result.functionRuntime,
+  });
+  assert.equal(validateRelease(result, releaseContext), result);
+  assert.equal(result.sourcePr, 305);
+  assert.equal(result.applicationSha, "11539235059ed69a226aa2b6b5a58fee9007d9b5");
+  assert.equal(result.requiredAncestorSha, "3c0c583090cbb809b9626b3a11d2cf133445df6e");
+  assert.deepEqual(result.allowedChangedFiles, [
+    "functions/src/practice/practiceSessions.ts",
+    "public/coaches/execution/big-clock-2.0/big-clock-2.0.js",
+    "public/coaches/execution/big-clock-2.0/index.html",
+    "public/coaches/execution/coach-companion/coach-companion.js",
+    "public/coaches/execution/coach-companion/index.html",
+    "public/coaches/execution/engine/practice-remote-control.mjs",
+    "tests/functions/coach-companion-remote-control.test.mjs",
+  ]);
+  assert.deepEqual(result.hostingFiles, result.allowedChangedFiles.filter(file => file.startsWith("public/")));
+  assert.deepEqual(result.functions, ["savePracticeSessionMemory"]);
+  assert.deepEqual(result.newFunctions, []);
+  assert.equal(result.hostingSite, "sandman-combat-staging");
+  assert.equal(result.expectedFunctionConfiguration.region, "us-central1");
+  assert.equal(result.expectedFunctionConfiguration.runtime, "nodejs22");
+  assert.equal(validateRemotePreflight(result, {
+    marker,
+    runtimeByFunction: { savePracticeSessionMemory: result.functionRuntime },
+  }), true);
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(workflow, /coach-companion-remote-pr305-11539235/);
+  assert.match(workflow, /tests\/functions\/coach-companion-remote-control\.test\.mjs/);
+});
+
+test("PR305 rejects a second callable or unrelated Hosting file", async () => {
+  const result = await loadRelease("coach-companion-remote-pr305-11539235");
+  const releaseContext = context({
+    checkedOutSha: result.applicationSha,
+    hostingDeployer: result.hostingDeployer,
+    functionDeployer: result.functionDeployer,
+    functionRuntime: result.functionRuntime,
+  });
+  assert.throws(() => validateRelease({
+    ...result,
+    functions: ["savePracticeSessionMemory", "closePracticeSession"],
+  }, releaseContext), /Unexpected function/);
+  assert.throws(() => validateRelease({
+    ...result,
+    hostingFiles: [...result.hostingFiles, "public/index.html"],
+  }, releaseContext), /outside the reviewed application diff/);
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });
