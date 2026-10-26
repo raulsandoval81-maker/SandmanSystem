@@ -17,16 +17,27 @@ import {
   resumeRunClock,
   seekRunClock
 } from "/coaches/execution/engine/practice-execution-contract.mjs";
+import {
+  completedExecutionMilestones,
+  createObservationQueue,
+  executionObservation,
+  resolveNextPlanVersion
+} from "/coaches/execution/engine/practice-execution-actuals.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
 const PAYLOAD_KEY = "sandman_big_clock_payload_v2";
 const TV_SCALE_KEY = "sandman_tv_scale";
+const OBSERVATION_QUEUE_PREFIX = "sandman_execution_observation_queue_v1:";
+const OBSERVATION_SYNC_PREFIX = "sandman_execution_observation_sync_v1:";
+const OBSERVATION_SEQUENCE_PREFIX = "sandman_execution_observation_sequence_v1:";
 
 let authReady = false;
 let audioCtx = null;
 let lastBeepKey = "";
 let fastPassMinutes = 60;
+let observationQueue = null;
+let observationQueueKey = "";
 
 function compactWorkedCard(card, blockId, index) {
   const item = typeof card === "object" && card ? card : { title: String(card || "") };
@@ -66,6 +77,80 @@ async function updateDurableWorkedMemory({ block = null, started = false, comple
     workedCards: cards
   });
 }
+
+function renderObservationSyncStatus({ pending = [], draining = false, lastError = null } = {}) {
+  const status = document.getElementById("executionEvidenceStatus");
+  const retry = document.getElementById("retryExecutionEvidenceBtn");
+  if (status) status.textContent = lastError
+    ? `Execution evidence needs retry (${pending.length} pending).`
+    : draining || pending.length ? `Saving execution evidence (${pending.length} pending)…`
+      : "Execution evidence saved.";
+  status?.classList.toggle("sync-error", Boolean(lastError));
+  retry?.classList.toggle("hidden", !lastError);
+}
+
+function getObservationQueue(practiceId) {
+  const key = `${OBSERVATION_QUEUE_PREFIX}${practiceId}`;
+  if (observationQueue && observationQueueKey === key) return observationQueue;
+  observationQueueKey = key;
+  let initial = [];
+  try { initial = JSON.parse(localStorage.getItem(key) || "[]"); } catch {}
+  const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+  observationQueue = createObservationQueue({
+    initial: Array.isArray(initial) ? initial : [],
+    persist: async observation => {
+      if (!authReady) { await ensureSignedIn(); authReady = true; }
+      await saveMemory({ operation: "execution-observation", practiceId, observation });
+      localStorage.setItem(`${OBSERVATION_SYNC_PREFIX}${practiceId}`, String(Date.now()));
+    },
+    onChange: state => {
+      localStorage.setItem(key, JSON.stringify(state.pending));
+      renderObservationSyncStatus(state);
+    }
+  });
+  observationQueue.retry();
+  return observationQueue;
+}
+
+function nextObservationIdentity(practiceId) {
+  const key = `${OBSERVATION_SEQUENCE_PREFIX}${practiceId}`;
+  const next = Math.max(0, Number(localStorage.getItem(key) || 0)) + 1;
+  localStorage.setItem(key, String(next));
+  return String(next);
+}
+
+function recordExecutionObservation(action, state = getState(), options = {}) {
+  const payload = getPayload();
+  const session = getSessionPayload();
+  const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+  const sessionId = String(payload.sessionId || session.sessionId || SESSION_PARAM || "").trim();
+  const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+  const block = executionBlockAt(state.index) || current;
+  if (!practiceId || !sessionId || !block) return false;
+  const elapsedSeconds = options.elapsedSeconds ?? getRunElapsedSeconds(state);
+  const active = options.active ?? (executionBlockAt(state.index) ? getActiveInnerDrill(block, elapsedSeconds) : null);
+  const identity = options.identity || nextObservationIdentity(practiceId);
+  const observation = executionObservation({
+    practiceId, sessionId, planVersion: Number(payload.planVersion || 1), action, block, active,
+    elapsedSeconds,
+    eventId: `${sessionId.slice(0, 40)}:${payload.planVersion || 1}:${String(block.id || block.slot || block.title).slice(0, 20)}:${String(identity).slice(0, 60)}:${action}`
+  });
+  return getObservationQueue(practiceId).enqueue(observation);
+}
+
+function recordCompletedMilestones(state, compiledBlock, elapsedSeconds) {
+  if (!compiledBlock) return;
+  completedExecutionMilestones(compiledBlock, elapsedSeconds, state.skippedMilestones).forEach(milestone => {
+    const drillId = milestone.active?.drill?.id || "drill";
+    const phaseId = milestone.active?.phase?.id || "all";
+    recordExecutionObservation(milestone.action, state, {
+      ...milestone,
+      identity: `${drillId}:${phaseId}`
+    });
+  });
+}
+
+window.retryExecutionEvidence = function () { observationQueue?.retry(); };
 
 ensureSignedIn()
   .then(() => {
@@ -382,10 +467,13 @@ async function prepareFastPassPractice() {
   });
 
   const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+  const getPractice = httpsCallable(functions, "getPracticeSession");
+  const canonical = await getPractice({ practiceId });
+  const planVersion = resolveNextPlanVersion(canonical.data?.practice?.sessionMemory?.planVersion);
   await saveMemory({
     operation: "plan",
     practiceId,
-    planVersion: 1,
+    planVersion,
     plannedBlocks: [{
       blockId: "Practice",
       title: "Practice",
@@ -395,7 +483,9 @@ async function prepareFastPassPractice() {
     plannedCards: []
   });
 
-  const nextSession = { ...session, durationMinutes: fastPassMinutes, schema: "fast-practice" };
+  payload.planVersion = planVersion;
+  localStorage.setItem(PAYLOAD_KEY, JSON.stringify(payload));
+  const nextSession = { ...session, planVersion, durationMinutes: fastPassMinutes, schema: "fast-practice" };
   localStorage.setItem("sandman_session_builder_v1", JSON.stringify(nextSession));
 }
 
@@ -458,6 +548,7 @@ const playlist = blocks
     blockElapsedSeconds: 0,
     updatedAt: Date.now()
   });
+  recordExecutionObservation("start");
 }
 
 function renderComplete({
@@ -689,6 +780,7 @@ if (actionEl) {
 }
 
   const elapsed = getRunElapsedSeconds(data);
+  recordCompletedMilestones(data, compiledBlock, elapsed);
 
   const remaining =
     Math.max(
@@ -716,6 +808,7 @@ if (actionEl) {
       updateDurableWorkedMemory({ block: current }).catch(error => {
         console.warn("Worked block memory sync failed:", error);
       });
+      recordExecutionObservation("advance", data);
 
       setState({
         ...data,
@@ -732,6 +825,7 @@ if (actionEl) {
       updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
         console.warn("Execution completion memory sync failed:", error);
       });
+      recordExecutionObservation("complete", data);
 
       setState({
         ...data,
@@ -783,6 +877,7 @@ if (actionEl) {
 window.togglePracticePause = function () {
   const state = getState();
   if (state.complete || (!state.running && !state.paused)) return;
+  recordExecutionObservation(state.paused ? "resume" : "pause", state);
   setState(state.paused ? resumeRunClock(state) : pauseRunClock(state));
   render();
 };
@@ -795,8 +890,12 @@ window.skipPracticePhase = function () {
   const compiledBlock = executionBlockAt(state.index);
   const elapsed = getRunElapsedSeconds(state);
   const active = compiledBlock ? getActiveInnerDrill(compiledBlock, elapsed) : null;
+  recordExecutionObservation("skip", state);
   if (active?.phaseEndsAtSeconds > elapsed) {
-    setState(seekRunClock(state, active.phaseEndsAtSeconds));
+    const excluded = new Set(Array.isArray(state.skippedMilestones) ? state.skippedMilestones : []);
+    if (active.drill?.id && active.phase?.id) excluded.add(`phase:${active.drill.id}:${active.phase.id}`);
+    if (active.drill?.id) excluded.add(`drill:${active.drill.id}`);
+    setState({ ...seekRunClock(state, active.phaseEndsAtSeconds), skippedMilestones: [...excluded] });
     render();
     return;
   }
@@ -813,6 +912,7 @@ window.completePracticeNow = function () {
   updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
     console.warn("Execution completion memory sync failed:", error);
   });
+  recordExecutionObservation("early-complete", state);
   setState({ ...state, running: false, paused: false, complete: true,
     blockElapsedSeconds: getRunElapsedSeconds(state), updatedAt: Date.now() });
   render();

@@ -180,6 +180,17 @@
     </label>
     <textarea id="slot-note" class="broadcast" placeholder="Private session reminders…"></textarea>
   </div>
+  <section class="field-log-sections" aria-labelledby="actualsHeading">
+    <h2 id="actualsHeading">Practice actuals</h2>
+    <p><strong>Planned</strong> is the approved Clipboard. <strong>Observed</strong> is timer evidence only. <strong>Coach verified</strong> is your explicit report of work performed.</p>
+    <div id="actualsStatus" class="actuals-status muted">Loading approved plan and Big Clock observations…</div>
+    <div id="actualsRows" class="actuals-rows"></div>
+    <div class="actuals-actions">
+      <button type="button" id="saveActualsDraftBtn">Save actuals draft</button>
+      <button type="button" id="verifyActualsBtn">Verify actuals</button>
+    </div>
+    <p class="muted">Verification records evidence only. It does not award XP, certify mastery, finalize attendance, or close the practice.</p>
+  </section>
   <section class="field-log-sections" aria-label="Daily practice observations">
     <h2>Practice Observations</h2>
     <p>Record what happened. These notes remain separate from the locked Practice Plan.</p>
@@ -204,6 +215,6 @@
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=7"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=9"></script>
 </body>
 </html>

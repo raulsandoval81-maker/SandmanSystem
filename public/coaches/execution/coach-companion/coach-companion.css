@@ -360,3 +360,10 @@ body{
 .field-log-input{min-height:95px;resize:vertical;line-height:1.5}
 .field-log-input:disabled{opacity:.5}
 @media(max-width:720px){.field-log-sections{padding:15px}}
+.actuals-rows{display:grid;gap:10px}
+.actuals-row{display:grid;grid-template-columns:minmax(160px,1.4fr) repeat(4,minmax(110px,1fr));gap:10px;padding:12px;border:1px solid var(--line,#374151);border-radius:10px}
+.actuals-row h3,.actuals-row p{grid-column:1/-1;margin:0}
+.actuals-row label{display:grid;gap:5px}
+.actuals-row select,.actuals-row input{box-sizing:border-box;width:100%;padding:9px;color:var(--text,#fff);background:var(--input-bg,#111827);border:1px solid var(--line,#374151);border-radius:8px;font:inherit}
+.actuals-actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:820px){.actuals-row{grid-template-columns:1fr}}

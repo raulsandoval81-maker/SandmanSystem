@@ -13,6 +13,7 @@ import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { compilePracticeTimeline } from "/coaches/execution/engine/practice-execution-contract.mjs";
+import { resolveNextPlanVersion } from "/coaches/execution/engine/practice-execution-actuals.mjs";
 import {
   INNER_DRILL_CONTRACT_VERSION,
   WRESTLING_LIVE_FORMATS,
@@ -1999,6 +2000,8 @@ window.runPractice = async function () {
   }
 
   // Do not try to rewrite the canonical plan once any execution has been recorded.
+  // A missing version is the legacy pre-versioned state and starts at v1.
+  let planVersion = 1;
   try {
     const getPractice = httpsCallable(functions, "getPracticeSession");
     const result = await getPractice({ practiceId });
@@ -2007,6 +2010,7 @@ window.runPractice = async function () {
       showLockedPracticeNotice(session.sessionId);
       return;
     }
+    planVersion = resolveNextPlanVersion(practice.sessionMemory?.planVersion);
   } catch (error) {
     console.error("Practice state check failed", error);
     setStatus("Unable to verify practice state. Nothing was launched or overwritten.");
@@ -2018,6 +2022,7 @@ window.runPractice = async function () {
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    planVersion,
     practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,
@@ -2048,6 +2053,7 @@ window.runPractice = async function () {
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    planVersion,
     practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,
@@ -2097,7 +2103,7 @@ window.runPractice = async function () {
     await saveMemory({
       operation: "plan",
       practiceId,
-      planVersion: 1,
+      planVersion,
       planningContext: {
         planningSources: session.planningSources,
         groups: Object.entries(session.groupPlanning || {}).map(([groupId, planning]) => ({

@@ -13,7 +13,13 @@ import { awardReceiptKey } from "../services/authoritativeXpService";
 
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
-const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection"]);
+const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection", "execution-observation", "actuals-draft", "actuals-verify"]);
+const EXECUTION_ACTUALS_VERSION = "sandman-execution-actuals-v1";
+const EXECUTION_ACTIONS = new Set([
+  "start", "pause", "resume", "skip", "advance", "complete", "early-complete",
+  "phase-complete", "drill-complete",
+]);
+const ACTUAL_OUTCOMES = new Set(["completed", "modified", "skipped", "not-observed"]);
 const MAX_PLAN_VERSION = 10_000;
 const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
 const CANONICAL_PRACTICE_PROGRAMS = Object.freeze([
@@ -281,16 +287,75 @@ function compactBlocks(value: unknown) {
   const blocks = value.map((item: any) => {
     const blockId = compactString(item?.blockId || item?.id || item?.slot, 120);
     if (!blockId) throw new HttpsError("invalid-argument", "Every session-memory block requires an identity.");
+    const drillBlocks = (Array.isArray(item?.drillBlocks) ? item.drillBlocks : []).slice(0, 40).map((drill: any) => ({
+      drillId: requireDocumentId(drill?.id, "drillId"),
+      name: compactString(drill?.name, 160),
+      groupIds: [...new Set((Array.isArray(drill?.innerDrill?.assignedGroupIds) ? drill.innerDrill.assignedGroupIds : [])
+        .map((groupId: unknown) => compactString(groupId, 120)).filter(Boolean))],
+      phases: (Array.isArray(drill?.innerDrill?.phases) ? drill.innerDrill.phases : []).slice(0, 100).map((phase: any) => ({
+        phaseId: requireDocumentId(phase?.id, "phaseId"),
+        kind: compactString(phase?.kind, 20),
+        seconds: requireBoundedNumber(phase?.seconds, "phase seconds", 1, 14_400, true),
+      })),
+    }));
     return {
       blockId,
       title: compactString(item?.title || item?.label || item?.slot, 160),
       minutes: requireBoundedNumber(item?.minutes ?? 0, "block minutes", 0, 240),
       cardIds: compactCards(item?.cards, blockId).map((card) => card.cardId),
+      drillBlocks,
     };
   });
   const byId = new Map<string, (typeof blocks)[number]>();
   blocks.forEach((block) => byId.set(block.blockId, block));
   return [...byId.values()];
+}
+
+function compactExecutionObservation(value: any, practiceId: string, planVersion: number) {
+  if (!value || value.contractVersion !== EXECUTION_ACTUALS_VERSION) {
+    throw new HttpsError("invalid-argument", "Unsupported execution observation contract.");
+  }
+  if (requireDocumentId(value.practiceId, "observation practiceId") !== practiceId) {
+    throw new HttpsError("invalid-argument", "Execution observation belongs to another practice.");
+  }
+  if (requireBoundedNumber(value.planVersion, "observation planVersion", 1, MAX_PLAN_VERSION, true) !== planVersion) {
+    throw new HttpsError("failed-precondition", "Execution observation uses a stale practice plan.");
+  }
+  const action = compactString(value.action, 20).toLowerCase();
+  if (!EXECUTION_ACTIONS.has(action)) throw new HttpsError("invalid-argument", "Unsupported execution observation action.");
+  return {
+    contractVersion: EXECUTION_ACTUALS_VERSION,
+    eventId: requireDocumentId(value.eventId, "eventId"),
+    sessionId: requireDocumentId(value.sessionId, "sessionId"),
+    planVersion,
+    action,
+    blockId: requireDocumentId(value.blockId, "blockId"),
+    drillId: value.drillId ? requireDocumentId(value.drillId, "drillId") : "",
+    phaseId: value.phaseId ? requireDocumentId(value.phaseId, "phaseId") : "",
+    phaseKind: compactString(value.phaseKind, 20),
+    elapsedSeconds: requireBoundedNumber(value.elapsedSeconds, "elapsedSeconds", 0, 28_800, true),
+    phaseElapsedSeconds: requireBoundedNumber(value.phaseElapsedSeconds, "phaseElapsedSeconds", 0, 14_400, true),
+    observedOnly: true,
+    athleteIds: [],
+  };
+}
+
+function compactActualEntries(value: unknown) {
+  if (!Array.isArray(value) || value.length > 100) throw new HttpsError("invalid-argument", "Actuals require at most 100 entries.");
+  return value.map((item: any) => {
+    const outcome = compactString(item?.outcome, 20).toLowerCase();
+    if (!ACTUAL_OUTCOMES.has(outcome)) throw new HttpsError("invalid-argument", "Unsupported actual-work outcome.");
+    return {
+      blockId: requireDocumentId(item?.blockId, "actual blockId"),
+      drillId: item?.drillId ? requireDocumentId(item.drillId, "actual drillId") : "",
+      phaseId: item?.phaseId ? requireDocumentId(item.phaseId, "actual phaseId") : "",
+      outcome,
+      executedSeconds: requireBoundedNumber(item?.executedSeconds ?? 0, "actual executedSeconds", 0, 28_800, true),
+      groupIds: [...new Set((Array.isArray(item?.groupIds) ? item.groupIds : []).map((id: unknown) => requireDocumentId(id, "actual groupId")))],
+      athleteIds: [...new Set((Array.isArray(item?.athleteIds) ? item.athleteIds : []).map((id: unknown) => requireDocumentId(id, "actual athleteId")))],
+      note: compactString(item?.note, 500),
+    };
+  });
 }
 
 function requirePracticeOwner(actor: Awaited<ReturnType<typeof requireActiveStaff>>, practice: Record<string, any>) {
@@ -1017,6 +1082,17 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const plannedBlocks = compactBlocks(input.plannedBlocks);
       const plannedCards = compactCards(input.plannedCards);
       const planningContext = compactPlanningContext(input.planningContext);
+      const currentVersion = Number(practice.sessionMemory?.planVersion || 0);
+      if (planVersion === currentVersion) {
+        const exactRetry = JSON.stringify(practice.sessionMemory?.plannedBlocks || []) === JSON.stringify(plannedBlocks)
+          && JSON.stringify(practice.sessionMemory?.plannedCards || []) === JSON.stringify(plannedCards)
+          && JSON.stringify(practice.sessionMemory?.planningContext || {}) === JSON.stringify(planningContext);
+        if (exactRetry) { idempotent = true; return; }
+        throw new HttpsError("failed-precondition", "Practice plan version is stale or already belongs to different content.");
+      }
+      if (planVersion !== currentVersion + 1) {
+        throw new HttpsError("failed-precondition", "Practice plan version must advance exactly once from the canonical plan.");
+      }
       tx.update(ref, {
         "sessionMemory.planVersion": planVersion,
         "sessionMemory.plannedBlocks": plannedBlocks,
@@ -1068,6 +1144,126 @@ export const savePracticeSessionMemory = onCall(async (request) => {
         patch["sessionMemory.executionCompletedAt"] = now;
       }
       tx.update(ref, patch);
+      return;
+    }
+
+    if (operation === "execution-observation") {
+      const memory: any = practice.sessionMemory || {};
+      const planVersion = requireBoundedNumber(memory.planVersion, "saved planVersion", 1, MAX_PLAN_VERSION, true);
+      const observation = compactExecutionObservation(input.observation, practiceId, planVersion);
+      if (String(practice.liveSessionId || "") !== observation.sessionId) {
+        throw new HttpsError("failed-precondition", "Execution observation belongs to another live session.");
+      }
+      const plannedBlock = (Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [])
+        .find((block: any) => String(block.blockId || "") === observation.blockId);
+      if (!plannedBlock) throw new HttpsError("failed-precondition", "Execution observation must reference the saved practice plan.");
+      const plannedDrill = observation.drillId
+        ? (Array.isArray(plannedBlock.drillBlocks) ? plannedBlock.drillBlocks : [])
+          .find((drill: any) => String(drill.drillId || "") === observation.drillId)
+        : null;
+      if (observation.drillId && !plannedDrill) throw new HttpsError("failed-precondition", "Execution drill must reference the saved practice plan.");
+      if (observation.phaseId && !(Array.isArray(plannedDrill?.phases) ? plannedDrill.phases : [])
+        .some((phase: any) => String(phase.phaseId || "") === observation.phaseId)) {
+        throw new HttpsError("failed-precondition", "Execution phase must reference the saved practice plan.");
+      }
+      const prior = Array.isArray(memory.executionObservations) ? memory.executionObservations : [];
+      const existing = prior.find((item: any) => String(item.eventId || "") === observation.eventId);
+      if (existing) {
+        const comparable = ({ observedAt: _observedAt, observedBy: _observedBy, sequence: _sequence, ...rest }: any) => rest;
+        if (JSON.stringify(comparable(existing)) !== JSON.stringify(observation)) {
+          throw new HttpsError("already-exists", "Execution event identity is already in use.");
+        }
+        idempotent = true;
+        return;
+      }
+      if (prior.length >= 200) throw new HttpsError("resource-exhausted", "Execution observation limit reached.");
+      tx.update(ref, {
+        "sessionMemory.executionObservations": [...prior, {
+          ...observation, sequence: prior.length + 1, observedAt: Timestamp.now(), observedBy: actor.uid,
+        }],
+        "sessionMemory.executionUpdatedAt": now,
+        updatedAt: now,
+      });
+      return;
+    }
+
+    if (operation === "actuals-draft" || operation === "actuals-verify") {
+      const memory: any = practice.sessionMemory || {};
+      if (input.contractVersion !== EXECUTION_ACTUALS_VERSION) {
+        throw new HttpsError("invalid-argument", "Unsupported actuals contract.");
+      }
+      const planVersion = requireBoundedNumber(input.planVersion, "planVersion", 1, MAX_PLAN_VERSION, true);
+      if (planVersion !== Number(memory.planVersion || 0)) {
+        throw new HttpsError("failed-precondition", "Actuals use a stale practice plan.");
+      }
+      if (input.practiceId !== practiceId || input.verifiedAt || input.verifiedBy || input.coachUid) {
+        throw new HttpsError("invalid-argument", "Actuals identity and verification metadata are server-owned.");
+      }
+      const entries = compactActualEntries(input.entries);
+      const plannedBlocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
+      const plannedCards = Array.isArray(memory.plannedCards) ? memory.plannedCards : [];
+      const planningGroups = Array.isArray(memory.planningContext?.groups) ? memory.planningContext.groups : [];
+      const knownGroups = new Set([
+        ...plannedCards.map((card: any) => String(card.groupId || "")),
+        ...planningGroups.map((group: any) => String(group.groupId || "")),
+        ...plannedBlocks.flatMap((block: any) => (block.drillBlocks || []).flatMap((drill: any) => drill.groupIds || [])),
+      ].filter(Boolean));
+      for (const entry of entries) {
+        const block = plannedBlocks.find((item: any) => String(item.blockId || "") === entry.blockId);
+        if (!block) throw new HttpsError("failed-precondition", "Actual work must reference the saved practice plan.");
+        const drill = entry.drillId ? (block.drillBlocks || []).find((item: any) => item.drillId === entry.drillId) : null;
+        if (entry.drillId && !drill) throw new HttpsError("failed-precondition", "Actual drill must reference the saved practice plan.");
+        if (entry.phaseId && !(drill?.phases || []).some((phase: any) => phase.phaseId === entry.phaseId)) {
+          throw new HttpsError("failed-precondition", "Actual phase must reference the saved practice plan.");
+        }
+        if (entry.groupIds.some((id: unknown) => !knownGroups.has(String(id)))) {
+          throw new HttpsError("failed-precondition", "Actual group attribution is outside the approved plan.");
+        }
+      }
+      const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${practiceId}`));
+      const attendance: any = attendanceSnap.data() || {};
+      const authorizedAthletes = new Set([
+        ...(Array.isArray(attendance.checkedInIds) ? attendance.checkedInIds : []),
+        ...(Array.isArray(attendance.presentIds) ? attendance.presentIds : []),
+      ].map(String));
+      if (entries.some((entry: any) => entry.athleteIds.some((id: string) => !authorizedAthletes.has(id)))) {
+        throw new HttpsError("failed-precondition", "Actual athlete attribution requires an athlete on the authorized practice roster.");
+      }
+      const verificationId = operation === "actuals-verify" ? requireDocumentId(input.verificationId, "verificationId") : "";
+      if (operation === "actuals-verify" && verificationId !== `${practiceId}-${planVersion}-coach-actuals`) {
+        throw new HttpsError("invalid-argument", "Verification identity does not match this practice plan.");
+      }
+      const record = {
+        contractVersion: EXECUTION_ACTUALS_VERSION, practiceId,
+        sessionId: compactString(practice.liveSessionId, 160),
+        executionMode: compactString(practice.executionMode, 40),
+        planVersion, entries,
+        coachVerified: operation === "actuals-verify", xpEligible: false, progressionEligible: false,
+        attendanceAuthority: false, closeoutFinalized: false,
+      };
+      if (operation === "actuals-draft") {
+        if (memory.verifiedActuals) throw new HttpsError("failed-precondition", "Verified actuals cannot be overwritten by a draft.");
+        tx.update(ref, {
+          "sessionMemory.actualsDraft": { ...record, savedAt: now, savedBy: actor.uid }, updatedAt: now,
+        });
+        return;
+      }
+      if (memory.verifiedActuals) {
+        if (memory.verifiedActuals.verificationId === verificationId
+          && memory.verifiedActuals.verifiedBy === actor.uid
+          && JSON.stringify(memory.verifiedActuals.entries || []) === JSON.stringify(entries)) {
+          idempotent = true;
+          return;
+        }
+        throw new HttpsError("failed-precondition", "Coach-verified actuals are immutable.");
+      }
+      tx.update(ref, {
+        "sessionMemory.verifiedActuals": {
+          ...record, verificationId, verifiedAt: now, verifiedBy: actor.uid,
+        },
+        "sessionMemory.actualsDraft": FieldValue.delete(),
+        updatedAt: now,
+      });
       return;
     }
 
