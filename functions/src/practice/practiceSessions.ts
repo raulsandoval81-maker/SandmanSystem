@@ -13,13 +13,17 @@ import { awardReceiptKey } from "../services/authoritativeXpService";
 
 const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
-const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection", "execution-observation", "actuals-draft", "actuals-verify"]);
+const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection", "execution-observation", "execution-command", "execution-state", "actuals-draft", "actuals-verify"]);
 const EXECUTION_ACTUALS_VERSION = "sandman-execution-actuals-v1";
 const EXECUTION_ACTIONS = new Set([
   "start", "pause", "resume", "skip", "advance", "complete", "early-complete",
   "phase-complete", "drill-complete",
 ]);
 const ACTUAL_OUTCOMES = new Set(["completed", "modified", "skipped", "not-observed"]);
+const EXECUTION_COMMANDS = new Set([
+  "start", "pause", "resume", "skip", "advance", "end", "adjust-current-time",
+  "switch-drill", "switch-group", "substitute-drill", "adjust-future-block",
+]);
 const MAX_PLAN_VERSION = 10_000;
 const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
 const CANONICAL_PRACTICE_PROGRAMS = Object.freeze([
@@ -337,6 +341,48 @@ function compactExecutionObservation(value: any, practiceId: string, planVersion
     phaseElapsedSeconds: requireBoundedNumber(value.phaseElapsedSeconds, "phaseElapsedSeconds", 0, 14_400, true),
     observedOnly: true,
     athleteIds: [],
+  };
+}
+
+function compactExecutionCommand(value: any, practiceId: string, sessionId: string, planVersion: number) {
+  if (!value || value.contractVersion !== "sandman-execution-control-v1") {
+    throw new HttpsError("invalid-argument", "Unsupported execution-control contract.");
+  }
+  if (requireDocumentId(value.practiceId, "command practiceId") !== practiceId
+    || requireDocumentId(value.sessionId, "command sessionId") !== sessionId) {
+    throw new HttpsError("invalid-argument", "Execution command belongs to another practice session.");
+  }
+  if (requireBoundedNumber(value.planVersion, "command planVersion", 1, MAX_PLAN_VERSION, true) !== planVersion) {
+    throw new HttpsError("failed-precondition", "Execution command uses a stale practice plan.");
+  }
+  const type = compactString(value.type, 40).toLowerCase();
+  if (!EXECUTION_COMMANDS.has(type)) throw new HttpsError("invalid-argument", "Unsupported execution command.");
+  return {
+    contractVersion: "sandman-execution-control-v1",
+    commandId: requireDocumentId(value.commandId, "commandId"),
+    practiceId, sessionId, planVersion, type,
+    blockId: value.blockId ? requireDocumentId(value.blockId, "command blockId") : "",
+    drillId: value.drillId ? requireDocumentId(value.drillId, "command drillId") : "",
+    groupId: value.groupId ? requireDocumentId(value.groupId, "command groupId") : "",
+    seconds: requireBoundedNumber(value.seconds ?? 0, "command seconds", 0, 28_800, true),
+    replacementDrillId: value.replacementDrillId ? requireDocumentId(value.replacementDrillId, "replacement drillId") : "",
+  };
+}
+
+function compactExecutionState(value: any, sessionId: string) {
+  if (!value || value.contractVersion !== "sandman-execution-control-v1"
+    || requireDocumentId(value.sessionId, "state sessionId") !== sessionId) {
+    throw new HttpsError("invalid-argument", "Unsupported execution state.");
+  }
+  return {
+    contractVersion: "sandman-execution-control-v1", sessionId,
+    running: value.running === true, paused: value.paused === true, complete: value.complete === true,
+    index: requireBoundedNumber(value.index ?? 0, "state index", 0, 100, true),
+    blockId: value.blockId ? requireDocumentId(value.blockId, "state blockId") : "",
+    drillId: value.drillId ? requireDocumentId(value.drillId, "state drillId") : "",
+    groupId: value.groupId ? requireDocumentId(value.groupId, "state groupId") : "",
+    elapsedSeconds: requireBoundedNumber(value.elapsedSeconds ?? 0, "state elapsedSeconds", 0, 28_800, true),
+    remainingSeconds: requireBoundedNumber(value.remainingSeconds ?? 0, "state remainingSeconds", 0, 28_800, true),
   };
 }
 
@@ -1182,6 +1228,70 @@ export const savePracticeSessionMemory = onCall(async (request) => {
           ...observation, sequence: prior.length + 1, observedAt: Timestamp.now(), observedBy: actor.uid,
         }],
         "sessionMemory.executionUpdatedAt": now,
+        updatedAt: now,
+      });
+      return;
+    }
+
+    if (operation === "execution-command") {
+      const memory: any = practice.sessionMemory || {};
+      const planVersion = requireBoundedNumber(memory.planVersion, "saved planVersion", 1, MAX_PLAN_VERSION, true);
+      const sessionId = requireDocumentId(practice.liveSessionId, "liveSessionId");
+      const command = compactExecutionCommand(input.command, practiceId, sessionId, planVersion);
+      const control: any = memory.executionControl || {};
+      const version = Number(control.version || 0);
+      const expectedVersion = requireBoundedNumber(input.expectedVersion ?? 0, "expected command version", 0, MAX_PLAN_VERSION, true);
+      if (control.command?.commandId === command.commandId) { idempotent = true; return; }
+      if (expectedVersion !== version) {
+        throw new HttpsError("aborted", "Execution command is stale. Reload the authoritative session state.");
+      }
+      const plannedBlocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
+      const targetBlock = command.blockId
+        ? plannedBlocks.find((item: any) => String(item.blockId || "") === command.blockId) : null;
+      if (command.blockId && !targetBlock) throw new HttpsError("failed-precondition", "Command block is outside the approved plan.");
+      const knownDrills = plannedBlocks.flatMap((block: any) => block.drillBlocks || []);
+      if (command.drillId && !knownDrills.some((item: any) => String(item.drillId || "") === command.drillId)) {
+        throw new HttpsError("failed-precondition", "Command drill is outside the approved plan.");
+      }
+      if (command.replacementDrillId && !knownDrills.some((item: any) => String(item.drillId || "") === command.replacementDrillId)) {
+        throw new HttpsError("failed-precondition", "Replacement drill is outside the approved plan.");
+      }
+      const selectedDrillId = command.replacementDrillId || command.drillId;
+      if (targetBlock && selectedDrillId && !(targetBlock.drillBlocks || [])
+        .some((item: any) => String(item.drillId || "") === selectedDrillId)) {
+        throw new HttpsError("failed-precondition", "Command drill does not belong to the selected practice block.");
+      }
+      const knownGroups = new Set((memory.planningContext?.groups || []).map((group: any) => String(group.groupId || "")));
+      if (command.groupId && !knownGroups.has(command.groupId)) {
+        throw new HttpsError("failed-precondition", "Command group is outside the approved plan.");
+      }
+      tx.update(ref, {
+        "sessionMemory.executionControl": {
+          ...control, version: version + 1,
+          command: { ...command, issuedAt: Timestamp.now(), issuedBy: actor.uid },
+          adjustments: [
+            ...(Array.isArray(control.adjustments) ? control.adjustments : []),
+            ...(["adjust-current-time", "switch-drill", "switch-group", "substitute-drill", "adjust-future-block"].includes(command.type)
+              ? [{ ...command, commandVersion: version + 1, adjustedAt: Timestamp.now(), adjustedBy: actor.uid }] : []),
+          ].slice(-100),
+        },
+        updatedAt: now,
+      });
+      return;
+    }
+
+    if (operation === "execution-state") {
+      const memory: any = practice.sessionMemory || {};
+      const sessionId = requireDocumentId(practice.liveSessionId, "liveSessionId");
+      const control: any = memory.executionControl || {};
+      const commandVersion = requireBoundedNumber(input.commandVersion ?? 0, "commandVersion", 0, MAX_PLAN_VERSION, true);
+      if (commandVersion !== Number(control.version || 0)) {
+        throw new HttpsError("aborted", "Execution state does not acknowledge the current command version.");
+      }
+      const state = compactExecutionState(input.state, sessionId);
+      tx.update(ref, {
+        "sessionMemory.executionControl.state": { ...state, acceptedAt: Timestamp.now(), acceptedBy: actor.uid },
+        "sessionMemory.executionControl.appliedVersion": commandVersion,
         updatedAt: now,
       });
       return;
