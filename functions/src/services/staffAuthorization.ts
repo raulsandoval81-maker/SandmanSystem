@@ -1,5 +1,18 @@
+import { getApp, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
+
+// Gen 2 can load a callable's module without evaluating functions/src/index.ts.
+// Initialize the default Admin app at first database use, not only in index.ts.
+// getApp() avoids initializing a duplicate app when the normal entry point ran.
+function staffFirestore() {
+  try {
+    return getFirestore(getApp());
+  } catch (error) {
+    if ((error as { code?: string })?.code !== "app/no-app") throw error;
+    return getFirestore(initializeApp());
+  }
+}
 
 export const OPERATIONAL_STAFF_ROLES = Object.freeze([
   "admin", "management", "coach",
@@ -102,7 +115,7 @@ export async function requireCoachAthleteAccessById(
 ) {
   const id = String(athleteId ?? "").trim();
   if (!id) throw new HttpsError("invalid-argument", "A valid athlete ID is required.");
-  const snap = await getFirestore().doc(`athletes/${id}`).get();
+  const snap = await staffFirestore().doc(`athletes/${id}`).get();
   if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${id}`);
   const athlete = snap.data() || {};
   requireCoachAthleteAccess(actor, athlete, message);
@@ -125,7 +138,7 @@ export async function requireActiveStaff(
 ) {
   const staffUid = String(uid ?? "").trim();
   if (!staffUid) throw new HttpsError("unauthenticated", "Sign-in required.");
-  const snap = await getFirestore().doc(`staff/${staffUid}`).get();
+  const snap = await staffFirestore().doc(`staff/${staffUid}`).get();
   if (!snap.exists) throw new HttpsError("permission-denied", message);
   const source = snap.data() || {};
   const staff = normalizeStaffRecord(source);
