@@ -72,6 +72,36 @@ body{
   color:var(--red);
 }
 
+.practice-controls{
+  display:flex;
+  justify-content:center;
+  gap:12px;
+  margin:14px auto;
+}
+
+.practice-controls button{
+  min-width:120px;
+  padding:12px 18px;
+  border:1px solid rgba(212,175,55,.55);
+  border-radius:999px;
+  background:rgba(10,10,10,.86);
+  color:#f5e7b8;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.practice-controls button:last-child{
+  border-color:rgba(220,95,86,.65);
+}
+
+.drill-context{
+  margin-top:6px;
+  color:var(--gold, #d4af37);
+  font-size:clamp(.82rem,1.5vw,1.05rem);
+  font-weight:800;
+}
+
 .status.complete{
   color:var(--gold);
 }

@@ -4,6 +4,7 @@
  * No Firebase writes, UI state, or progression decisions in this module.
  */
 export const EXECUTION_CONTRACT_VERSION = 1;
+export const INNER_DRILL_CONTRACT_VERSION = "sandman-inner-drill-v1";
 
 const positive = (value, fallback = 0) => {
   const n = Number(value);
@@ -11,6 +12,103 @@ const positive = (value, fallback = 0) => {
 };
 const whole = (value, fallback = 0) => Math.floor(positive(value, fallback));
 const text = value => String(value ?? "").trim();
+const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
+
+function normalizeInnerDrill(drill, drillIndex) {
+  const source = drill?.innerDrill;
+  const legacySeconds = Math.round(positive(drill?.minutes) * 60);
+  const base = {
+    id: text(drill?.id) || `drill-${drillIndex + 1}`,
+    name: text(drill?.name) || `Drill ${drillIndex + 1}`,
+    seconds: legacySeconds,
+    reservedSeconds: legacySeconds,
+    coachingCues: text(drill?.coachingCues),
+    flowCues: text(drill?.flowCues),
+    goal: text(drill?.goal),
+    cueLevel: text(drill?.cueLevel) || "optimal",
+    innerDrill: null,
+    phases: [],
+    assignedGroupIds: [],
+    error: null
+  };
+  if (!source) return base;
+  if (source.contractVersion !== INNER_DRILL_CONTRACT_VERSION) {
+    return { ...base, error: "UNSUPPORTED_INNER_DRILL_CONTRACT" };
+  }
+  if (!["manual", "hybrid", "auto"].includes(source.practiceMode)
+      || !["coach", "server-suggestion"].includes(source.origin)) {
+    return { ...base, error: "UNSUPPORTED_INNER_DRILL_AUTHORITY" };
+  }
+  if (source.practiceMode === "auto" || source.origin === "server-suggestion") {
+    return { ...base, error: "AUTO_PREVIEW_NOT_EXECUTABLE" };
+  }
+  if (!Array.isArray(source.phases) || !source.phases.length) {
+    return { ...base, error: "INVALID_INNER_DRILL_PHASES" };
+  }
+  if (!["drill", "live", "match"].includes(source.kind)
+      || source.planningOnly !== true || source.authoritative !== false
+      || source.eligibleForAuto !== false) {
+    return { ...base, error: "UNSUPPORTED_INNER_DRILL_FORMAT" };
+  }
+  const phases = [];
+  const phaseIds = new Set();
+  for (const [phaseIndex, item] of source.phases.entries()) {
+    const rawSeconds = Number(item?.seconds);
+    const seconds = whole(rawSeconds);
+    const kind = text(item?.kind).toLowerCase();
+    const id = text(item?.id) || `phase-${phaseIndex + 1}`;
+    if (!Number.isInteger(rawSeconds) || !seconds || phaseIds.has(id)
+        || !["work", "rest", "break"].includes(kind)) {
+      return { ...base, error: "UNSUPPORTED_INNER_DRILL_PHASE" };
+    }
+    phaseIds.add(id);
+    const shortTimeCueSeconds = item?.shortTimeCueSeconds == null ? 0 : Number(item.shortTimeCueSeconds);
+    if (!Number.isInteger(shortTimeCueSeconds) || shortTimeCueSeconds < 0 || shortTimeCueSeconds >= seconds) {
+      return { ...base, error: "UNSUPPORTED_INNER_DRILL_PHASE" };
+    }
+    phases.push({
+      id,
+      label: text(item?.label) || base.name,
+      kind,
+      seconds,
+      round: whole(item?.round),
+      rounds: whole(item?.rounds),
+      match: whole(item?.match),
+      matches: whole(item?.matches),
+      shortTimeCueSeconds,
+      rotation: item?.rotation ? clone(item.rotation) : null
+    });
+  }
+  const exactSeconds = phases.reduce((sum, item) => sum + item.seconds, 0);
+  const declaredSeconds = Number(source.scheduledSeconds);
+  const reservedMinutes = Number(source.reservedMinutes || drill?.minutes);
+  if (!Number.isInteger(declaredSeconds) || !Number.isInteger(reservedMinutes)) {
+    return { ...base, error: "INNER_DRILL_DURATION_MISMATCH" };
+  }
+  if (declaredSeconds !== exactSeconds) return { ...base, error: "INNER_DRILL_DURATION_MISMATCH" };
+  if (reservedMinutes !== Math.ceil(exactSeconds / 60)
+      || Number(drill?.minutes) !== reservedMinutes) {
+    return { ...base, error: "INNER_DRILL_RESERVATION_MISMATCH" };
+  }
+  return {
+    ...base,
+    seconds: exactSeconds,
+    reservedSeconds: reservedMinutes * 60,
+    innerDrill: {
+      contractVersion: source.contractVersion,
+      kind: text(source.kind),
+      discipline: text(source.discipline),
+      practiceMode: text(source.practiceMode),
+      origin: text(source.origin),
+      skillFamily: text(source.skillFamily),
+      coachCard: source.coachCard ? clone(source.coachCard) : null,
+      recommendationProvenance: clone(source.recommendationProvenance || null),
+      skillProvenance: clone(source.skillProvenance || null)
+    },
+    phases,
+    assignedGroupIds: [...new Set((source.assignedGroupIds || []).map(text).filter(Boolean))]
+  };
+}
 
 /**
  * Interpret a Clipboard block. An explicit interval specification takes priority.
@@ -31,13 +129,7 @@ export function normalizePracticeBlock(block, index = 0) {
     ? [...new Set((interval.linkedSkillIds ?? sourceTimer.linkedSkillIds).map(text).filter(Boolean))]
     : [];
   const drills = Array.isArray(block?.drillBlocks)
-    ? block.drillBlocks.map((drill, drillIndex) => ({
-        id: text(drill?.id) || `drill-${drillIndex + 1}`,
-        name: text(drill?.name) || `Drill ${drillIndex + 1}`,
-        seconds: Math.round(positive(drill?.minutes) * 60),
-        coachingCues: text(drill?.coachingCues),
-        flowCues: text(drill?.flowCues),
-      })).filter(drill => drill.seconds > 0)
+    ? block.drillBlocks.map(normalizeInnerDrill).filter(drill => drill.seconds > 0 || drill.error)
     : [];
   return {
     id: text(block?.slot) || `block-${index + 1}`,
@@ -71,6 +163,15 @@ export function compilePracticeTimeline(plan) {
     events.push({ type: "block-start", atSeconds: offset, blockId: block.id, label: block.title });
     const rule = block.timer.execution;
     let subSeconds = 0;
+    let reservedSeconds = 0;
+    let hasInnerDrills = false;
+    const drillError = block.drills.find(drill => drill.error);
+    if (drillError) {
+      errors.push({ blockId: block.id, drillId: drillError.id, code: drillError.error });
+      offset += block.seconds;
+      events.push({ type: "block-end", atSeconds: offset, blockId: block.id });
+      continue;
+    }
     if (rule && block.drills.length) {
       errors.push({ blockId: block.id, code: "CONFLICTING_TIMER_AND_DRILLS" });
       offset += block.seconds;
@@ -92,13 +193,33 @@ export function compilePracticeTimeline(plan) {
         }
       }
     } else if (block.drills.length) {
+      reservedSeconds = block.drills.reduce((sum, drill) => sum + drill.reservedSeconds, 0);
+      hasInnerDrills = block.drills.some(drill => drill.innerDrill);
       for (const drill of block.drills) {
         events.push({ type: "drill-start", atSeconds: blockStart + subSeconds, blockId: block.id, drillId: drill.id, label: drill.name, coachingCues: drill.coachingCues, flowCues: drill.flowCues });
-        subSeconds += drill.seconds;
+        if (drill.phases.length) {
+          for (const item of drill.phases) {
+            const phaseStart = blockStart + subSeconds;
+            events.push({ type: "inner-phase-start", atSeconds: phaseStart, blockId: block.id,
+              drillId: drill.id, phaseId: item.id, kind: item.kind, label: item.label,
+              round: item.round, rounds: item.rounds, rotation: clone(item.rotation) });
+            if (item.shortTimeCueSeconds > 0 && item.shortTimeCueSeconds < item.seconds) {
+              events.push({ type: "short-time", atSeconds: phaseStart + item.seconds - item.shortTimeCueSeconds,
+                blockId: block.id, drillId: drill.id, phaseId: item.id,
+                secondsRemaining: item.shortTimeCueSeconds });
+            }
+            subSeconds += item.seconds;
+          }
+        } else {
+          subSeconds += drill.seconds;
+        }
       }
     }
     if (subSeconds > block.seconds) {
       errors.push({ blockId: block.id, code: "OVER_ALLOCATED", allocatedSeconds: block.seconds, requestedSeconds: subSeconds });
+    } else if (hasInnerDrills && reservedSeconds > block.seconds) {
+      errors.push({ blockId: block.id, code: "INNER_DRILL_RESERVATION_OVER_ALLOCATED",
+        allocatedSeconds: block.seconds, requestedSeconds: reservedSeconds });
     }
     offset += block.seconds;
     events.push({ type: "block-end", atSeconds: offset, blockId: block.id });
@@ -111,6 +232,66 @@ export function compilePracticeTimeline(plan) {
   if (errors.length) return { version: EXECUTION_CONTRACT_VERSION, totalSeconds: offset, blocks, events: [], errors, valid: false };
   events.sort((a,b) => a.atSeconds - b.atSeconds);
   return { version: EXECUTION_CONTRACT_VERSION, totalSeconds: offset, blocks, events, errors, valid: errors.length === 0 };
+}
+
+/** Resolve nested drill/phase presentation from the parent block's authoritative elapsed time. */
+export function getActiveInnerDrill(block, elapsedSeconds = 0) {
+  const drills = Array.isArray(block?.drills) ? block.drills : [];
+  const elapsed = Math.max(0, Math.floor(Number(elapsedSeconds) || 0));
+  let drillCursor = 0;
+  for (const [drillIndex, drill] of drills.entries()) {
+    const drillEnd = drillCursor + drill.seconds;
+    if (elapsed < drillEnd) {
+      if (!drill.phases.length) return {
+        drill, next: drills[drillIndex + 1] || null, phase: null,
+        drillRemainingSeconds: drillEnd - elapsed,
+        phaseRemainingSeconds: drillEnd - elapsed,
+        phaseEndsAtSeconds: drillEnd
+      };
+      let phaseCursor = drillCursor;
+      for (const [phaseIndex, item] of drill.phases.entries()) {
+        const phaseEnd = phaseCursor + item.seconds;
+        if (elapsed < phaseEnd) return {
+          drill, next: drills[drillIndex + 1] || null, phase: item,
+          phaseIndex, phaseCount: drill.phases.length,
+          drillRemainingSeconds: drillEnd - elapsed,
+          phaseRemainingSeconds: phaseEnd - elapsed,
+          phaseEndsAtSeconds: phaseEnd,
+          shortTimeActive: item.shortTimeCueSeconds > 0
+            && phaseEnd - elapsed <= item.shortTimeCueSeconds
+        };
+        phaseCursor = phaseEnd;
+      }
+    }
+    drillCursor = drillEnd;
+  }
+  return null;
+}
+
+/** The existing block clock is the only time authority, including while paused. */
+export function getRunElapsedSeconds(state = {}, nowMs = Date.now()) {
+  if (state.paused) return Math.max(0, whole(state.blockElapsedSeconds));
+  if (!state.blockStartedAt) return Math.max(0, whole(state.blockElapsedSeconds));
+  return Math.max(0, Math.floor((Number(nowMs) - Number(state.blockStartedAt)) / 1000));
+}
+
+export function pauseRunClock(state = {}, nowMs = Date.now()) {
+  if (!state.running || state.paused) return state;
+  return { ...state, running: false, paused: true,
+    blockElapsedSeconds: getRunElapsedSeconds(state, nowMs), updatedAt: Number(nowMs) };
+}
+
+export function resumeRunClock(state = {}, nowMs = Date.now()) {
+  if (!state.paused || state.complete) return state;
+  const elapsed = Math.max(0, whole(state.blockElapsedSeconds));
+  return { ...state, running: true, paused: false,
+    blockStartedAt: Number(nowMs) - elapsed * 1000, updatedAt: Number(nowMs) };
+}
+
+export function seekRunClock(state = {}, elapsedSeconds = 0, nowMs = Date.now()) {
+  const elapsed = Math.max(0, whole(elapsedSeconds));
+  return { ...state, blockElapsedSeconds: elapsed,
+    blockStartedAt: Number(nowMs) - elapsed * 1000, updatedAt: Number(nowMs) };
 }
 
 /** Mode affects presentation, never the compiled timing instructions. */

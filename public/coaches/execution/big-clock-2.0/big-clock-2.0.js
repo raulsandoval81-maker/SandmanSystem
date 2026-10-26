@@ -9,7 +9,14 @@ import {
 } from "/assets/js/firebase-init.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
 import { practiceRunIdentity, restorePracticeRun } from "/coaches/execution/engine/big-clock-state-identity.mjs";
-import { getActiveCombatInterval } from "/coaches/execution/engine/practice-execution-contract.mjs";
+import {
+  getActiveCombatInterval,
+  getActiveInnerDrill,
+  getRunElapsedSeconds,
+  pauseRunClock,
+  resumeRunClock,
+  seekRunClock
+} from "/coaches/execution/engine/practice-execution-contract.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -235,6 +242,9 @@ async function setState(state) {
           blockDuration:
             state.blockDuration || 0,
 
+          blockElapsedSeconds:
+            state.blockElapsedSeconds || 0,
+
           updatedAt:
             serverTimestamp()
         }
@@ -445,6 +455,7 @@ const playlist = blocks
     playlist,
     blockStartedAt: Date.now(),
     blockDuration: playlist[0].minutes * 60,
+    blockElapsedSeconds: 0,
     updatedAt: Date.now()
   });
 }
@@ -514,17 +525,46 @@ function getActiveDrill(current, elapsedSeconds = 0) {
   return { current: null, next: null, remaining: 0 };
 }
 
+function phaseDisplayName(phase) {
+  if (!phase) return "";
+  if (phase.rotation) return "Rotation";
+  if (phase.kind === "rest") return "Rest";
+  if (phase.kind === "break" && /between matches|recovery/i.test(phase.label)) return "Recovery";
+  if (phase.kind === "break") return "Break";
+  return "Work";
+}
+
+function groupAssignmentLabel(groupIds = []) {
+  if (!groupIds.length) return "";
+  const groups = Array.isArray(getPayload().trainingGroups) ? getPayload().trainingGroups : [];
+  return groupIds.map(groupId => groups.find(group => String(group.id) === String(groupId))?.label || groupId).join(" · ");
+}
+
+function executionBlockAt(index) {
+  const plan = getPayload().executionContract;
+  return plan?.valid === false ? null
+    : Array.isArray(plan?.blocks) ? plan.blocks[Number(index || 0)] : null;
+}
+
 function renderDrillPanel(current, elapsedSeconds) {
   const panel = document.getElementById("drillPanel");
+  const labelEl = document.getElementById("drillLabel");
   const nameEl = document.getElementById("drillName");
   const goalEl = document.getElementById("drillGoal");
   const levelEl = document.getElementById("drillCueLevel");
   const flowEl = document.getElementById("drillFlow");
+  const contextEl = document.getElementById("drillContext");
 
-  if (!panel || !nameEl || !goalEl || !levelEl || !flowEl) return;
+  if (!panel || !labelEl || !nameEl || !goalEl || !levelEl || !flowEl) return;
 
-  const active = getActiveDrill(current, elapsedSeconds);
-  const drill = active.current;
+  const compiledBlock = executionBlockAt(getState().index);
+  const adapted = compiledBlock ? getActiveInnerDrill(compiledBlock, elapsedSeconds) : null;
+  const legacy = adapted ? null : getActiveDrill(current, elapsedSeconds);
+  const active = adapted || (legacy?.current ? {
+    drill: legacy.current, next: legacy.next, phase: null,
+    phaseRemainingSeconds: legacy.remaining
+  } : null);
+  const drill = active?.drill;
 
   if (!drill) {
     panel.classList.add("hidden");
@@ -532,13 +572,26 @@ function renderDrillPanel(current, elapsedSeconds) {
     goalEl.textContent = "";
     levelEl.textContent = "";
     flowEl.textContent = "";
+    if (contextEl) contextEl.textContent = "";
     return;
   }
 
   panel.classList.remove("hidden");
+  const phaseName = phaseDisplayName(active.phase);
+  const round = active.phase?.round > 0 && active.phase?.rounds > 0
+    ? ` · Round ${active.phase.round}/${active.phase.rounds}` : "";
+  const shortTime = active.shortTimeActive ? " · SHORT TIME" : "";
+  labelEl.textContent = phaseName
+    ? `${phaseName}${round} · ${format(active.phaseRemainingSeconds)}${shortTime}`
+    : "Current drill";
   nameEl.textContent = drill.name || "Drill";
   levelEl.textContent = String(drill.cueLevel || "optimal").toUpperCase();
   goalEl.textContent = drill.goal ? `Goal: ${drill.goal}` : "";
+  if (contextEl) {
+    const groupLabel = groupAssignmentLabel(drill.assignedGroupIds);
+    const rotation = active.phase?.rotation?.detail || active.phase?.rotation?.label || "";
+    contextEl.textContent = [groupLabel, rotation].filter(Boolean).join(" · ");
+  }
 
   const flow = String(drill.flowCues || "").trim();
   const coaching = String(drill.coachingCues || "").trim();
@@ -548,7 +601,7 @@ function renderDrillPanel(current, elapsedSeconds) {
   if (active.next) {
     const nextEl = document.getElementById("next");
     if (nextEl) {
-      nextEl.textContent = `Next drill: ${active.next.name || "Drill"} • ${String(active.next.minutes || 0).padStart(2, "0")}:00`;
+      nextEl.textContent = `Next drill: ${active.next.name || "Drill"} • ${format(active.next.seconds || Number(active.next.minutes || 0) * 60)}`;
     }
   }
 }
@@ -558,6 +611,7 @@ function render() {
   const liveTools = document.getElementById("liveCompanionTools");
   const liveVisible = Boolean(data.running || data.paused) && !data.complete;
   liveTools?.classList.toggle("hidden", !liveVisible);
+  document.getElementById("practiceControls")?.classList.toggle("hidden", !liveVisible);
   if (!liveVisible) {
     document.getElementById("liveCompanionPanel")?.classList.add("hidden");
     document.getElementById("liveCompanionToggle")?.setAttribute("aria-expanded", "false");
@@ -574,6 +628,8 @@ function render() {
   const nextEl = document.getElementById("next");
   const actionEl = document.getElementById("action");
   const cuesEl = document.getElementById("cues");
+  const pauseButton = document.getElementById("pausePracticeBtn");
+  if (pauseButton) pauseButton.textContent = data.paused ? "Resume" : "Pause";
 
   if (data.complete) {
     renderComplete({
@@ -588,9 +644,7 @@ function render() {
   }
 
   // Optional v1 execution contract. Older sessions keep their existing display.
-  const executionPlan = getPayload().executionContract;
-  const compiledBlock = executionPlan?.valid === false ? null
-    : Array.isArray(executionPlan?.blocks) ? executionPlan.blocks[Number(data.index || 0)] : null;
+  const compiledBlock = executionBlockAt(data.index);
   const playlist = Array.isArray(data.playlist)
     ? data.playlist
     : [];
@@ -622,21 +676,19 @@ if (actionEl) {
   const timerLabel =
     current?.timer?.label || "";
 
-  const elapsedForInterval = Math.floor((Date.now() - (data.blockStartedAt || Date.now())) / 1000);
+  const elapsedForInterval = getRunElapsedSeconds(data);
+  const activeInner = compiledBlock?.id === (current?.slot || current?.title)
+    ? getActiveInnerDrill(compiledBlock, elapsedForInterval) : null;
   const activeInterval = compiledBlock?.id === (current?.slot || current?.title)
     ? getActiveCombatInterval(compiledBlock, elapsedForInterval) : null;
-  actionEl.textContent = activeInterval && activeInterval.phase !== "complete"
+  actionEl.textContent = activeInner?.phase
+    ? `${activeInner.phase.label} · ${phaseDisplayName(activeInner.phase)} · ${format(activeInner.phaseRemainingSeconds)}`
+    : activeInterval && activeInterval.phase !== "complete"
     ? `${activeInterval.label} · ${activeInterval.phase === "rest" ? "Rest" : "Work"} · Round ${activeInterval.round}/${activeInterval.rounds} · ${format(activeInterval.remainingSeconds)}`
     : timerLabel || "";
 }
 
-  const now =
-    Date.now();
-
-  const elapsed =
-    Math.floor(
-      (now - (data.blockStartedAt || now)) / 1000
-    );
+  const elapsed = getRunElapsedSeconds(data);
 
   const remaining =
     Math.max(
@@ -671,6 +723,7 @@ if (actionEl) {
         blockStartedAt: Date.now(),
         blockDuration:
           Number(nextBlock.minutes || 0) * 60,
+        blockElapsedSeconds: 0,
         updatedAt: Date.now()
       });
     } else {
@@ -726,6 +779,44 @@ if (actionEl) {
     }
   }
 }
+
+window.togglePracticePause = function () {
+  const state = getState();
+  if (state.complete || (!state.running && !state.paused)) return;
+  setState(state.paused ? resumeRunClock(state) : pauseRunClock(state));
+  render();
+};
+
+window.skipPracticePhase = function () {
+  const state = getState();
+  if (state.complete || (!state.running && !state.paused)) return;
+  const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+  if (!current) return;
+  const compiledBlock = executionBlockAt(state.index);
+  const elapsed = getRunElapsedSeconds(state);
+  const active = compiledBlock ? getActiveInnerDrill(compiledBlock, elapsed) : null;
+  if (active?.phaseEndsAtSeconds > elapsed) {
+    setState(seekRunClock(state, active.phaseEndsAtSeconds));
+    render();
+    return;
+  }
+  setState(seekRunClock(state, Number(state.blockDuration || 0)));
+  render();
+};
+
+window.completePracticeNow = function () {
+  const state = getState();
+  if (state.complete || (!state.running && !state.paused)) return;
+  if (!window.confirm("Complete this practice now?")) return;
+  const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+  completeBeep();
+  updateDurableWorkedMemory({ block: current, completed: true }).catch(error => {
+    console.warn("Execution completion memory sync failed:", error);
+  });
+  setState({ ...state, running: false, paused: false, complete: true,
+    blockElapsedSeconds: getRunElapsedSeconds(state), updatedAt: Date.now() });
+  render();
+};
 
 const readyScreen =
   document.getElementById("readyScreen");
