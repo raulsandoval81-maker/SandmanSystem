@@ -12,6 +12,14 @@ import {
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 import { reconcileCheckedInGroups } from "/coaches/execution/session-builder/attendance-evidence-bridge.js";
 import { executableCardsForBlock } from "/coaches/execution/session-builder/hybrid-planning-policy.js";
+import {
+  INNER_DRILL_CONTRACT_VERSION,
+  WRESTLING_LIVE_FORMATS,
+  createInnerDrill,
+  overrideInnerDrillTiming,
+  toClipboardDrillBlock,
+  validateInnerDrillBlock
+} from "/assets/js/practice/shared-inner-drill-contract.js";
 
 
 import {
@@ -873,8 +881,8 @@ function normalizeCueLevel(value = "optimal") {
   return CUE_LEVELS.includes(level) ? level : "optimal";
 }
 
-function captureDrillBlocks(block) {
-  return [...block.querySelectorAll(".drill-subblock")].map((item) => ({
+function legacyDrillBlock(item) {
+  return {
     id: item.dataset.drillId || drillBlockId(),
     name: item.querySelector(".drill-name")?.value.trim() || "",
     minutes: Math.max(0, Number(item.querySelector(".drill-minutes")?.value || 0)),
@@ -882,7 +890,115 @@ function captureDrillBlocks(block) {
     cueLevel: normalizeCueLevel(item.querySelector(".drill-cue-level")?.value),
     coachingCues: item.querySelector(".drill-coaching-cues")?.value.trim() || "",
     flowCues: item.querySelector(".drill-flow-cues")?.value.trim() || ""
-  }));
+  };
+}
+
+function splitCues(value = "") {
+  return String(value).split("·").map(cue => cue.trim()).filter(Boolean);
+}
+
+function timingFromEditor(item) {
+  const type = item.querySelector(".inner-drill-timing-type")?.value || "none";
+  if (type === "none") return null;
+  if (type === "continuous") return {
+    type, seconds: Number(item.querySelector(".inner-drill-continuous-seconds")?.value)
+  };
+  if (type === "match") return {
+    type, periodSeconds: String(item.querySelector(".inner-drill-periods")?.value || "")
+      .split(",").map(value => Number(value.trim())),
+    periodBreakSeconds: Number(item.querySelector(".inner-drill-period-break")?.value),
+    matchCount: Number(item.querySelector(".inner-drill-match-count")?.value),
+    recoverySeconds: Number(item.querySelector(".inner-drill-match-recovery")?.value),
+    shortTimeSeconds: Number(item.querySelector(".inner-drill-short-time")?.value)
+  };
+  const rotation = item.querySelector(".inner-drill-rotation")?.value || "standard";
+  const common = {
+    workSeconds: Number(item.querySelector(".inner-drill-work")?.value),
+    restSeconds: Number(item.querySelector(".inner-drill-rest")?.value)
+  };
+  return type === "live" && rotation !== "standard"
+    ? {type:"rotation", format:rotation, athleteCount:Number(item.querySelector(".inner-drill-athletes")?.value), ...common}
+    : {type:"interval", rounds:Number(item.querySelector(".inner-drill-rounds")?.value), ...common};
+}
+
+function sessionPlanningMode() {
+  const mode = String(getActiveSession().executionMode || "manual").toLowerCase();
+  return ["auto","hybrid","manual"].includes(mode) ? mode : "manual";
+}
+
+function compileDrillBlock(block, item) {
+  const legacy = legacyDrillBlock(item);
+  const timer = timingFromEditor(item);
+  if (!timer) return legacy;
+  const source = item._innerDrillSource || null;
+  if (source && source.contractVersion !== INNER_DRILL_CONTRACT_VERSION) {
+    throw new TypeError("unsupported-inner-drill-contract");
+  }
+  const input = {
+    id:legacy.id, name:legacy.name, kind:item.querySelector(".inner-drill-timing-type")?.value === "continuous"
+      ? "drill" : item.querySelector(".inner-drill-timing-type")?.value,
+    parentBlock:block?.dataset.slot || item.dataset.parentBlock || "", discipline:getActiveSession().discipline || "wrestling",
+    practiceMode:source?.practiceMode || sessionPlanningMode(), origin:source?.origin || "coach",
+    skillFamily:source?.skillFamily || null, coachCard:source?.coachCard || null,
+    assignedGroupIds:source?.assignedGroupIds || [],
+    instructionalPurpose:source?.instructionalPurpose || legacy.goal || "Coach-selected practice activity",
+    goal:legacy.goal, cueLevel:legacy.cueLevel, coachingCues:splitCues(legacy.coachingCues),
+    flowCues:splitCues(legacy.flowCues), timer,
+    recommendationProvenance:source?.recommendationProvenance || null,
+    skillProvenance:source?.skillProvenance || null, policyHook:source?.policyHook || null
+  };
+  let compiled = createInnerDrill(input);
+  if (source && JSON.stringify(timer) !== JSON.stringify(source.timer)) {
+    compiled = overrideInnerDrillTiming({...source,...input}, timer);
+  } else if (source?.originalProposal) {
+    compiled = Object.freeze({...compiled,originalProposal:source.originalProposal,coachOverride:source.coachOverride===true});
+  }
+  return {...toClipboardDrillBlock(compiled), innerDrill:compiled};
+}
+
+function captureDrillBlocks(block) {
+  return [...block.querySelectorAll(".drill-subblock")].map(item => compileDrillBlock(block,item));
+}
+
+function coachInnerDrillMessage(error) {
+  const message = String(error?.message || error || "Invalid inner-drill timing.");
+  return message.replace(/^parent-block-capacity-exceeded:.*/, "Scheduled drill time exceeds this parent block.")
+    .replace(/^parent-block-reservation-exceeded:.*/, "Whole-minute drill reservations exceed this parent block.")
+    .replace(/^parent-timer-conflicts-with-inner-schedule.*/, "Remove the parent Block Timer or use continuous inner drills; two interval schedules cannot run together.")
+    .replace(/^unsupported-inner-drill-contract.*/, "This drill uses an unsupported timing contract.");
+}
+
+function validateClipboardInnerDrills({forExecution = false} = {}) {
+  const errors = [];
+  document.querySelectorAll("#planBlocks .plan-block:not(.hidden)").forEach(block => {
+    let drills = [];
+    try {
+      drills = captureDrillBlocks(block).map(item => item.innerDrill).filter(Boolean);
+    } catch (error) {
+      errors.push(`${block.dataset.slot}: ${coachInnerDrillMessage(error)}`);
+      return;
+    }
+    if (!drills.length) return;
+    const validation = validateInnerDrillBlock({parentMinutes:Number(block.dataset.minutes || 0),
+      parentTimer:{pack:block.dataset.timerPack || ""},drills});
+    validation.blockers.forEach(blocker => errors.push(`${block.dataset.slot}: ${coachInnerDrillMessage(blocker)}`));
+    if (forExecution && drills.some(drill => drill.origin === "server-suggestion"
+        && drill.recommendationProvenance?.previewOnly === true)) {
+      errors.push(`${block.dataset.slot}: Preview-only recommendations cannot enter practice execution.`);
+    }
+  });
+  return {ok:errors.length === 0, errors};
+}
+
+function requireValidInnerDrills(options = {}) {
+  const validation = validateClipboardInnerDrills(options);
+  document.querySelectorAll(".inner-drill-error").forEach(element => element.textContent = "");
+  if (!validation.ok) {
+    setStatus(`Fix Drill Block timing: ${validation.errors.join(" ")}`);
+    const first = document.querySelector(".inner-drill-error");
+    if (first) first.textContent = validation.errors.join(" ");
+  }
+  return validation.ok;
 }
 
 function captureDraftBlocks() {
@@ -901,6 +1017,7 @@ function captureDraftBlocks() {
 }
 
 function persistDraft(lifecycle = "editing") {
+  if (!requireValidInnerDrills()) return null;
   const previous = getDraftPayload() || {};
   const session = {
     ...getActiveSession(),
@@ -982,10 +1099,98 @@ function flowCueButtons() {
   ).join("");
 }
 
+function formatExactDuration(seconds = 0) {
+  const value = Math.max(0, Number(seconds || 0));
+  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2,"0")}`;
+}
+
+function timingEditorValues(data = {}) {
+  const inner = data.innerDrill || null;
+  const timer = inner?.timer || {};
+  const kind = !inner ? "none" : timer.type === "continuous" ? "continuous" : inner.kind;
+  const matchingLive = Object.entries(WRESTLING_LIVE_FORMATS).find(([,format]) =>
+    timer.type === "interval" && timer.workSeconds === format.workSeconds
+      && timer.restSeconds === format.restSeconds && timer.rounds === format.rounds)?.[0] || "custom";
+  return {inner,timer,kind,matchingLive};
+}
+
+function renderInnerDrillTiming(data = {}) {
+  const {timer,kind,matchingLive} = timingEditorValues(data);
+  const periods = Array.isArray(timer.periodSeconds) ? timer.periodSeconds.join(",") : "180,120,120";
+  return `<details class="inner-drill-timing"${kind !== "none" ? " open" : ""}>
+    <summary>Optional timing schedule <span class="inner-drill-summary">${kind === "none" ? "Not configured" : "Loading…"}</span></summary>
+    <p class="inner-drill-policy">Editable training format—not an age, rank, federation, or progression policy.</p>
+    <div class="inner-drill-grid">
+      <label><span>Timing format</span><select class="inner-drill-timing-type">
+        ${[["none","No timing schedule"],["continuous","Continuous"],["drill","Drill intervals"],["live","Live"],["match","Match"]]
+          .map(([value,label])=>`<option value="${value}"${kind===value?" selected":""}>${label}</option>`).join("")}
+      </select></label>
+      <label data-timing-for="continuous"><span>Activity seconds</span><input class="inner-drill-continuous-seconds" type="number" min="1" max="14400" step="1" value="${Number(timer.seconds || Number(data.minutes || 5) * 60)}"></label>
+      <label data-timing-for="live"><span>Live option</span><select class="inner-drill-live-format">
+        ${[["custom","Custom"],...Object.entries(WRESTLING_LIVE_FORMATS).map(([value,format])=>[value,format.label])]
+          .map(([value,label])=>`<option value="${value}"${matchingLive===value?" selected":""}>${label}</option>`).join("")}
+      </select></label>
+      <label data-timing-for="drill live"><span>Work seconds</span><input class="inner-drill-work" type="number" min="1" max="3600" step="1" value="${Number(timer.workSeconds || 30)}"></label>
+      <label data-timing-for="drill live"><span>Rest / recovery</span><input class="inner-drill-rest" type="number" min="0" max="1800" step="1" value="${Number(timer.restSeconds ?? 10)}"></label>
+      <label data-timing-for="drill live"><span>Rounds</span><input class="inner-drill-rounds" type="number" min="1" max="100" step="1" value="${Number(timer.rounds || 3)}"></label>
+      <label data-timing-for="live"><span>Wrestling rotation</span><select class="inner-drill-rotation">
+        ${[["standard","Standard partner rotation"],["top-bottom-out","Top / Bottom / Out"],["match","Match Rotation"],["ironman","Iron Man"]]
+          .map(([value,label])=>`<option value="${value}"${timer.format===value?" selected":""}>${label}</option>`).join("")}
+      </select></label>
+      <label data-timing-for="live"><span>Rotation athletes</span><input class="inner-drill-athletes" type="number" min="3" max="5" step="1" value="${Number(timer.athleteCount || 3)}"></label>
+      <label data-timing-for="match" class="inner-drill-wide"><span>Period seconds (comma-separated)</span><input class="inner-drill-periods" type="text" value="${escapeHtml(periods)}" placeholder="180,120,120"></label>
+      <label data-timing-for="match"><span>Period break</span><input class="inner-drill-period-break" type="number" min="0" max="600" step="1" value="${Number(timer.periodBreakSeconds || 0)}"></label>
+      <label data-timing-for="match"><span>Matches</span><input class="inner-drill-match-count" type="number" min="1" max="100" step="1" value="${Number(timer.matchCount || 1)}"></label>
+      <label data-timing-for="match"><span>Between matches</span><input class="inner-drill-match-recovery" type="number" min="0" max="1800" step="1" value="${Number(timer.recoverySeconds || 60)}"></label>
+      <label data-timing-for="match"><span>Short-time cue</span><input class="inner-drill-short-time" type="number" min="0" max="120" step="1" value="${Number(timer.shortTimeSeconds ?? 10)}"></label>
+    </div>
+    <div class="inner-drill-duration" role="status"></div>
+    <div class="inner-drill-error" role="alert"></div>
+  </details>`;
+}
+
+function updateInnerDrillEditor(item, {applyLivePreset = false} = {}) {
+  const type = item.querySelector(".inner-drill-timing-type")?.value || "none";
+  item.querySelectorAll("[data-timing-for]").forEach(field => {
+    field.hidden = !String(field.dataset.timingFor || "").split(" ").includes(type);
+  });
+  if (type === "live" && applyLivePreset) {
+    const preset = WRESTLING_LIVE_FORMATS[item.querySelector(".inner-drill-live-format")?.value];
+    if (preset) {
+      item.querySelector(".inner-drill-work").value = preset.workSeconds;
+      item.querySelector(".inner-drill-rest").value = preset.restSeconds;
+      item.querySelector(".inner-drill-rounds").value = preset.rounds;
+    }
+  }
+  const summary = item.querySelector(".inner-drill-summary");
+  const duration = item.querySelector(".inner-drill-duration");
+  const error = item.querySelector(".inner-drill-error");
+  const minutes = item.querySelector(".drill-minutes");
+  if (minutes) minutes.readOnly = type !== "none";
+  if (type === "none") {
+    summary.textContent = "Not configured"; duration.textContent = ""; error.textContent = ""; return;
+  }
+  try {
+    const block = item.closest(".plan-block");
+    const compiled = compileDrillBlock(block,item).innerDrill;
+    if (minutes) minutes.value = compiled.reservedMinutes;
+    summary.textContent = `Total ${formatExactDuration(compiled.scheduledSeconds)}`;
+    duration.innerHTML = `<strong>Scheduled: ${formatExactDuration(compiled.scheduledSeconds)}</strong>
+      <span>Reserved in parent block: ${compiled.reservedMinutes} whole min</span>
+      <span>${compiled.phases.length} phase${compiled.phases.length === 1 ? "" : "s"}</span>`;
+    error.textContent = "";
+  } catch (caught) {
+    summary.textContent = "Needs attention"; duration.textContent = "";
+    error.textContent = coachInnerDrillMessage(caught);
+  }
+}
+
 function renderDrillSubblock(slot, data = {}) {
   const item = document.createElement("article");
   item.className = "drill-subblock";
   item.dataset.drillId = String(data.id || drillBlockId());
+  item.dataset.parentBlock = slot;
+  item._innerDrillSource = data.innerDrill ? JSON.parse(JSON.stringify(data.innerDrill)) : null;
 
   const cueLevel = normalizeCueLevel(data.cueLevel);
   const minutes = Number.isFinite(Number(data.minutes))
@@ -1047,7 +1252,10 @@ function renderDrillSubblock(slot, data = {}) {
         ${flowCueButtons()}
       </div>
     </details>
+    ${renderInnerDrillTiming(data)}
   `;
+
+  updateInnerDrillEditor(item);
 
   return item;
 }
@@ -1574,6 +1782,8 @@ function groupActivitiesForBlock(block, session) {
 window.runPractice = async function () {
   const session = getActiveSession();
 
+  if (!requireValidInnerDrills({forExecution:true})) return;
+
   if (!session.discipline) {
     setStatus("Choose an explicit discipline before launching this practice.");
     return;
@@ -1974,11 +2184,21 @@ document.addEventListener("click", (e) => {
 });
 
 document.addEventListener("input", (e) => {
-  if (e.target.closest(".drill-subblock")) queueDraftSave();
+  const drill = e.target.closest(".drill-subblock");
+  if (drill) {
+    if (e.target.closest(".inner-drill-timing")) updateInnerDrillEditor(drill);
+    queueDraftSave();
+  }
 });
 
 document.addEventListener("change", (e) => {
   if (e.target.matches(".drill-cue-level")) queueDraftSave();
+  const drill = e.target.closest(".drill-subblock");
+  if (drill && e.target.matches(".inner-drill-timing-type")) updateInnerDrillEditor(drill);
+  if (drill && e.target.matches(".inner-drill-live-format")) {
+    updateInnerDrillEditor(drill,{applyLivePreset:true});
+  }
+  if (drill && e.target.closest(".inner-drill-timing")) queueDraftSave();
 });
 
 document.addEventListener("click", (e) => {
@@ -2023,6 +2243,9 @@ function getNotesValue(slotKey) {
 }
 
 async function saveCurrentPlanToFirestore() {
+  if (!requireValidInnerDrills({forExecution:true})) {
+    throw new Error("Fix Drill Block timing before saving this plan.");
+  }
   const session = getActiveSession();
 
   const blocksDom = [
@@ -2105,7 +2328,7 @@ window.savePlan = async function () {
     setStatus("Saved.");
   } catch (err) {
     console.error(err);
-    setStatus("Save failed.");
+    setStatus(err?.message || "Save failed.");
   }
 };
 /* =========================
