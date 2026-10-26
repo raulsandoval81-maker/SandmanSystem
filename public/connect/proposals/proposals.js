@@ -526,6 +526,47 @@ function proposalQueueStyles() {
       background:var(--management-surface-soft);
     }
 
+    .proposal-group[data-group="CLOSED"]{
+      padding:14px 16px;
+      border:1px solid var(--management-border);
+      border-radius:16px;
+      background:var(--management-surface-soft);
+    }
+
+    .proposal-group[data-group="CLOSED"] > summary{
+      cursor:pointer;
+      list-style:none;
+      align-items:center;
+      border-bottom:0;
+      padding-bottom:0;
+    }
+
+    .proposal-group[data-group="CLOSED"] > summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .proposal-group[data-group="CLOSED"] > summary::after{
+      content:"Expand";
+      font-size:.75rem;
+      font-weight:800;
+      color:var(--management-muted);
+    }
+
+    .proposal-group[data-group="CLOSED"][open] > summary::after{
+      content:"Collapse";
+    }
+
+    .proposal-group[data-group="CLOSED"][open] > summary{
+      padding-bottom:10px;
+      margin-bottom:12px;
+      border-bottom:1px solid var(--management-border);
+    }
+
+    .proposal-group[data-group="CLOSED"] > summary:focus-visible{
+      outline:2px solid var(--management-gold);
+      outline-offset:3px;
+    }
+
     .proposal-group-head{
       display:flex;
       justify-content:space-between;
@@ -1856,7 +1897,7 @@ const proposalGroups = [
       "Closed",
 
     description:
-      "Void or retired proposal records retained for audit."
+      "Completed paid, void, and retired proposals retained for history."
   }
 ];
 
@@ -1875,10 +1916,11 @@ function proposalGroupKey(
     "CLIENT_SIGNED"
   ].includes(status)) return "REVIEW_APPROVE";
 
+  if (status === "PAID") return "CLOSED";
+
   if ([
     "READY_FOR_CHECKOUT",
-    "CHECKOUT_CREATED",
-    "PAID"
+    "CHECKOUT_CREATED"
   ].includes(status)) return "CHECKOUT_ENROLLMENT";
 
   return "CLOSED";
@@ -2054,7 +2096,7 @@ async function loadProposalQueue() {
   if (countsEl) {
     countsEl.innerHTML = `
       <span class="proposal-count">
-        <strong>${proposals.length}</strong>
+        <strong>${proposals.length - counts.CLOSED}</strong>
         <small>Active Records</small>
       </span>
 
@@ -2070,7 +2112,7 @@ async function loadProposalQueue() {
 
       <span class="proposal-count proposal-count--ready">
         <strong>${counts.CHECKOUT_ENROLLMENT}</strong>
-        <small>Checkout / Paid</small>
+        <small>Checkout Pending</small>
       </span>
     `;
   }
@@ -2105,12 +2147,16 @@ async function loadProposalQueue() {
               ) === group.key
           );
 
+        const isClosed = group.key === "CLOSED";
+        const groupTag = isClosed ? "details" : "section";
+        const headTag = isClosed ? "summary" : "div";
+
         return `
-          <section
+          <${groupTag}
             class="proposal-group${records.length ? "" : " is-empty"}"
             data-group="${esc(group.key)}"
           >
-            <div class="proposal-group-head">
+            <${headTag} class="proposal-group-head">
               <div>
                 <h3>
                   ${esc(group.title)}
@@ -2126,7 +2172,7 @@ async function loadProposalQueue() {
               <strong>
                 ${records.length}
               </strong>
-            </div>
+            </${headTag}>
 
             <div class="proposal-list">
               ${
@@ -2150,7 +2196,7 @@ async function loadProposalQueue() {
                   `
               }
             </div>
-          </section>
+          </${groupTag}>
         `;
       })
       .join("");
