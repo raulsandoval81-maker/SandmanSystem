@@ -23,6 +23,7 @@ import {
   executionObservation,
   resolveNextPlanVersion
 } from "/coaches/execution/engine/practice-execution-actuals.mjs";
+import { applyExecutionCommand, controllerSnapshot } from "/coaches/execution/engine/practice-remote-control.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -38,6 +39,8 @@ let lastBeepKey = "";
 let fastPassMinutes = 60;
 let observationQueue = null;
 let observationQueueKey = "";
+let remoteControlVersion = 0;
+let remoteControlPoll = false;
 
 function compactWorkedCard(card, blockId, index) {
   const item = typeof card === "object" && card ? card : { title: String(card || "") };
@@ -155,6 +158,7 @@ window.retryExecutionEvidence = function () { observationQueue?.retry(); };
 ensureSignedIn()
   .then(() => {
     authReady = true;
+    subscribeRemoteControl();
   })
   .catch(err => {
     console.warn("Big Clock auth warning:", err);
@@ -337,12 +341,83 @@ async function setState(state) {
       { merge: true }
     );
 
+    const payload = getPayload();
+    const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+    if (practiceId) {
+      const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+      const compiled = executionBlockAt(state.index);
+      const active = compiled ? getActiveInnerDrill(compiled, getRunElapsedSeconds(state)) : null;
+      const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+      await saveMemory({ operation: "execution-state", practiceId, commandVersion: remoteControlVersion,
+        state: controllerSnapshot(state, { sessionId, blockId: current?.slot || current?.title || "",
+          drillId: state.activeDrillId || active?.drill?.id || "", groupId: state.activeGroupId || "" }) });
+    }
+
   } catch (err) {
     console.warn(
       "runState sync failed:",
       err
     );
   }
+}
+
+function subscribeRemoteControl() {
+  const payload = getPayload();
+  const practiceId = String(payload.practiceId || getSessionPayload().practiceId || "").trim();
+  if (!practiceId || remoteControlPoll) return;
+  const poll = async () => {
+    try {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const control = result.data?.practice?.sessionMemory?.executionControl || {};
+    const version = Number(control.version || 0);
+    const current = getState();
+    remoteControlVersion = version;
+    if (!control.command || version <= Number(current.remoteCommandVersion || 0)) return;
+    const compiled = executionBlockAt(current.index);
+    const elapsed = getRunElapsedSeconds(current);
+    const active = compiled ? getActiveInnerDrill(compiled, elapsed) : null;
+    let next = applyExecutionCommand(current, control.command, {
+      now: Date.now(), phaseEndSeconds: active?.phaseEndsAtSeconds || Number(current.blockDuration || 0),
+      blockCount: Array.isArray(current.playlist) ? current.playlist.length : 0
+    });
+    if (["switch-drill", "substitute-drill"].includes(control.command.type)) {
+      const targetBlockIndex = (current.playlist || []).findIndex(item =>
+        String(item.slot || item.title || "") === String(control.command.blockId || ""));
+      const targetIndex = targetBlockIndex >= 0 ? targetBlockIndex : Number(current.index || 0);
+      const targetCompiled = executionBlockAt(targetIndex);
+      const selectedId = control.command.replacementDrillId || control.command.drillId;
+      let offset = 0;
+      for (const drill of targetCompiled?.drills || []) {
+        if (String(drill.id) === String(selectedId)) break;
+        offset += Number(drill.seconds || 0);
+      }
+      const targetPlaylistBlock = current.playlist?.[targetIndex];
+      next = { ...next, index: targetIndex, blockElapsedSeconds: offset, blockStartedAt: Date.now(),
+        blockDuration: Number(targetPlaylistBlock?.minutes || 0) * 60 };
+    }
+    if (control.command.type === "advance") {
+      const nextBlock = current.playlist?.[next.index];
+      const blockId = String(nextBlock?.slot || nextBlock?.title || "");
+      next.blockDuration = Number(next.remoteFutureAdjustments?.[blockId] || Number(nextBlock?.minutes || 0) * 60);
+    }
+    if (control.command.type === "skip" && active?.drill?.id) {
+      const excluded = new Set(Array.isArray(current.skippedMilestones) ? current.skippedMilestones : []);
+      if (active.phase?.id) excluded.add(`phase:${active.drill.id}:${active.phase.id}`);
+      excluded.add(`drill:${active.drill.id}`);
+      next = { ...next, skippedMilestones: [...excluded] };
+      recordExecutionObservation("skip", current);
+    }
+    if (control.command.type === "advance") recordExecutionObservation("advance", current);
+    if (control.command.type === "end") recordExecutionObservation("early-complete", current);
+    next.remoteCommandVersion = version;
+    void setState(next);
+    render();
+    } catch (error) { console.warn("Remote execution control unavailable:", error); }
+    finally { if (remoteControlPoll) setTimeout(poll, 1000); }
+  };
+  remoteControlPoll = true;
+  void poll();
 }
 
 function matLaneLabel() {
@@ -515,6 +590,7 @@ function startFromPayload() {
     : [];
 
   if (!blocks.length) return;
+  subscribeRemoteControl();
 
 
 
@@ -814,8 +890,8 @@ if (actionEl) {
         ...data,
         index: nextIndex,
         blockStartedAt: Date.now(),
-        blockDuration:
-          Number(nextBlock.minutes || 0) * 60,
+        blockDuration: Number(data.remoteFutureAdjustments?.[String(nextBlock.slot || nextBlock.title || "")]
+          || Number(nextBlock.minutes || 0) * 60),
         blockElapsedSeconds: 0,
         updatedAt: Date.now()
       });

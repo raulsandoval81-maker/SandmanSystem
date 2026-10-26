@@ -9,6 +9,7 @@ import {
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { buildActualsSubmission, summarizeObservedExecution } from "/coaches/execution/engine/practice-execution-actuals.mjs";
+import { buildExecutionCommand } from "/coaches/execution/engine/practice-remote-control.mjs";
 
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
@@ -123,6 +124,8 @@ async function waitForAuth() {
 let activeCoachSession = null;
 let hydrationComplete = false;
 let canonicalPractice = null;
+let executionControlVersion = 0;
+let executionControlPoll = false;
 let actualsLocked = false;
 let authorizedActualsRoster = [];
 let canonicalRefreshPromise = null;
@@ -671,6 +674,86 @@ async function refreshCanonicalPractice() {
   })().finally(() => { canonicalRefreshPromise = null; });
   return canonicalRefreshPromise;
 }
+
+function renderRemoteControl(control = canonicalPractice?.sessionMemory?.executionControl || {}) {
+  executionControlVersion = Number(control.version || 0);
+  const state = control.state || {};
+  const status = document.getElementById("remoteControlStatus");
+  if (status) status.textContent = control.command && Number(control.appliedVersion || 0) < executionControlVersion
+    ? `Command ${executionControlVersion} accepted; waiting for Big Clock…`
+    : state.complete ? "Practice complete. Companion remains optional for review."
+      : `${state.paused ? "Paused" : state.running ? "Running" : "Ready"} · Block ${Number(state.index || 0) + 1} · ${Number(state.remainingSeconds || 0)}s remaining`;
+  const memory = canonicalPractice?.sessionMemory || {};
+  const blocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
+  const groups = Array.isArray(memory.planningContext?.groups) ? memory.planningContext.groups : [];
+  const blockSelect = document.getElementById("remoteBlockSelect");
+  const drillSelect = document.getElementById("remoteDrillSelect");
+  const groupSelect = document.getElementById("remoteGroupSelect");
+  if (blockSelect && !blockSelect.dataset.ready) {
+    blockSelect.innerHTML = blocks.map(block => `<option value="${escapeHtml(block.blockId)}">${escapeHtml(block.title || block.blockId)}</option>`).join("");
+    blockSelect.dataset.ready = "1";
+  }
+  if (drillSelect && !drillSelect.dataset.ready) {
+    drillSelect.innerHTML = '<option value="">Current drill</option>' + blocks.flatMap(block => block.drillBlocks || [])
+      .map(drill => `<option value="${escapeHtml(drill.drillId)}">${escapeHtml(drill.name || drill.drillId)}</option>`).join("");
+    drillSelect.dataset.ready = "1";
+  }
+  if (groupSelect && !groupSelect.dataset.ready) {
+    groupSelect.innerHTML = '<option value="">Current group</option>' + groups
+      .map(group => `<option value="${escapeHtml(group.groupId)}">${escapeHtml(group.label || group.groupId)}</option>`).join("");
+    groupSelect.dataset.ready = "1";
+  }
+}
+
+function subscribeExecutionControl() {
+  const practiceId = getCoachSessionPayload()?.practiceId;
+  if (!practiceId || executionControlPoll) return;
+  const poll = async () => {
+    try {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const practice = result.data?.practice;
+    if (practice) canonicalPractice = practice;
+    renderRemoteControl(practice?.sessionMemory?.executionControl || {});
+    } catch (error) {
+    console.warn("Companion remote control unavailable", error);
+    const status = document.getElementById("remoteControlStatus");
+    if (status) status.textContent = "Remote control is unavailable. Big Clock can continue independently.";
+    }
+    finally { if (executionControlPoll) setTimeout(poll, 1000); }
+  };
+  executionControlPoll = true;
+  void poll();
+}
+
+async function sendExecutionCommand(type) {
+  const session = getCoachSessionPayload();
+  const practiceId = session?.practiceId;
+  if (!practiceId || !canonicalPractice) throw new Error("Canonical practice is not loaded.");
+  if (type === "end" && !window.confirm("End this practice on Big Clock?")) return;
+  const command = buildExecutionCommand({
+    commandId: `${Date.now()}-${crypto.randomUUID?.() || Math.random().toString(36).slice(2)}`,
+    practiceId, sessionId: session.sessionId, planVersion: canonicalPractice.sessionMemory?.planVersion,
+    type, blockId: document.getElementById("remoteBlockSelect")?.value || "",
+    drillId: document.getElementById("remoteDrillSelect")?.value || "",
+    replacementDrillId: type === "substitute-drill" ? document.getElementById("remoteDrillSelect")?.value || "" : "",
+    groupId: document.getElementById("remoteGroupSelect")?.value || "",
+    seconds: document.getElementById("remoteSeconds")?.value || 0
+  });
+  const status = document.getElementById("remoteControlStatus");
+  if (status) status.textContent = "Sending command…";
+  const save = httpsCallable(functions, "savePracticeSessionMemory");
+  await save({ operation: "execution-command", practiceId, expectedVersion: executionControlVersion, command });
+}
+
+document.querySelectorAll("[data-execution-command]").forEach(button => button.addEventListener("click", async () => {
+  try { await sendExecutionCommand(button.dataset.executionCommand); }
+  catch (error) {
+    console.error("Remote command failed", error);
+    const status = document.getElementById("remoteControlStatus");
+    if (status) status.textContent = error?.message || "Command rejected. Reload the authoritative session state.";
+  }
+}));
 /* =========================
    LIVE SESSION LINKS
 ========================= */
@@ -944,6 +1027,7 @@ function escapeHtml(value) {
   if (practiceId) {
     try {
       await refreshCanonicalPractice();
+      subscribeExecutionControl();
       const shared = canonicalPractice?.dailyPracticeLog;
       if (shared && !localStorage.getItem(notesDraftKey())) {
         BLOCK_KEYS.forEach(slot => {
