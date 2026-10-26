@@ -3,7 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   buildActualsSubmission,
+  completedExecutionMilestones,
+  createObservationQueue,
   executionObservation,
+  resolveNextPlanVersion,
   summarizeObservedExecution
 } from "../../public/coaches/execution/engine/practice-execution-actuals.mjs";
 
@@ -32,12 +35,60 @@ test("planned, observed, and Coach-verified evidence stay distinct", () => {
 });
 
 test("completed, partial, skipped, and early-completed work remain truthful", () => {
-  assert.equal(summarizeObservedExecution(plan, [event("complete", { drillId: "", phaseId: "" })])[0].status, "completed");
+  assert.equal(summarizeObservedExecution(plan, [event("drill-complete")])[0].status, "completed");
+  assert.equal(summarizeObservedExecution(plan, [event("complete", { drillId: "", phaseId: "" })])[0].status, "not-observed");
   assert.equal(summarizeObservedExecution(plan, [event("pause")])[0].status, "partial");
-  assert.equal(summarizeObservedExecution(plan, [event("skip")])[0].status, "skipped");
+  assert.equal(summarizeObservedExecution(plan, [event("skip")])[0].status, "partial");
+  assert.deepEqual(summarizeObservedExecution(plan, [event("skip")])[0].skippedPhaseIds, ["p1"]);
+  assert.equal(summarizeObservedExecution(plan, [event("skip", { phaseId: "" })])[0].status, "skipped");
   const early = summarizeObservedExecution(plan, [event("early-complete")]);
   assert.equal(early[0].status, "partial");
   assert.equal(early[1].status, "not-observed");
+});
+
+test("parent-clock milestones identify only drills and phases actually crossed", () => {
+  const block = { drills: [
+    { id: "d1", seconds: 30, phases: [{ id: "p1", seconds: 20 }, { id: "p2", seconds: 10 }] },
+    { id: "d2", seconds: 30, phases: [{ id: "p3", seconds: 30 }] }
+  ] };
+  assert.deepEqual(completedExecutionMilestones(block, 25).map(item => [item.action, item.active.drill.id, item.active.phase?.id]), [
+    ["phase-complete", "d1", "p1"]
+  ]);
+  assert.deepEqual(completedExecutionMilestones(block, 30).map(item => item.action), ["phase-complete", "phase-complete", "drill-complete"]);
+  assert.ok(completedExecutionMilestones(block, 60).some(item => item.action === "drill-complete" && item.active.drill.id === "d2"));
+});
+
+test("rapid observations persist serially, retain failed work, and retry idempotently", async () => {
+  const calls = [];
+  let failOnce = true;
+  let latest;
+  const queue = createObservationQueue({
+    persist: async item => {
+      calls.push(item.eventId);
+      if (item.eventId === "pause" && failOnce) { failOnce = false; throw new Error("offline"); }
+    },
+    onChange: state => { latest = state; }
+  });
+  assert.equal(queue.enqueue({ eventId: "pause" }), true);
+  assert.equal(queue.enqueue({ eventId: "resume" }), true);
+  assert.equal(queue.enqueue({ eventId: "resume" }), false);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(latest.pending.map(item => item.eventId), ["pause", "resume"]);
+  assert.match(latest.lastError.message, /offline/);
+  queue.retry();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(calls, ["pause", "pause", "resume"]);
+  assert.deepEqual(latest.pending, []);
+  assert.equal(latest.lastError, null);
+});
+
+test("canonical Clipboard plan versions increment and legacy plans begin at one", async () => {
+  assert.equal(resolveNextPlanVersion(undefined), 1);
+  assert.equal(resolveNextPlanVersion(1), 2);
+  assert.equal(resolveNextPlanVersion(9), 10);
+  const clipboard = await read("public/coaches/execution/clipboard-2.0/clipboard-2.0.js");
+  assert.match(clipboard, /resolveNextPlanVersion\(practice\.sessionMemory\?\.planVersion\)/);
+  assert.doesNotMatch(clipboard, /planVersion:\s*1/);
 });
 
 test("pause/resume observations use authoritative elapsed seconds and never participants", () => {
@@ -80,12 +131,38 @@ test("server policy enforces idempotency, stale plans, contamination, authorizat
   assert.match(source, /Execution observation belongs to another practice/);
   assert.match(source, /belongs to another live session/);
   assert.match(source, /uses a stale practice plan/);
+  assert.match(source, /planVersion !== currentVersion \+ 1/);
+  assert.match(source, /Practice plan version must advance exactly once/);
   assert.match(source, /Execution event identity is already in use/);
   assert.match(source, /idempotent = true/);
   assert.match(source, /server-owned/);
   assert.match(source, /verifiedAt: now, verifiedBy: actor\.uid/);
   assert.match(source, /authorized practice roster/);
   assert.match(source, /Coach-verified actuals are immutable/);
+});
+
+test("Coach Companion reloads server actuals on refresh, focus, and cross-tab evidence changes", async () => {
+  const source = await read("public/coaches/execution/coach-companion/coach-companion.js");
+  assert.match(source, /async function refreshCanonicalPractice/);
+  assert.match(source, /Promise\.allSettled/);
+  assert.match(source, /window\.addEventListener\("storage"/);
+  assert.match(source, /window\.addEventListener\("focus"/);
+  assert.match(source, /visibilitychange/);
+  assert.match(source, /ensureSelectedOption/);
+  assert.match(source, /authorizedIds\.has/);
+  assert.match(source, /memory\.verifiedActuals \|\| memory\.actualsDraft/);
+});
+
+test("Big Clock exposes failed observation sync and reuses the same queue on retry", async () => {
+  const [source, html] = await Promise.all([
+    read("public/coaches/execution/big-clock-2.0/big-clock-2.0.js"),
+    read("public/coaches/execution/big-clock-2.0/index.html")
+  ]);
+  assert.match(source, /createObservationQueue/);
+  assert.match(source, /OBSERVATION_QUEUE_PREFIX/);
+  assert.match(source, /window\.retryExecutionEvidence/);
+  assert.match(html, /id="executionEvidenceStatus"/);
+  assert.match(html, /id="retryExecutionEvidenceBtn"/);
 });
 
 test("actuals operations have no XP, progression, testing, attendance, or Closeout side effects", async () => {

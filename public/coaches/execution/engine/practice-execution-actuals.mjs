@@ -6,7 +6,10 @@
  * XP, attendance, mastery, or progression.
  */
 export const EXECUTION_ACTUALS_VERSION = "sandman-execution-actuals-v1";
-export const OBSERVATION_ACTIONS = new Set(["start", "pause", "resume", "skip", "advance", "complete", "early-complete"]);
+export const OBSERVATION_ACTIONS = new Set([
+  "start", "pause", "resume", "skip", "advance", "complete", "early-complete",
+  "phase-complete", "drill-complete"
+]);
 export const COACH_OUTCOMES = new Set(["completed", "modified", "skipped", "not-observed"]);
 
 const text = value => String(value ?? "").trim();
@@ -40,6 +43,70 @@ export function executionObservation({ practiceId, sessionId, planVersion, actio
   };
 }
 
+export function resolveNextPlanVersion(savedVersion) {
+  const current = Number(savedVersion);
+  return Number.isInteger(current) && current > 0 ? current + 1 : 1;
+}
+
+/** Return deterministic milestones crossed by the existing parent-block clock. */
+export function completedExecutionMilestones(block, elapsedSeconds = 0) {
+  const elapsed = seconds(elapsedSeconds);
+  const milestones = [];
+  let cursor = 0;
+  for (const drill of Array.isArray(block?.drills) ? block.drills : []) {
+    let phaseCursor = cursor;
+    for (const phase of Array.isArray(drill?.phases) ? drill.phases : []) {
+      phaseCursor += seconds(phase.seconds);
+      if (phaseCursor <= elapsed) milestones.push({
+        action: "phase-complete", elapsedSeconds: phaseCursor,
+        active: { drill, phase, phaseRemainingSeconds: 0 }
+      });
+    }
+    const drillSeconds = seconds(drill?.seconds)
+      || (Array.isArray(drill?.phases) ? drill.phases.reduce((sum, phase) => sum + seconds(phase.seconds), 0) : 0);
+    cursor += drillSeconds;
+    if (drillSeconds > 0 && cursor <= elapsed) milestones.push({
+      action: "drill-complete", elapsedSeconds: cursor,
+      active: { drill, phase: null, phaseRemainingSeconds: 0 }
+    });
+  }
+  return milestones;
+}
+
+/** Serial, retryable persistence keeps rapid controller events ordered. */
+export function createObservationQueue({ persist, onChange = () => {}, initial = [] } = {}) {
+  if (typeof persist !== "function") throw new Error("OBSERVATION_PERSIST_REQUIRED");
+  const pending = [...initial];
+  const known = new Set(pending.map(item => item.eventId));
+  let draining = false;
+  let lastError = null;
+  const snapshot = () => ({ pending: [...pending], draining, lastError });
+  const notify = () => onChange(snapshot());
+  const drain = async () => {
+    if (draining) return;
+    draining = true; lastError = null; notify();
+    while (pending.length) {
+      try {
+        await persist(pending[0]);
+        pending.shift();
+        notify();
+      } catch (error) {
+        lastError = error;
+        break;
+      }
+    }
+    draining = false; notify();
+  };
+  return {
+    enqueue(item) {
+      if (!item?.eventId || known.has(item.eventId)) return false;
+      known.add(item.eventId); pending.push(item); notify(); void drain(); return true;
+    },
+    retry() { void drain(); },
+    snapshot
+  };
+}
+
 /** Derive a concise review without claiming athlete participation. */
 export function summarizeObservedExecution(planBlocks = [], events = []) {
   const ordered = [...events].sort((a, b) => Number(a.sequence || 0) - Number(b.sequence || 0));
@@ -48,14 +115,19 @@ export function summarizeObservedExecution(planBlocks = [], events = []) {
     const targets = drills.length ? drills : [{ id: "", name: block.title || block.blockId, phases: [] }];
     return targets.map(drill => {
       const relevant = ordered.filter(event => event.blockId === block.blockId
-        && (!drill.id || event.drillId === drill.id || (!event.drillId && ["advance", "complete"].includes(event.action))));
-      const skipped = relevant.some(event => event.action === "skip");
-      const completed = relevant.some(event => event.action === "advance" || event.action === "complete");
+        && (!drill.id || event.drillId === drill.id));
+      const skippedPhaseIds = [...new Set(relevant
+        .filter(event => event.action === "skip" && event.phaseId).map(event => text(event.phaseId)))];
+      const skipped = relevant.some(event => event.action === "skip" && !event.phaseId);
+      const completed = drill.id
+        ? relevant.some(event => event.action === "drill-complete")
+        : relevant.some(event => ["advance", "complete"].includes(event.action));
       const elapsedSeconds = relevant.reduce((max, event) => Math.max(max, seconds(event.elapsedSeconds)), 0);
       return {
         blockId: text(block.blockId), drillId: text(drill.id), name: text(drill.name || block.title),
-        status: skipped ? "skipped" : completed ? "completed" : relevant.length ? "partial" : "not-observed",
-        elapsedSeconds, observedOnly: true, athleteIds: []
+        status: skipped ? "skipped" : skippedPhaseIds.length ? "partial"
+          : completed ? "completed" : relevant.length ? "partial" : "not-observed",
+        skippedPhaseIds, elapsedSeconds, observedOnly: true, athleteIds: []
       };
     });
   });

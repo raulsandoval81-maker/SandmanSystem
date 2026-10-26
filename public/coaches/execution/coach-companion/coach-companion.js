@@ -13,6 +13,8 @@ import { buildActualsSubmission, summarizeObservedExecution } from "/coaches/exe
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
 const CLIPBOARD_DRAFT_KEY = "sandman_clipboard_draft_v1";
+const OBSERVATION_SYNC_PREFIX = "sandman_execution_observation_sync_v1:";
+const ACTUALS_SYNC_PREFIX = "sandman_coach_actuals_sync_v1:";
 
 const BLOCK_KEYS = [
   "onmat",
@@ -122,6 +124,8 @@ let activeCoachSession = null;
 let hydrationComplete = false;
 let canonicalPractice = null;
 let actualsLocked = false;
+let authorizedActualsRoster = [];
+let canonicalRefreshPromise = null;
 
 function getCoachSessionPayload() {
   if (activeCoachSession?.blocks?.length) {
@@ -557,10 +561,25 @@ function plannedActualsBlocks() {
 function actualsRosterOptions() {
   const groups = getCoachSessionPayload()?.trainingGroups || [];
   const athletes = new Map();
+  const authorizedIds = new Set(authorizedActualsRoster.map(athlete => String(athlete.id || athlete.uid || "")));
   groups.forEach(group => (group.athleteIds || []).forEach((id, index) => {
-    if (id) athletes.set(String(id), String(group.athleteNames?.[index] || id));
+    if (id && authorizedIds.has(String(id))) athletes.set(String(id), String(group.athleteNames?.[index] || id));
   }));
+  authorizedActualsRoster.forEach(athlete => {
+    const id = String(athlete.id || athlete.uid || "");
+    if (id && !athletes.has(id)) athletes.set(id, String(athlete.name || athlete.publicName || id));
+  });
   return { groups, athletes };
+}
+
+function optionValue(group) { return String(group?.id || group?.groupId || ""); }
+function ensureSelectedOption(select, value, prefix) {
+  if (!select || !value) return;
+  if (![...select.options].some(option => option.value === value)) {
+    const option = document.createElement("option");
+    option.value = value; option.textContent = `${prefix}: ${value}`; select.appendChild(option);
+  }
+  select.value = value;
 }
 
 function renderActualsReview() {
@@ -574,14 +593,14 @@ function renderActualsReview() {
   actualsLocked = Boolean(memory.verifiedActuals);
   const savedByKey = new Map((stored?.entries || []).map(entry => [`${entry.blockId}::${entry.drillId || ""}`, entry]));
   const { groups, athletes } = actualsRosterOptions();
-  const groupOptions = ['<option value="">No group attribution</option>', ...groups.map(group => `<option value="${escapeHtml(group.id)}">${escapeHtml(group.label || group.id)}</option>`)].join("");
+  const groupOptions = ['<option value="">No group attribution</option>', ...groups.map(group => `<option value="${escapeHtml(optionValue(group))}">${escapeHtml(group.label || optionValue(group))}</option>`)].join("");
   const athleteOptions = ['<option value="">No athlete attribution</option>', ...[...athletes].map(([id,name]) => `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`)].join("");
   target.innerHTML = observed.map((item, index) => {
     const saved = savedByKey.get(`${item.blockId}::${item.drillId}`) || {};
     const outcome = saved.outcome || (item.status === "partial" ? "modified" : item.status === "not-observed" ? "not-observed" : item.status);
     return `<div class="actuals-row" data-actual-index="${index}" data-block-id="${escapeHtml(item.blockId)}" data-drill-id="${escapeHtml(item.drillId)}">
       <h3>${escapeHtml(item.name)}</h3>
-      <p>Planned · ${escapeHtml(item.blockId)} &nbsp; | &nbsp; Observed · ${escapeHtml(item.status)}${item.elapsedSeconds ? ` at ${item.elapsedSeconds}s parent-block elapsed` : ""}. Timer evidence does not identify participants.</p>
+      <p>Planned · ${escapeHtml(item.blockId)} &nbsp; | &nbsp; Observed · ${escapeHtml(item.status)}${item.skippedPhaseIds?.length ? ` (skipped phases: ${escapeHtml(item.skippedPhaseIds.join(", "))})` : ""}${item.elapsedSeconds ? ` at ${item.elapsedSeconds}s parent-block elapsed` : ""}. Timer evidence does not identify participants.</p>
       <label>Coach report<select data-actual-outcome ${actualsLocked ? "disabled" : ""}>${["completed","modified","skipped","not-observed"].map(value => `<option value="${value}"${value === outcome ? " selected" : ""}>${value}</option>`).join("")}</select></label>
       <label>Performed seconds<input data-actual-seconds type="number" min="0" max="28800" step="1" value="${Number(saved.executedSeconds || 0)}" ${actualsLocked ? "disabled" : ""}></label>
       <label>Group<select data-actual-group ${actualsLocked ? "disabled" : ""}>${groupOptions}</select></label>
@@ -591,8 +610,8 @@ function renderActualsReview() {
   }).join("") || '<p>No approved practice blocks are available for actuals review.</p>';
   target.querySelectorAll(".actuals-row").forEach(row => {
     const saved = savedByKey.get(`${row.dataset.blockId}::${row.dataset.drillId || ""}`) || {};
-    row.querySelector("[data-actual-group]").value = saved.groupIds?.[0] || "";
-    row.querySelector("[data-actual-athlete]").value = saved.athleteIds?.[0] || "";
+    ensureSelectedOption(row.querySelector("[data-actual-group]"), saved.groupIds?.[0] || "", "Saved group");
+    ensureSelectedOption(row.querySelector("[data-actual-athlete]"), saved.athleteIds?.[0] || "", "Saved athlete");
   });
   document.getElementById("saveActualsDraftBtn").disabled = actualsLocked;
   document.getElementById("verifyActualsBtn").disabled = actualsLocked;
@@ -621,9 +640,36 @@ async function persistActuals(operation) {
   const submission = buildActualsSubmission({ practiceId, planVersion, entries: collectActualEntries(), verificationId });
   const save = httpsCallable(functions, "savePracticeSessionMemory");
   await save({ operation, ...submission });
-  const getPractice = httpsCallable(functions, "getPracticeSession");
-  canonicalPractice = (await getPractice({ practiceId })).data?.practice || canonicalPractice;
-  renderActualsReview();
+  localStorage.setItem(`${ACTUALS_SYNC_PREFIX}${practiceId}`, String(Date.now()));
+  await refreshCanonicalPractice();
+}
+
+async function refreshCanonicalPractice() {
+  if (canonicalRefreshPromise) return canonicalRefreshPromise;
+  const practiceId = getCoachSessionPayload()?.practiceId;
+  if (!practiceId) return null;
+  canonicalRefreshPromise = (async () => {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const getAttendance = httpsCallable(functions, "getPracticeAttendanceReview");
+    const [practiceResult, attendanceResult] = await Promise.allSettled([
+      getPractice({ practiceId }), getAttendance({ practiceId })
+    ]);
+    if (practiceResult.status === "rejected") throw practiceResult.reason;
+    canonicalPractice = practiceResult.value.data?.practice || null;
+    if (attendanceResult.status === "fulfilled") {
+      const review = attendanceResult.value.data || {};
+      const attendance = review.attendance || {};
+      const authorizedIds = new Set([
+        ...(Array.isArray(attendance.checkedInIds) ? attendance.checkedInIds : []),
+        ...(Array.isArray(attendance.presentIds) ? attendance.presentIds : [])
+      ].map(String));
+      authorizedActualsRoster = (review.roster || []).filter(athlete =>
+        authorizedIds.has(String(athlete.id || athlete.uid || "")));
+    }
+    renderActualsReview();
+    return canonicalPractice;
+  })().finally(() => { canonicalRefreshPromise = null; });
+  return canonicalRefreshPromise;
 }
 /* =========================
    LIVE SESSION LINKS
@@ -850,6 +896,23 @@ window.addEventListener("storage", e => {
     renderCoachSession();
   }
 
+  const practiceId = getCoachSessionPayload()?.practiceId;
+  if (practiceId && [
+    `${OBSERVATION_SYNC_PREFIX}${practiceId}`,
+    `${ACTUALS_SYNC_PREFIX}${practiceId}`
+  ].includes(e.key)) {
+    refreshCanonicalPractice().catch(error => console.warn("Actuals refresh failed", error));
+  }
+
+});
+
+window.addEventListener("focus", () => {
+  refreshCanonicalPractice().catch(error => console.warn("Actuals focus refresh failed", error));
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    refreshCanonicalPractice().catch(error => console.warn("Actuals visibility refresh failed", error));
+  }
 });
 
 function escapeHtml(value) {
@@ -880,10 +943,7 @@ function escapeHtml(value) {
   const practiceId = getCoachSessionPayload()?.practiceId;
   if (practiceId) {
     try {
-      const getPractice = httpsCallable(functions, "getPracticeSession");
-      const response = await getPractice({ practiceId });
-      canonicalPractice = response.data?.practice || null;
-      renderActualsReview();
+      await refreshCanonicalPractice();
       const shared = canonicalPractice?.dailyPracticeLog;
       if (shared && !localStorage.getItem(notesDraftKey())) {
         BLOCK_KEYS.forEach(slot => {

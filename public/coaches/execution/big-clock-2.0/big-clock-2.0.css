@@ -95,6 +95,10 @@ body{
   border-color:rgba(220,95,86,.65);
 }
 
+.execution-evidence-sync{display:flex;justify-content:center;align-items:center;gap:10px;min-height:28px;color:var(--muted,#9ca3af);font-size:.85rem}
+.execution-evidence-sync .sync-error{color:#ff9a91;font-weight:800}
+.execution-evidence-sync button{padding:6px 12px;border:1px solid rgba(220,95,86,.65);border-radius:999px;background:#111;color:#fff;font:inherit;cursor:pointer}
+
 .drill-context{
   margin-top:6px;
   color:var(--gold, #d4af37);

@@ -15,7 +15,10 @@ const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 const EXECUTION_MODES = new Set(["auto", "manual", "hybrid", "quick", "checked-in"]);
 const MEMORY_OPERATIONS = new Set(["plan", "worked", "reflection", "execution-observation", "actuals-draft", "actuals-verify"]);
 const EXECUTION_ACTUALS_VERSION = "sandman-execution-actuals-v1";
-const EXECUTION_ACTIONS = new Set(["start", "pause", "resume", "skip", "advance", "complete", "early-complete"]);
+const EXECUTION_ACTIONS = new Set([
+  "start", "pause", "resume", "skip", "advance", "complete", "early-complete",
+  "phase-complete", "drill-complete",
+]);
 const ACTUAL_OUTCOMES = new Set(["completed", "modified", "skipped", "not-observed"]);
 const MAX_PLAN_VERSION = 10_000;
 const PRACTICE_ENTRY_MODES = new Set(["normal", "coach-directed", "after-the-fact"]);
@@ -1079,6 +1082,17 @@ export const savePracticeSessionMemory = onCall(async (request) => {
       const plannedBlocks = compactBlocks(input.plannedBlocks);
       const plannedCards = compactCards(input.plannedCards);
       const planningContext = compactPlanningContext(input.planningContext);
+      const currentVersion = Number(practice.sessionMemory?.planVersion || 0);
+      if (planVersion === currentVersion) {
+        const exactRetry = JSON.stringify(practice.sessionMemory?.plannedBlocks || []) === JSON.stringify(plannedBlocks)
+          && JSON.stringify(practice.sessionMemory?.plannedCards || []) === JSON.stringify(plannedCards)
+          && JSON.stringify(practice.sessionMemory?.planningContext || {}) === JSON.stringify(planningContext);
+        if (exactRetry) { idempotent = true; return; }
+        throw new HttpsError("failed-precondition", "Practice plan version is stale or already belongs to different content.");
+      }
+      if (planVersion !== currentVersion + 1) {
+        throw new HttpsError("failed-precondition", "Practice plan version must advance exactly once from the canonical plan.");
+      }
       tx.update(ref, {
         "sessionMemory.planVersion": planVersion,
         "sessionMemory.plannedBlocks": plannedBlocks,
@@ -1175,6 +1189,9 @@ export const savePracticeSessionMemory = onCall(async (request) => {
 
     if (operation === "actuals-draft" || operation === "actuals-verify") {
       const memory: any = practice.sessionMemory || {};
+      if (input.contractVersion !== EXECUTION_ACTUALS_VERSION) {
+        throw new HttpsError("invalid-argument", "Unsupported actuals contract.");
+      }
       const planVersion = requireBoundedNumber(input.planVersion, "planVersion", 1, MAX_PLAN_VERSION, true);
       if (planVersion !== Number(memory.planVersion || 0)) {
         throw new HttpsError("failed-precondition", "Actuals use a stale practice plan.");
@@ -1213,6 +1230,9 @@ export const savePracticeSessionMemory = onCall(async (request) => {
         throw new HttpsError("failed-precondition", "Actual athlete attribution requires an athlete on the authorized practice roster.");
       }
       const verificationId = operation === "actuals-verify" ? requireDocumentId(input.verificationId, "verificationId") : "";
+      if (operation === "actuals-verify" && verificationId !== `${practiceId}-${planVersion}-coach-actuals`) {
+        throw new HttpsError("invalid-argument", "Verification identity does not match this practice plan.");
+      }
       const record = {
         contractVersion: EXECUTION_ACTUALS_VERSION, practiceId,
         sessionId: compactString(practice.liveSessionId, 160),
