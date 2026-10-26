@@ -371,9 +371,13 @@ function subscribeRemoteControl() {
     const result = await getPractice({ practiceId });
     const control = result.data?.practice?.sessionMemory?.executionControl || {};
     const version = Number(control.version || 0);
-    const current = getState();
+    let current = getState();
     remoteControlVersion = version;
     if (!control.command || version <= Number(current.remoteCommandVersion || 0)) return;
+    if (control.command.type === "start" && !Array.isArray(current.playlist)) {
+      startFromPayload();
+      current = getState();
+    }
     const compiled = executionBlockAt(current.index);
     const elapsed = getRunElapsedSeconds(current);
     const active = compiled ? getActiveInnerDrill(compiled, elapsed) : null;

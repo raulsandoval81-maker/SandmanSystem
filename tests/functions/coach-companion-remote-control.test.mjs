@@ -52,6 +52,7 @@ test("Big Clock applies commands and Companion remains optional for Closeout", (
   const clock = fs.readFileSync(new URL("../../public/coaches/execution/big-clock-2.0/big-clock-2.0.js", import.meta.url), "utf8");
   const companion = fs.readFileSync(new URL("../../public/coaches/execution/coach-companion/coach-companion.js", import.meta.url), "utf8");
   assert.match(clock, /applyExecutionCommand/);
+  assert.match(clock, /control\.command\.type === "start"[\s\S]*startFromPayload\(\)/);
   assert.match(clock, /getRunElapsedSeconds/);
   assert.equal((clock.match(/setInterval\(render, 250\)/g) || []).length, 1);
   assert.match(companion, /saveDailyPracticeLog/);
