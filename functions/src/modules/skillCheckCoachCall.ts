@@ -22,6 +22,7 @@ import {
   staffHasLocation,
 } from "../services/staffAuthorization";
 import { resolveSkillCheckRuntimeOptions } from "../config/functionRuntime";
+import {buildProtectedAutoLessonAssemblySource} from "./autoLessonAssemblySource";
 
 const skillCheckRuntimeOptions = resolveSkillCheckRuntimeOptions();
 
@@ -350,7 +351,7 @@ export const skillCheckCoachCall =
     const data = req.data || {};
     const action = clean(data.action).toLowerCase();
     const athleteId = clean(
-      data.athleteId || data.uid || ((action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft") && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
+      data.athleteId || data.uid || ((action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft" || action === "preview-auto-lesson-assembly") && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
     ).toUpperCase();
 
     const discipline =
@@ -551,7 +552,7 @@ export const skillCheckCoachCall =
         lessonExecuted: false, xpAwarded: false, eligibleForAuto: false};
     }
 
-    if (action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft") {
+    if (action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft" || action === "preview-auto-lesson-assembly") {
       // Preview-only: all members must have accepted, current evidence.
       const groupAdmin = normalizeStaffRole(actor.role) === "admin";
       if (!groupAdmin && normalizeStaffRole(actor.role) !== "coach") {
@@ -559,6 +560,12 @@ export const skillCheckCoachCall =
       }
       const ids = Array.isArray(data.athleteIds) ? data.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [];
       const requested = Array.isArray(data.familyIds) ? data.familyIds.map((id: unknown) => clean(id)) : [];
+      const requestedGroups: Array<{groupId: string; athleteIds: string[]}> = action === "preview-auto-lesson-assembly" && Array.isArray(data.groups)
+        ? data.groups.map((group: Record<string, unknown>) => ({
+            groupId: clean(group.groupId),
+            athleteIds: Array.isArray(group.athleteIds)
+              ? group.athleteIds.map((id: unknown) => clean(id).toUpperCase()) : [],
+          })) : [];
       if (!ids.length || ids.length > 30 || new Set(ids).size !== ids.length
           || ids.some((id: string) => !/^[a-zA-Z0-9_-]{1,128}$/.test(id))
           || !requested.length || requested.length > 50
@@ -566,7 +573,17 @@ export const skillCheckCoachCall =
           || new Set(requested).size !== requested.length) {
         throw new HttpsError("invalid-argument", "Valid unique athlete IDs and curriculum families required.");
       }
+      if (action === "preview-auto-lesson-assembly" && (!requestedGroups.length
+          || requestedGroups.length > 4
+          || new Set(requestedGroups.map(group => group.groupId)).size !== requestedGroups.length
+          || requestedGroups.some(group => !/^[A-Za-z0-9_-]{1,100}$/.test(group.groupId)
+            || !group.athleteIds.length || new Set(group.athleteIds).size !== group.athleteIds.length
+            || group.athleteIds.some(id => !ids.includes(id)))
+          || new Set(requestedGroups.flatMap(group => group.athleteIds)).size !== ids.length)) {
+        throw new HttpsError("invalid-argument", "Groups must contain the authorized athlete roster exactly once.");
+      }
       const members: Array<{athleteId: string; approved: boolean; blockers: string[]; skills: Array<{familyId: string; state: string}>}> = [];
+      const athleteProfiles = new Map<string, {tier: string; journey: string; manifestId: string; reviewRevision: number}>();
       for (const id of ids) {
         const memberSnap = await db.doc(`athletes/${id}`).get();
         if (!memberSnap.exists) {
@@ -597,6 +614,12 @@ export const skillCheckCoachCall =
         const records: Record<string, unknown>[] = Array.isArray(manifest.records) ? manifest.records : [];
         const paths = records.map(entry => clean(entry.skillEvidencePath)).sort();
         const revision = typeof review.revision === "number" ? review.revision : 1;
+        athleteProfiles.set(id, {
+          tier: clean(member.tier || member.progressionTier).toLowerCase(),
+          journey: clean(member.journey || member.program || member.track).toLowerCase(),
+          manifestId,
+          reviewRevision: revision,
+        });
         const previous = Array.isArray(member.previousLocationIds)
           ? [...new Set(member.previousLocationIds.map(clean).filter(Boolean))]
             .filter(location => location !== clean(member.locationId)).sort() : [];
@@ -719,6 +742,44 @@ export const skillCheckCoachCall =
         ? {ready:false,selection:null,blockers:["delivery-history-scope-too-large"],
           coachApprovalRequired:true,eligibleForAuto:false}
         : reviewSupervisedPrerequisiteSelection(preview, curriculumPrerequisites, recentFamilies);
+      if (action === "preview-auto-lesson-assembly") {
+        const groups = requestedGroups.flatMap(group => {
+          const groupMembers = members.filter(member => group.athleteIds.includes(member.athleteId));
+          const groupPreview = previewMixedGroupSkillNeeds(groupMembers, requested);
+          const selection = selectSupervisedGroupLesson(groupPreview, recentFamilies);
+          if (!selection.ready || !selection.selection) return [];
+          return [{
+            groupId: group.groupId,
+            familyId: selection.selection.familyId,
+            purpose: selection.selection.reason,
+            athletes: selection.selection.members.map(member => {
+              const profile = athleteProfiles.get(member.athleteId);
+              return {
+                athleteId: member.athleteId,
+                tier: profile?.tier || "",
+                journey: profile?.journey || "",
+                track: member.track,
+                currentState: member.currentState,
+                evidence: {manifestId: profile?.manifestId || "",
+                  reviewRevision: profile?.reviewRevision || 0,
+                  accepted: groupPreview.ready},
+              };
+            }),
+          }];
+        });
+        const groupBlockers = requestedGroups.flatMap(group => {
+          const groupPreview = previewMixedGroupSkillNeeds(
+            members.filter(member => group.athleteIds.includes(member.athleteId)), requested);
+          const selection = selectSupervisedGroupLesson(groupPreview, recentFamilies);
+          return selection.ready ? [] : selection.blockers.map(blocker => `${group.groupId}:${blocker}`);
+        });
+        return buildProtectedAutoLessonAssemblySource({
+          discipline, journey: "p2l", groups,
+          recommendationBlockers: [...groupBlockers,
+            ...(historyTooLarge ? ["delivery-history-scope-too-large"] : []),
+            "curriculum-policy-not-approved"],
+        });
+      }
       return {ok: true, diagnosticOnly: true, discipline, athleteIds: ids,
         ...preview, supervisedSuggestion, curriculumPrerequisites, curriculumMapAudit, proposedWrestlingAudit, dependencyRoleReview, trackReadiness,
         proposedCurriculumDependencies: discipline === "wrestling"

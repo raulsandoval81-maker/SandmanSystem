@@ -14,7 +14,7 @@ test("Clipboard adds drill blocks inside existing practice sections without chan
   assert.match(clipboard, /DRILL_BLOCK_SLOTS[\s\S]*"warmup"[\s\S]*"drills"[\s\S]*"technique"[\s\S]*"live"[\s\S]*"cond"/);
   assert.match(clipboard, /CUE_LEVELS[\s\S]*"minimal"[\s\S]*"optimal"[\s\S]*"maximum"/);
   assert.match(clipboard, /"Position"[\s\S]*"Go"[\s\S]*"Next position"[\s\S]*"5 sec"/);
-  assert.match(policy, /SESSION_ENTRY_MODES[\s\S]*"checked-in"[\s\S]*"hybrid"[\s\S]*"manual"[\s\S]*"quick"/);
+  assert.match(policy, /SESSION_ENTRY_MODES[\s\S]*"auto"[\s\S]*"hybrid"[\s\S]*"manual"[\s\S]*"checked-in"[\s\S]*"quick"/);
 });
 
 test("drill blocks persist through draft, run payload, plan save, and practice closeout", async () => {
