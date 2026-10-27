@@ -358,6 +358,8 @@ async function setState(state) {
       "runState sync failed:",
       err
     );
+    const status = document.getElementById("remoteExecutionStatus");
+    if (status && remoteControlVersion > 0) status.textContent = `Remote acknowledgment failed: ${err?.code || err?.message || "retrying"}`;
   }
 }
 
@@ -430,6 +432,8 @@ function subscribeRemoteControl() {
     if (control.command.type === "end") recordExecutionObservation("early-complete", current);
     next.remoteCommandVersion = version;
     await setState(next);
+    const remoteStatus = document.getElementById("remoteExecutionStatus");
+    if (remoteStatus) remoteStatus.textContent = "";
     render();
     } catch (error) {
       console.warn("Remote execution control unavailable:", error);
