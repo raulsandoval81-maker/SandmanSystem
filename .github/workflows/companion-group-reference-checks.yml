@@ -1,0 +1,27 @@
+name: Coach Companion group reference UI checks
+on:
+  pull_request:
+    paths:
+      - 'public/coaches/execution/big-clock-2.0/big-clock-2.0.js'
+      - 'public/coaches/execution/coach-companion/**'
+      - 'tests/functions/companion-group-lessons-location.test.mjs'
+      - '.github/workflows/companion-group-reference-checks.yml'
+permissions:
+  contents: read
+jobs:
+  ui-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate UI JavaScript syntax
+        run: |
+          node --check public/coaches/execution/big-clock-2.0/big-clock-2.0.js
+          node --check public/coaches/execution/coach-companion/coach-companion.js
+      - name: Guard group reference location and mapping
+        run: node --test tests/functions/companion-group-lessons-location.test.mjs

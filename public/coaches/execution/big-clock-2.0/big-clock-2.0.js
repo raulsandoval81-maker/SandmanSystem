@@ -23,6 +23,7 @@ import {
   executionObservation,
   resolveNextPlanVersion
 } from "/coaches/execution/engine/practice-execution-actuals.mjs";
+import { applyExecutionCommand, controllerSnapshot } from "/coaches/execution/engine/practice-remote-control.mjs";
 
 const SESSION_PARAM = String(new URLSearchParams(window.location.search).get("session") || "").trim();
 const STATE_KEY = "sandman_run_state";
@@ -38,6 +39,8 @@ let lastBeepKey = "";
 let fastPassMinutes = 60;
 let observationQueue = null;
 let observationQueueKey = "";
+let remoteControlVersion = 0;
+let remoteControlPoll = false;
 
 function compactWorkedCard(card, blockId, index) {
   const item = typeof card === "object" && card ? card : { title: String(card || "") };
@@ -155,6 +158,7 @@ window.retryExecutionEvidence = function () { observationQueue?.retry(); };
 ensureSignedIn()
   .then(() => {
     authReady = true;
+    subscribeRemoteControl();
   })
   .catch(err => {
     console.warn("Big Clock auth warning:", err);
@@ -337,12 +341,109 @@ async function setState(state) {
       { merge: true }
     );
 
+    const payload = getPayload();
+    const practiceId = String(payload.practiceId || session.practiceId || "").trim();
+    if (practiceId) {
+      const current = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
+      const compiled = executionBlockAt(state.index);
+      const active = compiled ? getActiveInnerDrill(compiled, getRunElapsedSeconds(state)) : null;
+      const saveMemory = httpsCallable(functions, "savePracticeSessionMemory");
+      await saveMemory({ operation: "execution-state", practiceId, commandVersion: remoteControlVersion,
+        state: controllerSnapshot(state, { sessionId, blockId: current?.slot || current?.title || "",
+          drillId: state.activeDrillId || active?.drill?.id || "", groupId: state.activeGroupId || "" }) });
+    }
+
   } catch (err) {
     console.warn(
       "runState sync failed:",
       err
     );
+    const status = document.getElementById("remoteExecutionStatus");
+    if (status && remoteControlVersion > 0) status.textContent = `Remote acknowledgment failed: ${err?.code || err?.message || "retrying"}`;
   }
+}
+
+// Recheck after an asynchronous handoff: auth may finish before the
+// canonical practice identity reaches local storage.
+function ensureRemoteControlListener() {
+  if (authReady && !remoteControlPoll) subscribeRemoteControl();
+}
+
+function subscribeRemoteControl() {
+  const payload = getPayload();
+  const practiceId = String(payload.practiceId || getSessionPayload().practiceId || "").trim();
+  if (!practiceId || remoteControlPoll) return;
+  const poll = async () => {
+    try {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const control = result.data?.practice?.sessionMemory?.executionControl || {};
+    const version = Number(control.version || 0);
+    let current = getState();
+    remoteControlVersion = version;
+    if (!control.command || version <= Number(current.remoteCommandVersion || 0)) {
+      // The command can be applied locally even when its remote acknowledgment failed.
+      // Retry only the acknowledgment; never execute the same command a second time.
+      if (version > 0 && Number(current.remoteCommandVersion || 0) === version
+          && Number(control.appliedVersion || 0) < version) {
+        await setState(current);
+      }
+      return;
+    }
+    if (control.command.type === "start" && !Array.isArray(current.playlist)) {
+      startFromPayload();
+      current = getState();
+    }
+    const compiled = executionBlockAt(current.index);
+    const elapsed = getRunElapsedSeconds(current);
+    const active = compiled ? getActiveInnerDrill(compiled, elapsed) : null;
+    let next = applyExecutionCommand(current, control.command, {
+      now: Date.now(), phaseEndSeconds: active?.phaseEndsAtSeconds || Number(current.blockDuration || 0),
+      blockCount: Array.isArray(current.playlist) ? current.playlist.length : 0
+    });
+    if (["switch-drill", "substitute-drill"].includes(control.command.type)) {
+      const targetBlockIndex = (current.playlist || []).findIndex(item =>
+        String(item.slot || item.title || "") === String(control.command.blockId || ""));
+      const targetIndex = targetBlockIndex >= 0 ? targetBlockIndex : Number(current.index || 0);
+      const targetCompiled = executionBlockAt(targetIndex);
+      const selectedId = control.command.replacementDrillId || control.command.drillId;
+      let offset = 0;
+      for (const drill of targetCompiled?.drills || []) {
+        if (String(drill.id) === String(selectedId)) break;
+        offset += Number(drill.seconds || 0);
+      }
+      const targetPlaylistBlock = current.playlist?.[targetIndex];
+      next = { ...next, index: targetIndex, blockElapsedSeconds: offset, blockStartedAt: Date.now(),
+        blockDuration: Number(targetPlaylistBlock?.minutes || 0) * 60 };
+    }
+    if (control.command.type === "advance") {
+      const nextBlock = current.playlist?.[next.index];
+      const blockId = String(nextBlock?.slot || nextBlock?.title || "");
+      next.blockDuration = Number(next.remoteFutureAdjustments?.[blockId] || Number(nextBlock?.minutes || 0) * 60);
+    }
+    if (control.command.type === "skip" && active?.drill?.id) {
+      const excluded = new Set(Array.isArray(current.skippedMilestones) ? current.skippedMilestones : []);
+      if (active.phase?.id) excluded.add(`phase:${active.drill.id}:${active.phase.id}`);
+      excluded.add(`drill:${active.drill.id}`);
+      next = { ...next, skippedMilestones: [...excluded] };
+      recordExecutionObservation("skip", current);
+    }
+    if (control.command.type === "advance") recordExecutionObservation("advance", current);
+    if (control.command.type === "end") recordExecutionObservation("early-complete", current);
+    next.remoteCommandVersion = version;
+    await setState(next);
+    const remoteStatus = document.getElementById("remoteExecutionStatus");
+    if (remoteStatus) remoteStatus.textContent = "";
+    render();
+    } catch (error) {
+      console.warn("Remote execution control unavailable:", error);
+      const status = document.getElementById("remoteExecutionStatus");
+      if (status) status.textContent = `Remote sync needs attention: ${error?.code || error?.message || "retrying"}`;
+    }
+    finally { if (remoteControlPoll) setTimeout(poll, 1000); }
+  };
+  remoteControlPoll = true;
+  void poll();
 }
 
 function matLaneLabel() {
@@ -515,6 +616,7 @@ function startFromPayload() {
     : [];
 
   if (!blocks.length) return;
+  subscribeRemoteControl();
 
 
 
@@ -814,8 +916,8 @@ if (actionEl) {
         ...data,
         index: nextIndex,
         blockStartedAt: Date.now(),
-        blockDuration:
-          Number(nextBlock.minutes || 0) * 60,
+        blockDuration: Number(data.remoteFutureAdjustments?.[String(nextBlock.slot || nextBlock.title || "")]
+          || Number(nextBlock.minutes || 0) * 60),
         blockElapsedSeconds: 0,
         updatedAt: Date.now()
       });
@@ -1028,75 +1130,11 @@ function showQrPanel(url, title = "Scan QR") {
   qrPanel?.classList.add("active");
 }
 
-function renderGroupLessonReferences() {
-  const payload = getPayload();
-  const containerId = "bigClockGroupLessons";
-  let panel = document.getElementById(containerId);
-  const prescriptions = Array.isArray(payload.groupPrescriptions) ? payload.groupPrescriptions : [];
-  const groups = Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [];
-  const mode = String(payload.executionMode || "").toLowerCase();
-  const state = getState();
-  const activeBlock = Array.isArray(state.playlist) ? state.playlist[state.index] : null;
-  const activeGroupActivities = Array.isArray(activeBlock?.groupActivities) ? activeBlock.groupActivities : [];
-  const shouldShow = mode !== "manual" && prescriptions.length > 0 && groups.length > 0;
-  if (!shouldShow) {
-    panel?.remove();
-    return;
-  }
-  if (!panel) {
-    panel = document.createElement("details");
-    panel.id = containerId;
-    panel.style.cssText = "max-width:1100px;margin:12px auto;padding:12px 16px;border:1px solid #666;border-radius:8px;color:inherit";
-    const main = document.querySelector("main.big-screen");
-    main?.parentNode?.insertBefore(panel, main);
-  }
-  if (!panel) return;
-  const wasOpen = panel.open;
-  panel.replaceChildren();
-  const summary = document.createElement("summary");
-  summary.textContent = `Group lessons · ${prescriptions.filter(p => p.status === "ready").length}/${groups.length} mapped (Coach reference)`;
-  panel.append(summary);
-  for (const [index, group] of groups.entries()) {
-    const entry = activeGroupActivities.find(p => String(p.groupId || "") === String(group.id || ""))
-      || prescriptions.find(p => String(p.groupId || "") === String(group.id || ""));
-    const line = document.createElement("div");
-    line.style.cssText = "margin-top:10px;line-height:1.7";
-    const heading = document.createElement("strong");
-    heading.textContent = `${group.label || `Mat 1 · Group ${index + 1}`} · ${String(group.tier || "").toUpperCase()} — `;
-    line.append(heading);
-    if (entry?.status !== "ready") {
-      line.append(document.createTextNode("Lesson mapping needs review"));
-    } else {
-      for (const [cardIndex, card] of (entry.cards || []).entries()) {
-        if (cardIndex) line.append(document.createTextNode(" · "));
-        const href = String(card.href || "");
-        if (href.startsWith("/coaches/cards/") && href.endsWith(".html") && !href.includes("..") && !href.includes("?") && !href.includes("#")) {
-          const link = document.createElement("a");
-          link.href = href;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = String(card.title || "Skill card");
-          line.append(link);
-        } else {
-          line.append(document.createTextNode(String(card.title || "Skill card")));
-        }
-      }
-    }
-    if (mode === "hybrid" && entry?.coachAdjustment) {
-      const adjustment = document.createElement("p");
-      adjustment.textContent = `Coach adjustment: ${entry.coachAdjustment}`;
-      line.append(adjustment);
-    }
-    panel.append(line);
-  }
-  panel.open = wasOpen;
-}
-
 renderLaneIdentity();
-renderGroupLessonReferences();
 render();
 
 setInterval(render, 250);
+setInterval(ensureRemoteControlListener, 1000);
 
 window.addEventListener("storage", e => {
   if (e.key === STATE_KEY) {

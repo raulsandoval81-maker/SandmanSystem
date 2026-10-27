@@ -6,7 +6,7 @@
   <title>Coach · During-Practice Clipboard</title>
 
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3"/>
-  <link rel="stylesheet" href="/coaches/execution/coach-companion/coach-companion.css?v=2"/>
+  <link rel="stylesheet" href="/coaches/execution/coach-companion/coach-companion.css?v=3"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -180,6 +180,37 @@
     </label>
     <textarea id="slot-note" class="broadcast" placeholder="Private session reminders…"></textarea>
   </div>
+  <section class="field-log-sections" aria-labelledby="remoteControlHeading">
+    <h2 id="remoteControlHeading">Live practice control</h2>
+    <p>Big Clock remains the timer. Commands below are authenticated and applied to that same session.</p>
+    <div id="remoteControlStatus" class="actuals-status muted">Connecting to Big Clock…</div>
+    <div class="actuals-actions" aria-labelledby="remoteControlHeading">
+      <button type="button" data-execution-command="start">Start</button>
+      <button type="button" data-execution-command="pause">Pause</button>
+      <button type="button" data-execution-command="resume">Resume</button>
+      <button type="button" data-execution-command="skip">Skip phase/drill</button>
+      <button type="button" data-execution-command="advance">Next block</button>
+      <button type="button" data-execution-command="end">End practice</button>
+    </div>
+    <div class="actuals-row">
+      <label>Planned block<select id="remoteBlockSelect"></select></label>
+      <label>Planned drill<select id="remoteDrillSelect"><option value="">Current drill</option></select></label>
+      <label>Training group<select id="remoteGroupSelect"><option value="">Current group</option></select></label>
+      <label>Exact seconds<input id="remoteSeconds" type="number" min="1" max="28800" step="1"></label>
+      <div class="actuals-actions">
+        <button type="button" data-execution-command="adjust-current-time">Set current time</button>
+        <button type="button" data-execution-command="switch-drill">Switch drill</button>
+        <button type="button" data-execution-command="switch-group">Switch group</button>
+        <button type="button" data-execution-command="substitute-drill">Substitute drill</button>
+        <button type="button" data-execution-command="adjust-future-block">Adjust future block</button>
+      </div>
+    </div>
+    <p class="muted">Adjustments are recorded separately from the approved Clipboard plan.</p>
+  </section>
+  <details id="companionGroupLessons" class="field-log-sections" hidden>
+    <summary id="companionGroupLessonsSummary">Group lessons (Coach reference)</summary>
+    <div id="companionGroupLessonsRows" class="companion-group-lessons" aria-live="off"></div>
+  </details>
   <section class="field-log-sections" aria-labelledby="actualsHeading">
     <h2 id="actualsHeading">Practice actuals</h2>
     <p><strong>Planned</strong> is the approved Clipboard. <strong>Observed</strong> is timer evidence only. <strong>Coach verified</strong> is your explicit report of work performed.</p>
@@ -215,6 +246,6 @@
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=9"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=11"></script>
 </body>
 </html>
