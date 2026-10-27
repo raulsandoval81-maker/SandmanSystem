@@ -65,6 +65,7 @@ on:
           - cross-academy-pr253-e9980457
           - guest-self-checkin-pr280-ef643228
           - coach-companion-remote-pr305-11539235
+          - coach-companion-final-pr305-5ec93994
           - attendance-admin-init-pr308-0b06a778
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
