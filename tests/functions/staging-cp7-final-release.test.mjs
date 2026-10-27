@@ -23,3 +23,16 @@ test("final CP7 stages exactly six Hosting files and no Cloud Functions", async 
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   assert.match(workflow, /coach-companion-final-pr305-5ec93994/);
 });
+
+test("inherited CP7 engine requires the exact approved ancestry and is not a general bypass", async () => {
+  const release = await loadRelease("coach-companion-final-pr305-5ec93994");
+  const engine = "public/coaches/execution/engine/practice-remote-control.mjs";
+  assert.deepEqual(release.inheritedHostingFiles, [engine]);
+  assert.ok(release.hostingFiles.includes(engine));
+  assert.ok(!release.allowedChangedFiles.includes(engine));
+  const policySource = await readFile("scripts/staging/exact-sha-release-policy.mjs", "utf8");
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(policySource, /Unapproved inherited Hosting source/);
+  assert.match(workflow, /git -C application-source diff --exit-code/);
+  assert.match(workflow, /git -C application-source cat-file -e/);
+});
