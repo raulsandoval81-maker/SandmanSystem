@@ -65,7 +65,7 @@ test("cross-academy release pins the dedicated attendance deployer for diagnosti
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   const selector = "inputs.release_id == 'cross-academy-pr253-e9980457'";
   assert.equal(workflow.split(selector).length - 1, 7);
-  assert.match(workflow, /release\.functionDeployer !== \(\["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228"\]\.includes\(process\.env\.RELEASE_ID\)/);
+  assert.match(workflow, /release\.functionDeployer !== \(\["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228", "attendance-admin-init-pr308-0b06a778"\]\.includes\(process\.env\.RELEASE_ID\)/);
 });
 
 const release = await loadRelease("hybrid-pr99-5ed90c5c");
