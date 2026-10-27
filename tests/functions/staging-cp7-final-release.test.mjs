@@ -3,6 +3,16 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { loadRelease, validateRelease } from "../../scripts/staging/exact-sha-release-policy.mjs";
 
+const finalReleaseId = "coach-companion-final-pr305-5ec93994";
+const legacyReleaseId = "hybrid-handoff-pr133-8af57906";
+
+function conditionSelectingCheck(workflow, check) {
+  const lines = workflow.split("\n");
+  const checkIndex = lines.findIndex((line) => line.includes(check));
+  assert.notEqual(checkIndex, -1, `missing workflow check: ${check}`);
+  return lines[checkIndex - 1];
+}
+
 test("final CP7 stages exactly six Hosting files and no Cloud Functions", async () => {
   const release = await loadRelease("coach-companion-final-pr305-5ec93994");
   assert.equal(release.applicationSha, "5ec939943456e6fad8e0c3e30de43de6c278211f");
@@ -35,4 +45,23 @@ test("inherited CP7 engine requires the exact approved ancestry and is not a gen
   assert.match(policySource, /Unapproved inherited Hosting source/);
   assert.match(workflow, /git -C application-source diff --exit-code/);
   assert.match(workflow, /git -C application-source cat-file -e/);
+});
+
+test("final CP7 release selects Clipboard-first and four-group validation without changing legacy branches", async () => {
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  const clipboardFirstCondition = conditionSelectingCheck(
+    workflow,
+    "grep -Fq '/coaches/execution/clipboard-2.0/?session='"
+  );
+  const fourGroupCondition = conditionSelectingCheck(
+    workflow,
+    "grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3'"
+  );
+
+  assert.match(clipboardFirstCondition, new RegExp(finalReleaseId));
+  assert.match(fourGroupCondition, new RegExp(finalReleaseId));
+  assert.doesNotMatch(clipboardFirstCondition, new RegExp(legacyReleaseId));
+  assert.doesNotMatch(fourGroupCondition, new RegExp(legacyReleaseId));
+  assert.match(workflow, /else\n\s+grep -q 'executionMode === "hybrid"'[\s\S]*?grep -q 'planning=1'/);
+  assert.match(workflow, /else\n\s+grep -q 'trainingGroups\.slice\(0, 3\)'/);
 });
