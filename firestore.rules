@@ -799,8 +799,51 @@ match /interest_leads/{leadId} {
 ---------------------------------------*/
 match /admissions_requests/{requestId} {
 
-  // Public promotional / intro forms may create requests.
-  allow create: if true;
+  // Public submissions must use a recognized request contract.
+  // No public update/read/delete permissions are added here.
+  allow create: if request.resource.data.keys().hasAll([
+      "organization", "locationId", "requestType", "contactName",
+      "athleteName", "email", "phone", "contactConsent", "status"
+    ])
+    && request.resource.data.organization == "sandman-combat"
+    && request.resource.data.locationId in [
+      "santa-ynez-valley", "lompoc", "elk-grove"
+    ]
+    && request.resource.data.requestType in [
+      "REQUESTED_INTRO", "PROMOTIONAL_INTRO", "OPEN_PRACTICE",
+      "SEASONAL_INTEREST"
+    ]
+    && request.resource.data.status == "new"
+    && request.resource.data.contactConsent == true
+    && request.resource.data.contactName is string
+    && request.resource.data.contactName.size() > 0
+    && request.resource.data.contactName.size() <= 120
+    && request.resource.data.athleteName is string
+    && request.resource.data.athleteName.size() > 0
+    && request.resource.data.athleteName.size() <= 120
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 200
+    && request.resource.data.phone is string
+    && request.resource.data.phone.size() > 0
+    && request.resource.data.phone.size() <= 35
+    && (
+      request.resource.data.requestType != "SEASONAL_INTEREST"
+      || (
+        request.resource.data.keys().hasAll([
+          "campaignId", "schedulePreference", "season",
+          "familyPricingInterest", "scholarshipInterest"
+        ])
+        && request.resource.data.locationId == "santa-ynez-valley"
+        && request.resource.data.campaignId == "winter-wrestling-2026-27"
+        && request.resource.data.season == "winter-2026-27"
+        && request.resource.data.schedulePreference in [
+          "mon-wed-sat", "tue-thu-sat", "unsure"
+        ]
+        && request.resource.data.familyPricingInterest is bool
+        && request.resource.data.scholarshipInterest is bool
+      )
+    );
 
   // Admin sees the network; active Management is location-scoped.
   allow get, list: if isAdmin()
