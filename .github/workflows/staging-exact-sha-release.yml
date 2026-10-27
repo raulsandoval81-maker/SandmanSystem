@@ -270,6 +270,15 @@ jobs:
             git -C application-source diff --name-only "${ancestor}..HEAD" | sort > /tmp/actual-release-files
             node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(r.allowedChangedFiles.slice().sort().join("\n"))' > /tmp/approved-release-files
             diff -u /tmp/approved-release-files /tmp/actual-release-files
+            # Inherited files are unchanged from the previously approved staging SHA.
+            node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];for(const f of r.inheritedHostingFiles||[])console.log(f)' > /tmp/inherited-hosting-files
+            if test -s /tmp/inherited-hosting-files; then
+              while IFS= read -r inherited_file; do
+                test -f "application-source/${inherited_file}"
+                git -C application-source cat-file -e "${ancestor}:${inherited_file}"
+                git -C application-source diff --exit-code "${ancestor}" HEAD -- "${inherited_file}"
+              done < /tmp/inherited-hosting-files
+            fi
           fi
           cd trusted-tooling
           node --input-type=module -e 'import {loadRelease,validateRelease} from "./scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.env.RELEASE_ID); validateRelease(r,{repository:process.env.GITHUB_REPOSITORY,workflowRef:process.env.GITHUB_WORKFLOW_REF,checkedOutSha:process.env.APPLICATION_SHA,projectId:"sandman-combat-staging",confirmProject:process.env.CONFIRM_PROJECT,wifProvider:process.env.STAGING_WIF_PROVIDER,hostingDeployer:r.hostingDeployer,functionDeployer:r.functionDeployer,functionRuntime:r.functionRuntime,authorizationAvailable:true});'
