@@ -97,7 +97,10 @@ function typeLabel(type = "") {
       "Promotional Intro",
 
     OPEN_PRACTICE:
-      "Open Practice"
+      "Open Practice",
+
+    SEASONAL_INTEREST:
+      "Seasonal Interest"
   };
 
   return labels[type] || type || "—";
@@ -201,6 +204,10 @@ function pricingSummary(item) {
       "Complimentary by approval · " +
       "No enrollment credit or discount"
     );
+  }
+
+  if (item.requestType === "SEASONAL_INTEREST") {
+    return item.campaignPriceLabel || "Seasonal offer · Confirm terms in Management";
   }
 
   return "—";
@@ -320,6 +327,10 @@ function filteredRequests() {
       item.email,
       item.phone,
       item.programInterest,
+      item.campaignId,
+      item.campaignName,
+      item.season,
+      item.schedulePreference,
       item.location,
       item.message
     ]
@@ -538,6 +549,8 @@ function render() {
                     )}
                   </strong>
                 </div>
+
+                ${item.requestType === "SEASONAL_INTEREST" ? `<div class="detail"><span>Campaign</span><strong>${esc(item.campaignName || item.campaignId || "—")}</strong></div><div class="detail"><span>Schedule Preference</span><strong>${esc(item.schedulePreference || "—")}</strong></div><div class="detail"><span>Family / Scholarship Inquiry</span><strong>${esc([item.familyPricingInterest ? "Family pricing" : "", item.scholarshipInterest ? "Scholarship" : ""].filter(Boolean).join(", ") || "—")}</strong></div>` : ""}
 
                 <div
                   class="detail"
