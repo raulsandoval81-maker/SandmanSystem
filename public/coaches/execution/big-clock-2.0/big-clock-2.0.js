@@ -361,6 +361,12 @@ async function setState(state) {
   }
 }
 
+// Recheck after an asynchronous handoff: auth may finish before the
+// canonical practice identity reaches local storage.
+function ensureRemoteControlListener() {
+  if (authReady && !remoteControlPoll) subscribeRemoteControl();
+}
+
 function subscribeRemoteControl() {
   const payload = getPayload();
   const practiceId = String(payload.practiceId || getSessionPayload().practiceId || "").trim();
@@ -425,7 +431,11 @@ function subscribeRemoteControl() {
     next.remoteCommandVersion = version;
     await setState(next);
     render();
-    } catch (error) { console.warn("Remote execution control unavailable:", error); }
+    } catch (error) {
+      console.warn("Remote execution control unavailable:", error);
+      const status = document.getElementById("remoteExecutionStatus");
+      if (status) status.textContent = `Remote sync needs attention: ${error?.code || error?.message || "retrying"}`;
+    }
     finally { if (remoteControlPoll) setTimeout(poll, 1000); }
   };
   remoteControlPoll = true;
@@ -1120,6 +1130,7 @@ renderLaneIdentity();
 render();
 
 setInterval(render, 250);
+setInterval(ensureRemoteControlListener, 1000);
 
 window.addEventListener("storage", e => {
   if (e.key === STATE_KEY) {
