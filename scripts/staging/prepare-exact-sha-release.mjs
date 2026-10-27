@@ -74,7 +74,7 @@ if (release.functions.length) {
   await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
   const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
   packageJson.main = "staging-release-entry.cjs";
-  if (release.releaseId === "guest-self-checkin-pr280-ef643228") delete packageJson.dependencies?.resend;
+  if (["guest-self-checkin-pr280-ef643228", "attendance-admin-init-pr308-0b06a778"].includes(release.releaseId)) delete packageJson.dependencies?.resend;
   // The immutable source was compiled above; Cloud Build must not run tsc again
   // because the deployable artifact intentionally omits tsconfig.json and TS sources.
   packageJson.scripts = { ...(packageJson.scripts || {}), "gcp-build": "" };
@@ -82,7 +82,7 @@ if (release.functions.length) {
   await writeFile(path.join(functionsRoot, "package.json"), `${JSON.stringify(packageJson, null, 2)}\n`);
   const stagingEntryTemplate = await readFile(new URL("./staging-release-entry.cjs", import.meta.url), "utf8");
   let stagingEntry = stagingEntryTemplate.replace("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__", release.functionRuntime);
-  if (release.releaseId === "guest-self-checkin-pr280-ef643228") {
+  if (["guest-self-checkin-pr280-ef643228", "attendance-admin-init-pr308-0b06a778"].includes(release.releaseId)) {
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
       'module.exports = { updatePracticeCheckIn: require("./lib/practice/practiceSessions.js").updatePracticeCheckIn };');
   }

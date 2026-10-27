@@ -65,6 +65,7 @@ on:
           - cross-academy-pr253-e9980457
           - guest-self-checkin-pr280-ef643228
           - coach-companion-remote-pr305-11539235
+          - attendance-admin-init-pr308-0b06a778
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -113,7 +114,7 @@ jobs:
             const release = require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];
             if (!release || release.projectId !== "sandman-combat-staging" ||
                 release.repository !== "raulsandoval81-maker/SandmanSystem" ||
-                release.functionDeployer !== (["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228"].includes(process.env.RELEASE_ID) ? "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com" : "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com") ||
+                release.functionDeployer !== (["cross-academy-pr253-e9980457", "guest-self-checkin-pr280-ef643228", "attendance-admin-init-pr308-0b06a778"].includes(process.env.RELEASE_ID) ? "sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com" : "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com") ||
                 !/^[0-9a-f]{40}$/.test(release.applicationSha)) process.exit(64);
           '
       - name: Authenticate as the release's dedicated Functions deployer
@@ -121,12 +122,12 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Inspect and verify sanitized identity and credential metadata
         env:
-          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           node -e '
@@ -147,7 +148,7 @@ jobs:
           '
       - name: Verify effective project permissions and OAuth scopes
         env:
-          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          EXPECTED_FUNCTION_DEPLOYER: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
         run: |
           set -euo pipefail
           access_token="$(gcloud auth print-access-token)"
@@ -408,6 +409,16 @@ jobs:
               node --check public/coaches/attendance/session.js
             )
           fi
+          if test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778"; then
+            (
+              cd application-source
+              node --test tests/functions/staging-practice-admin-initialization.test.mjs
+            )
+            (
+              cd trusted-tooling
+              node --test tests/functions/staging-exact-sha-release.test.mjs
+            )
+          fi
           if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then
             (
               cd application-source
@@ -436,14 +447,14 @@ jobs:
           if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then RELEASE_ID="cross-academy-pr253-e9980457"; fi
           # New Clipboard-first releases intentionally bypass the retired HYBRID
           # planning detour; retain legacy source checks for historical IDs.
-          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235"; then
+          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778"; then
             grep -Fq '/coaches/execution/clipboard-2.0/?session=' application-source/public/coaches/attendance/session.js
             ! grep -Fq 'planning=1' application-source/public/coaches/attendance/session.js
           else
             grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
             grep -q 'planning=1' application-source/public/coaches/attendance/session.js
           fi
-          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235"; then
+          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778"; then
             grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'MAX_TRAINING_GROUPS = 4' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'fourGroupAcknowledgement' application-source/public/coaches/attendance/session.html
@@ -532,7 +543,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify and preserve callable configuration and IAM
@@ -628,7 +639,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Verify targeted callable deployment inputs
@@ -638,7 +649,7 @@ jobs:
           node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
           test ! -e release-artifacts/functions/.env.production
           test ! -e release-artifacts/functions/.env.sandmandashboard
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778"; then
             node -e 'const p=require("./release-artifacts/functions/package.json");if(p.scripts?.build!==undefined||p.scripts?.["gcp-build"]!=="")throw Error("Precompiled staging artifact must explicitly disable Cloud Build scripts");'
           fi
           npm ci --omit=dev --prefix release-artifacts/functions
@@ -648,7 +659,7 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;; *) exit 64 ;; esac
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778"; then
             export SANDMAN_BOOTSTRAP_VERIFIED=true
             node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \
               "${{ inputs.release_id }}" "${{ matrix.function_name }}" release-artifacts/functions
@@ -660,7 +671,7 @@ jobs:
               --non-interactive
           fi
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') }}
+        if: ${{ always() && (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) }}
         with:
           name: function-deploy-receipt-${{ matrix.function_name }}-${{ needs.validate-source.outputs.application_sha }}
           path: function-deploy-receipt.json
@@ -672,11 +683,16 @@ jobs:
     runs-on: ubuntu-24.04
     environment: staging
     steps:
+      - name: Explicitly skip Hosting for attendance-only recovery
+        if: ${{ inputs.release_id == 'attendance-admin-init-pr308-0b06a778' }}
+        run: echo "PR308 staging recovery is function-only; Hosting deployment prohibited."
       - uses: actions/download-artifact@v4
+        if: ${{ inputs.release_id != 'attendance-admin-init-pr308-0b06a778' }}
         with:
           name: exact-sha-staging-release-${{ needs.validate-source.outputs.application_sha }}
           path: release-artifacts
       - uses: google-github-actions/auth@v3
+        if: ${{ inputs.release_id != 'attendance-admin-init-pr308-0b06a778' }}
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
@@ -684,6 +700,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Deploy only the isolated staging Hosting site
+        if: ${{ inputs.release_id != 'attendance-admin-init-pr308-0b06a778' }}
         run: npx --yes firebase-tools@15.11.0 deploy --config release-artifacts/firebase.hosting.json --project sandman-combat-staging --only hosting --non-interactive
 
   verify-deployment:
@@ -705,7 +722,7 @@ jobs:
         with:
           project_id: sandman-combat-staging
           workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228') && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
+          service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
       - name: Compare callable configuration and IAM after deployment
@@ -758,6 +775,10 @@ jobs:
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             "https://firebasehosting.googleapis.com/v1beta1/sites/sandman-combat-staging/releases?pageSize=1" \
             > hosting-release-after.json
+      - name: Assert Hosting was not modified for attendance-only recovery
+        if: ${{ inputs.release_id == 'attendance-admin-init-pr308-0b06a778' }}
+        run: |
+          node -e 'const fs=require("fs");const before=JSON.parse(fs.readFileSync("before/hosting-release-before.json","utf8"));const after=JSON.parse(fs.readFileSync("hosting-release-after.json","utf8"));const b=before.releases?.[0]?.name;const a=after.releases?.[0]?.name;if(!a||a!==b)throw Error("Staging Hosting changed during function-only release");'
       - uses: actions/upload-artifact@v4
         with:
           name: staging-release-after-${{ needs.validate-source.outputs.application_sha }}
