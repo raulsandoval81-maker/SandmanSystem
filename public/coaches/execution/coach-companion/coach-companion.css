@@ -367,3 +367,12 @@ body{
 .actuals-row select,.actuals-row input{box-sizing:border-box;width:100%;padding:9px;color:var(--text,#fff);background:var(--input-bg,#111827);border:1px solid var(--line,#374151);border-radius:8px;font:inherit}
 .actuals-actions{display:flex;gap:10px;flex-wrap:wrap}
 @media(max-width:820px){.actuals-row{grid-template-columns:1fr}}
+
+/* Coach-only group references: compact and collapsed on Companion, never projected on Big Clock. */
+#companionGroupLessons{display:block}
+#companionGroupLessons[hidden]{display:none}
+#companionGroupLessons summary{cursor:pointer;font-weight:700;line-height:1.5}
+.companion-group-lessons{display:grid;gap:10px;margin-top:12px}
+.companion-group-lesson{padding:10px 0;border-top:1px solid var(--line,#374151);line-height:1.6;overflow-wrap:anywhere}
+.companion-group-lesson a{color:var(--gold,#d1aa55)}
+.companion-group-lesson p{margin:5px 0 0}

@@ -301,6 +301,8 @@ const coachPayload = {
   academyId: payload.academyId || "",
   roomId: payload.roomId || "",
   trainingGroups: Array.isArray(payload.trainingGroups) ? payload.trainingGroups : [],
+  groupPrescriptions: Array.isArray(payload.groupPrescriptions) ? payload.groupPrescriptions : [],
+  executionMode: payload.executionMode || "",
   carryForwardNote: payload.carryForwardNote || "",
 
   schema: payload.schema || "",
@@ -675,6 +677,64 @@ async function refreshCanonicalPractice() {
   return canonicalRefreshPromise;
 }
 
+function renderGroupLessonReferences() {
+  const panel = document.getElementById("companionGroupLessons");
+  const summary = document.getElementById("companionGroupLessonsSummary");
+  const rows = document.getElementById("companionGroupLessonsRows");
+  if (!panel || !summary || !rows) return;
+
+  // The live-session payload is the approved room plan. Do not infer
+  // placements or create lesson content from unverified progression.
+  const session = getCoachSessionPayload();
+  const groups = Array.isArray(session?.trainingGroups) ? session.trainingGroups : [];
+  const prescriptions = Array.isArray(session?.groupPrescriptions) ? session.groupPrescriptions : [];
+  const mode = String(session?.executionMode || "").toLowerCase();
+  if (mode === "manual" || !groups.length || !prescriptions.length) {
+    panel.hidden = true;
+    rows.replaceChildren();
+    return;
+  }
+
+  panel.hidden = false;
+  summary.textContent = `Group lessons · ${prescriptions.filter(p => p.status === "ready").length}/${groups.length} mapped (Coach reference)`;
+  const fragment = document.createDocumentFragment();
+  for (const [index, group] of groups.entries()) {
+    const entry = prescriptions.find(p => String(p.groupId || "") === String(group.id || ""));
+    const row = document.createElement("div");
+    row.className = "companion-group-lesson";
+    const heading = document.createElement("strong");
+    heading.textContent = `${group.label || `Mat 1 · Group ${index + 1}`} · ${String(group.tier || "").toUpperCase()} — `;
+    row.append(heading);
+    if (entry?.status !== "ready") {
+      row.append(document.createTextNode("Lesson mapping needs review"));
+    } else {
+      for (const [cardIndex, card] of (entry.cards || []).entries()) {
+        if (cardIndex) row.append(document.createTextNode(" · "));
+        const href = String(card.href || "");
+        const title = String(card.title || "Skill card");
+        if (href.startsWith("/coaches/cards/") && href.endsWith(".html") &&
+            !href.includes("..") && !href.includes("?") && !href.includes("#")) {
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = title;
+          row.append(link);
+        } else {
+          row.append(document.createTextNode(title));
+        }
+      }
+    }
+    if (mode === "hybrid" && entry?.coachAdjustment) {
+      const note = document.createElement("p");
+      note.textContent = `Coach adjustment: ${entry.coachAdjustment}`;
+      row.append(note);
+    }
+    fragment.append(row);
+  }
+  rows.replaceChildren(fragment);
+}
+
 function renderRemoteControl(control = canonicalPractice?.sessionMemory?.executionControl || {}) {
   executionControlVersion = Number(control.version || 0);
   const state = control.state || {};
@@ -715,6 +775,7 @@ function subscribeExecutionControl() {
     const practice = result.data?.practice;
     if (practice) canonicalPractice = practice;
     renderRemoteControl(practice?.sessionMemory?.executionControl || {});
+    renderGroupLessonReferences();
     } catch (error) {
     console.warn("Companion remote control unavailable", error);
     const status = document.getElementById("remoteControlStatus");
@@ -1020,6 +1081,7 @@ function escapeHtml(value) {
   hydrationComplete = true;
 
   renderCoachSession();
+  renderGroupLessonReferences();
   setupAthleteNotes();
   restoreNotesDraft();
   // Hydrate shared notes on this device; local unsent work stays as fallback.
