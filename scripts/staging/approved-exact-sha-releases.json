@@ -2587,5 +2587,59 @@
       "preserveFunctionConfigurationAndIam": true
     },
     "expectedInvokerIamDisabled": true
+  },
+  "coach-companion-final-pr305-5ec93994": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 305,
+    "applicationSha": "5ec939943456e6fad8e0c3e30de43de6c278211f",
+    "requiredAncestorSha": "11539235059ed69a226aa2b6b5a58fee9007d9b5",
+    "allowedChangedFiles": [
+      ".github/workflows/companion-group-reference-checks.yml",
+      "public/coaches/execution/big-clock-2.0/big-clock-2.0.js",
+      "public/coaches/execution/big-clock-2.0/index.html",
+      "public/coaches/execution/coach-companion/coach-companion.css",
+      "public/coaches/execution/coach-companion/coach-companion.js",
+      "public/coaches/execution/coach-companion/index.html",
+      "tests/functions/coach-companion-remote-listener-recovery.test.mjs",
+      "tests/functions/companion-group-lessons-location.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "3c0c583090cbb809b9626b3a11d2cf133445df6e",
+    "hostingFiles": [
+      "public/coaches/execution/big-clock-2.0/big-clock-2.0.js",
+      "public/coaches/execution/big-clock-2.0/index.html",
+      "public/coaches/execution/coach-companion/coach-companion.js",
+      "public/coaches/execution/coach-companion/index.html",
+      "public/coaches/execution/engine/practice-remote-control.mjs",
+      "public/coaches/execution/coach-companion/coach-companion.css"
+    ],
+    "functions": [],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
