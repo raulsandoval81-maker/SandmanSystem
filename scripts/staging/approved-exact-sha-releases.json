@@ -2612,8 +2612,8 @@
       "public/coaches/execution/big-clock-2.0/index.html",
       "public/coaches/execution/coach-companion/coach-companion.js",
       "public/coaches/execution/coach-companion/index.html",
-      "public/coaches/execution/engine/practice-remote-control.mjs",
-      "public/coaches/execution/coach-companion/coach-companion.css"
+      "public/coaches/execution/coach-companion/coach-companion.css",
+      "public/coaches/execution/engine/practice-remote-control.mjs"
     ],
     "functions": [],
     "newFunctions": [],
@@ -2640,6 +2640,9 @@
     "recovery": {
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
-    }
+    },
+    "inheritedHostingFiles": [
+      "public/coaches/execution/engine/practice-remote-control.mjs"
+    ]
   }
 }

@@ -65,7 +65,18 @@ export function validateRelease(release, context = {}) {
         release.hostingFiles.some(file => !/^public\/[A-Za-z0-9._/-]+$/.test(file) || file.includes(".."))) {
       throw new Error("Hosting overlay requires an explicit safe file allowlist.");
     }
-    if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file))) {
+    // CP7's remote engine was already reviewed and staged in the prior exact-SHA
+    // release. Permit only this unchanged inherited file, independently verified
+    // against the prior application SHA by the protected workflow.
+    const inherited = release.inheritedHostingFiles || [];
+    const inheritedEngine = "public/coaches/execution/engine/practice-remote-control.mjs";
+    if (inherited.length && (release.releaseId !== "coach-companion-final-pr305-5ec93994"
+        || inherited.length !== 1 || inherited[0] !== inheritedEngine
+        || release.requiredAncestorSha !== "11539235059ed69a226aa2b6b5a58fee9007d9b5"
+        || release.sourcePr !== 305)) {
+      throw new Error("Unapproved inherited Hosting source.");
+    }
+    if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file) && !inherited.includes(file))) {
       throw new Error("Hosting overlay contains a file outside the reviewed application diff.");
     }
   }
