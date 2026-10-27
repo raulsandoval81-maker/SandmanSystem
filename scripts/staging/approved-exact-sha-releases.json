@@ -2644,5 +2644,69 @@
     "inheritedHostingFiles": [
       "public/coaches/execution/engine/practice-remote-control.mjs"
     ]
+  },
+  "promotions-winter-pr317-8e2b9c6b": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 317,
+    "applicationSha": "8e2b9c6b9fbe58328eb63536ba9579ee70351c17",
+    "requiredAncestorSha": "5ec939943456e6fad8e0c3e30de43de6c278211f",
+    "allowedChangedFiles": [
+      ".github/workflows/pr309-attendance-release-checks.yml",
+      ".github/workflows/staging-exact-sha-release.yml",
+      "docs/management-ai/first-pass.md",
+      "firestore.rules",
+      "functions/src/modules/management/managementAiContactIdentity.ts",
+      "functions/src/services/staffAuthorization.ts",
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js",
+      "scripts/staging/approved-exact-sha-releases.json",
+      "scripts/staging/exact-sha-release-policy.mjs",
+      "scripts/staging/prepare-exact-sha-release.mjs",
+      "tests/functions/management-ai-contact-identity.test.mjs",
+      "tests/functions/promotions-routing-contract.test.mjs",
+      "tests/functions/staging-cp7-final-release.test.mjs",
+      "tests/functions/staging-exact-sha-release.test.mjs",
+      "tests/functions/staging-practice-admin-initialization.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "5ec939943456e6fad8e0c3e30de43de6c278211f",
+    "hostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js"
+    ],
+    "functions": [],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
