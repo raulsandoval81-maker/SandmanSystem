@@ -1,1 +1,81 @@
-aW1wb3J0IGFzc2VydCBmcm9tICJub2RlOmFzc2VydC9zdHJpY3QiOwppbXBvcnQgY3J5cHRvIGZyb20gIm5vZGU6Y3J5cHRvIjsKaW1wb3J0IGZzIGZyb20gIm5vZGU6ZnMiOwppbXBvcnQgdGVzdCBmcm9tICJub2RlOnRlc3QiOwoKY29uc3QgbWFuaWZlc3QgPSBKU09OLnBhcnNlKGZzLnJlYWRGaWxlU3luYygic2NyaXB0cy9wcm9kdWN0aW9uL3dpbnRlci13cmVzdGxpbmctcHJvZHVjdGlvbi1yZWxlYXNlLmpzb24iLCAidXRmOCIpKTsKY29uc3Qgd29ya2Zsb3cgPSBmcy5yZWFkRmlsZVN5bmMoIi5naXRodWIvd29ya2Zsb3dzL3JlbGVhc2Utd2ludGVyLXdyZXN0bGluZy1wcm9kdWN0aW9uLnltbCIsICJ1dGY4Iik7CmNvbnN0IHNjcmlwdCA9IGZzLnJlYWRGaWxlU3luYygic2NyaXB0cy9wcm9kdWN0aW9uL3dpbnRlcl93cmVzdGxpbmdfaG9zdGluZ19yZWxlYXNlLnB5IiwgInV0ZjgiKTsKY29uc3QgaGFzaCA9IHBhdGggPT4gY3J5cHRvLmNyZWF0ZUhhc2goInNoYTI1NiIpLnVwZGF0ZShmcy5yZWFkRmlsZVN5bmMocGF0aCkpLmRpZ2VzdCgiaGV4Iik7Cgp0ZXN0KCJyZWxlYXNlIGlzIHBpbm5lZCB0byB0aGUgc3RhZ2VkIGFwcGxpY2F0aW9uIGFuZCBleGFjdCBwcm9kdWN0aW9uIGJvdW5kYXJ5IiwgKCkgPT4gewogIGFzc2VydC5lcXVhbChtYW5pZmVzdC5hcHBsaWNhdGlvblNoYSwgImI0OGM5YzA2MWEwM2RkYzJkYzM0ZTVmNGE3ZWMyMTAwNjM2NDc2N2EiKTsKICBhc3NlcnQuZXF1YWwobWFuaWZlc3QucHJvamVjdElkLCAic2FuZG1hbmRhc2hib2FyZCIpOwogIGFzc2VydC5lcXVhbChtYW5pZmVzdC5ob3N0aW5nU2l0ZSwgInNhbmRtYW4tbWFpbiIpOwogIGFzc2VydC5lcXVhbChtYW5pZmVzdC5iYXNlbGluZUhvc3RpbmdSZWxlYXNlLCAic2l0ZXMvc2FuZG1hbi1tYWluL3JlbGVhc2VzLzE3OTMwNDM3OTE0MzkwMDAiKTsKICBhc3NlcnQuZXF1YWwobWFuaWZlc3QuYmFzZWxpbmVIb3N0aW5nVmVyc2lvbiwgInNpdGVzL3NhbmRtYW4tbWFpbi92ZXJzaW9ucy82NGJkYThkZDFlOGYwODU2Iik7CiAgYXNzZXJ0LmVxdWFsKG1hbmlmZXN0LmZpcmVzdG9yZVJ1bGVzU2hhMjU2LCAiZDY2M2FjMjM1NGUyNDNlNGQ2YWFlN2U0ZDc5OTI0MWM1YzIwNzYzYTYwZTkzYTc5YzJkN2NmODEzZmIxODBhZiIpOwp9KTsKCnRlc3QoIm9ubHkgdGhlIGZpdmUgYXBwcm92ZWQgSG9zdGluZyBhc3NldHMgYXJlIG92ZXJsYWlkIGFuZCB0aGVpciBieXRlcyBhcmUgcGlubmVkIiwgKCkgPT4gewogIGNvbnN0IGV4cGVjdGVkID0gWwogICAgInB1YmxpYy9jb25uZWN0L2FkbWlzc2lvbnMtcmVxdWVzdHMvaW5kZXguaHRtbCIsCiAgICAicHVibGljL2Nvbm5lY3QvYWRtaXNzaW9ucy1yZXF1ZXN0cy9hZG1pc3Npb25zLXJlcXVlc3RzLmpzIiwKICAgICJwdWJsaWMvY29ubmVjdC90cnktYS1jbGFzcy90cnktYS1jbGFzcy5qcyIsCiAgICAicHVibGljL3Byb21vdGlvbnMvd2ludGVyLXdyZXN0bGluZy9pbmRleC5odG1sIiwKICAgICJwdWJsaWMvcHJvbW90aW9ucy93aW50ZXItd3Jlc3RsaW5nL3dpbnRlci13cmVzdGxpbmcuanMiLAogIF07CiAgYXNzZXJ0LmRlZXBFcXVhbChPYmplY3Qua2V5cyhtYW5pZmVzdC5ob3N0aW5nRmlsZXMpLnNvcnQoKSwgZXhwZWN0ZWQuc29ydCgpKTsKICBmb3IgKGNvbnN0IFtwYXRoLCBkaWdlc3RdIG9mIE9iamVjdC5lbnRyaWVzKG1hbmlmZXN0Lmhvc3RpbmdGaWxlcykpIGFzc2VydC5lcXVhbChoYXNoKHBhdGgpLCBkaWdlc3QsIHBhdGgpOwp9KTsKCnRlc3QoIldpbnRlciBXcmVzdGxpbmcgcGF5bG9hZCBhbmQgc2V0dGxlZCBvZmZlciByZW1haW4gZXhhY3QiLCAoKSA9PiB7CiAgY29uc3QgaHRtbCA9IGZzLnJlYWRGaWxlU3luYygicHVibGljL3Byb21vdGlvbnMvd2ludGVyLXdyZXN0bGluZy9pbmRleC5odG1sIiwgInV0ZjgiKTsKICBjb25zdCBqcyA9IGZzLnJlYWRGaWxlU3luYygicHVibGljL3Byb21vdGlvbnMvd2ludGVyLXdyZXN0bGluZy93aW50ZXItd3Jlc3RsaW5nLmpzIiwgInV0ZjgiKTsKICBhc3NlcnQubWF0Y2goaHRtbCwgL1wkMzUwLyk7CiAgYXNzZXJ0Lm1hdGNoKGh0bWwsIC92YWx1ZT0ibW9uLXdlZC1zYXQiLyk7CiAgYXNzZXJ0Lm1hdGNoKGh0bWwsIC92YWx1ZT0idHVlLXRodS1zYXQiLyk7CiAgYXNzZXJ0Lm1hdGNoKGpzLCAvcmVxdWVzdFR5cGU6IlNFQVNPTkFMX0lOVEVSRVNUIi8pOwogIGFzc2VydC5tYXRjaChqcywgL2NhbXBhaWduSWQ6IndpbnRlci13cmVzdGxpbmctMjAyNi0yNyIvKTsKICBhc3NlcnQubWF0Y2goanMsIC9zZWFzb246IndpbnRlci0yMDI2LTI3Ii8pOwogIGFzc2VydC5tYXRjaChqcywgL2xvY2F0aW9uSWQ6InNhbnRhLXluZXotdmFsbGV5Ii8pOwogIGFzc2VydC5tYXRjaChqcywgL3N0YXR1czoibmV3Ii8pOwogIGFzc2VydC5tYXRjaChqcywgL2NvbnRhY3RDb25zZW50OmRhdGFcLmdldFwoImNvbnNlbnQiXCk9PT0ib24iLyk7CiAgYXNzZXJ0LmRvZXNOb3RNYXRjaChqcywgL3N0cmlwZXxhd2FyZFhwfGVucm9sbEF0aGxldGV8YWN0aXZhdGVBdGhsZXRlL2kpOwp9KTsKCnRlc3QoIm1lcmdlZCBEYXkgTW9kZSBjb3JyZWN0aW9uIGtlZXBzIHRoZSBjYW1wYWlnbiBjYXJkIG9wYXF1ZSBhbmQgcmVhZGFibGUiLCAoKSA9PiB7CiAgY29uc3QgbWFuYWdlbWVudEh0bWwgPSBmcy5yZWFkRmlsZVN5bmMoInB1YmxpYy9jb25uZWN0L2FkbWlzc2lvbnMtcmVxdWVzdHMvaW5kZXguaHRtbCIsICJ1dGY4Iik7CiAgYXNzZXJ0Lm1hdGNoKG1hbmFnZW1lbnRIdG1sLCAvXC5yZXF1ZXN0cy1wYWdlIFwuc2Vhc29uYWwtY2FtcGFpZ24tcGFuZWwvKTsKICBhc3NlcnQubWF0Y2gobWFuYWdlbWVudEh0bWwsIC9iYWNrZ3JvdW5kOiAjZmZmZGY4ICFpbXBvcnRhbnQvKTsKICBhc3NlcnQubWF0Y2gobWFuYWdlbWVudEh0bWwsIC9jb2xvcjogIzE3MjAzMyAhaW1wb3J0YW50Lyk7CiAgYXNzZXJ0Lm1hdGNoKG1hbmFnZW1lbnRIdG1sLCAvb3BhY2l0eTogMSAhaW1wb3J0YW50Lyk7CiAgYXNzZXJ0Lm1hdGNoKG1hbmFnZW1lbnRIdG1sLCAvYmFja2dyb3VuZDogIzE3MjAzMyAhaW1wb3J0YW50Lyk7CiAgYXNzZXJ0Lm1hdGNoKG1hbmFnZW1lbnRIdG1sLCAvY29sb3I6ICNmZmZkZjggIWltcG9ydGFudC8pOwp9KTsKCnRlc3QoImxlZ2FjeSByZXF1ZXN0cyBhbmQgbG9jYXRpb24tc2NvcGVkIE1hbmFnZW1lbnQgcmVtYWluIHdpcmVkIiwgKCkgPT4gewogIGNvbnN0IGludHJvID0gZnMucmVhZEZpbGVTeW5jKCJwdWJsaWMvY29ubmVjdC90cnktYS1jbGFzcy90cnktYS1jbGFzcy5qcyIsICJ1dGY4Iik7CiAgY29uc3QgbWFuYWdlbWVudCA9IGZzLnJlYWRGaWxlU3luYygicHVibGljL2Nvbm5lY3QvYWRtaXNzaW9ucy1yZXF1ZXN0cy9hZG1pc3Npb25zLXJlcXVlc3RzLmpzIiwgInV0ZjgiKTsKICBhc3NlcnQubWF0Y2goaW50cm8sIC9SRVFVRVNURURfSU5UUk8vKTsKICBhc3NlcnQubWF0Y2goaW50cm8sIC9QUk9NT1RJT05BTF9JTlRSTy8pOwogIGFzc2VydC5tYXRjaChpbnRybywgL09QRU5fUFJBQ1RJQ0UvKTsKICBhc3NlcnQubWF0Y2goaW50cm8sIC9sb2NhdGlvbklkOmZvcm1cLmxvY2F0aW9uXC52YWx1ZS8pOwogIGFzc2VydC5tYXRjaChtYW5hZ2VtZW50LCAvcmVxdWlyZU1hbmFnZW1lbnQvKTsKICBhc3NlcnQubWF0Y2gobWFuYWdlbWVudCwgL2NvbnRleHRcP1wuc2NvcGVcP1wubG9jYXRpb25JZHMvKTsKICBhc3NlcnQubWF0Y2gobWFuYWdlbWVudCwgL1NFQVNPTkFMX0lOVEVSRVNULyk7Cn0pOwoKdGVzdCgid29ya2Zsb3cgcHJlc2VydmVzIGxpdmUgSG9zdGluZyBhbmQgY2Fubm90IGRlcGxveSBGdW5jdGlvbnMgb3IgcnVsZXMiLCAoKSA9PiB7CiAgYXNzZXJ0Lm1hdGNoKHdvcmtmbG93LCAvd29ya2Zsb3dfZGlzcGF0Y2gvKTsKICBhc3NlcnQubWF0Y2god29ya2Zsb3csIC9vcHRpb25zOiBcW3ByZWZsaWdodCwgZGVwbG95LCByb2xsYmFja1xdLyk7CiAgYXNzZXJ0Lm1hdGNoKHdvcmtmbG93LCAvZW52aXJvbm1lbnQ6IHByb2R1Y3Rpb24vKTsKICBhc3NlcnQubWF0Y2god29ya2Zsb3csIC9GSVJFQkFTRV9TRVJWSUNFX0FDQ09VTlRfU0FORE1BTkRBU0hCT0FSRC8pOwogIGFzc2VydC5kb2VzTm90TWF0Y2god29ya2Zsb3csIC8tLW9ubHlccysoZnVuY3Rpb25zfGZpcmVzdG9yZXxzdG9yYWdlKS8pOwogIGFzc2VydC5kb2VzTm90TWF0Y2god29ya2Zsb3csIC9maXJlYmFzZSBkZXBsb3kvKTsKICBhc3NlcnQubWF0Y2goc2NyaXB0LCAvY2FuZGlkYXRlX2ZpbGVzID0gZGljdFwobGl2ZV9maWxlc1wpLyk7CiAgYXNzZXJ0Lm1hdGNoKHNjcmlwdCwgL0hvc3Rpbmcgb3ZlcmxheSBlc2NhcGVkIHRoZSBleGFjdCBhbGxvd2xpc3QvKTsKICBhc3NlcnQubWF0Y2goc2NyaXB0LCAvTGl2ZSBIb3N0aW5nIGNoYW5nZWQgZHVyaW5nIHByZXBhcmF0aW9uLyk7CiAgYXNzZXJ0Lm1hdGNoKHNjcmlwdCwgL1Byb2R1Y3Rpb24gRmlyZXN0b3JlIHJ1bGUgYnl0ZXMgY2hhbmdlZCBhZnRlciByZXZpZXcvKTsKICBhc3NlcnQubWF0Y2goc2NyaXB0LCAvUFJFRkxJR0hUIE9OTFk6IG5vIEhvc3RpbmcgdmVyc2lvbiBvciByZWxlYXNlIHdhcyBjcmVhdGVkLyk7Cn0pOwo=
+import assert from "node:assert/strict";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import test from "node:test";
+
+const manifest = JSON.parse(fs.readFileSync("scripts/production/winter-wrestling-production-release.json", "utf8"));
+const workflow = fs.readFileSync(".github/workflows/release-winter-wrestling-production.yml", "utf8");
+const script = fs.readFileSync("scripts/production/winter_wrestling_hosting_release.py", "utf8");
+const hash = path => crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
+
+test("release is pinned to the staged application and exact production boundary", () => {
+  assert.equal(manifest.applicationSha, "b48c9c061a03ddc2dc34e5f4a7ec21006364767a");
+  assert.equal(manifest.projectId, "sandmandashboard");
+  assert.equal(manifest.hostingSite, "sandman-main");
+  assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793043791439000");
+  assert.equal(manifest.baselineHostingVersion, "sites/sandman-main/versions/64bda8dd1e8f0856");
+  assert.equal(manifest.firestoreRulesSha256, "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af");
+});
+
+test("only the five approved Hosting assets are overlaid and their bytes are pinned", () => {
+  const expected = [
+    "public/connect/admissions-requests/index.html",
+    "public/connect/admissions-requests/admissions-requests.js",
+    "public/connect/try-a-class/try-a-class.js",
+    "public/promotions/winter-wrestling/index.html",
+    "public/promotions/winter-wrestling/winter-wrestling.js",
+  ];
+  assert.deepEqual(Object.keys(manifest.hostingFiles).sort(), expected.sort());
+  for (const [path, digest] of Object.entries(manifest.hostingFiles)) assert.equal(hash(path), digest, path);
+});
+
+test("Winter Wrestling payload and settled offer remain exact", () => {
+  const html = fs.readFileSync("public/promotions/winter-wrestling/index.html", "utf8");
+  const js = fs.readFileSync("public/promotions/winter-wrestling/winter-wrestling.js", "utf8");
+  assert.match(html, /\$350/);
+  assert.match(html, /value="mon-wed-sat"/);
+  assert.match(html, /value="tue-thu-sat"/);
+  assert.match(js, /requestType:"SEASONAL_INTEREST"/);
+  assert.match(js, /campaignId:"winter-wrestling-2026-27"/);
+  assert.match(js, /season:"winter-2026-27"/);
+  assert.match(js, /locationId:"santa-ynez-valley"/);
+  assert.match(js, /status:"new"/);
+  assert.match(js, /contactConsent:data\.get\("consent"\)==="on"/);
+  assert.doesNotMatch(js, /stripe|awardXp|enrollAthlete|activateAthlete/i);
+});
+
+test("merged Day Mode correction keeps the campaign card opaque and readable", () => {
+  const managementHtml = fs.readFileSync("public/connect/admissions-requests/index.html", "utf8");
+  assert.match(managementHtml, /\.requests-page \.seasonal-campaign-panel/);
+  assert.match(managementHtml, /background: #fffdf8 !important/);
+  assert.match(managementHtml, /color: #172033 !important/);
+  assert.match(managementHtml, /opacity: 1 !important/);
+  assert.match(managementHtml, /background: #172033 !important/);
+  assert.match(managementHtml, /color: #fffdf8 !important/);
+});
+
+test("legacy requests and location-scoped Management remain wired", () => {
+  const intro = fs.readFileSync("public/connect/try-a-class/try-a-class.js", "utf8");
+  const management = fs.readFileSync("public/connect/admissions-requests/admissions-requests.js", "utf8");
+  assert.match(intro, /REQUESTED_INTRO/);
+  assert.match(intro, /PROMOTIONAL_INTRO/);
+  assert.match(intro, /OPEN_PRACTICE/);
+  assert.match(intro, /locationId:form\.location\.value/);
+  assert.match(management, /requireManagement/);
+  assert.match(management, /context\?\.scope\?\.locationIds/);
+  assert.match(management, /SEASONAL_INTEREST/);
+});
+
+test("workflow preserves live Hosting and cannot deploy Functions or rules", () => {
+  assert.match(workflow, /workflow_dispatch/);
+  assert.match(workflow, /options: \[preflight, deploy, rollback\]/);
+  assert.match(workflow, /environment: production/);
+  assert.match(workflow, /FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD/);
+  assert.doesNotMatch(workflow, /--only\s+(functions|firestore|storage)/);
+  assert.doesNotMatch(workflow, /firebase deploy/);
+  assert.match(script, /candidate_files = dict\(live_files\)/);
+  assert.match(script, /Hosting overlay escaped the exact allowlist/);
+  assert.match(script, /Live Hosting changed during preparation/);
+  assert.match(script, /Production Firestore rule bytes changed after review/);
+  assert.match(script, /PREFLIGHT ONLY: no Hosting version or release was created/);
+});
