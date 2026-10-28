@@ -23,7 +23,7 @@ function render() {
   const days = Number(missedDays.value);
   const remainingDays = (4 - quarters) * 16;
   const valid = Number.isInteger(days) && days >= 0 && days <= remainingDays;
-  const reduction = valid ? Math.min(total, Math.round((total * (quarters / 4 + days / 64)) * 100) / 100) : 0;
+  const reduction = valid ? Math.min(total * 0.25, Math.round((total * (quarters / 4 + days / 64)) * 100) / 100) : 0;
   const adjusted = Math.round((total - reduction) * 100) / 100;
   // Existing installment amounts are approved only for the unadjusted
   // seasonal fee. Prorated cases require a separately approved schedule.
