@@ -49,3 +49,56 @@ export function winterWrestlingPaymentPlan(
   }
   return { totalCents, installmentsCents };
 }
+
+export type WinterSeasonInstallment = {
+  number: number;
+  amountCents: number;
+  dueDate: string;
+  stripePriceId: string | null;
+};
+
+/**
+ * Builds an approval-ready schedule, not a charge authorization.
+ * Later due dates must be strictly after the enrollment date.
+ * The caller must obtain explicit guardian approval and persist a locked proposal
+ * before creating a Checkout Session.
+ */
+export function buildWinterWrestlingSchedule(
+  athleteCount: number,
+  enrollmentDate: string,
+  payInFull = false,
+): {
+  totalCents: number;
+  installments: WinterSeasonInstallment[];
+  requiresManualReview: boolean;
+} {
+  const enrollment = new Date(enrollmentDate + "T12:00:00Z");
+  if (
+    !/^\\d{4}-\\d{2}-\\d{2}$/.test(enrollmentDate) ||
+    !Number.isFinite(enrollment.getTime()) ||
+    enrollment.toISOString().slice(0, 10) !== enrollmentDate
+  ) {
+    throw new Error("Valid enrollment date required (YYYY-MM-DD).");
+  }
+  if (enrollmentDate > WINTER_WRESTLING_2026_27.seasonEnd) {
+    throw new Error("Enrollment date falls after winter season ends.");
+  }
+  const plan = winterWrestlingPaymentPlan(athleteCount, payInFull);
+  const laterDates = WINTER_WRESTLING_2026_27.laterDueDates;
+  const expectedDates = [enrollmentDate, ...laterDates.slice(0, plan.installmentsCents.length - 1)];
+  // Never generate a backdated installment: require manual review to
+  // agree a new due date rather than silently charge a family.
+  const requiresManualReview = expectedDates.some((date, i) =>
+    i > 0 && date <= enrollmentDate
+  );
+  const installments = plan.installmentsCents.map((amountCents, index) => ({
+    number: index + 1,
+    amountCents,
+    dueDate: expectedDates[index],
+    stripePriceId:
+      plan.installmentsCents.length === 1
+        ? null // Full-season totals above 1 athlete need a verified quantity on the $350 price.
+        : WINTER_WRESTLING_2026_27.installmentPricesCents[amountCents] || null,
+  }));
+  return { totalCents: plan.totalCents, installments, requiresManualReview };
+}
