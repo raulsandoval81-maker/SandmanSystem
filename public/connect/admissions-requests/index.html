@@ -11,19 +11,28 @@
   <link rel="stylesheet" href="/management/hub/management.css">
   <style>
     /* Promotions campaign card: contrast-safe within the light Management shell. */
+    /* Explicit opaque light-mode colors avoid inherited dark-mode and shell overrides. */
     .requests-page .seasonal-campaign-panel {
       margin: 20px 0;
       padding: 20px;
-      border: 1px solid var(--management-border-strong, #d2c5a8);
+      border: 2px solid #b5a377 !important;
       border-radius: 14px;
-      background: var(--management-surface, #fffdf8);
-      color: var(--management-text, #172033);
-      box-shadow: var(--management-shadow, 0 12px 30px rgba(40,32,15,.07));
+      background: #fffdf8 !important;
+      color: #172033 !important;
+      box-shadow: 0 6px 20px rgba(23,32,51,.14) !important;
+      opacity: 1 !important;
     }
     .requests-page .seasonal-campaign-panel h2,
     .requests-page .seasonal-campaign-panel p,
     .requests-page .seasonal-campaign-panel strong {
-      color: var(--management-text, #172033);
+      color: #172033 !important;
+      opacity: 1 !important;
+    }
+    .requests-page .seasonal-campaign-panel > .btn {
+      background: #172033 !important;
+      border-color: #172033 !important;
+      color: #fffdf8 !important;
+      opacity: 1 !important;
     }
     .requests-page .seasonal-campaign-panel p {
       line-height: 1.6;
