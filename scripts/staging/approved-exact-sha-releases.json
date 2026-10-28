@@ -2757,10 +2757,13 @@
     "applicationSha": "b0e02e61d452fca07d3e8fa303d194355120ecfe",
     "requiredAncestorSha": "bc732da79132d32aee977fcb3e7afd771a51ef74",
     "allowedChangedFiles": [
+      ".github/workflows/release-winter-wrestling-production.yml",
       "public/connect/admissions-requests/index.html",
       "public/promotions/winter-wrestling/index.html",
       "public/promotions/winter-wrestling/winter-wrestling.js",
-      "tests/functions/promotions-routing-contract.test.mjs"
+      "scripts/production/winter-wrestling-production-release.json",
+      "tests/functions/promotions-routing-contract.test.mjs",
+      "tests/functions/winter-wrestling-production-release.test.mjs"
     ],
     "projectId": "sandman-combat-staging",
     "hostingSite": "sandman-combat-staging",
