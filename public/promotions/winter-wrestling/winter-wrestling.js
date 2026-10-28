@@ -13,7 +13,7 @@ form.addEventListener("submit",async(e)=>{
    organization:"sandman-combat",locationId:"santa-ynez-valley",pipeline:"admissions",
    source:"seasonal-wrestling-public-interest",requestType:"SEASONAL_INTEREST",
    campaignId:"winter-wrestling-2026-27",campaignName:"Winter Wrestling 2026–27",
-   season:"winter-2026-27",campaignPriceLabel:"$350 · 3-month season",
+   season:"winter-2026-27",campaignPriceLabel:"$350 per athlete · complete season · Nov 15, 2026–Feb 14, 2027",
    sport:"wrestling",programInterest:"zero2hero-wrestling",
    schedulePreference:clean(data.get("schedule")),
    contactName:clean(data.get("guardian")),athleteName:clean(data.get("athlete")),
@@ -26,7 +26,7 @@ form.addEventListener("submit",async(e)=>{
    createdAt:serverTimestamp(),updatedAt:serverTimestamp()
   };
   await addDoc(collection(db,"admissions_requests"),payload);
-  form.reset();status.textContent="Interest received. Sandman Management will follow up with you.";
+  form.reset();status.textContent="Interest received for Winter Wrestling, November 15, 2026–February 14, 2027. Sandman Management will follow up with you.";
  }catch(err){console.error("[winter-wrestling-interest]",err);status.textContent="Unable to submit. Please try again or use the general Connect form."}
  finally{button.disabled=false}
 });
