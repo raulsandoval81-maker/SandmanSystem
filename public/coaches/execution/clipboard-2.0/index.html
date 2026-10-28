@@ -15,8 +15,9 @@
 
   <div class="page-header clipboard-topbar">
 
+    <h1>Pre-Practice Clipboard</h1>
+
     <div class="topbar-center">
-      <h1>V — Pre-Practice Clipboard</h1>
       <p id="clipboardMatLane" class="muted">Mat 1</p>
       <p class="muted">Build the plan, then hand it to the live practice.</p>
     </div>
@@ -84,17 +85,6 @@
       <option value="live">Live Session</option>
     </select>
   </div>
-
-  <section id="clipboardLiveControls" class="clipboard-live-controls" aria-label="Live practice controls" hidden>
-    <div class="clipboard-live-controls-label">LIVE PRACTICE · BIG CLOCK CONTROL</div>
-    <div class="clipboard-live-clock" aria-label="Big Clock last reported time"><span id="clipboardLiveTime" class="clipboard-live-time">--:--</span><span id="clipboardLiveClockLabel">Waiting for Big Clock</span></div>
-    <p id="clipboardLiveStatus" role="status" aria-live="polite">Connecting to the authoritative practice…</p>
-    <div class="clipboard-live-control-buttons">
-      <button id="clipboardLivePrimary" type="button" disabled>Start</button>
-      <button id="clipboardNextDrill" type="button" disabled>Next Drill</button>
-      <button id="clipboardNextBlock" type="button" disabled>Next Block</button>
-    </div>
-  </section>
 
   <div id="planBlocks">
 
@@ -321,6 +311,5 @@
   src="/coaches/execution/clipboard-2.0/clipboard-2.0.js?v=20261020-system-waves1">
 </script>
 
-<script type="module" src="/coaches/execution/clipboard-2.0/clipboard-live-controls.mjs?v=2"></script>
 </body>
 </html>
