@@ -41,6 +41,34 @@
     </header>
 
 
+    <section class="pricing-panel" id="seasonalModeSelector">
+      <label for="pricingMode">Pricing mode</label>
+      <select id="pricingMode">
+        <option value="membership">Combat / Fitness — Membership</option>
+        <option value="winter-wrestling">Winter Wrestling · Seasonal</option>
+      </select>
+    </section>
+    <section class="pricing-panel" id="winterSeasonalPanel" hidden>
+      <h2>Winter Wrestling · Seasonal</h2>
+      <p>November 15, 2026 – February 14, 2027 · Ages 7–14 · $350 per athlete</p>
+      <label for="winterAthleteCount">Athletes</label>
+      <select id="winterAthleteCount"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+      <label for="winterPayOption">Payment option</label>
+      <select id="winterPayOption"><option value="installments">Installments</option><option value="full">Pay in full</option></select>
+      <label for="winterEnrollmentDate">Enrollment date</label>
+      <input id="winterEnrollmentDate" type="date" min="2026-10-28" max="2027-02-14" />
+      <fieldset>
+        <legend>Seasonal proration (Management preview)</legend>
+        <p>The total seasonal reduction is capped at 25% ($87.50 per athlete). Count only scheduled training sessions missed, excluding Thanksgiving break and academy closures. Manual entry requires Management verification; do not double-count quarters and session days.</p>
+        <label for="winterMissedQuarters">Fully missed quarters (0–4)</label>
+        <select id="winterMissedQuarters"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        <label for="winterMissedDays">Additional missed session-days in remaining quarters (0–64)</label>
+        <input id="winterMissedDays" type="number" min="0" max="64" step="1" value="0" />
+        <small>Each quarter contains 16 pricing-day units. The total discount is never more than 25%. This is a preview; Management must verify missed scheduled training sessions.</small>
+      </fieldset>
+      <div id="winterSeasonalEstimate" role="status" aria-live="polite"></div>
+      <p>Seasonal proposal and checkout are not enabled. Do not use monthly membership checkout for seasonal plans.</p>
+    </section>
     <details class="management-page-guide">
       <summary>
         <span>How this page works</span>
@@ -629,6 +657,7 @@
   </template>
 
   <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="./winter-seasonal-mode.js?v=20261028-1"></script>
 
   <script
     type="module"
