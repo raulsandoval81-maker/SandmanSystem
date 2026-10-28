@@ -92,6 +92,10 @@
 
   .gateway-site-brand .site-brand__text{
     display:block;
+    margin:0;
+    white-space:normal;
+    overflow:visible;
+    text-overflow:clip;
     width:100%;
     overflow:hidden;
     color:inherit;
@@ -100,8 +104,16 @@
     line-height:1.15;
     letter-spacing:.02em;
     text-align:center;
-    text-overflow:ellipsis;
-    white-space:nowrap;
+    text-overflow:clip;
+    white-space:normal;
+  }
+
+  .gateway-site-brand .site-brand__text span{
+    display:block;
+    margin-top:3px;
+    color:var(--gold-light);
+    font-size:.75em;
+    letter-spacing:.02em;
   }
 
   .gateway-site-controls{
@@ -136,7 +148,7 @@
     width:min(720px,calc(100% - 24px));
     margin:0 auto;
     padding:
-      clamp(2rem,6vw,3.8rem)
+      clamp(1.25rem,3vw,2rem)
       0
       clamp(4rem,8vw,6rem);
   }
@@ -149,7 +161,7 @@
     display:block;
     width:min(220px,56vw);
     height:auto;
-    margin:1.2rem auto;
+    margin:.65rem auto 1.2rem;
     filter:drop-shadow(0 20px 36px rgba(0,0,0,.48));
   }
 
@@ -690,9 +702,18 @@ html[data-theme="light"] .gateway-title{
     </button>
 
     <div class="gateway-site-brand">
-      <span class="site-brand__text">
-        Built in the Shadows.
-      </span>
+      <div data-lang-block="en">
+        <h1 class="site-brand__text">
+          Sandman Academy
+          <span>of Combat &amp; Fitness™</span>
+        </h1>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <h1 class="site-brand__text">
+          Academia Sandman
+          <span>de Combate y Fitness™</span>
+        </h1>
+      </div>
     </div>
 
     <div class="site-controls gateway-site-controls">
@@ -720,26 +741,6 @@ html[data-theme="light"] .gateway-title{
 
     <section class="gateway-brand">
 
-      <div data-lang-block="en">
-
-        <h1 class="gateway-title">
-          Sandman Academy
-          <span>of Combat &amp; Fitness™</span>
-        </h1>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-        <h1 class="gateway-title">
-          Academia Sandman
-          <span>de Combate y Fitness™</span>
-        </h1>
-
-      </div>
 
       <div class="gold-divider" aria-hidden="true">
         <span></span>
