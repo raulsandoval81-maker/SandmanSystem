@@ -1956,3 +1956,11 @@ body.clock-mode .clock-toggle{
 #clipboardLivePrimary:not(:disabled){background:var(--red);color:white;border-color:var(--red)}
 .clipboard-live-control-buttons button:disabled{opacity:.48;cursor:not-allowed}
 @media(max-width:650px){.clipboard-live-control-buttons{grid-template-columns:1fr 1fr}#clipboardLivePrimary{grid-column:1/-1}}
+
+/* Live class clock snapshot and head-coach controls, above the first mat-talk block. */
+.clipboard-live-controls{margin:14px 0 16px;padding:18px;position:relative}
+.clipboard-live-clock{display:flex;align-items:center;gap:16px;margin:10px 0 12px;flex-wrap:wrap}
+.clipboard-live-time{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;letter-spacing:.01em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--text)}
+#clipboardLiveClockLabel{font-size:.82rem;color:var(--muted)}
+.clipboard-live-control-buttons{margin-top:12px}
+@media(max-width:650px){.clipboard-live-clock{gap:8px}.clipboard-live-controls{padding:13px}}

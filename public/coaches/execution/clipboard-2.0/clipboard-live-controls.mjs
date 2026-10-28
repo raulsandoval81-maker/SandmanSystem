@@ -12,6 +12,8 @@ const primary = document.getElementById("clipboardLivePrimary");
 const drill = document.getElementById("clipboardNextDrill");
 const block = document.getElementById("clipboardNextBlock");
 const status = document.getElementById("clipboardLiveStatus");
+const time = document.getElementById("clipboardLiveTime");
+const clockLabel = document.getElementById("clipboardLiveClockLabel");
 let practice = null;
 let version = 0;
 let pending = false;
@@ -39,6 +41,8 @@ function render() {
   const hasPlan = Number(memory.planVersion || 0) > 0;
   const ready = Boolean(practice && hasPlan && state.sessionId && !complete && !awaiting && !pending);
   root.hidden = !hasPlan;
+  time.textContent = state.sessionId ? fmt(state.remainingSeconds) : "--:--";
+  clockLabel.textContent = state.sessionId ? (paused ? "Paused · Big Clock" : running ? "Last reported · Big Clock" : complete ? "Complete · Big Clock" : "Ready · Big Clock") : "Waiting for Big Clock";
   primary.textContent = complete ? "Practice Complete" : paused ? "Resume" : running ? "Pause" : "Start";
   primary.dataset.command = paused ? "resume" : running ? "pause" : "start";
   primary.disabled = !ready;

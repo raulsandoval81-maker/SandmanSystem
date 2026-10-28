@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Coach · Pre-Practice Clipboard</title>
 
-  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=20261020-hybrid-handoff"/>
+  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=20261028-live-header2"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -32,16 +32,6 @@
     <div id="totalTime" class="duration-status">Allocated: 00 / 00 min</div>
     <div id="saveStatus" class="muted">Draft ready.</div>
   </div>
-
-  <section id="clipboardLiveControls" class="clipboard-live-controls" aria-label="Live practice controls" hidden>
-    <div class="clipboard-live-controls-label">LIVE PRACTICE · BIG CLOCK CONTROL</div>
-    <p id="clipboardLiveStatus" role="status" aria-live="polite">Connecting to the authoritative practice…</p>
-    <div class="clipboard-live-control-buttons">
-      <button id="clipboardLivePrimary" type="button" disabled>Start</button>
-      <button id="clipboardNextDrill" type="button" disabled>Next Drill</button>
-      <button id="clipboardNextBlock" type="button" disabled>Next Block</button>
-    </div>
-  </section>
 
   <div class="broadcast-box">
 
@@ -94,6 +84,17 @@
       <option value="live">Live Session</option>
     </select>
   </div>
+
+  <section id="clipboardLiveControls" class="clipboard-live-controls" aria-label="Live practice controls" hidden>
+    <div class="clipboard-live-controls-label">LIVE PRACTICE · BIG CLOCK CONTROL</div>
+    <div class="clipboard-live-clock" aria-label="Big Clock last reported time"><span id="clipboardLiveTime" class="clipboard-live-time">--:--</span><span id="clipboardLiveClockLabel">Waiting for Big Clock</span></div>
+    <p id="clipboardLiveStatus" role="status" aria-live="polite">Connecting to the authoritative practice…</p>
+    <div class="clipboard-live-control-buttons">
+      <button id="clipboardLivePrimary" type="button" disabled>Start</button>
+      <button id="clipboardNextDrill" type="button" disabled>Next Drill</button>
+      <button id="clipboardNextBlock" type="button" disabled>Next Block</button>
+    </div>
+  </section>
 
   <div id="planBlocks">
 
@@ -320,6 +321,6 @@
   src="/coaches/execution/clipboard-2.0/clipboard-2.0.js?v=20261020-system-waves1">
 </script>
 
-<script type="module" src="/coaches/execution/clipboard-2.0/clipboard-live-controls.mjs?v=1"></script>
+<script type="module" src="/coaches/execution/clipboard-2.0/clipboard-live-controls.mjs?v=2"></script>
 </body>
 </html>
