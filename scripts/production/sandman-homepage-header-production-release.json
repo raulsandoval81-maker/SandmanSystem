@@ -1,0 +1,15 @@
+{
+  "releaseId": "homepage-header-polish-one-file-2026-10-28",
+  "projectId": "sandmandashboard",
+  "hostingSite": "sandman-main",
+  "productionOrigin": "https://sandmancombat.com",
+  "applicationSha": "e8398039f819559e164521c47881a9447576ebba",
+  "baselineHostingRelease": "sites/sandman-main/releases/1793210665159000",
+  "baselineHostingVersion": "sites/sandman-main/versions/0c394e5328fc6b93",
+  "firestoreRelease": "projects/sandmandashboard/releases/cloud.firestore",
+  "firestoreRuleset": "projects/sandmandashboard/rulesets/dd8727d6-4476-4c1d-baaf-21fba3ccbd5b",
+  "firestoreRulesSha256": "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af",
+  "hostingFiles": {
+    "public/index.html": "7641f492f7a43c27670517f09aa0064d4eb1056e2f754503c6f54c0dcd172e29"
+  }
+}
