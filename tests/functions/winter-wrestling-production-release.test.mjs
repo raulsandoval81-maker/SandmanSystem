@@ -9,7 +9,7 @@ const script = fs.readFileSync("scripts/production/winter_wrestling_hosting_rele
 const hash = path => crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 
 test("release is pinned to the staged application and exact production boundary", () => {
-  assert.equal(manifest.applicationSha, "b48c9c061a03ddc2dc34e5f4a7ec21006364767a");
+  assert.equal(manifest.applicationSha, "c4df12540e6638f8641f3ecfa5ca18963db93359");
   assert.equal(manifest.projectId, "sandmandashboard");
   assert.equal(manifest.hostingSite, "sandman-main");
   assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793043791439000");
@@ -33,11 +33,21 @@ test("Winter Wrestling payload and settled offer remain exact", () => {
   const html = fs.readFileSync("public/promotions/winter-wrestling/index.html", "utf8");
   const js = fs.readFileSync("public/promotions/winter-wrestling/winter-wrestling.js", "utf8");
   assert.match(html, /\$350/);
+  assert.match(html, /NOVEMBER 15, 2026 – FEBRUARY 14, 2027/);
+  assert.match(html, /Come As You Are/);
+  assert.match(html, /Thanksgiving break — no required practices/);
+  assert.match(html, /Eleven-week core wrestling program/);
+  assert.match(html, /Regular practice Monday, December 21/);
+  assert.match(html, /Regular practice Wednesday, December 23; Thursday athletes may attend/);
+  assert.match(html, /Closed Thursday, December 24 and Friday, December 25/);
+  assert.match(html, /Optional training Saturday, December 26/);
+  assert.match(html, /New Year's Day, January 1, falls on Friday/);
   assert.match(html, /value="mon-wed-sat"/);
   assert.match(html, /value="tue-thu-sat"/);
   assert.match(js, /requestType:"SEASONAL_INTEREST"/);
   assert.match(js, /campaignId:"winter-wrestling-2026-27"/);
   assert.match(js, /season:"winter-2026-27"/);
+  assert.match(js, /campaignPriceLabel:"\$350 per athlete · complete season · Nov 15, 2026–Feb 14, 2027"/);
   assert.match(js, /locationId:"santa-ynez-valley"/);
   assert.match(js, /status:"new"/);
   assert.match(js, /contactConsent:data\.get\("consent"\)==="on"/);
