@@ -1,0 +1,16 @@
+{
+  "releaseId": "two-homepage-character-band-2026-10-28",
+  "projectId": "sandmandashboard",
+  "hostingSite": "sandman-main",
+  "productionOrigin": "https://sandmancombat.com",
+  "applicationSha": "b0277638062d02c3d703f2cf73695e5f5949a764",
+  "baselineHostingRelease": "sites/sandman-main/releases/1793210665159000",
+  "baselineHostingVersion": "sites/sandman-main/versions/0c394e5328fc6b93",
+  "firestoreRelease": "projects/sandmandashboard/releases/cloud.firestore",
+  "firestoreRuleset": "projects/sandmandashboard/rulesets/dd8727d6-4476-4c1d-baaf-21fba3ccbd5b",
+  "firestoreRulesSha256": "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af",
+  "hostingFiles": {
+    "public/index.html": "1afc842745ad1bbaee5ef6319d336ed3e60d19618d2d730f8e2cc14f559e66f3",
+    "public/locations/santa-ynez-valley/index.html": "560317603f6c4a6a113e8c1185e08b545ded4ef734d08232204401f8d482e2d9"
+  }
+}
