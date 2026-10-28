@@ -1,1 +1,236 @@
-IyEvdXNyL2Jpbi9lbnYgcHl0aG9uMwoiIiJQcmVzZXJ2ZSB0aGUgbGl2ZSBwcm9kdWN0aW9uIEhvc3RpbmcgdmVyc2lvbiBhbmQgb3ZlcmxheSBmaXZlIGFwcHJvdmVkIGZpbGVzLiIiIgoKaW1wb3J0IGFyZ3BhcnNlCmltcG9ydCBnemlwCmltcG9ydCBoYXNobGliCmltcG9ydCBqc29uCmltcG9ydCBvcwpmcm9tIHBhdGhsaWIgaW1wb3J0IFBhdGgKaW1wb3J0IHRpbWUKaW1wb3J0IHVybGxpYi5wYXJzZQppbXBvcnQgdXJsbGliLnJlcXVlc3QKCmltcG9ydCBnb29nbGUuYXV0aApmcm9tIGdvb2dsZS5hdXRoLnRyYW5zcG9ydC5yZXF1ZXN0cyBpbXBvcnQgUmVxdWVzdAoKSE9TVElOR19BUEkgPSAiaHR0cHM6Ly9maXJlYmFzZWhvc3RpbmcuZ29vZ2xlYXBpcy5jb20vdjFiZXRhMS8iClJVTEVTX0FQSSA9ICJodHRwczovL2ZpcmViYXNlcnVsZXMuZ29vZ2xlYXBpcy5jb20vdjEvIgoKCmRlZiBzaGEyNTYoZGF0YSk6CiAgICByZXR1cm4gaGFzaGxpYi5zaGEyNTYoZGF0YSkuaGV4ZGlnZXN0KCkKCgpkZWYgcGFyc2VfYXJncygpOgogICAgcGFyc2VyID0gYXJncGFyc2UuQXJndW1lbnRQYXJzZXIoKQogICAgcGFyc2VyLmFkZF9hcmd1bWVudCgiLS1tYW5pZmVzdCIsIHJlcXVpcmVkPVRydWUpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLXNvdXJjZS1yb290IiwgcmVxdWlyZWQ9VHJ1ZSkKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoIi0tZXZpZGVuY2UtZGlyIiwgcmVxdWlyZWQ9VHJ1ZSkKICAgIHBhcnNlci5hZGRfYXJndW1lbnQoIi0tbW9kZSIsIGNob2ljZXM9KCJwcmVmbGlnaHQiLCAiZGVwbG95IiwgInJvbGxiYWNrIiksIHJlcXVpcmVkPVRydWUpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLWNvbmZpcm0tcHJvamVjdCIsIHJlcXVpcmVkPVRydWUpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLWNvbmZpcm0tc291cmNlLXNoYSIsIHJlcXVpcmVkPVRydWUpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLWV4cGVjdGVkLWN1cnJlbnQtcmVsZWFzZSIsIHJlcXVpcmVkPVRydWUpCiAgICBwYXJzZXIuYWRkX2FyZ3VtZW50KCItLWV4cGVjdGVkLWN1cnJlbnQtdmVyc2lvbiIsIHJlcXVpcmVkPVRydWUpCiAgICByZXR1cm4gcGFyc2VyLnBhcnNlX2FyZ3MoKQoKCmRlZiBtYWluKCk6CiAgICBhcmdzID0gcGFyc2VfYXJncygpCiAgICBtYW5pZmVzdCA9IGpzb24ubG9hZHMoUGF0aChhcmdzLm1hbmlmZXN0KS5yZWFkX3RleHQoKSkKICAgIGV2aWRlbmNlID0gUGF0aChhcmdzLmV2aWRlbmNlX2RpcikKICAgIGV2aWRlbmNlLm1rZGlyKHBhcmVudHM9VHJ1ZSwgZXhpc3Rfb2s9VHJ1ZSkKCiAgICBpZiBhcmdzLmNvbmZpcm1fcHJvamVjdCAhPSBtYW5pZmVzdFsicHJvamVjdElkIl0gb3IgbWFuaWZlc3RbInByb2plY3RJZCJdICE9ICJzYW5kbWFuZGFzaGJvYXJkIjoKICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoIkV4YWN0IHByb2R1Y3Rpb24gcHJvamVjdCBjb25maXJtYXRpb24gZmFpbGVkIikKICAgIGlmIGFyZ3MuY29uZmlybV9zb3VyY2Vfc2hhICE9IG1hbmlmZXN0WyJhcHBsaWNhdGlvblNoYSJdOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiSW1tdXRhYmxlIGFwcGxpY2F0aW9uIFNIQSBjb25maXJtYXRpb24gZmFpbGVkIikKICAgIGlmIGFyZ3MubW9kZSAhPSAicm9sbGJhY2siOgogICAgICAgIGlmIGFyZ3MuZXhwZWN0ZWRfY3VycmVudF9yZWxlYXNlICE9IG1hbmlmZXN0WyJiYXNlbGluZUhvc3RpbmdSZWxlYXNlIl06CiAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiRXhwZWN0ZWQgSG9zdGluZyByZWxlYXNlIGRvZXMgbm90IG1hdGNoIHRoZSByZXZpZXdlZCBiYXNlbGluZSIpCiAgICAgICAgaWYgYXJncy5leHBlY3RlZF9jdXJyZW50X3ZlcnNpb24gIT0gbWFuaWZlc3RbImJhc2VsaW5lSG9zdGluZ1ZlcnNpb24iXToKICAgICAgICAgICAgcmFpc2UgUnVudGltZUVycm9yKCJFeHBlY3RlZCBIb3N0aW5nIHZlcnNpb24gZG9lcyBub3QgbWF0Y2ggdGhlIHJldmlld2VkIGJhc2VsaW5lIikKICAgIGVsaWYgbm90IGFyZ3MuZXhwZWN0ZWRfY3VycmVudF9yZWxlYXNlLnN0YXJ0c3dpdGgoZiJzaXRlcy97bWFuaWZlc3RbJ2hvc3RpbmdTaXRlJ119L3JlbGVhc2VzLyIpIFwKICAgICAgICAgICAgb3Igbm90IGFyZ3MuZXhwZWN0ZWRfY3VycmVudF92ZXJzaW9uLnN0YXJ0c3dpdGgoZiJzaXRlcy97bWFuaWZlc3RbJ2hvc3RpbmdTaXRlJ119L3ZlcnNpb25zLyIpOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiUm9sbGJhY2sgY3VycmVudCByZWxlYXNlL3ZlcnNpb24gYmVsb25ncyB0byBhbiB1bmV4cGVjdGVkIEhvc3Rpbmcgc2l0ZSIpCgogICAgcm9vdCA9IFBhdGgoYXJncy5zb3VyY2Vfcm9vdCkKICAgIHBheWxvYWRzID0ge30KICAgIG92ZXJsYXkgPSB7fQogICAgZm9yIHJlbGF0aXZlLCBleHBlY3RlZF9oYXNoIGluIG1hbmlmZXN0WyJob3N0aW5nRmlsZXMiXS5pdGVtcygpOgogICAgICAgIHNvdXJjZSA9IHJvb3QgLyByZWxhdGl2ZQogICAgICAgIGRhdGEgPSBzb3VyY2UucmVhZF9ieXRlcygpCiAgICAgICAgaWYgc2hhMjU2KGRhdGEpICE9IGV4cGVjdGVkX2hhc2g6CiAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcihmIlNvdXJjZSBoYXNoIG1pc21hdGNoOiB7cmVsYXRpdmV9IikKICAgICAgICBjb21wcmVzc2VkID0gZ3ppcC5jb21wcmVzcyhkYXRhLCBtdGltZT0wKQogICAgICAgIGRpZ2VzdCA9IHNoYTI1Nihjb21wcmVzc2VkKQogICAgICAgIHBhdGggPSAiLyIgKyByZWxhdGl2ZS5yZW1vdmVwcmVmaXgoInB1YmxpYy8iKQogICAgICAgIG92ZXJsYXlbcGF0aF0gPSBkaWdlc3QKICAgICAgICBwYXlsb2Fkc1tkaWdlc3RdID0gY29tcHJlc3NlZAoKICAgIGNyZWRlbnRpYWxzLCBjcmVkZW50aWFsX3Byb2plY3QgPSBnb29nbGUuYXV0aC5kZWZhdWx0KAogICAgICAgIHNjb3Blcz1bImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL2F1dGgvZmlyZWJhc2UiXQogICAgKQogICAgaWYgY3JlZGVudGlhbF9wcm9qZWN0ICE9IG1hbmlmZXN0WyJwcm9qZWN0SWQiXToKICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoIkRlcGxveW1lbnQgY3JlZGVudGlhbCBpcyBub3Qgb3duZWQgYnkgdGhlIHByb2R1Y3Rpb24gcHJvamVjdCIpCiAgICBjcmVkZW50aWFscy5yZWZyZXNoKFJlcXVlc3QoKSkKCiAgICBkZWYgYXBpKGJhc2UsIG1ldGhvZCwgcGF0aCwgZGF0YT1Ob25lKToKICAgICAgICByZXF1ZXN0ID0gdXJsbGliLnJlcXVlc3QuUmVxdWVzdCgKICAgICAgICAgICAgYmFzZSArIHBhdGgsCiAgICAgICAgICAgIGRhdGE9Tm9uZSBpZiBkYXRhIGlzIE5vbmUgZWxzZSBqc29uLmR1bXBzKGRhdGEpLmVuY29kZSgpLAogICAgICAgICAgICBtZXRob2Q9bWV0aG9kLAogICAgICAgICAgICBoZWFkZXJzPXsKICAgICAgICAgICAgICAgICJBdXRob3JpemF0aW9uIjogIkJlYXJlciAiICsgY3JlZGVudGlhbHMudG9rZW4sCiAgICAgICAgICAgICAgICAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL2pzb24iLAogICAgICAgICAgICB9LAogICAgICAgICkKICAgICAgICB3aXRoIHVybGxpYi5yZXF1ZXN0LnVybG9wZW4ocmVxdWVzdCwgdGltZW91dD02MCkgYXMgcmVzcG9uc2U6CiAgICAgICAgICAgIHJldHVybiBqc29uLmxvYWQocmVzcG9uc2UpCgogICAgc2l0ZSA9IG1hbmlmZXN0WyJob3N0aW5nU2l0ZSJdCiAgICBjdXJyZW50ID0gYXBpKEhPU1RJTkdfQVBJLCAiR0VUIiwgZiJzaXRlcy97c2l0ZX0vcmVsZWFzZXM/cGFnZVNpemU9MSIpWyJyZWxlYXNlcyJdWzBdCiAgICBjdXJyZW50X3JlbGVhc2UgPSBjdXJyZW50WyJuYW1lIl0KICAgIGN1cnJlbnRfdmVyc2lvbiA9IGN1cnJlbnRbInZlcnNpb24iXVsibmFtZSJdCiAgICBpZiBjdXJyZW50X3JlbGVhc2UgIT0gYXJncy5leHBlY3RlZF9jdXJyZW50X3JlbGVhc2Ugb3IgY3VycmVudF92ZXJzaW9uICE9IGFyZ3MuZXhwZWN0ZWRfY3VycmVudF92ZXJzaW9uOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiTGl2ZSBIb3N0aW5nIGNoYW5nZWQgYWZ0ZXIgcmV2aWV3OyByZWZyZXNoIHRoZSByZWxlYXNlIG1hbmlmZXN0IikKCiAgICB2ZXJzaW9uID0gYXBpKEhPU1RJTkdfQVBJLCAiR0VUIiwgY3VycmVudF92ZXJzaW9uKQogICAgaWYgdmVyc2lvbi5nZXQoInN0YXR1cyIpICE9ICJGSU5BTElaRUQiIG9yIGludCh2ZXJzaW9uLmdldCgiZmlsZUNvdW50IiwgMCkpIDwgMTAwOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiTGl2ZSBIb3N0aW5nIGJhc2VsaW5lIGlzIG5vdCBhIGNvbXBsZXRlIGZpbmFsaXplZCBzaXRlIikKICAgIGlmIG5vdCB2ZXJzaW9uLmdldCgiY29uZmlnIik6CiAgICAgICAgcmFpc2UgUnVudGltZUVycm9yKCJMaXZlIEhvc3RpbmcgY29uZmlndXJhdGlvbiBpcyBtaXNzaW5nIikKCiAgICBsaXZlX2ZpbGVzID0ge30KICAgIHBhZ2UgPSAiIgogICAgd2hpbGUgVHJ1ZToKICAgICAgICBxdWVyeSA9ICI/cGFnZVNpemU9MTAwMCIgKyAoIiZwYWdlVG9rZW49IiArIHVybGxpYi5wYXJzZS5xdW90ZShwYWdlKSBpZiBwYWdlIGVsc2UgIiIpCiAgICAgICAgcmVzdWx0ID0gYXBpKEhPU1RJTkdfQVBJLCAiR0VUIiwgY3VycmVudF92ZXJzaW9uICsgIi9maWxlcyIgKyBxdWVyeSkKICAgICAgICBmb3IgZW50cnkgaW4gcmVzdWx0LmdldCgiZmlsZXMiLCBbXSk6CiAgICAgICAgICAgIGxpdmVfZmlsZXNbZW50cnlbInBhdGgiXV0gPSBlbnRyeVsiaGFzaCJdCiAgICAgICAgcGFnZSA9IHJlc3VsdC5nZXQoIm5leHRQYWdlVG9rZW4iLCAiIikKICAgICAgICBpZiBub3QgcGFnZToKICAgICAgICAgICAgYnJlYWsKICAgIGlmIGxlbihsaXZlX2ZpbGVzKSAhPSBpbnQodmVyc2lvblsiZmlsZUNvdW50Il0pOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiTGl2ZSBIb3N0aW5nIG1hbmlmZXN0IHBhZ2luYXRpb24gd2FzIGluY29tcGxldGUiKQoKICAgIHJ1bGVzX3JlbGVhc2UgPSBhcGkoUlVMRVNfQVBJLCAiR0VUIiwgbWFuaWZlc3RbImZpcmVzdG9yZVJlbGVhc2UiXSkKICAgIHJ1bGVzZXQgPSBhcGkoUlVMRVNfQVBJLCAiR0VUIiwgcnVsZXNfcmVsZWFzZVsicnVsZXNldE5hbWUiXSkKICAgIHJ1bGVzX2ZpbGUgPSBuZXh0KGl0ZW0gZm9yIGl0ZW0gaW4gcnVsZXNldFsic291cmNlIl1bImZpbGVzIl0gaWYgaXRlbVsibmFtZSJdID09ICJmaXJlc3RvcmUucnVsZXMiKQogICAgcnVsZXNfYnl0ZXMgPSBydWxlc19maWxlWyJjb250ZW50Il0uZW5jb2RlKCkKICAgIGlmIGFyZ3MubW9kZSAhPSAicm9sbGJhY2siOgogICAgICAgIGlmIHJ1bGVzX3JlbGVhc2UuZ2V0KCJydWxlc2V0TmFtZSIpICE9IG1hbmlmZXN0WyJmaXJlc3RvcmVSdWxlc2V0Il06CiAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiUHJvZHVjdGlvbiBGaXJlc3RvcmUgcnVsZXNldCBjaGFuZ2VkIGFmdGVyIHJldmlldyIpCiAgICAgICAgaWYgc2hhMjU2KHJ1bGVzX2J5dGVzKSAhPSBtYW5pZmVzdFsiZmlyZXN0b3JlUnVsZXNTaGEyNTYiXToKICAgICAgICAgICAgcmFpc2UgUnVudGltZUVycm9yKCJQcm9kdWN0aW9uIEZpcmVzdG9yZSBydWxlIGJ5dGVzIGNoYW5nZWQgYWZ0ZXIgcmV2aWV3IikKICAgICAgICBpZiAibWF0Y2ggL2FkbWlzc2lvbnNfcmVxdWVzdHMve3JlcXVlc3RJZH0iIG5vdCBpbiBydWxlc19maWxlWyJjb250ZW50Il0gb3IgImFsbG93IGNyZWF0ZTogaWYgdHJ1ZTsiIG5vdCBpbiBydWxlc19maWxlWyJjb250ZW50Il06CiAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiUmV2aWV3ZWQgYWRtaXNzaW9ucyByZXF1ZXN0IGNyZWF0ZSBjb21wYXRpYmlsaXR5IGlzIGFic2VudCIpCgogICAgY2FuZGlkYXRlX2ZpbGVzID0gZGljdChsaXZlX2ZpbGVzKQogICAgY2FuZGlkYXRlX2ZpbGVzLnVwZGF0ZShvdmVybGF5KQogICAgY2hhbmdlZCA9IHNvcnRlZChwYXRoIGZvciBwYXRoLCB2YWx1ZSBpbiBjYW5kaWRhdGVfZmlsZXMuaXRlbXMoKSBpZiBsaXZlX2ZpbGVzLmdldChwYXRoKSAhPSB2YWx1ZSkKICAgIGlmIGNoYW5nZWQgIT0gc29ydGVkKG92ZXJsYXkpOgogICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcihmIkhvc3Rpbmcgb3ZlcmxheSBlc2NhcGVkIHRoZSBleGFjdCBhbGxvd2xpc3Q6IHtjaGFuZ2VkfSIpCgogICAgYmVmb3JlID0gewogICAgICAgICJwcm9qZWN0SWQiOiBtYW5pZmVzdFsicHJvamVjdElkIl0sCiAgICAgICAgInNpdGUiOiBzaXRlLAogICAgICAgICJyZWxlYXNlIjogY3VycmVudF9yZWxlYXNlLAogICAgICAgICJ2ZXJzaW9uIjogY3VycmVudF92ZXJzaW9uLAogICAgICAgICJ2ZXJzaW9uU3RhdHVzIjogdmVyc2lvblsic3RhdHVzIl0sCiAgICAgICAgImZpbGVDb3VudCI6IGxlbihsaXZlX2ZpbGVzKSwKICAgICAgICAidmVyc2lvbkJ5dGVzIjogdmVyc2lvbi5nZXQoInZlcnNpb25CeXRlcyIpLAogICAgICAgICJjb25maWdTaGEyNTYiOiBzaGEyNTYoanNvbi5kdW1wcyh2ZXJzaW9uWyJjb25maWciXSwgc29ydF9rZXlzPVRydWUpLmVuY29kZSgpKSwKICAgICAgICAiZmlyZXN0b3JlUmVsZWFzZSI6IHJ1bGVzX3JlbGVhc2VbIm5hbWUiXSwKICAgICAgICAiZmlyZXN0b3JlUnVsZXNldCI6IHJ1bGVzX3JlbGVhc2VbInJ1bGVzZXROYW1lIl0sCiAgICAgICAgImZpcmVzdG9yZVJ1bGVzU2hhMjU2Ijogc2hhMjU2KHJ1bGVzX2J5dGVzKSwKICAgICAgICAib3ZlcmxheSI6IGNoYW5nZWQsCiAgICAgICAgInNvdXJjZVNoYSI6IG1hbmlmZXN0WyJhcHBsaWNhdGlvblNoYSJdLAogICAgICAgICJtb2RlIjogYXJncy5tb2RlLAogICAgfQogICAgKGV2aWRlbmNlIC8gImJlZm9yZS5qc29uIikud3JpdGVfdGV4dChqc29uLmR1bXBzKGJlZm9yZSwgaW5kZW50PTIpICsgIlxuIikKICAgIChldmlkZW5jZSAvICJyb2xsYmFjay5qc29uIikud3JpdGVfdGV4dChqc29uLmR1bXBzKHsKICAgICAgICAicHJvamVjdElkIjogbWFuaWZlc3RbInByb2plY3RJZCJdLAogICAgICAgICJzaXRlIjogc2l0ZSwKICAgICAgICAicmVsZWFzZSI6IGN1cnJlbnRfcmVsZWFzZSwKICAgICAgICAidmVyc2lvbiI6IGN1cnJlbnRfdmVyc2lvbiwKICAgICAgICAiY29tbWFuZCI6ICJSZXJ1biB0aGlzIHdvcmtmbG93IGluIHJvbGxiYWNrIG1vZGUgd2l0aCB0aGUgcmV2aWV3ZWQgcHJlLWRlcGxveSByZWxlYXNlIGFuZCB2ZXJzaW9uIiwKICAgIH0sIGluZGVudD0yKSArICJcbiIpCgogICAgaWYgYXJncy5tb2RlID09ICJwcmVmbGlnaHQiOgogICAgICAgIHByaW50KGpzb24uZHVtcHMoYmVmb3JlLCBpbmRlbnQ9MikpCiAgICAgICAgcHJpbnQoIlBSRUZMSUdIVCBPTkxZOiBubyBIb3N0aW5nIHZlcnNpb24gb3IgcmVsZWFzZSB3YXMgY3JlYXRlZCIpCiAgICAgICAgcmV0dXJuCgogICAgaWYgYXJncy5tb2RlID09ICJyb2xsYmFjayI6CiAgICAgICAgcm9sbGJhY2tfdmVyc2lvbiA9IG1hbmlmZXN0WyJiYXNlbGluZUhvc3RpbmdWZXJzaW9uIl0KICAgICAgICByZXN1bHQgPSBhcGkoCiAgICAgICAgICAgIEhPU1RJTkdfQVBJLAogICAgICAgICAgICAiUE9TVCIsCiAgICAgICAgICAgIGYic2l0ZXMve3NpdGV9L3JlbGVhc2VzP3ZlcnNpb25OYW1lPSIgKyB1cmxsaWIucGFyc2UucXVvdGUocm9sbGJhY2tfdmVyc2lvbiwgc2FmZT0iLyIpLAogICAgICAgICAgICB7fSwKICAgICAgICApCiAgICAgICAgKGV2aWRlbmNlIC8gInJvbGxiYWNrLXJlc3VsdC5qc29uIikud3JpdGVfdGV4dChqc29uLmR1bXBzKHJlc3VsdCwgaW5kZW50PTIpICsgIlxuIikKICAgICAgICByZXR1cm4KCiAgICBuZXdfdmVyc2lvbiA9IGFwaShIT1NUSU5HX0FQSSwgIlBPU1QiLCBmInNpdGVzL3tzaXRlfS92ZXJzaW9ucyIsIHsiY29uZmlnIjogdmVyc2lvblsiY29uZmlnIl19KQogICAgbmV3X25hbWUgPSBuZXdfdmVyc2lvblsibmFtZSJdCiAgICB1cGxvYWRfdXJscyA9IHt9CiAgICBpdGVtcyA9IGxpc3QoY2FuZGlkYXRlX2ZpbGVzLml0ZW1zKCkpCiAgICBmb3IgaW5kZXggaW4gcmFuZ2UoMCwgbGVuKGl0ZW1zKSwgOTAwKToKICAgICAgICBwb3B1bGF0ZWQgPSBhcGkoSE9TVElOR19BUEksICJQT1NUIiwgbmV3X25hbWUgKyAiOnBvcHVsYXRlRmlsZXMiLCB7ImZpbGVzIjogZGljdChpdGVtc1tpbmRleDppbmRleCArIDkwMF0pfSkKICAgICAgICBmb3IgZGlnZXN0IGluIHBvcHVsYXRlZC5nZXQoInVwbG9hZFJlcXVpcmVkSGFzaGVzIiwgW10pOgogICAgICAgICAgICBpZiBkaWdlc3Qgbm90IGluIHBheWxvYWRzOgogICAgICAgICAgICAgICAgcmFpc2UgUnVudGltZUVycm9yKCJIb3N0aW5nIHJlcXVlc3RlZCBhbiB1bnJlbGF0ZWQgbGl2ZSBhc3NldCB1cGxvYWQ7IGFib3J0aW5nIikKICAgICAgICAgICAgdXBsb2FkX3VybHNbZGlnZXN0XSA9IHBvcHVsYXRlZFsidXBsb2FkVXJsIl0KICAgIGZvciBkaWdlc3QsIHVybCBpbiB1cGxvYWRfdXJscy5pdGVtcygpOgogICAgICAgIHJlcXVlc3QgPSB1cmxsaWIucmVxdWVzdC5SZXF1ZXN0KAogICAgICAgICAgICB1cmwgKyAiLyIgKyBkaWdlc3QsCiAgICAgICAgICAgIGRhdGE9cGF5bG9hZHNbZGlnZXN0XSwKICAgICAgICAgICAgbWV0aG9kPSJQT1NUIiwKICAgICAgICAgICAgaGVhZGVycz17IkF1dGhvcml6YXRpb24iOiAiQmVhcmVyICIgKyBjcmVkZW50aWFscy50b2tlbiwgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9vY3RldC1zdHJlYW0ifSwKICAgICAgICApCiAgICAgICAgd2l0aCB1cmxsaWIucmVxdWVzdC51cmxvcGVuKHJlcXVlc3QsIHRpbWVvdXQ9NjApIGFzIHJlc3BvbnNlOgogICAgICAgICAgICBpZiByZXNwb25zZS5zdGF0dXMgbm90IGluICgyMDAsIDIwMSwgMjA0KToKICAgICAgICAgICAgICAgIHJhaXNlIFJ1bnRpbWVFcnJvcigiSG9zdGluZyBhc3NldCB1cGxvYWQgZmFpbGVkIikKICAgIGFwaShIT1NUSU5HX0FQSSwgIlBBVENIIiwgbmV3X25hbWUgKyAiP3VwZGF0ZU1hc2s9c3RhdHVzJTJDY29uZmlnIiwgeyJzdGF0dXMiOiAiRklOQUxJWkVEIiwgImNvbmZpZyI6IHZlcnNpb25bImNvbmZpZyJdfSkKCiAgICBsYXRlc3QgPSBhcGkoSE9TVElOR19BUEksICJHRVQiLCBmInNpdGVzL3tzaXRlfS9yZWxlYXNlcz9wYWdlU2l6ZT0xIilbInJlbGVhc2VzIl1bMF0KICAgIGlmIGxhdGVzdFsibmFtZSJdICE9IGN1cnJlbnRfcmVsZWFzZSBvciBsYXRlc3RbInZlcnNpb24iXVsibmFtZSJdICE9IGN1cnJlbnRfdmVyc2lvbjoKICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoIkxpdmUgSG9zdGluZyBjaGFuZ2VkIGR1cmluZyBwcmVwYXJhdGlvbjsgcmVmdXNpbmcgdG8gcmVsZWFzZSIpCiAgICByZWxlYXNlZCA9IGFwaSgKICAgICAgICBIT1NUSU5HX0FQSSwKICAgICAgICAiUE9TVCIsCiAgICAgICAgZiJzaXRlcy97c2l0ZX0vcmVsZWFzZXM/dmVyc2lvbk5hbWU9IiArIHVybGxpYi5wYXJzZS5xdW90ZShuZXdfbmFtZSwgc2FmZT0iLyIpLAogICAgICAgIHt9LAogICAgKQogICAgKGV2aWRlbmNlIC8gImFmdGVyLmpzb24iKS53cml0ZV90ZXh0KGpzb24uZHVtcHMocmVsZWFzZWQsIGluZGVudD0yKSArICJcbiIpCiAgICB2ZXJpZmljYXRpb24gPSB7fQogICAgY2FjaGVfa2V5ID0gbmV3X25hbWUucnNwbGl0KCIvIiwgMSlbLTFdCiAgICBmb3Igb3JpZ2luIGluIChmImh0dHBzOi8ve3NpdGV9LndlYi5hcHAiLCBtYW5pZmVzdFsicHJvZHVjdGlvbk9yaWdpbiJdKToKICAgICAgICBvcmlnaW5fcmVzdWx0ID0ge30KICAgICAgICBmb3IgcmVsYXRpdmUsIGV4cGVjdGVkX2hhc2ggaW4gbWFuaWZlc3RbImhvc3RpbmdGaWxlcyJdLml0ZW1zKCk6CiAgICAgICAgICAgIHBhdGggPSAiLyIgKyByZWxhdGl2ZS5yZW1vdmVwcmVmaXgoInB1YmxpYy8iKQogICAgICAgICAgICB1cmwgPSBvcmlnaW4gKyBwYXRoICsgIj9yZWxlYXNlPSIgKyB1cmxsaWIucGFyc2UucXVvdGUoY2FjaGVfa2V5KQogICAgICAgICAgICBsYXN0X2hhc2ggPSBOb25lCiAgICAgICAgICAgIGZvciBhdHRlbXB0IGluIHJhbmdlKDUpOgogICAgICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgICAgIHdpdGggdXJsbGliLnJlcXVlc3QudXJsb3Blbih1cmwsIHRpbWVvdXQ9MzApIGFzIHJlc3BvbnNlOgogICAgICAgICAgICAgICAgICAgICAgICBib2R5ID0gcmVzcG9uc2UucmVhZCgpCiAgICAgICAgICAgICAgICAgICAgbGFzdF9oYXNoID0gc2hhMjU2KGJvZHkpCiAgICAgICAgICAgICAgICAgICAgaWYgbGFzdF9oYXNoID09IGV4cGVjdGVkX2hhc2g6CiAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgICAgICAgICBleGNlcHQgRXhjZXB0aW9uOgogICAgICAgICAgICAgICAgICAgIGxhc3RfaGFzaCA9ICJyZXF1ZXN0LWZhaWxlZCIKICAgICAgICAgICAgICAgIGlmIGF0dGVtcHQgPCA0OgogICAgICAgICAgICAgICAgICAgIHRpbWUuc2xlZXAoMikKICAgICAgICAgICAgaWYgbGFzdF9oYXNoICE9IGV4cGVjdGVkX2hhc2g6CiAgICAgICAgICAgICAgICByYWlzZSBSdW50aW1lRXJyb3IoZiJQb3N0LWRlcGxveW1lbnQgdmVyaWZpY2F0aW9uIGZhaWxlZDoge29yaWdpbn17cGF0aH0iKQogICAgICAgICAgICBvcmlnaW5fcmVzdWx0W3BhdGhdID0gbGFzdF9oYXNoCiAgICAgICAgdmVyaWZpY2F0aW9uW29yaWdpbl0gPSBvcmlnaW5fcmVzdWx0CiAgICAoZXZpZGVuY2UgLyAidmVyaWZpY2F0aW9uLmpzb24iKS53cml0ZV90ZXh0KGpzb24uZHVtcHModmVyaWZpY2F0aW9uLCBpbmRlbnQ9MikgKyAiXG4iKQogICAgcHJpbnQoanNvbi5kdW1wcyh7InJlbGVhc2VkIjogcmVsZWFzZWRbIm5hbWUiXSwgInZlcnNpb24iOiBuZXdfbmFtZSwgInJvbGxiYWNrVmVyc2lvbiI6IGN1cnJlbnRfdmVyc2lvbn0sIGluZGVudD0yKSkKCgppZiBfX25hbWVfXyA9PSAiX19tYWluX18iOgogICAgbWFpbigpCg==
+#!/usr/bin/env python3
+"""Preserve the live production Hosting version and overlay five approved files."""
+
+import argparse
+import gzip
+import hashlib
+import json
+import os
+from pathlib import Path
+import time
+import urllib.parse
+import urllib.request
+
+import google.auth
+from google.auth.transport.requests import Request
+
+HOSTING_API = "https://firebasehosting.googleapis.com/v1beta1/"
+RULES_API = "https://firebaserules.googleapis.com/v1/"
+
+
+def sha256(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--manifest", required=True)
+    parser.add_argument("--source-root", required=True)
+    parser.add_argument("--evidence-dir", required=True)
+    parser.add_argument("--mode", choices=("preflight", "deploy", "rollback"), required=True)
+    parser.add_argument("--confirm-project", required=True)
+    parser.add_argument("--confirm-source-sha", required=True)
+    parser.add_argument("--expected-current-release", required=True)
+    parser.add_argument("--expected-current-version", required=True)
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    manifest = json.loads(Path(args.manifest).read_text())
+    evidence = Path(args.evidence_dir)
+    evidence.mkdir(parents=True, exist_ok=True)
+
+    if args.confirm_project != manifest["projectId"] or manifest["projectId"] != "sandmandashboard":
+        raise RuntimeError("Exact production project confirmation failed")
+    if args.confirm_source_sha != manifest["applicationSha"]:
+        raise RuntimeError("Immutable application SHA confirmation failed")
+    if args.mode != "rollback":
+        if args.expected_current_release != manifest["baselineHostingRelease"]:
+            raise RuntimeError("Expected Hosting release does not match the reviewed baseline")
+        if args.expected_current_version != manifest["baselineHostingVersion"]:
+            raise RuntimeError("Expected Hosting version does not match the reviewed baseline")
+    elif not args.expected_current_release.startswith(f"sites/{manifest['hostingSite']}/releases/") \
+            or not args.expected_current_version.startswith(f"sites/{manifest['hostingSite']}/versions/"):
+        raise RuntimeError("Rollback current release/version belongs to an unexpected Hosting site")
+
+    root = Path(args.source_root)
+    payloads = {}
+    overlay = {}
+    for relative, expected_hash in manifest["hostingFiles"].items():
+        source = root / relative
+        data = source.read_bytes()
+        if sha256(data) != expected_hash:
+            raise RuntimeError(f"Source hash mismatch: {relative}")
+        compressed = gzip.compress(data, mtime=0)
+        digest = sha256(compressed)
+        path = "/" + relative.removeprefix("public/")
+        overlay[path] = digest
+        payloads[digest] = compressed
+
+    credentials, credential_project = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/firebase"]
+    )
+    if credential_project != manifest["projectId"]:
+        raise RuntimeError("Deployment credential is not owned by the production project")
+    credentials.refresh(Request())
+
+    def api(base, method, path, data=None):
+        request = urllib.request.Request(
+            base + path,
+            data=None if data is None else json.dumps(data).encode(),
+            method=method,
+            headers={
+                "Authorization": "Bearer " + credentials.token,
+                "Content-Type": "application/json",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            return json.load(response)
+
+    site = manifest["hostingSite"]
+    current = api(HOSTING_API, "GET", f"sites/{site}/releases?pageSize=1")["releases"][0]
+    current_release = current["name"]
+    current_version = current["version"]["name"]
+    if current_release != args.expected_current_release or current_version != args.expected_current_version:
+        raise RuntimeError("Live Hosting changed after review; refresh the release manifest")
+
+    version = api(HOSTING_API, "GET", current_version)
+    if version.get("status") != "FINALIZED" or int(version.get("fileCount", 0)) < 100:
+        raise RuntimeError("Live Hosting baseline is not a complete finalized site")
+    if not version.get("config"):
+        raise RuntimeError("Live Hosting configuration is missing")
+
+    live_files = {}
+    page = ""
+    while True:
+        query = "?pageSize=1000" + ("&pageToken=" + urllib.parse.quote(page) if page else "")
+        result = api(HOSTING_API, "GET", current_version + "/files" + query)
+        for entry in result.get("files", []):
+            live_files[entry["path"]] = entry["hash"]
+        page = result.get("nextPageToken", "")
+        if not page:
+            break
+    if len(live_files) != int(version["fileCount"]):
+        raise RuntimeError("Live Hosting manifest pagination was incomplete")
+
+    rules_release = api(RULES_API, "GET", manifest["firestoreRelease"])
+    ruleset = api(RULES_API, "GET", rules_release["rulesetName"])
+    rules_file = next(item for item in ruleset["source"]["files"] if item["name"] == "firestore.rules")
+    rules_bytes = rules_file["content"].encode()
+    if args.mode != "rollback":
+        if rules_release.get("rulesetName") != manifest["firestoreRuleset"]:
+            raise RuntimeError("Production Firestore ruleset changed after review")
+        if sha256(rules_bytes) != manifest["firestoreRulesSha256"]:
+            raise RuntimeError("Production Firestore rule bytes changed after review")
+        if "match /admissions_requests/{requestId}" not in rules_file["content"] or "allow create: if true;" not in rules_file["content"]:
+            raise RuntimeError("Reviewed admissions request create compatibility is absent")
+
+    candidate_files = dict(live_files)
+    candidate_files.update(overlay)
+    changed = sorted(path for path, value in candidate_files.items() if live_files.get(path) != value)
+    if changed != sorted(overlay):
+        raise RuntimeError(f"Hosting overlay escaped the exact allowlist: {changed}")
+
+    before = {
+        "projectId": manifest["projectId"],
+        "site": site,
+        "release": current_release,
+        "version": current_version,
+        "versionStatus": version["status"],
+        "fileCount": len(live_files),
+        "versionBytes": version.get("versionBytes"),
+        "configSha256": sha256(json.dumps(version["config"], sort_keys=True).encode()),
+        "firestoreRelease": rules_release["name"],
+        "firestoreRuleset": rules_release["rulesetName"],
+        "firestoreRulesSha256": sha256(rules_bytes),
+        "overlay": changed,
+        "sourceSha": manifest["applicationSha"],
+        "mode": args.mode,
+    }
+    (evidence / "before.json").write_text(json.dumps(before, indent=2) + "\n")
+    (evidence / "rollback.json").write_text(json.dumps({
+        "projectId": manifest["projectId"],
+        "site": site,
+        "release": current_release,
+        "version": current_version,
+        "command": "Rerun this workflow in rollback mode with the reviewed pre-deploy release and version",
+    }, indent=2) + "\n")
+
+    if args.mode == "preflight":
+        print(json.dumps(before, indent=2))
+        print("PREFLIGHT ONLY: no Hosting version or release was created")
+        return
+
+    if args.mode == "rollback":
+        rollback_version = manifest["baselineHostingVersion"]
+        result = api(
+            HOSTING_API,
+            "POST",
+            f"sites/{site}/releases?versionName=" + urllib.parse.quote(rollback_version, safe="/"),
+            {},
+        )
+        (evidence / "rollback-result.json").write_text(json.dumps(result, indent=2) + "\n")
+        return
+
+    new_version = api(HOSTING_API, "POST", f"sites/{site}/versions", {"config": version["config"]})
+    new_name = new_version["name"]
+    upload_urls = {}
+    items = list(candidate_files.items())
+    for index in range(0, len(items), 900):
+        populated = api(HOSTING_API, "POST", new_name + ":populateFiles", {"files": dict(items[index:index + 900])})
+        for digest in populated.get("uploadRequiredHashes", []):
+            if digest not in payloads:
+                raise RuntimeError("Hosting requested an unrelated live asset upload; aborting")
+            upload_urls[digest] = populated["uploadUrl"]
+    for digest, url in upload_urls.items():
+        request = urllib.request.Request(
+            url + "/" + digest,
+            data=payloads[digest],
+            method="POST",
+            headers={"Authorization": "Bearer " + credentials.token, "Content-Type": "application/octet-stream"},
+        )
+        with urllib.request.urlopen(request, timeout=60) as response:
+            if response.status not in (200, 201, 204):
+                raise RuntimeError("Hosting asset upload failed")
+    api(HOSTING_API, "PATCH", new_name + "?updateMask=status%2Cconfig", {"status": "FINALIZED", "config": version["config"]})
+
+    latest = api(HOSTING_API, "GET", f"sites/{site}/releases?pageSize=1")["releases"][0]
+    if latest["name"] != current_release or latest["version"]["name"] != current_version:
+        raise RuntimeError("Live Hosting changed during preparation; refusing to release")
+    released = api(
+        HOSTING_API,
+        "POST",
+        f"sites/{site}/releases?versionName=" + urllib.parse.quote(new_name, safe="/"),
+        {},
+    )
+    (evidence / "after.json").write_text(json.dumps(released, indent=2) + "\n")
+    verification = {}
+    cache_key = new_name.rsplit("/", 1)[-1]
+    for origin in (f"https://{site}.web.app", manifest["productionOrigin"]):
+        origin_result = {}
+        for relative, expected_hash in manifest["hostingFiles"].items():
+            path = "/" + relative.removeprefix("public/")
+            url = origin + path + "?release=" + urllib.parse.quote(cache_key)
+            last_hash = None
+            for attempt in range(5):
+                try:
+                    with urllib.request.urlopen(url, timeout=30) as response:
+                        body = response.read()
+                    last_hash = sha256(body)
+                    if last_hash == expected_hash:
+                        break
+                except Exception:
+                    last_hash = "request-failed"
+                if attempt < 4:
+                    time.sleep(2)
+            if last_hash != expected_hash:
+                raise RuntimeError(f"Post-deployment verification failed: {origin}{path}")
+            origin_result[path] = last_hash
+        verification[origin] = origin_result
+    (evidence / "verification.json").write_text(json.dumps(verification, indent=2) + "\n")
+    print(json.dumps({"released": released["name"], "version": new_name, "rollbackVersion": current_version}, indent=2))
+
+
+if __name__ == "__main__":
+    main()
