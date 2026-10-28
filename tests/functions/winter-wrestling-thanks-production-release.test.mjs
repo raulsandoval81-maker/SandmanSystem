@@ -23,7 +23,7 @@ test("three pinned files match expected SHA-256",()=>{
    assert.equal(createHash("sha256").update(readFileSync(path)).digest("hex"),digest,path);
  }
 });
-test("workflow requires protected production and supports preflight/deploy only",()=>{
+test("workflow requires protected production and supports protected preflight/deploy/rollback",()=>{
  assert.match(workflow,/environment: production/);
  assert.match(workflow,/options: \[preflight, deploy\]/);
  assert.match(workflow,/scripts\/production\/winter_wrestling_hosting_release\.py/);
