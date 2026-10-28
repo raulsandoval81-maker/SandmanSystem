@@ -59,12 +59,12 @@
       <input id="winterEnrollmentDate" type="date" min="2026-10-28" max="2027-02-14" />
       <fieldset>
         <legend>Seasonal proration (Management preview)</legend>
-        <p>Each fully missed quarter reduces the season fee by 25%. Within an otherwise included quarter, each missed session-day reduces that quarter's value by 1/16. Do not count the same day in both fields.</p>
+        <p>The total seasonal reduction is capped at 25% ($87.50 per athlete). Count only scheduled training sessions missed, excluding Thanksgiving break and academy closures. Manual entry requires Management verification; do not double-count quarters and session days.</p>
         <label for="winterMissedQuarters">Fully missed quarters (0–4)</label>
         <select id="winterMissedQuarters"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
         <label for="winterMissedDays">Additional missed session-days in remaining quarters (0–64)</label>
         <input id="winterMissedDays" type="number" min="0" max="64" step="1" value="0" />
-        <small>Each quarter contains 16 pricing-day units. Management must verify actual calendar and scheduled sessions before approving any adjustment.</small>
+        <small>Each quarter contains 16 pricing-day units. The total discount is never more than 25%. This is a preview; Management must verify missed scheduled training sessions.</small>
       </fieldset>
       <div id="winterSeasonalEstimate" role="status" aria-live="polite"></div>
       <p>Seasonal proposal and checkout are not enabled. Do not use monthly membership checkout for seasonal plans.</p>
