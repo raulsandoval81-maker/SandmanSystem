@@ -1,0 +1,17 @@
+{
+  "releaseId": "winter-wrestling-thanks-pr328",
+  "projectId": "sandmandashboard",
+  "hostingSite": "sandman-main",
+  "productionOrigin": "https://sandmancombat.com",
+  "applicationSha": "28b148806acaf8c1534661d8998d6142c959b4fd",
+  "baselineHostingRelease": "sites/sandman-main/releases/1793205457199000",
+  "baselineHostingVersion": "sites/sandman-main/versions/39887d1d638050b7",
+  "firestoreRelease": "projects/sandmandashboard/releases/cloud.firestore",
+  "firestoreRuleset": "projects/sandmandashboard/rulesets/dd8727d6-4476-4c1d-baaf-21fba3ccbd5b",
+  "firestoreRulesSha256": "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af",
+  "hostingFiles": {
+    "public/connect/thanks/index.html": "b3844456e48356d2749e9d529544fcc0df304ee6ea5ab4365db7f1368b126793",
+    "public/promotions/winter-wrestling/index.html": "51cd9efa45543409e7ef15cecdf2716d598bcdcd1a7e5cd2feed96d9605fed14",
+    "public/promotions/winter-wrestling/winter-wrestling.js": "e318962381a929d1e5b431f2f064d7c781bb611e9941aabd604c0eecf736c102"
+  }
+}
