@@ -338,6 +338,10 @@ function labelForStatus(value = "") {
 
     CHECKOUT_CREATED:
       "Checkout Created",
+    PARTIALLY_PAID:
+      "Seasonal Installments Pending",
+    PAYMENT_FAILED:
+      "Seasonal Payment Failed",
 
     PAYMENT_PENDING:
       "Payment Pending",
@@ -963,6 +967,7 @@ function getMonthlyBalance(proposal) {
   const pricing =
     proposal.pricing || {};
 
+  if (pricing.billingType === "seasonal_one_time") return 0;
   return Number(
     pricing.monthlyBalance ??
     pricing.monthlyTotal ??
@@ -975,6 +980,13 @@ function getDueNow(proposal) {
   const pricing =
     proposal.pricing || {};
 
+  if (pricing.billingType === "seasonal_one_time") {
+    const ledger = Array.isArray(proposal.seasonalPaymentLedger)
+      ? proposal.seasonalPaymentLedger
+      : pricing.installments || [];
+    const next = ledger.find((entry) => entry.status !== "paid");
+    return Number(next?.amountCents || 0) / 100;
+  }
   return Number(
     pricing.dueNow ??
     pricing.enrollmentBalance ??
@@ -1120,7 +1132,9 @@ function proposalActionHtml(status, id, proposal = {}) {
 
   if (
     status === "READY_FOR_CHECKOUT" ||
-    status === "CHECKOUT_CREATED"
+    status === "CHECKOUT_CREATED" ||
+    status === "PARTIALLY_PAID" ||
+    status === "PAYMENT_FAILED"
   ) {
     return `
       <button class="proposal-open-btn" type="button" data-proposal-action="preview-enrollment-verification" data-proposal-id="${esc(id)}">
@@ -1598,6 +1612,8 @@ function proposalStageInfo(
       return { stage: "Proposal Builder", next: "Complete the proposal and issue it to the family." };
     case "READY_FOR_CHECKOUT":
     case "CHECKOUT_CREATED":
+    case "PARTIALLY_PAID":
+    case "PAYMENT_FAILED":
       return { stage: "Review & Confirm", next: "Family confirms the locked enrollment, then continues to Stripe." };
     case "PAID":
       return { stage: "Management Enrollment", next: "Issue the secure Intake handoff." };
@@ -1778,11 +1794,11 @@ function proposalCardHtml(
           : `
             <div>
               <small>
-                Monthly
+                ${proposal.pricing?.billingType === "seasonal_one_time" ? "Billing" : "Monthly"}
               </small>
 
               <strong>
-                ${money(monthly)}
+                ${proposal.pricing?.billingType === "seasonal_one_time" ? "One-time installments" : money(monthly)}
               </strong>
             </div>
 
@@ -1920,7 +1936,9 @@ function proposalGroupKey(
 
   if ([
     "READY_FOR_CHECKOUT",
-    "CHECKOUT_CREATED"
+    "CHECKOUT_CREATED",
+    "PARTIALLY_PAID",
+    "PAYMENT_FAILED"
   ].includes(status)) return "CHECKOUT_ENROLLMENT";
 
   return "CLOSED";

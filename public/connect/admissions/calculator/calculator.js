@@ -323,6 +323,11 @@ const extras = {
 
       monthlySponsor:document.getElementById("monthlySponsor"),
       annualSponsor:document.getElementById("annualSponsor"),
+      billingProgram:document.getElementById("billingProgram"),
+      seasonalSchedule:document.getElementById("seasonalSchedule"),
+      seasonalEnrollmentDate:document.getElementById("seasonalEnrollmentDate"),
+      seasonalPayInFull:document.getElementById("seasonalPayInFull"),
+      lateEnrollmentReviewed:document.getElementById("lateEnrollmentReviewed"),
 
       membershipStartDate:
         document.getElementById("membershipStartDate"),
@@ -889,6 +894,15 @@ const extras = {
 
     function calculate(){
       const athletes=readAthletes();
+      const seasonal =
+        el.billingProgram?.value === "seasonal_one_time";
+      document.querySelectorAll("[data-seasonal-field]").forEach((field) => {
+        field.hidden = !seasonal;
+      });
+      document.querySelector(".payment-start-section")?.toggleAttribute("hidden", seasonal);
+      if (seasonal) {
+        return calculateWinterWrestling(athletes);
+      }
       const extra=extras[el.extra.value];
       const supportPercent =
         supportedPercent(
@@ -1681,6 +1695,71 @@ const extras = {
       };
     }
 
+    function calculateWinterWrestling(athletes){
+      const athleteCount = athletes.length;
+      if (!el.seasonalEnrollmentDate.value) {
+        el.seasonalEnrollmentDate.value = "2026-11-15";
+      }
+      const baseCents = athleteCount * 35000;
+      const schedule = el.seasonalSchedule.value;
+      const enrollmentDate = el.seasonalEnrollmentDate.value;
+      const start = new Date("2026-11-29T12:00:00Z");
+      const end = new Date("2027-02-14T12:00:00Z");
+      const weekdays = schedule === "monday-wednesday-saturday"
+        ? new Set([1,3,6]) : new Set([2,4,6]);
+      let required = 0;
+      let missed = 0;
+      for (const cursor = new Date(start); cursor <= end; cursor.setUTCDate(cursor.getUTCDate()+1)) {
+        const date = cursor.toISOString().slice(0,10);
+        if (!weekdays.has(cursor.getUTCDay()) || date === "2026-12-24" || date === "2026-12-26") continue;
+        required += 1;
+        if (date < enrollmentDate) missed += 1;
+      }
+      const appliedPercent = Math.min(25, required ? (missed / required) * 100 : 0);
+      const discountCents = Math.round(35000 * appliedPercent / 100) * athleteCount;
+      const totalCents = baseCents - discountCents;
+      const defaultFirst = ({1:20000,2:40000,3:45000,4:60000,5:75000})[athleteCount] || 0;
+      const dueNowCents = el.seasonalPayInFull.checked
+        ? totalCents
+        : Math.max(0, defaultFirst - discountCents);
+
+      el.dueNow.textContent = money(dueNowCents / 100);
+      el.monthlyTotal.textContent = "No recurring charge";
+      el.firstYearTotal.textContent = money(totalCents / 100);
+      el.projectedSavings.textContent = money(discountCents / 100);
+      el.annualTotal.textContent = "Season ends Feb 14, 2027";
+      el.breakdown.innerHTML = `
+        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(baseCents/100)}</strong></div>
+        <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${money(discountCents/100)}</strong></div>
+        <div><span>Season total</span><strong>${money(totalCents/100)}</strong></div>
+        <div><span>Due in next one-time Checkout</span><strong>${money(dueNowCents/100)}</strong></div>`;
+      el.summary.innerHTML = `
+        <p><strong>Winter Wrestling 2026–27</strong></p>
+        <p>November 15, 2026 – February 14, 2027 · $350 per athlete before an approved late-start adjustment.</p>
+        <p>${schedule === "monday-wednesday-saturday" ? "Monday / Wednesday / Saturday" : "Tuesday / Thursday / Saturday"}</p>
+        <p><strong>${money(totalCents/100)}</strong> total · ${el.seasonalPayInFull.checked ? "pay in full" : "separate one-time installments"}</p>
+        <p>No automatic future payments. Enrollment cutoff remains pending owner confirmation.</p>`;
+
+      return {
+        athletes,
+        pricing: {
+          billingType: "seasonal_one_time",
+          seasonalEnrollmentDate: enrollmentDate,
+          trainingSchedule: schedule,
+          payInFull: el.seasonalPayInFull.checked,
+          lateEnrollmentReviewed: el.lateEnrollmentReviewed.checked
+        },
+        agreement: {
+          athleteTerms: athletes.map((athlete) => ({
+            index: athlete.index,
+            name: athlete.name,
+            seasonalProgram: "winter-wrestling-2026-27"
+          }))
+        },
+        internalNotes: el.coachRecommendation.value.trim() || null
+      };
+    }
+
     async function saveProposalDraft(){
   if (pricingLabMode) {
     console.warn(
@@ -2338,6 +2417,14 @@ alert(
 
       const pricing =
         proposal.pricing || {};
+
+      if (pricing.billingType === "seasonal_one_time") {
+        el.billingProgram.value = "seasonal_one_time";
+        el.seasonalSchedule.value = pricing.trainingSchedule || "monday-wednesday-saturday";
+        el.seasonalEnrollmentDate.value = pricing.seasonalEnrollmentDate || "2026-11-15";
+        el.seasonalPayInFull.checked = pricing.payInFull === true;
+        el.lateEnrollmentReviewed.checked = pricing.lateEnrollmentReviewed === true;
+      }
 
       recordedMembershipPeriods = new Set(
         (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
@@ -3202,6 +3289,11 @@ alert(
       el.privatePromo,
       el.monthlySponsor,
       el.annualSponsor
+      ,el.billingProgram
+      ,el.seasonalSchedule
+      ,el.seasonalEnrollmentDate
+      ,el.seasonalPayInFull
+      ,el.lateEnrollmentReviewed
     ].forEach(control=>{
       control.addEventListener("input",calculate);
       control.addEventListener("change",calculate);

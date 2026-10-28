@@ -6,6 +6,8 @@ export const PROPOSAL_STATUSES = [
   "CLIENT_SIGNED",
   "READY_FOR_CHECKOUT",
   "CHECKOUT_CREATED",
+  "PARTIALLY_PAID",
+  "PAYMENT_FAILED",
   "PAID",
   "VOID",
 ] as const;

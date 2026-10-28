@@ -32,7 +32,101 @@ export const WINTER_WRESTLING_2026_27 = {
     5: [75000, 55000, 45000],
   } as Record<number, number[]>,
   laterDueDates: ["2026-12-15", "2027-01-15"],
+  requiredProgramStart: "2026-11-29",
+  maxProrationPercent: 25,
+  enrollmentCutoff: null,
 } as const;
+
+export const WINTER_WRESTLING_SCHEDULES = [
+  "monday-wednesday-saturday",
+  "tuesday-thursday-saturday",
+] as const;
+
+export type WinterWrestlingSchedule =
+  typeof WINTER_WRESTLING_SCHEDULES[number];
+
+function isoDatesBetween(start: string, end: string): string[] {
+  const dates: string[] = [];
+  const cursor = new Date(`${start}T12:00:00Z`);
+  const final = new Date(`${end}T12:00:00Z`);
+  while (cursor <= final) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+}
+
+/**
+ * Required practices used only for an approved late-start adjustment.
+ * Week 1 is the flexible Come As You Are introduction; Thanksgiving week is
+ * closed; Dec 24 is closed; Dec 26 is optional. Optional competition/training
+ * sessions never reduce the season price.
+ */
+export function winterWrestlingRequiredPractices(
+  schedule: WinterWrestlingSchedule,
+): string[] {
+  if (!WINTER_WRESTLING_SCHEDULES.includes(schedule)) {
+    throw new Error("Select an approved Winter Wrestling training schedule.");
+  }
+  const weekdays = schedule === "monday-wednesday-saturday"
+    ? new Set([1, 3, 6])
+    : new Set([2, 4, 6]);
+  const excluded = new Set(["2026-12-24", "2026-12-26"]);
+  return isoDatesBetween(
+    WINTER_WRESTLING_2026_27.requiredProgramStart,
+    WINTER_WRESTLING_2026_27.seasonEnd,
+  ).filter((date) => {
+    if (excluded.has(date)) return false;
+    return weekdays.has(new Date(`${date}T12:00:00Z`).getUTCDay());
+  });
+}
+
+export function winterWrestlingProration(input: {
+  athleteCount: number;
+  enrollmentDate: string;
+  schedule: WinterWrestlingSchedule;
+}): {
+  requiredPracticeCount: number;
+  missedRequiredPracticeCount: number;
+  perAthleteDiscountCents: number;
+  totalDiscountCents: number;
+  appliedPercent: number;
+  requiresLateEnrollmentReview: boolean;
+  enrollmentCutoffConfirmed: false;
+} {
+  const { athleteCount, enrollmentDate, schedule } = input;
+  if (!Number.isInteger(athleteCount) || athleteCount < 1 || athleteCount > 5) {
+    throw new Error("Winter Wrestling supports one to five athletes per proposal.");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(enrollmentDate)) {
+    throw new Error("Valid enrollment date required (YYYY-MM-DD).");
+  }
+  if (enrollmentDate > WINTER_WRESTLING_2026_27.seasonEnd) {
+    throw new Error("Enrollment date falls after Winter Wrestling ends.");
+  }
+  const practices = winterWrestlingRequiredPractices(schedule);
+  const missed = practices.filter((date) => date < enrollmentDate).length;
+  const rawPercent = practices.length ? (missed / practices.length) * 100 : 0;
+  const appliedPercent = Math.min(
+    WINTER_WRESTLING_2026_27.maxProrationPercent,
+    rawPercent,
+  );
+  const perAthleteDiscountCents = Math.round(
+    WINTER_WRESTLING_2026_27.perAthleteCents * appliedPercent / 100,
+  );
+  return {
+    requiredPracticeCount: practices.length,
+    missedRequiredPracticeCount: missed,
+    perAthleteDiscountCents,
+    totalDiscountCents: perAthleteDiscountCents * athleteCount,
+    appliedPercent: Number(appliedPercent.toFixed(2)),
+    requiresLateEnrollmentReview:
+      enrollmentDate > WINTER_WRESTLING_2026_27.seasonStart,
+    // Product has not approved an enrollment cutoff. Keep that decision visible
+    // and fail closed only after the published season end.
+    enrollmentCutoffConfirmed: false,
+  };
+}
 
 export function winterWrestlingPaymentPlan(
   athleteCount: number,
@@ -68,6 +162,7 @@ export function buildWinterWrestlingSchedule(
   athleteCount: number,
   enrollmentDate: string,
   payInFull = false,
+  trainingSchedule: WinterWrestlingSchedule = "monday-wednesday-saturday",
 ): {
   totalCents: number;
   installments: WinterSeasonInstallment[];
@@ -85,21 +180,33 @@ export function buildWinterWrestlingSchedule(
     throw new Error("Enrollment date falls after winter season ends.");
   }
   const plan = winterWrestlingPaymentPlan(athleteCount, payInFull);
+  const proration = winterWrestlingProration({
+    athleteCount,
+    enrollmentDate,
+    schedule: trainingSchedule,
+  });
+  const adjustedAmounts = [...plan.installmentsCents];
+  adjustedAmounts[0] -= proration.totalDiscountCents;
   const laterDates = WINTER_WRESTLING_2026_27.laterDueDates;
-  const expectedDates = [enrollmentDate, ...laterDates.slice(0, plan.installmentsCents.length - 1)];
+  const expectedDates = [enrollmentDate, ...laterDates.slice(0, adjustedAmounts.length - 1)];
   // Never generate a backdated installment: require manual review to
   // agree a new due date rather than silently charge a family.
   const requiresManualReview = expectedDates.some((date, i) =>
     i > 0 && date <= enrollmentDate
   );
-  const installments = plan.installmentsCents.map((amountCents, index) => ({
+  const installments = adjustedAmounts.map((amountCents, index) => ({
     number: index + 1,
     amountCents,
     dueDate: expectedDates[index],
     stripePriceId:
-      plan.installmentsCents.length === 1
+      adjustedAmounts.length === 1 && proration.totalDiscountCents === 0
         ? WINTER_WRESTLING_2026_27.fullSeasonPriceId // Charge with quantity = athleteCount.
         : WINTER_WRESTLING_2026_27.installmentPricesCents[amountCents] || null,
   }));
-  return { totalCents: plan.totalCents, installments, requiresManualReview };
+  return {
+    totalCents: plan.totalCents - proration.totalDiscountCents,
+    installments,
+    requiresManualReview:
+      requiresManualReview || proration.requiresLateEnrollmentReview,
+  };
 }

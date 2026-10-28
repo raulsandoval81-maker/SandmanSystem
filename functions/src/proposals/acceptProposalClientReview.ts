@@ -167,6 +167,16 @@ export const acceptProposalClientReview =
             );
           }
 
+          if (
+            review.snapshot?.pricing?.billingType === "seasonal_one_time" &&
+            signerRole !== "parent_guardian"
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              "A parent or guardian must approve a youth Winter Wrestling proposal.",
+            );
+          }
+
           const approvedBy =
             cleanReviewString(
               review.issuedBy

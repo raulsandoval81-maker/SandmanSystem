@@ -87,6 +87,8 @@ export const getProposalEnrollment =
       ![
         "READY_FOR_CHECKOUT",
         "CHECKOUT_CREATED",
+        "PARTIALLY_PAID",
+        "PAYMENT_FAILED",
         "PAID",
       ].includes(status)
     ) {
@@ -139,6 +141,10 @@ export const getProposalEnrollment =
         ? "PAID"
         : status === "CHECKOUT_CREATED"
           ? "PAYMENT_PENDING"
+          : status === "PARTIALLY_PAID"
+            ? "PARTIALLY_PAID"
+            : status === "PAYMENT_FAILED"
+              ? "PAYMENT_FAILED"
           : "NOT_STARTED";
 
     const enrollmentStatus =
@@ -148,6 +154,8 @@ export const getProposalEnrollment =
           ? "READY_FOR_ENROLLMENT"
           : status === "CHECKOUT_CREATED"
             ? "PAYMENT_PENDING"
+            : status === "PARTIALLY_PAID" || status === "PAYMENT_FAILED"
+              ? "READY_FOR_PAYMENT"
             : "READY_FOR_PAYMENT";
 
     return {
@@ -169,6 +177,11 @@ export const getProposalEnrollment =
 
         pricing:
           snapshot.pricing || {},
+
+        seasonalPaymentLedger:
+          Array.isArray(proposal.seasonalPaymentLedger)
+            ? proposal.seasonalPaymentLedger
+            : [],
 
         fundingRoute:
           snapshot.pricing?.fundingRoute ||

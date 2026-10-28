@@ -29,6 +29,8 @@ import {
   handleProposalCheckoutCompleted,
 } from "../billing/webhook";
 import { resolveLockedRecurringPricing } from "./lockedRecurringPricing";
+import { isSeasonalProposalPricing } from "./seasonalProposal";
+import { createSeasonalProposalCheckout } from "../billing/seasonalProposalCheckout";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -216,7 +218,11 @@ export const createProposalCheckout =
         proposalStatus !==
           "READY_FOR_CHECKOUT" &&
         proposalStatus !==
-          "CHECKOUT_CREATED"
+          "CHECKOUT_CREATED" &&
+        proposalStatus !==
+          "PARTIALLY_PAID" &&
+        proposalStatus !==
+          "PAYMENT_FAILED"
       ) {
         throw new HttpsError(
           "failed-precondition",
@@ -248,6 +254,27 @@ export const createProposalCheckout =
         typeof snapshot.prospect === "object"
           ? snapshot.prospect as Record<string, unknown>
           : {};
+
+      if (isSeasonalProposalPricing(pricing)) {
+        const publicBaseUrl =
+          cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) ||
+          "https://www.sandmancombat.com";
+        return createSeasonalProposalCheckout({
+          stripe: getStripe(),
+          db,
+          proposalId,
+          proposal,
+          actorUid,
+          publicBaseUrl,
+        });
+      }
+
+      if (["PARTIALLY_PAID", "PAYMENT_FAILED"].includes(proposalStatus)) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Only seasonal proposals may resume an installment checkout.",
+        );
+      }
 
       const lockedDueNow =
         toCents(pricing.dueNow);

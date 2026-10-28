@@ -12,6 +12,7 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "./proposalAccess";
+import { assertSeasonalProposalReady } from "./seasonalProposal";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -96,6 +97,8 @@ export const submitProposalForReview =
                 "Only DRAFT proposals may be submitted for review."
               );
             }
+
+            assertSeasonalProposalReady(proposal.pricing);
 
             const historyRef =
               proposalRef

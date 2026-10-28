@@ -22,6 +22,10 @@ import { handleManagementPassCheckoutCompleted } from "./managementPassWebhook";
 import { resolveLockedRecurringPricing } from "../proposals/lockedRecurringPricing";
 import { ensureProposalMonthlySponsorCoupon, recoverOrCreateProposalSubscription } from "./proposalMonthlySponsor";
 import { handleProposalAutopaySetupCompleted } from "./proposalAutopaySetup";
+import {
+  handleSeasonalProposalPaymentFailed,
+  handleSeasonalProposalPaymentSucceeded,
+} from "./seasonalProposalWebhook";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -911,6 +915,12 @@ const webhookSecret =
           const session =
             event.data.object as Stripe.Checkout.Session;
 
+          if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
+            await handleSeasonalProposalPaymentSucceeded(session);
+            familyId = null;
+            break;
+          }
+
           if (cleanString(session.metadata?.paymentFlow) === "management_pass") {
             await handleManagementPassCheckoutCompleted(session);
             familyId = null;
@@ -947,6 +957,29 @@ const webhookSecret =
               );
           }
 
+          break;
+        }
+
+        case "checkout.session.async_payment_succeeded": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
+            await handleSeasonalProposalPaymentSucceeded(session);
+            familyId = null;
+            break;
+          }
+          familyId = getFamilyIdFromObject(session);
+          break;
+        }
+
+        case "checkout.session.async_payment_failed":
+        case "checkout.session.expired": {
+          const session = event.data.object as Stripe.Checkout.Session;
+          if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
+            await handleSeasonalProposalPaymentFailed(session, event.type);
+            familyId = null;
+            break;
+          }
+          familyId = getFamilyIdFromObject(session);
           break;
         }
 
