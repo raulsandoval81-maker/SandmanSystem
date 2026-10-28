@@ -9,7 +9,7 @@ const script = fs.readFileSync("scripts/production/winter_wrestling_hosting_rele
 const hash = path => crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 
 test("release is pinned to the staged application and exact production boundary", () => {
-  assert.equal(manifest.applicationSha, "c4df12540e6638f8641f3ecfa5ca18963db93359");
+  assert.equal(manifest.applicationSha, "b0e02e61d452fca07d3e8fa303d194355120ecfe");
   assert.equal(manifest.projectId, "sandmandashboard");
   assert.equal(manifest.hostingSite, "sandman-main");
   assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793043791439000");

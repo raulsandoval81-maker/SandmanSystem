@@ -54,18 +54,18 @@ jobs:
           set -euo pipefail
           test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-winter-wrestling-production.yml@refs/heads/main"
           test "$CONFIRM_PROJECT" = "sandmandashboard"
-          test "$CONFIRM_SOURCE_SHA" = "c4df12540e6638f8641f3ecfa5ca18963db93359"
+          test "$CONFIRM_SOURCE_SHA" = "b0e02e61d452fca07d3e8fa303d194355120ecfe"
           case "$MODE" in preflight|deploy|rollback) ;; *) exit 64 ;; esac
           node --test tests/functions/winter-wrestling-production-release.test.mjs
       - name: Checkout immutable staged application source
         uses: actions/checkout@v5
         with:
-          ref: c4df12540e6638f8641f3ecfa5ca18963db93359
+          ref: b0e02e61d452fca07d3e8fa303d194355120ecfe
           path: application
           persist-credentials: false
       - name: Verify immutable application checkout
         working-directory: application
-        run: test "$(git rev-parse HEAD)" = "c4df12540e6638f8641f3ecfa5ca18963db93359"
+        run: test "$(git rev-parse HEAD)" = "b0e02e61d452fca07d3e8fa303d194355120ecfe"
       - name: Authenticate production deployment identity
         uses: google-github-actions/auth@v2
         with:

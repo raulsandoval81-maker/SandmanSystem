@@ -2754,7 +2754,7 @@
   "promotions-final-pr325-c4df1254": {
     "repository": "raulsandoval81-maker/SandmanSystem",
     "sourcePr": 325,
-    "applicationSha": "c4df12540e6638f8641f3ecfa5ca18963db93359",
+    "applicationSha": "b0e02e61d452fca07d3e8fa303d194355120ecfe",
     "requiredAncestorSha": "bc732da79132d32aee977fcb3e7afd771a51ef74",
     "allowedChangedFiles": [
       "public/connect/admissions-requests/index.html",

@@ -907,7 +907,7 @@ test("PR325 final Winter Wrestling release is immutable and five-file Hosting-on
   });
   assert.equal(validateRelease(result, approved), result);
   assert.equal(result.sourcePr, 325);
-  assert.equal(result.applicationSha, "c4df12540e6638f8641f3ecfa5ca18963db93359");
+  assert.equal(result.applicationSha, "b0e02e61d452fca07d3e8fa303d194355120ecfe");
   assert.equal(result.requiredAncestorSha, "bc732da79132d32aee977fcb3e7afd771a51ef74");
   assert.deepEqual(result.allowedChangedFiles, [
     "public/connect/admissions-requests/index.html",
