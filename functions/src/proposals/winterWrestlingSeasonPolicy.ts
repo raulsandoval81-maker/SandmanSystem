@@ -17,6 +17,7 @@ export const WINTER_WRESTLING_2026_27 = {
     20000: "price_1UVeha2KGvRzqoOHIhFxKnAT",
     25000: "price_1UVehc2KGvRzqoOHD87KEp5v",
     30000: "price_1UVehe2KGvRzqoOH26oCMduI",
+    35000: "price_1UVeei2KGvRzqoOHYd3tUMAD",
     40000: "price_1UVehh2KGvRzqoOHGbEZuF7r",
     45000: "price_1UVehj2KGvRzqoOHKnFwIGZj",
     55000: "price_1UVehl2KGvRzqoOHJqfjJ1Zb",
@@ -97,7 +98,7 @@ export function buildWinterWrestlingSchedule(
     dueDate: expectedDates[index],
     stripePriceId:
       plan.installmentsCents.length === 1
-        ? null // Full-season totals above 1 athlete need a verified quantity on the $350 price.
+        ? WINTER_WRESTLING_2026_27.fullSeasonPriceId // Charge with quantity = athleteCount.
         : WINTER_WRESTLING_2026_27.installmentPricesCents[amountCents] || null,
   }));
   return { totalCents: plan.totalCents, installments, requiresManualReview };
