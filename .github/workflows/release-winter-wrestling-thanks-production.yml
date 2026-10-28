@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Preflight first; deploy requires protected production approval
+        description: Preflight first; deploy and rollback require protected production approval
         required: true
         default: preflight
         type: choice
-        options: [preflight, deploy]
+        options: [preflight, deploy, rollback]
       confirm_project:
         description: Type sandmandashboard
         required: true
@@ -54,7 +54,7 @@ jobs:
           test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-winter-wrestling-thanks-production.yml@refs/heads/main"
           test "$CONFIRM_PROJECT" = "sandmandashboard"
           test "$CONFIRM_SOURCE_SHA" = "28b148806acaf8c1534661d8998d6142c959b4fd"
-          case "$MODE" in preflight|deploy) ;; *) exit 64 ;; esac
+          case "$MODE" in preflight|deploy|rollback) ;; *) exit 64 ;; esac
           node --test tests/functions/winter-wrestling-thanks-production-release.test.mjs
       - name: Check out immutable PR 328 application revision
         uses: actions/checkout@v5
