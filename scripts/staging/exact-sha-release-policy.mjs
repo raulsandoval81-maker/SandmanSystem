@@ -70,10 +70,17 @@ export function validateRelease(release, context = {}) {
     // against the prior application SHA by the protected workflow.
     const inherited = release.inheritedHostingFiles || [];
     const inheritedEngine = "public/coaches/execution/engine/practice-remote-control.mjs";
-    if (inherited.length && (release.releaseId !== "coach-companion-final-pr305-5ec93994"
-        || inherited.length !== 1 || inherited[0] !== inheritedEngine
-        || release.requiredAncestorSha !== "11539235059ed69a226aa2b6b5a58fee9007d9b5"
-        || release.sourcePr !== 305)) {
+    const approvedCompanionInheritance = release.releaseId === "coach-companion-final-pr305-5ec93994"
+      && inherited.length === 1 && inherited[0] === inheritedEngine
+      && release.requiredAncestorSha === "11539235059ed69a226aa2b6b5a58fee9007d9b5"
+      && release.sourcePr === 305;
+    const approvedPromotionsInheritance = release.releaseId === "promotions-final-pr325-c4df1254"
+      && inherited.length === 2
+      && inherited[0] === "public/connect/admissions-requests/admissions-requests.js"
+      && inherited[1] === "public/connect/try-a-class/try-a-class.js"
+      && release.requiredAncestorSha === "bc732da79132d32aee977fcb3e7afd771a51ef74"
+      && release.sourcePr === 325;
+    if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance) {
       throw new Error("Unapproved inherited Hosting source.");
     }
     if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file) && !inherited.includes(file))) {

@@ -894,6 +894,49 @@ test("PR308 staging attendance cold-start recovery is immutable and function-onl
 
 });
 
+test("PR325 final Winter Wrestling release is immutable and five-file Hosting-only", async () => {
+  const result = await loadRelease("promotions-final-pr325-c4df1254");
+  const approved = context({
+    repository: result.repository,
+    checkedOutSha: result.applicationSha,
+    projectId: result.projectId,
+    confirmProject: result.projectId,
+    hostingDeployer: result.hostingDeployer,
+    functionDeployer: result.functionDeployer,
+    functionRuntime: result.functionRuntime,
+  });
+  assert.equal(validateRelease(result, approved), result);
+  assert.equal(result.sourcePr, 325);
+  assert.equal(result.applicationSha, "c4df12540e6638f8641f3ecfa5ca18963db93359");
+  assert.equal(result.requiredAncestorSha, "bc732da79132d32aee977fcb3e7afd771a51ef74");
+  assert.deepEqual(result.allowedChangedFiles, [
+    "public/connect/admissions-requests/index.html",
+    "public/promotions/winter-wrestling/index.html",
+    "public/promotions/winter-wrestling/winter-wrestling.js",
+    "tests/functions/promotions-routing-contract.test.mjs",
+  ]);
+  assert.deepEqual(result.hostingFiles, [
+    "public/connect/admissions-requests/admissions-requests.js",
+    "public/connect/admissions-requests/index.html",
+    "public/connect/try-a-class/try-a-class.js",
+    "public/promotions/winter-wrestling/index.html",
+    "public/promotions/winter-wrestling/winter-wrestling.js",
+  ]);
+  assert.deepEqual(result.inheritedHostingFiles, [
+    "public/connect/admissions-requests/admissions-requests.js",
+    "public/connect/try-a-class/try-a-class.js",
+  ]);
+  assert.deepEqual(result.functions, []);
+  assert.deepEqual(result.newFunctions, []);
+  assert.throws(() => validateRelease({
+    ...result,
+    inheritedHostingFiles: [...result.inheritedHostingFiles, "public/index.html"],
+  }, approved), /Unapproved inherited Hosting source/);
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(workflow, /promotions-final-pr325-c4df1254/);
+  assert.match(workflow, /node --test application-source\/tests\/functions\/promotions-routing-contract\.test\.mjs/);
+});
+
 test("production project is rejected", () => {
   assert.throws(() => validateRelease(release, context({ projectId: "sandmandashboard" })), /staging Firebase project/);
 });

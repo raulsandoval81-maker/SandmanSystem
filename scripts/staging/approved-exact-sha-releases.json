@@ -2750,5 +2750,58 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "promotions-final-pr325-c4df1254": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 325,
+    "applicationSha": "c4df12540e6638f8641f3ecfa5ca18963db93359",
+    "requiredAncestorSha": "bc732da79132d32aee977fcb3e7afd771a51ef74",
+    "allowedChangedFiles": [
+      "public/connect/admissions-requests/index.html",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js",
+      "tests/functions/promotions-routing-contract.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "b48c9c061a03ddc2dc34e5f4a7ec21006364767a",
+    "hostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js"
+    ],
+    "inheritedHostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/try-a-class/try-a-class.js"
+    ],
+    "functions": [],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
