@@ -26,7 +26,7 @@ form.addEventListener("submit",async(e)=>{
    createdAt:serverTimestamp(),updatedAt:serverTimestamp()
   };
   await addDoc(collection(db,"admissions_requests"),payload);
-  form.reset();status.textContent="Interest received for Winter Wrestling, November 15, 2026–February 14, 2027. Sandman Management will follow up with you.";
+  window.location.assign("/connect/thanks/?source=winter-wrestling");
  }catch(err){console.error("[winter-wrestling-interest]",err);status.textContent="Unable to submit. Please try again or use the general Connect form."}
  finally{button.disabled=false}
 });
