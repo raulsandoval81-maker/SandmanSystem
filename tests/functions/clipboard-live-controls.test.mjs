@@ -10,6 +10,9 @@ test("live controls sit immediately below the Clipboard time status and before p
   const strip = html.indexOf('id="clipboardLiveControls"');
   const plan = html.indexOf('id="planBlocks"');
   assert.ok(time >= 0 && time < strip && strip < plan);
+  assert.ok(strip > html.indexOf('id="slot-note"'), "controls should be below class focus but immediately above mat-talk blocks");
+  assert.match(html, /id="clipboardLiveTime"/);
+  assert.match(html, /id="clipboardLiveClockLabel"/);
   assert.match(html, /id="clipboardLivePrimary"/);
   assert.match(html, /id="clipboardNextDrill"/);
   assert.match(html, /id="clipboardNextBlock"/);
@@ -17,6 +20,7 @@ test("live controls sit immediately below the Clipboard time status and before p
 
 test("Clipboard shares authoritative command channel without starting another timer", () => {
   assert.match(control, /requireCoach\(\)/);
+  assert.match(control, /time\.textContent = state\.sessionId \? fmt\(state\.remainingSeconds\)/);
   assert.match(control, /getPracticeSession/);
   assert.match(control, /savePracticeSessionMemory/);
   assert.match(control, /operation: "execution-command"/);
