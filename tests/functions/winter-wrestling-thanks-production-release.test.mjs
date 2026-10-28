@@ -25,7 +25,7 @@ test("three pinned files match expected SHA-256",()=>{
 });
 test("workflow requires protected production and supports protected preflight/deploy/rollback",()=>{
  assert.match(workflow,/environment: production/);
- assert.match(workflow,/options: \[preflight, deploy\]/);
+ assert.match(workflow,/options: \[preflight, deploy, rollback\]/);
  assert.match(workflow,/scripts\/production\/winter_wrestling_hosting_release\.py/);
  assert.match(workflow,/inputs\.confirm_project/);
  assert.match(workflow,/inputs\.expected_current_release/);
