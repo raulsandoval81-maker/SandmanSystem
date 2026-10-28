@@ -761,6 +761,44 @@
       </article>
 
 
+      <article class="card builder-section">
+        <div class="card-head">
+          <div>
+            <h2>Billing program</h2>
+            <p>Keep monthly memberships separate from a one-time seasonal offer.</p>
+          </div>
+        </div>
+        <div class="family-grid">
+          <div class="field">
+            <label for="billingProgram">Program</label>
+            <select id="billingProgram">
+              <option value="monthly_membership">Monthly membership</option>
+              <option value="seasonal_one_time">Winter Wrestling 2026–27</option>
+            </select>
+          </div>
+          <div class="field" data-seasonal-field hidden>
+            <label for="seasonalSchedule">Winter Wrestling schedule</label>
+            <select id="seasonalSchedule">
+              <option value="monday-wednesday-saturday">Monday / Wednesday / Saturday</option>
+              <option value="tuesday-thursday-saturday">Tuesday / Thursday / Saturday</option>
+            </select>
+          </div>
+          <div class="field" data-seasonal-field hidden>
+            <label for="seasonalEnrollmentDate">Seasonal enrollment date</label>
+            <input id="seasonalEnrollmentDate" type="date" min="2026-11-15" max="2027-02-14" />
+          </div>
+          <div class="field" data-seasonal-field hidden>
+            <label><input id="seasonalPayInFull" type="checkbox" /> Pay the complete season in one Checkout</label>
+            <p class="help">Installments are separate one-time payments. No future payment is automatic.</p>
+          </div>
+          <div class="field" data-seasonal-field hidden>
+            <label><input id="lateEnrollmentReviewed" type="checkbox" /> Management reviewed late enrollment and proration</label>
+            <p class="help">Only missed required practices count, capped at 25%. Thanksgiving closures and optional sessions are excluded. No enrollment cutoff has been approved; confirmation remains open.</p>
+          </div>
+        </div>
+      </article>
+
+
 
       <article class="card builder-section payment-start-section">
         <div class="card-head">
@@ -1249,6 +1287,6 @@
   </template>
 
     <script type="module" src="/management/shared/management-shell.js"></script>
-    <script type="module" src="./calculator.js?v=20261008-15"></script>
+    <script type="module" src="./calculator.js?v=20261028-1"></script>
 </body>
 </html>

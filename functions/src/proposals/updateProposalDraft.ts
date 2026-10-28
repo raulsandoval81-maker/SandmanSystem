@@ -12,6 +12,7 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "./proposalAccess";
+import { canonicalizeProposalPricing } from "./seasonalProposal";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -59,7 +60,7 @@ export const updateProposalDraft =
         ? data.athletes
         : [];
 
-    const pricing =
+    const requestedPricing =
       data.pricing &&
       typeof data.pricing === "object"
         ? data.pricing
@@ -243,6 +244,11 @@ export const updateProposalDraft =
                     ),
                 };
               });
+
+            const pricing = canonicalizeProposalPricing(
+              requestedPricing,
+              proposalAthletes,
+            );
 
             const historyRef =
               proposalRef

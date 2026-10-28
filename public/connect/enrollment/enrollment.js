@@ -113,6 +113,19 @@ import {
 
     renderAthletes(enrollment.athletes || []);
 
+    if (pricing.billingType === "seasonal_one_time") {
+      const ledger = Array.isArray(enrollment.seasonalPaymentLedger)
+        ? enrollment.seasonalPaymentLedger
+        : pricing.installments || [];
+      const next = ledger.find((entry) => entry.status !== "paid") || null;
+      elements.dueNowAmount.textContent = formatMoney((next?.amountCents || 0) / 100);
+      elements.monthlyAmount.textContent = "No recurring charge";
+      elements.annualRenewalAmount.textContent = "Season ends February 14, 2027";
+      elements.fundingRoute.textContent = "Separate one-time seasonal payments";
+      elements.termsConfirmed.checked = confirmation.termsConfirmed === true;
+      return;
+    }
+
     elements.dueNowAmount.textContent = formatMoney(
       getAmount(pricing, ["dueNow", "dueNowAmount"])
     );

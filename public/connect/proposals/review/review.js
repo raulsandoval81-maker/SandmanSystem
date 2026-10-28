@@ -301,6 +301,31 @@ function renderProposal(
   $("proposalFamilyName").textContent =
     familyName;
 
+  if (pricing.billingType === "seasonal_one_time") {
+    $("proposalNumber").textContent = `Seasonal Proposal · ${proposalId}`;
+    $("dueNow").textContent = moneyFromCents(pricing.dueNowCents);
+    $("monthlyMembership").textContent = "No recurring charge";
+    $("annualRenewal").textContent = "Season ends February 14, 2027";
+    renderAthletes(Array.isArray(proposal.athletes) ? proposal.athletes : []);
+    const scheduleLabel = pricing.trainingSchedule === "tuesday-thursday-saturday"
+      ? "Tuesday / Thursday / Saturday"
+      : "Monday / Wednesday / Saturday";
+    const installments = Array.isArray(pricing.installments) ? pricing.installments : [];
+    $("paymentSchedule").innerHTML = [
+      scheduleItem("Season", "November 15, 2026 – February 14, 2027"),
+      scheduleItem("Training schedule", scheduleLabel),
+      scheduleItem("Approved price", `$350 per athlete · ${moneyFromCents(pricing.listPriceTotalCents)} list total`),
+      scheduleItem("Late-start adjustment", `${pricing.proration?.missedRequiredPracticeCount || 0} missed required practices · ${Number(pricing.proration?.appliedPercent || 0)}% (25% maximum)`),
+      scheduleItem("Locked seasonal total", moneyFromCents(pricing.totalCents)),
+      ...installments.map((entry) => scheduleItem(
+        `One-time installment ${entry.number}`,
+        `${moneyFromCents(entry.amountCents)} · due ${formatDate(entry.dueDate)}`
+      )),
+      scheduleItem("Future payments", "Not automatic — each installment requires a separate approved Checkout")
+    ].join("");
+    return;
+  }
+
   $("dueNow").textContent =
     money(
       pricing.dueNow

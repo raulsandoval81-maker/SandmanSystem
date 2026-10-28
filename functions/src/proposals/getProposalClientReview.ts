@@ -84,6 +84,8 @@ export const getProposalClientReview =
         "CLIENT_CHANGES_REQUESTED",
         "READY_FOR_CHECKOUT",
         "CHECKOUT_CREATED",
+        "PARTIALLY_PAID",
+        "PAYMENT_FAILED",
       ]);
 
     if (
@@ -116,7 +118,11 @@ export const getProposalClientReview =
         proposal.status ===
           "READY_FOR_CHECKOUT" ||
         proposal.status ===
-          "CHECKOUT_CREATED",
+          "CHECKOUT_CREATED" ||
+        proposal.status ===
+          "PARTIALLY_PAID" ||
+        proposal.status ===
+          "PAYMENT_FAILED",
 
       changesRequested:
         proposal.status ===

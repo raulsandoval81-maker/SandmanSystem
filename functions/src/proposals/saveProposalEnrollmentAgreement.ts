@@ -84,6 +84,8 @@ export const saveProposalEnrollmentAgreement =
           ![
             "READY_FOR_CHECKOUT",
             "CHECKOUT_CREATED",
+            "PARTIALLY_PAID",
+            "PAYMENT_FAILED",
           ].includes(status)
         ) {
           throw new HttpsError(
