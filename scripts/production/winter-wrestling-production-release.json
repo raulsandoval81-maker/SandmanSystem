@@ -1,19 +1,19 @@
 {
-  "releaseId": "winter-wrestling-production-b48c9c06",
+  "releaseId": "winter-wrestling-production-c4df1254",
   "projectId": "sandmandashboard",
   "hostingSite": "sandman-main",
   "productionOrigin": "https://sandmancombat.com",
-  "applicationSha": "b48c9c061a03ddc2dc34e5f4a7ec21006364767a",
+  "applicationSha": "c4df12540e6638f8641f3ecfa5ca18963db93359",
   "baselineHostingRelease": "sites/sandman-main/releases/1793043791439000",
   "baselineHostingVersion": "sites/sandman-main/versions/64bda8dd1e8f0856",
   "firestoreRelease": "projects/sandmandashboard/releases/cloud.firestore",
   "firestoreRuleset": "projects/sandmandashboard/rulesets/dd8727d6-4476-4c1d-baaf-21fba3ccbd5b",
   "firestoreRulesSha256": "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af",
   "hostingFiles": {
-    "public/connect/admissions-requests/index.html": "cd06f8e4e5124894dfb7ef3d87aefb8cf4af3a0489c00d0058e0a5efb2886e46",
+    "public/connect/admissions-requests/index.html": "fa1a42215dc79b902c28e8f5e9700aa04bd8669040a9f25c45b60a99c9213629",
     "public/connect/admissions-requests/admissions-requests.js": "173a374f57d376bdcec19186b25cc971201e7fe56a7acfe189ffb275c883f472",
     "public/connect/try-a-class/try-a-class.js": "a7703dee811f824b877d590ff3f97db37ea9286afa13132dc5e091f9ad204214",
-    "public/promotions/winter-wrestling/index.html": "f873a9df219ec3e6c493f5f8d6390b5c546f070ba1ab283c72e5697d11360bb9",
-    "public/promotions/winter-wrestling/winter-wrestling.js": "b6ca5155ac6df851035f20a75cf59c5e3f14419d1f18e59f7ee0e9d9715561a4"
+    "public/promotions/winter-wrestling/index.html": "c0ceee48eff7fd548c071126bbbf13099c838b583baa496628049bc3c24a1ddc",
+    "public/promotions/winter-wrestling/winter-wrestling.js": "d2ba597192ff0a1d164d3763b2c3087dc97a910dc78df7f8c3ac3f55c3b9d44a"
   }
 }
