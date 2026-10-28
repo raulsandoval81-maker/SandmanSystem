@@ -66,6 +66,7 @@ on:
           - guest-self-checkin-pr280-ef643228
           - coach-companion-remote-pr305-11539235
           - coach-companion-final-pr305-5ec93994
+          - coach-companion-auth-pr338-b02a3d6
           - attendance-admin-init-pr308-0b06a778
           - promotions-winter-pr317-8e2b9c6b
           - promotions-contrast-pr322-b48c9c0
