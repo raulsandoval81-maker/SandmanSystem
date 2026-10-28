@@ -75,7 +75,7 @@ export function buildWinterWrestlingSchedule(
 } {
   const enrollment = new Date(enrollmentDate + "T12:00:00Z");
   if (
-    !/^\\d{4}-\\d{2}-\\d{2}$/.test(enrollmentDate) ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(enrollmentDate) ||
     !Number.isFinite(enrollment.getTime()) ||
     enrollment.toISOString().slice(0, 10) !== enrollmentDate
   ) {
