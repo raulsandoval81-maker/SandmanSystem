@@ -9,13 +9,29 @@ const command = (type, extra = {}) => buildExecutionCommand({
   commandId: `cmd-${type}`, practiceId: "practice-1", sessionId: "session-1", planVersion: 3, type, ...extra
 });
 
-test("pause and resume use the existing clock baseline without elapsed drift", () => {
-  const running = { running: true, paused: false, blockStartedAt: 10_000, blockElapsedSeconds: 20, blockDuration: 120, index: 0 };
-  const paused = applyExecutionCommand(running, command("pause"), { now: 15_000 });
-  assert.equal(paused.blockElapsedSeconds, 25);
+test("remote pause and resume preserve remaining countdown across repeated cycles", () => {
+  const running = { running: true, paused: false, blockStartedAt: 10_000, blockElapsedSeconds: 0, blockDuration: 900, index: 0 };
+  const paused = applyExecutionCommand(running, command("pause"), { now: 20_000 });
+  assert.equal(paused.blockElapsedSeconds, 10);
+  assert.equal(controllerSnapshot(paused, { sessionId: "session-1", now: 25_000 }).remainingSeconds, 890);
   const resumed = applyExecutionCommand(paused, command("resume"), { now: 30_000 });
-  assert.equal(controllerSnapshot(resumed, { sessionId: "session-1", now: 35_000 }).elapsedSeconds, 30);
+  assert.equal(controllerSnapshot(resumed, { sessionId: "session-1", now: 30_000 }).remainingSeconds, 890);
+  assert.equal(controllerSnapshot(resumed, { sessionId: "session-1", now: 35_000 }).remainingSeconds, 885);
+  const pausedAgain = applyExecutionCommand(resumed, command("pause"), { now: 36_000 });
+  assert.equal(controllerSnapshot(pausedAgain, { sessionId: "session-1" }).remainingSeconds, 884);
+  const resumedAgain = applyExecutionCommand(pausedAgain, command("resume"), { now: 50_000 });
+  assert.equal(controllerSnapshot(resumedAgain, { sessionId: "session-1", now: 50_000 }).remainingSeconds, 884);
 });
+
+test("remote skip preserves elapsed baseline and paused state", () => {
+  const paused = { running: false, paused: true, blockElapsedSeconds: 12, blockDuration: 60, index: 0 };
+  const skipped = applyExecutionCommand(paused, command("skip"), { now: 30_000, phaseEndSeconds: 30 });
+  assert.equal(skipped.paused, true);
+  assert.equal(controllerSnapshot(skipped, { sessionId: "session-1", now: 50_000 }).remainingSeconds, 30);
+  const resumed = applyExecutionCommand(skipped, command("resume"), { now: 50_000 });
+  assert.equal(controllerSnapshot(resumed, { sessionId: "session-1", now: 55_000 }).remainingSeconds, 25);
+});
+
 
 test("skip seeks only the existing parent clock and does not create elapsed time", () => {
   const state = { running: false, paused: true, blockElapsedSeconds: 12, blockDuration: 60, index: 0 };
