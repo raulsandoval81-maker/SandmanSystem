@@ -1,0 +1,95 @@
+name: Sandman homepage header production Hosting overlay
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preflight first; deploy and rollback require protected production approval
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, deploy, rollback]
+      confirm_project:
+        description: Type sandmandashboard
+        required: true
+        type: string
+      confirm_source_sha:
+        description: Pinned homepage header merge SHA
+        required: true
+        type: string
+      expected_current_release:
+        description: Reviewed live Hosting release
+        required: true
+        type: string
+      expected_current_version:
+        description: Reviewed live Hosting version
+        required: true
+        type: string
+
+permissions:
+  contents: read
+concurrency:
+  group: sandman-production-hosting
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - name: Check out trusted release tooling
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - name: Verify trusted release and exact identities
+        working-directory: trusted-tooling
+        env:
+          MODE: ${{ inputs.mode }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SOURCE_SHA: ${{ inputs.confirm_source_sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-two-homepages-production.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandmandashboard"
+          test "$CONFIRM_SOURCE_SHA" = "b0277638062d02c3d703f2cf73695e5f5949a764"
+          case "$MODE" in preflight|deploy|rollback) ;; *) exit 64 ;; esac
+          node --test tests/functions/two-homepages-production-release.test.mjs
+      - name: Check out immutable homepage header merge commit
+        uses: actions/checkout@v5
+        with:
+          ref: b0277638062d02c3d703f2cf73695e5f5949a764
+          path: application
+          persist-credentials: false
+      - name: Verify immutable application revision
+        working-directory: application
+        run: test "$(git rev-parse HEAD)" = "b0277638062d02c3d703f2cf73695e5f5949a764"
+      - name: Authenticate production deployment identity
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install google-auth requests
+      - name: Run verified two-file Hosting overlay
+        run: |
+          python trusted-tooling/scripts/production/winter_wrestling_hosting_release.py \
+            --manifest trusted-tooling/scripts/production/two-homepages-production-release.json \
+            --source-root application \
+            --evidence-dir release-evidence \
+            --mode "${{ inputs.mode }}" \
+            --confirm-project "${{ inputs.confirm_project }}" \
+            --confirm-source-sha "${{ inputs.confirm_source_sha }}" \
+            --expected-current-release "${{ inputs.expected_current_release }}" \
+            --expected-current-version "${{ inputs.expected_current_version }}"
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sandman-two-homepages-${{ github.run_id }}-${{ inputs.mode }}
+          path: release-evidence/
+          if-no-files-found: warn
