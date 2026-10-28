@@ -9,6 +9,39 @@
   <link rel="stylesheet" href="/connect/admissions-requests/admissions-requests.css">
   <link rel="stylesheet" href="/assets/css/management-ui.css">
   <link rel="stylesheet" href="/management/hub/management.css">
+  <style>
+    /* Promotions campaign card: contrast-safe within the light Management shell. */
+    .requests-page .seasonal-campaign-panel {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid var(--management-border-strong, #d2c5a8);
+      border-radius: 14px;
+      background: var(--management-surface, #fffdf8);
+      color: var(--management-text, #172033);
+      box-shadow: var(--management-shadow, 0 12px 30px rgba(40,32,15,.07));
+    }
+    .requests-page .seasonal-campaign-panel h2,
+    .requests-page .seasonal-campaign-panel p,
+    .requests-page .seasonal-campaign-panel strong {
+      color: var(--management-text, #172033);
+    }
+    .requests-page .seasonal-campaign-panel p {
+      line-height: 1.6;
+    }
+    .requests-page .seasonal-campaign-panel .eyebrow {
+      color: var(--management-gold, #956c0c) !important;
+    }
+    .requests-page .seasonal-campaign-panel > .btn {
+      margin: 8px 10px 0 0;
+    }
+    @media (max-width: 620px) {
+      .requests-page .seasonal-campaign-panel { padding: 16px; }
+      .requests-page .seasonal-campaign-panel > .btn {
+        width: 100%;
+        margin-right: 0;
+      }
+    }
+  </style>
   <link rel="icon" href="data:,">
 </head>
 <body>
@@ -55,7 +88,7 @@
       </div>
     </details>
 
-    <section class="management-page-guide__body" aria-label="Seasonal campaigns" style="margin:20px 0; padding:20px; border:1px solid rgba(255,255,255,.18); border-radius:14px">
+    <section class="seasonal-campaign-panel" aria-label="Seasonal campaigns">
       <p class="eyebrow">Seasonal Campaigns</p>
       <h2>Winter Wrestling · November–January</h2>
       <p><strong>$350 for the complete three-month season.</strong> Two weekday training sessions plus Saturday morning training or competition. Schedule preference: Monday/Wednesday/Saturday or Tuesday/Thursday/Saturday.</p>
