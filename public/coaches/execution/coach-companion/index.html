@@ -182,13 +182,11 @@
   </div>
   <section class="field-log-sections" aria-labelledby="remoteControlHeading">
     <h2 id="remoteControlHeading">Live practice control</h2>
-    <p>Big Clock remains the timer. Commands below are authenticated and applied to that same session.</p>
+    <p>Big Clock remains the timer. Skip advances within this block; Next Block advances to the following block.</p>
     <div id="remoteControlStatus" class="actuals-status muted">Connecting to Big Clock…</div>
     <div class="actuals-actions" aria-labelledby="remoteControlHeading">
-      <button type="button" data-execution-command="start">Start</button>
-      <button type="button" data-execution-command="pause">Pause</button>
-      <button type="button" data-execution-command="resume">Resume</button>
-      <button type="button" data-execution-command="skip">Skip phase/drill</button>
+      <button type="button" id="remotePrimaryControl" data-execution-command="start" disabled>Start</button>
+      <button type="button" data-execution-command="skip">Skip Current Phase / Drill</button>
       <button type="button" data-execution-command="advance">Next block</button>
       <button type="button" data-execution-command="end">End practice</button>
     </div>
@@ -246,6 +244,6 @@
 
 <script src="/coaches/_ui/coach-shell.js?v=3"></script>
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
-<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=12"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=13"></script>
 </body>
 </html>

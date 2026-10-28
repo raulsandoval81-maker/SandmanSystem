@@ -753,6 +753,17 @@ function renderRemoteControl(control = canonicalPractice?.sessionMemory?.executi
     ? `Command ${executionControlVersion} accepted; waiting for Big Clock…`
     : state.complete ? "Practice complete. Companion remains optional for review."
       : `${state.paused ? "Paused" : state.running ? "Running" : "Ready"} · Block ${Number(state.index || 0) + 1} · ${Number(state.remainingSeconds || 0)}s remaining`;
+  const primary = document.getElementById("remotePrimaryControl");
+  if (primary) {
+    const nextType = state.complete ? "" : state.paused ? "resume" : state.running ? "pause" : "start";
+    primary.dataset.executionCommand = nextType;
+    primary.textContent = nextType ? nextType[0].toUpperCase() + nextType.slice(1) : "Practice Complete";
+    primary.disabled = !nextType || Boolean(control.command && Number(control.appliedVersion || 0) < executionControlVersion);
+  }
+  document.querySelectorAll('[data-execution-command="skip"], [data-execution-command="advance"]').forEach(button => {
+    button.disabled = state.complete || (!state.running && !state.paused)
+      || Boolean(control.command && Number(control.appliedVersion || 0) < executionControlVersion);
+  });
   const memory = canonicalPractice?.sessionMemory || {};
   const blocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
   const groups = Array.isArray(memory.planningContext?.groups) ? memory.planningContext.groups : [];

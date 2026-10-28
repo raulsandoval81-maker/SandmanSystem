@@ -6,6 +6,9 @@ export const EXECUTION_COMMAND_TYPES = new Set([
 
 const text = value => String(value ?? "").trim();
 const seconds = value => Math.max(0, Math.floor(Number(value) || 0));
+const runElapsed = (state, now) => state?.running && !state?.paused && Number.isFinite(Number(state?.blockStartedAt)) && state.blockStartedAt != null
+  ? seconds((now - Number(state.blockStartedAt)) / 1000)
+  : seconds(state?.blockElapsedSeconds);
 
 export function buildExecutionCommand({ commandId, practiceId, sessionId, planVersion, type,
   blockId = "", drillId = "", groupId = "", seconds: duration = 0, replacementDrillId = "" }) {
@@ -23,9 +26,7 @@ export function buildExecutionCommand({ commandId, practiceId, sessionId, planVe
 }
 
 export function controllerSnapshot(state, { sessionId, blockId = "", drillId = "", groupId = "", now = Date.now() } = {}) {
-  const elapsed = state?.running && !state?.paused
-    ? seconds(state.blockElapsedSeconds) + seconds((now - Number(state.blockStartedAt || now)) / 1000)
-    : seconds(state?.blockElapsedSeconds);
+  const elapsed = runElapsed(state, now);
   const duration = seconds(state?.blockDuration);
   return {
     contractVersion: EXECUTION_CONTROL_VERSION, sessionId: text(sessionId),
@@ -39,13 +40,14 @@ export function controllerSnapshot(state, { sessionId, blockId = "", drillId = "
 /** Apply a server-accepted command to the existing Big Clock state; it never advances time itself. */
 export function applyExecutionCommand(state, command, { now = Date.now(), phaseEndSeconds = 0, blockCount = 0 } = {}) {
   if (!EXECUTION_COMMAND_TYPES.has(text(command?.type))) throw new Error("UNSUPPORTED_EXECUTION_COMMAND");
-  const currentElapsed = seconds(state?.blockElapsedSeconds)
-    + (state?.running && !state?.paused ? seconds((now - Number(state.blockStartedAt || now)) / 1000) : 0);
+  const currentElapsed = runElapsed(state, now);
   switch (command.type) {
-    case "start": return { ...state, running: true, paused: false, complete: false, blockStartedAt: now };
+    case "start": return { ...state, running: true, paused: false, complete: false, blockElapsedSeconds: 0, blockStartedAt: now };
     case "pause": return { ...state, running: false, paused: true, blockElapsedSeconds: currentElapsed, blockStartedAt: null };
-    case "resume": return { ...state, running: true, paused: false, blockStartedAt: now };
-    case "skip": return { ...state, blockElapsedSeconds: Math.max(currentElapsed, seconds(phaseEndSeconds)), blockStartedAt: now };
+    case "resume": return { ...state, running: true, paused: false, blockElapsedSeconds: currentElapsed, blockStartedAt: now - currentElapsed * 1000 };
+    case "skip": { const target = Math.max(currentElapsed, seconds(phaseEndSeconds));
+      return { ...state, blockElapsedSeconds: target, blockStartedAt: now - target * 1000 };
+    }
     case "advance": {
       const next = Math.min(Math.max(0, blockCount - 1), seconds(state?.index) + 1);
       return { ...state, index: next, blockElapsedSeconds: 0, blockStartedAt: now };
