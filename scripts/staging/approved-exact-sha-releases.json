@@ -2988,5 +2988,52 @@
       "captureHostingReleaseBeforeDeploy": true,
       "functionsUnchanged": true
     }
+  },
+  "during-practice-pr351-352-a44b602": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 352,
+    "applicationSha": "a44b602caef08c7e719cc7425436507d3f9b3c51",
+    "requiredAncestorSha": "d7a6e4a0dcfa839997e2e7e5c61bbebf1cc7e104",
+    "allowedChangedFiles": [
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.css",
+      "public/coaches/execution/clipboard-2.0/clipboard-live-controls.mjs",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "public/coaches/execution/coach-companion/index.html",
+      "tests/functions/clipboard-live-controls.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "f9e53add9cb63fbbf8255207f6f6ab42db7f6969",
+    "hostingFiles": [
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.css",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "public/coaches/execution/coach-companion/index.html"
+    ],
+    "functions": [],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    }
   }
 }
