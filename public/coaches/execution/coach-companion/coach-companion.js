@@ -1,6 +1,5 @@
 import {
   db,
-  ensureSignedIn,
   doc,
   getDoc,
   setDoc,
@@ -8,6 +7,11 @@ import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
+import {
+  coachLoginUrl,
+  isCoachAuthenticationError,
+  requireCoach
+} from "/assets/js/coach-guard.js";
 import { buildActualsSubmission, summarizeObservedExecution } from "/coaches/execution/engine/practice-execution-actuals.mjs";
 import { buildExecutionCommand } from "/coaches/execution/engine/practice-remote-control.mjs";
 
@@ -112,12 +116,18 @@ const saveStatusEl = document.getElementById("saveStatus");
 const totalTimeEl = document.getElementById("totalTime");
 const focusEl = document.getElementById("slot-note");
 
-async function waitForAuth() {
+async function requireCompanionCoach() {
   try {
-    await ensureSignedIn();
-  } catch (err) {
-    console.warn("Coach Companion auth warning:", err);
-    setStatus("Sign in with your Coach account to open Daily Practice Log.");
+    await requireCoach();
+    return true;
+  } catch (error) {
+    if (isCoachAuthenticationError(error)) {
+      window.location.replace(coachLoginUrl());
+      return false;
+    }
+    console.error("Coach Companion authorization failed:", error);
+    setStatus(error?.message || "Active Coach authorization is required.");
+    return false;
   }
 }
 
@@ -1074,7 +1084,7 @@ function escapeHtml(value) {
     applyClipboardTheme(savedTheme);
   }
 
-  await waitForAuth();
+  if (!await requireCompanionCoach()) return;
 
   await hydrateFromLiveSession();
 
