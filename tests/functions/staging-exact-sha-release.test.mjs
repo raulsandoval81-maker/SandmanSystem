@@ -12,6 +12,7 @@ import {
   loadRelease,
   validateRelease,
   validateFunctionConfiguration,
+  validatePartialBootstrapState,
   validateRemotePreflight,
   verifyPreservedDeployment,
 } from "../../scripts/staging/exact-sha-release-policy.mjs";
@@ -151,6 +152,9 @@ test("PR354 Billing release pins the merged source, exact overlay, callables, an
     "createProposalAutopaySetup",
   ]);
   assert.deepEqual(result.newFunctions, result.functions);
+  assert.equal(result.functionDeploymentTool, "gcloud-gen2");
+  assert.deepEqual(result.bootstrap.functions, result.functions);
+  assert.equal(result.expectedInvokerIamDisabled, true);
   assert.deepEqual(result.functionSecrets, {
     createProposalAutopaySetup: ["STRIPE_SECRET_KEY"],
   });
@@ -160,6 +164,8 @@ test("PR354 Billing release pins the merged source, exact overlay, callables, an
   }), true);
 
   const setupDescription = description("createProposalAutopaySetup");
+  setupDescription.buildConfig.serviceAccount =
+    `projects/sandman-combat-staging/serviceAccounts/${result.functionBuild}`;
   setupDescription.serviceConfig.secretEnvironmentVariables = [{ key: "STRIPE_SECRET_KEY" }];
   assert.equal(validateFunctionConfiguration(result, "createProposalAutopaySetup", setupDescription).entryPoint,
     "createProposalAutopaySetup");
@@ -173,7 +179,57 @@ test("PR354 Billing release pins the merged source, exact overlay, callables, an
   assert.match(workflow, /recordProposalPrepaidCash\|recordProposalPriorPayment\|approveProposalRenewalAutopay\|createProposalAutopaySetup/);
   const permissionPreflight = permissionChecks(result);
   assert.ok(permissionPreflight.some(check => check.permissions.includes("cloudfunctions.functions.create")));
-  assert.equal(permissionPreflight.filter(check => check.permissions.includes("iam.serviceAccounts.actAs")).length, 2);
+  assert.equal(permissionPreflight.filter(check => check.permissions?.includes("iam.serviceAccounts.actAs")).length, 2);
+  assert.ok(permissionPreflight.some(check => check.permissions?.includes("run.services.update") &&
+    check.resource.endsWith("/services/recordproposalprepaidcash")));
+  assert.equal(permissionPreflight.filter(check => check.category === "build-account").length, 4);
+});
+
+test("PR354 Billing recovery uses the reviewed no-invoker-IAM bootstrap without policy writes", () => {
+  const cashPlan = deploymentPlan(pr354BillingRelease, "recordProposalPrepaidCash", "/tmp/immutable-functions", "update",
+    { bootstrapVerified: true });
+  assert.ok(cashPlan.args.includes("--clear-secrets"));
+  assert.ok(!cashPlan.args.some(arg => arg.includes("allow-unauthenticated")));
+  const stripePlan = deploymentPlan(pr354BillingRelease, "createProposalAutopaySetup", "/tmp/immutable-functions", "update",
+    { bootstrapVerified: true });
+  assert.ok(stripePlan.args.includes("--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest"));
+  const bootstrap = bootstrapPlan(pr354BillingRelease, "/tmp/immutable-functions", "recordProposalPrepaidCash");
+  assert.ok(bootstrap.invokerConfiguration.args.includes("--no-invoker-iam-check"));
+  assert.ok(!bootstrap.invokerConfiguration.args.some(arg => arg.includes("allow-unauthenticated")));
+  const permissions = permissionPlan(pr354BillingRelease, "bootstrap");
+  assert.ok(permissions.deployer.includes("run.services.update"));
+  assert.ok(!permissions.deployer.includes("run.services.setIamPolicy"));
+});
+
+test("PR354 Billing recovery pins run 169's partial service and preserves deletion as a separate approval", () => {
+  const partial = pr354BillingRelease.partialBootstrap.recordProposalPrepaidCash;
+  const description = {
+    state: partial.state,
+    updateTime: partial.updateTime,
+    labels: { "firebase-functions-hash": partial.firebaseFunctionsHash },
+    buildConfig: { source: { storageSource: {
+      bucket: "gcf-v2-sources-991554514268-us-central1",
+      object: "recordProposalPrepaidCash/function-source.zip",
+      generation: partial.sourceGeneration,
+    } } },
+    serviceConfig: { revision: partial.revision, serviceAccountEmail: partial.runtimeServiceAccount },
+  };
+  assert.equal(validatePartialBootstrapState(pr354BillingRelease, "recordProposalPrepaidCash", description,
+    { metadata: { annotations: {} } }, { etag: "ACAB" }, { etag: "ACAB" }), true);
+  const drifted = structuredClone(description);
+  drifted.serviceConfig.revision = "unexpected-revision";
+  assert.throws(() => validatePartialBootstrapState(pr354BillingRelease, "recordProposalPrepaidCash", drifted,
+    { metadata: { annotations: {} } }, {}, {}), /evidence mismatch/);
+  assert.throws(() => validatePartialBootstrapState(pr354BillingRelease, "recordProposalPrepaidCash", description,
+    { metadata: { annotations: { "run.googleapis.com/invoker-iam-disabled": "true" } } }, {}, {}), /IAM state mismatch/);
+
+  const descriptions = Object.fromEntries(pr354BillingRelease.functions.map(name => [name, { absent: true }]));
+  descriptions.recordProposalPrepaidCash = description;
+  const evidence = rollbackEvidence(pr354BillingRelease, descriptions);
+  const cash = evidence.functions.find(value => value.name === "recordProposalPrepaidCash");
+  assert.equal(cash.priorState, "release-created-partial");
+  assert.equal(cash.failedRun, 169);
+  assert.equal(cash.rollback, "delete-partial-new-function-with-separate-approval");
 });
 
 test("approved application source is a full immutable SHA", () => {
@@ -1381,6 +1437,27 @@ test("unknown and conditional Policy Troubleshooter states expose only sanitized
   assert.doesNotMatch(JSON.stringify(unknown.diagnosticEvidence), /secret-token|access_token=secret/);
   assert.match(unknown.detail, /overallAccessState/);
   assert.equal(summarizePermissionResults([unknown]).authorized, false);
+});
+
+test("Billing accepts only the exact staging source-object condition for its proven build identity", () => {
+  const check = permissionChecks(pr354BillingRelease).find(value =>
+    value.category === "build-account" && value.permission === "storage.objects.get");
+  const membership = `serviceAccount:${pr354BillingRelease.functionBuild}`;
+  const body = {
+    overallAccessState: "UNKNOWN_CONDITIONAL",
+    explainedPolicies: [{ bindingExplanations: [{
+      role: "roles/storage.objectViewer",
+      rolePermission: "ROLE_PERMISSION_INCLUDED",
+      memberships: { [membership]: { membership: "MEMBERSHIP_INCLUDED" } },
+      condition: { expression:
+        'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")' },
+    }] }],
+  };
+  const granted = evaluateTroubleshooterResponse({ status: 200, body }, check);
+  assert.equal(granted.result, "GRANTED");
+  assert.match(granted.conditional, /gcf-v2-sources-991554514268-us-central1\/objects/);
+  body.explainedPolicies[0].bindingExplanations[0].condition.expression = "resource.name.startsWith(\"projects/_/buckets/other/\")";
+  assert.equal(evaluateTroubleshooterResponse({ status: 200, body }, check).result, "INCONCLUSIVE");
 });
 
 test("missing and malformed Policy Troubleshooter states have distinct fail-closed diagnostics", () => {

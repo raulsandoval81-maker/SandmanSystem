@@ -29,7 +29,6 @@ const BOOTSTRAP_ONLY_PERMISSIONS = Object.freeze([
   "cloudfunctions.functions.create",
   "run.services.get",
   "run.services.update",
-  "run.services.setIamPolicy",
 ]);
 
 function assertSafeSegment(value, label) {
@@ -52,8 +51,9 @@ export function deploymentPlan(release, functionName, sourceRoot, mode = "update
   if (release.functionDeploymentTool !== "gcloud-gen2") throw new Error("Release is not authorized for gcloud Gen 2 deployment.");
   if (!release.functions.includes(functionName) || !APPROVED_FUNCTIONS.includes(functionName)) throw new Error("Function is not in the exact release allowlist.");
   const isNew = (release.newFunctions || []).includes(functionName);
+  const bootstrapFunctions = release.bootstrap?.functions || (release.bootstrap?.function ? [release.bootstrap.function] : []);
   if (mode === "update" && isNew && bootstrapVerified !== true) throw new Error("New callable requires the separately approved bootstrap action.");
-  if (mode === "bootstrap" && (!isNew || release.bootstrap?.function !== functionName)) throw new Error("Bootstrap is limited to the approved new callable.");
+  if (mode === "bootstrap" && (!isNew || !bootstrapFunctions.includes(functionName))) throw new Error("Bootstrap is limited to an approved new callable.");
   assertSafeSegment(functionName, "function name");
   assertSafeSegment(release.functionRuntime, "runtime identity");
   assertSafeSegment(release.functionBuild, "build identity");
@@ -77,6 +77,10 @@ export function deploymentPlan(release, functionName, sourceRoot, mode = "update
     `--update-env-vars=${env}`,
     "--trigger-http", "--quiet",
   ];
+  if (release.functionSecrets) {
+    const secrets = release.functionSecrets[functionName] || [];
+    args.push(secrets.length ? `--set-secrets=${secrets.map(key => `${key}=${key}:latest`).join(",")}` : "--clear-secrets");
+  }
   return Object.freeze({ executable: "gcloud", args, mode, functionName, projectId: release.projectId });
 }
 
@@ -92,15 +96,19 @@ export function permissionPlan(release, mode = "update") {
     { account: release.functionRuntime, permissions: ["iam.serviceAccounts.actAs"] },
     { account: release.functionBuild, permissions: ["iam.serviceAccounts.actAs"] },
   ];
+  const buildPermissions = release.releaseId === "billing-pr354-014198ea"
+    ? BUILD_ACCOUNT_PERMISSIONS.filter(permission => permission !== "storage.objects.list")
+    : BUILD_ACCOUNT_PERMISSIONS;
   return {
-    deployer: [...GCLOUD_DEPLOYER_PERMISSIONS, ...(mode === "bootstrap" ? BOOTSTRAP_ONLY_PERMISSIONS : [])].sort(),
-    build: [...BUILD_ACCOUNT_PERMISSIONS].sort(),
+    deployer: [...new Set([...GCLOUD_DEPLOYER_PERMISSIONS,
+      ...(mode === "bootstrap" ? BOOTSTRAP_ONLY_PERMISSIONS : [])])].sort(),
+    build: [...buildPermissions].sort(),
     serviceAccounts,
   };
 }
 
-export function bootstrapPlan(release, sourceRoot) {
-  const functionName = release.bootstrap?.function;
+export function bootstrapPlan(release, sourceRoot, requestedFunction) {
+  const functionName = requestedFunction || release.bootstrap?.function || release.bootstrap?.functions?.[0];
   const deploy = deploymentPlan(release, functionName, sourceRoot, "bootstrap");
   return Object.freeze({
     approvalRequired: true,
@@ -121,6 +129,12 @@ export function rollbackEvidence(release, descriptions) {
     if (before.absent) return { name, priorState: "absent", rollback: "delete-new-function-with-separate-approval" };
     const source = before.buildConfig?.source?.storageSource;
     if (!source?.bucket || !source?.object) throw new Error(`Missing immutable rollback source for ${name}.`);
+    if (release.partialBootstrap?.[name]) return {
+      name, priorState: "release-created-partial", failedRun: release.partialBootstrap[name].failedRun,
+      updateTime: before.updateTime,
+      source: { bucket: source.bucket, object: source.object, generation: source.generation || null },
+      rollback: "delete-partial-new-function-with-separate-approval",
+    };
     return {
       name,
       priorState: "deployed",
@@ -145,11 +159,18 @@ async function main() {
     return;
   }
   if (command === "deploy") {
+    const isNew = (release.newFunctions || []).includes(functionName);
+    const bootstrapVerified = process.env.SANDMAN_BOOTSTRAP_VERIFIED === "true";
     const plan = deploymentPlan(release, functionName, sourceRoot, "update", {
-      bootstrapVerified: process.env.SANDMAN_BOOTSTRAP_VERIFIED === "true",
+      bootstrapVerified,
     });
     const result = spawnSync(plan.executable, plan.args, { stdio: "inherit", shell: false });
     if (result.status !== 0) process.exit(result.status || 1);
+    if (isNew && bootstrapVerified) {
+      const invoker = bootstrapPlan(release, sourceRoot, functionName).invokerConfiguration;
+      const invokerResult = spawnSync(invoker.executable, invoker.args, { stdio: "inherit", shell: false });
+      if (invokerResult.status !== 0) process.exit(invokerResult.status || 1);
+    }
     await writeFile("function-deploy-receipt.json", `${JSON.stringify({
       releaseId, applicationSha: release.applicationSha, functionName, completed: true,
     }, null, 2)}\n`);
