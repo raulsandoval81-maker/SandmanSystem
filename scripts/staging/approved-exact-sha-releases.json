@@ -2754,7 +2754,7 @@
   "promotions-final-pr325-c4df1254": {
     "repository": "raulsandoval81-maker/SandmanSystem",
     "sourcePr": 325,
-    "applicationSha": "212e5cf320a1243d4b1571f4368f9e1a98761aa9",
+    "applicationSha": "6eba4d30395f7eaa100c5f3326c0a89033f6a689",
     "requiredAncestorSha": "bc732da79132d32aee977fcb3e7afd771a51ef74",
     "allowedChangedFiles": [
       ".github/workflows/release-winter-wrestling-production.yml",
