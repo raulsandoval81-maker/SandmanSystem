@@ -1455,7 +1455,7 @@ test("Billing storage build preflight uses the pinned source object and explicit
       return { status: 200, text: async () => JSON.stringify({ overallAccessState: "CAN_ACCESS" }) };
     },
   });
-  assert.deepEqual(seen[0].conditionContext, check.conditionContext);
+  assert.deepEqual(seen[0].accessTuple.conditionContext, check.conditionContext);
   assert.equal(results[0].result, "GRANTED");
 });
 
