@@ -1008,7 +1008,7 @@ test("PR325 final Winter Wrestling release is immutable and five-file Hosting-on
   });
   assert.equal(validateRelease(result, approved), result);
   assert.equal(result.sourcePr, 325);
-  assert.equal(result.applicationSha, "b0e02e61d452fca07d3e8fa303d194355120ecfe");
+  assert.equal(result.applicationSha, "212e5cf320a1243d4b1571f4368f9e1a98761aa9");
   assert.equal(result.requiredAncestorSha, "bc732da79132d32aee977fcb3e7afd771a51ef74");
   assert.deepEqual(result.allowedChangedFiles, [
     ".github/workflows/release-winter-wrestling-production.yml",
