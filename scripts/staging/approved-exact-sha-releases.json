@@ -2395,7 +2395,7 @@
       "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
       "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
       "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
-      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip",
       "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
     },
     "expectedFunctionConfiguration": {
