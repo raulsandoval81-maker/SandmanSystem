@@ -33,7 +33,7 @@ test("Winter Wrestling payload and settled offer remain exact", () => {
   const html = fs.readFileSync("public/promotions/winter-wrestling/index.html", "utf8");
   const js = fs.readFileSync("public/promotions/winter-wrestling/winter-wrestling.js", "utf8");
   assert.match(html, /\$350/);
-  assert.match(html, /NOVEMBER 15, 2026 – FEBRUARY 14, 2027/);
+  assert.match(html, /NOVEMBER 16, 2026 – FEBRUARY 14, 2027/);
   assert.match(html, /Come As You Are/);
   assert.match(html, /Thanksgiving break — no required practices/);
   assert.match(html, /Eleven-week core wrestling program/);
@@ -47,7 +47,7 @@ test("Winter Wrestling payload and settled offer remain exact", () => {
   assert.match(js, /requestType:"SEASONAL_INTEREST"/);
   assert.match(js, /campaignId:"winter-wrestling-2026-27"/);
   assert.match(js, /season:"winter-2026-27"/);
-  assert.match(js, /campaignPriceLabel:"\$350 per athlete · complete season · Nov 15, 2026–Feb 14, 2027"/);
+  assert.match(js, /campaignPriceLabel:"\$350 per athlete · complete season · Nov 16, 2026–Feb 14, 2027"/);
   assert.match(js, /locationId:"santa-ynez-valley"/);
   assert.match(js, /status:"new"/);
   assert.match(js, /contactConsent:data\.get\("consent"\)==="on"/);
