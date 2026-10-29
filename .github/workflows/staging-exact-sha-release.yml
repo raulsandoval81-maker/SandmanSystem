@@ -71,6 +71,7 @@ on:
           - clipboard-controls-pr346-cba1dbd
           - clipboard-layout-pr348-f9e53ad
           - during-practice-pr351-352-a44b602
+          - billing-pr354-014198ea
           - attendance-admin-init-pr308-0b06a778
           - promotions-winter-pr317-8e2b9c6b
           - promotions-contrast-pr322-b48c9c0
@@ -458,6 +459,20 @@ jobs:
               node --check public/coaches/execution/engine/practice-remote-control.mjs
             )
           fi
+          if test "${RELEASE_ID}" = "billing-pr354-014198ea"; then
+            (
+              cd application-source
+              node --test \
+                functions/tests/priorPaymentAllocation.test.cjs \
+                functions/tests/prepaidMembershipPolicy.test.cjs \
+                tests/functions/proposal-prior-payment-ui.test.mjs \
+                tests/functions/prepaid-membership-contract.test.mjs \
+                tests/functions/proposal-monthly-sponsor.test.mjs \
+                tests/functions/proposal-subscription-recovery.test.mjs
+              node --check public/management/billing/billing.js
+              node --check public/management/billing/paid-in-full-state.js
+            )
+          fi
           node --check application-source/public/coaches/attendance/practice-group-policy.js
           node --check application-source/public/coaches/attendance/session.js
           node --check application-source/public/coaches/execution/session-builder/session-builder.js
@@ -465,14 +480,14 @@ jobs:
           if test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then RELEASE_ID="cross-academy-pr253-e9980457"; fi
           # New Clipboard-first releases intentionally bypass the retired HYBRID
           # planning detour; retain legacy source checks for historical IDs.
-          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "coach-companion-final-pr305-5ec93994" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778" || test "${RELEASE_ID}" = "promotions-winter-pr317-8e2b9c6b" || test "${RELEASE_ID}" = "promotions-contrast-pr322-b48c9c0" || test "${RELEASE_ID}" = "promotions-final-pr325-c4df1254" || test "${RELEASE_ID}" = "coach-companion-auth-pr338-b02a3d6" || test "${RELEASE_ID}" = "coach-companion-controls-pr343-9dac6d4" || test "${RELEASE_ID}" = "clipboard-controls-pr346-cba1dbd" || test "${RELEASE_ID}" = "clipboard-layout-pr348-f9e53ad" || test "${RELEASE_ID}" = "during-practice-pr351-352-a44b602"; then
+          if test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "coach-companion-final-pr305-5ec93994" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778" || test "${RELEASE_ID}" = "promotions-winter-pr317-8e2b9c6b" || test "${RELEASE_ID}" = "promotions-contrast-pr322-b48c9c0" || test "${RELEASE_ID}" = "promotions-final-pr325-c4df1254" || test "${RELEASE_ID}" = "coach-companion-auth-pr338-b02a3d6" || test "${RELEASE_ID}" = "coach-companion-controls-pr343-9dac6d4" || test "${RELEASE_ID}" = "clipboard-controls-pr346-cba1dbd" || test "${RELEASE_ID}" = "clipboard-layout-pr348-f9e53ad" || test "${RELEASE_ID}" = "during-practice-pr351-352-a44b602" || test "${RELEASE_ID}" = "billing-pr354-014198ea"; then
             grep -Fq '/coaches/execution/clipboard-2.0/?session=' application-source/public/coaches/attendance/session.js
             ! grep -Fq 'planning=1' application-source/public/coaches/attendance/session.js
           else
             grep -q 'executionMode === "hybrid"' application-source/public/coaches/attendance/session.js
             grep -q 'planning=1' application-source/public/coaches/attendance/session.js
           fi
-          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "coach-companion-final-pr305-5ec93994" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778" || test "${RELEASE_ID}" = "promotions-winter-pr317-8e2b9c6b" || test "${RELEASE_ID}" = "promotions-contrast-pr322-b48c9c0" || test "${RELEASE_ID}" = "promotions-final-pr325-c4df1254" || test "${RELEASE_ID}" = "coach-companion-auth-pr338-b02a3d6" || test "${RELEASE_ID}" = "coach-companion-controls-pr343-9dac6d4" || test "${RELEASE_ID}" = "clipboard-controls-pr346-cba1dbd" || test "${RELEASE_ID}" = "clipboard-layout-pr348-f9e53ad" || test "${RELEASE_ID}" = "during-practice-pr351-352-a44b602"; then
+          if test "${RELEASE_ID}" = "tier-aware-groups-pr150-36374e8d" || test "${RELEASE_ID}" = "unified-hybrid-pr152-0c2dc9d8" || test "${RELEASE_ID}" = "unified-hybrid-pr155-34fa3550" || test "${RELEASE_ID}" = "unified-hybrid-pr158-93379221" || test "${RELEASE_ID}" = "hybrid-four-groups-pr161-0e25eb7e" || test "${RELEASE_ID}" = "hybrid-four-groups-pr163-9dbc15b0" || test "${RELEASE_ID}" = "attendance-step2-pr167-5682e26d" || test "${RELEASE_ID}" = "hybrid-ack-pr169-4942bbdf" || test "${RELEASE_ID}" = "groups-hybrid-pr171-e3316876" || test "${RELEASE_ID}" = "clipboard-handoff-pr175-3ac894ff" || test "${RELEASE_ID}" = "attendance-rims-pr177-29511f23" || test "${RELEASE_ID}" = "clipboard-groups-pr179-56428746" || test "${RELEASE_ID}" = "clipboard-hybrid-pr181-afe54629" || test "${RELEASE_ID}" = "clipboard-hybrid-fix-pr183-dd89f6d3" || test "${RELEASE_ID}" = "clipboard-hybrid-pr185-1848238c" || test "${RELEASE_ID}" = "clipboard-hybrid-pr187-f4ff13f7" || test "${RELEASE_ID}" = "clipboard-cleanup-pr189-9484b8ab" || test "${RELEASE_ID}" = "clipboard-redirect-pr191-55e27c81" || test "${RELEASE_ID}" = "clipboard-waves-pr193-c750a4cb" || test "${RELEASE_ID}" = "big-clock-pr197-cb623cc" || test "${RELEASE_ID}" = "big-clock-recovery-pr199-027719c" || test "${RELEASE_ID}" = "post-practice-pr201-cd38b37" || test "${RELEASE_ID}" = "post-practice-pr203-ce05fc7" || test "${RELEASE_ID}" = "post-practice-pr205-1512a78" || test "${RELEASE_ID}" = "post-practice-testfix-1ad804f" || test "${RELEASE_ID}" = "post-practice-save-pr209-33b5fa8" || test "${RELEASE_ID}" = "post-practice-savefix-cb26a6c" || test "${RELEASE_ID}" = "coach-xp-integration-pr213-3f7812b" || test "${RELEASE_ID}" = "attendance-bottom-pr215-5a08344" || test "${RELEASE_ID}" = "single-roster-pr217-7beb0a6" || test "${RELEASE_ID}" = "clipboard-shared-pr220-8c9822f" || test "${RELEASE_ID}" = "xp-approval-pr222-8417ae6" || test "${RELEASE_ID}" = "one-click-xp-pr224-47f6dbd" || test "${RELEASE_ID}" = "bulk-xp-z2h-pr227-f160377" || test "${RELEASE_ID}" = "bulk-xp-fixed-pr229-3fbb3e0" || test "${RELEASE_ID}" = "xp-http-headers-pr231-fe378b4" || test "${RELEASE_ID}" = "xp-client-auth-pr240-ee96af6a" || test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "coach-companion-remote-pr305-11539235" || test "${RELEASE_ID}" = "coach-companion-final-pr305-5ec93994" || test "${RELEASE_ID}" = "attendance-admin-init-pr308-0b06a778" || test "${RELEASE_ID}" = "promotions-winter-pr317-8e2b9c6b" || test "${RELEASE_ID}" = "promotions-contrast-pr322-b48c9c0" || test "${RELEASE_ID}" = "promotions-final-pr325-c4df1254" || test "${RELEASE_ID}" = "coach-companion-auth-pr338-b02a3d6" || test "${RELEASE_ID}" = "coach-companion-controls-pr343-9dac6d4" || test "${RELEASE_ID}" = "clipboard-controls-pr346-cba1dbd" || test "${RELEASE_ID}" = "clipboard-layout-pr348-f9e53ad" || test "${RELEASE_ID}" = "during-practice-pr351-352-a44b602" || test "${RELEASE_ID}" = "billing-pr354-014198ea"; then
             grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'MAX_TRAINING_GROUPS = 4' application-source/public/coaches/attendance/practice-group-policy.js
             grep -q 'fourGroupAcknowledgement' application-source/public/coaches/attendance/session.html
@@ -600,6 +615,35 @@ jobs:
             node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];const missing=r.newFunctions.filter(n=>JSON.parse(fs.readFileSync(`${n}-before.json`)).absent);if(missing.length){console.error(`::error title=Separate callable bootstrap required::${missing.join(", ")} must be created by the separately approved bootstrap before the routine release can run.`);process.exit(1)}'
           fi
           node trusted-tooling/scripts/staging/gcloud-function-release.mjs rollback-evidence "${{ inputs.release_id }}" unused . > rollback-evidence.json
+      - name: Verify staging-only Stripe secret metadata and runtime access
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' && inputs.release_id == 'billing-pr354-014198ea' }}
+        run: |
+          set -euo pipefail
+          gcloud secrets describe STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --format=json > stripe-secret-metadata.json
+          gcloud secrets versions list STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --filter='state=ENABLED' --format=json > stripe-secret-versions.json
+          gcloud secrets get-iam-policy STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --format=json > stripe-secret-iam.json
+          node <<'NODE'
+          const fs = require("fs");
+          const metadata = JSON.parse(fs.readFileSync("stripe-secret-metadata.json", "utf8"));
+          const versions = JSON.parse(fs.readFileSync("stripe-secret-versions.json", "utf8"));
+          const policy = JSON.parse(fs.readFileSync("stripe-secret-iam.json", "utf8"));
+          if (metadata.labels?.environment !== "staging" || metadata.labels?.stripe_mode !== "test") {
+            throw Error("STRIPE_SECRET_KEY must be explicitly labeled environment=staging and stripe_mode=test.");
+          }
+          if (!Array.isArray(versions) || versions.length !== 1) {
+            throw Error("STRIPE_SECRET_KEY must have exactly one enabled staging version.");
+          }
+          const runtime = "serviceAccount:991554514268-compute@developer.gserviceaccount.com";
+          const accessors = (policy.bindings || [])
+            .filter(binding => binding.role === "roles/secretmanager.secretAccessor")
+            .flatMap(binding => binding.members || []);
+          if (!accessors.includes(runtime)) throw Error("Staging Functions runtime lacks Stripe test-secret access.");
+          const unexpected = accessors.filter(member => member !== runtime);
+          if (unexpected.length) throw Error(`Unexpected Stripe secret accessors: ${unexpected.join(", ")}`);
+          NODE
       - name: Verify all routine deployer and service-account permissions
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
@@ -609,7 +653,7 @@ jobs:
           set -euo pipefail
           node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r)))' > ../permission-plan.json
           access_token="$(gcloud auth print-access-token)"
-          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228"; then
+          if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228" || test "${RELEASE_ID}" = "billing-pr354-014198ea"; then
             GOOGLE_OAUTH_ACCESS_TOKEN="${access_token}" node ./scripts/staging/verify-release-permissions.mjs \
               "${RELEASE_ID}" ../permission-verification.json
           else
@@ -636,6 +680,9 @@ jobs:
             permission-plan.json
             permission-verification.json
             rollback-evidence.json
+            stripe-secret-metadata.json
+            stripe-secret-versions.json
+            stripe-secret-iam.json
             *-before.json
           if-no-files-found: error
 
@@ -682,7 +729,7 @@ jobs:
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
           set -euo pipefail
-          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance) ;; *) exit 64 ;; esac
+          case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance|recordProposalPrepaidCash|recordProposalPriorPayment|approveProposalRenewalAutopay|createProposalAutopaySetup) ;; *) exit 64 ;; esac
           if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778"; then
             export SANDMAN_BOOTSTRAP_VERIFIED=true
             node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \

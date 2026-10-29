@@ -101,6 +101,7 @@ const pr191RedirectRelease = await loadRelease("clipboard-redirect-pr191-55e27c8
 const pr193WavesRelease = await loadRelease("clipboard-waves-pr193-c750a4cb");
 const pr253CrossAcademyRelease = await loadRelease("cross-academy-pr253-e9980457");
 const pr280GuestSelfCheckInRelease = await loadRelease("guest-self-checkin-pr280-ef643228");
+const pr354BillingRelease = await loadRelease("billing-pr354-014198ea");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -129,6 +130,50 @@ const description = name => ({
       ...release.expectedFunctionConfiguration.environmentVariables,
     },
   },
+});
+
+test("PR354 Billing release pins the merged source, exact overlay, callables, and Stripe test secret", async () => {
+  const result = validateRelease(pr354BillingRelease, context({
+    checkedOutSha: pr354BillingRelease.applicationSha,
+    hostingDeployer: pr354BillingRelease.hostingDeployer,
+    functionDeployer: pr354BillingRelease.functionDeployer,
+    functionRuntime: pr354BillingRelease.functionRuntime,
+  }));
+  assert.equal(result.applicationSha, "014198eac846c7109df51eb7a2ca44909a6aed40");
+  assert.equal(result.requiredAncestorSha, "787cd495a6b219d99744128cee9360bf54dafdd7");
+  assert.equal(result.hostingBaselineSha, "a44b602caef08c7e719cc7425436507d3f9b3c51");
+  assert.equal(result.allowedChangedFiles.length, 24);
+  assert.equal(result.hostingFiles.length, 8);
+  assert.deepEqual(result.functions, [
+    "recordProposalPrepaidCash",
+    "recordProposalPriorPayment",
+    "approveProposalRenewalAutopay",
+    "createProposalAutopaySetup",
+  ]);
+  assert.deepEqual(result.newFunctions, result.functions);
+  assert.deepEqual(result.functionSecrets, {
+    createProposalAutopaySetup: ["STRIPE_SECRET_KEY"],
+  });
+  assert.equal(validateRemotePreflight(result, {
+    marker,
+    runtimeByFunction: Object.fromEntries(result.functions.map(name => [name, "__absent__"])),
+  }), true);
+
+  const setupDescription = description("createProposalAutopaySetup");
+  setupDescription.serviceConfig.secretEnvironmentVariables = [{ key: "STRIPE_SECRET_KEY" }];
+  assert.equal(validateFunctionConfiguration(result, "createProposalAutopaySetup", setupDescription).entryPoint,
+    "createProposalAutopaySetup");
+  setupDescription.serviceConfig.secretEnvironmentVariables.push({ key: "LIVE_STRIPE_KEY" });
+  assert.throws(() => validateFunctionConfiguration(result, "createProposalAutopaySetup", setupDescription),
+    /configuration mismatch/);
+
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(workflow, /billing-pr354-014198ea/);
+  assert.match(workflow, /stripe_mode !== "test"/);
+  assert.match(workflow, /recordProposalPrepaidCash\|recordProposalPriorPayment\|approveProposalRenewalAutopay\|createProposalAutopaySetup/);
+  const permissionPreflight = permissionChecks(result);
+  assert.ok(permissionPreflight.some(check => check.permissions.includes("cloudfunctions.functions.create")));
+  assert.equal(permissionPreflight.filter(check => check.permissions.includes("iam.serviceAccounts.actAs")).length, 2);
 });
 
 test("approved application source is a full immutable SHA", () => {

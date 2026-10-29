@@ -98,6 +98,20 @@ function functionResource(release, name) {
 export function permissionChecks(release) {
   if (release.projectId !== STAGING_PROJECT_ID) throw new Error("Permission verification is staging-only.");
   const plan = permissionPlan(release);
+  if (release.releaseId === "billing-pr354-014198ea") {
+    const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
+    return [
+      { method: "TEST_IAM", category: "billing-function-bootstrap", principal: deployer,
+        permissions: ["cloudfunctions.functions.create", "cloudfunctions.functions.get",
+          "cloudfunctions.functions.update", "serviceusage.services.use"],
+        resource: `//cloudresourcemanager.googleapis.com/projects/${release.projectId}`,
+        url: `https://cloudresourcemanager.googleapis.com/v1/projects/${release.projectId}:testIamPermissions` },
+      ...plan.serviceAccounts.map(target => ({ method: "TEST_IAM", category: "service-account-actAs",
+        principal: deployer, permissions: target.permissions,
+        resource: `//iam.googleapis.com/projects/${release.projectId}/serviceAccounts/${target.account}`,
+        url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
+    ];
+  }
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];
   const region = release.expectedFunctionConfiguration.region;
   const base = `projects/${release.projectId}/locations/${region}`;
