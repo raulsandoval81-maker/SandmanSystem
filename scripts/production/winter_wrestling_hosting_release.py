@@ -140,7 +140,9 @@ def main():
     candidate_files = dict(live_files)
     candidate_files.update(overlay)
     changed = sorted(path for path, value in candidate_files.items() if live_files.get(path) != value)
-    if changed != sorted(overlay):
+    if not changed:
+        raise RuntimeError("Hosting overlay is already current; no release required")
+    if any(path not in overlay for path in changed):
         raise RuntimeError(f"Hosting overlay escaped the exact allowlist: {changed}")
 
     before = {
