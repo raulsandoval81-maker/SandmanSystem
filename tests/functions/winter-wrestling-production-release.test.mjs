@@ -85,6 +85,8 @@ test("workflow preserves live Hosting and cannot deploy Functions or rules", () 
   assert.doesNotMatch(workflow, /firebase deploy/);
   assert.match(script, /candidate_files = dict\(live_files\)/);
   assert.match(script, /Hosting overlay escaped the exact allowlist/);
+  assert.match(script, /any\(path not in overlay for path in changed\)/);
+  assert.match(script, /Hosting overlay is already current; no release required/);
   assert.match(script, /Live Hosting changed during preparation/);
   assert.match(script, /Production Firestore rule bytes changed after review/);
   assert.match(script, /PREFLIGHT ONLY: no Hosting version or release was created/);
