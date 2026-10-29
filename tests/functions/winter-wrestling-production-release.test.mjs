@@ -12,8 +12,8 @@ test("release is pinned to the staged application and exact production boundary"
   assert.equal(manifest.applicationSha, "6eba4d30395f7eaa100c5f3326c0a89033f6a689");
   assert.equal(manifest.projectId, "sandmandashboard");
   assert.equal(manifest.hostingSite, "sandman-main");
-  assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793205457199000");
-  assert.equal(manifest.baselineHostingVersion, "sites/sandman-main/versions/39887d1d638050b7");
+  assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793216019438000");
+  assert.equal(manifest.baselineHostingVersion, "sites/sandman-main/versions/6399d9241c2684a1");
   assert.equal(manifest.firestoreRulesSha256, "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af");
 });
 
