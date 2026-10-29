@@ -77,13 +77,13 @@ if (release.functions.length) {
   if (release.releaseId === "billing-pr354-014198ea") {
     const clientPath = path.join(functionsRoot, "lib/billing/stripeClient.js");
     const client = await readFile(clientPath, "utf8");
-    const webhookDeclaration = /^exports\\.STRIPE_WEBHOOK_SECRET\\s*=\\s*\\(0,\\s*params_1\\.defineSecret\\)\\(\"STRIPE_WEBHOOK_SECRET\"\\);\\s*$/gm;
+    const webhookDeclaration = /^exports\\.STRIPE_WEBHOOK_SECRET\\s*=\\s*\\(0,\\s*params_1\\.defineSecret\\)\\([\x27\x22]STRIPE_WEBHOOK_SECRET[\x27\x22]\\);\\s*$/gm;
     const matches = [...client.matchAll(webhookDeclaration)];
     if (matches.length !== 1) {
       throw new Error("Expected exactly one compiled webhook secret registration in the isolated Billing staging artifact.");
     }
     const isolated = client.replace(webhookDeclaration, "");
-    if (isolated.includes("defineSecret(\"STRIPE_WEBHOOK_SECRET\")")) {
+    if (/defineSecret\\)\\([\x27\x22]STRIPE_WEBHOOK_SECRET[\x27\x22]\\)/.test(isolated)) {
       throw new Error("Unexpected remaining webhook secret registration in Billing staging artifact.");
     }
     await writeFile(clientPath, isolated);
