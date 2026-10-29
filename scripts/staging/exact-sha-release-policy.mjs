@@ -124,9 +124,17 @@ export function validateRelease(release, context = {}) {
   }
   if (release.functionDeploymentTool === "gcloud-gen2") {
     if (!release.functionBuild?.endsWith(`@${STAGING_PROJECT_ID}.iam.gserviceaccount.com`)) throw new Error("Dedicated build identity is required.");
+    const bootstrapFunctions = release.bootstrap?.functions || (release.bootstrap?.function ? [release.bootstrap.function] : []);
     if (newFunctions.length && (release.bootstrap?.approvalRequired !== true || release.bootstrap?.routineDeployMayCreate !== false ||
-        !newFunctions.includes(release.bootstrap?.function))) {
+        bootstrapFunctions.length !== newFunctions.length ||
+        bootstrapFunctions.some((name, index) => name !== newFunctions[index]))) {
       throw new Error("New callable bootstrap must be separately approved.");
+    }
+    const partialFunctions = Object.keys(release.partialBootstrap || {});
+    if (partialFunctions.some(name => !newFunctions.includes(name)) ||
+        (release.releaseId === "billing-pr354-014198ea" &&
+          JSON.stringify(partialFunctions) !== JSON.stringify(["recordProposalPrepaidCash"]))) {
+      throw new Error("Unexpected partial callable bootstrap state.");
     }
     const buildChecks = release.buildPermissionResources || {};
     for (const permission of ["artifactregistry.repositories.downloadArtifacts", "artifactregistry.repositories.uploadArtifacts", "logging.logEntries.create", "storage.objects.get", "storage.objects.list"]) {
@@ -146,6 +154,7 @@ export function validateRemotePreflight(release, { marker, runtimeByFunction } =
     const actual = runtimeByFunction?.[functionName];
     if (!actual) throw new Error(`Runtime identity is unverified for ${functionName}.`);
     if (actual === "__absent__" && (release.newFunctions || []).includes(functionName)) continue;
+    if (release.partialBootstrap?.[functionName]?.runtimeServiceAccount === actual) continue;
     if (actual !== release.functionRuntime) {
       throw new Error(`Runtime identity is unauthorized for ${functionName}.`);
     }
@@ -213,6 +222,34 @@ function normalizedPolicy(policy = {}) {
   return [...(policy.bindings || [])]
     .map(binding => ({ role: binding.role, members: [...(binding.members || [])].sort(), condition: binding.condition || null }))
     .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+export function validatePartialBootstrapState(release, functionName, description, serviceDescription, functionIam, runIam) {
+  const expected = release.partialBootstrap?.[functionName];
+  if (!expected) return false;
+  const source = description?.buildConfig?.source?.storageSource || {};
+  const actual = {
+    state: description?.state,
+    updateTime: description?.updateTime,
+    revision: description?.serviceConfig?.revision,
+    sourceGeneration: String(source.generation || ""),
+    firebaseFunctionsHash: description?.labels?.["firebase-functions-hash"],
+    runtimeServiceAccount: description?.serviceConfig?.serviceAccountEmail,
+  };
+  if (JSON.stringify(actual) !== JSON.stringify({
+    state: expected.state,
+    updateTime: expected.updateTime,
+    revision: expected.revision,
+    sourceGeneration: expected.sourceGeneration,
+    firebaseFunctionsHash: expected.firebaseFunctionsHash,
+    runtimeServiceAccount: expected.runtimeServiceAccount,
+  })) throw new Error(`Partial bootstrap evidence mismatch for ${functionName}.`);
+  const annotations = serviceDescription?.metadata?.annotations || {};
+  if (annotations["run.googleapis.com/invoker-iam-disabled"] === "true" ||
+      normalizedPolicy(functionIam).length || normalizedPolicy(runIam).length) {
+    throw new Error(`Partial bootstrap IAM state mismatch for ${functionName}.`);
+  }
+  return true;
 }
 
 export function verifyInvokerPolicy(release, functionName, serviceDescription, functionIam, runIam) {

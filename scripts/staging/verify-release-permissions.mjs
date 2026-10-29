@@ -8,6 +8,8 @@ const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:tro
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
 const CANNOT_ACCESS = new Set([2, "CANNOT_ACCESS"]);
 const INCONCLUSIVE_ACCESS = new Set([3, 4, "UNKNOWN_INFO", "UNKNOWN_CONDITIONAL"]);
+const PRACTICE_BUILD_SOURCE_CONDITION =
+  'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")';
 
 export function sanitizeErrorBody(value) {
   const body = typeof value === "string" ? value : JSON.stringify(value ?? {});
@@ -70,6 +72,18 @@ export function evaluateTroubleshooterResponse({ status, body }, check) {
   const state = body.overallAccessState;
   if (CAN_ACCESS.has(state)) return { ...check, result: "GRANTED", status, overallAccessState: state };
   if (CANNOT_ACCESS.has(state)) return { ...check, result: "MISSING", status, overallAccessState: state };
+  if (check.category === "build-account" && check.permission === "storage.objects.get" &&
+      check.principal === `sandman-practice-build@${STAGING_PROJECT_ID}.iam.gserviceaccount.com` &&
+      body.overallAccessState === "UNKNOWN_CONDITIONAL") {
+    const membership = `serviceAccount:${check.principal}`;
+    const binding = (body.explainedPolicies || []).flatMap(policy => policy.bindingExplanations || []).find(value =>
+      value?.role === "roles/storage.objectViewer" &&
+      [1, "ROLE_PERMISSION_INCLUDED"].includes(value?.rolePermission) &&
+      [1, "MEMBERSHIP_INCLUDED"].includes(value?.memberships?.[membership]?.membership) &&
+      value?.condition?.expression === PRACTICE_BUILD_SOURCE_CONDITION);
+    if (binding) return { ...check, result: "GRANTED", status, overallAccessState: state,
+      conditional: PRACTICE_BUILD_SOURCE_CONDITION };
+  }
   const diagnosticEvidence = troubleshooterDiagnostic(body);
   return { ...check, result: "INCONCLUSIVE", status, overallAccessState: diagnosticEvidence.overallAccessState,
     diagnosticEvidence,
@@ -100,16 +114,25 @@ export function permissionChecks(release) {
   const plan = permissionPlan(release);
   if (release.releaseId === "billing-pr354-014198ea") {
     const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
+    const bootstrapPlan = permissionPlan(release, "bootstrap");
+    const partialService = "recordproposalprepaidcash";
     return [
       { method: "TEST_IAM", category: "billing-function-bootstrap", principal: deployer,
         permissions: ["cloudfunctions.functions.create", "cloudfunctions.functions.get",
           "cloudfunctions.functions.update", "serviceusage.services.use"],
         resource: `//cloudresourcemanager.googleapis.com/projects/${release.projectId}`,
         url: `https://cloudresourcemanager.googleapis.com/v1/projects/${release.projectId}:testIamPermissions` },
-      ...plan.serviceAccounts.map(target => ({ method: "TEST_IAM", category: "service-account-actAs",
+      { method: "TEST_IAM", category: "billing-invoker-bootstrap", principal: deployer,
+        permissions: ["run.services.get", "run.services.update"],
+        resource: `//run.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${partialService}`,
+        url: `https://run.googleapis.com/v2/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${partialService}:testIamPermissions` },
+      ...bootstrapPlan.serviceAccounts.map(target => ({ method: "TEST_IAM", category: "service-account-actAs",
         principal: deployer, permissions: target.permissions,
         resource: `//iam.googleapis.com/projects/${release.projectId}/serviceAccounts/${target.account}`,
         url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
+      ...bootstrapPlan.build.map(permission => ({ method: "TROUBLESHOOT", category: "build-account",
+        principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
+        resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL })),
     ];
   }
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];

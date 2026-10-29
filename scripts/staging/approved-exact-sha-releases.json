@@ -3100,6 +3100,35 @@
     "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
     "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
     "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeploymentTool": "gcloud-gen2",
+    "bootstrap": {
+      "functions": [
+        "recordProposalPrepaidCash",
+        "recordProposalPriorPayment",
+        "approveProposalRenewalAutopay",
+        "createProposalAutopaySetup"
+      ],
+      "approvalRequired": true,
+      "routineDeployMayCreate": false
+    },
+    "partialBootstrap": {
+      "recordProposalPrepaidCash": {
+        "failedRun": 169,
+        "state": "ACTIVE",
+        "updateTime": "2026-10-29T05:40:36.218901630Z",
+        "revision": "recordproposalprepaidcash-00001-riz",
+        "sourceGeneration": "1793252343539592",
+        "firebaseFunctionsHash": "6ef605c5798974131134cb96cd4fc85c66ccec76",
+        "runtimeServiceAccount": "991554514268-compute@developer.gserviceaccount.com"
+      }
+    },
+    "buildPermissionResources": {
+      "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1",
+      "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
+    },
     "expectedFunctionConfiguration": {
       "region": "us-central1",
       "environment": "GEN_2",
@@ -3121,6 +3150,7 @@
       "captureFunctionConfigurationAndIam": true,
       "newFunctionRollbackRequiresSeparateApproval": true,
       "functionsUnchanged": false
-    }
+    },
+    "expectedInvokerIamDisabled": true
   }
 }

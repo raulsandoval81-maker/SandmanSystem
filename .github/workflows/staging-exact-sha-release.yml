@@ -610,7 +610,7 @@ jobs:
           done <<< "${functions}"
           node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];console.log(JSON.stringify(Object.fromEntries(r.functions.map(n=>{const d=JSON.parse(fs.readFileSync(`${n}-before.json`));return[n,d.absent?"__absent__":d.serviceConfig?.serviceAccountEmail]}))))' > runtimes.json
           node trusted-tooling/scripts/staging/verify-exact-sha-remote-preflight.mjs "${{ inputs.release_id }}" marker.json runtimes.json
-          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration,verifyInvokerPolicy} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent){validateFunctionConfiguration(r,n,d);verifyInvokerPolicy(r,n,JSON.parse(await readFile(`${n}-run-service-before.json`,"utf8")),JSON.parse(await readFile(`${n}-function-iam-before.json`,"utf8")),JSON.parse(await readFile(`${n}-run-iam-before.json`,"utf8")))}}' "${{ inputs.release_id }}"
+          node --input-type=module -e 'import {readFile} from "node:fs/promises"; import {loadRelease,validateFunctionConfiguration,validatePartialBootstrapState,verifyInvokerPolicy} from "./trusted-tooling/scripts/staging/exact-sha-release-policy.mjs"; const r=await loadRelease(process.argv[1]); for(const n of r.functions){const d=JSON.parse(await readFile(`${n}-before.json`,"utf8"));if(!d.absent){const s=JSON.parse(await readFile(`${n}-run-service-before.json`,"utf8")),f=JSON.parse(await readFile(`${n}-function-iam-before.json`,"utf8")),i=JSON.parse(await readFile(`${n}-run-iam-before.json`,"utf8"));if(!validatePartialBootstrapState(r,n,d,s,f,i)){validateFunctionConfiguration(r,n,d);verifyInvokerPolicy(r,n,s,f,i)}}}' "${{ inputs.release_id }}"
           if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" && test "${{ inputs.action }}" = "deploy"; then
             node -e 'const fs=require("fs");const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];const missing=r.newFunctions.filter(n=>JSON.parse(fs.readFileSync(`${n}-before.json`)).absent);if(missing.length){console.error(`::error title=Separate callable bootstrap required::${missing.join(", ")} must be created by the separately approved bootstrap before the routine release can run.`);process.exit(1)}'
           fi
@@ -651,7 +651,7 @@ jobs:
           RELEASE_ID: ${{ inputs.release_id }}
         run: |
           set -euo pipefail
-          node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r)))' > ../permission-plan.json
+          node --input-type=module -e 'import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";import {permissionPlan} from "./scripts/staging/gcloud-function-release.mjs";const r=await loadRelease(process.env.RELEASE_ID);console.log(JSON.stringify(permissionPlan(r, process.env.RELEASE_ID==="billing-pr354-014198ea"?"bootstrap":"update")))' > ../permission-plan.json
           access_token="$(gcloud auth print-access-token)"
           if test "${RELEASE_ID}" = "cross-academy-pr253-e9980457" || test "${RELEASE_ID}" = "guest-self-checkin-pr280-ef643228" || test "${RELEASE_ID}" = "billing-pr354-014198ea"; then
             GOOGLE_OAUTH_ACCESS_TOKEN="${access_token}" node ./scripts/staging/verify-release-permissions.mjs \
@@ -720,7 +720,7 @@ jobs:
           node -e 'const fs=require("fs");const a=JSON.parse(fs.readFileSync("release-artifacts/firebase.functions.json"));const p=JSON.parse(fs.readFileSync("release-artifacts/functions/package.json")); if(a.functions.source!=="functions"||a.functions.codebase!=="default"||a.functions.runtime!=="nodejs22"||p.main!=="staging-release-entry.cjs") process.exit(64);'
           test ! -e release-artifacts/functions/.env.production
           test ! -e release-artifacts/functions/.env.sandmandashboard
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778" || test "${{ inputs.release_id }}" = "billing-pr354-014198ea"; then
             node -e 'const p=require("./release-artifacts/functions/package.json");if(p.scripts?.build!==undefined||p.scripts?.["gcp-build"]!=="")throw Error("Precompiled staging artifact must explicitly disable Cloud Build scripts");'
           fi
           npm ci --omit=dev --prefix release-artifacts/functions
@@ -730,7 +730,7 @@ jobs:
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance|recordProposalPrepaidCash|recordProposalPriorPayment|approveProposalRenewalAutopay|createProposalAutopaySetup) ;; *) exit 64 ;; esac
-          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778"; then
+          if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778" || test "${{ inputs.release_id }}" = "billing-pr354-014198ea"; then
             export SANDMAN_BOOTSTRAP_VERIFIED=true
             node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \
               "${{ inputs.release_id }}" "${{ matrix.function_name }}" release-artifacts/functions
@@ -742,7 +742,7 @@ jobs:
               --non-interactive
           fi
       - uses: actions/upload-artifact@v4
-        if: ${{ always() && (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) }}
+        if: ${{ always() && (inputs.release_id == 'cross-academy-pr253-e9980457' || inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778' || inputs.release_id == 'billing-pr354-014198ea') }}
         with:
           name: function-deploy-receipt-${{ matrix.function_name }}-${{ needs.validate-source.outputs.application_sha }}
           path: function-deploy-receipt.json
@@ -820,6 +820,8 @@ jobs:
             const after = await read(`${name}-after.json`);
             verifyInvokerPolicy(release, name, await read(`${name}-run-service-after.json`), await read(`${name}-function-iam-after.json`), await read(`${name}-run-iam-after.json`));
             if (before.absent) {
+              validateFunctionConfiguration(release, name, after);
+            } else if (release.partialBootstrap?.[name]) {
               validateFunctionConfiguration(release, name, after);
             } else {
               verifyPreservedDeployment(release, name, before, after,
