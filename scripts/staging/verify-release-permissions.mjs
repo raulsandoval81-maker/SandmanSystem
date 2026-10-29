@@ -169,7 +169,8 @@ export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = 
         headers: { Authorization: `Bearer ${accessToken}`, ...(troubleshoot || testIam ? { "Content-Type": "application/json" } : {}) },
         ...(troubleshoot ? { body: JSON.stringify({ accessTuple: {
           principal: check.principal, fullResourceName: check.resource, permission: check.permission,
-        }, ...(check.conditionContext ? { conditionContext: check.conditionContext } : {}) }) } : {}),
+          ...(check.conditionContext ? { conditionContext: check.conditionContext } : {}),
+        } }) } : {}),
         ...(testIam ? { body: JSON.stringify({ permissions: check.permissions }) } : {}),
       });
       const body = await responseBody(response);
