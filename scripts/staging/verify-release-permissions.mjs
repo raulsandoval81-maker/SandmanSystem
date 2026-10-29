@@ -8,8 +8,6 @@ const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:tro
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
 const CANNOT_ACCESS = new Set([2, "CANNOT_ACCESS"]);
 const INCONCLUSIVE_ACCESS = new Set([3, 4, "UNKNOWN_INFO", "UNKNOWN_CONDITIONAL"]);
-const PRACTICE_BUILD_SOURCE_CONDITION =
-  'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")';
 
 export function sanitizeErrorBody(value) {
   const body = typeof value === "string" ? value : JSON.stringify(value ?? {});
@@ -72,18 +70,6 @@ export function evaluateTroubleshooterResponse({ status, body }, check) {
   const state = body.overallAccessState;
   if (CAN_ACCESS.has(state)) return { ...check, result: "GRANTED", status, overallAccessState: state };
   if (CANNOT_ACCESS.has(state)) return { ...check, result: "MISSING", status, overallAccessState: state };
-  if (check.category === "build-account" && check.permission === "storage.objects.get" &&
-      check.principal === `sandman-practice-build@${STAGING_PROJECT_ID}.iam.gserviceaccount.com` &&
-      body.overallAccessState === "UNKNOWN_CONDITIONAL") {
-    const membership = `serviceAccount:${check.principal}`;
-    const binding = (body.explainedPolicies || []).flatMap(policy => policy.bindingExplanations || []).find(value =>
-      value?.role === "roles/storage.objectViewer" &&
-      [1, "ROLE_PERMISSION_INCLUDED"].includes(value?.rolePermission) &&
-      [1, "MEMBERSHIP_INCLUDED"].includes(value?.memberships?.[membership]?.membership) &&
-      value?.condition?.expression === PRACTICE_BUILD_SOURCE_CONDITION);
-    if (binding) return { ...check, result: "GRANTED", status, overallAccessState: state,
-      conditional: PRACTICE_BUILD_SOURCE_CONDITION };
-  }
   const diagnosticEvidence = troubleshooterDiagnostic(body);
   return { ...check, result: "INCONCLUSIVE", status, overallAccessState: diagnosticEvidence.overallAccessState,
     diagnosticEvidence,
@@ -132,7 +118,12 @@ export function permissionChecks(release) {
         url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
       ...bootstrapPlan.build.map(permission => ({ method: "TROUBLESHOOT", category: "build-account",
         principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
-        resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL })),
+        resource: release.buildPermissionResources[permission],
+        ...(permission === "storage.objects.get" ? { conditionContext: {
+          resource: { service: "storage.googleapis.com",
+            name: release.buildPermissionResources[permission].replace(/^\/\/storage\.googleapis\.com\//, ""),
+            type: "storage.googleapis.com/Object" } } } : {}),
+        url: TROUBLESHOOT_URL })),
     ];
   }
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];
@@ -178,6 +169,7 @@ export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = 
         headers: { Authorization: `Bearer ${accessToken}`, ...(troubleshoot || testIam ? { "Content-Type": "application/json" } : {}) },
         ...(troubleshoot ? { body: JSON.stringify({ accessTuple: {
           principal: check.principal, fullResourceName: check.resource, permission: check.permission,
+          ...(check.conditionContext ? { conditionContext: check.conditionContext } : {}),
         } }) } : {}),
         ...(testIam ? { body: JSON.stringify({ permissions: check.permissions }) } : {}),
       });
