@@ -93,7 +93,18 @@ def main():
     current_release = current["name"]
     current_version = current["version"]["name"]
     if current_release != args.expected_current_release or current_version != args.expected_current_version:
-        raise RuntimeError("Live Hosting changed after review; refresh the release manifest")
+        mismatch = {
+            "status": "BLOCKED_LIVE_HOSTING_BASELINE_CHANGED",
+            "projectId": manifest["projectId"],
+            "hostingSite": site,
+            "observedCurrentRelease": current_release,
+            "observedCurrentVersion": current_version,
+            "expectedRelease": args.expected_current_release,
+            "expectedVersion": args.expected_current_version,
+            "deploymentPerformed": False,
+        }
+        (evidence / "live-baseline-mismatch.json").write_text(json.dumps(mismatch, indent=2) + "\n")
+        raise RuntimeError("Live Hosting changed after review; observed release=" + current_release + " version=" + current_version + "; refresh manifest after review")
 
     version = api(HOSTING_API, "GET", current_version)
     if version.get("status") != "FINALIZED" or int(version.get("fileCount", 0)) < 100:
