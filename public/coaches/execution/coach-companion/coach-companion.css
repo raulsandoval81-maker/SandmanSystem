@@ -376,3 +376,39 @@ body{
 .companion-group-lesson{padding:10px 0;border-top:1px solid var(--line,#374151);line-height:1.6;overflow-wrap:anywhere}
 .companion-group-lesson a{color:var(--gold,#d1aa55)}
 .companion-group-lesson p{margin:5px 0 0}
+
+/* During-Practice Clipboard: coach-friendly live controls, independent of Big Clock timing. */
+.companion-live-panel{gap:14px}
+.companion-live-panel #remoteControlStatus{font-weight:600;line-height:1.5}
+.companion-live-primary button,
+.companion-live-navigation button{
+  display:block;width:100%;min-height:68px;padding:16px 18px;
+  border-radius:14px;font:inherit;font-size:1.15rem;font-weight:800;
+  line-height:1.3;white-space:normal;touch-action:manipulation;
+}
+.companion-live-primary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.companion-live-primary button{
+  min-height:82px;font-size:1.35rem;
+  background:var(--gold,#d1aa55);color:#151515;
+  border:2px solid var(--gold,#d1aa55);
+}
+.companion-live-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.companion-live-navigation button{border:2px solid var(--line,#667085)}
+.companion-live-panel button:focus-visible,
+.companion-live-advanced summary:focus-visible{outline:3px solid var(--gold,#d1aa55);outline-offset:3px}
+.companion-live-panel button:disabled{opacity:.55;cursor:not-allowed}
+.companion-live-advanced{border-top:1px solid var(--line,#374151);padding-top:14px}
+.companion-live-advanced summary{cursor:pointer;font-size:1rem;font-weight:700;padding:10px 0}
+.companion-live-advanced-body{display:grid;gap:14px;padding-top:12px}
+.companion-live-end{min-height:48px;padding:12px 16px;font:inherit;font-weight:700}
+.companion-live-advanced .actuals-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+.companion-live-advanced .actuals-actions{grid-column:1/-1}
+.companion-live-advanced .actuals-actions button{min-height:46px;padding:10px 14px}
+@media(max-width:720px){
+  .companion-live-panel{padding:16px}
+  .companion-live-navigation{grid-template-columns:1fr}
+  .companion-live-primary{gap:8px}
+  .companion-live-primary button{min-height:76px;padding:12px 6px;font-size:1.1rem}
+  .companion-live-navigation button{min-height:64px}
+  .companion-live-advanced .actuals-row{grid-template-columns:1fr}
+}
