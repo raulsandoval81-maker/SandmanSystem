@@ -127,6 +127,26 @@ function nextBillingUnix(
     );
   }
 
+  const paidThroughValue =
+    proposal.cashPrepayment?.membershipPaidThroughDate ||
+    proposal.membershipPaidThroughDate;
+  const paidThroughMillis = paidThroughValue instanceof Timestamp
+    ? paidThroughValue.toMillis()
+    : typeof paidThroughValue?.toMillis === "function"
+      ? paidThroughValue.toMillis()
+      : paidThroughValue
+        ? new Date(paidThroughValue).getTime()
+        : 0;
+  if (
+    proposal.cashPrepayment?.membershipPaidInFull === true &&
+    (!Number.isFinite(paidThroughMillis) || millis <= paidThroughMillis)
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Stripe billing must begin after the prepaid membership paid-through date."
+    );
+  }
+
   const unix =
     Math.floor(millis / 1000);
 

@@ -218,6 +218,10 @@ export {
 } from "./billing/recordProposalPrepaidCash";
 
 export {
+  approveProposalRenewalAutopay,
+} from "./billing/approveProposalRenewalAutopay";
+
+export {
   recordProposalPriorPayment,
 } from "./billing/recordProposalPriorPayment";
 

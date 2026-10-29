@@ -129,6 +129,8 @@ const priorPaymentLastMonth =
   document.getElementById("priorPaymentLastMonth");
 const priorPaymentEnrollmentIncluded =
   document.getElementById("priorPaymentEnrollmentIncluded");
+const priorPaymentEnrollmentAmount =
+  document.getElementById("priorPaymentEnrollmentAmount");
 const priorPaymentNote =
   document.getElementById("priorPaymentNote");
 
@@ -332,6 +334,8 @@ function renderPricing() {
     promotionAmount: appliedPromotion?.amount || 0,
     enrollmentPreviouslyPaid:
       priorPaymentEnrollmentIncluded?.checked === true,
+    enrollmentPreviouslyPaidAmount:
+      Number(priorPaymentEnrollmentAmount?.value || 0),
   });
   const pricing = estimate.pricing;
 
@@ -1342,6 +1346,10 @@ function priorPaymentHandoff() {
     periods,
     enrollmentFeeIncluded:
       priorPaymentEnrollmentIncluded?.checked === true,
+    enrollmentFeeAmountCents:
+      priorPaymentEnrollmentIncluded?.checked === true
+        ? undefined
+        : Math.round(Number(priorPaymentEnrollmentAmount?.value || 0) * 100),
     note:
       String(priorPaymentNote?.value || "").trim() ||
       "Historical payment recorded during membership transition."
@@ -1418,8 +1426,18 @@ enrollmentSupport?.addEventListener("change", renderPricing);
 monthlySponsor?.addEventListener("change", renderPricing);
 priorPaymentEnrollmentIncluded?.addEventListener(
   "change",
-  renderPricing
+  () => {
+    if (priorPaymentEnrollmentAmount) {
+      priorPaymentEnrollmentAmount.disabled =
+        priorPaymentEnrollmentIncluded.checked;
+      if (priorPaymentEnrollmentIncluded.checked) {
+        priorPaymentEnrollmentAmount.value = "";
+      }
+    }
+    renderPricing();
+  }
 );
+priorPaymentEnrollmentAmount?.addEventListener("input", renderPricing);
 
 applyPromotionBtn?.addEventListener(
   "click",
@@ -1603,7 +1621,9 @@ function proposalPricingSnapshot() {
         appliedPromotion?.amount || 0,
       enrollmentPreviouslyPaid:
         priorPaymentEnrollmentIncluded
-          ?.checked === true
+          ?.checked === true,
+      enrollmentPreviouslyPaidAmount:
+        Number(priorPaymentEnrollmentAmount?.value || 0)
     }
   );
 
@@ -1616,7 +1636,8 @@ function proposalPricingSnapshot() {
       enrollmentBase:
         estimate.annualEnrollment,
       enrollmentPreviouslyPaid:
-        estimate.enrollmentPreviouslyPaid > 0,
+        estimate.annualEnrollment > 0 &&
+        estimate.enrollmentPreviouslyPaid >= estimate.annualEnrollment,
       enrollmentPreviouslyPaidAmount:
         estimate.enrollmentPreviouslyPaid,
       admissionsCredits:

@@ -13,6 +13,10 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "../proposals/proposalAccess";
+import {
+  allocatePriorPayment,
+  enrollmentFeePaidCents,
+} from "./priorPaymentAllocation";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -127,8 +131,10 @@ export const recordProposalPriorPayment =
         req.data?.periods
       );
 
-    const enrollmentFeeIncluded =
+    const legacyEnrollmentFeeIncluded =
       req.data?.enrollmentFeeIncluded === true;
+    const requestedEnrollmentFeeAmountCents =
+      req.data?.enrollmentFeeAmountCents;
 
     const note =
       cleanString(req.data?.note) ||
@@ -187,6 +193,39 @@ export const recordProposalPriorPayment =
               ? proposal.priorPayments
               : [];
 
+          const enrollmentFeeCents = Math.max(
+            0,
+            Math.round(Number(proposal.pricing?.enrollmentBase || 0) * 100)
+          );
+          const enrollmentFeeAlreadyPaidCents = Math.min(
+            enrollmentFeeCents,
+            existing.reduce(
+              (total: number, payment: Record<string, unknown>) =>
+                total + enrollmentFeePaidCents(payment, enrollmentFeeCents),
+              0
+            )
+          );
+          let allocation;
+          try {
+            allocation = allocatePriorPayment({
+              amountCents,
+              requestedEnrollmentFeeAmountCents,
+              legacyEnrollmentFeeIncluded,
+              enrollmentFeeCents,
+              enrollmentFeeAlreadyPaidCents,
+            });
+          } catch (error) {
+            throw new HttpsError(
+              "invalid-argument",
+              error instanceof Error ? error.message : "Invalid payment allocation."
+            );
+          }
+          const {
+            enrollmentFeeAmountCents,
+            membershipAmountCents,
+            enrollmentFeeIncluded,
+          } = allocation;
+
           const duplicatePeriods =
             new Set(
               existing.flatMap(
@@ -217,6 +256,8 @@ export const recordProposalPriorPayment =
 
           const payment = {
             amountCents,
+            membershipAmountCents,
+            enrollmentFeeAmountCents,
             paymentMethod,
             periods,
             enrollmentFeeIncluded,
@@ -269,6 +310,8 @@ export const recordProposalPriorPayment =
                 currentStatus,
 
               amountCents,
+              membershipAmountCents,
+              enrollmentFeeAmountCents,
               paymentMethod,
               periods,
               enrollmentFeeIncluded,
@@ -290,6 +333,8 @@ export const recordProposalPriorPayment =
             proposalStatus:
               currentStatus,
             amountCents,
+            membershipAmountCents,
+            enrollmentFeeAmountCents,
             paymentMethod,
             periods,
             enrollmentFeeIncluded,
