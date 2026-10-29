@@ -12,6 +12,7 @@ import {
   requireManagement,
   managementLoginUrl
 } from "/management/shared/guards/management-guard.js";
+import { paidInFullUiState } from "./paid-in-full-state.js";
 
 const billingStatus =
   document.getElementById("billingStatus");
@@ -70,6 +71,12 @@ const createAutopaySetupCall =
   httpsCallable(
     functions,
     "createProposalAutopaySetup"
+  );
+
+const approveRenewalAutopayCall =
+  httpsCallable(
+    functions,
+    "approveProposalRenewalAutopay"
   );
 
 const clean = (value) =>
@@ -292,6 +299,17 @@ function classifyProposal(
         priorPayments.length > 0
           ? "Family review remains pending."
           : "Record prior payment if applicable; family review remains pending."
+    };
+  }
+
+  if (
+    billingFollowUpStatus ===
+    "RENEWAL_AUTOPAY_APPROVAL_REQUIRED"
+  ) {
+    return {
+      view: "NEEDS_ACTION",
+      state: "Membership Paid in Full",
+      next: "Approve the post-coverage renewal/autopay arrangement"
     };
   }
 
@@ -755,6 +773,7 @@ function buildProposalItems(
               : proposalAmount(proposal),
 
         proposalId,
+        proposal,
 
         priorPayments:
           Array.isArray(
@@ -792,16 +811,17 @@ function buildProposalItems(
           ),
 
         canSetupAutopay:
-          upper(
-            proposal.billingFollowUpStatus
-          ) ===
-            "AUTOPAY_SETUP_REQUIRED" &&
+          paidInFullUiState(proposal).canSetupAutopay &&
           clean(
             proposal.paymentMethod
           ) === "cash_prepaid" &&
           !clean(
             proposal.stripeSubscriptionId
           ),
+
+        canApproveRenewalAutopay:
+          paidInFullUiState(proposal).canApproveRenewal &&
+          !clean(proposal.stripeSubscriptionId),
 
         state:
           classification.state,
@@ -1037,9 +1057,12 @@ function priorPaymentSummaryHtml(item) {
                 payment.amountCents
               );
 
-            const enrollment =
-              payment.enrollmentFeeIncluded
-                ? "Enrollment included"
+            const hasAllocation =
+              Number.isInteger(Number(payment.enrollmentFeeAmountCents));
+            const enrollment = hasAllocation
+              ? `${moneyFromCents(payment.enrollmentFeeAmountCents)} to annual enrollment · ${moneyFromCents(payment.membershipAmountCents)} to membership`
+              : payment.enrollmentFeeIncluded
+                ? "Annual enrollment fully included"
                 : "Enrollment not included";
 
             return `
@@ -1057,6 +1080,25 @@ function priorPaymentSummaryHtml(item) {
             `;
           })
           .join("")}
+      </div>
+    </div>
+  `;
+}
+
+function paidInFullSummaryHtml(item) {
+  const payment = item.proposal?.cashPrepayment;
+  const uiState = paidInFullUiState(item.proposal);
+  if (!uiState.isPaidInFull) return "";
+  const feeBalance = uiState.feeOutstandingCents;
+  return `
+    <div class="billing-prior-payments">
+      <small>Membership Paid in Full</small>
+      <div class="billing-prior-payment-list">
+        <div class="billing-prior-payment-item">
+          <strong>${esc(moneyFromCents(payment.membershipAmountCents))} membership · ${esc(clean(payment.paymentMethod).toUpperCase())}</strong>
+          <span>Received ${esc(formatDate(payment.paymentDate))} · paid through ${esc(formatDate(payment.membershipPaidThroughDate))}</span>
+          <span>Annual enrollment fee outstanding: ${esc(moneyFromCents(feeBalance))}</span>
+        </div>
       </div>
     </div>
   `;
@@ -1136,6 +1178,7 @@ function render() {
             </div>
 
             ${priorPaymentSummaryHtml(item)}
+            ${paidInFullSummaryHtml(item)}
 
             <div class="billing-actions">
               ${item.canRecordPriorPayment
@@ -1160,7 +1203,7 @@ function render() {
                     data-cash-proposal-id="${esc(item.proposalId)}"
                     data-cash-name="${esc(item.name)}"
                   >
-                    Record prepaid cash
+                    Record Paid in Full
                   </button>
                 `
                 : ""
@@ -1174,6 +1217,19 @@ function render() {
                     data-autopay-proposal-id="${esc(item.proposalId)}"
                   >
                     Create autopay setup link
+                  </button>
+                `
+                : ""
+              }
+
+              ${item.canApproveRenewalAutopay
+                ? `
+                  <button
+                    class="billing-action billing-autopay-action"
+                    type="button"
+                    data-approve-renewal-proposal-id="${esc(item.proposalId)}"
+                  >
+                    Approve renewal autopay
                   </button>
                 `
                 : ""
@@ -1351,8 +1407,20 @@ function ensurePriorPaymentDialog() {
             type="checkbox"
           >
           <span>
-            Annual enrollment fee was included
+            Entire remaining annual enrollment fee was included
           </span>
+        </label>
+
+        <label>
+          <span>Annual enrollment fee portion</span>
+          <input
+            id="priorPaymentEnrollmentAmount"
+            type="number"
+            min="0"
+            step="0.01"
+            inputmode="decimal"
+            placeholder="0.00"
+          >
         </label>
       </div>
 
@@ -1422,6 +1490,15 @@ function ensurePriorPaymentDialog() {
     );
 
   dialog
+    .querySelector("#priorPaymentEnrollmentFee")
+    ?.addEventListener("change", (event) => {
+      const amount = dialog.querySelector("#priorPaymentEnrollmentAmount");
+      if (!amount) return;
+      amount.disabled = event.target.checked === true;
+      if (event.target.checked === true) amount.value = "";
+    });
+
+  dialog
     .querySelector(
       "#priorPaymentForm"
     )
@@ -1476,6 +1553,10 @@ function ensurePriorPaymentDialog() {
             "priorPaymentEnrollmentFee"
           )?.checked === true;
 
+        const enrollmentFeeAmount = Number(
+          document.getElementById("priorPaymentEnrollmentAmount")?.value || 0
+        );
+
         const note =
           clean(
             document.getElementById(
@@ -1515,6 +1596,10 @@ function ensurePriorPaymentDialog() {
             paymentMethod,
             periods,
             enrollmentFeeIncluded,
+            enrollmentFeeAmountCents:
+              enrollmentFeeIncluded
+                ? undefined
+                : Math.round(enrollmentFeeAmount * 100),
             note
           });
 
@@ -1588,6 +1673,12 @@ function openPriorPaymentDialog(
     "priorPaymentEnrollmentFee"
   ).checked = false;
 
+  const enrollmentAmount = document.getElementById(
+    "priorPaymentEnrollmentAmount"
+  );
+  enrollmentAmount.value = "";
+  enrollmentAmount.disabled = false;
+
   document.getElementById(
     "priorPaymentNote"
   ).value = "";
@@ -1631,7 +1722,7 @@ function ensureCashDialog() {
             Management · Billing
           </p>
           <h2>
-            Record prepaid cash
+            Record membership Paid in Full
           </h2>
           <p id="prepaidCashFamily"></p>
         </div>
@@ -1652,7 +1743,7 @@ function ensureCashDialog() {
 
       <div class="billing-cash-grid">
         <label>
-          <span>Cash received</span>
+          <span>Payment received</span>
           <input
             id="prepaidCashAmount"
             type="number"
@@ -1664,36 +1755,43 @@ function ensureCashDialog() {
         </label>
 
         <label>
-          <span>Months covered</span>
+          <span>Payment method</span>
+          <select id="prepaidCashMethod" required>
+            <option value="cash">Cash</option>
+            <option value="check">Check</option>
+          </select>
+        </label>
+
+        <label>
+          <span>12-month membership allocation</span>
           <input
-            id="prepaidCashMonths"
+            id="prepaidCashMembershipAmount"
             type="number"
-            min="1"
-            step="1"
-            value="1"
+            min="0.01"
+            step="0.01"
             required
           >
         </label>
 
         <label>
-          <span>Stripe takes over</span>
+          <span>Payment date</span>
           <input
-            id="prepaidCashNextBilling"
+            id="prepaidCashPaymentDate"
             type="date"
             required
           >
         </label>
 
-        <label class="billing-cash-check">
-          <input
-            id="prepaidCashEnrollmentFee"
-            type="checkbox"
-          >
-          <span>
-            Annual enrollment fee was included
-          </span>
-        </label>
+        <label><span>Membership begins</span><input id="prepaidCashStartDate" type="date" required></label>
+        <label><span>Membership paid through</span><input id="prepaidCashPaidThrough" type="date" required></label>
+        <label><span>Earliest Stripe renewal date</span><input id="prepaidCashNextBilling" type="date" required></label>
       </div>
+
+      <fieldset class="billing-cash-note">
+        <legend>Annual enrollment fee included by athlete</legend>
+        <div id="prepaidCashEnrollmentAthletes"></div>
+        <small>Enrollment-fee balances remain separate from membership Paid in Full.</small>
+      </fieldset>
 
       <label class="billing-cash-note">
         <span>Management note</span>
@@ -1705,7 +1803,7 @@ function ensureCashDialog() {
       </label>
 
       <p class="billing-cash-warning">
-        This records prepaid dues only. It does not create a Stripe payment or mark the proposal Stripe-paid.
+        This records a reconciled 12-month cash/check payment. Stripe renewal remains blocked until Management separately approves the post-coverage arrangement.
       </p>
 
       <div class="billing-cash-footer">
@@ -1793,12 +1891,21 @@ function ensureCashDialog() {
             )?.value
           );
 
-        const monthsCovered =
-          Number(
-            document.getElementById(
-              "prepaidCashMonths"
-            )?.value
-          );
+        const membershipAmount = Number(
+          document.getElementById("prepaidCashMembershipAmount")?.value
+        );
+        const paymentMethod = clean(
+          document.getElementById("prepaidCashMethod")?.value
+        );
+        const paymentDate = clean(
+          document.getElementById("prepaidCashPaymentDate")?.value
+        );
+        const membershipStartDate = clean(
+          document.getElementById("prepaidCashStartDate")?.value
+        );
+        const membershipPaidThroughDate = clean(
+          document.getElementById("prepaidCashPaidThrough")?.value
+        );
 
         const nextBillingDate =
           clean(
@@ -1807,10 +1914,19 @@ function ensureCashDialog() {
             )?.value
           );
 
-        const enrollmentFeePaid =
-          document.getElementById(
-            "prepaidCashEnrollmentFee"
-          )?.checked === true;
+        const enrollmentFeeIncludedAthleteIndexes = [
+          ...document.querySelectorAll("[data-prepaid-enrollment-athlete]:checked")
+        ].map((input) => Number(input.dataset.prepaidEnrollmentAthlete));
+        const enrollmentFeeAllocations = enrollmentFeeIncludedAthleteIndexes.map(
+          (athleteIndex) => ({
+            athleteIndex,
+            amountCents: Math.round(
+              Number(document.querySelector(
+                `[data-prepaid-enrollment-amount="${athleteIndex}"]`
+              )?.value || 0) * 100
+            ),
+          })
+        );
 
         const note =
           clean(
@@ -1823,15 +1939,17 @@ function ensureCashDialog() {
           !proposalId ||
           !Number.isFinite(amount) ||
           amount <= 0 ||
-          !Number.isInteger(
-            monthsCovered
-          ) ||
-          monthsCovered <= 0 ||
+          !Number.isFinite(membershipAmount) ||
+          membershipAmount <= 0 ||
+          !paymentMethod ||
+          !paymentDate ||
+          !membershipStartDate ||
+          !membershipPaidThroughDate ||
           !nextBillingDate
         ) {
           if (status) {
             status.textContent =
-              "Complete the cash amount, months covered, and next Stripe billing date.";
+              "Complete the exact payment allocation and all coverage dates.";
             status.classList.add(
               "is-error"
             );
@@ -1857,15 +1975,21 @@ function ensureCashDialog() {
               Math.round(
                 amount * 100
               ),
-            monthsCovered,
-            enrollmentFeePaid,
+            membershipAmountCents:
+              Math.round(membershipAmount * 100),
+            paymentMethod,
+            paymentDate,
+            membershipStartDate,
+            membershipPaidThroughDate,
+            enrollmentFeeIncludedAthleteIndexes,
+            enrollmentFeeAllocations,
             nextBillingDate,
             note,
           });
 
           if (status) {
             status.textContent =
-              "Cash recorded. Stripe autopay setup is still required.";
+              "Membership Paid in Full recorded. Renewal autopay still requires separate approval.";
           }
 
           await loadBilling();
@@ -1917,17 +2041,60 @@ function openCashDialog(
     "prepaidCashAmount"
   ).value = "";
 
-  document.getElementById(
-    "prepaidCashMonths"
-  ).value = "1";
+  const item = billingItems.find((entry) => entry.proposalId === proposalId);
+  const proposal = item?.proposal || {};
+  const membershipAmount = Math.max(
+    0,
+    Number(proposal.pricing?.monthlyBalance || 0) * 12
+  );
+  document.getElementById("prepaidCashMembershipAmount").value =
+    membershipAmount ? membershipAmount.toFixed(2) : "";
+  document.getElementById("prepaidCashMethod").value = "cash";
+
+  const today = new Date().toISOString().slice(0, 10);
+  const startDate = clean(
+    proposal.agreement?.membershipStartDate ||
+    proposal.pricing?.membershipStartDate
+  );
+  document.getElementById("prepaidCashPaymentDate").value = today;
+  document.getElementById("prepaidCashStartDate").value = startDate;
+
+  const paidThrough = startDate ? new Date(`${startDate}T12:00:00Z`) : null;
+  if (paidThrough && !Number.isNaN(paidThrough.getTime())) {
+    paidThrough.setUTCFullYear(paidThrough.getUTCFullYear() + 1);
+    paidThrough.setUTCDate(paidThrough.getUTCDate() - 1);
+  }
+  const paidThroughValue = paidThrough && !Number.isNaN(paidThrough.getTime())
+    ? paidThrough.toISOString().slice(0, 10)
+    : "";
+  document.getElementById("prepaidCashPaidThrough").value = paidThroughValue;
+
+  const renewalDate = paidThroughValue ? new Date(`${paidThroughValue}T12:00:00Z`) : null;
+  if (renewalDate) renewalDate.setUTCDate(renewalDate.getUTCDate() + 1);
+  document.getElementById("prepaidCashNextBilling").value = renewalDate
+    ? renewalDate.toISOString().slice(0, 10)
+    : "";
+
+  const athletes = Array.isArray(proposal.athletes)
+    ? proposal.athletes
+      .map((athlete, index) => ({ athlete, index: index + 1 }))
+      .filter(({ athlete }) => clean(athlete.plan || "standard") !== "fitness")
+    : [];
+  const feeTotal = Math.max(0, Number(proposal.pricing?.enrollmentBase || 0));
+  const feePerAthlete = athletes.length ? feeTotal / athletes.length : 0;
+  document.getElementById("prepaidCashEnrollmentAthletes").innerHTML = athletes
+    .map(({ athlete, index }) => `
+      <label class="billing-cash-check">
+        <input type="checkbox" data-prepaid-enrollment-athlete="${index}" data-fee-amount="${feePerAthlete}">
+        <span>${esc(athlete.name || `Athlete ${index}`)}</span>
+        <input type="number" min="0" max="${feePerAthlete}" step="0.01" value="${feePerAthlete.toFixed(2)}" data-prepaid-enrollment-amount="${index}" aria-label="Annual enrollment fee amount for ${esc(athlete.name || `Athlete ${index}`)}">
+      </label>
+    `)
+    .join("");
 
   document.getElementById(
     "prepaidCashNextBilling"
   ).value = "";
-
-  document.getElementById(
-    "prepaidCashEnrollmentFee"
-  ).checked = false;
 
   document.getElementById(
     "prepaidCashNote"
@@ -1949,6 +2116,30 @@ function openCashDialog(
 billingQueue.addEventListener(
   "click",
   async (event) => {
+    const approvalButton = event.target.closest(
+      "[data-approve-renewal-proposal-id]"
+    );
+    if (approvalButton) {
+      const proposalId = clean(
+        approvalButton.dataset.approveRenewalProposalId
+      );
+      if (!proposalId) return;
+      if (!window.confirm(
+        "Approve Stripe autopay only after the twelve-month paid-through date?"
+      )) return;
+      approvalButton.disabled = true;
+      try {
+        await approveRenewalAutopayCall({ proposalId, approved: true });
+        setStatus("Renewal autopay approved. The no-charge setup link can now be created.");
+        await loadBilling();
+      } catch (error) {
+        setStatus(error?.message || "Unable to approve renewal autopay.", true);
+      } finally {
+        approvalButton.disabled = false;
+      }
+      return;
+    }
+
     const cashButton =
       event.target.closest(
         "[data-cash-proposal-id]"

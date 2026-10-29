@@ -55,14 +55,26 @@ function isOperationalPaidProposal(
   const isLiveSession =
     proposal.stripeLivemode === true ||
     checkoutSessionId.startsWith("cs_live_");
+  const isRecordedCashPayment =
+    clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid" &&
+    Number(proposal.cashPrepayment?.amountCents || 0) > 0 &&
+    (
+      proposal.cashPrepayment?.membershipPaidInFull === true ||
+      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
+    );
 
   return (
     status === "PAID" &&
     paymentStatus === "paid" &&
     hasPaidAt &&
-    Boolean(checkoutSessionId) &&
-    !checkoutSessionId.startsWith("cs_test_") &&
-    isLiveSession
+    (
+      isRecordedCashPayment ||
+      (
+        Boolean(checkoutSessionId) &&
+        !checkoutSessionId.startsWith("cs_test_") &&
+        isLiveSession
+      )
+    )
   );
 }
 

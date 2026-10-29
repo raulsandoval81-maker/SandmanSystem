@@ -40,10 +40,15 @@ export function calculateManagementEstimate(athletes, options = {}) {
   const monthlyMembership = monthlyBase - monthlySponsor;
   const prorationRate = prorationRateForStartDate(options.startDate);
   const proratedFirstMonth = Math.round(monthlyMembership * prorationRate * 100) / 100;
-  const enrollmentPreviouslyPaid =
-    options.enrollmentPreviouslyPaid === true
-      ? annualEnrollment
-      : 0;
+  const enrollmentPreviouslyPaid = Math.min(
+    annualEnrollment,
+    Math.max(
+      0,
+      options.enrollmentPreviouslyPaid === true
+        ? annualEnrollment
+        : Number(options.enrollmentPreviouslyPaidAmount) || 0
+    )
+  );
   const enrollmentAfterSupport = Math.max(0,
     annualEnrollment -
     enrollmentPreviouslyPaid -

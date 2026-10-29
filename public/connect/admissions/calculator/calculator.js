@@ -42,7 +42,16 @@ let proposalId =
 let pendingPriorPaymentHandoff = null;
 let priorPaymentRecordedFromHandoff = false;
 let proposalEnrollmentPreviouslyPaid = false;
+let proposalEnrollmentPreviouslyPaidAmount = 0;
 let recordedMembershipPeriods = new Set();
+
+function priorPaymentEnrollmentAmount(payment, enrollmentBase) {
+  const explicitCents = Number(payment?.enrollmentFeeAmountCents);
+  if (Number.isInteger(explicitCents) && explicitCents >= 0) {
+    return Math.min(enrollmentBase, explicitCents / 100);
+  }
+  return payment?.enrollmentFeeIncluded === true ? enrollmentBase : 0;
+}
   
 const backToProposalBtn =
   document.getElementById(
@@ -1016,15 +1025,20 @@ const extras = {
       }
 
 
+      const pendingEnrollmentAmount = priorPaymentEnrollmentAmount(
+        pendingPriorPaymentHandoff,
+        enrollmentBase
+      );
+      const enrollmentPreviouslyPaidAmount = Math.min(
+        enrollmentBase,
+        Math.max(
+          proposalEnrollmentPreviouslyPaidAmount,
+          pendingEnrollmentAmount,
+          proposalEnrollmentPreviouslyPaid === true ? enrollmentBase : 0
+        )
+      );
       const enrollmentPreviouslyPaid =
-        pendingPriorPaymentHandoff
-          ?.enrollmentFeeIncluded === true ||
-        proposalEnrollmentPreviouslyPaid === true;
-
-      const enrollmentPreviouslyPaidAmount =
-        enrollmentPreviouslyPaid
-          ? enrollmentBase
-          : 0;
+        enrollmentPreviouslyPaidAmount >= enrollmentBase;
 
       const enrollmentDueNow=Math.max(
         0,
@@ -2433,15 +2447,24 @@ alert(
           .filter(period => /^\d{4}-\d{2}$/.test(String(period)))
       );
 
+      const enrollmentBase = Math.max(0, Number(pricing.enrollmentBase) || 0);
+      const recordedEnrollmentAmount =
+        (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
+          .reduce(
+            (total, payment) =>
+              total + priorPaymentEnrollmentAmount(payment, enrollmentBase),
+            0
+          );
+      proposalEnrollmentPreviouslyPaidAmount = Math.min(
+        enrollmentBase,
+        Math.max(
+          Number(pricing.enrollmentPreviouslyPaidAmount) || 0,
+          recordedEnrollmentAmount
+        )
+      );
       proposalEnrollmentPreviouslyPaid =
         pricing.enrollmentPreviouslyPaid === true ||
-        (
-          Array.isArray(proposal.priorPayments) &&
-          proposal.priorPayments.some(
-            (payment) =>
-              payment?.enrollmentFeeIncluded === true
-          )
-        );
+        proposalEnrollmentPreviouslyPaidAmount >= enrollmentBase;
 
       const athletes =
         Array.isArray(proposal.athletes)
@@ -2786,10 +2809,9 @@ alert(
           ? handoff.priorPayment
           : null;
 
-      proposalEnrollmentPreviouslyPaid =
-        proposalEnrollmentPreviouslyPaid === true ||
-        pendingPriorPaymentHandoff
-          ?.enrollmentFeeIncluded === true;
+      if (pendingPriorPaymentHandoff?.enrollmentFeeIncluded === true) {
+        proposalEnrollmentPreviouslyPaid = true;
+      }
 
       calculate();
     }

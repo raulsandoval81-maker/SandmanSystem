@@ -34,7 +34,11 @@ function isOperationalPaidProposal(
   const isRecordedCashPayment =
     paymentMethod === "cash_prepaid" &&
     Boolean(proposal.cashPrepayment) &&
-    Number(proposal.cashPrepayment?.amountCents || 0) > 0;
+    Number(proposal.cashPrepayment?.amountCents || 0) > 0 &&
+    (
+      proposal.cashPrepayment?.membershipPaidInFull === true ||
+      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
+    );
 
   return (
     status === "PAID" &&

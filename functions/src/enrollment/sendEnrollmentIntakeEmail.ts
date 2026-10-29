@@ -66,7 +66,11 @@ function isOperationalPaidProposal(
     Boolean(proposal.cashPrepayment) &&
     Number(
       proposal.cashPrepayment?.amountCents || 0
-    ) > 0;
+    ) > 0 &&
+    (
+      proposal.cashPrepayment?.membershipPaidInFull === true ||
+      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
+    );
 
   return (
     status === "PAID" &&

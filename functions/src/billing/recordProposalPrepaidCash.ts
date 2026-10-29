@@ -13,6 +13,11 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "../proposals/proposalAccess";
+import { enrollmentFeePaidCents } from "./priorPaymentAllocation";
+import {
+  resolveFullYearPrepayment,
+  validateFullYearCoverage,
+} from "./prepaidMembershipPolicy";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -35,6 +40,14 @@ function toPositiveInteger(
   }
 
   return parsed;
+}
+
+function normalizePaymentMethod(value: unknown): "cash" | "check" {
+  const method = cleanString(value).toLowerCase();
+  if (method !== "cash" && method !== "check") {
+    throw new HttpsError("invalid-argument", "paymentMethod must be cash or check.");
+  }
+  return method;
 }
 
 function parseLocalDate(value: unknown): Timestamp {
@@ -89,18 +102,34 @@ export const recordProposalPrepaidCash =
         "amountCents"
       );
 
-    const monthsCovered =
-      toPositiveInteger(
-        req.data?.monthsCovered,
-        "monthsCovered"
-      );
+    const membershipAmountCents =
+      toPositiveInteger(req.data?.membershipAmountCents, "membershipAmountCents");
+    const paymentMethod = normalizePaymentMethod(req.data?.paymentMethod);
+    const paymentDateRaw = cleanString(req.data?.paymentDate);
+    const membershipStartDateRaw = cleanString(req.data?.membershipStartDate);
+    const membershipPaidThroughDateRaw = cleanString(req.data?.membershipPaidThroughDate);
+    const nextBillingDateRaw = cleanString(req.data?.nextBillingDate);
 
-    const enrollmentFeePaid =
-      req.data?.enrollmentFeePaid === true;
+    try {
+      validateFullYearCoverage(
+        membershipStartDateRaw,
+        membershipPaidThroughDateRaw,
+        nextBillingDateRaw
+      );
+    } catch (error) {
+      throw new HttpsError(
+        "invalid-argument",
+        error instanceof Error ? error.message : "Invalid prepaid coverage dates."
+      );
+    }
+
+    const paymentDate = parseLocalDate(paymentDateRaw);
+    const membershipStartDate = parseLocalDate(membershipStartDateRaw);
+    const membershipPaidThroughDate = parseLocalDate(membershipPaidThroughDateRaw);
 
     const nextBillingDate =
       parseLocalDate(
-        req.data?.nextBillingDate
+        nextBillingDateRaw
       );
 
     const note =
@@ -182,6 +211,51 @@ export const recordProposalPrepaidCash =
               );
             }
 
+            const pricing = proposal.pricing || {};
+            const monthlyMembershipCents = Math.round(
+              Number(pricing.monthlyBalance || 0) * 100
+            );
+            const enrollmentFeeTotalCents = Math.round(
+              Number(pricing.enrollmentBase || 0) * 100
+            );
+            const priorPayments = Array.isArray(proposal.priorPayments)
+              ? proposal.priorPayments
+              : [];
+            const priorPaymentEnrollmentCents = Math.min(
+              enrollmentFeeTotalCents,
+              priorPayments.reduce(
+                (total: number, payment: Record<string, unknown>) =>
+                  total + enrollmentFeePaidCents(payment, enrollmentFeeTotalCents),
+                0
+              )
+            );
+            const pricingEnrollmentCents = Math.round(
+              Number(pricing.enrollmentPreviouslyPaidAmount || 0) * 100
+            );
+            let allocation;
+            try {
+              allocation = resolveFullYearPrepayment({
+                amountCents,
+                membershipAmountCents,
+                expectedMonthlyMembershipCents: monthlyMembershipCents,
+                enrollmentFeeTotalCents,
+                enrollmentFeePreviouslyPaidCents: Math.max(
+                  priorPaymentEnrollmentCents,
+                  pricingEnrollmentCents
+                ),
+                athletes: Array.isArray(proposal.athletes) ? proposal.athletes : [],
+                enrollmentFeeIncludedAthleteIndexes:
+                  req.data?.enrollmentFeeIncludedAthleteIndexes,
+                enrollmentFeeAllocations:
+                  req.data?.enrollmentFeeAllocations,
+              });
+            } catch (error) {
+              throw new HttpsError(
+                "invalid-argument",
+                error instanceof Error ? error.message : "Invalid paid-in-full allocation."
+              );
+            }
+
             const nextStatus =
               "PAID";
 
@@ -197,7 +271,7 @@ export const recordProposalPrepaidCash =
                   nextStatus,
 
                 billingFollowUpStatus:
-                  "AUTOPAY_SETUP_REQUIRED",
+                  "RENEWAL_AUTOPAY_APPROVAL_REQUIRED",
 
                 paymentMethod:
                   "cash_prepaid",
@@ -211,8 +285,14 @@ export const recordProposalPrepaidCash =
 
                 cashPrepayment: {
                   amountCents,
-                  monthsCovered,
-                  enrollmentFeePaid,
+                  membershipAmountCents: allocation.membershipAmountCents,
+                  membershipPaidInFull: allocation.membershipPaidInFull,
+                  monthsCovered: 12,
+                  paymentMethod,
+                  paymentDate,
+                  membershipStartDate,
+                  membershipPaidThroughDate,
+                  annualEnrollmentFee: allocation.annualEnrollmentFee,
                   nextBillingDate,
                   note,
                   receivedBy:
@@ -224,6 +304,7 @@ export const recordProposalPrepaidCash =
                 },
 
                 nextBillingDate,
+                membershipPaidThroughDate,
 
                 updatedBy:
                   req.auth!.uid,
@@ -248,8 +329,14 @@ export const recordProposalPrepaidCash =
                   nextStatus,
 
                 amountCents,
-                monthsCovered,
-                enrollmentFeePaid,
+                membershipAmountCents: allocation.membershipAmountCents,
+                membershipPaidInFull: true,
+                monthsCovered: 12,
+                paymentMethod,
+                paymentDate,
+                membershipStartDate,
+                membershipPaidThroughDate,
+                annualEnrollmentFee: allocation.annualEnrollmentFee,
                 nextBillingDate,
                 note,
 
@@ -269,8 +356,12 @@ export const recordProposalPrepaidCash =
               status:
                 nextStatus,
               amountCents,
-              monthsCovered,
-              enrollmentFeePaid,
+              membershipAmountCents: allocation.membershipAmountCents,
+              membershipPaidInFull: true,
+              monthsCovered: 12,
+              paymentMethod,
+              membershipPaidThroughDate,
+              annualEnrollmentFee: allocation.annualEnrollmentFee,
             };
           }
         );
