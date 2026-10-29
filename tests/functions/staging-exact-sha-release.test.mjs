@@ -1439,25 +1439,49 @@ test("unknown and conditional Policy Troubleshooter states expose only sanitized
   assert.equal(summarizePermissionResults([unknown]).authorized, false);
 });
 
-test("Billing accepts only the exact staging source-object condition for its proven build identity", () => {
+test("Billing storage build preflight uses the pinned source object and explicit condition context", async () => {
+  const check = permissionChecks(pr354BillingRelease).find(value =>
+    value.category === "build-account" && value.permission === "storage.objects.get");
+  const object = "projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip";
+  assert.equal(check.resource, `//storage.googleapis.com/${object}`);
+  assert.deepEqual(check.conditionContext, {
+    resource: { service: "storage.googleapis.com", name: object, type: "storage.googleapis.com/Object" },
+  });
+  const seen = [];
+  const results = await verifyPermissionChecks([check], {
+    accessToken: "synthetic-short-lived-token",
+    fetchImpl: async (_url, init) => {
+      seen.push(JSON.parse(init.body));
+      return { status: 200, text: async () => JSON.stringify({ overallAccessState: "CAN_ACCESS" }) };
+    },
+  });
+  assert.deepEqual(seen[0].conditionContext, check.conditionContext);
+  assert.equal(results[0].result, "GRANTED");
+});
+
+test("Billing never promotes condition matches or unknown deny decisions to authorized", () => {
   const check = permissionChecks(pr354BillingRelease).find(value =>
     value.category === "build-account" && value.permission === "storage.objects.get");
   const membership = `serviceAccount:${pr354BillingRelease.functionBuild}`;
-  const body = {
-    overallAccessState: "UNKNOWN_CONDITIONAL",
-    explainedPolicies: [{ bindingExplanations: [{
-      role: "roles/storage.objectViewer",
-      rolePermission: "ROLE_PERMISSION_INCLUDED",
-      memberships: { [membership]: { membership: "MEMBERSHIP_INCLUDED" } },
-      condition: { expression:
-        'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")' },
-    }] }],
-  };
-  const granted = evaluateTroubleshooterResponse({ status: 200, body }, check);
-  assert.equal(granted.result, "GRANTED");
-  assert.match(granted.conditional, /gcf-v2-sources-991554514268-us-central1\/objects/);
-  body.explainedPolicies[0].bindingExplanations[0].condition.expression = "resource.name.startsWith(\"projects/_/buckets/other/\")";
-  assert.equal(evaluateTroubleshooterResponse({ status: 200, body }, check).result, "INCONCLUSIVE");
+  const policy = { explainedPolicies: [{ bindingExplanations: [{
+    role: "roles/storage.objectViewer", rolePermission: "ROLE_PERMISSION_INCLUDED",
+    memberships: { [membership]: { membership: "MEMBERSHIP_INCLUDED" } },
+    condition: { expression: 'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")' },
+  }] }] };
+  for (const state of ["UNKNOWN_CONDITIONAL", "UNKNOWN_INFO"]) {
+    const result = evaluateTroubleshooterResponse({ status: 200, body: {
+      ...policy, overallAccessState: state,
+      allowPolicyExplanation: { allowAccessState: "ALLOW_ACCESS_STATE_GRANTED" },
+      denyPolicyExplanation: { denyAccessState: "DENY_ACCESS_STATE_UNKNOWN_INFO" },
+    } }, check);
+    assert.equal(result.result, "INCONCLUSIVE");
+    assert.equal(summarizePermissionResults([result]).authorized, false);
+  }
+  const denied = evaluateTroubleshooterResponse({ status: 200, body: {
+    overallAccessState: "CANNOT_ACCESS",
+  } }, check);
+  assert.equal(denied.result, "MISSING");
+  assert.equal(summarizePermissionResults([denied]).authorized, false);
 });
 
 test("missing and malformed Policy Troubleshooter states have distinct fail-closed diagnostics", () => {
