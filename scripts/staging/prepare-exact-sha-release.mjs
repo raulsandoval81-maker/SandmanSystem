@@ -71,6 +71,23 @@ if (release.functions.length) {
     cwd: sourceRoot, env: process.env, stdio: "inherit", shell: false,
   });
   if (build.status !== 0) throw new Error("Failed to compile the immutable application Functions source.");
+  // The approved Billing entrypoint does not export a webhook handler. Prevent the
+  // shared Stripe client module from registering an unrelated webhook secret during
+  // Firebase's endpoint discovery. Only the compiled, staging-only artifact changes.
+  if (release.releaseId === "billing-pr354-014198ea") {
+    const clientPath = path.join(functionsRoot, "lib/billing/stripeClient.js");
+    const client = await readFile(clientPath, "utf8");
+    const webhookDeclaration = /^exports\\.STRIPE_WEBHOOK_SECRET\\s*=\\s*\\(0,\\s*params_1\\.defineSecret\\)\\(\"STRIPE_WEBHOOK_SECRET\"\\);\\s*$/gm;
+    const matches = [...client.matchAll(webhookDeclaration)];
+    if (matches.length !== 1) {
+      throw new Error("Expected exactly one compiled webhook secret registration in the isolated Billing staging artifact.");
+    }
+    const isolated = client.replace(webhookDeclaration, "");
+    if (isolated.includes("defineSecret(\"STRIPE_WEBHOOK_SECRET\")")) {
+      throw new Error("Unexpected remaining webhook secret registration in Billing staging artifact.");
+    }
+    await writeFile(clientPath, isolated);
+  }
   await cp(path.join(sourceRoot, "functions/package-lock.json"), path.join(functionsRoot, "package-lock.json"));
   const packageJson = JSON.parse(await readFile(path.join(sourceRoot, "functions/package.json"), "utf8"));
   packageJson.main = "staging-release-entry.cjs";
