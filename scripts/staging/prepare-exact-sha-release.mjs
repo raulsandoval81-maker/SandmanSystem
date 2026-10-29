@@ -86,6 +86,14 @@ if (release.functions.length) {
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
       'module.exports = { updatePracticeCheckIn: require("./lib/practice/practiceSessions.js").updatePracticeCheckIn };');
   }
+  if (release.releaseId === "billing-pr354-014198ea") {
+    stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");', `module.exports = {
+      recordProposalPrepaidCash: require("./lib/billing/recordProposalPrepaidCash.js").recordProposalPrepaidCash,
+      recordProposalPriorPayment: require("./lib/billing/recordProposalPriorPayment.js").recordProposalPriorPayment,
+      approveProposalRenewalAutopay: require("./lib/billing/approveProposalRenewalAutopay.js").approveProposalRenewalAutopay,
+      createProposalAutopaySetup: require("./lib/billing/proposalAutopaySetup.js").createProposalAutopaySetup,
+    };`);
+  }
   if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) throw new Error("Staging runtime service-account placeholder was not resolved.");
   await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
   await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [

@@ -15,6 +15,12 @@ const APPROVED_FUNCTION_SETS = Object.freeze([
     "updatePracticeCheckIn",
     "finalizePracticeAttendance",
   ]),
+  Object.freeze([
+    "recordProposalPrepaidCash",
+    "recordProposalPriorPayment",
+    "approveProposalRenewalAutopay",
+    "createProposalAutopaySetup",
+  ]),
 ]);
 export const APPROVED_FUNCTIONS = Object.freeze([...new Set(APPROVED_FUNCTION_SETS.flat())]);
 
@@ -99,8 +105,22 @@ export function validateRelease(release, context = {}) {
     throw new Error("Unexpected function target in approved release.");
   }
   const newFunctions = [...(release.newFunctions || [])];
-  if (newFunctions.some(name => name !== "searchPracticeAttendanceAthletes" || !functions.includes(name))) {
+  const approvedNewFunctions = release.releaseId === "billing-pr354-014198ea"
+    ? functions
+    : ["searchPracticeAttendanceAthletes"];
+  if (newFunctions.some(name => !approvedNewFunctions.includes(name) || !functions.includes(name))) {
     throw new Error("Unexpected new function target in approved release.");
+  }
+  const functionSecrets = release.functionSecrets || {};
+  const secretFunctions = Object.keys(functionSecrets);
+  if (secretFunctions.some(name => !functions.includes(name)) ||
+      Object.values(functionSecrets).some(keys => !Array.isArray(keys) ||
+        keys.some(key => key !== "STRIPE_SECRET_KEY"))) {
+    throw new Error("Unexpected staging function secret configuration.");
+  }
+  if (release.releaseId === "billing-pr354-014198ea" &&
+      JSON.stringify(functionSecrets) !== JSON.stringify({ createProposalAutopaySetup: ["STRIPE_SECRET_KEY"] })) {
+    throw new Error("Billing staging release requires the exact Stripe test secret binding.");
   }
   if (release.functionDeploymentTool === "gcloud-gen2") {
     if (!release.functionBuild?.endsWith(`@${STAGING_PROJECT_ID}.iam.gserviceaccount.com`)) throw new Error("Dedicated build identity is required.");
@@ -139,6 +159,10 @@ function userEnvironment(environment = {}) {
     .sort(([left], [right]) => left.localeCompare(right)));
 }
 
+function secretKeys(secretEnvironmentVariables = []) {
+  return secretEnvironmentVariables.map(value => String(value?.key || "")).filter(Boolean).sort();
+}
+
 export function functionConfiguration(description = {}) {
   const service = description.serviceConfig || {};
   return {
@@ -155,7 +179,7 @@ export function functionConfiguration(description = {}) {
     maxInstanceRequestConcurrency: service.maxInstanceRequestConcurrency,
     ingressSettings: service.ingressSettings,
     environmentVariables: userEnvironment(service.environmentVariables),
-    secretEnvironmentVariables: service.secretEnvironmentVariables || [],
+    secretEnvironmentVariables: secretKeys(service.secretEnvironmentVariables),
   };
 }
 
@@ -177,7 +201,7 @@ export function validateFunctionConfiguration(release, functionName, description
     maxInstanceRequestConcurrency: expected.maxInstanceRequestConcurrency,
     ingressSettings: expected.ingressSettings,
     environmentVariables: userEnvironment(expected.environmentVariables),
-    secretEnvironmentVariables: [],
+    secretEnvironmentVariables: [...(release.functionSecrets?.[functionName] || [])].sort(),
   };
   if (JSON.stringify(actual) !== JSON.stringify(wanted)) {
     throw new Error(`Staging configuration mismatch for ${functionName}.`);
