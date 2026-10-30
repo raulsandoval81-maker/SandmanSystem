@@ -15,3 +15,14 @@ test("server validates bounded focus and notes instead of dropping them", () => 
   assert.match(server, /JSON\.stringify\(practice\.sessionMemory\?\.plannedBlocks \|\| \[\]\)/);
   assert.match(server, /JSON\.stringify\(practice\.sessionMemory\?\.planningContext \|\| \{\}\)/);
 });
+
+test("clean-client note hydration uses canonical practice and does not overwrite drafts", () => {
+  assert.match(client, /async function restoreCanonicalPlanNotes\(\)/);
+  assert.match(client, /if \(!practiceId \|\| isRecoverableDraft\(storedDraft\)\) return/);
+  assert.match(client, /const result = await getPractice\(\{ practiceId \}\)/);
+  assert.match(client, /String\(practice\.status \|\| ""\)\.toLowerCase\(\) !== "active"/);
+  assert.match(client, /memory\.planningContext\?\.focus/);
+  assert.match(client, /document\.getElementById\("notes-" \+ slot\)/);
+  assert.match(client, /if \(field && !field\.value\.trim\(\)\)/);
+  assert.match(client, /void restoreCanonicalPlanNotes\(\)/);
+});
