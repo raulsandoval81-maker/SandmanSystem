@@ -110,6 +110,12 @@ export function permissionChecks(release) {
           "cloudfunctions.functions.update", "serviceusage.services.use"],
         resource: `//cloudresourcemanager.googleapis.com/projects/${release.projectId}`,
         url: `https://cloudresourcemanager.googleapis.com/v1/projects/${release.projectId}:testIamPermissions` },
+      // The post-build Cloud Run service update pulls the image as the deployer,
+      // not as the build account. Check the actual caller before any deployment starts.
+      { method: "TEST_IAM", category: "billing-deployer-artifact-download",
+        principal: deployer, permissions: ["artifactregistry.repositories.downloadArtifacts"],
+        resource: release.buildPermissionResources["artifactregistry.repositories.downloadArtifacts"],
+        url: `https://artifactregistry.googleapis.com/v1/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/repositories/gcf-artifacts:testIamPermissions` },
       { method: "TEST_IAM", category: "billing-invoker-bootstrap", principal: deployer,
         permissions: ["run.services.get", "run.services.update"],
         resource: `//run.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${partialService}`,

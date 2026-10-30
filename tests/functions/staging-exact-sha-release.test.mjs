@@ -183,6 +183,13 @@ test("PR354 Billing release pins the merged source, exact overlay, callables, an
   assert.equal(permissionPreflight.filter(check => check.permissions?.includes("iam.serviceAccounts.actAs")).length, 2);
   assert.ok(permissionPreflight.some(check => check.permissions?.includes("run.services.update") &&
     check.resource.endsWith("/services/recordproposalprepaidcash")));
+  assert.ok(permissionPreflight.some(check =>
+    check.category === "billing-deployer-artifact-download" &&
+    check.method === "TEST_IAM" &&
+    check.principal === result.functionDeployer &&
+    check.permissions.length === 1 &&
+    check.permissions[0] === "artifactregistry.repositories.downloadArtifacts" &&
+    check.url.endsWith("/repositories/gcf-artifacts:testIamPermissions")));
   assert.equal(permissionPreflight.filter(check => check.category === "build-account").length, 4);
 });
 
@@ -1494,6 +1501,30 @@ test("unknown and conditional Policy Troubleshooter states expose only sanitized
   assert.doesNotMatch(JSON.stringify(unknown.diagnosticEvidence), /secret-token|access_token=secret/);
   assert.match(unknown.detail, /overallAccessState/);
   assert.equal(summarizePermissionResults([unknown]).authorized, false);
+});
+
+test("Billing deployer repository image-pull permission fails closed before Cloud Run update", async () => {
+  const check = permissionChecks(pr376BillingRelease).find(value =>
+    value.category === "billing-deployer-artifact-download");
+  assert.ok(check);
+  assert.equal(check.resource, "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts");
+  const calls = [];
+  const granted = await verifyPermissionChecks([check], { accessToken: "synthetic-token",
+    fetchImpl: async (url, options) => {
+      calls.push({ url, body: JSON.parse(options.body) });
+      return { status: 200, text: async () =>
+        JSON.stringify({ permissions: ["artifactregistry.repositories.downloadArtifacts"] }) };
+    } });
+  assert.equal(granted[0].result, "GRANTED");
+  assert.deepEqual(calls[0].body, { permissions: ["artifactregistry.repositories.downloadArtifacts"] });
+  const denied = await verifyPermissionChecks([check], { accessToken: "synthetic-token",
+    fetchImpl: async () => ({ status: 200, text: async () => JSON.stringify({ permissions: [] }) }) });
+  assert.equal(denied[0].result, "MISSING");
+  assert.equal(summarizePermissionResults(denied).authorized, false);
+  const malformed = await verifyPermissionChecks([check], { accessToken: "synthetic-token",
+    fetchImpl: async () => ({ status: 200, text: async () => JSON.stringify({}) }) });
+  assert.equal(malformed[0].result, "INCONCLUSIVE");
+  assert.equal(summarizePermissionResults(malformed).authorized, false);
 });
 
 test("Billing Storage preflight validates the exact scoped policy and denies, never bucket-wide access", async () => {
