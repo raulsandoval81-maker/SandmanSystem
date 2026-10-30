@@ -117,7 +117,7 @@ export function permissionChecks(release) {
         resource: release.buildPermissionResources["artifactregistry.repositories.downloadArtifacts"],
         url: `https://artifactregistry.googleapis.com/v1/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/repositories/gcf-artifacts:testIamPermissions` },
       { method: "TEST_IAM", category: "billing-invoker-bootstrap", principal: deployer,
-        permissions: ["run.services.get", "run.services.update"],
+        permissions: ["run.services.get", "run.services.update", "run.services.setIamPolicy"],
         resource: `//run.googleapis.com/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${partialService}`,
         url: `https://run.googleapis.com/v2/projects/${release.projectId}/locations/${release.expectedFunctionConfiguration.region}/services/${partialService}:testIamPermissions` },
       ...bootstrapPlan.serviceAccounts.map(target => ({ method: "TEST_IAM", category: "service-account-actAs",
