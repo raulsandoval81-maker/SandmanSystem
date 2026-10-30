@@ -122,7 +122,7 @@ export function permissionChecks(release) {
         principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
         resource: permission === "storage.objects.get"
           ? release.buildPermissionResources[permission].replace(
-              /^(\\/\\/storage\\.googleapis\\.com\\/projects\\/_\\/buckets\\/[^/]+\\/objects\\/)(.+)$/,
+              /^(\/\/storage\.googleapis\.com\/projects\/_\/buckets\/[^\/]+\/objects\/)(.+)$/,
               (_, prefix, objectName) => `${prefix}${encodeURIComponent(objectName)}`
             )
           : release.buildPermissionResources[permission],
