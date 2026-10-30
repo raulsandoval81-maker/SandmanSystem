@@ -265,6 +265,42 @@ test("PR354 Billing recovery uses the reviewed no-invoker-IAM bootstrap without 
   assert.ok(!permissions.deployer.includes("run.services.setIamPolicy"));
 });
 
+test("PR376 Billing recovery pins run 183's changed partial service and fails closed on drift", () => {
+  const partial = pr376BillingRelease.partialBootstrap.recordProposalPrepaidCash;
+  assert.equal(partial.failedRun, 183);
+  assert.equal(partial.state, "ACTIVE");
+  assert.equal(partial.updateTime, "2026-10-30T21:50:47.601870073Z");
+  assert.equal(partial.revision, "recordproposalprepaidcash-00002-tel");
+  assert.equal(partial.sourceGeneration, "1793397009130170");
+  assert.equal(partial.firebaseFunctionsHash, "6ef605c5798974131134cb96cd4fc85c66ccec76");
+  const description = {
+    state: partial.state,
+    updateTime: partial.updateTime,
+    labels: { "firebase-functions-hash": partial.firebaseFunctionsHash },
+    buildConfig: { source: { storageSource: {
+      bucket: "gcf-v2-sources-991554514268-us-central1",
+      object: "recordProposalPrepaidCash/function-source.zip",
+      generation: partial.sourceGeneration,
+    } } },
+    serviceConfig: { revision: partial.revision, serviceAccountEmail: partial.runtimeServiceAccount },
+  };
+  assert.equal(validatePartialBootstrapState(pr376BillingRelease, "recordProposalPrepaidCash", description,
+    { metadata: { annotations: {} } }, { bindings: [] }, { bindings: [] }), true);
+  for (const [field, changed] of [
+    ["updateTime", "2026-10-29T05:40:36.218901630Z"],
+    ["revision", "recordproposalprepaidcash-00001-riz"],
+  ]) {
+    const drifted = structuredClone(description);
+    if (field === "revision") drifted.serviceConfig.revision = changed;
+    else drifted[field] = changed;
+    assert.throws(() => validatePartialBootstrapState(pr376BillingRelease, "recordProposalPrepaidCash",
+      drifted, { metadata: { annotations: {} } }, {}, {}), /evidence mismatch/);
+  }
+  assert.throws(() => validatePartialBootstrapState(pr376BillingRelease, "recordProposalPrepaidCash", description,
+    { metadata: { annotations: { "run.googleapis.com/invoker-iam-disabled": "true" } } }, {}, {}),
+    /IAM state mismatch/);
+});
+
 test("PR354 Billing recovery pins run 169's partial service and preserves deletion as a separate approval", () => {
   const partial = pr354BillingRelease.partialBootstrap.recordProposalPrepaidCash;
   const description = {
