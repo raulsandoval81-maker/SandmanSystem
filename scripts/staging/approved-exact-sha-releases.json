@@ -3239,11 +3239,11 @@
     },
     "partialBootstrap": {
       "recordProposalPrepaidCash": {
-        "failedRun": 169,
+        "failedRun": 183,
         "state": "ACTIVE",
-        "updateTime": "2026-10-29T05:40:36.218901630Z",
-        "revision": "recordproposalprepaidcash-00001-riz",
-        "sourceGeneration": "1793252343539592",
+        "updateTime": "2026-10-30T21:50:47.601870073Z",
+        "revision": "recordproposalprepaidcash-00002-tel",
+        "sourceGeneration": "1793397009130170",
         "firebaseFunctionsHash": "6ef605c5798974131134cb96cd4fc85c66ccec76",
         "runtimeServiceAccount": "991554514268-compute@developer.gserviceaccount.com"
       }
