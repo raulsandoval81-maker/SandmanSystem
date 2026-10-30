@@ -278,6 +278,14 @@
 
   </div>
 
+  <section class="clipboard-preview-shell" aria-label="Pre-practice view">
+    <div class="clipboard-preview-switch">
+      <button id="clipboardEditorView" type="button" aria-pressed="true">Full Editor</button>
+      <button id="clipboardPreviewView" type="button" aria-pressed="false">Practice Preview</button>
+    </div>
+    <div id="clipboardPracticePreview" class="clipboard-practice-preview" hidden aria-live="polite"></div>
+  </section>
+
   <section class="clipboard-handoff" aria-label="Practice handoff">
     <div class="clipboard-handoff-copy">
       <span class="clipboard-handoff-kicker">Practice Ready</span>
@@ -303,6 +311,7 @@
   </section>
 
 </main>
+<script type="module" src="/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs"></script>
 
 <script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
 
