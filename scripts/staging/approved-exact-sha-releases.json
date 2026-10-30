@@ -3159,18 +3159,23 @@
     "repository": "raulsandoval81-maker/SandmanSystem",
     "sourcePr": 372,
     "applicationSha": "e445688c4884f7434f21b341d43acebd93c465cd",
-    "requiredAncestorSha": "4685058acdd388e937699d79ff269602bd8b4c94",
+    "requiredAncestorSha": "066ee4aab638dcc6c19af499b21393684daa2f6a",
     "allowedChangedFiles": [
       "functions/src/practice/practiceSessions.ts",
       "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
-      "tests/functions/clipboard-canonical-focus-notes.test.mjs"
+      "public/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "tests/functions/clipboard-canonical-focus-notes.test.mjs",
+      "tests/functions/clipboard-prepractice-preview.test.mjs"
     ],
     "projectId": "sandman-combat-staging",
     "hostingSite": "sandman-combat-staging",
     "hosting": true,
     "hostingBaselineSha": "a44b602caef08c7e719cc7425436507d3f9b3c51",
     "hostingFiles": [
-      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js"
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs",
+      "public/coaches/execution/clipboard-2.0/index.html"
     ],
     "functions": [
       "savePracticeSessionMemory"
