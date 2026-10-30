@@ -2137,6 +2137,7 @@ window.runPractice = async function () {
       practiceId,
       planVersion,
       planningContext: {
+        focus: document.getElementById("slot-note")?.value.trim() || "",
         planningSources: session.planningSources,
         groups: Object.entries(session.groupPlanning || {}).map(([groupId, planning]) => ({
           groupId,
@@ -2154,6 +2155,7 @@ window.runPractice = async function () {
         blockId: block.slot,
         title: block.title,
         minutes: block.minutes,
+        notes: block.notes,
         cards: block.cards,
         drillBlocks: block.drillBlocks || []
       })),
