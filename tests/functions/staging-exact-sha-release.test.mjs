@@ -1496,27 +1496,42 @@ test("unknown and conditional Policy Troubleshooter states expose only sanitized
   assert.equal(summarizePermissionResults([unknown]).authorized, false);
 });
 
-test("Billing storage build preflight uses the pinned source object and explicit condition context", async () => {
+test("Billing Storage preflight validates the exact scoped policy and denies, never bucket-wide access", async () => {
   const check = permissionChecks(pr354BillingRelease).find(value =>
     value.category === "build-account" && value.permission === "storage.objects.get");
-  const object = "projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip";
-  assert.equal(check.resource, "//storage.googleapis.com/projects/_/buckets/" +
-    "gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash%2Ffunction-source.zip");
-  assert.equal(decodeURIComponent(check.resource), `//storage.googleapis.com/${object}`);
-  assert.deepEqual(check.conditionContext, {
-    resource: { service: "storage.googleapis.com", name: object, type: "storage.googleapis.com/Object" },
-  });
+  assert.equal(check.method, "STORAGE_POLICY");
+  assert.match(check.resource, /\/objects\/recordProposalPrepaidCash\/function-source\.zip$/);
   const seen = [];
-  const results = await verifyPermissionChecks([check], {
-    accessToken: "synthetic-short-lived-token",
-    fetchImpl: async (_url, init) => {
-      seen.push(JSON.parse(init.body));
-      return { status: 200, text: async () => JSON.stringify({ overallAccessState: "CAN_ACCESS" }) };
-    },
-  });
-  assert.equal(seen[0].accessTuple.fullResourceName, check.resource);
-  assert.deepEqual(seen[0].accessTuple.conditionContext, check.conditionContext);
-  assert.equal(results[0].result, "GRANTED");
+  const policy = { version: 3, bindings: [{
+    role: "roles/storage.objectViewer",
+    members: [`serviceAccount:${pr354BillingRelease.functionBuild}`],
+    condition: { expression: 'resource.name.startsWith("projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/")' },
+  }] };
+  const fetchImpl = async (url, init) => {
+    seen.push({ url, method: init.method, body: init.body });
+    return { status: 200, text: async () => JSON.stringify(url.includes("getIamPolicy") ? policy : {}) };
+  };
+  const result = await verifyPermissionChecks([check], { accessToken: "synthetic-short-lived-token", fetchImpl });
+  assert.equal(result[0].result, "GRANTED");
+  assert.match(result[0].verificationBasis, /not an object access probe/);
+  assert.equal(seen.length, 2);
+  assert.deepEqual(JSON.parse(seen[0].body), { options: { requestedPolicyVersion: 3 } });
+  assert.match(seen[1].url, /\/denypolicies$/);
+  for (const altered of [
+    { ...policy, bindings: [{ ...policy.bindings[0], condition: undefined }] },
+    { ...policy, bindings: [{ ...policy.bindings[0], condition: { expression: 'resource.name.startsWith("projects/_/buckets/")' } }] },
+    { ...policy, bindings: [] },
+  ]) {
+    const results = await verifyPermissionChecks([check], { accessToken: "synthetic",
+      fetchImpl: async (url) => ({ status: 200, text: async () =>
+        JSON.stringify(url.includes("getIamPolicy") ? altered : {}) }) });
+    assert.equal(summarizePermissionResults(results).authorized, false);
+  }
+  const denied = await verifyPermissionChecks([check], { accessToken: "synthetic",
+    fetchImpl: async url => ({ status: 200, text: async () =>
+      JSON.stringify(url.includes("getIamPolicy") ? policy : { policies: [{ name: "deny" }] }) }) });
+  assert.equal(denied[0].result, "INCONCLUSIVE");
+  assert.equal(summarizePermissionResults(denied).authorized, false);
 });
 
 test("Billing never promotes condition matches or unknown deny decisions to authorized", () => {
