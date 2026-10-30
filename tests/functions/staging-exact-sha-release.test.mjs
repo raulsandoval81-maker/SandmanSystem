@@ -1500,7 +1500,9 @@ test("Billing storage build preflight uses the pinned source object and explicit
   const check = permissionChecks(pr354BillingRelease).find(value =>
     value.category === "build-account" && value.permission === "storage.objects.get");
   const object = "projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip";
-  assert.equal(check.resource, `//storage.googleapis.com/${object}`);
+  assert.equal(check.resource, "//storage.googleapis.com/projects/_/buckets/" +
+    "gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash%2Ffunction-source.zip");
+  assert.equal(decodeURIComponent(check.resource), `//storage.googleapis.com/${object}`);
   assert.deepEqual(check.conditionContext, {
     resource: { service: "storage.googleapis.com", name: object, type: "storage.googleapis.com/Object" },
   });
