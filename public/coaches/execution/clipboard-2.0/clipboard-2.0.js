@@ -844,6 +844,26 @@ async function initClipboardHybridPlanning() {
   coachCheck.checked = builderSession.planningSources.coachInput;
   const groups = builderSession.trainingGroups || [];
   const models = await Promise.all(groups.map(group => clipboardWavesForGroup(group)));
+  // Session Builder is the source of accepted group lessons on first entry.
+  // Clipboard must not replace those accepted cards with a fresh system pick.
+  const upstreamPrescriptions = Array.isArray(builderSession.groupPrescriptions)
+    ? builderSession.groupPrescriptions : [];
+  const acceptedByGroup = new Map(upstreamPrescriptions
+    .filter(entry => entry?.status === "ready" && entry?.contentState === "accepted"
+      && entry?.waveKey && Array.isArray(entry.cards) && entry.cards.length)
+    .map(entry => [String(entry.groupId), entry]));
+  let coachChangedWaves = false;
+  if (waveCheck.checked && acceptedByGroup.size) {
+    builderSession.clipboardWaveSelections ||= {};
+    builderSession.clipboardWavePlacements ||= {};
+    groups.forEach(group => {
+      const id = String(group.id || "");
+      const accepted = acceptedByGroup.get(id);
+      if (accepted && !Object.hasOwn(builderSession.clipboardWaveSelections, id)) {
+        builderSession.clipboardWaveSelections[id] = accepted.waveKey;
+      }
+    });
+  }
   function updatePrescriptions() {
     const prescriptions = groups.map((group,index) => {
       const selected = waveCheck.checked ? (builderSession.clipboardWaveSelections?.[group.id] || "") : "";
@@ -857,8 +877,17 @@ async function initClipboardHybridPlanning() {
         cards
       };
     });
-    builderSession.groupPrescriptions = prescriptions;
-    builderSession.groupPlanning = Object.fromEntries(prescriptions.map(p => [p.groupId, {
+    if (!coachChangedWaves && acceptedByGroup.size && waveCheck.checked) {
+      builderSession.groupPrescriptions = groups.map((group, index) => {
+        const accepted = acceptedByGroup.get(String(group.id || ""));
+        const selected = builderSession.clipboardWaveSelections?.[group.id] || "";
+        return accepted && accepted.waveKey === selected ? accepted : prescriptions[index];
+      });
+    } else {
+      builderSession.groupPrescriptions = prescriptions;
+    }
+    const effective = builderSession.groupPrescriptions;
+    builderSession.groupPlanning = Object.fromEntries(effective.map(p => [p.groupId, {
       ...(builderSession.groupPlanning?.[p.groupId] || {}),
       sources:builderSession.planningSources,
       tierWave:p.status === "ready" ? {
@@ -866,7 +895,7 @@ async function initClipboardHybridPlanning() {
         provenance:"approved-tier-wave"
       } : null
     }]));
-    builderSession.acceptedLessonContent = Object.fromEntries(prescriptions.map(p => [p.groupId,p.cards]));
+    builderSession.acceptedLessonContent = Object.fromEntries(effective.map(p => [p.groupId,p.cards]));
     saveClipboardPlanning();
     renderWaveBlockPlacements();
   }
@@ -875,9 +904,12 @@ async function initClipboardHybridPlanning() {
     builderSession.clipboardWavePlacements ||= {};
     const sharedWave = suggestedWaveForRoom(models, groups);
     groups.forEach((group,index) => {
+      const accepted = acceptedByGroup.get(String(group.id || ""));
       const waves = models[index] || {};
       const available = Object.keys(waves).filter(key => Array.isArray(waves[key]) && waves[key].length);
-      const selection = available.includes(sharedWave) ? sharedWave : (available[0] || "");
+      const selectedByBuilder = accepted?.waveKey;
+      const selection = !coachChangedWaves && selectedByBuilder && available.includes(selectedByBuilder)
+        ? selectedByBuilder : (available.includes(sharedWave) ? sharedWave : (available[0] || ""));
       const priorSelection = builderSession.clipboardWaveSelections[group.id];
       if (priorSelection !== selection) {
         builderSession.clipboardWaveSelections[group.id] = selection;
@@ -990,7 +1022,7 @@ async function initClipboardHybridPlanning() {
     container.append(section);
     updatePrescriptions();
   }
-  waveCheck.addEventListener("change",()=>{builderSession.planningSources.tierWaves=waveCheck.checked;render();});
+  waveCheck.addEventListener("change",()=>{coachChangedWaves=true;builderSession.planningSources.tierWaves=waveCheck.checked;render();});
   coachCheck.addEventListener("change",()=>{builderSession.planningSources.coachInput=coachCheck.checked;render();});
   render();
 }
