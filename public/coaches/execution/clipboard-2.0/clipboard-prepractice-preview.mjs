@@ -23,7 +23,8 @@ export function mountPrePracticePreview(root = document) {
   const previewButton = root.getElementById("clipboardPreviewView");
   const preview = root.getElementById("clipboardPracticePreview");
   if (!editor || !previewButton || !preview) return;
-  const plan = root.getElementById("planBlocks");
+  const editorSurfaces = [...root.querySelectorAll(".broadcast-box, .quick-focus-wrap, #planBlocks, .clipboard-handoff")];
+  const savedVisibility = new Map();
   function showPreview() {
     const state = readClipboardPlan(root);
     preview.replaceChildren();
@@ -51,13 +52,21 @@ export function mountPrePracticePreview(root = document) {
     disclaimer.textContent = "Preview only. This view does not save, accept, verify or launch a practice.";
     preview.append(disclaimer);
     preview.hidden = false;
-    if (plan) plan.hidden = true;
+    editorSurfaces.forEach(surface => {
+      savedVisibility.set(surface, surface.hidden);
+      surface.hidden = true;
+      surface.inert = true;
+    });
     editor.setAttribute("aria-pressed", "false");
     previewButton.setAttribute("aria-pressed", "true");
   }
   function showEditor() {
     preview.hidden = true;
-    if (plan) plan.hidden = false;
+    editorSurfaces.forEach(surface => {
+      surface.hidden = savedVisibility.get(surface) ?? false;
+      surface.inert = false;
+    });
+    savedVisibility.clear();
     editor.setAttribute("aria-pressed", "true");
     previewButton.setAttribute("aria-pressed", "false");
   }
