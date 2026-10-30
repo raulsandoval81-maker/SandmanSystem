@@ -13,7 +13,10 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "../proposals/proposalAccess";
-import { enrollmentFeePaidCents } from "./priorPaymentAllocation";
+import {
+  enrollmentFeePaidCents,
+  resolveHistoricalEnrollmentFeeAttributions,
+} from "./priorPaymentAllocation";
 import {
   resolveFullYearPrepayment,
   validateFullYearCoverage,
@@ -67,6 +70,12 @@ function parseLocalDate(value: unknown): Timestamp {
       "invalid-argument",
       "nextBillingDate is invalid."
     );
+  }
+
+  const [year, month, day] = raw.split("-").map(Number);
+  const calendarCheck = new Date(Date.UTC(year, month - 1, day, 12));
+  if (calendarCheck.toISOString().slice(0, 10) !== raw) {
+    throw new HttpsError("invalid-argument", "nextBillingDate is invalid.");
   }
 
   return Timestamp.fromDate(parsed);
@@ -232,6 +241,34 @@ export const recordProposalPrepaidCash =
             const pricingEnrollmentCents = Math.round(
               Number(pricing.enrollmentPreviouslyPaidAmount || 0) * 100
             );
+            const attributionSources = [...priorPayments];
+            if (pricingEnrollmentCents > priorPaymentEnrollmentCents) {
+              attributionSources.push({
+                paymentId: "pricing/enrollmentPreviouslyPaidAmount",
+                enrollmentFeeAmountCents:
+                  pricingEnrollmentCents - priorPaymentEnrollmentCents,
+              });
+            }
+            const eligibleAthleteIndexes = (Array.isArray(proposal.athletes)
+              ? proposal.athletes
+              : [])
+              .map((athlete: any, index: number) => ({ athlete, athleteIndex: index + 1 }))
+              .filter(({ athlete }: any) => cleanString(athlete?.plan || "standard") !== "fitness")
+              .map(({ athleteIndex }: any) => athleteIndex);
+            let historicalAttributions;
+            try {
+              historicalAttributions = resolveHistoricalEnrollmentFeeAttributions({
+                priorPayments: attributionSources,
+                enrollmentFeeCents: enrollmentFeeTotalCents,
+                eligibleAthleteIndexes,
+                requestedAttributions: req.data?.historicalEnrollmentFeeAttributions,
+              });
+            } catch (error) {
+              throw new HttpsError(
+                "invalid-argument",
+                error instanceof Error ? error.message : "Invalid historical enrollment-fee attribution."
+              );
+            }
             let allocation;
             try {
               allocation = resolveFullYearPrepayment({
@@ -243,6 +280,11 @@ export const recordProposalPrepaidCash =
                   priorPaymentEnrollmentCents,
                   pricingEnrollmentCents
                 ),
+                enrollmentFeePreviouslyPaidAllocations:
+                  historicalAttributions.map((entry) => ({
+                    athleteIndex: entry.athleteIndex,
+                    amountCents: entry.amountCents,
+                  })),
                 athletes: Array.isArray(proposal.athletes) ? proposal.athletes : [],
                 enrollmentFeeIncludedAthleteIndexes:
                   req.data?.enrollmentFeeIncludedAthleteIndexes,
@@ -263,6 +305,16 @@ export const recordProposalPrepaidCash =
               proposalRef
                 .collection("history")
                 .doc();
+            const attributedAt = Timestamp.now();
+            const attributionRecords = historicalAttributions.map((entry) => ({
+              ...entry,
+              attributedBy: req.auth!.uid,
+              attributedByName: staffAccess.fullName,
+              attributedAt,
+            }));
+            const attributionHistoryRef = attributionRecords.length
+              ? proposalRef.collection("history").doc()
+              : null;
 
             tx.update(
               proposalRef,
@@ -302,6 +354,8 @@ export const recordProposalPrepaidCash =
                   receivedAt:
                     FieldValue.serverTimestamp(),
                 },
+
+                enrollmentFeeAttributions: attributionRecords,
 
                 nextBillingDate,
                 membershipPaidThroughDate,
@@ -350,6 +404,17 @@ export const recordProposalPrepaidCash =
                   FieldValue.serverTimestamp(),
               }
             );
+
+            if (attributionHistoryRef) {
+              tx.create(attributionHistoryRef, {
+                proposalId,
+                event: "ENROLLMENT_FEE_ATTRIBUTIONS_RECORDED",
+                attributions: attributionRecords,
+                createdBy: req.auth!.uid,
+                createdByName: staffAccess.fullName,
+                createdAt: FieldValue.serverTimestamp(),
+              });
+            }
 
             return {
               proposalId,

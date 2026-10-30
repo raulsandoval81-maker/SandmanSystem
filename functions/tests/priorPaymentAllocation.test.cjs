@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const {
   allocatePriorPayment,
   enrollmentFeePaidCents,
+  resolveHistoricalEnrollmentFeeAttributions,
 } = require("../lib/billing/priorPaymentAllocation.js");
 
 test("allocates October cash as $80 membership and $20 enrollment", () => {
@@ -21,6 +22,47 @@ test("allocates October cash as $80 membership and $20 enrollment", () => {
       enrollmentFeeIncluded: false,
     }
   );
+});
+
+test("requires explicit per-athlete attribution for ambiguous historical fees", () => {
+  const priorPayments = [{
+    paymentId: "payment-october",
+    enrollmentFeeAmountCents: 2000,
+  }];
+  assert.throws(() => resolveHistoricalEnrollmentFeeAttributions({
+    priorPayments,
+    enrollmentFeeCents: 6000,
+    eligibleAthleteIndexes: [1, 2],
+    requestedAttributions: [],
+  }), /must attribute historical enrollment-fee payments/);
+
+  assert.deepEqual(resolveHistoricalEnrollmentFeeAttributions({
+    priorPayments,
+    enrollmentFeeCents: 6000,
+    eligibleAthleteIndexes: [1, 2],
+    requestedAttributions: [{
+      sourcePaymentReference: "payment-october",
+      athleteIndex: 2,
+      amountCents: 2000,
+    }],
+  }), [{
+    sourcePaymentReference: "payment-october",
+    athleteIndex: 2,
+    amountCents: 2000,
+  }]);
+});
+
+test("historical attribution must reconcile exactly to its source payment", () => {
+  assert.throws(() => resolveHistoricalEnrollmentFeeAttributions({
+    priorPayments: [{ enrollmentFeeAmountCents: 2000 }],
+    enrollmentFeeCents: 6000,
+    eligibleAthleteIndexes: [1, 2],
+    requestedAttributions: [{
+      sourcePaymentReference: "priorPayments/0",
+      athleteIndex: 1,
+      amountCents: 1000,
+    }],
+  }), /must equal 2000 cents/);
 });
 
 test("leaves $10 outstanding and marks enrollment complete only after it is paid", () => {
