@@ -118,19 +118,15 @@ export function permissionChecks(release) {
         principal: deployer, permissions: target.permissions,
         resource: `//iam.googleapis.com/projects/${release.projectId}/serviceAccounts/${target.account}`,
         url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
-      ...bootstrapPlan.build.map(permission => ({ method: "TROUBLESHOOT", category: "build-account",
-        principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
-        resource: permission === "storage.objects.get"
-          ? release.buildPermissionResources[permission].replace(
-              /^(\/\/storage\.googleapis\.com\/projects\/_\/buckets\/[^\/]+\/objects\/)(.+)$/,
-              (_, prefix, objectName) => `${prefix}${encodeURIComponent(objectName)}`
-            )
-          : release.buildPermissionResources[permission],
-        ...(permission === "storage.objects.get" ? { conditionContext: {
-          resource: { service: "storage.googleapis.com",
-            name: release.buildPermissionResources[permission].replace(/^\/\/storage\.googleapis\.com\//, ""),
-            type: "storage.googleapis.com/Object" } } } : {}),
-        url: TROUBLESHOOT_URL })),
+      ...bootstrapPlan.build.map(permission => permission === "storage.objects.get"
+        ? { method: "STORAGE_POLICY", category: "build-account",
+            principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
+            resource: release.buildPermissionResources[permission],
+            url: `https://cloudresourcemanager.googleapis.com/v1/projects/${release.projectId}:getIamPolicy`,
+            denyUrl: `https://iam.googleapis.com/v2/policies/cloudresourcemanager.googleapis.com%2Fprojects%2F${release.projectId}/denypolicies` }
+        : { method: "TROUBLESHOOT", category: "build-account",
+            principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
+            resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL })),
     ];
   }
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];
@@ -164,6 +160,39 @@ async function responseBody(response) {
   try { return JSON.parse(text); } catch { return { __malformedResponse: true }; }
 }
 
+// The Storage IAM condition applies to objects, but Policy Troubleshooter v3 only documents
+// Cloud Storage bucket full-resource names. Verify the exact object-prefix policy instead.
+// This is a pre-deployment policy-configuration check, NOT a live object access probe.
+// Real effective access is still exercised by Cloud Build during a protected deployment.
+export function evaluateStoragePolicyResponses({ allowStatus, allowBody, denyStatus, denyBody }, check) {
+  if (allowStatus !== 200) return apiFailure(allowStatus, allowBody, check);
+  if (!allowBody || typeof allowBody !== "object" || Array.isArray(allowBody) ||
+      !Array.isArray(allowBody.bindings) || allowBody.version !== 3) {
+    return { ...check, result: "INCONCLUSIVE", detail: "Storage allow policy missing version-3 conditional bindings." };
+  }
+  const parts = check.resource.match(/^\/\/storage\.googleapis\.com\/(projects\/_\/buckets\/[^/]+\/objects\/)(.+)$/);
+  if (!parts || !parts[2] || !/^storage\.objects\.get$/.test(check.permission)) {
+    return { ...check, result: "INCONCLUSIVE", detail: "Invalid pinned Storage object-path or permission." };
+  }
+  const requiredCondition = `resource.name.startsWith("${parts[1]}")`;
+  const member = `serviceAccount:${check.principal}`;
+  const bindings = allowBody.bindings.filter(binding =>
+    binding?.role === "roles/storage.objectViewer" && Array.isArray(binding.members) &&
+    binding.members.includes(member));
+  if (bindings.length !== 1 || bindings[0].condition?.expression !== requiredCondition) {
+    return { ...check, result: "MISSING", detail: "Exact conditional Storage Object Viewer grant not present." };
+  }
+  if (denyStatus !== 200) return apiFailure(denyStatus, denyBody, check);
+  if (!denyBody || typeof denyBody !== "object" || Array.isArray(denyBody) ||
+      (denyBody.policies !== undefined && (!Array.isArray(denyBody.policies) || denyBody.policies.length !== 0)) ||
+      (denyBody.nextPageToken !== undefined && denyBody.nextPageToken !== "")) {
+    return { ...check, result: "INCONCLUSIVE",
+      detail: "Unable to establish an empty staging project deny-policy list." };
+  }
+  return { ...check, result: "GRANTED", status: 200,
+    verificationBasis: "exact conditional allow binding and empty project deny-policy list; not an object access probe" };
+}
+
 export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = fetch } = {}) {
   if (!accessToken) throw new Error("A short-lived Google access token is required.");
   const results = [];
@@ -171,6 +200,20 @@ export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = 
     try {
       const troubleshoot = check.method === "TROUBLESHOOT";
       const testIam = check.method === "TEST_IAM";
+      if (check.method === "STORAGE_POLICY") {
+        const headers = { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" };
+        const allow = await fetchImpl(check.url, { method: "POST", headers,
+          body: JSON.stringify({ options: { requestedPolicyVersion: 3 } }) });
+        const allowBody = await responseBody(allow);
+        // Do not silently skip deny inspection when allow inspection fails.
+        const deny = await fetchImpl(check.denyUrl, { method: "GET",
+          headers: { Authorization: `Bearer ${accessToken}` } });
+        const denyBody = await responseBody(deny);
+        results.push(evaluateStoragePolicyResponses({
+          allowStatus: allow.status, allowBody, denyStatus: deny.status, denyBody,
+        }, check));
+        continue;
+      }
       const response = await fetchImpl(check.url, {
         method: troubleshoot || testIam ? "POST" : "GET",
         headers: { Authorization: `Bearer ${accessToken}`, ...(troubleshoot || testIam ? { "Content-Type": "application/json" } : {}) },
