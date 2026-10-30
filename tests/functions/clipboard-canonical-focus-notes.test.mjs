@@ -23,6 +23,9 @@ test("clean-client note hydration uses canonical practice and does not overwrite
   assert.match(client, /String\(practice\.status \|\| ""\)\.toLowerCase\(\) !== "active"/);
   assert.match(client, /memory\.planningContext\?\.focus/);
   assert.match(client, /document\.getElementById\("notes-" \+ slot\)/);
-  assert.match(client, /if \(field && !field\.value\.trim\(\)\)/);
+  assert.match(client, /const originalValues = new Map/);
+  assert.match(client, /edited\.has\(field\)/);
+  assert.match(client, /field\.value === originalValues\.get\(field\)/);
+  assert.match(client, /removeEventListener\("input", onInput\)/);
   assert.match(client, /void restoreCanonicalPlanNotes\(\)/);
 });
