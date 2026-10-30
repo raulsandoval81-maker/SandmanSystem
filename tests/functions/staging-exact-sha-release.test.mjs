@@ -1644,3 +1644,27 @@ test("post-deployment comparison rejects callable configuration or IAM drift", (
   assert.throws(() => verifyPreservedDeployment(release, name, before, changed, policy, policy, policy, policy), /configuration mismatch|configuration changed/);
   assert.throws(() => verifyPreservedDeployment(release, name, before, before, policy, {}, policy, policy), /Functions IAM changed/);
 });
+
+test("Clipboard staging release carries forward the pinned promotions overlay without allowing arbitrary inheritance", async () => {
+  const release = await loadRelease("clipboard-notes-pr372-e445688c");
+  const context = {
+    repository: release.repository,
+    workflowRef: TRUSTED_WORKFLOW_REF,
+    checkedOutSha: release.applicationSha,
+    projectId: release.projectId,
+    confirmProject: release.projectId,
+    wifProvider: STAGING_WIF_PROVIDER,
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+    authorizationAvailable: true,
+  };
+  assert.doesNotThrow(() => validateRelease(release, context));
+  assert.equal(release.hostingBaselineSha, "b48c9c061a03ddc2dc34e5f4a7ec21006364767a");
+  assert.deepEqual(release.functions, ["savePracticeSessionMemory"]);
+  assert.equal(release.hostingFiles.length, 8);
+  assert.equal(release.inheritedHostingFiles.length, 5);
+  assert.throws(() => validateRelease({ ...release, inheritedHostingFileGitShas: {} }, context), /Unapproved inherited Hosting source/);
+  assert.throws(() => validateRelease({ ...release, inheritedHostingFiles: ["public/unreviewed.js"] }, context), /Unapproved inherited Hosting source/);
+  assert.throws(() => validateRelease({ ...release, hostingBaselineSha: "a44b602caef08c7e719cc7425436507d3f9b3c51" }, context), /Unapproved inherited Hosting source/);
+});

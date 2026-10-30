@@ -36,6 +36,13 @@ if (release.hostingBaselineSha) {
       const destination = path.join(hostingRoot, relative);
       await mkdir(path.dirname(destination), { recursive: true });
       await cp(path.join(sourceRoot, file), destination);
+      const pinnedBlob = release.inheritedHostingFileGitShas?.[file];
+      if (pinnedBlob) {
+        const result = spawnSync("git", ["hash-object", destination], { encoding: "utf8", shell: false });
+        if (result.status !== 0 || result.stdout.trim() !== pinnedBlob) {
+          throw new Error(`Inherited Hosting file does not match pinned Git blob: ${file}`);
+        }
+      }
     }
   } finally {
     await rm(archiveRoot, { recursive: true, force: true });

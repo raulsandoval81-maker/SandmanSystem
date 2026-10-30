@@ -86,7 +86,26 @@ export function validateRelease(release, context = {}) {
       && inherited[1] === "public/connect/try-a-class/try-a-class.js"
       && release.requiredAncestorSha === "bc732da79132d32aee977fcb3e7afd771a51ef74"
       && release.sourcePr === 325;
-    if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance) {
+    // One-time carry-forward of the exact previously deployed promotions overlay.
+    // Each inherited source is pinned to the git blob SHA from the prior approved release.
+    const previousPromotion = "promotions-final-pr325-c4df1254";
+    const carryForwardFiles = [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js",
+    ];
+    const approvedClipboardCarryForward = release.releaseId === "clipboard-notes-pr372-e445688c"
+      && release.sourcePr === 372
+      && release.applicationSha === "e445688c4884f7434f21b341d43acebd93c465cd"
+      && release.hostingBaselineSha === "b48c9c061a03ddc2dc34e5f4a7ec21006364767a"
+      && release.inheritedHostingReleaseId === previousPromotion
+      && inherited.length === carryForwardFiles.length
+      && inherited.every((file, index) => file === carryForwardFiles[index])
+      && Object.keys(release.inheritedHostingFileGitShas || {}).length === carryForwardFiles.length
+      && carryForwardFiles.every(file => /^[0-9a-f]{40}$/.test(release.inheritedHostingFileGitShas?.[file] || ""));
+    if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance && !approvedClipboardCarryForward) {
       throw new Error("Unapproved inherited Hosting source.");
     }
     if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file) && !inherited.includes(file))) {

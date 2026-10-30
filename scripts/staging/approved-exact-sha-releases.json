@@ -3094,7 +3094,9 @@
       "createProposalAutopaySetup"
     ],
     "functionSecrets": {
-      "createProposalAutopaySetup": ["STRIPE_SECRET_KEY"]
+      "createProposalAutopaySetup": [
+        "STRIPE_SECRET_KEY"
+      ]
     },
     "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
     "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
@@ -3152,5 +3154,76 @@
       "functionsUnchanged": false
     },
     "expectedInvokerIamDisabled": true
+  },
+  "clipboard-notes-pr372-e445688c": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 372,
+    "applicationSha": "e445688c4884f7434f21b341d43acebd93c465cd",
+    "requiredAncestorSha": "066ee4aab638dcc6c19af499b21393684daa2f6a",
+    "allowedChangedFiles": [
+      "functions/src/practice/practiceSessions.ts",
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs",
+      "public/coaches/execution/clipboard-2.0/index.html",
+      "tests/functions/clipboard-canonical-focus-notes.test.mjs",
+      "tests/functions/clipboard-prepractice-preview.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "b48c9c061a03ddc2dc34e5f4a7ec21006364767a",
+    "hostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
+      "public/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs",
+      "public/coaches/execution/clipboard-2.0/index.html"
+    ],
+    "functions": [
+      "savePracticeSessionMemory"
+    ],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "captureFunctionStateBeforeDeploy": true,
+      "preserveFunctionConfigurationAndIam": true
+    },
+    "inheritedHostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js"
+    ],
+    "inheritedHostingFileGitShas": {
+      "public/connect/admissions-requests/admissions-requests.js": "1ee76578e0e0c8140a79ad1a7f5995c6e4ab7f25",
+      "public/connect/admissions-requests/index.html": "b46f61e53c498fe7080a946dff851989c961bdcb",
+      "public/connect/try-a-class/try-a-class.js": "5897adca534b1957b0226ada753c815bb5e76f85",
+      "public/promotions/winter-wrestling/index.html": "a09c55593dbfadafe26177194969a00445a6b505",
+      "public/promotions/winter-wrestling/winter-wrestling.js": "cf96d7a28416083f36bb55f2508cca203b4ee8a7"
+    },
+    "inheritedHostingReleaseId": "promotions-final-pr325-c4df1254"
   }
 }
