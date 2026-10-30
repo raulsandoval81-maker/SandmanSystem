@@ -25,6 +25,7 @@ const APPROVED_FUNCTION_SETS = Object.freeze([
 export const APPROVED_FUNCTIONS = Object.freeze([...new Set(APPROVED_FUNCTION_SETS.flat())]);
 
 const exactSha = /^[0-9a-f]{40}$/;
+const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
 
 export async function loadRelease(releaseId, manifestPath = new URL("./approved-exact-sha-releases.json", import.meta.url)) {
   const releases = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -105,7 +106,27 @@ export function validateRelease(release, context = {}) {
       && inherited.every((file, index) => file === carryForwardFiles[index])
       && Object.keys(release.inheritedHostingFileGitShas || {}).length === carryForwardFiles.length
       && carryForwardFiles.every(file => /^[0-9a-f]{40}$/.test(release.inheritedHostingFileGitShas?.[file] || ""));
-    if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance && !approvedClipboardCarryForward) {
+    const priorBilling = "billing-pr354-014198ea";
+    const billingCarryForwardFiles = [
+      "public/connect/admissions/calculator/calculator.js",
+      "public/intake-management/management.intake.js",
+      "public/management/billing/paid-in-full-state.js",
+      "public/management/enrollment-flow/enrollment-flow.js",
+      "public/management/pricing/index.html",
+      "public/management/pricing/pricing-estimate-model.js",
+      "public/management/pricing/pricing.js",
+    ];
+    const approvedBillingCarryForward = release.releaseId === "billing-pr376-dff3e6d3"
+      && release.sourcePr === 376
+      && release.applicationSha === "dff3e6d31c551b39fb3df3be5631c1331651efd6"
+      && release.requiredAncestorSha === "0476e6b677e331edcd4848e335042d63ca617f2d"
+      && release.inheritedHostingReleaseId === priorBilling
+      && inherited.length === billingCarryForwardFiles.length
+      && inherited.every((file, index) => file === billingCarryForwardFiles[index])
+      && Object.keys(release.inheritedHostingFileGitShas || {}).length === billingCarryForwardFiles.length
+      && billingCarryForwardFiles.every(file => /^[0-9a-f]{40}$/.test(release.inheritedHostingFileGitShas?.[file] || ""));
+    if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance &&
+        !approvedClipboardCarryForward && !approvedBillingCarryForward) {
       throw new Error("Unapproved inherited Hosting source.");
     }
     if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file) && !inherited.includes(file))) {
@@ -124,7 +145,7 @@ export function validateRelease(release, context = {}) {
     throw new Error("Unexpected function target in approved release.");
   }
   const newFunctions = [...(release.newFunctions || [])];
-  const approvedNewFunctions = release.releaseId === "billing-pr354-014198ea"
+  const approvedNewFunctions = BILLING_RELEASE_IDS.has(release.releaseId)
     ? functions
     : ["searchPracticeAttendanceAthletes"];
   if (newFunctions.some(name => !approvedNewFunctions.includes(name) || !functions.includes(name))) {
@@ -137,7 +158,7 @@ export function validateRelease(release, context = {}) {
         keys.some(key => key !== "STRIPE_SECRET_KEY"))) {
     throw new Error("Unexpected staging function secret configuration.");
   }
-  if (release.releaseId === "billing-pr354-014198ea" &&
+  if (BILLING_RELEASE_IDS.has(release.releaseId) &&
       JSON.stringify(functionSecrets) !== JSON.stringify({ createProposalAutopaySetup: ["STRIPE_SECRET_KEY"] })) {
     throw new Error("Billing staging release requires the exact Stripe test secret binding.");
   }
@@ -151,7 +172,7 @@ export function validateRelease(release, context = {}) {
     }
     const partialFunctions = Object.keys(release.partialBootstrap || {});
     if (partialFunctions.some(name => !newFunctions.includes(name)) ||
-        (release.releaseId === "billing-pr354-014198ea" &&
+        (BILLING_RELEASE_IDS.has(release.releaseId) &&
           JSON.stringify(partialFunctions) !== JSON.stringify(["recordProposalPrepaidCash"]))) {
       throw new Error("Unexpected partial callable bootstrap state.");
     }
