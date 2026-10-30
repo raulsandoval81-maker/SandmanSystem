@@ -195,7 +195,7 @@ function compactPlanningContext(value: unknown) {
     currentCoachNote: compactString(group?.currentCoachNote, 1000),
     coachAdjustment: compactString(group?.coachAdjustment, 2000),
   })).filter((group: any) => group.groupId);
-  return { planningSources, groups, evidenceEffect: "none" };
+  return { planningSources, groups, focus: compactString(input.focus, 2000), evidenceEffect: "none" };
 }
 
 function normalizePracticeDiscipline(value: unknown): string {
@@ -306,6 +306,7 @@ function compactBlocks(value: unknown) {
       blockId,
       title: compactString(item?.title || item?.label || item?.slot, 160),
       minutes: requireBoundedNumber(item?.minutes ?? 0, "block minutes", 0, 240),
+      notes: compactString(item?.notes, 2000),
       cardIds: compactCards(item?.cards, blockId).map((card) => card.cardId),
       drillBlocks,
     };

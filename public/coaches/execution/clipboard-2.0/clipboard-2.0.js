@@ -1251,6 +1251,47 @@ function restoreDraft(draft) {
   return true;
 }
 
+// Restore only missing local drafts from the server-owned plan. Do not replace
+// unsaved Coach edits, and never import memory belonging to another practice.
+async function restoreCanonicalPlanNotes() {
+  const practiceId = String(builderSession.practiceId || "").trim();
+  if (!practiceId || isRecoverableDraft(storedDraft)) return;
+  // Snapshot current fields before the async request. A Coach may begin typing
+  // while it is in flight; never replace that work with an older server value.
+  const fields = [document.getElementById("slot-note"),
+    ...document.querySelectorAll("#planBlocks .slot-notes-input")].filter(Boolean);
+  const originalValues = new Map(fields.map(field => [field, field.value]));
+  const edited = new Set();
+  const onInput = event => edited.add(event.currentTarget);
+  fields.forEach(field => field.addEventListener("input", onInput));
+  try {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const practice = result.data?.practice || {};
+    if (String(builderSession.practiceId || "").trim() !== practiceId ||
+        (practice.practiceId && String(practice.practiceId) !== practiceId) ||
+        String(practice.status || "").toLowerCase() !== "active") return;
+    const memory = practice.sessionMemory || {};
+    if (!Number.isInteger(Number(memory.planVersion)) || Number(memory.planVersion) < 1) return;
+    const restoreIfUntouched = (field, value) => {
+      if (field && originalValues.has(field) && !edited.has(field) &&
+          field.value === originalValues.get(field) && !field.value.trim()) {
+        field.value = String(value || "");
+      }
+    };
+    restoreIfUntouched(document.getElementById("slot-note"), memory.planningContext?.focus);
+    const savedBlocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
+    savedBlocks.forEach(saved => {
+      const slot = String(saved.blockId || "");
+      restoreIfUntouched(document.getElementById("notes-" + slot), saved.notes);
+    });
+  } catch (error) {
+    console.warn("[clipboard] Canonical note recovery unavailable", error);
+  } finally {
+    fields.forEach(field => field.removeEventListener("input", onInput));
+  }
+}
+
 function flowCueButtons() {
   return FLOW_CUE_PRESETS.map(cue =>
     `<button type="button" class="flow-cue-chip" data-flow-cue="${escapeHtml(cue)}">${escapeHtml(cue)}</button>`
@@ -2137,6 +2178,7 @@ window.runPractice = async function () {
       practiceId,
       planVersion,
       planningContext: {
+        focus: document.getElementById("slot-note")?.value.trim() || "",
         planningSources: session.planningSources,
         groups: Object.entries(session.groupPlanning || {}).map(([groupId, planning]) => ({
           groupId,
@@ -2154,6 +2196,7 @@ window.runPractice = async function () {
         blockId: block.slot,
         title: block.title,
         minutes: block.minutes,
+        notes: block.notes,
         cards: block.cards,
         drillBlocks: block.drillBlocks || []
       })),
@@ -2949,6 +2992,7 @@ function updateSupportLinks() {
   });
   installDrillBlockEditors();
   restoreDraft(storedDraft);
+  void restoreCanonicalPlanNotes();
 
   // A practice-wide card set must not override different tier-specific group prescriptions.
   // Group teaching cards are rendered separately above. This legacy injection remains
