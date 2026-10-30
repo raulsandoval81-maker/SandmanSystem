@@ -126,7 +126,7 @@ export function permissionChecks(release) {
             denyUrl: `https://iam.googleapis.com/v2/policies/cloudresourcemanager.googleapis.com%2Fprojects%2F${release.projectId}/denypolicies` }
         : { method: "TROUBLESHOOT", category: "build-account",
             principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
-            resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL })),
+            resource: release.buildPermissionResources[permission], url: TROUBLESHOOT_URL }),
     ];
   }
   if (release.functionDeploymentTool !== "gcloud-gen2") return [];
