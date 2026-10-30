@@ -70,6 +70,7 @@ on:
           - coach-companion-controls-pr343-9dac6d4
           - clipboard-controls-pr346-cba1dbd
           - clipboard-layout-pr348-f9e53ad
+          - clipboard-notes-pr372-e445688c
           - during-practice-pr351-352-a44b602
           - billing-pr354-014198ea
           - attendance-admin-init-pr308-0b06a778
