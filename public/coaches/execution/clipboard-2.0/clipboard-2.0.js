@@ -1256,24 +1256,39 @@ function restoreDraft(draft) {
 async function restoreCanonicalPlanNotes() {
   const practiceId = String(builderSession.practiceId || "").trim();
   if (!practiceId || isRecoverableDraft(storedDraft)) return;
+  // Snapshot current fields before the async request. A Coach may begin typing
+  // while it is in flight; never replace that work with an older server value.
+  const fields = [document.getElementById("slot-note"),
+    ...document.querySelectorAll("#planBlocks .slot-notes-input")].filter(Boolean);
+  const originalValues = new Map(fields.map(field => [field, field.value]));
+  const edited = new Set();
+  const onInput = event => edited.add(event.currentTarget);
+  fields.forEach(field => field.addEventListener("input", onInput));
   try {
     const getPractice = httpsCallable(functions, "getPracticeSession");
     const result = await getPractice({ practiceId });
     const practice = result.data?.practice || {};
-    if (String(practice.practiceId || practiceId) !== practiceId ||
+    if (String(builderSession.practiceId || "").trim() !== practiceId ||
+        (practice.practiceId && String(practice.practiceId) !== practiceId) ||
         String(practice.status || "").toLowerCase() !== "active") return;
     const memory = practice.sessionMemory || {};
     if (!Number.isInteger(Number(memory.planVersion)) || Number(memory.planVersion) < 1) return;
-    const focus = document.getElementById("slot-note");
-    if (focus && !focus.value.trim()) focus.value = String(memory.planningContext?.focus || "");
+    const restoreIfUntouched = (field, value) => {
+      if (field && originalValues.has(field) && !edited.has(field) &&
+          field.value === originalValues.get(field) && !field.value.trim()) {
+        field.value = String(value || "");
+      }
+    };
+    restoreIfUntouched(document.getElementById("slot-note"), memory.planningContext?.focus);
     const savedBlocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
     savedBlocks.forEach(saved => {
       const slot = String(saved.blockId || "");
-      const field = document.getElementById("notes-" + slot);
-      if (field && !field.value.trim()) field.value = String(saved.notes || "");
+      restoreIfUntouched(document.getElementById("notes-" + slot), saved.notes);
     });
   } catch (error) {
     console.warn("[clipboard] Canonical note recovery unavailable", error);
+  } finally {
+    fields.forEach(field => field.removeEventListener("input", onInput));
   }
 }
 
