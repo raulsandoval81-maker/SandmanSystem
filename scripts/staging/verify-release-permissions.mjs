@@ -120,7 +120,12 @@ export function permissionChecks(release) {
         url: `https://iam.googleapis.com/v1/projects/${release.projectId}/serviceAccounts/${target.account}:testIamPermissions` })),
       ...bootstrapPlan.build.map(permission => ({ method: "TROUBLESHOOT", category: "build-account",
         principal: policyTroubleshooterPrincipal(release.functionBuild), permission,
-        resource: release.buildPermissionResources[permission],
+        resource: permission === "storage.objects.get"
+          ? release.buildPermissionResources[permission].replace(
+              /^(\\/\\/storage\\.googleapis\\.com\\/projects\\/_\\/buckets\\/[^/]+\\/objects\\/)(.+)$/,
+              (_, prefix, objectName) => `${prefix}${encodeURIComponent(objectName)}`
+            )
+          : release.buildPermissionResources[permission],
         ...(permission === "storage.objects.get" ? { conditionContext: {
           resource: { service: "storage.googleapis.com",
             name: release.buildPermissionResources[permission].replace(/^\/\/storage\.googleapis\.com\//, ""),
