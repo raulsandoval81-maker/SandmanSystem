@@ -214,8 +214,8 @@ test("PR376 corrected Billing release is immutable and preserves the reviewed re
     createProposalAutopaySetup: ["STRIPE_SECRET_KEY"],
   });
   assert.notDeepEqual(result.partialBootstrap, pr354BillingRelease.partialBootstrap);
-  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.failedRun, 183);
-  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.revision, "recordproposalprepaidcash-00002-tel");
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.failedRun, 186);
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.revision, "recordproposalprepaidcash-00003-tuw");
   assert.equal(result.partialBootstrap.recordProposalPrepaidCash.runtimeServiceAccount,
     pr354BillingRelease.partialBootstrap.recordProposalPrepaidCash.runtimeServiceAccount);
   assert.equal(result.partialBootstrap.recordProposalPrepaidCash.firebaseFunctionsHash,
@@ -231,6 +231,9 @@ test("PR376 corrected Billing release is immutable and preserves the reviewed re
   const checks = permissionChecks(result);
   assert.ok(checks.some(check => check.permissions.includes("cloudfunctions.functions.create")));
   assert.ok(checks.some(check => check.permissions?.includes("run.services.update") &&
+    check.resource.endsWith("/services/recordproposalprepaidcash")));
+  assert.ok(checks.some(check => check.category === "billing-invoker-bootstrap" &&
+    check.permissions?.includes("run.services.setIamPolicy") &&
     check.resource.endsWith("/services/recordproposalprepaidcash")));
   assert.equal(checks.filter(check => check.category === "build-account").length, 4);
 
@@ -271,13 +274,13 @@ test("PR354 Billing recovery uses the reviewed no-invoker-IAM bootstrap without 
   assert.ok(!permissions.deployer.includes("run.services.setIamPolicy"));
 });
 
-test("PR376 Billing recovery pins run 183's changed partial service and fails closed on drift", () => {
+test("PR376 Billing recovery pins run 186's changed partial service and fails closed on drift", () => {
   const partial = pr376BillingRelease.partialBootstrap.recordProposalPrepaidCash;
-  assert.equal(partial.failedRun, 183);
+  assert.equal(partial.failedRun, 186);
   assert.equal(partial.state, "ACTIVE");
-  assert.equal(partial.updateTime, "2026-10-30T21:50:47.601870073Z");
-  assert.equal(partial.revision, "recordproposalprepaidcash-00002-tel");
-  assert.equal(partial.sourceGeneration, "1793397009130170");
+  assert.equal(partial.updateTime, "2026-10-30T22:15:09.910193854Z");
+  assert.equal(partial.revision, "recordproposalprepaidcash-00003-tuw");
+  assert.equal(partial.sourceGeneration, "1793398443214656");
   assert.equal(partial.firebaseFunctionsHash, "6ef605c5798974131134cb96cd4fc85c66ccec76");
   const description = {
     state: partial.state,
@@ -1543,6 +1546,17 @@ test("unknown and conditional Policy Troubleshooter states expose only sanitized
   assert.doesNotMatch(JSON.stringify(unknown.diagnosticEvidence), /secret-token|access_token=secret/);
   assert.match(unknown.detail, /overallAccessState/);
   assert.equal(summarizePermissionResults([unknown]).authorized, false);
+});
+
+test("Billing invoker preflight rejects missing Cloud Run IAM policy permission", async () => {
+  const check = permissionChecks(pr376BillingRelease).find(v => v.category === "billing-invoker-bootstrap");
+  assert.ok(check);
+  assert.ok(check.permissions.includes("run.services.setIamPolicy"));
+  const deny = await verifyPermissionChecks([check], { accessToken: "synthetic",
+    fetchImpl: async () => ({ status: 200, text: async () =>
+      JSON.stringify({ permissions: ["run.services.get", "run.services.update"] }) }) });
+  assert.equal(summarizePermissionResults(deny).authorized, false);
+  assert.ok(deny.some(v => v.permission === "run.services.setIamPolicy" && v.result === "MISSING"));
 });
 
 test("Billing deployer repository image-pull permission fails closed before Cloud Run update", async () => {
