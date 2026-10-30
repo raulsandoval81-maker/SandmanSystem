@@ -278,6 +278,14 @@
 
   </div>
 
+  <style>
+    .clipboard-preview-shell { margin: 1rem 0; padding: 1rem; border: 1px solid currentColor; border-radius: .75rem; }
+    .clipboard-preview-switch { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .clipboard-preview-switch button { padding: .65rem 1rem; border-radius: .5rem; cursor: pointer; }
+    .clipboard-practice-preview { margin-top: 1rem; }
+    .clipboard-practice-preview li { padding: .4rem 0; }
+    #planBlocks[hidden], #clipboardPracticePreview[hidden] { display: none !important; }
+  </style>
   <section class="clipboard-preview-shell" aria-label="Pre-practice view">
     <div class="clipboard-preview-switch">
       <button id="clipboardEditorView" type="button" aria-pressed="true">Full Editor</button>
