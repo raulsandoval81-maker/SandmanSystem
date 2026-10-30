@@ -103,6 +103,7 @@ const pr193WavesRelease = await loadRelease("clipboard-waves-pr193-c750a4cb");
 const pr253CrossAcademyRelease = await loadRelease("cross-academy-pr253-e9980457");
 const pr280GuestSelfCheckInRelease = await loadRelease("guest-self-checkin-pr280-ef643228");
 const pr354BillingRelease = await loadRelease("billing-pr354-014198ea");
+const pr376BillingRelease = await loadRelease("billing-pr376-dff3e6d3");
 const context = (overrides = {}) => ({
   repository: release.repository,
   workflowRef: TRUSTED_WORKFLOW_REF,
@@ -183,6 +184,62 @@ test("PR354 Billing release pins the merged source, exact overlay, callables, an
   assert.ok(permissionPreflight.some(check => check.permissions?.includes("run.services.update") &&
     check.resource.endsWith("/services/recordproposalprepaidcash")));
   assert.equal(permissionPreflight.filter(check => check.category === "build-account").length, 4);
+});
+
+test("PR376 corrected Billing release is immutable and preserves the reviewed recovery boundary", async () => {
+  const result = validateRelease(pr376BillingRelease, context({
+    checkedOutSha: pr376BillingRelease.applicationSha,
+    hostingDeployer: pr376BillingRelease.hostingDeployer,
+    functionDeployer: pr376BillingRelease.functionDeployer,
+    functionRuntime: pr376BillingRelease.functionRuntime,
+  }));
+  assert.equal(result.applicationSha, "dff3e6d31c551b39fb3df3be5631c1331651efd6");
+  assert.equal(result.requiredAncestorSha, "0476e6b677e331edcd4848e335042d63ca617f2d");
+  assert.equal(result.sourcePr, 376);
+  assert.equal(result.allowedChangedFiles.length, 10);
+  assert.deepEqual(result.hostingFiles, pr354BillingRelease.hostingFiles);
+  assert.equal(result.inheritedHostingReleaseId, "billing-pr354-014198ea");
+  assert.equal(result.inheritedHostingFiles.length, 7);
+  assert.equal(Object.keys(result.inheritedHostingFileGitShas).length, 7);
+  assert.deepEqual(result.functions, pr354BillingRelease.functions);
+  assert.deepEqual(result.newFunctions, result.functions);
+  assert.deepEqual(result.functionSecrets, {
+    createProposalAutopaySetup: ["STRIPE_SECRET_KEY"],
+  });
+  assert.deepEqual(result.partialBootstrap, pr354BillingRelease.partialBootstrap);
+  assert.deepEqual(result.buildPermissionResources, pr354BillingRelease.buildPermissionResources);
+  assert.deepEqual(result.expectedFunctionConfiguration, pr354BillingRelease.expectedFunctionConfiguration);
+  assert.equal(result.expectedInvokerIamDisabled, true);
+
+  const runtimeByFunction = Object.fromEntries(result.functions.map(name => [name, "__absent__"]));
+  runtimeByFunction.recordProposalPrepaidCash = result.partialBootstrap.recordProposalPrepaidCash.runtimeServiceAccount;
+  assert.equal(validateRemotePreflight(result, { marker, runtimeByFunction }), true);
+
+  const checks = permissionChecks(result);
+  assert.ok(checks.some(check => check.permissions.includes("cloudfunctions.functions.create")));
+  assert.ok(checks.some(check => check.permissions?.includes("run.services.update") &&
+    check.resource.endsWith("/services/recordproposalprepaidcash")));
+  assert.equal(checks.filter(check => check.category === "build-account").length, 4);
+
+  const cashPlan = deploymentPlan(result, "recordProposalPrepaidCash", "/tmp/immutable-functions", "update",
+    { bootstrapVerified: true });
+  assert.ok(cashPlan.args.includes("--clear-secrets"));
+  const stripePlan = deploymentPlan(result, "createProposalAutopaySetup", "/tmp/immutable-functions", "update",
+    { bootstrapVerified: true });
+  assert.ok(stripePlan.args.includes("--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest"));
+  const permissions = permissionPlan(result, "bootstrap");
+  assert.ok(permissions.deployer.includes("run.services.update"));
+  assert.ok(!permissions.deployer.includes("run.services.setIamPolicy"));
+
+  assert.throws(() => validateRelease({ ...result, inheritedHostingFiles: ["public/unreviewed.js"] }, context({
+    checkedOutSha: result.applicationSha,
+  })), /Unapproved inherited Hosting source/);
+  assert.throws(() => validateRelease({ ...result, partialBootstrap: {} }, context({
+    checkedOutSha: result.applicationSha,
+  })), /Unexpected partial callable bootstrap state/);
+
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  assert.match(workflow, /billing-pr376-dff3e6d3/);
 });
 
 test("PR354 Billing recovery uses the reviewed no-invoker-IAM bootstrap without policy writes", () => {

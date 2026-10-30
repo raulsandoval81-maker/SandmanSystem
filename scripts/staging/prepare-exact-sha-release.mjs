@@ -13,6 +13,7 @@ const sourceRoot = path.resolve(sourceRootArg);
 const outputRoot = path.resolve(outputRootArg);
 const hostingRoot = path.join(outputRoot, "public");
 const functionsRoot = path.join(outputRoot, "functions");
+const billingReleaseIds = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
 
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
@@ -81,7 +82,7 @@ if (release.functions.length) {
   // The approved Billing entrypoint does not export a webhook handler. Prevent the
   // shared Stripe client module from registering an unrelated webhook secret during
   // Firebase's endpoint discovery. Only the compiled, staging-only artifact changes.
-  if (release.releaseId === "billing-pr354-014198ea") {
+  if (billingReleaseIds.has(release.releaseId)) {
     const clientPath = path.join(functionsRoot, "lib/billing/stripeClient.js");
     const client = await readFile(clientPath, "utf8");
     const webhookDeclaration = /^exports\.STRIPE_WEBHOOK_SECRET\s*=\s*\(0,\s*params_1\.defineSecret\)\(['"]STRIPE_WEBHOOK_SECRET['"]\);\s*$/gm;
@@ -110,7 +111,7 @@ if (release.functions.length) {
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
       'module.exports = { updatePracticeCheckIn: require("./lib/practice/practiceSessions.js").updatePracticeCheckIn };');
   }
-  if (release.releaseId === "billing-pr354-014198ea") {
+  if (billingReleaseIds.has(release.releaseId)) {
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");', `module.exports = {
       recordProposalPrepaidCash: require("./lib/billing/recordProposalPrepaidCash.js").recordProposalPrepaidCash,
       recordProposalPriorPayment: require("./lib/billing/recordProposalPriorPayment.js").recordProposalPriorPayment,

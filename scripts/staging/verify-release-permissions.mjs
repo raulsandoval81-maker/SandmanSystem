@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { loadRelease, STAGING_PROJECT_ID } from "./exact-sha-release-policy.mjs";
 import { permissionPlan } from "./gcloud-function-release.mjs";
 
+const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
+
 const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot";
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
 const CANNOT_ACCESS = new Set([2, "CANNOT_ACCESS"]);
@@ -98,7 +100,7 @@ function functionResource(release, name) {
 export function permissionChecks(release) {
   if (release.projectId !== STAGING_PROJECT_ID) throw new Error("Permission verification is staging-only.");
   const plan = permissionPlan(release);
-  if (release.releaseId === "billing-pr354-014198ea") {
+  if (BILLING_RELEASE_IDS.has(release.releaseId)) {
     const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
     const bootstrapPlan = permissionPlan(release, "bootstrap");
     const partialService = "recordproposalprepaidcash";

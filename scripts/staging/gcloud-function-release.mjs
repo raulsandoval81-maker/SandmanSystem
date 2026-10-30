@@ -30,6 +30,7 @@ const BOOTSTRAP_ONLY_PERMISSIONS = Object.freeze([
   "run.services.get",
   "run.services.update",
 ]);
+const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
 
 function assertSafeSegment(value, label) {
   if (!/^[A-Za-z0-9_.@-]+$/.test(String(value || ""))) throw new Error(`Unsafe ${label}.`);
@@ -96,7 +97,7 @@ export function permissionPlan(release, mode = "update") {
     { account: release.functionRuntime, permissions: ["iam.serviceAccounts.actAs"] },
     { account: release.functionBuild, permissions: ["iam.serviceAccounts.actAs"] },
   ];
-  const buildPermissions = release.releaseId === "billing-pr354-014198ea"
+  const buildPermissions = BILLING_RELEASE_IDS.has(release.releaseId)
     ? BUILD_ACCOUNT_PERMISSIONS.filter(permission => permission !== "storage.objects.list")
     : BUILD_ACCOUNT_PERMISSIONS;
   return {
