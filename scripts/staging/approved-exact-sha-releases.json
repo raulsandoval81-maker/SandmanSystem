@@ -3171,8 +3171,13 @@
     "projectId": "sandman-combat-staging",
     "hostingSite": "sandman-combat-staging",
     "hosting": true,
-    "hostingBaselineSha": "a44b602caef08c7e719cc7425436507d3f9b3c51",
+    "hostingBaselineSha": "b48c9c061a03ddc2dc34e5f4a7ec21006364767a",
     "hostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js",
       "public/coaches/execution/clipboard-2.0/clipboard-2.0.js",
       "public/coaches/execution/clipboard-2.0/clipboard-prepractice-preview.mjs",
       "public/coaches/execution/clipboard-2.0/index.html"
@@ -3204,6 +3209,21 @@
       "captureHostingReleaseBeforeDeploy": true,
       "captureFunctionStateBeforeDeploy": true,
       "preserveFunctionConfigurationAndIam": true
-    }
+    },
+    "inheritedHostingFiles": [
+      "public/connect/admissions-requests/admissions-requests.js",
+      "public/connect/admissions-requests/index.html",
+      "public/connect/try-a-class/try-a-class.js",
+      "public/promotions/winter-wrestling/index.html",
+      "public/promotions/winter-wrestling/winter-wrestling.js"
+    ],
+    "inheritedHostingFileGitShas": {
+      "public/connect/admissions-requests/admissions-requests.js": "1ee76578e0e0c8140a79ad1a7f5995c6e4ab7f25",
+      "public/connect/admissions-requests/index.html": "b46f61e53c498fe7080a946dff851989c961bdcb",
+      "public/connect/try-a-class/try-a-class.js": "5897adca534b1957b0226ada753c815bb5e76f85",
+      "public/promotions/winter-wrestling/index.html": "a09c55593dbfadafe26177194969a00445a6b505",
+      "public/promotions/winter-wrestling/winter-wrestling.js": "cf96d7a28416083f36bb55f2508cca203b4ee8a7"
+    },
+    "inheritedHostingReleaseId": "promotions-final-pr325-c4df1254"
   }
 }
