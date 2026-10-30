@@ -1251,6 +1251,32 @@ function restoreDraft(draft) {
   return true;
 }
 
+// Restore only missing local drafts from the server-owned plan. Do not replace
+// unsaved Coach edits, and never import memory belonging to another practice.
+async function restoreCanonicalPlanNotes() {
+  const practiceId = String(builderSession.practiceId || "").trim();
+  if (!practiceId || isRecoverableDraft(storedDraft)) return;
+  try {
+    const getPractice = httpsCallable(functions, "getPracticeSession");
+    const result = await getPractice({ practiceId });
+    const practice = result.data?.practice || {};
+    if (String(practice.practiceId || practiceId) !== practiceId ||
+        String(practice.status || "").toLowerCase() !== "active") return;
+    const memory = practice.sessionMemory || {};
+    if (!Number.isInteger(Number(memory.planVersion)) || Number(memory.planVersion) < 1) return;
+    const focus = document.getElementById("slot-note");
+    if (focus && !focus.value.trim()) focus.value = String(memory.planningContext?.focus || "");
+    const savedBlocks = Array.isArray(memory.plannedBlocks) ? memory.plannedBlocks : [];
+    savedBlocks.forEach(saved => {
+      const slot = String(saved.blockId || "");
+      const field = document.getElementById("notes-" + slot);
+      if (field && !field.value.trim()) field.value = String(saved.notes || "");
+    });
+  } catch (error) {
+    console.warn("[clipboard] Canonical note recovery unavailable", error);
+  }
+}
+
 function flowCueButtons() {
   return FLOW_CUE_PRESETS.map(cue =>
     `<button type="button" class="flow-cue-chip" data-flow-cue="${escapeHtml(cue)}">${escapeHtml(cue)}</button>`
@@ -2951,6 +2977,7 @@ function updateSupportLinks() {
   });
   installDrillBlockEditors();
   restoreDraft(storedDraft);
+  void restoreCanonicalPlanNotes();
 
   // A practice-wide card set must not override different tier-specific group prescriptions.
   // Group teaching cards are rendered separately above. This legacy injection remains
