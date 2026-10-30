@@ -81,3 +81,43 @@ test("coverage is exactly twelve months and Stripe begins afterward", () => {
     "2027-11-04"
   ), /must begin after/);
 });
+
+test("invalid calendar dates are rejected instead of normalized", () => {
+  assert.throws(() => validateFullYearCoverage(
+    "2026-02-30",
+    "2027-03-01",
+    "2027-03-02"
+  ), /date is invalid/);
+});
+
+test("multi-athlete prior fees require and preserve athlete attribution", () => {
+  assert.throws(() => resolveFullYearPrepayment({
+    amountCents: 972000,
+    membershipAmountCents: 972000,
+    expectedMonthlyMembershipCents: 81000,
+    enrollmentFeeTotalCents: 6000,
+    enrollmentFeePreviouslyPaidCents: 2000,
+    athletes,
+    enrollmentFeeIncludedAthleteIndexes: [],
+  }), /must be attributed/);
+
+  const result = resolveFullYearPrepayment({
+    amountCents: 976000,
+    membershipAmountCents: 972000,
+    expectedMonthlyMembershipCents: 81000,
+    enrollmentFeeTotalCents: 6000,
+    enrollmentFeePreviouslyPaidCents: 2000,
+    enrollmentFeePreviouslyPaidAllocations: [{ athleteIndex: 1, amountCents: 2000 }],
+    athletes,
+    enrollmentFeeIncludedAthleteIndexes: [1, 2],
+    enrollmentFeeAllocations: [
+      { athleteIndex: 1, amountCents: 1000 },
+      { athleteIndex: 2, amountCents: 3000 },
+    ],
+  });
+  assert.deepEqual(
+    result.annualEnrollmentFee.previouslyPaidSelections.map((entry) => entry.amountCents),
+    [2000, 0]
+  );
+  assert.equal(result.annualEnrollmentFee.outstandingCents, 0);
+});

@@ -106,7 +106,7 @@ test("callable authorization rejects anonymous, Coach, and wrong-location identi
   assert.equal((await db.doc("proposals/auth-proposal").get()).data().priorPayments, undefined);
 });
 
-test("October $100 cash transaction stores $80 membership, $20 fee, and leaves $10", async () => {
+test("P-000019 synthetic history reconciles $200 cash, $10 checkout, and $80 November recurring", async () => {
   await seedProposal("partial-fee", {
     status: "AWAITING_CLIENT_SIGNATURE",
     priorPayments: [{
@@ -126,8 +126,94 @@ test("October $100 cash transaction stores $80 membership, $20 fee, and leaves $
   assert.equal(october.membershipAmountCents, 8000);
   assert.equal(october.enrollmentFeeAmountCents, 2000);
   assert.equal(saved.priorPaymentsTotalCents, 20000);
-  assert.equal(3000 - saved.priorPayments.reduce((n, entry) => n + entry.enrollmentFeeAmountCents, 0), 1000);
+  const outstandingEnrollmentCents = 3000 - saved.priorPayments
+    .reduce((n, entry) => n + entry.enrollmentFeeAmountCents, 0);
+  assert.equal(outstandingEnrollmentCents, 1000);
+  assert.equal(saved.pricing.monthlyBalance * 100, 8000);
+  assert.equal(saved.agreement.recurringBillingDay, 5);
+  assert.equal(saved.agreement.membershipStartDate, "2026-11-05");
+  assert.equal(outstandingEnrollmentCents, 1000, "initial Stripe checkout remains $10");
+  assert.ok(october.paymentId, "new historical payments receive a stable source reference");
   assert.ok((await historyEvents("partial-fee")).includes("PRIOR_PAYMENT_RECORDED"));
+  await assert.rejects(record({
+    proposalId: "partial-fee", amountCents: 10000, paymentMethod: "cash",
+    periods: ["2026-10"], enrollmentFeeAmountCents: 2000,
+  }), /already recorded/);
+});
+
+test("partial membership remains recorded without falsely satisfying a period", async () => {
+  await seedProposal("period-validation", { status: "AWAITING_CLIENT_SIGNATURE" });
+  const record = await callable("manager", "recordProposalPriorPayment");
+  await record({
+    proposalId: "period-validation", amountCents: 7000, paymentMethod: "cash",
+    periods: ["2026-10"], enrollmentFeeAmountCents: 0,
+  });
+  let saved = (await db.doc("proposals/period-validation").get()).data();
+  assert.deepEqual(saved.priorPayments[0].periods, []);
+  assert.equal(saved.priorPayments[0].requestedPeriods[0], "2026-10");
+  assert.equal(saved.priorPayments[0].membershipPeriodAllocations[0].totalPaidCents, 7000);
+  assert.equal(saved.priorPayments[0].membershipPeriodAllocations[0].fullyPaid, false);
+  await record({
+    proposalId: "period-validation", amountCents: 1000, paymentMethod: "cash",
+    periods: ["2026-10"], enrollmentFeeAmountCents: 0,
+  });
+  saved = (await db.doc("proposals/period-validation").get()).data();
+  assert.deepEqual(saved.priorPayments[1].periods, ["2026-10"]);
+  assert.equal(saved.priorPayments[1].membershipPeriodAllocations[0].totalPaidCents, 8000);
+  assert.equal(saved.priorPayments[1].membershipPeriodAllocations[0].fullyPaid, true);
+  await assert.rejects(record({
+    proposalId: "period-validation", amountCents: 8000, paymentMethod: "cash",
+    periods: ["2026-13"], enrollmentFeeAmountCents: 0,
+  }), /must use YYYY-MM/);
+  saved = (await db.doc("proposals/period-validation").get()).data();
+  assert.equal(saved.priorPayments.length, 2);
+});
+
+test("multi-athlete historical annual fees require explicit immutable attribution", async () => {
+  await seedProposal("multi-attribution", {
+    pricing: {
+      monthlyBase: 160, monthlySponsor: 0, monthlyBalance: 160,
+      enrollmentBase: 60, enrollmentPreviouslyPaidAmount: 0,
+    },
+    athletes: [
+      { name: "Synthetic One", plan: "standard" },
+      { name: "Synthetic Two", plan: "standard" },
+    ],
+    priorPayments: [{
+      paymentId: "historical-october", amountCents: 18000,
+      membershipAmountCents: 16000, enrollmentFeeAmountCents: 2000,
+      paymentMethod: "cash", periods: ["2026-10"],
+    }],
+  });
+  const record = await callable("manager", "recordProposalPrepaidCash");
+  const base = {
+    proposalId: "multi-attribution", amountCents: 196000,
+    membershipAmountCents: 192000, paymentMethod: "cash",
+    paymentDate: "2026-11-01", membershipStartDate: "2026-11-05",
+    membershipPaidThroughDate: "2027-11-04", nextBillingDate: "2027-11-05",
+    enrollmentFeeIncludedAthleteIndexes: [1, 2],
+    enrollmentFeeAllocations: [
+      { athleteIndex: 1, amountCents: 1000 },
+      { athleteIndex: 2, amountCents: 3000 },
+    ],
+  };
+  await assert.rejects(record(base), /must attribute historical enrollment-fee payments/);
+  await record({
+    ...base,
+    historicalEnrollmentFeeAttributions: [{
+      sourcePaymentReference: "historical-october",
+      athleteIndex: 1,
+      amountCents: 2000,
+    }],
+  });
+  const saved = (await db.doc("proposals/multi-attribution").get()).data();
+  assert.equal(saved.priorPayments[0].enrollmentFeeAmountCents, 2000);
+  assert.equal(saved.enrollmentFeeAttributions[0].sourcePaymentReference, "historical-october");
+  assert.equal(saved.enrollmentFeeAttributions[0].athleteIndex, 1);
+  assert.equal(saved.enrollmentFeeAttributions[0].attributedBy, "manager");
+  assert.ok(saved.enrollmentFeeAttributions[0].attributedAt);
+  assert.ok((await historyEvents("multi-attribution"))
+    .includes("ENROLLMENT_FEE_ATTRIBUTIONS_RECORDED"));
 });
 
 test("full 12-month cash payment with fee included produces separately reconciled UI state", async () => {
@@ -177,6 +263,12 @@ test("renewal is date-guarded, blocked before approval, and approval is audited 
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-04", enrollmentFeeIncludedAthleteIndexes: [],
   }), /after the prepaid paid-through date/i);
+  await assert.rejects(record({
+    proposalId: "bad-date", amountCents: 96000, membershipAmountCents: 96000,
+    paymentMethod: "cash", paymentDate: "2026-02-30",
+    membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
+    nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [],
+  }), /date is invalid/i);
 
   const setup = await callable("manager", "createProposalAutopaySetup");
   await assert.rejects(setup({ proposalId: "full-included" }), /not waiting for cash-prepaid Stripe autopay setup/i);

@@ -1032,13 +1032,16 @@ function priorPaymentSummaryHtml(item) {
               Array.isArray(payment.periods)
                 ? payment.periods
                 : [];
+            const requestedPeriods = Array.isArray(payment.requestedPeriods)
+              ? payment.requestedPeriods
+              : periods;
 
             const first =
-              periods[0] || "";
+              requestedPeriods[0] || "";
 
             const last =
-              periods[
-                periods.length - 1
+              requestedPeriods[
+                requestedPeriods.length - 1
               ] || first;
 
             const periodLabel =
@@ -1064,6 +1067,12 @@ function priorPaymentSummaryHtml(item) {
               : payment.enrollmentFeeIncluded
                 ? "Annual enrollment fully included"
                 : "Enrollment not included";
+            const partialMembership = Array.isArray(payment.membershipPeriodAllocations)
+              ? payment.membershipPeriodAllocations
+                .filter((entry) => entry.fullyPaid !== true && Number(entry.paidCents) > 0)
+                .map((entry) => `${formatPriorPaymentPeriod(entry.period)} partial ${moneyFromCents(entry.totalPaidCents)} of ${moneyFromCents(entry.requiredCents)}`)
+                .join(" · ")
+              : "";
 
             return `
               <div class="billing-prior-payment-item">
@@ -1076,6 +1085,7 @@ function priorPaymentSummaryHtml(item) {
                 <span>
                   ${esc(enrollment)}
                 </span>
+                ${partialMembership ? `<span>${esc(partialMembership)}</span>` : ""}
               </div>
             `;
           })
@@ -1793,6 +1803,12 @@ function ensureCashDialog() {
         <small>Enrollment-fee balances remain separate from membership Paid in Full.</small>
       </fieldset>
 
+      <fieldset id="prepaidHistoricalAttributionFieldset" class="billing-cash-note" hidden>
+        <legend>Attribute historical annual-fee payments</legend>
+        <div id="prepaidHistoricalAttributions"></div>
+        <small>Required for multi-athlete proposals. This records attribution without changing the original payment.</small>
+      </fieldset>
+
       <label class="billing-cash-note">
         <span>Management note</span>
         <textarea
@@ -1927,6 +1943,17 @@ function ensureCashDialog() {
             ),
           })
         );
+        const historicalEnrollmentFeeAttributions = [
+          ...document.querySelectorAll("[data-historical-enrollment-attribution]")
+        ].flatMap((input) => {
+          const amountCents = Math.round(Number(input.value || 0) * 100);
+          if (amountCents <= 0) return [];
+          return [{
+            sourcePaymentReference: input.dataset.sourcePaymentReference,
+            athleteIndex: Number(input.dataset.athleteIndex),
+            amountCents,
+          }];
+        });
 
         const note =
           clean(
@@ -1983,6 +2010,7 @@ function ensureCashDialog() {
             membershipPaidThroughDate,
             enrollmentFeeIncludedAthleteIndexes,
             enrollmentFeeAllocations,
+            historicalEnrollmentFeeAttributions,
             nextBillingDate,
             note,
           });
@@ -2091,6 +2119,66 @@ function openCashDialog(
       </label>
     `)
     .join("");
+
+  const priorPayments = Array.isArray(proposal.priorPayments)
+    ? proposal.priorPayments
+    : [];
+  const historicalFeeSources = priorPayments.flatMap((payment, paymentIndex) => {
+    const explicit = Number(payment.enrollmentFeeAmountCents);
+    const amountCents = Number.isInteger(explicit) && explicit >= 0
+      ? Math.min(explicit, Math.round(feeTotal * 100))
+      : payment.enrollmentFeeIncluded === true
+        ? Math.round(feeTotal * 100)
+        : 0;
+    if (amountCents <= 0) return [];
+    return [{
+      sourcePaymentReference: clean(payment.paymentId) || `priorPayments/${paymentIndex}`,
+      amountCents,
+      paymentIndex,
+    }];
+  });
+  const recordedHistoricalFeeCents = historicalFeeSources.reduce(
+    (total, source) => total + source.amountCents,
+    0
+  );
+  const pricingPreviouslyPaidCents = Math.round(
+    Math.max(0, Number(proposal.pricing?.enrollmentPreviouslyPaidAmount || 0)) * 100
+  );
+  if (pricingPreviouslyPaidCents > recordedHistoricalFeeCents) {
+    historicalFeeSources.push({
+      sourcePaymentReference: "pricing/enrollmentPreviouslyPaidAmount",
+      amountCents: pricingPreviouslyPaidCents - recordedHistoricalFeeCents,
+      paymentIndex: priorPayments.length,
+    });
+  }
+  const attributionFieldset = document.getElementById(
+    "prepaidHistoricalAttributionFieldset"
+  );
+  const attributionContainer = document.getElementById(
+    "prepaidHistoricalAttributions"
+  );
+  attributionFieldset.hidden = !(athletes.length > 1 && historicalFeeSources.length);
+  attributionContainer.innerHTML = historicalFeeSources.map((source) => `
+    <div class="billing-prior-payment-item">
+      <strong>Historical payment ${source.paymentIndex + 1} · ${esc(moneyFromCents(source.amountCents))} annual fee</strong>
+      ${athletes.map(({ athlete, index }) => `
+        <label class="billing-cash-check">
+          <span>${esc(athlete.name || `Athlete ${index}`)}</span>
+          <input
+            type="number"
+            min="0"
+            max="${(source.amountCents / 100).toFixed(2)}"
+            step="0.01"
+            value="0.00"
+            data-historical-enrollment-attribution
+            data-source-payment-reference="${esc(source.sourcePaymentReference)}"
+            data-athlete-index="${index}"
+            aria-label="Historical annual fee from payment ${source.paymentIndex + 1} for ${esc(athlete.name || `Athlete ${index}`)}"
+          >
+        </label>
+      `).join("")}
+    </div>
+  `).join("");
 
   document.getElementById(
     "prepaidCashNextBilling"

@@ -15,6 +15,7 @@ export type FullYearPrepayment = {
     paidCents: number;
     outstandingCents: number;
     selections: FeeSelection[];
+    previouslyPaidSelections: FeeSelection[];
   };
 };
 
@@ -32,6 +33,10 @@ export function resolveFullYearPrepayment(input: {
   expectedMonthlyMembershipCents: number;
   enrollmentFeeTotalCents: number;
   enrollmentFeePreviouslyPaidCents: number;
+  enrollmentFeePreviouslyPaidAllocations?: Array<{
+    athleteIndex: number;
+    amountCents: number;
+  }>;
   athletes: Array<{ name?: unknown; plan?: unknown }>;
   enrollmentFeeIncludedAthleteIndexes: unknown;
   enrollmentFeeAllocations?: unknown;
@@ -67,6 +72,33 @@ export function resolveFullYearPrepayment(input: {
   }
 
   const feePerAthleteCents = input.enrollmentFeeTotalCents / eligible.length;
+  const priorByAthlete = new Map<number, number>();
+  for (const allocation of input.enrollmentFeePreviouslyPaidAllocations || []) {
+    const athleteIndex = Number(allocation.athleteIndex);
+    const amountCents = whole(allocation.amountCents, "historical enrollment fee allocation");
+    if (!eligibleIndexes.has(athleteIndex)) {
+      throw new Error("A historical enrollment-fee allocation contains an invalid athlete.");
+    }
+    priorByAthlete.set(
+      athleteIndex,
+      (priorByAthlete.get(athleteIndex) || 0) + amountCents
+    );
+  }
+  const attributedPriorCents = [...priorByAthlete.values()]
+    .reduce((total, amountCents) => total + amountCents, 0);
+  if (eligible.length > 1 && input.enrollmentFeePreviouslyPaidCents > 0 &&
+      attributedPriorCents !== input.enrollmentFeePreviouslyPaidCents) {
+    throw new Error("Historical enrollment fees must be attributed to specific athletes.");
+  }
+  if (eligible.length === 1 && input.enrollmentFeePreviouslyPaidCents > 0 &&
+      attributedPriorCents === 0) {
+    priorByAthlete.set(eligible[0].athleteIndex, input.enrollmentFeePreviouslyPaidCents);
+  }
+  for (const amountCents of priorByAthlete.values()) {
+    if (amountCents > feePerAthleteCents) {
+      throw new Error("A historical enrollment-fee allocation exceeds that athlete's annual fee.");
+    }
+  }
   const explicitAllocations = new Map<number, number>();
   if (Array.isArray(input.enrollmentFeeAllocations)) {
     for (const raw of input.enrollmentFeeAllocations) {
@@ -85,6 +117,9 @@ export function resolveFullYearPrepayment(input: {
   const selections = eligible.map(({ athlete, athleteIndex }) => {
     const explicitAmount = explicitAllocations.get(athleteIndex);
     const amountCents = explicitAmount ?? (included.has(athleteIndex) ? feePerAthleteCents : 0);
+    if (amountCents + (priorByAthlete.get(athleteIndex) || 0) > feePerAthleteCents) {
+      throw new Error("An athlete's annual enrollment-fee allocation exceeds the remaining balance.");
+    }
     return {
       athleteIndex,
       athleteName: String(athlete.name || `Athlete ${athleteIndex}`).trim(),
@@ -112,6 +147,12 @@ export function resolveFullYearPrepayment(input: {
   }
 
   const paidCents = input.enrollmentFeePreviouslyPaidCents + paidWithPrepaymentCents;
+  const previouslyPaidSelections = eligible.map(({ athlete, athleteIndex }) => ({
+    athleteIndex,
+    athleteName: String(athlete.name || `Athlete ${athleteIndex}`).trim(),
+    included: (priorByAthlete.get(athleteIndex) || 0) > 0,
+    amountCents: priorByAthlete.get(athleteIndex) || 0,
+  }));
   return {
     membershipAmountCents,
     membershipPaidInFull: true,
@@ -122,6 +163,7 @@ export function resolveFullYearPrepayment(input: {
       paidCents,
       outstandingCents: Math.max(0, input.enrollmentFeeTotalCents - paidCents),
       selections,
+      previouslyPaidSelections,
     },
   };
 }
@@ -135,6 +177,9 @@ export function validateFullYearCoverage(
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("Dates must use YYYY-MM-DD.");
     const date = new Date(`${value}T12:00:00Z`);
     if (Number.isNaN(date.getTime())) throw new Error("A prepaid membership date is invalid.");
+    if (date.toISOString().slice(0, 10) !== value) {
+      throw new Error("A prepaid membership date is invalid.");
+    }
     return date;
   };
   const start = parse(startDate);

@@ -11,6 +11,8 @@ test("prepaid recording preserves Review & Confirm and requires exact paid-in-fu
   assert.match(callable, /RENEWAL_AUTOPAY_APPROVAL_REQUIRED/);
   assert.match(callable, /membershipPaidThroughDate/);
   assert.match(callable, /annualEnrollmentFee/);
+  assert.match(callable, /ENROLLMENT_FEE_ATTRIBUTIONS_RECORDED/);
+  assert.match(callable, /resolveHistoricalEnrollmentFeeAttributions/);
 });
 
 test("renewal autopay has a separate approval and paid-through guard", () => {

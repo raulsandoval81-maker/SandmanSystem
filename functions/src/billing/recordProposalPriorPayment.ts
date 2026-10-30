@@ -79,7 +79,7 @@ function normalizePeriods(
     periods.length > 12 ||
     periods.some(
       (period) =>
-        !/^\d{4}-\d{2}$/.test(period)
+        !/^\d{4}-(0[1-9]|1[0-2])$/.test(period)
     )
   ) {
     throw new HttpsError(
@@ -193,6 +193,19 @@ export const recordProposalPriorPayment =
               ? proposal.priorPayments
               : [];
 
+          const duplicatePeriods = new Set<string>(
+            existing.flatMap((payment: any) =>
+              Array.isArray(payment?.periods) ? payment.periods : []
+            )
+          );
+          const overlaps = periods.filter((period) => duplicatePeriods.has(period));
+          if (overlaps.length) {
+            throw new HttpsError(
+              "already-exists",
+              `A prior payment is already recorded for: ${overlaps.join(", ")}.`
+            );
+          }
+
           const enrollmentFeeCents = Math.max(
             0,
             Math.round(Number(proposal.pricing?.enrollmentBase || 0) * 100)
@@ -226,40 +239,71 @@ export const recordProposalPriorPayment =
             enrollmentFeeIncluded,
           } = allocation;
 
-          const duplicatePeriods =
-            new Set(
-              existing.flatMap(
-                (payment: any) =>
-                  Array.isArray(
-                    payment?.periods
-                  )
-                    ? payment.periods
-                    : []
-              )
-            );
-
-          const overlaps =
-            periods.filter(
-              (period) =>
-                duplicatePeriods.has(period)
-            );
-
-          if (overlaps.length) {
+          const monthlyMembershipCents = Math.round(
+            Number(proposal.pricing?.monthlyBalance || 0) * 100
+          );
+          if (monthlyMembershipCents <= 0) {
             throw new HttpsError(
-              "already-exists",
-              `A prior payment is already recorded for: ${overlaps.join(", ")}.`
+              "failed-precondition",
+              "The proposal does not contain a valid locked monthly membership amount."
             );
           }
+          const existingPartialByPeriod = new Map<string, number>();
+          for (const existingPayment of existing) {
+            for (const raw of Array.isArray(existingPayment?.membershipPeriodAllocations)
+              ? existingPayment.membershipPeriodAllocations
+              : []) {
+              const period = cleanString(raw?.period);
+              const paidCents = Math.max(0, Number(raw?.paidCents) || 0);
+              if (period && !duplicatePeriods.has(period)) {
+                existingPartialByPeriod.set(
+                  period,
+                  (existingPartialByPeriod.get(period) || 0) + paidCents
+                );
+              }
+            }
+          }
+          let membershipRemainingCents = membershipAmountCents;
+          const membershipPeriodAllocations = periods.map((period) => {
+            const previouslyPaidCents = Math.min(
+              monthlyMembershipCents,
+              existingPartialByPeriod.get(period) || 0
+            );
+            const capacityCents = monthlyMembershipCents - previouslyPaidCents;
+            const paidCents = Math.min(capacityCents, membershipRemainingCents);
+            membershipRemainingCents -= paidCents;
+            const totalPaidCents = previouslyPaidCents + paidCents;
+            return {
+              period,
+              paidCents,
+              previouslyPaidCents,
+              totalPaidCents,
+              requiredCents: monthlyMembershipCents,
+              fullyPaid: totalPaidCents >= monthlyMembershipCents,
+            };
+          });
+          const fullyPaidPeriods = membershipPeriodAllocations
+            .filter((entry) => entry.fullyPaid)
+            .map((entry) => entry.period);
 
           const recordedAt =
             Timestamp.now();
 
+          const historyRef =
+            proposalRef
+              .collection("history")
+              .doc();
+
           const payment = {
+            paymentId: historyRef.id,
             amountCents,
             membershipAmountCents,
             enrollmentFeeAmountCents,
             paymentMethod,
-            periods,
+            requestedPeriods: periods,
+            periods: fullyPaidPeriods,
+            membershipPeriodAllocations,
+            unappliedMembershipAmountCents: membershipRemainingCents,
             enrollmentFeeIncluded,
             note,
             recordedBy:
@@ -268,11 +312,6 @@ export const recordProposalPriorPayment =
               staffAccess.fullName,
             recordedAt,
           };
-
-          const historyRef =
-            proposalRef
-              .collection("history")
-              .doc();
 
           tx.update(
             proposalRef,
@@ -314,6 +353,9 @@ export const recordProposalPriorPayment =
               enrollmentFeeAmountCents,
               paymentMethod,
               periods,
+              fullyPaidPeriods,
+              membershipPeriodAllocations,
+              unappliedMembershipAmountCents: membershipRemainingCents,
               enrollmentFeeIncluded,
               note,
 
@@ -337,6 +379,9 @@ export const recordProposalPriorPayment =
             enrollmentFeeAmountCents,
             paymentMethod,
             periods,
+            fullyPaidPeriods,
+            membershipPeriodAllocations,
+            unappliedMembershipAmountCents: membershipRemainingCents,
             enrollmentFeeIncluded,
           };
         }

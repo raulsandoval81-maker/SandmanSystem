@@ -40,4 +40,6 @@ test("Management surfaces submit explicit cents while retaining the legacy full-
   }
   assert.match(calculator, /priorPaymentEnrollmentAmount/);
   assert.match(calculator, /proposalEnrollmentPreviouslyPaidAmount/);
+  assert.match(billing, /historicalEnrollmentFeeAttributions/);
+  assert.match(billing, /sourcePaymentReference/);
 });
