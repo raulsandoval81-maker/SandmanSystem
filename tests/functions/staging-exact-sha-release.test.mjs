@@ -213,7 +213,13 @@ test("PR376 corrected Billing release is immutable and preserves the reviewed re
   assert.deepEqual(result.functionSecrets, {
     createProposalAutopaySetup: ["STRIPE_SECRET_KEY"],
   });
-  assert.deepEqual(result.partialBootstrap, pr354BillingRelease.partialBootstrap);
+  assert.notDeepEqual(result.partialBootstrap, pr354BillingRelease.partialBootstrap);
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.failedRun, 183);
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.revision, "recordproposalprepaidcash-00002-tel");
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.runtimeServiceAccount,
+    pr354BillingRelease.partialBootstrap.recordProposalPrepaidCash.runtimeServiceAccount);
+  assert.equal(result.partialBootstrap.recordProposalPrepaidCash.firebaseFunctionsHash,
+    pr354BillingRelease.partialBootstrap.recordProposalPrepaidCash.firebaseFunctionsHash);
   assert.deepEqual(result.buildPermissionResources, pr354BillingRelease.buildPermissionResources);
   assert.deepEqual(result.expectedFunctionConfiguration, pr354BillingRelease.expectedFunctionConfiguration);
   assert.equal(result.expectedInvokerIamDisabled, true);
