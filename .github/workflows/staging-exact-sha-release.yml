@@ -77,6 +77,7 @@ on:
           - billing-pr394-7befb7f2
           - billing-pr394-deploy-7befb7f2
           - billing-pr394-hosting-7befb7f2
+          - billing-pr410-functions-96a1452d
           - attendance-admin-init-pr308-0b06a778
           - promotions-winter-pr317-8e2b9c6b
           - promotions-contrast-pr322-b48c9c0
@@ -504,6 +505,14 @@ jobs:
               node --check public/coaches/execution/coach-companion/coach-companion.js
               node --check public/coaches/execution/engine/practice-remote-control.mjs
             )
+          fi
+          if test "${RELEASE_ID}" = "billing-pr410-functions-96a1452d"; then
+            (
+              cd application-source
+              node --test tests/functions/billing-public-origin.test.mjs
+              node --test tests/functions/historical-cash-*.test.mjs
+            )
+            node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(r.validationOnly!==true||r.hosting!==false||JSON.stringify(r.functions)!==JSON.stringify(["issueProposalClientReview","createProposalCheckout"]))process.exit(64)'
           fi
           if test "${RELEASE_ID}" = "billing-pr394-7befb7f2" || test "${RELEASE_ID}" = "billing-pr394-deploy-7befb7f2"; then
             (
