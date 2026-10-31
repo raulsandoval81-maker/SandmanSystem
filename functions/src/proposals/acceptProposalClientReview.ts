@@ -13,6 +13,7 @@ import {
   cleanReviewString,
   hashProposalReviewToken,
 } from "./proposalClientReview";
+import { buildHistoricalCashClientDisclosure } from "./proposalClientReview";
 
 function normalizedName(
   value: string
@@ -166,6 +167,27 @@ export const acceptProposalClientReview =
               "The proposal review snapshot is missing."
             );
           }
+          // The family's acceptance cannot authorize stale cash terms.
+          // Compare the current ledger/disposition to the frozen review
+          // disclosure; changing either requires an entirely new review.
+          if (Array.isArray(proposal.priorPayments) && proposal.priorPayments.length > 0) {
+            let currentHistoricalCash;
+            try {
+              currentHistoricalCash = buildHistoricalCashClientDisclosure(proposal);
+            } catch (error) {
+              throw new HttpsError(
+                "failed-precondition",
+                error instanceof Error ? error.message : "Invalid historical cash disclosure."
+              );
+            }
+            if (JSON.stringify(review.snapshot.historicalCash) !== JSON.stringify(currentHistoricalCash)) {
+              throw new HttpsError(
+                "failed-precondition",
+                "Historical cash terms have changed. Management must reissue the family review before signing."
+              );
+            }
+          }
+
 
           if (
             review.snapshot?.pricing?.billingType === "seasonal_one_time" &&
