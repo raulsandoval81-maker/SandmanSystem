@@ -40,6 +40,14 @@ jobs:
             node --test tests/functions/billing-public-origin.test.mjs
             node --test tests/functions/historical-cash-*.test.mjs
           )
+      - name: Package the exact two-function staging artifact without deploying
+        run: |
+          set -euo pipefail
+          node scripts/staging/prepare-exact-sha-release.mjs \
+            billing-pr410-functions-96a1452d \
+            /tmp/billing-pr410-source \
+            /tmp/billing-pr410-artifact
+          node -e 'const m=require("/tmp/billing-pr410-artifact/release-evidence.json");if(m.hosting!==false||m.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")throw Error("Wrong artifact scope");const e=require("/tmp/billing-pr410-artifact/functions/staging-release-entry.cjs");if(Object.keys(e).sort().join(",")!=="createProposalCheckout,issueProposalClientReview")throw Error("Wrong callable exports");'
       - name: Assert no deployment occurs
         run: |
           node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")["billing-pr410-functions-96a1452d"];if(!r||r.validationOnly!==true||r.hosting!==false||r.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")process.exit(64)'
