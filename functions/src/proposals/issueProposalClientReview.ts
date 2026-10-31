@@ -323,7 +323,8 @@ export const issueProposalClientReview =
               existingSnapshot &&
               Array.isArray(proposal.priorPayments) &&
               proposal.priorPayments.length > 0 &&
-              !existingSnapshot.historicalCash
+              (!existingSnapshot.historicalCash ||
+               !existingSnapshot.historicalCashCheckoutTerms)
             ) {
               throw new HttpsError(
                 "failed-precondition",
