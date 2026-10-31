@@ -1864,8 +1864,26 @@ test("PR394 validation uses current Clipboard and four-group source gates, not r
   const conditions = workflow.split("\n").filter(line =>
     line.includes('if test "${RELEASE_ID}" =') &&
     line.includes('billing-pr394-7befb7f2') &&
-    line.includes('clipboard-notes-pr372-e445688c"; then'));
+    line.includes('clipboard-notes-pr372-e445688c') &&
+    line.includes('billing-pr394-hosting-7befb7f2"; then'));
   assert.equal(conditions.length, 2, "Both modern Coach invariant branches must include Billing PR394");
+  assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
+  assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
+});
+
+
+test("PR394 Hosting-only release takes the modern Clipboard and four-group source gates", async () => {
+  const id = "billing-pr394-hosting-7befb7f2";
+  const release = await loadRelease(id);
+  assert.equal(release.hosting, true);
+  assert.deepEqual(release.functions, []);
+  assert.deepEqual(release.newFunctions, []);
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const conditions = workflow.split("\n").filter(line =>
+    line.includes('if test "${RELEASE_ID}" =') &&
+    line.includes(id) &&
+    line.includes('clipboard-notes-pr372-e445688c'));
+  assert.equal(conditions.length, 2, "Hosting-only PR394 must use both current Coach invariants, not legacy HYBRID checks");
   assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
   assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
 });
