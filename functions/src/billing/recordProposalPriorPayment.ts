@@ -17,6 +17,7 @@ import {
   allocatePriorPayment,
   enrollmentFeePaidCents,
 } from "./priorPaymentAllocation";
+import { summarizeHistoricalCash } from "./historicalCashReconciliation";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -315,6 +316,12 @@ export const recordProposalPriorPayment =
             recordedAt,
           };
 
+          const historicalCashReview = summarizeHistoricalCash({
+            priorPayments: [...existing, payment],
+            monthlyMembershipCents,
+            enrollmentFeeCents,
+          });
+
           tx.update(
             proposalRef,
             {
@@ -385,6 +392,9 @@ export const recordProposalPriorPayment =
             membershipPeriodAllocations,
             unappliedMembershipAmountCents: membershipRemainingCents,
             enrollmentFeeIncluded,
+            // Informational only: does not release Stripe checkout or
+            // settle unapplied cash. The immutable payment history remains authoritative.
+            historicalCashReview,
           };
         }
       );
