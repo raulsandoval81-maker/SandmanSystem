@@ -24,6 +24,11 @@ import {
 import { requireManagement } from "/management/shared/guards/management-guard.js";
 
 const appointmentId = new URLSearchParams(window.location.search).get("appointmentId") || "";
+const enrollmentEntrySource = document.getElementById("enrollmentEntrySource");
+const enrollmentRegistrantRole = document.getElementById("enrollmentRegistrantRole");
+const enrollmentAthleteRecord = document.getElementById("enrollmentAthleteRecord");
+const enrollmentExistingLookup = document.getElementById("enrollmentExistingLookup");
+const enrollmentEntryStatus = document.getElementById("enrollmentEntryStatus");
 const continueProposalBtn = document.getElementById("continueProposalBtn");
 const pricingSourceStatus = document.getElementById("pricingSourceStatus");
 let sourceAppointment = null;
@@ -1554,10 +1559,36 @@ addAthlete({
   ]
 });
 
+function syncEnrollmentEntry() {
+  const source = enrollmentEntrySource?.value || "admissions";
+  const athleteRecord = enrollmentAthleteRecord?.value || "new";
+  const existing = athleteRecord === "existing";
+  if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
+
+  // Only the existing, appointment-backed NEW athlete path is wired to
+  // createProposalDraft. Never claim a walk-in or existing-athlete link
+  // was saved while the canonical backend handoff is not implemented.
+  const supported = source === "admissions" && !existing && Boolean(sourceAppointment && appointmentId);
+  if (continueProposalBtn) continueProposalBtn.hidden = !supported;
+  if (enrollmentEntryStatus) {
+    enrollmentEntryStatus.textContent = existing
+      ? "Existing / legacy athlete linking is not yet enabled. Management must verify and link the canonical athlete ID before creating a proposal. Pricing is a preview only."
+      : source === "walk_in"
+        ? "Direct Management entry is not yet connected to proposal creation. No appointment will be fabricated; pricing is a preview only."
+        : sourceAppointment && appointmentId
+          ? "Admissions appointment connected. Standard new-athlete proposal handoff remains available."
+          : "Admissions entry selected. Open a lead or appointment to continue into a proposal.";
+  }
+}
+
+[enrollmentEntrySource, enrollmentRegistrantRole, enrollmentAthleteRecord]
+  .forEach((control) => control?.addEventListener("change", syncEnrollmentEntry));
+
 async function loadPricingSource() {
   await requireManagement();
   if (!appointmentId) {
     pricingSourceStatus.textContent = "Standalone estimate. Open a lead or appointment to continue into a proposal.";
+    syncEnrollmentEntry();
     return;
   }
   const snapshot = await getDoc(doc(db, "admissions_appointments", appointmentId));
@@ -1568,7 +1599,18 @@ async function loadPricingSource() {
   athleteList.innerHTML = "";
   addAthlete(recommendationFromAppointment(appointment));
   pricingSourceStatus.textContent = `Admissions context loaded for ${appointment.participantName || appointment.athleteName || "this prospect"}.`;
-  continueProposalBtn.hidden = false;
+  // The appointment is the authoritative source for its registrant identity.
+  if (enrollmentRegistrantRole) {
+    const registrant = String(appointment.registrantRole || "").toLowerCase();
+    if (registrant === "adult-athlete" || registrant === "adult_athlete") {
+      enrollmentRegistrantRole.value = "athlete";
+    } else if (["parent-guardian", "parent_guardian", "parent", "guardian"].includes(registrant)) {
+      enrollmentRegistrantRole.value = "parent_guardian";
+    }
+    enrollmentRegistrantRole.disabled = true;
+    enrollmentRegistrantRole.title = "For Admissions, registrant identity comes from the linked appointment.";
+  }
+  syncEnrollmentEntry();
 }
 
 async function findDraftProposalForAppointment() {
@@ -1691,7 +1733,10 @@ function proposalPricingSnapshot() {
 continueProposalBtn?.addEventListener(
   "click",
   async () => {
-    if (!sourceAppointment || !appointmentId) {
+    if (enrollmentEntrySource?.value !== "admissions" ||
+        enrollmentAthleteRecord?.value !== "new" ||
+        !sourceAppointment || !appointmentId) {
+      syncEnrollmentEntry();
       return;
     }
 
@@ -1849,6 +1894,7 @@ continueProposalBtn?.addEventListener(
   }
 );
 
+syncEnrollmentEntry();
 loadPricingSource().catch((error) => {
   pricingSourceStatus.textContent = error?.message || "Admissions context could not be loaded.";
   continueProposalBtn.hidden = true;
