@@ -1830,3 +1830,30 @@ test("Clipboard staging release carries forward the pinned promotions overlay wi
   assert.throws(() => validateRelease({ ...release, inheritedHostingFiles: ["public/unreviewed.js"] }, context), /Unapproved inherited Hosting source/);
   assert.throws(() => validateRelease({ ...release, hostingBaselineSha: "a44b602caef08c7e719cc7425436507d3f9b3c51" }, context), /Unapproved inherited Hosting source/);
 });
+
+test("PR394 Billing validation checkpoint is immutable and cannot turn into a deployable release", async () => {
+  const release = await loadRelease("billing-pr394-7befb7f2");
+  const check = {
+    repository: release.repository,
+    workflowRef: "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
+    checkedOutSha: release.applicationSha,
+    projectId: "sandman-combat-staging",
+    confirmProject: "sandman-combat-staging",
+    wifProvider: "projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging",
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+    authorizationAvailable: true,
+  };
+  assert.doesNotThrow(() => validateRelease(release, check));
+  assert.equal(release.validationOnly, true);
+  assert.deepEqual(release.functions, []);
+  assert.equal(release.hosting, false);
+  assert.throws(() => validateRelease({ ...release, hosting: true }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, functions: ["createProposalCheckout"] }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, applicationSha: "a".repeat(40) }, check), /deployment-disabled/);
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /billing-pr394-7befb7f2/);
+  assert.match(workflow, /Validation-only release: deployment is prohibited/);
+  assert.match(workflow, /tests\/functions\/historical-cash-stripe-execution\.test\.mjs/);
+});
