@@ -1865,7 +1865,8 @@ test("PR394 validation uses current Clipboard and four-group source gates, not r
     line.includes('if test "${RELEASE_ID}" =') &&
     line.includes('billing-pr394-7befb7f2') &&
     line.includes('clipboard-notes-pr372-e445688c') &&
-    line.includes('billing-pr394-hosting-7befb7f2"; then'));
+    line.includes('billing-pr394-hosting-7befb7f2') &&
+    line.includes('billing-pr410-functions-96a1452d"; then'));
   assert.equal(conditions.length, 2, "Both modern Coach invariant branches must include Billing PR394");
   assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
   assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
