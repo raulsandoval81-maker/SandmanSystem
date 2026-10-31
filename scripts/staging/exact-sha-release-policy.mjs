@@ -181,8 +181,34 @@ export function validateRelease(release, context = {}) {
       && inherited.every((file, index) => file === billingCarryForwardFiles[index])
       && Object.keys(release.inheritedHostingFileGitShas || {}).length === billingCarryForwardFiles.length
       && billingCarryForwardFiles.every(file => /^[0-9a-f]{40}$/.test(release.inheritedHostingFileGitShas?.[file] || ""));
+    // PR394 Hosting-only promotion carries forward precisely the seven client files
+    // in the previously verified PR376 staging Hosting artifact. Only the
+    // Billing screen and family review client are replaced from PR394.
+    const approvedBilling394HostingCarryForward = release.releaseId === "billing-pr394-hosting-7befb7f2"
+      && release.sourcePr === 394
+      && release.applicationSha === "7befb7f2dba6debb0e32c9336cda99ad897712de"
+      && release.requiredAncestorSha === "dff3e6d31c551b39fb3df3be5631c1331651efd6"
+      && release.hostingBaselineSha === "a44b602caef08c7e719cc7425436507d3f9b3c51"
+      && release.inheritedHostingReleaseId === "billing-pr376-dff3e6d3"
+      && JSON.stringify(release.hostingFiles) === JSON.stringify([
+        ...["public/connect/admissions/calculator/calculator.js",
+          "public/intake-management/management.intake.js",
+          "public/management/billing/billing.js",
+          "public/management/billing/paid-in-full-state.js",
+          "public/management/enrollment-flow/enrollment-flow.js",
+          "public/management/pricing/index.html",
+          "public/management/pricing/pricing-estimate-model.js",
+          "public/management/pricing/pricing.js"],
+        "public/connect/proposals/review/review.js",
+      ])
+      && inherited.length === billingCarryForwardFiles.length
+      && inherited.every((file, index) => file === billingCarryForwardFiles[index])
+      && Object.keys(release.inheritedHostingFileGitShas || {}).length === inherited.length
+      && inherited.every(file => /^[0-9a-f]{40}$/.test(release.inheritedHostingFileGitShas?.[file] || ""))
+      && release.functions?.length === 0 && release.newFunctions?.length === 0
+      && release.recovery?.functionsUnchanged === true;
     if (inherited.length && !approvedCompanionInheritance && !approvedPromotionsInheritance &&
-        !approvedClipboardCarryForward && !approvedBillingCarryForward) {
+        !approvedClipboardCarryForward && !approvedBillingCarryForward && !approvedBilling394HostingCarryForward) {
       throw new Error("Unapproved inherited Hosting source.");
     }
     if (release.hostingFiles.some(file => !release.allowedChangedFiles.includes(file) && !inherited.includes(file))) {
