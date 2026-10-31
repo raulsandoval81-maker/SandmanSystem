@@ -39,3 +39,20 @@ The Hosting overlay must include **at minimum** `public/management/billing/billi
 ## Current blocker / decision
 
 Cloud inventory and Stripe test endpoint/secret correspondence **have not yet been verified** in this preparation. Do **not** change the existing `billing-pr394-7befb7f2` validation-only release into a deployable one, or remove its no-deploy guard. The reviewed deployment contract in `scripts/staging/billing-v1-pr394-deployment-contract.mjs` is preparatory evidence, not a cloud authorization.
+
+## Read-only staging evidence supplied October 30, 2026
+
+Owner-provided `gcloud functions list --project=sandman-combat-staging --regions=us-central1` shows **18 active Gen 2 Cloud Functions**, of which only `recordProposalPriorPayment` is among the seven mandatory historical-cash payment-flow endpoints. The other six required endpoints are absent from the list. This is existence evidence only, not a guarantee of correct existing source or IAM configuration.
+
+Owner-provided `gcloud secrets describe` shows:
+- `STRIPE_SECRET_KEY`: exists and has labels `environment=staging`, `stripe_mode=test`. Labels do **not** establish that the stored key value is actually a Stripe test key.
+- `STRIPE_WEBHOOK_SECRET`: `NOT_FOUND` in staging.
+- `RESEND_API_KEY`: `NOT_FOUND` in staging.
+
+Run the read-only command below after these observations to refresh metadata. Missing/unreadable secrets remain fail-closed; this script does **not** fetch secret values or deploy. Treat its summary as diagnostic evidence, not permission to create cloud resources.
+
+```bash
+node scripts/staging/billing-v1-pr394-readonly-preflight.mjs
+```
+
+The immediate next infrastructure work is to establish a staging-only Stripe test-mode webhook and verified signing-secret association, establish an approved non-production email delivery configuration, and explicitly approve the six missing functions' bootstrap after independent IAM/permission checks. Keep the prior validation-only release and production infrastructure unchanged.
