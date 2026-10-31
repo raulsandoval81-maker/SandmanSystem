@@ -51,7 +51,24 @@ export function validateRelease(release, context = {}) {
     throw new Error("Only the exact staging Firebase project is authorized.");
   }
   if (release.hostingSite !== STAGING_PROJECT_ID) throw new Error("Hosting site is not the isolated staging site.");
-  if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778") {
+  // A validation-only checkpoint can examine pinned immutable source, but can
+  // never authorize Cloud resources, payment secrets or a deployment.
+  const billingValidationId = "billing-pr394-7befb7f2";
+  const isBillingValidation =
+    release.releaseId === billingValidationId &&
+    release.sourcePr === 394 &&
+    release.applicationSha === "7befb7f2dba6debb0e32c9336cda99ad897712de" &&
+    release.requiredAncestorSha === "dff3e6d31c551b39fb3df3be5631c1331651efd6" &&
+    release.validationOnly === true &&
+    release.hosting === false &&
+    Array.isArray(release.functions) && release.functions.length === 0 &&
+    Array.isArray(release.newFunctions) && release.newFunctions.length === 0 &&
+    !release.functionSecrets;
+  if (release.releaseId === billingValidationId && !isBillingValidation) {
+    throw new Error("PR394 validation checkpoint must remain isolated and deployment-disabled.");
+  }
+  if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778" &&
+      !isBillingValidation) {
     throw new Error("Hosting-disabled releases require their own reviewed authorization.");
   }
   if (release.releaseId === "attendance-admin-init-pr308-0b06a778" &&
