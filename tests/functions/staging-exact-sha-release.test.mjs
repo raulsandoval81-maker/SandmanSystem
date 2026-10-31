@@ -1865,7 +1865,8 @@ test("PR394 validation uses current Clipboard and four-group source gates, not r
     line.includes('if test "${RELEASE_ID}" =') &&
     line.includes('billing-pr394-7befb7f2') &&
     line.includes('clipboard-notes-pr372-e445688c') &&
-    line.includes('billing-pr394-hosting-7befb7f2"; then'));
+    line.includes('billing-pr394-hosting-7befb7f2') &&
+    line.includes('billing-pr410-functions-96a1452d"; then'));
   assert.equal(conditions.length, 2, "Both modern Coach invariant branches must include Billing PR394");
   assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
   assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
@@ -1923,4 +1924,16 @@ test("PR410 two-callable staging checkpoint is exact and never deployable", asyn
   assert.match(workflow, /billing-pr410-functions-96a1452d/);
   assert.match(workflow, /Validation-only release: deployment is prohibited/);
   assert.match(prepare, /PR410 staging package did not isolate the two approved exports/);
+});
+
+test("PR410 staging validation uses current Clipboard and four-group gates", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const modernBranches = workflow.split("\n").filter(line =>
+    line.includes('if test "${RELEASE_ID}" =') &&
+    line.includes('clipboard-notes-pr372-e445688c') &&
+    line.includes('billing-pr394-hosting-7befb7f2') &&
+    line.includes('billing-pr410-functions-96a1452d"; then'));
+  assert.equal(modernBranches.length, 2, "PR410 must follow both modern Coach validation branches");
+  assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
+  assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
 });
