@@ -7,13 +7,14 @@ import { assertBootstrapBoundary, describeBootstrapPlan, NEW_FUNCTIONS, PROJECT_
 const manifest = JSON.parse(readFileSync(new URL("../../scripts/staging/approved-exact-sha-releases.json", import.meta.url), "utf8"));
 const release = { releaseId: RELEASE_ID, ...manifest[RELEASE_ID] };
 const workflow = readFileSync(new URL("../../.github/workflows/billing-pr394-staging-bootstrap.yml", import.meta.url), "utf8");
+const trustedWorkflow = readFileSync(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
 const script = readFileSync(new URL("../../scripts/staging/billing-pr394-bootstrap.mjs", import.meta.url), "utf8");
 
 const approvals = {
   GITHUB_ACTIONS: "true",
   GITHUB_REPOSITORY: "raulsandoval81-maker/SandmanSystem",
   GITHUB_REF: "refs/heads/main",
-  GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/billing-pr394-staging-bootstrap.yml@refs/heads/main",
+  GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
   SANDMAN_BOOTSTRAP_PROJECT: PROJECT_ID,
   SANDMAN_BOOTSTRAP_RELEASE: RELEASE_ID,
   SANDMAN_BOOTSTRAP_AUTHORIZATION: "APPROVE_SIX_NEW_STAGING_FUNCTIONS",
@@ -75,4 +76,26 @@ test("bootstrap is create-only, stops on existing function and has no automatic 
   assert.match(script, /validateFunctionConfiguration\(release, name, deployed\)/);
   assert.match(script, /no automatic rollback/);
   assert.doesNotMatch(script, /functions", "delete"|add-iam-policy-binding|set-iam-policy/);
+});
+
+test("only the existing WIF-trusted staging workflow can execute the Billing bootstrap", () => {
+  assert.ok(trustedWorkflow.includes("          - bootstrap-billing"));
+  assert.ok(trustedWorkflow.includes("  billing-pr394-bootstrap:"));
+  assert.ok(trustedWorkflow.includes("inputs.action == 'bootstrap-billing'"));
+  assert.ok(trustedWorkflow.includes('staging-exact-sha-release.yml@refs/heads/main'));
+  assert.ok(trustedWorkflow.includes("run-id: 41169028301"));
+  assert.ok(trustedWorkflow.includes("exact-sha-staging-release-7befb7f2dba6debb0e32c9336cda99ad897712de"));
+  for (const attestation of [
+    "APPROVE_SIX_NEW_STAGING_FUNCTIONS",
+    "APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH",
+    "STRIPE_TEST_KEY_VERIFIED",
+    "STAGING_WEBHOOK_SECRET_MATCH_VERIFIED",
+  ]) assert.ok(trustedWorkflow.includes(attestation));
+  assert.ok(trustedWorkflow.includes("node scripts/staging/billing-pr394-bootstrap.mjs execute"));
+  assert.ok(trustedWorkflow.includes("inputs.action == 'validate' || inputs.action == 'deploy'"));
+  assert.doesNotMatch(trustedWorkflow.slice(trustedWorkflow.indexOf("  billing-pr394-bootstrap:")), /add-iam-policy-binding|set-iam-policy|firebase deploy/);
+  assert.throws(() => assertBootstrapBoundary(release, {
+    ...approvals,
+    GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/billing-pr394-staging-bootstrap.yml@refs/heads/main",
+  }, "execute"), /GITHUB_WORKFLOW_REF/);
 });

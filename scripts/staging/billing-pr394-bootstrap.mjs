@@ -37,7 +37,7 @@ export function assertBootstrapBoundary(release, env, command) {
       GITHUB_ACTIONS: "true",
       GITHUB_REPOSITORY: "raulsandoval81-maker/SandmanSystem",
       GITHUB_REF: "refs/heads/main",
-      GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/billing-pr394-staging-bootstrap.yml@refs/heads/main",
+      GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
       SANDMAN_BOOTSTRAP_PROJECT: PROJECT_ID,
       SANDMAN_BOOTSTRAP_RELEASE: RELEASE_ID,
       SANDMAN_BOOTSTRAP_AUTHORIZATION: "APPROVE_SIX_NEW_STAGING_FUNCTIONS",
