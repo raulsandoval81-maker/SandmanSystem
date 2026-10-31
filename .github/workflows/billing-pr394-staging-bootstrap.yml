@@ -23,6 +23,10 @@ on:
         description: For execute only, type APPROVE_SIX_NEW_STAGING_FUNCTIONS
         required: false
         type: string
+      confirm_public_invocation:
+        description: For execute only, separately approve public HTTP reachability with callable auth and signed webhook; type APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH
+        required: false
+        type: string
       confirm_stripe_test_key:
         description: For execute only, independently verify staging secret contains a Stripe test-mode key; type STRIPE_TEST_KEY_VERIFIED
         required: false
@@ -82,12 +86,14 @@ jobs:
       - name: Require separate explicit execution and Stripe sandbox attestations
         env:
           APPROVAL: ${{ inputs.approve_six_functions }}
+          PUBLIC_INVOCATION: ${{ inputs.confirm_public_invocation }}
           TEST_KEY: ${{ inputs.confirm_stripe_test_key }}
           WEBHOOK_SECRET: ${{ inputs.confirm_webhook_secret }}
         run: |
           set -euo pipefail
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${APPROVAL}" = "APPROVE_SIX_NEW_STAGING_FUNCTIONS"
+          test "${PUBLIC_INVOCATION}" = "APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH"
           test "${TEST_KEY}" = "STRIPE_TEST_KEY_VERIFIED"
           test "${WEBHOOK_SECRET}" = "STAGING_WEBHOOK_SECRET_MATCH_VERIFIED"
       - uses: actions/checkout@v4
@@ -118,6 +124,12 @@ jobs:
           gcloud secrets describe STRIPE_SECRET_KEY --project=sandman-combat-staging --format=json > stripe-metadata.json
           node -e 'const m=require("./stripe-metadata.json");if(m.labels?.environment!=="staging"||m.labels?.stripe_mode!=="test")throw Error("Staging Stripe secret metadata mismatch")'
           # Metadata/attestations do not by themselves prove Stripe key contents.
+          token="$(gcloud auth print-access-token)"
+          permissions="$(curl --fail --silent --show-error -H "Authorization: Bearer ${token}" \\
+            -H "Content-Type: application/json" -X POST \\
+            -d '{"permissions":["cloudfunctions.functions.create"]}' \\
+            "https://cloudresourcemanager.googleapis.com/v1/projects/sandman-combat-staging:testIamPermissions")"
+          node -e 'const r=JSON.parse(process.argv[1]);if(!r.permissions?.includes("cloudfunctions.functions.create"))throw Error("Staging deployer cannot create new functions")' "${permissions}"
       - name: Verify only pinned compiled functions are executable
         run: |
           set -euo pipefail
@@ -128,6 +140,7 @@ jobs:
           SANDMAN_BOOTSTRAP_PROJECT: ${{ inputs.confirm_project }}
           SANDMAN_BOOTSTRAP_RELEASE: ${{ inputs.confirm_release }}
           SANDMAN_BOOTSTRAP_AUTHORIZATION: ${{ inputs.approve_six_functions }}
+          SANDMAN_PUBLIC_HTTP_INVOCATION_APPROVED: ${{ inputs.confirm_public_invocation }}
           SANDMAN_STRIPE_TEST_MODE_ATTESTED: ${{ inputs.confirm_stripe_test_key }}
           SANDMAN_STRIPE_WEBHOOK_SECRET_ATTESTED: ${{ inputs.confirm_webhook_secret }}
         run: |
