@@ -21,11 +21,21 @@ const APPROVED_FUNCTION_SETS = Object.freeze([
     "approveProposalRenewalAutopay",
     "createProposalAutopaySetup",
   ]),
+  Object.freeze([
+    "recordProposalPriorPayment",
+    "recordHistoricalCashDisposition",
+    "issueProposalClientReview",
+    "getProposalClientReview",
+    "acceptProposalClientReview",
+    "createProposalCheckout",
+    "stripeBillingWebhook",
+  ]),
 ]);
 export const APPROVED_FUNCTIONS = Object.freeze([...new Set(APPROVED_FUNCTION_SETS.flat())]);
 
 const exactSha = /^[0-9a-f]{40}$/;
 const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
+const BILLING_FULL_RELEASE_ID = "billing-pr394-deploy-7befb7f2";
 
 export async function loadRelease(releaseId, manifestPath = new URL("./approved-exact-sha-releases.json", import.meta.url)) {
   const releases = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -64,6 +74,35 @@ export function validateRelease(release, context = {}) {
     Array.isArray(release.functions) && release.functions.length === 0 &&
     Array.isArray(release.newFunctions) && release.newFunctions.length === 0 &&
     !release.functionSecrets;
+  if (release.releaseId === BILLING_FULL_RELEASE_ID) {
+    // Candidate can validate immutable artifacts only, never authorize deployment.
+    const mandatoryFunctions = [
+      "recordProposalPriorPayment", "recordHistoricalCashDisposition",
+      "issueProposalClientReview", "getProposalClientReview",
+      "acceptProposalClientReview", "createProposalCheckout", "stripeBillingWebhook",
+    ];
+    const mandatorySecrets = {
+      issueProposalClientReview: ["RESEND_API_KEY"],
+      createProposalCheckout: ["STRIPE_SECRET_KEY"],
+      stripeBillingWebhook: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
+    };
+    if (release.sourcePr !== 394 ||
+        release.applicationSha !== "7befb7f2dba6debb0e32c9336cda99ad897712de" ||
+        release.requiredAncestorSha !== "dff3e6d31c551b39fb3df3be5631c1331651efd6" ||
+        release.validationOnly !== true ||
+        release.hosting !== true ||
+        JSON.stringify(release.hostingFiles) !== JSON.stringify([
+          "public/management/billing/billing.js", "public/connect/proposals/review/review.js",
+        ]) ||
+        JSON.stringify(release.functions) !== JSON.stringify(mandatoryFunctions) ||
+        JSON.stringify(release.newFunctions) !== JSON.stringify(mandatoryFunctions.slice(1)) ||
+        JSON.stringify(release.functionSecrets) !== JSON.stringify(mandatorySecrets) ||
+        release.functionRuntime !== "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" ||
+        release.bootstrap?.approvalRequired !== true ||
+        release.bootstrap?.routineDeployMayCreate !== false) {
+      throw new Error("PR394 staging candidate must remain exact and deployment-disabled.");
+    }
+  }
   if (release.releaseId === billingValidationId && !isBillingValidation) {
     throw new Error("PR394 validation checkpoint must remain isolated and deployment-disabled.");
   }
@@ -162,7 +201,7 @@ export function validateRelease(release, context = {}) {
     throw new Error("Unexpected function target in approved release.");
   }
   const newFunctions = [...(release.newFunctions || [])];
-  const approvedNewFunctions = BILLING_RELEASE_IDS.has(release.releaseId)
+  const approvedNewFunctions = (BILLING_RELEASE_IDS.has(release.releaseId) || release.releaseId === BILLING_FULL_RELEASE_ID)
     ? functions
     : ["searchPracticeAttendanceAthletes"];
   if (newFunctions.some(name => !approvedNewFunctions.includes(name) || !functions.includes(name))) {
@@ -172,7 +211,7 @@ export function validateRelease(release, context = {}) {
   const secretFunctions = Object.keys(functionSecrets);
   if (secretFunctions.some(name => !functions.includes(name)) ||
       Object.values(functionSecrets).some(keys => !Array.isArray(keys) ||
-        keys.some(key => key !== "STRIPE_SECRET_KEY"))) {
+        keys.some(key => !["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "RESEND_API_KEY"].includes(key)))) {
     throw new Error("Unexpected staging function secret configuration.");
   }
   if (BILLING_RELEASE_IDS.has(release.releaseId) &&
