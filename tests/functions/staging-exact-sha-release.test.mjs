@@ -1851,7 +1851,7 @@ test("PR394 Billing validation checkpoint is immutable and cannot turn into a de
   assert.equal(release.hosting, false);
   assert.throws(() => validateRelease({ ...release, hosting: true }, check), /deployment-disabled/);
   assert.throws(() => validateRelease({ ...release, functions: ["createProposalCheckout"] }, check), /deployment-disabled/);
-  assert.throws(() => validateRelease({ ...release, applicationSha: "a".repeat(40) }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, applicationSha: "a".repeat(40) }, check), /Application checkout does not match the approved SHA|deployment-disabled/);
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   assert.match(workflow, /billing-pr394-7befb7f2/);
   assert.match(workflow, /Validation-only release: deployment is prohibited/);
