@@ -81,7 +81,7 @@ test("PR376 acceptance: historical month recording does not itself activate bill
   const autopay = read("functions/src/billing/proposalAutopaySetup.ts");
   assert.match(callable, /Prior payments must be recorded before the proposal is paid or void/);
   assert.match(callable, /A prior payment is already recorded for/);
-  assert.match(ui, /Prior payment recorded\\. Proposal stage was not changed/);
+  assert.match(ui, /Prior payment recorded\. Proposal stage was not changed/);
   assert.match(autopay, /This proposal is not waiting for cash-prepaid Stripe autopay setup/);
   assert.match(autopay, /billing_cycle_anchor:/);
   assert.match(autopay, /proration_behavior:/);
