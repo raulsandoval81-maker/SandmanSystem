@@ -5,8 +5,9 @@ export const STAGING_PROJECT_ID = "sandman-combat-staging";
 export const STAGING_PROJECT_NUMBER = "991554514268";
 export const STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT = "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com";
 export const STAGING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-github-actions`;
+export const STAGING_HOSTING_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging`;
 export const STAGING_SEED_WIF_PROVIDER = `projects/${STAGING_PROJECT_NUMBER}/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-mixed-journey-seed`;
-const APPROVED_STAGING_WIF_PROVIDERS = new Set([STAGING_WIF_PROVIDER, STAGING_SEED_WIF_PROVIDER]);
+const APPROVED_STAGING_WIF_PROVIDERS = new Set([STAGING_WIF_PROVIDER, STAGING_SEED_WIF_PROVIDER, STAGING_HOSTING_WIF_PROVIDER]);
 
 export async function verifyStagingBoundary(env = process.env) {
   const projectId = String(env.SANDMAN_STAGING_PROJECT_ID || "").trim();
