@@ -147,9 +147,9 @@ if (release.functions.length) {
       ["stripeBillingWebhook", "./lib/billing/webhook.js"],
     ];
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
-      "module.exports = {\\n" +
-      fullExports.map(([name, module]) => `  ${name}: require("${module}").${name},`).join("\\n") +
-      "\\n};");
+      "module.exports = {\n" +
+      fullExports.map(([name, module]) => `  ${name}: require("${module}").${name},`).join("\n") +
+      "\n};");
     const stripeClient = await readFile(path.join(functionsRoot, "lib/billing/stripeClient.js"), "utf8");
     if (!stripeClient.includes("STRIPE_WEBHOOK_SECRET")) {
       throw new Error("Full Billing staging package is missing the Stripe webhook secret.");
