@@ -18,6 +18,7 @@ import {
   enrollmentFeePaidCents,
 } from "./priorPaymentAllocation";
 import { summarizeHistoricalCash } from "./historicalCashReconciliation";
+import { previewHistoricalCashPaymentPlan } from "./historicalCashPaymentPlan";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -335,6 +336,21 @@ export const recordProposalPriorPayment =
             monthlyMembershipCents,
             enrollmentFeeCents,
           });
+          // The proposal's next scheduled date is informational only here.
+          // If absent/invalid, the cash record is still valid but cannot
+          // imply a Stripe billing schedule.
+          const proposedChargeDate =
+            cleanString(proposal.pricing?.firstRecurringChargeDate);
+          let historicalCashPaymentPlan = null;
+          if (/^\d{4}-\d{2}-05$/.test(proposedChargeDate)) {
+            historicalCashPaymentPlan = previewHistoricalCashPaymentPlan({
+              priorPayments: [...existing, payment],
+              monthlyMembershipCents,
+              enrollmentFeeCents,
+              chargeDate: proposedChargeDate,
+            });
+          }
+
 
           tx.update(
             proposalRef,
@@ -409,6 +425,7 @@ export const recordProposalPriorPayment =
             // Informational only: does not release Stripe checkout or
             // settle unapplied cash. The immutable payment history remains authoritative.
             historicalCashReview,
+            historicalCashPaymentPlan,
           };
         }
       );
