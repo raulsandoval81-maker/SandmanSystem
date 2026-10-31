@@ -37,3 +37,49 @@ test("Existing validation-only Billing release remains undeployable", () => {
   assert.deepEqual(checkpoint.newFunctions, []);
   assert.equal(checkpoint.hosting, false);
 });
+
+test("Separate seven-function release manifest stays validation-only until bootstrap approval", () => {
+  const releases = JSON.parse(readFileSync(new URL("../../scripts/staging/approved-exact-sha-releases.json", import.meta.url), "utf8"));
+  const candidate = releases["billing-pr394-deploy-7befb7f2"];
+  assert.ok(candidate);
+  assert.equal(candidate.applicationSha, "7befb7f2dba6debb0e32c9336cda99ad897712de");
+  assert.equal(candidate.validationOnly, true);
+  assert.equal(candidate.projectId, "sandman-combat-staging");
+  assert.equal(candidate.functions.length, 7);
+  assert.equal(candidate.newFunctions.length, 6);
+  assert.equal(candidate.functionRuntime, "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com");
+  assert.deepEqual(candidate.functionSecrets, {
+    issueProposalClientReview: ["RESEND_API_KEY"],
+    createProposalCheckout: ["STRIPE_SECRET_KEY"],
+    stripeBillingWebhook: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"],
+  });
+  assert.deepEqual(candidate.bootstrap.functions, candidate.newFunctions);
+  assert.equal(candidate.bootstrap.approvalRequired, true);
+  assert.equal(candidate.bootstrap.routineDeployMayCreate, false);
+  const workflow = readFileSync(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /if\(r\?\.validationOnly\)/);
+  assert.match(workflow, /inputs\.release_id != 'billing-pr394-deploy-7befb7f2'/);
+  assert.match(workflow, /billing-pr394-deploy-7befb7f2/);
+});
+
+test("Release policy rejects accidentally enabling the full Billing candidate for deployment", async () => {
+  const { validateRelease, STAGING_WIF_PROVIDER, TRUSTED_WORKFLOW_REF } = await import("../../scripts/staging/exact-sha-release-policy.mjs");
+  const releases = JSON.parse(readFileSync(new URL("../../scripts/staging/approved-exact-sha-releases.json", import.meta.url), "utf8"));
+  const release = { releaseId: "billing-pr394-deploy-7befb7f2", ...releases["billing-pr394-deploy-7befb7f2"] };
+  const ctx = {
+    repository: release.repository,
+    workflowRef: TRUSTED_WORKFLOW_REF,
+    checkedOutSha: release.applicationSha,
+    projectId: release.projectId,
+    confirmProject: release.projectId,
+    wifProvider: STAGING_WIF_PROVIDER,
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+    authorizationAvailable: true,
+  };
+  assert.equal(validateRelease(release, ctx), release);
+  assert.throws(() => validateRelease({ ...release, validationOnly: false }, ctx), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, functions: release.functions.slice(0, -1) }, ctx), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, functionSecrets: {} }, ctx), /deployment-disabled/);
+});
