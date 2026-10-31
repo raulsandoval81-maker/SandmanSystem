@@ -97,9 +97,11 @@ test("prior cash cannot silently enter Stripe checkout using an unreconciled loc
   const guard = checkout.indexOf("Array.isArray(proposal.priorPayments)");
   const checkoutCalculation = checkout.indexOf("const lockedDueNow =");
   assert.ok(seasonal >= 0 && guard > seasonal && guard < checkoutCalculation);
-  assert.match(checkout, /Management must reconcile their monthly coverage, enrollment allocation, and unapplied balance before Stripe checkout/);
-  // Until a reconciled checkout workflow is implemented, this must block
-  // recurring Stripe checkout. It does not certify end-to-end staging acceptance.
+  assert.match(checkout, /resolveHistoricalCashCheckoutTerms\(proposal\)/);
+  assert.match(checkout, /Stripe billing must match the family's signed historical-cash terms exactly/);
+  assert.match(checkout, /Historical cash schedule has expired/);
+  // Only signed, fully reconciled held-cash cases can reach payment Checkout.
+  // No credit/refund path is automatically executed; staging still required.
 });
 
 test("prior-payment recording stops before checkout, pending payment, and activation", () => {
