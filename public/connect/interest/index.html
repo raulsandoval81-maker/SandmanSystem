@@ -24,17 +24,29 @@
     rel="stylesheet"
     href="./interest.css"
   />
-    <!-- ELK GROVE PAUSED -->
+    <!-- Resolve the headquarters interest entry before the form and schedule modules run.
+       Preserve explicit academy/location routing; never convert an invalid location. -->
   <script>
     (() => {
-      const requestedLocation =
-        new URLSearchParams(window.location.search)
-          .get("location")
-          ?.trim()
-          .toLowerCase();
+      const url = new URL(window.location.href);
+      const params = url.searchParams;
+      const explicitLocation = params.get("location");
 
-      if (requestedLocation === "elk-grove") {
+      if (explicitLocation?.trim().toLowerCase() === "elk-grove") {
         window.location.replace("/locations/");
+        return;
+      }
+
+      // The generic Sandman interest entry belongs to Santa Ynez Valley.
+      // Local/satellite and QR entries with explicit routing remain unchanged.
+      if (
+        !params.has("location") &&
+        !params.has("academy") &&
+        !params.has("academyId") &&
+        !params.has("site")
+      ) {
+        params.set("location", "santa-ynez-valley");
+        window.history.replaceState(window.history.state, "", url.href);
       }
     })();
   </script>
