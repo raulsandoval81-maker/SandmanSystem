@@ -15,7 +15,11 @@ test("PR394 enumerates all six future services without claiming their IAM is gra
   assert.deepEqual(future.map(check => check.resource.split("/").at(-1)), release.newFunctions.map(name => name.toLowerCase()));
   assert.ok(future.every(check => check.method === "MANUAL_GATE"));
   assert.ok(checks.some(check => check.category === "billing-pr394-runtime-and-secrets"));
-  assert.ok(checks.some(check => check.category === "billing-pr394-storage-source"));
+  const storageGate = checks.find(check => check.category === "billing-pr394-storage-source");
+  assert.equal(storageGate?.method, "MANUAL_GATE");
+  assert.equal(storageGate.resource, release.buildPermissionResources["storage.objects.list"]);
+  assert.ok(!storageGate.resource.includes("recordProposalPrepaidCash"));
+  assert.match(storageGate.detail, /actual PR394 Cloud Build source object/);
   assert.ok(checks.some(check => check.category === "billing-pr394-project-bootstrap" &&
     check.permissions.includes("cloudfunctions.functions.create")));
   assert.ok(checks.every(check => check.resource.includes("sandman-combat-staging") || check.resource.includes("991554514268")));
