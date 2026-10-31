@@ -76,6 +76,7 @@ on:
           - billing-pr376-dff3e6d3
           - billing-pr394-7befb7f2
           - billing-pr394-deploy-7befb7f2
+          - billing-pr394-hosting-7befb7f2
           - attendance-admin-init-pr308-0b06a778
           - promotions-winter-pr317-8e2b9c6b
           - promotions-contrast-pr322-b48c9c0
