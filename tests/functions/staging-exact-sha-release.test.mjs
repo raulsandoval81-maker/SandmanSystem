@@ -1298,7 +1298,8 @@ test("workflow separates validation from protected explicit deployment", async (
   assert.ok(functionsJob, "Functions job definition exists");
   assert.ok(hostingJob, "Hosting job definition exists");
   assert.match(diagnoseJob, /^    if: \$\{\{ inputs\.action == 'diagnose' \}\}/m);
-  assert.match(validateJob, /^    if: \$\{\{ inputs\.action != 'diagnose' \}\}/m);
+  assert.match(validateJob, /^    if: \$\{\{ inputs\.action == 'validate' \|\| inputs\.action == 'deploy' \}\}/m);
+  assert.doesNotMatch(validateJob, /inputs\.action == 'bootstrap-billing'/);
   assert.match(functionsJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
   assert.match(hostingJob, /^    if: \$\{\{ inputs\.action == 'deploy' \}\}/m);
   assert.match(functionsJob, /needs\.validate-source\.outputs\.deploy_functions == 'true'/);
