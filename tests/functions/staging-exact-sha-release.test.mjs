@@ -1887,3 +1887,40 @@ test("PR394 Hosting-only release takes the modern Clipboard and four-group sourc
   assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
   assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
 });
+
+test("PR410 two-callable staging checkpoint is exact and never deployable", async () => {
+  const release = await loadRelease("billing-pr410-functions-96a1452d");
+  const check = {
+    repository: release.repository,
+    workflowRef: TRUSTED_WORKFLOW_REF,
+    checkedOutSha: release.applicationSha,
+    projectId: release.projectId,
+    confirmProject: release.projectId,
+    wifProvider: STAGING_WIF_PROVIDER,
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+    authorizationAvailable: true,
+  };
+  assert.doesNotThrow(() => validateRelease(release, check));
+  assert.equal(release.validationOnly, true);
+  assert.equal(release.applicationSha, "96a1452d3178c443df83c80aeedfd817cbd69519");
+  assert.equal(release.hosting, false);
+  assert.deepEqual(release.functions, ["issueProposalClientReview", "createProposalCheckout"]);
+  assert.deepEqual(release.newFunctions, []);
+  assert.deepEqual(release.functionSecrets, {
+    issueProposalClientReview: ["RESEND_API_KEY"],
+    createProposalCheckout: ["STRIPE_SECRET_KEY"],
+  });
+  assert.throws(() => validateRelease({ ...release, validationOnly: false }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, hosting: true }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, functions: ["issueProposalClientReview", "createProposalCheckout", "stripeBillingWebhook"] }, check), /deployment-disabled/);
+  assert.throws(() => validateRelease({ ...release, functionRuntime: "991554514268-compute@developer.gserviceaccount.com" }, {
+    ...check, functionRuntime: "991554514268-compute@developer.gserviceaccount.com",
+  }), /deployment-disabled/);
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const prepare = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  assert.match(workflow, /billing-pr410-functions-96a1452d/);
+  assert.match(workflow, /Validation-only release: deployment is prohibited/);
+  assert.match(prepare, /PR410 staging package did not isolate the two approved exports/);
+});

@@ -21,6 +21,7 @@ const APPROVED_FUNCTION_SETS = Object.freeze([
     "approveProposalRenewalAutopay",
     "createProposalAutopaySetup",
   ]),
+  Object.freeze(["issueProposalClientReview", "createProposalCheckout"]),
   Object.freeze([
     "recordProposalPriorPayment",
     "recordHistoricalCashDisposition",
@@ -74,6 +75,33 @@ export function validateRelease(release, context = {}) {
     Array.isArray(release.functions) && release.functions.length === 0 &&
     Array.isArray(release.newFunctions) && release.newFunctions.length === 0 &&
     !release.functionSecrets;
+  const billing410Id = "billing-pr410-functions-96a1452d";
+  const isBilling410Validation = release.releaseId === billing410Id &&
+    release.sourcePr === 410 &&
+    release.applicationSha === "96a1452d3178c443df83c80aeedfd817cbd69519" &&
+    release.requiredAncestorSha === "c5a51549f6e36cce3ec8e17b8b1cdcee29668601" &&
+    JSON.stringify(release.allowedChangedFiles) === JSON.stringify([
+      ".github/workflows/billing-origin-pr-check.yml",
+      "functions/src/proposals/billingPublicBaseUrl.ts",
+      "functions/src/proposals/createProposalCheckout.ts",
+      "functions/src/proposals/issueProposalClientReview.ts",
+      "tests/functions/billing-public-origin.test.mjs",
+    ]) &&
+    release.validationOnly === true && release.hosting === false &&
+    !release.hostingBaselineSha && !release.hostingFiles &&
+    JSON.stringify(release.functions) === JSON.stringify(["issueProposalClientReview", "createProposalCheckout"]) &&
+    JSON.stringify(release.newFunctions) === JSON.stringify([]) &&
+    JSON.stringify(release.functionSecrets) === JSON.stringify({
+      issueProposalClientReview: ["RESEND_API_KEY"],
+      createProposalCheckout: ["STRIPE_SECRET_KEY"],
+    }) &&
+    release.functionDeploymentTool === "gcloud-gen2" &&
+    release.functionRuntime === "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.recovery?.hostingUnchanged === true &&
+    release.expectedInvokerIamDisabled === true;
+  if (release.releaseId === billing410Id && !isBilling410Validation) {
+    throw new Error("PR410 two-function validation must remain staging-only, exact and deployment-disabled.");
+  }
   if (release.releaseId === BILLING_FULL_RELEASE_ID) {
     // Candidate can validate immutable artifacts only, never authorize deployment.
     const mandatoryFunctions = [
@@ -107,7 +135,7 @@ export function validateRelease(release, context = {}) {
     throw new Error("PR394 validation checkpoint must remain isolated and deployment-disabled.");
   }
   if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778" &&
-      !isBillingValidation) {
+      !isBillingValidation && !isBilling410Validation) {
     throw new Error("Hosting-disabled releases require their own reviewed authorization.");
   }
   if (release.releaseId === "attendance-admin-init-pr308-0b06a778" &&
