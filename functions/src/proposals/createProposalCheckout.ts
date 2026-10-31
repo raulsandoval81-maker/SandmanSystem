@@ -297,7 +297,7 @@ export const createProposalCheckout =
         // Unlike ordinary proposals, never roll a signed cash schedule forward
         // and collect missed months automatically: return to Management instead.
         const signedChargeMs = Date.parse(`${historicalCashTerms.firstRecurringChargeDate}T12:00:00Z`);
-        if (!Number.isFinite(signedChargeMs) || signedChargeMs <= Date.now()) {
+        if (!Number.isFinite(signedChargeMs) || signedChargeMs <= Date.now() + 60 * 60 * 1000) {
           throw new HttpsError("failed-precondition",
             "The signed first charge date has passed. Management must issue a revised family review.");
         }
@@ -900,6 +900,13 @@ export const createProposalCheckout =
 
 
             payment_method_types: ["card"],
+
+            // Historical-cash sessions must expire before the first
+            // scheduled subscription date; do not accept a late payment
+            // against a stale billing schedule.
+            ...(historicalCashTerms
+              ? { expires_at: Math.floor(Date.now() / 1000) + 1800 }
+              : {}),
 
             line_items:
               lineItems,
