@@ -191,6 +191,24 @@ jobs:
               oauth_scopes: String(value.scope || "").split(" ").filter(Boolean),
               expires_in_seconds: value.expires_in || null}));
           ' "${token_info}"
+      - name: Verify PR394 create permission as the actual staging deployer
+        if: ${{ inputs.release_id == 'billing-pr394-deploy-7befb7f2' }}
+        run: |
+          set -euo pipefail
+          access_token="$(gcloud auth print-access-token)"
+          response="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${access_token}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d '{"permissions":["cloudfunctions.functions.create"]}' \
+            "https://cloudresourcemanager.googleapis.com/v1/projects/sandman-combat-staging:testIamPermissions")"
+          node -e '
+            const body = JSON.parse(process.argv[1]);
+            if (!Array.isArray(body.permissions)) throw Error("Malformed project permission response");
+            const granted = body.permissions.includes("cloudfunctions.functions.create");
+            console.log(JSON.stringify({principal:"sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",permission:"cloudfunctions.functions.create",granted}));
+            if (!granted) process.exit(1);
+          ' "${response}"
       - name: Compare Firebase Admin SDK configuration authorization
         run: |
           set -euo pipefail
