@@ -11,7 +11,7 @@ export function summarizeBillingStagingInventory(functions, secrets) {
   const functionResults = [...BILLING_V1_REQUIRED_CALLABLES, BILLING_V1_REQUIRED_WEBHOOK].map(name => {
     const found = byName.get(name);
     return { name, status: !found ? "MISSING" :
-      found.state !== "ACTIVE" || !["GEN_2", "GEN_2"].includes(found.environment) ? "UNVERIFIED" : "ACTIVE" };
+      found.state !== "ACTIVE" || found.environment !== "GEN_2" ? "UNVERIFIED" : "ACTIVE" };
   });
   const secretResults = REQUIRED_SECRETS.map(name => {
     const found = secrets[name];
