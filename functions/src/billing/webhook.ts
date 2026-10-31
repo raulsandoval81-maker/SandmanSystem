@@ -22,6 +22,7 @@ import { handleManagementPassCheckoutCompleted } from "./managementPassWebhook";
 import { resolveLockedRecurringPricing } from "../proposals/lockedRecurringPricing";
 import { ensureProposalMonthlySponsorCoupon, recoverOrCreateProposalSubscription } from "./proposalMonthlySponsor";
 import { handleProposalAutopaySetupCompleted } from "./proposalAutopaySetup";
+import { resolveHistoricalCashCheckoutTerms } from "./historicalCashCheckoutTerms";
 import {
   handleSeasonalProposalPaymentFailed,
   handleSeasonalProposalPaymentSucceeded,
@@ -228,6 +229,28 @@ export async function handleProposalCheckoutCompleted(
       ? snapshot.pricing as
           Record<string, unknown>
       : {};
+
+  if (Array.isArray(proposal.priorPayments) && proposal.priorPayments.length > 0) {
+    // Payment already happened: never start the subscription if it differs
+    // from the family's approved historical-cash amount and schedule.
+    const expected = resolveHistoricalCashCheckoutTerms(proposal);
+    if (!expected ||
+        JSON.stringify(snapshot.historicalCashCheckoutTerms) !== JSON.stringify(expected) ||
+        JSON.stringify(proposal.clientAcceptance?.signedSnapshot) !== JSON.stringify(snapshot) ||
+        Math.round(Number(pricing.dueNow) * 100) !== expected.dueNowCents ||
+        Math.round(Number(pricing.enrollmentDueNow) * 100) !== expected.enrollmentRemainingCents ||
+        Number(pricing.proratedFirstMonth) !== 0 ||
+        Number(pricing.additionalMembershipMonthsDue || 0) !== 0 ||
+        session.amount_total !== expected.dueNowCents ||
+        cleanString(session.metadata?.historicalCashCheckoutVersion) !== "1" ||
+        cleanString(session.metadata?.historicalCashLedgerFingerprint) !== expected.ledgerFingerprint ||
+        cleanString(session.metadata?.historicalCashDueNowCents) !== String(expected.dueNowCents) ||
+        cleanString(session.metadata?.firstRecurringChargeDate) !== expected.firstRecurringChargeDate) {
+      throw new Error(
+        `Proposal ${proposalId} historical cash payment or subscription schedule does not match signed terms.`
+      );
+    }
+  }
 
   const firstRecurringChargeDate =
     cleanString(

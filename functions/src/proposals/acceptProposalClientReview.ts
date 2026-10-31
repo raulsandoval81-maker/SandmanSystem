@@ -14,6 +14,7 @@ import {
   hashProposalReviewToken,
 } from "./proposalClientReview";
 import { buildHistoricalCashClientDisclosure } from "./proposalClientReview";
+import { resolveHistoricalCashCheckoutTerms } from "../billing/historicalCashCheckoutTerms";
 
 function normalizedName(
   value: string
@@ -185,6 +186,23 @@ export const acceptProposalClientReview =
                 "failed-precondition",
                 "Historical cash terms have changed. Management must reissue the family review before signing."
               );
+            }
+            let expectedTerms;
+            try {
+              expectedTerms = resolveHistoricalCashCheckoutTerms(proposal);
+            } catch (error) {
+              throw new HttpsError("failed-precondition",
+                error instanceof Error ? error.message : "Historical cash checkout terms are invalid.");
+            }
+            const signedPricing = review.snapshot.pricing || {};
+            if (JSON.stringify(review.snapshot.historicalCashCheckoutTerms) !== JSON.stringify(expectedTerms) ||
+                Math.round(Number(signedPricing.dueNow) * 100) !== expectedTerms!.dueNowCents ||
+                Math.round(Number(signedPricing.enrollmentDueNow) * 100) !== expectedTerms!.enrollmentRemainingCents ||
+                Number(signedPricing.proratedFirstMonth) !== 0 ||
+                Number(signedPricing.additionalMembershipMonthsDue) !== 0 ||
+                String(signedPricing.firstRecurringChargeDate) !== expectedTerms!.firstRecurringChargeDate) {
+              throw new HttpsError("failed-precondition",
+                "Signed historical cash billing terms no longer match the approved ledger.");
             }
           }
 

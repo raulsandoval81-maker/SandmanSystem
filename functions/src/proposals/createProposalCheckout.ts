@@ -31,6 +31,7 @@ import {
 import { resolveLockedRecurringPricing } from "./lockedRecurringPricing";
 import { isSeasonalProposalPricing } from "./seasonalProposal";
 import { createSeasonalProposalCheckout } from "../billing/seasonalProposalCheckout";
+import { resolveHistoricalCashCheckoutTerms } from "../billing/historicalCashCheckoutTerms";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -269,18 +270,37 @@ export const createProposalCheckout =
         });
       }
 
-      // Historical payments are an audit ledger, not an automatic credit against
-      // the locked checkout amount. Until the proposal explicitly reconciles
-      // them, creating a Stripe charge can bill already-covered months again.
-      // Never bypass the client's Review & Confirm with a silent adjustment.
-      if (
-        Array.isArray(proposal.priorPayments) &&
-        proposal.priorPayments.length > 0
-      ) {
-        throw new HttpsError(
-          "failed-precondition",
-          "This proposal has recorded prior payments. Management must reconcile their monthly coverage, enrollment allocation, and unapplied balance before Stripe checkout."
-        );
+      // Only the precisely reconciled and family-signed held-cash path
+      // may enter checkout. Pending refunds/credits remain fail-closed.
+      const hasHistoricalCash =
+        Array.isArray(proposal.priorPayments) && proposal.priorPayments.length > 0;
+      let historicalCashTerms = null;
+      if (hasHistoricalCash) {
+        try {
+          historicalCashTerms = resolveHistoricalCashCheckoutTerms(proposal);
+        } catch (error) {
+          throw new HttpsError("failed-precondition",
+            error instanceof Error ? error.message : "Historical cash cannot enter checkout.");
+        }
+        if (!historicalCashTerms ||
+            JSON.stringify(snapshot.historicalCashCheckoutTerms) !== JSON.stringify(historicalCashTerms) ||
+            toCents(pricing.dueNow) !== historicalCashTerms.dueNowCents ||
+            toCents(pricing.enrollmentDueNow) !== historicalCashTerms.enrollmentRemainingCents ||
+            toCents(pricing.proratedFirstMonth) !== 0 ||
+            Number(pricing.additionalMembershipMonthsDue || 0) !== 0 ||
+            cleanString(pricing.firstRecurringChargeDate) !== historicalCashTerms.firstRecurringChargeDate ||
+            !proposal.clientAcceptance?.signedSnapshot ||
+            JSON.stringify(proposal.clientAcceptance.signedSnapshot) !== JSON.stringify(snapshot)) {
+          throw new HttpsError("failed-precondition",
+            "Stripe billing must match the family's signed historical-cash terms exactly.");
+        }
+        // Unlike ordinary proposals, never roll a signed cash schedule forward
+        // and collect missed months automatically: return to Management instead.
+        const signedChargeMs = Date.parse(`${historicalCashTerms.firstRecurringChargeDate}T12:00:00Z`);
+        if (!Number.isFinite(signedChargeMs) || signedChargeMs <= Date.now() + 60 * 60 * 1000) {
+          throw new HttpsError("failed-precondition",
+            "The signed first charge date has passed. Management must issue a revised family review.");
+        }
       }
 
       if (["PARTIALLY_PAID", "PAYMENT_FAILED"].includes(proposalStatus)) {
@@ -411,6 +431,11 @@ export const createProposalCheckout =
             0,
             0
           );
+      }
+
+      if (historicalCashTerms && overdueMembershipMonths > 0) {
+        throw new HttpsError("failed-precondition",
+          "Historical cash schedule has expired; a new family agreement is required.");
       }
 
       if (overdueMembershipMonths > 0) {
@@ -876,6 +901,13 @@ export const createProposalCheckout =
 
             payment_method_types: ["card"],
 
+            // Historical-cash sessions must expire before the first
+            // scheduled subscription date; do not accept a late payment
+            // against a stale billing schedule.
+            ...(historicalCashTerms
+              ? { expires_at: Math.floor(Date.now() / 1000) + 1800 }
+              : {}),
+
             line_items:
               lineItems,
 
@@ -908,6 +940,13 @@ export const createProposalCheckout =
                 String(
                   recurringBillingDay
                 ),
+              ...(historicalCashTerms
+                ? {
+                    historicalCashCheckoutVersion: "1",
+                    historicalCashLedgerFingerprint: historicalCashTerms.ledgerFingerprint,
+                    historicalCashDueNowCents: String(historicalCashTerms.dueNowCents),
+                  }
+                : {}),
             },
 
             payment_intent_data: {
@@ -1004,6 +1043,23 @@ export const createProposalCheckout =
                 "failed-precondition",
                 `Proposal ${proposalId} is no longer eligible for this checkout session.`
               );
+            }
+
+            // The ledger and signed terms may have changed during the Stripe
+            // API call. Refuse to bind an opened session to altered finances.
+            if (historicalCashTerms) {
+              let liveTerms;
+              try {
+                liveTerms = resolveHistoricalCashCheckoutTerms(currentProposal);
+              } catch (_) {
+                throw new HttpsError("failed-precondition",
+                  "Historical cash ledger changed before checkout could be saved.");
+              }
+              if (JSON.stringify(liveTerms) !== JSON.stringify(historicalCashTerms) ||
+                  JSON.stringify(currentProposal.lockedSnapshot) !== JSON.stringify(snapshot)) {
+                throw new HttpsError("failed-precondition",
+                  "Historical cash or signed checkout terms changed during Stripe creation.");
+              }
             }
 
             const historyRef =

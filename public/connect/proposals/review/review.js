@@ -378,7 +378,9 @@ function renderProposal(
       : "No unapplied cash"),
     scheduleItem("Proposed next recurring charge",
       `${esc(historical.proposedFirstRecurringChargeDate)} · regular ${moneyFromCents(historical.monthlyMembershipCents)}/month · ${moneyFromCents(historical.proposedFirstRecurringPeriodPaidCents)} already covered for that month`),
-    scheduleItem("Historical cash checkout", "Not authorized — no credit, refund or Stripe payment is executed by accepting this disclosure")
+    scheduleItem("Historical cash checkout", proposal.historicalCashCheckoutTerms
+      ? `After you sign, secure checkout collects ${moneyFromCents(proposal.historicalCashCheckoutTerms.dueNowCents)} in remaining enrollment fees. Your membership subscription starts ${esc(proposal.historicalCashCheckoutTerms.firstRecurringChargeDate)} at ${moneyFromCents(proposal.historicalCashCheckoutTerms.monthlyMembershipCents)}/month. The ${moneyFromCents(proposal.historicalCashCheckoutTerms.unappliedCashHeldCents)} unapplied cash remains held and is not used, refunded, or charged again.`
+      : "Not authorized — credit, refund and Stripe payment require a separate approved arrangement")
   ] : [];
   $("paymentSchedule").innerHTML =
     [
