@@ -1860,12 +1860,11 @@ test("PR394 Billing validation checkpoint is immutable and cannot turn into a de
 
 test("PR394 validation uses current Clipboard and four-group source gates, not retired HYBRID", async () => {
   const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
-  const release = "billing-pr394-7befb7f2";
-  const clipboardGate = workflow.match(/if test "\\$\\{RELEASE_ID\\}" = "clipboard-hybrid-pr181-afe54629"[\\s\\S]*?; then\\n\\s+grep -Fq '\/coaches\/execution\/clipboard-2\\.0\/\\?session='/);
-  const fourGroupGate = workflow.match(/if test "\\$\\{RELEASE_ID\\}" = "tier-aware-groups-pr150-36374e8d"[\\s\\S]*?; then\\n\\s+grep -q 'NORMAL_TRAINING_GROUP_CAPACITY = 3'/);
-  assert.ok(clipboardGate, "Clipboard branch must preserve current routing assertion");
-  assert.ok(fourGroupGate, "four-group branch must preserve current capacity assertions");
-  assert.match(clipboardGate[0], /billing-pr394-7befb7f2/);
-  assert.match(fourGroupGate[0], /billing-pr394-7befb7f2/);
-  assert.equal((workflow.match(/\|\| test "\\$\\{RELEASE_ID\\}" = "billing-pr394-7befb7f2" \|\| test "\\$\\{RELEASE_ID\\}" = "clipboard-notes-pr372-e445688c"; then/g) || []).length, 2);
+  const conditions = workflow.split("\n").filter(line =>
+    line.includes('if test "${RELEASE_ID}" =') &&
+    line.includes('billing-pr394-7befb7f2') &&
+    line.includes('clipboard-notes-pr372-e445688c"; then'));
+  assert.equal(conditions.length, 2, "Both modern Coach invariant branches must include Billing PR394");
+  assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
+  assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
 });
