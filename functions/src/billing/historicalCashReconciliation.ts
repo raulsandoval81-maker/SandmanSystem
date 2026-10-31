@@ -67,7 +67,7 @@ export function summarizeHistoricalCash(input: {
       const allocation = raw as Record<string, unknown>;
       const period = String(allocation?.period ?? "").trim();
       const paid = nonnegativeInteger(allocation?.paidCents);
-      if (!/^\\d{4}-(0[1-9]|1[0-2])$/.test(period) || paid === null) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(period) || paid === null) {
         issues.push(`Payment entry ${index} contains an invalid monthly allocation.`);
         continue;
       }
