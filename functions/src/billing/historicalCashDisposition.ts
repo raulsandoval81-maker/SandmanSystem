@@ -50,7 +50,8 @@ export function validateHistoricalCashDisposition(input: {
     if (covered + input.amountCents > review.monthlyMembershipCents) {
       throw new Error("The proposed credit would exceed the target month's membership charge.");
     }
-    const latestPaidPeriod = Object.keys(review.membershipPaidByPeriodCents).sort().at(-1);
+    const paidPeriods = Object.keys(review.membershipPaidByPeriodCents).sort();
+    const latestPaidPeriod = paidPeriods[paidPeriods.length - 1];
     if (latestPaidPeriod && period <= latestPaidPeriod) {
       throw new Error("Future-month credit proposals must target a month after existing recorded cash coverage.");
     }
