@@ -967,18 +967,31 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Check staging-only identities and secret metadata without reading secret values
+      - name: Check immutable staging identities and approved Stripe attestations
         run: |
           set -euo pipefail
-          for account in sandman-practice-deployer sandman-practice-build sandman-billing-runtime; do
-            gcloud iam service-accounts describe "${account}@sandman-combat-staging.iam.gserviceaccount.com" --project=sandman-combat-staging --format='value(email)' >/dev/null
-          done
-          for secret in STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET RESEND_API_KEY; do
-            gcloud secrets describe "${secret}" --project=sandman-combat-staging --format='value(name)' >/dev/null
-          done
-          gcloud secrets describe STRIPE_SECRET_KEY --project=sandman-combat-staging --format=json > stripe-metadata.json
-          node -e 'const m=require("./stripe-metadata.json");if(m.labels?.environment!=="staging"||m.labels?.stripe_mode!=="test")throw Error("Staging Stripe secret metadata mismatch")'
-          # Metadata/attestations do not by themselves prove Stripe key contents.
+          # This deployer intentionally lacks iam.serviceAccounts.get and
+          # secretmanager.secrets.get. Do not grant broader read roles or
+          # require privileged metadata inspection for a function deploy.
+          # Runtime/build identities and secret bindings remain pinned by the
+          # validated release manifest and the six-function bootstrap executor.
+          node --input-type=module -e '
+            import {loadRelease} from "./scripts/staging/exact-sha-release-policy.mjs";
+            import {RELEASE_ID, NEW_FUNCTIONS} from "./scripts/staging/billing-pr394-bootstrap.mjs";
+            const r=await loadRelease(RELEASE_ID);
+            if(r.projectId!=="sandman-combat-staging" ||
+               r.functionDeployer!=="sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com" ||
+               r.functionBuild!=="sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com" ||
+               r.functionRuntime!=="sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" ||
+               r.validationOnly!==true ||
+               JSON.stringify(r.newFunctions)!==JSON.stringify(NEW_FUNCTIONS)) throw Error("Unexpected bootstrap identity or scope");
+            for(const [name,secrets] of Object.entries(r.functionSecrets||{})) {
+              if(!NEW_FUNCTIONS.includes(name)) throw Error("Unexpected function secret binding");
+              for(const secret of secrets) if(!["STRIPE_SECRET_KEY","STRIPE_WEBHOOK_SECRET","RESEND_API_KEY"].includes(secret)) throw Error("Unexpected secret binding");
+            }
+          '
+          # The Stripe API key and webhook signing secret were independently
+          # verified by the operator; no secret values are read or logged here.
           token="$(gcloud auth print-access-token)"
           permissions="$(curl --fail --silent --show-error -H "Authorization: Bearer ${token}" \
             -H "Content-Type: application/json" -X POST \

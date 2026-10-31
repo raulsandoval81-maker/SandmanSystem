@@ -99,3 +99,17 @@ test("only the existing WIF-trusted staging workflow can execute the Billing boo
     GITHUB_WORKFLOW_REF: "raulsandoval81-maker/SandmanSystem/.github/workflows/billing-pr394-staging-bootstrap.yml@refs/heads/main",
   }, "execute"), /GITHUB_WORKFLOW_REF/);
 });
+
+test("Billing bootstrap never demands IAM or secret metadata read privileges absent from deployer", () => {
+  const job = trustedWorkflow.slice(trustedWorkflow.indexOf("  billing-pr394-bootstrap:"));
+  assert.ok(job.includes('loadRelease(RELEASE_ID)'));
+  assert.ok(job.includes('JSON.stringify(r.newFunctions)!==JSON.stringify(NEW_FUNCTIONS)'));
+  assert.ok(job.includes('r.functionRuntime!=="sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"'));
+  assert.ok(job.includes('r.functionBuild!=="sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com"'));
+  assert.ok(job.includes('r.functionDeployer!=="sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com"'));
+  assert.ok(job.includes('cloudfunctions.functions.create'));
+  assert.doesNotMatch(job, /gcloud iam service-accounts describe|gcloud secrets describe|secrets versions access|add-iam-policy-binding|set-iam-policy/);
+  assert.ok(job.includes("APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH"));
+  assert.ok(job.includes("STRIPE_TEST_KEY_VERIFIED"));
+  assert.ok(job.includes("STAGING_WEBHOOK_SECRET_MATCH_VERIFIED"));
+});
