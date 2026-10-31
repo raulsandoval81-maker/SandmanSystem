@@ -694,7 +694,7 @@ jobs:
           fi
           node trusted-tooling/scripts/staging/gcloud-function-release.mjs rollback-evidence "${{ inputs.release_id }}" unused . > rollback-evidence.json
       - name: Verify staging-only Stripe secret metadata and runtime access
-        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' && (inputs.release_id == 'billing-pr354-014198ea' || inputs.release_id == 'billing-pr376-dff3e6d3' || inputs.release_id == 'billing-pr410-deploy-96a1452d') }}
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' && (inputs.release_id == 'billing-pr354-014198ea' || inputs.release_id == 'billing-pr376-dff3e6d3') }}
         run: |
           set -euo pipefail
           gcloud secrets describe STRIPE_SECRET_KEY \
@@ -730,15 +730,33 @@ jobs:
             --project sandman-combat-staging --format=json > stripe-secret-metadata.json
           gcloud secrets versions list STRIPE_SECRET_KEY \
             --project sandman-combat-staging --filter='state=ENABLED' --format=json > stripe-secret-versions.json
+          gcloud secrets get-iam-policy STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --format=json > stripe-secret-iam.json
           node <<'NODE'
           const fs = require("node:fs");
           const secret = JSON.parse(fs.readFileSync("stripe-secret-metadata.json", "utf8"));
           const versions = JSON.parse(fs.readFileSync("stripe-secret-versions.json", "utf8"));
+          const policy = JSON.parse(fs.readFileSync("stripe-secret-iam.json", "utf8"));
           if (secret.labels?.environment !== "staging" || secret.labels?.stripe_mode !== "test") {
             throw Error("PR410 Stripe secret must be labeled environment=staging, stripe_mode=test.");
           }
-          if (!Array.isArray(versions) || !versions.length) {
-            throw Error("PR410 Stripe staging secret lacks an enabled version.");
+          if (!Array.isArray(versions) || versions.length !== 1) {
+            throw Error("PR410 Stripe staging secret must have exactly one enabled version.");
+          }
+          if (!Array.isArray(policy.bindings)) throw Error("PR410 Stripe secret IAM policy is malformed.");
+          const expected = new Set([
+            "serviceAccount:991554514268-compute@developer.gserviceaccount.com",
+            "serviceAccount:sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+          ]);
+          const accessors = policy.bindings
+            .filter(binding => binding.role === "roles/secretmanager.secretAccessor")
+            .flatMap(binding => binding.members || []);
+          if (accessors.some(member => !expected.has(member))) {
+            throw Error("PR410 Stripe secret has unapproved accessors.");
+          }
+          const billing = "serviceAccount:sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com";
+          if (!accessors.includes(billing)) {
+            throw Error("PR410 Billing runtime is missing Stripe staging secret accessor.");
           }
           NODE
       - name: Verify PR410 existing callable baseline and recoverable source
