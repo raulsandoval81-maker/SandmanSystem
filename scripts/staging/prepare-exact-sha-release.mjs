@@ -150,8 +150,11 @@ if (release.functions.length) {
       "module.exports = {\n" +
       fullExports.map(([name, module]) => `  ${name}: require("${module}").${name},`).join("\n") +
       "\n};");
+    if (stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
+      throw new Error("Full Billing staging package did not replace the generic entrypoint.");
+    }
     const stripeClient = await readFile(path.join(functionsRoot, "lib/billing/stripeClient.js"), "utf8");
-    if (!stripeClient.includes("STRIPE_WEBHOOK_SECRET")) {
+    if (!/defineSecret\)\(["\x27]STRIPE_WEBHOOK_SECRET["\x27]\)/.test(stripeClient)) {
       throw new Error("Full Billing staging package is missing the Stripe webhook secret.");
     }
   }
