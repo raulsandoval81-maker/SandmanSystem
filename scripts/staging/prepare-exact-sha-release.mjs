@@ -14,6 +14,8 @@ const outputRoot = path.resolve(outputRootArg);
 const hostingRoot = path.join(outputRoot, "public");
 const functionsRoot = path.join(outputRoot, "functions");
 const billingReleaseIds = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
+// Separate PR394 full-flow artifact; do not mutate the protected validation-only release.
+const billingFullReleaseId = "billing-pr394-deploy-7befb7f2";
 
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
@@ -118,6 +120,40 @@ if (release.functions.length) {
       approveProposalRenewalAutopay: require("./lib/billing/approveProposalRenewalAutopay.js").approveProposalRenewalAutopay,
       createProposalAutopaySetup: require("./lib/billing/proposalAutopaySetup.js").createProposalAutopaySetup,
     };`);
+  }
+  if (release.releaseId === billingFullReleaseId) {
+    // Unlike PR354/376, PR394 MUST retain the original webhook secret declaration
+    // and all seven callable/HTTP exports from the immutable source. Never use
+    // the historical four-function package or remove STRIPE_WEBHOOK_SECRET.
+    const expected = [
+      "recordProposalPriorPayment",
+      "recordHistoricalCashDisposition",
+      "issueProposalClientReview",
+      "getProposalClientReview",
+      "acceptProposalClientReview",
+      "createProposalCheckout",
+      "stripeBillingWebhook",
+    ];
+    if (JSON.stringify(release.functions) !== JSON.stringify(expected)) {
+      throw new Error("PR394 Billing artifact requires the exact seven-function target order.");
+    }
+    const fullExports = [
+      ["recordProposalPriorPayment", "./lib/billing/recordProposalPriorPayment.js"],
+      ["recordHistoricalCashDisposition", "./lib/billing/recordHistoricalCashDisposition.js"],
+      ["issueProposalClientReview", "./lib/proposals/issueProposalClientReview.js"],
+      ["getProposalClientReview", "./lib/proposals/getProposalClientReview.js"],
+      ["acceptProposalClientReview", "./lib/proposals/acceptProposalClientReview.js"],
+      ["createProposalCheckout", "./lib/proposals/createProposalCheckout.js"],
+      ["stripeBillingWebhook", "./lib/billing/webhook.js"],
+    ];
+    stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
+      "module.exports = {\\n" +
+      fullExports.map(([name, module]) => `  ${name}: require("${module}").${name},`).join("\\n") +
+      "\\n};");
+    const stripeClient = await readFile(path.join(functionsRoot, "lib/billing/stripeClient.js"), "utf8");
+    if (!stripeClient.includes("STRIPE_WEBHOOK_SECRET")) {
+      throw new Error("Full Billing staging package is missing the Stripe webhook secret.");
+    }
   }
   if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) throw new Error("Staging runtime service-account placeholder was not resolved.");
   await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
