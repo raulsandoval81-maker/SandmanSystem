@@ -5,6 +5,7 @@ import {
 import { summarizeHistoricalCash } from "../billing/historicalCashReconciliation";
 import { validateHistoricalCashDisposition } from "../billing/historicalCashDisposition";
 import { previewHistoricalCashPaymentPlan } from "../billing/historicalCashPaymentPlan";
+import { resolveHistoricalCashCheckoutTerms } from "../billing/historicalCashCheckoutTerms";
 
 export function cleanReviewString(
   value: unknown
@@ -98,6 +99,19 @@ export function buildClientProposalSnapshot(
 
   const coach =
     proposal.coach || {};
+  const historicalCashCheckoutTerms = resolveHistoricalCashCheckoutTerms(proposal);
+  const historicalCash = buildHistoricalCashClientDisclosure(proposal);
+  const signedPricing = historicalCashCheckoutTerms
+    ? {
+        ...(proposal.pricing || {}),
+        dueNow: historicalCashCheckoutTerms.dueNowCents / 100,
+        enrollmentDueNow: historicalCashCheckoutTerms.enrollmentRemainingCents / 100,
+        proratedFirstMonth: 0,
+        prorationPercent: 0,
+        additionalMembershipMonthsDue: 0,
+        paymentStartMode: "deferred_family",
+      }
+    : proposal.pricing || {};
 
   return {
     version: 1,
@@ -123,10 +137,10 @@ export function buildClientProposalSnapshot(
         : [],
 
     pricing:
-      proposal.pricing || {},
+      signedPricing,
 
-    historicalCash:
-      buildHistoricalCashClientDisclosure(proposal),
+    historicalCash,
+    historicalCashCheckoutTerms,
 
     agreement:
       proposal.agreement || {},
