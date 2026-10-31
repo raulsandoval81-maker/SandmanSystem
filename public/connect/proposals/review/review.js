@@ -360,6 +360,26 @@ function renderProposal(
           0
         )}%)`;
 
+  const historical = proposal.historicalCash;
+  const historicalRows = historical ? [
+    scheduleItem("Historical cash received", moneyFromCents(historical.recordedCashCents)),
+    scheduleItem("Paid membership months", (historical.fullyPaidPeriods || []).map(esc).join(", ") || "None"),
+    scheduleItem("Partial membership months", (historical.partiallyPaidPeriods || []).map(esc).join(", ") || "None"),
+    scheduleItem("Enrollment paid and still due",
+      `${moneyFromCents(historical.enrollmentPaidCents)} paid · ${moneyFromCents(historical.enrollmentRemainingCents)} due`),
+    scheduleItem("Unapplied historical cash", moneyFromCents(historical.unappliedMembershipCents)),
+    scheduleItem("Management cash disposition", historical.disposition
+      ? ({
+          hold_unapplied: "Held as unapplied — not spent",
+          future_month_credit_pending: "Future-month credit proposed — not yet applied",
+          refund_pending: "Refund pending — not yet issued"
+        }[historical.disposition.kind] || "Review required") +
+        (historical.disposition.targetPeriod ? ` · ${esc(historical.disposition.targetPeriod)}` : "")
+      : "No unapplied cash"),
+    scheduleItem("Proposed next recurring charge",
+      `${esc(historical.proposedFirstRecurringChargeDate)} · regular ${moneyFromCents(historical.monthlyMembershipCents)}/month · ${moneyFromCents(historical.proposedFirstRecurringPeriodPaidCents)} already covered for that month`),
+    scheduleItem("Historical cash checkout", "Not authorized — no credit, refund or Stripe payment is executed by accepting this disclosure")
+  ] : [];
   $("paymentSchedule").innerHTML =
     [
       scheduleItem(
@@ -422,6 +442,7 @@ function renderProposal(
           pricing.annualRenewal
         )}/year`
       )
+      ,...historicalRows
     ].join("");
 }
 
