@@ -189,6 +189,20 @@ export const recordProposalPriorPayment =
             );
           }
 
+          // An issued client-review link is a signed-pricing boundary.
+          // Adding cash afterward would leave its existing snapshot stale.
+          // Management must return the proposal to Draft (revoking that
+          // review link), record cash, and issue a fresh client review.
+          if (
+            currentStatus === "AWAITING_CLIENT_SIGNATURE" &&
+            cleanString(proposal.clientReview?.tokenHash)
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              "A client review has already been issued. Return the proposal to Draft and reissue Review & Confirm before recording historical cash."
+            );
+          }
+
           const existing =
             Array.isArray(
               proposal.priorPayments

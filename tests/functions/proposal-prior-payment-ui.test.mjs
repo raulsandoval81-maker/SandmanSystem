@@ -125,3 +125,16 @@ test("Management displays recorded historical cash review without auto-dismissal
   assert.doesNotMatch(ui.slice(ui.indexOf("const recorded = await recordPriorPaymentCall"), ui.indexOf("} catch (error)", ui.indexOf("const recorded = await recordPriorPaymentCall"))), /dialog\.close\(\)/);
   assert.match(recording, /historicalCashReview,/);
 });
+
+test("cash after issued client review fails closed to prevent stale signed amounts", () => {
+  const recording = read("functions/src/billing/recordProposalPriorPayment.ts");
+  const review = read("functions/src/proposals/issueProposalClientReview.ts");
+  const returnDraft = read("functions/src/proposals/returnProposalToDraft.ts");
+  const acceptance = read("functions/src/proposals/acceptProposalClientReview.ts");
+  assert.match(recording, /currentStatus === "AWAITING_CLIENT_SIGNATURE" &&\s*cleanString\(proposal\.clientReview\?\.tokenHash\)/);
+  assert.match(recording, /Return the proposal to Draft and reissue Review & Confirm before recording historical cash/);
+  assert.match(review, /tokenHash,/);
+  assert.match(review, /snapshot:\s*clientSnapshot/);
+  assert.match(returnDraft, /clientReview:\s*FieldValue\.delete\(\)/);
+  assert.match(acceptance, /lockedSnapshot:\s*review\.snapshot/);
+});
