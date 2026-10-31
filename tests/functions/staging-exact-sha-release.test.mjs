@@ -1099,7 +1099,7 @@ test("PR308 staging attendance cold-start recovery is immutable and function-onl
   const packager = await readFile("scripts/staging/prepare-exact-sha-release.mjs", "utf8");
   assert.match(packager, /"attendance-admin-init-pr308-0b06a778"\]\.includes\(release\.releaseId\)/);
   assert.match(packager, /module\.exports = \{ updatePracticeCheckIn: require\("\.\/lib\/practice\/practiceSessions\.js"\)\.updatePracticeCheckIn \};/);
-  assert.match(workflow, /if: \\$\\{\\{ \\(inputs\\.release_id != 'attendance-admin-init-pr308-0b06a778' && inputs\\.release_id != 'billing-pr410-deploy-96a1452d'\\) \\}\\}/);
+  assert.ok(workflow.includes("if: ${{ (inputs.release_id != 'attendance-admin-init-pr308-0b06a778' && inputs.release_id != 'billing-pr410-deploy-96a1452d') }}"), "both function-only releases must skip Hosting");
   assert.match(workflow, /function-deploy-receipt-/);
 
 });
