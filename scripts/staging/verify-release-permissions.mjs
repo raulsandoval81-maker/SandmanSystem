@@ -144,13 +144,13 @@ export function permissionChecks(release) {
         principal: build, permission, resource: release.buildPermissionResources[permission],
         url: TROUBLESHOOT_URL,
       })),
-      // The old pinned Storage source path belongs to another Billing function.
-      // Future resource IAM, service creation, per-secret access, and Stripe
-      // test-mode/webhook wiring require independent evidence, not a fake PASS.
+      // PR394's future Cloud Build source object is not known before bootstrap.
+      // Reference the pinned source bucket, never a prior function's source ZIP.
+      // This gate remains inconclusive until the actual object is identified.
       { method: "MANUAL_GATE", category: "billing-pr394-storage-source",
         principal: build, permission: "storage.objects.get",
-        resource: release.buildPermissionResources["storage.objects.get"],
-        detail: "Verify actual PR394 Cloud Build source object and effective conditional Storage IAM." },
+        resource: release.buildPermissionResources["storage.objects.list"],
+        detail: "After approved bootstrap source upload, identify the actual PR394 Cloud Build source object and verify its effective Storage IAM; bucket-level grants alone do not certify a specific future object." },
       ...BILLING_PR394_NEW_FUNCTIONS.map(name => ({
         method: "MANUAL_GATE", category: "billing-pr394-new-function",
         principal: deployer, permission: "run.services.create/update/invoker",
