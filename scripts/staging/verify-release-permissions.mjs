@@ -5,6 +5,12 @@ import { loadRelease, STAGING_PROJECT_ID } from "./exact-sha-release-policy.mjs"
 import { permissionPlan } from "./gcloud-function-release.mjs";
 
 const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
+const BILLING_PR394_ID = "billing-pr394-deploy-7befb7f2";
+const BILLING_PR394_NEW_FUNCTIONS = Object.freeze([
+  "recordHistoricalCashDisposition", "issueProposalClientReview", "getProposalClientReview",
+  "acceptProposalClientReview", "createProposalCheckout", "stripeBillingWebhook",
+]);
+
 
 const TROUBLESHOOT_URL = "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot";
 const CAN_ACCESS = new Set([1, "CAN_ACCESS"]);
@@ -100,6 +106,63 @@ function functionResource(release, name) {
 export function permissionChecks(release) {
   if (release.projectId !== STAGING_PROJECT_ID) throw new Error("Permission verification is staging-only.");
   const plan = permissionPlan(release);
+  if (release.releaseId === BILLING_PR394_ID) {
+    // A new-function bootstrap cannot be certified using the routine update
+    // path or an IAM probe against the older prepaid-cash Cloud Run service.
+    // Keep unknown future-resource permissions explicitly INCONCLUSIVE.
+    if (release.validationOnly !== true ||
+        release.functionDeploymentTool !== "gcloud-gen2" ||
+        JSON.stringify(release.newFunctions) !== JSON.stringify(BILLING_PR394_NEW_FUNCTIONS) ||
+        release.bootstrap?.approvalRequired !== true ||
+        release.bootstrap?.routineDeployMayCreate !== false ||
+        JSON.stringify(release.bootstrap?.functions) !== JSON.stringify(BILLING_PR394_NEW_FUNCTIONS)) {
+      throw new Error("PR394 bootstrap inventory must remain pinned and validation-only.");
+    }
+    const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
+    const build = policyTroubleshooterPrincipal(release.functionBuild);
+    const region = release.expectedFunctionConfiguration.region;
+    const project = release.projectId;
+    const bootstrap = permissionPlan(release, "bootstrap");
+    return [
+      { method: "TEST_IAM", category: "billing-pr394-project-bootstrap", principal: deployer,
+        permissions: ["cloudfunctions.functions.create", "cloudfunctions.functions.get",
+          "cloudfunctions.functions.update", "serviceusage.services.use"],
+        resource: `//cloudresourcemanager.googleapis.com/projects/${project}`,
+        url: `https://cloudresourcemanager.googleapis.com/v1/projects/${project}:testIamPermissions` },
+      { method: "TEST_IAM", category: "billing-pr394-artifact-download", principal: deployer,
+        permissions: ["artifactregistry.repositories.downloadArtifacts"],
+        resource: release.buildPermissionResources["artifactregistry.repositories.downloadArtifacts"],
+        url: `https://artifactregistry.googleapis.com/v1/projects/${project}/locations/${region}/repositories/gcf-artifacts:testIamPermissions` },
+      ...bootstrap.serviceAccounts.map(target => ({
+        method: "TEST_IAM", category: "billing-pr394-service-account-actAs",
+        principal: deployer, permissions: target.permissions,
+        resource: `//iam.googleapis.com/projects/${project}/serviceAccounts/${target.account}`,
+        url: `https://iam.googleapis.com/v1/projects/${project}/serviceAccounts/${target.account}:testIamPermissions`,
+      })),
+      ...bootstrap.build.filter(permission => permission !== "storage.objects.get").map(permission => ({
+        method: "TROUBLESHOOT", category: "billing-pr394-build",
+        principal: build, permission, resource: release.buildPermissionResources[permission],
+        url: TROUBLESHOOT_URL,
+      })),
+      // The old pinned Storage source path belongs to another Billing function.
+      // Future resource IAM, service creation, per-secret access, and Stripe
+      // test-mode/webhook wiring require independent evidence, not a fake PASS.
+      { method: "MANUAL_GATE", category: "billing-pr394-storage-source",
+        principal: build, permission: "storage.objects.get",
+        resource: release.buildPermissionResources["storage.objects.get"],
+        detail: "Verify actual PR394 Cloud Build source object and effective conditional Storage IAM." },
+      ...BILLING_PR394_NEW_FUNCTIONS.map(name => ({
+        method: "MANUAL_GATE", category: "billing-pr394-new-function",
+        principal: deployer, permission: "run.services.create/update/invoker",
+        resource: `//run.googleapis.com/projects/${project}/locations/${region}/services/${name.toLowerCase()}`,
+        detail: "New service absent or unverified: inspect creation permissions, runtime identity, ingress, and invoker policy before approval.",
+      })),
+      { method: "MANUAL_GATE", category: "billing-pr394-runtime-and-secrets",
+        principal: release.functionRuntime, permission: "secretmanager.versions.access",
+        resource: `//cloudresourcemanager.googleapis.com/projects/${project}`,
+        detail: "Verify dedicated runtime exists and exact three-secret access bindings, Stripe test mode, and staging webhook destination." },
+    ];
+  }
   if (BILLING_RELEASE_IDS.has(release.releaseId)) {
     const deployer = policyTroubleshooterPrincipal(release.functionDeployer);
     const bootstrapPlan = permissionPlan(release, "bootstrap");
@@ -203,6 +266,10 @@ export async function verifyPermissionChecks(checks, { accessToken, fetchImpl = 
   if (!accessToken) throw new Error("A short-lived Google access token is required.");
   const results = [];
   for (const check of checks) {
+    if (check.method === "MANUAL_GATE") {
+      results.push({ ...check, result: "INCONCLUSIVE", status: null });
+      continue;
+    }
     try {
       const troubleshoot = check.method === "TROUBLESHOOT";
       const testIam = check.method === "TEST_IAM";
