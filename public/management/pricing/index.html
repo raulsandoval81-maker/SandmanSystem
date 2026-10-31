@@ -48,6 +48,44 @@
         <option value="winter-wrestling">Winter Wrestling · Seasonal</option>
       </select>
     </section>
+    <section class="pricing-panel" id="enrollmentEntryPanel" aria-labelledby="enrollmentEntryHeading">
+      <div class="pricing-section-heading">
+        <div>
+          <p class="section-label">Management intake route</p>
+          <h2 id="enrollmentEntryHeading">Enrollment Entry</h2>
+        </div>
+      </div>
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label for="enrollmentEntrySource">How did they arrive?</label>
+          <select id="enrollmentEntrySource">
+            <option value="admissions">Admissions — Lead / Appointment</option>
+            <option value="walk_in">Walk-in — Direct Management</option>
+          </select>
+        </div>
+        <div class="pricing-field">
+          <label for="enrollmentRegistrantRole">Who is enrolling?</label>
+          <select id="enrollmentRegistrantRole">
+            <option value="parent_guardian">Parent / Guardian</option>
+            <option value="athlete">Athlete</option>
+          </select>
+        </div>
+        <div class="pricing-field">
+          <label for="enrollmentAthleteRecord">Athlete record</label>
+          <select id="enrollmentAthleteRecord">
+            <option value="new">New athlete — create record at Intake</option>
+            <option value="existing">Existing / Legacy — find and link record</option>
+          </select>
+        </div>
+      </div>
+      <div id="enrollmentExistingLookup" class="pricing-field" hidden>
+        <label for="enrollmentExistingAthleteSearch">Find existing athlete</label>
+        <input id="enrollmentExistingAthleteSearch" type="search"
+          placeholder="Verified athlete ID or name — lookup pending" disabled>
+        <small>Existing-athlete linking requires verified record selection. It will not create a second athlete.</small>
+      </div>
+      <p id="enrollmentEntryStatus" class="pricing-disclaimer" role="status" aria-live="polite"></p>
+    </section>
     <section class="pricing-panel" id="winterSeasonalPanel" hidden>
       <h2>Winter Wrestling · Seasonal</h2>
       <p>November 15, 2026 – February 14, 2027 · Ages 7–14 · $350 per athlete</p>
