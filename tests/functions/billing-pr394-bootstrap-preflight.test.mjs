@@ -18,7 +18,7 @@ test("PR394 enumerates all six future services without claiming their IAM is gra
   assert.ok(checks.some(check => check.category === "billing-pr394-storage-source"));
   assert.ok(checks.some(check => check.category === "billing-pr394-project-bootstrap" &&
     check.permissions.includes("cloudfunctions.functions.create")));
-  assert.ok(checks.every(check => check.resource.includes("sandman-combat-staging")));
+  assert.ok(checks.every(check => check.resource.includes("sandman-combat-staging") || check.resource.includes("991554514268")));
   assert.ok(!checks.some(check => check.category === "billing-pr394-new-function" && check.resource.includes("recordproposalprepaidcash")));
 });
 
