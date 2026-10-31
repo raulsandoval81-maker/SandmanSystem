@@ -174,15 +174,17 @@ export const recordProposalPriorPayment =
               proposal.status
             ).toUpperCase();
 
+          // Prior cash must be recorded before checkout or activation. The
+          // client-review snapshot and Stripe checkout cannot be silently
+          // amended by a late payment entry. Keep this aligned with the
+          // Management Billing UI's available recording stages.
           if (
-            [
-              "PAID",
-              "VOID",
-            ].includes(currentStatus)
+            currentStatus !== "DRAFT" &&
+            currentStatus !== "AWAITING_CLIENT_SIGNATURE"
           ) {
             throw new HttpsError(
               "failed-precondition",
-              "Prior payments must be recorded before the proposal is paid or void."
+              "Prior payments must be recorded while the proposal is a draft or awaiting client signature, before checkout begins."
             );
           }
 
