@@ -111,3 +111,17 @@ test("prior-payment recording stops before checkout, pending payment, and activa
   assert.match(management, /"AWAITING_CLIENT_SIGNATURE"/);
   // A direct callable invocation must not bypass the earlier UI-stage restriction.
 });
+
+test("Management displays recorded historical cash review without auto-dismissal or checkout authorization", () => {
+  const ui = read("public/management/billing/billing.js");
+  const recording = read("functions/src/billing/recordProposalPriorPayment.ts");
+  assert.match(ui, /const recorded = await recordPriorPaymentCall/);
+  assert.match(ui, /recorded\?\.data\?\.historicalCashReview/);
+  assert.match(ui, /Paid months:/);
+  assert.match(ui, /Partially paid months:/);
+  assert.match(ui, /Annual enrollment still due:/);
+  assert.match(ui, /Unapplied membership cash:/);
+  assert.match(ui, /Historical cash does not authorize Stripe checkout/);
+  assert.doesNotMatch(ui.slice(ui.indexOf("const recorded = await recordPriorPaymentCall"), ui.indexOf("} catch (error)", ui.indexOf("const recorded = await recordPriorPaymentCall"))), /dialog\.close\(\)/);
+  assert.match(recording, /historicalCashReview,/);
+});

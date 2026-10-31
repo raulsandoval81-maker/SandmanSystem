@@ -1095,6 +1095,29 @@ function priorPaymentSummaryHtml(item) {
   `;
 }
 
+function historicalCashReviewMessage(review) {
+  if (!review || typeof review !== "object") {
+    return "Prior payment recorded. Proposal stage was not changed.";
+  }
+  const fullyPaid = Array.isArray(review.fullyPaidPeriods)
+    ? review.fullyPaidPeriods.map(formatPriorPaymentPeriod).join(", ")
+    : "";
+  const partial = Array.isArray(review.partiallyPaidPeriods)
+    ? review.partiallyPaidPeriods.map(formatPriorPaymentPeriod).join(", ")
+    : "";
+  const problems = Array.isArray(review.issues) ? review.issues : [];
+  const lines = [
+    "Prior payment recorded. Proposal stage was not changed.",
+    fullyPaid ? `Paid months: ${fullyPaid}.` : "No fully paid months confirmed.",
+    partial ? `Partially paid months: ${partial}.` : "",
+    `Annual enrollment still due: ${moneyFromCents(review.enrollmentRemainingCents)}.`,
+    `Unapplied membership cash: ${moneyFromCents(review.unappliedMembershipCents)}.`,
+    problems.length ? `Review required: ${problems.join(" ")}` : "",
+    "Historical cash does not authorize Stripe checkout. Management reconciliation and client Review & Confirm are still required."
+  ];
+  return lines.filter(Boolean).join(" ");
+}
+
 function paidInFullSummaryHtml(item) {
   const payment = item.proposal?.cashPrepayment;
   const uiState = paidInFullUiState(item.proposal);
@@ -1599,7 +1622,7 @@ function ensurePriorPaymentDialog() {
         }
 
         try {
-          await recordPriorPaymentCall({
+          const recorded = await recordPriorPaymentCall({
             proposalId,
             amountCents:
               Math.round(amount * 100),
@@ -1614,16 +1637,14 @@ function ensurePriorPaymentDialog() {
           });
 
           if (status) {
-            status.textContent =
-              "Prior payment recorded. Proposal stage was not changed.";
+            status.textContent = historicalCashReviewMessage(
+              recorded?.data?.historicalCashReview
+            );
           }
 
           await loadBilling();
-
-          window.setTimeout(
-            () => dialog.close(),
-            500
-          );
+          // Preserve the reconciliation outcome on screen. A rushed
+          // auto-close would hide unresolved cash and fee balances.
         } catch (error) {
           console.error(
             "[billing] prior payment failed:",
