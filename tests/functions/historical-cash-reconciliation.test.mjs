@@ -91,11 +91,13 @@ test("fee over-allocation and invalid month format are surfaced", () => {
   assert.equal(result.requiresManagementReview, true);
 });
 
-test("prior cash return exposes informational review but checkout safeguard remains intact", () => {
+test("prior cash records an informational review and checkout requires reconciled signed terms", () => {
   const recording = source("functions/src/billing/recordProposalPriorPayment.ts");
   const checkout = source("functions/src/proposals/createProposalCheckout.ts");
   assert.match(recording, /const historicalCashReview = summarizeHistoricalCash/);
   assert.match(recording, /historicalCashReview,/);
   assert.match(checkout, /Array.isArray\(proposal.priorPayments\)/);
-  assert.match(checkout, /Management must reconcile their monthly coverage/);
+  assert.match(checkout, /resolveHistoricalCashCheckoutTerms\(proposal\)/);
+  assert.match(checkout, /Stripe billing must match the family.s signed historical-cash terms exactly/);
+  assert.match(checkout, /Historical cash schedule has expired/);
 });
