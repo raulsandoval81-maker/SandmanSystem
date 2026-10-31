@@ -204,6 +204,16 @@ export const recordProposalPriorPayment =
             );
           }
 
+          // An existing disposition refers to a specific historical ledger.
+          // A new payment would invalidate that decision; require a separately
+          // audited revision workflow rather than silently changing its basis.
+          if (proposal.historicalCashDisposition?.status === "recorded") {
+            throw new HttpsError(
+              "failed-precondition",
+              "An historical cash disposition has been recorded. Revise that decision through an audited Management workflow before adding payments."
+            );
+          }
+
           const existing =
             Array.isArray(
               proposal.priorPayments

@@ -67,6 +67,9 @@ const recordPriorPaymentCall =
     "recordProposalPriorPayment"
   );
 
+const recordHistoricalCashDispositionCall =
+  httpsCallable(functions, "recordHistoricalCashDisposition");
+
 const createAutopaySetupCall =
   httpsCallable(
     functions,
@@ -790,6 +793,13 @@ function buildProposalItems(
             upper(proposal.status)
           ),
 
+        canRecordCashDisposition:
+          upper(proposal.status) === "DRAFT" &&
+          Array.isArray(proposal.priorPayments) &&
+          proposal.priorPayments.some(payment => Number(payment.unappliedMembershipAmountCents) > 0) &&
+          proposal.historicalCashDisposition?.status !== "recorded",
+
+
         canRecordPrepaidCash:
           (
             upper(proposal.status) ===
@@ -1229,6 +1239,17 @@ function render() {
                     data-prior-payment-name="${esc(item.name)}"
                   >
                     Record prior payment
+                  </button>
+                `
+                : ""
+              }
+
+              ${item.canRecordCashDisposition
+                ? `
+                  <button class="billing-action" type="button"
+                    data-cash-disposition-proposal-id="${esc(item.proposalId)}"
+                    data-cash-disposition-name="${esc(item.name)}">
+                    Review unapplied cash
                   </button>
                 `
                 : ""
@@ -2361,6 +2382,96 @@ billingQueue.addEventListener(
     }
   }
 );
+
+function ensureCashDispositionDialog() {
+  let dialog = document.getElementById("cashDispositionDialog");
+  if (dialog) return dialog;
+  dialog = document.createElement("dialog");
+  dialog.id = "cashDispositionDialog";
+  dialog.className = "billing-cash-dialog";
+  dialog.innerHTML = `
+    <form id="cashDispositionForm" class="billing-cash-form">
+      <div class="billing-cash-head">
+        <div><p class="eyebrow">Management · Billing</p>
+          <h2>Review unapplied historical cash</h2>
+          <p id="cashDispositionFamily"></p></div>
+        <button type="button" class="billing-cash-close" aria-label="Close">×</button>
+      </div>
+      <p>Recording this decision does not issue a refund, apply a credit, activate billing, or authorize Stripe checkout.</p>
+      <input type="hidden" id="cashDispositionProposalId">
+      <div class="billing-cash-grid">
+        <label><span>Unapplied cash</span>
+          <input id="cashDispositionAmount" type="text" readonly></label>
+        <label><span>Decision</span>
+          <select id="cashDispositionKind" required>
+            <option value="hold_unapplied">Hold as unapplied cash</option>
+            <option value="future_month_credit_pending">Propose future membership credit (not yet applied)</option>
+            <option value="refund_pending">Refund requires follow-up (not yet executed)</option>
+          </select></label>
+        <label><span>Target membership month (future-credit proposal only)</span>
+          <input id="cashDispositionTarget" type="month"></label>
+      </div>
+      <label><span>Reason and accounting decision</span>
+        <textarea id="cashDispositionReason" required minlength="10" maxlength="500"
+          placeholder="Explain the chosen treatment of this cash."></textarea></label>
+      <p id="cashDispositionStatus" role="status" aria-live="polite"></p>
+      <button id="cashDispositionSubmit" type="submit">Record decision (no Stripe charge)</button>
+    </form>`;
+  document.body.appendChild(dialog);
+  dialog.querySelector(".billing-cash-close").addEventListener("click", () => dialog.close());
+  dialog.querySelector("#cashDispositionForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const submit = dialog.querySelector("#cashDispositionSubmit");
+    const status = dialog.querySelector("#cashDispositionStatus");
+    const kind = dialog.querySelector("#cashDispositionKind").value;
+    const targetPeriod = dialog.querySelector("#cashDispositionTarget").value;
+    submit.disabled = true;
+    status.textContent = "Recording Management decision…";
+    try {
+      await recordHistoricalCashDispositionCall({
+        proposalId: dialog.querySelector("#cashDispositionProposalId").value,
+        amountCents: Number(dialog.dataset.amountCents),
+        kind,
+        targetPeriod: kind === "future_month_credit_pending" ? targetPeriod : null,
+        reason: dialog.querySelector("#cashDispositionReason").value.trim()
+      });
+      status.textContent = "Disposition recorded for audit. No credit, refund, or Stripe charge was executed.";
+      await loadBilling();
+    } catch (error) {
+      status.textContent = error?.message || "Unable to record disposition.";
+    } finally {
+      submit.disabled = false;
+    }
+  });
+  return dialog;
+}
+
+function openCashDispositionDialog(proposalId, name) {
+  const item = billingItems.find(item =>
+    item.proposalId === proposalId && item.canRecordCashDisposition);
+  if (!item) return;
+  const amountCents = item.priorPayments.reduce((sum, payment) =>
+    sum + (Number(payment.unappliedMembershipAmountCents) || 0), 0);
+  const dialog = ensureCashDispositionDialog();
+  dialog.dataset.amountCents = String(amountCents);
+  dialog.querySelector("#cashDispositionProposalId").value = proposalId;
+  dialog.querySelector("#cashDispositionFamily").textContent = name;
+  dialog.querySelector("#cashDispositionAmount").value = moneyFromCents(amountCents);
+  dialog.querySelector("#cashDispositionKind").value = "hold_unapplied";
+  dialog.querySelector("#cashDispositionTarget").value = "";
+  dialog.querySelector("#cashDispositionReason").value = "";
+  dialog.querySelector("#cashDispositionStatus").textContent = "";
+  dialog.showModal();
+}
+
+billingQueue?.addEventListener("click", event => {
+  const button = event.target.closest("[data-cash-disposition-proposal-id]");
+  if (!button) return;
+  openCashDispositionDialog(
+    clean(button.dataset.cashDispositionProposalId),
+    clean(button.dataset.cashDispositionName)
+  );
+});
 
 billingQueue?.addEventListener(
   "click",

@@ -226,6 +226,10 @@ export {
 } from "./billing/recordProposalPriorPayment";
 
 export {
+  recordHistoricalCashDisposition,
+} from "./billing/recordHistoricalCashDisposition";
+
+export {
   createProposalAutopaySetup,
 } from "./billing/proposalAutopaySetup";
 
