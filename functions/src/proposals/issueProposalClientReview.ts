@@ -317,6 +317,20 @@ export const issueProposalClientReview =
             const existingSnapshot =
               proposal.clientReview?.snapshot;
 
+            // Do not reuse an older review snapshot that predates cash
+            // disclosure. Management must revoke it via Return to Draft.
+            if (
+              existingSnapshot &&
+              Array.isArray(proposal.priorPayments) &&
+              proposal.priorPayments.length > 0 &&
+              !existingSnapshot.historicalCash
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                "Existing client-review snapshot predates historical cash disclosure. Return to Draft and issue a new review."
+              );
+            }
+
             const clientSnapshot =
               existingSnapshot ||
               buildClientProposalSnapshot(
