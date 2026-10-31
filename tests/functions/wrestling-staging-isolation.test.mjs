@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   STAGING_PROJECT_ID,
   STAGING_SEED_WIF_PROVIDER,
+  STAGING_HOSTING_WIF_PROVIDER,
   STAGING_WIF_PROVIDER,
   STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
   verifyStagingBoundary,
@@ -226,4 +227,40 @@ test("Phase 5 fixture includes deterministic mixed readiness and failure scenari
   assert.match(seed, /duplicate-retry/);
   assert.match(seed, /eligibleForAuto: false/);
   assert.match(seed, /xpAwarded: false/);
+});
+
+test("hosting sync is pinned to the already-used staging hybrid identity, never production", async () => {
+  const workflow = await read(".github/workflows/sync-staging-hosting.yml");
+  assert.match(workflow, /environment: staging/);
+  assert.match(workflow, /test "\\$\\{GITHUB_REF\\}" = "refs\\/heads\\/main"/);
+  assert.ok(workflow.includes("workload_identity_provider: " + STAGING_HOSTING_WIF_PROVIDER));
+  assert.ok(workflow.includes("SANDMAN_STAGING_WIF_PROVIDER: " + STAGING_HOSTING_WIF_PROVIDER));
+  assert.match(workflow, /service_account: sandman-staging-deployer@sandman-combat-staging\\.iam\\.gserviceaccount\\.com/);
+  assert.match(workflow, /--only hosting/);
+  assert.doesNotMatch(workflow, /--project sandmandashboard/);
+});
+
+test("staging credential verifier accepts only the explicitly pinned hybrid hosting provider", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "sandman-staging-hosting-wif-"));
+  const credentialPath = path.join(directory, "credential.json");
+  const email = "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+  const credential = {
+    type: "external_account",
+    audience: `//iam.googleapis.com/${STAGING_HOSTING_WIF_PROVIDER}`,
+    service_account_impersonation_url: `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${email}:generateAccessToken`,
+  };
+  await writeFile(credentialPath, JSON.stringify(credential));
+  const env = {
+    SANDMAN_STAGING_PROJECT_ID: STAGING_PROJECT_ID,
+    SANDMAN_STAGING_ACK: STAGING_PROJECT_ID,
+    SANDMAN_STAGING_SERVICE_ACCOUNT_EMAIL: email,
+    SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: STAGING_WRESTLING_RUNTIME_SERVICE_ACCOUNT,
+    SANDMAN_STAGING_WIF_PROVIDER: STAGING_HOSTING_WIF_PROVIDER,
+    GOOGLE_APPLICATION_CREDENTIALS: credentialPath,
+  };
+  assert.equal((await verifyStagingBoundary(env)).serviceAccountEmail, email);
+  await assert.rejects(
+    verifyStagingBoundary({ ...env, SANDMAN_STAGING_WIF_PROVIDER: STAGING_WIF_PROVIDER }),
+    /provider/
+  );
 });
