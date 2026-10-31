@@ -86,3 +86,18 @@ test("PR376 acceptance: historical month recording does not itself activate bill
   assert.match(autopay, /billing_cycle_anchor:/);
   assert.match(autopay, /proration_behavior:/);
 });
+
+test("prior cash cannot silently enter Stripe checkout using an unreconciled locked amount", () => {
+  const checkout = read("functions/src/proposals/createProposalCheckout.ts");
+  const clientReview = read("functions/src/proposals/proposalClientReview.ts");
+  const cash = read("functions/src/billing/recordProposalPriorPayment.ts");
+  assert.match(cash, /priorPayments:\s*\[/);
+  assert.match(clientReview, /proposal\.pricing \|\| \{\}/);
+  const seasonal = checkout.indexOf("if (isSeasonalProposalPricing(pricing))");
+  const guard = checkout.indexOf("Array.isArray(proposal.priorPayments)");
+  const checkoutCalculation = checkout.indexOf("const lockedDueNow =");
+  assert.ok(seasonal >= 0 && guard > seasonal && guard < checkoutCalculation);
+  assert.match(checkout, /Management must reconcile their monthly coverage, enrollment allocation, and unapplied balance before Stripe checkout/);
+  // Until a reconciled checkout workflow is implemented, this must block
+  // recurring Stripe checkout. It does not certify end-to-end staging acceptance.
+});

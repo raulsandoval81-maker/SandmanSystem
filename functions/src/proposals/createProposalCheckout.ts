@@ -269,6 +269,20 @@ export const createProposalCheckout =
         });
       }
 
+      // Historical payments are an audit ledger, not an automatic credit against
+      // the locked checkout amount. Until the proposal explicitly reconciles
+      // them, creating a Stripe charge can bill already-covered months again.
+      // Never bypass the client's Review & Confirm with a silent adjustment.
+      if (
+        Array.isArray(proposal.priorPayments) &&
+        proposal.priorPayments.length > 0
+      ) {
+        throw new HttpsError(
+          "failed-precondition",
+          "This proposal has recorded prior payments. Management must reconcile their monthly coverage, enrollment allocation, and unapplied balance before Stripe checkout."
+        );
+      }
+
       if (["PARTIALLY_PAID", "PAYMENT_FAILED"].includes(proposalStatus)) {
         throw new HttpsError(
           "failed-precondition",
