@@ -722,6 +722,40 @@ jobs:
           const unexpected = accessors.filter(member => member !== runtime);
           if (unexpected.length) throw Error(`Unexpected Stripe secret accessors: ${unexpected.join(", ")}`);
           NODE
+      - name: Verify PR410 Stripe staging test-secret metadata without reading values
+        if: ${{ inputs.release_id == 'billing-pr410-deploy-96a1452d' }}
+        run: |
+          set -euo pipefail
+          gcloud secrets describe STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --format=json > stripe-secret-metadata.json
+          gcloud secrets versions list STRIPE_SECRET_KEY \
+            --project sandman-combat-staging --filter='state=ENABLED' --format=json > stripe-secret-versions.json
+          node <<'NODE'
+          const fs = require("node:fs");
+          const secret = JSON.parse(fs.readFileSync("stripe-secret-metadata.json", "utf8"));
+          const versions = JSON.parse(fs.readFileSync("stripe-secret-versions.json", "utf8"));
+          if (secret.labels?.environment !== "staging" || secret.labels?.stripe_mode !== "test") {
+            throw Error("PR410 Stripe secret must be labeled environment=staging, stripe_mode=test.");
+          }
+          if (!Array.isArray(versions) || !versions.length) {
+            throw Error("PR410 Stripe staging secret lacks an enabled version.");
+          }
+          NODE
+      - name: Verify PR410 existing callable baseline and recoverable source
+        if: ${{ inputs.release_id == 'billing-pr410-deploy-96a1452d' }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require("node:fs");
+          for (const name of ["issueProposalClientReview", "createProposalCheckout"]) {
+            const current = JSON.parse(fs.readFileSync(name + "-before.json", "utf8"));
+            if (current.absent) throw Error("PR410 cannot create missing callable: " + name);
+            const source = current.buildConfig?.source?.storageSource;
+            if (!source?.bucket || !source?.object || !current.updateTime) {
+              throw Error("PR410 rollback source is not recoverable for: " + name);
+            }
+          }
+          NODE
       - name: Verify all routine deployer and service-account permissions
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         working-directory: trusted-tooling
