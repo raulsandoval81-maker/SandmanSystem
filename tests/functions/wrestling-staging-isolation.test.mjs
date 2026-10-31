@@ -232,10 +232,10 @@ test("Phase 5 fixture includes deterministic mixed readiness and failure scenari
 test("hosting sync is pinned to the already-used staging hybrid identity, never production", async () => {
   const workflow = await read(".github/workflows/sync-staging-hosting.yml");
   assert.match(workflow, /environment: staging/);
-  assert.match(workflow, /test "\\$\\{GITHUB_REF\\}" = "refs\\/heads\\/main"/);
+  assert.ok(workflow.includes('test "${GITHUB_REF}" = "refs/heads/main"'));
   assert.ok(workflow.includes("workload_identity_provider: " + STAGING_HOSTING_WIF_PROVIDER));
   assert.ok(workflow.includes("SANDMAN_STAGING_WIF_PROVIDER: " + STAGING_HOSTING_WIF_PROVIDER));
-  assert.match(workflow, /service_account: sandman-staging-deployer@sandman-combat-staging\\.iam\\.gserviceaccount\\.com/);
+  assert.ok(workflow.includes("service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com"));
   assert.match(workflow, /--only hosting/);
   assert.doesNotMatch(workflow, /--project sandmandashboard/);
 });
