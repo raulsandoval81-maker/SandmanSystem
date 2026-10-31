@@ -1857,3 +1857,14 @@ test("PR394 Billing validation checkpoint is immutable and cannot turn into a de
   assert.match(workflow, /Validation-only release: deployment is prohibited/);
   assert.match(workflow, /tests\/functions\/historical-cash-stripe-execution\.test\.mjs/);
 });
+
+test("PR394 validation uses current Clipboard and four-group source gates, not retired HYBRID", async () => {
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const conditions = workflow.split("\n").filter(line =>
+    line.includes('if test "${RELEASE_ID}" =') &&
+    line.includes('billing-pr394-7befb7f2') &&
+    line.includes('clipboard-notes-pr372-e445688c"; then'));
+  assert.equal(conditions.length, 2, "Both modern Coach invariant branches must include Billing PR394");
+  assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
+  assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
+});
