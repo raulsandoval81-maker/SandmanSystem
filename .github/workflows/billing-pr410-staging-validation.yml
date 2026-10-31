@@ -1,0 +1,45 @@
+name: Billing PR410 staging release validation
+
+on:
+  pull_request:
+    paths:
+      - "scripts/staging/approved-exact-sha-releases.json"
+      - "scripts/staging/exact-sha-release-policy.mjs"
+      - "scripts/staging/prepare-exact-sha-release.mjs"
+      - "tests/functions/staging-exact-sha-release.test.mjs"
+      - ".github/workflows/staging-exact-sha-release.yml"
+      - ".github/workflows/billing-pr410-staging-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  release-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Check pinned two-function release policy
+        run: node --test tests/functions/staging-exact-sha-release.test.mjs
+      - name: Build pinned PR410 source and run Billing regressions
+        run: |
+          set -euo pipefail
+          git worktree add --detach /tmp/billing-pr410-source 96a1452d3178c443df83c80aeedfd817cbd69519
+          npm --prefix /tmp/billing-pr410-source/functions ci
+          npm --prefix /tmp/billing-pr410-source/functions run build
+          (
+            cd /tmp/billing-pr410-source
+            node --test tests/functions/billing-public-origin.test.mjs
+            node --test tests/functions/historical-cash-*.test.mjs
+          )
+      - name: Assert no deployment occurs
+        run: |
+          node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")["billing-pr410-functions-96a1452d"];if(!r||r.validationOnly!==true||r.hosting!==false||r.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")process.exit(64)'
