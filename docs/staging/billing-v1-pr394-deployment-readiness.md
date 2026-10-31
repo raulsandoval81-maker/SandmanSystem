@@ -56,3 +56,13 @@ node scripts/staging/billing-v1-pr394-readonly-preflight.mjs
 ```
 
 The immediate next infrastructure work is to establish a staging-only Stripe test-mode webhook and verified signing-secret association, establish an approved non-production email delivery configuration, and explicitly approve the six missing functions' bootstrap after independent IAM/permission checks. Keep the prior validation-only release and production infrastructure unchanged.
+
+## Read-only runtime discovery — existing prior-payment callable
+
+Owner-provided `gcloud functions describe recordProposalPriorPayment --gen2 --region=us-central1 --project=sandman-combat-staging` reports:
+- `state: ACTIVE`, `buildConfig.runtime: nodejs22`, `buildConfig.entryPoint: recordProposalPriorPayment`.
+- `buildConfig.serviceAccount: sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com`.
+- `serviceConfig.serviceAccountEmail: 991554514268-compute@developer.gserviceaccount.com` (default Compute identity, **not** a dedicated Billing runtime identity).
+- `serviceConfig.ingressSettings: ALLOW_ALL` (network exposure; **does not** establish that unauthenticated invocation is allowed).
+
+**Fail-closed follow-up:** inspect the Cloud Run service's IAM invoker policy and the current runtime account's actual granted permissions; do not assume public access merely from `ALLOW_ALL`. Compare with the protected release's dedicated approved runtime identity and bootstrap plan. Any runtime-identity migration or invoker change requires its own approval and pre/post-deployment configuration evidence; no IAM writes are authorized by this discovery.
