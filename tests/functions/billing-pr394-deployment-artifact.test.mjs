@@ -97,3 +97,14 @@ test("Protected workflow recognizes an HTTP webhook instead of requiring callabl
   assert.match(workflow, /\|stripeBillingWebhook\) ;; \*\) exit 64 ;; esac/);
   assert.match(workflow, /if test "\$\{\{ inputs\.action \}\}" = "deploy"/);
 });
+
+test("PR394 diagnosis probes effective function creation without making cloud changes", () => {
+  const workflow = readFileSync(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /Verify PR394 create permission as the actual staging deployer/);
+  assert.match(workflow, /inputs\.release_id == 'billing-pr394-deploy-7befb7f2'/);
+  const step = workflow.split("Verify PR394 create permission as the actual staging deployer")[1]
+    .split("- name: Compare Firebase Admin SDK configuration authorization")[0];
+  assert.match(step, /cloudfunctions\.functions\.create/);
+  assert.match(step, /testIamPermissions/);
+  assert.doesNotMatch(step, /gcloud functions deploy|add-iam-policy-binding|set-iam-policy/);
+});
