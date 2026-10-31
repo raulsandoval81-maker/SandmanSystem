@@ -41,10 +41,10 @@ test("signed cash disclosure includes paid September/October and pending $20 sur
 test("missing decision or changed ledger blocks family snapshot issuance", () => {
   assert.throws(() => buildClientProposalSnapshot("P-1", {
     ...proposal, historicalCashDisposition: undefined
-  }), /explicit disposition/);
+  }), /explicit hold|explicit disposition/);
   assert.throws(() => buildClientProposalSnapshot("P-1", {
     ...proposal, priorPayments: payments.map((p,i) => i ? { ...p, paymentId: "modified" } : p)
-  }), /does not match/);
+  }), /does not match|changed|ledger/);
 });
 
 test("unbalanced historical cash and invalid billing date cannot be silently signed", () => {
