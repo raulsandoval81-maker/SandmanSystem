@@ -1094,12 +1094,12 @@ test("PR308 staging attendance cold-start recovery is immutable and function-onl
   assert.throws(() => validateRelease({ ...release, functions: ["savePracticeSessionMemory"] }, approved), /attendance-callable-only/);
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   assert.match(workflow, /attendance-admin-init-pr308-0b06a778/);
-  assert.match(workflow, /Explicitly skip Hosting for attendance-only recovery/);
-  assert.match(workflow, /Assert Hosting was not modified for attendance-only recovery/);
+  assert.match(workflow, /Explicitly skip Hosting for approved function-only staging release/);
+  assert.match(workflow, /Assert Hosting unchanged for function-only release/);
   const packager = await readFile("scripts/staging/prepare-exact-sha-release.mjs", "utf8");
   assert.match(packager, /"attendance-admin-init-pr308-0b06a778"\]\.includes\(release\.releaseId\)/);
   assert.match(packager, /module\.exports = \{ updatePracticeCheckIn: require\("\.\/lib\/practice\/practiceSessions\.js"\)\.updatePracticeCheckIn \};/);
-  assert.match(workflow, /if: \$\{\{ inputs\.release_id != 'attendance-admin-init-pr308-0b06a778' \}\}/);
+  assert.match(workflow, /if: \\$\\{\\{ \\(inputs\\.release_id != 'attendance-admin-init-pr308-0b06a778' && inputs\\.release_id != 'billing-pr410-deploy-96a1452d'\\) \\}\\}/);
   assert.match(workflow, /function-deploy-receipt-/);
 
 });
