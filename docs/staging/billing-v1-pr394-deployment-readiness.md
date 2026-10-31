@@ -70,3 +70,11 @@ Owner-provided `gcloud functions describe recordProposalPriorPayment --gen2 --re
 ## Read-only service-level Cloud Run IAM result
 
 Owner-provided `gcloud run services get-iam-policy recordproposalpriorpayment --region=us-central1 --project=sandman-combat-staging --format=yaml` returned only `etag: ACAB`, with **no service-level bindings** visible. There is therefore no displayed service-level `allUsers` invoker grant. This does **not** by itself prove that invocation is authenticated: verify `run.googleapis.com/invoker-iam-disabled` and inherited policies/configuration before declaring the endpoint protected. Continue to preserve existing policy; do not add or remove invoker bindings on the strength of this output alone.
+
+## Observed Cloud Run invoker setting and verified code-level access control
+
+Owner-supplied Cloud Run metadata on `recordproposalpriorpayment` shows `run.googleapis.com/invoker-iam-disabled: 'true'`, alongside `run.googleapis.com/ingress: all` and `run.googleapis.com/urls`. Therefore the empty service-level IAM binding list does **not** demonstrate an IAM-protected invocation boundary: Cloud Run IAM invoker enforcement is explicitly disabled. This does not by itself prove unauthenticated application data access.
+
+At immutable application source `7befb7f2dba6debb0e32c9336cda99ad897712de`, `functions/src/billing/recordProposalPriorPayment.ts` is a Firebase `onCall` function and explicitly rejects missing `req.auth` before reading/writing proposal data. It next invokes `requireProposalStaffAccess(req.auth.uid)`, which requires an active staff record with an allowed Management/Admin role, then `requireProposalLocationAccess` to restrict location access except authorized Admin roles. These are source-level findings, not deployed-artifact or external-invocation proof. Before changing invoker policy verify Firebase callable client transport requirements and perform an authorized anonymous-denial test; do not blindly enable Cloud Run IAM requirements and break Firebase clients.
+
+No policy, IAM, secrets or deployment configuration was changed.
