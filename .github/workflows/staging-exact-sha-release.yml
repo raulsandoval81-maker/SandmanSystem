@@ -854,6 +854,8 @@ jobs:
           fi
       - name: Deploy one allowlisted callable
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
+        env:
+          SANDMAN_PR410_DEPLOY_APPROVAL: ${{ inputs.confirm_two_billing_functions }}
         run: |
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance|recordProposalPrepaidCash|recordProposalPriorPayment|approveProposalRenewalAutopay|createProposalAutopaySetup|recordHistoricalCashDisposition|issueProposalClientReview|getProposalClientReview|acceptProposalClientReview|createProposalCheckout|stripeBillingWebhook) ;; *) exit 64 ;; esac
