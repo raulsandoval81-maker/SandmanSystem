@@ -121,6 +121,34 @@ if (release.functions.length) {
       createProposalAutopaySetup: require("./lib/billing/proposalAutopaySetup.js").createProposalAutopaySetup,
     };`);
   }
+  if (release.releaseId === "billing-pr410-functions-96a1452d") {
+    // Build only the two previously bootstrapped Gen2 callables from the
+    // immutable PR410 merge. Never export/redeploy the Stripe webhook.
+    if (JSON.stringify(release.functions) !== JSON.stringify([
+      "issueProposalClientReview", "createProposalCheckout",
+    ]) || release.hosting !== false || release.validationOnly !== true) {
+      throw new Error("PR410 validation artifact must remain two-callable and nondeployable.");
+    }
+    stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
+      'module.exports = {\n' +
+      '  issueProposalClientReview: require("./lib/proposals/issueProposalClientReview.js").issueProposalClientReview,\n' +
+      '  createProposalCheckout: require("./lib/proposals/createProposalCheckout.js").createProposalCheckout,\n' +
+      '};');
+    if (stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
+      throw new Error("PR410 staging package did not isolate the two approved exports.");
+    }
+    const review = await readFile(path.join(functionsRoot,
+      "lib/proposals/issueProposalClientReview.js"), "utf8");
+    const checkout = await readFile(path.join(functionsRoot,
+      "lib/proposals/createProposalCheckout.js"), "utf8");
+    const resolver = await readFile(path.join(functionsRoot,
+      "lib/proposals/billingPublicBaseUrl.js"), "utf8");
+    if (!review.includes("resolveBillingPublicBaseUrl") ||
+        !checkout.includes("resolveBillingPublicBaseUrl") ||
+        !resolver.includes("sandman-combat-staging.web.app")) {
+      throw new Error("Immutable Billing origin isolation is absent from PR410 artifact.");
+    }
+  }
   if (release.releaseId === billingFullReleaseId) {
     // Unlike PR354/376, PR394 MUST retain the original webhook secret declaration
     // and all seven callable/HTTP exports from the immutable source. Never use
