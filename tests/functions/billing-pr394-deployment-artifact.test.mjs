@@ -83,3 +83,17 @@ test("Release policy rejects accidentally enabling the full Billing candidate fo
   assert.throws(() => validateRelease({ ...release, functions: release.functions.slice(0, -1) }, ctx), /deployment-disabled/);
   assert.throws(() => validateRelease({ ...release, functionSecrets: {} }, ctx), /deployment-disabled/);
 });
+
+test("Staging family review artifact rewrites the only production link to staging", () => {
+  assert.match(script, /productionReviewHost = "https:\/\/sandmancombat\.com"/);
+  assert.match(script, /stagingReviewHost = "https:\/\/sandman-combat-staging\.web\.app"/);
+  assert.match(script, /reviewModule\.split\(productionReviewHost\)\.length !== 2/);
+  assert.match(script, /reviewModule\.replace\(productionReviewHost, stagingReviewHost\)/);
+});
+
+test("Protected workflow recognizes an HTTP webhook instead of requiring callableTrigger", () => {
+  const workflow = readFileSync(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  assert.match(workflow, /process\.argv\[1\]==="stripeBillingWebhook" \? e\.httpsTrigger && !e\.callableTrigger : e\.callableTrigger/);
+  assert.match(workflow, /stripeBillingWebhook\) ;; esac/);
+  assert.match(workflow, /if test "\$\{\{ inputs\.action \}\}" = "deploy"/);
+});
