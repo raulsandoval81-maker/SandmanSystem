@@ -153,6 +153,16 @@ if (release.functions.length) {
     if (stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
       throw new Error("Full Billing staging package did not replace the generic entrypoint.");
     }
+    // Family review links emitted by the synthetic staging callable must NOT
+    // route recipients into the live production enrollment environment.
+    const reviewModulePath = path.join(functionsRoot, "lib/proposals/issueProposalClientReview.js");
+    const reviewModule = await readFile(reviewModulePath, "utf8");
+    const productionReviewHost = "https://sandmancombat.com" + "${reviewPath}";
+    const stagingReviewHost = "https://sandman-combat-staging.web.app" + "${reviewPath}";
+    if (reviewModule.split(productionReviewHost).length !== 2) {
+      throw new Error("Expected one production review-link host in the PR394 compiled artifact.");
+    }
+    await writeFile(reviewModulePath, reviewModule.replace(productionReviewHost, stagingReviewHost));
     const stripeClient = await readFile(path.join(functionsRoot, "lib/billing/stripeClient.js"), "utf8");
     if (!/defineSecret\)\(["\x27]STRIPE_WEBHOOK_SECRET["\x27]\)/.test(stripeClient)) {
       throw new Error("Full Billing staging package is missing the Stripe webhook secret.");
