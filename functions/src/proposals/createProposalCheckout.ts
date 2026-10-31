@@ -32,6 +32,7 @@ import { resolveLockedRecurringPricing } from "./lockedRecurringPricing";
 import { isSeasonalProposalPricing } from "./seasonalProposal";
 import { createSeasonalProposalCheckout } from "../billing/seasonalProposalCheckout";
 import { resolveHistoricalCashCheckoutTerms } from "../billing/historicalCashCheckoutTerms";
+import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -257,9 +258,7 @@ export const createProposalCheckout =
           : {};
 
       if (isSeasonalProposalPricing(pricing)) {
-        const publicBaseUrl =
-          cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) ||
-          "https://www.sandmancombat.com";
+        const publicBaseUrl = resolveBillingPublicBaseUrl();
         return createSeasonalProposalCheckout({
           stripe: getStripe(),
           db,
@@ -576,10 +575,7 @@ export const createProposalCheckout =
       const email =
         cleanString(prospect.email).toLowerCase();
 
-      const publicBaseUrl =
-        cleanString(
-          process.env.SANDMAN_PUBLIC_BASE_URL
-        ) || "https://www.sandmancombat.com";
+      const publicBaseUrl = resolveBillingPublicBaseUrl();
 
       const rawCatalogItems =
         Array.isArray(
