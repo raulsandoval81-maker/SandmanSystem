@@ -93,6 +93,10 @@ on:
           - diagnose
           - deploy
           - bootstrap-billing
+      confirm_two_billing_functions:
+        description: Only for the separately approved PR410 staging deploy, type APPROVE_TWO_EXISTING_BILLING_STAGING_FUNCTIONS
+        required: false
+        type: string
       approve_six_functions:
         description: Only for Billing bootstrap, type APPROVE_SIX_NEW_STAGING_FUNCTIONS
         required: false
@@ -690,7 +694,7 @@ jobs:
           fi
           node trusted-tooling/scripts/staging/gcloud-function-release.mjs rollback-evidence "${{ inputs.release_id }}" unused . > rollback-evidence.json
       - name: Verify staging-only Stripe secret metadata and runtime access
-        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' && (inputs.release_id == 'billing-pr354-014198ea' || inputs.release_id == 'billing-pr376-dff3e6d3') }}
+        if: ${{ needs.validate-source.outputs.deploy_functions == 'true' && (inputs.release_id == 'billing-pr354-014198ea' || inputs.release_id == 'billing-pr376-dff3e6d3' || inputs.release_id == 'billing-pr410-deploy-96a1452d') }}
         run: |
           set -euo pipefail
           gcloud secrets describe STRIPE_SECRET_KEY \
@@ -787,6 +791,17 @@ jobs:
           service_account: ${{ (inputs.release_id == 'cross-academy-pr253-e9980457' || (inputs.release_id == 'guest-self-checkin-pr280-ef643228' || inputs.release_id == 'attendance-admin-init-pr308-0b06a778')) && 'sandman-attendance-deployer@sandman-combat-staging.iam.gserviceaccount.com' || 'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com' }}
           create_credentials_file: true
           export_environment_variables: true
+      - name: PR410 explicit two-function staging authorization
+        if: ${{ inputs.release_id == 'billing-pr410-deploy-96a1452d' }}
+        env:
+          RELEASE_ACTION: ${{ inputs.action }}
+          BILLING_APPROVAL: ${{ inputs.confirm_two_billing_functions }}
+        run: |
+          set -euo pipefail
+          if test "${RELEASE_ACTION}" = "deploy"; then
+            test "${BILLING_APPROVAL}" = "APPROVE_TWO_EXISTING_BILLING_STAGING_FUNCTIONS"
+          fi
+          node -e 'const r=require("./trusted-tooling/scripts/staging/approved-exact-sha-releases.json")["billing-pr410-deploy-96a1452d"];if(!r||r.validationOnly!==false||r.hosting!==false||r.newFunctions.length!==0||r.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")process.exit(64)'
       - name: Verify targeted callable deployment inputs
         if: ${{ needs.validate-source.outputs.deploy_functions == 'true' }}
         run: |
@@ -809,7 +824,7 @@ jobs:
           set -euo pipefail
           case "${{ matrix.function_name }}" in savePracticeSessionMemory|closePracticeSession|searchPracticeAttendanceAthletes|getPracticeAttendanceReview|updatePracticeCheckIn|finalizePracticeAttendance|recordProposalPrepaidCash|recordProposalPriorPayment|approveProposalRenewalAutopay|createProposalAutopaySetup|recordHistoricalCashDisposition|issueProposalClientReview|getProposalClientReview|acceptProposalClientReview|createProposalCheckout|stripeBillingWebhook) ;; *) exit 64 ;; esac
           if test "${{ inputs.release_id }}" = "cross-academy-pr253-e9980457" || test "${{ inputs.release_id }}" = "guest-self-checkin-pr280-ef643228" || test "${{ inputs.release_id }}" = "attendance-admin-init-pr308-0b06a778" || test "${{ inputs.release_id }}" = "billing-pr354-014198ea" || test "${{ inputs.release_id }}" = "billing-pr376-dff3e6d3" || test "${{ inputs.release_id }}" = "billing-pr394-deploy-7befb7f2" || test "${{ inputs.release_id }}" = "billing-pr410-deploy-96a1452d"; then
-            if test "${{ inputs.release_id }}" != "billing-pr394-deploy-7befb7f2"; then export SANDMAN_BOOTSTRAP_VERIFIED=true; fi
+            if test "${{ inputs.release_id }}" != "billing-pr394-deploy-7befb7f2" && test "${{ inputs.release_id }}" != "billing-pr410-deploy-96a1452d"; then export SANDMAN_BOOTSTRAP_VERIFIED=true; fi
             node trusted-tooling/scripts/staging/gcloud-function-release.mjs deploy \
               "${{ inputs.release_id }}" "${{ matrix.function_name }}" release-artifacts/functions
           else
@@ -832,9 +847,9 @@ jobs:
     runs-on: ubuntu-24.04
     environment: staging
     steps:
-      - name: Explicitly skip Hosting for attendance-only recovery
+      - name: Explicitly skip Hosting for approved function-only staging release
         if: ${{ (inputs.release_id == 'attendance-admin-init-pr308-0b06a778' || inputs.release_id == 'billing-pr410-deploy-96a1452d') }}
-        run: echo "PR308 staging recovery is function-only; Hosting deployment prohibited."
+        run: echo "This staging release is functions-only; Hosting deployment prohibited."
       - uses: actions/download-artifact@v4
         if: ${{ (inputs.release_id != 'attendance-admin-init-pr308-0b06a778' && inputs.release_id != 'billing-pr410-deploy-96a1452d') }}
         with:
@@ -926,7 +941,7 @@ jobs:
             -H "Authorization: Bearer ${ACCESS_TOKEN}" \
             "https://firebasehosting.googleapis.com/v1beta1/sites/sandman-combat-staging/releases?pageSize=1" \
             > hosting-release-after.json
-      - name: Assert Hosting was not modified for attendance-only recovery
+      - name: Assert Hosting unchanged for function-only release
         if: ${{ (inputs.release_id == 'attendance-admin-init-pr308-0b06a778' || inputs.release_id == 'billing-pr410-deploy-96a1452d') }}
         run: |
           node -e 'const fs=require("fs");const before=JSON.parse(fs.readFileSync("before/hosting-release-before.json","utf8"));const after=JSON.parse(fs.readFileSync("hosting-release-after.json","utf8"));const b=before.releases?.[0]?.name;const a=after.releases?.[0]?.name;if(!a||a!==b)throw Error("Staging Hosting changed during function-only release");'
