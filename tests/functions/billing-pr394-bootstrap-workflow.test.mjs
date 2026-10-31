@@ -17,6 +17,7 @@ const approvals = {
   SANDMAN_BOOTSTRAP_PROJECT: PROJECT_ID,
   SANDMAN_BOOTSTRAP_RELEASE: RELEASE_ID,
   SANDMAN_BOOTSTRAP_AUTHORIZATION: "APPROVE_SIX_NEW_STAGING_FUNCTIONS",
+  SANDMAN_PUBLIC_HTTP_INVOCATION_APPROVED: "APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH",
   SANDMAN_STRIPE_TEST_MODE_ATTESTED: "STRIPE_TEST_KEY_VERIFIED",
   SANDMAN_STRIPE_WEBHOOK_SECRET_ATTESTED: "STAGING_WEBHOOK_SECRET_MATCH_VERIFIED",
 };
@@ -60,6 +61,7 @@ test("separate GitHub bootstrap is pinned to a previously validated artifact and
   assert.match(workflow, /environment: staging/g);
   assert.match(workflow, /inputs.action == 'execute'/);
   assert.match(workflow, /APPROVE_SIX_NEW_STAGING_FUNCTIONS/);
+  assert.match(workflow, /APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH/);
   assert.match(workflow, /STRIPE_TEST_KEY_VERIFIED/);
   assert.match(workflow, /STAGING_WEBHOOK_SECRET_MATCH_VERIFIED/);
   assert.match(workflow, /sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
