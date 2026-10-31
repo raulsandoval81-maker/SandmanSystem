@@ -1095,7 +1095,7 @@ function priorPaymentSummaryHtml(item) {
   `;
 }
 
-function historicalCashReviewMessage(review) {
+function historicalCashReviewMessage(review, plan) {
   if (!review || typeof review !== "object") {
     return "Prior payment recorded. Proposal stage was not changed.";
   }
@@ -1113,6 +1113,12 @@ function historicalCashReviewMessage(review) {
     `Annual enrollment still due: ${moneyFromCents(review.enrollmentRemainingCents)}.`,
     `Unapplied membership cash: ${moneyFromCents(review.unappliedMembershipCents)}.`,
     problems.length ? `Review required: ${problems.join(" ")}` : "",
+    plan?.chargeDate
+      ? `Proposed Stripe date: ${plan.chargeDate}. Membership for that month already paid: ${moneyFromCents(plan.periodAlreadyPaidCents)}. Remaining before credit decision: ${moneyFromCents(plan.periodOutstandingCents)}. Combined with unpaid enrollment: ${moneyFromCents(plan.totalOutstandingBeforeUnappliedDecisionCents)}.`
+      : "No validated next Stripe date is available from proposal pricing.",
+    Array.isArray(plan?.blockers) && plan.blockers.length
+      ? `Checkout blockers: ${plan.blockers.join(" ")}`
+      : "",
     "Historical cash does not authorize Stripe checkout. Management reconciliation and client Review & Confirm are still required."
   ];
   return lines.filter(Boolean).join(" ");
@@ -1638,7 +1644,8 @@ function ensurePriorPaymentDialog() {
 
           if (status) {
             status.textContent = historicalCashReviewMessage(
-              recorded?.data?.historicalCashReview
+              recorded?.data?.historicalCashReview,
+              recorded?.data?.historicalCashPaymentPlan
             );
           }
 
