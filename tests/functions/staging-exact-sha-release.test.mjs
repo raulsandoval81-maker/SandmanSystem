@@ -2022,3 +2022,25 @@ test("PR410 staging deployment plan cannot target Hosting, webhook, other functi
     line.includes('billing-pr410-functions-96a1452d"; then'));
   assert.equal(coachGates.length, 2, "both modern Coach release gates must include deployment candidate");
 });
+
+test("PR410 staging Stripe preflight uses dedicated runtime check, not legacy compute-only gate", async () => {
+  const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
+  const legacy = workflow.split("      - name: Verify staging-only Stripe secret metadata and runtime access\n")[1]
+    ?.split("      - name: Verify PR410 Stripe staging test-secret metadata without reading values\n")[0];
+  const dedicated = workflow.split("      - name: Verify PR410 Stripe staging test-secret metadata without reading values\n")[1]
+    ?.split("      - name: Verify PR410 existing callable baseline and recoverable source\n")[0];
+  assert.ok(legacy && dedicated, "both preflight branches must be independently identifiable");
+  assert.match(legacy, /billing-pr354-014198ea/);
+  assert.match(legacy, /billing-pr376-dff3e6d3/);
+  assert.doesNotMatch(legacy, /billing-pr410-deploy-96a1452d/);
+  assert.match(dedicated, /inputs\.release_id == 'billing-pr410-deploy-96a1452d'/);
+  assert.match(dedicated, /gcloud secrets get-iam-policy STRIPE_SECRET_KEY/);
+  assert.match(dedicated, /environment=staging/);
+  assert.match(dedicated, /stripe_mode=test/);
+  assert.match(dedicated, /sandman-billing-runtime@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(dedicated, /991554514268-compute@developer\.gserviceaccount\.com/);
+  assert.match(dedicated, /PR410 Stripe secret has unapproved accessors/);
+  assert.match(dedicated, /PR410 Billing runtime is missing Stripe staging secret accessor/);
+  assert.match(dedicated, /versions\.length !== 1/);
+  assert.doesNotMatch(dedicated, /secrets versions access|secrets versions add|add-iam-policy-binding/);
+});
