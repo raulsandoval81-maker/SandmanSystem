@@ -13,7 +13,8 @@ const payments = [
   { paymentId: "oct", amountCents: 10000, membershipAmountCents: 8000, enrollmentFeeAmountCents: 2000,
     unappliedMembershipAmountCents: 0, membershipPeriodAllocations: [{ period: "2026-10", paidCents: 8000 }] },
 ];
-const pricing = { monthlyBalance: 80, enrollmentBase: 30, firstRecurringChargeDate: "2026-11-05" };
+const pricing = { monthlyBalance: 80, enrollmentBase: 30,
+  firstRecurringChargeDate: "2026-11-05", membershipStartDate: "2026-09-01" };
 const { validateHistoricalCashDisposition } = require("../../functions/lib/billing/historicalCashDisposition.js");
 const decision = validateHistoricalCashDisposition({ priorPayments: payments,
   monthlyMembershipCents: 8000, enrollmentFeeCents: 3000,
