@@ -74,6 +74,7 @@ on:
           - during-practice-pr351-352-a44b602
           - billing-pr354-014198ea
           - billing-pr376-dff3e6d3
+          - billing-pr394-7befb7f2
           - attendance-admin-init-pr308-0b06a778
           - promotions-winter-pr317-8e2b9c6b
           - promotions-contrast-pr322-b48c9c0
@@ -250,6 +251,11 @@ jobs:
           test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          # Exact-SHA read-only checkpoints can validate immutable code only;
+          # never interpret a staging deployment approval as charge authorization.
+          if test "${{ inputs.action }}" = "deploy"; then
+            node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID];if(r?.validationOnly) {console.error("Validation-only release: deployment is prohibited.");process.exit(64)}'
+          fi
           sha="$(node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")[process.env.RELEASE_ID]; if(!r)process.exit(64); process.stdout.write(r.applicationSha)')"
           test "${#sha}" = 40
           echo "application_sha=${sha}" >> "${GITHUB_OUTPUT}"
@@ -459,6 +465,21 @@ jobs:
               node --check public/coaches/execution/big-clock-2.0/big-clock-2.0.js
               node --check public/coaches/execution/coach-companion/coach-companion.js
               node --check public/coaches/execution/engine/practice-remote-control.mjs
+            )
+          fi
+          if test "${RELEASE_ID}" = "billing-pr394-7befb7f2"; then
+            (
+              cd application-source
+              node --test \
+                tests/functions/historical-cash-stripe-execution.test.mjs \
+                tests/functions/historical-cash-client-review.test.mjs \
+                tests/functions/historical-cash-disposition.test.mjs \
+                tests/functions/historical-cash-payment-plan.test.mjs \
+                tests/functions/historical-cash-reconciliation.test.mjs \
+                tests/functions/proposal-prior-payment-ui.test.mjs \
+                tests/functions/prepaid-membership-contract.test.mjs
+              node --check public/connect/proposals/review/review.js
+              node --check public/management/billing/billing.js
             )
           fi
           if test "${RELEASE_ID}" = "billing-pr354-014198ea" || test "${RELEASE_ID}" = "billing-pr376-dff3e6d3"; then
