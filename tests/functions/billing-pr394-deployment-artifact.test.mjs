@@ -94,6 +94,6 @@ test("Staging family review artifact rewrites the only production link to stagin
 test("Protected workflow recognizes an HTTP webhook instead of requiring callableTrigger", () => {
   const workflow = readFileSync(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
   assert.match(workflow, /process\.argv\[1\]==="stripeBillingWebhook" \? e\.httpsTrigger && !e\.callableTrigger : e\.callableTrigger/);
-  assert.match(workflow, /stripeBillingWebhook\) ;; esac/);
+  assert.match(workflow, /\|stripeBillingWebhook\) ;; \*\) exit 64 ;; esac/);
   assert.match(workflow, /if test "\$\{\{ inputs\.action \}\}" = "deploy"/);
 });
