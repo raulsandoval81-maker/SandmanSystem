@@ -66,3 +66,7 @@ Owner-provided `gcloud functions describe recordProposalPriorPayment --gen2 --re
 - `serviceConfig.ingressSettings: ALLOW_ALL` (network exposure; **does not** establish that unauthenticated invocation is allowed).
 
 **Fail-closed follow-up:** inspect the Cloud Run service's IAM invoker policy and the current runtime account's actual granted permissions; do not assume public access merely from `ALLOW_ALL`. Compare with the protected release's dedicated approved runtime identity and bootstrap plan. Any runtime-identity migration or invoker change requires its own approval and pre/post-deployment configuration evidence; no IAM writes are authorized by this discovery.
+
+## Read-only service-level Cloud Run IAM result
+
+Owner-provided `gcloud run services get-iam-policy recordproposalpriorpayment --region=us-central1 --project=sandman-combat-staging --format=yaml` returned only `etag: ACAB`, with **no service-level bindings** visible. There is therefore no displayed service-level `allUsers` invoker grant. This does **not** by itself prove that invocation is authenticated: verify `run.googleapis.com/invoker-iam-disabled` and inherited policies/configuration before declaring the endpoint protected. Continue to preserve existing policy; do not add or remove invoker bindings on the strength of this output alone.
