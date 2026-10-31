@@ -1,0 +1,36 @@
+name: Billing origin PR checks
+
+on:
+  pull_request:
+    paths:
+      - "functions/src/proposals/billingPublicBaseUrl.ts"
+      - "functions/src/proposals/issueProposalClientReview.ts"
+      - "functions/src/proposals/createProposalCheckout.ts"
+      - "tests/functions/billing-public-origin.test.mjs"
+      - ".github/workflows/billing-origin-pr-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  billing-origin-check:
+    name: Node 22 build and billing regressions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install Functions dependencies
+        run: npm --prefix functions ci
+      - name: Compile Functions
+        run: npm --prefix functions run build
+      - name: Verify staging and production origin isolation
+        run: node --test tests/functions/billing-public-origin.test.mjs
+      - name: Verify historical-cash billing safeguards
+        run: node --test tests/functions/historical-cash-*.test.mjs

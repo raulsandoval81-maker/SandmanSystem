@@ -21,6 +21,8 @@ import {
   hashProposalReviewToken,
 } from "./proposalClientReview";
 
+import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
+
 import {
   getResendClient,
   RESEND_API_KEY,
@@ -178,6 +180,10 @@ export const issueProposalClientReview =
           "Unsupported client review delivery method."
         );
       }
+
+      // Resolve before mutating proposal state or issuing a review token.
+      const reviewBaseUrl =
+        sendEmail ? resolveBillingPublicBaseUrl() : "";
 
       const db =
         getFirestore();
@@ -435,7 +441,7 @@ export const issueProposalClientReview =
 
       if (sendEmail) {
         const reviewUrl =
-          `https://sandmancombat.com${reviewPath}`;
+          `${reviewBaseUrl}${reviewPath}`;
 
         const email =
           buildReviewEmail({
