@@ -79,7 +79,7 @@ test("PR376 acceptance: historical month recording does not itself activate bill
   const callable = read("functions/src/billing/recordProposalPriorPayment.ts");
   const ui = read("public/management/billing/billing.js");
   const autopay = read("functions/src/billing/proposalAutopaySetup.ts");
-  assert.match(callable, /Prior payments must be recorded before the proposal is paid or void/);
+  assert.match(callable, /Prior payments must be recorded while the proposal is a draft or awaiting client signature, before checkout begins/);
   assert.match(callable, /A prior payment is already recorded for/);
   assert.match(ui, /Prior payment recorded\. Proposal stage was not changed/);
   assert.match(autopay, /This proposal is not waiting for cash-prepaid Stripe autopay setup/);
@@ -100,4 +100,14 @@ test("prior cash cannot silently enter Stripe checkout using an unreconciled loc
   assert.match(checkout, /Management must reconcile their monthly coverage, enrollment allocation, and unapplied balance before Stripe checkout/);
   // Until a reconciled checkout workflow is implemented, this must block
   // recurring Stripe checkout. It does not certify end-to-end staging acceptance.
+});
+
+test("prior-payment recording stops before checkout, pending payment, and activation", () => {
+  const callable = read("functions/src/billing/recordProposalPriorPayment.ts");
+  const management = read("public/management/billing/billing.js");
+  assert.match(callable, /currentStatus !== "DRAFT" &&\s*currentStatus !== "AWAITING_CLIENT_SIGNATURE"/);
+  assert.match(callable, /"failed-precondition",\s*"Prior payments must be recorded while the proposal is a draft or awaiting client signature, before checkout begins\."/);
+  assert.match(management, /"DRAFT"/);
+  assert.match(management, /"AWAITING_CLIENT_SIGNATURE"/);
+  // A direct callable invocation must not bypass the earlier UI-stage restriction.
 });
