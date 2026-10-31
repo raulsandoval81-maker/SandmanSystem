@@ -102,6 +102,44 @@ export function validateRelease(release, context = {}) {
   if (release.releaseId === billing410Id && !isBilling410Validation) {
     throw new Error("PR410 two-function validation must remain staging-only, exact and deployment-disabled.");
   }
+  // A separately reviewed deployment entry may reuse PR410's immutable source,
+  // but must not mutate the original validation-only checkpoint.
+  const billing410DeployId = "billing-pr410-deploy-96a1452d";
+  const isBilling410Deploy = release.releaseId === billing410DeployId &&
+    release.sourcePr === 410 &&
+    release.applicationSha === "96a1452d3178c443df83c80aeedfd817cbd69519" &&
+    release.requiredAncestorSha === "c5a51549f6e36cce3ec8e17b8b1cdcee29668601" &&
+    JSON.stringify(release.allowedChangedFiles) === JSON.stringify([
+      ".github/workflows/billing-origin-pr-check.yml",
+      "functions/src/proposals/billingPublicBaseUrl.ts",
+      "functions/src/proposals/createProposalCheckout.ts",
+      "functions/src/proposals/issueProposalClientReview.ts",
+      "tests/functions/billing-public-origin.test.mjs",
+    ]) &&
+    release.validationOnly === false && release.hosting === false &&
+    !release.hostingBaselineSha && !release.hostingFiles &&
+    !release.inheritedHostingFiles && !release.inheritedHostingReleaseId &&
+    JSON.stringify(release.functions) === JSON.stringify(["issueProposalClientReview", "createProposalCheckout"]) &&
+    JSON.stringify(release.newFunctions) === JSON.stringify([]) &&
+    JSON.stringify(release.functionSecrets) === JSON.stringify({
+      issueProposalClientReview: ["RESEND_API_KEY"],
+      createProposalCheckout: ["STRIPE_SECRET_KEY"],
+    }) &&
+    release.functionDeploymentTool === "gcloud-gen2" &&
+    release.hostingDeployer === "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.functionDeployer === "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.functionRuntime === "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.functionBuild === "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com" &&
+    !release.bootstrap && !release.partialBootstrap &&
+    release.recovery?.hostingUnchanged === true &&
+    release.recovery?.requireExistingFunctions === true &&
+    release.recovery?.requireRollbackEvidence === true &&
+    release.recovery?.captureFunctionConfigurationAndIam === true &&
+    release.recovery?.captureHostingReleaseBeforeDeploy === true &&
+    release.expectedInvokerIamDisabled === true;
+  if (release.releaseId === billing410DeployId && !isBilling410Deploy) {
+    throw new Error("PR410 deployment candidate must remain exactly two existing staging callables with preserved Hosting.");
+  }
   if (release.releaseId === BILLING_FULL_RELEASE_ID) {
     // Candidate can validate immutable artifacts only, never authorize deployment.
     const mandatoryFunctions = [
@@ -135,7 +173,7 @@ export function validateRelease(release, context = {}) {
     throw new Error("PR394 validation checkpoint must remain isolated and deployment-disabled.");
   }
   if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778" &&
-      !isBillingValidation && !isBilling410Validation) {
+      !isBillingValidation && !isBilling410Validation && !isBilling410Deploy) {
     throw new Error("Hosting-disabled releases require their own reviewed authorization.");
   }
   if (release.releaseId === "attendance-admin-init-pr308-0b06a778" &&

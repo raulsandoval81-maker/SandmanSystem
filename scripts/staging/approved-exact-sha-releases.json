@@ -3661,5 +3661,73 @@
       "hostingUnchanged": true
     },
     "expectedInvokerIamDisabled": true
+  },
+  "billing-pr410-deploy-96a1452d": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 410,
+    "applicationSha": "96a1452d3178c443df83c80aeedfd817cbd69519",
+    "requiredAncestorSha": "c5a51549f6e36cce3ec8e17b8b1cdcee29668601",
+    "allowedChangedFiles": [
+      ".github/workflows/billing-origin-pr-check.yml",
+      "functions/src/proposals/billingPublicBaseUrl.ts",
+      "functions/src/proposals/createProposalCheckout.ts",
+      "functions/src/proposals/issueProposalClientReview.ts",
+      "tests/functions/billing-public-origin.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": false,
+    "functions": [
+      "issueProposalClientReview",
+      "createProposalCheckout"
+    ],
+    "newFunctions": [],
+    "functionSecrets": {
+      "issueProposalClientReview": [
+        "RESEND_API_KEY"
+      ],
+      "createProposalCheckout": [
+        "STRIPE_SECRET_KEY"
+      ]
+    },
+    "validationOnly": false,
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeploymentTool": "gcloud-gen2",
+    "buildPermissionResources": {
+      "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip",
+      "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
+    },
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureFunctionConfigurationAndIam": true,
+      "functionsUnchanged": false,
+      "hostingUnchanged": true,
+      "captureHostingReleaseBeforeDeploy": true,
+      "requireExistingFunctions": true,
+      "requireRollbackEvidence": true
+    },
+    "expectedInvokerIamDisabled": true,
+    "releasePurpose": "Update exactly two existing PR410 Billing Gen2 staging functions after explicit protected approval; no Hosting, webhook, new callable, or production change."
   }
 }

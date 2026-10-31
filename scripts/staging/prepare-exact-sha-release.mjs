@@ -121,13 +121,14 @@ if (release.functions.length) {
       createProposalAutopaySetup: require("./lib/billing/proposalAutopaySetup.js").createProposalAutopaySetup,
     };`);
   }
-  if (release.releaseId === "billing-pr410-functions-96a1452d") {
+  if (["billing-pr410-functions-96a1452d", "billing-pr410-deploy-96a1452d"].includes(release.releaseId)) {
     // Build only the two previously bootstrapped Gen2 callables from the
     // immutable PR410 merge. Never export/redeploy the Stripe webhook.
     if (JSON.stringify(release.functions) !== JSON.stringify([
       "issueProposalClientReview", "createProposalCheckout",
-    ]) || release.hosting !== false || release.validationOnly !== true) {
-      throw new Error("PR410 validation artifact must remain two-callable and nondeployable.");
+    ]) || release.hosting !== false ||
+        release.validationOnly !== (release.releaseId === "billing-pr410-functions-96a1452d")) {
+      throw new Error("PR410 artifact must match its exact two-callable staging release mode.");
     }
     stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
       'module.exports = {\n' +

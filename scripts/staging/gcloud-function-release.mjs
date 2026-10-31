@@ -159,6 +159,15 @@ async function main() {
     console.log(JSON.stringify(bootstrapPlan(release, sourceRoot), null, 2));
     return;
   }
+  if (command === "deploy" && releaseId === "billing-pr410-deploy-96a1452d") {
+    if (process.env.GITHUB_REPOSITORY !== release.repository ||
+        process.env.GITHUB_REF !== "refs/heads/main" ||
+        process.env.GITHUB_WORKFLOW_REF !==
+          "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main" ||
+        process.env.SANDMAN_PR410_DEPLOY_APPROVAL !== "APPROVE_TWO_EXISTING_BILLING_STAGING_FUNCTIONS") {
+      throw new Error("PR410 staging update requires approved protected GitHub workflow execution.");
+    }
+  }
   if (command === "deploy") {
     const isNew = (release.newFunctions || []).includes(functionName);
     const bootstrapVerified = process.env.SANDMAN_BOOTSTRAP_VERIFIED === "true";

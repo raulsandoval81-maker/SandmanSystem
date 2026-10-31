@@ -1094,12 +1094,12 @@ test("PR308 staging attendance cold-start recovery is immutable and function-onl
   assert.throws(() => validateRelease({ ...release, functions: ["savePracticeSessionMemory"] }, approved), /attendance-callable-only/);
   const workflow = await readFile(".github/workflows/staging-exact-sha-release.yml", "utf8");
   assert.match(workflow, /attendance-admin-init-pr308-0b06a778/);
-  assert.match(workflow, /Explicitly skip Hosting for attendance-only recovery/);
-  assert.match(workflow, /Assert Hosting was not modified for attendance-only recovery/);
+  assert.match(workflow, /Explicitly skip Hosting for approved function-only staging release/);
+  assert.match(workflow, /Assert Hosting unchanged for function-only release/);
   const packager = await readFile("scripts/staging/prepare-exact-sha-release.mjs", "utf8");
   assert.match(packager, /"attendance-admin-init-pr308-0b06a778"\]\.includes\(release\.releaseId\)/);
   assert.match(packager, /module\.exports = \{ updatePracticeCheckIn: require\("\.\/lib\/practice\/practiceSessions\.js"\)\.updatePracticeCheckIn \};/);
-  assert.match(workflow, /if: \$\{\{ inputs\.release_id != 'attendance-admin-init-pr308-0b06a778' \}\}/);
+  assert.ok(workflow.includes("if: ${{ (inputs.release_id != 'attendance-admin-init-pr308-0b06a778' && inputs.release_id != 'billing-pr410-deploy-96a1452d') }}"), "both function-only releases must skip Hosting");
   assert.match(workflow, /function-deploy-receipt-/);
 
 });
@@ -1936,4 +1936,89 @@ test("PR410 staging validation uses current Clipboard and four-group gates", asy
   assert.equal(modernBranches.length, 2, "PR410 must follow both modern Coach validation branches");
   assert.match(workflow, /grep -Fq '.*clipboard-2\.0/);
   assert.match(workflow, /grep -q 'MAX_TRAINING_GROUPS = 4'/);
+});
+
+test("PR410 deploy candidate is distinct from validation-only release and strictly functions-only", async () => {
+  const validate = await loadRelease("billing-pr410-functions-96a1452d");
+  const release = await loadRelease("billing-pr410-deploy-96a1452d");
+  const context = {
+    repository: release.repository,
+    workflowRef: TRUSTED_WORKFLOW_REF,
+    checkedOutSha: release.applicationSha,
+    projectId: release.projectId,
+    confirmProject: release.projectId,
+    wifProvider: STAGING_WIF_PROVIDER,
+    hostingDeployer: release.hostingDeployer,
+    functionDeployer: release.functionDeployer,
+    functionRuntime: release.functionRuntime,
+    authorizationAvailable: true,
+  };
+  assert.doesNotThrow(() => validateRelease(release, context));
+  assert.equal(validate.validationOnly, true, "original PR410 checkpoint stays undeployable");
+  assert.equal(release.validationOnly, false);
+  assert.equal(release.hosting, false);
+  assert.equal(release.projectId, "sandman-combat-staging");
+  assert.equal(release.applicationSha, validate.applicationSha);
+  assert.deepEqual(release.functions, ["issueProposalClientReview", "createProposalCheckout"]);
+  assert.deepEqual(release.newFunctions, []);
+  assert.deepEqual(release.functionSecrets, {
+    issueProposalClientReview: ["RESEND_API_KEY"],
+    createProposalCheckout: ["STRIPE_SECRET_KEY"],
+  });
+  assert.equal(release.recovery.hostingUnchanged, true);
+  assert.equal(release.recovery.requireExistingFunctions, true);
+  assert.equal(release.recovery.requireRollbackEvidence, true);
+  for (const change of [
+    { validationOnly: true },
+    { hosting: true },
+    { hostingFiles: ["public/index.html"] },
+    { functions: [...release.functions, "stripeBillingWebhook"] },
+    { newFunctions: ["issueProposalClientReview"] },
+    { applicationSha: "f".repeat(40) },
+    { projectId: "sandmandashboard" },
+    { functionRuntime: "991554514268-compute@developer.gserviceaccount.com" },
+    { functionSecrets: { createProposalCheckout: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] } },
+    { recovery: { ...release.recovery, hostingUnchanged: false } },
+    { bootstrap: { functions: release.functions, approvalRequired: true } },
+  ]) {
+    const altered = { ...release, ...change };
+    assert.throws(() => validateRelease(altered, {
+      ...context, checkedOutSha: altered.applicationSha,
+      projectId: altered.projectId, functionRuntime: altered.functionRuntime,
+    }), "release policy must fail closed on unapproved scope mutation");
+  }
+});
+
+test("PR410 staging deployment plan cannot target Hosting, webhook, other functions or production", async () => {
+  const release = await loadRelease("billing-pr410-deploy-96a1452d");
+  for (const fn of release.functions) {
+    const plan = deploymentPlan(release, fn, "/tmp/approved-staging-functions");
+    assert.equal(plan.executable, "gcloud");
+    assert.equal(plan.functionName, fn);
+    assert.equal(plan.projectId, "sandman-combat-staging");
+    assert.ok(plan.args.includes("--project=sandman-combat-staging"));
+    assert.ok(plan.args.includes("--run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"));
+    assert.ok(plan.args.includes("--entry-point=" + fn));
+    assert.ok(plan.args.includes("--gen2"));
+    assert.ok(!plan.args.some(arg => /sandmandashboard|stripeBillingWebhook|hosting|--allow-unauthenticated/.test(arg)));
+  }
+  for (const fn of ["stripeBillingWebhook", "getProposalClientReview", "recordHistoricalCashDisposition"]) {
+    assert.throws(() => deploymentPlan(release, fn, "/tmp/approved-staging-functions"), /exact release allowlist/);
+  }
+  const workflow = await readFile(new URL("../../.github/workflows/staging-exact-sha-release.yml", import.meta.url), "utf8");
+  const packageTool = await readFile(new URL("../../scripts/staging/prepare-exact-sha-release.mjs", import.meta.url), "utf8");
+  const deployTool = await readFile(new URL("../../scripts/staging/gcloud-function-release.mjs", import.meta.url), "utf8");
+  assert.match(workflow, /confirm_two_billing_functions/);
+  assert.match(workflow, /APPROVE_TWO_EXISTING_BILLING_STAGING_FUNCTIONS/);
+  assert.match(workflow, /Verify PR410 Stripe staging test-secret metadata/);
+  assert.match(workflow, /Verify PR410 existing callable baseline and recoverable source/);
+  assert.match(workflow, /Assert Hosting unchanged for function-only release/);
+  assert.match(workflow, /billing-pr410-deploy-96a1452d/);
+  assert.match(packageTool, /billing-pr410-deploy-96a1452d/);
+  assert.match(deployTool, /PR410 staging update requires approved protected GitHub workflow execution/);
+  const coachGates = workflow.split("\n").filter(line =>
+    line.includes('clipboard-notes-pr372-e445688c') &&
+    line.includes('billing-pr410-deploy-96a1452d') &&
+    line.includes('billing-pr410-functions-96a1452d"; then'));
+  assert.equal(coachGates.length, 2, "both modern Coach release gates must include deployment candidate");
 });

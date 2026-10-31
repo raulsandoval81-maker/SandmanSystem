@@ -6,6 +6,7 @@ on:
       - "scripts/staging/approved-exact-sha-releases.json"
       - "scripts/staging/exact-sha-release-policy.mjs"
       - "scripts/staging/prepare-exact-sha-release.mjs"
+      - "scripts/staging/gcloud-function-release.mjs"
       - "tests/functions/staging-exact-sha-release.test.mjs"
       - ".github/workflows/staging-exact-sha-release.yml"
       - ".github/workflows/billing-pr410-staging-validation.yml"
@@ -48,6 +49,14 @@ jobs:
             /tmp/billing-pr410-source \
             /tmp/billing-pr410-artifact
           node -e 'const m=require("/tmp/billing-pr410-artifact/release-evidence.json");if(m.hosting!==false||m.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")throw Error("Wrong artifact scope");const e=require("node:fs").readFileSync("/tmp/billing-pr410-artifact/functions/staging-release-entry.cjs","utf8");if(!e.includes("issueProposalClientReview: require(")||!e.includes("createProposalCheckout: require(")||e.includes("stripeBillingWebhook: require(")||e.includes("module.exports = require(\"./lib/staging.js\")"))throw Error("Wrong callable exports");'
+      - name: Package separately authorized two-function deployment candidate without deploying
+        run: |
+          set -euo pipefail
+          node scripts/staging/prepare-exact-sha-release.mjs \
+            billing-pr410-deploy-96a1452d \
+            /tmp/billing-pr410-source \
+            /tmp/billing-pr410-deploy-artifact
+          node -e 'const fs=require("node:fs");const a=require("/tmp/billing-pr410-deploy-artifact/release-evidence.json");const m=require("./scripts/staging/approved-exact-sha-releases.json")["billing-pr410-deploy-96a1452d"];if(a.hosting!==false||a.functions.join(",")!=="issueProposalClientReview,createProposalCheckout"||m.validationOnly!==false||m.newFunctions.length!==0)throw Error("Unexpected deployment scope");const entry=fs.readFileSync("/tmp/billing-pr410-deploy-artifact/functions/staging-release-entry.cjs","utf8");if(!entry.includes("issueProposalClientReview: require(")||!entry.includes("createProposalCheckout: require(")||entry.includes("stripeBillingWebhook: require("))throw Error("Non-target callable exported");'
       - name: Assert no deployment occurs
         run: |
           node -e 'const r=require("./scripts/staging/approved-exact-sha-releases.json")["billing-pr410-functions-96a1452d"];if(!r||r.validationOnly!==true||r.hosting!==false||r.functions.join(",")!=="issueProposalClientReview,createProposalCheckout")process.exit(64)'
