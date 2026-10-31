@@ -3729,5 +3729,51 @@
     },
     "expectedInvokerIamDisabled": true,
     "releasePurpose": "Update exactly two existing PR410 Billing Gen2 staging functions after explicit protected approval; no Hosting, webhook, new callable, or production change."
+  },
+  "pricing-entry-pr415-a4e01f3": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 415,
+    "applicationSha": "a4e01f3e952fdda7d940cf08e29e4e95f2cdede4",
+    "requiredAncestorSha": "7cf092ee7280ac9046676b3f9970d2a98f283b36",
+    "allowedChangedFiles": [
+      "public/management/pricing/index.html",
+      "public/management/pricing/pricing.js",
+      "tests/functions/management-pricing-enrollment-entry.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": true,
+    "hostingBaselineSha": "7cf092ee7280ac9046676b3f9970d2a98f283b36",
+    "hostingFiles": [
+      "public/management/pricing/index.html",
+      "public/management/pricing/pricing.js"
+    ],
+    "functions": [],
+    "newFunctions": [],
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "991554514268-compute@developer.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureHostingReleaseBeforeDeploy": true,
+      "functionsUnchanged": true
+    },
+    "releasePurpose": "Hosting-only promotion of PR415 two Pricing Enrollment Entry files on pinned 7cf092ee baseline; synthetic staging only, no functions, no IAM modifications, no live payments."
   }
 }
