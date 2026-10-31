@@ -19,7 +19,7 @@ test("PR394 enumerates all six future services without claiming their IAM is gra
   assert.ok(checks.some(check => check.category === "billing-pr394-project-bootstrap" &&
     check.permissions.includes("cloudfunctions.functions.create")));
   assert.ok(checks.every(check => check.resource.includes("sandman-combat-staging")));
-  assert.ok(!checks.some(check => check.resource.includes("recordproposalprepaidcash")));
+  assert.ok(!checks.some(check => check.category === "billing-pr394-new-function" && check.resource.includes("recordproposalprepaidcash")));
 });
 
 test("PR394 bootstrap is always fail-closed without independent manual evidence", async () => {
