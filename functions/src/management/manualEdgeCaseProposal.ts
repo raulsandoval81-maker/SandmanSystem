@@ -21,10 +21,10 @@ export const manualEdgeCaseProposal = onCall(async req => {
   const expectedFingerprint = clean(req.data?.expectedFingerprint);
   const actionId = clean(req.data?.actionId);
   const requestFingerprint = createHash("sha256").update(JSON.stringify({ entries, reason })).digest("hex");
-  if (!/^P-\\d{6}$/.test(proposalId) || !["preview", "commit"].includes(mode)) {
+  if (!/^P-\\d{6}$/.test(proposalId) || !["load", "preview", "commit"].includes(mode)) {
     throw new HttpsError("invalid-argument", "A valid proposal ID and preview/commit action are required.");
   }
-  if (!Array.isArray(entries)) throw new HttpsError("invalid-argument", "A receipt allocation list is required.");
+  if (mode !== "load" && !Array.isArray(entries)) throw new HttpsError("invalid-argument", "A receipt allocation list is required.");
   if (mode === "commit" && (
     reason.length < 10 || reason.length > 500 ||
     !/^[a-f0-9]{64}$/.test(expectedFingerprint) ||
@@ -34,6 +34,39 @@ export const manualEdgeCaseProposal = onCall(async req => {
   }
   const db = getFirestore();
   const proposalRef = db.collection("proposals").doc(proposalId);
+  if (mode === "load") {
+    const snap = await proposalRef.get();
+    if (!snap.exists) throw new HttpsError("not-found", "Proposal not found.");
+    const proposal = snap.data() || {};
+    requireProposalLocationAccess(staff, proposal.locationId);
+    if (clean(proposal.status).toUpperCase() !== "DRAFT") {
+      throw new HttpsError("failed-precondition", "Only unsigned DRAFT proposals can use this tool.");
+    }
+    // Only financial summary fields needed by this screen; no prospect,
+    // identity, contact, or complete Firestore document is exposed.
+    const receipts = Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [];
+    return {
+      proposalId,
+      status: proposal.status,
+      pricing: {
+        monthlyBalance: proposal.pricing?.monthlyBalance ?? null,
+        enrollmentBase: proposal.pricing?.enrollmentBase ?? null,
+      },
+      priorPayments: receipts.map((p: Record<string, any>) => ({
+        paymentId: p.paymentId,
+        amountCents: p.amountCents,
+        paymentMethod: p.paymentMethod,
+        membershipAmountCents: p.membershipAmountCents,
+        enrollmentFeeAmountCents: p.enrollmentFeeAmountCents,
+        unappliedMembershipAmountCents: p.unappliedMembershipAmountCents,
+        historicalMonthlyRateCents: p.historicalMonthlyRateCents,
+        requestedPeriods: p.requestedPeriods,
+        periods: p.periods,
+        membershipPeriodAllocations: p.membershipPeriodAllocations,
+      })),
+      checkoutAuthorized: false,
+    };
+  }
   if (mode === "preview") {
     const snap = await proposalRef.get();
     if (!snap.exists) throw new HttpsError("not-found", "Proposal not found.");
