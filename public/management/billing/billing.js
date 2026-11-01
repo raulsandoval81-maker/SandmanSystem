@@ -13,6 +13,7 @@ import {
   managementLoginUrl
 } from "/management/shared/guards/management-guard.js";
 import { paidInFullUiState } from "./paid-in-full-state.js";
+import { historicalPaymentSummary } from "/management/shared/services/historical-payment-summary.js";
 
 const billingStatus =
   document.getElementById("billingStatus");
@@ -101,28 +102,20 @@ function esc(value = "") {
 }
 
 function priorPaymentFeeBalance(proposal) {
+  const ledger = historicalPaymentSummary(proposal);
+  if (ledger) return {
+    feeCents: ledger.enrollmentFeeCents,
+    paidCents: ledger.enrollmentPaidCents,
+    remainingCents: ledger.enrollmentRemainingCents
+  };
+  // New proposals with no prior receipts still need a fee preview.
+  if (Array.isArray(proposal?.priorPayments) && proposal.priorPayments.length) {
+    return null; // malformed historic ledger: fail closed
+  }
   const base = Number(proposal?.pricing?.enrollmentBase);
   if (!Number.isFinite(base) || base < 0) return null;
   const feeCents = Math.round(base * 100);
-  const payments = Array.isArray(proposal?.priorPayments) ? proposal.priorPayments : [];
-  let paidCents = 0;
-  for (const payment of payments) {
-    // Match the server's allocation semantics; legacy "included" means
-    // the whole fee, but an explicit cents allocation takes precedence.
-    const explicit = payment?.enrollmentFeeAmountCents;
-    if (explicit !== undefined && explicit !== null && explicit !== "") {
-      const n = Number(explicit);
-      if (!Number.isSafeInteger(n) || n < 0) return null;
-      paidCents += Math.min(n, feeCents);
-    } else if (payment?.enrollmentFeeIncluded === true) {
-      paidCents += feeCents;
-    }
-  }
-  return {
-    feeCents,
-    paidCents: Math.min(feeCents, paidCents),
-    remainingCents: Math.max(0, feeCents - paidCents)
-  };
+  return { feeCents, paidCents: 0, remainingCents: feeCents };
 }
 
 function refreshPriorPaymentFeePreview(dialog) {
