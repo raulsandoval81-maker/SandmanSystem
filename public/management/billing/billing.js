@@ -70,6 +70,9 @@ const recordPriorPaymentCall =
 const recordHistoricalCashDispositionCall =
   httpsCallable(functions, "recordHistoricalCashDisposition");
 
+const correctP000019HistoricalAllocationCall =
+  httpsCallable(functions, "correctP000019HistoricalAllocation");
+
 const createAutopaySetupCall =
   httpsCallable(
     functions,
@@ -1301,6 +1304,15 @@ function render() {
             ${paidInFullSummaryHtml(item)}
 
             <div class="billing-actions">
+              ${item.proposalId === "P-000019" &&
+                upper(item.proposal?.status) === "DRAFT" &&
+                item.priorPayments.length === 2 &&
+                !item.proposal?.historicalPaymentCorrection
+                ? `<button class="billing-action" type="button"
+                     data-correct-p000019="P-000019">
+                     Correct existing September/October allocations
+                   </button>`
+                : ""}
               ${item.canRecordPriorPayment
                 ? `
                   <button
@@ -2569,6 +2581,32 @@ function openCashDispositionDialog(proposalId, name) {
   dialog.querySelector("#cashDispositionStatus").textContent = "";
   dialog.showModal();
 }
+
+billingQueue?.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-correct-p000019]");
+  if (!button) return;
+  if (!window.confirm(
+    "Correct EXISTING $200 cash receipts for P-000019? September: $100 membership. October: $80 membership + $20 enrollment. Enrollment remaining: $10. No new payment or charge will be created."
+  )) return;
+  button.disabled = true;
+  try {
+    const result = await correctP000019HistoricalAllocationCall({
+      proposalId: "P-000019",
+      confirmTotalReceivedCents: 20000,
+      confirmEnrollmentRemainingCents: 1000,
+    });
+    const data = result.data || {};
+    if (!data.ok || data.totalReceivedCents !== 20000 ||
+        data.enrollmentRemainingCents !== 1000) {
+      throw new Error("Correction response did not match the approved $200/$10 totals.");
+    }
+    await loadBilling();
+    setStatus("Existing receipts corrected and audited. $200 received; $20 enrollment paid; $10 remains. Verify the displayed ledger.");
+  } catch (error) {
+    setStatus(error?.message || "Unable to correct allocation. No new payment should be recorded.", true);
+    button.disabled = false;
+  }
+});
 
 billingQueue?.addEventListener("click", event => {
   const button = event.target.closest("[data-cash-disposition-proposal-id]");
