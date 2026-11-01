@@ -150,6 +150,16 @@ if (release.functions.length) {
       throw new Error("Immutable Billing origin isolation is absent from PR410 artifact.");
     }
   }
+  if (release.releaseId === "billing-pr427-elias-f3650ca4") {
+    if (release.hosting !== false || JSON.stringify(release.functions) !== JSON.stringify(["correctP000019HistoricalAllocation"])) {
+      throw new Error("Elias artifact must export only the approved callable and no Hosting.");
+    }
+    stagingEntry = stagingEntry.replace('module.exports = require("./lib/staging.js");',
+      'module.exports = { correctP000019HistoricalAllocation: require("./lib/billing/correctP000019HistoricalAllocation.js").correctP000019HistoricalAllocation };');
+    if (stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
+      throw new Error("Elias isolated entrypoint substitution failed.");
+    }
+  }
   if (release.releaseId === billingFullReleaseId) {
     // Unlike PR354/376, PR394 MUST retain the original webhook secret declaration
     // and all seven callable/HTTP exports from the immutable source. Never use
