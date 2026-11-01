@@ -26,7 +26,7 @@ export function inspectSource(root, sha) {
   const index = read(root, "functions/src/index.ts");
   const ledger = read(root, "functions/src/billing/historicalCashReconciliation.ts");
   const firebase = JSON.parse(read(root, "firebase.json"));
-  assert.match(index, /export\s*\{\s*correctP000019HistoricalAllocation\s*\}\s*from\s*["']\.\/billing\/correctP000019HistoricalAllocation["']/);
+  assert.match(index, /export\s*\{\s*correctP000019HistoricalAllocation\s*,?\s*\}\s*from\s*["\']\.\/billing\/correctP000019HistoricalAllocation["\']/);
   assert.match(callable, /requireProposalStaffAccess/);
   assert.match(callable, /requireProposalLocationAccess/);
   assert.match(callable, /runTransaction/);
