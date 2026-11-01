@@ -140,3 +140,17 @@ test("cash after issued client review fails closed to prevent stale signed amoun
   assert.match(returnDraft, /clientReview:\s*FieldValue\.delete\(\)/);
   assert.match(acceptance, /lockedSnapshot:\s*review\.snapshot/);
 });
+
+test("Billing shows the recorded annual fee balance and labels pre-submit math as a preview", () => {
+  const ui = read("public/management/billing/billing.js");
+  assert.match(ui, /function priorPaymentFeeBalance\(proposal\)/);
+  assert.match(ui, /enrollmentFeeAmountCents/);
+  assert.match(ui, /enrollmentFeeIncluded === true/);
+  assert.match(ui, /id="priorPaymentFeePreview"/);
+  assert.match(ui, /After this UNRECORDED payment:/);
+  assert.match(ui, /Annual enrollment balance/);
+  assert.match(ui, /still owed/);
+  assert.match(ui, /refreshPriorPaymentFeePreview\(dialog\)/);
+  assert.match(ui, /allocation <= balance\.remainingCents/);
+  assert.match(ui, /allocation <= Math\.round\(amount \* 100\)/);
+});

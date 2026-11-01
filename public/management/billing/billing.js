@@ -97,6 +97,61 @@ function esc(value = "") {
     .replaceAll("'", "&#39;");
 }
 
+function priorPaymentFeeBalance(proposal) {
+  const base = Number(proposal?.pricing?.enrollmentBase);
+  if (!Number.isFinite(base) || base < 0) return null;
+  const feeCents = Math.round(base * 100);
+  const payments = Array.isArray(proposal?.priorPayments) ? proposal.priorPayments : [];
+  let paidCents = 0;
+  for (const payment of payments) {
+    // Match the server's allocation semantics; legacy "included" means
+    // the whole fee, but an explicit cents allocation takes precedence.
+    const explicit = payment?.enrollmentFeeAmountCents;
+    if (explicit !== undefined && explicit !== null && explicit !== "") {
+      const n = Number(explicit);
+      if (!Number.isSafeInteger(n) || n < 0) return null;
+      paidCents += Math.min(n, feeCents);
+    } else if (payment?.enrollmentFeeIncluded === true) {
+      paidCents += feeCents;
+    }
+  }
+  return {
+    feeCents,
+    paidCents: Math.min(feeCents, paidCents),
+    remainingCents: Math.max(0, feeCents - paidCents)
+  };
+}
+
+function refreshPriorPaymentFeePreview(dialog) {
+  const target = dialog.querySelector("#priorPaymentFeePreview");
+  const proposal = billingItems.find((item) =>
+    item.proposalId === dialog.querySelector("#priorPaymentProposalId")?.value
+  )?.proposal;
+  const balance = priorPaymentFeeBalance(proposal);
+  if (!target) return;
+  if (!balance) {
+    target.textContent = "Annual enrollment balance unavailable. Verify proposal pricing before recording.";
+    return;
+  }
+  const amountText = dialog.querySelector("#priorPaymentAmount")?.value || "";
+  const amount = amountText === "" ? NaN : Number(amountText);
+  const full = dialog.querySelector("#priorPaymentEnrollmentFee")?.checked === true;
+  const entered = dialog.querySelector("#priorPaymentEnrollmentAmount")?.value || "";
+  const allocation = full ? balance.remainingCents : Math.round(Number(entered || 0) * 100);
+  const valid = Number.isFinite(amount) && amount > 0 &&
+    Number.isSafeInteger(allocation) && allocation >= 0 &&
+    allocation <= Math.round(amount * 100) &&
+    allocation <= balance.remainingCents;
+  const recorded = "Annual enrollment: " + moneyFromCents(balance.feeCents) +
+    " total; " + moneyFromCents(balance.paidCents) + " already recorded; " +
+    moneyFromCents(balance.remainingCents) + " currently owed.";
+  target.textContent = valid
+    ? recorded + " After this UNRECORDED payment: " +
+      moneyFromCents(balance.remainingCents - allocation) +
+      " annual enrollment remaining (preview only)."
+    : recorded + " Enter a valid payment and fee allocation to preview the new balance.";
+}
+
 function setStatus(
   message = "",
   isError = false
@@ -1227,6 +1282,10 @@ function render() {
             </div>
 
             ${priorPaymentSummaryHtml(item)}
+            ${item.priorPayments.length && priorPaymentFeeBalance(item.proposal)
+              ? `<div class="billing-prior-payments"><small>Annual enrollment balance</small>
+                 <strong>${esc(moneyFromCents(priorPaymentFeeBalance(item.proposal).remainingCents))} still owed</strong></div>`
+              : ""}
             ${paidInFullSummaryHtml(item)}
 
             <div class="billing-actions">
@@ -1484,6 +1543,8 @@ function ensurePriorPaymentDialog() {
         </label>
       </div>
 
+      <p id="priorPaymentFeePreview" class="billing-cash-warning" role="status" aria-live="polite"></p>
+
       <label class="billing-cash-note">
         <span>Management note</span>
         <textarea
@@ -1557,6 +1618,10 @@ function ensurePriorPaymentDialog() {
       amount.disabled = event.target.checked === true;
       if (event.target.checked === true) amount.value = "";
     });
+  for (const id of ["priorPaymentAmount", "priorPaymentEnrollmentAmount", "priorPaymentEnrollmentFee"]) {
+    dialog.querySelector("#" + id)?.addEventListener("input", () => refreshPriorPaymentFeePreview(dialog));
+    dialog.querySelector("#" + id)?.addEventListener("change", () => refreshPriorPaymentFeePreview(dialog));
+  }
 
   dialog
     .querySelector(
@@ -1746,6 +1811,7 @@ function openPriorPaymentDialog(
     "priorPaymentStatus"
   ).textContent = "";
 
+  refreshPriorPaymentFeePreview(dialog);
   dialog.showModal();
 }
 
