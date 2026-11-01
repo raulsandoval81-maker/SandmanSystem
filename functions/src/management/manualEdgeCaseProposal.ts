@@ -1,4 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { createHash } from "node:crypto";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { requireProposalStaffAccess, requireProposalLocationAccess } from "../proposals/proposalAccess";
 import { buildManualProposalAdjustment } from "./manualEdgeCaseProposalPolicy";
@@ -19,6 +20,7 @@ export const manualEdgeCaseProposal = onCall(async req => {
   const reason = clean(req.data?.reason);
   const expectedFingerprint = clean(req.data?.expectedFingerprint);
   const actionId = clean(req.data?.actionId);
+  const requestFingerprint = createHash("sha256").update(JSON.stringify({ entries, reason })).digest("hex");
   if (!/^P-\\d{6}$/.test(proposalId) || !["preview", "commit"].includes(mode)) {
     throw new HttpsError("invalid-argument", "A valid proposal ID and preview/commit action are required.");
   }
@@ -66,7 +68,8 @@ export const manualEdgeCaseProposal = onCall(async req => {
     const existingAction = await tx.get(actionRef);
     if (existingAction.exists) {
       if (existingAction.get("performedBy") !== req.auth!.uid ||
-          existingAction.get("expectedFingerprint") !== expectedFingerprint) {
+          existingAction.get("expectedFingerprint") !== expectedFingerprint ||
+          existingAction.get("requestFingerprint") !== requestFingerprint) {
         throw new HttpsError("already-exists", "This action identifier was already used.");
       }
       return { ok: true, proposalId, auditId: clean(existingAction.get("auditId")), idempotent: true };
@@ -98,7 +101,7 @@ export const manualEdgeCaseProposal = onCall(async req => {
       checkoutAuthorized: false, stripeChargeCreated: false,
     });
     tx.create(actionRef, {
-      auditId: historyRef.id, expectedFingerprint,
+      auditId: historyRef.id, expectedFingerprint, requestFingerprint,
       performedBy: req.auth!.uid, performedAt: stamp,
       reason, adjustmentType: "historical_receipt_allocation",
     });
