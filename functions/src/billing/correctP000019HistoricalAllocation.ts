@@ -18,7 +18,7 @@ export const correctP000019HistoricalAllocation = onCall(async (req) => {
       req.data?.confirmEnrollmentRemainingCents !== 1000) {
     throw new HttpsError("invalid-argument", "Explicit $200 receipt / $10 remaining confirmation is required.");
   }
-  const staff = await requireProposalStaffAccess(req.auth.uid);
+  const staff = await requireProposalStaffAccess(req.auth!.uid);
   const db = getFirestore();
   const ref = db.collection("proposals").doc("P-000019");
   return db.runTransaction(async (tx) => {
@@ -44,7 +44,7 @@ export const correctP000019HistoricalAllocation = onCall(async (req) => {
       enrollmentPaidCents: correction.enrollmentPaidCents,
       enrollmentRemainingCents: correction.enrollmentRemainingCents,
       reason: "September $100 month-to-month; October $80 membership plus $20 annual enrollment.",
-      correctedBy: req.auth.uid,
+      correctedBy: req.auth!.uid,
       correctedByName: staff.fullName,
       correctedAt: stamp,
     };
@@ -53,12 +53,12 @@ export const correctP000019HistoricalAllocation = onCall(async (req) => {
       priorPaymentsTotalCents: correction.totalReceivedCents,
       historicalPaymentCorrection: {
         historyId: historyRef.id,
-        correctedBy: req.auth.uid,
+        correctedBy: req.auth!.uid,
         correctedAt: stamp,
         totalReceivedCents: correction.totalReceivedCents,
       },
       updatedAt: stamp,
-      updatedBy: req.auth.uid,
+      updatedBy: req.auth!.uid,
     });
     tx.create(historyRef, audit);
     return {
