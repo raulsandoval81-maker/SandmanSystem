@@ -16,6 +16,7 @@ SOURCE_SHA = "f3650ca4007448086d5a674df5784bbb3cdb9f54"
 FILES = (
     "public/management/billing/index.html",
     "public/management/billing/billing.js",
+    "public/management/shared/services/historical-payment-summary.js",
 )
 BASE = "https://firebasehosting.googleapis.com/v1beta1/"
 
@@ -76,6 +77,9 @@ def main():
         if relative.endswith("billing.js"):
             if b"correctP000019HistoricalAllocation" not in data or b"data-correct-p000019" not in data:
                 raise RuntimeError("Approved source lacks Elias correction action")
+        if relative.endswith("historical-payment-summary.js"):
+            if b"export function historicalPaymentSummary" not in data:
+                raise RuntimeError("Missing shared historical summary export")
         if relative.endswith("index.html"):
             content = data.decode("utf-8")
             old = "billing.js?v=20261031-prior-payment"
