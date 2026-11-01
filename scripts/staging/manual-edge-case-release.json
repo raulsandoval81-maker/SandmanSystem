@@ -1,0 +1,40 @@
+{
+  "releaseId": "management-manual-edge-case-pr436-437",
+  "projectId": "sandman-combat-staging",
+  "applicationSha": "f884bebb5d79b5ee0deb4b8321acd37d88bc997d",
+  "ancestorSha": "5587d4e8c2e4b3bdecc128b82ee168fbd50ef517",
+  "sourcePrs": [
+    436,
+    437
+  ],
+  "hostingFiles": [
+    "public/management/billing/index.html",
+    "public/management/manual-edge-case-proposal/index.html",
+    "public/management/manual-edge-case-proposal/tool.css",
+    "public/management/manual-edge-case-proposal/tool.js",
+    "public/management/shared/management-shell-frame.js"
+  ],
+  "functions": [
+    "manualEdgeCaseProposal"
+  ],
+  "allowedChangedFiles": [
+    "functions/src/index.ts",
+    "functions/src/management/manualEdgeCaseProposal.ts",
+    "functions/src/management/manualEdgeCaseProposalPolicy.ts",
+    "functions/tests/manualEdgeCaseProposal.integration.cjs",
+    "public/management/billing/index.html",
+    "public/management/manual-edge-case-proposal/index.html",
+    "public/management/manual-edge-case-proposal/tool.css",
+    "public/management/manual-edge-case-proposal/tool.js",
+    "public/management/shared/management-shell-frame.js",
+    "tests/functions/manual-edge-case-proposal.test.mjs"
+  ],
+  "secrets": [],
+  "iamChanges": false,
+  "firestoreRulesChanges": false,
+  "productionChanges": false,
+  "checkoutOrPaymentOperations": false,
+  "deploymentAuthorized": false,
+  "status": "VALIDATION_ONLY",
+  "note": "No deploy job. Function creation needs separately reviewed staging bootstrap; Hosting needs an isolated staging baseline overlay."
+}
