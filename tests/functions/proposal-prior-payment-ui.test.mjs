@@ -171,3 +171,22 @@ test("prior-payment fee preview uses a bulleted summary without changing payment
   assert.match(css, /\.billing-fee-preview-total/);
   assert.match(ui, /const recorded = await recordPriorPaymentCall/);
 });
+
+test("recorded prior payment refreshes the open dialog and cannot be submitted twice", () => {
+  const ui = read("public/management/billing/billing.js");
+  const submitStart = ui.indexOf("const recorded = await recordPriorPaymentCall");
+  const nextDialog = ui.indexOf("function openPriorPaymentDialog", submitStart);
+  const recordFlow = ui.slice(submitStart, nextDialog);
+  assert.ok(submitStart >= 0 && nextDialog > submitStart);
+  assert.match(recordFlow, /paymentRecorded = true/);
+  assert.match(recordFlow, /const refreshed = await loadBilling\(\)/);
+  assert.match(recordFlow, /refreshPriorPaymentFeePreview\(dialog\)/);
+  assert.match(recordFlow, /submit\.disabled = paymentRecorded/);
+  assert.match(recordFlow, /Payment recorded/);
+  assert.match(recordFlow, /Do not submit again/);
+  assert.match(ui, /return true;\s*} catch \(error\) \{/);
+  assert.match(ui, /return false;\s*} finally \{/);
+  const open = ui.slice(nextDialog, ui.indexOf("function ensureCashDialog", nextDialog));
+  assert.match(open, /submit\.disabled = false/);
+  assert.match(open, /refreshPriorPaymentFeePreview\(dialog\)/);
+});
