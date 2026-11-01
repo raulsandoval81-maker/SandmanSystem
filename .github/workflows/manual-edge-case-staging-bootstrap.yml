@@ -1,0 +1,189 @@
+name: Manual Edge-Case Proposal — one-callable staging bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Validate source without cloud access, or bootstrap one staging callable
+        required: true
+        type: choice
+        options:
+          - validate
+          - bootstrap
+      confirm_project:
+        description: Enter sandman-combat-staging
+        required: true
+        type: string
+      approve_new_callable:
+        description: For bootstrap only enter APPROVE_MANUAL_EDGE_CASE_STAGING_CALLABLE
+        required: false
+        type: string
+      approve_app_auth_invocation:
+        description: For bootstrap only enter APPROVE_STAGING_CALLABLE_APPLICATION_AUTH
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-manual-edge-case-one-callable
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Strict repository, ref, project and source guard
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${{ inputs.action }}" = "validate" -o "${{ inputs.action }}" = "bootstrap"
+      - uses: actions/checkout@v4
+        with:
+          ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
+          path: application
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify pinned application and exactly one callable target
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "f884bebb5d79b5ee0deb4b8321acd37d88bc997d"
+          test -z "$(git -C application status --porcelain=v1 --untracked-files=all)"
+          node <<'NODE'
+          const fs=require('node:fs');
+          const src=fs.readFileSync('application/functions/src/index.ts','utf8');
+          const callable=fs.readFileSync('application/functions/src/management/manualEdgeCaseProposal.ts','utf8');
+          const policy=fs.readFileSync('application/functions/src/management/manualEdgeCaseProposalPolicy.ts','utf8');
+          if (!src.includes('export { manualEdgeCaseProposal } from "./management/manualEdgeCaseProposal"')) throw Error('Missing exact callable export');
+          if (!callable.includes('requireProposalLocationAccess') || !callable.includes('requireProposalStaffAccess') || !callable.includes('db.runTransaction')) throw Error('Missing Management auth or transaction');
+          if (!policy.includes('summarizeHistoricalCash')) throw Error('Missing authoritative reconciliation');
+          if (/stripe\.charges|stripe\.paymentIntents|new Stripe\(/.test(callable+policy)) throw Error('Payment operations forbidden');
+          NODE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - name: Build and run both required suites
+        run: |
+          set -euo pipefail
+          npm ci --prefix application/functions
+          npm --prefix application/functions run build
+          node --test application/tests/functions/manual-edge-case-proposal.test.mjs
+          test -f application/functions/lib/management/manualEdgeCaseProposal.js
+      - name: Verify exported Cloud Functions trigger is a callable
+        run: |
+          node - <<'NODE'
+          const app=require('./application/functions/lib/index.js');
+          const f=app.manualEdgeCaseProposal;
+          if (!f?.__endpoint?.callableTrigger || f.__endpoint?.httpsTrigger) throw Error('Not exactly a Firebase callable');
+          console.log('PASS: one callable, immutable staging source');
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manual-edge-case-staging-source-f884bebb
+          path: |
+            application/functions/lib/
+            application/functions/package.json
+            application/functions/package-lock.json
+          if-no-files-found: error
+          retention-days: 7
+
+  bootstrap:
+    if: ${{ inputs.action == 'bootstrap' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Require separate bootstrap and transport-authorization attestations
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.approve_new_callable }}
+          APPLICATION_AUTH: ${{ inputs.approve_app_auth_invocation }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${APPROVAL}" = "APPROVE_MANUAL_EDGE_CASE_STAGING_CALLABLE"
+          test "${APPLICATION_AUTH}" = "APPROVE_STAGING_CALLABLE_APPLICATION_AUTH"
+      - uses: actions/checkout@v4
+        with:
+          ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build only the pinned callable source
+        run: |
+          set -euo pipefail
+          npm ci --prefix application/functions
+          npm --prefix application/functions run build
+          node -e 'const a=require("./application/functions/lib/index.js");if(!a.manualEdgeCaseProposal?.__endpoint?.callableTrigger)process.exit(64)'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Ensure target is absent and no existing callable can be overwritten
+        run: |
+          set -euo pipefail
+          if gcloud functions describe manualEdgeCaseProposal --gen2 --region us-central1 \
+               --project sandman-combat-staging --format=json > /tmp/manual-edge-before.json 2>/tmp/manual-edge-before.err; then
+            echo "::error::Callable already exists. Refusing create or update; inspect before rerun."
+            exit 1
+          fi
+          # A missing function must be a known 404/NOT_FOUND, not permission denied.
+          grep -Eiq 'NOT_FOUND|not found|404' /tmp/manual-edge-before.err || {
+            echo "::error::Cloud Functions lookup failed for a reason other than absence."
+            exit 1
+          }
+      - name: Deploy only manualEdgeCaseProposal to staging
+        run: |
+          set -euo pipefail
+          gcloud functions deploy manualEdgeCaseProposal --gen2 \
+            --project=sandman-combat-staging \
+            --region=us-central1 \
+            --runtime=nodejs22 \
+            --entry-point=manualEdgeCaseProposal \
+            --source=application/functions \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 \
+            --ingress-settings=all \
+            --set-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging \
+            --clear-secrets --trigger-http --no-allow-unauthenticated --quiet
+      - name: Enable Firebase application-auth callable transport for this service only
+        run: |
+          set -euo pipefail
+          gcloud run services update manualedgecaseproposal --project=sandman-combat-staging \
+            --region=us-central1 --no-invoker-iam-check --quiet
+      - name: Verify function configuration and refuse unexpected secrets
+        run: |
+          set -euo pipefail
+          gcloud functions describe manualEdgeCaseProposal --gen2 --region us-central1 \
+            --project sandman-combat-staging --format=json > /tmp/manual-edge-after.json
+          gcloud run services describe manualedgecaseproposal --region us-central1 \
+            --project sandman-combat-staging --format=json > /tmp/manual-edge-run-after.json
+          node <<'NODE'
+          const fs=require('node:fs');
+          const f=JSON.parse(fs.readFileSync('/tmp/manual-edge-after.json','utf8'));
+          const r=JSON.parse(fs.readFileSync('/tmp/manual-edge-run-after.json','utf8'));
+          const fail=(why)=>{throw Error('Post-deploy staging verification: '+why)};
+          if (f.buildConfig?.entryPoint!=='manualEdgeCaseProposal') fail('wrong entrypoint');
+          if (f.buildConfig?.runtime!=='nodejs22') fail('wrong runtime');
+          if (f.serviceConfig?.serviceAccountEmail!=='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com') fail('wrong runtime identity');
+          if (Object.keys(f.serviceConfig?.secretEnvironmentVariables||{}).length) fail('secret environment attached');
+          if (r.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true') fail('application-auth transport not configured');
+          console.log('PASS: staging-only new callable; no Stripe secret bindings');
+          NODE
