@@ -1,4 +1,4 @@
-import { db, doc, getDoc, functions, httpsCallable } from "/assets/js/firebase-init.js";
+import { functions, httpsCallable } from "/assets/js/firebase-init.js";
 import { requireManagement, managementLoginUrl } from "/management/shared/guards/management-guard.js";
 
 const $ = id => document.getElementById(id);
@@ -48,9 +48,8 @@ async function loadCase(event) {
   status("Loading proposal...");
   try {
     await requireManagement();
-    const snap = await getDoc(doc(db, "proposals", id));
-    if (!snap.exists()) throw new Error("Proposal not found.");
-    proposal = { ...snap.data(), proposalId: id };
+    const response = await call({ proposalId: id, mode: "load" });
+    proposal = response.data;
     if (clean(proposal.status).toUpperCase() !== "DRAFT") {
       return status("Only unsigned DRAFT proposals can use this allocation correction.");
     }
