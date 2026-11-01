@@ -85,6 +85,28 @@ jobs:
           npm run build --prefix functions
           node --test functions/tests/correctP000019Payments.test.cjs tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
           node -e 'const x=require("./functions/lib/index.js");if(!x.correctP000019HistoricalAllocation?.__endpoint?.callableTrigger)throw Error("Elias callable is missing")'
+      - name: Package only the Elias callable for Firebase endpoint discovery
+        run: |
+          set -euo pipefail
+          mkdir -p isolated-release/functions
+          cp -R application/functions/lib isolated-release/functions/lib
+          cp application/functions/package-lock.json isolated-release/functions/package-lock.json
+          node <<'NODE'
+          const fs = require("node:fs");
+          const pkg = JSON.parse(fs.readFileSync("application/functions/package.json", "utf8"));
+          pkg.main = "index.cjs";
+          pkg.scripts = {};
+          fs.writeFileSync("isolated-release/functions/package.json", JSON.stringify(pkg, null, 2) + "\\n");
+          fs.writeFileSync("isolated-release/functions/index.cjs",
+            'module.exports = { correctP000019HistoricalAllocation: require("./lib/billing/correctP000019HistoricalAllocation.js").correctP000019HistoricalAllocation };\\n');
+          fs.writeFileSync("isolated-release/firebase.json",
+            JSON.stringify({functions:{source:"functions",runtime:"nodejs22"}}, null, 2) + "\\n");
+          NODE
+          npm ci --omit=dev --prefix isolated-release/functions
+          node -e 'const x=require("./isolated-release/functions");const keys=Object.keys(x);if(keys.length!==1||keys[0]!=="correctP000019HistoricalAllocation"||!x[keys[0]]?.__endpoint?.callableTrigger)throw Error("Unexpected production callable discovery exports")'
+          test ! -e isolated-release/functions/.env
+          test ! -e isolated-release/functions/.env.production
+          test ! -e isolated-release/functions/.env.sandmandashboard
       - name: Authenticate production using established production credential
         if: ${{ inputs.mode == 'deploy' }}
         env:
@@ -97,10 +119,11 @@ jobs:
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
       - name: Deploy only the Elias correction callable, never Hosting
         if: ${{ inputs.mode == 'deploy' }}
-        working-directory: application
+        working-directory: isolated-release
         run: |
           set -euo pipefail
           npx --yes firebase-tools@15.11.0 deploy \
+            --config firebase.json \
             --only functions:correctP000019HistoricalAllocation \
             --project sandmandashboard \
             --non-interactive
