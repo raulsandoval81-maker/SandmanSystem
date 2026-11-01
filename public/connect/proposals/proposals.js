@@ -2236,6 +2236,20 @@ async function loadProposalQueue() {
       })
       .join("");
 
+  // Open the same proposal selected in Billing or Enrollment Flow.
+  // This is navigation only; permissions and workflow actions remain unchanged.
+  if (proposalId) {
+    const selectedCard = Array.from(body.querySelectorAll(".proposal-card"))
+      .find(card => card.dataset.proposalId === proposalId);
+    if (selectedCard) {
+      const group = selectedCard.closest("details.proposal-group");
+      if (group) group.open = true;
+      selectedCard.scrollIntoView({ block: "center" });
+      selectedCard.setAttribute("tabindex", "-1");
+      selectedCard.focus({ preventScroll: true });
+    }
+  }
+
   body.querySelectorAll("[data-proposal-action]")
     .forEach((button) => {
       button.addEventListener("click", () => runProposalAction(button));
