@@ -34,6 +34,7 @@ export function summarizeHistoricalCash(input: {
   }
   const issues: string[] = [];
   const totals = new Map<string, number>();
+  const requiredByPeriod = new Map<string, number>();
   const seenIds = new Set<string>();
   let recorded = 0;
   let enrollmentPaid = 0;
@@ -56,6 +57,12 @@ export function summarizeHistoricalCash(input: {
     if (amount !== membership + enrollment) {
       issues.push(`Payment entry ${index} does not balance membership and enrollment.`);
     }
+    const historicalRate = payment.historicalMonthlyRateCents === undefined
+      ? null : nonnegativeInteger(payment.historicalMonthlyRateCents);
+    if (payment.historicalMonthlyRateCents !== undefined &&
+        (historicalRate === null || historicalRate <= 0)) {
+      issues.push(`Payment entry ${index} contains an invalid historical membership rate.`);
+    }
     const allocations = payment.membershipPeriodAllocations;
     if (!Array.isArray(allocations)) {
       issues.push(`Payment entry ${index} has no auditable monthly allocation.`);
@@ -75,6 +82,14 @@ export function summarizeHistoricalCash(input: {
         issues.push(`Payment entry ${index} repeats month ${period}.`);
       }
       localPeriods.add(period);
+      const required = historicalRate || monthly;
+      if (historicalRate !== null && allocation.requiredCents !== historicalRate) {
+        issues.push(`Payment entry ${index} historical rate does not match allocation requirement.`);
+      }
+      if (requiredByPeriod.has(period) && requiredByPeriod.get(period) !== required) {
+        issues.push(`Conflicting contractual membership rates for ${period}.`);
+      }
+      requiredByPeriod.set(period, required!);
       allocated += paid;
       totals.set(period, (totals.get(period) || 0) + paid);
     }
@@ -84,7 +99,7 @@ export function summarizeHistoricalCash(input: {
   }
   if (enrollmentPaid > fee) issues.push("Historical enrollment payments exceed the annual fee.");
   for (const [period, paid] of totals) {
-    if (paid > monthly) issues.push(`Historical membership allocation exceeds the monthly rate for ${period}.`);
+    if (paid > (requiredByPeriod.get(period) || monthly!)) issues.push(`Historical membership allocation exceeds the contractual rate for ${period}.`);
   }
   const sorted = [...totals.entries()].sort(([a], [b]) => a.localeCompare(b));
   const membershipPaidByPeriodCents = Object.fromEntries(sorted);
@@ -94,8 +109,8 @@ export function summarizeHistoricalCash(input: {
     enrollmentPaidCents: enrollmentPaid,
     enrollmentRemainingCents: Math.max(0, fee - enrollmentPaid),
     membershipPaidByPeriodCents,
-    fullyPaidPeriods: sorted.filter(([, paid]) => paid === monthly).map(([p]) => p),
-    partiallyPaidPeriods: sorted.filter(([, paid]) => paid < monthly).map(([p]) => p),
+    fullyPaidPeriods: sorted.filter(([p, paid]) => paid === (requiredByPeriod.get(p) || monthly!)).map(([p]) => p),
+    partiallyPaidPeriods: sorted.filter(([p, paid]) => paid < (requiredByPeriod.get(p) || monthly!)).map(([p]) => p),
     unappliedMembershipCents: unapplied,
     totalRecordedCents: recorded,
     issues,

@@ -13,6 +13,7 @@ import {
 import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
+import { historicalPaymentSummary } from "/management/shared/services/historical-payment-summary.js";
 
 /* ==================================================
    Route Context
@@ -1655,6 +1656,7 @@ function proposalCardHtml(
     getDueNow(
       proposal
     );
+  const historicalLedger = historicalPaymentSummary(proposal);
 
   const stageInfo =
     proposalStageInfo(
@@ -1804,7 +1806,7 @@ function proposalCardHtml(
 
             <div>
               <small>
-                Due Now
+                ${historicalLedger ? "Original proposal amount (not reconciled)" : "Due Now"}
               </small>
 
               <strong>
@@ -1813,6 +1815,21 @@ function proposalCardHtml(
             </div>
           `
         }
+
+        ${historicalLedger ? `
+        <div>
+          <small>Historical payments received</small>
+          <strong>${money(historicalLedger.totalReceivedCents / 100)}</strong>
+        </div>
+        <div>
+          <small>Annual enrollment remaining (ledger)</small>
+          <strong>${money(historicalLedger.enrollmentRemainingCents / 100)}</strong>
+        </div>
+        <div>
+          <small>Reconciled checkout</small>
+          <strong>Requires verified Review & Confirm terms</strong>
+        </div>
+        ` : ""}
 
         <div>
           <small>

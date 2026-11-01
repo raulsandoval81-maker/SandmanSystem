@@ -226,6 +226,10 @@ export {
 } from "./billing/recordProposalPriorPayment";
 
 export {
+  correctP000019HistoricalAllocation,
+} from "./billing/correctP000019HistoricalAllocation";
+
+export {
   recordHistoricalCashDisposition,
 } from "./billing/recordHistoricalCashDisposition";
 

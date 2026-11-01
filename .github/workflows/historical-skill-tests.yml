@@ -10,6 +10,12 @@ on:
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
       - 'functions/tests/**'
+      - 'public/management/shared/services/historical-payment-summary.js'
+      - 'public/management/billing/billing.js'
+      - 'public/connect/proposals/proposals.js'
+      - 'public/management/enrollment-flow/enrollment-flow.js'
+      - 'tests/functions/p000019-historical-allocation-ui.test.mjs'
+      - 'tests/functions/management-historical-ledger-sync.test.mjs'
       - 'functions/package.json'
       - 'functions/package-lock.json'
       - '.github/workflows/historical-skill-tests.yml'
@@ -22,6 +28,12 @@ on:
       - 'functions/src/enrollment/syncActivatedEnrollmentPlacement.ts'
       - 'firestore.rules'
       - 'functions/tests/**'
+      - 'public/management/shared/services/historical-payment-summary.js'
+      - 'public/management/billing/billing.js'
+      - 'public/connect/proposals/proposals.js'
+      - 'public/management/enrollment-flow/enrollment-flow.js'
+      - 'tests/functions/p000019-historical-allocation-ui.test.mjs'
+      - 'tests/functions/management-historical-ledger-sync.test.mjs'
       - 'functions/package.json'
       - 'functions/package-lock.json'
       - '.github/workflows/historical-skill-tests.yml'
@@ -46,6 +58,9 @@ jobs:
           cache-dependency-path: functions/package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Validate P-000019 correction and cross-page Management ledger
+        working-directory: .
+        run: node --test tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
 
   firestore-emulator-integration:
     runs-on: ubuntu-24.04
