@@ -19,7 +19,7 @@ function onePeriod(payment: Record<string, any>): string {
     ? payment.membershipPeriodAllocations.map((a: any) => a.period) : [];
   const paid = Array.isArray(payment.periods) ? payment.periods : [];
   const found = [...new Set([...requested, ...allocated, ...paid])];
-  if (found.length !== 1 || !/^\\d{4}-(0[1-9]|1[0-2])$/.test(found[0])) {
+  if (found.length !== 1 || !/^\d{4}-(0[1-9]|1[0-2])$/.test(found[0])) {
     throw new Error("This receipt uses multiple or unknown months. Leave it unchanged and send for review.");
   }
   return found[0];
