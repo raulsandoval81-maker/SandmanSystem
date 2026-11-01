@@ -115,3 +115,10 @@ test("Manual tool loads records only through location-scoped Management backend"
  assert.match(client,/mode: "load"/);
  assert.doesNotMatch(client,/getDoc\(|getDocs\(|collection\("proposals"/);
 });
+
+test("Never reallocate Stripe-backed or unknown-method receipts",()=>{
+ const p=proposal(); p.priorPayments[0].paymentMethod="stripe";
+ assert.throws(()=>buildManualProposalAdjustment(p,october),/cash\/check/);
+ const q=proposal(); q.priorPayments[0].stripePaymentIntentId="pi_test";
+ assert.throws(()=>buildManualProposalAdjustment(q,october),/cash\/check/);
+});
