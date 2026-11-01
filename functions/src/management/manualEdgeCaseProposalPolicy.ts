@@ -71,6 +71,11 @@ export function buildManualProposalAdjustment(
   const byId = new Map<string, Record<string, any>>();
   for (const p of originals) {
     const id = clean(p?.paymentId);
+    if (!["cash", "check"].includes(clean(p?.paymentMethod).toLowerCase()) ||
+        p?.stripePaymentIntentId || p?.stripeCheckoutSessionId ||
+        p?.stripeChargeId) {
+      throw new Error("Only existing manually recorded cash/check receipts can be reallocated here.");
+    }
     if (!id || byId.has(id)) throw new Error("Existing receipts need unique payment references.");
     byId.set(id, p);
   }
