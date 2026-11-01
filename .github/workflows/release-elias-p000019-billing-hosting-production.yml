@@ -67,6 +67,9 @@ jobs:
           test -z "$(git status --porcelain=v1)"
           grep -q 'data-correct-p000019' public/management/billing/billing.js
           grep -q 'correctP000019HistoricalAllocation' public/management/billing/billing.js
+          test -f public/management/shared/services/historical-payment-summary.js
+          grep -q 'export function historicalPaymentSummary' public/management/shared/services/historical-payment-summary.js
+          grep -q '/management/shared/services/historical-payment-summary.js' public/management/billing/billing.js
           node --test tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
       - uses: google-github-actions/auth@v2
         with:
@@ -75,7 +78,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install google-auth requests
-      - name: Preflight or release only Billing HTML and JS, preserve entire live site
+      - name: Preflight or release Billing HTML, JS and required shared summary, preserve entire live site
         run: |
           python trusted-tooling/scripts/production/elias_p000019_billing_hosting_release.py \
             --source-root application \
