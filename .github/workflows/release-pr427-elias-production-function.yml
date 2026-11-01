@@ -96,12 +96,13 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync("application/functions/package.json", "utf8"));
           pkg.main = "index.cjs";
           pkg.scripts = {};
-          fs.writeFileSync("isolated-release/functions/package.json", JSON.stringify(pkg, null, 2) + "\\n");
+          fs.writeFileSync("isolated-release/functions/package.json", JSON.stringify(pkg, null, 2) + "\n");
           fs.writeFileSync("isolated-release/functions/index.cjs",
-            'module.exports = { correctP000019HistoricalAllocation: require("./lib/billing/correctP000019HistoricalAllocation.js").correctP000019HistoricalAllocation };\\n');
+            'module.exports = { correctP000019HistoricalAllocation: require("./lib/billing/correctP000019HistoricalAllocation.js").correctP000019HistoricalAllocation };\n');
           fs.writeFileSync("isolated-release/firebase.json",
-            JSON.stringify({functions:{source:"functions",runtime:"nodejs22"}}, null, 2) + "\\n");
+            JSON.stringify({functions:{source:"functions",runtime:"nodejs22"}}, null, 2) + "\n");
           NODE
+          node --check isolated-release/functions/index.cjs
           npm ci --omit=dev --prefix isolated-release/functions
           node -e 'const x=require("./isolated-release/functions");const keys=Object.keys(x);if(keys.length!==1||keys[0]!=="correctP000019HistoricalAllocation"||!x[keys[0]]?.__endpoint?.callableTrigger)throw Error("Unexpected production callable discovery exports")'
           test ! -e isolated-release/functions/.env
