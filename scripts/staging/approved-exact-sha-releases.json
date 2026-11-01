@@ -3662,6 +3662,83 @@
     },
     "expectedInvokerIamDisabled": true
   },
+  "billing-pr427-elias-f3650ca4": {
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "sourcePr": 427,
+    "applicationSha": "f3650ca4007448086d5a674df5784bbb3cdb9f54",
+    "requiredAncestorSha": "b05d94679c1c7ee2681cbff22b8d721683d90a1b",
+    "allowedChangedFiles": [
+      ".github/workflows/historical-skill-tests.yml",
+      "functions/package.json",
+      "functions/src/billing/correctP000019HistoricalAllocation.ts",
+      "functions/src/billing/correctP000019Payments.ts",
+      "functions/src/billing/historicalCashReconciliation.ts",
+      "functions/src/index.ts",
+      "functions/tests/correctP000019Payments.test.cjs",
+      "public/connect/proposals/proposals.js",
+      "public/management/billing/billing.js",
+      "public/management/enrollment-flow/enrollment-flow.js",
+      "public/management/shared/services/historical-payment-summary.js",
+      "tests/functions/management-historical-ledger-sync.test.mjs",
+      "tests/functions/p000019-historical-allocation-ui.test.mjs"
+    ],
+    "projectId": "sandman-combat-staging",
+    "hostingSite": "sandman-combat-staging",
+    "hosting": false,
+    "functions": [
+      "correctP000019HistoricalAllocation"
+    ],
+    "newFunctions": [
+      "correctP000019HistoricalAllocation"
+    ],
+    "functionSecrets": {},
+    "validationOnly": false,
+    "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionRuntime": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+    "functionDeploymentTool": "gcloud-gen2",
+    "buildPermissionResources": {
+      "artifactregistry.repositories.downloadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "artifactregistry.repositories.uploadArtifacts": "//artifactregistry.googleapis.com/projects/sandman-combat-staging/locations/us-central1/repositories/gcf-artifacts",
+      "logging.logEntries.create": "//cloudresourcemanager.googleapis.com/projects/sandman-combat-staging",
+      "storage.objects.get": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1/objects/recordProposalPrepaidCash/function-source.zip",
+      "storage.objects.list": "//storage.googleapis.com/projects/_/buckets/gcf-v2-sources-991554514268-us-central1"
+    },
+    "expectedFunctionConfiguration": {
+      "region": "us-central1",
+      "environment": "GEN_2",
+      "runtime": "nodejs22",
+      "availableCpu": "1",
+      "availableMemory": "256Mi",
+      "timeoutSeconds": 60,
+      "maxInstanceCount": 20,
+      "maxInstanceRequestConcurrency": 80,
+      "ingressSettings": "ALLOW_ALL",
+      "environmentVariables": {
+        "SANDMAN_STAGING_ACK": "sandman-combat-staging",
+        "SANDMAN_STAGING_PROJECT_ID": "sandman-combat-staging",
+        "SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT": "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+      }
+    },
+    "recovery": {
+      "captureFunctionConfigurationAndIam": true,
+      "functionsUnchanged": false,
+      "hostingUnchanged": true,
+      "captureHostingReleaseBeforeDeploy": true,
+      "requireExistingFunctions": false,
+      "requireRollbackEvidence": true
+    },
+    "expectedInvokerIamDisabled": true,
+    "releasePurpose": "Only Elias historical allocation callable from pinned PR427 source; staging bootstrap separately approved; no Hosting, no Stripe secrets, no production.",
+    "bootstrap": {
+      "approvalRequired": true,
+      "routineDeployMayCreate": false,
+      "functions": [
+        "correctP000019HistoricalAllocation"
+      ]
+    }
+  },
   "billing-pr410-deploy-96a1452d": {
     "repository": "raulsandoval81-maker/SandmanSystem",
     "sourcePr": 410,
