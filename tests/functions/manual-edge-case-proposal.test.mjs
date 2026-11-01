@@ -105,3 +105,13 @@ test("No money creation or Stripe API in standalone adjustment executor",()=>{
  assert.match(src,/tx\.create\(actionRef/);
  assert.doesNotMatch(src,/getStripe\(|stripe\.checkout|stripe\.paymentIntents|stripe\.refunds/);
 });
+
+test("Manual tool loads records only through location-scoped Management backend",()=>{
+ const server=readFileSync("functions/src/management/manualEdgeCaseProposal.ts","utf8");
+ const client=readFileSync("public/management/manual-edge-case-proposal/tool.js","utf8");
+ assert.match(server,/mode === "load"/);
+ assert.match(server,/requireProposalLocationAccess\(staff, proposal.locationId\)/);
+ assert.match(server,/proposal\.pricing\?\.monthlyBalance/);
+ assert.match(client,/mode: "load"/);
+ assert.doesNotMatch(client,/getDoc\(|getDocs\(|collection\("proposals"/);
+});
