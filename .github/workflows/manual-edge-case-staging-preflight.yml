@@ -1,0 +1,100 @@
+name: Management Manual Edge-Case Staging Preflight (no deploy)
+on:
+  pull_request:
+    paths:
+      - .github/workflows/manual-edge-case-staging-preflight.yml
+      - scripts/staging/manual-edge-case-release.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  review-scope-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Read proposed release contract (no credentials)
+        uses: actions/checkout@v4
+        with:
+          path: release-tooling
+          persist-credentials: false
+      - name: Load pinned application source
+        uses: actions/checkout@v4
+        with:
+          repository: raulsandoval81-maker/SandmanSystem
+          ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify immutable scope and fail closed on unrelated files
+        env:
+          RELEASE_MANIFEST: release-tooling/scripts/staging/manual-edge-case-release.json
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('node:fs');
+          const cp=require('node:child_process');
+          const r=JSON.parse(fs.readFileSync(process.env.RELEASE_MANIFEST,'utf8'));
+          const assert=(condition,message)=>{if(!condition)throw Error(message)};
+          const sha=/^[0-9a-f]{40}$/;
+          assert(r.projectId==='sandman-combat-staging','Wrong project');
+          assert(r.status==='VALIDATION_ONLY' && r.deploymentAuthorized===false,'Deployment is not permitted');
+          assert(r.applicationSha==='f884bebb5d79b5ee0deb4b8321acd37d88bc997d','Unexpected application SHA');
+          assert(sha.test(r.ancestorSha),'Invalid ancestor');
+          assert(JSON.stringify(r.functions)===JSON.stringify(['manualEdgeCaseProposal']),'Unexpected Function');
+          assert(r.secrets.length===0 && r.iamChanges===false &&
+            r.firestoreRulesChanges===false && r.productionChanges===false &&
+            r.checkoutOrPaymentOperations===false,'Financial or security scope expansion');
+          const actualSha=cp.execFileSync('git',['-C','application','rev-parse','HEAD'],{encoding:'utf8'}).trim();
+          assert(actualSha===r.applicationSha,'Wrong immutable checkout');
+          const files=cp.execFileSync('git',['-C','application','diff','--name-only',
+            r.ancestorSha,r.applicationSha],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          assert(JSON.stringify(files)===JSON.stringify([...r.allowedChangedFiles].sort()),
+            'Changed files do not match approved release scope: '+JSON.stringify(files));
+          for(const path of r.hostingFiles){
+            assert(path.startsWith('public/') && files.includes(path),'Unapproved Hosting file: '+path);
+            assert(fs.existsSync('application/'+path),'Missing Hosting file: '+path);
+          }
+          const endpoint=fs.readFileSync('application/functions/src/index.ts','utf8');
+          assert(endpoint.includes('export { manualEdgeCaseProposal }'),'Missing callable export');
+          const callable=fs.readFileSync('application/functions/src/management/manualEdgeCaseProposal.ts','utf8');
+          assert(!callable.includes('stripe.'),'Stripe boundary violated');
+          console.log('PASS: immutable application, staged changes, callable and Hosting allowlist');
+          NODE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install and compile pinned application
+        working-directory: application
+        run: |
+          npm ci --prefix functions
+          npm run build --prefix functions
+      - name: Run focused allocation tests
+        working-directory: application
+        run: node --test tests/functions/manual-edge-case-proposal.test.mjs
+      - name: Run authenticated Firestore emulator transactions (demo project only)
+        working-directory: application
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs=require('node:fs');
+          const c=JSON.parse(fs.readFileSync('firebase.json','utf8'));
+          c.emulators=c.emulators||{};
+          c.emulators.firestore={...(c.emulators.firestore||{}),host:'127.0.0.1',port:8187};
+          fs.writeFileSync('firebase.manual-edge-case-preflight.tmp.json',JSON.stringify(c));
+          NODE
+          trap 'rm -f firebase.manual-edge-case-preflight.tmp.json' EXIT
+          npx --yes firebase-tools@15.11.0 emulators:exec \
+            --config firebase.manual-edge-case-preflight.tmp.json \
+            --project demo-manual-edge-case \
+            --only firestore \
+            'node functions/tests/manualEdgeCaseProposal.integration.cjs'
+      - name: Preflight result
+        run: echo "Preflight only — no infrastructure deployments, IAM writes, production calls or Stripe operations."
