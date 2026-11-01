@@ -36,6 +36,28 @@ test("Generic existing-proposal September $100 / October $80 + $20 adjustment pr
  assert.equal(result.afterPayments[1].enrollmentFeeAmountCents,2000);
  assert.equal(result.checkoutAuthorized,false);
 });
+test("Previously misallocated September surplus can be resolved as $100 earned at its historical rate", () => {
+ const p=proposal();
+ p.priorPayments[0].historicalMonthlyRateCents=8000;
+ p.priorPayments[0].unappliedMembershipAmountCents=2000;
+ p.priorPayments[0].membershipPeriodAllocations[0].paidCents=8000;
+ p.priorPayments[0].membershipPeriodAllocations[0].totalPaidCents=8000;
+ p.priorPayments[0].membershipPeriodAllocations[0].requiredCents=8000;
+ p.priorPayments[1].unappliedMembershipAmountCents=2000;
+ p.priorPayments[1].membershipPeriodAllocations[0].paidCents=8000;
+ p.priorPayments[1].membershipPeriodAllocations[0].totalPaidCents=8000;
+ p.priorPayments[1].membershipPeriodAllocations[0].requiredCents=8000;
+ p.priorPayments[1].historicalMonthlyRateCents=8000;
+ const outcome=buildManualProposalAdjustment(p,[
+  {paymentId:"receipt-sep",enrollmentFeeAmountCents:0,historicalMonthlyRateCents:10000},
+  {paymentId:"receipt-oct",enrollmentFeeAmountCents:2000,historicalMonthlyRateCents:8000},
+ ]);
+ assert.equal(outcome.originalTotalCents,20000);
+ assert.equal(outcome.afterSummary.unappliedMembershipCents,0);
+ assert.equal(outcome.afterSummary.enrollmentRemainingCents,1000);
+ assert.deepEqual(outcome.afterSummary.fullyPaidPeriods,["2026-09","2026-10"]);
+});
+
 test("Adjustment is reusable across proposal and receipt IDs", () => {
  const p=proposal();
  p.proposalId="P-000888";
