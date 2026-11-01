@@ -391,6 +391,57 @@
   line-height: 1.45;
 }
 
+.billing-fee-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.billing-fee-preview-title {
+  color: var(--management-text);
+  font-size: .95rem;
+}
+
+.billing-fee-preview-list {
+  margin: 0;
+  padding-left: 1.4rem;
+  display: grid;
+  gap: 7px;
+}
+
+.billing-fee-preview-list li {
+  padding-left: 2px;
+}
+
+.billing-fee-preview-list li > span {
+  margin-right: 8px;
+}
+
+.billing-fee-preview-list li > strong {
+  color: var(--management-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.billing-fee-preview-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--management-border);
+  color: var(--management-text);
+}
+
+.billing-fee-preview-total strong:last-child {
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.billing-fee-preview small {
+  line-height: 1.5;
+  color: var(--management-muted);
+}
+
 .billing-cash-footer {
   display: flex;
   justify-content: flex-end;

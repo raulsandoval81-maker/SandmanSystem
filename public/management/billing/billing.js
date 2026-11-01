@@ -142,14 +142,26 @@ function refreshPriorPaymentFeePreview(dialog) {
     Number.isSafeInteger(allocation) && allocation >= 0 &&
     allocation <= Math.round(amount * 100) &&
     allocation <= balance.remainingCents;
-  const recorded = "Annual enrollment: " + moneyFromCents(balance.feeCents) +
-    " total; " + moneyFromCents(balance.paidCents) + " already recorded; " +
-    moneyFromCents(balance.remainingCents) + " currently owed.";
-  target.textContent = valid
-    ? recorded + " After this UNRECORDED payment: " +
-      moneyFromCents(balance.remainingCents - allocation) +
-      " annual enrollment remaining (preview only)."
-    : recorded + " Enter a valid payment and fee allocation to preview the new balance.";
+
+  const rows = [
+    ["Annual fee", balance.feeCents],
+    ["Previously recorded", balance.paidCents],
+    ["Currently owed", balance.remainingCents]
+  ];
+  if (valid) rows.push(["Applied from this payment", allocation]);
+  target.innerHTML = `
+    <strong class="billing-fee-preview-title">Annual Enrollment Fee Summary</strong>
+    <ul class="billing-fee-preview-list">
+      ${rows.map(([label, cents]) => `<li><span>${esc(label)}</span><strong>${esc(moneyFromCents(cents))}</strong></li>`).join("")}
+    </ul>
+    ${valid
+      ? `<div class="billing-fee-preview-total">
+           <strong>Remaining after payment</strong>
+           <strong>${esc(moneyFromCents(balance.remainingCents - allocation))}</strong>
+         </div>
+         <small>After this UNRECORDED payment: preview only — payment has not been recorded.</small>`
+      : `<small>Enter a valid payment and annual fee allocation to preview the remaining balance. No payment has been recorded.</small>`}
+  `;
 }
 
 function setStatus(
@@ -1543,7 +1555,7 @@ function ensurePriorPaymentDialog() {
         </label>
       </div>
 
-      <p id="priorPaymentFeePreview" class="billing-cash-warning" role="status" aria-live="polite"></p>
+      <div id="priorPaymentFeePreview" class="billing-cash-warning billing-fee-preview" role="status" aria-live="polite"></div>
 
       <label class="billing-cash-note">
         <span>Management note</span>

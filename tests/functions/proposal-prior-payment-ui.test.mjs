@@ -154,3 +154,20 @@ test("Billing shows the recorded annual fee balance and labels pre-submit math a
   assert.match(ui, /allocation <= balance\.remainingCents/);
   assert.match(ui, /allocation <= Math\.round\(amount \* 100\)/);
 });
+
+test("prior-payment fee preview uses a bulleted summary without changing payment calls", () => {
+  const ui = read("public/management/billing/billing.js");
+  const css = read("public/management/billing/billing.css");
+  assert.match(ui, /Annual Enrollment Fee Summary/);
+  assert.match(ui, /billing-fee-preview-list/);
+  assert.match(ui, /<ul class="billing-fee-preview-list">/);
+  assert.match(ui, /Previously recorded/);
+  assert.match(ui, /Currently owed/);
+  assert.match(ui, /Applied from this payment/);
+  assert.match(ui, /Remaining after payment/);
+  assert.match(ui, /After this UNRECORDED payment: preview only/);
+  assert.match(ui, /valid\s*\?\s*`<div class="billing-fee-preview-total">/);
+  assert.match(css, /\.billing-fee-preview-list/);
+  assert.match(css, /\.billing-fee-preview-total/);
+  assert.match(ui, /const recorded = await recordPriorPaymentCall/);
+});
