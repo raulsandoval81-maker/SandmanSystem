@@ -1,0 +1,110 @@
+name: Elias PR427 one-callable production release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preflight only, or protected production deploy
+        type: choice
+        options: [preflight, deploy]
+        default: preflight
+        required: true
+      confirm_project:
+        description: Type sandmandashboard
+        type: string
+        required: true
+      confirm_source_sha:
+        description: Exact merged PR427 source commit
+        type: string
+        required: true
+      approve_callable:
+        description: For deploy only, type APPROVE_ELIAS_PRODUCTION_CALLABLE
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-functions
+  cancel-in-progress: false
+
+jobs:
+  elias-callable:
+    if: ${{ inputs.mode == 'preflight' || inputs.mode == 'deploy' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - name: Checkout trusted workflow tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - name: Verify hard-coded project, exact source, case and approval
+        env:
+          MODE: ${{ inputs.mode }}
+          PROJECT: ${{ inputs.confirm_project }}
+          SOURCE: ${{ inputs.confirm_source_sha }}
+          APPROVAL: ${{ inputs.approve_callable }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-pr427-elias-production-function.yml@refs/heads/main"
+          test "${PROJECT}" = "sandmandashboard"
+          test "${SOURCE}" = "f3650ca4007448086d5a674df5784bbb3cdb9f54"
+          if test "${MODE}" = "deploy"; then
+            test "${APPROVAL}" = "APPROVE_ELIAS_PRODUCTION_CALLABLE"
+          fi
+      - name: Checkout exact merged corrective function source
+        uses: actions/checkout@v4
+        with:
+          ref: f3650ca4007448086d5a674df5784bbb3cdb9f54
+          path: application
+          persist-credentials: false
+      - name: Validate immutable correction and narrow scope
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "f3650ca4007448086d5a674df5784bbb3cdb9f54"
+          test -z "$(git -C application status --porcelain=v1)"
+          grep -q 'export const correctP000019HistoricalAllocation = onCall' application/functions/src/billing/correctP000019HistoricalAllocation.ts
+          grep -q 'req.data?.proposalId !== "P-000019"' application/functions/src/billing/correctP000019HistoricalAllocation.ts
+          grep -q 'if (!req.auth)' application/functions/src/billing/correctP000019HistoricalAllocation.ts
+          grep -q 'historicalPaymentCorrection' application/functions/src/billing/correctP000019HistoricalAllocation.ts
+          grep -q 'correctP000019HistoricalAllocation' application/functions/src/index.ts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile and verify correction only
+        working-directory: application
+        run: |
+          set -euo pipefail
+          npm ci --prefix functions
+          npm run build --prefix functions
+          node --test functions/tests/correctP000019Payments.test.cjs tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
+          node -e 'const x=require("./functions/lib/index.js");if(!x.correctP000019HistoricalAllocation?.__endpoint?.callableTrigger)throw Error("Elias callable is missing")'
+      - name: Authenticate production using established production credential
+        if: ${{ inputs.mode == 'deploy' }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          set -euo pipefail
+          test -n "${FIREBASE_SERVICE_ACCOUNT}"
+          printf '%s' "${FIREBASE_SERVICE_ACCOUNT}" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Deploy only the Elias correction callable, never Hosting
+        if: ${{ inputs.mode == 'deploy' }}
+        working-directory: application
+        run: |
+          set -euo pipefail
+          npx --yes firebase-tools@15.11.0 deploy \
+            --only functions:correctP000019HistoricalAllocation \
+            --project sandmandashboard \
+            --non-interactive
+      - name: Record preflight scope
+        if: ${{ inputs.mode == 'preflight' }}
+        run: |
+          echo "Validated correction source f3650ca4007448086d5a674df5784bbb3cdb9f54; no production deployment or Firestore write performed."
