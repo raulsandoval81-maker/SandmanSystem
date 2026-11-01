@@ -48,6 +48,6 @@ test("three Management pages use shared ledger while checkout remains independen
     assert.match(page, /management\/shared\/services\/historical-payment-summary\.js/);
   }
   assert.match(proposals, /Original proposal amount \(not reconciled\)/);
-  assert.match(enrollment, /ledgerType:"historical"/);
+  assert.match(enrollment, /ledgerType:ledger\?"historical":"prepaid"/);
   assert.doesNotMatch(helperSource, /httpsCallable|stripe|tx\.update|setDoc|updateDoc|createCheckout/i);
 });
