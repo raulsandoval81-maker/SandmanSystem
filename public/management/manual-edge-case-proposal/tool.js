@@ -94,16 +94,16 @@ async function previewCase() {
       "\nEnrollment paid: " + money(b.enrollmentPaidCents) + " → " + money(a.enrollmentPaidCents) +
       "\nEnrollment outstanding: " + money(b.enrollmentRemainingCents) + " → " + money(a.enrollmentRemainingCents) +
       "\nUnapplied cash: " + money(b.unappliedMembershipCents) + " → " + money(a.unappliedMembershipCents) +
-      "\\nFully paid months before: " + (b.fullyPaidPeriods.join(", ") || "None") +
-      "\\nFully paid months after: " + (a.fullyPaidPeriods.join(", ") || "None") +
-      "\\nChanged receipts:\\n" +
+      "\nFully paid months before: " + (b.fullyPaidPeriods.join(", ") || "None") +
+      "\nFully paid months after: " + (a.fullyPaidPeriods.join(", ") || "None") +
+      "\nChanged receipts:\n" +
       preview.receiptChanges.filter(x =>
         Number(x.beforeMembershipCents) !== Number(x.afterMembershipCents) ||
         Number(x.beforeEnrollmentCents) !== Number(x.afterEnrollmentCents)
       ).map(x => "  " + x.paymentId + ": membership " + money(x.beforeMembershipCents) +
         " → " + money(x.afterMembershipCents) + "; enrollment " +
-        money(x.beforeEnrollmentCents) + " → " + money(x.afterEnrollmentCents)).join("\\n") +
-      "\\nCheckout authorized: NO";
+        money(x.beforeEnrollmentCents) + " → " + money(x.afterEnrollmentCents)).join("\n") +
+      "\nCheckout authorized: NO";
     $("previewResults").style.whiteSpace = "pre-wrap";
     $("previewPanel").hidden = false;
     $("commit").disabled = !$("confirm").checked;
