@@ -8,7 +8,7 @@ import { summarizeHistoricalCash } from "../billing/historicalCashReconciliation
  */
 const clean = (x: unknown) => String(x ?? "").trim();
 function cents(x: unknown, label: string): number {
-  if (!Number.isSafeInteger(x) || Number(x) < 0) {
+  if (typeof x !== "number" || !Number.isSafeInteger(x) || x < 0) {
     throw new Error(`${label} must be nonnegative whole cents.`);
   }
   return Number(x);
