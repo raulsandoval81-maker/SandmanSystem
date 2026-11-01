@@ -1,0 +1,88 @@
+name: Billing dependency production Hosting repair
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preflight before protected production deployment
+        required: true
+        type: choice
+        default: preflight
+        options: [preflight, deploy]
+      confirm_project:
+        description: Type sandmandashboard exactly
+        required: true
+        type: string
+      confirm_source_sha:
+        description: Exact immutable Billing form source SHA
+        required: true
+        type: string
+      expected_current_release:
+        description: Reviewed live Hosting release from successful preflight (deploy only)
+        required: false
+        type: string
+      expected_current_version:
+        description: Reviewed live Hosting version from successful preflight (deploy only)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-hosting
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - name: Enforce approved production scope
+        working-directory: trusted-tooling
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+          SOURCE_SHA: ${{ inputs.confirm_source_sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-billing-dependency-production.yml@refs/heads/main"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${PROJECT}" = "sandmandashboard"
+          test "${SOURCE_SHA}" = "a4baf439c967c8a0c081218d1becb874bdd3a733"
+          node --test tests/functions/billing-dependency-production-release.test.mjs
+      - uses: actions/checkout@v5
+        with:
+          ref: a4baf439c967c8a0c081218d1becb874bdd3a733
+          path: application
+          persist-credentials: false
+      - name: Verify immutable source
+        working-directory: application
+        run: test "$(git rev-parse HEAD)" = "a4baf439c967c8a0c081218d1becb874bdd3a733"
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install google-auth requests
+      - name: Compare or release one Billing dependency without touching Functions
+        run: |
+          python trusted-tooling/scripts/production/billing_dependency_hosting_release.py \
+            --source-root application \
+            --evidence-dir release-evidence \
+            --mode "${{ inputs.mode }}" \
+            --confirm-project "${{ inputs.confirm_project }}" \
+            --confirm-source-sha "${{ inputs.confirm_source_sha }}" \
+            --expected-release "${{ inputs.expected_current_release }}" \
+            --expected-version "${{ inputs.expected_current_version }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: billing-dependency-production-${{ github.run_id }}-${{ inputs.mode }}
+          path: release-evidence/
+          if-no-files-found: error
