@@ -21,7 +21,7 @@ export const manualEdgeCaseProposal = onCall(async req => {
   const expectedFingerprint = clean(req.data?.expectedFingerprint);
   const actionId = clean(req.data?.actionId);
   const requestFingerprint = createHash("sha256").update(JSON.stringify({ entries, reason })).digest("hex");
-  if (!/^P-\\d{6}$/.test(proposalId) || !["load", "preview", "commit"].includes(mode)) {
+  if (!/^P-\d{6}$/.test(proposalId) || !["load", "preview", "commit"].includes(mode)) {
     throw new HttpsError("invalid-argument", "A valid proposal ID and preview/commit action are required.");
   }
   if (mode !== "load" && !Array.isArray(entries)) throw new HttpsError("invalid-argument", "A receipt allocation list is required.");
