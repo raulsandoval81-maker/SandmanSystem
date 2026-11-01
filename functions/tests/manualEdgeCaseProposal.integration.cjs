@@ -7,7 +7,7 @@ if (!process.env.FIRESTORE_EMULATOR_HOST ||
     !process.env.GCLOUD_PROJECT?.startsWith("demo-")) {
   throw new Error("Refusing to run outside a Firestore emulator demo- project.");
 }
-const app = initializeApp({ projectId: process.env.GCLOUD_PROJECT }, "manual-proposal-gate-" + process.pid);
+const app = initializeApp({ projectId: process.env.GCLOUD_PROJECT });
 const db = getFirestore(app);
 const callable = require("../lib/management/manualEdgeCaseProposal").manualEdgeCaseProposal;
 const suffix = String(process.pid).padStart(6,"0").slice(-6);
