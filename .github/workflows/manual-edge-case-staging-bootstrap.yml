@@ -71,12 +71,13 @@ jobs:
           cache: npm
           cache-dependency-path: application/functions/package-lock.json
       - name: Build and run both required suites
+        working-directory: application
         run: |
           set -euo pipefail
-          npm ci --prefix application/functions
-          npm --prefix application/functions run build
-          node --test application/tests/functions/manual-edge-case-proposal.test.mjs
-          test -f application/functions/lib/management/manualEdgeCaseProposal.js
+          npm ci --prefix functions
+          npm --prefix functions run build
+          node --test tests/functions/manual-edge-case-proposal.test.mjs
+          test -f functions/lib/management/manualEdgeCaseProposal.js
       - name: Verify exported Cloud Functions trigger is a callable
         run: |
           node - <<'NODE'
