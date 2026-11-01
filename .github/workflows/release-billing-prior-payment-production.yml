@@ -14,7 +14,7 @@ on:
         required: true
         type: string
       confirm_source_sha:
-        description: Exact immutable PR415 source SHA
+        description: Exact immutable Billing form source SHA
         required: true
         type: string
       expected_current_release:
