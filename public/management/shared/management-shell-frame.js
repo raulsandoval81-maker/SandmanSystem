@@ -15,6 +15,7 @@ const NAV_GROUPS = Object.freeze([
     ["xp-management", "XP Management", "/management/xp-adjustments/"],
     ["pricing", "Pricing & Enrollment Setup", "/management/pricing/"],
     ["membership-tools", "Membership & Competition Tools", "/management/membership-tools/"],
+    ["manual-edge-case-proposal", "Manual Edge-Case Proposal", "/management/manual-edge-case-proposal/"],
   ]],
   ["Pipeline / Core", [
     ["leads", "Leads", "/connect/leads/"],
@@ -47,6 +48,7 @@ function areaForPath(pathname = window.location.pathname) {
     ["/management/xp-adjustments/", "xp-management"],
     ["/management/pricing/", "pricing"],
     ["/management/membership-tools/", "membership-tools"],
+    ["/management/manual-edge-case-proposal/", "manual-edge-case-proposal"],
   ].find(([prefix]) => pathname.startsWith(prefix))?.[1] || "";
 }
 
