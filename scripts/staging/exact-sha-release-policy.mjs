@@ -22,6 +22,7 @@ const APPROVED_FUNCTION_SETS = Object.freeze([
     "createProposalAutopaySetup",
   ]),
   Object.freeze(["issueProposalClientReview", "createProposalCheckout"]),
+  Object.freeze(["correctP000019HistoricalAllocation"]),
   Object.freeze([
     "recordProposalPriorPayment",
     "recordHistoricalCashDisposition",
@@ -37,6 +38,7 @@ export const APPROVED_FUNCTIONS = Object.freeze([...new Set(APPROVED_FUNCTION_SE
 const exactSha = /^[0-9a-f]{40}$/;
 const BILLING_RELEASE_IDS = new Set(["billing-pr354-014198ea", "billing-pr376-dff3e6d3"]);
 const BILLING_FULL_RELEASE_ID = "billing-pr394-deploy-7befb7f2";
+const ELIAS_RELEASE_ID = "billing-pr427-elias-f3650ca4";
 
 export async function loadRelease(releaseId, manifestPath = new URL("./approved-exact-sha-releases.json", import.meta.url)) {
   const releases = JSON.parse(await readFile(manifestPath, "utf8"));
@@ -172,8 +174,45 @@ export function validateRelease(release, context = {}) {
   if (release.releaseId === billingValidationId && !isBillingValidation) {
     throw new Error("PR394 validation checkpoint must remain isolated and deployment-disabled.");
   }
+  const isEliasRelease = release.releaseId === ELIAS_RELEASE_ID &&
+    release.sourcePr === 427 &&
+    release.applicationSha === "f3650ca4007448086d5a674df5784bbb3cdb9f54" &&
+    release.requiredAncestorSha === "b05d94679c1c7ee2681cbff22b8d721683d90a1b" &&
+    JSON.stringify(release.allowedChangedFiles) === JSON.stringify([
+      ".github/workflows/historical-skill-tests.yml",
+      "functions/package.json",
+      "functions/src/billing/correctP000019HistoricalAllocation.ts",
+      "functions/src/billing/correctP000019Payments.ts",
+      "functions/src/billing/historicalCashReconciliation.ts",
+      "functions/src/index.ts",
+      "functions/tests/correctP000019Payments.test.cjs",
+      "public/connect/proposals/proposals.js",
+      "public/management/billing/billing.js",
+      "public/management/enrollment-flow/enrollment-flow.js",
+      "public/management/shared/services/historical-payment-summary.js",
+      "tests/functions/management-historical-ledger-sync.test.mjs",
+      "tests/functions/p000019-historical-allocation-ui.test.mjs",
+    ]) &&
+    release.hosting === false && release.validationOnly === false &&
+    !release.hostingFiles && !release.hostingBaselineSha &&
+    JSON.stringify(release.functions) === JSON.stringify(["correctP000019HistoricalAllocation"]) &&
+    JSON.stringify(release.newFunctions) === JSON.stringify(["correctP000019HistoricalAllocation"]) &&
+    JSON.stringify(release.functionSecrets) === JSON.stringify({}) &&
+    JSON.stringify(release.bootstrap) === JSON.stringify({
+      approvalRequired: true, routineDeployMayCreate: false,
+      functions: ["correctP000019HistoricalAllocation"],
+    }) &&
+    release.functionDeploymentTool === "gcloud-gen2" &&
+    release.functionRuntime === "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.functionDeployer === "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.functionBuild === "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com" &&
+    release.expectedInvokerIamDisabled === true &&
+    release.recovery?.hostingUnchanged === true;
+  if (release.releaseId === ELIAS_RELEASE_ID && !isEliasRelease) {
+    throw new Error("Elias staging release scope mismatch.");
+  }
   if (release.hosting === false && release.releaseId !== "attendance-admin-init-pr308-0b06a778" &&
-      !isBillingValidation && !isBilling410Validation && !isBilling410Deploy) {
+      !isBillingValidation && !isBilling410Validation && !isBilling410Deploy && !isEliasRelease) {
     throw new Error("Hosting-disabled releases require their own reviewed authorization.");
   }
   if (release.releaseId === "attendance-admin-init-pr308-0b06a778" &&
@@ -293,7 +332,7 @@ export function validateRelease(release, context = {}) {
     throw new Error("Unexpected function target in approved release.");
   }
   const newFunctions = [...(release.newFunctions || [])];
-  const approvedNewFunctions = (BILLING_RELEASE_IDS.has(release.releaseId) || release.releaseId === BILLING_FULL_RELEASE_ID)
+  const approvedNewFunctions = (BILLING_RELEASE_IDS.has(release.releaseId) || release.releaseId === BILLING_FULL_RELEASE_ID || isEliasRelease)
     ? functions
     : ["searchPracticeAttendanceAthletes"];
   if (newFunctions.some(name => !approvedNewFunctions.includes(name) || !functions.includes(name))) {
