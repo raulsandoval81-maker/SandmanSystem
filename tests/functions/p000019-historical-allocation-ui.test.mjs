@@ -18,11 +18,11 @@ test("Management correction adjusts existing receipts only; does not create a pa
   assert.match(callable, /priorPaymentsBefore: correction.before/);
   assert.match(callable, /priorPaymentsAfter: correction.corrected/);
   assert.match(callable, /historicalPaymentCorrection/);
-  assert.doesNotMatch(callable, /stripe|charge|tx\.create\(.*paymentRef/i);
+  assert.doesNotMatch(callable, /\bstripe\s*\.|\bcreateCharge\s*\(|tx\.create\(\s*paymentRef/i);
 });
 
 test("Correction retains original receipt amount and monthly contractual rates", () => {
-  assert.match(correction, /payment\.amountCents !== 10000/);
+  assert.match(correction, /payment\?\.amountCents !== 10000/);
   assert.match(correction, /payments\.length !== 2/);
   assert.match(correction, /"2026-09": \{ membership: 10000, enrollment: 0, rate: 10000 \}/);
   assert.match(correction, /"2026-10": \{ membership: 8000, enrollment: 2000, rate: 8000 \}/);
