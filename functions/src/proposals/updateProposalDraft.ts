@@ -250,6 +250,31 @@ export const updateProposalDraft =
               proposalAthletes,
             );
 
+            // Historical receipts are authoritative financial records. Editing a
+            // draft must never silently reprice already-recorded payments or
+            // change their signed billing calendar without reconciliation.
+            const existingPayments = Array.isArray(existing.priorPayments)
+              ? existing.priorPayments : [];
+            if (existingPayments.length) {
+              const priorPricing = existing.pricing || {};
+              const lockedFields = [
+                "monthlyBalance",
+                "enrollmentBase",
+                "membershipStartDate",
+                "firstRecurringChargeDate",
+              ];
+              const changed = lockedFields.some((field) =>
+                String(priorPricing[field] ?? "") !==
+                String((pricing as Record<string, unknown>)[field] ?? "")
+              );
+              if (changed) {
+                throw new HttpsError(
+                  "failed-precondition",
+                  "Historical payments are recorded. Pricing or billing dates cannot be changed through an ordinary draft edit. Reconcile the existing ledger through an audited Management correction first."
+                );
+              }
+            }
+
             const historyRef =
               proposalRef
                 .collection("history")
