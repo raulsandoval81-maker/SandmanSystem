@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Preflight only, or protected production deploy
+        description: Preflight, read-only production IAM diagnosis, or protected deploy
         type: choice
-        options: [preflight, deploy]
+        options: [preflight, diagnose, deploy]
         default: preflight
         required: true
       confirm_project:
@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   elias-callable:
-    if: ${{ inputs.mode == 'preflight' || inputs.mode == 'deploy' }}
+    if: ${{ inputs.mode == 'preflight' || inputs.mode == 'diagnose' || inputs.mode == 'deploy' }}
     runs-on: ubuntu-24.04
     environment: production
     timeout-minutes: 30
@@ -109,7 +109,7 @@ jobs:
           test ! -e isolated-release/functions/.env.production
           test ! -e isolated-release/functions/.env.sandmandashboard
       - name: Authenticate production using established production credential
-        if: ${{ inputs.mode == 'deploy' }}
+        if: ${{ inputs.mode == 'deploy' || inputs.mode == 'diagnose' }}
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
         run: |
@@ -118,6 +118,50 @@ jobs:
           printf '%s' "${FIREBASE_SERVICE_ACCOUNT}" > "$RUNNER_TEMP/firebase-sa.json"
           chmod 600 "$RUNNER_TEMP/firebase-sa.json"
           echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+      - name: Diagnose production Cloud Run invoker permissions (read-only)
+        if: ${{ inputs.mode == 'diagnose' }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const { GoogleAuth } = require("./isolated-release/functions/node_modules/google-auth-library");
+          const fs = require("node:fs");
+          const identity = JSON.parse(fs.readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, "utf8"));
+          console.log("Deployment principal:", identity.client_email);
+          const auth = new GoogleAuth({ scopes: ["https://www.googleapis.com/auth/cloud-platform"] });
+          const base = "projects/sandmandashboard/locations/us-central1";
+          const name = base + "/services/correctp000019historicalallocation";
+          (async () => {
+            const client = await auth.getClient();
+            const token = await client.getAccessToken();
+            const requests = [
+              ["Cloud Run service", "GET", "https://run.googleapis.com/v2/" + name],
+              ["Cloud Run IAM policy", "GET", "https://run.googleapis.com/v2/" + name + ":getIamPolicy"],
+              ["Cloud Run effective IAM permissions", "POST", "https://run.googleapis.com/v2/" + name + ":testIamPermissions",
+               {permissions:["run.services.get","run.services.getIamPolicy","run.services.setIamPolicy","run.services.update"]}],
+              ["Cloud Function state", "GET", "https://cloudfunctions.googleapis.com/v2/" + base + "/functions/correctP000019HistoricalAllocation"],
+            ];
+            for (const [label, method, url, payload] of requests) {
+              try {
+                const res = await fetch(url, {
+                  method,
+                  headers: {Authorization:"Bearer " + token.token, "Content-Type":"application/json"},
+                  ...(payload ? {body: JSON.stringify(payload)} : {}),
+                });
+                const raw = await res.json().catch(() => ({}));
+                console.log(label + " HTTP " + res.status);
+                if (label === "Cloud Run service" && res.ok)
+                  console.log(JSON.stringify({name:raw.name, uri:raw.uri, ingress:raw.ingress, conditions:raw.conditions}));
+                if (label === "Cloud Run IAM policy" && res.ok)
+                  console.log(JSON.stringify({etag:!!raw.etag, roles:(raw.bindings||[]).map(b=>({role:b.role,membersCount:(b.members||[]).length,includesAllUsers:(b.members||[]).includes("allUsers")}))}));
+                if (label === "Cloud Run effective IAM permissions" && res.ok)
+                  console.log(JSON.stringify({grantedPermissions:raw.permissions || []}));
+                if (label === "Cloud Function state" && res.ok)
+                  console.log(JSON.stringify({name:raw.name,state:raw.state,serviceConfig:raw.serviceConfig&&{uri:raw.serviceConfig.uri}}));
+                if (!res.ok) console.log(JSON.stringify({error:raw.error?.message || "not available"}));
+              } catch (e) { console.log(label + " request failed: " + String(e.message)); }
+            }
+          })().catch(e => { console.error(e.message); process.exitCode=1; });
+          NODE
       - name: Deploy only the Elias correction callable, never Hosting
         if: ${{ inputs.mode == 'deploy' }}
         working-directory: isolated-release
