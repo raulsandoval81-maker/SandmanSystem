@@ -59,7 +59,8 @@ jobs:
       - run: npm ci
       - run: npm test
       - name: Validate P-000019 correction and cross-page Management ledger
-        run: node --test ../tests/functions/p000019-historical-allocation-ui.test.mjs ../tests/functions/management-historical-ledger-sync.test.mjs
+        working-directory: .
+        run: node --test tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
 
   firestore-emulator-integration:
     runs-on: ubuntu-24.04
