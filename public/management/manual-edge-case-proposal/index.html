@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Manual Edge-Case Proposal | Sandman Management</title>
+<link rel="stylesheet" href="/assets/css/management-ui.css">
+<link rel="stylesheet" href="/management/hub/management.css">
+<link rel="stylesheet" href="/management/manual-edge-case-proposal/tool.css">
+</head>
+<body data-management-area="manual-edge-case-proposal">
+<main class="manual-tool">
+<header><p class="eyebrow">Management · Controlled adjustments</p>
+<h1>Manual Edge-Case Proposal</h1>
+<p>Correct existing historical receipt allocations without changing collected cash. This standalone action does not charge Stripe, create a receipt, amend a signed agreement, or activate an athlete.</p></header>
+<section class="tool-panel"><h2>1. Select existing proposal</h2>
+<form id="loadForm"><label for="proposalId">Proposal ID</label>
+<div class="tool-line"><input required id="proposalId" placeholder="P-000019" pattern="P-[0-9]{6}" autocomplete="off"><button type="submit">Load</button></div></form>
+<p id="status" role="status" aria-live="polite">Enter an existing proposal ID.</p></section>
+<section id="editPanel" class="tool-panel" hidden><h2>2. Adjust allocation</h2>
+<p>Amounts in dollars. The original receipt amount is fixed. Historical membership rates may differ from today's agreement rate.</p>
+<div id="receiptRows"></div>
+<label for="reason">Audit reason (10–500 characters)</label>
+<textarea id="reason" rows="3" minlength="10" maxlength="500" placeholder="Explain the historical evidence and why this allocation is correct."></textarea>
+<button id="preview" type="button">Preview adjustment</button></section>
+<section id="previewPanel" class="tool-panel" hidden><h2>3. Confirm before &amp; after</h2>
+<div id="previewResults"></div>
+<p><strong>Important:</strong> This action does not authorize checkout or change Stripe. If agreement terms change, the family still needs a fresh Review &amp; Confirm.</p>
+<label class="tool-check"><input type="checkbox" id="confirm"> I verified the receipt and displayed allocation against the original evidence.</label>
+<button id="commit" type="button" disabled>Save audited adjustment</button></section>
+<p><a href="/management/billing/">Back to Billing</a></p></main>
+<script type="module" src="/management/shared/management-shell.js"></script>
+<script type="module" src="/management/manual-edge-case-proposal/tool.js"></script>
+</body></html>
