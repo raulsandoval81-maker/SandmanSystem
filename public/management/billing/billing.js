@@ -921,8 +921,8 @@ function buildProposalItems(
         href:
           classification.view ===
             "PAID_READY"
-            ? "/intake-management/"
-            : "/connect/proposals/"
+            ? `/intake-management/?proposalId=${encodeURIComponent(proposalId)}`
+            : `/connect/proposals/?proposalId=${encodeURIComponent(proposalId)}`
       };
     })
     .filter(Boolean);
@@ -1035,6 +1035,7 @@ function visibleItems() {
       }
 
       return [
+        item.proposalId,
         item.name,
         item.source,
         item.location,
@@ -2672,6 +2673,21 @@ async function loadBilling() {
         passMessages
       )
     ];
+
+    // Preserve a selected proposal across Management handoffs.
+    const requestedProposalId = clean(
+      new URLSearchParams(window.location.search).get("proposalId")
+    );
+    const requestedItem = requestedProposalId
+      ? billingItems.find(item => item.proposalId === requestedProposalId)
+      : null;
+    if (requestedItem) {
+      activeView = requestedItem.view;
+      billingSearch.value = requestedProposalId;
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.classList.toggle("is-active", button.dataset.view === activeView);
+      });
+    }
 
     updateCounts();
     render();
