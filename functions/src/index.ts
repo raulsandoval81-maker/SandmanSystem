@@ -233,6 +233,8 @@ export {
   recordHistoricalCashDisposition,
 } from "./billing/recordHistoricalCashDisposition";
 
+export { manualEdgeCaseProposal } from "./management/manualEdgeCaseProposal";
+
 export {
   createProposalAutopaySetup,
 } from "./billing/proposalAutopaySetup";
