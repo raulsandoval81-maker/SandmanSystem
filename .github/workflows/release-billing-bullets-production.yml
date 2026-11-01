@@ -1,0 +1,88 @@
+name: Billing bulleted fee preview production Hosting overlay
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Preflight before protected production deployment
+        required: true
+        type: choice
+        default: preflight
+        options: [preflight, deploy]
+      confirm_project:
+        description: Type sandmandashboard exactly
+        required: true
+        type: string
+      confirm_source_sha:
+        description: Exact immutable Billing bullet-summary source SHA
+        required: true
+        type: string
+      expected_current_release:
+        description: Reviewed live Hosting release from successful preflight (deploy only)
+        required: false
+        type: string
+      expected_current_version:
+        description: Reviewed live Hosting version from successful preflight (deploy only)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-hosting
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - name: Enforce approved production scope
+        working-directory: trusted-tooling
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+          SOURCE_SHA: ${{ inputs.confirm_source_sha }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-billing-bullets-production.yml@refs/heads/main"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${PROJECT}" = "sandmandashboard"
+          test "${SOURCE_SHA}" = "182442820a3ea854413a0d2d067d1a464bf6a4d9"
+          node --test tests/functions/billing-bullets-production-release.test.mjs
+      - uses: actions/checkout@v5
+        with:
+          ref: 182442820a3ea854413a0d2d067d1a464bf6a4d9
+          path: application
+          persist-credentials: false
+      - name: Verify immutable source
+        working-directory: application
+        run: test "$(git rev-parse HEAD)" = "182442820a3ea854413a0d2d067d1a464bf6a4d9"
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install google-auth requests
+      - name: Compare or release only Billing JS and CSS without touching Functions
+        run: |
+          python trusted-tooling/scripts/production/billing_bullets_hosting_release.py \
+            --source-root application \
+            --evidence-dir release-evidence \
+            --mode "${{ inputs.mode }}" \
+            --confirm-project "${{ inputs.confirm_project }}" \
+            --confirm-source-sha "${{ inputs.confirm_source_sha }}" \
+            --expected-release "${{ inputs.expected_current_release }}" \
+            --expected-version "${{ inputs.expected_current_version }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: billing-bullets-production-${{ github.run_id }}-${{ inputs.mode }}
+          path: release-evidence/
+          if-no-files-found: error
