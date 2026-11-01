@@ -1725,6 +1725,7 @@ function ensurePriorPaymentDialog() {
             "Recording prior payment…";
         }
 
+        let paymentRecorded = false;
         try {
           const recorded = await recordPriorPaymentCall({
             proposalId,
@@ -1740,32 +1741,55 @@ function ensurePriorPaymentDialog() {
             note
           });
 
-          if (status) {
-            status.textContent = historicalCashReviewMessage(
-              recorded?.data?.historicalCashReview,
-              recorded?.data?.historicalCashPaymentPlan
-            );
-          }
-
-          await loadBilling();
-          // Preserve the reconciliation outcome on screen. A rushed
-          // auto-close would hide unresolved cash and fee balances.
-        } catch (error) {
-          console.error(
-            "[billing] prior payment failed:",
-            error
+          // The callable succeeded: never let a stale dialog submit
+          // the same payment a second time, even if the refresh fails.
+          paymentRecorded = true;
+          const outcome = historicalCashReviewMessage(
+            recorded?.data?.historicalCashReview,
+            recorded?.data?.historicalCashPaymentPlan
           );
+          if (status) status.textContent = outcome;
 
+          const refreshed = await loadBilling();
+          if (refreshed) {
+            // Clear the old proposed payment before showing the NEW
+            // recorded balance. No stale "UNRECORDED" $10 preview.
+            dialog.querySelector("#priorPaymentAmount").value = "";
+            dialog.querySelector("#priorPaymentStartMonth").value = "";
+            dialog.querySelector("#priorPaymentEndMonth").value = "";
+            dialog.querySelector("#priorPaymentEnrollmentAmount").value = "";
+            dialog.querySelector("#priorPaymentEnrollmentFee").checked = false;
+            dialog.querySelector("#priorPaymentEnrollmentAmount").disabled = false;
+            refreshPriorPaymentFeePreview(dialog);
+          } else {
+            const preview = dialog.querySelector("#priorPaymentFeePreview");
+            if (preview) {
+              preview.textContent =
+                "Payment recording succeeded, but the latest balance could not be loaded. Close this window and refresh Billing before taking another action.";
+            }
+            if (status) status.textContent =
+              outcome + " Billing refresh failed. Do not record the payment again.";
+          }
+          // Keep the reconciliation result visible until Management closes
+          // the dialog. Recording a new payment requires reopening it.
+        } catch (error) {
+          console.error("[billing] prior payment failed:", error);
           if (status) {
-            status.textContent =
-              error?.message ||
-              "Unable to record prior payment.";
+            status.textContent = paymentRecorded
+              ? "Payment was recorded, but Billing could not refresh. Do not submit again; close the window and refresh."
+              : error?.message || "Unable to record prior payment.";
+          }
+          if (paymentRecorded) {
+            const preview = dialog.querySelector("#priorPaymentFeePreview");
+            if (preview) preview.textContent =
+              "Balance not refreshed. Payment may already be recorded. Do not submit again.";
           }
         } finally {
           if (submit) {
-            submit.disabled = false;
-            submit.textContent =
-              "Record payment";
+            submit.disabled = paymentRecorded;
+            submit.textContent = paymentRecorded
+              ? "Payment recorded"
+              : "Record payment";
           }
         }
       }
@@ -1822,6 +1846,10 @@ function openPriorPaymentDialog(
   document.getElementById(
     "priorPaymentStatus"
   ).textContent = "";
+
+  const submit = dialog.querySelector("#priorPaymentSubmit");
+  submit.disabled = false;
+  submit.textContent = "Record payment";
 
   refreshPriorPaymentFeePreview(dialog);
   dialog.showModal();
@@ -2620,6 +2648,7 @@ async function loadBilling() {
     setStatus(
       `${billingItems.length} billing records loaded.`
     );
+    return true;
   } catch (error) {
     console.error(
       "[billing] load failed:",
@@ -2636,12 +2665,7 @@ async function loadBilling() {
       true
     );
 
-    if (
-      error?.code ===
-      "permission-denied"
-    ) {
-      return;
-    }
+    return false;
   } finally {
     refreshBilling.disabled = false;
   }
