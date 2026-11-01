@@ -1,0 +1,53 @@
+name: PR427 read-only release preflight
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/production/pr427_readonly_release_preflight.mjs'
+      - '.github/workflows/pr427-readonly-release-preflight.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact merged PR427 source
+        uses: actions/checkout@v4
+        with:
+          ref: f3650ca4007448086d5a674df5784bbb3cdb9f54
+          path: source
+          persist-credentials: false
+      - name: Check out read-only preflight tooling
+        uses: actions/checkout@v4
+        with:
+          path: tooling
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert exact pinned source, scope and outstanding safety blockers
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "f3650ca4007448086d5a674df5784bbb3cdb9f54"
+          node tooling/scripts/production/pr427_readonly_release_preflight.mjs source release-evidence/pr427-preflight.json
+      - name: Install source dependencies and compile/test correction
+        working-directory: source
+        run: |
+          npm --prefix functions ci
+          npm --prefix functions test
+          node --test tests/functions/p000019-historical-allocation-ui.test.mjs tests/functions/management-historical-ledger-sync.test.mjs
+      - name: Assert no deployment or financial writes occurred
+        run: |
+          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("release-evidence/pr427-preflight.json"));if(x.deploymentAuthorized||x.functionsDeployed||x.hostingDeployed||x.productionLedgerChanged||x.sourceSha!=="f3650ca4007448086d5a674df5784bbb3cdb9f54")process.exit(64);'
+      - name: Upload read-only scope report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr427-source-only-release-preflight-${{ github.run_id }}
+          path: release-evidence/
+          if-no-files-found: warn
