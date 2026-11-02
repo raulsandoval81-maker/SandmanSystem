@@ -46,6 +46,10 @@ jobs:
           test "${{ inputs.action }}" = "validate" -o "${{ inputs.action }}" = "bootstrap"
       - uses: actions/checkout@v4
         with:
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
           path: application
           persist-credentials: false
@@ -78,11 +82,13 @@ jobs:
           npm --prefix functions run build
           node --test tests/functions/manual-edge-case-proposal.test.mjs
           test -f functions/lib/management/manualEdgeCaseProposal.js
+          node ../trusted-tooling/scripts/staging/prepare-manual-edge-case-source.mjs functions /tmp/manual-edge-source
       - name: Verify exported Cloud Functions trigger is a callable
         run: |
-          node - <<'NODE'
-          const app=require('./application/functions/lib/index.js');
+          NODE_PATH="$PWD/functions/node_modules" node - <<'NODE'
+          const app=require('/tmp/manual-edge-source');
           const f=app.manualEdgeCaseProposal;
+          if (Object.keys(app).join(',') !== 'manualEdgeCaseProposal') throw Error('Unexpected callable export');
           if (!f?.__endpoint?.callableTrigger || f.__endpoint?.httpsTrigger) throw Error('Not exactly a Firebase callable');
           console.log('PASS: one callable, immutable staging source');
           NODE
@@ -90,9 +96,7 @@ jobs:
         with:
           name: manual-edge-case-staging-source-f884bebb
           path: |
-            application/functions/lib/
-            application/functions/package.json
-            application/functions/package-lock.json
+            /tmp/manual-edge-source/
           if-no-files-found: error
           retention-days: 7
 
@@ -116,6 +120,10 @@ jobs:
           test "${APPLICATION_AUTH}" = "APPROVE_STAGING_CALLABLE_APPLICATION_AUTH"
       - uses: actions/checkout@v4
         with:
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
           path: application
           persist-credentials: false
@@ -127,7 +135,8 @@ jobs:
           set -euo pipefail
           npm ci --prefix application/functions
           npm --prefix application/functions run build
-          node -e 'const a=require("./application/functions/lib/index.js");if(!a.manualEdgeCaseProposal?.__endpoint?.callableTrigger)process.exit(64)'
+          node trusted-tooling/scripts/staging/prepare-manual-edge-case-source.mjs application/functions /tmp/manual-edge-source
+          NODE_PATH="$PWD/application/functions/node_modules" node -e 'const a=require("/tmp/manual-edge-source");if(Object.keys(a).join(",")!=="manualEdgeCaseProposal"||!a.manualEdgeCaseProposal?.__endpoint?.callableTrigger)process.exit(64)'
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
@@ -136,19 +145,29 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/setup-gcloud@v3
-      - name: Ensure target is absent and no existing callable can be overwritten
+      - name: Ensure target is absent or is the exact recorded failed bootstrap
         run: |
           set -euo pipefail
           if gcloud functions describe manualEdgeCaseProposal --gen2 --region us-central1 \
                --project sandman-combat-staging --format=json > /tmp/manual-edge-before.json 2>/tmp/manual-edge-before.err; then
-            echo "::error::Callable already exists. Refusing create or update; inspect before rerun."
-            exit 1
+            node <<'NODE'
+            const fs=require('node:fs');
+            const actual=JSON.parse(fs.readFileSync('/tmp/manual-edge-before.json','utf8'));
+            const expected=require('./trusted-tooling/scripts/staging/manual-edge-case-release.json').failedBootstrap;
+            const build=String(actual.buildConfig?.build||'').split('/').pop();
+            const generation=String(actual.buildConfig?.source?.storageSource?.generation||'');
+            const types=(actual.stateMessages||[]).map(x=>x.type);
+            if(actual.state!==expected.functionState||build!==expected.buildId||generation!==expected.sourceGeneration||!types.includes(expected.stateMessageType)) {
+              throw Error('Existing callable is not the exact recorded failed bootstrap; refusing overwrite.');
+            }
+            console.log('Exact failed bootstrap confirmed; controlled recovery update is permitted.');
+            NODE
+          else
+            grep -Eiq 'NOT_FOUND|not found|404' /tmp/manual-edge-before.err || {
+              echo "::error::Cloud Functions lookup failed for a reason other than absence."
+              exit 1
+            }
           fi
-          # A missing function must be a known 404/NOT_FOUND, not permission denied.
-          grep -Eiq 'NOT_FOUND|not found|404' /tmp/manual-edge-before.err || {
-            echo "::error::Cloud Functions lookup failed for a reason other than absence."
-            exit 1
-          }
       - name: Deploy only manualEdgeCaseProposal to staging
         run: |
           set -euo pipefail
@@ -157,7 +176,7 @@ jobs:
             --region=us-central1 \
             --runtime=nodejs22 \
             --entry-point=manualEdgeCaseProposal \
-            --source=application/functions \
+            --source=/tmp/manual-edge-source \
             --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
             --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
             --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 \
