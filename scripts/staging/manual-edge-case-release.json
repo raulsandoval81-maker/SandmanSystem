@@ -34,6 +34,12 @@
   "firestoreRulesChanges": false,
   "productionChanges": false,
   "checkoutOrPaymentOperations": false,
+  "failedBootstrap": {
+    "functionState": "FAILED",
+    "buildId": "7f75ed30-a77f-483c-9261-a3988dc779c4",
+    "sourceGeneration": "1793574601213241",
+    "stateMessageType": "CloudRunServiceNotFound"
+  },
   "deploymentAuthorized": false,
   "status": "VALIDATION_ONLY",
   "note": "No deploy job. Function creation needs separately reviewed staging bootstrap; Hosting needs an isolated staging baseline overlay."
