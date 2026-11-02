@@ -85,7 +85,7 @@ jobs:
           node ../trusted-tooling/scripts/staging/prepare-manual-edge-case-source.mjs functions /tmp/manual-edge-source
       - name: Verify exported Cloud Functions trigger is a callable
         run: |
-          NODE_PATH="$PWD/functions/node_modules" node - <<'NODE'
+          NODE_PATH="$PWD/application/functions/node_modules" node - <<'NODE'
           const app=require('/tmp/manual-edge-source');
           const f=app.manualEdgeCaseProposal;
           if (Object.keys(app).join(',') !== 'manualEdgeCaseProposal') throw Error('Unexpected callable export');
