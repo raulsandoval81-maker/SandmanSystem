@@ -38,7 +38,7 @@ const eliasProposal = () => ({
   pricing: {
     monthlyBalance: 80,
     enrollmentBase: 30,
-    membershipStartDate: "2026-09-01",
+    membershipStartDate: "2026-10-05",
     firstRecurringChargeDate: "2026-11-05",
     recurringBillingDay: 5,
   },
@@ -88,5 +88,6 @@ test("synthetic P-000019 correction preserves $200 and hands off $10 enrollment 
   assert.equal(review.pricing.proratedFirstMonth, 0);
   assert.equal(review.pricing.additionalMembershipMonthsDue, 0);
   assert.equal(review.pricing.monthlyBalance, 80);
+  assert.equal(review.pricing.membershipStartDate, "2026-10-05");
   assert.deepEqual(review.historicalCashCheckoutTerms, terms);
 });

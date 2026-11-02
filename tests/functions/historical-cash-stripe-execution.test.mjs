@@ -6,8 +6,6 @@ import { readFileSync } from "node:fs";
 const require = createRequire(import.meta.url);
 const { resolveHistoricalCashCheckoutTerms } =
   require("../../functions/lib/billing/historicalCashCheckoutTerms.js");
-const { validateHistoricalCashDisposition } =
-  require("../../functions/lib/billing/historicalCashDisposition.js");
 const { buildClientProposalSnapshot } =
   require("../../functions/lib/proposals/proposalClientReview.js");
 const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
@@ -15,37 +13,31 @@ const read = path => readFileSync(new URL(`../../${path}`, import.meta.url), "ut
 const payments = [
   { paymentId: "sept", amountCents: 10000,
     membershipAmountCents: 10000, enrollmentFeeAmountCents: 0,
-    unappliedMembershipAmountCents: 2000,
-    membershipPeriodAllocations: [{ period: "2026-09", paidCents: 8000 }] },
+    unappliedMembershipAmountCents: 0, historicalMonthlyRateCents: 10000,
+    membershipPeriodAllocations: [{ period: "2026-09", paidCents: 10000, requiredCents: 10000 }] },
   { paymentId: "oct", amountCents: 10000,
     membershipAmountCents: 8000, enrollmentFeeAmountCents: 2000,
-    unappliedMembershipAmountCents: 0,
-    membershipPeriodAllocations: [{ period: "2026-10", paidCents: 8000 }] },
+    unappliedMembershipAmountCents: 0, historicalMonthlyRateCents: 8000,
+    membershipPeriodAllocations: [{ period: "2026-10", paidCents: 8000, requiredCents: 8000 }] },
 ];
 const pricing = {
   monthlyBalance: 80, enrollmentBase: 30,
-  membershipStartDate: "2026-09-01",
+  membershipStartDate: "2026-10-05",
   firstRecurringChargeDate: "2026-11-05",
   recurringBillingDay: 5, dueNow: 90, enrollmentDueNow: 10,
   proratedFirstMonth: 80, additionalMembershipMonthsDue: 0,
 };
-const held = validateHistoricalCashDisposition({
-  priorPayments: payments, monthlyMembershipCents: 8000,
-  enrollmentFeeCents: 3000, kind: "hold_unapplied", amountCents: 2000,
-});
 const proposal = {
   pricing, priorPayments: payments,
-  historicalCashDisposition: { status: "recorded", kind: "hold_unapplied",
-    amountCents: 2000, targetPeriod: null, ledgerFingerprint: held.ledgerFingerprint }
 };
 
-test("paid September and October: $10 enrollment now, $80 recurring November 5, $20 stays held", () => {
+test("September month-to-month and paid October agreement start: $10 now, $80 November 5", () => {
   const t = resolveHistoricalCashCheckoutTerms(proposal);
   assert.equal(t.dueNowCents, 1000);
   assert.equal(t.enrollmentRemainingCents, 1000);
   assert.equal(t.monthlyMembershipCents, 8000);
   assert.equal(t.firstRecurringChargeDate, "2026-11-05");
-  assert.equal(t.unappliedCashHeldCents, 2000);
+  assert.equal(t.unappliedCashHeldCents, 0);
   const signed = buildClientProposalSnapshot("P-000019", proposal);
   assert.deepEqual(signed.historicalCashCheckoutTerms, t);
   assert.equal(signed.pricing.dueNow, 10);
@@ -55,14 +47,11 @@ test("paid September and October: $10 enrollment now, $80 recurring November 5, 
   assert.equal(signed.pricing.monthlyBalance, 80);
 });
 
-test("unsigned credit proposal, refund pending and absent surplus decision remain blocked", () => {
+test("a disposition without unapplied cash remains blocked", () => {
   for (const kind of ["future_month_credit_pending", "refund_pending"]) {
-    const changed = { ...proposal, historicalCashDisposition: { ...proposal.historicalCashDisposition, kind } };
-    assert.throws(() => resolveHistoricalCashCheckoutTerms(changed), /explicit hold/);
+    const changed = { ...proposal, historicalCashDisposition: { status: "recorded", kind } };
+    assert.throws(() => resolveHistoricalCashCheckoutTerms(changed), /without unapplied cash/);
   }
-  assert.throws(() => resolveHistoricalCashCheckoutTerms({
-    ...proposal, historicalCashDisposition: undefined
-  }), /explicit hold/);
 });
 
 test("covered November, skipped month and partial month cannot enter Stripe", () => {
@@ -71,9 +60,9 @@ test("covered November, skipped month and partial month cannot enter Stripe", ()
   }), /immediately after paid coverage/);
   assert.throws(() => resolveHistoricalCashCheckoutTerms({
     ...proposal, priorPayments: [payments[0], {
-      ...payments[1], membershipPeriodAllocations: [{period:"2026-11", paidCents:8000}]
+      ...payments[1], membershipPeriodAllocations: [{period:"2026-11", paidCents:8000, requiredCents:8000}]
     }]
-  }), /continuous paid coverage/);
+  }), /continuous paid coverage|inconsistent/);
   assert.throws(() => resolveHistoricalCashCheckoutTerms({
     ...proposal, priorPayments: [payments[0], {
       ...payments[1], membershipPeriodAllocations: [{period:"2026-10", paidCents:4000}],
@@ -82,13 +71,40 @@ test("covered November, skipped month and partial month cannot enter Stripe", ()
   }), /partially paid/);
 });
 
-test("incorrect membership start or no-charge setup cannot enter payment Checkout", () => {
+test("agreement-start month must be paid, while earlier month-to-month history is allowed", () => {
+  assert.equal(resolveHistoricalCashCheckoutTerms(proposal).dueNowCents, 1000);
   assert.throws(() => resolveHistoricalCashCheckoutTerms({
-    ...proposal, pricing: { ...pricing, membershipStartDate: "2026-10-01" }
-  }), /Membership start/);
+    ...proposal, pricing: { ...pricing, membershipStartDate: "2026-08-05" }
+  }), /agreement-start month must be fully paid/i);
+  assert.throws(() => resolveHistoricalCashCheckoutTerms({
+    ...proposal, pricing: { ...pricing, membershipStartDate: "2026-11-05" }
+  }), /agreement-start month must be fully paid/i);
   assert.throws(() => resolveHistoricalCashCheckoutTerms({
     ...proposal, pricing: { ...pricing, enrollmentBase: 20 }
   }), /no-charge first payment|annual fee|no unapplied|mismatch|exceed/);
+});
+
+test("other families can transition from separate paid history into a paid agreement-start month", () => {
+  const otherFamily = {
+    pricing: {
+      monthlyBalance: 90, enrollmentBase: 40,
+      membershipStartDate: "2027-02-05", firstRecurringChargeDate: "2027-03-05",
+    },
+    priorPayments: [
+      { paymentId: "jan", amountCents: 7500, membershipAmountCents: 7500,
+        enrollmentFeeAmountCents: 0, unappliedMembershipAmountCents: 0,
+        historicalMonthlyRateCents: 7500,
+        membershipPeriodAllocations: [{ period: "2027-01", paidCents: 7500, requiredCents: 7500 }] },
+      { paymentId: "feb", amountCents: 12000, membershipAmountCents: 9000,
+        enrollmentFeeAmountCents: 3000, unappliedMembershipAmountCents: 0,
+        historicalMonthlyRateCents: 9000,
+        membershipPeriodAllocations: [{ period: "2027-02", paidCents: 9000, requiredCents: 9000 }] },
+    ],
+  };
+  const terms = resolveHistoricalCashCheckoutTerms(otherFamily);
+  assert.equal(terms.dueNowCents, 1000);
+  assert.equal(terms.monthlyMembershipCents, 9000);
+  assert.equal(terms.firstRecurringChargeDate, "2027-03-05");
 });
 
 test("checkout and webhook verify signed terms and Stripe paid amount", () => {
