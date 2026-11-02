@@ -9,7 +9,7 @@ const script = fs.readFileSync("scripts/production/winter_wrestling_hosting_rele
 const hash = path => crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 
 test("release is pinned to the staged application and exact production boundary", () => {
-  assert.equal(manifest.applicationSha, "6eba4d30395f7eaa100c5f3326c0a89033f6a689");
+  assert.equal(manifest.applicationSha, "c167551b2e8cd94a5c230689ab35d7b88b626ee0");
   assert.equal(manifest.projectId, "sandmandashboard");
   assert.equal(manifest.hostingSite, "sandman-main");
   assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793216019438000");
@@ -35,13 +35,13 @@ test("Winter Wrestling payload and settled offer remain exact", () => {
   assert.match(html, /\$350/);
   assert.match(html, /NOVEMBER 16, 2026 – FEBRUARY 14, 2027/);
   assert.match(html, /Come As You Are/);
-  assert.match(html, /Thanksgiving break — no required practices/);
+  assert.match(html, /Thanksgiving Break &amp; Gear Check Week — No Practices/);
   assert.match(html, /Eleven-week core wrestling program/);
-  assert.match(html, /Regular practice Monday, December 21/);
-  assert.match(html, /Regular practice Wednesday, December 23; Thursday athletes may attend/);
-  assert.match(html, /Closed Thursday, December 24 and Friday, December 25/);
-  assert.match(html, /Optional training Saturday, December 26/);
-  assert.match(html, /New Year's Day, January 1, falls on Friday/);
+  assert.match(html, /Monday, December 21: Regular practice/);
+  assert.match(html, /Wednesday and Thursday groups combine for this session/);
+  assert.match(html, /Thursday, December 24: Closed — Christmas Eve/);
+  assert.match(html, /Saturday, December 26: Optional training/);
+  assert.match(html, /Friday, January 1: Closed — New Year's Day/);
   assert.match(html, /value="mon-wed-sat"/);
   assert.match(html, /value="tue-thu-sat"/);
   assert.match(js, /requestType:"SEASONAL_INTEREST"/);
