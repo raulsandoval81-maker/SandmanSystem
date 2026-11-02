@@ -31,7 +31,11 @@ test("Winter Wrestling views use the approved season and holiday schedule",()=>{
   assert.match(page,/December 24/);
   assert.match(page,/December 25/);
   assert.match(page,/December 26/);
-  assert.match(page,/New Year's Day, January 1, falls on Friday/);
+  if(page===publicPage) {
+   assert.match(page,/Friday, January 1: Closed — New Year's Day/);
+  } else {
+   assert.match(page,/New Year's Day, January 1, falls on Friday/);
+  }
  }
  assert.doesNotMatch(publicPage,/NOVEMBER 2026 – JANUARY 2027/);
  assert.doesNotMatch(managementPage,/November–January/);
