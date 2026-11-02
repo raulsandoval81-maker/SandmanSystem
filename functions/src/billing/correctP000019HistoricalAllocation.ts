@@ -1,4 +1,5 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import {
   requireProposalStaffAccess,
@@ -17,6 +18,12 @@ export const correctP000019HistoricalAllocation = onCall(async (req) => {
       req.data?.confirmTotalReceivedCents !== 20000 ||
       req.data?.confirmEnrollmentRemainingCents !== 1000) {
     throw new HttpsError("invalid-argument", "Explicit $200 receipt / $10 remaining confirmation is required.");
+  }
+  // The single-callable release loads this module without src/index.ts.
+  // Initialize before staff authorization's first getFirestore(), while
+  // preserving a default app already created by the normal entry point.
+  if (!getApps().some((app) => app.name === "[DEFAULT]")) {
+    initializeApp();
   }
   const staff = await requireProposalStaffAccess(req.auth!.uid);
   const db = getFirestore();
