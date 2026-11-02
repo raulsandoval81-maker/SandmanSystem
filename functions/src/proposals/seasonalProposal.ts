@@ -7,6 +7,7 @@ import {
   buildWinterWrestlingSchedule,
   winterWrestlingProration,
 } from "./winterWrestlingSeasonPolicy";
+import { canonicalOrdinaryProposalPricing } from "./ordinaryProposalPricing";
 
 export const SEASONAL_BILLING_TYPE = "seasonal_one_time";
 
@@ -112,7 +113,7 @@ export function canonicalizeProposalPricing(
     : {};
   return isSeasonalProposalPricing(pricing)
     ? canonicalSeasonalPricing(pricing, athletes)
-    : pricing;
+    : canonicalOrdinaryProposalPricing(pricing, athletes);
 }
 
 export function assertSeasonalProposalReady(pricing: unknown): void {
