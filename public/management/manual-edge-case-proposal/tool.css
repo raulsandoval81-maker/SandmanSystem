@@ -1,1 +1,213 @@
-.manual-tool{max-width:980px;margin:0 auto;padding:24px;display:grid;gap:18px}.tool-panel{border:1px solid var(--line,#5555);border-radius:12px;padding:20px;background:var(--panel,#17191c)}.tool-panel[hidden]{display:none}.tool-line{display:flex;gap:10px;flex-wrap:wrap}.tool-line input{flex:1;min-width:180px}.manual-tool input,.manual-tool textarea{padding:10px;max-width:100%;border:1px solid #8b8b8b;border-radius:6px;background:var(--panel-soft,#222);color:inherit}.manual-tool button{padding:10px 16px;cursor:pointer}.manual-tool button:disabled{opacity:.45;cursor:not-allowed}.receipt{padding:14px 0;border-bottom:1px solid #7776;display:grid;gap:8px}.receipt-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}.receipt-grid label{display:grid;gap:5px}.tool-check{display:flex;gap:10px;align-items:flex-start;margin:16px 0}.tool-check input{margin-top:4px}.tool-total{font-weight:700}#status{white-space:pre-wrap}
+/* Manual Edge-Case Proposal: scoped to this Management page only.
+   Keep the shared Management light theme; do not override global UI. */
+body[data-management-area="manual-edge-case-proposal"] .manual-tool {
+  width: min(980px, 100%);
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  gap: 18px;
+  color: var(--management-text, #172033);
+}
+
+.manual-tool,
+.manual-tool * {
+  box-sizing: border-box;
+}
+
+.manual-tool > header h1,
+.manual-tool .tool-panel h2,
+.manual-tool .receipt strong {
+  color: var(--management-text, #172033);
+}
+
+.manual-tool > header p:not(.eyebrow),
+.manual-tool .tool-panel > p,
+.manual-tool .receipt small {
+  color: #465266;
+  line-height: 1.55;
+}
+
+.manual-tool .tool-panel {
+  border: 1px solid var(--management-border-strong, #d2c5a8);
+  border-radius: 16px;
+  padding: 20px;
+  background: var(--management-surface, #fffdf8);
+  color: var(--management-text, #172033);
+  box-shadow: 0 8px 22px rgba(30, 39, 54, .07);
+}
+
+.manual-tool .tool-panel[hidden] {
+  display: none;
+}
+
+.manual-tool .tool-line {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.manual-tool .tool-line input {
+  flex: 1;
+  min-width: 180px;
+}
+
+.manual-tool label {
+  display: block;
+  color: var(--management-text, #172033) !important;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.manual-tool input:not([type="checkbox"]),
+.manual-tool textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  max-width: 100%;
+  border: 1px solid #a8b0bd !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+  color: #172033 !important;
+  font: inherit;
+  opacity: 1;
+}
+
+.manual-tool input::placeholder,
+.manual-tool textarea::placeholder {
+  color: #596579 !important;
+  opacity: 1;
+}
+
+.manual-tool input:focus-visible,
+.manual-tool textarea:focus-visible,
+.manual-tool button:focus-visible,
+.manual-tool a:focus-visible {
+  outline: 3px solid rgba(179, 138, 22, .34) !important;
+  outline-offset: 2px;
+}
+
+.manual-tool input:disabled,
+.manual-tool textarea:disabled {
+  background: #edf0f3 !important;
+  border-color: #bdc3ca !important;
+  color: #384457 !important;
+  -webkit-text-fill-color: #384457;
+  opacity: 1 !important;
+  cursor: not-allowed;
+}
+
+.manual-tool button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #8d6d1b;
+  border-radius: 9px;
+  background: #866511;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.manual-tool button:hover:not(:disabled) {
+  background: #6e520c;
+}
+
+.manual-tool button:disabled {
+  background: #e6e8ec;
+  border-color: #a6adba;
+  color: #465266;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.manual-tool .receipt {
+  padding: 16px;
+  margin: 12px 0;
+  border: 1px solid var(--management-border, #e3dac5);
+  border-radius: 12px;
+  background: var(--management-surface-soft, #faf6ec);
+  color: var(--management-text, #172033);
+  display: grid;
+  gap: 10px;
+}
+
+.manual-tool .receipt small {
+  display: block;
+  font-size: .85rem;
+}
+
+.manual-tool .receipt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
+  gap: 12px;
+}
+
+.manual-tool .receipt-grid label {
+  display: grid;
+  gap: 7px;
+}
+
+.manual-tool .tool-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 16px 0;
+}
+
+.manual-tool .tool-check input {
+  width: 19px;
+  height: 19px;
+  margin-top: 2px;
+  flex: 0 0 19px;
+  accent-color: #866511;
+  opacity: 1;
+}
+
+.manual-tool .tool-total {
+  font-weight: 800;
+}
+
+.manual-tool #status,
+.manual-tool #previewResults {
+  white-space: pre-wrap;
+  color: #263449;
+  line-height: 1.6;
+}
+
+.manual-tool #status {
+  padding: 12px 14px;
+  background: #eff3f7;
+  border-left: 4px solid #866511;
+  border-radius: 6px;
+  font-weight: 650;
+}
+
+.manual-tool a {
+  color: #72540d;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 620px) {
+  body[data-management-area="manual-edge-case-proposal"] .manual-tool {
+    padding: 16px 12px 28px;
+    gap: 14px;
+  }
+  .manual-tool .tool-panel {
+    padding: 16px;
+  }
+  .manual-tool .receipt {
+    padding: 12px;
+  }
+  .manual-tool .receipt-grid {
+    grid-template-columns: 1fr;
+  }
+  .manual-tool .tool-line input,
+  .manual-tool .tool-line button {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}
