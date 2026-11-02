@@ -1684,6 +1684,12 @@ function proposalPricingSnapshot() {
         estimate.enrollmentPreviouslyPaid,
       admissionsCredits:
         estimate.admissionsCredits,
+      promotionCode:
+        appliedPromotion?.code || null,
+      promotionAmount:
+        appliedPromotion?.amount || 0,
+      promotion:
+        estimate.promotion,
       support:
         estimate.enrollmentSupport,
       supportPercent:
