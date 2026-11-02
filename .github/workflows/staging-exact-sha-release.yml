@@ -1233,17 +1233,17 @@ jobs:
           set -euo pipefail
           if gcloud functions describe manualEdgeCaseProposal --gen2 --region us-central1 --project sandman-combat-staging --format=json >/tmp/manual-edge-before.json 2>/tmp/manual-edge-before.err; then
             node <<'NODE'
-            const fs=require('node:fs');
-            const actual=JSON.parse(fs.readFileSync('/tmp/manual-edge-before.json','utf8'));
-            const expected=require('./trusted-tooling/scripts/staging/manual-edge-case-release.json').failedBootstrap;
-            const build=String(actual.buildConfig?.build||'').split('/').pop();
-            const generation=String(actual.buildConfig?.source?.storageSource?.generation||'');
-            const types=(actual.stateMessages||[]).map(x=>x.type);
-            if(actual.state!==expected.functionState||build!==expected.buildId||generation!==expected.sourceGeneration||!types.includes(expected.stateMessageType)) {
-              throw Error('Existing callable is not the exact recorded failed bootstrap; refusing overwrite.');
-            }
-            console.log('Exact failed bootstrap confirmed; controlled recovery update is permitted.');
-            NODE
+          const fs=require('node:fs');
+          const actual=JSON.parse(fs.readFileSync('/tmp/manual-edge-before.json','utf8'));
+          const expected=require('./trusted-tooling/scripts/staging/manual-edge-case-release.json').failedBootstrap;
+          const build=String(actual.buildConfig?.build||'').split('/').pop();
+          const generation=String(actual.buildConfig?.source?.storageSource?.generation||'');
+          const types=(actual.stateMessages||[]).map(x=>x.type);
+          if(actual.state!==expected.functionState||build!==expected.buildId||generation!==expected.sourceGeneration||!types.includes(expected.stateMessageType)) {
+            throw Error('Existing callable is not the exact recorded failed bootstrap; refusing overwrite.');
+          }
+          console.log('Exact failed bootstrap confirmed; controlled recovery update is permitted.');
+          NODE
           else
             grep -Eiq 'NOT_FOUND|not found|404' /tmp/manual-edge-before.err || {
               echo "::error::Cloud lookup error not proven to be NOT_FOUND"
