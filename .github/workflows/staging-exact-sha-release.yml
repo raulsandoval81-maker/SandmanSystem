@@ -120,23 +120,11 @@ on:
         required: false
         type: string
       approve_manual_edge_callable:
-        description: For Manual Edge-Case bootstrap only, enter APPROVE_MANUAL_EDGE_CASE_STAGING_CALLABLE
+        description: Manual Edge-Case callable bootstrap approval or Hosting-only deploy approval (action-specific)
         required: false
         type: string
       approve_manual_edge_invocation:
         description: For Manual Edge-Case bootstrap only, enter APPROVE_STAGING_CALLABLE_APPLICATION_AUTH
-        required: false
-        type: string
-      expected_manual_edge_hosting_release:
-        description: Previous staging Hosting release from reviewed preflight (Hosting deploy only)
-        required: false
-        type: string
-      expected_manual_edge_hosting_version:
-        description: Previous staging Hosting version from reviewed preflight (Hosting deploy only)
-        required: false
-        type: string
-      approve_manual_edge_hosting:
-        description: For five-file staging Hosting overlay only, enter APPROVE_FIVE_MANUAL_EDGE_STAGING_HOSTING_FILES
         required: false
         type: string
       confirm_project:
@@ -1301,19 +1289,18 @@ jobs:
           console.log('PASS: staging-only callable deployment, no secret attachments');
           NODE
 
-  manual-edge-hosting-overlay:
+  manual-edge-hosting-preflight:
     if: ${{ inputs.action == 'manual-edge-hosting-preflight' || inputs.action == 'manual-edge-hosting-deploy' }}
     runs-on: ubuntu-24.04
     environment: staging
+    outputs:
+      prior_release: ${{ steps.capture.outputs.prior_release }}
+      prior_version: ${{ steps.capture.outputs.prior_version }}
     steps:
-      - name: Enforce trusted workflow, exact pinned source, project and separate Hosting approval
+      - name: Verify trusted workflow, immutable app SHA and staging-only target
         env:
           RELEASE_ID: ${{ inputs.release_id }}
-          RELEASE_ACTION: ${{ inputs.action }}
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          APPROVE_HOSTING: ${{ inputs.approve_manual_edge_hosting }}
-          EXPECTED_RELEASE: ${{ inputs.expected_manual_edge_hosting_release }}
-          EXPECTED_VERSION: ${{ inputs.expected_manual_edge_hosting_version }}
         run: |
           set -euo pipefail
           test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
@@ -1321,15 +1308,6 @@ jobs:
           test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
           test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
           test "${RELEASE_ID}" = "management-manual-edge-case-pr436-f884bebb"
-          if test "${RELEASE_ACTION}" = "manual-edge-hosting-deploy"; then
-            test "${APPROVE_HOSTING}" = "APPROVE_FIVE_MANUAL_EDGE_STAGING_HOSTING_FILES"
-            test -n "${EXPECTED_RELEASE}"
-            test -n "${EXPECTED_VERSION}"
-            case "${EXPECTED_RELEASE}" in sites/sandman-combat-staging/releases/*) ;; *) exit 64 ;; esac
-            case "${EXPECTED_VERSION}" in sites/sandman-combat-staging/versions/*) ;; *) exit 64 ;; esac
-          else
-            test "${RELEASE_ACTION}" = "manual-edge-hosting-preflight"
-          fi
       - uses: actions/checkout@v4
         with:
           path: trusted-tooling
@@ -1342,14 +1320,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Check staging-only five-file overlay source and script
+      - name: Check five-file pinned staging overlay and dependencies
         run: |
           set -euo pipefail
           python -m py_compile trusted-tooling/scripts/staging/manual-edge-hosting-overlay.py
           git -C application rev-parse HEAD | grep -qx 'f884bebb5d79b5ee0deb4b8321acd37d88bc997d'
-          test -f application/public/management/manual-edge-case-proposal/index.html
-          test -f application/public/management/manual-edge-case-proposal/tool.js
-          test -f application/public/management/manual-edge-case-proposal/tool.css
           grep -q 'manualEdgeCaseProposal' application/public/management/manual-edge-case-proposal/tool.js
           grep -q '/management/manual-edge-case-proposal/' application/public/management/billing/index.html
           python -m pip install 'google-auth==2.35.0'
@@ -1360,25 +1335,88 @@ jobs:
           service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Preview or execute exact five-file overlay against the unchanged staging baseline
-        env:
-          RELEASE_ACTION: ${{ inputs.action }}
-          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          EXPECTED_RELEASE: ${{ inputs.expected_manual_edge_hosting_release }}
-          EXPECTED_VERSION: ${{ inputs.expected_manual_edge_hosting_version }}
+      - name: Read-only preview of five-file Hosting overlay
         run: |
           set -euo pipefail
-          if test "${RELEASE_ACTION}" = "manual-edge-hosting-deploy"; then MODE=deploy; else MODE=preflight; fi
           python trusted-tooling/scripts/staging/manual-edge-hosting-overlay.py \
-            --mode "${MODE}" \
+            --mode preflight \
             --source-root application \
             --evidence-dir hosting-evidence \
-            --confirm-project "${CONFIRM_PROJECT}" \
+            --confirm-project sandman-combat-staging \
+            --confirm-source-sha f884bebb5d79b5ee0deb4b8321acd37d88bc997d
+      - id: capture
+        name: Capture exact current Hosting release/version for protected handoff
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          evidence = json.load(open("hosting-evidence/before.json"))
+          print("prior_release=" + evidence["priorRelease"])
+          print("prior_version=" + evidence["priorVersion"])
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manual-edge-staging-hosting-preflight-${{ github.run_id }}
+          path: hosting-evidence/
+          if-no-files-found: error
+
+  manual-edge-hosting-deploy:
+    if: ${{ inputs.action == 'manual-edge-hosting-deploy' }}
+    needs: manual-edge-hosting-preflight
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Require separate approved Hosting-only deployment
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_HOSTING: ${{ inputs.approve_manual_edge_callable }}
+          EXPECTED_RELEASE: ${{ needs.manual-edge-hosting-preflight.outputs.prior_release }}
+          EXPECTED_VERSION: ${{ needs.manual-edge-hosting-preflight.outputs.prior_version }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "${RELEASE_ID}" = "management-manual-edge-case-pr436-f884bebb"
+          test "${APPROVE_HOSTING}" = "APPROVE_FIVE_MANUAL_EDGE_STAGING_HOSTING_FILES"
+          case "${EXPECTED_RELEASE}" in sites/sandman-combat-staging/releases/*) ;; *) exit 64 ;; esac
+          case "${EXPECTED_VERSION}" in sites/sandman-combat-staging/versions/*) ;; *) exit 64 ;; esac
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f884bebb5d79b5ee0deb4b8321acd37d88bc997d
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Hosting API dependency
+        run: python -m pip install 'google-auth==2.35.0'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Overlay precisely five Management files, preserving all other deployed assets
+        env:
+          EXPECTED_RELEASE: ${{ needs.manual-edge-hosting-preflight.outputs.prior_release }}
+          EXPECTED_VERSION: ${{ needs.manual-edge-hosting-preflight.outputs.prior_version }}
+        run: |
+          set -euo pipefail
+          python trusted-tooling/scripts/staging/manual-edge-hosting-overlay.py \
+            --mode deploy \
+            --source-root application \
+            --evidence-dir hosting-evidence \
+            --confirm-project sandman-combat-staging \
             --confirm-source-sha f884bebb5d79b5ee0deb4b8321acd37d88bc997d \
             --expected-release "${EXPECTED_RELEASE}" \
             --expected-version "${EXPECTED_VERSION}"
-      - name: Verify staging tool is served after an approved release
-        if: ${{ inputs.action == 'manual-edge-hosting-deploy' }}
+      - name: Verify Manual Edge-Case tool is served from staging Hosting
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 4 --retry-delay 2 \
@@ -1387,6 +1425,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ always() }}
         with:
-          name: manual-edge-staging-hosting-${{ github.run_id }}
+          name: manual-edge-staging-hosting-deploy-${{ github.run_id }}
           path: hosting-evidence/
           if-no-files-found: warn
