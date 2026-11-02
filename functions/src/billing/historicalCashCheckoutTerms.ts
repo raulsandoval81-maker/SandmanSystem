@@ -69,8 +69,8 @@ export function resolveHistoricalCashCheckoutTerms(
   }
   const start = String(pricing.membershipStartDate || "").trim();
   if (!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(start) ||
-      start.slice(0, 7) !== paid[0]) {
-    throw new Error("Membership start must match the first fully paid historical month.");
+      !paid.includes(start.slice(0, 7))) {
+    throw new Error("The agreement-start month must be fully paid in the historical ledger.");
   }
   if (review.enrollmentRemainingCents < 50) {
     throw new Error("A no-charge first payment requires a separate card-setup flow.");

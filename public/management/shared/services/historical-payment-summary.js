@@ -13,6 +13,9 @@ export function historicalPaymentSummary(proposal) {
   let totalReceivedCents = 0;
   let enrollmentPaidCents = 0;
   let complete = true;
+  let membershipLedgerComplete = true;
+  const membershipPaidByPeriodCents = new Map();
+  const membershipRequiredByPeriodCents = new Map();
   for (const payment of payments) {
     const amount = Number(payment?.amountCents);
     if (!Number.isSafeInteger(amount) || amount <= 0) {
@@ -32,6 +35,58 @@ export function historicalPaymentSummary(proposal) {
       continue;
     }
     enrollmentPaidCents += applied;
+
+    const membershipAmountCents = Number(payment?.membershipAmountCents);
+    const unappliedMembershipAmountCents = Number(payment?.unappliedMembershipAmountCents);
+    const allocations = payment?.membershipPeriodAllocations;
+    if (!Number.isSafeInteger(membershipAmountCents) || membershipAmountCents < 0 ||
+        !Number.isSafeInteger(unappliedMembershipAmountCents) || unappliedMembershipAmountCents < 0 ||
+        !Array.isArray(allocations)) {
+      membershipLedgerComplete = false;
+      continue;
+    }
+    if (amount !== membershipAmountCents + applied) {
+      membershipLedgerComplete = false;
+    }
+    const historicalRateCents = payment?.historicalMonthlyRateCents === undefined
+      ? Math.round(Number(proposal?.pricing?.monthlyBalance) * 100)
+      : Number(payment.historicalMonthlyRateCents);
+    if (!Number.isSafeInteger(historicalRateCents) || historicalRateCents <= 0) {
+      membershipLedgerComplete = false;
+      continue;
+    }
+    let allocatedCents = 0;
+    for (const allocation of allocations) {
+      const period = String(allocation?.period || "");
+      const paidCents = Number(allocation?.paidCents);
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(period) ||
+          !Number.isSafeInteger(paidCents) || paidCents < 0) {
+        membershipLedgerComplete = false;
+        continue;
+      }
+      if (allocation?.requiredCents !== undefined &&
+          Number(allocation.requiredCents) !== historicalRateCents) {
+        membershipLedgerComplete = false;
+      }
+      const existingRequired = membershipRequiredByPeriodCents.get(period);
+      if (existingRequired !== undefined && existingRequired !== historicalRateCents) {
+        membershipLedgerComplete = false;
+      }
+      membershipRequiredByPeriodCents.set(period, historicalRateCents);
+      membershipPaidByPeriodCents.set(
+        period,
+        (membershipPaidByPeriodCents.get(period) || 0) + paidCents
+      );
+      allocatedCents += paidCents;
+    }
+    if (allocatedCents + unappliedMembershipAmountCents !== membershipAmountCents) {
+      membershipLedgerComplete = false;
+    }
+  }
+  for (const [period, paidCents] of membershipPaidByPeriodCents) {
+    if (paidCents > membershipRequiredByPeriodCents.get(period)) {
+      membershipLedgerComplete = false;
+    }
   }
   if (!complete || enrollmentPaidCents > feeCents) return null;
   return {
@@ -40,6 +95,15 @@ export function historicalPaymentSummary(proposal) {
     enrollmentFeeCents: feeCents,
     enrollmentPaidCents,
     enrollmentRemainingCents: feeCents - enrollmentPaidCents,
+    membershipLedgerComplete,
+    fullyPaidPeriods: membershipLedgerComplete
+      ? [...membershipPaidByPeriodCents.entries()]
+          .filter(([period, paidCents]) =>
+            paidCents === membershipRequiredByPeriodCents.get(period)
+          )
+          .map(([period]) => period)
+          .sort()
+      : [],
     corrected: Boolean(proposal?.historicalPaymentCorrection?.historyId),
   };
 }

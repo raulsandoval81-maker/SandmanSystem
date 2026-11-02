@@ -19,6 +19,10 @@ import {
   renderManagementLifecycle
 } from "/assets/js/management-lifecycle.js";
 
+import {
+  historicalPaymentSummary
+} from "/management/shared/services/historical-payment-summary.js";
+
 console.log("Prospect Builder Firebase ready:", Boolean(db));
 // --------------------------------------------------
 // Admissions Request (Phase 1)
@@ -44,14 +48,6 @@ let priorPaymentRecordedFromHandoff = false;
 let proposalEnrollmentPreviouslyPaid = false;
 let proposalEnrollmentPreviouslyPaidAmount = 0;
 let recordedMembershipPeriods = new Set();
-
-function priorPaymentEnrollmentAmount(payment, enrollmentBase) {
-  const explicitCents = Number(payment?.enrollmentFeeAmountCents);
-  if (Number.isInteger(explicitCents) && explicitCents >= 0) {
-    return Math.min(enrollmentBase, explicitCents / 100);
-  }
-  return payment?.enrollmentFeeIncluded === true ? enrollmentBase : 0;
-}
   
 const backToProposalBtn =
   document.getElementById(
@@ -1361,7 +1357,7 @@ const extras = {
       ) {
         el.breakdown.append(
           line(
-            firstMonthPreviouslyPaid ? "First-month membership — previously paid" : `First-month membership (${prorationPercent}%)`,
+            firstMonthPreviouslyPaid ? "Agreement-start membership — previously paid" : `First-month membership (${prorationPercent}%)`,
             firstMonthDueNow
           )
         );
@@ -1522,9 +1518,11 @@ const extras = {
 
       const firstMonthSummary =
         paymentStartMode === "start_now"
-          ? `${money(
-              proratedFirstMonth
-            )} (${prorationPercent}%)`
+          ? firstMonthPreviouslyPaid
+            ? `${money(0)} — agreement-start month previously paid`
+            : `${money(
+                proratedFirstMonth
+              )} (${prorationPercent}%)`
           : "Deferred";
 
       const additionalMonthsSummary =
@@ -2440,21 +2438,20 @@ alert(
         el.lateEnrollmentReviewed.checked = pricing.lateEnrollmentReviewed === true;
       }
 
+      const historicalLedger = historicalPaymentSummary(proposal);
       recordedMembershipPeriods = new Set(
-        (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
-          .filter(payment => payment?.enrollmentFeeIncluded !== true || Array.isArray(payment?.periods))
-          .flatMap(payment => Array.isArray(payment?.periods) ? payment.periods : [])
-          .filter(period => /^\d{4}-\d{2}$/.test(String(period)))
+        historicalLedger?.membershipLedgerComplete
+          ? historicalLedger.fullyPaidPeriods
+          : (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
+              .filter(payment => payment?.enrollmentFeeIncluded !== true || Array.isArray(payment?.periods))
+              .flatMap(payment => Array.isArray(payment?.periods) ? payment.periods : [])
+              .filter(period => /^\d{4}-\d{2}$/.test(String(period)))
       );
 
       const enrollmentBase = Math.max(0, Number(pricing.enrollmentBase) || 0);
-      const recordedEnrollmentAmount =
-        (Array.isArray(proposal.priorPayments) ? proposal.priorPayments : [])
-          .reduce(
-            (total, payment) =>
-              total + priorPaymentEnrollmentAmount(payment, enrollmentBase),
-            0
-          );
+      const recordedEnrollmentAmount = historicalLedger
+        ? historicalLedger.enrollmentPaidCents / 100
+        : 0;
       proposalEnrollmentPreviouslyPaidAmount = Math.min(
         enrollmentBase,
         Math.max(
