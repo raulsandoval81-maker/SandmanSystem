@@ -1021,10 +1021,13 @@ const extras = {
       }
 
 
-      const pendingEnrollmentAmount = priorPaymentEnrollmentAmount(
-        pendingPriorPaymentHandoff,
-        enrollmentBase
+      const pendingEnrollmentCents = Number(
+        pendingPriorPaymentHandoff?.enrollmentFeeAmountCents
       );
+      const pendingEnrollmentAmount =
+        Number.isInteger(pendingEnrollmentCents) && pendingEnrollmentCents >= 0
+          ? Math.min(enrollmentBase, pendingEnrollmentCents / 100)
+          : (pendingPriorPaymentHandoff?.enrollmentFeeIncluded === true ? enrollmentBase : 0);
       const enrollmentPreviouslyPaidAmount = Math.min(
         enrollmentBase,
         Math.max(
@@ -3314,6 +3317,8 @@ alert(
       ,el.seasonalPayInFull
       ,el.lateEnrollmentReviewed
     ].forEach(control=>{
+      // Older monthly-only Hosting pages omit the seasonal controls.
+      if (!control) return;
       control.addEventListener("input",calculate);
       control.addEventListener("change",calculate);
     });
@@ -3358,3 +3363,4 @@ alert(
         "BUILDING"
       );
     }
+
