@@ -32,6 +32,7 @@ import { resolveLockedRecurringPricing } from "./lockedRecurringPricing";
 import { isSeasonalProposalPricing } from "./seasonalProposal";
 import { createSeasonalProposalCheckout } from "../billing/seasonalProposalCheckout";
 import { resolveHistoricalCashCheckoutTerms } from "../billing/historicalCashCheckoutTerms";
+import { isPreparedForPrepaidReconciliation } from "../billing/prepaidReconciliationPolicy";
 import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
 
 function cleanString(value: unknown): string {
@@ -208,6 +209,13 @@ export const createProposalCheckout =
         throw new HttpsError(
           "failed-precondition",
           "Confirm the enrollment and billing details before secure checkout."
+        );
+      }
+
+      if (isPreparedForPrepaidReconciliation(proposal)) {
+        throw new HttpsError(
+          "failed-precondition",
+          "This paid-in-full enrollment is awaiting Management reconciliation and must not enter Stripe Checkout."
         );
       }
 

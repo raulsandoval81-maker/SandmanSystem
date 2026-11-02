@@ -80,6 +80,11 @@ test("coverage is exactly twelve months and Stripe begins afterward", () => {
     "2027-11-04",
     "2027-11-04"
   ), /must begin after/);
+  assert.throws(() => validateFullYearCoverage(
+    "2026-11-05",
+    "2027-11-04",
+    "2027-12-05"
+  ), /earliest date/);
 });
 
 test("invalid calendar dates are rejected instead of normalized", () => {

@@ -11,6 +11,10 @@ import {
 import {
   hashProposalReviewToken,
 } from "./proposalClientReview";
+import {
+  isPreparedForPrepaidReconciliation,
+  PREPAID_RECONCILIATION_ROUTE,
+} from "../billing/prepaidReconciliationPolicy";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -136,6 +140,9 @@ export const getProposalEnrollment =
         confirmation.confirmedAt
       );
 
+    const prepaidReconciliation =
+      isPreparedForPrepaidReconciliation(proposal);
+
     const paymentStatus =
       status === "PAID"
         ? "PAID"
@@ -150,6 +157,8 @@ export const getProposalEnrollment =
     const enrollmentStatus =
       status === "PAID"
         ? "PAID"
+        : prepaidReconciliation && termsConfirmed
+          ? "AWAITING_MANAGEMENT_RECONCILIATION"
         : !termsConfirmed
           ? "READY_FOR_ENROLLMENT"
           : status === "CHECKOUT_CREATED"
@@ -167,6 +176,11 @@ export const getProposalEnrollment =
         paymentStatus,
         paymentRequired:
           true,
+
+        paymentRoute:
+          prepaidReconciliation
+            ? PREPAID_RECONCILIATION_ROUTE
+            : "stripe_checkout",
 
         prospect:
           snapshot.prospect || {},

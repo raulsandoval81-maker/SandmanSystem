@@ -195,4 +195,9 @@ export function validateFullYearCoverage(
   if (nextBilling.getTime() <= paidThrough.getTime()) {
     throw new Error("Recurring billing must begin after the prepaid paid-through date.");
   }
+  const earliestRenewal = new Date(paidThrough);
+  earliestRenewal.setUTCDate(earliestRenewal.getUTCDate() + 1);
+  if (nextBilling.getTime() !== earliestRenewal.getTime()) {
+    throw new Error("Recurring billing date must be the earliest date after prepaid coverage.");
+  }
 }

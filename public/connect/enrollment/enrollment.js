@@ -82,6 +82,13 @@ import {
       elements.app.hidden = false;
 
       restoreCorrectStep();
+
+      if (
+        state.enrollment.paymentRoute === "management_prepaid_reconciliation" &&
+        state.enrollment.confirmation?.termsConfirmed === true
+      ) {
+        showPrepaidCompletion();
+      }
     } catch (error) {
       showFatalError(error);
     }
@@ -406,6 +413,15 @@ import {
           confirmResponse
         );
 
+      if (
+        state.enrollment.paymentRoute ===
+        "management_prepaid_reconciliation"
+      ) {
+        setButtonBusy(submitButton, false);
+        showPrepaidCompletion();
+        return;
+      }
+
       const checkoutResponse =
         await service.createCheckout();
 
@@ -433,6 +449,19 @@ import {
         false
       );
     }
+  }
+
+  function showPrepaidCompletion() {
+    showNotice(
+      "Review & Confirm is complete. Management will verify the previously received paid-in-full payment and continue the secure Intake handoff. No online payment is being created.",
+      false
+    );
+    const submitButton = elements.agreementForm?.querySelector('[type="submit"]');
+    if (submitButton) {
+      submitButton.textContent = "Review & Confirm Complete";
+      submitButton.disabled = true;
+    }
+    elements.termsConfirmed.disabled = true;
   }
 
   function getAmount(source, keys) {

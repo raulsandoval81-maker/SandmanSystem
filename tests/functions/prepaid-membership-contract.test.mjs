@@ -13,6 +13,23 @@ test("prepaid recording preserves Review & Confirm and requires exact paid-in-fu
   assert.match(callable, /annualEnrollmentFee/);
   assert.match(callable, /ENROLLMENT_FEE_ATTRIBUTIONS_RECORDED/);
   assert.match(callable, /resolveHistoricalEnrollmentFeeAttributions/);
+  assert.match(callable, /assertPrepaidFamilyConfirmation/);
+  assert.match(callable, /PREPAID_RECONCILIATION_PREPARED/);
+  assert.match(callable, /Original payment date cannot be in the future/);
+});
+
+test("Review & Confirm uses only the server-owned prepaid route and never opens Stripe for it", () => {
+  const enrollment = read("public/connect/enrollment/enrollment.js");
+  const getEnrollment = read("functions/src/proposals/getProposalEnrollment.ts");
+  const saveAgreement = read("functions/src/proposals/saveProposalEnrollmentAgreement.ts");
+  const checkout = read("functions/src/proposals/createProposalCheckout.ts");
+  assert.match(getEnrollment, /isPreparedForPrepaidReconciliation\(proposal\)/);
+  assert.match(saveAgreement, /isPreparedForPrepaidReconciliation\(proposal\)/);
+  assert.match(enrollment, /management_prepaid_reconciliation/);
+  assert.match(enrollment, /showPrepaidCompletion\(\);\s*return;/);
+  assert.match(checkout, /isPreparedForPrepaidReconciliation\(proposal\)/);
+  assert.match(checkout, /must not enter Stripe Checkout/);
+  assert.doesNotMatch(enrollment, /confirmation\.paymentRoute|confirmation\.prepaid/);
 });
 
 test("renewal autopay has a separate approval and paid-through guard", () => {
