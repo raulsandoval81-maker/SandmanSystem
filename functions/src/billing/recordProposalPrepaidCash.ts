@@ -21,6 +21,12 @@ import {
   resolveFullYearPrepayment,
   validateFullYearCoverage,
 } from "./prepaidMembershipPolicy";
+import {
+  assertPrepaidFamilyConfirmation,
+  assertPrepaidReconciliationCanBePrepared,
+  hasConflictingStripeActivity,
+  hasRecordedMembershipPayment,
+} from "./prepaidReconciliationPolicy";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -105,6 +111,65 @@ export const recordProposalPrepaidCash =
       );
     }
 
+    const mode = cleanString(req.data?.mode || "record").toLowerCase();
+    if (![
+      "prepare",
+      "record",
+    ].includes(mode)) {
+      throw new HttpsError("invalid-argument", "Unsupported prepaid reconciliation mode.");
+    }
+
+    const db = getFirestore();
+    const proposalRef = db.collection("proposals").doc(proposalId);
+
+    if (mode === "prepare") {
+      try {
+        return await db.runTransaction(async (tx) => {
+          const proposalSnap = await tx.get(proposalRef);
+          if (!proposalSnap.exists) {
+            throw new HttpsError("not-found", `Proposal ${proposalId} was not found.`);
+          }
+          const proposal = proposalSnap.data() || {};
+          requireProposalLocationAccess(staffAccess, proposal.locationId);
+          try {
+            assertPrepaidReconciliationCanBePrepared(proposal);
+          } catch (error) {
+            throw new HttpsError(
+              "failed-precondition",
+              error instanceof Error ? error.message : "This proposal is not eligible for prepaid reconciliation."
+            );
+          }
+          if (proposal.prepaidReconciliation?.status === "AWAITING_FAMILY_CONFIRMATION") {
+            return { ok: true, proposalId, status: "AWAITING_FAMILY_CONFIRMATION", idempotent: true };
+          }
+          tx.update(proposalRef, {
+            prepaidReconciliation: {
+              status: "AWAITING_FAMILY_CONFIRMATION",
+              route: "management_prepaid_reconciliation",
+              preparedBy: req.auth!.uid,
+              preparedByName: staffAccess.fullName,
+              preparedAt: FieldValue.serverTimestamp(),
+            },
+            updatedBy: req.auth!.uid,
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+          tx.create(proposalRef.collection("history").doc(), {
+            proposalId,
+            event: "PREPAID_RECONCILIATION_PREPARED",
+            fromStatus: cleanString(proposal.status).toUpperCase(),
+            toStatus: cleanString(proposal.status).toUpperCase(),
+            createdBy: req.auth!.uid,
+            createdByName: staffAccess.fullName,
+            createdAt: FieldValue.serverTimestamp(),
+          });
+          return { ok: true, proposalId, status: "AWAITING_FAMILY_CONFIRMATION", idempotent: false };
+        });
+      } catch (error) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", "Unable to prepare paid-in-full reconciliation.");
+      }
+    }
+
     const amountCents =
       toPositiveInteger(
         req.data?.amountCents,
@@ -141,17 +206,13 @@ export const recordProposalPrepaidCash =
         nextBillingDateRaw
       );
 
+    if (paymentDate.toMillis() > Date.now()) {
+      throw new HttpsError("invalid-argument", "Original payment date cannot be in the future.");
+    }
+
     const note =
       cleanString(req.data?.note) ||
       null;
-
-    const db =
-      getFirestore();
-
-    const proposalRef =
-      db
-        .collection("proposals")
-        .doc(proposalId);
 
     try {
       const result =
@@ -180,18 +241,7 @@ export const recordProposalPrepaidCash =
                 proposal.status
               ).toUpperCase();
 
-            const hasStripePayment =
-              [
-                proposal.stripePaymentIntentId,
-                proposal.stripeCheckoutSessionId,
-                proposal.pendingCheckoutSessionId,
-                proposal.stripeSubscriptionId,
-              ].some(
-                (value) =>
-                  Boolean(
-                    cleanString(value)
-                  )
-              );
+            const hasStripePayment = hasConflictingStripeActivity(proposal);
 
             const isCheckoutReady =
               currentStatus ===
@@ -220,12 +270,41 @@ export const recordProposalPrepaidCash =
               );
             }
 
+            try {
+              assertPrepaidReconciliationCanBePrepared(proposal);
+              assertPrepaidFamilyConfirmation(proposal);
+            } catch (error) {
+              throw new HttpsError(
+                "failed-precondition",
+                error instanceof Error ? error.message : "This proposal is not ready for prepaid reconciliation."
+              );
+            }
+            if (hasRecordedMembershipPayment(proposal)) {
+              throw new HttpsError(
+                "already-exists",
+                "A membership payment is already recorded for this proposal."
+              );
+            }
+
             const pricing = proposal.pricing || {};
+            const lockedPricing = proposal.lockedSnapshot?.pricing || {};
+            const lockedMembershipStartDate = cleanString(
+              lockedPricing.membershipStartDate ||
+              proposal.agreement?.membershipStartDate ||
+              pricing.membershipStartDate
+            );
+            if (!lockedMembershipStartDate ||
+                membershipStartDateRaw !== lockedMembershipStartDate) {
+              throw new HttpsError(
+                "invalid-argument",
+                "Prepaid coverage must begin on the locked membership start date."
+              );
+            }
             const monthlyMembershipCents = Math.round(
-              Number(pricing.monthlyBalance || 0) * 100
+              Number(lockedPricing.monthlyBalance || pricing.monthlyBalance || 0) * 100
             );
             const enrollmentFeeTotalCents = Math.round(
-              Number(pricing.enrollmentBase || 0) * 100
+              Number(lockedPricing.enrollmentBase || pricing.enrollmentBase || 0) * 100
             );
             const priorPayments = Array.isArray(proposal.priorPayments)
               ? proposal.priorPayments
@@ -354,6 +433,15 @@ export const recordProposalPrepaidCash =
                   receivedAt:
                     FieldValue.serverTimestamp(),
                 },
+
+                "prepaidReconciliation.status":
+                  "RECORDED",
+
+                "prepaidReconciliation.recordedAt":
+                  FieldValue.serverTimestamp(),
+
+                "prepaidReconciliation.recordedBy":
+                  req.auth!.uid,
 
                 enrollmentFeeAttributions: attributionRecords,
 

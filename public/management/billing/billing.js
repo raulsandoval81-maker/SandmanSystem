@@ -401,6 +401,16 @@ function classifyProposal(
   if (
     status === "READY_FOR_CHECKOUT"
   ) {
+    if (upper(proposal.prepaidReconciliation?.status) === "AWAITING_FAMILY_CONFIRMATION") {
+      return {
+        view: "NEEDS_ACTION",
+        state: "Paid in Full Review",
+        next: proposal.enrollmentConfirmation?.termsConfirmed === true &&
+          proposal.enrollmentConfirmation?.confirmedAt
+          ? "Verify the deposited payment and record the exact reconciliation"
+          : "Waiting for family Review & Confirm"
+      };
+    }
     return {
       view: "NEEDS_ACTION",
       state: "Review & Confirm Ready",
@@ -806,6 +816,12 @@ function buildProposalItems(
         return null;
       }
 
+      const prepaidMembershipAthletes =
+        (Array.isArray(proposal.lockedSnapshot?.athletes)
+          ? proposal.lockedSnapshot.athletes
+          : [])
+          .filter((athlete) => clean(athlete?.plan || "standard") !== "fitness");
+
       return {
         id:
           `proposal:${proposalId}`,
@@ -863,25 +879,19 @@ function buildProposalItems(
           proposal.historicalCashDisposition?.status !== "recorded",
 
 
+        canPreparePrepaidCash:
+          upper(proposal.status) === "READY_FOR_CHECKOUT" &&
+          upper(proposal.prepaidReconciliation?.status) !== "AWAITING_FAMILY_CONFIRMATION" &&
+          !proposal.cashPrepayment &&
+          prepaidMembershipAthletes.length > 0 &&
+          prepaidMembershipAthletes
+            .every((athlete) => clean(athlete?.billingTerm) === "annual"),
+
         canRecordPrepaidCash:
-          (
-            upper(proposal.status) ===
-            "READY_FOR_CHECKOUT"
-          ) ||
-          (
-            upper(proposal.status) ===
-            "PAID" &&
-            !proposal.cashPrepayment &&
-            ![
-              proposal.stripePaymentIntentId,
-              proposal.stripeCheckoutSessionId,
-              proposal.pendingCheckoutSessionId,
-              proposal.stripeSubscriptionId
-            ].some(
-              (value) =>
-                Boolean(clean(value))
-            )
-          ),
+          upper(proposal.status) === "READY_FOR_CHECKOUT" &&
+          upper(proposal.prepaidReconciliation?.status) === "AWAITING_FAMILY_CONFIRMATION" &&
+          proposal.enrollmentConfirmation?.termsConfirmed === true &&
+          Boolean(proposal.enrollmentConfirmation?.confirmedAt),
 
         canSetupAutopay:
           paidInFullUiState(proposal).canSetupAutopay &&
@@ -1341,6 +1351,19 @@ function render() {
                     data-cash-name="${esc(item.name)}"
                   >
                     Record Paid in Full
+                  </button>
+                `
+                : ""
+              }
+
+              ${item.canPreparePrepaidCash
+                ? `
+                  <button
+                    class="billing-action billing-cash-action"
+                    type="button"
+                    data-prepare-prepaid-proposal-id="${esc(item.proposalId)}"
+                  >
+                    Prepare Paid in Full Review
                   </button>
                 `
                 : ""
@@ -2365,6 +2388,30 @@ function openCashDialog(
 billingQueue.addEventListener(
   "click",
   async (event) => {
+    const preparePrepaidButton = event.target.closest(
+      "[data-prepare-prepaid-proposal-id]"
+    );
+    if (preparePrepaidButton) {
+      const proposalId = clean(
+        preparePrepaidButton.dataset.preparePrepaidProposalId
+      );
+      if (!proposalId) return;
+      if (!window.confirm(
+        "Prepare this accepted 12-month proposal for family Review & Confirm before Management records the previously received paid-in-full payment?"
+      )) return;
+      preparePrepaidButton.disabled = true;
+      try {
+        await recordPrepaidCashCall({ proposalId, mode: "prepare" });
+        setStatus("Paid-in-full Review & Confirm route prepared. No payment was recorded and no Stripe Checkout was created.");
+        await loadBilling();
+      } catch (error) {
+        setStatus(error?.message || "Unable to prepare paid-in-full reconciliation.", true);
+      } finally {
+        preparePrepaidButton.disabled = false;
+      }
+      return;
+    }
+
     const approvalButton = event.target.closest(
       "[data-approve-renewal-proposal-id]"
     );

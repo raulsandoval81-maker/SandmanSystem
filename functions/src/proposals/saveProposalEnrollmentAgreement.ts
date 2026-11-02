@@ -11,6 +11,10 @@ import {
 import {
   validateProposalEnrollmentToken,
 } from "./getProposalEnrollment";
+import {
+  isPreparedForPrepaidReconciliation,
+  PREPAID_RECONCILIATION_ROUTE,
+} from "../billing/prepaidReconciliationPolicy";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -192,14 +196,17 @@ export const saveProposalEnrollmentAgreement =
         ? "adult_athlete"
         : "parent_guardian";
 
+    const prepaidReconciliation =
+      isPreparedForPrepaidReconciliation(proposal);
+
     return {
       ok: true,
       enrollment: {
         proposalId,
         status:
-          clean(proposal.status)
-            .toUpperCase() ===
-            "CHECKOUT_CREATED"
+          prepaidReconciliation
+            ? "AWAITING_MANAGEMENT_RECONCILIATION"
+            : clean(proposal.status).toUpperCase() === "CHECKOUT_CREATED"
               ? "PAYMENT_PENDING"
               : "READY_FOR_PAYMENT",
 
@@ -212,6 +219,11 @@ export const saveProposalEnrollmentAgreement =
 
         paymentRequired:
           true,
+
+        paymentRoute:
+          prepaidReconciliation
+            ? PREPAID_RECONCILIATION_ROUTE
+            : "stripe_checkout",
 
         prospect:
           snapshot.prospect || {},
