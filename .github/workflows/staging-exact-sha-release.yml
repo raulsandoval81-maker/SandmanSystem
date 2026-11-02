@@ -1327,7 +1327,7 @@ jobs:
           git -C application rev-parse HEAD | grep -qx 'f884bebb5d79b5ee0deb4b8321acd37d88bc997d'
           grep -q 'manualEdgeCaseProposal' application/public/management/manual-edge-case-proposal/tool.js
           grep -q '/management/manual-edge-case-proposal/' application/public/management/billing/index.html
-          python -m pip install 'google-auth==2.35.0'
+          python -m pip install 'google-auth==2.35.0' 'requests==2.32.3'
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
@@ -1394,7 +1394,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install Hosting API dependency
-        run: python -m pip install 'google-auth==2.35.0'
+        run: python -m pip install 'google-auth==2.35.0' 'requests==2.32.3'
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
