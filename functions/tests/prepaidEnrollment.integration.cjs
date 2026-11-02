@@ -5,7 +5,6 @@ const { initializeApp, deleteApp } = require("firebase-admin/app");
 const { getFirestore, Timestamp } = require("firebase-admin/firestore");
 
 if (!process.env.FIRESTORE_EMULATOR_HOST ||
-    !process.env.FIREBASE_AUTH_EMULATOR_HOST ||
     !process.env.GCLOUD_PROJECT?.startsWith("demo-")) {
   throw new Error("Refusing to run prepaid acceptance outside isolated demo-* emulators.");
 }
