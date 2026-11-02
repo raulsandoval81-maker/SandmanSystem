@@ -4,6 +4,8 @@ on:
     paths:
       - .github/workflows/manual-edge-case-staging-preflight.yml
       - scripts/staging/manual-edge-case-release.json
+      - scripts/staging/manual-edge-hosting-overlay.py
+      - .github/workflows/staging-exact-sha-release.yml
   workflow_dispatch:
 
 permissions:
@@ -96,5 +98,23 @@ jobs:
             --project demo-manual-edge-case \
             --only firestore \
             'node functions/tests/manualEdgeCaseProposal.integration.cjs'
+      - name: Staging Hosting overlay static safety gate (no cloud credentials)
+        run: |
+          set -euo pipefail
+          python -m py_compile release-tooling/scripts/staging/manual-edge-hosting-overlay.py
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+          source = Path("release-tooling/scripts/staging/manual-edge-hosting-overlay.py").read_text()
+          tree = ast.parse(source)
+          values = {target.id: ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign) for target in node.targets if isinstance(target, ast.Name) and target.id in {"PROJECT", "SITE", "SOURCE_SHA", "FILES"}}
+          assert values["PROJECT"] == values["SITE"] == "sandman-combat-staging"
+          assert values["SOURCE_SHA"] == "f884bebb5d79b5ee0deb4b8321acd37d88bc997d"
+          assert len(values["FILES"]) == 5 and len(set(values["FILES"])) == 5
+          assert all(path.startswith("public/management/") and (Path("application") / path).is_file() for path in values["FILES"])
+          assert "if args.expected_release != release_name or args.expected_version != version_name:" in source
+          assert "Live staging Hosting manifest did not fully load" in source
+          print("PASS: scoped staging Hosting overlay script; no deployment")
+          PY
       - name: Preflight result
         run: echo "Preflight only — no infrastructure deployments, IAM writes, production calls or Stripe operations."
