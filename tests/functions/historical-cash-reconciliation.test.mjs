@@ -65,7 +65,7 @@ test("duplicate payment IDs, overpaid periods, and imbalanced amounts are flagge
     enrollmentFeeCents: 3000,
   });
   assert.ok(result.issues.some(x => x.includes("Duplicate payment reference")));
-  assert.ok(result.issues.some(x => x.includes("exceeds the monthly rate")));
+  assert.ok(result.issues.some(x => x.includes("exceeds the contractual rate")));
   assert.ok(result.issues.some(x => x.includes("does not balance")));
   assert.equal(result.requiresManagementReview, true);
 });
