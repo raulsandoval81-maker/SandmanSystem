@@ -63,6 +63,7 @@ jobs:
         with:
           ref: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
           path: application-source
+          fetch-depth: 0
           persist-credentials: false
       - name: Use Node 22 for release validation
         uses: actions/setup-node@v4
