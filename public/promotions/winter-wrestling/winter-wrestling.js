@@ -3,8 +3,18 @@ const form=document.getElementById("seasonForm");
 const status=document.getElementById("status");
 const button=document.getElementById("send");
 const clean=(s)=>String(s||"").trim();
+const schedule=document.getElementById("schedule");
+const groupCDays=document.getElementById("groupCDays");
+const weekdayChecks=Array.from(groupCDays.querySelectorAll('input[name="weekday"]'));
+schedule.addEventListener("change",()=>{groupCDays.hidden=schedule.value!=="group-c";});
+const selectedWeekdays=()=>weekdayChecks.filter(input=>input.checked).map(input=>input.value);
 form.addEventListener("submit",async(e)=>{
  e.preventDefault();if(!form.reportValidity())return;
+ const weekdays=schedule.value==="group-c"?selectedWeekdays():[];
+ if(schedule.value==="group-c"&&weekdays.length!==2){
+  status.textContent="Please select exactly two weekdays for Group C.";
+  return;
+ }
  const data=new FormData(form);
  button.disabled=true;status.textContent="Submitting your interest...";
  try{
@@ -15,7 +25,9 @@ form.addEventListener("submit",async(e)=>{
    campaignId:"winter-wrestling-2026-27",campaignName:"Winter Wrestling 2026–27",
    season:"winter-2026-27",campaignPriceLabel:"$350 per athlete · complete season · Nov 16, 2026–Feb 14, 2027",
    sport:"wrestling",programInterest:"zero2hero-wrestling",
-   schedulePreference:clean(data.get("schedule")),
+   schedulePreference:schedule.value==="group-c"?"unsure":clean(data.get("schedule")),
+   scheduleSelection:schedule.value==="group-c"?"group-c":clean(data.get("schedule")),
+   preferredWeekdays:weekdays,
    contactName:clean(data.get("guardian")),athleteName:clean(data.get("athlete")),
    email:clean(data.get("email")).toLowerCase(),phone:clean(data.get("phone")),
    familyPricingInterest:data.get("family")==="on",
