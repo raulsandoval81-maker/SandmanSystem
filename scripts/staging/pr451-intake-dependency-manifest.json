@@ -1,0 +1,47 @@
+{
+  "releaseId": "pr451-staging-intake-dependencies",
+  "projectId": "sandman-combat-staging",
+  "productionProjectId": "sandmandashboard",
+  "region": "us-central1",
+  "purpose": "Complete synthetic staging enrollment handoff and activation for prepaid cash/check and Stripe test routes",
+  "applicationChanges": [
+    "functions/src/enrollment/operationalPaidProposal.ts",
+    "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
+    "functions/src/enrollment/recordManualEnrollmentIntakeDelivery.ts",
+    "functions/src/enrollment/enrollmentActivity.ts",
+    "public/intake-management/management.intake.js"
+  ],
+  "previouslyMissingStagingFunctions": [
+    "createProposalDraft",
+    "updateProposalDraft",
+    "issueProposalEnrollmentHandoff",
+    "getEnrollmentIntakeHandoffStatus",
+    "recordManualEnrollmentIntakeDelivery",
+    "sendEnrollmentIntakeEmail",
+    "approveIntakeCall",
+    "approveAndActivate"
+  ],
+  "additionalDependenciesToVerify": [
+    "hydrateEnrollmentIntakePrefill",
+    "recordEnrollmentIntakeInvite",
+    "recordEnrollmentIntakeSubmitted",
+    "recordEnrollmentAthleteActivated",
+    "supersedeEnrollmentIntakeInvites",
+    "consumeSubmittedIntakeToken",
+    "syncActivatedAdultContact",
+    "syncActivatedEnrollmentPlacement"
+  ],
+  "requiredBeforeAnyDeployment": [
+    "Read-only current staging function inventory and per-function generation/runtime/IAM/secret audit",
+    "Confirm Firestore rules, indexes, trigger prerequisites and Management authentication in staging",
+    "Review function-specific secrets including RESEND_API_KEY; do not reveal secret values",
+    "Preserve approved runtime identity and avoid broad permissions",
+    "Confirm staging intake delivery remains on staging origin",
+    "Pass TypeScript build, unit tests, emulator and synthetic acceptance",
+    "Prepare exact-SHA staging-only release with rollback and separately approved changes"
+  ],
+  "deploymentAuthorized": false,
+  "productionChangesAuthorized": false,
+  "realFamilyDataAllowed": false,
+  "stripeLivePaymentsAllowed": false
+}

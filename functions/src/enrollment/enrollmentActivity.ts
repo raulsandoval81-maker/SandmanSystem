@@ -1,3 +1,4 @@
+import { isOperationalPaidProposal } from "./operationalPaidProposal";
 import {
   FieldValue,
   getFirestore
@@ -45,38 +46,6 @@ function deterministicPart(value: unknown): string {
     .slice(0, 120);
 }
 
-function isOperationalPaidProposal(
-  proposal: Record<string, any>
-): boolean {
-  const status = clean(proposal.status).toUpperCase();
-  const paymentStatus = clean(proposal.paymentStatus).toLowerCase();
-  const checkoutSessionId = clean(proposal.stripeCheckoutSessionId);
-  const hasPaidAt = Boolean(proposal.paidAt);
-  const isLiveSession =
-    proposal.stripeLivemode === true ||
-    checkoutSessionId.startsWith("cs_live_");
-  const isRecordedCashPayment =
-    clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid" &&
-    Number(proposal.cashPrepayment?.amountCents || 0) > 0 &&
-    (
-      proposal.cashPrepayment?.membershipPaidInFull === true ||
-      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
-    );
-
-  return (
-    status === "PAID" &&
-    paymentStatus === "paid" &&
-    hasPaidAt &&
-    (
-      isRecordedCashPayment ||
-      (
-        Boolean(checkoutSessionId) &&
-        !checkoutSessionId.startsWith("cs_test_") &&
-        isLiveSession
-      )
-    )
-  );
-}
 
 async function writeProposalHistoryEvent({
   proposalId,
