@@ -64,6 +64,10 @@ jobs:
           ref: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
           path: application-source
           persist-credentials: false
+      - name: Use Node 22 for release validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Verify exact source, project, diff, and manifest
         run: |
           set -euo pipefail
@@ -90,7 +94,7 @@ jobs:
             application-source/tests/functions/prepaid-membership-contract.test.mjs
           node --check application-source/public/connect/enrollment/enrollment.js
           node --check application-source/public/management/billing/billing.js
-          node --test trusted-tooling/tests/functions/pr451-staging-release.test.mjs
+          (cd trusted-tooling && node --test tests/functions/pr451-staging-release.test.mjs)
       - name: Authenticate as read-only Hosting preflight identity
         id: hosting-preflight-auth
         uses: google-github-actions/auth@v3
@@ -163,6 +167,10 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
+      - name: Use Node 22 for callable bootstrap
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Refuse overwrite, then create exactly one approved callable
         run: |
           set -euo pipefail
@@ -213,6 +221,10 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
+      - name: Use Node 22 for controlled callable updates
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Update exactly four existing callables and preserve per-function identities
         working-directory: application-source
         run: |
