@@ -1,11 +1,13 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, writeFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { deploymentPlan, executePlan, invocationIamCondition, invocationIamMember,
-  invocationIamRole, invocationIamServices, invocationPlan, invocationState, isVerifiedNotFound,
-  manifest, runtimeFor, validateExistingFunction, validateInvocationIamPolicy, validateManifest } from
+import { bootstrapFunctions, deploymentPlan, executePlan, installationReport,
+  invocationPlan, invocationState, isVerifiedNotFound, manifest, runtimeFor,
+  validateExistingFunction, validateManifest } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -38,7 +40,7 @@ test("plans preserve generations, runtime identities, secrets, and Firestore tri
     assert.doesNotMatch(args, /sandmandashboard/);
     assert.equal(args.includes("--no-gen2"), entry.kind === "gen1-callable");
     assert.equal(args.includes("--gen2"), entry.kind !== "gen1-callable");
-    assert.equal(args.includes("--allow-unauthenticated"), entry.kind === "gen1-callable");
+    assert.equal(args.includes("--allow-unauthenticated"), false);
     if (entry.secrets?.length) assert.match(args, /--set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest/);
     else assert.match(args, /--clear-secrets/);
     if (entry.kind === "gen2-firestore") {
@@ -113,10 +115,16 @@ function exactDescription(entry) {
           "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
       } });
   }
+  if (entry.kind === "gen2-firestore") {
+    value.eventTrigger = { eventType: entry.eventType, triggerRegion: manifest.triggerRegion,
+      eventFilters: [{ attribute: "database", value: "(default)" },
+        { attribute: "namespace", value: "(default)" },
+        { attribute: "document", value: entry.document, operator: "match-path-pattern" }] };
+  }
   return value;
 }
 
-test("matching partial function is validated before invocation configuration resumes", () => {
+test("matching partial function is validated and classified as pending administrator work", () => {
   const entry = manifest.functions.find(item => item.name === "createProposalDraft");
   assert.equal(validateExistingFunction(entry, exactDescription(entry)), true);
   const partial = { runService: { metadata: { annotations: {} } }, functionIam: {}, runIam: {} };
@@ -143,7 +151,7 @@ test("resume fails closed on source, runtime, identity, or invocation drift", ()
   /Unexpected Gen 2 invocation IAM/);
 });
 
-test("missing invocation permission stops before the release can continue", () => {
+test("failed cloud commands remain fail-closed", () => {
   let calls = 0;
   const denied = () => { calls += 1; return { status: 1, stdout: "", stderr:
     "PERMISSION_DENIED: run.services.setIamPolicy" }; };
@@ -151,52 +159,6 @@ test("missing invocation permission stops before the release can continue", () =
     manifest.functions.find(item => item.name === "createProposalDraft")), denied),
   /run\.services\.setIamPolicy/);
   assert.equal(calls, 1);
-});
-
-function invocationPolicy(expression, overrides = {}) {
-  return { bindings: [{
-    role: invocationIamRole,
-    members: [invocationIamMember],
-    condition: expression === undefined ? undefined : { expression },
-    ...overrides,
-  }] };
-}
-
-test("invocation IAM accepts only the complete seven-service near-term condition", () => {
-  const now = Date.parse("2026-11-03T12:00:00.000Z");
-  const expiration = "2026-11-03T13:00:00.000Z";
-  const result = validateInvocationIamPolicy(invocationPolicy(invocationIamCondition(expiration)), { now });
-  assert.equal(result.expiration, expiration);
-  assert.equal(result.services.length, 7);
-  assert.deepEqual(result.services, invocationIamServices());
-});
-
-test("invocation IAM rejects unrestricted alternatives and extra services", () => {
-  const now = Date.parse("2026-11-03T12:00:00.000Z");
-  const expression = invocationIamCondition("2026-11-03T13:00:00.000Z");
-  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(`${expression} || true`), { now }),
-    /exact release boundary/);
-  const extra = expression.replace("] && request.time",
-    ', "projects/sandman-combat-staging/locations/us-central1/services/unexpected"] && request.time');
-  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(extra), { now }),
-    /exact release boundary/);
-});
-
-test("invocation IAM rejects expired, unconditional, and duplicate deployer grants", () => {
-  const now = Date.parse("2026-11-03T12:00:00.000Z");
-  const valid = invocationPolicy(invocationIamCondition("2026-11-03T13:00:00.000Z"));
-  assert.throws(() => validateInvocationIamPolicy(
-    invocationPolicy(invocationIamCondition("2026-11-03T11:59:59.000Z")), { now }),
-  /near-term expiration/);
-  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(undefined), { now }),
-    /must be conditional/);
-  assert.throws(() => validateInvocationIamPolicy(
-    { bindings: [valid.bindings[0], structuredClone(valid.bindings[0])] }, { now }),
-  /exactly one deployer grant/);
-  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(
-    invocationIamCondition("2026-11-03T13:00:00.000Z"),
-    { members: [invocationIamMember, "serviceAccount:broader@example.iam.gserviceaccount.com"] }), { now }),
-  /must not include additional members/);
 });
 
 test("intake prefill uses shared fail-closed paid eligibility", () => {
@@ -210,4 +172,139 @@ test("existing Firestore rules and index prerequisites are present but outside d
   assert.ok(indexes.indexes.some(index => index.collectionGroup === "intakes"));
   assert.equal(manifest.deployFirestoreRules, false);
   assert.equal(manifest.deployFirestoreIndexes, false);
+});
+
+function invocationEvidence(entry, complete = false) {
+  if (entry.kind === "gen1-callable") return { functionIam: complete ? {
+    bindings: [{ role: "roles/cloudfunctions.invoker", members: ["allUsers"] }],
+  } : {} };
+  if (entry.kind === "gen2-callable") return { functionIam: {}, runIam: {},
+    runService: { metadata: { annotations: complete ? {
+      "run.googleapis.com/invoker-iam-disabled": "true",
+    } : {} } } };
+}
+
+function installationRecords(complete = true) {
+  return Object.fromEntries(manifest.functions.map(entry => [entry.name, {
+    description: exactDescription(entry), invocation: invocationEvidence(entry, complete),
+  }]));
+}
+
+test("partial install resumes all 16 targets without invocation writes or redeploying existing Functions", () => {
+  const created = [];
+  const existing = new Set(["createProposalDraft", "updateProposalDraft"]);
+  const report = bootstrapFunctions("/tmp/exact-source", {
+    describe: entry => existing.has(entry.name)
+      ? { status: 0, stdout: JSON.stringify(exactDescription(entry)) }
+      : { status: 1, stdout: "", stderr: "ResponseError: status=[404], Function does not exist" },
+    execute: plan => {
+      assert.deepEqual(plan.args.slice(0, 2), ["functions", "deploy"]);
+      assert.ok(!plan.args.some(arg => /invoker-iam|allow-unauthenticated|iam-policy/.test(arg)));
+      created.push(plan.args[2]);
+    },
+    readDeployed: exactDescription,
+    readInvocation: entry => invocationEvidence(entry, entry.name === "createProposalDraft"),
+  });
+  assert.deepEqual(created, manifest.functions.map(x => x.name).filter(name => !existing.has(name)));
+  assert.equal(report.creationComplete, true);
+  assert.equal(report.installationComplete, false);
+  assert.deepEqual(report.pendingAdministratorConfiguration,
+    manifest.functions.filter(x => x.kind.endsWith("callable") && x.name !== "createProposalDraft").map(x => x.name));
+});
+
+test("resume stops before deployment on existing source drift or unexpected invocation IAM", () => {
+  for (const drift of ["source", "iam"]) {
+    let executions = 0;
+    assert.throws(() => bootstrapFunctions("/tmp/exact-source", {
+      describe: entry => {
+        const value = exactDescription(entry);
+        if (drift === "source") value.labels["sandman-source-sha"] = "0".repeat(40);
+        return { status: 0, stdout: JSON.stringify(value) };
+      },
+      execute: () => { executions++; },
+      readInvocation: entry => ({ ...invocationEvidence(entry),
+        runIam: { bindings: [{ role: "roles/run.invoker", members: ["allUsers"] }] } }),
+    }), /configuration mismatch|Unexpected Gen 2 invocation IAM/);
+    assert.equal(executions, 0);
+  }
+});
+
+test("creation failure or unreadable absence stops before later targets", () => {
+  for (const denied of [false, true]) {
+    let calls = 0;
+    assert.throws(() => bootstrapFunctions("/tmp/exact-source", {
+      describe: () => ({ status: 1, stdout: "", stderr: denied ? "PERMISSION_DENIED" :
+        "ResponseError: status=[404], Function does not exist" }),
+      execute: () => { calls++; throw new Error("build failed"); },
+    }), /Unable to verify|build failed/);
+    assert.equal(calls, denied ? 0 : 1);
+  }
+});
+
+test("final verification requires every Function, trigger, and callable access setting", () => {
+  assert.equal(installationReport(installationRecords()).installationComplete, true);
+  for (const entry of manifest.functions) {
+    const records = installationRecords();
+    delete records[entry.name];
+    assert.throws(() => installationReport(records), /missing function/);
+    if (entry.kind.endsWith("callable")) {
+      const pending = installationRecords();
+      pending[entry.name].invocation = invocationEvidence(entry, false);
+      assert.throws(() => installationReport(pending), /configuration incomplete/);
+      pending[entry.name].invocation = undefined;
+      assert.throws(() => installationReport(pending), /evidence is unreadable/);
+    } else {
+      const drift = installationRecords();
+      drift[entry.name].description.eventTrigger.eventType = "unexpected";
+      assert.throws(() => installationReport(drift), /trigger configuration mismatch/);
+    }
+  }
+  assert.equal(installationReport(installationRecords(), { creationOnly: true }).installationComplete, false);
+});
+
+test("creation preflight does not mistake an IAM expression for effective authorization", async () => {
+  const preflight = await readFile(fromRoot("tests/helpers/verify-pr451-intake-activation-preflight.mjs"), "utf8");
+  assert.doesNotMatch(preflight, /validateInvocationIamPolicy|sandmanBillingInvokerIamRelease/);
+  assert.match(workflow, /options: \[validate, bootstrap, verify-installation\]/);
+  assert.match(workflow, /inputs.action == 'verify-installation'/);
+  assert.match(workflow, /--creation-only/);
+  assert.match(workflow, /installation-verification\.json/);
+});
+
+test("workflow verifier CLI never certifies creation or incomplete evidence as installation", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "pr451-verification-"));
+  const verifier = fromRoot("tests/helpers/verify-pr451-intake-activation-invocation.mjs");
+  const writeRecords = async records => {
+    for (const entry of manifest.functions) {
+      const record = records[entry.name];
+      await writeFile(path.join(root, `${entry.name}.json`), JSON.stringify(record.description));
+      if (entry.kind.endsWith("callable")) {
+        await writeFile(path.join(root, `${entry.name}-function-iam.json`), JSON.stringify(record.invocation.functionIam));
+      }
+      if (entry.kind === "gen2-callable") {
+        await writeFile(path.join(root, `${entry.name}-run-service.json`), JSON.stringify(record.invocation.runService));
+        await writeFile(path.join(root, `${entry.name}-run-iam.json`), JSON.stringify(record.invocation.runIam));
+      }
+    }
+  };
+  const run = (...args) => spawnSync(process.execPath, [verifier, root, ...args], { encoding: "utf8" });
+  try {
+    await writeRecords(installationRecords(false));
+    const creation = run("--creation-only");
+    assert.equal(creation.status, 0, creation.stderr);
+    assert.equal(JSON.parse(creation.stdout).installationComplete, false);
+    const pending = run();
+    assert.notEqual(pending.status, 0);
+    assert.match(pending.stderr, /configuration incomplete/);
+    await writeRecords(installationRecords());
+    const complete = run();
+    assert.equal(complete.status, 0, complete.stderr);
+    assert.equal(JSON.parse(complete.stdout).installationComplete, true);
+    await rm(path.join(root, "syncActivatedEnrollmentPlacement.json"));
+    const missingTrigger = run();
+    assert.notEqual(missingTrigger.status, 0);
+    assert.equal(missingTrigger.stdout, "");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });

@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: Read-only validation or separately approved 16-function bootstrap
+        description: Creation preflight, separately approved creation, or final read-only installation verification
         required: true
         type: choice
-        options: [validate, bootstrap]
+        options: [validate, bootstrap, verify-installation]
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -120,8 +120,23 @@ jobs:
               exit 1
             fi
           done
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.filter(x=>x.kind.endsWith("callable")).map(x=>`${x.name}|${x.kind}`).join("\n"))' |
+          while IFS='|' read -r fn kind; do
+            if grep -q '"absent":true' "evidence/functions/${fn}.json"; then continue; fi
+            gcloud functions get-iam-policy "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-function-iam.json"
+            if test "${kind}" = "gen2-callable"; then
+              service="$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')"
+              gcloud run services describe "${service}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-service.json"
+              gcloud run services get-iam-policy "${service}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-iam.json"
+            fi
+          done
           node trusted-tooling/tests/helpers/verify-pr451-intake-activation-preflight.mjs evidence
+      - name: Certify all 16 Functions and access settings only after administrator configuration
+        if: ${{ inputs.action == 'verify-installation' }}
+        run: |
+          node trusted-tooling/tests/helpers/verify-pr451-intake-activation-invocation.mjs evidence/functions > evidence/installation-verification.json
       - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
         with:
           name: pr451-intake-activation-readonly-preflight-${{ github.run_id }}
           path: |
@@ -177,12 +192,13 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
-      - name: Bootstrap only the exact release allowlist
+      - name: Create only missing allowlisted Functions; leave invocation changes to administrators
         env:
           SANDMAN_INTAKE_BOOTSTRAP_APPROVAL: ${{ inputs.approve_bootstrap }}
           SANDMAN_CONFIRM_PROJECT: ${{ inputs.confirm_project }}
         run: |
-          node trusted-tooling/scripts/staging/pr451-intake-activation-release.mjs bootstrap release-functions
+          mkdir -p evidence
+          node trusted-tooling/scripts/staging/pr451-intake-activation-release.mjs bootstrap release-functions > evidence/creation-receipt.json
       - name: Record resulting exact function inventory
         run: |
           set -euo pipefail
@@ -196,8 +212,10 @@ jobs:
               gcloud run services get-iam-policy "$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-iam.json"
             fi
           done
-          node trusted-tooling/tests/helpers/verify-pr451-intake-activation-invocation.mjs evidence/functions
+          node trusted-tooling/tests/helpers/verify-pr451-intake-activation-invocation.mjs evidence/functions --creation-only > evidence/creation-verification.json
+          echo "Function creation finished. Installation remains INCOMPLETE until administrator invocation configuration and verify-installation pass." >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
         with:
           name: pr451-intake-activation-bootstrap-receipt-${{ github.run_id }}
           path: evidence

@@ -6,60 +6,6 @@ import { fileURLToPath } from "node:url";
 const manifestUrl = new URL("./pr451-intake-activation-release.json", import.meta.url);
 export const manifest = JSON.parse(await readFile(manifestUrl, "utf8"));
 const safeName = /^[A-Za-z][A-Za-z0-9]+$/;
-export const invocationIamRole =
-  "projects/sandman-combat-staging/roles/sandmanBillingInvokerIamRelease";
-export const invocationIamMember =
-  "serviceAccount:sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com";
-export const invocationIamMaximumLifetimeMs = 6 * 60 * 60 * 1000;
-
-export function invocationIamServices() {
-  return manifest.functions
-    .filter(entry => entry.kind === "gen2-callable")
-    .map(entry => `projects/${manifest.projectId}/locations/${manifest.region}/services/${entry.name.toLowerCase()}`)
-    .sort();
-}
-
-export function invocationIamCondition(expiration) {
-  return `resource.type == "run.googleapis.com/Service" && resource.name in [` +
-    `${invocationIamServices().map(service => `"${service}"`).join(", ")}] && ` +
-    `request.time < timestamp("${expiration}")`;
-}
-
-export function validateInvocationIamPolicy(policy, { now = Date.now() } = {}) {
-  const services = invocationIamServices();
-  if (services.length !== 7 || new Set(services).size !== 7) {
-    throw new Error("Invocation IAM release boundary must contain exactly seven services.");
-  }
-  const grants = (policy.bindings || []).filter(binding =>
-    binding.role === invocationIamRole && (binding.members || []).includes(invocationIamMember));
-  if (grants.length !== 1) {
-    throw new Error("Invocation IAM must contain exactly one deployer grant.");
-  }
-  const binding = grants[0];
-  if (binding.members?.length !== 1 || binding.members[0] !== invocationIamMember) {
-    throw new Error("Invocation IAM deployer grant must not include additional members.");
-  }
-  const expression = binding.condition?.expression;
-  if (typeof expression !== "string") {
-    throw new Error("Invocation IAM deployer grant must be conditional.");
-  }
-  const prefix = invocationIamCondition("");
-  const expirationStart = prefix.length - 2;
-  if (!expression.startsWith(prefix.slice(0, expirationStart)) || !expression.endsWith('\")')) {
-    throw new Error("Invocation IAM condition does not match the exact release boundary.");
-  }
-  const expiration = expression.slice(expirationStart, -2);
-  const expirationTime = Date.parse(expiration);
-  if (!Number.isFinite(expirationTime) || new Date(expirationTime).toISOString() !== expiration ||
-      expression !== invocationIamCondition(expiration)) {
-    throw new Error("Invocation IAM condition does not match the exact release boundary.");
-  }
-  if (expirationTime <= now || expirationTime > now + invocationIamMaximumLifetimeMs) {
-    throw new Error("Invocation IAM condition must have a valid near-term expiration.");
-  }
-  return { expiration, services };
-}
-
 export function runtimeFor(entry) {
   if (entry.runtime === "email") return manifest.emailRuntimeServiceAccount;
   if (entry.kind === "gen1-callable") return manifest.gen1RuntimeServiceAccount;
@@ -85,7 +31,6 @@ export function deploymentPlan(entry, sourceRoot) {
   args.push(secrets.length ? `--set-secrets=${secrets.map(key => `${key}=${key}:latest`).join(",")}` : "--clear-secrets");
   if (entry.kind.endsWith("callable")) {
     args.push("--trigger-http");
-    if (gen1) args.push("--allow-unauthenticated");
   } else if (entry.kind === "gen2-firestore") {
     args.push(`--trigger-event-filters=type=${entry.eventType}`,
       "--trigger-event-filters=database=(default)", "--trigger-event-filters=namespace=(default)",
@@ -196,6 +141,13 @@ function normalizedBindings(policy = {}) {
 
 export function invocationState(entry, { runService, functionIam, runIam } = {}) {
   if (!entry.kind.endsWith("callable")) return "not-applicable";
+  const readablePolicy = policy => policy && typeof policy === "object" && !Array.isArray(policy) &&
+    Object.keys(policy).every(key => ["bindings", "etag", "version", "auditConfigs"].includes(key)) &&
+    (policy.bindings === undefined || Array.isArray(policy.bindings));
+  if (!readablePolicy(functionIam) || (entry.kind === "gen2-callable" &&
+      (!runService || !readablePolicy(runIam)))) {
+    throw new Error(`Invocation evidence is unreadable: ${entry.name}`);
+  }
   const functionBindings = normalizedBindings(functionIam);
   if (entry.kind === "gen1-callable") {
     const completed = [{ role: "roles/cloudfunctions.invoker", members: ["allUsers"], condition: null }];
@@ -263,13 +215,61 @@ function readInvocationConfiguration(entry) {
   };
 }
 
-function completeInvocationConfiguration(entry) {
-  if (!entry.kind.endsWith("callable")) return;
-  const before = invocationState(entry, readInvocationConfiguration(entry));
-  if (before === "complete") return;
-  executePlan(invocationPlan(entry));
-  const after = invocationState(entry, readInvocationConfiguration(entry));
-  if (after !== "complete") throw new Error(`Invocation configuration did not complete: ${entry.name}`);
+export function installationReport(records, { creationOnly = false } = {}) {
+  validateManifest();
+  const pendingAdministratorConfiguration = [];
+  for (const entry of manifest.functions) {
+    const record = records[entry.name];
+    if (!record?.description || record.description.absent) {
+      throw new Error(`Installation is missing function: ${entry.name}`);
+    }
+    validateExistingFunction(entry, record.description);
+    if (entry.kind.endsWith("callable") &&
+        invocationState(entry, record.invocation) !== "complete") {
+      pendingAdministratorConfiguration.push(entry.name);
+    }
+  }
+  if (!creationOnly && pendingAdministratorConfiguration.length) {
+    throw new Error(`Administrator invocation configuration incomplete: ${pendingAdministratorConfiguration.join(", ")}`);
+  }
+  return { project: manifest.projectId, sourceSha: manifest.applicationSha,
+    creationComplete: true, installationComplete: !creationOnly,
+    pendingAdministratorConfiguration };
+}
+
+export function bootstrapFunctions(sourceRoot, {
+  describe = entry => spawnSync("gcloud", ["functions", "describe", entry.name,
+    `--region=${manifest.region}`, `--project=${manifest.projectId}`, "--format=json"],
+  { encoding: "utf8", shell: false }),
+  execute = executePlan,
+  readDeployed = entry => readCloudJson(["functions", "describe", entry.name,
+    `--region=${manifest.region}`, `--project=${manifest.projectId}`, "--format=json"],
+  `${entry.name} deployed function`),
+  readInvocation = readInvocationConfiguration,
+} = {}) {
+  validateManifest();
+  const records = {};
+  for (const entry of manifest.functions) {
+    const result = describe(entry);
+    let description;
+    if (result.status === 0) {
+      description = JSON.parse(result.stdout);
+      // An existing exact artifact is never redeployed or reconfigured.
+      validateExistingFunction(entry, description);
+    } else {
+      if (!isVerifiedNotFound(result)) {
+        throw new Error(`Unable to verify whether ${entry.name} is absent.`);
+      }
+      execute(deploymentPlan(entry, sourceRoot));
+      description = readDeployed(entry);
+      validateExistingFunction(entry, description);
+    }
+    const invocation = entry.kind.endsWith("callable") ? readInvocation(entry) : undefined;
+    // Missing transport is pending administrator work; unexpected IAM still stops creation.
+    if (invocation) invocationState(entry, invocation);
+    records[entry.name] = { description, invocation };
+  }
+  return installationReport(records, { creationOnly: true });
 }
 
 async function main() {
@@ -285,29 +285,7 @@ async function main() {
       process.env.SANDMAN_CONFIRM_PROJECT !== manifest.projectId) {
     throw new Error("Protected exact-SHA staging bootstrap authorization is missing.");
   }
-  for (const entry of manifest.functions) {
-    const describe = spawnSync("gcloud", ["functions", "describe", entry.name,
-      `--region=${manifest.region}`, `--project=${manifest.projectId}`, "--format=json"],
-    { encoding: "utf8", shell: false });
-    if (describe.status === 0) {
-      const existing = JSON.parse(describe.stdout);
-      validateExistingFunction(entry, existing);
-      completeInvocationConfiguration(entry);
-      continue;
-    }
-    if (!isVerifiedNotFound(describe)) {
-      const sanitized = String(describe.stderr || "Cloud function lookup failed.")
-        .replace(/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/g, "[REDACTED]");
-      throw new Error(`Unable to verify whether ${entry.name} is absent: ${sanitized}`);
-    }
-    const plan = deploymentPlan(entry, sourceRoot);
-    executePlan(plan);
-    const deployed = readCloudJson(["functions", "describe", entry.name,
-      `--region=${manifest.region}`, `--project=${manifest.projectId}`, "--format=json"],
-    `${entry.name} deployed function`);
-    validateExistingFunction(entry, deployed);
-    completeInvocationConfiguration(entry);
-  }
+  console.log(JSON.stringify(bootstrapFunctions(sourceRoot), null, 2));
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main();

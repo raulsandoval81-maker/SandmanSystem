@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateExistingFunction, validateInvocationIamPolicy } from
+import { validateExistingFunction, invocationState } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const root = process.argv[2];
@@ -38,10 +38,7 @@ const deployerRoles = (projectIam.bindings || [])
 for (const role of [
   "projects/sandman-combat-staging/roles/sandmanPracticeDeployer",
   "projects/sandman-combat-staging/roles/sandmanXpBootstrapIam",
-  "projects/sandman-combat-staging/roles/sandmanBillingInvokerIamRelease",
 ]) assert.ok(deployerRoles.includes(role), `missing deployer role ${role}`);
-
-validateInvocationIamPolicy(projectIam);
 
 const services = await read("enabled-services.json");
 const enabled = new Set(services.map(item => item.config?.name));
@@ -70,5 +67,13 @@ for (const entry of manifest.functions) {
   const value = JSON.parse(await readFile(path.join(functionsRoot, `${entry.name}.json`), "utf8"));
   if (value.absent) continue;
   assert.equal(validateExistingFunction(entry, value), true);
+  if (entry.kind.endsWith("callable")) {
+    const invocation = { functionIam: await read(`functions/${entry.name}-function-iam.json`) };
+    if (entry.kind === "gen2-callable") {
+      invocation.runService = await read(`functions/${entry.name}-run-service.json`);
+      invocation.runIam = await read(`functions/${entry.name}-run-iam.json`);
+    }
+    invocationState(entry, invocation);
+  }
 }
-console.log("PASS: PR451 Intake/Activation staging preflight boundary verified");
+console.log("PASS: creation preflight boundary verified; installation readiness is not certified");
