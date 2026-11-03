@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { verifyInvocation } from "../helpers/verify-pr451-staging-invocation.mjs";
 
 const manifest = JSON.parse(await readFile("scripts/staging/pr451-paid-in-full-release.json", "utf8"));
 const workflow = await readFile(".github/workflows/release-pr451-paid-in-full-staging.yml", "utf8");
@@ -51,4 +52,30 @@ test("Hosting overlay preserves the live site and can change only two files", ()
   assert.match(overlay, /set\(changed\)\.issubset\(allowed\)/);
   assert.match(overlay, /Hosting baseline changed after approval/);
   assert.match(overlay, /rollbackVersion/);
+});
+
+test("invocation preflight fails closed until cloud-admin completes approved access", () => {
+  const name = "getProposalEnrollment";
+  const service = {
+    metadata: { name: "getproposalenrollment", annotations: {
+      "run.googleapis.com/invoker-iam-disabled": "true",
+      "run.googleapis.com/ingress": "all",
+    }},
+  };
+  assert.doesNotThrow(() => verifyInvocation(name, service, { etag: "abc" }));
+  assert.throws(() => verifyInvocation(name, {
+    ...service, metadata: { ...service.metadata, annotations: {
+      ...service.metadata.annotations,
+      "run.googleapis.com/invoker-iam-disabled": "false",
+    }},
+  }, { etag: "abc" }), /invoker IAM check/);
+  assert.throws(() => verifyInvocation(name, service, {
+    bindings: [{ role: "roles/run.invoker", members: ["allUsers"] }],
+  }), /public IAM principal/);
+  assert.throws(() => verifyInvocation(name, service, {}), /IAM policy unreadable/);
+  assert.match(workflow, /gcloud run services describe/);
+  assert.match(workflow, /gcloud run services get-iam-policy/);
+  assert.match(workflow, /verify-pr451-staging-invocation\.mjs/);
+  assert.doesNotMatch(workflow, /functions get-iam-policy[^\n]*--v2/);
+  assert.doesNotMatch(workflow, /gcloud run services update[^\n]*--no-invoker-iam-check/);
 });
