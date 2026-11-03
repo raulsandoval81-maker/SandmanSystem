@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { deploymentPlan, isVerifiedNotFound, manifest, runtimeFor, validateManifest } from
+import { deploymentPlan, executePlan, invocationPlan, invocationState, isVerifiedNotFound,
+  manifest, runtimeFor, validateExistingFunction, validateManifest } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -77,6 +78,78 @@ test("only a verified cloud 404 is treated as an absent function", () => {
     { status: 1, stdout: "partial", stderr: "ResponseError: status=[404], message=[does not exist]" },
     { status: 0, stdout: "{}", stderr: "" },
   ]) assert.equal(isVerifiedNotFound(result), false);
+});
+
+function exactDescription(entry) {
+  const secrets = (entry.secrets || []).map(key => ({ key }));
+  const value = {
+    name: `projects/${manifest.projectId}/locations/${manifest.region}/functions/${entry.name}`,
+    state: "ACTIVE", environment: "GEN_2",
+    labels: { "sandman-release": manifest.releaseId, "sandman-source-sha": manifest.applicationSha },
+    buildConfig: { runtime: "nodejs22", entryPoint: entry.name,
+      serviceAccount: `projects/${manifest.projectId}/serviceAccounts/${manifest.buildServiceAccount}` },
+    serviceConfig: {
+      serviceAccountEmail: runtimeFor(entry), availableMemory: "256Mi", timeoutSeconds: 60,
+      maxInstanceCount: 20, availableCpu: "1", maxInstanceRequestConcurrency: 80,
+      ingressSettings: "ALLOW_ALL", secretEnvironmentVariables: secrets,
+      environmentVariables: {
+        SANDMAN_STAGING_ACK: manifest.projectId,
+        SANDMAN_STAGING_PROJECT_ID: manifest.projectId,
+        SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT:
+          "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+      },
+    },
+  };
+  if (entry.kind === "gen1-callable") {
+    delete value.state; delete value.environment; delete value.buildConfig; delete value.serviceConfig;
+    Object.assign(value, { status: "ACTIVE", runtime: "nodejs22", entryPoint: entry.name,
+      buildServiceAccount: `projects/${manifest.projectId}/serviceAccounts/${manifest.buildServiceAccount}`,
+      serviceAccountEmail: runtimeFor(entry), availableMemoryMb: 256, timeout: "60s", maxInstances: 20,
+      ingressSettings: "ALLOW_ALL", secretEnvironmentVariables: secrets,
+      environmentVariables: {
+        SANDMAN_STAGING_ACK: manifest.projectId, SANDMAN_STAGING_PROJECT_ID: manifest.projectId,
+        SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT:
+          "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+      } });
+  }
+  return value;
+}
+
+test("matching partial function is validated before invocation configuration resumes", () => {
+  const entry = manifest.functions.find(item => item.name === "createProposalDraft");
+  assert.equal(validateExistingFunction(entry, exactDescription(entry)), true);
+  const partial = { runService: { metadata: { annotations: {} } }, functionIam: {}, runIam: {} };
+  assert.equal(invocationState(entry, partial), "needs-configuration");
+  assert.deepEqual(invocationPlan(entry).args.slice(0, 4),
+    ["run", "services", "update", "createproposaldraft"]);
+  assert.equal(invocationState(entry, { ...partial, runService: { metadata: { annotations:
+    { "run.googleapis.com/invoker-iam-disabled": "true" } } } }), "complete");
+});
+
+test("resume fails closed on source, runtime, identity, or invocation drift", () => {
+  const entry = manifest.functions.find(item => item.name === "createProposalDraft");
+  for (const mutate of [
+    value => { value.labels["sandman-source-sha"] = "0".repeat(40); },
+    value => { value.buildConfig.runtime = "nodejs20"; },
+    value => { value.serviceConfig.serviceAccountEmail = "unexpected@example.iam.gserviceaccount.com"; },
+    value => { value.serviceConfig.maxInstanceCount = 99; },
+  ]) {
+    const value = exactDescription(entry); mutate(value);
+    assert.throws(() => validateExistingFunction(entry, value), /configuration mismatch/);
+  }
+  assert.throws(() => invocationState(entry, { runService: { metadata: { annotations: {} } },
+    functionIam: {}, runIam: { bindings: [{ role: "roles/run.invoker", members: ["allUsers"] }] } }),
+  /Unexpected Gen 2 invocation IAM/);
+});
+
+test("missing invocation permission stops before the release can continue", () => {
+  let calls = 0;
+  const denied = () => { calls += 1; return { status: 1, stdout: "", stderr:
+    "PERMISSION_DENIED: run.services.setIamPolicy" }; };
+  assert.throws(() => executePlan(invocationPlan(
+    manifest.functions.find(item => item.name === "createProposalDraft")), denied),
+  /run\.services\.setIamPolicy/);
+  assert.equal(calls, 1);
 });
 
 test("intake prefill uses shared fail-closed paid eligibility", () => {

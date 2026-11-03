@@ -63,9 +63,160 @@ export function isVerifiedNotFound(result) {
     /(NOT_FOUND|does not exist|was not found)/i.test(error);
 }
 
-function run(plan) {
-  const result = spawnSync(plan.executable, plan.args, { stdio: "inherit", shell: false });
-  if (result.status !== 0) process.exit(result.status || 1);
+function userEnvironment(environment = {}) {
+  return Object.fromEntries(Object.entries(environment)
+    .filter(([key]) => key.startsWith("SANDMAN_"))
+    .sort(([left], [right]) => left.localeCompare(right)));
+}
+
+function secretKeys(value = []) {
+  return value.map(item => String(item?.key || "")).filter(Boolean).sort();
+}
+
+export function validateExistingFunction(entry, value) {
+  const gen1 = entry.kind === "gen1-callable";
+  const expectedEnvironment = {
+    SANDMAN_STAGING_ACK: manifest.projectId,
+    SANDMAN_STAGING_PROJECT_ID: manifest.projectId,
+    SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT:
+      "sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  };
+  const actual = {
+    name: value.name,
+    state: value.state || value.status,
+    generation: gen1 ? "GEN_1" : value.environment,
+    runtime: value.buildConfig?.runtime || value.runtime,
+    entryPoint: value.buildConfig?.entryPoint || value.entryPoint,
+    buildServiceAccount: value.buildConfig?.serviceAccount || value.buildServiceAccount,
+    runtimeServiceAccount: value.serviceConfig?.serviceAccountEmail || value.serviceAccountEmail,
+    memory: value.serviceConfig?.availableMemory || `${value.availableMemoryMb}Mi`,
+    timeout: value.serviceConfig?.timeoutSeconds ?? Number(String(value.timeout || "").replace(/s$/, "")),
+    maxInstances: value.serviceConfig?.maxInstanceCount ?? value.maxInstances,
+    cpu: gen1 ? null : value.serviceConfig?.availableCpu,
+    concurrency: gen1 ? null : value.serviceConfig?.maxInstanceRequestConcurrency,
+    ingress: value.serviceConfig?.ingressSettings || value.ingressSettings,
+    environmentVariables: userEnvironment(value.serviceConfig?.environmentVariables || value.environmentVariables),
+    secrets: secretKeys(value.serviceConfig?.secretEnvironmentVariables || value.secretEnvironmentVariables),
+    release: value.labels?.["sandman-release"],
+    sourceSha: value.labels?.["sandman-source-sha"],
+  };
+  const expected = {
+    name: `projects/${manifest.projectId}/locations/${manifest.region}/functions/${entry.name}`,
+    state: "ACTIVE",
+    generation: gen1 ? "GEN_1" : "GEN_2",
+    runtime: "nodejs22",
+    entryPoint: entry.name,
+    buildServiceAccount: `projects/${manifest.projectId}/serviceAccounts/${manifest.buildServiceAccount}`,
+    runtimeServiceAccount: runtimeFor(entry),
+    memory: "256Mi",
+    timeout: 60,
+    maxInstances: 20,
+    cpu: gen1 ? null : "1",
+    concurrency: gen1 ? null : 80,
+    ingress: "ALLOW_ALL",
+    environmentVariables: expectedEnvironment,
+    secrets: [...(entry.secrets || [])].sort(),
+    release: manifest.releaseId,
+    sourceSha: manifest.applicationSha,
+  };
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(`Existing function configuration mismatch: ${entry.name}`);
+  }
+  if (entry.kind === "gen2-firestore") {
+    const filters = Object.fromEntries((value.eventTrigger?.eventFilters || [])
+      .map(filter => [filter.attribute, { value: filter.value, operator: filter.operator || null }]));
+    if (value.eventTrigger?.eventType !== entry.eventType ||
+        value.eventTrigger?.triggerRegion !== manifest.triggerRegion ||
+        filters.database?.value !== "(default)" || filters.namespace?.value !== "(default)" ||
+        filters.document?.value !== entry.document || filters.document?.operator !== "match-path-pattern") {
+      throw new Error(`Existing Firestore trigger configuration mismatch: ${entry.name}`);
+    }
+  }
+  return true;
+}
+
+function normalizedBindings(policy = {}) {
+  return [...(policy.bindings || [])]
+    .map(binding => ({ role: binding.role, members: [...(binding.members || [])].sort(), condition: binding.condition || null }))
+    .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+}
+
+export function invocationState(entry, { runService, functionIam, runIam } = {}) {
+  if (!entry.kind.endsWith("callable")) return "not-applicable";
+  const functionBindings = normalizedBindings(functionIam);
+  if (entry.kind === "gen1-callable") {
+    const completed = [{ role: "roles/cloudfunctions.invoker", members: ["allUsers"], condition: null }];
+    if (JSON.stringify(functionBindings) === JSON.stringify(completed)) return "complete";
+    if (!functionBindings.length) return "needs-configuration";
+    throw new Error(`Unexpected Gen 1 invocation IAM: ${entry.name}`);
+  }
+  const runBindings = normalizedBindings(runIam);
+  if (functionBindings.length || runBindings.length) {
+    throw new Error(`Unexpected Gen 2 invocation IAM: ${entry.name}`);
+  }
+  const annotation = runService?.metadata?.annotations?.["run.googleapis.com/invoker-iam-disabled"];
+  if (annotation === "true") return "complete";
+  if (annotation === undefined) return "needs-configuration";
+  throw new Error(`Unexpected Gen 2 invoker annotation: ${entry.name}`);
+}
+
+export function invocationPlan(entry) {
+  if (entry.kind === "gen1-callable") return {
+    executable: "gcloud", args: ["functions", "add-iam-policy-binding", entry.name,
+      `--project=${manifest.projectId}`, `--region=${manifest.region}`,
+      "--member=allUsers", "--role=roles/cloudfunctions.invoker", "--quiet"],
+  };
+  if (entry.kind === "gen2-callable") return {
+    executable: "gcloud", args: ["run", "services", "update", entry.name.toLowerCase(),
+      `--project=${manifest.projectId}`, `--region=${manifest.region}`, "--no-invoker-iam-check", "--quiet"],
+  };
+  throw new Error("Invocation configuration applies only to callables.");
+}
+
+export function executePlan(plan, spawn = spawnSync) {
+  const result = spawn(plan.executable, plan.args, { encoding: "utf8", shell: false });
+  if (result.status !== 0) {
+    const sanitized = String(result.stderr || result.stdout || "Command failed.")
+      .replace(/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/g, "[REDACTED]");
+    throw new Error(`Release command failed: ${sanitized}`);
+  }
+  return result;
+}
+
+function readCloudJson(args, label) {
+  const result = spawnSync("gcloud", args, { encoding: "utf8", shell: false });
+  if (result.status !== 0 || !String(result.stdout || "").trim()) {
+    const sanitized = String(result.stderr || "Cloud configuration lookup failed.")
+      .replace(/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/g, "[REDACTED]");
+    throw new Error(`Unable to verify ${label}: ${sanitized}`);
+  }
+  return JSON.parse(result.stdout);
+}
+
+function readInvocationConfiguration(entry) {
+  const functionIam = readCloudJson(["functions", "get-iam-policy", entry.name,
+    `--project=${manifest.projectId}`, `--region=${manifest.region}`, "--format=json"],
+  `${entry.name} Cloud Functions IAM`);
+  if (entry.kind === "gen1-callable") return { functionIam };
+  const service = entry.name.toLowerCase();
+  return {
+    functionIam,
+    runService: readCloudJson(["run", "services", "describe", service,
+      `--project=${manifest.projectId}`, `--region=${manifest.region}`, "--format=json"],
+    `${entry.name} Cloud Run service`),
+    runIam: readCloudJson(["run", "services", "get-iam-policy", service,
+      `--project=${manifest.projectId}`, `--region=${manifest.region}`, "--format=json"],
+    `${entry.name} Cloud Run IAM`),
+  };
+}
+
+function completeInvocationConfiguration(entry) {
+  if (!entry.kind.endsWith("callable")) return;
+  const before = invocationState(entry, readInvocationConfiguration(entry));
+  if (before === "complete") return;
+  executePlan(invocationPlan(entry));
+  const after = invocationState(entry, readInvocationConfiguration(entry));
+  if (after !== "complete") throw new Error(`Invocation configuration did not complete: ${entry.name}`);
 }
 
 async function main() {
@@ -87,10 +238,8 @@ async function main() {
     { encoding: "utf8", shell: false });
     if (describe.status === 0) {
       const existing = JSON.parse(describe.stdout);
-      if (existing.labels?.["sandman-source-sha"] !== manifest.applicationSha ||
-          (existing.state || existing.status) !== "ACTIVE") {
-        throw new Error(`Existing function is not an exact completed release artifact: ${entry.name}`);
-      }
+      validateExistingFunction(entry, existing);
+      completeInvocationConfiguration(entry);
       continue;
     }
     if (!isVerifiedNotFound(describe)) {
@@ -99,11 +248,12 @@ async function main() {
       throw new Error(`Unable to verify whether ${entry.name} is absent: ${sanitized}`);
     }
     const plan = deploymentPlan(entry, sourceRoot);
-    run(plan);
-    if (entry.kind === "gen2-callable") {
-      run({ executable: "gcloud", args: ["run", "services", "update", entry.name.toLowerCase(),
-        `--project=${manifest.projectId}`, `--region=${manifest.region}`, "--no-invoker-iam-check", "--quiet"] });
-    }
+    executePlan(plan);
+    const deployed = readCloudJson(["functions", "describe", entry.name,
+      `--region=${manifest.region}`, `--project=${manifest.projectId}`, "--format=json"],
+    `${entry.name} deployed function`);
+    validateExistingFunction(entry, deployed);
+    completeInvocationConfiguration(entry);
   }
 }
 
