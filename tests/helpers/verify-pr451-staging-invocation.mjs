@@ -18,7 +18,10 @@ export function verifyInvocation(name, service, iam) {
   assert.ok(ingress === "all" || ingress === "INGRESS_TRAFFIC_ALL",
     `${name}: unexpected ingress configuration`);
 
-  assert.ok(Array.isArray(iam.bindings) || Object.keys(iam).every(key => ["etag", "version", "auditConfigs"].includes(key)),
+  // Empty IAM policies can legitimately have no bindings, but must include
+  // the etag proving the policy was actually returned by Cloud Run.
+  assert.ok(iam && typeof iam.etag === "string" && iam.etag.length > 0 &&
+    (iam.bindings === undefined || Array.isArray(iam.bindings)),
     `${name}: IAM policy unreadable`);
   for (const binding of iam.bindings || []) {
     assert.ok(!(binding.members || []).some(member =>

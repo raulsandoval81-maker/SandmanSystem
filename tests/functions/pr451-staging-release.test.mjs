@@ -70,6 +70,7 @@ test("invocation preflight fails closed until cloud-admin completes approved acc
     }},
   }, { etag: "abc" }), /invoker IAM check/);
   assert.throws(() => verifyInvocation(name, service, {
+    etag: "abc",
     bindings: [{ role: "roles/run.invoker", members: ["allUsers"] }],
   }), /public IAM principal/);
   assert.throws(() => verifyInvocation(name, service, {}), /IAM policy unreadable/);
