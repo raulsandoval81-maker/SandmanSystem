@@ -9,7 +9,6 @@
     "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
     "functions/src/enrollment/recordManualEnrollmentIntakeDelivery.ts",
     "functions/src/enrollment/enrollmentActivity.ts",
-    "functions/src/enrollment/hydrateEnrollmentIntakePrefill.ts",
     "public/intake-management/management.intake.js"
   ],
   "previouslyMissingStagingFunctions": [
