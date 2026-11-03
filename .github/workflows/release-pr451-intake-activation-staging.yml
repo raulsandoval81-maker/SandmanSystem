@@ -1,0 +1,199 @@
+name: PR451 Intake and Activation staging recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Read-only validation or separately approved 16-function bootstrap
+        required: true
+        type: choice
+        options: [validate, bootstrap]
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+      approve_bootstrap:
+        description: For bootstrap only, type APPROVE_16_STAGING_INTAKE_ACTIVATION_FUNCTIONS
+        required: false
+        type: string
+      confirm_resend_secret:
+        description: For bootstrap only, type RESEND_STAGING_SECRET_ACCESS_VERIFIED
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pr451-intake-activation-staging-recovery
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: sandman-combat-staging
+  SOURCE_SHA: b3f93005d4bcd9547cb6415627e8133f0318ad74
+  REGION: us-central1
+  WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Check out trusted tooling from protected main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - name: Check out immutable application source
+        uses: actions/checkout@v4
+        with:
+          ref: b3f93005d4bcd9547cb6415627e8133f0318ad74
+          path: application-source
+          persist-credentials: false
+      - name: Use the reviewed Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application-source/functions/package-lock.json
+      - name: Verify immutable release boundary
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirm_project }}" = "${PROJECT_ID}"
+          test "$(git -C application-source rev-parse HEAD)" = "${SOURCE_SHA}"
+          node trusted-tooling/scripts/staging/pr451-intake-activation-release.mjs plan application-source/functions > deployment-plan.json
+      - name: Build Node 22 source and run focused contracts
+        run: |
+          set -euo pipefail
+          test "$(node --version | cut -d. -f1)" = "v22"
+          npm ci --prefix application-source/functions
+          npm run build --prefix application-source/functions
+          node --test \
+            application-source/functions/tests/operationalPaidProposal.test.cjs \
+            application-source/tests/functions/prepaid-membership-contract.test.mjs \
+            trusted-tooling/tests/functions/pr451-intake-activation-release.test.mjs
+          cd application-source
+          npx --yes firebase-tools@15.11.0 emulators:exec --only firestore \
+            --config firebase.prepaid-emulator.json --project demo-sandman-prepaid \
+            "node --test functions/tests/prepaidEnrollment.integration.cjs"
+      - name: Authenticate as the existing staging Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify project, database, inventory, generations, identities, triggers, IAM and secret metadata
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          gcloud firestore databases describe --database='(default)' --project="${PROJECT_ID}" --format=json > evidence/firestore-database.json
+          gcloud secrets describe RESEND_API_KEY --project="${PROJECT_ID}" --format=json > evidence/resend-secret.json
+          gcloud secrets versions list RESEND_API_KEY --project="${PROJECT_ID}" --filter='state=ENABLED' --format=json > evidence/resend-secret-versions.json
+          gcloud secrets get-iam-policy RESEND_API_KEY --project="${PROJECT_ID}" --format=json > evidence/resend-secret-iam.json
+          gcloud projects get-iam-policy "${PROJECT_ID}" --format=json > evidence/project-iam.json
+          gcloud services list --enabled --project="${PROJECT_ID}" --format=json > evidence/enabled-services.json
+          for sa in 991554514268-compute@developer.gserviceaccount.com sandman-combat-staging@appspot.gserviceaccount.com sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com; do
+            safe="$(printf '%s' "${sa}" | tr '@.' '__')"
+            gcloud iam service-accounts get-iam-policy "${sa}" --project="${PROJECT_ID}" --format=json > "evidence/${safe}-iam.json"
+          done
+          for fn in recordProposalPrepaidCash createProposalCheckout getProposalEnrollment saveProposalEnrollmentAgreement; do
+            gcloud functions describe "${fn}" --v2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
+          done
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.map(x=>x.name).join("\n"))' |
+          while IFS= read -r fn; do
+            error_file="evidence/functions/${fn}-describe-error.txt"
+            if gcloud functions describe "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json" 2>"${error_file}"; then
+              test ! -s "${error_file}"
+            elif grep -Eq 'ResponseError: status=\[404\].*(NOT_FOUND|does not exist|was not found)' "${error_file}"; then
+              printf '{"absent":true}\n' > "evidence/functions/${fn}.json"
+            else
+              sed -E 's/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/[REDACTED]/g' "${error_file}" >&2
+              exit 1
+            fi
+          done
+          node trusted-tooling/tests/helpers/verify-pr451-intake-activation-preflight.mjs evidence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr451-intake-activation-readonly-preflight-${{ github.run_id }}
+          path: |
+            evidence
+            deployment-plan.json
+          if-no-files-found: error
+
+  bootstrap:
+    if: ${{ inputs.action == 'bootstrap' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Require separate protected bootstrap and secret approvals
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirm_project }}" = "${PROJECT_ID}"
+          test "${{ inputs.approve_bootstrap }}" = "APPROVE_16_STAGING_INTAKE_ACTIVATION_FUNCTIONS"
+          test "${{ inputs.confirm_resend_secret }}" = "RESEND_STAGING_SECRET_ACCESS_VERIFIED"
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: b3f93005d4bcd9547cb6415627e8133f0318ad74
+          path: application-source
+          persist-credentials: false
+      - name: Use the reviewed Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application-source/functions/package-lock.json
+      - name: Prepare isolated source without repository environment files
+        run: |
+          set -euo pipefail
+          npm ci --prefix application-source/functions
+          npm run build --prefix application-source/functions
+          mkdir release-functions
+          rsync -a --exclude='.env' --exclude='.env.*' --exclude='**/.env' --exclude='**/.env.*' \
+            --exclude='node_modules/' application-source/functions/ release-functions/
+          if find release-functions -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+            echo "Environment file entered the release artifact" >&2
+            exit 64
+          fi
+          test -e release-functions/lib/approveAndActivate.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Bootstrap only the exact release allowlist
+        env:
+          SANDMAN_INTAKE_BOOTSTRAP_APPROVAL: ${{ inputs.approve_bootstrap }}
+          SANDMAN_CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          node trusted-tooling/scripts/staging/pr451-intake-activation-release.mjs bootstrap release-functions
+      - name: Record resulting exact function inventory
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.map(x=>`${x.name}|${x.kind}`).join("\n"))' |
+          while IFS='|' read -r fn kind; do
+            gcloud functions describe "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
+            gcloud functions get-iam-policy "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-function-iam.json"
+            if test "${kind}" = "gen2-callable"; then
+              gcloud run services describe "$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-service.json"
+              gcloud run services get-iam-policy "$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-iam.json"
+            fi
+          done
+          node trusted-tooling/tests/helpers/verify-pr451-intake-activation-invocation.mjs evidence/functions
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr451-intake-activation-bootstrap-receipt-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error

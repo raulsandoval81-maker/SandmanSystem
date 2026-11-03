@@ -6,6 +6,7 @@ import {
   HttpsError,
   onCall,
 } from "firebase-functions/v2/https";
+import { isOperationalPaidProposal } from "./operationalPaidProposal";
 
 const db = getFirestore();
 
@@ -31,24 +32,6 @@ function firstAthlete(value: unknown): Record<string, any> {
   return Array.isArray(value) && value[0] && typeof value[0] === "object"
     ? value[0] as Record<string, any>
     : {};
-}
-
-function isOperationalPaidProposal(proposal: Record<string, any>): boolean {
-  const status = clean(proposal.status).toUpperCase();
-  const paymentStatus = clean(proposal.paymentStatus).toLowerCase();
-  const checkoutSessionId = clean(proposal.stripeCheckoutSessionId);
-  const isLive =
-    proposal.stripeLivemode === true ||
-    checkoutSessionId.startsWith("cs_live_");
-
-  return (
-    status === "PAID" &&
-    paymentStatus === "paid" &&
-    Boolean(proposal.paidAt) &&
-    Boolean(checkoutSessionId) &&
-    !checkoutSessionId.startsWith("cs_test_") &&
-    isLive
-  );
 }
 
 export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
