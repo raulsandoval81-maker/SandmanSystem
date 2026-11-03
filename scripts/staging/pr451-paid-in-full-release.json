@@ -1,0 +1,56 @@
+{
+  "releaseId": "paid-in-full-pr451-88c80ff1",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "sourcePr": 451,
+  "applicationSha": "88c80ff1ceebbcf281e209559c2c2a2a84ffa7db",
+  "requiredAncestorSha": "bbea0bb1e28044e7d95c2ecb695bb032e0265eb0",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "hostingSite": "sandman-combat-staging",
+  "existingFunctions": [
+    "recordProposalPrepaidCash",
+    "createProposalCheckout"
+  ],
+  "newFunctions": [
+    "getProposalEnrollment",
+    "saveProposalEnrollmentAgreement"
+  ],
+  "functionRuntimeByName": {
+    "recordProposalPrepaidCash": "991554514268-compute@developer.gserviceaccount.com",
+    "createProposalCheckout": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "getProposalEnrollment": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+    "saveProposalEnrollmentAgreement": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+  },
+  "functionSecrets": {
+    "recordProposalPrepaidCash": [],
+    "createProposalCheckout": ["STRIPE_SECRET_KEY"],
+    "getProposalEnrollment": [],
+    "saveProposalEnrollmentAgreement": []
+  },
+  "hostingFiles": [
+    "public/connect/enrollment/enrollment.js",
+    "public/management/billing/billing.js"
+  ],
+  "functionDeployer": "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+  "hostingDeployer": "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com",
+  "functionBuild": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+  "allowedChangedFiles": [
+    "firebase.prepaid-emulator.json",
+    "functions/src/billing/prepaidMembershipPolicy.ts",
+    "functions/src/billing/prepaidReconciliationPolicy.ts",
+    "functions/src/billing/recordProposalPrepaidCash.ts",
+    "functions/src/proposals/createProposalCheckout.ts",
+    "functions/src/proposals/getProposalEnrollment.ts",
+    "functions/src/proposals/saveProposalEnrollmentAgreement.ts",
+    "functions/tests/prepaidEnrollment.integration.cjs",
+    "functions/tests/prepaidMembershipPolicy.test.cjs",
+    "functions/tests/prepaidReconciliationPolicy.test.cjs",
+    "public/connect/enrollment/enrollment.js",
+    "public/management/billing/billing.js",
+    "tests/functions/historical-cash-reconciliation.test.mjs",
+    "tests/functions/prepaid-membership-contract.test.mjs"
+  ],
+  "deploymentAuthorized": false,
+  "bootstrapRequiresSeparateApproval": true,
+  "productionChanges": false
+}

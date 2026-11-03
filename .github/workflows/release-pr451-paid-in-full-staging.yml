@@ -1,0 +1,272 @@
+name: PR451 paid-in-full controlled staging release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Read-only validation, separately approved callable bootstrap, or approved release
+        required: true
+        type: choice
+        options: [validate, bootstrap-new-callables, deploy]
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+      approve_new_callables:
+        description: For bootstrap only, type APPROVE_TWO_NEW_PR451_STAGING_CALLABLES
+        required: false
+        type: string
+      approve_release:
+        description: For deploy only, type APPROVE_PR451_STAGING_RELEASE
+        required: false
+        type: string
+      confirm_stripe_test_key:
+        description: For deploy only, type STRIPE_TEST_KEY_VERIFIED
+        required: false
+        type: string
+      expected_hosting_release:
+        description: Exact prior Hosting release from the approved validate artifact
+        required: false
+        type: string
+      expected_hosting_version:
+        description: Exact prior Hosting version from the approved validate artifact
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pr451-paid-in-full-staging-release
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: sandman-combat-staging
+  REGION: us-central1
+  SOURCE_SHA: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
+  WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Check out trusted release tooling from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - name: Check out immutable merged application source
+        uses: actions/checkout@v4
+        with:
+          ref: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
+          path: application-source
+          persist-credentials: false
+      - name: Use Node 22 for release validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact source, project, diff, and manifest
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirm_project }}" = "${PROJECT_ID}"
+          test "$(git -C application-source rev-parse HEAD)" = "${SOURCE_SHA}"
+          node <<'NODE'
+          const fs = require('fs');
+          const cp = require('child_process');
+          const m = JSON.parse(fs.readFileSync('trusted-tooling/scripts/staging/pr451-paid-in-full-release.json'));
+          if (m.applicationSha !== process.env.SOURCE_SHA || m.projectId !== process.env.PROJECT_ID ||
+              m.deploymentAuthorized !== false || m.productionChanges !== false) process.exit(64);
+          const actual = cp.execFileSync('git', ['-C','application-source','diff','--name-only',m.requiredAncestorSha,m.applicationSha], {encoding:'utf8'}).trim().split('\n').filter(Boolean);
+          if (JSON.stringify(actual) !== JSON.stringify(m.allowedChangedFiles)) process.exit(64);
+          NODE
+      - name: Build and run focused PR451 regression contracts
+        run: |
+          set -euo pipefail
+          npm ci --prefix application-source/functions
+          npm run build --prefix application-source/functions
+          node --test \
+            application-source/functions/tests/prepaidMembershipPolicy.test.cjs \
+            application-source/functions/tests/prepaidReconciliationPolicy.test.cjs \
+            application-source/tests/functions/historical-cash-reconciliation.test.mjs \
+            application-source/tests/functions/prepaid-membership-contract.test.mjs
+          node --check application-source/public/connect/enrollment/enrollment.js
+          node --check application-source/public/management/billing/billing.js
+          (cd trusted-tooling && node --test tests/functions/pr451-staging-release.test.mjs)
+      - name: Authenticate as read-only Hosting preflight identity
+        id: hosting-preflight-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
+      - name: Capture live Hosting baseline without mutation
+        env:
+          SANDMAN_FIREBASE_ACCESS_TOKEN: ${{ steps.hosting-preflight-auth.outputs.access_token }}
+        run: |
+          python trusted-tooling/scripts/staging/pr451-hosting-overlay.py \
+            --mode preflight --source-root application-source --evidence-dir evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}"
+      - name: Authenticate as Functions preflight identity
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture revisions, runtime identities, secrets, IAM, and missing-callable state
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          for fn in recordProposalPrepaidCash createProposalCheckout; do
+            gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
+            gcloud functions get-iam-policy "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-iam.json"
+          done
+          for fn in getProposalEnrollment saveProposalEnrollmentAgreement; do
+            if gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"; then
+              node -e 'const d=require(`./evidence/functions/${process.argv[1]}.json`); if(d.state!=="ACTIVE")process.exit(64)' "${fn}"
+            else
+              printf '{"absent":true}\n' > "evidence/functions/${fn}.json"
+            fi
+          done
+          node trusted-tooling/tests/helpers/verify-pr451-staging-inventory.mjs evidence/functions
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr451-staging-readonly-preflight-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+
+  bootstrap-new-callables:
+    if: ${{ inputs.action == 'bootstrap-new-callables' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    strategy:
+      fail-fast: true
+      matrix:
+        function_name: [getProposalEnrollment, saveProposalEnrollmentAgreement]
+    steps:
+      - name: Require separate protected creation approval
+        run: |
+          test "${{ inputs.confirm_project }}" = "sandman-combat-staging"
+          test "${{ inputs.approve_new_callables }}" = "APPROVE_TWO_NEW_PR451_STAGING_CALLABLES"
+      - uses: actions/checkout@v4
+        with:
+          ref: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Use Node 22 for callable bootstrap
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Refuse overwrite, then create exactly one approved callable
+        run: |
+          set -euo pipefail
+          ! gcloud functions describe "${{ matrix.function_name }}" --v2 --region "${REGION}" --project "${PROJECT_ID}" >/dev/null 2>&1
+          npm ci --prefix functions
+          npm run build --prefix functions
+          mkdir release-functions
+          rsync -a --exclude=.env --exclude='node_modules/' functions/ release-functions/
+          test ! -e release-functions/.env
+          gcloud functions deploy "${{ matrix.function_name }}" --gen2 --project="${PROJECT_ID}" --region="${REGION}" \
+            --runtime=nodejs22 --entry-point="${{ matrix.function_name }}" --source=release-functions \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all \
+            --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --clear-secrets --trigger-http --quiet
+          gcloud run services update "$(printf '%s' '${{ matrix.function_name }}' | tr '[:upper:]' '[:lower:]')" \
+            --project="${PROJECT_ID}" --region="${REGION}" --no-invoker-iam-check --quiet
+
+  deploy:
+    if: ${{ inputs.action == 'deploy' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Require protected release, Stripe test, and immutable Hosting baseline approvals
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirm_project }}" = "${PROJECT_ID}"
+          test "${{ inputs.approve_release }}" = "APPROVE_PR451_STAGING_RELEASE"
+          test "${{ inputs.confirm_stripe_test_key }}" = "STRIPE_TEST_KEY_VERIFIED"
+          test -n "${{ inputs.expected_hosting_release }}"
+          test -n "${{ inputs.expected_hosting_version }}"
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 88c80ff1ceebbcf281e209559c2c2a2a84ffa7db
+          path: application-source
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Use Node 22 for controlled callable updates
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Update exactly four existing callables and preserve per-function identities
+        working-directory: application-source
+        run: |
+          set -euo pipefail
+          npm ci --prefix functions
+          npm run build --prefix functions
+          mkdir release-functions
+          rsync -a --exclude=.env --exclude='node_modules/' functions/ release-functions/
+          test ! -e release-functions/.env
+          for fn in recordProposalPrepaidCash createProposalCheckout getProposalEnrollment saveProposalEnrollmentAgreement; do
+            gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" >/dev/null
+            runtime=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com
+            test "${fn}" != recordProposalPrepaidCash || runtime=991554514268-compute@developer.gserviceaccount.com
+            secret=--clear-secrets
+            test "${fn}" != createProposalCheckout || secret=--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest
+            gcloud functions deploy "${fn}" --gen2 --project="${PROJECT_ID}" --region="${REGION}" --runtime=nodejs22 \
+              --entry-point="${fn}" --source=release-functions --run-service-account="${runtime}" \
+              --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+              --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all \
+              --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+              "${secret}" --trigger-http --quiet
+          done
+      - uses: google-github-actions/auth@v3
+        id: hosting-deploy-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+          token_format: access_token
+      - name: Overlay only two approved Hosting assets after Functions succeed
+        env:
+          SANDMAN_FIREBASE_ACCESS_TOKEN: ${{ steps.hosting-deploy-auth.outputs.access_token }}
+        run: |
+          python trusted-tooling/scripts/staging/pr451-hosting-overlay.py \
+            --mode deploy --source-root application-source --evidence-dir evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}" \
+            --expected-release "${{ inputs.expected_hosting_release }}" \
+            --expected-version "${{ inputs.expected_hosting_version }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr451-staging-deployment-receipt-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
