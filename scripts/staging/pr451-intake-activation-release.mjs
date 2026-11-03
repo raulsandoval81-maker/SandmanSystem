@@ -6,6 +6,59 @@ import { fileURLToPath } from "node:url";
 const manifestUrl = new URL("./pr451-intake-activation-release.json", import.meta.url);
 export const manifest = JSON.parse(await readFile(manifestUrl, "utf8"));
 const safeName = /^[A-Za-z][A-Za-z0-9]+$/;
+export const invocationIamRole =
+  "projects/sandman-combat-staging/roles/sandmanBillingInvokerIamRelease";
+export const invocationIamMember =
+  "serviceAccount:sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com";
+export const invocationIamMaximumLifetimeMs = 6 * 60 * 60 * 1000;
+
+export function invocationIamServices() {
+  return manifest.functions
+    .filter(entry => entry.kind === "gen2-callable")
+    .map(entry => `projects/${manifest.projectId}/locations/${manifest.region}/services/${entry.name.toLowerCase()}`)
+    .sort();
+}
+
+export function invocationIamCondition(expiration) {
+  return `resource.type == "run.googleapis.com/Service" && resource.name in [` +
+    `${invocationIamServices().map(service => `"${service}"`).join(", ")}] && ` +
+    `request.time < timestamp("${expiration}")`;
+}
+
+export function validateInvocationIamPolicy(policy, { now = Date.now() } = {}) {
+  const services = invocationIamServices();
+  if (services.length !== 7 || new Set(services).size !== 7) {
+    throw new Error("Invocation IAM release boundary must contain exactly seven services.");
+  }
+  const grants = (policy.bindings || []).filter(binding =>
+    binding.role === invocationIamRole && (binding.members || []).includes(invocationIamMember));
+  if (grants.length !== 1) {
+    throw new Error("Invocation IAM must contain exactly one deployer grant.");
+  }
+  const binding = grants[0];
+  if (binding.members?.length !== 1 || binding.members[0] !== invocationIamMember) {
+    throw new Error("Invocation IAM deployer grant must not include additional members.");
+  }
+  const expression = binding.condition?.expression;
+  if (typeof expression !== "string") {
+    throw new Error("Invocation IAM deployer grant must be conditional.");
+  }
+  const prefix = invocationIamCondition("");
+  const expirationStart = prefix.length - 2;
+  if (!expression.startsWith(prefix.slice(0, expirationStart)) || !expression.endsWith('\")')) {
+    throw new Error("Invocation IAM condition does not match the exact release boundary.");
+  }
+  const expiration = expression.slice(expirationStart, -2);
+  const expirationTime = Date.parse(expiration);
+  if (!Number.isFinite(expirationTime) || new Date(expirationTime).toISOString() !== expiration ||
+      expression !== invocationIamCondition(expiration)) {
+    throw new Error("Invocation IAM condition does not match the exact release boundary.");
+  }
+  if (expirationTime <= now || expirationTime > now + invocationIamMaximumLifetimeMs) {
+    throw new Error("Invocation IAM condition must have a valid near-term expiration.");
+  }
+  return { expiration, services };
+}
 
 export function runtimeFor(entry) {
   if (entry.runtime === "email") return manifest.emailRuntimeServiceAccount;

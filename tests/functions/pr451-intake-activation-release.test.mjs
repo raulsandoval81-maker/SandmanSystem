@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { deploymentPlan, executePlan, invocationPlan, invocationState, isVerifiedNotFound,
-  manifest, runtimeFor, validateExistingFunction, validateManifest } from
+import { deploymentPlan, executePlan, invocationIamCondition, invocationIamMember,
+  invocationIamRole, invocationIamServices, invocationPlan, invocationState, isVerifiedNotFound,
+  manifest, runtimeFor, validateExistingFunction, validateInvocationIamPolicy, validateManifest } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -150,6 +151,52 @@ test("missing invocation permission stops before the release can continue", () =
     manifest.functions.find(item => item.name === "createProposalDraft")), denied),
   /run\.services\.setIamPolicy/);
   assert.equal(calls, 1);
+});
+
+function invocationPolicy(expression, overrides = {}) {
+  return { bindings: [{
+    role: invocationIamRole,
+    members: [invocationIamMember],
+    condition: expression === undefined ? undefined : { expression },
+    ...overrides,
+  }] };
+}
+
+test("invocation IAM accepts only the complete seven-service near-term condition", () => {
+  const now = Date.parse("2026-11-03T12:00:00.000Z");
+  const expiration = "2026-11-03T13:00:00.000Z";
+  const result = validateInvocationIamPolicy(invocationPolicy(invocationIamCondition(expiration)), { now });
+  assert.equal(result.expiration, expiration);
+  assert.equal(result.services.length, 7);
+  assert.deepEqual(result.services, invocationIamServices());
+});
+
+test("invocation IAM rejects unrestricted alternatives and extra services", () => {
+  const now = Date.parse("2026-11-03T12:00:00.000Z");
+  const expression = invocationIamCondition("2026-11-03T13:00:00.000Z");
+  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(`${expression} || true`), { now }),
+    /exact release boundary/);
+  const extra = expression.replace("] && request.time",
+    ', "projects/sandman-combat-staging/locations/us-central1/services/unexpected"] && request.time');
+  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(extra), { now }),
+    /exact release boundary/);
+});
+
+test("invocation IAM rejects expired, unconditional, and duplicate deployer grants", () => {
+  const now = Date.parse("2026-11-03T12:00:00.000Z");
+  const valid = invocationPolicy(invocationIamCondition("2026-11-03T13:00:00.000Z"));
+  assert.throws(() => validateInvocationIamPolicy(
+    invocationPolicy(invocationIamCondition("2026-11-03T11:59:59.000Z")), { now }),
+  /near-term expiration/);
+  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(undefined), { now }),
+    /must be conditional/);
+  assert.throws(() => validateInvocationIamPolicy(
+    { bindings: [valid.bindings[0], structuredClone(valid.bindings[0])] }, { now }),
+  /exactly one deployer grant/);
+  assert.throws(() => validateInvocationIamPolicy(invocationPolicy(
+    invocationIamCondition("2026-11-03T13:00:00.000Z"),
+    { members: [invocationIamMember, "serviceAccount:broader@example.iam.gserviceaccount.com"] }), { now }),
+  /must not include additional members/);
 });
 
 test("intake prefill uses shared fail-closed paid eligibility", () => {

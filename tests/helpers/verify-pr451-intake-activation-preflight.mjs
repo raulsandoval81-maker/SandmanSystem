@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { validateExistingFunction } from "../../scripts/staging/pr451-intake-activation-release.mjs";
+import { validateExistingFunction, validateInvocationIamPolicy } from
+  "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const root = process.argv[2];
 if (!root) throw new Error("Usage: verify-pr451-intake-activation-preflight.mjs <evidence-dir>");
@@ -40,21 +41,7 @@ for (const role of [
   "projects/sandman-combat-staging/roles/sandmanBillingInvokerIamRelease",
 ]) assert.ok(deployerRoles.includes(role), `missing deployer role ${role}`);
 
-const invocationRole = "projects/sandman-combat-staging/roles/sandmanBillingInvokerIamRelease";
-const invocationBinding = (projectIam.bindings || []).find(binding =>
-  binding.role === invocationRole && (binding.members || []).includes(deployer));
-assert.ok(invocationBinding?.condition?.expression, "missing conditional invocation-IAM release binding");
-const invocationExpression = invocationBinding.condition.expression;
-assert.match(invocationExpression, /resource\.type\s*==\s*["']run\.googleapis\.com\/Service["']/);
-const allowedServices = manifest.functions.filter(entry => entry.kind === "gen2-callable")
-  .map(entry => `projects/sandman-combat-staging/locations/us-central1/services/${entry.name.toLowerCase()}`)
-  .sort();
-const conditionServices = [...invocationExpression.matchAll(
-  /projects\/sandman-combat-staging\/locations\/us-central1\/services\/[a-z0-9-]+/g)]
-  .map(match => match[0]).sort();
-assert.deepEqual(conditionServices, allowedServices, "invocation IAM is not restricted to the seven callable services");
-const expiry = invocationExpression.match(/request\.time\s*<\s*timestamp\(["']([^"']+)["']\)/)?.[1];
-assert.ok(expiry && Date.parse(expiry) > Date.now(), "invocation IAM approval is absent or expired");
+validateInvocationIamPolicy(projectIam);
 
 const services = await read("enabled-services.json");
 const enabled = new Set(services.map(item => item.config?.name));
