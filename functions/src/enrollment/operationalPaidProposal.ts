@@ -61,7 +61,9 @@ export function enrollmentIntakeBaseUrl(
   const project = environment.GCLOUD_PROJECT ||
     environment.GCP_PROJECT ||
     environment.GOOGLE_CLOUD_PROJECT;
-  if (project === STAGING_PROJECT_ID) {
+  if (project === STAGING_PROJECT_ID ||
+      environment.SANDMAN_STAGING_ACK === STAGING_PROJECT_ID ||
+      environment.SANDMAN_STAGING_PROJECT_ID === STAGING_PROJECT_ID) {
     if (!isStagingEnrollmentRuntime(environment)) {
       throw new Error("Staging intake URL requires verified staging runtime.");
     }
