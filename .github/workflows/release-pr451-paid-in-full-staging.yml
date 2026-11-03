@@ -129,14 +129,16 @@ jobs:
             gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
             gcloud functions get-iam-policy "${fn}" --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-iam.json"
           done
+          # Both callables were created in bootstrap #5; missing or unreadable is a hard failure.
           for fn in getProposalEnrollment saveProposalEnrollmentAgreement; do
-            if gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"; then
-              node -e 'const d=require(`./evidence/functions/${process.argv[1]}.json`); if(d.state!=="ACTIVE")process.exit(64)' "${fn}"
-            else
-              printf '{"absent":true}\n' > "evidence/functions/${fn}.json"
-            fi
+            gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
+            gcloud functions get-iam-policy "${fn}" --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-iam.json"
+            service="$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "${service}" --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-service.json"
+            gcloud run services get-iam-policy "${service}" --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-run-iam.json"
           done
           node trusted-tooling/tests/helpers/verify-pr451-staging-inventory.mjs evidence/functions
+          node trusted-tooling/tests/helpers/verify-pr451-staging-invocation.mjs evidence/functions
       - uses: actions/upload-artifact@v4
         with:
           name: pr451-staging-readonly-preflight-${{ github.run_id }}
