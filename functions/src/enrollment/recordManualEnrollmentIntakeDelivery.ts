@@ -18,6 +18,8 @@ function clean(value: unknown): string {
 }
 
 
+const ALLOWED_METHODS = new Set(["text", "in_person"]);
+
 export const recordManualEnrollmentIntakeDelivery =
   functions.https.onCall(async (data, context) => {
     if (!context.auth) {
