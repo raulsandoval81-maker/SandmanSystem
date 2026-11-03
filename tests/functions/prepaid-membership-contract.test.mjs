@@ -41,15 +41,28 @@ test("renewal autopay has a separate approval and paid-through guard", () => {
   assert.match(autopay, /Stripe billing must begin after/);
 });
 
-test("intake and activation accept only reconciled new prepaid records while retaining legacy records", () => {
+test("intake and activation retain prepaid safeguards through the shared eligibility helper", () => {
+  const policy = read("functions/src/enrollment/operationalPaidProposal.ts");
+  assert.match(policy, /membershipPaidInFull === true/);
+  assert.match(policy, /typeof proposal\.cashPrepayment\?\.membershipPaidInFull !== "boolean"/);
+  assert.match(policy, /paymentMethod === "cash_prepaid"/);
+  assert.match(policy, /Number\(proposal\.cashPrepayment\?\.amountCents \|\| 0\) > 0/);
+  assert.match(policy, /status === "PAID"/);
+  assert.match(policy, /paymentStatus === "paid"/);
+
   for (const path of [
     "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
     "functions/src/enrollment/recordManualEnrollmentIntakeDelivery.ts",
     "functions/src/enrollment/enrollmentActivity.ts",
-    "public/intake-management/management.intake.js",
   ]) {
     const source = read(path);
-    assert.match(source, /membershipPaidInFull === true/);
-    assert.match(source, /typeof proposal\.cashPrepayment\?\.membershipPaidInFull !== "boolean"/);
+    assert.match(source, /import \{[^}]*isOperationalPaidProposal[^}]*\} from "\.\/operationalPaidProposal"/);
+    assert.match(source, /isOperationalPaidProposal\(proposal\)/);
   }
+
+  const browser = read("public/intake-management/management.intake.js");
+  assert.match(browser, /\.filter\(isOperationalPaidProposal\)/);
+  assert.match(browser, /function isOperationalPaidProposal\(proposal = \{\}\)/);
+  assert.match(browser, /membershipPaidInFull === true/);
+  assert.match(browser, /typeof proposal\.cashPrepayment\?\.membershipPaidInFull !== "boolean"/);
 });
