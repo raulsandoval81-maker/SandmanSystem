@@ -13,6 +13,9 @@ test("seasonal campaigns route through the same requests collection",()=>{
  assert.match(js,/locationId:"santa-ynez-valley"/);
  assert.match(js,/campaignId:"winter-wrestling-2026-27"/);
  assert.match(js,/collection\(db,"admissions_requests"\)/);
+ assert.match(js,/schedulePreference:schedule\.value==="group-c"\?"unsure"/);
+ assert.match(js,/preferredWeekdays:weekdays/);
+ assert.match(js,/weekdays\.length!==2/);
  assert.match(js,/\$350 per athlete · complete season · Nov 16, 2026–Feb 14, 2027/);
 });
 test("Winter Wrestling views use the approved season and holiday schedule",()=>{
@@ -37,6 +40,10 @@ test("Winter Wrestling views use the approved season and holiday schedule",()=>{
    assert.match(page,/New Year's Day, January 1, falls on Friday/);
   }
  }
+ assert.match(publicPage,/Group C:<\/strong> Choose any 2 weekdays/);
+ assert.match(publicPage,/Groups A, B &amp; C Combined/);
+ assert.match(publicPage,/value="group-c"/);
+ assert.match(publicPage,/id="groupCDays" hidden/);
  assert.doesNotMatch(publicPage,/NOVEMBER 2026 – JANUARY 2027/);
  assert.doesNotMatch(managementPage,/November–January/);
 });
