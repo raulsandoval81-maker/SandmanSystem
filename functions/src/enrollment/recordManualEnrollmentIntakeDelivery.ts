@@ -1,3 +1,4 @@
+import { isOperationalPaidProposal } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
   FieldValue,
@@ -16,47 +17,6 @@ function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
-function isOperationalPaidProposal(
-  proposal: Record<string, any>
-): boolean {
-  const status = clean(proposal.status).toUpperCase();
-  const paymentStatus =
-    clean(proposal.paymentStatus).toLowerCase();
-  const paymentMethod =
-    clean(proposal.paymentMethod).toLowerCase();
-  const checkoutSessionId =
-    clean(proposal.stripeCheckoutSessionId);
-
-  const isLiveSession =
-    proposal.stripeLivemode === true ||
-    checkoutSessionId.startsWith("cs_live_");
-
-  const isRecordedCashPayment =
-    paymentMethod === "cash_prepaid" &&
-    Boolean(proposal.cashPrepayment) &&
-    Number(proposal.cashPrepayment?.amountCents || 0) > 0 &&
-    (
-      proposal.cashPrepayment?.membershipPaidInFull === true ||
-      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
-    );
-
-  return (
-    status === "PAID" &&
-    paymentStatus === "paid" &&
-    Boolean(proposal.paidAt) &&
-    (
-      isRecordedCashPayment ||
-      (
-        Boolean(checkoutSessionId) &&
-        !checkoutSessionId.startsWith("cs_test_") &&
-        isLiveSession
-      )
-    )
-  );
-}
-
-const ALLOWED_METHODS =
-  new Set(["text", "in_person"]);
 
 export const recordManualEnrollmentIntakeDelivery =
   functions.https.onCall(async (data, context) => {
