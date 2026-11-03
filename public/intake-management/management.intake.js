@@ -1,3 +1,5 @@
+import { runtimeEnvironment, runtimeFirebaseConfig } from "/assets/js/runtime-environment.js";
+
 import {
   db,
   collection,
@@ -1833,6 +1835,12 @@ function isOperationalPaidProposal(proposal = {}) {
   const legacyLiveSession = checkoutSessionId.startsWith("cs_live_");
   const isLiveStripePayment = explicitLivemode === true ||
     (explicitLivemode === null && legacyLiveSession);
+  // Never trust a proposal field to decide whether test payments count.
+  const isStagingTestStripePayment =
+    runtimeEnvironment === "staging" &&
+    runtimeFirebaseConfig?.projectId === "sandman-combat-staging" &&
+    explicitLivemode === false &&
+    /^cs_test_[A-Za-z0-9_]+$/.test(checkoutSessionId);
 
   const isRecordedCashPayment =
     paymentMethod === "cash_prepaid" &&
@@ -1851,8 +1859,7 @@ function isOperationalPaidProposal(proposal = {}) {
       isRecordedCashPayment ||
       (
         Boolean(checkoutSessionId) &&
-        !legacyTestSession &&
-        isLiveStripePayment
+        ((!legacyTestSession && isLiveStripePayment) || isStagingTestStripePayment)
       )
     )
   );
