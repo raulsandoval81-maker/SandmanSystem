@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { deploymentPlan, manifest, runtimeFor, validateManifest } from
+import { deploymentPlan, isVerifiedNotFound, manifest, runtimeFor, validateManifest } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -56,11 +56,27 @@ test("workflow requires protected approval and isolated exact-SHA source", () =>
   assert.match(workflow, /ref: b3f93005d4bcd9547cb6415627e8133f0318ad74/);
   assert.match(workflow, /APPROVE_16_STAGING_INTAKE_ACTIVATION_FUNCTIONS/);
   assert.match(workflow, /RESEND_STAGING_SECRET_ACCESS_VERIFIED/);
-  assert.match(workflow, /rsync -a --exclude=\.env/);
-  assert.match(workflow, /test ! -e release-functions\/\.env/);
+  assert.equal((workflow.match(/actions\/setup-node@v4/g) || []).length, 2);
+  assert.equal((workflow.match(/node-version: 22/g) || []).length, 2);
+  assert.match(workflow, /--exclude='\.env\.\*'/);
+  assert.match(workflow, /--exclude='\*\*\/\.env\.\*'/);
+  assert.match(workflow, /find release-functions -type f/);
+  assert.match(workflow, /ResponseError: status=\\\[404\\\]/);
   assert.match(workflow, /verify-pr451-intake-activation-invocation\.mjs/);
   assert.doesNotMatch(workflow, /firebase deploy/);
   assert.doesNotMatch(workflow, /sandmandashboard/);
+});
+
+test("only a verified cloud 404 is treated as an absent function", () => {
+  assert.equal(isVerifiedNotFound({ status: 1, stdout: "", stderr:
+    "ERROR: ResponseError: status=[404], code=[Ok], message=[Function does not exist]" }), true);
+  for (const result of [
+    { status: 1, stdout: "", stderr: "PERMISSION_DENIED" },
+    { status: 1, stdout: "", stderr: "UNAUTHENTICATED" },
+    { status: 1, stdout: "", stderr: "ResponseError: status=[503], message=[unavailable]" },
+    { status: 1, stdout: "partial", stderr: "ResponseError: status=[404], message=[does not exist]" },
+    { status: 0, stdout: "{}", stderr: "" },
+  ]) assert.equal(isVerifiedNotFound(result), false);
 });
 
 test("intake prefill uses shared fail-closed paid eligibility", () => {

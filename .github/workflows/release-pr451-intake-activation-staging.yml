@@ -52,6 +52,12 @@ jobs:
           ref: b3f93005d4bcd9547cb6415627e8133f0318ad74
           path: application-source
           persist-credentials: false
+      - name: Use the reviewed Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application-source/functions/package-lock.json
       - name: Verify immutable release boundary
         run: |
           set -euo pipefail
@@ -99,8 +105,14 @@ jobs:
           done
           node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.map(x=>x.name).join("\n"))' |
           while IFS= read -r fn; do
-            if ! gcloud functions describe "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"; then
+            error_file="evidence/functions/${fn}-describe-error.txt"
+            if gcloud functions describe "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json" 2>"${error_file}"; then
+              test ! -s "${error_file}"
+            elif grep -Eq 'ResponseError: status=\[404\].*(NOT_FOUND|does not exist|was not found)' "${error_file}"; then
               printf '{"absent":true}\n' > "evidence/functions/${fn}.json"
+            else
+              sed -E 's/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/[REDACTED]/g' "${error_file}" >&2
+              exit 1
             fi
           done
           node trusted-tooling/tests/helpers/verify-pr451-intake-activation-preflight.mjs evidence
@@ -134,14 +146,24 @@ jobs:
           ref: b3f93005d4bcd9547cb6415627e8133f0318ad74
           path: application-source
           persist-credentials: false
+      - name: Use the reviewed Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: application-source/functions/package-lock.json
       - name: Prepare isolated source without repository environment files
         run: |
           set -euo pipefail
           npm ci --prefix application-source/functions
           npm run build --prefix application-source/functions
           mkdir release-functions
-          rsync -a --exclude=.env --exclude='node_modules/' application-source/functions/ release-functions/
-          test ! -e release-functions/.env
+          rsync -a --exclude='.env' --exclude='.env.*' --exclude='**/.env' --exclude='**/.env.*' \
+            --exclude='node_modules/' application-source/functions/ release-functions/
+          if find release-functions -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+            echo "Environment file entered the release artifact" >&2
+            exit 64
+          fi
           test -e release-functions/lib/approveAndActivate.js
       - uses: google-github-actions/auth@v3
         with:

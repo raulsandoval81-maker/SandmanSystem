@@ -56,6 +56,13 @@ export function validateManifest() {
   return true;
 }
 
+export function isVerifiedNotFound(result) {
+  if (result.status === 0 || String(result.stdout || "").trim()) return false;
+  const error = String(result.stderr || "");
+  return /ResponseError: status=\[404\]/.test(error) &&
+    /(NOT_FOUND|does not exist|was not found)/i.test(error);
+}
+
 function run(plan) {
   const result = spawnSync(plan.executable, plan.args, { stdio: "inherit", shell: false });
   if (result.status !== 0) process.exit(result.status || 1);
@@ -85,6 +92,11 @@ async function main() {
         throw new Error(`Existing function is not an exact completed release artifact: ${entry.name}`);
       }
       continue;
+    }
+    if (!isVerifiedNotFound(describe)) {
+      const sanitized = String(describe.stderr || "Cloud function lookup failed.")
+        .replace(/(ya29\.|eyJ)[A-Za-z0-9._~+\/-]+/g, "[REDACTED]");
+      throw new Error(`Unable to verify whether ${entry.name} is absent: ${sanitized}`);
     }
     const plan = deploymentPlan(entry, sourceRoot);
     run(plan);
