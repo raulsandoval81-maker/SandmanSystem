@@ -9,11 +9,11 @@ const script = fs.readFileSync("scripts/production/winter_wrestling_hosting_rele
 const hash = path => crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
 
 test("release is pinned to the staged application and exact production boundary", () => {
-  assert.equal(manifest.applicationSha, "5ba9669cdd7444472075e88e1cae9f64f7ba52cf");
+  assert.equal(manifest.applicationSha, "57cb61da2f9d8571d6c5b85416e7f7046ca101d0");
   assert.equal(manifest.projectId, "sandmandashboard");
   assert.equal(manifest.hostingSite, "sandman-main");
-  assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793666029027000");
-  assert.equal(manifest.baselineHostingVersion, "sites/sandman-main/versions/25b12ac94d53e440");
+  assert.equal(manifest.baselineHostingRelease, "sites/sandman-main/releases/1793668024606000");
+  assert.equal(manifest.baselineHostingVersion, "sites/sandman-main/versions/5705aa05232383d0");
   assert.equal(manifest.firestoreRulesSha256, "d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af");
 });
 
@@ -44,9 +44,16 @@ test("Winter Wrestling payload and settled offer remain exact", () => {
   assert.match(html, /Friday, January 1: Closed — New Year's Day/);
   assert.match(html, /value="mon-wed-sat"/);
   assert.match(html, /value="tue-thu-sat"/);
+  assert.match(html, /value="group-c"/);
+  assert.match(html, /Groups A, B &amp; C Combined/);
+  assert.match(html, /id="groupCDays" hidden/);
   assert.match(js, /requestType:"SEASONAL_INTEREST"/);
   assert.match(js, /campaignId:"winter-wrestling-2026-27"/);
   assert.match(js, /season:"winter-2026-27"/);
+  assert.match(js, /schedulePreference:schedule\.value==="group-c"\?"unsure"/);
+  assert.match(js, /scheduleSelection:schedule\.value==="group-c"\?"group-c"/);
+  assert.match(js, /preferredWeekdays:weekdays/);
+  assert.match(js, /weekdays\.length!==2/);
   assert.match(js, /campaignPriceLabel:"\$350 per athlete · complete season · Nov 16, 2026–Feb 14, 2027"/);
   assert.match(js, /locationId:"santa-ynez-valley"/);
   assert.match(js, /status:"new"/);
