@@ -127,7 +127,7 @@ jobs:
           mkdir -p evidence/functions
           for fn in recordProposalPrepaidCash createProposalCheckout; do
             gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
-            gcloud functions get-iam-policy "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-iam.json"
+            gcloud functions get-iam-policy "${fn}" --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}-iam.json"
           done
           for fn in getProposalEnrollment saveProposalEnrollmentAgreement; do
             if gcloud functions describe "${fn}" --v2 --region "${REGION}" --project "${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"; then
