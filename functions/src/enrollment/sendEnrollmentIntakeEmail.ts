@@ -1,3 +1,4 @@
+import { isOperationalPaidProposal, enrollmentIntakeBaseUrl } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
   FieldValue,
@@ -43,49 +44,9 @@ function intakeUrl(
       ? "/intake-athlete/"
       : "/intake-parent/";
 
-  return `https://sandmancombat.com${route}?invite=${encodeURIComponent(tokenId)}`;
+  return `${enrollmentIntakeBaseUrl()}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
 
-function isOperationalPaidProposal(
-  proposal: Record<string, any>
-): boolean {
-  const status = clean(proposal.status).toUpperCase();
-  const paymentStatus =
-    clean(proposal.paymentStatus).toLowerCase();
-  const paymentMethod =
-    clean(proposal.paymentMethod).toLowerCase();
-  const checkoutSessionId =
-    clean(proposal.stripeCheckoutSessionId);
-
-  const isLiveSession =
-    proposal.stripeLivemode === true ||
-    checkoutSessionId.startsWith("cs_live_");
-
-  const isRecordedCashPayment =
-    paymentMethod === "cash_prepaid" &&
-    Boolean(proposal.cashPrepayment) &&
-    Number(
-      proposal.cashPrepayment?.amountCents || 0
-    ) > 0 &&
-    (
-      proposal.cashPrepayment?.membershipPaidInFull === true ||
-      typeof proposal.cashPrepayment?.membershipPaidInFull !== "boolean"
-    );
-
-  return (
-    status === "PAID" &&
-    paymentStatus === "paid" &&
-    Boolean(proposal.paidAt) &&
-    (
-      isRecordedCashPayment ||
-      (
-        Boolean(checkoutSessionId) &&
-        !checkoutSessionId.startsWith("cs_test_") &&
-        isLiveSession
-      )
-    )
-  );
-}
 
 export const sendEnrollmentIntakeEmail =
   functions
