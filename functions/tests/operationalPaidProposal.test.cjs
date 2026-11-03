@@ -1,5 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const {
   isOperationalPaidProposal,
   isStagingEnrollmentRuntime,
@@ -52,4 +54,14 @@ test("staging intake links never point at production and fail closed on invalid 
   assert.throws(() => enrollmentIntakeBaseUrl({
     ...staging, SANDMAN_STAGING_ACK: ""
   }), /verified staging runtime/);
+});
+
+test("intake prefill uses the shared paid-proposal policy", () => {
+  const hydrateSource = fs.readFileSync(
+    path.join(__dirname, "../src/enrollment/hydrateEnrollmentIntakePrefill.ts"),
+    "utf8"
+  );
+  assert.match(hydrateSource, /import \{ isOperationalPaidProposal \} from "\.\/operationalPaidProposal"/);
+  assert.doesNotMatch(hydrateSource, /function isOperationalPaidProposal/);
+  assert.doesNotMatch(hydrateSource, /!checkoutSessionId\.startsWith\("cs_test_"\)/);
 });
