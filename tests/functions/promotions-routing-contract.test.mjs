@@ -25,8 +25,14 @@ test("Winter Wrestling views use the approved season and holiday schedule",()=>{
   assert.match(page,/November 16, 2026/i);
   assert.match(page,/February 14, 2027/i);
   assert.match(page,/\$350/);
-  assert.match(page,/Monday\s*\/\s*Wednesday\s*\/\s*Saturday/);
-  assert.match(page,/Tuesday\s*\/\s*Thursday\s*\/\s*Saturday/);
+  if(page===managementPage) {
+   assert.match(page,/Monday\s*\/\s*Wednesday\s*\/\s*Saturday/);
+   assert.match(page,/Tuesday\s*\/\s*Thursday\s*\/\s*Saturday/);
+  } else {
+   assert.match(page,/Group A:<\/strong> Monday \/ Wednesday/);
+   assert.match(page,/Group B:<\/strong> Tuesday \/ Thursday/);
+   assert.match(page,/Groups A, B &amp; C Combined/);
+  }
   assert.match(page,/November 16–21/);
   assert.match(page,/November 22–28/);
   assert.match(page,/November 29–February 14/);
@@ -44,6 +50,10 @@ test("Winter Wrestling views use the approved season and holiday schedule",()=>{
  assert.match(publicPage,/Groups A, B &amp; C Combined/);
  assert.match(publicPage,/value="group-c"/);
  assert.match(publicPage,/id="groupCDays" hidden/);
+ assert.match(publicPage,/name="weekday" value="mon"/);
+ assert.match(publicPage,/name="weekday" value="tue"/);
+ assert.match(publicPage,/name="weekday" value="wed"/);
+ assert.match(publicPage,/name="weekday" value="thu"/);
  assert.doesNotMatch(publicPage,/NOVEMBER 2026 – JANUARY 2027/);
  assert.doesNotMatch(managementPage,/November–January/);
 });
