@@ -58,6 +58,11 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: application-source/functions/package-lock.json
+      - name: Use Java 21 for Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Verify immutable release boundary
         run: |
           set -euo pipefail
