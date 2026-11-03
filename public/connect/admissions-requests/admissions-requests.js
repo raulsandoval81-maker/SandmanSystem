@@ -331,6 +331,8 @@ function filteredRequests() {
       item.campaignName,
       item.season,
       item.schedulePreference,
+      item.scheduleSelection,
+      ...(Array.isArray(item.preferredWeekdays) ? item.preferredWeekdays : []),
       item.location,
       item.message
     ]
@@ -550,7 +552,7 @@ function render() {
                   </strong>
                 </div>
 
-                ${item.requestType === "SEASONAL_INTEREST" ? `<div class="detail"><span>Campaign</span><strong>${esc(item.campaignName || item.campaignId || "—")}</strong></div><div class="detail"><span>Schedule Preference</span><strong>${esc(item.schedulePreference || "—")}</strong></div><div class="detail"><span>Family / Scholarship Inquiry</span><strong>${esc([item.familyPricingInterest ? "Family pricing" : "", item.scholarshipInterest ? "Scholarship" : ""].filter(Boolean).join(", ") || "—")}</strong></div>` : ""}
+                ${item.requestType === "SEASONAL_INTEREST" ? `<div class="detail"><span>Campaign</span><strong>${esc(item.campaignName || item.campaignId || "—")}</strong></div><div class="detail"><span>Schedule Preference</span><strong>${esc(item.scheduleSelection === "group-c" ? "Group C — " + (Array.isArray(item.preferredWeekdays) ? item.preferredWeekdays.map(day => ({mon:"Monday",tue:"Tuesday",wed:"Wednesday",thu:"Thursday"}[day] || day)).join(" / ") : "select two weekdays") + " + Saturday" : item.schedulePreference || "—")}</strong></div><div class="detail"><span>Family / Scholarship Inquiry</span><strong>${esc([item.familyPricingInterest ? "Family pricing" : "", item.scholarshipInterest ? "Scholarship" : ""].filter(Boolean).join(", ") || "—")}</strong></div>` : ""}
 
                 <div
                   class="detail"

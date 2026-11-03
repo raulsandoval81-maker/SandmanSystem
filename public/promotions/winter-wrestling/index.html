@@ -21,9 +21,10 @@ button:disabled{opacity:.6}#status{min-height:30px}a{color:#eee}
 <p>Two weekday practices + Saturday <strong>training or scheduled competitions</strong>. Competition entry fees and competition attire are separate.</p>
 <p>Family pricing and scholarship inquiries welcome.</p></header>
 <section class="panel"><h2>Choose a schedule</h2><ul>
-<li>Monday / Wednesday: 6:00–7:15 PM</li>
-<li>Tuesday / Thursday: 5:00–6:15 PM</li>
-<li>Saturday: 8:30–10:00 AM · Mixed groups (training or scheduled competitions)</li>
+<li><strong>Group A:</strong> Monday / Wednesday · 6:00–7:15 PM</li>
+<li><strong>Group B:</strong> Tuesday / Thursday · 5:00–6:15 PM</li>
+<li><strong>Group C:</strong> Choose any 2 weekdays from Monday–Thursday (times follow the days selected).</li>
+<li><strong>Groups A, B &amp; C Combined:</strong> Saturday · 8:30–10:00 AM (training or scheduled competitions)</li>
 <li>Competition schedule to be announced (TBA).</li>
 </ul></section>
 <section class="panel"><h2>Season structure</h2>
@@ -62,7 +63,13 @@ Wednesday and Thursday groups combine for this session.</li>
 <label for="athlete">Athlete Name</label><input id="athlete" name="athlete" maxlength="120" required>
 <label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" maxlength="200" required>
 <label for="phone">Phone</label><input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="35" required>
-<label for="schedule">Preferred schedule</label><select id="schedule" name="schedule" required><option value="">Choose an option</option><option value="mon-wed-sat">Monday / Wednesday / Saturday</option><option value="tue-thu-sat">Tuesday / Thursday / Saturday</option><option value="unsure">Not sure yet</option></select>
+<label for="schedule">Preferred schedule</label><select id="schedule" name="schedule" required><option value="">Choose an option</option><option value="mon-wed-sat">Group A — Monday / Wednesday / Saturday</option><option value="tue-thu-sat">Group B — Tuesday / Thursday / Saturday</option><option value="group-c">Group C — Choose any 2 weekdays + Saturday</option><option value="unsure">Not sure yet</option></select>
+<fieldset id="groupCDays" hidden><legend>Group C · Select exactly 2 weekdays</legend>
+<label class="check"><input type="checkbox" name="weekday" value="mon"> Monday · 6:00–7:15 PM</label>
+<label class="check"><input type="checkbox" name="weekday" value="tue"> Tuesday · 5:00–6:15 PM</label>
+<label class="check"><input type="checkbox" name="weekday" value="wed"> Wednesday · 6:00–7:15 PM</label>
+<label class="check"><input type="checkbox" name="weekday" value="thu"> Thursday · 5:00–6:15 PM</label>
+<p class="muted">Saturday 8:30–10:00 AM is combined for all groups.</p></fieldset>
 <label class="check"><input type="checkbox" name="family"> I'm interested in family pricing</label>
 <label class="check"><input type="checkbox" name="scholarship"> I'd like scholarship information</label>
 <label class="check"><input name="consent" type="checkbox" required> I am the parent or guardian, and I agree that Sandman may contact me about this wrestling season.</label>
