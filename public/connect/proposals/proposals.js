@@ -1129,9 +1129,12 @@ function proposalActionHtml(status, id, proposal = {}) {
         ${hasActiveMembershipChoice(proposal) ? "Resend Membership Options" : "Send Membership Options"}
       </button>
 
+      ${hasActiveMembershipChoice(proposal) ? "" : `
       <button class="proposal-open-btn" type="button" data-proposal-action="open-client-review" data-proposal-id="${esc(id)}">Open In-Person Review</button>
       <button class="proposal-open-btn" type="button" data-proposal-action="email-client-review" data-proposal-id="${esc(id)}">Send Remote Review</button>
       <button class="proposal-open-btn" type="button" data-proposal-action="copy-client-review" data-proposal-id="${esc(id)}">Copy Secure Link — Alternative Delivery</button>
+
+      `}
 
       <button class="proposal-open-btn" type="button" data-proposal-action="record-manual-signature" data-proposal-id="${esc(id)}">
         Record Manual Signature · Safeguard
