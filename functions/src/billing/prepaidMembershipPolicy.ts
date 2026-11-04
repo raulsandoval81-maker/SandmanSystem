@@ -31,6 +31,7 @@ export function resolveFullYearPrepayment(input: {
   amountCents: unknown;
   membershipAmountCents: unknown;
   expectedMonthlyMembershipCents: number;
+  monthsCovered?: 6 | 12;
   enrollmentFeeTotalCents: number;
   enrollmentFeePreviouslyPaidCents: number;
   enrollmentFeePreviouslyPaidAllocations?: Array<{
@@ -46,10 +47,14 @@ export function resolveFullYearPrepayment(input: {
     input.membershipAmountCents,
     "membershipAmountCents"
   );
-  const expectedMembershipCents = input.expectedMonthlyMembershipCents * 12;
+  const monthsCovered = input.monthsCovered ?? 12;
+  if (monthsCovered !== 6 && monthsCovered !== 12) {
+    throw new Error("Paid-in-full coverage must be six or twelve months.");
+  }
+  const expectedMembershipCents = input.expectedMonthlyMembershipCents * monthsCovered;
   if (membershipAmountCents !== expectedMembershipCents) {
     throw new Error(
-      `Twelve-month membership allocation must equal ${expectedMembershipCents} cents.`
+      `${monthsCovered}-month membership allocation must equal ${expectedMembershipCents} cents.`
     );
   }
 
@@ -171,8 +176,12 @@ export function resolveFullYearPrepayment(input: {
 export function validateFullYearCoverage(
   startDate: string,
   paidThroughDate: string,
-  nextBillingDate: string
+  nextBillingDate: string,
+  monthsCovered: 6 | 12 = 12
 ): void {
+  if (monthsCovered !== 6 && monthsCovered !== 12) {
+    throw new Error("Paid-in-full coverage must be six or twelve months.");
+  }
   const parse = (value: string) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error("Dates must use YYYY-MM-DD.");
     const date = new Date(`${value}T12:00:00Z`);
@@ -186,11 +195,24 @@ export function validateFullYearCoverage(
   const paidThrough = parse(paidThroughDate);
   const nextBilling = parse(nextBillingDate);
   const expectedPaidThrough = new Date(start);
-  expectedPaidThrough.setUTCFullYear(expectedPaidThrough.getUTCFullYear() + 1);
+  if (monthsCovered === 12) {
+    expectedPaidThrough.setUTCFullYear(expectedPaidThrough.getUTCFullYear() + 1);
+  } else {
+    // Clamp to the final day of the target month for starts on the 29th–31st.
+    const day = expectedPaidThrough.getUTCDate();
+    const lastDay = new Date(Date.UTC(
+      expectedPaidThrough.getUTCFullYear(),
+      expectedPaidThrough.getUTCMonth() + monthsCovered + 1,
+      0
+    )).getUTCDate();
+    expectedPaidThrough.setUTCDate(1);
+    expectedPaidThrough.setUTCMonth(expectedPaidThrough.getUTCMonth() + monthsCovered);
+    expectedPaidThrough.setUTCDate(Math.min(day, lastDay));
+  }
   expectedPaidThrough.setUTCDate(expectedPaidThrough.getUTCDate() - 1);
 
   if (paidThrough.getTime() !== expectedPaidThrough.getTime()) {
-    throw new Error("Paid-through date must cover exactly twelve months of membership.");
+    throw new Error(`Paid-through date must cover exactly ${monthsCovered} months of membership.`);
   }
   if (nextBilling.getTime() <= paidThrough.getTime()) {
     throw new Error("Recurring billing must begin after the prepaid paid-through date.");

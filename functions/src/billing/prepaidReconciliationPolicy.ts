@@ -39,6 +39,33 @@ export function isPreparedForPrepaidReconciliation(
     "AWAITING_FAMILY_CONFIRMATION";
 }
 
+// Term is derived exclusively from the family's accepted, locked snapshot.
+// Never trust a client-supplied month count or silently mix household terms.
+export function lockedPrepaidCoverageMonths(
+  proposal: Record<string, any>
+): 6 | 12 {
+  const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
+    ? proposal.lockedSnapshot.athletes
+    : [];
+  const members = athletes.filter(
+    (athlete: Record<string, any>) =>
+      clean(athlete?.plan || "standard").toLowerCase() !== "fitness"
+  );
+  if (!members.length) {
+    throw new Error("At least one Combat membership is required for prepaid reconciliation.");
+  }
+  const terms = members.map((athlete: Record<string, any>) => {
+    const term = clean(athlete?.billingTerm).toLowerCase();
+    if (["annual", "12_month", "twelve_month"].includes(term)) return 12;
+    if (["six-month", "sixmonth", "six_month", "6_month"].includes(term)) return 6;
+    throw new Error("Paid-in-full reconciliation requires a locked 6- or 12-month membership agreement.");
+  });
+  if (terms.some((term: number) => term !== terms[0])) {
+    throw new Error("Paid-in-full household members must have the same agreement duration.");
+  }
+  return terms[0] as 6 | 12;
+}
+
 export function assertPrepaidReconciliationCanBePrepared(
   proposal: Record<string, any>
 ): void {
@@ -54,20 +81,7 @@ export function assertPrepaidReconciliationCanBePrepared(
       JSON.stringify(proposal.lockedSnapshot)) {
     throw new Error("The accepted proposal no longer matches the locked enrollment terms.");
   }
-  const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
-    ? proposal.lockedSnapshot.athletes
-    : [];
-  const membershipAthletes = athletes.filter(
-    (athlete: Record<string, any>) => clean(athlete?.plan || "standard").toLowerCase() !== "fitness"
-  );
-  if (!membershipAthletes.length || membershipAthletes.some(
-    (athlete: Record<string, any>) =>
-      !["annual", "12_month", "twelve_month"].includes(
-        clean(athlete?.billingTerm).toLowerCase()
-      )
-  )) {
-    throw new Error("Paid-in-full reconciliation requires a locked 12-month membership agreement.");
-  }
+  lockedPrepaidCoverageMonths(proposal);
   if (Number(proposal.lockedSnapshot?.pricing?.monthlyBalance || 0) <= 0) {
     throw new Error("The locked monthly membership amount is invalid.");
   }
