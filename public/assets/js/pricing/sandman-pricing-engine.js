@@ -405,3 +405,51 @@ export function calculateSandmanMembershipPricing(
     }
   };
 }
+
+// Catalog-only prepaid quote. This does NOT prepare or record a payment,
+// issue an agreement, or enable the (currently 12-month-only) prepaid callable.
+// Use existing household rates and keep annual enrollment fees separate.
+export function calculateSandmanPaidInFullQuote(athletes = [], term) {
+  const arrangement = PRICING.paymentArrangements.paidInFull;
+  if (!Array.isArray(athletes) || athletes.length < 1 || athletes.length > 4) {
+    throw new Error("Paid-in-full household quotes require 1–4 athletes.");
+  }
+  if (term !== "annual" && term !== "sixMonth") {
+    throw new Error("Paid in Full requires a six- or twelve-month agreement.");
+  }
+  if (!arrangement.supportedTerms.includes(term)) {
+    throw new Error("This paid-in-full term is not catalog-approved.");
+  }
+  if (athletes.some((athlete) =>
+    !athlete || athlete.plan !== "standard" ||
+    !ACCESS_ORDER.includes(athlete.trainingAccess) ||
+    normalizeBillingTerm(athlete.billingTerm) !== term
+  )) {
+    throw new Error("All quoted athletes must be Combat members with the same approved agreement term and access tier.");
+  }
+  const family = familyCombatRecord(athletes);
+  if (family.term !== term) {
+    throw new Error("The household agreement terms do not match.");
+  }
+  const months = term === "annual" ? 12 : 6;
+  const monthlyRate = family.amount;
+  const membershipTotal = monthlyRate * months;
+  const annualEnrollmentFeeTotal =
+    athletes.length * PRICING.enrollment.perAthlete.amount;
+  return {
+    paymentArrangement: "paid_in_full",
+    term,
+    months,
+    householdSize: athletes.length,
+    trainingAccess: family.access,
+    monthlyRate,
+    membershipTotal,
+    annualEnrollmentFeeTotal,
+    annualEnrollmentFeeIncluded: false,
+    additionalDiscount: 0,
+    stripeRecurringLookupKey: family.lookup,
+    quoteOnly: true,
+    checkoutEnabled: false,
+    midtermSiblingAddition: "management_amendment_required"
+  };
+}
