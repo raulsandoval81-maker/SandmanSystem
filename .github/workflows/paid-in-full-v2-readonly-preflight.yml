@@ -3,6 +3,16 @@ name: Paid in Full V2 read-only staging preflight
 on:
   workflow_dispatch:
     inputs:
+      action:
+        description: Read-only verification or separately approved staging deployment
+        required: true
+        default: validate
+        type: choice
+        options: [validate, deploy]
+      approve_release:
+        description: For deploy only, enter APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS
+        required: false
+        type: string
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -58,6 +68,8 @@ jobs:
           (cd source && node --check public/management/billing/billing.js)
           npm ci --prefix source/functions
           npm run build --prefix source/functions
+          (cd trusted && node --test tests/functions/pif-v2-controlled-release.test.mjs tests/functions/paid-in-full-v2-readonly-preflight.test.mjs)
+          python3 -m py_compile trusted/scripts/staging/pif-v2-controlled-hosting.py
       - name: Authenticate as existing staging Functions read-only preflight principal
         uses: google-github-actions/auth@v3
         with:
@@ -100,3 +112,194 @@ jobs:
           name: paid-in-full-v2-readonly-preflight-${{ github.run_id }}
           path: evidence/
           if-no-files-found: ignore
+
+  deploy:
+    if: ${{ inputs.action == 'deploy' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      PROJECT_ID: sandman-combat-staging
+      REGION: us-central1
+      SOURCE_SHA: 7df9dce66939cae693d4f112647da7bdd17e923c
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Require separate explicit exact-scope staging authorization
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_RELEASE: ${{ inputs.approve_release }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "${PROJECT_ID}"
+          test "${APPROVE_RELEASE}" = "APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS"
+      - name: Check out protected release tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - name: Check out pinned merged application source
+        uses: actions/checkout@v4
+        with:
+          ref: 7df9dce66939cae693d4f112647da7bdd17e923c
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download this run's successful preflight evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: paid-in-full-v2-readonly-preflight-${{ github.run_id }}
+          path: baseline
+      - name: Verify release manifest and recorded current staging baselines
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "${SOURCE_SHA}"
+          node trusted/scripts/staging/paid-in-full-v2-preflight-check.mjs source
+          node - <<'NODE'
+          const fs = require('fs');
+          const m = require('./trusted/scripts/staging/pif-v2-controlled-release.json');
+          const f = require('./baseline/function.json');
+          const h = require('./baseline/hosting-baseline.json');
+          const run = require('./baseline/run-service.json');
+          const iam = require('./baseline/function-iam.json');
+          const runIam = require('./baseline/run-iam.json');
+          function assert(condition, message) { if (!condition) throw Error(message); }
+          assert(m.projectId === 'sandman-combat-staging' && m.applicationSha === process.env.SOURCE_SHA && m.deploymentAuthorized === false && m.productionAuthorized === false, 'Release policy mismatch');
+          assert(f.name === 'projects/sandman-combat-staging/locations/us-central1/functions/recordProposalPrepaidCash' && f.state === 'ACTIVE', 'Function identity/state mismatch');
+          assert(f.serviceConfig?.revision === m.functionRevisionBefore && f.serviceConfig?.serviceAccountEmail === m.runtimeServiceAccount, 'Function revision/runtime drift');
+          assert(f.buildConfig?.runtime === 'nodejs22' && f.buildConfig?.entryPoint === m.functionName, 'Function runtime/entrypoint drift');
+          assert(h.priorRelease === m.hostingReleaseBefore && h.rollbackVersion === m.hostingVersionBefore && h.project === m.projectId && h.site === m.hostingSite, 'Hosting evidence mismatch');
+          assert(h.plannedFiles?.length === 4 && h.plannedFiles.every(x => m.hostingAssets.includes(x.path) && x.willChange), 'Hosting asset scope mismatch');
+          assert(Array.isArray(iam.bindings) ? iam.bindings.length === 0 : !iam.bindings, 'Unexpected Function IAM bindings');
+          assert(Array.isArray(runIam.bindings) ? runIam.bindings.length === 0 : !runIam.bindings, 'Unexpected Run IAM bindings');
+          assert(run.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled'] === 'true', 'Cloud Run invocation policy mismatch');
+          console.log('PINNED_RELEASE_BASELINES_MATCH');
+          NODE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate to capture live Function and IAM before release
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Reject any Function, service, or IAM drift since preflight
+        run: |
+          set -euo pipefail
+          mkdir -p release-evidence
+          gcloud functions describe recordProposalPrepaidCash --v2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-before.json
+          gcloud functions get-iam-policy recordProposalPrepaidCash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-iam-before.json
+          gcloud run services describe recordproposalprepaidcash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-before.json
+          gcloud run services get-iam-policy recordproposalprepaidcash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-iam-before.json
+          for entry in "function function-before" "function-iam function-iam-before" "run-service run-before" "run-iam run-iam-before"; do
+            set -- ${entry}
+            diff -u <(jq -S . "baseline/$1.json") <(jq -S . "release-evidence/$2.json")
+          done
+      - name: Authenticate staging Hosting identity for final pre-deploy drift check
+        id: hosting-pre-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify exact current Hosting release and four-file overlay before Function update
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-pre-auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/staging/pif-v2-controlled-hosting.py --mode verify \
+            --source-root source --evidence-dir release-evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}"
+      - name: Reauthenticate as existing staging Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Build the exact reviewed Functions source with no environment files
+        run: |
+          set -euo pipefail
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+          mkdir release-functions
+          rsync -a --exclude='node_modules/' --exclude='.env' --exclude='.env.*' \
+            --exclude='**/.env' --exclude='**/.env.*' source/functions/ release-functions/
+          if find release-functions -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+            echo 'Unexpected environment file in release artifact' >&2
+            exit 64
+          fi
+          test -f release-functions/lib/billing/recordProposalPrepaidCash.js
+      - name: Update the one existing approved staging Function
+        run: |
+          set -euo pipefail
+          gcloud functions deploy recordProposalPrepaidCash --gen2 \
+            --project="${PROJECT_ID}" --region="${REGION}" --runtime=nodejs22 \
+            --entry-point=recordProposalPrepaidCash --source=release-functions \
+            --run-service-account=991554514268-compute@developer.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 \
+            --ingress-settings=all --trigger-http --quiet
+      - name: Verify Function deployed and sensitive settings remain unchanged before Hosting publication
+        run: |
+          set -euo pipefail
+          gcloud functions describe recordProposalPrepaidCash --v2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-after.json
+          gcloud functions get-iam-policy recordProposalPrepaidCash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-iam-after.json
+          gcloud run services describe recordproposalprepaidcash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-after.json
+          gcloud run services get-iam-policy recordproposalprepaidcash --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-iam-after.json
+          diff -u <(jq -S . release-evidence/function-iam-before.json) <(jq -S . release-evidence/function-iam-after.json)
+          diff -u <(jq -S . release-evidence/run-iam-before.json) <(jq -S . release-evidence/run-iam-after.json)
+          node - <<'NODE'
+          const fs=require('fs');
+          const read=p=>JSON.parse(fs.readFileSync('release-evidence/'+p+'.json'));
+          const a=read('function-before'),b=read('function-after');
+          const r0=read('run-before'),r1=read('run-after');
+          function same(x,y,k){if(JSON.stringify(x)!==JSON.stringify(y))throw Error(k+' drifted');}
+          if(b.state!=='ACTIVE'||b.serviceConfig?.revision===a.serviceConfig?.revision)throw Error('Function not updated to active new revision');
+          for(const k of ['serviceAccountEmail','ingressSettings','availableMemory','availableCpu','timeoutSeconds','maxInstanceCount','maxInstanceRequestConcurrency'])
+            same(a.serviceConfig?.[k],b.serviceConfig?.[k],k);
+          for(const k of ['runtime','entryPoint','serviceAccount'])same(a.buildConfig?.[k],b.buildConfig?.[k],k);
+          same(a.serviceConfig?.environmentVariables,b.serviceConfig?.environmentVariables,'Environment variables');
+          same(a.serviceConfig?.secretEnvironmentVariables,b.serviceConfig?.secretEnvironmentVariables,'Secret environment bindings');
+          same(a.serviceConfig?.secretVolumes,b.serviceConfig?.secretVolumes,'Secret volumes');
+          same(r0.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled'],r1.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled'],'Invocation check');
+          if(r1.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true')throw Error('Cloud Run disabled invoker marker lost');
+          console.log('FUNCTION_DEPLOYMENT_VERIFIED; HOSTING_RELEASE_ALLOWED');
+          NODE
+      - name: Reauthenticate Hosting identity for exact four-file deployment
+        id: hosting-deploy-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Release only the four approved Hosting assets, preserving rollback version
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-deploy-auth.outputs.access_token }}
+          PIF_V2_FUNCTION_DEPLOYED_AND_VERIFIED: yes
+          APPROVE_RELEASE: ${{ inputs.approve_release }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/staging/pif-v2-controlled-hosting.py --mode deploy \
+            --source-root source --evidence-dir release-evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}" \
+            --approve-release "${APPROVE_RELEASE}"
+      - name: Preserve full release receipt and rollback evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: paid-in-full-v2-staging-release-${{ github.run_id }}
+          path: release-evidence
+          if-no-files-found: warn

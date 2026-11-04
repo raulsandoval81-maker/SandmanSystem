@@ -1,0 +1,23 @@
+{
+  "releaseId": "pif-v2-7df9dce6",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "applicationSha": "7df9dce66939cae693d4f112647da7bdd17e923c",
+  "functionName": "recordProposalPrepaidCash",
+  "functionRevisionBefore": "recordproposalprepaidcash-00006-foj",
+  "runtimeServiceAccount": "991554514268-compute@developer.gserviceaccount.com",
+  "buildServiceAccount": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+  "hostingSite": "sandman-combat-staging",
+  "hostingReleaseBefore": "sites/sandman-combat-staging/releases/1793809162815000",
+  "hostingVersionBefore": "sites/sandman-combat-staging/versions/2d9f85c64cc4c1b7",
+  "hostingAssets": [
+    "/assets/js/pricing/sandman-pricing-catalog.js",
+    "/assets/js/pricing/sandman-pricing-engine.js",
+    "/management/billing/billing.js",
+    "/management/billing/prepaid-terms.js"
+  ],
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "rollbackAutomatic": false
+}
