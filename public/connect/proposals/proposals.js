@@ -1332,6 +1332,14 @@ async function runProposalAction(button) {
     }
 
     if (["open-client-review", "email-client-review", "copy-client-review"].includes(action)) {
+      // Reissuing replaces the previous secure link. Warn before invalidating it.
+      const currentStatus = String(button.closest(".proposal-card")?.dataset.status || "");
+      if (currentStatus === "AWAITING_CLIENT_SIGNATURE" &&
+          !window.confirm("Issue a new secure client-review link? The previous link will no longer work.")) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
       // All delivery options issue the same secure family-review token.
       // Only the remote path requests email from the backend.
       const remote = action === "email-client-review";
