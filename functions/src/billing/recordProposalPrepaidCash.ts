@@ -26,6 +26,7 @@ import {
   assertPrepaidReconciliationCanBePrepared,
   hasConflictingStripeActivity,
   hasRecordedMembershipPayment,
+  lockedPrepaidCoverageMonths,
 } from "./prepaidReconciliationPolicy";
 
 function cleanString(value: unknown): string {
@@ -184,19 +185,6 @@ export const recordProposalPrepaidCash =
     const membershipPaidThroughDateRaw = cleanString(req.data?.membershipPaidThroughDate);
     const nextBillingDateRaw = cleanString(req.data?.nextBillingDate);
 
-    try {
-      validateFullYearCoverage(
-        membershipStartDateRaw,
-        membershipPaidThroughDateRaw,
-        nextBillingDateRaw
-      );
-    } catch (error) {
-      throw new HttpsError(
-        "invalid-argument",
-        error instanceof Error ? error.message : "Invalid prepaid coverage dates."
-      );
-    }
-
     const paymentDate = parseLocalDate(paymentDateRaw);
     const membershipStartDate = parseLocalDate(membershipStartDateRaw);
     const membershipPaidThroughDate = parseLocalDate(membershipPaidThroughDateRaw);
@@ -286,6 +274,22 @@ export const recordProposalPrepaidCash =
               );
             }
 
+            // Use the accepted agreement term, never a client-supplied duration.
+            const monthsCovered = lockedPrepaidCoverageMonths(proposal);
+            try {
+              validateFullYearCoverage(
+                membershipStartDateRaw,
+                membershipPaidThroughDateRaw,
+                nextBillingDateRaw,
+                monthsCovered
+              );
+            } catch (error) {
+              throw new HttpsError(
+                "invalid-argument",
+                error instanceof Error ? error.message : "Invalid prepaid coverage dates."
+              );
+            }
+
             const pricing = proposal.pricing || {};
             const lockedPricing = proposal.lockedSnapshot?.pricing || {};
             const lockedMembershipStartDate = cleanString(
@@ -354,6 +358,7 @@ export const recordProposalPrepaidCash =
                 amountCents,
                 membershipAmountCents,
                 expectedMonthlyMembershipCents: monthlyMembershipCents,
+                monthsCovered,
                 enrollmentFeeTotalCents,
                 enrollmentFeePreviouslyPaidCents: Math.max(
                   priorPaymentEnrollmentCents,
@@ -418,7 +423,7 @@ export const recordProposalPrepaidCash =
                   amountCents,
                   membershipAmountCents: allocation.membershipAmountCents,
                   membershipPaidInFull: allocation.membershipPaidInFull,
-                  monthsCovered: 12,
+                  monthsCovered,
                   paymentMethod,
                   paymentDate,
                   membershipStartDate,
@@ -473,7 +478,7 @@ export const recordProposalPrepaidCash =
                 amountCents,
                 membershipAmountCents: allocation.membershipAmountCents,
                 membershipPaidInFull: true,
-                monthsCovered: 12,
+                monthsCovered,
                 paymentMethod,
                 paymentDate,
                 membershipStartDate,
@@ -511,7 +516,7 @@ export const recordProposalPrepaidCash =
               amountCents,
               membershipAmountCents: allocation.membershipAmountCents,
               membershipPaidInFull: true,
-              monthsCovered: 12,
+              monthsCovered,
               paymentMethod,
               membershipPaidThroughDate,
               annualEnrollmentFee: allocation.annualEnrollmentFee,
