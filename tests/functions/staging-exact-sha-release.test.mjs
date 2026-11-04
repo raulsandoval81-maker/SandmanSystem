@@ -2047,7 +2047,7 @@ test("PR410 staging Stripe preflight uses dedicated runtime check, not legacy co
 
 // Exercise the actual source generator, rather than duplicating its template
 // substitutions in a test. The compiler fixture avoids cloud/dependency access.
-async function withIsolatedReviewEntry(check) {
+async function withIsolatedReviewEntry(check, { transformTemplate, expectedError } = {}) {
   const root = await mkdtemp(path.join(os.tmpdir(), "sandman-review-admin-startup-"));
   try {
     const source = path.join(root, "application");
@@ -2069,12 +2069,29 @@ for (const name of ["issueProposalClientReview", "createProposalCheckout"])
 fs.writeFileSync(path.join(out, "proposals/billingPublicBaseUrl.js"), "// sandman-combat-staging.web.app");
 `, { mode: 0o755 });
     const outputs = [];
+    let generator = "scripts/staging/prepare-exact-sha-release.mjs";
+    if (transformTemplate) {
+      const tooling = path.join(root, "tooling");
+      await mkdir(tooling);
+      for (const file of ["prepare-exact-sha-release.mjs", "exact-sha-release-policy.mjs", "approved-exact-sha-releases.json"]) {
+        await copyFile(new URL(`../../scripts/staging/${file}`, import.meta.url), path.join(tooling, file));
+      }
+      const template = await readFile(new URL("../../scripts/staging/staging-release-entry.cjs", import.meta.url), "utf8");
+      await writeFile(path.join(tooling, "staging-release-entry.cjs"), transformTemplate(template));
+      generator = path.join(tooling, "prepare-exact-sha-release.mjs");
+    }
     for (const name of ["first", "second"]) {
       const output = path.join(root, name);
       const generated = spawnSync(process.execPath, [
-        "scripts/staging/prepare-exact-sha-release.mjs",
+        generator,
         "billing-pr410-functions-96a1452d", source, output,
       ], { encoding: "utf8" });
+      if (expectedError) {
+        assert.notEqual(generated.status, 0, "malformed template must fail generation");
+        assert.match(generated.stderr, expectedError);
+        await assert.rejects(readFile(path.join(output, "functions/staging-release-entry.cjs")), { code: "ENOENT" });
+        return;
+      }
       assert.equal(generated.status, 0, generated.stderr || generated.stdout);
       assert.equal(JSON.parse(await readFile(path.join(output, "functions/package.json"))).main,
         "staging-release-entry.cjs");
@@ -2085,6 +2102,18 @@ fs.writeFileSync(path.join(out, "proposals/billingPublicBaseUrl.js"), "// sandma
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+}
+
+for (const [name, transformTemplate] of [
+  ["missing", source => source.replace("try {\n", "try { /* changed anchor */\n")],
+  ["duplicated", source => source.replace("try {\n", "try {\ntry {\n")],
+]) {
+  test(`isolated Admin generation rejects a ${name} initialization insertion point`, async () => {
+    await withIsolatedReviewEntry(() => assert.fail("malformed entry must not execute"), {
+      transformTemplate,
+      expectedError: /requires exactly one try-block insertion point/,
+    });
+  });
 }
 
 for (const existingApp of [false, true]) {

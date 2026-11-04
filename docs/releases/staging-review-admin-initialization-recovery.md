@@ -57,6 +57,8 @@ then execute the generated two-callable entry with and without an existing
 Admin app. They assert initialization precedes imports, no duplicate default app,
 exact exports/runtime options, and WIF credential isolation/restoration.
 The original generator fails the no-app case; the repaired generator passes both.
+Generation also rejects missing or duplicated initialization insertion points
+before writing an entrypoint artifact, with dedicated negative regression tests.
 The compiler in these focused fixture tests is synthetic; the separate TypeScript
 build verifies the real application. Tests do not invoke a deployed callable.
 
@@ -121,3 +123,30 @@ workflow; do not broaden the existing release selection.
    known startup defect, so it is a rollback artifact, not an acceptance solution.
 
 No production, record changes, email, checkout or payment operations are included.
+
+## Final readiness review addendum (November 4)
+
+Read-only staging source-package inspection confirmed the same missing
+initializer in the deployed entries for `getProposalClientReview`,
+`acceptProposalClientReview`, `approveProposalRenewalAutopay` and
+`createProposalAutopaySetup`. Runtime failures were not induced during the audit.
+Repairing only issuance cannot certify the full family review journey.
+A separately approved consolidated recovery should cover the three family review
+functions (issue/get/accept), preserving each function's own source baseline.
+The two renewal functions require the same entrypoint repair before testing an
+approved renewal arrangement, but renewal approval is not required to activate a
+prepaid athlete. Do not deploy all exports listed in an entrypoint.
+
+The four deployed PR451 core module hashes (prepaid recording, enrollment read,
+agreement save, checkout) match the locally built reviewed application modules.
+Do not redeploy them merely because older isolated packages exist elsewhere.
+The legacy `approveProposal` callable is absent in staging, but the current
+family acceptance handler moves directly to READY_FOR_CHECKOUT using the
+Management issuance approval. Its absence is not a blocker for this route.
+
+Local Node 22 validation passed the build and 220 of 227 selected tests. Seven
+older athlete-access contract failures also reproduce on the unchanged baseline;
+no unrelated access behavior was changed. The Firestore acceptance run did not
+start because Firebase CLI 15.11.0 requires Java 21 and this executor has Java 17.
+Live family agreement, household linking, triggers and Coach roster acceptance
+remain unverified. P-000001 is a normal monthly control case, not a prepaid case.

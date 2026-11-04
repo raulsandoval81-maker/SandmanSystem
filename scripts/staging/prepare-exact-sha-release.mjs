@@ -212,7 +212,11 @@ if (release.functions.length) {
   // modules, inside the existing WIF credential-isolation/restoration block.
   // The generic staging module owns its own initialization; leave it alone.
   if (!stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
-    stagingEntry = stagingEntry.replace("try {\n", `try {
+    const initializationAnchor = "try {\n";
+    if (stagingEntry.split(initializationAnchor).length !== 2) {
+      throw new Error("Isolated staging Admin initialization requires exactly one try-block insertion point.");
+    }
+    stagingEntry = stagingEntry.replace(initializationAnchor, `try {
   const { getApps, initializeApp } = require("firebase-admin/app");
   if (!getApps().length) initializeApp();
 `);
