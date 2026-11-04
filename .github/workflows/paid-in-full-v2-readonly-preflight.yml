@@ -68,6 +68,8 @@ jobs:
           (cd source && node --check public/management/billing/billing.js)
           npm ci --prefix source/functions
           npm run build --prefix source/functions
+          (cd trusted && node --test tests/functions/pif-v2-controlled-release.test.mjs tests/functions/paid-in-full-v2-readonly-preflight.test.mjs)
+          python3 -m py_compile trusted/scripts/staging/pif-v2-controlled-hosting.py
       - name: Authenticate as existing staging Functions read-only preflight principal
         uses: google-github-actions/auth@v3
         with:
