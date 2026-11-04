@@ -2044,3 +2044,94 @@ test("PR410 staging Stripe preflight uses dedicated runtime check, not legacy co
   assert.match(dedicated, /versions\.length !== 1/);
   assert.doesNotMatch(dedicated, /secrets versions access|secrets versions add|add-iam-policy-binding/);
 });
+
+// Exercise the actual source generator, rather than duplicating its template
+// substitutions in a test. The compiler fixture avoids cloud/dependency access.
+async function withIsolatedReviewEntry(check) {
+  const root = await mkdtemp(path.join(os.tmpdir(), "sandman-review-admin-startup-"));
+  try {
+    const source = path.join(root, "application");
+    await mkdir(path.join(source, "public/assets/js"), { recursive: true });
+    await mkdir(path.join(source, "functions/node_modules/.bin"), { recursive: true });
+    await writeFile(path.join(source, "public/assets/js/firebase-init.js"),
+      "// Staging cannot use the production Firebase project\n");
+    await writeFile(path.join(source, "functions/package.json"), JSON.stringify({
+      main: "lib/index.js", scripts: { build: "tsc" }, dependencies: {},
+    }));
+    await writeFile(path.join(source, "functions/package-lock.json"), "{}\n");
+    await writeFile(path.join(source, "functions/tsconfig.json"), "{}\n");
+    await writeFile(path.join(source, "functions/node_modules/.bin/tsc"), `#!/usr/bin/env node
+const fs = require("node:fs"), path = require("node:path");
+const out = process.argv[process.argv.indexOf("--outDir") + 1];
+fs.mkdirSync(path.join(out, "proposals"), { recursive: true });
+for (const name of ["issueProposalClientReview", "createProposalCheckout"])
+  fs.writeFileSync(path.join(out, "proposals", name + ".js"), "// resolveBillingPublicBaseUrl");
+fs.writeFileSync(path.join(out, "proposals/billingPublicBaseUrl.js"), "// sandman-combat-staging.web.app");
+`, { mode: 0o755 });
+    const outputs = [];
+    for (const name of ["first", "second"]) {
+      const output = path.join(root, name);
+      const generated = spawnSync(process.execPath, [
+        "scripts/staging/prepare-exact-sha-release.mjs",
+        "billing-pr410-functions-96a1452d", source, output,
+      ], { encoding: "utf8" });
+      assert.equal(generated.status, 0, generated.stderr || generated.stdout);
+      assert.equal(JSON.parse(await readFile(path.join(output, "functions/package.json"))).main,
+        "staging-release-entry.cjs");
+      outputs.push(await readFile(path.join(output, "functions/staging-release-entry.cjs"), "utf8"));
+    }
+    assert.equal(outputs[0], outputs[1], "same source and generator must reproduce identical entrypoint bytes");
+    await check(outputs[0]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+}
+
+for (const existingApp of [false, true]) {
+  test(`generated isolated review entry initializes Admin before callable imports (existing app: ${existingApp})`, async () => {
+    const { runInNewContext } = await import("node:vm");
+    await withIsolatedReviewEntry(async entry => {
+      const app = { name: "[DEFAULT]" };
+      const apps = existingApp ? [app] : [];
+      const calls = [];
+      const env = {
+        GOOGLE_APPLICATION_CREDENTIALS: "/synthetic/github-wif.json",
+        GOOGLE_GHA_CREDS_PATH: "/synthetic/github-wif.json",
+        CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: "/synthetic/github-wif.json",
+      };
+      const before = { ...env };
+      const exported = {};
+      const context = {
+        process: { env }, module: { exports: exported },
+        require(id) {
+          assert.deepEqual(Object.keys(env), [], "WIF credentials remain isolated during module discovery");
+          if (id === "firebase-admin/app") return {
+            getApps: () => apps,
+            initializeApp() {
+              calls.push("initialize");
+              assert.equal(apps.length, 0, "never initialize a second default app");
+              apps.push(app);
+              return app;
+            },
+          };
+          if (id === "firebase-functions/v2/options") return {
+            setGlobalOptions(options) {
+              assert.equal(options.preserveExternalChanges, true);
+              assert.equal(options.serviceAccount, "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com");
+            },
+          };
+          const name = id.match(/^\.\/lib\/proposals\/(issueProposalClientReview|createProposalCheckout)\.js$/)?.[1];
+          assert.ok(name, `unexpected module import: ${id}`);
+          assert.equal(apps[0], app, "Admin must exist before the callable module is loaded");
+          calls.push(name);
+          return { [name]: { __endpoint: { callableTrigger: {} } } };
+        },
+      };
+      runInNewContext(entry, context);
+      assert.deepEqual(Object.keys(context.module.exports).sort(), ["createProposalCheckout", "issueProposalClientReview"]);
+      assert.equal(calls.filter(name => name === "initialize").length, existingApp ? 0 : 1);
+      assert.deepEqual(env, before, "restore original WIF environment after discovery");
+      assert.equal(apps.length, 1);
+    });
+  });
+}

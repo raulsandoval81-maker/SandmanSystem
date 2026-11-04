@@ -207,6 +207,16 @@ if (release.functions.length) {
       throw new Error("Full Billing staging package is missing the Stripe webhook secret.");
     }
   }
+  // Isolated exports bypass lib/staging.js (and lib/index.js), so neither
+  // application's Admin initializer runs. Initialize before loading those
+  // modules, inside the existing WIF credential-isolation/restoration block.
+  // The generic staging module owns its own initialization; leave it alone.
+  if (!stagingEntry.includes('module.exports = require("./lib/staging.js");')) {
+    stagingEntry = stagingEntry.replace("try {\n", `try {
+  const { getApps, initializeApp } = require("firebase-admin/app");
+  if (!getApps().length) initializeApp();
+`);
+  }
   if (stagingEntry.includes("__SANDMAN_STAGING_RUNTIME_SERVICE_ACCOUNT__")) throw new Error("Staging runtime service-account placeholder was not resolved.");
   await writeFile(path.join(functionsRoot, "staging-release-entry.cjs"), stagingEntry);
   await writeFile(path.join(functionsRoot, `.env.${release.projectId}`), [
