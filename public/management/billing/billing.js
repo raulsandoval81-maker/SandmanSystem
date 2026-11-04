@@ -13,6 +13,7 @@ import {
   managementLoginUrl
 } from "/management/shared/guards/management-guard.js";
 import { paidInFullUiState } from "./paid-in-full-state.js";
+import { lockedPrepaidMonths, prepaidCoverageDates } from "./prepaid-terms.js";
 import { historicalPaymentSummary } from "/management/shared/services/historical-payment-summary.js";
 
 const billingStatus =
@@ -885,7 +886,8 @@ function buildProposalItems(
           !proposal.cashPrepayment &&
           prepaidMembershipAthletes.length > 0 &&
           prepaidMembershipAthletes
-            .every((athlete) => clean(athlete?.billingTerm) === "annual"),
+            .every((athlete) => clean(athlete?.billingTerm)) &&
+          lockedPrepaidMonths(proposal) !== null,
 
         canRecordPrepaidCash:
           upper(proposal.status) === "READY_FOR_CHECKOUT" &&
@@ -1957,7 +1959,7 @@ function ensureCashDialog() {
         </label>
 
         <label>
-          <span>12-month membership allocation</span>
+          <span id="prepaidCashMembershipLabel">Locked-term membership allocation</span>
           <input
             id="prepaidCashMembershipAmount"
             type="number"
@@ -2003,7 +2005,7 @@ function ensureCashDialog() {
       </label>
 
       <p class="billing-cash-warning">
-        This records a reconciled 12-month cash/check payment. Stripe renewal remains blocked until Management separately approves the post-coverage arrangement.
+        This records a reconciled <span id="prepaidCashTermDisplay">6- or 12-month</span> cash/check payment. Stripe renewal remains blocked until Management separately approves the post-coverage arrangement.
       </p>
 
       <div class="billing-cash-footer">
@@ -2255,9 +2257,17 @@ function openCashDialog(
 
   const item = billingItems.find((entry) => entry.proposalId === proposalId);
   const proposal = item?.proposal || {};
+  const monthsCovered = lockedPrepaidMonths(proposal);
+  if (!monthsCovered) {
+    throw new Error("A single locked 6- or 12-month Combat agreement is required.");
+  }
+  document.getElementById("prepaidCashMembershipLabel").textContent =
+    `${monthsCovered}-month membership allocation`;
+  document.getElementById("prepaidCashTermDisplay").textContent =
+    `${monthsCovered}-month`;
   const membershipAmount = Math.max(
     0,
-    Number(proposal.pricing?.monthlyBalance || 0) * 12
+    Number(proposal.lockedSnapshot?.pricing?.monthlyBalance || 0) * monthsCovered
   );
   document.getElementById("prepaidCashMembershipAmount").value =
     membershipAmount ? membershipAmount.toFixed(2) : "";
@@ -2272,21 +2282,11 @@ function openCashDialog(
   document.getElementById("prepaidCashPaymentDate").value = "";
   document.getElementById("prepaidCashStartDate").value = startDate;
 
-  const paidThrough = startDate ? new Date(`${startDate}T12:00:00Z`) : null;
-  if (paidThrough && !Number.isNaN(paidThrough.getTime())) {
-    paidThrough.setUTCFullYear(paidThrough.getUTCFullYear() + 1);
-    paidThrough.setUTCDate(paidThrough.getUTCDate() - 1);
-  }
-  const paidThroughValue = paidThrough && !Number.isNaN(paidThrough.getTime())
-    ? paidThrough.toISOString().slice(0, 10)
-    : "";
-  document.getElementById("prepaidCashPaidThrough").value = paidThroughValue;
-
-  const renewalDate = paidThroughValue ? new Date(`${paidThroughValue}T12:00:00Z`) : null;
-  if (renewalDate) renewalDate.setUTCDate(renewalDate.getUTCDate() + 1);
-  document.getElementById("prepaidCashNextBilling").value = renewalDate
-    ? renewalDate.toISOString().slice(0, 10)
-    : "";
+  const coverage = prepaidCoverageDates(startDate, monthsCovered);
+  document.getElementById("prepaidCashPaidThrough").value =
+    coverage?.paidThroughDate || "";
+  document.getElementById("prepaidCashNextBilling").value =
+    coverage?.nextBillingDate || "";
 
   const athletes = Array.isArray(proposal.athletes)
     ? proposal.athletes
@@ -2366,10 +2366,6 @@ function openCashDialog(
   `).join("");
 
   document.getElementById(
-    "prepaidCashNextBilling"
-  ).value = "";
-
-  document.getElementById(
     "prepaidCashNote"
   ).value = "";
 
@@ -2398,7 +2394,7 @@ billingQueue.addEventListener(
       );
       if (!proposalId) return;
       if (!window.confirm(
-        "Prepare this accepted 12-month proposal for family Review & Confirm before Management records the previously received paid-in-full payment?"
+        "Prepare this accepted 6- or 12-month proposal for family Review & Confirm before Management records the previously received paid-in-full payment?"
       )) return;
       preparePrepaidButton.disabled = true;
       try {
@@ -2422,7 +2418,7 @@ billingQueue.addEventListener(
       );
       if (!proposalId) return;
       if (!window.confirm(
-        "Approve Stripe autopay only after the twelve-month paid-through date?"
+        "Approve Stripe autopay only after the recorded paid-through date?"
       )) return;
       approvalButton.disabled = true;
       try {
