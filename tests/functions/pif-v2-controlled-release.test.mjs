@@ -34,7 +34,7 @@ test("staging workflow retains read-only preflight as the default and gates muta
   assert.match(workflow, /APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS/);
   assert.match(workflow, /refs\/heads\/main/);
   assert.match(workflow, /ref: 7df9dce66939cae693d4f112647da7bdd17e923c/);
-  assert.match(workflow, /source\.functions/);
+  assert.match(workflow, /source\/functions/);
   assert.doesNotMatch(workflow, /--project[=\s]+sandmandashboard/);
 });
 
