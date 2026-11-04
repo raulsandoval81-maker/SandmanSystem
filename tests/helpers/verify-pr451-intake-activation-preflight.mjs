@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateExistingFunction, invocationState } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
+import { verifyReviewPrerequisites } from "./pr451-review-prerequisites.mjs";
 
 const root = process.argv[2];
 if (!root) throw new Error("Usage: verify-pr451-intake-activation-preflight.mjs <evidence-dir>");
@@ -62,6 +63,19 @@ for (const name of manifest.requiredExistingFunctions) {
   assert.equal(value.environment, "GEN_2");
   assert.equal(value.buildConfig?.runtime, "nodejs22");
 }
+
+const reviewRecords = {};
+for (const entry of manifest.requiredReviewCallables) {
+  reviewRecords[entry.name] = {
+    description: await read(`functions/${entry.name}.json`),
+    invocation: {
+      functionIam: await read(`functions/${entry.name}-function-iam.json`),
+      runService: await read(`functions/${entry.name}-run-service.json`),
+      runIam: await read(`functions/${entry.name}-run-iam.json`),
+    },
+  };
+}
+verifyReviewPrerequisites(reviewRecords);
 
 for (const entry of manifest.functions) {
   const value = JSON.parse(await readFile(path.join(functionsRoot, `${entry.name}.json`), "utf8"));
