@@ -279,6 +279,9 @@ function addSafeguards() {
             return;
           }
 
+          const originalText =
+            correctButton.textContent;
+
           correctButton.disabled = true;
           correctButton.textContent =
             "Reopening…";
