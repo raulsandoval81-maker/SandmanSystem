@@ -19,7 +19,7 @@ export function lockedPrepaidMonths(proposal = {}) {
 
 export function prepaidCoverageDates(startDate, months) {
   if (months !== 6 && months !== 12) return null;
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(startDate || "")) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate || "")) return null;
   const start = new Date(`${startDate}T12:00:00Z`);
   if (Number.isNaN(start.getTime()) ||
       start.toISOString().slice(0, 10) !== startDate) return null;
