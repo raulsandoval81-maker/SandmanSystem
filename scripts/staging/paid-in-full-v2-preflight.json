@@ -1,0 +1,38 @@
+{
+  "releaseId": "paid-in-full-v2-pr474-476-7df9dce6",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "site": "sandman-combat-staging",
+  "ancestorSha": "dded898c23facb1ac80a83c57b40b762086e103a",
+  "applicationSha": "7df9dce66939cae693d4f112647da7bdd17e923c",
+  "changedFiles": [
+    "functions/src/billing/prepaidMembershipPolicy.ts",
+    "functions/src/billing/prepaidReconciliationPolicy.ts",
+    "functions/src/billing/recordProposalPrepaidCash.ts",
+    "public/assets/js/pricing/sandman-pricing-catalog.js",
+    "public/assets/js/pricing/sandman-pricing-engine.js",
+    "public/management/billing/billing.js",
+    "public/management/billing/prepaid-terms.js",
+    "tests/browser/billing-prepaid-terms.test.mjs",
+    "tests/browser/pricing-paid-in-full-foundation.test.mjs",
+    "tests/functions/prepaid-six-month-contract.test.mjs"
+  ],
+  "functionTarget": "recordProposalPrepaidCash",
+  "functionDependencies": [
+    "functions/src/billing/prepaidMembershipPolicy.ts",
+    "functions/src/billing/prepaidReconciliationPolicy.ts",
+    "functions/src/billing/recordProposalPrepaidCash.ts"
+  ],
+  "hostingFiles": [
+    "/assets/js/pricing/sandman-pricing-catalog.js",
+    "/assets/js/pricing/sandman-pricing-engine.js",
+    "/management/billing/billing.js",
+    "/management/billing/prepaid-terms.js"
+  ],
+  "secretReadsAuthorized": false,
+  "deploymentAuthorized": false,
+  "productionChangesAuthorized": false,
+  "firestoreWritesAuthorized": false,
+  "stripeOperationsAuthorized": false
+}

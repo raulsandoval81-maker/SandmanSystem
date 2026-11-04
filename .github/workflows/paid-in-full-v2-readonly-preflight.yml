@@ -1,0 +1,102 @@
+name: Paid in Full V2 read-only staging preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: paid-in-full-v2-readonly-preflight
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Check out protected trusted tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - name: Check out exact merged application revision
+        uses: actions/checkout@v4
+        with:
+          ref: 7df9dce66939cae693d4f112647da7bdd17e923c
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm fail-closed immutable release boundaries
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "$(git -C source rev-parse HEAD)" = "7df9dce66939cae693d4f112647da7bdd17e923c"
+          node trusted/scripts/staging/paid-in-full-v2-preflight-check.mjs source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run focused prepaid tests and build
+        run: |
+          set -euo pipefail
+          (cd source && node --test \
+            tests/browser/billing-prepaid-terms.test.mjs \
+            tests/browser/billing-prepaid-payment-date.test.mjs \
+            tests/browser/pricing-paid-in-full-foundation.test.mjs \
+            tests/functions/prepaid-six-month-contract.test.mjs \
+            tests/functions/prepaid-membership-contract.test.mjs)
+          (cd source && node --check public/management/billing/billing.js)
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+      - name: Authenticate as existing staging Functions read-only preflight principal
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture current target Function and Cloud Run metadata without changing them
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gcloud functions describe recordProposalPrepaidCash --v2 --region=us-central1 --project=sandman-combat-staging --format=json > evidence/function.json
+          gcloud functions get-iam-policy recordProposalPrepaidCash --region=us-central1 --project=sandman-combat-staging --format=json > evidence/function-iam.json
+          gcloud run services describe recordproposalprepaidcash --region=us-central1 --project=sandman-combat-staging --format=json > evidence/run-service.json
+          gcloud run services get-iam-policy recordproposalprepaidcash --region=us-central1 --project=sandman-combat-staging --format=json > evidence/run-iam.json
+          node -e 'const fs=require("fs");const f=JSON.parse(fs.readFileSync("evidence/function.json"));if(!f.name?.startsWith("projects/sandman-combat-staging/")||f.state!=="ACTIVE"||f.buildConfig?.runtime!=="nodejs22"||f.buildConfig?.entryPoint!=="recordProposalPrepaidCash")process.exit(64);console.log("Target Function is ACTIVE and matches staging boundary")'
+      - name: Authenticate as staging Hosting preflight identity
+        id: hosting-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture Hosting rollback baseline without modifying the site
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/staging/paid-in-full-v2-hosting-baseline.py \
+            --source-root source \
+            --evidence-file evidence/hosting-baseline.json
+      - name: Upload read-only baseline and fail-closed evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: paid-in-full-v2-readonly-preflight-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: ignore
