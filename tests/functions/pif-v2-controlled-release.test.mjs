@@ -6,6 +6,16 @@ const text = (path) => readFileSync(new URL("../../" + path, import.meta.url), "
 const manifest = JSON.parse(text("scripts/staging/pif-v2-controlled-release.json"));
 const workflow = text(".github/workflows/paid-in-full-v2-readonly-preflight.yml");
 const overlay = text("scripts/staging/pif-v2-controlled-hosting.py");
+function workflowJob(name) {
+  const marker = `\n  ${name}:\n`;
+  const start = workflow.indexOf(marker);
+  assert.ok(start >= 0, `Missing workflow job: ${name}`);
+  const bodyStart = start + marker.length;
+  const next = workflow.slice(bodyStart).search(/\n  [a-z][a-z0-9-]*:\n/);
+  return workflow.slice(start, next < 0 ? undefined : bodyStart + next);
+}
+const pifValidationJob = workflowJob("validate");
+const pifDeployJob = workflowJob("deploy");
 
 test("one-function four-asset release manifest remains exact, staging-only and not self-authorizing", () => {
   assert.equal(manifest.projectId, "sandman-combat-staging");
@@ -28,27 +38,30 @@ test("one-function four-asset release manifest remains exact, staging-only and n
 test("staging workflow retains read-only preflight as the default and gates mutation separately", () => {
   assert.match(workflow, /default: validate/);
   assert.match(workflow, /options: \[validate, deploy\]/);
-  assert.match(workflow, /if: \$\{\{ inputs\.action == 'deploy' \}\}/);
-  assert.match(workflow, /needs: validate/);
-  assert.match(workflow, /environment: staging/);
-  assert.match(workflow, /APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS/);
-  assert.match(workflow, /refs\/heads\/main/);
-  assert.match(workflow, /ref: 7df9dce66939cae693d4f112647da7bdd17e923c/);
-  assert.match(workflow, /source\/functions/);
-  assert.doesNotMatch(workflow, /--project[=\s]+sandmandashboard/);
+  assert.match(pifDeployJob, /if: \$\{\{ inputs\.release_scope == 'pif-v2' && inputs\.action == 'deploy' \}\}/);
+  assert.match(pifDeployJob, /needs: validate/);
+  assert.match(pifDeployJob, /environment: staging/);
+  assert.match(pifDeployJob, /APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS/);
+  assert.match(pifDeployJob, /refs\/heads\/main/);
+  assert.match(pifDeployJob, /ref: 7df9dce66939cae693d4f112647da7bdd17e923c/);
+  assert.match(pifDeployJob, /source\/functions/);
+  assert.doesNotMatch(pifValidationJob + pifDeployJob, /--project[=\s]+sandmandashboard/);
 });
 
 test("deployment stays on existing WIF-approved workflow and targets one named callable", () => {
-  assert.equal((workflow.match(/gcloud functions deploy /g) || []).length, 1);
-  assert.match(workflow, /gcloud functions deploy recordProposalPrepaidCash --gen2/);
-  assert.match(workflow, /--run-service-account=991554514268-compute@developer.gserviceaccount.com/);
-  assert.match(workflow, /--build-service-account=projects\/sandman-combat-staging/);
-  assert.match(workflow, /--entry-point=recordProposalPrepaidCash/);
-  assert.match(workflow, /read-only staging preflight/);
-  assert.match(workflow, /diff -u .*function-iam-before/);
-  assert.match(workflow, /diff -u .*run-iam-before/);
-  assert.match(workflow, /FUNCTION_DEPLOYMENT_VERIFIED/);
-  assert.match(workflow, /PIF_V2_FUNCTION_DEPLOYED_AND_VERIFIED: yes/);
+  assert.equal((pifDeployJob.match(/gcloud functions deploy /g) || []).length, 1);
+  assert.match(pifDeployJob, /gcloud functions deploy recordProposalPrepaidCash --gen2/);
+  assert.match(pifDeployJob, /--run-service-account=991554514268-compute@developer.gserviceaccount.com/);
+  assert.match(pifDeployJob, /--build-service-account=projects\/sandman-combat-staging/);
+  assert.match(pifDeployJob, /--entry-point=recordProposalPrepaidCash/);
+  assert.match(pifValidationJob, /Capture current target Function and Cloud Run metadata without changing them/);
+  assert.match(pifValidationJob, /Capture Hosting rollback baseline without modifying the site/);
+  assert.doesNotMatch(pifValidationJob, /gcloud functions deploy|gcloud run services update|--mode deploy/);
+  assert.match(pifDeployJob, /diff -u .*function-iam-before/);
+  assert.match(pifDeployJob, /diff -u .*run-iam-before/);
+  assert.match(pifDeployJob, /FUNCTION_DEPLOYMENT_VERIFIED/);
+  assert.match(pifDeployJob, /PIF_V2_FUNCTION_DEPLOYED_AND_VERIFIED: yes/);
+  assert.doesNotMatch(pifDeployJob, /returnProposalToDraft|APPROVE_STAGING_PROPOSAL_CORRECTION/);
 });
 
 test("Hosting helper fails closed on baseline change and cannot publish unapproved files", () => {
