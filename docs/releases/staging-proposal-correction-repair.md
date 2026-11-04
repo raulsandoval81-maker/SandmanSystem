@@ -6,6 +6,25 @@ This release is limited to `sandman-combat-staging`, exact application source
 The manifest is intentionally non-authorizing. A protected staging approver must separately
 authorize `APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET`.
 
+## Protected workflow
+
+Run [Protected controlled staging releases](https://github.com/raulsandoval81-maker/SandmanSystem/actions/workflows/paid-in-full-v2-readonly-preflight.yml)
+from `main` with `release_scope=proposal-correction`, `confirm_project=sandman-combat-staging`,
+and `action=validate`. Validation is read-only and records the verified missing Function,
+security prerequisites, sibling callable configuration, and exact Hosting rollback baseline.
+
+Only after a successful validation and separate staging-environment approval may an operator
+choose `action=deploy` and enter
+`APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET`. The workflow filename is already
+allowed by the staging WIF provider; no new provider or identity binding is required.
+
+The current read-only audit identifies two prerequisites that must be separately approved and
+satisfied before validation can pass: the practice deployer needs narrowly scoped permission
+to create this missing Function, and its `run.services.setIamPolicy` grant must be renewed with
+an unexpired condition restricted only to the `returnproposaltodraft` Cloud Run service. The
+workflow does not grant either permission and rejects unconditional, duplicate, expired, or
+broader invocation access.
+
 ## Read-only preflight
 
 1. Check out the exact application SHA in an isolated directory and verify Node 22.

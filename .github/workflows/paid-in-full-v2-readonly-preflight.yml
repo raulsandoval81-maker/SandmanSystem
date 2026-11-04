@@ -1,4 +1,4 @@
-name: Paid in Full V2 read-only staging preflight
+name: Protected controlled staging releases
 
 on:
   workflow_dispatch:
@@ -9,8 +9,14 @@ on:
         default: validate
         type: choice
         options: [validate, deploy]
+      release_scope:
+        description: Select the exact protected staging release scope
+        required: true
+        default: pif-v2
+        type: choice
+        options: [pif-v2, proposal-correction]
       approve_release:
-        description: For deploy only, enter APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS
+        description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
         type: string
       confirm_project:
@@ -28,6 +34,7 @@ concurrency:
 
 jobs:
   validate:
+    if: ${{ inputs.release_scope == 'pif-v2' }}
     runs-on: ubuntu-24.04
     environment: staging
     steps:
@@ -114,7 +121,7 @@ jobs:
           if-no-files-found: ignore
 
   deploy:
-    if: ${{ inputs.action == 'deploy' }}
+    if: ${{ inputs.release_scope == 'pif-v2' && inputs.action == 'deploy' }}
     needs: validate
     runs-on: ubuntu-24.04
     environment: staging
@@ -301,5 +308,263 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: paid-in-full-v2-staging-release-${{ github.run_id }}
+          path: release-evidence
+          if-no-files-found: warn
+
+  proposal-correction-validate:
+    if: ${{ inputs.release_scope == 'proposal-correction' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      PROJECT_ID: sandman-combat-staging
+      REGION: us-central1
+      SOURCE_SHA: 786dba9824663feea4aa092a1bbe54b151c8233a
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Check out protected release tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - name: Check out pinned proposal-correction source
+        uses: actions/checkout@v4
+        with:
+          ref: 786dba9824663feea4aa092a1bbe54b151c8233a
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact source and run focused contracts
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "${PROJECT_ID}"
+          test "$(git -C source rev-parse HEAD)" = "${SOURCE_SHA}"
+          node --test source/tests/functions/proposal-correction-repair.test.mjs \
+            trusted/tests/functions/proposal-correction-release.test.mjs \
+            trusted/tests/functions/proposal-correction-workflow.test.mjs
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+          python3 -m py_compile trusted/scripts/staging/proposal-correction-controlled-hosting.py
+      - name: Authenticate as existing staging Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture missing Function, security prerequisites, and sibling configuration
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          set +e
+          gcloud functions describe returnProposalToDraft --gen2 --region="${REGION}" \
+            --project="${PROJECT_ID}" --format=json > evidence/function-stdout.txt 2> evidence/function-stderr.txt
+          status=$?
+          set -e
+          printf '%s\n' "${status}" > evidence/function-status.txt
+          test "${status}" -ne 0
+          gcloud iam roles describe sandmanPracticeDeployer --project="${PROJECT_ID}" \
+            --format=json > evidence/practice-role.json
+          gcloud iam roles describe sandmanBillingInvokerIamRelease --project="${PROJECT_ID}" \
+            --format=json > evidence/invocation-role.json
+          gcloud projects get-iam-policy "${PROJECT_ID}" --format=json > evidence/project-iam.json
+          gcloud iam service-accounts get-iam-policy \
+            sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --project="${PROJECT_ID}" --format=json > evidence/runtime-iam.json
+          gcloud iam service-accounts get-iam-policy \
+            sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --project="${PROJECT_ID}" --format=json > evidence/build-iam.json
+          gcloud secrets get-iam-policy STRIPE_SECRET_KEY --project="${PROJECT_ID}" \
+            --format=json > evidence/secret-iam.json
+          gcloud functions describe issueProposalClientReview --gen2 --region="${REGION}" \
+            --project="${PROJECT_ID}" --format=json > evidence/sibling-function.json
+          gcloud run services describe issueproposalclientreview --region="${REGION}" \
+            --project="${PROJECT_ID}" --format=json > evidence/sibling-run.json
+      - name: Authenticate as existing staging Hosting identity
+        id: proposal-hosting-preflight-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture exact Hosting rollback baseline without publishing
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.proposal-hosting-preflight-auth.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/staging/proposal-correction-controlled-hosting.py --mode verify \
+            --source-root source --evidence-dir evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}"
+      - name: Fail closed unless all create and invocation prerequisites are exact
+        run: node trusted/scripts/staging/proposal-correction-release.mjs evidence
+      - name: Preserve proposal-correction validation and rollback evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: proposal-correction-staging-preflight-${{ github.run_id }}
+          path: evidence
+          if-no-files-found: error
+
+  proposal-correction-deploy:
+    if: ${{ inputs.release_scope == 'proposal-correction' && inputs.action == 'deploy' }}
+    needs: proposal-correction-validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      PROJECT_ID: sandman-combat-staging
+      REGION: us-central1
+      SOURCE_SHA: 786dba9824663feea4aa092a1bbe54b151c8233a
+      RELEASE_ID: proposal-correction-786dba98
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Require separate exact-scope staging approval
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_RELEASE: ${{ inputs.approve_release }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "${PROJECT_ID}"
+          test "${APPROVE_RELEASE}" = "APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET"
+      - name: Check out protected tooling and pinned source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 786dba9824663feea4aa092a1bbe54b151c8233a
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: proposal-correction-staging-preflight-${{ github.run_id }}
+          path: baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Authenticate as existing staging Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Reject source, Function-state, or security-prerequisite drift
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "${SOURCE_SHA}"
+          mkdir -p release-evidence/current
+          set +e
+          gcloud functions describe returnProposalToDraft --gen2 --region="${REGION}" \
+            --project="${PROJECT_ID}" --format=json > release-evidence/current/function-stdout.txt \
+            2> release-evidence/current/function-stderr.txt
+          status=$?
+          set -e
+          printf '%s\n' "${status}" > release-evidence/current/function-status.txt
+          test "${status}" -ne 0
+          gcloud iam roles describe sandmanPracticeDeployer --project="${PROJECT_ID}" --format=json > release-evidence/current/practice-role.json
+          gcloud iam roles describe sandmanBillingInvokerIamRelease --project="${PROJECT_ID}" --format=json > release-evidence/current/invocation-role.json
+          gcloud projects get-iam-policy "${PROJECT_ID}" --format=json > release-evidence/current/project-iam.json
+          gcloud iam service-accounts get-iam-policy sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com --project="${PROJECT_ID}" --format=json > release-evidence/current/runtime-iam.json
+          gcloud iam service-accounts get-iam-policy sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com --project="${PROJECT_ID}" --format=json > release-evidence/current/build-iam.json
+          gcloud secrets get-iam-policy STRIPE_SECRET_KEY --project="${PROJECT_ID}" --format=json > release-evidence/current/secret-iam.json
+          gcloud functions describe issueProposalClientReview --gen2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/current/sibling-function.json
+          gcloud run services describe issueproposalclientreview --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/current/sibling-run.json
+          node trusted/scripts/staging/proposal-correction-release.mjs release-evidence/current
+      - name: Build exact source and reject every environment-file variant
+        run: |
+          set -euo pipefail
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+          mkdir release-functions
+          rsync -a --exclude='node_modules/' --exclude='.env' --exclude='.env.*' \
+            --exclude='**/.env' --exclude='**/.env.*' source/functions/ release-functions/
+          if find release-functions -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+            echo 'Unexpected environment file in release artifact' >&2
+            exit 64
+          fi
+          test -f release-functions/lib/proposals/returnProposalToDraft.js
+      - name: Create exactly the missing staging callable
+        run: |
+          set -euo pipefail
+          gcloud functions deploy returnProposalToDraft --gen2 \
+            --project="${PROJECT_ID}" --region="${REGION}" --runtime=nodejs22 \
+            --entry-point=returnProposalToDraft --source=release-functions \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 \
+            --ingress-settings=all --trigger-http \
+            --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest \
+            --update-labels=sandman-release="${RELEASE_ID}",sandman-source-sha="${SOURCE_SHA}" --quiet
+          gcloud run services update returnproposaltodraft --project="${PROJECT_ID}" \
+            --region="${REGION}" --no-invoker-iam-check --quiet
+      - name: Verify exact Function configuration and unchanged empty IAM
+        run: |
+          set -euo pipefail
+          gcloud functions describe returnProposalToDraft --gen2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-after.json
+          gcloud functions get-iam-policy returnProposalToDraft --gen2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/function-iam-after.json
+          gcloud run services describe returnproposaltodraft --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-after.json
+          gcloud run services get-iam-policy returnproposaltodraft --region="${REGION}" --project="${PROJECT_ID}" --format=json > release-evidence/run-iam-after.json
+          node - <<'NODE'
+          const fs=require('fs');const read=p=>JSON.parse(fs.readFileSync(p));
+          const f=read('release-evidence/function-after.json'),r=read('release-evidence/run-after.json');
+          const fi=read('release-evidence/function-iam-after.json'),ri=read('release-evidence/run-iam-after.json');
+          const exact=(a,b,m)=>{if(JSON.stringify(a)!==JSON.stringify(b))throw Error(m)};
+          if(f.name!=='projects/sandman-combat-staging/locations/us-central1/functions/returnProposalToDraft'||f.state!=='ACTIVE'||f.environment!=='GEN_2')throw Error('Function identity/state mismatch');
+          if(f.buildConfig?.runtime!=='nodejs22'||f.buildConfig?.entryPoint!=='returnProposalToDraft'||f.buildConfig?.serviceAccount!=='projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com')throw Error('Build configuration mismatch');
+          const s=f.serviceConfig||{};
+          if(s.serviceAccountEmail!=='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com'||s.ingressSettings!=='ALLOW_ALL'||s.availableMemory!=='256Mi'||s.availableCpu!=='1'||s.timeoutSeconds!==60||s.maxInstanceCount!==20||s.maxInstanceRequestConcurrency!==80)throw Error('Runtime configuration mismatch');
+          const expectedEnv={SANDMAN_STAGING_ACK:'sandman-combat-staging',SANDMAN_STAGING_PROJECT_ID:'sandman-combat-staging',SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT:'sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com'};
+          const actualEnv=Object.fromEntries(Object.entries(s.environmentVariables||{}).filter(([k])=>k.startsWith('SANDMAN_')));
+          exact(actualEnv,expectedEnv,'Staging environment mismatch');
+          if(f.labels?.['sandman-release']!=='proposal-correction-786dba98'||f.labels?.['sandman-source-sha']!==process.env.SOURCE_SHA)throw Error('Release label mismatch');
+          const secrets=(s.secretEnvironmentVariables||[]).map(x=>({key:x.key,secret:x.secret,version:x.version}));
+          exact(secrets,[{key:'STRIPE_SECRET_KEY',secret:'STRIPE_SECRET_KEY',version:'latest'}],'Secret mismatch');
+          if((fi.bindings||[]).length||(ri.bindings||[]).length)throw Error('Unexpected invocation IAM binding');
+          if(r.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true')throw Error('Callable transport configuration missing');
+          console.log('PROPOSAL_CORRECTION_FUNCTION_VERIFIED');
+          NODE
+      - name: Authenticate as staging Hosting identity
+        id: proposal-hosting-deploy-auth
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Publish exactly one approved Hosting asset
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.proposal-hosting-deploy-auth.outputs.access_token }}
+          PROPOSAL_CORRECTION_FUNCTION_VERIFIED: yes
+          APPROVE_RELEASE: ${{ inputs.approve_release }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/staging/proposal-correction-controlled-hosting.py --mode deploy \
+            --source-root source --evidence-dir release-evidence/hosting \
+            --confirm-project "${PROJECT_ID}" --confirm-source-sha "${SOURCE_SHA}" \
+            --approve-release "${APPROVE_RELEASE}"
+      - name: Preserve release and rollback evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: proposal-correction-staging-release-${{ github.run_id }}
           path: release-evidence
           if-no-files-found: warn
