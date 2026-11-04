@@ -9,6 +9,7 @@ import { bootstrapFunctions, deploymentPlan, executePlan, installationReport,
   invocationPlan, invocationState, isVerifiedNotFound, manifest, runtimeFor,
   validateExistingFunction, validateManifest } from
   "../../scripts/staging/pr451-intake-activation-release.mjs";
+import { verifyReviewPrerequisites } from "../helpers/pr451-review-prerequisites.mjs";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fromRoot = relative => path.join(repositoryRoot, relative);
@@ -24,6 +25,7 @@ test("release is exact, staging-only, and excludes existing billing deployment",
   assert.equal(manifest.functions.length, 16);
   assert.equal(manifest.deployBillingFunctions, false);
   assert.deepEqual(manifest.requiredExistingFunctions, [
+    "submitProposalForReview", "issueProposalClientReview",
     "recordProposalPrepaidCash", "createProposalCheckout",
     "getProposalEnrollment", "saveProposalEnrollmentAgreement",
   ]);
@@ -185,8 +187,9 @@ function invocationEvidence(entry, complete = false) {
 }
 
 function installationRecords(complete = true) {
-  return Object.fromEntries(manifest.functions.map(entry => [entry.name, {
-    description: exactDescription(entry), invocation: invocationEvidence(entry, complete),
+  return Object.fromEntries([...manifest.functions, ...manifest.requiredReviewCallables].map(entry => [entry.name, {
+    description: exactDescription(entry), invocation: invocationEvidence(entry,
+      manifest.requiredReviewCallables.some(item => item.name === entry.name) || complete),
   }]));
 }
 
@@ -275,7 +278,7 @@ test("workflow verifier CLI never certifies creation or incomplete evidence as i
   const root = await mkdtemp(path.join(tmpdir(), "pr451-verification-"));
   const verifier = fromRoot("tests/helpers/verify-pr451-intake-activation-invocation.mjs");
   const writeRecords = async records => {
-    for (const entry of manifest.functions) {
+    for (const entry of [...manifest.functions, ...manifest.requiredReviewCallables]) {
       const record = records[entry.name];
       await writeFile(path.join(root, `${entry.name}.json`), JSON.stringify(record.description));
       if (entry.kind.endsWith("callable")) {
@@ -300,6 +303,23 @@ test("workflow verifier CLI never certifies creation or incomplete evidence as i
     const complete = run();
     assert.equal(complete.status, 0, complete.stderr);
     assert.equal(JSON.parse(complete.stdout).installationComplete, true);
+    for (const entry of manifest.requiredReviewCallables) {
+      await rm(path.join(root, `${entry.name}.json`));
+      for (const args of [[], ["--creation-only"]]) {
+        const missingPrerequisite = run(...args);
+        assert.notEqual(missingPrerequisite.status, 0);
+        assert.equal(missingPrerequisite.stdout, "");
+      }
+      await writeRecords(installationRecords());
+      await writeFile(path.join(root, `${entry.name}-run-service.json`),
+        JSON.stringify({ metadata: { annotations: {} } }));
+      for (const args of [[], ["--creation-only"]]) {
+        const privatePrerequisite = run(...args);
+        assert.notEqual(privatePrerequisite.status, 0);
+        assert.match(privatePrerequisite.stderr, /invocation incomplete/);
+      }
+      await writeRecords(installationRecords());
+    }
     await rm(path.join(root, "syncActivatedEnrollmentPlacement.json"));
     const missingTrigger = run();
     assert.notEqual(missingTrigger.status, 0);
@@ -307,4 +327,34 @@ test("workflow verifier CLI never certifies creation or incomplete evidence as i
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("review prerequisites reject missing, unhealthy, wrong-project, or inaccessible callables", () => {
+  assert.equal(verifyReviewPrerequisites(installationRecords()), true);
+  for (const entry of manifest.requiredReviewCallables) {
+    for (const mutate of [
+      records => { delete records[entry.name]; },
+      records => { records[entry.name].description.absent = true; },
+      records => { records[entry.name].description.state = "FAILED"; },
+      records => { records[entry.name].description.name = "projects/other/locations/us-central1/functions/wrong"; },
+      records => { records[entry.name].description.buildConfig.runtime = "nodejs20"; },
+      records => { records[entry.name].description.buildConfig.entryPoint = "wrong"; },
+      records => { records[entry.name].invocation = invocationEvidence(entry, false); },
+      records => { records[entry.name].invocation.runIam = { bindings: [
+        { role: "roles/run.invoker", members: ["allUsers"] },
+      ] }; },
+    ]) {
+      const records = installationRecords();
+      mutate(records);
+      assert.throws(() => verifyReviewPrerequisites(records));
+    }
+    assert.throws(() => deploymentPlan(entry, "/tmp/exact-source"), /outside the exact release allowlist/);
+  }
+});
+
+test("workflow collects both review prerequisites for preflight and final verification", async () => {
+  assert.match(workflow, /m\.requiredExistingFunctions\.join/);
+  assert.equal((workflow.match(/\.\.\.m\.requiredReviewCallables/g) || []).length, 2);
+  const preflight = await readFile(fromRoot("tests/helpers/verify-pr451-intake-activation-preflight.mjs"), "utf8");
+  assert.match(preflight, /verifyReviewPrerequisites\(reviewRecords\)/);
 });

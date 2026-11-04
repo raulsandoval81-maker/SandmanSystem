@@ -1,9 +1,100 @@
 # PR451 staging Intake and Activation recovery
 
 Application source remains pinned to `b3f93005d4bcd9547cb6415627e8133f0318ad74`.
-The unchanged manifest allows exactly 16 staging Functions in `sandman-combat-staging`,
+The unchanged creation allowlist permits exactly 16 staging Functions in `sandman-combat-staging`,
 `us-central1`. Billing Functions, application code, Hosting, Firestore rules/indexes,
 and production are outside this release.
+
+## Required proposal-review prerequisites
+
+Both `submitProposalForReview` and `issueProposalClientReview` must already be
+ACTIVE Gen2 Node 22 callables in the staging project/region, with matching
+entrypoints, disabled Cloud Run invoker IAM checks, and empty Function/Cloud Run
+IAM bindings. Preflight and final verification now require evidence for both.
+They are read-only dependencies, not additions to the 16-Function creation allowlist.
+
+The targeted live audit found `submitProposalForReview` absent (Cloud Functions
+v2 GET returned 404/NOT_FOUND). `issueProposalClientReview` was ACTIVE, Node 22,
+revision `issueproposalclientreview-00003-ler`, with its invoker IAM check disabled
+and no Function or Cloud Run IAM bindings. Leave that existing Function unchanged.
+
+The Builder first calls `submitProposalForReview` after the native confirmation.
+That callable validates authenticated staff and proposal location, then atomically
+writes DRAFT → REVIEW and a STATUS_CHANGED audit event. Only then does the Builder
+call `issueProposalClientReview` and navigate to the family review page. Do not
+manually change the proposal status or bypass either authorization check.
+
+### Single missing prerequisite recovery — NOT authorized by this PR
+
+Obtain separate approval before running the following creation procedure. Use an
+authorized staging administrator and stop unless the target still returns a
+verified 404/NOT_FOUND. A permissions error is not evidence of absence. If a
+partial Function exists, stop for a separately reviewed recovery; never overwrite it.
+
+Prepare from a local repository containing the exact approved commit:
+
+```bash
+set -euo pipefail
+test "$(gcloud auth list --filter=status:ACTIVE --format='value(account)')" = 'raulsandoval81@gmail.com'
+test "$(node --version | cut -d. -f1)" = 'v22'
+approved_sha=b3f93005d4bcd9547cb6415627e8133f0318ad74
+recovery_dir="$(mktemp -d -t pr451-review-recovery.XXXXXX)"
+git worktree add --detach "${recovery_dir}/source" "${approved_sha}"
+test "$(git -C "${recovery_dir}/source" rev-parse HEAD)" = "${approved_sha}"
+npm ci --prefix "${recovery_dir}/source/functions"
+npm run build --prefix "${recovery_dir}/source/functions"
+mkdir "${recovery_dir}/release-functions"
+rsync -a --exclude='.env' --exclude='.env.*' \
+  --exclude='**/.env' --exclude='**/.env.*' --exclude='node_modules/' \
+  "${recovery_dir}/source/functions/" "${recovery_dir}/release-functions/"
+test -e "${recovery_dir}/release-functions/lib/proposals/submitProposalForReview.js"
+if find "${recovery_dir}/release-functions" -type f \
+  \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+  echo 'Refusing artifact containing environment files' >&2
+  exit 1
+fi
+```
+
+After the explicit single-Function deployment approval and verified absent-state gate:
+
+```bash
+gcloud functions deploy submitProposalForReview \
+  --gen2 --project=sandman-combat-staging --region=us-central1 \
+  --runtime=nodejs22 --entry-point=submitProposalForReview \
+  --source="${recovery_dir}/release-functions" \
+  --run-service-account=991554514268-compute@developer.gserviceaccount.com \
+  --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+  --memory=256Mi --timeout=60s --max-instances=20 --cpu=1 --concurrency=80 \
+  --ingress-settings=all --trigger-http --clear-secrets \
+  --set-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+  --update-labels=sandman-release=pr451-review-prerequisite-b3f93005,sandman-source-sha=b3f93005d4bcd9547cb6415627e8133f0318ad74 \
+  --quiet
+```
+
+This command intentionally performs no invocation-IAM configuration. Read back
+the ACTIVE Function, exact source generation/label, resource settings, runtime/build
+identities, staging environment markers, empty secret bindings, and complete
+Function/Cloud Run IAM policies. Preserve this baseline before any access change.
+
+Only after separate administrator invocation approval, change the new service alone:
+
+```bash
+gcloud run services update submitproposalforreview \
+  --project=sandman-combat-staging --region=us-central1 \
+  --no-invoker-iam-check --quiet
+```
+
+Unauthenticated HTTP requests can then reach the handler; Firebase sign-in,
+active proposal staff authorization, and location checks remain mandatory in the
+approved source. Do not add public IAM bindings. Compare the full service baseline
+afterward: only the invoker flag and expected administrative metadata may change;
+source, revisions, template, identities, ingress and IAM bindings must remain intact.
+
+After the verifier repair is reviewed and merged, separately authorize protected
+`action=verify-installation` on main with `confirm_project=sandman-combat-staging`.
+Do not rerun bootstrap. Resume the existing synthetic P-000001 only after this gate
+passes. No deployment, invocation change, merge, or workflow trigger is authorized
+by preparing these instructions.
 
 ## Three separate gates
 

@@ -105,7 +105,8 @@ jobs:
             safe="$(printf '%s' "${sa}" | tr '@.' '__')"
             gcloud iam service-accounts get-iam-policy "${sa}" --project="${PROJECT_ID}" --format=json > "evidence/${safe}-iam.json"
           done
-          for fn in recordProposalPrepaidCash createProposalCheckout getProposalEnrollment saveProposalEnrollmentAgreement; do
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.requiredExistingFunctions.join("\n"))' |
+          while IFS= read -r fn; do
             gcloud functions describe "${fn}" --v2 --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
           done
           node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.map(x=>x.name).join("\n"))' |
@@ -120,7 +121,7 @@ jobs:
               exit 1
             fi
           done
-          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.filter(x=>x.kind.endsWith("callable")).map(x=>`${x.name}|${x.kind}`).join("\n"))' |
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log([...m.functions.filter(x=>x.kind.endsWith("callable")), ...m.requiredReviewCallables].map(x=>`${x.name}|${x.kind}`).join("\n"))' |
           while IFS='|' read -r fn kind; do
             if grep -q '"absent":true' "evidence/functions/${fn}.json"; then continue; fi
             gcloud functions get-iam-policy "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-function-iam.json"
@@ -203,7 +204,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p evidence/functions
-          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log(m.functions.map(x=>`${x.name}|${x.kind}`).join("\n"))' |
+          node -e 'const m=require("./trusted-tooling/scripts/staging/pr451-intake-activation-release.json"); console.log([...m.functions, ...m.requiredReviewCallables].map(x=>`${x.name}|${x.kind}`).join("\n"))' |
           while IFS='|' read -r fn kind; do
             gcloud functions describe "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}.json"
             gcloud functions get-iam-policy "${fn}" --region="${REGION}" --project="${PROJECT_ID}" --format=json > "evidence/functions/${fn}-function-iam.json"

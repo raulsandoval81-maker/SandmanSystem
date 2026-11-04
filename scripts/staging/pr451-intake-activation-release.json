@@ -29,10 +29,16 @@
     { "name": "syncActivatedEnrollmentPlacement", "kind": "gen2-firestore", "eventType": "google.cloud.firestore.document.v1.updated", "document": "intakes/{intakeId}" }
   ],
   "requiredExistingFunctions": [
+    "submitProposalForReview",
+    "issueProposalClientReview",
     "recordProposalPrepaidCash",
     "createProposalCheckout",
     "getProposalEnrollment",
     "saveProposalEnrollmentAgreement"
+  ],
+  "requiredReviewCallables": [
+    { "name": "submitProposalForReview", "kind": "gen2-callable" },
+    { "name": "issueProposalClientReview", "kind": "gen2-callable" }
   ],
   "requiredSecretMetadata": ["RESEND_API_KEY"],
   "deployFirestoreRules": false,
