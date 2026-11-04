@@ -1,16 +1,14 @@
 const TEXT_REPLACEMENTS = new Map([
-  ["Issue Client Review", "Send Remote Confirmation"],
-  ["Reissue Client Review", "Resend Remote Confirmation"],
   ["Approve & Begin Checkout", "Continue to Checkout"],
   ["Needs Review", "Ready for Final Confirmation"],
   ["Ready for Client Confirmation", "Ready for Final Confirmation"],
   ["Ready for Client Signature", "Ready for Final Confirmation"],
   ["Awaiting Client Signature", "Awaiting Final Confirmation"],
   ["Client Signed", "Final Confirmation Complete"],
-  ["Review — In Person", "In-Person Confirm → Stripe"],
-  ["Open for Signature — In Person", "In-Person Confirm → Stripe"],
-  ["Send for Review — Remote", "Remote Confirm → Stripe"],
-  ["Send for Signature — Remote", "Remote Confirm → Stripe"],
+  ["Review — In Person", "Open In-Person Review"],
+  ["Open for Signature — In Person", "Open In-Person Review"],
+  ["Send for Review — Remote", "Send Remote Review"],
+  ["Send for Signature — Remote", "Send Remote Review"],
   [
     "Family proposals waiting for review, changes, signature, or approval.",
     "Family proposals waiting for final confirmation, requested changes, or checkout."

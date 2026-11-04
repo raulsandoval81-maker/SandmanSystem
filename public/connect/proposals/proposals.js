@@ -1114,6 +1114,14 @@ function proposalActionHtml(status, id, proposal = {}) {
     return `<a class="proposal-open-btn" href="/intake-management/?proposalId=${encodeURIComponent(id)}">Continue to Enrollment</a>`;
   }
 
+  if (status === "REVIEW") {
+    return `
+      <button class="proposal-open-btn" type="button" data-proposal-action="open-client-review" data-proposal-id="${esc(id)}">Open In-Person Review</button>
+      <button class="proposal-open-btn" type="button" data-proposal-action="email-client-review" data-proposal-id="${esc(id)}">Send Remote Review</button>
+      <button class="proposal-open-btn" type="button" data-proposal-action="copy-client-review" data-proposal-id="${esc(id)}">Copy Secure Link — Alternative Delivery</button>
+    `;
+  }
+
   if (status === "AWAITING_CLIENT_SIGNATURE") {
     return `
       ${hasActiveMembershipChoice(proposal) ? `<button class="proposal-open-btn" type="button" data-proposal-action="record-membership-choice" data-proposal-id="${esc(id)}">Record Membership Choice</button>` : ""}
@@ -1121,9 +1129,12 @@ function proposalActionHtml(status, id, proposal = {}) {
         ${hasActiveMembershipChoice(proposal) ? "Resend Membership Options" : "Send Membership Options"}
       </button>
 
-      <button class="proposal-open-btn" type="button" data-proposal-action="issue-client-review" data-proposal-id="${esc(id)}">
-        Reissue Client Review
-      </button>
+      ${hasActiveMembershipChoice(proposal) ? "" : `
+      <button class="proposal-open-btn" type="button" data-proposal-action="open-client-review" data-proposal-id="${esc(id)}">Open In-Person Review</button>
+      <button class="proposal-open-btn" type="button" data-proposal-action="email-client-review" data-proposal-id="${esc(id)}">Send Remote Review</button>
+      <button class="proposal-open-btn" type="button" data-proposal-action="copy-client-review" data-proposal-id="${esc(id)}">Copy Secure Link — Alternative Delivery</button>
+
+      `}
 
       <button class="proposal-open-btn" type="button" data-proposal-action="record-manual-signature" data-proposal-id="${esc(id)}">
         Record Manual Signature · Safeguard
@@ -1320,31 +1331,51 @@ async function runProposalAction(button) {
       return;
     }
 
-    if (action === "issue-client-review") {
+    if (["open-client-review", "email-client-review", "copy-client-review"].includes(action)) {
+      // Reissuing replaces the previous secure link. Warn before invalidating it.
+      const currentStatus = String(button.closest(".proposal-card")?.dataset.status || "");
+      if (currentStatus === "AWAITING_CLIENT_SIGNATURE" &&
+          !window.confirm("Issue a new secure client-review link? The previous link will no longer work.")) {
+        button.disabled = false;
+        button.textContent = originalText;
+        return;
+      }
+      // All delivery options issue the same secure family-review token.
+      // Only the remote path requests email from the backend.
+      const remote = action === "email-client-review";
       const response = await httpsCallable(
         functions,
         "issueProposalClientReview"
-      )({ proposalId });
+      )({ proposalId, ...(remote ? { delivery: "email" } : {}) });
 
-      const reviewPath = response.data?.reviewPath;
-
+      const reviewPath = String(response.data?.reviewPath || "").trim();
       if (!reviewPath) {
         throw new Error("Client review link was not returned.");
       }
 
-      const reviewUrl = new URL(reviewPath, window.location.origin).href;
-
-      try {
-        await navigator.clipboard.writeText(reviewUrl);
-      } catch {
-        // The prompt below remains the reliable handoff when clipboard access is unavailable.
+      if (remote) {
+        const recipient = String(response.data?.recipient || "").trim();
+        window.alert(recipient
+          ? `Client review sent to ${recipient}.`
+          : "Client review sent by email.");
+        await loadProposalQueue();
+        return;
       }
 
-      window.prompt(
-        "Client review link (copied when browser permission allows):",
-        reviewUrl
-      );
+      const reviewUrl = new URL(reviewPath, window.location.origin).href;
 
+      if (action === "open-client-review") {
+        window.location.assign(reviewUrl);
+        return;
+      }
+
+      // Clipboard access is browser-dependent; preserve a copyable fallback.
+      try {
+        await navigator.clipboard.writeText(reviewUrl);
+        window.alert("Secure client-review link copied. Share only with the intended family. Sending it by another channel is not recorded as an email delivery.");
+      } catch {
+        window.prompt("Copy the secure family-review link for alternative delivery:", reviewUrl);
+      }
       await loadProposalQueue();
       return;
     }

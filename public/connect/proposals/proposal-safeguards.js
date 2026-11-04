@@ -9,12 +9,6 @@ const reopenProposal =
     "returnProposalToDraft"
   );
 
-const issueProposalClientReview =
-  httpsCallable(
-    functions,
-    "issueProposalClientReview"
-  );
-
 const recordManualProposalSignature =
   httpsCallable(
     functions,
@@ -99,85 +93,6 @@ function addSafeguards() {
         status === "AWAITING_CLIENT_SIGNATURE" &&
         !membershipChoiceActive
       ) {
-        const issueButton =
-          actions.querySelector(
-            '[data-proposal-action="issue-client-review"]'
-          );
-
-        if (
-          issueButton &&
-          !issueButton.dataset.repeatGuardInstalled
-        ) {
-          issueButton.dataset.repeatGuardInstalled =
-            "true";
-
-          issueButton.textContent =
-            "Resend Remote Confirmation";
-
-          issueButton.title =
-            "Send another remote confirmation email to the proposal contact. The send is recorded in Activity.";
-
-          issueButton.addEventListener(
-            "click",
-            async (event) => {
-              event.preventDefault();
-              event.stopImmediatePropagation();
-
-              const confirmed =
-                window.confirm(
-                  `Send another remote confirmation for ${proposalId}?\n\nThe email will be sent to the authoritative proposal contact and recorded in Activity.`
-                );
-
-              if (!confirmed) {
-                return;
-              }
-
-              const originalText =
-                issueButton.textContent;
-
-              issueButton.disabled = true;
-              issueButton.textContent =
-                "Sending…";
-
-              try {
-                const response =
-                  await issueProposalClientReview({
-                    proposalId,
-                    delivery: "email"
-                  });
-
-                const recipient =
-                  clean(
-                    response.data?.recipient
-                  );
-
-                window.alert(
-                  recipient
-                    ? `Remote confirmation sent to ${recipient}.`
-                    : "Remote confirmation sent."
-                );
-
-                window.location.reload();
-              } catch (error) {
-                console.error(
-                  "Proposal resend failed:",
-                  error
-                );
-
-                window.alert(
-                  error?.message ||
-                  "The remote confirmation could not be sent."
-                );
-
-                issueButton.disabled = false;
-                issueButton.textContent =
-                  originalText;
-              }
-            },
-            true
-          );
-        }
-
         if (
           !actions.querySelector(
             '[data-record-manual-signature], [data-proposal-action="record-manual-signature"]'
