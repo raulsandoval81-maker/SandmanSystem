@@ -20,11 +20,11 @@ test("PIF V2 staging preflight is read-only, pinned and restricted", () => {
   assert.match(workflow,/workflow_dispatch:/);
   assert.match(workflow,/environment: staging/);
   assert.match(workflow,/paid-in-full-v2-preflight-check\.mjs source/);
-  const [validationJob, deployJob] = workflow.split("\\n  deploy:\\n");
+  const [validationJob, deployJob] = workflow.split("\n  deploy:\n");
   assert.ok(validationJob && deployJob, "Both validation and deployment jobs must exist");
-  assert.match(validationJob,/  validate:\\n/);
+  assert.match(validationJob,/  validate:\n/);
   assert.doesNotMatch(validationJob,/gcloud functions deploy|firebase-tools.*deploy|gcloud run services update|--mode deploy/);
-  assert.match(deployJob,/if: \\$\\{\\{ inputs\\.action == 'deploy' \\}\\}/);
+  assert.match(deployJob,/if: \$\{\{ inputs\.action == 'deploy' \}\}/);
   assert.match(deployJob,/needs: validate/);
   assert.match(deployJob,/APPROVE_PIF_V2_STAGING_ONE_FUNCTION_FOUR_ASSETS/);
   assert.match(deployJob,/gcloud functions deploy recordProposalPrepaidCash --gen2/);
