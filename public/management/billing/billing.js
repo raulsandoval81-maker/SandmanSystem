@@ -2263,12 +2263,13 @@ function openCashDialog(
     membershipAmount ? membershipAmount.toFixed(2) : "";
   document.getElementById("prepaidCashMethod").value = "cash";
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Historical cash/check payments must use the actual received date.
+  // Never silently substitute today: that would misstate the audit record.
   const startDate = clean(
     proposal.agreement?.membershipStartDate ||
     proposal.pricing?.membershipStartDate
   );
-  document.getElementById("prepaidCashPaymentDate").value = today;
+  document.getElementById("prepaidCashPaymentDate").value = "";
   document.getElementById("prepaidCashStartDate").value = startDate;
 
   const paidThrough = startDate ? new Date(`${startDate}T12:00:00Z`) : null;
