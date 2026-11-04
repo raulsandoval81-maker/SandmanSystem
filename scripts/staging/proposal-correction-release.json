@@ -1,0 +1,18 @@
+{
+  "releaseId": "proposal-correction-786dba98",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "applicationSha": "786dba9824663feea4aa092a1bbe54b151c8233a",
+  "functionName": "returnProposalToDraft",
+  "runtimeServiceAccount": "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
+  "buildServiceAccount": "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
+  "secrets": ["STRIPE_SECRET_KEY"],
+  "hostingSite": "sandman-combat-staging",
+  "hostingAssets": [
+    "/connect/proposals/proposal-safeguards.js"
+  ],
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "rollbackAutomatic": false
+}
