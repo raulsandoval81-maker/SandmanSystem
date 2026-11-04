@@ -40,6 +40,25 @@ export const SANDMAN_PRICING_CATALOG = {
   effectiveFrom: "2026-09-19",
   stripeLookupPrefix: PREFIX,
 
+  // Catalog-only payment arrangements. These are not new Stripe prices or enabled checkout routes.
+  paymentArrangements: {
+    recurring: {
+      supportedTerms: ["annual", "sixMonth", "monthToMonth"]
+    },
+    paidInFull: {
+      supportedTerms: ["sixMonth", "annual"],
+      supportedMonths: [6, 12],
+      additionalDiscountPercent: 0,
+      membershipPriceSource: "existing_household_term_rate",
+      annualEnrollmentFee: "separately_allocated_per_athlete",
+      initialHouseholdEnrollment: "catalog_quote_only",
+      midtermSiblingAddition: "management_amendment_required",
+      checkoutEnabled: false,
+      sixMonthReconciliationEnabled: false
+    }
+  },
+
+
   combat: {
     accessOrder: [
       "core-2",
