@@ -235,6 +235,61 @@ class ReleaseTests(unittest.TestCase):
                     with self.assertRaisesRegex(RuntimeError, 'source archive'):
                         audit.verify(preflight, receipt, root/'reject-source.json', 'read-only-token')
 
+    def test_six_function_recovery_plan_preserves_first_and_never_authorizes(self):
+        planner = load('pr482_six_plan', 'scripts/staging/pr482-six-function-recovery-plan.py')
+        original = {'project': r.c.PROJECT, 'applicationSha': r.c.SHA,
+                    'functions': {n: self.before() for n in r.c.FUNCTIONS}}
+        # The original immutable inventory has one appropriately named function per key.
+        for name, state in original['functions'].items():
+            state['function']['name'] = 'projects/'+r.c.PROJECT+'/locations/'+r.c.REGION+'/functions/'+name
+        first_after = self.after(original['functions'][planner.FIRST])
+        first_after['function']['serviceConfig']['revision'] = planner.REVISION
+        original_pin = r.c.baseline_digest(original)
+        manifest = copy.deepcopy(r.manifest())
+        manifest['baselineSha256'] = original_pin
+        audit = {
+            'status': 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT',
+            'runId': planner.RUN15, 'firstFunction': planner.FIRST,
+            'revision': planner.REVISION, 'originalBaselineSha256': original_pin,
+            'sourcePackageMatch': True, 'cloudRunReady': True,
+            'startupProbeLogsVerified': False,
+            'startupLogReview': 'NOT_PERFORMED_NO_CLOUD_LOGGING_ACCESS',
+            'trafficPercent': 100, 'otherSixFunctionsMatchOriginal': True,
+            'hostingMatchesOriginal': True, 'allIamMatchesRecordedEvidence': True,
+            'deploymentAuthorized': False, 'productionAuthorized': False,
+        }
+        with patch.object(planner.release, 'manifest', return_value=manifest):
+            plan = planner.plan_from_evidence(original, first_after, audit)
+            self.assertEqual(plan['preservedFunction'], planner.FIRST)
+            self.assertNotIn(planner.FIRST, plan['functionsToPrepare'])
+            self.assertEqual(len(plan['functionsToPrepare']), 6)
+            self.assertEqual(plan['status'], 'RECOVERY_PLAN_ONLY_NOT_AUTHORIZED')
+            self.assertFalse(plan['deploymentAuthorized'])
+            self.assertFalse(plan['productionAuthorized'])
+            self.assertEqual(plan['hostingAssetsToPrepare'], r.c.ASSETS)
+            for field, wrong in [
+                ('sourcePackageMatch', False),
+                ('cloudRunReady', False),
+                ('startupProbeLogsVerified', True),
+                ('otherSixFunctionsMatchOriginal', False),
+                ('hostingMatchesOriginal', False),
+                ('allIamMatchesRecordedEvidence', False),
+                ('deploymentAuthorized', True),
+                ('trafficPercent', 99),
+                ('runId', 'other'),
+            ]:
+                mutated = copy.deepcopy(audit); mutated[field] = wrong
+                with self.subTest(field=field), self.assertRaises(RuntimeError):
+                    planner.plan_from_evidence(original, first_after, mutated)
+            wrong_original = copy.deepcopy(original)
+            wrong_original['applicationSha'] = 'unreviewed'
+            with self.assertRaises(RuntimeError):
+                planner.plan_from_evidence(wrong_original, first_after, audit)
+            wrong_first = copy.deepcopy(first_after)
+            wrong_first['function']['serviceConfig']['revision'] = 'other'
+            with self.assertRaises(RuntimeError):
+                planner.plan_from_evidence(original, wrong_first, audit)
+
     def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         self.assertIn('run15-recovery-audit', protected)
