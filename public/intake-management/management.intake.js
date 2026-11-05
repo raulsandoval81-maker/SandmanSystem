@@ -926,6 +926,9 @@ function wireReadyIntakeButtons() {
         if (receiptResult.data?.ok !== true) {
           throw new Error("Receipt delivery was not confirmed. Intake email not sent.");
         }
+        if (String(receiptResult.data?.recipient || "").toLowerCase() !== recipientEmail) {
+          throw new Error("Receipt was sent to a different recipient. Resolve the delivery mismatch before sending Intake.");
+        }
         const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
         const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true });
         if (intakeResult.data?.ok !== true) {
