@@ -92,7 +92,8 @@ class ReleaseTests(unittest.TestCase):
 
     def before(self):
         return {'functionIam': {'etag': 'x'}, 'runIam': {'etag': 'x'},
-                'function': {'state': 'ACTIVE', 'updateTime': 'before', 'buildConfig': {'runtime': 'nodejs22', 'source': 'old'},
+                'function': {'name': 'projects/sandman-combat-staging/locations/us-central1/functions/createProposalDraft',
+                             'state': 'ACTIVE', 'updateTime': 'before', 'buildConfig': {'runtime': 'nodejs22', 'source': 'old'},
                              'serviceConfig': {'revision': 'old', 'serviceAccountEmail': 'runtime', 'secretEnvironmentVariables': [{'key': 'SECRET', 'version': 'latest'}]}},
                 'run': {'metadata': {'annotations': {'run.googleapis.com/invoker-iam-disabled': 'true'}},
                         'spec': {'template': {'metadata': {'name': 'old'}, 'spec': {'containers': [{'image': 'old', 'env': [{'name': 'ACK', 'value': 'staging'}]}]}}}}}
@@ -106,6 +107,33 @@ class ReleaseTests(unittest.TestCase):
 
     def test_expected_revision_and_source_changes_only(self):
         before = self.before(); r.compare_after(before, self.after(before))
+
+    def test_run15_provider_identity_labels_added_by_gcloud_are_allowed_only_when_exact(self):
+        before = self.before()
+        after = self.after(before)
+        labels = after['run']['spec']['template']['metadata'].setdefault('labels', {})
+        labels.update({'goog-drz-cloudfunctions-id': 'createproposaldraft',
+                       'goog-drz-cloudfunctions-location': 'us-central1'})
+        r.compare_after(before, after)
+        for key, wrong in [('goog-drz-cloudfunctions-id', 'other-function'),
+                           ('goog-drz-cloudfunctions-location', 'us-east1')]:
+            mutated = copy.deepcopy(after)
+            mutated['run']['spec']['template']['metadata']['labels'][key] = wrong
+            with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'runtime specification'):
+                r.compare_after(before, mutated)
+        extra = copy.deepcopy(after)
+        extra['run']['spec']['template']['metadata']['labels']['unexpected'] = 'changed'
+        with self.assertRaisesRegex(RuntimeError, 'runtime specification'):
+            r.compare_after(before, extra)
+
+    def test_existing_provider_label_removal_remains_blocked(self):
+        before = self.before()
+        before['run']['spec']['template']['metadata']['labels'] = {
+            'goog-drz-cloudfunctions-id': 'createproposaldraft'}
+        after = self.after(before)
+        after['run']['spec']['template']['metadata']['labels'].clear()
+        with self.assertRaisesRegex(RuntimeError, 'runtime specification'):
+            r.compare_after(before, after)
 
     def test_runtime_identity_secret_iam_and_invoker_drift_reject(self):
         before = self.before()
