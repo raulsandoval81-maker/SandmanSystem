@@ -183,6 +183,48 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
+      if (data?.twoCRecovery === true) {
+        if (actor.role !== "admin" || clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
+          throw new functions.https.HttpsError("permission-denied", "2C Intake recovery requires System Admin authority.");
+        }
+        const action = clean(data?.resolution);
+        const providerId = clean(data?.providerId);
+        const evidence = clean(data?.evidence);
+        const confirmation = clean(data?.confirmation);
+        if (!["confirm_sent", "confirm_not_sent"].includes(action) ||
+            evidence.length < 20 || evidence.length > 1000 ||
+            confirmation !== (action === "confirm_sent" ? "PROVIDER_ACCEPTED_EMAIL" : "PROVIDER_CONFIRMED_NOT_ACCEPTED") ||
+            (action === "confirm_sent" && !providerId)) {
+          throw new functions.https.HttpsError("invalid-argument", "Exact confirmation and provider evidence are required.");
+        }
+        const newStatus = action === "confirm_sent" ? "SENT" : "FAILED";
+        const historyRef = db.collection("proposals").doc(proposalId).collection("history").doc();
+        await db.runTransaction(async tx => {
+          const latest = (await tx.get(tokenRef)).data() || {};
+          if (latest.used === true || clean(latest.twoCEmailStatus) !== "SENDING") {
+            throw new functions.https.HttpsError("failed-precondition", "Only unresolved 2C Intake sends may be reconciled.");
+          }
+          tx.update(tokenRef, {
+            twoCEmailStatus:newStatus,
+            ...(newStatus === "SENT" ? {
+              deliveryStatus:"SENT", deliveryMethod:"email", deliveredTo:clean(latest.twoCEmailRecipient),
+              deliveredAt:FieldValue.serverTimestamp(),
+              exp:Date.now()+48*60*60*1000,
+              resendEmailId:providerId,
+            } : {}),
+            twoCResolutionEvidence:evidence, twoCResolvedBy:context.auth!.uid,
+            twoCResolvedAt:FieldValue.serverTimestamp(),
+          });
+          tx.create(historyRef, {
+            proposalId,
+            event:newStatus === "SENT" ? "INTAKE_2C_PROVIDER_ACCEPTANCE_VERIFIED" : "INTAKE_2C_PROVIDER_NON_ACCEPTANCE_VERIFIED",
+            intakeTokenId:tokenId, recipient:clean(latest.twoCEmailRecipient), providerId, evidence,
+            createdBy:context.auth!.uid, occurredAt:FieldValue.serverTimestamp(),
+          });
+        });
+        return {ok:true,status:newStatus,tokenId,proposalId};
+      }
+
       const twoC = data?.twoC === true;
       if (twoC) {
         if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
