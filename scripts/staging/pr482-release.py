@@ -85,7 +85,7 @@ def contents(path):
 def hashes(files):
     return {k: hashlib.sha256(v).hexdigest() for k, v in files.items()}
 
-def package(source, baseline, out, candidate=False):
+def package(source, baseline, out, candidate=False, selected_functions=None):
     m = manifest(); source, baseline, out = map(Path, [source, baseline, out])
     require(subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip() == c.SHA, 'Source SHA drift')
     state = json.loads((baseline/'baseline.json').read_text())
@@ -94,8 +94,12 @@ def package(source, baseline, out, candidate=False):
     require(isinstance(expected_digest, str) and len(expected_digest) == 64, 'Pinned baseline digest is missing')
     require(not write_baseline_mismatch(state, expected_digest, out), 'Pinned live baseline is not certified')
     require(set(receipt) == set(c.FUNCTIONS), 'Incomplete rollback set')
+    names = c.FUNCTIONS if selected_functions is None else list(selected_functions)
+    require((selected_functions is None) or candidate, 'Reduced scope requires candidate-only mode')
+    require(names == c.FUNCTIONS[1:] if selected_functions is not None else names == c.FUNCTIONS,
+            'Candidate scope must be exactly the six untouched Functions')
     out.mkdir(parents=True, exist_ok=False)
-    for name in c.FUNCTIONS:
+    for name in names:
         archive = baseline/(name+'.zip')
         require(hashlib.sha256(archive.read_bytes()).hexdigest() == receipt[name]['sha256'], 'Rollback checksum mismatch')
         require(receipt[name]['source'] == state['functions'][name]['function']['buildConfig']['source']['storageSource'], 'Rollback generation mismatch')
@@ -136,7 +140,7 @@ def package(source, baseline, out, candidate=False):
                 pending.append(found)
         save(out/(name+'-files.json'), hashes(files))
         save(out/(name+'-changes.json'), sorted(changes))
-    save(out/'prepared.json', {'sourceSha': c.SHA, 'baselineSha256': expected_digest, 'functions': c.FUNCTIONS, **({'candidateOnly': True} if candidate else {})})
+    save(out/'prepared.json', {'sourceSha': c.SHA, 'baselineSha256': expected_digest, 'functions': names, **({'candidateOnly': True} if candidate else {})})
 
 def compare_after(before, after):
     require(before['functionIam'] == after['functionIam'] and before['runIam'] == after['runIam'], 'Invocation IAM changed')

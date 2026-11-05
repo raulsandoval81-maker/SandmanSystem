@@ -313,6 +313,75 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(prohibited, job)
         self.assertNotIn('deploy:', job)
 
+    def test_six_candidate_packager_rejects_scope_and_fresh_drift(self):
+        candidate = load('pr482_six_candidate', 'scripts/staging/pr482-six-function-candidate.py')
+        original = {'project': r.c.PROJECT, 'applicationSha': r.c.SHA,
+                    'functions': {name: self.before() for name in r.c.FUNCTIONS},
+                    'authorization': {'roles': ['approved']},
+                    'hosting': {'files': {'/foo': 'hash'}}}
+        for name, value in original['functions'].items():
+            value['function']['name'] = 'projects/'+r.c.PROJECT+'/locations/'+r.c.REGION+'/functions/'+name
+        after = self.after(original['functions'][r.c.FUNCTIONS[0]])
+        after['function']['serviceConfig']['revision'] = 'createproposaldraft-00003-yen'
+        fresh = copy.deepcopy(original)
+        fresh['functions'][r.c.FUNCTIONS[0]] = after
+        fresh_receipt = {'baselineSha256': r.c.baseline_digest(fresh),
+                         'rollback': {name: {} for name in r.c.FUNCTIONS}}
+        manifest = dict(r.manifest(), baselineSha256=r.c.baseline_digest(original))
+        audit = {'status': 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT',
+                 'deploymentAuthorized': False, 'allIamMatchesRecordedEvidence': True,
+                 'otherSixFunctionsMatchOriginal': True,
+                 'hostingMatchesOriginal': True, 'cloudRunReady': True}
+        plan = {'status': 'RECOVERY_PLAN_ONLY_NOT_AUTHORIZED',
+                'deploymentAuthorized': False, 'productionAuthorized': False,
+                'functionsToPrepare': r.c.FUNCTIONS[1:], 'preservedFunction': r.c.FUNCTIONS[0],
+                'applicationSha': r.c.SHA, 'originalBaselineSha256': manifest['baselineSha256']}
+        with patch.object(candidate.r, 'manifest', return_value=manifest):
+            candidate.verify_candidate_capture(original, after, audit, fresh, fresh_receipt, plan)
+            for location, field, value in [
+                ('plan', 'deploymentAuthorized', True),
+                ('plan', 'functionsToPrepare', r.c.FUNCTIONS),
+                ('plan', 'applicationSha', 'wrong'),
+                ('audit', 'allIamMatchesRecordedEvidence', False),
+                ('fresh', 'authorization', {'roles': ['changed']}),
+                ('fresh', 'hosting', {'files': {'/foo': 'changed'}}),
+                ('receipt', 'baselineSha256', 'wrong'),
+            ]:
+                values = dict(plan=copy.deepcopy(plan), audit=copy.deepcopy(audit),
+                              fresh=copy.deepcopy(fresh), receipt=copy.deepcopy(fresh_receipt))
+                values[location][field] = value
+                with self.subTest(location=location, field=field), self.assertRaises(RuntimeError):
+                    candidate.verify_candidate_capture(original, after, values['audit'],
+                                                       values['fresh'], values['receipt'], values['plan'])
+            bad_first = copy.deepcopy(fresh)
+            bad_first['functions'][r.c.FUNCTIONS[0]]['function']['serviceConfig']['revision'] = 'unknown'
+            with self.assertRaises(RuntimeError):
+                candidate.verify_candidate_capture(original, after, audit, bad_first, fresh_receipt, plan)
+            bad_six = copy.deepcopy(fresh)
+            bad_six['functions'][r.c.FUNCTIONS[1]]['function']['serviceConfig']['revision'] = 'changed'
+            with self.assertRaises(RuntimeError):
+                candidate.verify_candidate_capture(original, after, audit, bad_six, fresh_receipt, plan)
+
+    def test_six_candidate_packaging_has_no_deploy_and_remains_separate(self):
+        workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        job = workflow.split('  six-function-candidate-package:', 1)[1]
+        script = (ROOT/'scripts/staging/pr482-six-function-candidate.py').read_text()
+        self.assertIn("inputs.action == 'validate'", job)
+        self.assertIn("github.ref == 'refs/heads/main'", job)
+        self.assertIn('environment: staging', job)
+        self.assertIn('pr482-six-function-candidate.py', job)
+        self.assertIn('pr482-six-function-readonly-plan-42104231997', job)
+        self.assertIn('f402c04ee27a5ca9309a422221c3556f6523588a', job)
+        self.assertIn('SIX_EXACT_SOURCE_CANDIDATES_PREPARED_NO_DEPLOYMENT', job)
+        self.assertIn('candidate=True', script)
+        self.assertIn('selected_functions=r.c.FUNCTIONS[1:]', script)
+        for disallowed in ['gcloud functions deploy', 'gcloud run deploy',
+                           'firebase deploy', 'set-iam-policy', 'add-iam-policy-binding',
+                           'APPROVE_RELEASE']:
+            self.assertNotIn(disallowed, job)
+            self.assertNotIn(disallowed, script)
+        self.assertNotIn('deploy:', job)
+
     def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         self.assertIn('run15-recovery-audit', protected)
@@ -491,7 +560,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 4)
+        self.assertEqual(workflow.count('environment: staging'), 5)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
