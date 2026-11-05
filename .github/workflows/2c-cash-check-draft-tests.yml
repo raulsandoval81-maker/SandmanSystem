@@ -5,6 +5,8 @@ on:
     paths:
       - 'functions/src/billing/sendProposalPrepaidCashReceipt.ts'
       - 'functions/src/index.ts'
+      - 'functions/tests/prepaidCashReceipt.integration.cjs'
+      - 'public/connect/proposals/proposals.js'
       - 'functions/src/proposals/issueProposalEnrollmentHandoff.ts'
       - 'public/management/billing/billing.js'
       - 'public/intake-management/management.intake.js'
@@ -78,4 +80,4 @@ jobs:
           npx --yes firebase-tools@14.13.0 emulators:exec \
             --only firestore \
             --project demo-sandman-2c-acceptance \
-            'node --test functions/tests/prepaidEnrollment.integration.cjs'
+            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs'
