@@ -165,6 +165,20 @@ class ReleaseTests(unittest.TestCase):
             with patch.object(r, 'manifest', return_value=m), patch.object(r.subprocess, 'check_output', return_value=r.c.SHA):
                 with self.assertRaisesRegex(RuntimeError, 'Rollback checksum'): r.package(source, baseline, root/'tampered-packages')
 
+    def test_baseline_mismatch_is_fail_closed_and_redacts_sensitive_fields(self):
+        with tempfile.TemporaryDirectory() as folder:
+            state = {'authorization': {'etag': 'one'},
+                     'functions': {'example': {'environmentVariables': {'PASSWORD': 'do-not-publish'},
+                                               'state': 'ACTIVE'}}}
+            out = Path(folder)/'packages'
+            self.assertTrue(r.write_baseline_mismatch(state, '0'*64, out))
+            evidence = json.loads((Path(folder)/'baseline-mismatch.json').read_text())
+            self.assertEqual(evidence['expectedBaselineSha256'], '0'*64)
+            self.assertEqual(evidence['observedBaselineSha256'], r.c.digest(state))
+            self.assertNotIn('do-not-publish', json.dumps(evidence))
+            self.assertEqual(evidence['fingerprints']['/functions/example/environmentVariables'], '[sensitive-field-omitted]')
+            self.assertFalse(r.write_baseline_mismatch(state, r.c.digest(state), out))
+
     def test_workflow_is_separate_protected_scope_and_no_other_mutations(self):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
