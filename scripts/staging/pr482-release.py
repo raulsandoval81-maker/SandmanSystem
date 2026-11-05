@@ -34,6 +34,44 @@ def protected(deploy=False):
         require(os.environ.get('APPROVE_RELEASE') == m['approval'], 'Separate explicit exact-scope approval required')
     return m
 
+def baseline_fingerprints(state):
+    """Public-safe field diagnostics: hashes only, never raw cloud metadata."""
+    fingerprints = {}
+    def walk(value, path):
+        if isinstance(value, dict):
+            for key in sorted(value):
+                child = path + '/' + str(key).replace('~', '~0').replace('/', '~1')
+                # Cloud configuration can contain secrets or identifying values.
+                if any(word in key.lower() for word in ('secret', 'password', 'token', 'credential', 'environmentvariables')):
+                    fingerprints[child] = '[sensitive-field-omitted]'
+                else:
+                    walk(value[key], child)
+        elif isinstance(value, list):
+            for i, child in enumerate(value):
+                walk(child, path + '/' + str(i))
+        else:
+            fingerprints[path or '/'] = c.digest(value)
+    walk(state, '')
+    return fingerprints
+
+
+def write_baseline_mismatch(state, expected, out):
+    """Leave the pin intact and preserve a comparison fingerprint on mismatch."""
+    observed = c.digest(state)
+    if observed == expected:
+        return False
+    diagnostic = {
+        'expectedBaselineSha256': expected,
+        'observedBaselineSha256': observed,
+        'fingerprints': baseline_fingerprints(state),
+        'note': 'Compare fingerprint paths with the certified baseline locally; raw values are omitted.',
+    }
+    save(Path(out).parent/'baseline-mismatch.json', diagnostic)
+    print('Pinned baseline mismatch: expected=' + str(expected) + ' observed=' + observed, flush=True)
+    print('Safe field fingerprints: ' + str(Path(out).parent/'baseline-mismatch.json'), flush=True)
+    return True
+
+
 def contents(path):
     with zipfile.ZipFile(path) as z:
         require(z.testzip() is None, 'Corrupt rollback archive')
@@ -54,7 +92,8 @@ def package(source, baseline, out, candidate=False):
     state = json.loads((baseline/'baseline.json').read_text())
     receipt = json.loads((baseline/'rollback.json').read_text())
     expected_digest = json.loads((baseline/'receipt.json').read_text())['baselineSha256'] if candidate else m['baselineSha256']
-    require(isinstance(expected_digest, str) and len(expected_digest) == 64 and c.digest(state) == expected_digest, 'Pinned live baseline is not certified')
+    require(isinstance(expected_digest, str) and len(expected_digest) == 64, 'Pinned baseline digest is missing')
+    require(not write_baseline_mismatch(state, expected_digest, out), 'Pinned live baseline is not certified')
     require(set(receipt) == set(c.FUNCTIONS), 'Incomplete rollback set')
     out.mkdir(parents=True, exist_ok=False)
     for name in c.FUNCTIONS:
