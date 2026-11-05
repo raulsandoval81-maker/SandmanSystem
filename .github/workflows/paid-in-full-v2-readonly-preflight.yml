@@ -1081,7 +1081,7 @@ jobs:
           assert receipt['candidateOnly'] is True and len(receipt['functions'])==6
           assert 'createProposalDraft' not in receipt['functions']
           assert sorted(x.name for x in p.glob('*-files.json')) == sorted(n+'-files.json' for n in receipt['functions'])
-          Path('evidence/safe-package-summary.json').write_text(json.dumps(receipt, sort_keys=True, indent=2)+'\\n')
+          Path('evidence/safe-package-summary.json').write_text(json.dumps(receipt, sort_keys=True, indent=2)+'\n')
           print('SIX_EXACT_SOURCE_CANDIDATES_PREPARED_NO_DEPLOYMENT')
           PY
       - name: Preserve candidate-only sanitized summary; never publish raw source or baseline
