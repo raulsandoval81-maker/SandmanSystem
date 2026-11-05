@@ -491,7 +491,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 3)
+        self.assertEqual(workflow.count('environment: staging'), 4)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
