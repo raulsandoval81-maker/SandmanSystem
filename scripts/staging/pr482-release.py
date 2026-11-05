@@ -154,6 +154,23 @@ def compare_after(before, after):
         value['spec']['template']['metadata'].pop('name', None)
         for container in value['spec']['template']['spec']['containers']:
             container.pop('image', None)
+    # Cloud Functions may add precisely these provider-owned identity labels
+    # when gcloud deploys a new Gen2 revision. Run #15 demonstrated only
+    # these additions; all other Cloud Run spec fields stay strict.
+    function_path = before['function']['name']
+    match = re.fullmatch(r'projects/' + re.escape(c.PROJECT) +
+                         r'/locations/(' + re.escape(c.REGION) +
+                         r')/functions/([A-Za-z0-9_]+)', function_path)
+    require(match is not None, 'Unexpected Function identity')
+    prior_labels = a['spec']['template']['metadata'].get('labels', {})
+    deployed_labels = b['spec']['template']['metadata'].get('labels', {})
+    allowed_additions = {
+        'goog-drz-cloudfunctions-id': match.group(2).lower(),
+        'goog-drz-cloudfunctions-location': match.group(1),
+    }
+    for key, expected_value in allowed_additions.items():
+        if key not in prior_labels and deployed_labels.get(key) == expected_value:
+            deployed_labels.pop(key)
     require(a['spec'] == b['spec'], 'Cloud Run runtime specification changed')
     for key in ['run.googleapis.com/ingress', 'run.googleapis.com/invoker-iam-disabled', 'run.googleapis.com/custom-audiences']:
         require(a['metadata']['annotations'].get(key) == b['metadata']['annotations'].get(key), 'Cloud Run invocation changed')
