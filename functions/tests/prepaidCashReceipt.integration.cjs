@@ -18,7 +18,8 @@ const emailModule = require("../lib/modules/email/resend");
 const originalClient = emailModule.getResendClient;
 const sendReceipt = require("../lib/billing/sendProposalPrepaidCashReceipt").sendProposalPrepaidCashReceipt;
 const suffix = process.pid.toString().padStart(6, "0").slice(-6);
-const id = "P-" + suffix;
+const idForOffset = (offset) => "P-" + String((Number(suffix) + offset) % 1000000).padStart(6, "0");
+const id = idForOffset(0);
 const manager = "2c-manager-" + suffix;
 const outsider = "2c-outsider-" + suffix;
 const recipient = "synthetic-receipt@example.invalid";
@@ -73,7 +74,7 @@ test("2C receipt rejects staff from a different location", async () => {
 });
 
 test("2C receipt rejects an unverified cash/check payment", async () => {
-  const unpaid = "P-UNPAID-" + suffix;
+  const unpaid = idForOffset(1);
   await db.doc("proposals/" + unpaid).set(paidProposal({proposalId: unpaid, status: "READY_FOR_CHECKOUT"}));
   await assert.rejects(call(manager, unpaid), /verified cash\/check/i);
   assert.equal(emails.length, 0);
@@ -103,7 +104,7 @@ test("2C sends a verified receipt exactly once and records an audit entry", asyn
 });
 
 test("2C fail-closes uncertain email outcomes and prevents duplicate sends", async () => {
-  const uncertain = "P-UNSURE-" + suffix;
+  const uncertain = idForOffset(2);
   await db.doc("proposals/" + uncertain).set(paidProposal({proposalId: uncertain}));
   let attempts = 0;
   emailModule.getResendClient = () => ({
