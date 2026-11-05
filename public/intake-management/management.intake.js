@@ -701,6 +701,11 @@ function renderReadyIntakeCard(proposal) {
         </div>
       </div>
       <div class="pending-card-actions">
+        ${proposal.paymentMethod === "cash_prepaid" ? `
+          <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
+            2C — Send Paid-in-Full Receipt + Intake Email
+          </button>
+        ` : ""}
         ${handoffAction}
       </div>
     </div>
@@ -879,6 +884,72 @@ async function recordManualIntakeDelivery({
 }
 
 function wireReadyIntakeButtons() {
+  // 2C reuses the existing secure token and Intake email sender.
+  // Receipt and invitation have independent persisted delivery status.
+  document.querySelectorAll("[data-ready-2c]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const proposalId = String(button.dataset.ready2c || "").trim();
+      const proposal = readyProposalMap.get(proposalId);
+      if (!proposal || button.disabled || proposal.paymentMethod !== "cash_prepaid") return;
+      const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
+        ? proposal.lockedSnapshot.athletes : (proposal.athletes || []);
+      const audience = intakeAudienceForProposal(proposal, athletes);
+      if (!audience) {
+        if ($("invite-status")) $("invite-status").textContent = "Select a verified Intake audience first.";
+        return;
+      }
+      const prospect = proposal.lockedSnapshot?.prospect || proposal.prospect || {};
+      const initial = audience === "adult_athlete"
+        ? String(athletes[0]?.email || prospect.email || "").trim()
+        : String(prospect.parentEmail || prospect.primaryContactEmail || prospect.email || "").trim();
+      const entered = window.prompt("Verify the receipt and secure Intake email recipient:", initial);
+      if (entered === null) return;
+      const recipientEmail = String(entered).trim().toLowerCase();
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipientEmail)) {
+        if ($("invite-status")) $("invite-status").textContent = "Enter a valid verified recipient email.";
+        return;
+      }
+      if (!window.confirm(`2C for ${proposalId}: send the existing Cash/Check paid receipt and the secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation to ${recipientEmail}? No Stripe charge will be created.`)) return;
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = "Preparing 2C…";
+      try {
+        currentHandoffTokenId = "";
+        currentHandoffAudience = "";
+        const tokenReady = await generateIntakeInvite(audience, proposal);
+        if (!tokenReady || !currentHandoffTokenId) {
+          throw new Error("Secure Intake token could not be verified. No emails sent.");
+        }
+        const tokenId = currentHandoffTokenId;
+        const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
+        const receiptResult = await receipt({ proposalId, recipientEmail, confirmRecipient: true });
+        if (receiptResult.data?.ok !== true) {
+          throw new Error("Receipt delivery was not confirmed. Intake email not sent.");
+        }
+        const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
+        const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true });
+        if (intakeResult.data?.ok !== true) {
+          throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
+        }
+        if ($("invite-status")) {
+          setIntakeConfirmation("success");
+          $("invite-status").textContent = `✓ 2C complete: cash/check receipt and secure Intake invitation sent to ${recipientEmail}. Management continues after family Intake submission.`;
+        }
+        const context = await requireManagement();
+        await loadReadyForIntake(context);
+      } catch (err) {
+        console.error("[management-enrollment] 2C delivery failed:", err);
+        if ($("invite-status")) {
+          setIntakeConfirmation("error");
+          $("invite-status").textContent = `⚠ ${err?.message || "2C delivery incomplete."} Payment was not recorded again. Verify each delivery status before retrying.`;
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-ready-mark-text]").forEach((button) => {
     button.addEventListener("click", async () => {
       const proposalId =
