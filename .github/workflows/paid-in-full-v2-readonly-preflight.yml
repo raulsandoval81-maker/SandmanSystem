@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release, seven-hosting-readonly-preflight]
+        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release, seven-hosting-readonly-preflight, seven-hosting-controlled-release]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -1389,4 +1389,158 @@ jobs:
           name: pr482-seven-hosting-readonly-${{ github.run_id }}
           path: safe-hosting-preflight.json
           if-no-files-found: error
+          retention-days: 7
+
+  seven-hosting-controlled-release:
+    if: ${{ inputs.release_scope == 'seven-hosting-controlled-release' && github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      RELEASE_ACTION: ${{ inputs.action }}
+      RELEASE_SCOPE: ${{ inputs.release_scope }}
+      APPROVE_RELEASE: ${{ inputs.approve_release }}
+      APPROVED_PREFLIGHT_RUN: ${{ inputs.approved_preflight_run_id }}
+    steps:
+      - name: Confirm exact staging-only scope and separate approval
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          if [[ "${RELEASE_ACTION}" == "validate" ]]; then
+            test -z "${APPROVE_RELEASE}"
+            test -z "${APPROVED_PREFLIGHT_RUN}"
+          elif [[ "${RELEASE_ACTION}" == "deploy" ]]; then
+            test "${APPROVE_RELEASE}" = "APPROVE_PR482_SEVEN_HOSTING_ASSETS_STAGING_ONLY"
+            [[ "${APPROVED_PREFLIGHT_RUN}" =~ ^[0-9]+$ ]]
+            test "${APPROVED_PREFLIGHT_RUN}" != "${GITHUB_RUN_ID}"
+          else
+            exit 64
+          fi
+      - name: Checkout merged protected release code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Checkout exact reviewed PR482 application source
+        uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          path: source
+          persist-credentials: false
+      - name: Download original certified Run 15 staging baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: original
+      - name: Download certified Run 22 six-Function deployment receipts
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-six-release-progress-42109819491
+          run-id: 42109819491
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: run22
+      - name: Confirm separately successful protected Hosting preflight
+        if: ${{ inputs.action == 'deploy' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${APPROVED_PREFLIGHT_RUN}" > prior-run.json
+          python3 - <<'PY'
+          import json, os
+          run = json.load(open("prior-run.json"))
+          assert run["id"] == int(os.environ["APPROVED_PREFLIGHT_RUN"])
+          assert run["event"] == "workflow_dispatch"
+          assert run["conclusion"] == "success"
+          assert run["path"] == ".github/workflows/paid-in-full-v2-readonly-preflight.yml"
+          assert run["head_branch"] == "main"
+          assert run["head_sha"] == os.environ["GITHUB_SHA"], "Staging release tooling must match approved preflight"
+          print("SEPARATE_SUCCESSFUL_HOSTING_PREFLIGHT_REQUIRED")
+          PY
+      - name: Retrieve exact separately approved Hosting validation receipt
+        if: ${{ inputs.action == 'deploy' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-seven-hosting-release-preflight-${{ inputs.approved_preflight_run_id }}
+          run-id: ${{ inputs.approved_preflight_run_id }}
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: approved
+      - name: Compile source and run full focused recovery test suite
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "f402c04ee27a5ca9309a422221c3556f6523588a"
+          test -f original/baseline/baseline.json
+          test -f run22/safe-completion.json
+          test -f run22/stripeBillingWebhook-receipt.json
+          python3 -m py_compile trusted/scripts/staging/pr482-seven-hosting-controlled-release.py
+          python3 -m unittest discover -s trusted/tests/staging -p test_pr482_release.py -v
+      - name: Authenticate existing staging Hosting principal
+        id: hosting-principal
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Authenticate existing staging Functions read principal
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify all seven Functions and exact seven Hosting assets without publishing
+        if: ${{ inputs.action == 'validate' }}
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-principal.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/staging/pr482-seven-hosting-controlled-release.py validate \
+            --source source --original original/baseline/baseline.json \
+            --run22 run22 --out evidence/hosting
+      - name: Publish exactly seven verified staging Hosting assets after separate approval
+        if: ${{ inputs.action == 'deploy' }}
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-principal.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/staging/pr482-seven-hosting-controlled-release.py deploy \
+            --source source --original original/baseline/baseline.json \
+            --run22 run22 --out evidence/hosting \
+            --approved-preflight approved/safe-preflight.json
+      - name: Upload sanitized preflight receipt only
+        if: ${{ success() && inputs.action == 'validate' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-seven-hosting-release-preflight-${{ github.run_id }}
+          path: evidence/hosting/safe-preflight.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Preserve safe Hosting release receipts including partial publication evidence
+        if: ${{ always() && inputs.action == 'deploy' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-seven-hosting-release-progress-${{ github.run_id }}
+          path: |
+            evidence/hosting/safe-published.json
+            evidence/hosting/safe-verified.json
+          if-no-files-found: warn
           retention-days: 7
