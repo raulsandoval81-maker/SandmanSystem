@@ -1,28 +1,47 @@
 # PR482 controlled staging release preparation
 
-## Readiness: BLOCKED on protected-principal read verification
+## Readiness: PASS — certified baseline pinned; protected release validation pending
 
-Application SHA: `f402c04ee27a5ca9309a422221c3556f6523588a`. This tooling does not alter the application or authorize deployment. The manifest intentionally retains `baselineSha256: null`; protected packaging and deployment remain blocked until the authorization-read gate below is resolved.
+Application SHA: `f402c04ee27a5ca9309a422221c3556f6523588a`.
 
-Recovered checkpoint: `/home/raulsandoval81/sandman-pr482-preflight-f402c04` (original files preserved).
+Pinned canonical baseline SHA-256:
 
-Read-only recovery verified all seven immutable rollback ZIPs against their recorded size, SHA-256, source generation and ZIP integrity. Original baseline digest: `d1a0659182aed5cadf4d035b9e9bdb19927919bf371842aa881a803ea84eef42`. A fresh complete read of all seven Functions, Cloud Run configurations, both IAM policies, Hosting and previously captured authorization settings matched exactly: zero drift.
+```text
+5308ba86745de9cd4dd4f35fc0150c0b9a2a64a7e1ed8c7fa915be4cc29aabbb
+```
 
-Hosting release `sites/sandman-combat-staging/releases/1793824971815000`, rollback version `sites/sandman-combat-staging/versions/61b298b553d900ab`, complete manifest: 3,068 files. The required unchanged prepaid-terms.js dependency matches the approved application's compressed asset hash.
+This supersedes pre-repair digest `bdef7827792b8ad81d5168f002b594c19f60e45811b359fa97975dfc9e8af049`. Only the two service-account IAM policy snapshots changed within the baseline, matching the explicitly approved repair; all other baseline fields matched exactly. The new provider-reader role and pool binding were independently read back against their approved execution receipts and preserved as supplemental authorization evidence.
 
-The original authorization snapshot did not contain role definitions or the two deployment-account impersonation policies. Current definitions and both impersonation policies were captured separately in `certified-complete/`; no historical comparison is claimed for those newly captured controls. Current complete evidence digest: `bdef7827792b8ad81d5168f002b594c19f60e45811b359fa97975dfc9e8af049`.
+Certification completed November 5, 2026 at:
 
-Real per-Function candidates passed rollback/source checks, approved-only module changes and transitive relative-import closure. All seven target exports loaded successfully under Node 22.23.4 with the preserved dependencies; candidate overlay bytes match the Node 22 build. The Hosting overlay changes exactly seven approved paths, preserving all other live hashes and configuration. Entrypoints and dependency files are preserved; all seven dependency locks match the approved application. Candidate-only preparation can use a verified receipt before final pinning, but writes `candidateOnly: true`; deployment rejects that receipt even after the baseline is pinned. No deployment credentials or cloud mutations are used by candidate preparation.
+```text
+/home/raulsandoval81/sandman-pr482-preflight-f402c04/certified-after-iam-20261105
+```
 
-The role reader was corrected to query predefined roles globally and custom roles only in the staging project. The original reader incorrectly passed a project scope for predefined roles. Focused regression coverage verifies both scopes and rejects foreign-project roles.
+Original evidence, packages and rollback archives remain untouched. Files in the new certification include baseline.json, receipt.json, rollback.json, seven original ZIPs, approved-iam-evidence.json, artifact-checksums.json and verification.json.
 
-## Remaining protected-principal access gate
+### Verified results
 
-The captured project role definitions for sandman-practice-deployer do not declare iam.serviceAccounts.getIamPolicy or iam.workloadIdentityPoolProviders.get. The capture requires both: service-account impersonation/runtime/build policies and the WIF provider are release authorization boundaries. Administrator read access succeeded; that does not establish the protected deployment principal's effective access. Direct impersonated read verification has not yet been certified. No role or IAM binding was modified, and no missing permission is inferred solely from the administrator's success.
+- All seven preserved Function package trees match their complete per-file SHA-256 inventories and approved-only change lists. Compiled overlay modules match the already-built approved source. Dependencies, entrypoints and unrelated files remain preserved. No package was rebuilt.
+- All seven rollback ZIPs match recorded sizes, SHA-256 checksums and immutable source generations; ZIP integrity passed.
+- Hosting baseline: 3,068 files, release `sites/sandman-combat-staging/releases/1793824971815000`, rollback version `sites/sandman-combat-staging/versions/61b298b553d900ab`. Full manifest/configuration and existing seven-path overlay checksums match. The unchanged prepaid-terms.js dependency matches.
+- Fresh reads of all seven Function/Cloud Run configurations and both invocation IAM policies match the preserved baseline. No deployment, runtime, secret-binding, invocation or unexpected IAM drift was found.
+- Current authorization matches the approved account-policy repair exactly. Pool policy, the new single-permission provider-reader role and the reused single-permission account-reader role match the approved receipts.
+- Protected [run #11, attempt 2](https://github.com/raulsandoval81-maker/SandmanSystem/actions/runs/41990235298) succeeded: all 6/6 WIF-deployer resource reads passed, and their response hashes match the certified evidence. Job `127323542906`; artifact `13427375750`. All deployment jobs were skipped.
+- Focused release-tooling validation: 18 Python tests and 8 Node 22 workflow tests passed; the pin matches the canonical baseline digest and receipt. No unrelated tests or tooling changes were added.
 
-Do not remove these fail-closed checks to get validation through. Preserve the candidate complete baseline and resolve/verify the read-only access path before pinning. Any access correction requires separate approval; this PR grants no permissions.
+Preserved candidate receipts retain their original baseline provenance and candidateOnly marker. They are not deployment authorization. The existing protected validation must prepare and verify its own normal release evidence before any separately approved deployment.
 
-Validation: 14/14 Python tooling tests, 8/8 existing workflow tests under Node 22, Python compilation and whitespace checks pass. Cloud Shell Node 22.23.4 TypeScript build passes; 7/7 candidate startup/target-export checks pass. The first build attempt ran Node 24 because the shell's npx did not select Node 22; an explicit Node 22 build superseded it, and all overlay bytes matched. These checks make no callable invocation or network payment request.
+After this pin PR is separately approved and merged, run only:
+
+```sh
+gh workflow run paid-in-full-v2-readonly-preflight.yml \
+  --repo raulsandoval81-maker/SandmanSystem --ref main \
+  -f action=validate -f release_scope=payment-arrangements \
+  -f confirm_project=sandman-combat-staging
+```
+
+Do not dispatch from the task branch or change WIF restrictions. Approve the existing protected staging environment for validation. No deployment, merge, cloud mutation, production operation or payment activity is authorized by this certification.
 
 ## Exact approved scope
 
@@ -60,13 +79,13 @@ Immediately before each update, compare the Function and authorization baseline.
 
 ## Approval procedure
 
-1. Finish the read-only live capture and real package verification. Inspect all baseline and rollback evidence; pin its canonical baselineSha256 in pr482-release.json. Validate staging prerequisites getProposalEnrollment/saveProposalEnrollmentAgreement and Intake/activation against the approved V2 evidence; ACTIVE alone does not certify their implementation. These prerequisite versions remain unverified in this preparation.
+1. Baseline certification and the pin are complete. Do not repeat the manual capture or rebuild preserved packages. After separate merge approval, run the protected payment-arrangements validation below. Enrollment/Intake/activation prerequisite versions and synthetic acceptance remain separate gates; this pin does not certify their business behavior.
 2. Re-run focused tooling tests and review the complete release-tooling PR. Merge requires separate explicit approval.
 3. On main, select existing WIF-allowlisted workflow paid-in-full-v2-readonly-preflight.yml, release_scope=payment-arrangements, action=validate, confirm_project=sandman-combat-staging. Approve existing protected staging environment checks. Validate must pass with complete same-run artifacts before deployment is eligible.
 4. Request separate deployment approval identifying the reviewed tooling commit, exact application SHA, seven Functions, seven paths, baseline digest and rollback references. Only then dispatch action=deploy with the same scope/project and approve_release=APPROVE_PR482_STAGING_SEVEN_FUNCTIONS_SEVEN_ASSETS. The default remains validate. The older scopes are unchanged.
 5. Preserve pr482-verified-preflight and pr482-release-receipt artifacts. On partial failure, stop and inspect actual state; do not rerun blindly against a changed baseline. Automatic rollback is prohibited. Separately approved rollback uses the preserved per-Function archive/config or republishing the captured Hosting version, independently.
 
-No release workflow was triggered in preparing this PR. Do not approve deployment while the baseline pin is null, permissions are unverified or real source packages have not passed packaging checks.
+Only authorization-only run #11 attempt 2 was rerun and passed. No deployment was triggered. This pin does not authorize deployment: payment-arrangements validation must pass before separate exact-scope deployment approval.
 
 ## Acceptance after an approved release
 
@@ -84,32 +103,4 @@ Follow prospect-builder-payment-arrangements.md using new authorized synthetic c
 | recordProposalPrepaidCash | recordproposalprepaidcash-00007-kav |
 | stripeBillingWebhook | stripebillingwebhook-00001-jax |
 
-Complete configuration/source generations, original archive sizes and SHA-256 values remain in the original baseline.json, rollback.json and receipt.json. Current role definitions and deployment-account policies are in certified-complete/baseline.json. Candidate inventories and approved-only change lists remain in candidate-complete; original archives were copied without modification. verified-summary-complete.json records configuration, package-inventory and Hosting-manifest digests without exposing credential or secret values.
-
-## Protected authorization-only recovery (PR483)
-
-The personal Cloud Shell caller's two attempts failed at iam.serviceAccounts.getAccessToken before either requested API read. They do not establish denial of the two permissions to the Functions deployer. Do not repeat personal-account impersonation or grant Token Creator as a read-only workaround.
-
-A separate `payment-arrangements-authorization` scope now uses the existing protected workflow filename, `main` restriction, staging environment and existing Functions deployer WIF configuration. It accepts only action=validate; choosing deploy fails before authentication. It never checks out/builds application packages, captures another baseline, reads payment records or calls mutation APIs. The application SHA remains f402c04ee27a5ca9309a422221c3556f6523588a and baselineSha256 remains null.
-
-The checker verifies the external-account credential file's exact WIF audience and Functions-deployer impersonation URL, and that gcloud uses that same file. There is no personal-account impersonation flag or fallback. It reads only:
-
-- iam.serviceAccounts.getIamPolicy on the five accounts already included in certified-complete: default compute runtime, sandman-billing-runtime, sandman-practice-build, sandman-practice-deployer and sandman-staging-deployer, all in sandman-combat-staging.
-- iam.workloadIdentityPoolProviders.get on projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging.
-
-It retains each response and its canonical hash, plus exact principal/resource/permission/exit-code/error evidence. All six reads must succeed. Denials, timeouts, malformed responses or provider identity/state mismatch fail the job. The authorization artifact uploads on failure as well as success, with seven-day retention; credential files are outside its upload directory.
-
-Execution gate: this job is currently on the unmerged PR483 branch. Existing WIF protections reject branch execution, so do not dispatch it from that branch, change the provider condition or run an older scope as a substitute. Review and separately authorize merging the tooling before it can run on main; no merge is performed by this task. Once available on main, the exact read-only dispatch is:
-
-```sh
-gh workflow run paid-in-full-v2-readonly-preflight.yml \
-  --repo raulsandoval81-maker/SandmanSystem --ref main \
-  -f action=validate -f release_scope=payment-arrangements-authorization \
-  -f confirm_project=sandman-combat-staging
-```
-
-Approve the existing protected staging environment. Inspect artifact pr483-authorization-RUN_ID: require status PASS, all six resources and both permissions, and compare successful response hashes/content to the preserved certified-complete authorization evidence. Reverify preserved baseline/receipt/archive/package inventory hashes locally without rebuilding or recapturing. Only after those checks may the complete digest bdef7827792b8ad81d5168f002b594c19f60e45811b359fa97975dfc9e8af049 be pinned on the existing release branch. A successful permission read alone does not certify unchanged policy contents or authorize deployment.
-
-If a resource read fails, report its exact error/principal/resource/permission. Propose only an evidence-supported read-only correction scoped to those staging resources, with separate IAM approval; never grant it automatically or remove authorization-drift checks.
-
-Current validation: 18/18 Python tooling tests and 8/8 Node 22 workflow tests pass; Python compilation, YAML parsing and whitespace checks pass. No application build, baseline capture or package rebuild was repeated. Protected live reads: NOT YET EXECUTED, pending the main-only workflow availability gate.
+Complete configuration/source generations, original archive sizes and SHA-256 values remain in the original baseline.json, rollback.json and receipt.json. The pre-repair authorization snapshot remains in certified-complete/baseline.json; the current certified baseline is in certified-after-iam-20261105/baseline.json. Candidate inventories and approved-only change lists remain in candidate-complete; original archives were copied without modification. verified-summary-complete.json records configuration, package-inventory and Hosting-manifest digests without exposing credential or secret values.
