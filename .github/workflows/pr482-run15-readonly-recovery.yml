@@ -1,0 +1,110 @@
+name: PR482 Run 15 partial staging recovery audit (read only)
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/pr482-run15-readonly-recovery.yml
+      - scripts/staging/pr482-release.py
+      - scripts/staging/pr482-run15-readonly-recovery.py
+      - tests/staging/test_pr482_release.py
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandman-combat-staging (read-only audit; no deployment)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: pr482-run15-readonly-audit
+  cancel-in-progress: false
+
+jobs:
+  unit-tests:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate audit scripts and regression tests without cloud access
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/staging/pr482-release.py scripts/staging/pr482-run15-readonly-recovery.py
+          python3 -m unittest discover -s tests/staging -p test_pr482_release.py -v
+  read-only-audit:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+    steps:
+      - name: Checkout trusted merged tooling only
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Retrieve immutable Run 15 preflight evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: preflight
+      - name: Retrieve immutable Run 15 partial-deploy receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-release-receipt-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: receipt
+      - name: Verify exact protected scope and compile read-only verifier
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -f preflight/baseline/baseline.json
+          test -f preflight/packages/createProposalDraft-files.json
+          test -f receipt/functions/createProposalDraft-after.json
+          python3 -m py_compile scripts/staging/pr482-run15-readonly-recovery.py scripts/staging/pr482-release.py
+          python3 -m unittest discover -s tests/staging -p test_pr482_release.py -v
+      - name: Authenticate existing staging Hosting reader
+        id: staging-hosting
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Authenticate existing staging Functions reader
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Audit deployed source, revision health, six untouched Functions, IAM and Hosting
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.staging-hosting.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python3 scripts/staging/pr482-run15-readonly-recovery.py \
+            --preflight preflight --receipt receipt --out evidence/run15-readonly-result.json
+      - name: Preserve success receipt only (no raw cloud state or secrets)
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-run15-readonly-audit-${{ github.run_id }}
+          path: evidence/run15-readonly-result.json
+          if-no-files-found: error
+          retention-days: 7
