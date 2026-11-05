@@ -146,7 +146,10 @@ class ReleaseTests(unittest.TestCase):
             'goog-drz-cloudfunctions-id': 'createproposaldraft',
             'goog-drz-cloudfunctions-location': 'us-central1'}
         after['run']['status'] = {'traffic': [{'revisionName': audit.REVISION, 'percent': 100}],
-                                  'latestReadyRevisionName': audit.REVISION}
+                                  'latestReadyRevisionName': audit.REVISION,
+                                  'conditions': [{'type': 'Ready', 'status': 'True'},
+                                                 {'type': 'ConfigurationsReady', 'status': 'True'},
+                                                 {'type': 'RoutesReady', 'status': 'True'}]}
         state = {'functions': {name: copy.deepcopy(before) for name in r.c.FUNCTIONS},
                  'authorization': {'verified': True}, 'hosting': {'files': {'x': 'y'}}}
         with tempfile.TemporaryDirectory() as folder:
@@ -177,8 +180,16 @@ class ReleaseTests(unittest.TestCase):
                 result = audit.verify(preflight, receipt, root/'evidence.json', 'read-only-token')
                 self.assertEqual(result['status'], 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT')
                 self.assertFalse(result['deploymentAuthorized'])
+                self.assertTrue(result['cloudRunReady'])
+                self.assertFalse(result['startupProbeLogsVerified'])
                 self.assertEqual(cloud_cp.call_count, 1)
                 self.assertEqual(cloud_cp.call_args.args[0][:3], ['gcloud', 'storage', 'cp'])
+                not_ready = copy.deepcopy(after)
+                not_ready['run']['status']['conditions'][0]['status'] = 'False'
+                with patch.object(audit.c, 'function_state',
+                                  side_effect=lambda name: not_ready if name == audit.FIRST else state['functions'][name]):
+                    with self.assertRaisesRegex(RuntimeError, 'no longer matches'):
+                        audit.verify(preflight, receipt, root/'reject-ready.json', 'read-only-token')
                 with patch.object(audit.c, 'hosting_state', return_value={'files': {'x': 'changed'}}):
                     with self.assertRaisesRegex(RuntimeError, 'Hosting changed'):
                         audit.verify(preflight, receipt, root/'reject.json', 'read-only-token')
