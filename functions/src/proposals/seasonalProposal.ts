@@ -33,6 +33,8 @@ export function canonicalSeasonalPricing(
   const schedule = clean(rawPricing.trainingSchedule) as WinterWrestlingSchedule;
   const payInFull = rawPricing.payInFull === true;
   const lateEnrollmentReviewed = rawPricing.lateEnrollmentReviewed === true;
+  const earlyRegistration = enrollmentDate <= WINTER_WRESTLING_2026_27.earlyRegistrationDeadline;
+  // A draft date alone is not a paid registration: checkout revalidates the deadline.
 
   if (!WINTER_WRESTLING_SCHEDULES.includes(schedule)) {
     throw new HttpsError(
@@ -49,6 +51,7 @@ export function canonicalSeasonalPricing(
       enrollmentDate,
       payInFull,
       schedule,
+      earlyRegistration,
     );
     proration = winterWrestlingProration({
       athleteCount,
@@ -70,12 +73,17 @@ export function canonicalSeasonalPricing(
     seasonStart: WINTER_WRESTLING_2026_27.seasonStart,
     seasonEnd: WINTER_WRESTLING_2026_27.seasonEnd,
     athleteCount,
-    perAthleteCents: WINTER_WRESTLING_2026_27.perAthleteCents,
+    perAthleteCents: earlyRegistration
+      ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
+      : WINTER_WRESTLING_2026_27.perAthleteCents,
+    earlyRegistration,
+    earlyRegistrationDeadline: WINTER_WRESTLING_2026_27.earlyRegistrationDeadline,
     listPriceTotalCents:
       athleteCount * WINTER_WRESTLING_2026_27.perAthleteCents,
     seasonalEnrollmentDate: enrollmentDate,
     trainingSchedule: schedule,
     payInFull,
+    discountTotalCents: athleteCount * (WINTER_WRESTLING_2026_27.perAthleteCents - (earlyRegistration ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents : WINTER_WRESTLING_2026_27.perAthleteCents)),
     totalCents: paymentSchedule.totalCents,
     dueNowCents: paymentSchedule.installments[0].amountCents,
     installments: paymentSchedule.installments.map((installment) => ({
