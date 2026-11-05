@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 import re
 import subprocess
-import time
 import zipfile
 
 ROOT = Path(__file__).parent
@@ -177,6 +176,26 @@ def compare_after(before, after):
     for key in ['run.googleapis.com/ingress', 'run.googleapis.com/invoker-iam-disabled', 'run.googleapis.com/custom-audiences']:
         require(a['metadata']['annotations'].get(key) == b['metadata']['annotations'].get(key), 'Cloud Run invocation changed')
 
+def verify_cloud_run_readiness(state, revision):
+    """Fail closed on Cloud Run-reported service readiness and exact revision traffic.
+
+    This deliberately does not claim Cloud Logging access or startup-log review.
+    """
+    status = state['run'].get('status', {})
+    traffic = status.get('traffic', [])
+    require(len(traffic) == 1 and traffic[0].get('revisionName') == revision
+            and traffic[0].get('percent') == 100,
+            'Expected revision does not receive exactly 100% traffic')
+    require(status.get('latestReadyRevisionName') == revision,
+            'Deployed revision is not latest ready')
+    conditions = status.get('conditions', [])
+    require(any(x.get('type') == 'Ready' and x.get('status') == 'True'
+                for x in conditions), 'Cloud Run service Ready condition is not True')
+    require(all(x.get('status') != 'False' for x in conditions
+                if x.get('type') in ('Ready', 'ConfigurationsReady', 'RoutesReady')),
+            'Cloud Run reports failed readiness condition')
+
+
 def deploy_function(name, baseline, packages, out):
     m = protected(True)
     require(name in c.FUNCTIONS, 'Function is outside release scope')
@@ -209,17 +228,12 @@ def deploy_function(name, baseline, packages, out):
     # The CLI may supply its source-ignore metadata, never application code.
     require({k:v for k,v in uploaded.items() if k != '.gcloudignore'} == {k:v for k,v in actual.items() if k != '.gcloudignore'}, 'Deployed package differs from verified candidate')
     revision = after['function']['serviceConfig']['revision']
-    logs = []
-    for attempt in range(4):
-        logs = c.gc(['logging', 'read', 'resource.type="cloud_run_revision" AND resource.labels.revision_name="'+revision+'"', '--limit=50'])
-        if any('STARTUP TCP probe succeeded' in x.get('textPayload', '') for x in logs):
-            break
-        if attempt < 3:
-            time.sleep(5)
-    save(Path(out)/(name+'-logs.json'), logs)
-    require(any('STARTUP TCP probe succeeded' in x.get('textPayload', '') for x in logs), 'Startup readiness not verified; stop')
-    require(not any(x.get('severity') in ['ERROR', 'CRITICAL', 'ALERT', 'EMERGENCY'] for x in logs), 'Startup errors; stop')
-    save(Path(out)/(name+'-verified.json'), {'revision': revision, 'sourceSha': c.SHA})
+    verify_cloud_run_readiness(after, revision)
+    save(Path(out)/(name+'-verified.json'), {
+        'revision': revision, 'sourceSha': c.SHA,
+        'cloudRunReady': True, 'startupProbeLogsVerified': False,
+        'startupLogReview': 'NOT_PERFORMED_NO_CLOUD_LOGGING_ACCESS'
+    })
 
 def aggregate(baseline, packages, out):
     m = protected(True)
