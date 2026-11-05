@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit]
+        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -957,5 +957,138 @@ jobs:
           path: |
             evidence/six-function-plan.json
             evidence/fresh-readonly-audit.json
+          if-no-files-found: error
+          retention-days: 7
+
+  six-function-candidate-package:
+    if: ${{ inputs.release_scope == 'six-function-candidate-package' && inputs.action == 'validate' && github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+    steps:
+      - name: Checkout authorized merged release tooling
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Checkout exact approved PR482 application source
+        uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          path: source
+          persist-credentials: false
+      - name: Download certified Run 15 original capture
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: preflight
+      - name: Download Run 15 first-Function receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-release-receipt-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: receipt
+      - name: Download Run 18 certified audit
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-run15-readonly-audit-42098768695
+          run-id: 42098768695
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: prior-audit
+      - name: Download successful Run 19 six-Function plan
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-six-function-readonly-plan-42104231997
+          run-id: 42104231997
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: approved-plan
+      - name: Validate exact offline source and release safety checks
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "$(git -C source rev-parse HEAD)" = "f402c04ee27a5ca9309a422221c3556f6523588a"
+          test -f preflight/baseline/baseline.json
+          test -f receipt/functions/createProposalDraft-after.json
+          test -f prior-audit/run15-readonly-result.json
+          test -f approved-plan/six-function-plan.json
+          python3 -m py_compile trusted/scripts/staging/pr482-six-function-candidate.py
+          python3 -m unittest discover -s trusted/tests/staging -p test_pr482_release.py -v
+      - name: Compile exact reviewed application source
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build source modules before source overlay
+        run: |
+          set -euo pipefail
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+          test -f source/functions/lib/billing/paymentArrangement.js
+          test -f source/functions/lib/billing/prepaidProposalCheckout.js
+      - name: Authenticate existing staging Functions capture principal
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture fresh seven-Function inventory and immutable rollback archives
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          PR482_DEFER_HOSTING=1 python3 trusted/scripts/staging/pr482-capture.py evidence/fresh > evidence/capture-receipt.json
+      - name: Authenticate existing staging Hosting capture principal
+        id: capture-hosting
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Finish fresh Hosting capture and validate exact six source packages
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/staging/pr482-capture.py evidence/fresh --hosting > evidence/capture-receipt.json
+          python3 trusted/scripts/staging/pr482-six-function-candidate.py \
+            --source source \
+            --original preflight/baseline/baseline.json \
+            --run15-after receipt/functions/createProposalDraft-after.json \
+            --audit prior-audit/run15-readonly-result.json \
+            --plan approved-plan/six-function-plan.json \
+            --fresh-baseline evidence/fresh \
+            --out evidence/candidate
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('evidence/candidate')
+          receipt=json.loads((p/'prepared.json').read_text())
+          assert receipt['candidateOnly'] is True and len(receipt['functions'])==6
+          assert 'createProposalDraft' not in receipt['functions']
+          assert sorted(x.name for x in p.glob('*-files.json')) == sorted(n+'-files.json' for n in receipt['functions'])
+          Path('evidence/safe-package-summary.json').write_text(json.dumps(receipt, sort_keys=True, indent=2)+'\\n')
+          print('SIX_EXACT_SOURCE_CANDIDATES_PREPARED_NO_DEPLOYMENT')
+          PY
+      - name: Preserve candidate-only sanitized summary; never publish raw source or baseline
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-six-candidate-summary-${{ github.run_id }}
+          path: evidence/safe-package-summary.json
           if-no-files-found: error
           retention-days: 7
