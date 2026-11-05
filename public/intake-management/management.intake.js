@@ -905,7 +905,7 @@ function wireReadyIntakeButtons() {
       const entered = window.prompt("Verify the receipt and secure Intake email recipient:", initial);
       if (entered === null) return;
       const recipientEmail = String(entered).trim().toLowerCase();
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(recipientEmail)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
         if ($("invite-status")) $("invite-status").textContent = "Enter a valid verified recipient email.";
         return;
       }
