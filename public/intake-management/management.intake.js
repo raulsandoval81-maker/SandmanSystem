@@ -1013,7 +1013,7 @@ function wireReadyIntakeButtons() {
           await loadReadyForIntake(await requireManagement());
           return;
         }
-        const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true });
+        const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true, twoC: true });
         if (intakeResult.data?.ok !== true) {
           throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
         }
