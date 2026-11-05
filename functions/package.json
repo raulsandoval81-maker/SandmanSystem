@@ -9,8 +9,9 @@
   "scripts": {
     "build": "tsc -p .",
     "clean": "rimraf lib",
-    "test": "npm run build && node --test tests/historicalSkillReconciliation.test.cjs tests/correctP000019Payments.test.cjs tests/correctP000019Startup.test.cjs tests/operationalPaidProposal.test.cjs",
-    "test:integration": "npm run build && node --test tests/*.integration.cjs"
+    "test": "npm run build && node --test tests/historicalSkillReconciliation.test.cjs tests/correctP000019Payments.test.cjs tests/correctP000019Startup.test.cjs tests/operationalPaidProposal.test.cjs tests/paymentArrangement.test.cjs tests/prepaidMembershipPolicy.test.cjs tests/prepaidReconciliationPolicy.test.cjs ../tests/browser/payment-arrangement.test.mjs",
+    "test:integration": "npm run build && node --test tests/*.integration.cjs",
+    "test:payment-arrangements": "npm run build && node --test tests/paymentArrangement.test.cjs tests/prepaidMembershipPolicy.test.cjs tests/prepaidReconciliationPolicy.test.cjs tests/operationalPaidProposal.test.cjs ../tests/browser/payment-arrangement.test.mjs"
   },
   "dependencies": {
     "@types/react": "^19.2.14",

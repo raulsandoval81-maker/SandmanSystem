@@ -1,3 +1,4 @@
+import { canonicalPaymentArrangement } from "../billing/paymentArrangement";
 import {
   createHash,
   randomBytes,
@@ -111,7 +112,7 @@ export function buildClientProposalSnapshot(
         additionalMembershipMonthsDue: 0,
         paymentStartMode: "deferred_family",
       }
-    : proposal.pricing || {};
+    : canonicalPaymentArrangement(proposal.pricing || {}, proposal.athletes || []);
 
   return {
     version: 1,

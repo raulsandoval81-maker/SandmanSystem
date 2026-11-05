@@ -1,3 +1,4 @@
+import { canonicalPaymentArrangement } from "../billing/paymentArrangement";
 import { HttpsError } from "firebase-functions/v2/https";
 
 import {
@@ -111,8 +112,10 @@ export function canonicalizeProposalPricing(
     ? rawPricing as Record<string, unknown>
     : {};
   return isSeasonalProposalPricing(pricing)
-    ? canonicalSeasonalPricing(pricing, athletes)
-    : pricing;
+    ? (pricing.paymentArrangement && pricing.paymentArrangement !== "monthly_autopay"
+        ? (() => { throw new Error("Seasonal offers cannot use membership prepayment."); })()
+        : canonicalSeasonalPricing(pricing, athletes))
+    : canonicalPaymentArrangement(pricing, athletes);
 }
 
 export function assertSeasonalProposalReady(pricing: unknown): void {

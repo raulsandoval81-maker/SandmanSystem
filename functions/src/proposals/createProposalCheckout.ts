@@ -1,3 +1,5 @@
+import { paymentArrangement } from "../billing/paymentArrangement";
+import { createPrepaidProposalCheckout } from "../billing/prepaidProposalCheckout";
 import type Stripe from "stripe";
 
 import {
@@ -212,7 +214,8 @@ export const createProposalCheckout =
         );
       }
 
-      if (isPreparedForPrepaidReconciliation(proposal)) {
+      if (paymentArrangement(proposal.lockedSnapshot?.pricing || {}) === "prepaid_cash_check" ||
+          isPreparedForPrepaidReconciliation(proposal)) {
         throw new HttpsError(
           "failed-precondition",
           "This paid-in-full enrollment is awaiting Management reconciliation and must not enter Stripe Checkout."
@@ -264,6 +267,11 @@ export const createProposalCheckout =
         typeof snapshot.prospect === "object"
           ? snapshot.prospect as Record<string, unknown>
           : {};
+
+      if (paymentArrangement(pricing) === "prepaid_stripe") {
+        return createPrepaidProposalCheckout({stripe: getStripe(), db, proposalId, actorUid,
+          publicBaseUrl: resolveBillingPublicBaseUrl()});
+      }
 
       if (isSeasonalProposalPricing(pricing)) {
         const publicBaseUrl = resolveBillingPublicBaseUrl();

@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const termsUrl = new URL('../../public/management/billing/prepaid-terms.js', import.meta.url);
+const terms = await import('data:text/javascript;base64,'+Buffer.from(await readFile(termsUrl,'utf8')).toString('base64'));
+let source = await readFile(new URL('../../public/connect/admissions/calculator/payment-arrangement.js',import.meta.url),'utf8');
+const importedTerms = 'data:text/javascript;base64,'+Buffer.from(await readFile(termsUrl,'utf8')).toString('base64');
+source=source.replace('"/management/billing/prepaid-terms.js"',JSON.stringify(importedTerms));
+const {previewPaymentArrangement}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const price={monthlyBalance:80,enrollmentBase:30,membershipStartDate:'2026-11-01',dueNow:110};
+for(const [term,months] of [['annual',12],['six-month',6]]) {
+ test(`Builder previews ${months}-month online and cash arrangements without changing the locked rate`,()=>{
+  const athletes=[{name:'Synthetic',plan:'standard',billingTerm:term}];
+  const allocations=[{athleteIndex:1,amountCents:2000}];
+  const online=previewPaymentArrangement(price,athletes,'prepaid_stripe',allocations);
+  const cash=previewPaymentArrangement(price,athletes,'prepaid_cash_check',allocations);
+  assert.equal(online.dueNow,80*months+20);assert.equal(cash.dueNow,0);
+  assert.equal(online.monthlyBalance,80);assert.equal(cash.prepaidTerms.feeOutstandingCents,1000);
+  assert.equal(online.prepaidTerms.paidThroughDate,terms.prepaidCoverageDates(price.membershipStartDate,months).paidThroughDate);
+ });
+}
+test('Builder preserves monthly pricing and rejects mixed terms, extra fees and invalid allocations',()=>{
+ assert.equal(previewPaymentArrangement(price,[],'monthly_autopay',[]).dueNow,110);
+ const athletes=[{plan:'standard',billingTerm:'annual'}];
+ assert.throws(()=>previewPaymentArrangement(price,athletes,'prepaid_stripe',[{athleteIndex:1,amountCents:3001}]),/allocation/);
+ assert.throws(()=>previewPaymentArrangement(price,[{plan:'standard',billingTerm:'monthly'}],'prepaid_stripe',[]),/6- or 12-month/);
+ assert.throws(()=>previewPaymentArrangement({...price,extraAmount:5},athletes,'prepaid_cash_check',[]),/extras/);
+});

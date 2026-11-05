@@ -1,3 +1,4 @@
+import { paymentArrangement, lockedPrepaidTerms } from "./paymentArrangement";
 import {
   HttpsError,
   onCall,
@@ -133,6 +134,7 @@ export const recordProposalPrepaidCash =
           const proposal = proposalSnap.data() || {};
           requireProposalLocationAccess(staffAccess, proposal.locationId);
           try {
+            if (paymentArrangement(proposal.lockedSnapshot?.pricing || {}) === "prepaid_stripe") throw new Error("Online prepaid proposals cannot enter cash reconciliation.");
             assertPrepaidReconciliationCanBePrepared(proposal);
           } catch (error) {
             throw new HttpsError(
@@ -229,6 +231,8 @@ export const recordProposalPrepaidCash =
                 proposal.status
               ).toUpperCase();
 
+            const arrangement = paymentArrangement(proposal.lockedSnapshot?.pricing || {});
+            if (arrangement === "prepaid_stripe") throw new HttpsError("failed-precondition", "Online prepayment requires verified Stripe confirmation.");
             const hasStripePayment = hasConflictingStripeActivity(proposal);
 
             const isCheckoutReady =
@@ -382,6 +386,13 @@ export const recordProposalPrepaidCash =
               );
             }
 
+            if (arrangement === "prepaid_cash_check") {
+              const signed = lockedPrepaidTerms(proposal);
+              if (amountCents !== signed.amountCents ||
+                  JSON.stringify(allocation.annualEnrollmentFee.selections) !== JSON.stringify(signed.annualEnrollmentFee.selections)) {
+                throw new HttpsError("failed-precondition", "Payment allocation must match the family-confirmed prepaid agreement.");
+              }
+            }
             const nextStatus =
               "PAID";
 

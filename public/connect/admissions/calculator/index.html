@@ -803,6 +803,16 @@
       <article class="card builder-section payment-start-section">
         <div class="card-head">
           <div>
+            <h2>Payment arrangement</h2>
+            <label for="paymentArrangement">Payment arrangement</label>
+            <select id="paymentArrangement">
+              <option value="monthly_autopay">Monthly Autopay — Stripe</option>
+              <option value="prepaid_stripe">Paid in Full — Stripe (one-time payment)</option>
+              <option value="prepaid_cash_check">Paid in Full — Cash/Check (existing payment reconciliation)</option>
+            </select>
+            <p>Prepaid requires matching six- or twelve-month commitments. It does not authorize automatic renewal. Annual fees may be fully, partially, or separately allocated.</p>
+            <div id="prepaidFeeAllocations"></div>
+            <p id="paymentArrangementStatus" role="status"></p>
             <h2>Payment start</h2>
             <p>
               Set the athlete start date and first-month payment arrangement.

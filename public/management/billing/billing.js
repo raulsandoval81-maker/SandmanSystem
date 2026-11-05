@@ -881,6 +881,7 @@ function buildProposalItems(
 
 
         canPreparePrepaidCash:
+          proposal.lockedSnapshot?.pricing?.paymentArrangement !== "prepaid_stripe" &&
           upper(proposal.status) === "READY_FOR_CHECKOUT" &&
           upper(proposal.prepaidReconciliation?.status) !== "AWAITING_FAMILY_CONFIRMATION" &&
           !proposal.cashPrepayment &&
@@ -890,6 +891,7 @@ function buildProposalItems(
           lockedPrepaidMonths(proposal) !== null,
 
         canRecordPrepaidCash:
+          proposal.lockedSnapshot?.pricing?.paymentArrangement !== "prepaid_stripe" &&
           upper(proposal.status) === "READY_FOR_CHECKOUT" &&
           upper(proposal.prepaidReconciliation?.status) === "AWAITING_FAMILY_CONFIRMATION" &&
           proposal.enrollmentConfirmation?.termsConfirmed === true &&
@@ -905,6 +907,7 @@ function buildProposalItems(
           ),
 
         canApproveRenewalAutopay:
+          !proposal.prepaidPayment &&
           paidInFullUiState(proposal).canApproveRenewal &&
           !clean(proposal.stripeSubscriptionId),
 
@@ -1211,7 +1214,7 @@ function historicalCashReviewMessage(review, plan) {
 }
 
 function paidInFullSummaryHtml(item) {
-  const payment = item.proposal?.cashPrepayment;
+  const payment = item.proposal?.cashPrepayment || item.proposal?.prepaidPayment;
   const uiState = paidInFullUiState(item.proposal);
   if (!uiState.isPaidInFull) return "";
   const feeBalance = uiState.feeOutstandingCents;
@@ -2305,6 +2308,16 @@ function openCashDialog(
     `)
     .join("");
 
+  const signedTerms = proposal.lockedSnapshot?.pricing?.prepaidTerms;
+  if (proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" && signedTerms) {
+    document.getElementById("prepaidCashAmount").value = (signedTerms.amountCents / 100).toFixed(2);
+    for (const allocation of signedTerms.annualEnrollmentFee.selections) {
+      const checkbox = document.querySelector(`[data-prepaid-enrollment-athlete="${allocation.athleteIndex}"]`);
+      const amount = document.querySelector(`[data-prepaid-enrollment-amount="${allocation.athleteIndex}"]`);
+      if (checkbox) checkbox.checked = allocation.amountCents > 0;
+      if (amount) amount.value = (allocation.amountCents / 100).toFixed(2);
+    }
+  }
   const priorPayments = Array.isArray(proposal.priorPayments)
     ? proposal.priorPayments
     : [];

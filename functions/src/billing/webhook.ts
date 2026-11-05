@@ -1,3 +1,5 @@
+import { handlePrepaidProposalPayment } from "./prepaidProposalCheckout";
+import { paymentArrangement } from "./paymentArrangement";
 import { onRequest } from "firebase-functions/v2/https";
 
 import {
@@ -185,6 +187,10 @@ export async function handleProposalCheckoutCompleted(
 
   const proposal =
     proposalSnap.data() || {};
+
+  if (paymentArrangement(proposal.lockedSnapshot?.pricing || {}) !== "monthly_autopay") {
+    throw new Error("Prepaid memberships cannot enter the monthly subscription handler.");
+  }
 
   const currentStatus =
     cleanString(proposal.status);
@@ -938,6 +944,11 @@ const webhookSecret =
           const session =
             event.data.object as Stripe.Checkout.Session;
 
+          if (session.metadata?.source === "membership_prepaid") {
+            await handlePrepaidProposalPayment(session);
+            familyId = null;
+            break;
+          }
           if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
             await handleSeasonalProposalPaymentSucceeded(session);
             familyId = null;
@@ -985,6 +996,11 @@ const webhookSecret =
 
         case "checkout.session.async_payment_succeeded": {
           const session = event.data.object as Stripe.Checkout.Session;
+          if (session.metadata?.source === "membership_prepaid") {
+            await handlePrepaidProposalPayment(session);
+            familyId = null;
+            break;
+          }
           if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
             await handleSeasonalProposalPaymentSucceeded(session);
             familyId = null;
