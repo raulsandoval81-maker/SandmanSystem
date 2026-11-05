@@ -1,0 +1,64 @@
+name: PR482 synthetic prepaid emulator acceptance
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pr482-prepaid-emulator-acceptance.yml'
+      - 'functions/tests/prepaidEnrollment.integration.cjs'
+  workflow_dispatch:
+    inputs:
+      confirm_isolated:
+        description: Type RUN_DEMO_PREPAID_EMULATOR_ONLY
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  emulator-prepaid-e2e:
+    if: ${{ github.event_name == 'pull_request' || inputs.confirm_isolated == 'RUN_DEMO_PREPAID_EMULATOR_ONLY' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GCLOUD_PROJECT: demo-sandman-prepaid-acceptance
+      GOOGLE_CLOUD_PROJECT: demo-sandman-prepaid-acceptance
+      FIREBASE_PROJECT_ID: demo-sandman-prepaid-acceptance
+      CI: 'true'
+    steps:
+      - name: Checkout immutable PR482 application source, not live staging
+        uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          persist-credentials: false
+      - name: Set up isolated Node runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Set up Java for local Firestore emulator
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install exact application dependencies and compile
+        run: |
+          set -euo pipefail
+          test "${GCLOUD_PROJECT}" = "demo-sandman-prepaid-acceptance"
+          test "$(git rev-parse HEAD)" = "f402c04ee27a5ca9309a422221c3556f6523588a"
+          npm ci --prefix functions --ignore-scripts
+          npm run build --prefix functions
+      - name: Run synthetic paid-in-full Management to Activation acceptance in isolated Firestore emulator
+        env:
+          STRIPE_SECRET_KEY: ''
+          RESEND_API_KEY: ''
+          GOOGLE_APPLICATION_CREDENTIALS: ''
+        run: |
+          set -euo pipefail
+          test "${GCLOUD_PROJECT}" = "demo-sandman-prepaid-acceptance"
+          test -z "${STRIPE_SECRET_KEY}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS}"
+          npx --yes firebase-tools@14.13.0 emulators:exec \
+            --only firestore \
+            --project demo-sandman-prepaid-acceptance \
+            'node --test functions/tests/prepaidEnrollment.integration.cjs'
