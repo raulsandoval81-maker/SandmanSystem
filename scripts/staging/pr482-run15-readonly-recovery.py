@@ -106,6 +106,9 @@ def verify(preflight, receipt, out, hosting_token):
         "productionAuthorized": False,
         "nextStep": "Separate reviewed, newly pinned six-function recovery release required",
     }
+    # The release audit is read-only against cloud resources; creating the
+    # local GitHub Actions evidence directory is required for the receipt.
+    out.parent.mkdir(parents=True, exist_ok=True)
     c.save(out, summary)
     return summary
 
