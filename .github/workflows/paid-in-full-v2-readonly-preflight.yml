@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction]
+        options: [pif-v2, proposal-correction, payment-arrangements]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -567,4 +567,161 @@ jobs:
         with:
           name: proposal-correction-staging-release-${{ github.run_id }}
           path: release-evidence
+          if-no-files-found: warn
+
+  arrangements-validate:
+    if: ${{ inputs.release_scope == 'payment-arrangements' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify immutable scope and release-tooling guards
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "f402c04ee27a5ca9309a422221c3556f6523588a"
+          python3 -m unittest discover -s trusted/tests/staging -p test_pr482_release.py -v
+          python3 - <<'PYCODE'
+          import importlib.util
+          s=importlib.util.spec_from_file_location('r','trusted/scripts/staging/pr482-release.py')
+          r=importlib.util.module_from_spec(s);s.loader.exec_module(r);r.protected()
+          PYCODE
+      - name: Compile pinned source for source-package overlays
+        run: |
+          set -euo pipefail
+          npm ci --prefix source/functions
+          npm run build --prefix source/functions
+          test -f source/functions/lib/billing/paymentArrangement.js
+          test -f source/functions/lib/billing/prepaidProposalCheckout.js
+      - name: Authenticate existing staging Functions principal
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Capture seven existing Functions and immutable rollback sources read-only
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          PR482_DEFER_HOSTING=1 python3 trusted/scripts/staging/pr482-capture.py evidence/baseline > evidence/capture-receipt.json
+      - name: Authenticate existing staging Hosting principal
+        id: arrangements-hosting-preflight
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Complete read-only Hosting capture with the existing Hosting identity
+        run: python3 trusted/scripts/staging/pr482-capture.py evidence/baseline --hosting > evidence/capture-receipt.json
+      - name: Prepare and verify exact source overlays against pinned baseline
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/staging/pr482-release.py package --source source --baseline evidence/baseline --out evidence/packages
+      - name: Verify complete Hosting baseline and seven-file overlay without publishing
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.arrangements-hosting-preflight.outputs.access_token }}
+        run: python3 trusted/scripts/staging/pr482-hosting.py verify --source source --baseline evidence/baseline --out evidence/hosting
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr482-verified-preflight-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+
+  arrangements-deploy:
+    if: ${{ inputs.release_scope == 'payment-arrangements' && inputs.action == 'deploy' }}
+    needs: arrangements-validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      APPROVE_RELEASE: ${{ inputs.approve_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          path: source
+          persist-credentials: false
+      - name: Require exact separate deployment approval
+        run: |
+          set -euo pipefail
+          python3 - <<'PYCODE'
+          import importlib.util
+          s=importlib.util.spec_from_file_location('r','trusted/scripts/staging/pr482-release.py')
+          r=importlib.util.module_from_spec(s);s.loader.exec_module(r);r.protected(True)
+          PYCODE
+      - uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-${{ github.run_id }}
+          path: preflight
+      - name: Authenticate Hosting principal before any Function mutation
+        id: arrangements-hosting-before
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Reject Hosting drift before first Function update
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.arrangements-hosting-before.outputs.access_token }}
+        run: python3 trusted/scripts/staging/pr482-hosting.py verify --source source --baseline preflight/baseline --out release-evidence/hosting-precheck
+      - name: Authenticate existing Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Update and verify one existing Function at a time; stop on first failure
+        run: |
+          set -euo pipefail
+          for name in createProposalDraft updateProposalDraft issueProposalClientReview acceptProposalClientReview createProposalCheckout recordProposalPrepaidCash stripeBillingWebhook; do
+            python3 trusted/scripts/staging/pr482-release.py function --name "$name" --baseline preflight/baseline --packages preflight/packages --out release-evidence/functions
+          done
+          python3 trusted/scripts/staging/pr482-release.py aggregate --baseline preflight/baseline --packages preflight/packages --out release-evidence/functions
+      - name: Authenticate existing Hosting deployer after seven verified Functions
+        id: arrangements-hosting-deploy
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Publish seven-path overlay and verify all live asset hashes and config
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.arrangements-hosting-deploy.outputs.access_token }}
+        run: python3 trusted/scripts/staging/pr482-hosting.py deploy --source source --baseline preflight/baseline --out release-evidence/hosting --verified-functions release-evidence/functions
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr482-release-receipt-${{ github.run_id }}
+          path: release-evidence/
           if-no-files-found: warn
