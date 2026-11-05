@@ -135,3 +135,59 @@ test("2C uncertain delivery requires System Admin and provider evidence to resol
   const evidenceAudit = await db.collection("proposals").doc(uncertain).collection("history").where("event","==","CASH_RECEIPT_PROVIDER_NON_ACCEPTANCE_VERIFIED").get();
   assert.equal(evidenceAudit.size, 1);
 });
+
+const sendIntake = require("../lib/enrollment/sendEnrollmentIntakeEmail").sendEnrollmentIntakeEmail;
+const intakeCall = (proposalId, tokenId, data = {}) => sendIntake.run({tokenId, recipientEmail:recipient, confirmRecipient:true, twoC:true, ...data}, {auth:{uid:manager,token:{}}});
+
+async function createTwoCIntake(proposalId, tokenId) {
+  await db.doc("intakeTokens/" + tokenId).set({
+    proposalId, locationId:"2c-location-" + suffix, source:"management_enrollment",
+    mode:"new_athlete", intakeAudience:"parent_guardian", used:false,
+    status:"invited", exp:Date.now() + 3600000,
+    prefill:{email:recipient,athleteName:"Synthetic Athlete"}
+  });
+}
+
+test("2C Intake cannot bypass the accepted receipt gate", async () => {
+  const idNoReceipt = idForOffset(3);
+  const token = "2c-no-receipt-" + suffix;
+  await db.doc("proposals/" + idNoReceipt).set(paidProposal({proposalId:idNoReceipt}));
+  await createTwoCIntake(idNoReceipt,token);
+  await assert.rejects(intakeCall(idNoReceipt,token), /provider-accepted receipt/i);
+});
+
+test("2C Intake accepts one provider send, then safely reuses its delivery status", async () => {
+  const token = "2c-sent-" + suffix;
+  await createTwoCIntake(id,token);
+  let intakeEmails = 0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {
+    intakeEmails++;
+    return {data:{id:"synthetic-intake-email-" + intakeEmails},error:null};
+  }}});
+  const first = await intakeCall(id,token);
+  assert.equal(first.ok,true);
+  assert.equal(intakeEmails,1);
+  const stored = (await db.doc("intakeTokens/" + token).get()).data();
+  assert.equal(stored.twoCEmailStatus,"SENT");
+  assert.equal(stored.deliveryStatus,"SENT");
+  assert.equal(stored.deliveredTo,recipient);
+  const second = await intakeCall(id,token);
+  assert.equal(second.ok,true);
+  assert.equal(second.alreadySent,true);
+  assert.equal(intakeEmails,1);
+});
+
+test("2C uncertain Intake provider response remains reserved and cannot resend", async () => {
+  const token = "2c-unknown-" + suffix;
+  await createTwoCIntake(id,token);
+  let attempts=0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {
+    attempts++;
+    throw Error("synthetic provider network failure");
+  }}});
+  await assert.rejects(intakeCall(id,token), /uncertain/i);
+  await assert.rejects(intakeCall(id,token), /outcome is uncertain/i);
+  assert.equal(attempts,1);
+  const saved = (await db.doc("intakeTokens/" + token).get()).data();
+  assert.equal(saved.twoCEmailStatus,"SENDING");
+});
