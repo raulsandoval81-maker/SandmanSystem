@@ -50,3 +50,24 @@ test("V2 early price is $300 per athlete with installment totals intact", () => 
   assert.throws(() => buildWinterWrestlingSchedule(1, "2026-11-28", true, "monday-wednesday-saturday", true), /Early registration/);
   assert.equal(buildWinterWrestlingSchedule(1, "2026-11-28", true).totalCents, 35000);
 });
+
+test("canonical seasonal proposals use server-side $300 early and $350 regular rates", () => {
+  const { canonicalSeasonalPricing } = require("../lib/proposals/seasonalProposal");
+  const athletes = [{ name: "Synthetic athlete" }];
+  const create = (date) => canonicalSeasonalPricing({
+    seasonalEnrollmentDate: date,
+    trainingSchedule: "monday-wednesday-saturday",
+    payInFull: true,
+  }, athletes);
+  const early = create("2026-11-27");
+  assert.equal(early.perAthleteCents, 30000);
+  assert.equal(early.totalCents, 30000);
+  assert.equal(early.discountTotalCents, 5000);
+  assert.equal(early.earlyRegistration, true);
+  assert.equal(early.seasonEnd, "2027-02-27");
+  const standard = create("2026-11-28");
+  assert.equal(standard.perAthleteCents, 35000);
+  assert.equal(standard.totalCents, 35000);
+  assert.equal(standard.earlyRegistration, false);
+  assert.equal(standard.discountTotalCents, 0);
+});
