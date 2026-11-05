@@ -1,0 +1,37 @@
+name: PR505 2C source-only staging scope review
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/staging/pr505-2c-readonly-plan.json'
+      - 'scripts/staging/pr505-2c-source-preflight.cjs'
+      - '.github/workflows/pr505-2c-source-review.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-pinned-source-scope:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - name: Check out proposed review-only verifier
+        uses: actions/checkout@v4
+        with:
+          path: review
+          persist-credentials: false
+      - name: Fetch exact PR505 source and pinned ancestor
+        uses: actions/checkout@v4
+        with:
+          ref: d2a9fcce0e820c31270bb689b40fabbdf9832a07
+          path: source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Run offline fail-closed source scope verification
+        run: |
+          node review/scripts/staging/pr505-2c-source-preflight.cjs source
+      - name: Reassert no cloud authentication or deploy steps
+        run: |
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS:-}"
+          test -z "${STRIPE_SECRET_KEY:-}"
+          test -z "${RESEND_API_KEY:-}"
