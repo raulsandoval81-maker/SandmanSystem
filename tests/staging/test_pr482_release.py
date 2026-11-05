@@ -394,7 +394,7 @@ class ReleaseTests(unittest.TestCase):
                     'APPROVE_RELEASE': hosting.APPROVAL}
         with patch.dict(os.environ, expected, clear=True):
             hosting.protected('deploy')
-            with self.assertRaisesRegex(RuntimeError, 'Validation cannot include'):
+            with self.assertRaisesRegex(RuntimeError, 'Protected staging-only'):
                 hosting.protected('validate')
         for key in expected:
             changed = dict(expected, **{key: 'wrong'})
