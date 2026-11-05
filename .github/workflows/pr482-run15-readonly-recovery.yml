@@ -1,6 +1,12 @@
 name: PR482 Run 15 partial staging recovery audit (read only)
 
 on:
+  pull_request:
+    paths:
+      - .github/workflows/pr482-run15-readonly-recovery.yml
+      - scripts/staging/pr482-release.py
+      - scripts/staging/pr482-run15-readonly-recovery.py
+      - tests/staging/test_pr482_release.py
   workflow_dispatch:
     inputs:
       confirm_project:
@@ -18,8 +24,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  unit-tests:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate audit scripts and regression tests without cloud access
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/staging/pr482-release.py scripts/staging/pr482-run15-readonly-recovery.py
+          python3 -m unittest discover -s tests/staging -p test_pr482_release.py -v
   read-only-audit:
-    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
     runs-on: ubuntu-24.04
     environment: staging
     env:
