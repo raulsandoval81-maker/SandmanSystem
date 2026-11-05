@@ -177,7 +177,11 @@ class ReleaseTests(unittest.TestCase):
                  patch.object(audit.r, 'contents', return_value={'file.js': b'data'}), \
                  patch.object(audit.r, 'hashes', return_value={'file.js': 'hash'}), \
                  patch.object(audit.subprocess, 'run') as cloud_cp:
-                result = audit.verify(preflight, receipt, root/'evidence.json', 'read-only-token')
+                output = root/'missing-evidence-directory'/'run15-readonly-result.json'
+                self.assertFalse(output.parent.exists())
+                result = audit.verify(preflight, receipt, output, 'read-only-token')
+                self.assertTrue(output.is_file())
+                self.assertEqual(json.loads(output.read_text()), result)
                 self.assertEqual(result['status'], 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT')
                 self.assertFalse(result['deploymentAuthorized'])
                 self.assertTrue(result['cloudRunReady'])
