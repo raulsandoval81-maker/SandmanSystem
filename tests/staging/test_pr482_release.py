@@ -294,7 +294,7 @@ class ReleaseTests(unittest.TestCase):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         verifier = (ROOT/'scripts/staging/pr482-run15-readonly-recovery.py').read_text()
         self.assertIn('six-function-recovery-audit', protected)
-        job = protected.split('  six-function-recovery-audit:', 1)[1]
+        job = protected.split('  six-function-recovery-audit:', 1)[1].split('\n  six-function-candidate-package:', 1)[0]
         self.assertIn("inputs.release_scope == 'six-function-recovery-audit'", job)
         self.assertIn("inputs.action == 'validate'", job)
         self.assertIn("github.ref == 'refs/heads/main'", job)
@@ -364,7 +364,7 @@ class ReleaseTests(unittest.TestCase):
 
     def test_six_candidate_packaging_has_no_deploy_and_remains_separate(self):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
-        job = workflow.split('  six-function-candidate-package:', 1)[1]
+        job = workflow.split('  six-function-candidate-package:', 1)[1].split('\n  six-function-controlled-release:', 1)[0]
         script = (ROOT/'scripts/staging/pr482-six-function-candidate.py').read_text()
         self.assertIn("inputs.action == 'validate'", job)
         self.assertIn("github.ref == 'refs/heads/main'", job)
@@ -408,7 +408,7 @@ class ReleaseTests(unittest.TestCase):
             with patch.object(six, 'verify_live_before_step', side_effect=AssertionError('cloud call')) as guard:
                 with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
                     six.deploy_one('other', {}, {}, {}, '.', '.', '')
-                with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
+                with self.assertRaisesRegex(RuntimeError, 'strictly sequential'):
                     six.deploy_one(six.SIX[1], {}, {}, {}, '.', '.', '')
                 guard.assert_not_called()
 
@@ -449,7 +449,7 @@ class ReleaseTests(unittest.TestCase):
     def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         self.assertIn('run15-recovery-audit', protected)
-        audit = protected.split('  run15-recovery-audit:', 1)[1]
+        audit = protected.split('  run15-recovery-audit:', 1)[1].split('\n  six-function-recovery-audit:', 1)[0]
         self.assertIn("inputs.release_scope == 'run15-recovery-audit'", audit)
         self.assertIn("inputs.action == 'validate'", audit)
         self.assertIn("github.ref == 'refs/heads/main'", audit)
