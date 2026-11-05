@@ -161,7 +161,7 @@ class ReleaseTests(unittest.TestCase):
             env = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
                    'GITHUB_REF': 'refs/heads/main', 'GITHUB_EVENT_NAME': 'workflow_dispatch',
                    'CONFIRM_PROJECT': 'sandman-combat-staging',
-                   'GITHUB_WORKFLOW_REF': 'raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-run15-readonly-recovery.yml@refs/heads/main'}
+                   'GITHUB_WORKFLOW_REF': 'raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main'}
             def capture(name):
                 return after if name == audit.FIRST else state['functions'][name]
             with patch.dict(os.environ, env, clear=True), \
@@ -185,6 +185,24 @@ class ReleaseTests(unittest.TestCase):
                 with patch.object(audit.r, 'hashes', return_value={'file.js': 'wrong'}):
                     with self.assertRaisesRegex(RuntimeError, 'source archive'):
                         audit.verify(preflight, receipt, root/'reject-source.json', 'read-only-token')
+
+    def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
+        protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        self.assertIn('run15-recovery-audit', protected)
+        audit = protected.split('  run15-recovery-audit:', 1)[1]
+        self.assertIn("inputs.release_scope == 'run15-recovery-audit'", audit)
+        self.assertIn("inputs.action == 'validate'", audit)
+        self.assertIn("github.ref == 'refs/heads/main'", audit)
+        self.assertIn('environment: staging', audit)
+        self.assertIn('actions: read', audit)
+        self.assertIn('pr482-run15-readonly-recovery.py', audit)
+        for forbidden in ['gcloud functions deploy', 'firebase deploy', 'gcloud run deploy',
+                          'gcloud projects add-iam-policy-binding', 'APPROVE_RELEASE']:
+            self.assertNotIn(forbidden, audit)
+        retired = (ROOT/'.github/workflows/pr482-run15-readonly-recovery.yml').read_text()
+        self.assertNotIn('workflow_dispatch:', retired)
+        self.assertNotIn('google-github-actions/auth', retired)
+        self.assertNotIn('read-only-audit:', retired)
 
     def test_runtime_identity_secret_iam_and_invoker_drift_reject(self):
         before = self.before()
@@ -346,7 +364,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 2)
+        self.assertEqual(workflow.count('environment: staging'), 3)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
