@@ -37,7 +37,6 @@ def verify(preflight, receipt, out, hosting_token):
             "Only a protected main-branch staging recovery workflow is allowed")
     permitted_workflows = {
         "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main",
-        "raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-six-function-readonly-preflight.yml@refs/heads/main",
     }
     require(os.environ.get("GITHUB_WORKFLOW_REF") in permitted_workflows,
             "Unapproved staging recovery audit workflow identity")
