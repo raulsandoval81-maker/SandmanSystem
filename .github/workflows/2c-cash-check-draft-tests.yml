@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'functions/src/billing/sendProposalPrepaidCashReceipt.ts'
+      - 'functions/src/enrollment/sendEnrollmentIntakeEmail.ts'
       - 'functions/src/index.ts'
       - 'functions/tests/prepaidCashReceipt.integration.cjs'
       - 'public/connect/proposals/proposals.js'
