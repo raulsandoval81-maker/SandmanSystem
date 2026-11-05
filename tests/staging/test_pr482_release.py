@@ -290,6 +290,24 @@ class ReleaseTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 planner.plan_from_evidence(original, wrong_first, audit)
 
+    def test_six_function_readonly_preflight_is_protected_and_non_deploying(self):
+        workflow = (ROOT/'.github/workflows/pr482-six-function-readonly-preflight.yml').read_text()
+        verifier = (ROOT/'scripts/staging/pr482-run15-readonly-recovery.py').read_text()
+        self.assertIn("github.ref == 'refs/heads/main'", workflow)
+        self.assertIn("inputs.confirm_project == 'sandman-combat-staging'", workflow)
+        self.assertIn('environment: staging', workflow)
+        self.assertIn('actions: read', workflow)
+        self.assertIn('pr482-six-function-recovery-plan.py', workflow)
+        self.assertIn('pr482-run15-readonly-recovery.py', workflow)
+        self.assertIn('pr482-run15-readonly-audit-42098768695', workflow)
+        self.assertIn('SIX_FUNCTION_RECOVERY_READONLY_VERIFIED_NO_DEPLOYMENT', workflow)
+        self.assertIn('pr482-six-function-readonly-preflight.yml@refs/heads/main', verifier)
+        for prohibited in ['gcloud functions deploy', 'firebase deploy',
+                           'gcloud run deploy', 'add-iam-policy-binding',
+                           'set-iam-policy', 'APPROVE_RELEASE', 'action == \'deploy\'']:
+            self.assertNotIn(prohibited, workflow)
+        self.assertNotIn('deploy:', workflow)
+
     def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         self.assertIn('run15-recovery-audit', protected)
