@@ -1191,8 +1191,9 @@ jobs:
           assert item['event'] == 'workflow_dispatch' and item['conclusion'] == 'success'
           assert item['path'] == '.github/workflows/paid-in-full-v2-readonly-preflight.yml'
           assert item['head_branch'] == 'main'
-          assert item.get('inputs', {}).get('action') == 'validate'
-          assert item.get('inputs', {}).get('release_scope') == 'six-function-controlled-release'
+          # GitHub workflow-run REST responses do not reliably expose dispatch
+          # inputs. Only the dedicated validate-only artifact below can satisfy
+          # the required preflight, and its contents must match fresh staging.
           print('SEPARATE_SUCCESSFUL_SIX_FUNCTION_PREFLIGHT_CONFIRMED')
           PY
       - name: Download exact separately successful preflight receipt
