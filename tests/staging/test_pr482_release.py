@@ -135,6 +135,57 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'runtime specification'):
             r.compare_after(before, after)
 
+    def test_run15_readonly_audit_checks_source_health_other_functions_and_hosting(self):
+        audit = load('pr482_run15_recovery', 'scripts/staging/pr482-run15-readonly-recovery.py')
+        before = self.before()
+        after = self.after(before)
+        after['function']['serviceConfig']['revision'] = audit.REVISION
+        after['function']['buildConfig']['source'] = {'storageSource': {
+            'bucket': 'staging-source', 'object': 'original.zip', 'generation': '123'}}
+        after['run']['spec']['template']['metadata']['labels'] = {
+            'goog-drz-cloudfunctions-id': 'createproposaldraft',
+            'goog-drz-cloudfunctions-location': 'us-central1'}
+        after['run']['status'] = {'traffic': [{'revisionName': audit.REVISION, 'percent': 100}],
+                                  'latestReadyRevisionName': audit.REVISION}
+        state = {'functions': {name: copy.deepcopy(before) for name in r.c.FUNCTIONS},
+                 'authorization': {'verified': True}, 'hosting': {'files': {'x': 'y'}}}
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            preflight = root/'preflight'; receipt = root/'receipt'
+            (preflight/'baseline').mkdir(parents=True)
+            (preflight/'packages').mkdir()
+            (receipt/'functions').mkdir(parents=True)
+            (preflight/'baseline'/'baseline.json').write_text(json.dumps(state))
+            (preflight/'packages'/'createProposalDraft-files.json').write_text(json.dumps({'file.js': 'hash'}))
+            (receipt/'functions'/'createProposalDraft-after.json').write_text(json.dumps(after))
+            env = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
+                   'GITHUB_REF': 'refs/heads/main', 'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                   'CONFIRM_PROJECT': 'sandman-combat-staging',
+                   'GITHUB_WORKFLOW_REF': 'raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-run15-readonly-recovery.yml@refs/heads/main'}
+            def capture(name):
+                return after if name == audit.FIRST else state['functions'][name]
+            with patch.dict(os.environ, env, clear=True), \\
+                 patch.object(audit.r, 'manifest', return_value={'baselineSha256': 'pin'}), \\
+                 patch.object(audit.c, 'baseline_digest', return_value='pin'), \\
+                 patch.object(audit.c, 'function_state', side_effect=capture), \\
+                 patch.object(audit.c, 'authorization_state', return_value=state['authorization']), \\
+                 patch.object(audit.c, 'hosting_state', return_value=state['hosting']), \\
+                 patch.object(audit.c, 'gc', return_value=[{'textPayload': 'STARTUP TCP probe succeeded'}]), \\
+                 patch.object(audit.r, 'contents', return_value={'file.js': b'data'}), \\
+                 patch.object(audit.r, 'hashes', return_value={'file.js': 'hash'}), \\
+                 patch.object(audit.subprocess, 'run') as cloud_cp:
+                result = audit.verify(preflight, receipt, root/'evidence.json', 'read-only-token')
+                self.assertEqual(result['status'], 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT')
+                self.assertFalse(result['deploymentAuthorized'])
+                self.assertEqual(cloud_cp.call_count, 1)
+                self.assertEqual(cloud_cp.call_args.args[0][:3], ['gcloud', 'storage', 'cp'])
+                with patch.object(audit.c, 'hosting_state', return_value={'files': {'x': 'changed'}}):
+                    with self.assertRaisesRegex(RuntimeError, 'Hosting changed'):
+                        audit.verify(preflight, receipt, root/'reject.json', 'read-only-token')
+                with patch.object(audit.r, 'hashes', return_value={'file.js': 'wrong'}):
+                    with self.assertRaisesRegex(RuntimeError, 'source archive'):
+                        audit.verify(preflight, receipt, root/'reject-source.json', 'read-only-token')
+
     def test_runtime_identity_secret_iam_and_invoker_drift_reject(self):
         before = self.before()
         for mutation in [lambda x: x['function']['serviceConfig'].update(serviceAccountEmail='other'),
