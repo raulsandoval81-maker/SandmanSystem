@@ -7,11 +7,13 @@ export const WINTER_WRESTLING_2026_27 = {
   campaignId: "winter-wrestling-2026-27",
   productId: "prod_VWi4ha2Oagq9Dg",
   fullSeasonPriceId: "price_1UVeei2KGvRzqoOHYd3tUMAD",
-  seasonStart: "2026-11-15",
-  seasonEnd: "2027-02-14",
+  seasonStart: "2026-11-30",
+  seasonEnd: "2027-02-27",
   minAge: 7,
-  maxAge: 14,
+  maxAge: 13,
   perAthleteCents: 35000,
+  earlyPerAthleteCents: 30000,
+  earlyRegistrationDeadline: "2026-11-27",
   installmentPricesCents: {
     15000: "price_1UVehY2KGvRzqoOH04eDIS3k",
     20000: "price_1UVeha2KGvRzqoOHIhFxKnAT",
@@ -32,7 +34,7 @@ export const WINTER_WRESTLING_2026_27 = {
     5: [75000, 55000, 45000],
   } as Record<number, number[]>,
   laterDueDates: ["2026-12-15", "2027-01-15"],
-  requiredProgramStart: "2026-11-29",
+  requiredProgramStart: "2026-11-30",
   maxProrationPercent: 25,
   enrollmentCutoff: null,
 } as const;
@@ -72,6 +74,7 @@ export function winterWrestlingRequiredPractices(
     ? new Set([1, 3, 6])
     : new Set([2, 4, 6]);
   const excluded = new Set(["2026-12-24", "2026-12-26"]);
+  // These are potential required sessions, not a promise of a fixed Saturday time.
   return isoDatesBetween(
     WINTER_WRESTLING_2026_27.requiredProgramStart,
     WINTER_WRESTLING_2026_27.seasonEnd,
@@ -131,14 +134,18 @@ export function winterWrestlingProration(input: {
 export function winterWrestlingPaymentPlan(
   athleteCount: number,
   payInFull = false,
+  earlyRegistration = false,
 ): { totalCents: number; installmentsCents: number[] } {
   if (!Number.isInteger(athleteCount) || athleteCount < 1 || athleteCount > 5) {
     throw new Error("Athlete count outside approved winter season schedule; Management approval required.");
   }
-  const totalCents = athleteCount * WINTER_WRESTLING_2026_27.perAthleteCents;
+  const totalCents = athleteCount * (earlyRegistration
+    ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
+    : WINTER_WRESTLING_2026_27.perAthleteCents);
   const installmentsCents = payInFull
     ? [totalCents]
     : [...WINTER_WRESTLING_2026_27.paymentAmountsCents[athleteCount]];
+  if (!payInFull && earlyRegistration) installmentsCents[0] -= 5000 * athleteCount;
   if (installmentsCents.reduce((a, b) => a + b, 0) !== totalCents) {
     throw new Error("Winter wrestling installment totals do not reconcile.");
   }
@@ -163,6 +170,7 @@ export function buildWinterWrestlingSchedule(
   enrollmentDate: string,
   payInFull = false,
   trainingSchedule: WinterWrestlingSchedule = "monday-wednesday-saturday",
+  earlyRegistration = false,
 ): {
   totalCents: number;
   installments: WinterSeasonInstallment[];
@@ -179,12 +187,18 @@ export function buildWinterWrestlingSchedule(
   if (enrollmentDate > WINTER_WRESTLING_2026_27.seasonEnd) {
     throw new Error("Enrollment date falls after winter season ends.");
   }
-  const plan = winterWrestlingPaymentPlan(athleteCount, payInFull);
+  if (earlyRegistration && enrollmentDate > WINTER_WRESTLING_2026_27.earlyRegistrationDeadline) {
+    throw new Error("Early registration is limited to enrollment through November 27, 2026.");
+  }
+  const plan = winterWrestlingPaymentPlan(athleteCount, payInFull, earlyRegistration);
   const proration = winterWrestlingProration({
     athleteCount,
     enrollmentDate,
     schedule: trainingSchedule,
   });
+  if (earlyRegistration && proration.totalDiscountCents > 0) {
+    throw new Error("Early registration and late-start discounts cannot be combined.");
+  }
   const adjustedAmounts = [...plan.installmentsCents];
   adjustedAmounts[0] -= proration.totalDiscountCents;
   const laterDates = WINTER_WRESTLING_2026_27.laterDueDates;
@@ -199,7 +213,7 @@ export function buildWinterWrestlingSchedule(
     amountCents,
     dueDate: expectedDates[index],
     stripePriceId:
-      adjustedAmounts.length === 1 && proration.totalDiscountCents === 0
+      adjustedAmounts.length === 1 && !earlyRegistration && proration.totalDiscountCents === 0
         ? WINTER_WRESTLING_2026_27.fullSeasonPriceId // Charge with quantity = athleteCount.
         : WINTER_WRESTLING_2026_27.installmentPricesCents[amountCents] || null,
   }));
