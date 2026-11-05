@@ -39,6 +39,26 @@ const handoffCache = new Map();
 
 let currentHandoffTokenId = "";
 let currentHandoffAudience = "";
+const twoCReceiptStatuses = new Map();
+
+function receiptStatusText(proposalId) {
+  const info = twoCReceiptStatuses.get(proposalId) || {status:"UNKNOWN"};
+  const label = {
+    NOT_SENT:"Receipt not sent", SENDING:"Receipt send pending — provider verification required",
+    SENT:"Receipt accepted by email provider", FAILED:"Receipt not accepted — retry allowed",
+    UNKNOWN:"Receipt status unavailable — do not resend until verified"
+  }[info.status] || "Receipt delivery requires review";
+  const recipient = info.recipient ? ` · ${info.recipient}` : "";
+  return {label, recipient, status:info.status};
+}
+
+async function refresh2CReceiptStatus(proposalId) {
+  const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
+  const result = await receipt({proposalId, mode:"status"});
+  if (!result.data?.ok) throw new Error("Receipt status could not be verified.");
+  twoCReceiptStatuses.set(proposalId, result.data);
+  return result.data;
+}
 
 function esc(value = "") {
   return String(value)
@@ -576,6 +596,7 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
     ? formatDateTime(Number(handoff.exp))
     : "—";
   const recipient = String(handoff?.deliveredTo || "").trim();
+  const receiptState = proposal.paymentMethod === "cash_prepaid" ? receiptStatusText(proposalId) : null;
   const audienceLabel = handoff?.intakeAudience === "adult_athlete"
     ? "Adult Athlete"
     : "Parent / Guardian";
@@ -618,6 +639,7 @@ function renderAwaitingIntakeCard({ proposal, handoff }) {
         </div>
       </div>
       <div class="pending-card-actions">
+        ${receiptState ? `<span class="pending-card-meta small">2C · ${esc(receiptState.label)}${esc(receiptState.recipient)}</span><button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>` : ""}
         <button
           class="small solid-blue"
           data-awaiting-resend="${esc(proposalId)}"
@@ -660,6 +682,8 @@ function renderReadyIntakeCard(proposal) {
 
   const intakeAudience = intakeAudienceForProposal(proposal, athletes);
 
+  const receiptState = proposal.paymentMethod === "cash_prepaid" ? receiptStatusText(proposalId) : null;
+
   const handoffAction = intakeAudience === "adult_athlete"
     ? `
         <button class="small solid-blue" data-ready-adult="${esc(proposalId)}">
@@ -701,7 +725,10 @@ function renderReadyIntakeCard(proposal) {
         </div>
       </div>
       <div class="pending-card-actions">
-        ${proposal.paymentMethod === "cash_prepaid" ? `
+        ${receiptState ? `
+          <div class="pending-card-meta small">2C · ${esc(receiptState.label)}${esc(receiptState.recipient)}</div>
+          <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
+          ${receiptState.status === "SENDING" ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
             2C — Send Paid-in-Full Receipt + Intake Email
           </button>
@@ -884,6 +911,45 @@ async function recordManualIntakeDelivery({
 }
 
 function wireReadyIntakeButtons() {
+  document.querySelectorAll("[data-receipt-refresh]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const proposalId = String(button.dataset.receiptRefresh || "").trim();
+      button.disabled = true;
+      try {
+        const status = await refresh2CReceiptStatus(proposalId);
+        if ($("invite-status")) $("invite-status").textContent = `2C receipt: ${status.status} ${status.recipient || ""}`;
+        await loadReadyForIntake(await requireManagement());
+      } catch (err) {
+        if ($("invite-status")) $("invite-status").textContent = `Receipt status unavailable: ${err?.message || err}`;
+      } finally {button.disabled = false;}
+    });
+  });
+  document.querySelectorAll("[data-receipt-resolve]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const proposalId = String(button.dataset.receiptResolve || "").trim();
+      const status = await refresh2CReceiptStatus(proposalId);
+      if (status.status !== "SENDING") return;
+      const resolution = window.prompt("System Admin recovery: type ACCEPTED if the provider accepted this email, or NOT_ACCEPTED only with verified provider evidence. Cancel leaves the receipt locked.");
+      if (!["ACCEPTED","NOT_ACCEPTED"].includes(resolution || "")) return;
+      const providerId = resolution === "ACCEPTED"
+        ? window.prompt("Enter the exact provider email acceptance ID:") : "";
+      if (resolution === "ACCEPTED" && !providerId?.trim()) return;
+      const evidence = window.prompt("Record provider evidence (reference and observed result; minimum 20 characters):");
+      if (!evidence || evidence.trim().length < 20) return;
+      const mode = resolution === "ACCEPTED" ? "confirm_sent" : "confirm_not_sent";
+      const confirmation = mode === "confirm_sent" ? "PROVIDER_ACCEPTED_EMAIL" : "PROVIDER_CONFIRMED_NOT_ACCEPTED";
+      if (!window.confirm("This audited resolution affects receipt delivery. Have you independently verified the provider's record?")) return;
+      button.disabled = true;
+      try {
+        const action = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
+        await action({proposalId, mode, providerId:providerId || "", evidence:evidence.trim(), confirmation});
+        await refresh2CReceiptStatus(proposalId);
+        await loadReadyForIntake(await requireManagement());
+      } catch (err) {
+        if ($("invite-status")) $("invite-status").textContent = `Receipt resolution blocked: ${err?.message || err}`;
+      } finally { button.disabled = false; }
+    });
+  });
   // 2C reuses the existing secure token and Intake email sender.
   // Receipt and invitation have independent persisted delivery status.
   document.querySelectorAll("[data-ready-2c]").forEach(button => {
@@ -910,6 +976,15 @@ function wireReadyIntakeButtons() {
         return;
       }
       if (!window.confirm(`2C for ${proposalId}: send the existing Cash/Check paid receipt and the secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation to ${recipientEmail}? No Stripe charge will be created.`)) return;
+      const statusBefore = await refresh2CReceiptStatus(proposalId);
+      if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
+        if ($("invite-status")) $("invite-status").textContent = "Receipt delivery is uncertain. Provider reconciliation is required before Intake can be sent.";
+        return;
+      }
+      if (statusBefore.status === "SENT" && statusBefore.recipient !== recipientEmail) {
+        if ($("invite-status")) $("invite-status").textContent = "Receipt was previously sent to another recipient. Resolve with Management before continuing.";
+        return;
+      }
       const original = button.textContent;
       button.disabled = true;
       button.textContent = "Preparing 2C…";
@@ -930,6 +1005,14 @@ function wireReadyIntakeButtons() {
           throw new Error("Receipt was sent to a different recipient. Resolve the delivery mismatch before sending Intake.");
         }
         const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
+        const tokenSnapshot = await getDoc(doc(db, "intakeTokens", tokenId));
+        const delivered = tokenSnapshot.data() || {};
+        if (delivered.deliveryStatus === "SENT") {
+          if (String(delivered.deliveredTo || "").toLowerCase() !== recipientEmail) throw new Error("Intake already sent to another recipient. No duplicate email sent.");
+          if ($("invite-status")) $("invite-status").textContent = "✓ 2C already completed. Receipt and Intake were previously accepted by the email provider.";
+          await loadReadyForIntake(await requireManagement());
+          return;
+        }
         const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true });
         if (intakeResult.data?.ok !== true) {
           throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
@@ -1198,6 +1281,12 @@ async function loadReadyForIntake(managementContext) {
 
   const queueItems =
     readinessChecks.filter(Boolean);
+
+  await Promise.all(queueItems.filter(item => item.proposal?.paymentMethod === "cash_prepaid").map(async item => {
+    const proposalId = String(item.proposal.proposalId || item.proposal.id || "").trim();
+    try { await refresh2CReceiptStatus(proposalId); }
+    catch { twoCReceiptStatuses.set(proposalId, {status:"UNKNOWN"}); }
+  }));
 
   const readyItems =
     queueItems.filter((item) => item.state === "ready");
