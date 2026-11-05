@@ -164,15 +164,15 @@ class ReleaseTests(unittest.TestCase):
                    'GITHUB_WORKFLOW_REF': 'raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-run15-readonly-recovery.yml@refs/heads/main'}
             def capture(name):
                 return after if name == audit.FIRST else state['functions'][name]
-            with patch.dict(os.environ, env, clear=True), \\
-                 patch.object(audit.r, 'manifest', return_value={'baselineSha256': 'pin'}), \\
-                 patch.object(audit.c, 'baseline_digest', return_value='pin'), \\
-                 patch.object(audit.c, 'function_state', side_effect=capture), \\
-                 patch.object(audit.c, 'authorization_state', return_value=state['authorization']), \\
-                 patch.object(audit.c, 'hosting_state', return_value=state['hosting']), \\
-                 patch.object(audit.c, 'gc', return_value=[{'textPayload': 'STARTUP TCP probe succeeded'}]), \\
-                 patch.object(audit.r, 'contents', return_value={'file.js': b'data'}), \\
-                 patch.object(audit.r, 'hashes', return_value={'file.js': 'hash'}), \\
+            with patch.dict(os.environ, env, clear=True), \
+                 patch.object(audit.r, 'manifest', return_value={'baselineSha256': 'pin'}), \
+                 patch.object(audit.c, 'baseline_digest', return_value='pin'), \
+                 patch.object(audit.c, 'function_state', side_effect=capture), \
+                 patch.object(audit.c, 'authorization_state', return_value=state['authorization']), \
+                 patch.object(audit.c, 'hosting_state', return_value=state['hosting']), \
+                 patch.object(audit.c, 'gc', return_value=[{'textPayload': 'STARTUP TCP probe succeeded'}]), \
+                 patch.object(audit.r, 'contents', return_value={'file.js': b'data'}), \
+                 patch.object(audit.r, 'hashes', return_value={'file.js': 'hash'}), \
                  patch.object(audit.subprocess, 'run') as cloud_cp:
                 result = audit.verify(preflight, receipt, root/'evidence.json', 'read-only-token')
                 self.assertEqual(result['status'], 'VERIFIED_PARTIAL_STAGING_DEPLOYMENT')
