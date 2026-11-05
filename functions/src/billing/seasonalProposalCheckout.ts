@@ -3,6 +3,7 @@ import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 
 import { isSeasonalProposalPricing } from "../proposals/seasonalProposal";
+import { WINTER_WRESTLING_2026_27 } from "../proposals/winterWrestlingSeasonPolicy";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -72,6 +73,20 @@ export async function createSeasonalProposalCheckout(input: {
     ? proposal.seasonalPaymentLedger
     : initialLedger(pricing);
   const next = ledger.find((entry) => entry.status !== "paid");
+  // First early-rate payment must be initiated by the advertised deadline.
+  // Later installments remain payable according to the signed schedule.
+  if (next?.number === 1 && pricing.earlyRegistration === true) {
+    // Build ISO date from parts to avoid environment-dependent locale formatting.
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
+    }).formatToParts(new Date());
+    const value = (kind: string) => parts.find((part) => part.type === kind)?.value || "";
+    const pacificDate = `${value("year")}-${value("month")}-${value("day")}`;
+    if (pacificDate > WINTER_WRESTLING_2026_27.earlyRegistrationDeadline) {
+      throw new HttpsError("failed-precondition",
+        "Early registration has ended. Management must reissue updated pricing before checkout.");
+    }
+  }
   if (!next) {
     return { ok: true, proposalId, status: "PAID", alreadyPaid: true };
   }
