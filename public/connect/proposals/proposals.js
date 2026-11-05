@@ -1638,7 +1638,10 @@ function proposalStageInfo(
     case "CLIENT_CHANGES_REQUESTED":
       return { stage: "Proposal Correction", next: "Return to Prospect Builder and correct the offer." };
     case "CLIENT_SIGNED":
-      return { stage: "Management Approval", next: "Approve the accepted proposal for checkout." };
+      return { stage: "Management Approval", next:
+        proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check"
+          ? "Approve the accepted cash/check proposal for family Review & Confirm; no Stripe checkout."
+          : "Approve the accepted proposal for checkout." };
     case "BUILDING":
     case "DRAFT":
       return { stage: "Proposal Builder", next: "Complete the proposal and issue it to the family." };
