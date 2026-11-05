@@ -409,7 +409,7 @@ class ReleaseTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
                     six.deploy_one('other', {}, {}, {}, '.', '.', '')
                 with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
-                    six.deploy_one(six.SIX[1], {}, {}, {six.SIX[0]: {}}, '.', '.', '')
+                    six.deploy_one(six.SIX[1], {}, {}, {}, '.', '.', '')
                 guard.assert_not_called()
 
     def test_six_controlled_release_requires_approved_preflight_match(self):
