@@ -1646,7 +1646,10 @@ function proposalStageInfo(
     case "CHECKOUT_CREATED":
     case "PARTIALLY_PAID":
     case "PAYMENT_FAILED":
-      return { stage: "Review & Confirm", next: "Family confirms the locked enrollment, then continues to Stripe." };
+      return { stage: "Review & Confirm", next:
+        proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check"
+          ? "Family confirms the locked enrollment, then Management reconciles the existing cash/check payment. No Stripe checkout."
+          : "Family confirms the locked enrollment, then continues to Stripe." };
     case "PAID":
       return { stage: "Management Enrollment", next: "Issue the secure Intake handoff." };
     default:
