@@ -57,7 +57,7 @@ def baseline_fingerprints(state):
 
 def write_baseline_mismatch(state, expected, out):
     """Leave the pin intact and preserve a comparison fingerprint on mismatch."""
-    observed = c.digest(state)
+    observed = c.baseline_digest(state)
     if observed == expected:
         return False
     diagnostic = {
@@ -162,7 +162,7 @@ def deploy_function(name, baseline, packages, out):
     m = protected(True)
     require(name in c.FUNCTIONS, 'Function is outside release scope')
     state = json.loads((Path(baseline)/'baseline.json').read_text())
-    require(c.digest(state) == m['baselineSha256'], 'Pinned baseline required')
+    require(c.baseline_digest(state) == m['baselineSha256'], 'Pinned baseline required')
     require(json.loads((Path(packages)/'prepared.json').read_text()) == {'sourceSha': c.SHA, 'baselineSha256': m['baselineSha256'], 'functions': c.FUNCTIONS}, 'Unverified packages')
     before = state['functions'][name]
     require(c.function_state(name) == before, 'Function drift immediately before deployment')
@@ -205,7 +205,7 @@ def deploy_function(name, baseline, packages, out):
 def aggregate(baseline, packages, out):
     m = protected(True)
     state = json.loads((Path(baseline)/'baseline.json').read_text())
-    require(c.digest(state) == m['baselineSha256'], 'Pinned baseline required')
+    require(c.baseline_digest(state) == m['baselineSha256'], 'Pinned baseline required')
     require(c.authorization_state(state['functions']) == state['authorization'], 'Authorization drift')
     for name in c.FUNCTIONS:
         receipt = json.loads((Path(out)/(name+'-verified.json')).read_text())

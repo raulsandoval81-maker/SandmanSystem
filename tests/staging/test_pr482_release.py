@@ -179,6 +179,90 @@ class ReleaseTests(unittest.TestCase):
             self.assertEqual(evidence['fingerprints']['/functions/example/environmentVariables'], '[sensitive-field-omitted]')
             self.assertFalse(r.write_baseline_mismatch(state, r.c.digest(state), out))
 
+    def hosting_fixture(self):
+        return {'release': {'name':'release-unchanged', 'releaseUser':{'email':'staff@example.test','imageUrl':'avatar-old'},
+                            'version':{'name':'version-unchanged','createUser':{'email':'creator@example.test','imageUrl':'avatar-old'},
+                                       'finalizeUser':{'email':'finalizer@example.test','imageUrl':'avatar-old'}}},
+                'version': {'name':'version-unchanged','status':'FINALIZED','config':{},
+                            'createUser':{'email':'creator@example.test','imageUrl':'avatar-old'},
+                            'finalizeUser':{'email':'finalizer@example.test','imageUrl':'avatar-old'}},
+                'files': {'/preserved.js':'unchanged-hash'}}
+
+    def test_only_five_proven_hosting_avatar_paths_are_normalized_without_mutating_evidence(self):
+        expected = {('release','releaseUser','imageUrl'), ('release','version','createUser','imageUrl'),
+                    ('release','version','finalizeUser','imageUrl'), ('version','createUser','imageUrl'),
+                    ('version','finalizeUser','imageUrl')}
+        self.assertEqual(set(r.c.HOSTING_PROFILE_IMAGE_PATHS), expected)
+        state={'hosting':self.hosting_fixture()}; original=copy.deepcopy(state); changed=copy.deepcopy(state)
+        for path in expected:
+            parent=changed['hosting']
+            for key in path[:-1]: parent=parent[key]
+            parent[path[-1]]='avatar-rotated'
+        self.assertNotEqual(r.c.digest(state),r.c.digest(changed))
+        self.assertEqual(r.c.baseline_digest(state),r.c.baseline_digest(changed))
+        self.assertEqual(r.c.canonical_hosting(state['hosting']),r.c.canonical_hosting(changed['hosting']))
+        self.assertEqual(state,original)
+
+    def test_identity_release_asset_iam_and_sensitive_drift_still_changes_digest(self):
+        state={'hosting':self.hosting_fixture(), 'functions':{'example':{'revision':'old','environmentVariables':{'SECRET':'old'}}},
+               'authorization':{'policy':{'members':['staff'],'permissions':['read']}}, 'applicationSha':r.c.SHA}
+        mutations=[lambda x:x['hosting']['release'].update(name='other-release'),
+                   lambda x:x['hosting']['version'].update(name='other-version'),
+                   lambda x:x['hosting']['version'].update(status='DELETED'),
+                   lambda x:x['hosting']['release']['releaseUser'].update(email='other@example.test'),
+                   lambda x:x['hosting']['release']['version']['createUser'].update(email='other@example.test'),
+                   lambda x:x['hosting']['release']['version']['finalizeUser'].update(email='other@example.test'),
+                   lambda x:x['hosting']['version']['createUser'].update(email='other@example.test'),
+                   lambda x:x['hosting']['version']['finalizeUser'].update(email='other@example.test'),
+                   lambda x:x['hosting']['version']['config'].update(headers=['changed']),
+                   lambda x:x['hosting']['files'].update({'/preserved.js':'changed-hash'}),
+                   lambda x:x['functions']['example'].update(revision='new'),
+                   lambda x:x['functions']['example']['environmentVariables'].update(SECRET='changed'),
+                   lambda x:x['authorization']['policy']['permissions'].append('write'),
+                   lambda x:x.update(applicationSha='other'),
+                   lambda x:x['hosting']['version'].update(imageUrl='not-an-allowed-path')]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(index=index):
+                changed=copy.deepcopy(state);mutate(changed)
+                self.assertNotEqual(r.c.baseline_digest(state),r.c.baseline_digest(changed))
+
+    def test_unexpected_avatar_field_type_remains_pinned(self):
+        state={'hosting':self.hosting_fixture()}; changed=copy.deepcopy(state)
+        changed['hosting']['version']['createUser']['imageUrl']={'unexpected':'data'}
+        self.assertNotEqual(r.c.baseline_digest(state),r.c.baseline_digest(changed))
+
+    def test_diagnostics_use_same_canonical_pin_and_still_fail_for_identity_change(self):
+        state={'hosting':self.hosting_fixture()}; changed=copy.deepcopy(state)
+        changed['hosting']['version']['createUser']['imageUrl']='rotated'
+        with tempfile.TemporaryDirectory() as folder:
+            out=Path(folder)/'packages';pin=r.c.baseline_digest(state)
+            self.assertFalse(r.write_baseline_mismatch(changed,pin,out))
+            changed['hosting']['version']['createUser']['email']='changed@example.test'
+            self.assertTrue(r.write_baseline_mismatch(changed,pin,out))
+            evidence=json.loads((Path(folder)/'baseline-mismatch.json').read_text())
+            self.assertEqual(evidence['observedBaselineSha256'],r.c.baseline_digest(changed))
+
+    def test_hosting_verify_accepts_avatar_rotation_but_rejects_identity_change_without_writes(self):
+        import gzip,hashlib
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);source=root/'source';baseline=root/'baseline';baseline.mkdir()
+            hosting=self.hosting_fixture()
+            for index,path in enumerate(r.c.ASSETS):
+                f=source/('public'+path);f.parent.mkdir(parents=True,exist_ok=True);f.write_text('approved '+str(index))
+                if path not in r.manifest()['newAssets']:hosting['files'][path]='old-hash'
+            dep=source/'public/management/billing/prepaid-terms.js';dep.write_text('unchanged dependency')
+            hosting['files']['/management/billing/prepaid-terms.js']=hashlib.sha256(gzip.compress(dep.read_bytes(),mtime=0)).hexdigest()
+            state={'hosting':hosting};r.save(baseline/'baseline.json',state)
+            m=r.manifest();m['baselineSha256']=r.c.baseline_digest(state)
+            live=copy.deepcopy(hosting);live['release']['releaseUser']['imageUrl']='rotated'
+            with patch.dict(os.environ,{**self.env(),'STAGING_HOSTING_TOKEN':'test-only'},clear=True), \
+                 patch.object(h.r,'manifest',return_value=m),patch.object(h.subprocess,'check_output',return_value=r.c.SHA), \
+                 patch.object(h.c,'hosting_state',return_value=live),patch.object(h,'request',side_effect=AssertionError('cloud write')):
+                h.run('verify',str(source),str(baseline),str(root/'verify'),None)
+                live['release']['releaseUser']['email']='changed@example.test'
+                with self.assertRaisesRegex(RuntimeError,'Live Hosting baseline drift'):
+                    h.run('verify',str(source),str(baseline),str(root/'reject'),None)
+
     def test_workflow_is_separate_protected_scope_and_no_other_mutations(self):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)

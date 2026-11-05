@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Read-only staging inventory and immutable rollback capture. No mutation APIs."""
 import concurrent.futures
+import copy
 import hashlib
 import json
 import os
@@ -28,6 +29,36 @@ def save(path, value):
 
 def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+# Presentation metadata only: these five Hosting avatar URLs can change without
+# a release, identity, configuration or asset change. Every other field stays pinned.
+HOSTING_PROFILE_IMAGE_PATHS = (
+    ('release', 'releaseUser', 'imageUrl'),
+    ('release', 'version', 'createUser', 'imageUrl'),
+    ('release', 'version', 'finalizeUser', 'imageUrl'),
+    ('version', 'createUser', 'imageUrl'),
+    ('version', 'finalizeUser', 'imageUrl'),
+)
+
+def canonical_hosting(hosting):
+    value = copy.deepcopy(hosting)
+    for path in HOSTING_PROFILE_IMAGE_PATHS:
+        parent = value
+        for key in path[:-1]:
+            if not isinstance(parent, dict):
+                break
+            parent = parent.get(key)
+        else:
+            # Unexpected types remain covered by the digest/comparison.
+            if isinstance(parent, dict) and isinstance(parent.get(path[-1]), str):
+                parent.pop(path[-1])
+    return value
+
+def baseline_digest(state):
+    value = copy.deepcopy(state)
+    if isinstance(value, dict) and 'hosting' in value:
+        value['hosting'] = canonical_hosting(value['hosting'])
+    return digest(value)
 
 def gc(args):
     return json.loads(subprocess.check_output(['gcloud', *args, '--project='+PROJECT, '--format=json'], text=True))
@@ -118,7 +149,7 @@ def capture(out, token):
         require(bool(data), 'Empty rollback source')
         rollbacks[name] = {'source': src, 'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
     save(out/'rollback.json', rollbacks)
-    receipt = {'baselineSha256': digest(state), 'rollback': rollbacks,
+    receipt = {'baselineSha256': baseline_digest(state), 'rollback': rollbacks,
                'hostingRelease': state['hosting']['release']['name'] if state['hosting'] else None,
                'hostingVersion': state['hosting']['version']['name'] if state['hosting'] else None,
                'fileCount': len(state['hosting']['files']) if state['hosting'] else None,
@@ -136,7 +167,7 @@ if __name__ == '__main__':
         require(state['hosting'] is None and state['project'] == PROJECT and state['applicationSha'] == SHA, 'Wrong pending capture')
         state['hosting'] = hosting_state(access_token); save(folder/'baseline.json', state)
         receipt = json.loads((folder/'receipt.json').read_text())
-        receipt.update({'baselineSha256': digest(state), 'hostingRelease': state['hosting']['release']['name'],
+        receipt.update({'baselineSha256': baseline_digest(state), 'hostingRelease': state['hosting']['release']['name'],
                         'hostingVersion': state['hosting']['version']['name'], 'fileCount': len(state['hosting']['files'])})
         save(folder/'receipt.json', receipt)
     else:
