@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release]
+        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release, seven-hosting-readonly-preflight]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -1299,4 +1299,94 @@ jobs:
             evidence/release/*-receipt.json
             evidence/release/safe-completion.json
           if-no-files-found: warn
+          retention-days: 7
+
+  seven-hosting-readonly-preflight:
+    if: ${{ inputs.release_scope == 'seven-hosting-readonly-preflight' && inputs.action == 'validate' && github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' && inputs.approve_release == '' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      RELEASE_ACTION: ${{ inputs.action }}
+      RELEASE_SCOPE: ${{ inputs.release_scope }}
+      APPROVE_RELEASE: ${{ inputs.approve_release }}
+    steps:
+      - name: Checkout merged trusted staging verification code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Checkout immutable original PR482 application source
+        uses: actions/checkout@v4
+        with:
+          ref: f402c04ee27a5ca9309a422221c3556f6523588a
+          path: source
+          persist-credentials: false
+      - name: Retrieve original certified baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: original
+      - name: Retrieve certified six-Function staging release results
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-six-release-progress-42109819491
+          run-id: 42109819491
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: run22
+      - name: Compile verifier and run focused regression tests
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "$(git -C source rev-parse HEAD)" = "f402c04ee27a5ca9309a422221c3556f6523588a"
+          test -f original/baseline/baseline.json
+          test -f run22/safe-completion.json
+          test -f run22/stripeBillingWebhook-receipt.json
+          python3 -m py_compile trusted/scripts/staging/pr482-seven-hosting-readonly-preflight.py
+          python3 -m unittest discover -s trusted/tests/staging -p test_pr482_release.py -v
+      - name: Authenticate existing staging Hosting reader
+        id: hosting-reader
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Authenticate existing staging Functions reader
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Read-only staging Function and Hosting verification
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.hosting-reader.outputs.access_token }}
+        run: |
+          set -euo pipefail
+          python3 trusted/scripts/staging/pr482-seven-hosting-readonly-preflight.py \
+            --source source \
+            --original original/baseline/baseline.json \
+            --run22 run22 \
+            --out safe-hosting-preflight.json
+      - name: Retain only sanitized read-only Hosting verification evidence
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-seven-hosting-readonly-${{ github.run_id }}
+          path: safe-hosting-preflight.json
+          if-no-files-found: error
           retention-days: 7
