@@ -1,0 +1,121 @@
+name: PR482 six-Function recovery read-only preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandman-combat-staging; read-only verification, no deployment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+concurrency:
+  group: pr482-six-function-recovery-readonly
+  cancel-in-progress: false
+
+jobs:
+  verify-six-function-recovery:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm_project == 'sandman-combat-staging' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Checkout reviewed tooling at dispatch commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Retrieve immutable Run 15 preflight evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-verified-preflight-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: preflight
+      - name: Retrieve Run 15 partial-deployment receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-release-receipt-42085433812
+          run-id: 42085433812
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: receipt
+      - name: Retrieve completed Run 18 audit receipt
+        uses: actions/download-artifact@v4
+        with:
+          name: pr482-run15-readonly-audit-42098768695
+          run-id: 42098768695
+          repository: raulsandoval81-maker/SandmanSystem
+          github-token: ${{ github.token }}
+          path: prior-audit
+      - name: Enforce immutable evidence and offline regression tests
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          test -f preflight/baseline/baseline.json
+          test -f preflight/packages/createProposalDraft-files.json
+          test -f receipt/functions/createProposalDraft-after.json
+          test -f prior-audit/run15-readonly-result.json
+          python3 -m py_compile scripts/staging/pr482-six-function-recovery-plan.py scripts/staging/pr482-run15-readonly-recovery.py
+          python3 -m unittest discover -s tests/staging -p test_pr482_release.py -v
+          python3 scripts/staging/pr482-six-function-recovery-plan.py \
+            --original-baseline preflight/baseline/baseline.json \
+            --run15-first-after receipt/functions/createProposalDraft-after.json \
+            --run18-audit prior-audit/run15-readonly-result.json \
+            --out evidence/six-function-plan.json
+      - name: Authenticate existing staging Hosting reader
+        id: staging-hosting
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          token_format: access_token
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Authenticate existing staging Functions reader
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Recheck live partial deployment and unchanged six Functions
+        env:
+          STAGING_HOSTING_TOKEN: ${{ steps.staging-hosting.outputs.access_token }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          python3 scripts/staging/pr482-run15-readonly-recovery.py \
+            --preflight preflight --receipt receipt --out evidence/fresh-readonly-audit.json
+          python3 - <<'PY'
+          import json
+          plan = json.load(open('evidence/six-function-plan.json'))
+          live = json.load(open('evidence/fresh-readonly-audit.json'))
+          prior = json.load(open('prior-audit/run15-readonly-result.json'))
+          assert live == prior, 'Fresh staging audit differs from successful Run 18 receipt'
+          assert plan['status'] == 'RECOVERY_PLAN_ONLY_NOT_AUTHORIZED'
+          assert len(plan['functionsToPrepare']) == 6
+          assert not plan['deploymentAuthorized'] and not plan['productionAuthorized']
+          print('SIX_FUNCTION_RECOVERY_READONLY_VERIFIED_NO_DEPLOYMENT')
+          PY
+      - name: Preserve sanitized plan and fresh audit only
+        if: ${{ success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-six-function-readonly-plan-${{ github.run_id }}
+          path: |
+            evidence/six-function-plan.json
+            evidence/fresh-readonly-audit.json
+          if-no-files-found: error
+          retention-days: 7
