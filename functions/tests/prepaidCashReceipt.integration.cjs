@@ -37,7 +37,7 @@ function paidProposal(overrides = {}) {
     lockedSnapshot: {prospect: {parentEmail: recipient}},
     cashPrepayment: {
       amountCents: 99000, membershipAmountCents: 96000,
-      annualEnrollmentFee: {outstandingCents: 0},
+      annualEnrollmentFee: {outstandingCents: 0, paidWithPrepaymentCents: 3000},
       paymentMethod: "check",
       paymentDate: Timestamp.fromDate(new Date("2026-11-01T12:00:00Z")),
       membershipStartDate: Timestamp.fromDate(new Date("2026-11-01T12:00:00Z")),
@@ -92,8 +92,8 @@ test("2C sends a verified receipt exactly once and records an audit entry", asyn
   const recorded = (await receiptRef.get()).data();
   assert.equal(recorded.status, "SENT");
   assert.equal(recorded.providerId, "synthetic-email-1");
-  const history = await proposalRef.collection("history").doc("cash_check_receipt_sent").get();
-  assert.equal(history.data().event, "CASH_PREPAYMENT_RECEIPT_SENT");
+  const history = await proposalRef.collection("history").where("event", "==", "CASH_PREPAYMENT_RECEIPT_SENT").get();
+  assert.equal(history.size, 1);
   const second = await call(manager);
   assert.equal(second.alreadySent, true);
   assert.equal(emails.length, 1);
@@ -115,4 +115,23 @@ test("2C fail-closes uncertain email outcomes and prevents duplicate sends", asy
   assert.equal(attempts, 1);
   const saved = (await db.doc("proposals/" + uncertain + "/delivery/cash_check_receipt").get()).data();
   assert.equal(saved.status, "SENDING");
+});
+
+test("2C status is readable by authorized Management after an interrupted send", async () => {
+  const state = await call(manager, idForOffset(2), {mode:"status"});
+  assert.equal(state.status, "SENDING");
+  await assert.rejects(call(outsider, idForOffset(2), {mode:"status"}), /location|permission/i);
+});
+
+test("2C uncertain delivery requires System Admin and provider evidence to resolve", async () => {
+  const uncertain = idForOffset(2);
+  await assert.rejects(call(manager, uncertain, {mode:"confirm_not_sent", evidence:"Provider confirmed no email was accepted", confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"}), /System Admin/i);
+  await db.doc("staff/" + manager).update({role:"system_admin"});
+  await assert.rejects(call(manager, uncertain, {mode:"confirm_not_sent", evidence:"short", confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"}), /evidence/i);
+  const resolved = await call(manager, uncertain, {mode:"confirm_not_sent", evidence:"Synthetic provider API confirmed no accepted email for the original attempt", confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"});
+  assert.equal(resolved.status, "FAILED");
+  const status = await call(manager, uncertain, {mode:"status"});
+  assert.equal(status.status, "FAILED");
+  const evidenceAudit = await db.collection("proposals").doc(uncertain).collection("history").where("event","==","CASH_RECEIPT_PROVIDER_NON_ACCEPTANCE_VERIFIED").get();
+  assert.equal(evidenceAudit.size, 1);
 });
