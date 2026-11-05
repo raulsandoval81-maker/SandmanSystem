@@ -382,6 +382,70 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(disallowed, script)
         self.assertNotIn('deploy:', job)
 
+    def test_six_controlled_release_staging_authorization_and_order(self):
+        six = load('pr482_six_controlled_release',
+                   'scripts/staging/pr482-six-function-controlled-release.py')
+        authorized = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
+                      'GITHUB_REF': 'refs/heads/main',
+                      'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                      'GITHUB_WORKFLOW_REF': six.WORKFLOW,
+                      'CONFIRM_PROJECT': r.c.PROJECT,
+                      'RELEASE_ACTION': 'deploy',
+                      'RELEASE_SCOPE': 'six-function-controlled-release',
+                      'APPROVE_RELEASE': six.APPROVAL}
+        with patch.dict(os.environ, authorized, clear=True):
+            six.protected(True)
+            for key in ['GITHUB_REPOSITORY', 'GITHUB_REF', 'GITHUB_EVENT_NAME',
+                        'GITHUB_WORKFLOW_REF', 'CONFIRM_PROJECT', 'RELEASE_ACTION',
+                        'RELEASE_SCOPE', 'APPROVE_RELEASE']:
+                mutated = dict(authorized, **{key: 'unapproved'})
+                with self.subTest(key=key), patch.dict(os.environ, mutated, clear=True):
+                    with self.assertRaises(RuntimeError):
+                        six.protected(True)
+            self.assertEqual(six.SIX, r.c.FUNCTIONS[1:])
+            with self.assertRaisesRegex(RuntimeError, 'first Function|unrelated Function|First Function'):
+                six.verify_candidate_files(six.FIRST, '.')
+            with patch.object(six, 'verify_live_before_step', side_effect=AssertionError('cloud call')) as guard:
+                with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
+                    six.deploy_one('other', {}, {}, {}, '.', '.', '')
+                with self.assertRaisesRegex(RuntimeError, 'Invalid deployment order'):
+                    six.deploy_one(six.SIX[1], {}, {}, {six.SIX[0]: {}}, '.', '.', '')
+                guard.assert_not_called()
+
+    def test_six_controlled_release_requires_approved_preflight_match(self):
+        six = load('pr482_six_preflight', 'scripts/staging/pr482-six-function-controlled-release.py')
+        state = {'project': r.c.PROJECT, 'applicationSha': r.c.SHA, 'functions': {}}
+        expected = six.summary(state, {})
+        self.assertFalse(expected['deploymentAuthorized'])
+        self.assertEqual(expected['functions'], r.c.FUNCTIONS[1:])
+        six.verify_preflight_record(expected, state)
+        for key, wrong in [('project', 'production'), ('sourceSha', 'unknown'),
+                           ('baselineSha256', 'wrong'), ('functions', r.c.FUNCTIONS),
+                           ('preservedFunction', r.c.FUNCTIONS[1]),
+                           ('deploymentAuthorized', True)]:
+            changed = copy.deepcopy(expected); changed[key] = wrong
+            with self.subTest(key=key), self.assertRaises(RuntimeError):
+                six.verify_preflight_record(changed, state)
+
+    def test_six_controlled_release_workflow_requires_separate_approval(self):
+        workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        job = workflow.split('  six-function-controlled-release:', 1)[1]
+        self.assertIn("inputs.release_scope == 'six-function-controlled-release'", job)
+        self.assertIn('environment: staging', job)
+        self.assertIn('APPROVE_PR482_SIX_FUNCTION_STAGING_ONLY', job)
+        self.assertIn("inputs.action == 'deploy'", job)
+        self.assertIn("inputs.action == 'validate'", job)
+        self.assertIn('approved_preflight_run_id', workflow)
+        self.assertIn('SEPARATE_SUCCESSFUL_SIX_FUNCTION_PREFLIGHT_CONFIRMED', job)
+        self.assertIn('pr482-six-function-controlled-release.py deploy', job)
+        self.assertIn('pr482-six-function-controlled-release.py preflight', job)
+        self.assertIn('pr482-six-release-preflight-', job)
+        self.assertIn('f402c04ee27a5ca9309a422221c3556f6523588a', job)
+        self.assertNotIn('firebase deploy', job)
+        self.assertNotIn('add-iam-policy-binding', job)
+        self.assertNotIn('set-iam-policy', job)
+        self.assertNotIn('pr482-hosting.py deploy', job)
+
     def test_run15_audit_is_read_only_under_existing_protected_workflow(self):
         protected = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
         self.assertIn('run15-recovery-audit', protected)
@@ -560,7 +624,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 5)
+        self.assertEqual(workflow.count('environment: staging'), 6)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
