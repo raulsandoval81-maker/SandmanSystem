@@ -126,6 +126,40 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'runtime specification'):
             r.compare_after(before, extra)
 
+    def test_cloud_run_readiness_requires_exact_revision_and_full_traffic(self):
+        revision = 'createproposaldraft-00004-example'
+        healthy = {'run': {'status': {
+            'latestReadyRevisionName': revision,
+            'traffic': [{'revisionName': revision, 'percent': 100}],
+            'conditions': [{'type': 'Ready', 'status': 'True'},
+                           {'type': 'ConfigurationsReady', 'status': 'True'},
+                           {'type': 'RoutesReady', 'status': 'True'}]}}}
+        r.verify_cloud_run_readiness(healthy, revision)
+        mutations = [
+            lambda s: s['run']['status'].update(latestReadyRevisionName='other'),
+            lambda s: s['run']['status']['traffic'][0].update(percent=99),
+            lambda s: s['run']['status']['traffic'][0].update(revisionName='other'),
+            lambda s: s['run']['status']['traffic'].append({'revisionName':'old','percent':0}),
+            lambda s: s['run']['status']['conditions'][0].update(status='False'),
+            lambda s: s['run']['status']['conditions'][0].update(status='Unknown'),
+            lambda s: s['run']['status']['conditions'][1].update(status='False'),
+            lambda s: s['run']['status'].update(conditions=[]),
+            lambda s: s['run']['status'].update(traffic=[]),
+        ]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(index=index):
+                changed = copy.deepcopy(healthy)
+                mutate(changed)
+                with self.assertRaises(RuntimeError):
+                    r.verify_cloud_run_readiness(changed, revision)
+
+    def test_deployment_verifier_does_not_require_logging_or_claim_logs_review(self):
+        source = (ROOT/'scripts/staging/pr482-release.py').read_text()
+        self.assertIn('verify_cloud_run_readiness(after, revision)', source)
+        self.assertIn("'startupProbeLogsVerified': False", source)
+        self.assertIn('NOT_PERFORMED_NO_CLOUD_LOGGING_ACCESS', source)
+        self.assertNotIn("c.gc(['logging', 'read'", source)
+
     def test_existing_provider_label_removal_remains_blocked(self):
         before = self.before()
         before['run']['spec']['template']['metadata']['labels'] = {
