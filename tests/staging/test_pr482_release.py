@@ -382,10 +382,76 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(disallowed, script)
         self.assertNotIn('deploy:', job)
 
+    def test_seven_hosting_controlled_release_requires_separate_exact_approval(self):
+        hosting = load('seven_hosting_controlled', 'scripts/staging/pr482-seven-hosting-controlled-release.py')
+        expected = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
+                    'GITHUB_REF': 'refs/heads/main',
+                    'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                    'GITHUB_WORKFLOW_REF': hosting.WORKFLOW,
+                    'CONFIRM_PROJECT': r.c.PROJECT,
+                    'RELEASE_ACTION': 'deploy',
+                    'RELEASE_SCOPE': 'seven-hosting-controlled-release',
+                    'APPROVE_RELEASE': hosting.APPROVAL}
+        with patch.dict(os.environ, expected, clear=True):
+            hosting.protected('deploy')
+            with self.assertRaisesRegex(RuntimeError, 'Validation cannot include'):
+                hosting.protected('validate')
+        for key in expected:
+            changed = dict(expected, **{key: 'wrong'})
+            with self.subTest(key=key), patch.dict(os.environ, changed, clear=True):
+                with self.assertRaises(RuntimeError):
+                    hosting.protected('deploy')
+        validate = dict(expected, RELEASE_ACTION='validate', APPROVE_RELEASE='')
+        with patch.dict(os.environ, validate, clear=True):
+            hosting.protected('validate')
+            with self.assertRaises(RuntimeError):
+                hosting.protected('deploy')
+
+    def test_seven_hosting_controlled_preflight_fails_closed_on_mismatch(self):
+        hosting = load('seven_hosting_matcher', 'scripts/staging/pr482-seven-hosting-controlled-release.py')
+        good = {'status': 'SEVEN_HOSTING_ASSETS_PREFLIGHT_VERIFIED_NOT_AUTHORIZED',
+                'project': r.c.PROJECT, 'sourceSha': r.c.SHA,
+                'assets': r.c.ASSETS, 'hostingDeploymentAuthorized': False,
+                'productionAuthorized': False, 'hostingBaselineSha256': 'pinned',
+                'verifiedFunctionRevisions': {n: 'rev' for n in r.c.FUNCTIONS}}
+        hosting.assert_preflight(good, copy.deepcopy(good))
+        for key, changed_value in [('project', 'production'), ('sourceSha', 'wrong'),
+                                   ('assets', r.c.ASSETS[:-1]),
+                                   ('hostingDeploymentAuthorized', True),
+                                   ('hostingBaselineSha256', 'changed')]:
+            changed = copy.deepcopy(good)
+            changed[key] = changed_value
+            with self.subTest(key=key), self.assertRaises(RuntimeError):
+                hosting.assert_preflight(good, changed)
+        bad = dict(good, hostingDeploymentAuthorized=True)
+        with self.assertRaises(RuntimeError):
+            hosting.assert_preflight(bad, bad)
+
+    def test_seven_hosting_deploy_scope_never_touches_functions_iam_or_production(self):
+        workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        job = workflow.split('  seven-hosting-controlled-release:', 1)[1]
+        source = (ROOT/'scripts/staging/pr482-seven-hosting-controlled-release.py').read_text()
+        self.assertIn("inputs.release_scope == 'seven-hosting-controlled-release'", job)
+        self.assertIn('APPROVE_PR482_SEVEN_HOSTING_ASSETS_STAGING_ONLY', job)
+        self.assertIn('approved_preflight_run_id', workflow)
+        self.assertIn('head_sha', job)
+        self.assertIn('pr482-seven-hosting-release-preflight-', job)
+        self.assertIn('pr482-six-release-progress-42109819491', job)
+        self.assertIn('environment: staging', job)
+        self.assertIn('pr482-seven-hosting-controlled-release.py validate', job)
+        self.assertIn('pr482-seven-hosting-controlled-release.py deploy', job)
+        self.assertIn('SEVEN_STAGING_HOSTING_ASSETS_VERIFIED', source)
+        self.assertIn('STAGING_HOSTING_PUBLISHED_PENDING_BYTE_VERIFICATION', source)
+        self.assertIn('assert_preflight(approved, latest)', source)
+        for forbidden in ['gcloud functions deploy', 'firebase deploy', 'set-iam-policy',
+                          'add-iam-policy-binding', 'stripe payment']:
+            self.assertNotIn(forbidden, job)
+            self.assertNotIn(forbidden, source)
+
     def test_seven_hosting_preflight_is_readonly_and_scoped(self):
         hosting = load('seven_hosting_preflight', 'scripts/staging/pr482-seven-hosting-readonly-preflight.py')
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
-        job = workflow.split('  seven-hosting-readonly-preflight:', 1)[1]
+        job = workflow.split('  seven-hosting-readonly-preflight:', 1)[1].split('\n  seven-hosting-controlled-release:', 1)[0]
         self.assertIn("inputs.action == 'validate'", job)
         self.assertIn("inputs.release_scope == 'seven-hosting-readonly-preflight'", job)
         self.assertIn("inputs.approve_release == ''", job)
@@ -671,7 +737,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 7)
+        self.assertEqual(workflow.count('environment: staging'), 8)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
