@@ -30,11 +30,17 @@ def verify(preflight, receipt, out, hosting_token):
         "GITHUB_REPOSITORY": "raulsandoval81-maker/SandmanSystem",
         "GITHUB_REF": "refs/heads/main",
         "GITHUB_EVENT_NAME": "workflow_dispatch",
-        "GITHUB_WORKFLOW_REF": "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main",
+        # Both permitted workflows are explicitly read-only and main-branch scoped.
         "CONFIRM_PROJECT": c.PROJECT,
     }
     require(all(os.environ.get(key) == expected for key, expected in expected_dispatch.items()),
-            "Only the protected main-branch read-only staging recovery workflow is allowed")
+            "Only a protected main-branch staging recovery workflow is allowed")
+    permitted_workflows = {
+        "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main",
+        "raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-six-function-readonly-preflight.yml@refs/heads/main",
+    }
+    require(os.environ.get("GITHUB_WORKFLOW_REF") in permitted_workflows,
+            "Unapproved staging recovery audit workflow identity")
     state = json.loads((preflight / "baseline" / "baseline.json").read_text())
     require(c.baseline_digest(state) == m["baselineSha256"], "Original certified pin drift")
     original = state["functions"][FIRST]
