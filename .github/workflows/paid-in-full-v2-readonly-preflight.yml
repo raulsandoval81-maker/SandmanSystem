@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction, payment-arrangements]
+        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -568,6 +568,49 @@ jobs:
           name: proposal-correction-staging-release-${{ github.run_id }}
           path: release-evidence
           if-no-files-found: warn
+
+  arrangements-authorization:
+    if: ${{ inputs.release_scope == 'payment-arrangements-authorization' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      RELEASE_SCOPE: ${{ inputs.release_scope }}
+      RELEASE_ACTION: ${{ inputs.action }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Require protected main and read-only scope before authentication
+        run: |
+          set -euo pipefail
+          test "$RELEASE_SCOPE" = "payment-arrangements-authorization"
+          test "$RELEASE_ACTION" = "validate"
+          python3 - <<'PYCODE'
+          import importlib.util
+          s=importlib.util.spec_from_file_location('r','trusted/scripts/staging/pr482-release.py')
+          r=importlib.util.module_from_spec(s);s.loader.exec_module(r);r.protected()
+          PYCODE
+      - name: Authenticate existing staging Functions principal through WIF
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Read only the two outstanding authorization permissions
+        run: python3 trusted/scripts/staging/pr482-authorization.py authorization-evidence
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr483-authorization-${{ github.run_id }}
+          path: authorization-evidence/
+          if-no-files-found: warn
+          retention-days: 7
 
   arrangements-validate:
     if: ${{ inputs.release_scope == 'payment-arrangements' }}

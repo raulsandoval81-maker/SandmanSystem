@@ -85,3 +85,31 @@ Follow prospect-builder-payment-arrangements.md using new authorized synthetic c
 | stripeBillingWebhook | stripebillingwebhook-00001-jax |
 
 Complete configuration/source generations, original archive sizes and SHA-256 values remain in the original baseline.json, rollback.json and receipt.json. Current role definitions and deployment-account policies are in certified-complete/baseline.json. Candidate inventories and approved-only change lists remain in candidate-complete; original archives were copied without modification. verified-summary-complete.json records configuration, package-inventory and Hosting-manifest digests without exposing credential or secret values.
+
+## Protected authorization-only recovery (PR483)
+
+The personal Cloud Shell caller's two attempts failed at iam.serviceAccounts.getAccessToken before either requested API read. They do not establish denial of the two permissions to the Functions deployer. Do not repeat personal-account impersonation or grant Token Creator as a read-only workaround.
+
+A separate `payment-arrangements-authorization` scope now uses the existing protected workflow filename, `main` restriction, staging environment and existing Functions deployer WIF configuration. It accepts only action=validate; choosing deploy fails before authentication. It never checks out/builds application packages, captures another baseline, reads payment records or calls mutation APIs. The application SHA remains f402c04ee27a5ca9309a422221c3556f6523588a and baselineSha256 remains null.
+
+The checker verifies the external-account credential file's exact WIF audience and Functions-deployer impersonation URL, and that gcloud uses that same file. There is no personal-account impersonation flag or fallback. It reads only:
+
+- iam.serviceAccounts.getIamPolicy on the five accounts already included in certified-complete: default compute runtime, sandman-billing-runtime, sandman-practice-build, sandman-practice-deployer and sandman-staging-deployer, all in sandman-combat-staging.
+- iam.workloadIdentityPoolProviders.get on projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging.
+
+It retains each response and its canonical hash, plus exact principal/resource/permission/exit-code/error evidence. All six reads must succeed. Denials, timeouts, malformed responses or provider identity/state mismatch fail the job. The authorization artifact uploads on failure as well as success, with seven-day retention; credential files are outside its upload directory.
+
+Execution gate: this job is currently on the unmerged PR483 branch. Existing WIF protections reject branch execution, so do not dispatch it from that branch, change the provider condition or run an older scope as a substitute. Review and separately authorize merging the tooling before it can run on main; no merge is performed by this task. Once available on main, the exact read-only dispatch is:
+
+```sh
+gh workflow run paid-in-full-v2-readonly-preflight.yml \
+  --repo raulsandoval81-maker/SandmanSystem --ref main \
+  -f action=validate -f release_scope=payment-arrangements-authorization \
+  -f confirm_project=sandman-combat-staging
+```
+
+Approve the existing protected staging environment. Inspect artifact pr483-authorization-RUN_ID: require status PASS, all six resources and both permissions, and compare successful response hashes/content to the preserved certified-complete authorization evidence. Reverify preserved baseline/receipt/archive/package inventory hashes locally without rebuilding or recapturing. Only after those checks may the complete digest bdef7827792b8ad81d5168f002b594c19f60e45811b359fa97975dfc9e8af049 be pinned on the existing release branch. A successful permission read alone does not certify unchanged policy contents or authorize deployment.
+
+If a resource read fails, report its exact error/principal/resource/permission. Propose only an evidence-supported read-only correction scoped to those staging resources, with separate IAM approval; never grant it automatically or remove authorization-drift checks.
+
+Current validation: 18/18 Python tooling tests and 8/8 Node 22 workflow tests pass; Python compilation, YAML parsing and whitespace checks pass. No application build, baseline capture or package rebuild was repeated. Protected live reads: NOT YET EXECUTED, pending the main-only workflow availability gate.
