@@ -1748,13 +1748,14 @@ const extras = {
     function calculateWinterWrestling(athletes){
       const athleteCount = athletes.length;
       if (!el.seasonalEnrollmentDate.value) {
-        el.seasonalEnrollmentDate.value = "2026-11-15";
+        el.seasonalEnrollmentDate.value = new Date().toLocaleDateString("en-CA", {timeZone:"America/Los_Angeles"});
       }
-      const baseCents = athleteCount * 35000;
+      const early = el.seasonalEnrollmentDate.value <= "2026-11-27";
+      const baseCents = athleteCount * (early ? 30000 : 35000);
       const schedule = el.seasonalSchedule.value;
       const enrollmentDate = el.seasonalEnrollmentDate.value;
-      const start = new Date("2026-11-29T12:00:00Z");
-      const end = new Date("2027-02-14T12:00:00Z");
+      const start = new Date("2026-11-30T12:00:00Z");
+      const end = new Date("2027-02-27T12:00:00Z");
       const weekdays = schedule === "monday-wednesday-saturday"
         ? new Set([1,3,6]) : new Set([2,4,6]);
       let required = 0;
@@ -1768,24 +1769,26 @@ const extras = {
       const appliedPercent = Math.min(25, required ? (missed / required) * 100 : 0);
       const discountCents = Math.round(35000 * appliedPercent / 100) * athleteCount;
       const totalCents = baseCents - discountCents;
+      const savingsCents = athleteCount * (early ? 5000 : 0);
       const defaultFirst = ({1:20000,2:40000,3:45000,4:60000,5:75000})[athleteCount] || 0;
       const dueNowCents = el.seasonalPayInFull.checked
         ? totalCents
-        : Math.max(0, defaultFirst - discountCents);
+        : Math.max(0, defaultFirst - savingsCents - discountCents);
 
       el.dueNow.textContent = money(dueNowCents / 100);
       el.monthlyTotal.textContent = "No recurring charge";
       el.firstYearTotal.textContent = money(totalCents / 100);
-      el.projectedSavings.textContent = money(discountCents / 100);
-      el.annualTotal.textContent = "Season ends Feb 14, 2027";
+      el.projectedSavings.textContent = money((discountCents + savingsCents) / 100);
+      el.annualTotal.textContent = "Season ends Feb 27, 2027";
       el.breakdown.innerHTML = `
         <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(baseCents/100)}</strong></div>
+        <div><span>Early registration savings</span><strong>−${money(savingsCents/100)}</strong></div>
         <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${money(discountCents/100)}</strong></div>
         <div><span>Season total</span><strong>${money(totalCents/100)}</strong></div>
         <div><span>Due in next one-time Checkout</span><strong>${money(dueNowCents/100)}</strong></div>`;
       el.summary.innerHTML = `
         <p><strong>Winter Wrestling 2026–27</strong></p>
-        <p>November 15, 2026 – February 14, 2027 · $350 per athlete before an approved late-start adjustment.</p>
+        <p>November 30, 2026 – February 27, 2027 · ${early ? "$300 early registration" : "$350 regular registration"} per athlete before any approved late-start adjustment.</p>
         <p>${schedule === "monday-wednesday-saturday" ? "Monday / Wednesday / Saturday" : "Tuesday / Thursday / Saturday"}</p>
         <p><strong>${money(totalCents/100)}</strong> total · ${el.seasonalPayInFull.checked ? "pay in full" : "separate one-time installments"}</p>
         <p>No automatic future payments. Enrollment cutoff remains pending owner confirmation.</p>`;
