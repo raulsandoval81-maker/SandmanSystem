@@ -72,13 +72,16 @@ def verify(preflight, receipt, out, hosting_token):
             traffic[0].get("percent") == 100, "New revision is not receiving 100% traffic")
     require(run.get("status", {}).get("latestReadyRevisionName") == REVISION,
             "Expected revision is not ready")
-    logs = c.gc(["logging", "read",
-                 'resource.type="cloud_run_revision" AND resource.labels.revision_name="' +
-                 REVISION + '"', "--limit=50"])
-    require(any("STARTUP TCP probe succeeded" in x.get("textPayload", "") for x in logs),
-            "Startup probe success not demonstrated; stop")
-    require(not any(x.get("severity") in ("ERROR", "CRITICAL", "ALERT", "EMERGENCY")
-                    for x in logs), "Startup logs contain serious errors; stop")
+    # Run #16 proved that this existing staging principal has no Cloud Logging
+    # access. Do not request additional IAM or claim log/startup-probe review.
+    # Cloud Run's own Ready condition is independently reported in the same
+    # authenticated service description used for revision and traffic checks.
+    conditions = run.get("status", {}).get("conditions", [])
+    require(any(x.get("type") == "Ready" and x.get("status") == "True"
+                for x in conditions), "Cloud Run service Ready condition is not True")
+    require(all(x.get("status") != "False" for x in conditions
+                if x.get("type") in ("Ready", "ConfigurationsReady", "RoutesReady")),
+            "Cloud Run reports a failed readiness condition")
 
     require(bool(hosting_token), "Staging Hosting read token required")
     hosting = c.hosting_state(hosting_token)
@@ -92,7 +95,9 @@ def verify(preflight, receipt, out, hosting_token):
         "revision": REVISION,
         "originalBaselineSha256": m["baselineSha256"],
         "sourcePackageMatch": True,
-        "startupReady": True,
+        "cloudRunReady": True,
+        "startupProbeLogsVerified": False,
+        "startupLogReview": "NOT_PERFORMED_NO_CLOUD_LOGGING_ACCESS",
         "trafficPercent": 100,
         "otherSixFunctionsMatchOriginal": True,
         "hostingMatchesOriginal": True,
