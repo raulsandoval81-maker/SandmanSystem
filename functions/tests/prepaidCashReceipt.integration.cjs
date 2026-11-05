@@ -191,3 +191,12 @@ test("2C uncertain Intake provider response remains reserved and cannot resend",
   const saved = (await db.doc("intakeTokens/" + token).get()).data();
   assert.equal(saved.twoCEmailStatus,"SENDING");
 });
+
+test("2C uncertain Intake recovery requires System Admin evidence", async () => {
+  const token = "2c-unknown-" + suffix;
+  await assert.rejects(sendIntake.run({tokenId:token,twoCRecovery:true,resolution:"confirm_not_sent",evidence:"Provider confirmed no message accepted",confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"}, {auth:{uid:outsider,token:{}}}), /location|permission/i);
+  await assert.rejects(sendIntake.run({tokenId:token,twoCRecovery:true,resolution:"confirm_not_sent",evidence:"short",confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"}, {auth:{uid:manager,token:{}}}), /evidence/i);
+  const resolved = await sendIntake.run({tokenId:token,twoCRecovery:true,resolution:"confirm_not_sent",evidence:"Synthetic provider confirmed no acceptance for this Intake email attempt",confirmation:"PROVIDER_CONFIRMED_NOT_ACCEPTED"}, {auth:{uid:manager,token:{}}});
+  assert.equal(resolved.status,"FAILED");
+  assert.equal((await db.doc("intakeTokens/" + token).get()).data().twoCEmailStatus,"FAILED");
+});
