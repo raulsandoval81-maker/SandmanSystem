@@ -23,6 +23,7 @@ import {
   getResendClient,
   RESEND_API_KEY,
 } from "../modules/email/resend";
+import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -279,7 +280,7 @@ export const issueProposalEnrollmentHandoff =
           ) || "there";
 
         const url =
-          `https://sandmancombat.com${enrollmentPath}`;
+          `${resolveBillingPublicBaseUrl()}${enrollmentPath}`;
 
         const cashCheckHandoff =
           proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check";
