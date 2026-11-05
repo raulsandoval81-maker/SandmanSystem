@@ -25,9 +25,16 @@ REVISION = "createproposaldraft-00003-yen"
 
 def verify(preflight, receipt, out, hosting_token):
     # This is evidence-specific, not a general-purpose deploy or baseline re-pin.
-    r.protected(False)
     m = r.manifest()
-    require(os.environ.get("GITHUB_REF") == "refs/heads/main", "Only main may run recovery audit")
+    expected_dispatch = {
+        "GITHUB_REPOSITORY": "raulsandoval81-maker/SandmanSystem",
+        "GITHUB_REF": "refs/heads/main",
+        "GITHUB_EVENT_NAME": "workflow_dispatch",
+        "GITHUB_WORKFLOW_REF": "raulsandoval81-maker/SandmanSystem/.github/workflows/pr482-run15-readonly-recovery.yml@refs/heads/main",
+        "CONFIRM_PROJECT": c.PROJECT,
+    }
+    require(all(os.environ.get(key) == expected for key, expected in expected_dispatch.items()),
+            "Only the protected main-branch read-only staging recovery workflow is allowed")
     state = json.loads((preflight / "baseline" / "baseline.json").read_text())
     require(c.baseline_digest(state) == m["baselineSha256"], "Original certified pin drift")
     original = state["functions"][FIRST]
