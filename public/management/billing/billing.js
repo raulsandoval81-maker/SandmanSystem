@@ -63,9 +63,6 @@ const recordPrepaidCashCall =
     "recordProposalPrepaidCash"
   );
 
-const sendPrepaidCashReceiptCall =
-  httpsCallable(functions, "sendProposalPrepaidCashReceipt");
-
 const recordPriorPaymentCall =
   httpsCallable(
     functions,
@@ -1380,13 +1377,9 @@ function render() {
               ${item.proposal?.paymentMethod === "cash_prepaid" &&
                 upper(item.proposal?.status) === "PAID"
                 ? `
-                  <button class="billing-action" type="button"
-                    data-send-cash-receipt="${esc(item.proposalId)}">
-                    Send Paid-in-Full receipt to parent
-                  </button>
                   <a class="billing-action"
                     href="/intake-management/?proposalId=${encodeURIComponent(item.proposalId)}">
-                    Continue to Management Intake →
+                    2C — Send Receipt + Intake Email →
                   </a>
                 `
                 : ""
@@ -2416,30 +2409,6 @@ function openCashDialog(
 billingQueue.addEventListener(
   "click",
   async (event) => {
-    const receiptButton = event.target.closest("[data-send-cash-receipt]");
-    if (receiptButton) {
-      const proposalId = clean(receiptButton.dataset.sendCashReceipt);
-      const item = billingItems.find((record) => record.proposalId === proposalId);
-      const prospect = item?.proposal?.lockedSnapshot?.prospect || item?.proposal?.prospect || {};
-      const expected = clean(prospect.parentEmail || prospect.primaryContactEmail || prospect.email);
-      const recipient = window.prompt("Verify the parent/guardian email for the Paid-in-Full receipt:", expected);
-      if (recipient === null) return;
-      const email = clean(recipient).toLowerCase();
-      if (!email || !window.confirm(`Send the verified cash/check receipt for ${proposalId} to ${email}? No new charge will be created.`)) return;
-      receiptButton.disabled = true;
-      try {
-        const result = await sendPrepaidCashReceiptCall({
-          proposalId, recipientEmail: email, confirmRecipient: true
-        });
-        setStatus(result.data?.alreadySent
-          ? "Receipt was already sent. Continue with Management Intake."
-          : "Paid-in-Full receipt sent. Continue with Management Intake to send the secure Intake invitation.");
-      } catch (error) {
-        setStatus(error?.message || "Unable to send receipt. Check receipt delivery before retrying.", true);
-      } finally { receiptButton.disabled = false; }
-      return;
-    }
-
     const preparePrepaidButton = event.target.closest(
       "[data-prepare-prepaid-proposal-id]"
     );
