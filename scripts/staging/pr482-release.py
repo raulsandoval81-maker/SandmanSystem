@@ -171,6 +171,8 @@ def compare_after(before, after):
     for key, expected_value in allowed_additions.items():
         if key not in prior_labels and deployed_labels.get(key) == expected_value:
             deployed_labels.pop(key)
+    if not deployed_labels and 'labels' not in a['spec']['template']['metadata']:
+        b['spec']['template']['metadata'].pop('labels', None)
     require(a['spec'] == b['spec'], 'Cloud Run runtime specification changed')
     for key in ['run.googleapis.com/ingress', 'run.googleapis.com/invoker-iam-disabled', 'run.googleapis.com/custom-audiences']:
         require(a['metadata']['annotations'].get(key) == b['metadata']['annotations'].get(key), 'Cloud Run invocation changed')
