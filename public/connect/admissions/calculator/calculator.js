@@ -1748,9 +1748,12 @@ const extras = {
     function calculateWinterWrestling(athletes){
       const athleteCount = athletes.length;
       if (!el.seasonalEnrollmentDate.value) {
-        el.seasonalEnrollmentDate.value = new Date().toLocaleDateString("en-CA", {timeZone:"America/Los_Angeles"});
+        const parts = new Intl.DateTimeFormat("en-US", {timeZone:"America/Los_Angeles", year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+        const part = (type) => parts.find(item => item.type === type)?.value || "";
+        el.seasonalEnrollmentDate.value = `${part("year")}-${part("month")}-${part("day")}`;
       }
       const early = el.seasonalEnrollmentDate.value <= "2026-11-27";
+      const listCents = athleteCount * 35000;
       const baseCents = athleteCount * (early ? 30000 : 35000);
       const schedule = el.seasonalSchedule.value;
       const enrollmentDate = el.seasonalEnrollmentDate.value;
@@ -1781,7 +1784,7 @@ const extras = {
       el.projectedSavings.textContent = money((discountCents + savingsCents) / 100);
       el.annualTotal.textContent = "Season ends Feb 27, 2027";
       el.breakdown.innerHTML = `
-        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(baseCents/100)}</strong></div>
+        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(listCents/100)}</strong></div>
         <div><span>Early registration savings</span><strong>−${money(savingsCents/100)}</strong></div>
         <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${money(discountCents/100)}</strong></div>
         <div><span>Season total</span><strong>${money(totalCents/100)}</strong></div>
