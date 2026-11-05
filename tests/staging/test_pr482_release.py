@@ -382,6 +382,53 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(disallowed, script)
         self.assertNotIn('deploy:', job)
 
+    def test_seven_hosting_preflight_is_readonly_and_scoped(self):
+        hosting = load('seven_hosting_preflight', 'scripts/staging/pr482-seven-hosting-readonly-preflight.py')
+        workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        job = workflow.split('  seven-hosting-readonly-preflight:', 1)[1]
+        self.assertIn("inputs.action == 'validate'", job)
+        self.assertIn("inputs.release_scope == 'seven-hosting-readonly-preflight'", job)
+        self.assertIn("inputs.approve_release == ''", job)
+        self.assertIn('environment: staging', job)
+        self.assertIn('pr482-six-release-progress-42109819491', job)
+        self.assertIn('pr482-seven-hosting-readonly-preflight.py', job)
+        self.assertNotIn('gcloud functions deploy', job)
+        self.assertNotIn('firebase deploy', job)
+        self.assertNotIn('set-iam-policy', job)
+        self.assertNotIn('APPROVE_PR482_SIX_FUNCTION_STAGING_ONLY', job)
+        source = (ROOT/'scripts/staging/pr482-seven-hosting-readonly-preflight.py').read_text()
+        for forbidden in ["h.request(", "subprocess.run(", "mode == 'deploy'", 'firebase deploy']:
+            self.assertNotIn(forbidden, source)
+        correct = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
+                   'GITHUB_REF': 'refs/heads/main',
+                   'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                   'GITHUB_WORKFLOW_REF': hosting.WORKFLOW,
+                   'CONFIRM_PROJECT': r.c.PROJECT,
+                   'RELEASE_ACTION': 'validate',
+                   'RELEASE_SCOPE': 'seven-hosting-readonly-preflight',
+                   'APPROVE_RELEASE': ''}
+        with patch.dict(os.environ, correct, clear=True):
+            hosting.protected()
+            for key in correct:
+                changed = dict(correct, **{key: 'wrong'})
+                with self.subTest(key=key), patch.dict(os.environ, changed, clear=True):
+                    with self.assertRaises(RuntimeError):
+                        hosting.protected()
+
+    def test_seven_hosting_preflight_rejects_missing_run22_evidence(self):
+        hosting = load('seven_hosting_verifier', 'scripts/staging/pr482-seven-hosting-readonly-preflight.py')
+        with self.assertRaisesRegex(RuntimeError, 'six-Function completion'):
+            hosting.verify_live({}, {}, {}, {}, {}, '.')
+        incomplete = {'safe-completion.json': {
+            'status': 'SIX_STAGING_FUNCTIONS_VERIFIED_HOSTING_NOT_PUBLISHED',
+            'project': r.c.PROJECT, 'sourceSha': r.c.SHA,
+            'functions': hosting.SIX, 'preservedFunction': hosting.c.FUNCTIONS[0],
+            'productionAuthorized': False}}
+        original = {'authorization': {}, 'hosting': {}}
+        functions = {name: {} for name in r.c.FUNCTIONS}
+        with self.assertRaisesRegex(RuntimeError, 'Missing verified Run 22 Function receipt'):
+            hosting.verify_live(original, incomplete, functions, {}, {}, '.')
+
     def test_six_controlled_release_staging_authorization_and_order(self):
         six = load('pr482_six_controlled_release',
                    'scripts/staging/pr482-six-function-controlled-release.py')
@@ -624,7 +671,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 6)
+        self.assertEqual(workflow.count('environment: staging'), 7)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))
