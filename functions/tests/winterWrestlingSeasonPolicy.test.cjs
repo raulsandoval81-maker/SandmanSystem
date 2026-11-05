@@ -33,3 +33,20 @@ test("rejects invalid dates and unapproved family sizes", () => {
   assert.throws(() => buildWinterWrestlingSchedule(1, "2026-02-30"));
   assert.throws(() => buildWinterWrestlingSchedule(6, "2026-10-28"));
 });
+
+test("V2 early price is $300 per athlete with installment totals intact", () => {
+  const {WINTER_WRESTLING_2026_27, winterWrestlingRequiredPractices} = require("../lib/proposals/winterWrestlingSeasonPolicy");
+  assert.equal(WINTER_WRESTLING_2026_27.minAge, 7);
+  assert.equal(WINTER_WRESTLING_2026_27.maxAge, 13);
+  assert.equal(WINTER_WRESTLING_2026_27.seasonEnd, "2027-02-27");
+  assert.equal(winterWrestlingRequiredPractices("monday-wednesday-saturday")[0], "2026-11-30");
+  for (let count = 1; count <= 5; count++) {
+    const plan = winterWrestlingPaymentPlan(count, false, true);
+    assert.equal(plan.totalCents, count * 30000);
+    assert.equal(plan.installmentsCents.reduce((sum, value) => sum + value, 0), count * 30000);
+    assert.ok(plan.installmentsCents.every(value => value > 0));
+    assert.equal(buildWinterWrestlingSchedule(count, "2026-11-27", true, "monday-wednesday-saturday", true).totalCents, count * 30000);
+  }
+  assert.throws(() => buildWinterWrestlingSchedule(1, "2026-11-28", true, "monday-wednesday-saturday", true), /Early registration/);
+  assert.equal(buildWinterWrestlingSchedule(1, "2026-11-28", true).totalCents, 35000);
+});
