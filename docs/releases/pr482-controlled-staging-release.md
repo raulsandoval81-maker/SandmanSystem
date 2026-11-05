@@ -1,13 +1,13 @@
 # PR482 controlled staging release preparation
 
-## Readiness: PASS — certified baseline pinned; protected release validation pending
+## Readiness: metadata-only baseline repair prepared; protected validation pending
 
 Application SHA: `f402c04ee27a5ca9309a422221c3556f6523588a`.
 
 Pinned canonical baseline SHA-256:
 
 ```text
-5308ba86745de9cd4dd4f35fc0150c0b9a2a64a7e1ed8c7fa915be4cc29aabbb
+2065f153a3ce0353f52ff945d19be99e74470e3478073212b6b58ec8e2987a77
 ```
 
 This supersedes pre-repair digest `bdef7827792b8ad81d5168f002b594c19f60e45811b359fa97975dfc9e8af049`. Only the two service-account IAM policy snapshots changed within the baseline, matching the explicitly approved repair; all other baseline fields matched exactly. The new provider-reader role and pool binding were independently read back against their approved execution receipts and preserved as supplemental authorization evidence.
@@ -19,6 +19,26 @@ Certification completed November 5, 2026 at:
 ```
 
 Original evidence, packages and rollback archives remain untouched. Files in the new certification include baseline.json, receipt.json, rollback.json, seven original ZIPs, approved-iam-evidence.json, artifact-checksums.json and verification.json.
+
+### Run #13 mismatch and exact correction
+
+Diagnostic artifact `pr482-baseline-mismatch-42066210471` (ID `13433263806`) was downloaded from GitHub and matched the existing evidence ZIP byte-for-byte (SHA-256 `3a89134a05de9b27b334d14f1b55d5b33d62e52f6586f67cd4a1e07aae2d1b2d`). The preserved certified JSON's original raw digest still verifies as `5308ba86745de9cd4dd4f35fc0150c0b9a2a64a7e1ed8c7fa915be4cc29aabbb`; the run observed raw digest `5d1e86f13ab364d479bff7d037ce52742a56fd09f0afe724db060f3f7c7a3cb3`.
+
+Exactly five observable fingerprint paths differ:
+
+- `/hosting/release/releaseUser/imageUrl`
+- `/hosting/release/version/createUser/imageUrl`
+- `/hosting/release/version/finalizeUser/imageUrl`
+- `/hosting/version/createUser/imageUrl`
+- `/hosting/version/finalizeUser/imageUrl`
+
+These are profile-avatar presentation URLs. The other 4,916 diagnostic fingerprints match, including asset hashes, release/version identifiers, configuration and non-redacted security metadata. Fingerprint diagnostics intentionally omit sensitive values; this does not exclude those values from the baseline digest.
+
+The shared canonicalization removes only string-valued imageUrl fields at these five exact paths. Unknown fields/types, user emails, release/version names and times, Hosting config/assets, Function configuration/revisions, environment/secret fields, IAM and source pins remain covered. Generic digest() is unchanged. Capture receipts, mismatch diagnostics, package/deployment/aggregate pin guards and both live Hosting comparisons use the same canonicalization, so volatile avatars cannot trigger a later false drift check.
+
+The replacement canonical pin above was calculated from the preserved certified JSON using the reviewed projection, never copied from the observed raw digest. Original certified files, rollback archives and packages were not changed or rebuilt. The comparison/projection proof is preserved in `baseline-diff-run13/canonicalization-proof.json` beside the existing Cloud Shell checkpoint. No IAM changes or additional workflow runs were performed.
+
+Focused validation: 24 Python tests pass, including avatar rotation, input immutability, identity/configuration/asset/IAM/environment changes remaining blocked, unexpected avatar types remaining pinned, safe diagnostics and read-only Hosting verification. Python compilation and whitespace checks pass. No application or Function-package build was run. This repair requires separate review/merge approval and a later separately authorized protected validation; it does not authorize deployment.
 
 ### Verified results
 

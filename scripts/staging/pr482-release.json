@@ -39,7 +39,7 @@
     "proposals/issueProposalClientReview.js",
     "proposals/billingPublicBaseUrl.js"
   ],
-  "baselineSha256": "5308ba86745de9cd4dd4f35fc0150c0b9a2a64a7e1ed8c7fa915be4cc29aabbb",
+  "baselineSha256": "2065f153a3ce0353f52ff945d19be99e74470e3478073212b6b58ec8e2987a77",
   "approval": "APPROVE_PR482_STAGING_SEVEN_FUNCTIONS_SEVEN_ASSETS",
   "deploymentAuthorized": false,
   "productionAuthorized": false,

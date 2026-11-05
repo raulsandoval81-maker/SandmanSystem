@@ -40,11 +40,11 @@ def run(mode, source, baseline, out, verified):
     m = r.protected(mode == 'deploy')
     require(subprocess.check_output(['git', '-C', source, 'rev-parse', 'HEAD'], text=True).strip() == c.SHA, 'Source drift')
     state = json.loads((Path(baseline)/'baseline.json').read_text())
-    require(c.digest(state) == m['baselineSha256'], 'Baseline pin missing or mismatched')
+    require(c.baseline_digest(state) == m['baselineSha256'], 'Baseline pin missing or mismatched')
     token = os.environ.get('STAGING_HOSTING_TOKEN', '')
     require(bool(token), 'Existing staging Hosting credential required')
     live = c.hosting_state(token)
-    require(live == state['hosting'], 'Live Hosting baseline drift')
+    require(c.canonical_hosting(live) == c.canonical_hosting(state['hosting']), 'Live Hosting baseline drift')
     dependency = (Path(source)/'public/management/billing/prepaid-terms.js').read_bytes()
     require(hashlib.sha256(gzip.compress(dependency, mtime=0)).hexdigest() == live['files']['/management/billing/prepaid-terms.js'], 'Unchanged V2 dependency is incompatible')
     updated, blobs = overlay(source, live['files'])
@@ -69,7 +69,7 @@ def run(mode, source, baseline, out, verified):
             with urlopen(req, timeout=90):
                 pass
     request(token, 'PATCH', version['name']+'?updateMask=status', {'status': 'FINALIZED'})
-    require(c.hosting_state(token) == live, 'Hosting drift before publication')
+    require(c.canonical_hosting(c.hosting_state(token)) == c.canonical_hosting(live), 'Hosting drift before publication')
     release = request(token, 'POST', f'sites/{c.PROJECT}/releases?versionName='+quote(version['name'], safe='/'), {})
     save(out/'hosting-published.json', {'release': release, 'rollbackVersion': live['version']['name']})
     after = c.hosting_state(token); save(out/'hosting-after.json', after)
