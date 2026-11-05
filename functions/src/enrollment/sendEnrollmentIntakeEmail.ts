@@ -183,6 +183,35 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
+      const twoC = data?.twoC === true;
+      if (twoC) {
+        if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
+          throw new functions.https.HttpsError("failed-precondition", "2C Intake requires a recorded cash/check payment.");
+        }
+        const receipt = (await db.doc(`proposals/${proposalId}/delivery/cash_check_receipt`).get()).data() || {};
+        if (clean(receipt.status) !== "SENT" || normalizeEmail(receipt.recipient) !== recipient) {
+          throw new functions.https.HttpsError("failed-precondition", "A provider-accepted receipt for this recipient is required before 2C Intake.");
+        }
+        const gate = await db.runTransaction(async tx => {
+          const latest = (await tx.get(tokenRef)).data() || {};
+          if (latest.used === true) throw new functions.https.HttpsError("failed-precondition", "Intake already submitted.");
+          if (clean(latest.deliveryStatus).toUpperCase() === "SENT") {
+            if (normalizeEmail(latest.deliveredTo) !== recipient) {
+              throw new functions.https.HttpsError("failed-precondition", "Intake already delivered to another recipient.");
+            }
+            return "ALREADY_SENT";
+          }
+          if (clean(latest.twoCEmailStatus) === "SENDING") {
+            throw new functions.https.HttpsError("failed-precondition", "2C Intake delivery outcome is uncertain. Resolve the provider attempt before retrying.");
+          }
+          tx.update(tokenRef, {twoCEmailStatus:"SENDING",twoCEmailRecipient:recipient,twoCEmailRequestedBy:context.auth!.uid,twoCEmailRequestedAt:FieldValue.serverTimestamp()});
+          return "SEND";
+        });
+        if (gate === "ALREADY_SENT") {
+          return {ok:true,alreadySent:true,recipient,tokenId,proposalId,intakeAudience:clean(token.intakeAudience)};
+        }
+      }
+
       const intakeAudience =
         clean(token.intakeAudience).toLowerCase() ===
           "adult_athlete"
@@ -261,8 +290,9 @@ export const sendEnrollmentIntakeEmail =
       const resend =
         getResendClient();
 
-      const result =
-        await resend.emails.send({
+      let result;
+      try {
+        result = await resend.emails.send({
           from:
             "Sandman Combat <join@sandmancombat.com>",
           replyTo:
@@ -272,8 +302,14 @@ export const sendEnrollmentIntakeEmail =
           text,
           html
         });
+      } catch (error) {
+        // Unknown provider result remains SENDING for 2C, preventing another send.
+        if (twoC) throw new functions.https.HttpsError("internal", "2C Intake email outcome uncertain; provider verification required before retry.");
+        throw error;
+      }
 
       if (result.error) {
+        if (twoC) await tokenRef.update({twoCEmailStatus:"FAILED",twoCEmailError:clean(result.error.message).slice(0,240)});
         throw new functions.https.HttpsError(
           "internal",
           result.error.message ||
@@ -283,6 +319,9 @@ export const sendEnrollmentIntakeEmail =
 
       const resendEmailId =
         result.data?.id || "";
+      if (twoC && !resendEmailId) {
+        throw new functions.https.HttpsError("failed-precondition", "2C Intake provider returned no acceptance ID; review delivery before retry.");
+      }
 
       const deliveredAtMs = Date.now();
       const exp =
@@ -291,6 +330,7 @@ export const sendEnrollmentIntakeEmail =
       await tokenRef.set(
         {
           deliveryStatus: "SENT",
+          ...(twoC ? {twoCEmailStatus:"SENT"} : {}),
           deliveryMethod: "email",
           manualDelivery: false,
           manualDeliveryNote: null,
