@@ -40,6 +40,16 @@ const handoffCache = new Map();
 let currentHandoffTokenId = "";
 let currentHandoffAudience = "";
 const twoCReceiptStatuses = new Map();
+const twoCIntakeStatuses = new Map();
+
+function twoCIntakeStatusText(proposalId) {
+  const state = twoCIntakeStatuses.get(proposalId);
+  if (!state?.tokenId) return "Intake token not yet created";
+  if (state.deliveryStatus === "SENT") return "Intake accepted by email provider";
+  if (state.twoCEmailStatus === "SENDING") return "Intake send pending — provider review required";
+  if (state.twoCEmailStatus === "FAILED") return "Intake not accepted — retry allowed";
+  return "Intake not yet sent";
+}
 
 function receiptStatusText(proposalId) {
   const info = twoCReceiptStatuses.get(proposalId) || {status:"UNKNOWN"};
@@ -683,6 +693,7 @@ function renderReadyIntakeCard(proposal) {
   const intakeAudience = intakeAudienceForProposal(proposal, athletes);
 
   const receiptState = proposal.paymentMethod === "cash_prepaid" ? receiptStatusText(proposalId) : null;
+  const twoCIntake = twoCIntakeStatuses.get(proposalId);
 
   const handoffAction = intakeAudience === "adult_athlete"
     ? `
@@ -727,6 +738,8 @@ function renderReadyIntakeCard(proposal) {
       <div class="pending-card-actions">
         ${receiptState ? `
           <div class="pending-card-meta small">2C · ${esc(receiptState.label)}${esc(receiptState.recipient)}</div>
+          <div class="pending-card-meta small">${esc(twoCIntakeStatusText(proposalId))}</div>
+          ${twoCIntake?.twoCEmailStatus === "SENDING" ? `<button class="small outline-blue" type="button" data-intake-2c-resolve="${esc(proposalId)}">System Admin: Resolve Pending Intake Email</button>` : ""}
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
           ${receiptState.status === "SENDING" ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
@@ -911,6 +924,34 @@ async function recordManualIntakeDelivery({
 }
 
 function wireReadyIntakeButtons() {
+  document.querySelectorAll("[data-intake-2c-resolve]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const proposalId = String(button.dataset.intake2cResolve || "").trim();
+      const state = twoCIntakeStatuses.get(proposalId);
+      if (state?.twoCEmailStatus !== "SENDING" || !state.tokenId) return;
+      const resolution = window.prompt("System Admin Intake recovery: type ACCEPTED or NOT_ACCEPTED based on verified provider evidence.");
+      if (!["ACCEPTED", "NOT_ACCEPTED"].includes(resolution || "")) return;
+      const providerId = resolution === "ACCEPTED" ? window.prompt("Enter the exact provider acceptance ID:") : "";
+      if (resolution === "ACCEPTED" && !providerId?.trim()) return;
+      const evidence = window.prompt("Enter provider evidence (at least 20 characters):");
+      if (!evidence || evidence.trim().length < 20) return;
+      if (!window.confirm("Confirm System Admin review of the provider record? This action is audited.")) return;
+      button.disabled = true;
+      try {
+        const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
+        await sendIntake({
+          tokenId:state.tokenId,twoCRecovery:true,
+          resolution:resolution === "ACCEPTED" ? "confirm_sent" : "confirm_not_sent",
+          providerId:providerId || "",evidence:evidence.trim(),
+          confirmation:resolution === "ACCEPTED" ? "PROVIDER_ACCEPTED_EMAIL" : "PROVIDER_CONFIRMED_NOT_ACCEPTED"
+        });
+        await loadReadyForIntake(await requireManagement());
+      } catch (err) {
+        if ($("invite-status")) $("invite-status").textContent = `2C Intake recovery blocked: ${err?.message || err}`;
+      } finally {button.disabled = false;}
+    });
+  });
+
   document.querySelectorAll("[data-receipt-refresh]").forEach(button => {
     button.addEventListener("click", async () => {
       const proposalId = String(button.dataset.receiptRefresh || "").trim();
@@ -1286,6 +1327,13 @@ async function loadReadyForIntake(managementContext) {
     const proposalId = String(item.proposal.proposalId || item.proposal.id || "").trim();
     try { await refresh2CReceiptStatus(proposalId); }
     catch { twoCReceiptStatuses.set(proposalId, {status:"UNKNOWN"}); }
+    try {
+      const tokenId = String(item.handoff?.tokenId || "").trim();
+      const token = tokenId ? (await getDoc(doc(db, "intakeTokens", tokenId))).data() || {} : {};
+      twoCIntakeStatuses.set(proposalId, {tokenId, twoCEmailStatus:token.twoCEmailStatus || "",deliveryStatus:token.deliveryStatus || "",recipient:token.deliveredTo || ""});
+    } catch {
+      twoCIntakeStatuses.set(proposalId, {tokenId:"",twoCEmailStatus:"UNKNOWN"});
+    }
   }));
 
   const readyItems =
