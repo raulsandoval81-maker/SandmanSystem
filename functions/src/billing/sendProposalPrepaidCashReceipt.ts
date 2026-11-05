@@ -31,6 +31,10 @@ export const sendProposalPrepaidCashReceipt = onCall(
     const proposal = proposalSnap.data() || {};
     requireProposalLocationAccess(actor, proposal.locationId);
 
+    const mode = clean(req.data?.mode || "send").toLowerCase();
+    if (!["send", "status", "confirm_sent", "confirm_not_sent"].includes(mode)) {
+      throw new HttpsError("invalid-argument", "Unsupported receipt operation.");
+    }
     const payment = proposal.cashPrepayment;
     if (clean(proposal.status).toUpperCase() !== "PAID" ||
         clean(proposal.paymentStatus).toLowerCase() !== "paid" ||
@@ -42,6 +46,59 @@ export const sendProposalPrepaidCashReceipt = onCall(
       throw new HttpsError("failed-precondition", "Cash/check receipt cannot be sent on a Stripe-linked payment.");
     }
 
+    if (mode === "status") {
+      const snapshot = await receiptRef.get();
+      const recorded = snapshot.data() || {};
+      return {
+        ok: true,
+        status: clean(recorded.status) || "NOT_SENT",
+        recipient: clean(recorded.recipient),
+        providerId: clean(recorded.providerId),
+        receiptId: clean(recorded.receiptId) || `CASH-${proposalId}`,
+        requestedAt: recorded.requestedAt?.toMillis?.() || null,
+        sentAt: recorded.sentAt?.toMillis?.() || null,
+        resolvedAt: recorded.resolvedAt?.toMillis?.() || null,
+      };
+    }
+    if (mode === "confirm_sent" || mode === "confirm_not_sent") {
+      if (!["admin", "system_admin"].includes(actor.role)) {
+        throw new HttpsError("permission-denied", "Receipt delivery resolution requires System Admin review.");
+      }
+      const evidence = clean(req.data?.evidence);
+      const providerId = clean(req.data?.providerId);
+      const confirmation = clean(req.data?.confirmation);
+      if (evidence.length < 20 || evidence.length > 1000 ||
+          confirmation !== (mode === "confirm_sent" ? "PROVIDER_ACCEPTED_EMAIL" : "PROVIDER_CONFIRMED_NOT_ACCEPTED") ||
+          (mode === "confirm_sent" && !providerId)) {
+        throw new HttpsError("invalid-argument", "Document provider evidence and type the exact confirmation before resolving.");
+      }
+      return db.runTransaction(async tx => {
+        const previous = await tx.get(receiptRef);
+        const record = previous.data() || {};
+        if (record.status !== "SENDING") {
+          throw new HttpsError("failed-precondition", "Only an uncertain SENDING receipt may be manually resolved.");
+        }
+        const resolvedStatus = mode === "confirm_sent" ? "SENT" : "FAILED";
+        tx.update(receiptRef, {
+          status: resolvedStatus,
+          ...(mode === "confirm_sent" ? { providerId, sentAt: FieldValue.serverTimestamp() } : {}),
+          resolutionEvidence: evidence,
+          resolutionBy: req.auth!.uid,
+          resolvedAt: FieldValue.serverTimestamp(),
+        });
+        tx.create(proposalRef.collection("history").doc(), {
+          proposalId,
+          event: mode === "confirm_sent" ? "CASH_RECEIPT_PROVIDER_ACCEPTANCE_VERIFIED" : "CASH_RECEIPT_PROVIDER_NON_ACCEPTANCE_VERIFIED",
+          receiptId: clean(record.receiptId),
+          recipient: clean(record.recipient),
+          providerId,
+          evidence,
+          createdBy: req.auth!.uid,
+          createdAt: FieldValue.serverTimestamp(),
+        });
+        return { ok: true, status: resolvedStatus, recipient: clean(record.recipient), receiptId: clean(record.receiptId) };
+      });
+    }
     const prospect = proposal.lockedSnapshot?.prospect || proposal.prospect || {};
     const expected = clean(prospect.parentEmail || prospect.primaryContactEmail || prospect.email).toLowerCase();
     const override = clean(req.data?.recipientEmail).toLowerCase();
@@ -56,10 +113,13 @@ export const sendProposalPrepaidCashReceipt = onCall(
     const amountCents = payment.amountCents;
     const membershipCents = payment.membershipAmountCents;
     const enrollment = payment.annualEnrollmentFee || {};
-    const outstandingCents = Number(enrollment.outstandingCents ?? 0);
+    const outstandingCents = Number(enrollment.outstandingCents);
     const feeAllocatedCents = amountCents - membershipCents;
     const method = clean(payment.paymentMethod).toLowerCase();
-    if (!["cash", "check"].includes(method) || !Number.isInteger(membershipCents) ||
+    if (!["cash", "check"].includes(method) ||
+        !Number.isInteger(enrollment.paidWithPrepaymentCents) ||
+        enrollment.paidWithPrepaymentCents !== feeAllocatedCents ||
+        !Number.isInteger(membershipCents) ||
         membershipCents <= 0 || !Number.isInteger(outstandingCents) || outstandingCents < 0 ||
         feeAllocatedCents < 0) {
       throw new HttpsError("failed-precondition", "Payment allocation is incomplete.");
@@ -131,17 +191,26 @@ export const sendProposalPrepaidCashReceipt = onCall(
         throw new HttpsError("internal", "The receipt email provider rejected delivery.");
       }
       providerId = clean(result.data?.id);
+      if (!providerId) {
+        throw new HttpsError("failed-precondition", "Provider response lacks an acceptance ID; receipt outcome needs verification.");
+      }
     } catch (error) {
       // Unknown provider/network outcomes remain SENDING, never auto-resend.
       if (error instanceof HttpsError) throw error;
       throw new HttpsError("internal", "Receipt send outcome is uncertain. Check provider delivery before retrying.");
     }
 
-    await receiptRef.update({ status: "SENT", providerId, sentAt: FieldValue.serverTimestamp() });
-    await proposalRef.collection("history").doc("cash_check_receipt_sent").set({
-      proposalId, event: "CASH_PREPAYMENT_RECEIPT_SENT", receiptId, recipient,
-      providerId, createdBy: req.auth.uid, createdAt: FieldValue.serverTimestamp()
-    }, { merge: true });
+    await db.runTransaction(async tx => {
+      const snapshot = await tx.get(receiptRef);
+      if (snapshot.data()?.status !== "SENDING") {
+        throw new HttpsError("failed-precondition", "Receipt state changed during delivery; review provider record.");
+      }
+      tx.update(receiptRef, { status: "SENT", providerId, sentAt: FieldValue.serverTimestamp() });
+      tx.create(proposalRef.collection("history").doc(), {
+        proposalId, event: "CASH_PREPAYMENT_RECEIPT_SENT", receiptId, recipient,
+        providerId, createdBy: req.auth!.uid, createdAt: FieldValue.serverTimestamp()
+      });
+    });
     return { ok: true, alreadySent: false, receiptId, recipient };
   }
 );
