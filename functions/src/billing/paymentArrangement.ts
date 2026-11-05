@@ -1,0 +1,76 @@
+import { createHash } from "node:crypto";
+import { lockedPrepaidCoverageMonths } from "./prepaidReconciliationPolicy";
+import { resolveFullYearPrepayment, validateFullYearCoverage } from "./prepaidMembershipPolicy";
+
+export type PaymentArrangement = "monthly_autopay" | "prepaid_stripe" | "prepaid_cash_check";
+export function paymentArrangement(pricing: Record<string, any>): PaymentArrangement {
+  const value = pricing.paymentArrangement ?? "monthly_autopay";
+  if (!["monthly_autopay", "prepaid_stripe", "prepaid_cash_check"].includes(value)) {
+    throw new Error("Unsupported payment arrangement.");
+  }
+  return value;
+}
+
+// Reuse the V2 term, coverage and per-athlete allocation validators. Pricing
+// remains the existing proposal monthly price, never a competing rate table.
+export function canonicalPaymentArrangement(pricing: Record<string, any>, athletes: any[]) {
+  const arrangement = paymentArrangement(pricing);
+  if (arrangement === "monthly_autopay") return pricing;
+  if (pricing.billingType === "seasonal_one_time" || !athletes.length ||
+      athletes.some(a => String(a.plan).toLowerCase() === "fitness") ||
+      Number(pricing.additionalMembershipMonthsDue || 0) || Number(pricing.extraAmount || 0) ||
+      Number(pricing.enrollmentPreviouslyPaidAmount || 0)) {
+    throw new Error("Prepaid arrangement requires an unmixed Combat membership without historical fees or extra charges.");
+  }
+  const months = lockedPrepaidCoverageMonths({lockedSnapshot: {athletes}});
+  const monthly = Math.round(Number(pricing.monthlyBalance) * 100);
+  const fee = Math.round(Number(pricing.enrollmentBase) * 100);
+  if (!Number.isSafeInteger(monthly) || monthly <= 0 || !Number.isSafeInteger(fee) || fee < 0) {
+    throw new Error("Invalid locked prepaid price.");
+  }
+  const allocations = pricing.prepaidFeeAllocations ?? athletes.map((a, i) => ({athleteIndex: i + 1, amountCents: fee / athletes.length}));
+  if (!Array.isArray(allocations)) throw new Error("Annual fee allocations are required.");
+  const feePaid = allocations.reduce((sum: number, a: any) => sum + Number(a.amountCents), 0);
+  const membership = monthly * months;
+  const allocation = resolveFullYearPrepayment({amountCents: membership + feePaid,
+    membershipAmountCents: membership, expectedMonthlyMembershipCents: monthly, monthsCovered: months,
+    enrollmentFeeTotalCents: fee, enrollmentFeePreviouslyPaidCents: 0, athletes,
+    enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: allocations});
+  const start = String(pricing.membershipStartDate || "");
+  const renewal = new Date(`${start}T12:00:00Z`);
+  if (Number.isNaN(renewal.getTime())) throw new Error("Invalid membership start date.");
+  if (months === 12) renewal.setUTCFullYear(renewal.getUTCFullYear() + 1);
+  else {
+    const day = renewal.getUTCDate();
+    const last = new Date(Date.UTC(renewal.getUTCFullYear(), renewal.getUTCMonth() + months + 1, 0)).getUTCDate();
+    renewal.setUTCDate(1); renewal.setUTCMonth(renewal.getUTCMonth() + months); renewal.setUTCDate(Math.min(day, last));
+  }
+  const through = new Date(renewal); through.setUTCDate(through.getUTCDate() - 1);
+  const nextBillingDate = renewal.toISOString().slice(0, 10);
+  const paidThroughDate = through.toISOString().slice(0, 10);
+  validateFullYearCoverage(start, paidThroughDate, nextBillingDate, months);
+  return {...pricing, paymentArrangement: arrangement, automaticFuturePayments: false,
+    firstRecurringChargeDate: null, recurringBillingDay: null,
+    prepaidFeeAllocations: allocation.annualEnrollmentFee.selections.map(a => ({athleteIndex: a.athleteIndex, amountCents: a.amountCents})),
+    prepaidTerms: {monthsCovered: months, membershipAmountCents: membership,
+      amountCents: membership + feePaid, annualEnrollmentFee: allocation.annualEnrollmentFee,
+      membershipStartDate: start, paidThroughDate, nextBillingDate, automaticRenewal: false},
+    dueNow: arrangement === "prepaid_stripe" ? (membership + feePaid) / 100 : 0,
+    enrollmentDueNow: arrangement === "prepaid_stripe" ? feePaid / 100 : 0};
+}
+export function lockedPrepaidTerms(proposal: Record<string, any>) {
+  const snapshot = proposal.lockedSnapshot;
+  if (!snapshot || !proposal.clientAcceptance?.signedAt || JSON.stringify(proposal.clientAcceptance?.signedSnapshot) !== JSON.stringify(snapshot)) {
+    throw new Error("Family acceptance must match the locked prepaid terms.");
+  }
+  const canonical = canonicalPaymentArrangement(snapshot.pricing, snapshot.athletes);
+  if (paymentArrangement(canonical) === "monthly_autopay" ||
+      JSON.stringify(canonical.prepaidTerms) !== JSON.stringify(snapshot.pricing.prepaidTerms)) {
+    throw new Error("Prepaid terms do not match the locked agreement.");
+  }
+  return canonical.prepaidTerms;
+}
+export function prepaidFingerprint(proposal: Record<string, any>): string {
+  lockedPrepaidTerms(proposal);
+  return createHash("sha256").update(JSON.stringify(proposal.lockedSnapshot)).digest("hex");
+}

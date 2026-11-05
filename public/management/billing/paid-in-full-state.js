@@ -1,5 +1,5 @@
 export function paidInFullUiState(proposal = {}) {
-  const payment = proposal.cashPrepayment || {};
+  const payment = proposal.cashPrepayment || proposal.prepaidPayment || {};
   const isPaidInFull = payment.membershipPaidInFull === true;
   const feeOutstandingCents = Number(
     payment.annualEnrollmentFee?.outstandingCents || 0

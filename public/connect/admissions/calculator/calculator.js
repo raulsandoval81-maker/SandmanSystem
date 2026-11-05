@@ -1,3 +1,4 @@
+import { previewPaymentArrangement } from "./payment-arrangement.js";
 import {
   auth,
   db,
@@ -315,7 +316,9 @@ const extras = {
   }
 };
 
+    let restoredPrepaidFees = null;
     const el = {
+      paymentArrangement: document.getElementById("paymentArrangement"),
       familyName:document.getElementById("familyName"),
       coachName:document.getElementById("coachName"),
       coachRecommendation:document.getElementById("coachRecommendation"),
@@ -905,7 +908,9 @@ const extras = {
         field.hidden = !seasonal;
       });
       document.querySelector(".payment-start-section")?.toggleAttribute("hidden", seasonal);
+      if (el.paymentArrangement) el.paymentArrangement.disabled = seasonal;
       if (seasonal) {
+        if (el.paymentArrangement) el.paymentArrangement.value = "monthly_autopay";
         return calculateWinterWrestling(athletes);
       }
       const extra=extras[el.extra.value];
@@ -1612,7 +1617,7 @@ const extras = {
         }
       `;
 
-      return {
+      const result = {
         athletes,
 
         pricing: {
@@ -1708,6 +1713,36 @@ const extras = {
         internalNotes:
           el.coachRecommendation.value.trim() || null
       };
+      const arrangement = el.paymentArrangement?.value || "monthly_autopay";
+      const fees = document.getElementById("prepaidFeeAllocations");
+      const message = document.getElementById("paymentArrangementStatus");
+      if (arrangement !== "monthly_autopay" && fees) {
+        const previous = [...fees.querySelectorAll("input")].map(input => input.value);
+        if (fees.querySelectorAll("input").length !== athletes.length || restoredPrepaidFees) {
+          fees.innerHTML = athletes.map((a, i) => `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${enrollmentBase / athletes.length}" value="${restoredPrepaidFees ? (restoredPrepaidFees.find(x => x.athleteIndex === i + 1)?.amountCents || 0) / 100 : (previous[i] ?? enrollmentBase / athletes.length)}"></label>`).join("");
+          restoredPrepaidFees = null;
+          fees.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
+        }
+      }
+      if (fees) fees.hidden = arrangement === "monthly_autopay";
+      try {
+        const allocations = fees ? [...fees.querySelectorAll("input")].map((input, i) => ({athleteIndex: i + 1, amountCents: Math.round(Number(input.value) * 100)})) : [];
+        result.pricing = previewPaymentArrangement(result.pricing, athletes, arrangement, allocations);
+        if (message) message.textContent = "";
+        if (arrangement !== "monthly_autopay") {
+          const t = result.pricing.prepaidTerms;
+          const summary = `${t.monthsCovered} months · ${money(t.membershipAmountCents / 100)} membership · ${money((t.amountCents - t.membershipAmountCents) / 100)} fee allocated · ${money(t.feeOutstandingCents / 100)} fee separately outstanding. Coverage ${t.membershipStartDate} through ${t.paidThroughDate}. No automatic renewal; earliest renewal ${t.nextBillingDate}. ${arrangement === "prepaid_cash_check" ? "Existing payment requires verified Management reconciliation; no Stripe collection." : "One-time Stripe payment; no subscription."}`;
+          message.textContent = summary;
+          el.dueNow.textContent = money(result.pricing.dueNow);
+          el.monthlyTotal.textContent = "No recurring charge";
+          el.summary.innerHTML = `<p>${escapeHtml(summary)}</p>`;
+          el.breakdown.innerHTML = `<p>${escapeHtml(summary)}</p>`;
+        }
+      } catch (error) {
+        if (message) message.textContent = error.message;
+        return null;
+      }
+      return result;
     }
 
     function calculateWinterWrestling(athletes){
@@ -1805,6 +1840,7 @@ const extras = {
 
       const snapshot =
         calculate();
+      if (!snapshot) { alert("Correct the payment arrangement before saving."); return; }
 
       const originalText =
         el.saveDraftButton.textContent;
@@ -2441,6 +2477,8 @@ alert(
         el.lateEnrollmentReviewed.checked = pricing.lateEnrollmentReviewed === true;
       }
 
+      if (el.paymentArrangement) el.paymentArrangement.value = pricing.paymentArrangement || "monthly_autopay";
+      restoredPrepaidFees = pricing.prepaidFeeAllocations || null;
       const historicalLedger = historicalPaymentSummary(proposal);
       recordedMembershipPeriods = new Set(
         historicalLedger?.membershipLedgerComplete
@@ -3259,6 +3297,13 @@ alert(
           true;
       }
 
+      if (pricing.prepaidTerms && pricing.paymentArrangement !== "monthly_autopay") {
+        const t = pricing.prepaidTerms;
+        el.printMonthly.textContent = "No recurring charge";
+        el.printAnnualRenewal.textContent = "No automatic renewal";
+        el.printAthleteSummary.textContent = athletes.map(a => a.name || "Athlete").join(", ");
+        el.printMembershipDetailContent.innerHTML = `<p>${escapeHtml(pricing.paymentArrangement === "prepaid_stripe" ? "One-time Stripe payment" : "Existing cash/check reconciliation")}</p><p>${t.monthsCovered} months · ${money(t.membershipAmountCents / 100)} membership · ${money((t.amountCents - t.membershipAmountCents) / 100)} annual fee allocated · ${money(t.feeOutstandingCents / 100)} annual fee outstanding.</p><p>Coverage ${escapeHtml(t.membershipStartDate)} through ${escapeHtml(t.paidThroughDate)}. Earliest renewal ${escapeHtml(t.nextBillingDate)} requires separate approval. Acceptance is not proof of payment.</p>`;
+      }
       return true;
     }
 
@@ -3303,6 +3348,7 @@ alert(
     }
 
     [
+      el.paymentArrangement,
       el.familyName,
       el.coachName,
       el.coachRecommendation,

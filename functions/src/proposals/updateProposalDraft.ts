@@ -258,6 +258,8 @@ export const updateProposalDraft =
             if (existingPayments.length) {
               const priorPricing = existing.pricing || {};
               const lockedFields = [
+                "paymentArrangement",
+                "prepaidFeeAllocations",
                 "monthlyBalance",
                 "enrollmentBase",
                 "membershipStartDate",

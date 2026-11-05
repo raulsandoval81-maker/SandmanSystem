@@ -301,6 +301,25 @@ function renderProposal(
   $("proposalFamilyName").textContent =
     familyName;
 
+  if (pricing.prepaidTerms && pricing.paymentArrangement !== "monthly_autopay") {
+    const t = pricing.prepaidTerms;
+    const consent = document.querySelector(".terms-copy");
+    if (consent) consent.textContent = "By accepting, you confirm the prepaid membership term, price, coverage dates, annual-fee allocation and separately outstanding fee shown above. No recurring billing or automatic renewal is authorized. Review & Confirm remains required; acceptance alone is not payment evidence.";
+    $("dueNow").textContent = money(pricing.dueNow);
+    $("monthlyMembership").textContent = "No recurring charge";
+    $("annualRenewal").textContent = "No automatic renewal";
+    renderAthletes(Array.isArray(proposal.athletes) ? proposal.athletes : []);
+    $("paymentSchedule").innerHTML = [
+      scheduleItem("Payment arrangement", pricing.paymentArrangement === "prepaid_stripe" ? "Paid in Full — one-time Stripe payment" : "Paid in Full — existing cash/check reconciliation"),
+      scheduleItem("Locked membership", `${t.monthsCovered} months · ${moneyFromCents(t.membershipAmountCents)}`),
+      scheduleItem("Coverage", `${t.membershipStartDate} through ${t.paidThroughDate}`),
+      scheduleItem("Annual fee allocated", moneyFromCents(t.annualEnrollmentFee.paidWithPrepaymentCents)),
+      scheduleItem("Annual fee separately outstanding", moneyFromCents(t.annualEnrollmentFee.outstandingCents)),
+      scheduleItem("Earliest renewal", `${t.nextBillingDate} — separate approval required`),
+      scheduleItem("Payment evidence", "Acceptance does not mark payment received. Verified reconciliation is required."),
+    ].join("");
+    return;
+  }
   if (pricing.billingType === "seasonal_one_time") {
     $("proposalNumber").textContent = `Seasonal Proposal · ${proposalId}`;
     $("dueNow").textContent = moneyFromCents(pricing.dueNowCents);

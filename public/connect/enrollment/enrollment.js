@@ -120,6 +120,19 @@ import {
 
     renderAthletes(enrollment.athletes || []);
 
+    if (pricing.prepaidTerms && pricing.paymentArrangement !== "monthly_autopay") {
+      const t = pricing.prepaidTerms;
+      const consent = document.querySelector("label.enrollment-checkbox span");
+      if (consent) consent.textContent = "I confirm the membership term, prepaid amount, coverage dates, annual-fee allocation and separately outstanding balance shown above. No automatic renewal is authorized.";
+      const continueButton = document.getElementById("saveAgreementButton");
+      if (continueButton) continueButton.textContent = pricing.paymentArrangement === "prepaid_cash_check" ? "Confirm & Return to Management Reconciliation" : "Confirm & Continue to One-Time Secure Payment";
+      elements.dueNowAmount.textContent = formatMoney(pricing.dueNow);
+      elements.monthlyAmount.textContent = `No recurring charge — ${t.monthsCovered} months prepaid`;
+      elements.annualRenewalAmount.textContent = `Annual fee separately outstanding: ${formatMoney(t.annualEnrollmentFee.outstandingCents / 100)}`;
+      elements.fundingRoute.textContent = `${pricing.paymentArrangement === "prepaid_stripe" ? "One-time Stripe payment" : "Existing cash/check; Management reconciliation required"}. Membership ${formatMoney(t.membershipAmountCents / 100)}; fee allocated ${formatMoney(t.annualEnrollmentFee.paidWithPrepaymentCents / 100)}. Coverage ${t.membershipStartDate} through ${t.paidThroughDate}. No automatic renewal; earliest renewal ${t.nextBillingDate}.`;
+      elements.termsConfirmed.checked = confirmation.termsConfirmed === true;
+      return;
+    }
     if (pricing.billingType === "seasonal_one_time") {
       const ledger = Array.isArray(enrollment.seasonalPaymentLedger)
         ? enrollment.seasonalPaymentLedger

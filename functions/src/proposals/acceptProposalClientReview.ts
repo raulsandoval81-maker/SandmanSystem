@@ -234,6 +234,13 @@ export const acceptProposalClientReview =
               .collection("history")
               .doc();
 
+          if (review.snapshot?.pricing?.paymentArrangement === "prepaid_cash_check") {
+            tx.create(proposalRef.collection("history").doc(), {
+              proposalId, event: "PREPAID_RECONCILIATION_PREPARED",
+              route: "management_prepaid_reconciliation", createdBy: approvedBy,
+              createdAt: FieldValue.serverTimestamp(),
+            });
+          }
           tx.update(
             proposalRef,
             {
@@ -242,6 +249,12 @@ export const acceptProposalClientReview =
 
               lockedSnapshot:
                 review.snapshot,
+
+              ...(review.snapshot?.pricing?.paymentArrangement === "prepaid_cash_check" ? {
+                prepaidReconciliation: {status: "AWAITING_FAMILY_CONFIRMATION",
+                  route: "management_prepaid_reconciliation", preparedBy: approvedBy,
+                  preparedAt: FieldValue.serverTimestamp()},
+              } : {}),
 
               clientAcceptance: {
                 signerName,
