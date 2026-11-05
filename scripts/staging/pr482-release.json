@@ -1,0 +1,47 @@
+{
+  "project": "sandman-combat-staging",
+  "region": "us-central1",
+  "applicationSha": "f402c04ee27a5ca9309a422221c3556f6523588a",
+  "functions": [
+    "createProposalDraft",
+    "updateProposalDraft",
+    "issueProposalClientReview",
+    "acceptProposalClientReview",
+    "createProposalCheckout",
+    "recordProposalPrepaidCash",
+    "stripeBillingWebhook"
+  ],
+  "assets": [
+    "/connect/admissions/calculator/index.html",
+    "/connect/admissions/calculator/calculator.js",
+    "/connect/admissions/calculator/payment-arrangement.js",
+    "/connect/proposals/review/review.js",
+    "/connect/enrollment/enrollment.js",
+    "/management/billing/billing.js",
+    "/management/billing/paid-in-full-state.js"
+  ],
+  "newAssets": [
+    "/connect/admissions/calculator/payment-arrangement.js"
+  ],
+  "modules": [
+    "billing/paymentArrangement.js",
+    "billing/prepaidProposalCheckout.js",
+    "billing/prepaidMembershipPolicy.js",
+    "billing/prepaidReconciliationPolicy.js",
+    "billing/recordProposalPrepaidCash.js",
+    "billing/webhook.js",
+    "proposals/acceptProposalClientReview.js",
+    "proposals/createProposalCheckout.js",
+    "proposals/proposalClientReview.js",
+    "proposals/seasonalProposal.js",
+    "proposals/updateProposalDraft.js",
+    "proposals/createProposalDraft.js",
+    "proposals/issueProposalClientReview.js",
+    "proposals/billingPublicBaseUrl.js"
+  ],
+  "baselineSha256": null,
+  "approval": "APPROVE_PR482_STAGING_SEVEN_FUNCTIONS_SEVEN_ASSETS",
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "automaticRollback": false
+}

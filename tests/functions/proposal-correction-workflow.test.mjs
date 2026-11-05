@@ -45,7 +45,7 @@ function evidence() {
 
 test("proposal correction uses an existing authorized workflow with exact staging scope", () => {
   assert.match(workflow, /release_scope:/);
-  assert.match(workflow, /options: \[pif-v2, proposal-correction\]/);
+  assert.match(workflow, /options: \[pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization\]/);
   assert.match(correctionDeployJob, /APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET/);
   assert.match(correctionDeployJob, /ref: 786dba9824663feea4aa092a1bbe54b151c8233a/);
   assert.equal((correctionDeployJob.match(/gcloud functions deploy /g) || []).length, 1);
