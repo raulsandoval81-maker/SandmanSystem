@@ -682,6 +682,14 @@ jobs:
         env:
           STAGING_HOSTING_TOKEN: ${{ steps.arrangements-hosting-preflight.outputs.access_token }}
         run: python3 trusted/scripts/staging/pr482-hosting.py verify --source source --baseline evidence/baseline --out evidence/hosting
+      - name: Preserve safe mismatch evidence when validation fails
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr482-baseline-mismatch-${{ github.run_id }}
+          path: evidence/baseline-mismatch.json
+          if-no-files-found: ignore
+          retention-days: 7
       - uses: actions/upload-artifact@v4
         with:
           name: pr482-verified-preflight-${{ github.run_id }}
