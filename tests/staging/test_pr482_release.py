@@ -29,6 +29,24 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual(len(set(m['functions'])), 7); self.assertEqual(len(set(m['assets'])), 7)
         self.assertFalse(m['automaticRollback']); self.assertFalse(m['productionAuthorized'])
 
+    def test_global_and_staging_custom_role_queries_use_correct_scope(self):
+        with patch.object(r.c.subprocess, 'check_output', return_value='{}') as query:
+            r.c.role_state('roles/cloudfunctions.admin')
+            self.assertNotIn('--project='+r.c.PROJECT, query.call_args.args[0])
+            r.c.role_state('projects/'+r.c.PROJECT+'/roles/stagingDeployer')
+            self.assertIn('--project='+r.c.PROJECT, query.call_args.args[0])
+        with self.assertRaisesRegex(RuntimeError, 'outside staging'):
+            r.c.role_state('projects/production/roles/admin')
+
+    def test_capture_includes_both_deployer_impersonation_policies(self):
+        with patch.object(r.c, 'gc', return_value={}) as query:
+            state = r.c.authorization_state({})
+        self.assertEqual(set(state['accounts']), {
+            'sandman-practice-deployer@'+r.c.PROJECT+'.iam.gserviceaccount.com',
+            'sandman-staging-deployer@'+r.c.PROJECT+'.iam.gserviceaccount.com'})
+        self.assertEqual(sum(args.args[0][:3] == ['iam','service-accounts','get-iam-policy']
+                             for args in query.call_args_list), 2)
+
     def test_no_dispatch_credentials_no_deployment(self):
         with patch.dict(os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, 'Protected staging'): r.protected(True)
@@ -134,6 +152,15 @@ class ReleaseTests(unittest.TestCase):
                 pkg = json.loads((files/'package.json').read_text())
                 self.assertEqual(pkg['dependencies'], {'firebase-admin':'12.5.0'})
                 self.assertEqual(pkg['scripts']['gcp-build'], '')
+            r.save(baseline/'receipt.json', {'baselineSha256':r.c.digest(state)})
+            with patch.object(r.subprocess, 'check_output', return_value=r.c.SHA):
+                r.package(source, baseline, root/'candidate', candidate=True)
+            prepared = json.loads((root/'candidate/prepared.json').read_text())
+            self.assertTrue(prepared['candidateOnly'])
+            env = self.env()
+            with patch.dict(os.environ, env, clear=True), patch.object(r, 'manifest', return_value=m):
+                with self.assertRaisesRegex(RuntimeError, 'Unverified packages'):
+                    r.deploy_function(r.c.FUNCTIONS[0], baseline, root/'candidate', root/'receipts')
             (baseline/(r.c.FUNCTIONS[0]+'.zip')).write_bytes(b'tampered')
             with patch.object(r, 'manifest', return_value=m), patch.object(r.subprocess, 'check_output', return_value=r.c.SHA):
                 with self.assertRaisesRegex(RuntimeError, 'Rollback checksum'): r.package(source, baseline, root/'tampered-packages')

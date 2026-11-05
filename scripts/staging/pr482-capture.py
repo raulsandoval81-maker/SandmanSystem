@@ -74,18 +74,27 @@ def hosting_state(token):
         require(path in files, 'Missing staging dependency: '+path)
     return {'release': release, 'version': version, 'files': files}
 
+def role_state(role):
+    if role.startswith('roles/'):
+        # Predefined roles are global; --project selects a custom-role scope.
+        return json.loads(subprocess.check_output(['gcloud', 'iam', 'roles', 'describe', role, '--format=json'], text=True))
+    require(role.startswith('projects/'+PROJECT+'/roles/'), 'Deployment role is outside staging')
+    return gc(['iam', 'roles', 'describe', role.rsplit('/', 1)[-1]])
+
 def authorization_state(functions):
     accounts = set()
     for state in functions.values():
         f = state['function']
         accounts.add(f['serviceConfig']['serviceAccountEmail'])
         accounts.add(f['buildConfig']['serviceAccount'].rsplit('/', 1)[-1])
+    accounts.update({'sandman-practice-deployer@'+PROJECT+'.iam.gserviceaccount.com',
+                     'sandman-staging-deployer@'+PROJECT+'.iam.gserviceaccount.com'})
     policy = gc(['projects', 'get-iam-policy', PROJECT])
     deployers = {'serviceAccount:sandman-practice-deployer@'+PROJECT+'.iam.gserviceaccount.com',
                  'serviceAccount:sandman-staging-deployer@'+PROJECT+'.iam.gserviceaccount.com'}
     roles = sorted({b['role'] for b in policy.get('bindings', []) if deployers.intersection(b.get('members', []))})
     return {'projectIam': policy,
-            'roles': {role: gc(['iam', 'roles', 'describe', role] if role.startswith('roles/') else ['iam', 'roles', 'describe', role.rsplit('/', 1)[-1]]) for role in roles},
+            'roles': {role: role_state(role) for role in roles},
             'provider': gc(['iam', 'workload-identity-pools', 'providers', 'describe', 'sandman-hybrid-staging', '--workload-identity-pool=sandman-github-staging', '--location=global']),
             'accounts': {a: gc(['iam', 'service-accounts', 'get-iam-policy', a]) for a in sorted(accounts)}}
 

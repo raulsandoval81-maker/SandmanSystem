@@ -48,12 +48,13 @@ def contents(path):
 def hashes(files):
     return {k: hashlib.sha256(v).hexdigest() for k, v in files.items()}
 
-def package(source, baseline, out):
+def package(source, baseline, out, candidate=False):
     m = manifest(); source, baseline, out = map(Path, [source, baseline, out])
     require(subprocess.check_output(['git', '-C', str(source), 'rev-parse', 'HEAD'], text=True).strip() == c.SHA, 'Source SHA drift')
     state = json.loads((baseline/'baseline.json').read_text())
     receipt = json.loads((baseline/'rollback.json').read_text())
-    require(c.digest(state) == m['baselineSha256'], 'Pinned live baseline is not certified')
+    expected_digest = json.loads((baseline/'receipt.json').read_text())['baselineSha256'] if candidate else m['baselineSha256']
+    require(isinstance(expected_digest, str) and len(expected_digest) == 64 and c.digest(state) == expected_digest, 'Pinned live baseline is not certified')
     require(set(receipt) == set(c.FUNCTIONS), 'Incomplete rollback set')
     out.mkdir(parents=True, exist_ok=False)
     for name in c.FUNCTIONS:
@@ -97,7 +98,7 @@ def package(source, baseline, out):
                 pending.append(found)
         save(out/(name+'-files.json'), hashes(files))
         save(out/(name+'-changes.json'), sorted(changes))
-    save(out/'prepared.json', {'sourceSha': c.SHA, 'baselineSha256': m['baselineSha256'], 'functions': c.FUNCTIONS})
+    save(out/'prepared.json', {'sourceSha': c.SHA, 'baselineSha256': expected_digest, 'functions': c.FUNCTIONS, **({'candidateOnly': True} if candidate else {})})
 
 def compare_after(before, after):
     require(before['functionIam'] == after['functionIam'] and before['runIam'] == after['runIam'], 'Invocation IAM changed')
