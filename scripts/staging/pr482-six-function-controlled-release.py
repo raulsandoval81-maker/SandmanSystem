@@ -131,7 +131,7 @@ def deploy_one(name, original, first_after, verified, package_dir,
         "--timeout="+str(service["timeoutSeconds"])+"s",
         "--max-instances="+str(service["maxInstanceCount"]),
         "--concurrency="+str(service["maxInstanceRequestConcurrency"]),
-        "--ingress-settings=all", "--trigger-http", "--quiet",
+        "--ingress-settings=all", "--quiet",
     ]
     require("--project="+c.PROJECT in cmd and "--region="+c.REGION in cmd,
             "Project/region scope drift")
