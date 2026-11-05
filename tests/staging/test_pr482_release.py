@@ -382,6 +382,47 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotIn(disallowed, script)
         self.assertNotIn('deploy:', job)
 
+    def test_run25_postpublish_audit_is_staging_only_and_nonmutating(self):
+        recovery = load('run25_readonly_recovery', 'scripts/staging/pr482-run25-postpublish-audit.py')
+        workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text()
+        job = workflow.split('  run25-postpublish-readonly-audit:', 1)[1]
+        self.assertIn("inputs.action == 'validate'", job)
+        self.assertIn("inputs.approve_release == ''", job)
+        self.assertIn('environment: staging', job)
+        self.assertIn('pr482-seven-hosting-release-progress-42115957586', job)
+        self.assertIn('pr482-run25-postpublish-audit.py', job)
+        source = (ROOT/'scripts/staging/pr482-run25-postpublish-audit.py').read_text()
+        self.assertIn('EXPECTED_RELEASE = "sites/sandman-combat-staging/releases/1793915483057000"', source)
+        self.assertIn('EXPECTED_VERSION = "sites/sandman-combat-staging/versions/ef4fc5628c70178f"', source)
+        self.assertIn('hosting["files"] == expected_manifest', source)
+        for forbidden in ['gcloud functions deploy', 'firebase deploy',
+                          'set-iam-policy', 'h.request(', 'subprocess.run(']:
+            self.assertNotIn(forbidden, job)
+            self.assertNotIn(forbidden, source)
+        expected = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
+                    'GITHUB_REF': 'refs/heads/main',
+                    'GITHUB_EVENT_NAME': 'workflow_dispatch',
+                    'GITHUB_WORKFLOW_REF': recovery.WORKFLOW,
+                    'CONFIRM_PROJECT': r.c.PROJECT,
+                    'RELEASE_ACTION': 'validate',
+                    'RELEASE_SCOPE': 'run25-postpublish-readonly-audit',
+                    'APPROVE_RELEASE': ''}
+        with patch.dict(os.environ, expected, clear=True):
+            recovery.protected()
+            for key in expected:
+                with self.subTest(key=key), patch.dict(os.environ, dict(expected, **{key: 'bad'}), clear=True):
+                    with self.assertRaises(RuntimeError):
+                        recovery.protected()
+
+    def test_run25_optional_filecount_requires_full_manifest_matching(self):
+        capture = load('run25_manifest_capture', 'scripts/staging/pr482-capture.py')
+        source = (ROOT/'scripts/staging/pr482-capture.py').read_text()
+        self.assertIn("if version.get('fileCount') is not None:", source)
+        self.assertIn("len(files) == int(version['fileCount'])", source)
+        recovery = (ROOT/'scripts/staging/pr482-run25-postpublish-audit.py').read_text()
+        self.assertIn('hosting["files"] == expected_manifest', recovery)
+        self.assertIn('body == source_bytes', recovery)
+
     def test_seven_hosting_controlled_release_requires_separate_exact_approval(self):
         hosting = load('seven_hosting_controlled', 'scripts/staging/pr482-seven-hosting-controlled-release.py')
         expected = {'GITHUB_REPOSITORY': 'raulsandoval81-maker/SandmanSystem',
@@ -737,7 +778,7 @@ class ReleaseTests(unittest.TestCase):
         workflow = (ROOT/'.github/workflows/paid-in-full-v2-readonly-preflight.yml').read_text().split('  arrangements-validate:', 1)[1]
         self.assertIn("needs: arrangements-validate", workflow)
         self.assertIn("inputs.action == 'deploy'", workflow)
-        self.assertEqual(workflow.count('environment: staging'), 8)
+        self.assertEqual(workflow.count('environment: staging'), 9)
         self.assertIn('ref: ${{ github.sha }}', workflow)
         self.assertIn('pr482-release.py aggregate', workflow)
         self.assertLess(workflow.index('Reject Hosting drift'), workflow.index('Update and verify one existing Function'))

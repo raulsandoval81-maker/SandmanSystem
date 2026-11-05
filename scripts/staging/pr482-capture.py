@@ -100,7 +100,12 @@ def hosting_state(token):
         page = response.get('nextPageToken', '')
         if not page:
             break
-    require(len(files) == int(version['fileCount']) and len(files) > 100, 'Incomplete Hosting manifest')
+    # Hosting API version metadata may omit fileCount; never infer completeness
+    # from that optional field alone. The paginated manifest is also checked
+    # against an exact expected manifest during post-publication recovery.
+    require(len(files) > 100, 'Incomplete Hosting manifest')
+    if version.get('fileCount') is not None:
+        require(len(files) == int(version['fileCount']), 'Hosting manifest fileCount mismatch')
     for path in ['/assets/js/runtime-environment.js', '/staging-environment.json', '/assets/js/firebase-init.js', '/management/billing/prepaid-terms.js']:
         require(path in files, 'Missing staging dependency: '+path)
     return {'release': release, 'version': version, 'files': files}
