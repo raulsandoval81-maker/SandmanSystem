@@ -102,8 +102,14 @@ on:
           - manual-edge-hosting-deploy
           - winter-v2-preflight
           - winter-v2-deploy
+          - winter-v2-hosting-preflight
+          - winter-v2-hosting-deploy
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
+        required: false
+        type: string
+      winter_v2_hosting_approval:
+        description: For Winter V2 three-asset staging Hosting overlay only, type APPROVE_WINTER_V2_STAGING_THREE_ASSETS
         required: false
         type: string
       confirm_two_billing_functions:
@@ -1659,4 +1665,88 @@ jobs:
           name: winter-v2-staging-${{ github.run_id }}-${{ inputs.action }}
           path: evidence/
           if-no-files-found: warn
+
+winter-v2-hosting-overlay:
+    if: ${{ inputs.action == 'winter-v2-hosting-preflight' || inputs.action == 'winter-v2-hosting-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_WINTER_V2_SOURCE_SHA: f801d51d6b6346b112548538977f9ec0e58146d1
+      SANDMAN_WINTER_V2_HOSTING_APPROVAL: ${{ inputs.winter_v2_hosting_approval }}
+    steps:
+      - name: Verify protected three-asset staging Hosting scope
+        env:
+          SELECTED_RELEASE: ${{ inputs.release_id }}
+          SELECTED_ACTION: ${{ inputs.action }}
+          PROJECT_CONFIRM: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$SELECTED_RELEASE" = "winter-v2-pr490-f801d51d"
+          test "$PROJECT_CONFIRM" = "sandman-combat-staging"
+          test "$SANDMAN_STAGING_PROJECT_ID" = "sandman-combat-staging"
+          if test "$SELECTED_ACTION" = "winter-v2-hosting-deploy"; then
+            test "$SANDMAN_WINTER_V2_HOSTING_APPROVAL" = "APPROVE_WINTER_V2_STAGING_THREE_ASSETS"
+          else
+            test "$SELECTED_ACTION" = "winter-v2-hosting-preflight"
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f801d51d6b6346b112548538977f9ec0e58146d1
+          path: application
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Assert exact immutable Winter V2 source and three frontend paths
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$SANDMAN_WINTER_V2_SOURCE_SHA"
+          git -C application diff --name-only 17146b7ced7d4e3f116f012fb8eb1f6f04d69000 "$SANDMAN_WINTER_V2_SOURCE_SHA" | sort > /tmp/winter-v2-actual-files.txt
+          cat > /tmp/winter-v2-expected-files.txt <<'EOF'
+          functions/src/billing/seasonalProposalCheckout.ts
+          functions/src/billing/seasonalProposalWebhook.ts
+          functions/src/billing/webhook.ts
+          functions/src/proposals/seasonalProposal.ts
+          functions/src/proposals/winterWrestlingSeasonPolicy.ts
+          functions/tests/winterWrestlingSeasonPolicy.test.cjs
+          public/connect/admissions/calculator/calculator.js
+          public/connect/admissions/calculator/index.html
+          public/promotions/winter-wrestling/winter-wrestling.js
+          tests/emulator/winter-wrestling-seasonal-webhook.test.mjs
+          EOF
+          diff -u /tmp/winter-v2-expected-files.txt /tmp/winter-v2-actual-files.txt
+          test -f trusted-tooling/scripts/staging/winter-v2-hosting-overlay.mjs
+          for path in public/connect/admissions/calculator/index.html public/connect/admissions/calculator/calculator.js public/promotions/winter-wrestling/winter-wrestling.js; do
+            test -s "application/$path"
+          done
+          node --check trusted-tooling/scripts/staging/winter-v2-hosting-overlay.mjs
+      - name: Authenticate staging Hosting deployer via existing trusted workflow
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Overlay three assets on current live staging Hosting release
+        env:
+          SELECTED_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          if test "$SELECTED_ACTION" = "winter-v2-hosting-preflight"; then
+            node trusted-tooling/scripts/staging/winter-v2-hosting-overlay.mjs preflight application
+          elif test "$SELECTED_ACTION" = "winter-v2-hosting-deploy"; then
+            node trusted-tooling/scripts/staging/winter-v2-hosting-overlay.mjs deploy application
+          else
+            exit 1
+          fi
 
