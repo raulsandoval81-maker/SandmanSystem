@@ -1,0 +1,84 @@
+{
+  "releaseId": "pr505-2c-readonly-plan",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "hostingSite": "sandman-combat-staging",
+  "reviewedBaseSha": "b13dba939b2e95fee22f448df72acf8bfca76f2f",
+  "applicationSha": "d2a9fcce0e820c31270bb689b40fabbdf9832a07",
+  "sourcePr": 505,
+  "changedFiles": [
+    ".github/workflows/2c-cash-check-draft-tests.yml",
+    "functions/src/billing/sendProposalPrepaidCashReceipt.ts",
+    "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
+    "functions/src/index.ts",
+    "functions/src/proposals/issueProposalEnrollmentHandoff.ts",
+    "functions/tests/prepaidCashReceipt.integration.cjs",
+    "public/connect/admissions/calculator/calculator.js",
+    "public/connect/admissions/calculator/index.html",
+    "public/connect/proposals/proposals.js",
+    "public/intake-management/management.intake.js",
+    "public/management/billing/billing.js"
+  ],
+  "functions": [
+    {
+      "name": "sendProposalPrepaidCashReceipt",
+      "action": "create",
+      "type": "gen2",
+      "runtime": "nodejs22"
+    },
+    {
+      "name": "sendEnrollmentIntakeEmail",
+      "action": "update",
+      "type": "gen1",
+      "runtime": "nodejs22"
+    },
+    {
+      "name": "issueProposalEnrollmentHandoff",
+      "action": "update",
+      "type": "gen2",
+      "runtime": "nodejs22"
+    }
+  ],
+  "hostingAssets": [
+    "/connect/admissions/calculator/calculator.js",
+    "/connect/admissions/calculator/index.html",
+    "/connect/proposals/proposals.js",
+    "/intake-management/management.intake.js",
+    "/management/billing/billing.js"
+  ],
+  "reusedFunctions": [
+    "recordProposalPrepaidCash"
+  ],
+  "requiredLiveReadOnlyEvidence": [
+    "all target and adjacent callable versions, runtime/service accounts and traffic",
+    "target and adjacent Function and Cloud Run IAM",
+    "target Functions secret bindings without secret values",
+    "staging Hosting release and version baseline plus entire file manifest",
+    "staging callable availability and access mode",
+    "current target source-integrity and rollback evidence"
+  ],
+  "requiredAcceptance": [
+    "synthetic P-000002 2C family Review and Confirm",
+    "existing cash recorder writes PAID once",
+    "receipt provider sandbox acceptance and audit",
+    "secure Intake token email to same synthetic recipient",
+    "refresh and interrupted delivery recovery",
+    "no Stripe checkout, charge or subscription",
+    "existing Management Intake and activation"
+  ],
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "iamChangesAuthorized": false,
+  "secretReadsAuthorized": false,
+  "stripeOperationsAuthorized": false,
+  "firestoreWritesAuthorized": false,
+  "hostingWritesAuthorized": false,
+  "sendEmailsAuthorized": false,
+  "approvalRequired": "A separate exact-SHA protected staging-only authorization after current live read-only evidence and browser acceptance plan review",
+  "notes": [
+    "This is a release review manifest, NOT a deploy manifest or dispatch selector.",
+    "Do not change the existing protected staging release workflows to add deploy permission based on this plan.",
+    "No assumed staging function runtime, revision, IAM or Hosting baseline is certified by source inspection."
+  ]
+}
