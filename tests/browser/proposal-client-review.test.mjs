@@ -56,6 +56,7 @@ test("remote status is not mistaken for proof of inbox delivery", async () => {
   assert.match(backend, /"provider_accepted", undefined, emailId/);
   assert.match(backend, /cleanReviewString\(review\.tokenHash\) !== tokenHash/);
   assert.match(backend, /previousReview\.deliveryStatus === "unknown"/);
+  assert.match(backend, /previousReview\.deliveryStatus === "sending"/);
   assert.match(audit, /deliveryStatus === "unknown"/);
   assert.match(audit, /accepted by provider/);
 });
