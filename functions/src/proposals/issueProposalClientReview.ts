@@ -22,6 +22,7 @@ import {
 } from "./proposalClientReview";
 
 import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
+import { clientReviewRecoveryGate } from "./clientReviewDeliveryRecovery";
 
 import {
   getResendClient,
@@ -164,6 +165,21 @@ export const issueProposalClientReview =
       const sendEmail =
         delivery === "email";
 
+      // This recovery requires deliberate Management reconciliation. A lost
+      // provider response is never proof that the email was not accepted.
+      const recovery = req.data?.deliveryRecovery;
+      const recoveryEvidence = cleanReviewString(recovery?.evidence);
+      const recoveryAcknowledged = recovery?.acknowledgeRevocation === true;
+      const providerChecked = recovery?.providerChecked === true;
+      const recoveryIssuedAtMs = Number(recovery?.expectedIssuedAtMs);
+      if (recovery !== undefined &&
+          (!sendEmail || !providerChecked || !recoveryAcknowledged ||
+           recoveryEvidence.length < 30 || recoveryEvidence.length > 1000 ||
+           !Number.isSafeInteger(recoveryIssuedAtMs) || recoveryIssuedAtMs <= 0)) {
+        throw new HttpsError("invalid-argument",
+          "Remote recovery requires a provider check, a detailed reason, the original issuance timestamp, and acknowledgement of link revocation.");
+      }
+
       if (!proposalId) {
         throw new HttpsError(
           "invalid-argument",
@@ -244,6 +260,24 @@ export const issueProposalClientReview =
                 "Only REVIEW proposals may be sent to the client."
               );
             }
+
+            // Concurrent clicks cannot rotate the token during an active send.
+            // A lost provider response remains explicitly uncertain.
+            const previousReview = proposal.clientReview || {};
+            const previousIssuedAt = previousReview.issuedAt;
+            const gate = clientReviewRecoveryGate({
+              deliveryStatus: cleanReviewString(previousReview.deliveryStatus),
+              issuedAtMs: previousIssuedAt instanceof Timestamp
+                ? previousIssuedAt.toMillis() : null,
+              recoveryExpectedIssuedAtMs: recovery ? recoveryIssuedAtMs : null,
+              hasRecovery: recovery !== undefined,
+              nowMs: Date.now(),
+            });
+            if (!gate.allowed) {
+              throw new HttpsError("failed-precondition",
+                gate.reason || "Review delivery cannot be reissued yet.");
+            }
+            const unresolvedDelivery = gate.unresolved;
 
             const prospect =
               proposal.prospect &&
@@ -374,6 +408,8 @@ export const issueProposalClientReview =
 
                   issuedAt:
                     FieldValue.serverTimestamp(),
+                  deliveryStatus: sendEmail ? "sending" : "local",
+                  deliveryAttemptedAt: sendEmail ? FieldValue.serverTimestamp() : null,
                 },
 
                 updatedBy:
@@ -383,6 +419,20 @@ export const issueProposalClientReview =
                   FieldValue.serverTimestamp(),
               }
             );
+
+            if (unresolvedDelivery) {
+              tx.create(proposalRef.collection("history").doc(), {
+                proposalId,
+                event: "CLIENT_REVIEW_DELIVERY_RECOVERY_REISSUED",
+                previousDeliveryStatus: previousReview.deliveryStatus,
+                previousIssuedAt,
+                previousTokenRevoked: true,
+                providerChecked: true,
+                evidence: recoveryEvidence,
+                createdBy: req.auth!.uid,
+                createdAt: FieldValue.serverTimestamp(),
+              });
+            }
 
             tx.create(
               historyRef,
@@ -437,6 +487,46 @@ export const issueProposalClientReview =
           rawToken
         )}`;
 
+      // Every provider response must match the still-active issued token.
+      // An older asynchronous send cannot mark a newer review as delivered.
+      async function recordDeliveryState(
+        status: "unknown" | "rejected" | "provider_accepted",
+        detail?: string,
+        providerId?: string
+      ): Promise<boolean> {
+        return db.runTransaction(async (tx) => {
+          const current = await tx.get(proposalRef);
+          const review = current.data()?.clientReview || {};
+          if (cleanReviewString(review.tokenHash) !== tokenHash ||
+              cleanReviewString(current.data()?.status) !== "AWAITING_CLIENT_SIGNATURE") {
+            return false;
+          }
+          tx.update(proposalRef, {
+            "clientReview.deliveryStatus": status,
+            "clientReview.deliveryError": detail || null,
+            ...(status === "provider_accepted" ? {
+              "clientReview.emailSentAt": FieldValue.serverTimestamp(),
+              "clientReview.emailRecipient": result.recipient,
+              "clientReview.emailRecipientSource": result.recipientSource,
+              "clientReview.emailProviderId": providerId || null,
+            } : {}),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+          if (status === "provider_accepted") {
+            tx.create(proposalRef.collection("history").doc(), {
+              proposalId,
+              event: "CLIENT_REVIEW_EMAIL_ACCEPTED_BY_PROVIDER",
+              to: result.recipient,
+              recipientSource: result.recipientSource,
+              emailProviderId: providerId || null,
+              createdBy: req.auth!.uid,
+              createdAt: FieldValue.serverTimestamp(),
+            });
+          }
+          return true;
+        });
+      }
+
       let emailId = "";
 
       if (sendEmail) {
@@ -453,63 +543,40 @@ export const issueProposalClientReview =
         const resend =
           getResendClient();
 
-        const emailResult =
-          await resend.emails.send({
-            from:
-              "Sandman Combat <join@sandmancombat.com>",
-            replyTo:
-              "joinsandmancombat@gmail.com",
-            to:
-              result.recipient,
-            subject:
-              email.subject,
-            text:
-              email.text,
-            html:
-              email.html,
+        let emailResult;
+        try {
+          emailResult = await resend.emails.send({
+            from: "Sandman Combat <join@sandmancombat.com>",
+            replyTo: "joinsandmancombat@gmail.com",
+            to: result.recipient,
+            subject: email.subject,
+            text: email.text,
+            html: email.html,
           });
+        } catch (_error) {
+          // A timeout might mean delivered-to-provider. Do not claim failure.
+          await recordDeliveryState("unknown", "Provider outcome could not be confirmed.");
+          throw new HttpsError("unavailable",
+            "Remote email outcome uncertain. Check the email provider before reissuing; a new link invalidates the old link.");
+        }
 
-        if (emailResult.error) {
-          throw new HttpsError(
-            "internal",
-            emailResult.error.message ||
-            "The email provider rejected the proposal review message."
-          );
+        if (emailResult.error || !emailResult.data?.id) {
+          await recordDeliveryState("rejected",
+            emailResult.error?.message || "No accepted message ID returned.");
+          throw new HttpsError("failed-precondition",
+            emailResult.error?.message || "Email provider did not confirm acceptance.");
         }
 
         emailId =
           emailResult.data?.id || "";
 
-        await proposalRef.update({
-          "clientReview.emailSentAt":
-            FieldValue.serverTimestamp(),
-          "clientReview.emailRecipient":
-            result.recipient,
-          "clientReview.emailRecipientSource":
-            result.recipientSource,
-          "clientReview.emailProviderId":
-            emailId,
-          updatedAt:
-            FieldValue.serverTimestamp(),
-        });
-
-        await proposalRef
-          .collection("history")
-          .add({
-            proposalId,
-            event:
-              "CLIENT_REVIEW_EMAIL_SENT",
-            to:
-              result.recipient,
-            recipientSource:
-              result.recipientSource,
-            emailProviderId:
-              emailId,
-            createdBy:
-              req.auth.uid,
-            createdAt:
-              FieldValue.serverTimestamp(),
-          });
+        const stillCurrent = await recordDeliveryState(
+          "provider_accepted", undefined, emailId
+        );
+        if (!stillCurrent) {
+          throw new HttpsError("failed-precondition",
+            "Review was superseded while the email provider processed it. Verify the current proposal; this older link is invalid.");
+        }
       }
 
       return {

@@ -1356,8 +1356,8 @@ async function runProposalAction(button) {
       if (remote) {
         const recipient = String(response.data?.recipient || "").trim();
         window.alert(recipient
-          ? `Client review sent to ${recipient}.`
-          : "Client review sent by email.");
+          ? `Email provider accepted the client review for ${recipient}. Inbox delivery is not yet confirmed.`
+          : "Email provider accepted the client review. Inbox delivery is not yet confirmed.");
         await loadProposalQueue();
         return;
       }

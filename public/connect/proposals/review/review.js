@@ -1,4 +1,5 @@
 import "./auto-checkout.js";
+import { monthlyPeriodDisclosure } from "./monthly-period-disclosure.js";
 
 import {
   functions,
@@ -401,6 +402,9 @@ function renderProposal(
       ? `After you sign, secure checkout collects ${moneyFromCents(proposal.historicalCashCheckoutTerms.dueNowCents)} in remaining enrollment fees. Your membership subscription starts ${esc(proposal.historicalCashCheckoutTerms.firstRecurringChargeDate)} at ${moneyFromCents(proposal.historicalCashCheckoutTerms.monthlyMembershipCents)}/month. The ${moneyFromCents(proposal.historicalCashCheckoutTerms.unappliedCashHeldCents)} unapplied cash remains held and is not used, refunded, or charged again.`
       : "Not authorized — credit, refund and Stripe payment require a separate approved arrangement")
   ] : [];
+  const { extraMonths, firstMonthLabel, additionalMonthsLabel, additionalMonthsCharge } =
+    monthlyPeriodDisclosure(pricing);
+
   $("paymentSchedule").innerHTML =
     [
       scheduleItem(
@@ -421,9 +425,14 @@ function renderProposal(
       ),
 
       scheduleItem(
-        "First-month membership",
+        firstMonthLabel,
         firstMonth
       ),
+
+      ...(extraMonths > 0 ? [scheduleItem(
+        "Additional unpaid membership — " + additionalMonthsLabel,
+        `${extraMonths} × ${money(pricing.monthlyBalance)} = ${money(additionalMonthsCharge)}`
+      )] : []),
 
       scheduleItem(
         "Total due now",
