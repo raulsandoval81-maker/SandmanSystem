@@ -71,3 +71,24 @@ test("canonical seasonal proposals use server-side $300 early and $350 regular r
   assert.equal(standard.earlyRegistration, false);
   assert.equal(standard.discountTotalCents, 0);
 });
+
+test("early-rate checkout grace requires original start by Nov 27 and closes Nov 30", () => {
+  const {
+    winterWrestlingEarlyCheckoutAllowed: allowed,
+    winterWrestlingEarlyPaymentOnTime: paidOnTime,
+    winterWrestlingPacificDate: day,
+  } = require("../lib/proposals/winterWrestlingSeasonPolicy");
+  assert.equal(allowed({ today: "2026-11-27" }), true);
+  assert.equal(allowed({ today: "2026-11-28" }), false);
+  assert.equal(allowed({ today: "2026-11-28", initialCheckoutDate: "2026-11-27" }), true);
+  assert.equal(allowed({ today: "2026-11-30", initialCheckoutDate: "2026-11-27" }), true);
+  assert.equal(allowed({ today: "2026-12-01", initialCheckoutDate: "2026-11-27" }), false);
+  assert.equal(allowed({ today: "2026-11-30", initialCheckoutDate: "2026-11-28" }), false);
+  const latest = Date.parse("2026-12-01T07:59:59Z") / 1000;
+  const late = Date.parse("2026-12-01T08:00:00Z") / 1000;
+  assert.equal(day(latest * 1000), "2026-11-30");
+  assert.equal(day(late * 1000), "2026-12-01");
+  assert.equal(paidOnTime(latest), true);
+  assert.equal(paidOnTime(late), false);
+  assert.equal(paidOnTime(undefined), false);
+});
