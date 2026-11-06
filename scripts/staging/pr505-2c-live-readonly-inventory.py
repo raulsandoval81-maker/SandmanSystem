@@ -179,7 +179,7 @@ def main():
         "fullFileCount":len(file_entries), "fullFileManifestSha256":manifest_digest,
         "2cAssetBaselineHashes":{asset:file_entries[asset] for asset in selected}
     }
-     report = {
+    report = {
         "status":"PR505_STAGING_METADATA_READONLY_CAPTURE_NO_DEPLOY",
         "project":PROJECT, "sourceSha":PLAN["applicationSha"],
         "functions":functions, "runServices":run_services, "hosting":hosting,
