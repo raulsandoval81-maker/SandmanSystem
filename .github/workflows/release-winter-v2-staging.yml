@@ -42,9 +42,9 @@ jobs:
     steps:
       - name: Enforce staging-only workflow authorization
         env:
-          REQUESTED_ACTION: \${{ inputs.action }}
-          CONFIRM_PROJECT: \${{ inputs.confirm_project }}
-          APPROVE_DEPLOY: \${{ inputs.approve_deploy }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_DEPLOY: ${{ inputs.approve_deploy }}
         run: |
           set -euo pipefail
           test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
@@ -102,7 +102,7 @@ jobs:
         uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
-          workload_identity_provider: \${{ env.WIF }}
+          workload_identity_provider: ${{ env.WIF }}
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
@@ -129,7 +129,9 @@ jobs:
           };
           for (const fn of funcs) {
             const a=JSON.parse(fs.readFileSync('evidence/functions/'+fn+'-before.json','utf8'));
-            const secrets=(a.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort();
+            const bindings=a.serviceConfig?.secretEnvironmentVariables||[];
+            const secrets=bindings.map(x=>x.key).sort();
+            if(bindings.some(x=>x.version!=='latest')) throw Error('Secret version is pinned differently for '+fn+'; release must preserve binding');
             if(a.environment!=='GEN_2'||a.buildConfig?.runtime!=='nodejs22'||a.buildConfig?.entryPoint!==fn||
                a.serviceConfig?.serviceAccountEmail!=='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com'||
                JSON.stringify(secrets)!==JSON.stringify(expectedSecrets[fn].sort())||
@@ -141,7 +143,7 @@ jobs:
           }
           NODE
       - name: Prepare exact compiled source without environment files
-        if: \${{ inputs.action == 'deploy' }}
+        if: ${{ inputs.action == 'deploy' }}
         run: |
           set -euo pipefail
           mkdir -p release-functions
@@ -150,7 +152,7 @@ jobs:
           ! find release-functions -type f -name '.env*' | grep -q .
           test -f release-functions/lib/index.js
       - name: Deploy only four existing functions to staging
-        if: \${{ inputs.action == 'deploy' }}
+        if: ${{ inputs.action == 'deploy' }}
         run: |
           set -euo pipefail
           for fn in $FUNCTIONS; do
@@ -169,7 +171,7 @@ jobs:
             gcloud functions describe "$fn" --gen2 --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-after.json"
           done
       - name: Verify no identity/secret/configuration or IAM drift
-        if: \${{ inputs.action == 'deploy' }}
+        if: ${{ inputs.action == 'deploy' }}
         run: |
           set -euo pipefail
           for fn in $FUNCTIONS; do
@@ -203,6 +205,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: winter-v2-staging-\${{ github.run_id }}-\${{ inputs.action }}
+          name: winter-v2-staging-${{ github.run_id }}-${{ inputs.action }}
           path: evidence/
           if-no-files-found: warn
