@@ -404,8 +404,8 @@ function renderProposal(
   // Identify extra months only when the dates prove they are consecutive
   // full calendar months. Never invent paid periods from a generic count.
   const extraMonths = Number(pricing.additionalMembershipMonthsDue || 0);
-  const startMatch = /^(\\d{4})-(\\d{2})-01$/.exec(String(pricing.membershipStartDate || ""));
-  const recurringMatch = /^(\\d{4})-(\\d{2})-05$/.exec(String(pricing.firstRecurringChargeDate || ""));
+  const startMatch = /^(\d{4})-(\d{2})-01$/.exec(String(pricing.membershipStartDate || ""));
+  const recurringMatch = /^(\d{4})-(\d{2})-05$/.exec(String(pricing.firstRecurringChargeDate || ""));
   const startMonthIndex = startMatch ? Number(startMatch[1]) * 12 + Number(startMatch[2]) - 1 : null;
   const recurringMonthIndex = recurringMatch ? Number(recurringMatch[1]) * 12 + Number(recurringMatch[2]) - 1 : null;
   const consecutiveMonths = startMonthIndex !== null && recurringMonthIndex !== null &&
