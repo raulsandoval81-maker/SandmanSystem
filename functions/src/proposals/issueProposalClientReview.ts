@@ -245,6 +245,17 @@ export const issueProposalClientReview =
               );
             }
 
+            // Concurrent clicks cannot rotate the token during an active send.
+            // A lost provider response remains explicitly uncertain.
+            const previousReview = proposal.clientReview || {};
+            const previousIssuedAt = previousReview.issuedAt;
+            if (previousReview.deliveryStatus === "sending" &&
+                previousIssuedAt instanceof Timestamp &&
+                Date.now() - previousIssuedAt.toMillis() < 10 * 60 * 1000) {
+              throw new HttpsError("failed-precondition",
+                "Remote review delivery is processing. Check the delivery status before reissuing.");
+            }
+
             const prospect =
               proposal.prospect &&
               typeof proposal.prospect === "object"
@@ -374,6 +385,8 @@ export const issueProposalClientReview =
 
                   issuedAt:
                     FieldValue.serverTimestamp(),
+                  deliveryStatus: sendEmail ? "sending" : "local",
+                  deliveryAttemptedAt: sendEmail ? FieldValue.serverTimestamp() : null,
                 },
 
                 updatedBy:
@@ -453,28 +466,34 @@ export const issueProposalClientReview =
         const resend =
           getResendClient();
 
-        const emailResult =
-          await resend.emails.send({
-            from:
-              "Sandman Combat <join@sandmancombat.com>",
-            replyTo:
-              "joinsandmancombat@gmail.com",
-            to:
-              result.recipient,
-            subject:
-              email.subject,
-            text:
-              email.text,
-            html:
-              email.html,
+        let emailResult;
+        try {
+          emailResult = await resend.emails.send({
+            from: "Sandman Combat <join@sandmancombat.com>",
+            replyTo: "joinsandmancombat@gmail.com",
+            to: result.recipient,
+            subject: email.subject,
+            text: email.text,
+            html: email.html,
           });
+        } catch (_error) {
+          // A timeout might mean delivered-to-provider. Do not claim failure.
+          await proposalRef.update({
+            "clientReview.deliveryStatus": "unknown",
+            "clientReview.deliveryError": "Provider outcome could not be confirmed.",
+          });
+          throw new HttpsError("unavailable",
+            "Remote email outcome uncertain. Check the email provider before reissuing; a new link invalidates the old link.");
+        }
 
-        if (emailResult.error) {
-          throw new HttpsError(
-            "internal",
-            emailResult.error.message ||
-            "The email provider rejected the proposal review message."
-          );
+        if (emailResult.error || !emailResult.data?.id) {
+          await proposalRef.update({
+            "clientReview.deliveryStatus": "rejected",
+            "clientReview.deliveryError":
+              emailResult.error?.message || "No accepted message ID returned.",
+          });
+          throw new HttpsError("failed-precondition",
+            emailResult.error?.message || "Email provider did not confirm acceptance.");
         }
 
         emailId =
@@ -489,6 +508,8 @@ export const issueProposalClientReview =
             result.recipientSource,
           "clientReview.emailProviderId":
             emailId,
+          "clientReview.deliveryStatus": "provider_accepted",
+          "clientReview.deliveryError": null,
           updatedAt:
             FieldValue.serverTimestamp(),
         });
