@@ -1,0 +1,208 @@
+name: Winter Wrestling V2 controlled staging release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Read-only preflight or explicitly approved staging deploy
+        required: true
+        type: choice
+        default: preflight
+        options: [preflight, deploy]
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+      approve_deploy:
+        description: For deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: winter-wrestling-v2-staging-functions
+  cancel-in-progress: false
+
+env:
+  PROJECT: sandman-combat-staging
+  SOURCE_SHA: f801d51d6b6346b112548538977f9ec0e58146d1
+  BASE_SHA: 17146b7ced7d4e3f116f012fb8eb1f6f04d69000
+  REGION: us-central1
+  WIF: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+  FUNCTIONS: "createProposalDraft updateProposalDraft createProposalCheckout stripeBillingWebhook"
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 40
+    steps:
+      - name: Enforce staging-only workflow authorization
+        env:
+          REQUESTED_ACTION: \${{ inputs.action }}
+          CONFIRM_PROJECT: \${{ inputs.confirm_project }}
+          APPROVE_DEPLOY: \${{ inputs.approve_deploy }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-winter-v2-staging.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "$PROJECT"
+          test "$PROJECT" != "sandmandashboard"
+          if test "$REQUESTED_ACTION" = deploy; then
+            test "$APPROVE_DEPLOY" = "APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS"
+          else
+            test "$REQUESTED_ACTION" = preflight
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f801d51d6b6346b112548538977f9ec0e58146d1
+          path: application
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Assert exact PR490 source and ten-file boundary
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$SOURCE_SHA"
+          git -C application diff --name-only "$BASE_SHA" "$SOURCE_SHA" | sort > /tmp/actual-winter-v2-files.txt
+          cat > /tmp/expected-winter-v2-files.txt <<'EOF'
+          functions/src/billing/seasonalProposalCheckout.ts
+          functions/src/billing/seasonalProposalWebhook.ts
+          functions/src/billing/webhook.ts
+          functions/src/proposals/seasonalProposal.ts
+          functions/src/proposals/winterWrestlingSeasonPolicy.ts
+          functions/tests/winterWrestlingSeasonPolicy.test.cjs
+          public/connect/admissions/calculator/calculator.js
+          public/connect/admissions/calculator/index.html
+          public/promotions/winter-wrestling/winter-wrestling.js
+          tests/emulator/winter-wrestling-seasonal-webhook.test.mjs
+          EOF
+          diff -u /tmp/expected-winter-v2-files.txt /tmp/actual-winter-v2-files.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - name: Compile and verify winter-season and existing payment contracts
+        run: |
+          set -euo pipefail
+          npm ci --prefix application/functions
+          npm run build --prefix application/functions
+          (cd application/functions && node --test tests/winterWrestlingSeasonPolicy.test.cjs)
+          npm test --prefix application/functions
+      - name: Authenticate existing staging-only Functions deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: \${{ env.WIF }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture and validate existing Functions before any mutation
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          for fn in $FUNCTIONS; do
+            gcloud functions describe "$fn" --gen2 --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-before.json"
+            gcloud functions get-iam-policy "$fn" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-iam-before.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-run-before.json"
+            gcloud run services get-iam-policy "$service" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-run-iam-before.json"
+          done
+          node <<'NODE'
+          const fs=require('node:fs');
+          const funcs=['createProposalDraft','updateProposalDraft','createProposalCheckout','stripeBillingWebhook'];
+          const expectedSecrets={
+            createProposalDraft:[],
+            updateProposalDraft:[],
+            createProposalCheckout:['STRIPE_SECRET_KEY'],
+            stripeBillingWebhook:['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET'],
+          };
+          for (const fn of funcs) {
+            const a=JSON.parse(fs.readFileSync('evidence/functions/'+fn+'-before.json','utf8'));
+            const secrets=(a.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort();
+            if(a.environment!=='GEN_2'||a.buildConfig?.runtime!=='nodejs22'||a.buildConfig?.entryPoint!==fn||
+               a.serviceConfig?.serviceAccountEmail!=='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com'||
+               JSON.stringify(secrets)!==JSON.stringify(expectedSecrets[fn].sort())||
+               !a.buildConfig?.source?.storageSource?.bucket||
+               !a.buildConfig?.source?.storageSource?.object) {
+              throw Error('Staging baseline differs for '+fn+'; do not deploy or change IAM/secrets automatically.');
+            }
+            console.log(fn+': existing Gen2 function, identity and secret binding baseline verified');
+          }
+          NODE
+      - name: Prepare exact compiled source without environment files
+        if: \${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-functions
+          rsync -a --exclude='node_modules/' --exclude='.env' --exclude='.env.*' \
+            application/functions/ release-functions/
+          ! find release-functions -type f -name '.env*' | grep -q .
+          test -f release-functions/lib/index.js
+      - name: Deploy only four existing functions to staging
+        if: \${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          for fn in $FUNCTIONS; do
+            secret_args=(--clear-secrets)
+            if test "$fn" = createProposalCheckout; then
+              secret_args=(--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest)
+            elif test "$fn" = stripeBillingWebhook; then
+              secret_args=(--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest)
+            fi
+            gcloud functions deploy "$fn" --gen2 \
+              --project="$PROJECT" --region="$REGION" --runtime=nodejs22 \
+              --entry-point="$fn" --source=release-functions --trigger-http \
+              --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+              --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+              "\${secret_args[@]}" --quiet
+            gcloud functions describe "$fn" --gen2 --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-after.json"
+          done
+      - name: Verify no identity/secret/configuration or IAM drift
+        if: \${{ inputs.action == 'deploy' }}
+        run: |
+          set -euo pipefail
+          for fn in $FUNCTIONS; do
+            gcloud functions get-iam-policy "$fn" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-iam-after.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-run-after.json"
+            gcloud run services get-iam-policy "$service" --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-run-iam-after.json"
+          done
+          node <<'NODE'
+          const fs=require('node:fs');
+          const funcs=['createProposalDraft','updateProposalDraft','createProposalCheckout','stripeBillingWebhook'];
+          for(const fn of funcs){
+            const read=(suffix)=>JSON.parse(fs.readFileSync('evidence/functions/'+fn+suffix+'.json','utf8'));
+            const a=read('-before'),b=read('-after');
+            const env=(x)=>JSON.stringify((x.serviceConfig?.environmentVariables)||{});
+            const secret=(x)=>JSON.stringify((x.serviceConfig?.secretEnvironmentVariables||[]).map(s=>[s.key,s.secret,s.version]).sort());
+            if(a.serviceConfig?.serviceAccountEmail!==b.serviceConfig?.serviceAccountEmail||
+              a.buildConfig?.runtime!==b.buildConfig?.runtime||
+              env(a)!==env(b) || secret(a)!==secret(b) ||
+              a.serviceConfig?.ingressSettings!==b.serviceConfig?.ingressSettings)
+                throw Error('Unexpected runtime configuration drift for '+fn+'; stop release and inspect evidence');
+            for(const suffix of ['-iam','-run-iam']) {
+              const x=read(suffix+'-before'),y=read(suffix+'-after');
+              if(JSON.stringify(x.bindings||[])!==JSON.stringify(y.bindings||[]))
+                throw Error('IAM drift for '+fn+' '+suffix);
+            }
+            console.log(fn+': staging runtime, environment, secrets and IAM preserved');
+          }
+          NODE
+      - name: Store sanitized staging release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winter-v2-staging-\${{ github.run_id }}-\${{ inputs.action }}
+          path: evidence/
+          if-no-files-found: warn
