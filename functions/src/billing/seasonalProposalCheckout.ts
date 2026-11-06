@@ -98,7 +98,12 @@ export async function createSeasonalProposalCheckout(input: {
     const existing = await stripe.checkout.sessions.retrieve(pendingSessionId);
     const sameInstallment =
       clean(existing.metadata?.source) === "winter_wrestling_seasonal" &&
-      Number(existing.metadata?.installmentNumber) === next.number;
+      clean(existing.metadata?.proposalId) === proposalId &&
+      Number(existing.metadata?.installmentNumber) === next.number &&
+      Number(existing.metadata?.installmentAmountCents) === next.amountCents &&
+      existing.mode === "payment" &&
+      clean(existing.currency).toLowerCase() === "usd" &&
+      existing.amount_total === next.amountCents;
     if (existing.status === "open" && existing.url && sameInstallment) {
       return {
         ok: true,
