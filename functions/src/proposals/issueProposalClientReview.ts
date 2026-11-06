@@ -248,16 +248,13 @@ export const issueProposalClientReview =
             // Concurrent clicks cannot rotate the token during an active send.
             // A lost provider response remains explicitly uncertain.
             const previousReview = proposal.clientReview || {};
-            if (sendEmail && previousReview.deliveryStatus === "unknown") {
+            if (previousReview.deliveryStatus === "unknown") {
               throw new HttpsError("failed-precondition",
-                "Prior email outcome is uncertain. Management must reconcile provider delivery before issuing a different review link.");
+                "Prior email outcome is uncertain. Management must reconcile provider delivery before issuing another review link.");
             }
-            const previousIssuedAt = previousReview.issuedAt;
-            if (previousReview.deliveryStatus === "sending" &&
-                previousIssuedAt instanceof Timestamp &&
-                Date.now() - previousIssuedAt.toMillis() < 10 * 60 * 1000) {
+            if (previousReview.deliveryStatus === "sending") {
               throw new HttpsError("failed-precondition",
-                "Remote review delivery is processing. Check the delivery status before reissuing.");
+                "Remote review delivery has not been reconciled. Check the provider before issuing another review link.");
             }
 
             const prospect =
