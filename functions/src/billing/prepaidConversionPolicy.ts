@@ -25,6 +25,12 @@ export function verifyPrepaidConversionSource(input: {
   if (!source || clean(source.locationId) !== clean(target.locationId)) {
     throw new Error("The prior agreement must exist in the same location.");
   }
+  // Do not migrate a family away from an existing live recurring charge.
+  // Existing subscription state must be investigated and resolved separately.
+  if (clean(source.stripeSubscriptionId) &&
+      !["canceled", "cancelled", "ended", "expired"].includes(normal(source.stripeSubscriptionStatus))) {
+    throw new Error("Prior subscription may still be billable; resolve its status before conversion.");
+  }
   const sourceEmail = normal(
     source.lockedSnapshot?.prospect?.parentEmail ||
     source.prospect?.parentEmail
