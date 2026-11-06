@@ -1,0 +1,44 @@
+name: PR505 WIF read-only diagnostics validation
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pr505-2c-live-readonly.yml'
+      - '.github/workflows/pr505-2c-wif-diagnostic-tests.yml'
+      - 'scripts/staging/pr505-2c-oidc-diagnostics.cjs'
+
+permissions:
+  contents: read
+
+jobs:
+  test-oidc-claim-redaction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate diagnostic syntax and redaction contract
+        env:
+          PR505_OIDC_SELFTEST: 'true'
+        run: |
+          set -euo pipefail
+          node --check scripts/staging/pr505-2c-oidc-diagnostics.cjs
+          node scripts/staging/pr505-2c-oidc-diagnostics.cjs
+      - name: Assert protected staging workflow remains validate-only
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const text = fs.readFileSync('.github/workflows/pr505-2c-live-readonly.yml','utf8');
+          if (!text.includes('options: [validate]') || !text.includes('environment: staging') ||
+              !text.includes('refs/heads/main') ||
+              text.indexOf('node scripts/staging/pr505-2c-oidc-diagnostics.cjs') < 0 ||
+              text.indexOf('node scripts/staging/pr505-2c-oidc-diagnostics.cjs') >
+              text.indexOf('uses: google-github-actions/auth@v3') ||
+              /gcloud functions deploy|firebase deploy|\bapply-iam-policy\b/.test(text)) {
+            throw Error('PR505 protected staging workflow security boundary drift');
+          }
+          NODE
