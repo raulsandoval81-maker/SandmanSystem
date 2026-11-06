@@ -51,9 +51,11 @@ test("remote status is not mistaken for proof of inbox delivery", async () => {
   const audit = await src("public/connect/proposals/proposal-email-audit.js");
   assert.match(backend, /deliveryStatus === "sending"/);
   assert.match(backend, /deliveryStatus: sendEmail \? "sending" : "local"/);
-  assert.match(backend, /"clientReview\.deliveryStatus": "unknown"/);
-  assert.match(backend, /"clientReview\.deliveryStatus": "rejected"/);
-  assert.match(backend, /"clientReview\.deliveryStatus": "provider_accepted"/);
+  assert.match(backend, /recordDeliveryState\("unknown"/);
+  assert.match(backend, /recordDeliveryState\("rejected"/);
+  assert.match(backend, /"provider_accepted", undefined, emailId/);
+  assert.match(backend, /cleanReviewString\(review\.tokenHash\) !== tokenHash/);
+  assert.match(backend, /previousReview\.deliveryStatus === "unknown"/);
   assert.match(audit, /deliveryStatus === "unknown"/);
   assert.match(audit, /accepted by provider/);
 });
@@ -67,4 +69,11 @@ test("acceptance requires signature and locked proposal before checkout", async 
   const review = await src("public/connect/proposals/review/review.js");
   assert.match(review, /issueProposalEnrollmentHandoff/);
   assert.match(review, /monthlyPeriodDisclosure\(pricing\)/);
+});
+
+test("checkout must fail closed if amount or recurring date drifts after acceptance", async () => {
+  const checkout = await src("functions/src/proposals/createProposalCheckout.ts");
+  assert.match(checkout, /checkoutDueNow !== lockedDueNow/);
+  assert.match(checkout, /resolvedFirstRecurringChargeDate !== firstRecurringChargeDate/);
+  assert.match(checkout, /Management must issue updated terms for family review before checkout/);
 });
