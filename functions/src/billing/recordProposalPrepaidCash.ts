@@ -436,6 +436,18 @@ export const recordProposalPrepaidCash =
               ? proposalRef.collection("history").doc()
               : null;
 
+            // One prior annual-fee payment may not credit multiple new agreements.
+            // This independent claim preserves the original payment ledger unchanged.
+            if (conversionSource) {
+              tx.create(db.collection("prepaidConversionClaims").doc(conversionSource.sourceProposalId), {
+                sourceProposalId: conversionSource.sourceProposalId,
+                newProposalId: proposalId,
+                historicalEnrollmentCents: conversionSource.historicalEnrollmentCents,
+                claimedBy: req.auth!.uid,
+                claimedAt: FieldValue.serverTimestamp(),
+              });
+            }
+
             tx.update(
               proposalRef,
               {
