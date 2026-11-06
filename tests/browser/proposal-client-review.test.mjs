@@ -49,7 +49,7 @@ test("review stage has distinct remote, in-person and manual link handlers", asy
 test("remote status is not mistaken for proof of inbox delivery", async () => {
   const backend = await src("functions/src/proposals/issueProposalClientReview.ts");
   const audit = await src("public/connect/proposals/proposal-email-audit.js");
-  assert.match(backend, /deliveryStatus === "sending"/);
+  assert.match(backend, /clientReviewRecoveryGate\(/);
   assert.match(backend, /deliveryStatus: sendEmail \? "sending" : "local"/);
   assert.match(backend, /recordDeliveryState\("unknown"/);
   assert.match(backend, /recordDeliveryState\("rejected"/);
