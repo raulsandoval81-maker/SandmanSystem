@@ -88,6 +88,8 @@ async function hydrateCard(card) {
     const sentTo =
       String(review.emailRecipient || "").trim();
     const sentAt = review.emailSentAt;
+    const deliveryStatus = String(review.deliveryStatus || "").trim();
+    const deliveryError = String(review.deliveryError || "").trim();
 
     let audit = card.querySelector(
       ".proposal-email-audit"
@@ -108,9 +110,20 @@ async function hydrateCard(card) {
       }
     }
 
-    if (sentTo) {
+    if (deliveryStatus === "sending" || deliveryStatus === "unknown" || deliveryStatus === "rejected") {
+      const label = deliveryStatus === "sending"
+        ? "Remote email is processing — do not resend yet."
+        : deliveryStatus === "unknown"
+          ? "Remote delivery outcome uncertain — verify before reissuing."
+          : "Email provider rejected the remote send — not recorded as sent.";
       audit.innerHTML = `
-        <span class="proposal-email-audit__sent">Remote confirmation sent ✓</span>
+        <span>${esc(label)}</span>
+        ${deliveryError ? `<span>Provider detail: ${esc(deliveryError)}</span>` : ""}
+        ${contactEmail ? `<span>Proposal contact: <strong>${esc(contactEmail)}</strong></span>` : ""}
+      `;
+    } else if (sentTo) {
+      audit.innerHTML = `
+        <span class="proposal-email-audit__sent">Remote email accepted by provider ✓</span>
         <span>Sent to: <strong>${esc(sentTo)}</strong></span>
         <span>Sent: <strong>${esc(formatTimestamp(sentAt))}</strong></span>
         ${contactEmail && contactEmail !== sentTo
