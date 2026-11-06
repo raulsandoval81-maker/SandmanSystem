@@ -135,22 +135,57 @@ def main():
     version_name = release.get("version", {}).get("name") if isinstance(release.get("version"), dict) else release.get("version", "")
     require(str(version_name).startswith("sites/"+HOSTING_SITE+"/versions/"), "unexpected Hosting version name")
     version = get_hosting("https://firebasehosting.googleapis.com/v1beta1/"+version_name, token)
+    # Read every page of the published Hosting file manifest. Capture only hashes
+    # and file paths, never file contents. Stop if pagination is inconsistent.
+    from urllib.parse import quote
+    file_entries = {}
+    next_page = ""
+    seen_tokens = set()
+    for _ in range(100):
+        suffix = "?pageSize=1000"
+        if next_page:
+            require(next_page not in seen_tokens, "Hosting file manifest pagination loop")
+            seen_tokens.add(next_page)
+            suffix += "&pageToken=" + quote(next_page, safe="")
+        files_page = get_hosting(
+            "https://firebasehosting.googleapis.com/v1beta1/" + version_name + "/files" + suffix,
+            token
+        )
+        for item in files_page.get("files", []):
+            path = item.get("path", "")
+            require(path.startswith("/") and path not in file_entries, "Invalid or duplicate Hosting file path")
+            file_entries[path] = item.get("hash", "")
+        next_page = files_page.get("nextPageToken", "")
+        if not next_page:
+            break
+    else:
+        raise RuntimeError("Hosting file inventory exceeded 100 pages")
+    require(len(file_entries) > 0, "Hosting manifest is empty")
+    expected_count = version.get("fileCount")
+    if expected_count is not None:
+        require(int(expected_count) == len(file_entries), "Hosting fileCount mismatch")
+    selected = PLAN["hostingAssets"]
+    require(all(file_entries.get(asset) for asset in selected), "One or more 2C Hosting assets absent from live baseline")
+    manifest_digest = hashlib.sha256(
+        json.dumps(sorted(file_entries.items()),separators=(",",":")).encode()
+    ).hexdigest()
     hosting = {
         "site":HOSTING_SITE, "releaseName":release.get("name"),
         "versionName":version_name, "releaseType":release.get("type"),
         "releaseTime":release.get("releaseTime"), "versionStatus":version.get("status"),
         "versionFileCount":version.get("fileCount"),
         "versionConfigDigest":hashlib.sha256(json.dumps(version.get("config", {}),sort_keys=True).encode()).hexdigest(),
-        "fullFileManifestVerified":False
+        "fullFileManifestVerified":True,
+        "fullFileCount":len(file_entries), "fullFileManifestSha256":manifest_digest,
+        "2cAssetBaselineHashes":{asset:file_entries[asset] for asset in selected}
     }
-    # A file manifest requires a separate read-only listing; do not claim it is captured here.
-    report = {
+     report = {
         "status":"PR505_STAGING_METADATA_READONLY_CAPTURE_NO_DEPLOY",
         "project":PROJECT, "sourceSha":PLAN["applicationSha"],
         "functions":functions, "runServices":run_services, "hosting":hosting,
         "iamValuesRedacted":True, "secretValuesRead":False,
         "deploymentAuthorized":False, "productionAuthorized":False,
-        "fullHostingManifestVerified":False
+        "fullHostingManifestVerified":True
     }
     out = Path(os.environ.get("PR505_EVIDENCE_FILE","pr505-readonly-evidence.json"))
     out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
