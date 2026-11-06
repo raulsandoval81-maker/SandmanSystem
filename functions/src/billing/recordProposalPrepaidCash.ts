@@ -1,4 +1,5 @@
 import { paymentArrangement, lockedPrepaidTerms } from "./paymentArrangement";
+import { verifyPrepaidConversionSource } from "./prepaidConversionPolicy";
 import {
   HttpsError,
   onCall,
@@ -203,6 +204,12 @@ export const recordProposalPrepaidCash =
     const note =
       cleanString(req.data?.note) ||
       null;
+    const conversionSourceProposalId = cleanString(req.data?.conversionSourceProposalId);
+    if (conversionSourceProposalId &&
+        (!/^[-A-Za-z0-9]{1,80}$/.test(conversionSourceProposalId) ||
+         conversionSourceProposalId === proposalId)) {
+      throw new HttpsError("invalid-argument", "A different valid prior agreement ID is required.");
+    }
 
     try {
       const result =
@@ -225,6 +232,24 @@ export const recordProposalPrepaidCash =
               staffAccess,
               proposal.locationId
             );
+
+            const sourceSnap = conversionSourceProposalId
+              ? await tx.get(db.collection("proposals").doc(conversionSourceProposalId))
+              : null;
+            let conversionSource = null;
+            if (conversionSourceProposalId) {
+              try {
+                conversionSource = verifyPrepaidConversionSource({
+                  sourceProposalId: conversionSourceProposalId,
+                  source: sourceSnap?.exists ? sourceSnap.data() || {} : {},
+                  target: { ...proposal, proposalId },
+                  newMembershipStartDate: membershipStartDateRaw,
+                });
+              } catch (error) {
+                throw new HttpsError("failed-precondition",
+                  error instanceof Error ? error.message : "Unable to verify historical agreement.");
+              }
+            }
 
             const currentStatus =
               cleanString(
@@ -442,6 +467,7 @@ export const recordProposalPrepaidCash =
                   annualEnrollmentFee: allocation.annualEnrollmentFee,
                   nextBillingDate,
                   note,
+                  ...(conversionSource ? { conversionSource } : {}),
                   receivedBy:
                     req.auth!.uid,
                   receivedByName:
