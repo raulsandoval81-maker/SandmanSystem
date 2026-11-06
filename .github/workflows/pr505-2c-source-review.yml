@@ -6,6 +6,8 @@ on:
       - 'scripts/staging/pr505-2c-readonly-plan.json'
       - 'scripts/staging/pr505-2c-source-preflight.cjs'
       - '.github/workflows/pr505-2c-source-review.yml'
+      - '.github/workflows/pr505-2c-live-readonly.yml'
+      - 'scripts/staging/pr505-2c-live-readonly-inventory.py'
 
 permissions:
   contents: read
@@ -30,6 +32,12 @@ jobs:
       - name: Run offline fail-closed source scope verification
         run: |
           node review/scripts/staging/pr505-2c-source-preflight.cjs source
+          python3 -m py_compile review/scripts/staging/pr505-2c-live-readonly-inventory.py
+          node - <<'NODE'
+          const fs=require('fs');
+          const wf=fs.readFileSync('review/.github/workflows/pr505-2c-live-readonly.yml','utf8');
+          if (!wf.includes('refs/heads/main') || !wf.includes('options: [validate]') || !wf.includes('environment: staging') || /options:.*deploy/.test(wf) || /firebase deploy|gcloud functions deploy/.test(wf)) throw Error('Protected staging readonly boundary drift');
+          NODE
       - name: Reassert no cloud authentication or deploy steps
         run: |
           test -z "${GOOGLE_APPLICATION_CREDENTIALS:-}"
