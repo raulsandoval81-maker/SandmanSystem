@@ -43,3 +43,20 @@ with patch.object(module.subprocess, "run", return_value=failed("403 Permission 
         assert run.call_count == 1, "must not fallback after denied lookup"
 
 print("PR505_READONLY_DIAGNOSTICS_FAIL_CLOSED_TEST_PASS")
+
+# The Cloud Run read failure must identify describe versus get-iam-policy
+# without revealing any cloud error text.
+for action in ("describe", "get-iam-policy"):
+    with patch.object(module.subprocess, "run", return_value=failed("secret-do-not-log")):
+        try:
+            module.cmd("gcloud", "run", "services", action, "issueproposalenrollmenthandoff",
+                       "--project", module.PROJECT, "--region", module.REGION, "--format=json")
+            raise AssertionError("expected cloud read failure")
+        except RuntimeError as e:
+            message = str(e)
+            assert "action=gcloud run services " + action in message
+            assert "category=UNKNOWN" in message
+            assert "errorFingerprint=" in message
+            assert "secret-do-not-log" not in message
+
+print("PR505_CLOUDRUN_READ_COMMAND_DETAIL_TEST_PASS")
