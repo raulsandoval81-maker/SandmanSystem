@@ -38,7 +38,7 @@ jobs:
   release:
     runs-on: ubuntu-24.04
     environment: staging
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - name: Enforce staging-only workflow authorization
         env:
@@ -167,7 +167,7 @@ jobs:
               --entry-point="$fn" --source=release-functions --trigger-http \
               --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
               --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
-              "\${secret_args[@]}" --quiet
+              "${secret_args[@]}" --quiet
             gcloud functions describe "$fn" --gen2 --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-after.json"
           done
       - name: Verify no identity/secret/configuration or IAM drift
@@ -201,6 +201,21 @@ jobs:
             console.log(fn+': staging runtime, environment, secrets and IAM preserved');
           }
           NODE
+      - name: Redact environment values from diagnostic evidence
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for p in Path("evidence/functions").glob("*.json"):
+              data = json.loads(p.read_text())
+              if p.name.endswith(("-before.json", "-after.json")) and "-iam-" not in p.name and "-run-" not in p.name:
+                  for section in ("serviceConfig", "buildConfig"):
+                      obj = data.get(section) or {}
+                      if isinstance(obj.get("environmentVariables"), dict):
+                          obj["environmentVariables"] = {key: "[REDACTED]" for key in obj["environmentVariables"]}
+              p.write_text(json.dumps(data, indent=2) + "\n")
+          PY
       - name: Store sanitized staging release evidence
         if: always()
         uses: actions/upload-artifact@v4
