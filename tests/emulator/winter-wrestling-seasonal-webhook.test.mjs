@@ -212,3 +212,27 @@ test("seasonal payment rejects incorrect actual Stripe amount, currency, or mode
     assert.equal(snap.get("seasonalPaymentLedger")[0].status, "pending");
   }
 });
+
+test("first early-rate payment in grace period remains eligible, later payment requires review", async () => {
+  const proposalRef = db.doc("proposals/P-SEASONAL-TEST");
+  const onTime = Date.parse("2026-12-01T07:59:59Z") / 1000;
+  const late = Date.parse("2026-12-01T08:00:00Z") / 1000;
+  for (const [eventTime, expectedStatus] of [
+    [onTime, "PARTIALLY_PAID"],
+    [late, "PAYMENT_REVIEW_REQUIRED"],
+  ]) {
+    await seed();
+    await proposalRef.update({
+      lockedSnapshot: { pricing: { earlyRegistration: true } },
+    });
+    await handleSeasonalProposalPaymentSucceeded(session(), eventTime);
+    const snap = await proposalRef.get();
+    assert.equal(snap.get("status"), expectedStatus);
+    assert.equal(snap.get("seasonalPaymentLedger")[0].status, "paid");
+    assert.equal(snap.get("seasonalPaymentLedger")[0].paymentIntentId, "pi_test_seasonal_1");
+    assert.equal(snap.get("seasonalEarlyPaymentReviewRequired") === true, eventTime === late);
+    await handleSeasonalProposalPaymentSucceeded(session(), eventTime);
+    const history = await db.collection("proposals/P-SEASONAL-TEST/history").get();
+    assert.equal(history.size, 1, "duplicate signed Stripe event never records a second payment");
+  }
+});
