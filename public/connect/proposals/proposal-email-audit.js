@@ -1,7 +1,9 @@
 import {
   db,
   doc,
-  getDoc
+  getDoc,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 function esc(value = "") {
@@ -90,6 +92,66 @@ async function hydrateCard(card) {
     const sentAt = review.emailSentAt;
     const deliveryStatus = String(review.deliveryStatus || "").trim();
     const deliveryError = String(review.deliveryError || "").trim();
+    const issuedAtMs = typeof review.issuedAt?.toMillis === "function"
+      ? review.issuedAt.toMillis() : 0;
+    const unresolved = deliveryStatus === "sending" || deliveryStatus === "unknown";
+    const canRecover = unresolved && issuedAtMs > 0 &&
+      (deliveryStatus !== "sending" || Date.now() - issuedAtMs >= 10 * 60 * 1000);
+    const actions = card.querySelector(".proposal-card-actions");
+    if (actions) {
+      // No alternative issuance bypass while email provider outcome is unresolved.
+      actions.querySelectorAll('[data-proposal-action="open-client-review"], [data-proposal-action="email-client-review"], [data-proposal-action="copy-client-review"]')
+        .forEach((button) => { button.disabled = unresolved; });
+      let recoveryButton = actions.querySelector("[data-delivery-recovery]");
+      if (!unresolved) {
+        recoveryButton?.remove();
+      } else if (!recoveryButton) {
+        recoveryButton = document.createElement("button");
+        recoveryButton.type = "button";
+        recoveryButton.className = "proposal-open-btn";
+        recoveryButton.dataset.deliveryRecovery = "true";
+        recoveryButton.textContent = "Reconcile & Reissue Remote Review";
+        actions.appendChild(recoveryButton);
+        recoveryButton.addEventListener("click", async () => {
+          if (!window.confirm("Check your email provider records before continuing. An earlier review email may have reached the family. Reissuing REVOKES its secure link. Have you checked the provider outcome?")) return;
+          const evidence = window.prompt("Record what you checked in the provider, when, and why reissue is required (at least 30 characters):");
+          if (evidence === null || evidence.trim().length < 30) {
+            window.alert("A detailed provider reconciliation record is required.");
+            return;
+          }
+          if (!window.confirm("REVOKE the earlier secure review link and EMAIL one replacement to the proposal contact? The previous link will no longer work.")) return;
+          recoveryButton.disabled = true;
+          const label = recoveryButton.textContent;
+          recoveryButton.textContent = "Reissuing…";
+          try {
+            const send = httpsCallable(functions, "issueProposalClientReview");
+            const result = await send({
+              proposalId,
+              delivery: "email",
+              deliveryRecovery: {
+                providerChecked: true,
+                acknowledgeRevocation: true,
+                evidence: evidence.trim(),
+                expectedIssuedAtMs: issuedAtMs,
+              },
+            });
+            window.alert("New review accepted by email provider for " +
+              (result.data?.recipient || "the family") + ". Inbox delivery is not confirmed. The old link is revoked.");
+            window.location.reload();
+          } catch (error) {
+            window.alert(error?.message || "Reissue failed; verify the recorded delivery state.");
+            recoveryButton.disabled = false;
+            recoveryButton.textContent = label;
+          }
+        });
+      }
+      if (recoveryButton) {
+        recoveryButton.disabled = !canRecover;
+        recoveryButton.title = canRecover
+          ? "Provider reconciliation and explicit link revocation are required."
+          : "Delivery is still processing. Reconciliation is available after ten minutes.";
+      }
+    }
 
     let audit = card.querySelector(
       ".proposal-email-audit"
