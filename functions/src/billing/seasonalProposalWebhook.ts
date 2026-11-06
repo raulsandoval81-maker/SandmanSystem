@@ -79,7 +79,8 @@ export async function handleSeasonalProposalPaymentSucceeded(
     const lateEarlyPayment = metadata.installmentNumber === 1 &&
       proposal.lockedSnapshot?.pricing?.earlyRegistration === true &&
       !winterWrestlingEarlyPaymentOnTime(eventCreatedSeconds);
-    const nextStatus = lateEarlyPayment ? "PAYMENT_REVIEW_REQUIRED" : complete ? "PAID" : "PARTIALLY_PAID";
+    const requiresReview = lateEarlyPayment || proposal.seasonalEarlyPaymentReviewRequired === true;
+    const nextStatus = requiresReview ? "PAYMENT_REVIEW_REQUIRED" : complete ? "PAID" : "PARTIALLY_PAID";
     const historyRef = proposalRef.collection("history").doc();
     tx.update(proposalRef, {
       status: nextStatus,
@@ -88,9 +89,9 @@ export async function handleSeasonalProposalPaymentSucceeded(
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
       stripeLivemode: session.livemode,
-      paymentStatus: lateEarlyPayment ? "review_required" : complete ? "paid" : "partially_paid",
+      paymentStatus: requiresReview ? "review_required" : complete ? "paid" : "partially_paid",
       ...(lateEarlyPayment ? { seasonalEarlyPaymentReviewRequired: true } : {}),
-      ...(complete && !lateEarlyPayment ? { paidAt: FieldValue.serverTimestamp() } : {}),
+      ...(complete && !requiresReview ? { paidAt: FieldValue.serverTimestamp() } : {}),
       updatedAt: FieldValue.serverTimestamp(),
     });
     tx.create(historyRef, {
