@@ -1547,7 +1547,11 @@ jobs:
               generation: a.environment==='GEN_2',
               runtime: a.buildConfig?.runtime==='nodejs22',
               entryPoint: a.buildConfig?.entryPoint===fn,
-              runtimeIdentity: a.serviceConfig?.serviceAccountEmail==='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com',
+              runtimeIdentity: a.serviceConfig?.serviceAccountEmail===(
+                fn==='createProposalDraft' || fn==='updateProposalDraft'
+                  ? '991554514268-compute@developer.gserviceaccount.com'
+                  : 'sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com'
+              ),
               secretKeys: JSON.stringify(secrets)===JSON.stringify(expected),
               secretVersions: bindings.every(x=>x.version==='latest'),
               immutableRollbackSource: Boolean(a.buildConfig?.source?.storageSource?.bucket && a.buildConfig?.source?.storageSource?.object),
@@ -1589,10 +1593,15 @@ jobs:
             elif test "$fn" = stripeBillingWebhook; then
               secret_args=(--set-secrets=STRIPE_SECRET_KEY=STRIPE_SECRET_KEY:latest,STRIPE_WEBHOOK_SECRET=STRIPE_WEBHOOK_SECRET:latest)
             fi
+            runtime_identity="sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"
+            if test "$fn" = createProposalDraft || test "$fn" = updateProposalDraft; then
+              runtime_identity="991554514268-compute@developer.gserviceaccount.com"
+            fi
+            test "$(node -e 'const f=require(process.argv[1]);process.stdout.write(f.serviceConfig.serviceAccountEmail)' "$PWD/evidence/functions/$fn-before.json")" = "$runtime_identity"
             gcloud functions deploy "$fn" --gen2 \
               --project="$PROJECT" --region="$REGION" --runtime=nodejs22 \
               --entry-point="$fn" --source=release-functions --trigger-http \
-              --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+              --run-service-account="$runtime_identity" \
               --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
               "${secret_args[@]}" --quiet
             gcloud functions describe "$fn" --gen2 --region "$REGION" --project "$PROJECT" --format=json > "evidence/functions/$fn-after.json"
