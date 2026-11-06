@@ -298,6 +298,38 @@ test("conversion rejects wrong guardian and does not record the $960 check", asy
   assert.equal(saved.status, "READY_FOR_CHECKOUT");
 });
 
+test("conversion refuses a potentially active legacy Stripe subscription", async () => {
+  const previousId = `${proposalId}-ACTIVE-OLD`;
+  const newId = `${proposalId}-NEW-ACTIVE-OLD`;
+  const prospect = {parentEmail:"synthetic-active@example.invalid"};
+  const locked = {...snapshot, prospect,
+    pricing:{...snapshot.pricing,enrollmentPreviouslyPaidAmount:30}};
+  await db.doc(`proposals/${previousId}`).set({
+    proposalId:previousId,locationId,prospect,
+    athletes:snapshot.athletes,
+    stripeSubscriptionId:"sub_demo_legacy",
+    stripeSubscriptionStatus:"active",
+    priorPayments:[
+      {membershipAmountCents:8000,enrollmentFeeAmountCents:0,periods:["2026-09"]},
+      {membershipAmountCents:0,enrollmentFeeAmountCents:3000,periods:[]},
+    ],
+  });
+  await db.doc(`proposals/${newId}`).set(acceptedProposal(newId,{
+    pricing:locked.pricing,lockedSnapshot:locked,
+    clientAcceptance:{signerName:"Synthetic Guardian",consentAccepted:true,
+      signedAt:Timestamp.now(),signedSnapshot:locked},
+  }));
+  await invoke(prepaid,manager,{proposalId:newId,mode:"prepare"});
+  await invoke(confirm,manager,{proposalId:newId,enrollmentToken:token,
+    confirmation:{termsConfirmed:true}});
+  await assert.rejects(invoke(prepaid,manager,payment(newId,{
+    amountCents:96000,membershipAmountCents:96000,
+    enrollmentFeeIncludedAthleteIndexes:[],enrollmentFeeAllocations:[],
+    conversionSourceProposalId:previousId,
+  })),/Prior subscription may still be billable/);
+  assert.equal((await db.doc(`proposals/${newId}`).get()).get("cashPrepayment"),undefined);
+});
+
 test("renewal autopay is blocked before payment and requires separate approval afterward", async () => {
   const unrecordedId = `${proposalId}-UNRECORDED`;
   await db.doc(`proposals/${unrecordedId}`).set(acceptedProposal(unrecordedId));
