@@ -44,13 +44,22 @@ def cmd(*args):
             category = "AUTHENTICATION"
         elif re.search(r"invalid choice|unrecognized arguments|unknown command|invalid argument", diagnostic):
             category = "CLI_ARGUMENT"
+        elif re.search(r"service.*does not exist|requested entity was not found|could not find", diagnostic):
+            category = "NOT_FOUND"
+        elif re.search(r"does not have.*access|insufficient permission|permission.*required|iam permission", diagnostic):
+            category = "PERMISSION_DENIED"
         else:
             category = "UNKNOWN"
         # args are from fixed, known-in-script read-only command templates.
         # Print no raw cloud error response and no command credential contents.
-        action = " ".join(args[:3])
+        # Include only the fixed read operation, numeric exit status, and
+        # irreversible error fingerprint. Never include untrusted stderr.
+        action = " ".join(args[:4] if args[:3] == ("gcloud", "run", "services") else args[:3])
+        fingerprint = hashlib.sha256(result.stderr.encode("utf8")).hexdigest()[:12]
         raise RuntimeError("GCLOUD_READ_FAILED action=" + action
-                           + " category=" + category) from None
+                           + " category=" + category
+                           + " exit=" + str(result.returncode)
+                           + " errorFingerprint=" + fingerprint) from None
     return result.stdout
 
 def gjson(*args):
