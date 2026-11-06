@@ -103,8 +103,16 @@ test("Checkout is one-time, resumable, and never authorizes future automatic pay
     id: "cs_test_seasonal_checkout",
     status: "open",
     payment_status: "unpaid",
+    mode: "payment",
+    currency: "usd",
+    amount_total: 20000,
     url: "https://checkout.stripe.test/seasonal",
-    metadata: { source: "winter_wrestling_seasonal", installmentNumber: "1" },
+    metadata: {
+      source: "winter_wrestling_seasonal",
+      proposalId,
+      installmentNumber: "1",
+      installmentAmountCents: "20000",
+    },
   };
   const stripe = {
     checkout: { sessions: {
