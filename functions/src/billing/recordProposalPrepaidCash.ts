@@ -535,6 +535,7 @@ export const recordProposalPrepaidCash =
                 annualEnrollmentFee: allocation.annualEnrollmentFee,
                 nextBillingDate,
                 note,
+                ...(conversionSource ? { conversionSource } : {}),
 
                 createdBy:
                   req.auth!.uid,
