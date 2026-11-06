@@ -55,10 +55,12 @@ test("remote status is not mistaken for proof of inbox delivery", async () => {
   assert.match(backend, /recordDeliveryState\("rejected"/);
   assert.match(backend, /"provider_accepted", undefined, emailId/);
   assert.match(backend, /cleanReviewString\(review\.tokenHash\) !== tokenHash/);
-  assert.match(backend, /previousReview\.deliveryStatus === "unknown"/);
-  assert.match(backend, /previousReview\.deliveryStatus === "sending"/);
+  assert.match(backend, /clientReviewRecoveryGate\(/);
+  assert.match(backend, /CLIENT_REVIEW_DELIVERY_RECOVERY_REISSUED/);
   assert.match(audit, /deliveryStatus === "unknown"/);
   assert.match(audit, /accepted by provider/);
+  assert.match(audit, /Reconcile & Reissue Remote Review/);
+  assert.match(audit, /acknowledgeRevocation: true/);
 });
 
 test("acceptance requires signature and locked proposal before checkout", async () => {
