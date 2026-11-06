@@ -1,0 +1,24 @@
+name: PR505 read-only command diagnostics safety test
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/staging/pr505-2c-live-readonly-inventory.py'
+      - 'tests/staging/test_pr505_readonly_diagnostics.py'
+      - '.github/workflows/pr505-2c-command-diagnostics-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify inventory syntax and classified diagnostics fail closed
+        run: |
+          python3 -m py_compile scripts/staging/pr505-2c-live-readonly-inventory.py
+          python3 tests/staging/test_pr505_readonly_diagnostics.py
