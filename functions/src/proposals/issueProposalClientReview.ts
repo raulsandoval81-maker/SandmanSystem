@@ -248,6 +248,10 @@ export const issueProposalClientReview =
             // Concurrent clicks cannot rotate the token during an active send.
             // A lost provider response remains explicitly uncertain.
             const previousReview = proposal.clientReview || {};
+            if (sendEmail && previousReview.deliveryStatus === "unknown") {
+              throw new HttpsError("failed-precondition",
+                "Prior email outcome is uncertain. Management must reconcile provider delivery before issuing a different review link.");
+            }
             const previousIssuedAt = previousReview.issuedAt;
             if (previousReview.deliveryStatus === "sending" &&
                 previousIssuedAt instanceof Timestamp &&
@@ -450,6 +454,46 @@ export const issueProposalClientReview =
           rawToken
         )}`;
 
+      // Every provider response must match the still-active issued token.
+      // An older asynchronous send cannot mark a newer review as delivered.
+      async function recordDeliveryState(
+        status: "unknown" | "rejected" | "provider_accepted",
+        detail?: string,
+        providerId?: string
+      ): Promise<boolean> {
+        return db.runTransaction(async (tx) => {
+          const current = await tx.get(proposalRef);
+          const review = current.data()?.clientReview || {};
+          if (cleanReviewString(review.tokenHash) !== tokenHash ||
+              cleanReviewString(current.data()?.status) !== "AWAITING_CLIENT_SIGNATURE") {
+            return false;
+          }
+          tx.update(proposalRef, {
+            "clientReview.deliveryStatus": status,
+            "clientReview.deliveryError": detail || null,
+            ...(status === "provider_accepted" ? {
+              "clientReview.emailSentAt": FieldValue.serverTimestamp(),
+              "clientReview.emailRecipient": result.recipient,
+              "clientReview.emailRecipientSource": result.recipientSource,
+              "clientReview.emailProviderId": providerId || null,
+            } : {}),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+          if (status === "provider_accepted") {
+            tx.create(proposalRef.collection("history").doc(), {
+              proposalId,
+              event: "CLIENT_REVIEW_EMAIL_ACCEPTED_BY_PROVIDER",
+              to: result.recipient,
+              recipientSource: result.recipientSource,
+              emailProviderId: providerId || null,
+              createdBy: req.auth!.uid,
+              createdAt: FieldValue.serverTimestamp(),
+            });
+          }
+          return true;
+        });
+      }
+
       let emailId = "";
 
       if (sendEmail) {
@@ -478,20 +522,14 @@ export const issueProposalClientReview =
           });
         } catch (_error) {
           // A timeout might mean delivered-to-provider. Do not claim failure.
-          await proposalRef.update({
-            "clientReview.deliveryStatus": "unknown",
-            "clientReview.deliveryError": "Provider outcome could not be confirmed.",
-          });
+          await recordDeliveryState("unknown", "Provider outcome could not be confirmed.");
           throw new HttpsError("unavailable",
             "Remote email outcome uncertain. Check the email provider before reissuing; a new link invalidates the old link.");
         }
 
         if (emailResult.error || !emailResult.data?.id) {
-          await proposalRef.update({
-            "clientReview.deliveryStatus": "rejected",
-            "clientReview.deliveryError":
-              emailResult.error?.message || "No accepted message ID returned.",
-          });
+          await recordDeliveryState("rejected",
+            emailResult.error?.message || "No accepted message ID returned.");
           throw new HttpsError("failed-precondition",
             emailResult.error?.message || "Email provider did not confirm acceptance.");
         }
@@ -499,38 +537,13 @@ export const issueProposalClientReview =
         emailId =
           emailResult.data?.id || "";
 
-        await proposalRef.update({
-          "clientReview.emailSentAt":
-            FieldValue.serverTimestamp(),
-          "clientReview.emailRecipient":
-            result.recipient,
-          "clientReview.emailRecipientSource":
-            result.recipientSource,
-          "clientReview.emailProviderId":
-            emailId,
-          "clientReview.deliveryStatus": "provider_accepted",
-          "clientReview.deliveryError": null,
-          updatedAt:
-            FieldValue.serverTimestamp(),
-        });
-
-        await proposalRef
-          .collection("history")
-          .add({
-            proposalId,
-            event:
-              "CLIENT_REVIEW_EMAIL_SENT",
-            to:
-              result.recipient,
-            recipientSource:
-              result.recipientSource,
-            emailProviderId:
-              emailId,
-            createdBy:
-              req.auth.uid,
-            createdAt:
-              FieldValue.serverTimestamp(),
-          });
+        const stillCurrent = await recordDeliveryState(
+          "provider_accepted", undefined, emailId
+        );
+        if (!stillCurrent) {
+          throw new HttpsError("failed-precondition",
+            "Review was superseded while the email provider processed it. Verify the current proposal; this older link is invalid.");
+        }
       }
 
       return {
