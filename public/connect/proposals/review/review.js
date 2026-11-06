@@ -1,4 +1,5 @@
 import "./auto-checkout.js";
+import { monthlyPeriodDisclosure } from "./monthly-period-disclosure.js";
 
 import {
   functions,
@@ -401,26 +402,8 @@ function renderProposal(
       ? `After you sign, secure checkout collects ${moneyFromCents(proposal.historicalCashCheckoutTerms.dueNowCents)} in remaining enrollment fees. Your membership subscription starts ${esc(proposal.historicalCashCheckoutTerms.firstRecurringChargeDate)} at ${moneyFromCents(proposal.historicalCashCheckoutTerms.monthlyMembershipCents)}/month. The ${moneyFromCents(proposal.historicalCashCheckoutTerms.unappliedCashHeldCents)} unapplied cash remains held and is not used, refunded, or charged again.`
       : "Not authorized — credit, refund and Stripe payment require a separate approved arrangement")
   ] : [];
-  // Identify extra months only when the dates prove they are consecutive
-  // full calendar months. Never invent paid periods from a generic count.
-  const extraMonths = Number(pricing.additionalMembershipMonthsDue || 0);
-  const startMatch = /^(\d{4})-(\d{2})-01$/.exec(String(pricing.membershipStartDate || ""));
-  const recurringMatch = /^(\d{4})-(\d{2})-05$/.exec(String(pricing.firstRecurringChargeDate || ""));
-  const startMonthIndex = startMatch ? Number(startMatch[1]) * 12 + Number(startMatch[2]) - 1 : null;
-  const recurringMonthIndex = recurringMatch ? Number(recurringMatch[1]) * 12 + Number(recurringMatch[2]) - 1 : null;
-  const consecutiveMonths = startMonthIndex !== null && recurringMonthIndex !== null &&
-    Number.isInteger(extraMonths) && extraMonths > 0 && extraMonths <= 24 &&
-    recurringMonthIndex - startMonthIndex === extraMonths + 1;
-  const monthName = (monthIndex) => new Date(Date.UTC(
-    Math.floor(monthIndex / 12), monthIndex % 12, 1
-  )).toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
-  const firstMonthLabel = consecutiveMonths
-    ? `First-month membership — ${monthName(startMonthIndex)}`
-    : "First-month membership";
-  const additionalMonthsLabel = consecutiveMonths
-    ? Array.from({ length: extraMonths }, (_, i) => monthName(startMonthIndex + i + 1)).join(", ")
-    : `${extraMonths} additional unpaid month${extraMonths === 1 ? "" : "s"}`;
-  const extraMonthCharge = Number(pricing.monthlyBalance || 0) * extraMonths;
+  const { extraMonths, firstMonthLabel, additionalMonthsLabel, additionalMonthsCharge } =
+    monthlyPeriodDisclosure(pricing);
 
   $("paymentSchedule").innerHTML =
     [
@@ -448,7 +431,7 @@ function renderProposal(
 
       ...(extraMonths > 0 ? [scheduleItem(
         "Additional unpaid membership — " + additionalMonthsLabel,
-        `${extraMonths} × ${money(pricing.monthlyBalance)} = ${money(extraMonthCharge)}`
+        `${extraMonths} × ${money(pricing.monthlyBalance)} = ${money(additionalMonthsCharge)}`
       )] : []),
 
       scheduleItem(
