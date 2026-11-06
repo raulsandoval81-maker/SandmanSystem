@@ -236,6 +236,13 @@ test("separate existing $80 month and $30 fee remain untouched when $960 annual 
   assert.equal(saved.cashPrepayment.conversionSource.sourceProposalId, oldId);
   assert.equal(saved.cashPrepayment.conversionSource.historicalMembershipCents, 8000);
   assert.equal(saved.cashPrepayment.conversionSource.historicalEnrollmentCents, 3000);
+  const claim = (await db.doc(`prepaidConversionClaims/${oldId}`).get()).data();
+  assert.equal(claim.newProposalId, newId);
+  assert.equal(claim.historicalEnrollmentCents, 3000);
+  const paymentAudit = await db.doc(`proposals/${newId}`).collection("history")
+    .where("event", "==", "CASH_PREPAYMENT_RECORDED").get();
+  assert.equal(paymentAudit.size, 1);
+  assert.equal(paymentAudit.docs[0].get("conversionSource.sourceProposalId"), oldId);
   assert.equal(saved.stripeCheckoutSessionId, undefined);
   assert.equal(saved.stripeSubscriptionId, undefined);
   const after = (await db.doc(`proposals/${oldId}`).get()).data();
