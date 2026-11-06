@@ -22,6 +22,7 @@ import {
 } from "./proposalClientReview";
 
 import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
+import { clientReviewRecoveryGate } from "./clientReviewDeliveryRecovery";
 
 import {
   getResendClient,
@@ -263,26 +264,20 @@ export const issueProposalClientReview =
             // Concurrent clicks cannot rotate the token during an active send.
             // A lost provider response remains explicitly uncertain.
             const previousReview = proposal.clientReview || {};
-            const unresolvedDelivery =
-              previousReview.deliveryStatus === "unknown" ||
-              previousReview.deliveryStatus === "sending";
             const previousIssuedAt = previousReview.issuedAt;
-            if (unresolvedDelivery) {
-              if (!recovery ||
-                  !(previousIssuedAt instanceof Timestamp) ||
-                  previousIssuedAt.toMillis() !== recoveryIssuedAtMs) {
-                throw new HttpsError("failed-precondition",
-                  "The previous email is unresolved. Reconcile provider activity before replacing its secure link.");
-              }
-              if (previousReview.deliveryStatus === "sending" &&
-                  Date.now() - previousIssuedAt.toMillis() < 10 * 60 * 1000) {
-                throw new HttpsError("failed-precondition",
-                  "Delivery may still be processing. Reconciliation is unavailable during the first ten minutes.");
-              }
-            } else if (recovery) {
+            const gate = clientReviewRecoveryGate({
+              deliveryStatus: cleanReviewString(previousReview.deliveryStatus),
+              issuedAtMs: previousIssuedAt instanceof Timestamp
+                ? previousIssuedAt.toMillis() : null,
+              recoveryExpectedIssuedAtMs: recovery ? recoveryIssuedAtMs : null,
+              hasRecovery: recovery !== undefined,
+              nowMs: Date.now(),
+            });
+            if (!gate.allowed) {
               throw new HttpsError("failed-precondition",
-                "The previous delivery is no longer unresolved. Refresh before issuing a new link.");
+                gate.reason || "Review delivery cannot be reissued yet.");
             }
+            const unresolvedDelivery = gate.unresolved;
 
             const prospect =
               proposal.prospect &&
