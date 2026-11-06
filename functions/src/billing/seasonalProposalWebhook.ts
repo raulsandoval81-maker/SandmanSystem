@@ -22,6 +22,15 @@ export async function handleSeasonalProposalPaymentSucceeded(
   const metadata = seasonalMetadata(session);
   if (!metadata) return null;
   if (session.payment_status !== "paid") return metadata.proposalId;
+  // Trust Stripe's settled amount, currency and mode, not only session metadata.
+  if (
+    session.mode !== "payment" ||
+    clean(session.currency).toLowerCase() !== "usd" ||
+    !Number.isSafeInteger(session.amount_total) ||
+    session.amount_total !== metadata.amountCents
+  ) {
+    throw new Error("Seasonal Stripe payment amount, currency or mode does not match the locked installment.");
+  }
   const paymentIntentId = typeof session.payment_intent === "string"
     ? session.payment_intent
     : session.payment_intent?.id || null;
