@@ -2010,6 +2010,13 @@ function ensureCashDialog() {
       </fieldset>
 
       <label class="billing-cash-note">
+        <span>Previous agreement proposal ID (optional)</span>
+        <input id="prepaidCashConversionSource" type="text" maxlength="80"
+          placeholder="P-000000 — previous month-to-month agreement">
+        <small>For conversions, link the verified previous agreement. Existing payments remain separate; the new accepted agreement must include the enrollment-fee credit.</small>
+      </label>
+
+      <label class="billing-cash-note">
         <span>Management note</span>
         <textarea
           id="prepaidCashNote"
@@ -2161,6 +2168,8 @@ function ensureCashDialog() {
               "prepaidCashNote"
             )?.value
           );
+        const conversionSourceProposalId =
+          clean(document.getElementById("prepaidCashConversionSource")?.value);
 
         if (
           !proposalId ||
@@ -2213,6 +2222,7 @@ function ensureCashDialog() {
             historicalEnrollmentFeeAttributions,
             nextBillingDate,
             note,
+            ...(conversionSourceProposalId ? { conversionSourceProposalId } : {}),
           });
 
           if (status) {
@@ -2392,6 +2402,8 @@ function openCashDialog(
   document.getElementById(
     "prepaidCashNote"
   ).value = "";
+  document.getElementById("prepaidCashConversionSource").value =
+    clean(proposal.conversionSourceProposalId || proposal.pricing?.conversionSourceProposalId);
 
   const status =
     document.getElementById(
