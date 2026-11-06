@@ -68,6 +68,14 @@ export async function createSeasonalProposalCheckout(input: {
 }): Promise<Record<string, unknown>> {
   const { stripe, db, proposalId, proposal, actorUid, publicBaseUrl } = input;
   const pricing = lockedSeasonalPricing(proposal);
+  if (proposal.seasonalEarlyPaymentReviewRequired === true ||
+      clean(proposal.status) === "PAYMENT_REVIEW_REQUIRED") {
+    throw new HttpsError("failed-precondition",
+      "A late early-registration payment requires Management reconciliation before further checkout.");
+  }
+  if (!["READY_FOR_CHECKOUT", "CHECKOUT_CREATED", "PARTIALLY_PAID", "PAYMENT_FAILED", "PAID"].includes(clean(proposal.status))) {
+    throw new HttpsError("failed-precondition", "This seasonal proposal is not eligible for checkout.");
+  }
   const proposalRef = db.collection("proposals").doc(proposalId);
   const ledger: SeasonalLedgerEntry[] = Array.isArray(proposal.seasonalPaymentLedger)
     ? proposal.seasonalPaymentLedger
