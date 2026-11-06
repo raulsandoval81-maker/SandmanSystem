@@ -182,6 +182,115 @@ test("historical enrollment attribution and partial new fee allocation remain au
   assert.equal(result.annualEnrollmentFee.outstandingCents, 1000);
 });
 
+test("separate existing $80 month and $30 fee remain untouched when $960 annual check is recorded", async () => {
+  const oldId = `${proposalId}-OLD-MONTH`;
+  const newId = `${proposalId}-ANNUAL-CONVERSION`;
+  const sameProspect = { familyName: "Synthetic Prepaid Family", parentEmail: "synthetic-conversion@example.invalid" };
+  const conversionSnapshot = {
+    ...snapshot,
+    prospect: sameProspect,
+    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+  };
+  const source = {
+    proposalId: oldId,
+    locationId,
+    status: "PAID",
+    prospect: sameProspect,
+    athletes: snapshot.athletes,
+    lockedSnapshot: { ...snapshot, prospect: sameProspect },
+    priorPayments: [
+      { paymentId: "first-month", amountCents: 8000, membershipAmountCents: 8000,
+        enrollmentFeeAmountCents: 0, periods: ["2026-09"], paymentMethod: "check" },
+      { paymentId: "annual-fee", amountCents: 3000, membershipAmountCents: 0,
+        enrollmentFeeAmountCents: 3000, periods: [], paymentMethod: "check" },
+    ],
+    priorPaymentsTotalCents: 11000,
+  };
+  await db.doc(`proposals/${oldId}`).set(source);
+  const target = acceptedProposal(newId, {
+    pricing: conversionSnapshot.pricing,
+    lockedSnapshot: conversionSnapshot,
+    clientAcceptance: {
+      signerName: "Synthetic Guardian", consentAccepted: true,
+      signedAt: Timestamp.now(), signedSnapshot: conversionSnapshot,
+    },
+  });
+  await db.doc(`proposals/${newId}`).set(target);
+  await invoke(prepaid, manager, { proposalId: newId, mode: "prepare" });
+  await invoke(confirm, manager, {
+    proposalId: newId, enrollmentToken: token, confirmation: { termsConfirmed: true },
+  });
+  const before = (await db.doc(`proposals/${oldId}`).get()).data();
+  const result = await invoke(prepaid, manager, payment(newId, {
+    amountCents: 96000, membershipAmountCents: 96000,
+    enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+    conversionSourceProposalId: oldId,
+    note: "Prior $80 month and $30 annual fee paid; separate $960 check for 12-month agreement.",
+  }));
+  assert.equal(result.status, "PAID");
+  assert.equal(result.annualEnrollmentFee.previouslyPaidCents, 3000);
+  assert.equal(result.annualEnrollmentFee.paidWithPrepaymentCents, 0);
+  assert.equal(result.annualEnrollmentFee.outstandingCents, 0);
+  const saved = (await db.doc(`proposals/${newId}`).get()).data();
+  assert.equal(saved.cashPrepayment.amountCents, 96000);
+  assert.equal(saved.cashPrepayment.conversionSource.sourceProposalId, oldId);
+  assert.equal(saved.cashPrepayment.conversionSource.historicalMembershipCents, 8000);
+  assert.equal(saved.cashPrepayment.conversionSource.historicalEnrollmentCents, 3000);
+  assert.equal(saved.stripeCheckoutSessionId, undefined);
+  assert.equal(saved.stripeSubscriptionId, undefined);
+  const after = (await db.doc(`proposals/${oldId}`).get()).data();
+  assert.deepEqual(after, before, "Original agreement and its $110 history must not change.");
+  await assert.rejects(
+    invoke(prepaid, manager, payment(newId, {
+      amountCents: 96000, conversionSourceProposalId: oldId,
+      enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+    })),
+    /already been recorded/
+  );
+});
+
+test("conversion rejects wrong guardian and does not record the $960 check", async () => {
+  const oldId = `${proposalId}-WRONG-GUARDIAN`;
+  const newId = `${proposalId}-GUARDIAN-CONVERSION`;
+  const sameProspect = { parentEmail: "synthetic-target@example.invalid" };
+  const conversionSnapshot = {
+    ...snapshot, prospect: sameProspect,
+    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+  };
+  await db.doc(`proposals/${oldId}`).set({
+    proposalId: oldId, locationId, status: "PAID",
+    prospect: { parentEmail: "other-guardian@example.invalid" },
+    athletes: snapshot.athletes,
+    priorPayments: [
+      { membershipAmountCents: 8000, enrollmentFeeAmountCents: 0, periods: ["2026-09"] },
+      { membershipAmountCents: 0, enrollmentFeeAmountCents: 3000, periods: [] },
+    ],
+  });
+  await db.doc(`proposals/${newId}`).set(acceptedProposal(newId, {
+    pricing: conversionSnapshot.pricing,
+    lockedSnapshot: conversionSnapshot,
+    clientAcceptance: {
+      signerName: "Synthetic Guardian", consentAccepted: true,
+      signedAt: Timestamp.now(), signedSnapshot: conversionSnapshot,
+    },
+  }));
+  await invoke(prepaid, manager, { proposalId: newId, mode: "prepare" });
+  await invoke(confirm, manager, {
+    proposalId: newId, enrollmentToken: token, confirmation: { termsConfirmed: true },
+  });
+  await assert.rejects(
+    invoke(prepaid, manager, payment(newId, {
+      amountCents: 96000, membershipAmountCents: 96000,
+      enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+      conversionSourceProposalId: oldId,
+    })),
+    /same verified guardian email/
+  );
+  const saved = (await db.doc(`proposals/${newId}`).get()).data();
+  assert.equal(saved.cashPrepayment, undefined);
+  assert.equal(saved.status, "READY_FOR_CHECKOUT");
+});
+
 test("renewal autopay is blocked before payment and requires separate approval afterward", async () => {
   const unrecordedId = `${proposalId}-UNRECORDED`;
   await db.doc(`proposals/${unrecordedId}`).set(acceptedProposal(unrecordedId));
