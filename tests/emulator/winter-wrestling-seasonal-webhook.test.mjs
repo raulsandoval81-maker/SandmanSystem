@@ -23,6 +23,9 @@ function session(overrides = {}) {
     object: "checkout.session",
     livemode: false,
     payment_status: "paid",
+    mode: "payment",
+    currency: "usd",
+    amount_total: 20000,
     payment_intent: "pi_test_seasonal_1",
     metadata: {
       proposalId: "P-SEASONAL-TEST",
@@ -182,4 +185,22 @@ test("a failed installment receives a new idempotency scope without duplicating 
   });
   assert.equal(result.checkoutSessionId, "cs_retry_new");
   assert.match(requestOptions.idempotencyKey, /cs_failed_old$/);
+});
+
+test("seasonal payment rejects incorrect actual Stripe amount, currency, or mode", async () => {
+  for (const overrides of [
+    { amount_total: 19999 },
+    { currency: "eur" },
+    { mode: "subscription" },
+    { amount_total: null },
+  ]) {
+    await seed();
+    await assert.rejects(
+      () => handleSeasonalProposalPaymentSucceeded(session(overrides)),
+      /amount, currency or mode/,
+    );
+    const snap = await db.doc("proposals/P-SEASONAL-TEST").get();
+    assert.equal(snap.get("status"), "CHECKOUT_CREATED");
+    assert.equal(snap.get("seasonalPaymentLedger")[0].status, "pending");
+  }
 });
