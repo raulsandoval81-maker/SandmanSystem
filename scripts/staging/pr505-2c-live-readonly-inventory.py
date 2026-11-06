@@ -7,6 +7,7 @@ deployment, Firestore, secret value, Stripe, or email operations.
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -31,7 +32,26 @@ def cmd(*args):
     require(args[0] == "gcloud", "only gcloud read commands")
     operation = " ".join(args)
     require(not any(word in operation for word in (" deploy ", " set-iam-policy ", " add-iam-policy ", " delete ", " update ", " create ", " secrets versions access ")), "mutating command blocked")
-    return subprocess.run(args, capture_output=True, text=True, check=True).stdout
+    result = subprocess.run(args, capture_output=True, text=True)
+    if result.returncode:
+        # Classify without leaking stderr, response bodies or bearer tokens.
+        diagnostic = result.stderr.lower()
+        if re.search(r"permission.denied|permission denied|does not have permission|403|forbidden", diagnostic):
+            category = "PERMISSION_DENIED"
+        elif re.search(r"not.found|not found|404", diagnostic):
+            category = "NOT_FOUND"
+        elif re.search(r"unauthenticated|invalid credentials|401|authentication", diagnostic):
+            category = "AUTHENTICATION"
+        elif re.search(r"invalid choice|unrecognized arguments|unknown command|invalid argument", diagnostic):
+            category = "CLI_ARGUMENT"
+        else:
+            category = "UNKNOWN"
+        # args are from fixed, known-in-script read-only command templates.
+        # Print no raw cloud error response and no command credential contents.
+        action = " ".join(args[:3])
+        raise RuntimeError("GCLOUD_READ_FAILED action=" + action
+                           + " category=" + category) from None
+    return result.stdout
 
 def gjson(*args):
     return json.loads(cmd(*args))
@@ -41,15 +61,23 @@ def parse_function(name):
         f = gjson("gcloud", "functions", "describe", name, "--gen2",
                   "--project", PROJECT, "--region", REGION, "--format=json")
         gen = 2
-    except subprocess.CalledProcessError:
+    except RuntimeError as exc:
+        # Only a verified 404 warrants a generation fallback.
+        # A denied lookup must never masquerade as a missing Function.
+        if "category=NOT_FOUND" not in str(exc):
+            raise RuntimeError("FUNCTION_LOOKUP_BLOCKED name=" + name
+                               + " generation=2 " + str(exc)) from None
         try:
             f = gjson("gcloud", "functions", "describe", name, "--no-gen2",
                       "--project", PROJECT, "--region", REGION, "--format=json")
             gen = 1
-        except subprocess.CalledProcessError:
-            if name == "sendProposalPrepaidCashReceipt":
-                return {"name":name,"exists":False}, None
-            raise RuntimeError("Existing Function could not be read: " + name)
+        except RuntimeError as fallback:
+            if "category=NOT_FOUND" in str(fallback):
+                if name == "sendProposalPrepaidCashReceipt":
+                    return {"name":name,"exists":False}, None
+                raise RuntimeError("FUNCTION_NOT_FOUND name=" + name) from None
+            raise RuntimeError("FUNCTION_LOOKUP_BLOCKED name=" + name
+                               + " generation=1 " + str(fallback)) from None
     require(f.get("name", "").endswith("/functions/"+name), "Function identity mismatch: "+name)
     sc = f.get("serviceConfig", {})
     bc = f.get("buildConfig", {})
@@ -197,7 +225,11 @@ def main():
 if __name__=="__main__":
     try:
         main()
-    except (RuntimeError, subprocess.CalledProcessError, urllib.error.URLError, KeyError, ValueError) as exc:
-        # Never print gcloud stderr, tokens, or authorization payloads.
+    except RuntimeError as exc:
+        # This RuntimeError uses only fixed command names, allowlisted Function
+        # identifiers, and classified error categories; no raw cloud responses.
+        print("PR505_STAGING_READONLY_PREFLIGHT_BLOCKED", str(exc), file=sys.stderr)
+        sys.exit(1)
+    except (subprocess.CalledProcessError, urllib.error.URLError, KeyError, ValueError) as exc:
         print("PR505_STAGING_READONLY_PREFLIGHT_BLOCKED", type(exc).__name__, file=sys.stderr)
         sys.exit(1)
