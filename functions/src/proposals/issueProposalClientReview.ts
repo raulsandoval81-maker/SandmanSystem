@@ -164,6 +164,21 @@ export const issueProposalClientReview =
       const sendEmail =
         delivery === "email";
 
+      // This recovery requires deliberate Management reconciliation. A lost
+      // provider response is never proof that the email was not accepted.
+      const recovery = req.data?.deliveryRecovery;
+      const recoveryEvidence = cleanReviewString(recovery?.evidence);
+      const recoveryAcknowledged = recovery?.acknowledgeRevocation === true;
+      const providerChecked = recovery?.providerChecked === true;
+      const recoveryIssuedAtMs = Number(recovery?.expectedIssuedAtMs);
+      if (recovery !== undefined &&
+          (!sendEmail || !providerChecked || !recoveryAcknowledged ||
+           recoveryEvidence.length < 30 || recoveryEvidence.length > 1000 ||
+           !Number.isSafeInteger(recoveryIssuedAtMs) || recoveryIssuedAtMs <= 0)) {
+        throw new HttpsError("invalid-argument",
+          "Remote recovery requires a provider check, a detailed reason, the original issuance timestamp, and acknowledgement of link revocation.");
+      }
+
       if (!proposalId) {
         throw new HttpsError(
           "invalid-argument",
@@ -248,13 +263,25 @@ export const issueProposalClientReview =
             // Concurrent clicks cannot rotate the token during an active send.
             // A lost provider response remains explicitly uncertain.
             const previousReview = proposal.clientReview || {};
-            if (previousReview.deliveryStatus === "unknown") {
+            const unresolvedDelivery =
+              previousReview.deliveryStatus === "unknown" ||
+              previousReview.deliveryStatus === "sending";
+            const previousIssuedAt = previousReview.issuedAt;
+            if (unresolvedDelivery) {
+              if (!recovery ||
+                  !(previousIssuedAt instanceof Timestamp) ||
+                  previousIssuedAt.toMillis() !== recoveryIssuedAtMs) {
+                throw new HttpsError("failed-precondition",
+                  "The previous email is unresolved. Reconcile provider activity before replacing its secure link.");
+              }
+              if (previousReview.deliveryStatus === "sending" &&
+                  Date.now() - previousIssuedAt.toMillis() < 10 * 60 * 1000) {
+                throw new HttpsError("failed-precondition",
+                  "Delivery may still be processing. Reconciliation is unavailable during the first ten minutes.");
+              }
+            } else if (recovery) {
               throw new HttpsError("failed-precondition",
-                "Prior email outcome is uncertain. Management must reconcile provider delivery before issuing another review link.");
-            }
-            if (previousReview.deliveryStatus === "sending") {
-              throw new HttpsError("failed-precondition",
-                "Remote review delivery has not been reconciled. Check the provider before issuing another review link.");
+                "The previous delivery is no longer unresolved. Refresh before issuing a new link.");
             }
 
             const prospect =
@@ -397,6 +424,20 @@ export const issueProposalClientReview =
                   FieldValue.serverTimestamp(),
               }
             );
+
+            if (unresolvedDelivery) {
+              tx.create(proposalRef.collection("history").doc(), {
+                proposalId,
+                event: "CLIENT_REVIEW_DELIVERY_RECOVERY_REISSUED",
+                previousDeliveryStatus: previousReview.deliveryStatus,
+                previousIssuedAt,
+                previousTokenRevoked: true,
+                providerChecked: true,
+                evidence: recoveryEvidence,
+                createdBy: req.auth!.uid,
+                createdAt: FieldValue.serverTimestamp(),
+              });
+            }
 
             tx.create(
               historyRef,
