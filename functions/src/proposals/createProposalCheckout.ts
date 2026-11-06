@@ -508,6 +508,20 @@ export const createProposalCheckout =
             additionalMembershipDueNowCents
           : lockedDueNow;
 
+      // Never silently add a missed recurring period or change the
+      // payment schedule after the family's signed Review & Confirm.
+      // A revised amount/date requires a new proposal acceptance.
+      if (
+        !historicalCashTerms &&
+        (checkoutDueNow !== lockedDueNow ||
+         resolvedFirstRecurringChargeDate !== firstRecurringChargeDate)
+      ) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The billing schedule changed after family acceptance. Management must issue updated terms for family review before checkout."
+        );
+      }
+
       if (checkoutDueNow < 50) {
         throw new HttpsError(
           "failed-precondition",
