@@ -1449,7 +1449,7 @@ jobs:
     timeout-minutes: 60
     env:
       PROJECT: sandman-combat-staging
-      SOURCE_SHA: f801d51d6b6346b112548538977f9ec0e58146d1
+      SOURCE_SHA: 15cacf7cac4efed49f505c88435ec3342603e1fc
       BASE_SHA: 17146b7ced7d4e3f116f012fb8eb1f6f04d69000
       REGION: us-central1
       WIF: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
@@ -1480,24 +1480,28 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: f801d51d6b6346b112548538977f9ec0e58146d1
+          ref: 15cacf7cac4efed49f505c88435ec3342603e1fc
           path: application
           persist-credentials: false
           fetch-depth: 0
-      - name: Assert exact PR490 source and ten-file boundary
+      - name: Assert exact PR490 source and fourteen-file boundary
         run: |
           set -euo pipefail
           test "$(git -C application rev-parse HEAD)" = "$SOURCE_SHA"
           git -C application diff --name-only "$BASE_SHA" "$SOURCE_SHA" | sort > /tmp/actual-winter-v2-files.txt
           cat > /tmp/expected-winter-v2-files.txt <<'EOF'
+          .github/workflows/winter-v2-pricing-tests.yml
           functions/src/billing/seasonalProposalCheckout.ts
           functions/src/billing/seasonalProposalWebhook.ts
           functions/src/billing/webhook.ts
           functions/src/proposals/seasonalProposal.ts
+          functions/src/proposals/seasonalWrestlingFramework.ts
           functions/src/proposals/winterWrestlingSeasonPolicy.ts
+          functions/tests/seasonalWrestlingFramework.test.cjs
           functions/tests/winterWrestlingSeasonPolicy.test.cjs
           public/connect/admissions/calculator/calculator.js
           public/connect/admissions/calculator/index.html
+          public/promotions/winter-wrestling/index.html
           public/promotions/winter-wrestling/winter-wrestling.js
           tests/emulator/winter-wrestling-seasonal-webhook.test.mjs
           EOF
@@ -1673,7 +1677,7 @@ jobs:
     timeout-minutes: 30
     env:
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
-      SANDMAN_WINTER_V2_SOURCE_SHA: f801d51d6b6346b112548538977f9ec0e58146d1
+      SANDMAN_WINTER_V2_SOURCE_SHA: 15cacf7cac4efed49f505c88435ec3342603e1fc
       SANDMAN_WINTER_V2_HOSTING_APPROVAL: ${{ inputs.winter_v2_hosting_approval }}
     steps:
       - name: Verify protected three-asset staging Hosting scope
@@ -1701,7 +1705,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: f801d51d6b6346b112548538977f9ec0e58146d1
+          ref: 15cacf7cac4efed49f505c88435ec3342603e1fc
           path: application
           persist-credentials: false
           fetch-depth: 0
@@ -1711,14 +1715,18 @@ jobs:
           test "$(git -C application rev-parse HEAD)" = "$SANDMAN_WINTER_V2_SOURCE_SHA"
           git -C application diff --name-only 17146b7ced7d4e3f116f012fb8eb1f6f04d69000 "$SANDMAN_WINTER_V2_SOURCE_SHA" | sort > /tmp/winter-v2-actual-files.txt
           cat > /tmp/winter-v2-expected-files.txt <<'EOF'
+          .github/workflows/winter-v2-pricing-tests.yml
           functions/src/billing/seasonalProposalCheckout.ts
           functions/src/billing/seasonalProposalWebhook.ts
           functions/src/billing/webhook.ts
           functions/src/proposals/seasonalProposal.ts
+          functions/src/proposals/seasonalWrestlingFramework.ts
           functions/src/proposals/winterWrestlingSeasonPolicy.ts
+          functions/tests/seasonalWrestlingFramework.test.cjs
           functions/tests/winterWrestlingSeasonPolicy.test.cjs
           public/connect/admissions/calculator/calculator.js
           public/connect/admissions/calculator/index.html
+          public/promotions/winter-wrestling/index.html
           public/promotions/winter-wrestling/winter-wrestling.js
           tests/emulator/winter-wrestling-seasonal-webhook.test.mjs
           EOF
