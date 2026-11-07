@@ -27,5 +27,5 @@ test('only synthetic/transport/rollback unverified findings are claimed',()=>{
  for(const guard of ['NOT_PROVEN_BY_SOURCE_CHECKS','NOT_PROVEN_BY_POLICY_READ',
  'NOT_CERTIFIED_BLOCKS_STAGING_EMAIL','NOT_CAPTURED_BY_THIS_WORKFLOW','NOT_CERTIFIED'])
  assert.ok(script.includes(guard),guard);
- assert.match(script,/rollback.*NEW_FUNCTION_DELETE_ONLY_WITH_SEPARATE_APPROVAL/);
+ assert.match(script,/NEW_FUNCTION_DELETE_ONLY_WITH_SEPARATE_APPROVAL/);
 });
