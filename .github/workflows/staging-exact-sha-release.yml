@@ -2003,8 +2003,36 @@ jobs:
               continue
             fi
             generation="$(jq -r '.environment // "UNKNOWN"' "evidence/${fn}/function.raw.json")"
-            jq '{name,state,environment,updateTime,runtime:(.buildConfig.runtime // .runtime),entryPoint:(.buildConfig.entryPoint // .entryPoint),revision:.serviceConfig.revision,serviceAccount:(.serviceConfig.serviceAccountEmail // .serviceAccountEmail),ingressSettings:.serviceConfig.ingressSettings,secretKeys:[.serviceConfig.secretEnvironmentVariables[]?.key]}' "evidence/${fn}/function.raw.json" > "evidence/${fn}/function.summary.json"
-            rm "evidence/${fn}/function.raw.json"
+            # The legacy Gen1 Intake callable is returned by the default gcloud
+            # describe command without an environment discriminator. Verify it
+            # explicitly as Gen1; never infer Gen1 from a missing field alone.
+            if test "${fn}" = sendEnrollmentIntakeEmail && test "${generation}" = UNKNOWN; then
+              if ! gcloud functions describe "${fn}" --gen1 --region=us-central1 --project=sandman-combat-staging --format=json > "evidence/${fn}/gen1.raw.json"; then
+                rm -f "evidence/${fn}/gen1.raw.json"
+                echo 'GEN1_EXPLICIT_DESCRIPTION_UNVERIFIED' > "evidence/${fn}/status.txt"
+                failures=$((failures+1))
+                rm "evidence/${fn}/function.raw.json"
+                continue
+              fi
+              if ! jq -e --arg fn "${fn}" '
+                .name == ("projects/sandman-combat-staging/locations/us-central1/functions/" + $fn)
+                and .status == "ACTIVE"
+                and .entryPoint == $fn
+                and ((.versionId // "" | tostring | length) > 0)
+                and ((.httpsTrigger.url // "" | length) > 0)
+              ' "evidence/${fn}/gen1.raw.json" >/dev/null; then
+                echo 'GEN1_LEGACY_METADATA_UNVERIFIED' > "evidence/${fn}/status.txt"
+                failures=$((failures+1))
+                rm "evidence/${fn}/gen1.raw.json" "evidence/${fn}/function.raw.json"
+                continue
+              fi
+              jq '{name,status,environment:"GEN_1",versionId,runtime,entryPoint,serviceAccountEmail,triggerType:(if .httpsTrigger.url then "HTTPS" else "UNKNOWN" end)}' "evidence/${fn}/gen1.raw.json" > "evidence/${fn}/function.summary.json"
+              rm "evidence/${fn}/gen1.raw.json" "evidence/${fn}/function.raw.json"
+              generation=GEN_1
+            else
+              jq '{name,state,environment,updateTime,runtime:(.buildConfig.runtime // .runtime),entryPoint:(.buildConfig.entryPoint // .entryPoint),revision:.serviceConfig.revision,serviceAccount:(.serviceConfig.serviceAccountEmail // .serviceAccountEmail),ingressSettings:.serviceConfig.ingressSettings,secretKeys:[.serviceConfig.secretEnvironmentVariables[]?.key]}' "evidence/${fn}/function.raw.json" > "evidence/${fn}/function.summary.json"
+              rm "evidence/${fn}/function.raw.json"
+            fi
             if ! gcloud functions get-iam-policy "${fn}" --region=us-central1 --project=sandman-combat-staging --format=json |
               jq -S . | sha256sum | cut -d' ' -f1 > "evidence/${fn}/function-iam.sha256"; then
               echo 'FUNCTION_IAM_UNVERIFIED' > "evidence/${fn}/status.txt"
