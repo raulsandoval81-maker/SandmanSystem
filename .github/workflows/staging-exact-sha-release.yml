@@ -110,6 +110,7 @@ on:
           - winter-management-pricing-deploy
           - winter-promotions-preflight
           - winter-promotions-deploy
+          - emmett-2c-readonly-inventory
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
         required: false
@@ -1916,3 +1917,102 @@ jobs:
           else
             exit 1
           fi
+
+  emmett-2c-readonly-inventory:
+    # Separate read-only action in the established staging OIDC-authorized workflow.
+    # No deployment, IAM mutation, payment, or Hosting publication is possible here.
+    if: ${{ inputs.action == 'emmett-2c-readonly-inventory' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Verify exact trusted workflow and fail-closed 2C scope
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          test "${GITHUB_REPOSITORY}" = "raulsandoval81-maker/SandmanSystem"
+          test "${GITHUB_REF}" = "refs/heads/main"
+          test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "${CONFIRM_PROJECT}" = "sandman-combat-staging"
+          node - <<'NODE'
+          const fs = require('fs');
+          const plan = JSON.parse(fs.readFileSync('scripts/staging/emmett-2c-readonly-preflight-plan.json','utf8'));
+          const expected = [
+            'recordProposalPrepaidCash',
+            'sendProposalPrepaidCashReceipt',
+            'sendEnrollmentIntakeEmail',
+            'issueProposalEnrollmentHandoff',
+            'approveAndActivate',
+          ];
+          if(plan.repository!=='raulsandoval81-maker/SandmanSystem' ||
+             plan.targetProject!=='sandman-combat-staging' ||
+             plan.applicationSha!=='b4b40798b58aac46706dce984427e77d501855e7' ||
+             plan.mode!=='validation-only' || plan.syntheticDataOnly!==true ||
+             plan.deploymentAuthorized!==false || plan.productionAuthorized!==false ||
+             JSON.stringify(plan.functionsToInventory)!==JSON.stringify(expected)) process.exit(64);
+          fs.writeFileSync('evidence/functions.txt', expected.join('\n')+'\n');
+          fs.writeFileSync('evidence/inventory-scope.json', JSON.stringify({
+            project:plan.targetProject, source:plan.applicationSha,
+            mode:'read-only', permittedFunctions:expected,
+          }, null, 2)+'\n');
+          NODE
+      - name: Authenticate using existing staging Functions identity and authorized workflow
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Inventory current Functions, Cloud Run revisions and IAM hashes without writes
+        run: |
+          set -euo pipefail
+          failures=0
+          while IFS= read -r fn; do
+            test -n "${fn}"
+            mkdir -p "evidence/${fn}"
+            if ! gcloud functions describe "${fn}" --v2 --region=us-central1 --project=sandman-combat-staging --format=json > "evidence/${fn}/function.raw.json" 2>/dev/null; then
+              rm -f "evidence/${fn}/function.raw.json"
+              echo 'ABSENT_OR_INACCESSIBLE: verify before any release' > "evidence/${fn}/status.txt"
+              failures=$((failures+1))
+              continue
+            fi
+            jq '{name,state,updateTime,runtime:.buildConfig.runtime,entryPoint:.buildConfig.entryPoint,revision:.serviceConfig.revision,serviceAccount:.serviceConfig.serviceAccountEmail,ingressSettings:.serviceConfig.ingressSettings,secretKeys:[.serviceConfig.secretEnvironmentVariables[]?.key]}' "evidence/${fn}/function.raw.json" > "evidence/${fn}/function.summary.json"
+            rm "evidence/${fn}/function.raw.json"
+            if ! gcloud functions get-iam-policy "${fn}" --region=us-central1 --project=sandman-combat-staging --format=json |
+              jq -S . | sha256sum | cut -d' ' -f1 > "evidence/${fn}/function-iam.sha256"; then
+              echo 'FUNCTION_IAM_UNVERIFIED' > "evidence/${fn}/status.txt"
+              failures=$((failures+1))
+              continue
+            fi
+            service="$(printf '%s' "${fn}" | tr '[:upper:]' '[:lower:]')"
+            if ! gcloud run services describe "${service}" --region=us-central1 --project=sandman-combat-staging --format=json |
+              jq '{name:.metadata.name,latestReadyRevision:.status.latestReadyRevisionName,traffic:.status.traffic,invokerIamDisabled:.metadata.annotations["run.googleapis.com/invoker-iam-disabled"]}' > "evidence/${fn}/run.summary.json"; then
+              echo 'RUN_SERVICE_UNVERIFIED' > "evidence/${fn}/status.txt"
+              failures=$((failures+1))
+              continue
+            fi
+            if ! gcloud run services get-iam-policy "${service}" --region=us-central1 --project=sandman-combat-staging --format=json |
+              jq -S . | sha256sum | cut -d' ' -f1 > "evidence/${fn}/run-iam.sha256"; then
+              echo 'RUN_IAM_UNVERIFIED' > "evidence/${fn}/status.txt"
+              failures=$((failures+1))
+              continue
+            fi
+            echo 'INVENTORIED_READ_ONLY' > "evidence/${fn}/status.txt"
+          done < evidence/functions.txt
+          echo "Inventory entries needing manual review: ${failures}"
+          test "${failures}" -eq 0
+      - name: Preserve read-only inventory even when authentication is rejected
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: emmett-2c-authorized-staging-inventory-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
