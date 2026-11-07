@@ -25,6 +25,9 @@ export function verifyPrepaidConversionSource(input: {
   if (!source || clean(source.locationId) !== clean(target.locationId)) {
     throw new Error("The prior agreement must exist in the same location.");
   }
+  if (normal(source.status) !== "paid") {
+    throw new Error("The prior agreement must have a verified PAID status before conversion.");
+  }
   // Do not migrate a family away from an existing live recurring charge.
   // Existing subscription state must be investigated and resolved separately.
   if (clean(source.stripeSubscriptionId) &&
