@@ -13,6 +13,9 @@ on:
       - 'tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs'
       - 'scripts/staging/emmett-2c-receipt-readonly-preflight.py'
       - 'tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs'
+      - 'scripts/staging/emmett-2c-receipt-isolated-candidate.cjs'
+      - 'scripts/staging/emmett-2c-receipt-package-security-review.json'
+      - 'tests/functions/emmett-2c-receipt-isolated-candidate.test.mjs'
 
 permissions:
   contents: read
@@ -33,7 +36,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate offline manifest and code contracts
-        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs
+        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs tests/functions/emmett-2c-receipt-isolated-candidate.test.mjs
       - name: Compile source-only Python preflight
         run: python3 -m py_compile scripts/staging/emmett-2c-receipt-readonly-preflight.py
       - name: Assert secrets are unavailable
@@ -41,3 +44,47 @@ jobs:
           test -z "${STRIPE_SECRET_KEY}"
           test -z "${RESEND_API_KEY}"
           test -z "${GOOGLE_APPLICATION_CREDENTIALS}"
+
+  candidate-source-build:
+    # Validation only. Separate checkout of pinned source; no cloud or payment
+    # credentials and no deploy artifact or deployment approval produced.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: b4b40798b58aac46706dce984427e77d501855e7
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assemble isolated receipt-only source candidate
+        run: |
+          set -euo pipefail
+          test -z "$STRIPE_SECRET_KEY" && test -z "$RESEND_API_KEY" && test -z "$GOOGLE_APPLICATION_CREDENTIALS"
+          node trusted-tooling/scripts/staging/emmett-2c-receipt-isolated-candidate.cjs prepare application /tmp/emmett-2c-receipt-candidate
+      - name: Compile receipt candidate with pinned lockfile; no provider connection
+        run: |
+          set -euo pipefail
+          cd /tmp/emmett-2c-receipt-candidate
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+      - name: Verify compiled entrypoint and exact source closure
+        run: |
+          set -euo pipefail
+          node trusted-tooling/scripts/staging/emmett-2c-receipt-isolated-candidate.cjs verify application /tmp/emmett-2c-receipt-candidate
+          node -e 'const r=require("/tmp/emmett-2c-receipt-candidate/lib/index.js");const keys=Object.keys(r).sort();if(JSON.stringify(keys)!==JSON.stringify(["sendProposalPrepaidCashReceipt"]))process.exit(1);'
+      - name: Confirm never authorized for staging deployment
+        run: |
+          node -e 'const p=require("./trusted-tooling/scripts/staging/emmett-2c-receipt-package-security-review.json");if(Object.values(p.authorization).some(Boolean)||p.security.syntheticRecipientEnforcement!=="UNVERIFIED")process.exit(1);'
