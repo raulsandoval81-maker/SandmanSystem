@@ -2014,22 +2014,28 @@ jobs:
                 failures=$((failures+1))
                 continue
               fi
+              # --v2 also returns Gen1 resources. Trust its explicit environment,
+              # but only after validating the exact Function identity and state.
               if ! jq -e --arg fn "${fn}" '
                 .name == ("projects/sandman-combat-staging/locations/us-central1/functions/" + $fn)
                 and .state == "ACTIVE"
                 and .buildConfig.entryPoint == $fn
                 and ((.buildConfig.runtime // "" | length) > 0)
-                and ((.serviceConfig.service // "") | startswith("projects/sandman-combat-staging/locations/us-central1/services/"))
+                and (
+                  (.environment == "GEN_1" and (.serviceConfig.service // null) == null)
+                  or
+                  (.environment == "GEN_2" and ((.serviceConfig.service // "") | startswith("projects/sandman-combat-staging/locations/us-central1/services/")))
+                )
               ' "evidence/${fn}/v2.raw.json" >/dev/null; then
                 jq '{name,state,environment,entryPoint:.buildConfig.entryPoint,serviceResource:.serviceConfig.service}' "evidence/${fn}/v2.raw.json" > "evidence/${fn}/unverified-metadata.json"
-                echo 'GEN2_SERVICE_RESOURCE_UNVERIFIED' > "evidence/${fn}/status.txt"
+                echo 'INTAKE_GENERATION_OR_SERVICE_UNVERIFIED' > "evidence/${fn}/status.txt"
                 rm "evidence/${fn}/v2.raw.json" "evidence/${fn}/function.raw.json"
                 failures=$((failures+1))
                 continue
               fi
               mv "evidence/${fn}/v2.raw.json" "evidence/${fn}/function.raw.json"
-              generation=GEN_2
-              service_resource="$(jq -r '.serviceConfig.service' "evidence/${fn}/function.raw.json")"
+              generation="$(jq -r '.environment' "evidence/${fn}/function.raw.json")"
+              service_resource="$(jq -r '.serviceConfig.service // ""' "evidence/${fn}/function.raw.json")"
             fi
             jq '{name,state,environment,updateTime,runtime:(.buildConfig.runtime // .runtime),entryPoint:(.buildConfig.entryPoint // .entryPoint),revision:.serviceConfig.revision,serviceResource:.serviceConfig.service,serviceAccount:(.serviceConfig.serviceAccountEmail // .serviceAccountEmail),ingressSettings:.serviceConfig.ingressSettings,secretKeys:[.serviceConfig.secretEnvironmentVariables[]?.key]}' "evidence/${fn}/function.raw.json" > "evidence/${fn}/function.summary.json"
             rm "evidence/${fn}/function.raw.json"
