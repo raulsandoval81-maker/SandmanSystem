@@ -13,7 +13,7 @@ export type WrestlingTrainingSchedule =
   | "tuesday-thursday-saturday";
 
 export const SEASONAL_WRESTLING_SHARED_POLICY = Object.freeze({
-  firstAthleteEarlyCents: 30000,
+  firstAthleteEarlyCents: 32000,
   firstAthleteRegularCents: 35000,
   additionalSiblingCents: 15000,
   waivedAnnualEnrollmentPerAthleteCents: 3000,
