@@ -15,8 +15,8 @@ export const WINTER_WRESTLING_2026_27 = {
   earlyPerAthleteCents: 32000,
   additionalSiblingCents: 15000,
   enrollmentFeeWaivedPerAthleteCents: 3000,
-  earlyRegistrationDeadline: "2026-11-27",
-  earlyPaymentGraceDeadline: "2026-11-30",
+  earlyRegistrationDeadline: "2026-11-30",
+  earlyPaymentGraceDeadline: "2026-12-03",
   installmentPricesCents: {
     15000: "price_1UVehY2KGvRzqoOH04eDIS3k",
     20000: "price_1UVeha2KGvRzqoOHIhFxKnAT",
@@ -192,7 +192,7 @@ export function buildWinterWrestlingSchedule(
     throw new Error("Enrollment date falls after winter season ends.");
   }
   if (earlyRegistration && enrollmentDate > WINTER_WRESTLING_2026_27.earlyRegistrationDeadline) {
-    throw new Error("Early registration is limited to enrollment through November 27, 2026.");
+    throw new Error("Early registration is limited to enrollment through November 30, 2026.");
   }
   const plan = winterWrestlingPaymentPlan(athleteCount, payInFull, earlyRegistration);
   const proration = winterWrestlingProration({
@@ -251,7 +251,7 @@ export function winterWrestlingPacificDate(timestampMs: number): string {
   return `${part("year")}-${part("month")}-${part("day")}`;
 }
 
-/** New discounted checkout starts stop Nov 27; eligible retries end Nov 30. */
+/** Early Checkout starts through Nov 30; eligible retries end Dec 3. */
 export function winterWrestlingEarlyCheckoutAllowed(input: {
   today: string;
   initialCheckoutDate?: string | null;
@@ -262,7 +262,7 @@ export function winterWrestlingEarlyCheckoutAllowed(input: {
     input.initialCheckoutDate <= WINTER_WRESTLING_2026_27.earlyRegistrationDeadline;
 }
 
-/** Payment is only eligible for automatic enrollment through Nov 30 Pacific. */
+/** Already-started early Checkout payments can settle through Dec 3 Pacific. */
 export function winterWrestlingEarlyPaymentOnTime(eventCreatedSeconds: number | undefined): boolean {
   return typeof eventCreatedSeconds === "number" &&
     Number.isSafeInteger(eventCreatedSeconds) &&
