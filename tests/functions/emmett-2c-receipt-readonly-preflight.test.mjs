@@ -36,3 +36,16 @@ test('metadata is sanitized and missing target is a fail-closed inventory prereq
  assert.match(script,/sourceIsolationStatus.*NOT_YET_VERIFIED_TRANSITIVE_BUILD/);
  assert.match(script,/secretValueAccessAuthorized/);
 });
+
+test('cloud failures are sanitized and classified without hiding independent checks',()=>{
+  for(const category of ['PERMISSION_DENIED','NOT_FOUND','AUTHENTICATION','CLI_ARGUMENT','UNKNOWN'])
+    assert.ok(script.includes('"' + category + '"'),category);
+  assert.match(script,/fingerprint = hashlib\.sha256\(result\.stderr\.encode\(\)\)/);
+  assert.doesNotMatch(script,/print\(result\.stderr\)|errors\.append\(result\.stderr\)/);
+  assert.match(script,/principal=.*str\(exc\)/);
+  assert.match(script,/secret\.metadata/);
+  assert.match(script,/secret\.versions/);
+  assert.match(script,/secret\.iam/);
+  assert.match(script,/readOnlyMetadataChecksPassed.*not errors/);
+  assert.match(script,/return 1/);
+});
