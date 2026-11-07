@@ -1,0 +1,44 @@
+name: Winter V2 pricing and installment tests
+
+on:
+  push:
+    branches:
+      - campaign/winter-wrestling-v2-downstream
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'functions/src/proposals/winterWrestlingSeasonPolicy.ts'
+      - 'functions/src/proposals/seasonalProposal.ts'
+      - 'functions/src/proposals/seasonalWrestlingFramework.ts'
+      - 'functions/src/billing/seasonalProposalCheckout.ts'
+      - 'functions/src/billing/seasonalProposalWebhook.ts'
+      - 'functions/tests/winterWrestlingSeasonPolicy.test.cjs'
+      - 'functions/tests/seasonalWrestlingFramework.test.cjs'
+      - '.github/workflows/winter-v2-pricing-tests.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pricing:
+    name: Build and verify family tuition, waiver, and deadline rules
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Install Functions dependencies
+        run: npm ci --prefix functions
+      - name: Compile TypeScript with strict checks
+        run: npm run build --prefix functions
+      - name: Execute focused Winter V2 policy tests
+        run: node --test functions/tests/winterWrestlingSeasonPolicy.test.cjs functions/tests/seasonalWrestlingFramework.test.cjs
+      - name: Explicit safety boundary
+        run: |
+          echo "No Stripe calls, Firestore writes or Hosting releases in this workflow."
