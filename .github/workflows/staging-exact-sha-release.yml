@@ -86,6 +86,7 @@ on:
           - promotions-contrast-pr322-b48c9c0
           - promotions-final-pr325-c4df1254
           - winter-v2-pr490-f801d51d
+          - winter-management-pr528-e19f9cf
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -104,12 +105,18 @@ on:
           - winter-v2-deploy
           - winter-v2-hosting-preflight
           - winter-v2-hosting-deploy
+          - winter-management-pricing-preflight
+          - winter-management-pricing-deploy
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
         required: false
         type: string
       winter_v2_hosting_approval:
         description: For Winter V2 three-asset staging Hosting overlay only, type APPROVE_WINTER_V2_STAGING_THREE_ASSETS
+        required: false
+        type: string
+      winter_management_pricing_approval:
+        description: For Winter Management Pricing two-asset staging Hosting release only, type APPROVE_WINTER_MANAGEMENT_STAGING_TWO_ASSETS
         required: false
         type: string
       confirm_two_billing_functions:
@@ -1758,3 +1765,75 @@ jobs:
             exit 1
           fi
 
+
+  winter-management-pricing-hosting-overlay:
+    if: ${{ inputs.action == 'winter-management-pricing-preflight' || inputs.action == 'winter-management-pricing-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_MANAGEMENT_PRICING_SOURCE_SHA: e19f9cfb245972b4872fb185c09bfd9a287910b4
+      SANDMAN_MANAGEMENT_PRICING_APPROVAL: ${{ inputs.winter_management_pricing_approval }}
+    steps:
+      - name: Enforce Management two-file staging-only release
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+          SELECTED_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$RELEASE_ID" = "winter-management-pr528-e19f9cf"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$SANDMAN_STAGING_PROJECT_ID" = "sandman-combat-staging"
+          if test "$SELECTED_ACTION" = winter-management-pricing-deploy; then
+            test "$SANDMAN_MANAGEMENT_PRICING_APPROVAL" = "APPROVE_WINTER_MANAGEMENT_STAGING_TWO_ASSETS"
+          else
+            test "$SELECTED_ACTION" = winter-management-pricing-preflight
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: e19f9cfb245972b4872fb185c09bfd9a287910b4
+          path: application
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify immutable PR528 source and exact two-file boundary
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$SANDMAN_MANAGEMENT_PRICING_SOURCE_SHA"
+          git -C application diff --name-only bb8c68e0eb18314406b217b03958eb39063f9786 e19f9cfb245972b4872fb185c09bfd9a287910b4 | sort > /tmp/actual-pr528-files
+          printf '%s\n' public/management/pricing/index.html public/management/pricing/winter-seasonal-mode.js > /tmp/expected-pr528-files
+          diff -u /tmp/expected-pr528-files /tmp/actual-pr528-files
+          test -s application/public/management/pricing/index.html
+          test -s application/public/management/pricing/winter-seasonal-mode.js
+          node --check trusted-tooling/scripts/staging/winter-management-pricing-hosting-overlay.mjs
+          node --check application/public/management/pricing/winter-seasonal-mode.js
+      - name: Authenticate existing staging Hosting deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Preflight or publish only two Management Pricing assets
+        env:
+          SELECTED_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          if test "$SELECTED_ACTION" = winter-management-pricing-preflight; then
+            node trusted-tooling/scripts/staging/winter-management-pricing-hosting-overlay.mjs preflight application
+          elif test "$SELECTED_ACTION" = winter-management-pricing-deploy; then
+            node trusted-tooling/scripts/staging/winter-management-pricing-hosting-overlay.mjs deploy application
+          else
+            exit 1
+          fi
