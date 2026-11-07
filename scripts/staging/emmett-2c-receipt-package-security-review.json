@@ -1,0 +1,57 @@
+{
+  "releaseId": "emmett-2c-receipt-candidate-validation-only",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "pinnedApplicationSha": "b4b40798b58aac46706dce984427e77d501855e7",
+  "targetFunction": "sendProposalPrepaidCashReceipt",
+  "mode": "offline-build-and-policy-review",
+  "package": {
+    "entryPoint": "sendProposalPrepaidCashReceipt",
+    "runtime": "nodejs22",
+    "expectedExports": [
+      "sendProposalPrepaidCashReceipt"
+    ],
+    "expectedSourceFiles": [
+      "src/index.ts",
+      "src/billing/sendProposalPrepaidCashReceipt.ts",
+      "src/modules/email/resend.ts",
+      "src/proposals/proposalAccess.ts"
+    ],
+    "deploymentPackagingAuthorized": false
+  },
+  "security": {
+    "staffAuth": "source-gated and emulator cases exist",
+    "locationAuthorization": "source-gated and emulator cases exist",
+    "receiptPaymentValidation": "source-gated and emulator cases exist",
+    "uncertainSendRetry": "source-gated and emulator cases exist",
+    "runtimeSecretEffectiveAccess": "UNVERIFIED",
+    "callableTransportAuth": "UNVERIFIED",
+    "syntheticRecipientEnforcement": "UNVERIFIED",
+    "liveEmailSend": "PROHIBITED"
+  },
+  "rollback": {
+    "targetBefore": "ABSENT in run 42388786652",
+    "ifNewFunctionCreated": "requires separate explicit approval to delete failed/partial new callable",
+    "beforeDeployedRevision": "NOT_APPLICABLE_NEW_FUNCTION",
+    "neighborFunctionBaselines": "NOT_RECAPTURED",
+    "hostingBaseline": "NOT_RECAPTURED"
+  },
+  "authorization": {
+    "deploymentAuthorized": false,
+    "productionAuthorized": false,
+    "iamChangesAuthorized": false,
+    "secretReadAuthorized": false,
+    "realEmailAuthorized": false,
+    "stripeAuthorized": false,
+    "firestoreWriteAuthorized": false,
+    "hostingWriteAuthorized": false
+  },
+  "gatesToDeployment": [
+    "Review transitive source package and artifact hashes",
+    "Obtain independently verified effective Resend secret runtime access without reading value",
+    "Design/test fail-closed synthetic-only delivery policy for staging",
+    "Verify callable auth transport and least privilege",
+    "Capture fresh before-state for target and neighbors, rollback evidence, Hosting baseline",
+    "Receive separate protected exact-one-function deployment approval"
+  ]
+}
