@@ -49,3 +49,17 @@ test('cloud failures are sanitized and classified without hiding independent che
   assert.match(script,/readOnlyMetadataChecksPassed.*not errors/);
   assert.match(script,/return 1/);
 });
+
+test('deployer is proved by pinned trusted WIF and an authenticated staging read, not self-description',()=>{
+ assert.match(script,/DEPLOYER = "sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com"/);
+ assert.match(script,/workflow\.count\(job_marker\) == 1/);
+ assert.match(script,/service_account: /);
+ assert.match(script,/workload_identity_provider: projects\/991554514268/);
+ assert.match(script,/WORKFLOW_IDENTITY_READ_API_VERIFIED_METADATA_NOT_READ/);
+ const accounts=script.slice(script.indexOf('ACCOUNTS = ('),script.indexOf('APPROVED_COMMANDS'));
+ assert.doesNotMatch(accounts,/sandman-practice-deployer/);
+ assert.match(accounts,/sandman-practice-build/);
+ assert.match(accounts,/sandman-billing-runtime/);
+ assert.match(script,/releaseReady": False/);
+ assert.match(script,/deploymentAuthorized": False/);
+});

@@ -16,8 +16,8 @@ PROJECT = "sandman-combat-staging"
 REGION = "us-central1"
 TARGET = "sendProposalPrepaidCashReceipt"
 SHA = "b4b40798b58aac46706dce984427e77d501855e7"
+DEPLOYER = "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com"
 ACCOUNTS = (
-    "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com",
     "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com",
     "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com",
 )
@@ -82,6 +82,19 @@ def main():
     checked = subprocess.check_output(
         ["git", "-C", str(app), "rev-parse", "HEAD"], text=True).strip()
     require(checked == SHA, "Immutable application checkout drift")
+    # Validate the exact identity bound by the trusted protected workflow.
+    # Cloud IAM forbids the deployer from describing itself; a successful
+    # authenticated staging Functions API read establishes the scoped identity
+    # is operational, not that it has deploy permissions.
+    workflow = (root / ".github/workflows/staging-exact-sha-release.yml").read_text()
+    job_marker = "  emmett-2c-receipt-readonly-preflight:"
+    require(workflow.count(job_marker) == 1, "Trusted preflight job identity missing")
+    job_text = workflow.split(job_marker, 1)[1]
+    job_text = job_text.split("\n  ", 1)[0]
+    require("service_account: " + DEPLOYER in job_text and
+            "workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging" in job_text and
+            "project_id: " + PROJECT in job_text,
+            "Trusted preflight workload identity drift")
     entry = (app / "functions/src/index.ts").read_text()
     module = (app / "functions/src/billing/sendProposalPrepaidCashReceipt.ts").read_text()
     require(re.search(r"sendProposalPrepaidCashReceipt", entry) and
@@ -116,6 +129,10 @@ def main():
         functions = run_read("gcloud", "functions", "list",
                              "--regions=" + REGION, "--project=" + PROJECT, "--format=json")
         matching = [x for x in functions if str(x.get("name", "")).endswith("/functions/" + TARGET)]
+        # Successful staging API response with the protected workflow's pinned
+        # impersonation proves this read-only credential operates; it does not
+        # prove that the principal has deploy privileges or read its own metadata.
+        evidence["runtimePrincipals"][DEPLOYER] = "WORKFLOW_IDENTITY_READ_API_VERIFIED_METADATA_NOT_READ"
         if len(matching) == 0:
             evidence["targetFunction"] = "ABSENT_VERIFIED"
         elif len(matching) == 1:
