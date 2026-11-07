@@ -553,6 +553,16 @@ export const approveAndActivate = onCall(async (req) => {
 const existingAthleteUid =
   String((input as any).existingAthleteUid || "").trim();
 
+    // A known existing athlete must never be minted through new-athlete intake.
+    // Re-enrollment is handled separately; add_sport is the only supported
+    // existing-athlete mutation here and requires its own authorization.
+    if (mode === "new_athlete" && existingAthleteUid) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Existing athlete cannot use new-athlete activation. Review the existing athlete enrollment path."
+      );
+    }
+
 const forTrack =
   String((input as any).forTrack || "").trim();
 
