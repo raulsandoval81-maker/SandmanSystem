@@ -1,0 +1,34 @@
+name: 2C staging release plan validation (offline only)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/staging/emmett-2c-readonly-preflight-plan.json'
+      - 'tests/functions/emmett-2c-staging-preflight-plan.test.mjs'
+      - '.github/workflows/2c-staging-release-plan-validation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate offline manifest and code contracts
+        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs
+      - name: Assert secrets are unavailable
+        run: |
+          test -z "${STRIPE_SECRET_KEY}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS}"
