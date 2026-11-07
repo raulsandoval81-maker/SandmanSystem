@@ -365,6 +365,23 @@ test("paid prepaid proposal reaches Intake and real activation callable", async 
   assert.equal(intake.approvedUid, result.uid);
 });
 
+test("2C known existing athlete UID cannot enter new-athlete mint path", async () => {
+  const intakeId = `prepaid-intake-${suffix}`;
+  const existingUid = (await db.doc(`intakes/${intakeId}`).get()).get("approvedUid");
+  assert.ok(existingUid, "Existing athlete must already be activated.");
+  const before = (await db.doc("counters/f8").get()).get("next");
+  await assert.rejects(
+    invoke(activate, manager, {
+      ...activationPayload(intakeId),
+      existingAthleteUid: existingUid,
+      mode: "new_athlete",
+    }),
+    /Existing athlete cannot use new-athlete activation/
+  );
+  assert.equal((await db.doc("counters/f8").get()).get("next"), before);
+  assert.equal((await db.doc(`athletes/${existingUid}`).get()).exists, true);
+});
+
 test("a second activation is rejected and does not create a duplicate athlete", async () => {
   const intakeId = `prepaid-intake-${suffix}`;
   const intake = (await db.doc(`intakes/${intakeId}`).get()).data();
