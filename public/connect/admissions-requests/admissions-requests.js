@@ -207,6 +207,12 @@ function pricingSummary(item) {
   }
 
   if (item.requestType === "SEASONAL_INTEREST") {
+    if (item.campaignId === "winter-wrestling-2026-27" ||
+        item.campaignName === "Winter Wrestling 2026–27") {
+      // Display the approved campaign rate, not a historical client-supplied or
+      // persisted interest-form label. Final pricing remains server-authoritative.
+      return "$320 early first athlete through Nov 30; $350 regular from Dec 1; $150 additional siblings (verify household) · $30 enrollment waived · Management to confirm";
+    }
     return item.campaignPriceLabel || "Seasonal offer · Confirm terms in Management";
   }
 
@@ -551,6 +557,8 @@ function render() {
                     )}
                   </strong>
                 </div>
+
+                ${item.requestType === "SEASONAL_INTEREST" && item.campaignPriceLabel && (item.campaignId === "winter-wrestling-2026-27" || item.campaignName === "Winter Wrestling 2026–27") ? `<div class="detail"><span>Original request offer (historical, not a quote)</span><strong>${esc(item.campaignPriceLabel)}</strong></div>` : ""}
 
                 ${item.requestType === "SEASONAL_INTEREST" ? `<div class="detail"><span>Campaign</span><strong>${esc(item.campaignName || item.campaignId || "—")}</strong></div><div class="detail"><span>Schedule Preference</span><strong>${esc(item.scheduleSelection === "group-c" ? "Group C — " + (Array.isArray(item.preferredWeekdays) ? item.preferredWeekdays.map(day => ({mon:"Monday",tue:"Tuesday",wed:"Wednesday",thu:"Thursday"}[day] || day)).join(" / ") : "select two weekdays") + " + Saturday" : item.schedulePreference || "—")}</strong></div><div class="detail"><span>Family / Scholarship Inquiry</span><strong>${esc([item.familyPricingInterest ? "Family pricing" : "", item.scholarshipInterest ? "Scholarship" : ""].filter(Boolean).join(", ") || "—")}</strong></div>` : ""}
 
