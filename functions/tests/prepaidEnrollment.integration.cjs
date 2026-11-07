@@ -305,7 +305,7 @@ test("conversion refuses a potentially active legacy Stripe subscription", async
   const locked = {...snapshot, prospect,
     pricing:{...snapshot.pricing,enrollmentPreviouslyPaidAmount:30}};
   await db.doc(`proposals/${previousId}`).set({
-    proposalId:previousId,locationId,prospect,
+    proposalId:previousId,locationId,prospect,status:"PAID",
     athletes:snapshot.athletes,
     stripeSubscriptionId:"sub_demo_legacy",
     stripeSubscriptionStatus:"active",
