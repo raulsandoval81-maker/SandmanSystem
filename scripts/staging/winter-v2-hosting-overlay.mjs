@@ -66,9 +66,19 @@ const getFiles = async version => {
     if(pageToken)query.set('pageToken',pageToken);
     const result=await api('https://firebasehosting.googleapis.com/v1beta1/'+version+'/files?'+query);
     for(const f of result.files||[]){
-      if(!/^\/[A-Za-z0-9._~!$&'()+,;=:@%/-]+$/.test(f.path) ||
-         !/^[a-f0-9]{64}$/.test(f.hash) || f.status!=='ACTIVE' || files.has(f.path)) {
-        throw Error('Invalid, incomplete, or duplicate staging asset entry.');
+      // Existing Hosting filenames may contain spaces, brackets, and Unicode.
+      // Preserve safe URLs without rewriting their path names.
+      const segments=typeof f.path==='string' ? f.path.split('/') : [];
+      const pathValid=typeof f.path==='string' && f.path.startsWith('/') &&
+        f.path.length<=2048 && !f.path.includes('\\') &&
+        !/[\x00-\x1F\x7F]/.test(f.path) &&
+        segments.slice(1).every(p=>p!=='' && p!=='.' && p!=='..');
+      const hashValid=typeof f.hash==='string' && /^[a-fA-F0-9]{64}$/.test(f.hash);
+      const active=f.status==='ACTIVE';
+      const unique=!files.has(f.path);
+      if(!pathValid || !hashValid || !active || !unique) {
+        const reason=!pathValid?'unsafe-path':!hashValid?'invalid-hash':!active?'non-active-status':'duplicate-path';
+        throw Error('Staging baseline manifest validation blocked: '+reason+' (page '+(page+1)+'). No Hosting changes made.');
       }
       files.set(f.path,f.hash);
     }
