@@ -1666,7 +1666,7 @@ jobs:
           path: evidence/
           if-no-files-found: warn
 
-winter-v2-hosting-overlay:
+  winter-v2-hosting-overlay:
     if: ${{ inputs.action == 'winter-v2-hosting-preflight' || inputs.action == 'winter-v2-hosting-deploy' }}
     runs-on: ubuntu-24.04
     environment: staging
