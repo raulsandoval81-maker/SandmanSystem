@@ -1,0 +1,218 @@
+name: Winter public interest - protected two-file production Hosting
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Preflight first; deploy only after reviewing live baseline"
+        type: choice
+        required: true
+        default: preflight
+        options:
+          - preflight
+          - deploy
+      confirm_project:
+        description: "Type sandmandashboard"
+        type: string
+        required: true
+      expected_current_release:
+        description: "For deploy: exact live Hosting release printed in preflight"
+        type: string
+        required: false
+      expected_current_version:
+        description: "For deploy: exact live Hosting version printed in preflight"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-hosting
+  cancel-in-progress: false
+
+jobs:
+  release:
+    environment: production
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out immutable public-only source
+        uses: actions/checkout@v4
+        with:
+          ref: 461e4aaf955ee6d5051f8013d6e8bf135aa7337d
+          persist-credentials: false
+      - name: Enforce exact source and public-only scope
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-winter-public-interest-production.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandmandashboard"
+          test "$(git rev-parse HEAD)" = "461e4aaf955ee6d5051f8013d6e8bf135aa7337d"
+          grep -Fq 'Register by November 30, 2026' public/promotions/winter-wrestling/index.html
+          grep -Fq 'Regular first athlete · from Dec 1' public/promotions/winter-wrestling/index.html
+          grep -Fq 'through Nov 30, 2026' public/promotions/winter-wrestling/winter-wrestling.js
+          grep -Fq 'addDoc(collection(db,"admissions_requests"),payload)' public/promotions/winter-wrestling/winter-wrestling.js
+      - name: Authenticate as production Hosting release identity
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Setup Python and Google auth
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install google-auth requests
+      - name: Preflight or deploy exactly two public assets
+        env:
+          MODE: ${{ inputs.mode }}
+          EXPECTED_RELEASE: ${{ inputs.expected_current_release }}
+          EXPECTED_VERSION: ${{ inputs.expected_current_version }}
+        run: |
+          python - <<'PY'
+          import gzip, hashlib, json, os, time, urllib.parse, urllib.request
+          from pathlib import Path
+          import google.auth
+          from google.auth.transport.requests import Request
+
+          site = "sandman-main"
+          paths = (
+              "public/promotions/winter-wrestling/index.html",
+              "public/promotions/winter-wrestling/winter-wrestling.js",
+          )
+          base = "https://firebasehosting.googleapis.com/v1beta1/"
+          mode = os.environ["MODE"]
+          assert mode in ("preflight", "deploy")
+          evidence = Path("winter-public-hosting-evidence")
+          evidence.mkdir(exist_ok=True)
+          creds, project = google.auth.default(scopes=["https://www.googleapis.com/auth/firebase"])
+          assert project == "sandmandashboard", "Production credential/project mismatch"
+          creds.refresh(Request())
+
+          def api(method, path, data=None):
+              payload = None if data is None else json.dumps(data).encode()
+              req = urllib.request.Request(base + path, data=payload, method=method, headers={
+                  "Authorization": "Bearer " + creds.token,
+                  "Content-Type": "application/json",
+              })
+              with urllib.request.urlopen(req, timeout=60) as response:
+                  return json.load(response)
+
+          latest = api("GET", f"sites/{site}/releases?pageSize=1")["releases"][0]
+          release_name = latest["name"]
+          version_name = latest["version"]["name"]
+          version = api("GET", version_name)
+          assert version["status"] == "FINALIZED"
+          assert int(version.get("fileCount", 0)) > 100
+          assert isinstance(version.get("config"), dict) and version["config"], "Missing Hosting config"
+
+          live = {}
+          page = ""
+          while True:
+              suffix = "?pageSize=1000" + ("&pageToken=" + urllib.parse.quote(page) if page else "")
+              batch = api("GET", version_name + "/files" + suffix)
+              for entry in batch.get("files", []):
+                  live[entry["path"]] = entry["hash"]
+              page = batch.get("nextPageToken", "")
+              if not page:
+                  break
+          assert len(live) == int(version["fileCount"]), "Incomplete live Hosting manifest"
+
+          overlay = {}
+          payloads = {}
+          raw_sha256 = {}
+          for relative in paths:
+              body = Path(relative).read_bytes()
+              assert len(body) > 1000, relative
+              digest = hashlib.sha256(body).hexdigest()
+              raw_sha256["/" + relative.removeprefix("public/")] = digest
+              compressed = gzip.compress(body, mtime=0)
+              compressed_hash = hashlib.sha256(compressed).hexdigest()
+              overlay["/" + relative.removeprefix("public/")] = compressed_hash
+              payloads[compressed_hash] = compressed
+          candidates = dict(live)
+          candidates.update(overlay)
+          changed = sorted(path for path, value in candidates.items() if live.get(path) != value)
+          assert set(changed).issubset(overlay), "Unexpected live asset change"
+          assert len(changed) > 0, "Public files already match the current production version"
+
+          report = {
+              "mode": mode, "projectId": "sandmandashboard", "site": site,
+              "sourceSha": "461e4aaf955ee6d5051f8013d6e8bf135aa7337d",
+              "currentRelease": release_name, "currentVersion": version_name,
+              "preservedOtherAssets": len(live) - len(overlay),
+              "allowedFiles": sorted(overlay), "changedFiles": changed,
+              "sourceSha256": raw_sha256, "released": False,
+          }
+          (evidence / "preflight.json").write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2), flush=True)
+          if mode == "preflight":
+              print("PREFLIGHT ONLY: no Hosting writes made", flush=True)
+              raise SystemExit(0)
+
+          assert os.environ["EXPECTED_RELEASE"] == release_name, "Live release baseline changed"
+          assert os.environ["EXPECTED_VERSION"] == version_name, "Live version baseline changed"
+
+          new_version = api("POST", f"sites/{site}/versions", {"config": version["config"]})
+          new_name = new_version["name"]
+          items = list(candidates.items())
+          for offset in range(0, len(items), 900):
+              response = api("POST", new_name + ":populateFiles", {
+                  "files": dict(items[offset:offset + 900])
+              })
+              for digest in response.get("uploadRequiredHashes", []):
+                  assert digest in payloads, "Unexpected upload required for other existing asset"
+                  req = urllib.request.Request(
+                      response["uploadUrl"] + "/" + digest,
+                      data=payloads[digest], method="POST",
+                      headers={"Authorization": "Bearer " + creds.token,
+                               "Content-Type": "application/octet-stream"},
+                  )
+                  with urllib.request.urlopen(req, timeout=60) as uploaded:
+                      assert uploaded.status in (200, 201, 204)
+          api("PATCH", new_name + "?updateMask=status%2Cconfig", {
+              "status": "FINALIZED", "config": version["config"]
+          })
+          recent = api("GET", f"sites/{site}/releases?pageSize=1")["releases"][0]
+          assert recent["name"] == release_name and recent["version"]["name"] == version_name, (
+              "Live Hosting changed during preparation; refusing release"
+          )
+          released = api("POST", f"sites/{site}/releases?versionName=" +
+                         urllib.parse.quote(new_name, safe="/"), {})
+          report.update({"released": True, "newVersion": new_name,
+                         "newRelease": released["name"], "rollbackVersion": version_name})
+          (evidence / "release.json").write_text(json.dumps(report, indent=2) + "\n")
+          print("Production two-file overlay published:", released["name"], flush=True)
+
+          # Public GET verifies only (no form submission and no real customer data).
+          for host in ("https://sandmancombat.com", "https://sandman-main.web.app"):
+              for path, expected in raw_sha256.items():
+                  verified = False
+                  for attempt in range(5):
+                      try:
+                          with urllib.request.urlopen(host + path + "?release=" +
+                                  urllib.parse.quote(new_name.rsplit("/", 1)[-1]),
+                                  timeout=30) as resp:
+                              actual = hashlib.sha256(resp.read()).hexdigest()
+                          if actual == expected:
+                              verified = True
+                              break
+                      except Exception:
+                          pass
+                      if attempt < 4:
+                          time.sleep(2)
+                  assert verified, f"Published file hash did not match: {host}{path}"
+          (evidence / "verified.json").write_text(json.dumps({
+              "hosts": ["https://sandmancombat.com", "https://sandman-main.web.app"],
+              "files": raw_sha256, "verified": True,
+          }, indent=2) + "\n")
+          print("Both public hosts verified against immutable source bytes.", flush=True)
+          PY
+      - name: Preserve preflight/release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: winter-public-interest-hosting-${{ github.run_id }}-${{ inputs.mode }}
+          path: winter-public-hosting-evidence/
+          if-no-files-found: warn
