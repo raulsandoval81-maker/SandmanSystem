@@ -28,7 +28,7 @@ test("staging inventory contains only read-only cloud commands", () => {
   const commands = [...job.matchAll(/\bgcloud (functions|run) ([^\n]+)/g)].map(m => m[0].trim());
   assert.ok(commands.length >= 4, "Expected Function/Cloud Run describe and IAM inspections");
   for (const line of commands) {
-    assert.match(line, /^gcloud (?:functions (?:describe|get-iam-policy)|run services (?:describe|get-iam-policy)) /);
+    assert.match(line, /^gcloud (?:functions (?:list|describe|get-iam-policy)|run services (?:describe|get-iam-policy)) /);
     assert.doesNotMatch(line, /\b(?:deploy|update|create|delete|set-iam-policy|add-iam-policy-binding)\b/);
   }
   assert.match(job, /if-no-files-found: warn/);
