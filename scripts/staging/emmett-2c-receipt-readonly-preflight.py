@@ -40,8 +40,19 @@ def run_read(*args):
     if result.returncode:
         # Never persist/echo raw cloud diagnostics or credentials.
         fingerprint = hashlib.sha256(result.stderr.encode()).hexdigest()[:12]
+        diagnostic = result.stderr.lower()
+        if re.search(r"permission.denied|permission denied|does not have permission|forbidden|\\b403\\b", diagnostic):
+            category = "PERMISSION_DENIED"
+        elif re.search(r"not.found|not found|does not exist|\\b404\\b", diagnostic):
+            category = "NOT_FOUND"
+        elif re.search(r"unauthorized|unauthenticated|\\b401\\b|invalid credential", diagnostic):
+            category = "AUTHENTICATION"
+        elif re.search(r"unrecognized arguments|invalid choice|unknown command|invalid argument", diagnostic):
+            category = "CLI_ARGUMENT"
+        else:
+            category = "UNKNOWN"
         raise RuntimeError("Read-only metadata query failed: " + " ".join(args[:3]) +
-                           " fingerprint=" + fingerprint)
+                           " category=" + category + " fingerprint=" + fingerprint)
     return json.loads(result.stdout)
 
 def digest(value):
@@ -113,27 +124,41 @@ def main():
         else:
             errors.append("Unexpected duplicate target listings")
         for account in ACCOUNTS:
-            principal = run_read("gcloud", "iam", "service-accounts", "describe", account,
-                                 "--project=" + PROJECT, "--format=json")
-            require(principal.get("email") == account and principal.get("disabled") is not True,
-                    "Service account missing or disabled: " + account)
-            evidence["runtimePrincipals"][account] = "EXISTS_ENABLED"
-        metadata = run_read("gcloud", "secrets", "describe", "RESEND_API_KEY",
-                            "--project=" + PROJECT, "--format=json")
-        require(str(metadata.get("name", "")).endswith("/secrets/RESEND_API_KEY"),
-                "Secret metadata identity mismatch")
-        evidence["secret"]["metadataPresent"] = True
-        evidence["secret"]["metadataDigestSha256"] = digest({
-            "name": metadata.get("name"), "createTime": metadata.get("createTime"),
-            "replication": metadata.get("replication")})
-        versions = run_read("gcloud", "secrets", "versions", "list", "RESEND_API_KEY",
-                            "--filter=state=ENABLED", "--project=" + PROJECT, "--format=json")
-        evidence["secret"]["enabledVersionPresent"] = len(versions) > 0
-        require(evidence["secret"]["enabledVersionPresent"], "No enabled Resend secret version")
-        policy = run_read("gcloud", "secrets", "get-iam-policy", "RESEND_API_KEY",
-                          "--project=" + PROJECT, "--format=json")
-        evidence["secret"]["iamFingerprintSha256"] = digest(policy)
-        evidence["secret"]["iamBindingCount"] = len(policy.get("bindings", []))
+            try:
+                principal = run_read("gcloud", "iam", "service-accounts", "describe", account,
+                                     "--project=" + PROJECT, "--format=json")
+                require(principal.get("email") == account and principal.get("disabled") is not True,
+                        "Service account missing or disabled: " + account)
+                evidence["runtimePrincipals"][account] = "EXISTS_ENABLED"
+            except Exception as exc:
+                # Do not report a missing account when the metadata lookup was denied.
+                evidence["runtimePrincipals"][account] = "UNVERIFIED"
+                errors.append("principal=" + account + " " + str(exc))
+        try:
+            metadata = run_read("gcloud", "secrets", "describe", "RESEND_API_KEY",
+                                "--project=" + PROJECT, "--format=json")
+            require(str(metadata.get("name", "")).endswith("/secrets/RESEND_API_KEY"),
+                    "Secret metadata identity mismatch")
+            evidence["secret"]["metadataPresent"] = True
+            evidence["secret"]["metadataDigestSha256"] = digest({
+                "name": metadata.get("name"), "createTime": metadata.get("createTime"),
+                "replication": metadata.get("replication")})
+        except Exception as exc:
+            errors.append("secret.metadata " + str(exc))
+        try:
+            versions = run_read("gcloud", "secrets", "versions", "list", "RESEND_API_KEY",
+                                "--filter=state=ENABLED", "--project=" + PROJECT, "--format=json")
+            evidence["secret"]["enabledVersionPresent"] = len(versions) > 0
+            require(evidence["secret"]["enabledVersionPresent"], "No enabled Resend secret version")
+        except Exception as exc:
+            errors.append("secret.versions " + str(exc))
+        try:
+            policy = run_read("gcloud", "secrets", "get-iam-policy", "RESEND_API_KEY",
+                              "--project=" + PROJECT, "--format=json")
+            evidence["secret"]["iamFingerprintSha256"] = digest(policy)
+            evidence["secret"]["iamBindingCount"] = len(policy.get("bindings", []))
+        except Exception as exc:
+            errors.append("secret.iam " + str(exc))
         # A secret's IAM policy alone cannot establish effective permissions:
         # org/project inherited permissions and service agent relationships need review.
         evidence["secret"]["effectiveRuntimeAccess"] = "NOT_YET_VERIFIED"
