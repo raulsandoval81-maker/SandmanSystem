@@ -55,13 +55,19 @@ test("new receipt requires verified absence and separate bootstrap before any re
   assert.match(job, /test.*failures.*-eq 0/);
 });
 
-test("legacy Intake Gen1 is verified explicitly, not inferred from a missing environment", () => {
-  assert.match(job, /fn.*sendEnrollmentIntakeEmail && test.*generation.*UNKNOWN/);
-  assert.match(job, /gcloud functions describe.*--gen1 --region=us-central1/);
-  assert.match(job, /\.status == "ACTIVE"/);
-  assert.match(job, /\.versionId/);
-  assert.match(job, /\.httpsTrigger\.url/);
-  assert.match(job, /GEN1_LEGACY_METADATA_UNVERIFIED/);
+test("Intake with omitted environment requires explicit Gen2 service verification", () => {
+  assert.match(job, /fn.*sendEnrollmentIntakeEmail/);
+  assert.match(job, /gcloud functions describe.*--v2 --region=us-central1/);
+  assert.match(job, /\.state == "ACTIVE"/);
+  assert.match(job, /\.buildConfig\.entryPoint == \$fn/);
+  assert.match(job, /\.serviceConfig\.service/);
+  assert.match(job, /GEN2_SERVICE_RESOURCE_UNVERIFIED/);
+  assert.match(job, /MISSING_AUTHORITATIVE_RUN_SERVICE/);
   assert.match(job, /UNKNOWN_GENERATION: manual verification required/);
   assert.match(job, /releaseReady: false/);
+});
+test("Cloud Run service uses authoritative project-scoped resource when available", () => {
+  assert.match(job, /service_resource.*jq -r/);
+  assert.match(job, /projects\/sandman-combat-staging\/locations\/us-central1\/services\/\*/);
+  assert.match(job, /service="\$\{service_resource##\*?\/\}"/);
 });
