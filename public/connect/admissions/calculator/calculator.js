@@ -173,21 +173,8 @@ async function loadAdmissionsRequest() {
     return;
   }
 
-  console.log(
-    "Admissions request loaded:",
-    {
-      id: snapshot.id,
-      ...snapshot.data()
-    }
-  );
+  return { id: snapshot.id, ...snapshot.data() };
 }
-
-loadAdmissionsRequest().catch((error) => {
-  console.error(
-    "Unable to load admissions request:",
-    error
-  );
-});
 
 async function loadAdmissionsAppointment() {
   if (!appointmentId) {
@@ -1757,6 +1744,13 @@ const extras = {
       const listCents = 35000 + Math.max(0, athleteCount - 1) * 15000;
       const baseCents = (early ? 32000 : 35000) + Math.max(0, athleteCount - 1) * 15000;
       const schedule = el.seasonalSchedule.value;
+      if (!["monday-wednesday-saturday", "tuesday-thursday-saturday"].includes(schedule)) {
+        el.summary.textContent = "Management must confirm Group A or Group B before issuing a Winter Wrestling proposal.";
+        el.breakdown.textContent = "Seasonal schedule approval required.";
+        el.dueNow.textContent = "—";
+        el.monthlyTotal.textContent = "No recurring charge";
+        return null;
+      }
       const enrollmentDate = el.seasonalEnrollmentDate.value;
       const start = new Date("2026-11-30T12:00:00Z");
       const end = new Date("2027-02-27T12:00:00Z");
@@ -2698,6 +2692,61 @@ alert(
       return true;
     }
 
+    function prefillFromAdmissionsRequest(request) {
+      if (!request) throw new Error("Admissions request not found.");
+      const isWinter = request.requestType === "SEASONAL_INTEREST"
+        && request.campaignId === "winter-wrestling-2026-27";
+      el.familyName.value = String(request.contactName || "").trim();
+      el.athleteList.innerHTML = "";
+      addAthlete({
+        name: String(request.athleteName || "").trim(),
+        journey: "zero2hero",
+        enrollmentType: "youth",
+        plan: "standard",
+        trainingAccess: "core-2",
+        disciplines: ["wrestling"]
+      });
+      if (isWinter) {
+        if (!el.billingProgram || !el.seasonalSchedule || !el.seasonalEnrollmentDate) {
+          throw new Error("This Management Builder does not support Winter Wrestling yet.");
+        }
+        el.billingProgram.value = "seasonal_one_time";
+        const map = {
+          "mon-wed-sat": "monday-wednesday-saturday",
+          "tue-thu-sat": "tuesday-thursday-saturday"
+        };
+        const requestedSchedule = String(request.scheduleSelection || request.schedulePreference || "");
+        const knownSchedule = map[requestedSchedule];
+        if (knownSchedule) {
+          el.seasonalSchedule.value = knownSchedule;
+        } else {
+          // Group C / unsure must be deliberately resolved by Management.
+          if (!el.seasonalSchedule.querySelector('option[value=""]')) {
+            el.seasonalSchedule.insertAdjacentHTML("afterbegin", '<option value="">Confirm approved schedule with family</option>');
+          }
+          el.seasonalSchedule.value = "";
+        }
+        el.seasonalEnrollmentDate.value = "";
+        el.seasonalPayInFull.checked = false;
+        if (el.seasonalSiblingVerified) el.seasonalSiblingVerified.checked = false;
+        if (el.lateEnrollmentReviewed) el.lateEnrollmentReviewed.checked = false;
+        const preferredDays = Array.isArray(request.preferredWeekdays)
+          ? request.preferredWeekdays.join(", ") : "";
+        el.coachRecommendation.value = [
+          "Winter Wrestling inquiry: " + String(request.id || requestId),
+          "Requested schedule: " + (requestedSchedule || "unsure")
+            + (preferredDays ? " (" + preferredDays + ")" : ""),
+          request.familyPricingInterest ? "Sibling pricing requested — verify same household before approving." : "",
+          request.scholarshipInterest ? "Scholarship information requested — Management decision required." : "",
+          "Verify family, athlete, schedule and age eligibility before issuing proposal."
+        ].filter(Boolean).join("\n");
+      } else {
+        el.coachRecommendation.value = "Admissions request " + String(request.id || requestId) + " — verify details and program before issuing.";
+      }
+      calculate();
+      renderProposalWorkflow("BUILDING");
+    }
+
     function prefillFromAppointment(
       appointment
     ) {
@@ -3413,6 +3462,13 @@ alert(
             error?.message ||
             "Unable to load the Admissions appointment."
           );
+        });
+    } else if (requestId) {
+      loadAdmissionsRequest()
+        .then(prefillFromAdmissionsRequest)
+        .catch((error) => {
+          console.error("Unable to prepare Admissions request in Prospect Builder:", error);
+          alert(error?.message || "Unable to load Admissions request. Do not create a proposal until the request is verified.");
         });
     } else {
       addAthlete({
