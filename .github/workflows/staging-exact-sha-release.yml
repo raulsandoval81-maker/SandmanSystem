@@ -87,6 +87,7 @@ on:
           - promotions-final-pr325-c4df1254
           - winter-v2-pr490-f801d51d
           - winter-management-pr528-e19f9cf
+          - winter-promotions-pr530-531-bb9fc78
       action:
         description: Validate, diagnose authorization, or execute the approved staging release
         required: true
@@ -107,6 +108,8 @@ on:
           - winter-v2-hosting-deploy
           - winter-management-pricing-preflight
           - winter-management-pricing-deploy
+          - winter-promotions-preflight
+          - winter-promotions-deploy
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
         required: false
@@ -117,6 +120,10 @@ on:
         type: string
       winter_management_pricing_approval:
         description: For Winter Management Pricing two-asset staging Hosting release only, type APPROVE_WINTER_MANAGEMENT_STAGING_TWO_ASSETS
+        required: false
+        type: string
+      winter_promotions_approval:
+        description: For Winter Promotions three-asset staging Hosting release, type APPROVE_WINTER_PROMOTIONS_STAGING_THREE_ASSETS
         required: false
         type: string
       confirm_two_billing_functions:
@@ -1834,6 +1841,78 @@ jobs:
             node trusted-tooling/scripts/staging/winter-management-pricing-hosting-overlay.mjs preflight application
           elif test "$SELECTED_ACTION" = winter-management-pricing-deploy; then
             node trusted-tooling/scripts/staging/winter-management-pricing-hosting-overlay.mjs deploy application
+          else
+            exit 1
+          fi
+
+  winter-promotions-hosting-overlay:
+    if: ${{ inputs.action == 'winter-promotions-preflight' || inputs.action == 'winter-promotions-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    env:
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      SANDMAN_PROMOTIONS_SOURCE_SHA: bb9fc7803fcfbad24eb0d22a5d725137555a41ac
+      SANDMAN_PROMOTIONS_APPROVAL: ${{ inputs.winter_promotions_approval }}
+    steps:
+      - name: Enforce exact Promotions three-file staging-only release
+        env:
+          RELEASE_ID: ${{ inputs.release_id }}
+          SELECTED_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$RELEASE_ID" = "winter-promotions-pr530-531-bb9fc78"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          if test "$SELECTED_ACTION" = winter-promotions-deploy; then
+            test "$SANDMAN_PROMOTIONS_APPROVAL" = "APPROVE_WINTER_PROMOTIONS_STAGING_THREE_ASSETS"
+          else
+            test "$SELECTED_ACTION" = winter-promotions-preflight
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: bb9fc7803fcfbad24eb0d22a5d725137555a41ac
+          path: application
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify approved PR530 and PR531 exact source files
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$SANDMAN_PROMOTIONS_SOURCE_SHA"
+          git -C application diff --name-only 2fe1f894609f06c24d76f6cbd8ac4531ad9816da bb9fc7803fcfbad24eb0d22a5d725137555a41ac | sort > /tmp/winter-promotions-actual
+          printf '%s\n' public/connect/admissions-requests/admissions-requests.js public/connect/admissions-requests/index.html public/management/pricing/index.html > /tmp/winter-promotions-expected
+          diff -u /tmp/winter-promotions-expected /tmp/winter-promotions-actual
+          for file in public/connect/admissions-requests/admissions-requests.js public/connect/admissions-requests/index.html public/management/pricing/index.html; do
+            test -s "application/$file"
+          done
+          node --check application/public/connect/admissions-requests/admissions-requests.js
+          node --check trusted-tooling/scripts/staging/winter-promotions-hosting-overlay.mjs
+      - name: Authenticate existing staging Hosting deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Overlay approved Promotions and Pricing assets only
+        env:
+          SELECTED_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          if test "$SELECTED_ACTION" = winter-promotions-preflight; then
+            node trusted-tooling/scripts/staging/winter-promotions-hosting-overlay.mjs preflight application
+          elif test "$SELECTED_ACTION" = winter-promotions-deploy; then
+            node trusted-tooling/scripts/staging/winter-promotions-hosting-overlay.mjs deploy application
           else
             exit 1
           fi
