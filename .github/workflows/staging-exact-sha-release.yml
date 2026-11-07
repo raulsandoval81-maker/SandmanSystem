@@ -112,6 +112,7 @@ on:
           - winter-promotions-deploy
           - emmett-2c-readonly-inventory
           - emmett-2c-receipt-readonly-preflight
+          - emmett-2c-runtime-rollback-readonly
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
         required: false
@@ -2161,4 +2162,58 @@ jobs:
         with:
           name: emmett-2c-receipt-readonly-preflight-${{ github.run_id }}
           path: evidence/receipt-preflight/
+          if-no-files-found: warn
+  
+  emmett-2c-runtime-rollback-readonly:
+    # Diagnostic only. Trusted staging WIF, no deploy, IAM or secret-value writes.
+    if: ${{ inputs.action == 'emmett-2c-runtime-rollback-readonly' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Verify protected staging boundary
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$REQUESTED_ACTION" = "emmett-2c-runtime-rollback-readonly"
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: b4b40798b58aac46706dce984427e77d501855e7
+          path: application
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture sanitized read-only runtime and rollback evidence
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          python3 trusted-tooling/scripts/staging/emmett-2c-runtime-rollback-readonly.py
+      - name: Upload sanitized review evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: emmett-2c-runtime-rollback-readonly-${{ github.run_id }}
+          path: evidence/receipt-runtime-rollback/
           if-no-files-found: warn
