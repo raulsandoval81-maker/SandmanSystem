@@ -81,8 +81,8 @@ export async function createSeasonalProposalCheckout(input: {
     ? proposal.seasonalPaymentLedger
     : initialLedger(pricing);
   const next = ledger.find((entry) => entry.status !== "paid");
-  // A new early-rate first checkout must begin by Nov 27 Pacific.
-  // Nov 28–30 is strictly for retrying a family whose first checkout was started on time.
+  // A new early-rate first checkout must begin by Nov 30 Pacific.
+  // Dec 1–3 is strictly for retrying a family whose first checkout was started on time.
   const pacificDate = winterWrestlingPacificDate(Date.now());
   const firstEarlyInstallment = next?.number === 1 && pricing.earlyRegistration === true;
   if (firstEarlyInstallment && !winterWrestlingEarlyCheckoutAllowed({
@@ -209,7 +209,7 @@ export async function createSeasonalProposalCheckout(input: {
     }
     tx.update(proposalRef, {
       status: "CHECKOUT_CREATED",
-      ...(firstEarlyInstallment && !data.seasonalEarlyFirstCheckoutDate && pacificDate <= "2026-11-27"
+      ...(firstEarlyInstallment && !data.seasonalEarlyFirstCheckoutDate && pacificDate <= "2026-11-30"
         ? { seasonalEarlyFirstCheckoutDate: pacificDate }
         : {}),
       seasonalPaymentLedger: updatedLedger,
