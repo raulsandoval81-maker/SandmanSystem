@@ -382,3 +382,32 @@ test("a second activation is rejected and does not create a duplicate athlete", 
   assert.equal(activationReceipts.size, 1);
   assert.equal(activationReceipts.docs[0].get("type"), "MINT_ACTIVATE");
 });
+
+test("conversion rejects historical payment claims from an unverified draft source", () => {
+  const { verifyPrepaidConversionSource } = require("../lib/billing/prepaidConversionPolicy");
+  const source = {
+    proposalId: "P-DRAFT-SOURCE",
+    locationId,
+    status: "DRAFT",
+    prospect: { parentEmail: "synthetic-conversion@example.invalid" },
+    athletes: snapshot.athletes,
+    priorPayments: [
+      { membershipAmountCents: 8000, periods: ["2026-09"] },
+      { enrollmentFeeAmountCents: 3000, periods: [] },
+    ],
+  };
+  const target = {
+    proposalId: "P-NEW-CONVERSION",
+    locationId,
+    prospect: { parentEmail: "synthetic-conversion@example.invalid" },
+    athletes: snapshot.athletes,
+    pricing: { enrollmentPreviouslyPaidAmount: 30 },
+    lockedSnapshot: { pricing: { enrollmentBase: 30 } },
+  };
+  assert.throws(() => verifyPrepaidConversionSource({
+    sourceProposalId: source.proposalId,
+    source,
+    target,
+    newMembershipStartDate: "2026-10-01",
+  }), /verified PAID status/);
+});
