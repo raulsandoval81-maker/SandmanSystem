@@ -1,0 +1,54 @@
+{
+  "releaseId": "emmett-2c-readonly-preflight",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "applicationSha": "b4b40798b58aac46706dce984427e77d501855e7",
+  "targetProject": "sandman-combat-staging",
+  "environment": "staging",
+  "mode": "validation-only",
+  "deploymentAuthorized": false,
+  "productionAuthorized": false,
+  "syntheticDataOnly": true,
+  "functionsToInventory": [
+    "recordProposalPrepaidCash",
+    "sendProposalPrepaidCashReceipt",
+    "sendEnrollmentIntakeEmail",
+    "issueProposalEnrollmentHandoff",
+    "approveAndActivate"
+  ],
+  "hostingFilesToInventory": [
+    "public/connect/admissions/calculator/calculator.js",
+    "public/connect/admissions/calculator/index.html",
+    "public/connect/proposals/proposals.js",
+    "public/intake-management/management.intake.js",
+    "public/management/billing/billing.js",
+    "public/management/enrollment-flow/enrollment-flow.js",
+    "public/management/enrollment-flow/enrollment-stage.js"
+  ],
+  "tests": [
+    "functions/tests/prepaidEnrollment.integration.cjs",
+    "functions/tests/prepaidCashReceipt.integration.cjs",
+    "tests/browser/payment-arrangement.test.mjs"
+  ],
+  "reconciliationRules": [
+    "Historical $80 monthly payment stays on source agreement",
+    "Previously paid $30 annual enrollment fee is credited once, not charged again",
+    "A new $960 check is recorded only after accepted locked agreement and family confirmation",
+    "Existing-athlete identity must be checked independently before any activation",
+    "No Stripe checkout, subscription, payment processing, or real email in staging acceptance"
+  ],
+  "gates": [
+    "Read current staging Function/Cloud Run revision, service configuration, runtime account and IAM for every target",
+    "Determine whether receipt callable is absent; any new callable needs separate bootstrap authorization",
+    "Capture current Hosting release/version and full file hashes; verify only the approved asset overlay",
+    "Build per-Function isolated packages with transitive imports; confirm no unrelated Functions or Hosting changes",
+    "Record rollback references and check drift again before a distinct authorized deployment",
+    "Run synthetic browser Review & Confirm, payment audit, receipt, Intake, existing-athlete reconciliation and activation",
+    "Require a second protected approval for deployment after an independently reviewed preflight"
+  ],
+  "knownBlockers": [
+    "No live read-only staging baseline captured for this exact application SHA",
+    "No approved 2C staging deployment workflow scope exists",
+    "Automatic existing-athlete identity matching and historical-source schema compatibility not certified"
+  ],
+  "notes": "Review-only scope inventory. This file is not an executable deployment manifest and must never be accepted by staging-exact-sha-release.yml."
+}
