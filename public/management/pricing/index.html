@@ -86,26 +86,23 @@
       </div>
       <p id="enrollmentEntryStatus" class="pricing-disclaimer" role="status" aria-live="polite"></p>
     </section>
-    <section class="pricing-panel" id="winterSeasonalPanel" hidden>
-      <h2>Winter Wrestling · Seasonal</h2>
-      <p>November 15, 2026 – February 14, 2027 · Ages 7–14 · $350 per athlete</p>
-      <label for="winterAthleteCount">Athletes</label>
-      <select id="winterAthleteCount"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
-      <label for="winterPayOption">Payment option</label>
-      <select id="winterPayOption"><option value="installments">Installments</option><option value="full">Pay in full</option></select>
-      <label for="winterEnrollmentDate">Enrollment date</label>
-      <input id="winterEnrollmentDate" type="date" min="2026-10-28" max="2027-02-14" />
-      <fieldset>
-        <legend>Seasonal proration (Management preview)</legend>
-        <p>The total seasonal reduction is capped at 25% ($87.50 per athlete). Count only scheduled training sessions missed, excluding Thanksgiving break and academy closures. Manual entry requires Management verification; do not double-count quarters and session days.</p>
-        <label for="winterMissedQuarters">Fully missed quarters (0–4)</label>
-        <select id="winterMissedQuarters"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option></select>
-        <label for="winterMissedDays">Additional missed session-days in remaining quarters (0–64)</label>
-        <input id="winterMissedDays" type="number" min="0" max="64" step="1" value="0" />
-        <small>Each quarter contains 16 pricing-day units. The total discount is never more than 25%. This is a preview; Management must verify missed scheduled training sessions.</small>
-      </fieldset>
-      <div id="winterSeasonalEstimate" role="status" aria-live="polite"></div>
-      <p>Seasonal proposal and checkout are not enabled. Do not use monthly membership checkout for seasonal plans.</p>
+    <section class="pricing-panel" id="winterSeasonalPanel" hidden aria-labelledby="winterSeasonalHeading">
+      <h2 id="winterSeasonalHeading">Winter Wrestling 2026–27 · Seasonal Campaign</h2>
+      <p><strong>Free introductory sessions:</strong> November 16–19, 2026. <strong>Core season:</strong> November 30, 2026 – February 27, 2027. Ages 7–13. Limited to the first 40 athletes, subject to Management confirmation.</p>
+      <h3>Approved published seasonal rates</h3>
+      <ul>
+        <li><strong>First athlete:</strong> $320 early registration through November 30, 2026; $350 beginning December 1, 2026.</li>
+        <li><strong>Additional siblings:</strong> $150 each, after Management verifies the same household.</li>
+        <li><strong>Annual enrollment fee:</strong> $30 waived per athlete for this season.</li>
+        <li><strong>Payment choice:</strong> pay in full or three separate one-time payments, at checkout, 14 days later, and 28 days later. No automatic recurring membership charge.</li>
+      </ul>
+      <p><strong>Schedules:</strong> Group A — Monday/Wednesday 6:00–7:15 PM; Group B — Tuesday/Thursday 5:00–6:15 PM; Group C — request any two weekdays, subject to Management schedule confirmation. Saturdays are supervised sparring or scheduled competitions; times TBA.</p>
+      <p><strong>Season structure:</strong> November 16–19 free introductory sessions; November 22–28 Thanksgiving break / gear check, no practices; November 30–February 27 core training with holiday adjustments.</p>
+      <p><strong>Christmas:</strong> Regular practice December 21–23 (Wednesday/Thursday groups may combine); closed December 24–25; December 26 optional. <strong>New Year:</strong> regular Monday–Thursday schedule; January 1 closed; Saturday January 2 sparring time TBA.</p>
+      <p>Competition entry fees and attire are separate. Scholarships, sibling relationships, late enrollment/proration, and availability require Management approval. An interest inquiry is not registration or a reserved space.</p>
+      <p><strong>Pricing source of truth:</strong> The seasonal Prospect Builder and server-side Winter V2 policy. This page does not calculate or approve seasonal charges. Do not use the regular membership calculator or trial-offer discounts for this campaign.</p>
+      <p><a href="/connect/admissions-requests/">Open Admissions Requests — review Winter Wrestling interest</a></p>
+      <p id="winterSeasonalEstimate" role="status" aria-live="polite">Use Admissions → Build Proposal to load the verified family and calculate the official seasonal price.</p>
     </section>
     <details class="management-page-guide">
       <summary>
@@ -699,7 +696,7 @@
   </template>
 
   <script type="module" src="/management/shared/management-shell.js"></script>
-  <script type="module" src="./winter-seasonal-mode.js?v=20261028-1"></script>
+  <script type="module" src="./winter-seasonal-mode.js?v=20261106-2"></script>
 
   <script
     type="module"
