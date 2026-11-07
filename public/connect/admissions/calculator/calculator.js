@@ -335,6 +335,7 @@ const extras = {
       seasonalSchedule:document.getElementById("seasonalSchedule"),
       seasonalEnrollmentDate:document.getElementById("seasonalEnrollmentDate"),
       seasonalPayInFull:document.getElementById("seasonalPayInFull"),
+      seasonalSiblingVerified:document.getElementById("seasonalSiblingVerified"),
       lateEnrollmentReviewed:document.getElementById("lateEnrollmentReviewed"),
 
       membershipStartDate:
@@ -1753,8 +1754,8 @@ const extras = {
         el.seasonalEnrollmentDate.value = `${part("year")}-${part("month")}-${part("day")}`;
       }
       const early = el.seasonalEnrollmentDate.value <= "2026-11-27";
-      const listCents = athleteCount * 35000;
-      const baseCents = athleteCount * (early ? 30000 : 35000);
+      const listCents = 35000 + Math.max(0, athleteCount - 1) * 15000;
+      const baseCents = (early ? 32000 : 35000) + Math.max(0, athleteCount - 1) * 15000;
       const schedule = el.seasonalSchedule.value;
       const enrollmentDate = el.seasonalEnrollmentDate.value;
       const start = new Date("2026-11-30T12:00:00Z");
@@ -1770,30 +1771,36 @@ const extras = {
         if (date < enrollmentDate) missed += 1;
       }
       const appliedPercent = Math.min(25, required ? (missed / required) * 100 : 0);
-      const discountCents = Math.round(35000 * appliedPercent / 100) * athleteCount;
+      const discountCents = Math.round(baseCents * appliedPercent / 100);
       const totalCents = baseCents - discountCents;
-      const savingsCents = athleteCount * (early ? 5000 : 0);
-      const defaultFirst = ({1:20000,2:40000,3:45000,4:60000,5:75000})[athleteCount] || 0;
+      const savingsCents = early ? 3000 : 0;
+      const installmentBaseCents = Math.floor(totalCents / 3);
       const dueNowCents = el.seasonalPayInFull.checked
         ? totalCents
-        : Math.max(0, defaultFirst - savingsCents - discountCents);
+        : installmentBaseCents;
+      const feeWaivedCents = athleteCount * 3000;
+      const seasonalMoney = cents => new Intl.NumberFormat("en-US", {
+        style: "currency", currency: "USD"
+      }).format(cents / 100);
 
-      el.dueNow.textContent = money(dueNowCents / 100);
+      el.dueNow.textContent = seasonalMoney(dueNowCents);
       el.monthlyTotal.textContent = "No recurring charge";
-      el.firstYearTotal.textContent = money(totalCents / 100);
-      el.projectedSavings.textContent = money((discountCents + savingsCents) / 100);
-      el.annualTotal.textContent = "Season ends Feb 27, 2027";
+      el.firstYearTotal.textContent = seasonalMoney(totalCents);
+      el.projectedSavings.textContent = seasonalMoney(discountCents + savingsCents);
+      el.annualTotal.textContent = "Enrollment fee waived";
       el.breakdown.innerHTML = `
-        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(listCents/100)}</strong></div>
-        <div><span>Early registration savings</span><strong>−${money(savingsCents/100)}</strong></div>
-        <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${money(discountCents/100)}</strong></div>
-        <div><span>Season total</span><strong>${money(totalCents/100)}</strong></div>
-        <div><span>Due in next one-time Checkout</span><strong>${money(dueNowCents/100)}</strong></div>`;
+        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${seasonalMoney(listCents)}</strong></div>
+        <div><span>Early registration savings</span><strong>−${seasonalMoney(savingsCents)}</strong></div>
+        <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${seasonalMoney(discountCents)}</strong></div>
+        <div><span>Regular annual enrollment (${athleteCount} × $30)</span><strong>${seasonalMoney(feeWaivedCents)}</strong></div>
+        <div><span>Seasonal enrollment fee waived</span><strong>−${seasonalMoney(feeWaivedCents)}</strong></div>
+        <div><span>Season total</span><strong>${seasonalMoney(totalCents)}</strong></div>
+        <div><span>Due in next one-time Checkout</span><strong>${seasonalMoney(dueNowCents)}</strong></div>`;
       el.summary.innerHTML = `
         <p><strong>Winter Wrestling 2026–27</strong></p>
-        <p>November 30, 2026 – February 27, 2027 · ${early ? "$300 early registration" : "$350 regular registration"} per athlete before any approved late-start adjustment.</p>
+        <p>November 30, 2026 – February 27, 2027 · ${early ? "$320 early registration" : "$350 regular registration"} first athlete, $150 each additional sibling, before any approved late-start adjustment.</p>
         <p>${schedule === "monday-wednesday-saturday" ? "Monday / Wednesday / Saturday" : "Tuesday / Thursday / Saturday"}</p>
-        <p><strong>${money(totalCents/100)}</strong> total · ${el.seasonalPayInFull.checked ? "pay in full" : "separate one-time installments"}</p>
+        <p><strong>${seasonalMoney(totalCents)}</strong> total · enrollment fee waived (${seasonalMoney(feeWaivedCents)}) · ${el.seasonalPayInFull.checked ? "pay in full" : "three separate payments, every 14 days"}</p>
         <p>No automatic future payments. Enrollment cutoff remains pending owner confirmation.</p>`;
 
       return {
@@ -1803,6 +1810,7 @@ const extras = {
           seasonalEnrollmentDate: enrollmentDate,
           trainingSchedule: schedule,
           payInFull: el.seasonalPayInFull.checked,
+          siblingRelationshipVerified: el.seasonalSiblingVerified?.checked === true,
           lateEnrollmentReviewed: el.lateEnrollmentReviewed.checked
         },
         agreement: {
