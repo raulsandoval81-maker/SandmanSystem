@@ -1,0 +1,67 @@
+{
+  "releaseId": "emmett-2c-receipt-bootstrap-review-only",
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "projectId": "sandman-combat-staging",
+  "region": "us-central1",
+  "applicationSha": "b4b40798b58aac46706dce984427e77d501855e7",
+  "validatedInventoryRunId": 42348418550,
+  "validatedInventoryArtifactId": 13564228294,
+  "scope": {
+    "action": "create-new-function-only",
+    "functions": [
+      "sendProposalPrepaidCashReceipt"
+    ],
+    "generation": "GEN_2",
+    "runtime": "nodejs22",
+    "entryPoint": "sendProposalPrepaidCashReceipt",
+    "sourceExport": "functions/src/index.ts",
+    "sourceModule": "functions/src/billing/sendProposalPrepaidCashReceipt.ts",
+    "secretEnvironmentKeys": [
+      "RESEND_API_KEY"
+    ],
+    "hostingAssets": [],
+    "existingFunctionsToLeaveUntouched": [
+      "recordProposalPrepaidCash",
+      "sendEnrollmentIntakeEmail",
+      "issueProposalEnrollmentHandoff",
+      "approveAndActivate"
+    ]
+  },
+  "requiredReadOnlyChecks": [
+    "Verify target callable is still absent; if found, halt and rebaseline rather than overwrite",
+    "Verify immutable source SHA and inspect isolated transitive import packaging without deploying other exports",
+    "Verify staging Resend secret binding metadata, existence and approved test-only recipient controls without reading secret values",
+    "Verify staging Functions deployer, billing runtime and build service accounts and minimum necessary IAM without changing them",
+    "Confirm callable transport access model, application authentication and restrictions before enabling receipt email delivery",
+    "Capture before-state Function listing, Cloud Run IAM baseline and precise rollback steps",
+    "Verify Hosting version and full asset hashes independently before any broader 2C staging release",
+    "Confirm existing-athlete identity matching and historical $80 + $30 + $960 allocation independently"
+  ],
+  "requiredSyntheticAcceptance": [
+    "Only synthetic demo-* Firestore emulator and invalid example domains for offline tests; never send real receipts",
+    "Verify no Stripe checkout, subscription, charge, or duplicate deposited-check transaction",
+    "Verify receipt only after verified paid cash/check snapshot with locked twelve-month coverage",
+    "Verify one receipt attempt, audit trail, fail-closed uncertain provider outcomes and manual resolution policy",
+    "Verify distinct guardian Intake invitation and prevent duplicate existing-athlete activation"
+  ],
+  "guards": {
+    "deploymentAuthorized": false,
+    "productionAuthorized": false,
+    "iamChangesAuthorized": false,
+    "hostingWritesAuthorized": false,
+    "firestoreWritesAuthorized": false,
+    "stripeOperationsAuthorized": false,
+    "sendEmailsAuthorized": false,
+    "secretValueAccessAuthorized": false,
+    "stagingOnly": true,
+    "needsSeparateApprovedDeploymentWorkflow": true
+  },
+  "knownBlockers": [
+    "Receipt callable absent in staging inventory run 42348418550",
+    "No approved new callable deployment action",
+    "Staging Resend secret metadata and delivery allowlist not verified",
+    "No approved isolated package/runtime/transport preflight",
+    "Existing-athlete identity reconciliation not certified"
+  ],
+  "notes": "This review-only contract cannot be passed to generic staging-exact-sha deploy or used as workflow approval. A distinct reviewed approval and immutable-source preflight are required before any staging bootstrap."
+}
