@@ -6,6 +6,9 @@ on:
       - 'scripts/staging/emmett-2c-readonly-preflight-plan.json'
       - 'tests/functions/emmett-2c-staging-preflight-plan.test.mjs'
       - '.github/workflows/2c-staging-release-plan-validation.yml'
+      - '.github/workflows/staging-exact-sha-release.yml'
+      - '.github/workflows/2c-staging-readonly-inventory.yml'
+      - 'tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs'
 
 permissions:
   contents: read
@@ -26,7 +29,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate offline manifest and code contracts
-        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs
+        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs
       - name: Assert secrets are unavailable
         run: |
           test -z "${STRIPE_SECRET_KEY}"
