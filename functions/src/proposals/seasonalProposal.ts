@@ -109,7 +109,11 @@ export function canonicalSeasonalPricing(
       missedRequiredPracticeCount: proration.missedRequiredPracticeCount,
       appliedPercent: proration.appliedPercent,
       perAthleteDiscountCents: proration.perAthleteDiscountCents,
-      totalDiscountCents: (WINTER_WRESTLING_2026_27.perAthleteCents - (earlyRegistration ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents : WINTER_WRESTLING_2026_27.perAthleteCents) + (athleteCount - 1) * WINTER_WRESTLING_2026_27.additionalSiblingCents) - paymentSchedule.totalCents,
+      totalDiscountCents: ((earlyRegistration
+        ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
+        : WINTER_WRESTLING_2026_27.perAthleteCents) +
+        (athleteCount - 1) * WINTER_WRESTLING_2026_27.additionalSiblingCents) -
+        paymentSchedule.totalCents,
       excludesThanksgivingClosure: true,
       excludesOptionalSessions: true,
     },
