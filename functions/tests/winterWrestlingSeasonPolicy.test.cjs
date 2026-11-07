@@ -24,18 +24,32 @@ for (let count = 1; count <= 5; count++) {
       assert.equal(plan.installmentsCents.reduce((s, a) => s + a, 0), expected);
       const date = early ? "2026-11-06" : "2026-12-01";
       const schedule = buildWinterWrestlingSchedule(count, date, false, "monday-wednesday-saturday", early);
-      assert.equal(schedule.totalCents, expected);
+      if (early) {
+        assert.equal(schedule.totalCents, expected);
+        assert.equal(schedule.requiresManualReview, false);
+      } else {
+        // Dec 1 is the first regular-price day but one Nov 30 practice was missed.
+        // A late-start adjustment is not approved until Management reviews it.
+        assert.ok(schedule.totalCents < expected);
+        assert.ok(schedule.totalCents >= Math.round(expected * 0.75));
+        assert.equal(schedule.requiresManualReview, true);
+      }
       assert.deepEqual(schedule.installments.map(x => x.dueDate),
         [date, add14(date, 14), add14(date, 28)]);
-      assert.equal(schedule.installments.reduce((s, x) => s + x.amountCents, 0), expected);
+      assert.equal(schedule.installments.reduce((sum, x) => sum + x.amountCents, 0), schedule.totalCents);
       assert.equal(schedule.installments.length, 3);
-      assert.equal(schedule.requiresManualReview, false);
     });
     test(`${count} athlete(s) pay-in-full at family price`, () => {
       const date = early ? "2026-11-06" : "2026-12-01";
       const plan = buildWinterWrestlingSchedule(count, date, true, "monday-wednesday-saturday", early);
       assert.equal(plan.installments.length, 1);
-      assert.equal(plan.installments[0].amountCents, quoteFor(count, early));
+      assert.equal(plan.installments[0].amountCents, plan.totalCents);
+      if (early) {
+        assert.equal(plan.totalCents, quoteFor(count, early));
+      } else {
+        assert.ok(plan.totalCents < quoteFor(count, early));
+        assert.equal(plan.requiresManualReview, true);
+      }
     });
   }
 }
@@ -85,7 +99,12 @@ test("canonical server policy enforces verified siblings, waived fee, and one-ti
   assert.equal(quote.automaticFuturePayments, false);
   assert.deepEqual(quote.installments.map(x=>x.amountCents), [20666,20666,20668]);
   assert.deepEqual(quote.installments.map(x=>x.dueDate), ["2026-11-06","2026-11-20","2026-12-04"]);
-  assert.equal(create(3, "2026-12-01", true, true).totalCents, 65000);
+  const regularLate = create(3, "2026-12-01", true, true);
+  assert.equal(regularLate.earlyRegistration, false);
+  assert.equal(regularLate.listPriceTotalCents, 65000);
+  assert.ok(regularLate.totalCents < 65000);
+  assert.equal(regularLate.requiresLateEnrollmentReview, true);
+  assert.equal(regularLate.lateEnrollmentReviewed, false);
   assert.equal(create(1, "2026-11-06", false, true).totalCents, 32000);
 });
 
