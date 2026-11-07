@@ -11,6 +11,8 @@ on:
       - 'tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs'
       - 'scripts/staging/emmett-2c-receipt-bootstrap-review.json'
       - 'tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs'
+      - 'scripts/staging/emmett-2c-receipt-readonly-preflight.py'
+      - 'tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs'
 
 permissions:
   contents: read
@@ -31,7 +33,9 @@ jobs:
         with:
           node-version: '22'
       - name: Validate offline manifest and code contracts
-        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs
+        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs
+      - name: Compile source-only Python preflight
+        run: python3 -m py_compile scripts/staging/emmett-2c-receipt-readonly-preflight.py
       - name: Assert secrets are unavailable
         run: |
           test -z "${STRIPE_SECRET_KEY}"
