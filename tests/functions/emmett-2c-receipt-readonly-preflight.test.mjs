@@ -63,3 +63,19 @@ test('deployer is proved by pinned trusted WIF and an authenticated staging read
  assert.match(script,/releaseReady": False/);
  assert.match(script,/deploymentAuthorized": False/);
 });
+
+test('workflow identity parser stops only at a two-space job header, not nested fields',()=>{
+ assert.match(script,/re\.split\(r"\(\?m\)\^  \[a-z\]/);
+ assert.doesNotMatch(script,/job_text\.split\("\\n  "/);
+ const jobMarker='  emmett-2c-receipt-readonly-preflight:';
+ const start=workflow.indexOf(jobMarker);
+ assert.ok(start>0);
+ const remaining=workflow.slice(start+jobMarker.length);
+ const followingHeader=/^  [a-z][a-z0-9-]*:[ \\t]*$/gm;
+ const match=followingHeader.exec(remaining);
+ const job=match?remaining.slice(0,match.index):remaining;
+ assert.match(job,/service_account: sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+ assert.match(job,/workload_identity_provider: projects\/991554514268/);
+ assert.match(job,/project_id: sandman-combat-staging/);
+ assert.match(job,/name: Verify trusted staging workflow boundary/);
+});
