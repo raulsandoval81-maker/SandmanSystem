@@ -7,7 +7,9 @@ import {
 
 import {
   getResendClient,
-  RESEND_API_KEY
+  RESEND_API_KEY,
+  STAGING_TEST_EMAIL_ALLOWLIST,
+  verifyStagingEmailRecipient
 } from "../modules/email/resend";
 
 import {
@@ -51,7 +53,7 @@ function intakeUrl(
 export const sendEnrollmentIntakeEmail =
   functions
     .runWith({
-      secrets: [RESEND_API_KEY]
+      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST]
     })
     .https
     .onCall(async (data, context) => {
@@ -180,6 +182,16 @@ export const sendEnrollmentIntakeEmail =
         throw new functions.https.HttpsError(
           "invalid-argument",
           "Confirm the recipient email before sending."
+        );
+      }
+
+      const stagingRecipient = verifyStagingEmailRecipient(recipient);
+      if (!stagingRecipient.allowed) {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          stagingRecipient.reason === "ALLOWLIST_NOT_CONFIGURED"
+            ? "Staging test email delivery is not configured."
+            : "This recipient is not approved for staging test email delivery."
         );
       }
 

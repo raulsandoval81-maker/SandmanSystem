@@ -1,6 +1,11 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
-import { getResendClient, RESEND_API_KEY } from "../modules/email/resend";
+import {
+  getResendClient,
+  RESEND_API_KEY,
+  STAGING_TEST_EMAIL_ALLOWLIST,
+  verifyStagingEmailRecipient,
+} from "../modules/email/resend";
 import { requireProposalStaffAccess, requireProposalLocationAccess } from "../proposals/proposalAccess";
 
 /**
@@ -16,7 +21,7 @@ const escapeHtml = (v: unknown): string => clean(v)
   .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 
 export const sendProposalPrepaidCashReceipt = onCall(
-  { secrets: [RESEND_API_KEY] },
+  { secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST] },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Management sign-in required.");
     const actor = await requireProposalStaffAccess(req.auth.uid);
@@ -108,6 +113,15 @@ export const sendProposalPrepaidCashReceipt = onCall(
     }
     if (override && override !== expected && req.data?.confirmRecipient !== true) {
       throw new HttpsError("invalid-argument", "Confirm the parent email override before sending.");
+    }
+    const stagingRecipient = verifyStagingEmailRecipient(recipient);
+    if (!stagingRecipient.allowed) {
+      throw new HttpsError(
+        "failed-precondition",
+        stagingRecipient.reason === "ALLOWLIST_NOT_CONFIGURED"
+          ? "Staging test email delivery is not configured."
+          : "This recipient is not approved for staging test email delivery."
+      );
     }
     const receiptId = `CASH-${proposalId}`;
     const amountCents = payment.amountCents;

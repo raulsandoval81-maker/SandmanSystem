@@ -33,7 +33,7 @@ test('receipt bootstrap is a non-executable, immutable staging-only review contr
 test('receipt function is exported and does not handle charges or intake activation', () => {
  assert.match(entry,/sendProposalPrepaidCashReceipt/);
  assert.match(source,/export const sendProposalPrepaidCashReceipt = onCall/);
- assert.match(source,/secrets: \[RESEND_API_KEY\]/);
+ assert.match(source,/secrets: \[RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST\]/);
  assert.match(source,/getResendClient/);
  assert.match(source,/receiptRef/);
  assert.match(source,/stripeCheckoutSessionId/);

@@ -113,6 +113,19 @@ on:
           - emmett-2c-readonly-inventory
           - emmett-2c-receipt-readonly-preflight
           - emmett-2c-runtime-rollback-readonly
+          - emmett-2c-receipt-deploy
+      emmett_2c_application_sha:
+        description: Exact reviewed merge SHA containing the 2C staging safety repair
+        required: false
+        type: string
+      emmett_2c_approval:
+        description: For the exact one-Function 2C staging release, type APPROVE_2C_STAGING_RECEIPT_ONE_FUNCTION
+        required: false
+        type: string
+      emmett_2c_recipient_safety:
+        description: Confirm the secret contains only owner-approved synthetic mailboxes by typing STAGING_TEST_EMAIL_ALLOWLIST_CONFIGURED
+        required: false
+        type: string
       winter_v2_approval:
         description: For Winter V2 staging deploy only, type APPROVE_WINTER_V2_STAGING_FOUR_FUNCTIONS
         required: false
@@ -2217,3 +2230,164 @@ jobs:
           name: emmett-2c-runtime-rollback-readonly-${{ github.run_id }}
           path: evidence/receipt-runtime-rollback/
           if-no-files-found: warn
+
+  emmett-2c-receipt-deploy:
+    if: ${{ inputs.action == 'emmett-2c-receipt-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Require exact staging target and explicit owner approvals
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPLICATION_SHA: ${{ inputs.emmett_2c_application_sha }}
+          OWNER_APPROVAL: ${{ inputs.emmett_2c_approval }}
+          RECIPIENT_SAFETY: ${{ inputs.emmett_2c_recipient_safety }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$OWNER_APPROVAL" = "APPROVE_2C_STAGING_RECEIPT_ONE_FUNCTION"
+          test "$RECIPIENT_SAFETY" = "STAGING_TEST_EMAIL_ALLOWLIST_CONFIGURED"
+          test "${#APPLICATION_SHA}" = 40
+          test "$(printf '%s' "$APPLICATION_SHA" | tr -cd '0-9a-f')" = "$APPLICATION_SHA"
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.emmett_2c_application_sha }}
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - name: Verify exact reviewed source and narrow change boundary
+        env:
+          APPLICATION_SHA: ${{ inputs.emmett_2c_application_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$APPLICATION_SHA"
+          test "$(git -C trusted-tooling rev-parse HEAD)" = "$APPLICATION_SHA"
+          git -C application merge-base --is-ancestor 33e3ab7666b8649766e866e3ce8b78d5bdd316cd "$APPLICATION_SHA"
+          git -C application diff --name-only 33e3ab7666b8649766e866e3ce8b78d5bdd316cd "$APPLICATION_SHA" | sort > /tmp/2c-changed.txt
+          node <<'NODE'
+          const fs=require('node:fs');
+          const allowed=new Set([
+            '.github/workflows/2c-staging-release-plan-validation.yml',
+            '.github/workflows/staging-exact-sha-release.yml',
+            'functions/src/billing/sendProposalPrepaidCashReceipt.ts',
+            'functions/src/enrollment/sendEnrollmentIntakeEmail.ts',
+            'functions/src/modules/email/resend.ts',
+            'functions/tests/stagingEmailRecipient.test.cjs',
+            'tests/functions/emmett-2c-final-blockers.test.mjs',
+          ]);
+          const changed=fs.readFileSync('/tmp/2c-changed.txt','utf8').trim().split('\n').filter(Boolean);
+          if(!changed.length || changed.some(file=>!allowed.has(file))) throw Error('2C exact-SHA scope drift: '+changed.join(','));
+          for(const required of ['functions/src/billing/sendProposalPrepaidCashReceipt.ts','functions/src/enrollment/sendEnrollmentIntakeEmail.ts','functions/src/modules/email/resend.ts']) {
+            if(!changed.includes(required)) throw Error('Missing reviewed blocker repair: '+required);
+          }
+          const receipt=fs.readFileSync('application/functions/src/billing/sendProposalPrepaidCashReceipt.ts','utf8');
+          const intake=fs.readFileSync('application/functions/src/enrollment/sendEnrollmentIntakeEmail.ts','utf8');
+          const email=fs.readFileSync('application/functions/src/modules/email/resend.ts','utf8');
+          for(const source of [receipt,intake]) if(!source.includes('verifyStagingEmailRecipient(recipient)') || !source.includes('STAGING_TEST_EMAIL_ALLOWLIST')) throw Error('Recipient guard missing');
+          if(!email.includes('ALLOWLIST_NOT_CONFIGURED') || !email.includes('sandman-combat-staging')) throw Error('Fail-closed policy missing');
+          NODE
+      - name: Build and verify only the receipt callable export
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run build
+          node --test application/functions/tests/stagingEmailRecipient.test.cjs application/tests/functions/emmett-2c-final-blockers.test.mjs
+          test ! -e /tmp/emmett-2c-receipt-release
+          mkdir -p /tmp/emmett-2c-receipt-release/lib/billing /tmp/emmett-2c-receipt-release/lib/modules/email /tmp/emmett-2c-receipt-release/lib/proposals
+          cp application/functions/package.json application/functions/package-lock.json /tmp/emmett-2c-receipt-release/
+          cp application/functions/lib/billing/sendProposalPrepaidCashReceipt.js /tmp/emmett-2c-receipt-release/lib/billing/
+          cp application/functions/lib/modules/email/resend.js /tmp/emmett-2c-receipt-release/lib/modules/email/
+          cp application/functions/lib/proposals/proposalAccess.js /tmp/emmett-2c-receipt-release/lib/proposals/
+          printf '%s\n' 'const admin=require("firebase-admin");if(!admin.apps.length)admin.initializeApp();exports.sendProposalPrepaidCashReceipt=require("./lib/billing/sendProposalPrepaidCashReceipt").sendProposalPrepaidCashReceipt;' > /tmp/emmett-2c-receipt-release/index.js
+          node -e 'const p=require("/tmp/emmett-2c-receipt-release/package.json");p.main="index.js";require("fs").writeFileSync("/tmp/emmett-2c-receipt-release/package.json",JSON.stringify(p,null,2)+"\n")'
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix /tmp/emmett-2c-receipt-release
+          NODE_PATH=/tmp/emmett-2c-receipt-release/node_modules node -e 'const m=require("/tmp/emmett-2c-receipt-release");if(Object.keys(m).join(",")!=="sendProposalPrepaidCashReceipt"||!m.sendProposalPrepaidCashReceipt?.__endpoint?.callableTrigger)process.exit(64)'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify absence, secret metadata, IAM and rollback boundary
+        run: |
+          set -euo pipefail
+          if gcloud functions describe sendProposalPrepaidCashReceipt --gen2 --region=us-central1 --project=sandman-combat-staging --format=json >/tmp/2c-existing.json 2>/tmp/2c-existing.err; then
+            echo 'TARGET_ALREADY_EXISTS_STOP'
+            exit 1
+          fi
+          grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-existing.err || { echo 'TARGET_LOOKUP_UNVERIFIED'; exit 1; }
+          for secret in RESEND_API_KEY STAGING_TEST_EMAIL_ALLOWLIST; do
+            gcloud secrets describe "$secret" --project=sandman-combat-staging --format='value(name)' >/dev/null
+            test "$(gcloud secrets versions list "$secret" --project=sandman-combat-staging --filter='state=ENABLED' --format='value(name)' --limit=1 | wc -l | tr -d ' ')" = 1
+          done
+          gcloud secrets get-iam-policy RESEND_API_KEY --project=sandman-combat-staging --format=json >/tmp/resend-iam.json
+          gcloud secrets get-iam-policy STAGING_TEST_EMAIL_ALLOWLIST --project=sandman-combat-staging --format=json >/tmp/allowlist-iam.json
+          node <<'NODE'
+          const fs=require('node:fs');
+          const member='serviceAccount:sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com';
+          for(const file of ['/tmp/resend-iam.json','/tmp/allowlist-iam.json']) {
+            const p=JSON.parse(fs.readFileSync(file,'utf8'));
+            if(!(p.bindings||[]).some(b=>b.role==='roles/secretmanager.secretAccessor'&&(b.members||[]).includes(member)&&!b.condition)) throw Error('Runtime secret access not verified');
+          }
+          NODE
+          printf '%s\n' 'ROLLBACK_REQUIRES_SEPARATE_DELETE_APPROVAL' > /tmp/2c-rollback.txt
+      - name: Deploy exactly one staging receipt callable
+        run: |
+          set -euo pipefail
+          gcloud functions deploy sendProposalPrepaidCashReceipt --gen2 \
+            --project=sandman-combat-staging \
+            --region=us-central1 \
+            --runtime=nodejs22 \
+            --entry-point=sendProposalPrepaidCashReceipt \
+            --source=/tmp/emmett-2c-receipt-release \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 \
+            --ingress-settings=all \
+            --set-env-vars=SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging \
+            --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,STAGING_TEST_EMAIL_ALLOWLIST=STAGING_TEST_EMAIL_ALLOWLIST:latest \
+            --trigger-http --no-allow-unauthenticated --quiet
+      - name: Enable callable application authentication and verify exact result
+        env:
+          APPLICATION_SHA: ${{ inputs.emmett_2c_application_sha }}
+        run: |
+          set -euo pipefail
+          gcloud run services update sendproposalprepaidcashreceipt --project=sandman-combat-staging --region=us-central1 --no-invoker-iam-check --quiet
+          gcloud functions describe sendProposalPrepaidCashReceipt --gen2 --region=us-central1 --project=sandman-combat-staging --format=json >/tmp/2c-after.json
+          gcloud run services describe sendproposalprepaidcashreceipt --region=us-central1 --project=sandman-combat-staging --format=json >/tmp/2c-run-after.json
+          node <<'NODE'
+          const fs=require('node:fs');
+          const f=JSON.parse(fs.readFileSync('/tmp/2c-after.json','utf8'));
+          const r=JSON.parse(fs.readFileSync('/tmp/2c-run-after.json','utf8'));
+          const assert=(ok,msg)=>{if(!ok)throw Error(msg)};
+          assert(f.buildConfig?.runtime==='nodejs22'&&f.buildConfig?.entryPoint==='sendProposalPrepaidCashReceipt','Unexpected deployed source');
+          assert(f.serviceConfig?.serviceAccountEmail==='sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com','Unexpected runtime identity');
+          assert(JSON.stringify((f.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort())===JSON.stringify(['RESEND_API_KEY','STAGING_TEST_EMAIL_ALLOWLIST']),'Unexpected secret bindings');
+          assert(r.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']==='true','Callable transport not configured');
+          NODE
+          node -e 'require("fs").writeFileSync("/tmp/2c-release-summary.json",JSON.stringify({project:"sandman-combat-staging",applicationSha:process.env.APPLICATION_SHA,function:"sendProposalPrepaidCashReceipt",functionCount:1,hostingChanged:false,rollback:"ROLLBACK_REQUIRES_SEPARATE_DELETE_APPROVAL"},null,2)+"\n")'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: emmett-2c-receipt-release-${{ inputs.emmett_2c_application_sha }}
+          path: /tmp/2c-release-summary.json
+          if-no-files-found: error

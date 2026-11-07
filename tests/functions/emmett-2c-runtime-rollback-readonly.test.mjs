@@ -17,7 +17,8 @@ test('runtime review uses allowlisted reads and remains nonauthorizing',()=>{
 test('protected staging workflow does not grant new deploy authorization',()=>{
  assert.match(workflow,/emmett-2c-runtime-rollback-readonly:/);
  assert.match(workflow,/inputs.action == 'emmett-2c-runtime-rollback-readonly'/);
- const section=workflow.split('  emmett-2c-runtime-rollback-readonly:',2)[1];
+ const section=workflow.split('  emmett-2c-runtime-rollback-readonly:',2)[1]
+   .split('\n  emmett-2c-receipt-deploy:',1)[0];
  assert.match(section,/environment: staging/);
  assert.match(section,/service_account: sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
  assert.match(section,/ref: b4b40798b58aac46706dce984427e77d501855e7/);

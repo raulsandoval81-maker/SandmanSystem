@@ -5,7 +5,8 @@ import { readFileSync } from "node:fs";
 const primary = readFileSync(".github/workflows/staging-exact-sha-release.yml", "utf8");
 const standalone = readFileSync(".github/workflows/2c-staging-readonly-inventory.yml", "utf8");
 const marker = "  emmett-2c-readonly-inventory:\n";
-const job = primary.slice(primary.indexOf(marker));
+const inventoryTail = primary.slice(primary.indexOf(marker));
+const job = inventoryTail.split("\n  emmett-2c-receipt-readonly-preflight:\n", 1)[0];
 
 test("2C inventory is explicitly dispatched only through the authorized staging workflow", () => {
   assert.ok(primary.includes("          - emmett-2c-readonly-inventory\n"));
