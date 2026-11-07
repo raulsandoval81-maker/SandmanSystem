@@ -22,7 +22,7 @@ for (let count = 1; count <= 5; count++) {
       assert.equal(plan.totalCents, expected);
       assert.equal(plan.installmentsCents.length, 3);
       assert.equal(plan.installmentsCents.reduce((s, a) => s + a, 0), expected);
-      const date = early ? "2026-11-06" : "2026-11-28";
+      const date = early ? "2026-11-06" : "2026-12-01";
       const schedule = buildWinterWrestlingSchedule(count, date, false, "monday-wednesday-saturday", early);
       assert.equal(schedule.totalCents, expected);
       assert.deepEqual(schedule.installments.map(x => x.dueDate),
@@ -32,7 +32,7 @@ for (let count = 1; count <= 5; count++) {
       assert.equal(schedule.requiresManualReview, false);
     });
     test(`${count} athlete(s) pay-in-full at family price`, () => {
-      const date = early ? "2026-11-06" : "2026-11-28";
+      const date = early ? "2026-11-06" : "2026-12-01";
       const plan = buildWinterWrestlingSchedule(count, date, true, "monday-wednesday-saturday", early);
       assert.equal(plan.installments.length, 1);
       assert.equal(plan.installments[0].amountCents, quoteFor(count, early));
@@ -52,7 +52,7 @@ test("approved late-start adjustment only discounts actual family tuition", () =
 test("rejects invalid dates and unapproved family sizes", () => {
   assert.throws(() => buildWinterWrestlingSchedule(1, "2026-02-30"));
   assert.throws(() => buildWinterWrestlingSchedule(6, "2026-11-06"));
-  assert.throws(() => buildWinterWrestlingSchedule(1, "2026-11-28", true, "monday-wednesday-saturday", true), /Early registration/);
+  assert.throws(() => buildWinterWrestlingSchedule(1, "2026-12-01", true, "monday-wednesday-saturday", true), /Early registration/);
 });
 test("season dates ages and pricing are locked", () => {
   assert.equal(WINTER_WRESTLING_2026_27.minAge, 7);
@@ -85,26 +85,33 @@ test("canonical server policy enforces verified siblings, waived fee, and one-ti
   assert.equal(quote.automaticFuturePayments, false);
   assert.deepEqual(quote.installments.map(x=>x.amountCents), [20666,20666,20668]);
   assert.deepEqual(quote.installments.map(x=>x.dueDate), ["2026-11-06","2026-11-20","2026-12-04"]);
-  assert.equal(create(3, "2026-11-28", true, true).totalCents, 65000);
+  assert.equal(create(3, "2026-12-01", true, true).totalCents, 65000);
   assert.equal(create(1, "2026-11-06", false, true).totalCents, 32000);
 });
 
-test("early-rate checkout grace requires original start by Nov 27 and closes Nov 30", () => {
+test("flyer dates: early checkout through Nov 30, regular from Dec 1, retry grace through Dec 3", () => {
   const {
     winterWrestlingEarlyCheckoutAllowed: allowed,
     winterWrestlingEarlyPaymentOnTime: paidOnTime,
     winterWrestlingPacificDate: day,
   } = require("../lib/proposals/winterWrestlingSeasonPolicy");
-  assert.equal(allowed({ today: "2026-11-27" }), true);
-  assert.equal(allowed({ today: "2026-11-28" }), false);
-  assert.equal(allowed({ today: "2026-11-28", initialCheckoutDate: "2026-11-27" }), true);
-  assert.equal(allowed({ today: "2026-11-30", initialCheckoutDate: "2026-11-27" }), true);
-  assert.equal(allowed({ today: "2026-12-01", initialCheckoutDate: "2026-11-27" }), false);
-  assert.equal(allowed({ today: "2026-11-30", initialCheckoutDate: "2026-11-28" }), false);
-  const latest = Date.parse("2026-12-01T07:59:59Z") / 1000;
-  const late = Date.parse("2026-12-01T08:00:00Z") / 1000;
-  assert.equal(day(latest * 1000), "2026-11-30");
-  assert.equal(day(late * 1000), "2026-12-01");
+  assert.equal(WINTER_WRESTLING_2026_27.earlyRegistrationDeadline, "2026-11-30");
+  assert.equal(WINTER_WRESTLING_2026_27.earlyPaymentGraceDeadline, "2026-12-03");
+  assert.equal(allowed({ today: "2026-11-30" }), true);
+  assert.equal(allowed({ today: "2026-12-01" }), false);
+  assert.equal(allowed({ today: "2026-12-01", initialCheckoutDate: "2026-11-30" }), true);
+  assert.equal(allowed({ today: "2026-12-03", initialCheckoutDate: "2026-11-30" }), true);
+  assert.equal(allowed({ today: "2026-12-04", initialCheckoutDate: "2026-11-30" }), false);
+  assert.equal(allowed({ today: "2026-12-03", initialCheckoutDate: "2026-12-01" }), false);
+  assert.equal(buildWinterWrestlingSchedule(1, "2026-11-30", true,
+    "monday-wednesday-saturday", true).totalCents, 32000);
+  assert.throws(() => buildWinterWrestlingSchedule(1, "2026-12-01", true,
+    "monday-wednesday-saturday", true), /Early registration/);
+  // Pacific 23:59:59 Dec 3 / midnight Dec 4 (PST, UTC-8).
+  const latest = Date.parse("2026-12-04T07:59:59Z") / 1000;
+  const late = Date.parse("2026-12-04T08:00:00Z") / 1000;
+  assert.equal(day(latest * 1000), "2026-12-03");
+  assert.equal(day(late * 1000), "2026-12-04");
   assert.equal(paidOnTime(latest), true);
   assert.equal(paidOnTime(late), false);
   assert.equal(paidOnTime(undefined), false);
