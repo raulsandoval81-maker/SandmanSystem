@@ -1753,7 +1753,7 @@ const extras = {
         const part = (type) => parts.find(item => item.type === type)?.value || "";
         el.seasonalEnrollmentDate.value = `${part("year")}-${part("month")}-${part("day")}`;
       }
-      const early = el.seasonalEnrollmentDate.value <= "2026-11-27";
+      const early = el.seasonalEnrollmentDate.value <= "2026-11-30";
       const listCents = 35000 + Math.max(0, athleteCount - 1) * 15000;
       const baseCents = (early ? 32000 : 35000) + Math.max(0, athleteCount - 1) * 15000;
       const schedule = el.seasonalSchedule.value;
