@@ -23,7 +23,7 @@ form.addEventListener("submit",async(e)=>{
    organization:"sandman-combat",locationId:"santa-ynez-valley",pipeline:"admissions",
    source:"seasonal-wrestling-public-interest",requestType:"SEASONAL_INTEREST",
    campaignId:"winter-wrestling-2026-27",campaignName:"Winter Wrestling 2026–27",
-   season:"winter-2026-27",campaignPriceLabel:"$350 per athlete · complete season · Nov 16, 2026–Feb 14, 2027",
+   season:"winter-2026-27",campaignPriceLabel:"$320 early first athlete through Nov 27, 2026; $350 regular; $150 each additional sibling; $30 enrollment waived per athlete · core Nov 30, 2026–Feb 27, 2027",
    sport:"wrestling",programInterest:"zero2hero-wrestling",
    schedulePreference:schedule.value==="group-c"?"unsure":clean(data.get("schedule")),
    scheduleSelection:schedule.value==="group-c"?"group-c":clean(data.get("schedule")),
