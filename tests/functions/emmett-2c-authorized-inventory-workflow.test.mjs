@@ -55,13 +55,16 @@ test("new receipt requires verified absence and separate bootstrap before any re
   assert.match(job, /test.*failures.*-eq 0/);
 });
 
-test("Intake with omitted environment requires explicit Gen2 service verification", () => {
+test("Intake with omitted environment honors explicitly verified generation", () => {
   assert.match(job, /fn.*sendEnrollmentIntakeEmail/);
   assert.match(job, /gcloud functions describe.*--v2 --region=us-central1/);
   assert.match(job, /\.state == "ACTIVE"/);
   assert.match(job, /\.buildConfig\.entryPoint == \$fn/);
   assert.match(job, /\.serviceConfig\.service/);
-  assert.match(job, /GEN2_SERVICE_RESOURCE_UNVERIFIED/);
+  assert.match(job, /INTAKE_GENERATION_OR_SERVICE_UNVERIFIED/);
+  assert.match(job, /\.environment == "GEN_1"/);
+  assert.match(job, /\.environment == "GEN_2"/);
+  assert.match(job, /INVENTORIED_GEN1: Cloud Run service is not applicable/);
   assert.match(job, /MISSING_AUTHORITATIVE_RUN_SERVICE/);
   assert.match(job, /UNKNOWN_GENERATION: manual verification required/);
   assert.match(job, /releaseReady: false/);
