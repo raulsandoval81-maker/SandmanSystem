@@ -12,7 +12,9 @@ export const WINTER_WRESTLING_2026_27 = {
   minAge: 7,
   maxAge: 13,
   perAthleteCents: 35000,
-  earlyPerAthleteCents: 30000,
+  earlyPerAthleteCents: 32000,
+  additionalSiblingCents: 15000,
+  enrollmentFeeWaivedPerAthleteCents: 3000,
   earlyRegistrationDeadline: "2026-11-27",
   earlyPaymentGraceDeadline: "2026-11-30",
   installmentPricesCents: {
@@ -140,13 +142,14 @@ export function winterWrestlingPaymentPlan(
   if (!Number.isInteger(athleteCount) || athleteCount < 1 || athleteCount > 5) {
     throw new Error("Athlete count outside approved winter season schedule; Management approval required.");
   }
-  const totalCents = athleteCount * (earlyRegistration
+  const totalCents = (earlyRegistration
     ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
-    : WINTER_WRESTLING_2026_27.perAthleteCents);
+    : WINTER_WRESTLING_2026_27.perAthleteCents) +
+    (athleteCount - 1) * WINTER_WRESTLING_2026_27.additionalSiblingCents;
+  const base = Math.floor(totalCents / 3);
   const installmentsCents = payInFull
     ? [totalCents]
-    : [...WINTER_WRESTLING_2026_27.paymentAmountsCents[athleteCount]];
-  if (!payInFull && earlyRegistration) installmentsCents[0] -= 5000 * athleteCount;
+    : [base, base, totalCents - 2 * base];
   if (installmentsCents.reduce((a, b) => a + b, 0) !== totalCents) {
     throw new Error("Winter wrestling installment totals do not reconcile.");
   }
@@ -200,26 +203,37 @@ export function buildWinterWrestlingSchedule(
   if (earlyRegistration && proration.totalDiscountCents > 0) {
     throw new Error("Early registration and late-start discounts cannot be combined.");
   }
-  const adjustedAmounts = [...plan.installmentsCents];
-  adjustedAmounts[0] -= proration.totalDiscountCents;
-  const laterDates = WINTER_WRESTLING_2026_27.laterDueDates;
-  const expectedDates = [enrollmentDate, ...laterDates.slice(0, adjustedAmounts.length - 1)];
-  // Never generate a backdated installment: require manual review to
-  // agree a new due date rather than silently charge a family.
+  // Apply proration to family tuition, not the regular first-athlete price
+  // multiplied by the number of siblings. Distribute across installments
+  // without reducing any installment below the Stripe minimum.
+  const adjustedTotal = plan.totalCents -
+    Math.round(plan.totalCents * proration.appliedPercent / 100);
+  const perInstallment = Math.floor(adjustedTotal / plan.installmentsCents.length);
+  const adjustedAmounts = plan.installmentsCents.length === 1
+    ? [adjustedTotal]
+    : [perInstallment, perInstallment, adjustedTotal - 2 * perInstallment];
+  const addDays = (iso: string, days: number) => {
+    const utc = new Date(iso + "T12:00:00Z");
+    utc.setUTCDate(utc.getUTCDate() + days);
+    return utc.toISOString().slice(0, 10);
+  };
+  const expectedDates = adjustedAmounts.map((_, i) => addDays(enrollmentDate, i * 14));
+  // A late enrollment may put an installment after the season ends;
+  // Management must review rather than silently extending season billing.
   const requiresManualReview = expectedDates.some((date, i) =>
-    i > 0 && date <= enrollmentDate
+    i > 0 && (date <= enrollmentDate || date > WINTER_WRESTLING_2026_27.seasonEnd)
   );
   const installments = adjustedAmounts.map((amountCents, index) => ({
     number: index + 1,
     amountCents,
     dueDate: expectedDates[index],
     stripePriceId:
-      adjustedAmounts.length === 1 && !earlyRegistration && proration.totalDiscountCents === 0
+      adjustedAmounts.length === 1 && athleteCount === 1 && !earlyRegistration && proration.totalDiscountCents === 0
         ? WINTER_WRESTLING_2026_27.fullSeasonPriceId // Charge with quantity = athleteCount.
         : WINTER_WRESTLING_2026_27.installmentPricesCents[amountCents] || null,
   }));
   return {
-    totalCents: plan.totalCents - proration.totalDiscountCents,
+    totalCents: adjustedTotal,
     installments,
     requiresManualReview:
       requiresManualReview || proration.requiresLateEnrollmentReview,
