@@ -23,6 +23,7 @@ import {
   getResendClient,
   RESEND_API_KEY,
 } from "../modules/email/resend";
+import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -279,7 +280,13 @@ export const issueProposalEnrollmentHandoff =
           ) || "there";
 
         const url =
-          `https://sandmancombat.com${enrollmentPath}`;
+          `${resolveBillingPublicBaseUrl()}${enrollmentPath}`;
+
+        const cashCheckHandoff =
+          proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check";
+        const afterConfirmInstructions = cashCheckHandoff
+          ? "After confirmation, Sandman Management verifies your existing cash/check payment. No new online payment is requested."
+          : "After confirmation, continue to secure Stripe payment.";
 
         const resend =
           getResendClient();
@@ -299,7 +306,8 @@ export const issueProposalEnrollmentHandoff =
               "",
               "Your approved Sandman Academy proposal is ready for Review & Confirm.",
               "",
-              "Please review and confirm the locked enrollment and billing details, then continue to secure Stripe payment.",
+              "Please review and confirm the locked enrollment and billing details.",
+              afterConfirmInstructions,
               "",
               url,
               "",
@@ -320,8 +328,8 @@ export const issueProposalEnrollmentHandoff =
         <p style="font-size:17px;font-weight:700;">Hi ${escapeHtml(contactName)},</p>
         <p style="font-size:16px;line-height:1.7;color:#27272a;">
           Your approved proposal is ready for Review & Confirm.
-          Review and confirm the locked enrollment and billing details,
-          then continue to secure Stripe payment.
+          Review and confirm the locked enrollment and billing details.
+          ${escapeHtml(afterConfirmInstructions)}
         </p>
         <div style="margin:26px 0;text-align:center;">
           <a href="${escapeHtml(url)}" style="display:inline-block;background:#171717;color:#fff8e8;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">

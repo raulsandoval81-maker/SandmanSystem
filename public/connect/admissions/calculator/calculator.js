@@ -455,6 +455,38 @@ const extras = {
     el.sendReviewButton =
       sendReviewButton;
 
+    // 2C is a cash/check family-review entrypoint, not a payment recorder.
+    // Payment verification and receipt issuance remain in Management Billing.
+    const cashCheckReviewButton = document.createElement("button");
+    cashCheckReviewButton.id = "cashCheckReviewButton";
+    cashCheckReviewButton.type = "button";
+    cashCheckReviewButton.className = "button";
+    cashCheckReviewButton.textContent = "2C. Cash/Check — Begin Family Review (No Stripe)";
+    cashCheckReviewButton.title = "Begin required family review. Management reconciles the existing check only after Review & Confirm.";
+    cashCheckReviewButton.hidden = true;
+    sendReviewButton.insertAdjacentElement("afterend", cashCheckReviewButton);
+    el.cashCheckReviewButton = cashCheckReviewButton;
+
+    function syncPaymentReviewActions() {
+      const cash = el.paymentArrangement?.value === "prepaid_cash_check";
+      const stage = String(el.proposalWorkflowStage?.textContent || "Proposal Draft");
+      const draft = stage === "Proposal Draft" || stage === "Building Proposal";
+      if (pricingLabMode) return;
+      el.cashCheckReviewButton.hidden = !(cash && draft);
+      el.submitReviewButton.hidden = cash || !draft;
+      el.sendReviewButton.hidden = !draft;
+      if (draft) {
+        el.submitReviewButton.textContent = "2B. In-Person Confirm → Stripe";
+        el.sendReviewButton.textContent = cash
+          ? "2A. Remote Confirm — Cash/Check (No Stripe)"
+          : "2A. Remote Confirm → Stripe";
+      }
+      const instructions = document.getElementById("proposalActionInstructions");
+      if (instructions) instructions.textContent = cash
+        ? "Cash/Check: complete family review and Review & Confirm first. Then Management verifies the existing payment in Billing, sends the receipt, and continues in the existing Intake workflow. No Stripe Checkout."
+        : "Save the proposal, then choose the remote or in-person family confirmation path. Stripe checkout follows confirmation.";
+    }
+
     el.submitReviewButton.textContent =
       "Submit for Review — In Person";
 
@@ -474,7 +506,8 @@ const extras = {
       [
         el.saveDraftButton,
         el.submitReviewButton,
-        el.sendReviewButton
+        el.sendReviewButton,
+        el.cashCheckReviewButton
       ].forEach((button) => {
         if (!button) return;
 
@@ -1742,6 +1775,7 @@ const extras = {
         if (message) message.textContent = error.message;
         return null;
       }
+      syncPaymentReviewActions();
       return result;
     }
 
@@ -2044,7 +2078,8 @@ alert(
       [
         el.saveDraftButton,
         el.submitReviewButton,
-        el.sendReviewButton
+        el.sendReviewButton,
+        el.cashCheckReviewButton
       ].forEach((button) => {
         if (button) {
           button.disabled = true;
@@ -2220,12 +2255,14 @@ alert(
 
         el.sendReviewButton.disabled =
           false;
+        el.cashCheckReviewButton.disabled = false;
 
         el.submitReviewButton.textContent =
           "Submit for Review — In Person";
 
         el.sendReviewButton.textContent =
           "Send for Review — Remote";
+        syncPaymentReviewActions();
 
         alert(
           error?.message ||
@@ -2422,11 +2459,14 @@ alert(
           el.saveDraftButton.hidden = false;
           el.submitReviewButton.hidden = false;
           el.sendReviewButton.hidden = false;
+          el.cashCheckReviewButton.hidden = false;
         } else {
           el.saveDraftButton.hidden = true;
           el.submitReviewButton.hidden = true;
           el.sendReviewButton.hidden = true;
+          el.cashCheckReviewButton.hidden = true;
         }
+        syncPaymentReviewActions();
       }
     }
 
@@ -3332,6 +3372,11 @@ alert(
       "click",
       () => beginProposalReview("email")
     );
+
+    el.cashCheckReviewButton.addEventListener("click", () => {
+      if (el.paymentArrangement?.value !== "prepaid_cash_check") return;
+      beginProposalReview("local");
+    });
 
     if (el.membershipStartDate) {
       el.membershipStartDate.addEventListener(

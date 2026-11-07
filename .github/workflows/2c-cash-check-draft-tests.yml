@@ -1,0 +1,84 @@
+name: 2C cash/check draft safety checks
+
+on:
+  pull_request:
+    paths:
+      - 'functions/src/billing/sendProposalPrepaidCashReceipt.ts'
+      - 'functions/src/enrollment/sendEnrollmentIntakeEmail.ts'
+      - 'functions/src/index.ts'
+      - 'functions/tests/prepaidCashReceipt.integration.cjs'
+      - 'public/connect/proposals/proposals.js'
+      - 'functions/src/proposals/issueProposalEnrollmentHandoff.ts'
+      - 'public/management/billing/billing.js'
+      - 'public/intake-management/management.intake.js'
+      - 'public/connect/admissions/calculator/**'
+      - '.github/workflows/2c-cash-check-draft-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install exact function dependencies
+        run: npm ci --prefix functions --ignore-scripts
+      - name: Compile functions and run focused prepaid tests
+        run: npm --prefix functions run test:payment-arrangements
+      - name: Validate edited browser module syntax without executing or sending messages
+        run: |
+          node --check public/connect/admissions/calculator/calculator.js
+          node --check public/management/billing/billing.js
+          node --check public/intake-management/management.intake.js
+      - name: Verify no payment/email secrets or cloud credentials available
+        run: |
+          test -z "${STRIPE_SECRET_KEY}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS}"
+
+  isolated-prepaid-emulator:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GCLOUD_PROJECT: demo-sandman-2c-acceptance
+      GOOGLE_CLOUD_PROJECT: demo-sandman-2c-acceptance
+      FIREBASE_PROJECT_ID: demo-sandman-2c-acceptance
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --prefix functions --ignore-scripts
+      - run: npm run build --prefix functions
+      - name: Run only synthetic prepaid acceptance in local Firestore emulator
+        run: |
+          test "${GCLOUD_PROJECT}" = "demo-sandman-2c-acceptance"
+          test -z "${STRIPE_SECRET_KEY}"
+          test -z "${RESEND_API_KEY}"
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS}"
+          npx --yes firebase-tools@14.13.0 emulators:exec \
+            --only firestore \
+            --project demo-sandman-2c-acceptance \
+            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs'

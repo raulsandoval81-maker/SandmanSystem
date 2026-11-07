@@ -1638,7 +1638,10 @@ function proposalStageInfo(
     case "CLIENT_CHANGES_REQUESTED":
       return { stage: "Proposal Correction", next: "Return to Prospect Builder and correct the offer." };
     case "CLIENT_SIGNED":
-      return { stage: "Management Approval", next: "Approve the accepted proposal for checkout." };
+      return { stage: "Management Approval", next:
+        proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check"
+          ? "Approve the accepted cash/check proposal for family Review & Confirm; no Stripe checkout."
+          : "Approve the accepted proposal for checkout." };
     case "BUILDING":
     case "DRAFT":
       return { stage: "Proposal Builder", next: "Complete the proposal and issue it to the family." };
@@ -1646,7 +1649,10 @@ function proposalStageInfo(
     case "CHECKOUT_CREATED":
     case "PARTIALLY_PAID":
     case "PAYMENT_FAILED":
-      return { stage: "Review & Confirm", next: "Family confirms the locked enrollment, then continues to Stripe." };
+      return { stage: "Review & Confirm", next:
+        proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check"
+          ? "Family confirms the locked enrollment, then Management reconciles the existing cash/check payment. No Stripe checkout."
+          : "Family confirms the locked enrollment, then continues to Stripe." };
     case "PAID":
       return { stage: "Management Enrollment", next: "Issue the secure Intake handoff." };
     default:
