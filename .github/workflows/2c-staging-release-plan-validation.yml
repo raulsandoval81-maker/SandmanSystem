@@ -9,6 +9,8 @@ on:
       - '.github/workflows/staging-exact-sha-release.yml'
       - '.github/workflows/2c-staging-readonly-inventory.yml'
       - 'tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs'
+      - 'scripts/staging/emmett-2c-receipt-bootstrap-review.json'
+      - 'tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs'
 
 permissions:
   contents: read
@@ -29,7 +31,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate offline manifest and code contracts
-        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs
+        run: node --test tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs
       - name: Assert secrets are unavailable
         run: |
           test -z "${STRIPE_SECRET_KEY}"
