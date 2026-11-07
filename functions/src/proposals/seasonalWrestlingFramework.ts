@@ -44,7 +44,7 @@ export const SEASONAL_WRESTLING_CAMPAIGNS: Record<WrestlingSeason, SeasonalCampa
     campaignId: "winter-wrestling-2026-27",
     seasonStart: "2026-11-30",
     seasonEnd: "2027-02-27",
-    earlyRegistrationDeadline: "2026-11-27",
+    earlyRegistrationDeadline: "2026-11-30",
     capacity: 40,
     enabledForCheckout: false, // blueprint only; existing Winter V2 is separately controlled
   },
