@@ -866,6 +866,12 @@ async function deleteRequest(id) {
   );
 
   try {
+    const context = await requireManagement();
+    if (!context.isSystemAdmin) {
+      setStatus("Only an administrator can delete admissions requests.", true);
+      return;
+    }
+
     await deleteDoc(
       doc(
         db,
@@ -874,7 +880,7 @@ async function deleteRequest(id) {
       )
     );
 
-    await loadRequests();
+    await loadRequests(context);
   } catch (error) {
     console.error(
       "[admissions-requests] delete failed:",
