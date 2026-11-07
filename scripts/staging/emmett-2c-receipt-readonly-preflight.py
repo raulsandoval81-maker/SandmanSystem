@@ -90,7 +90,7 @@ def main():
     job_marker = "  emmett-2c-receipt-readonly-preflight:"
     require(workflow.count(job_marker) == 1, "Trusted preflight job identity missing")
     job_text = workflow.split(job_marker, 1)[1]
-    job_text = job_text.split("\n  ", 1)[0]
+    job_text = re.split(r"(?m)^  [a-z][a-z0-9-]*:[ \\t]*$", job_text, maxsplit=1)[0]
     require("service_account: " + DEPLOYER in job_text and
             "workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging" in job_text and
             "project_id: " + PROJECT in job_text,
