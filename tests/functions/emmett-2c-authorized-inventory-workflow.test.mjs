@@ -40,3 +40,17 @@ test("legacy rejected workflow has no manual OIDC surface", () => {
   assert.doesNotMatch(standalone, /google-github-actions\/auth@/);
   assert.doesNotMatch(standalone, /\bgcloud /);
 });
+
+test("2C inventory distinguishes Gen1 callable from Gen2 Run services", () => {
+  assert.match(job, /generation.*GEN_1/);
+  assert.match(job, /INVENTORIED_GEN1: Cloud Run service is not applicable/);
+  assert.match(job, /generation.*GEN_2/);
+  assert.match(job, /INVENTORIED_GEN2_READ_ONLY/);
+});
+test("new receipt requires verified absence and separate bootstrap before any release", () => {
+  assert.match(job, /gcloud functions list --regions=us-central1/);
+  assert.match(job, /fn.*sendProposalPrepaidCashReceipt/);
+  assert.match(job, /NOT_DEPLOYED: new Gen2 receipt callable requires separately approved bootstrap/);
+  assert.match(job, /releaseReady: false/);
+  assert.match(job, /test.*failures.*-eq 0/);
+});
