@@ -10,7 +10,7 @@ import path from 'node:path';
 const SITE = 'sandman-combat-staging';
 const BASE = 'https://firebasehosting.googleapis.com/v1beta1/sites/' + SITE;
 const EXPECTED_REF = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main';
-const SHA = 'f801d51d6b6346b112548538977f9ec0e58146d1';
+const SHA = '15cacf7cac4efed49f505c88435ec3342603e1fc';
 const FILES = [
   'public/connect/admissions/calculator/index.html',
   'public/connect/admissions/calculator/calculator.js',
