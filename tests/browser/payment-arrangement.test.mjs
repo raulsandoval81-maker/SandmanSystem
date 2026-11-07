@@ -26,3 +26,21 @@ test('Builder preserves monthly pricing and rejects mixed terms, extra fees and 
  assert.throws(()=>previewPaymentArrangement(price,[{plan:'standard',billingTerm:'monthly'}],'prepaid_stripe',[]),/6- or 12-month/);
  assert.throws(()=>previewPaymentArrangement({...price,extraAmount:5},athletes,'prepaid_cash_check',[]),/extras/);
 });
+
+const enrollmentStageUrl = new URL('../../public/management/enrollment-flow/enrollment-stage.js',import.meta.url);
+const stageModule = await import('data:text/javascript;base64,' +
+  Buffer.from(await readFile(enrollmentStageUrl,'utf8')).toString('base64'));
+test('paid prepaid conversion stays in Enrollment until parent Intake is sent', () => {
+  const proposal={status:'PAID',paymentMethod:'cash_prepaid',
+    billingFollowUpStatus:'RENEWAL_AUTOPAY_APPROVAL_REQUIRED'};
+  assert.equal(stageModule.enrollmentStage(proposal,null).key,'ENROLLMENT');
+  assert.match(stageModule.enrollmentStage(proposal,null).next,/intake/i);
+  assert.equal(stageModule.enrollmentStage(proposal,{status:'invited'}).key,'INTAKE');
+  assert.equal(stageModule.enrollmentStage(proposal,{status:'submitted'}).key,'INTAKE');
+  assert.equal(stageModule.enrollmentStage(proposal,{status:'approved'}).key,'ACTIVATION');
+  assert.equal(stageModule.enrollmentStage(proposal,{status:'approved',approvedUid:'F8-DEMO'}).key,'ACTIVATION');
+});
+test('unpaid and closed cases retain safe Enrollment Flow classification', () => {
+  assert.equal(stageModule.enrollmentStage({status:'READY_FOR_CHECKOUT'},null).key,'PAYMENT');
+  assert.equal(stageModule.enrollmentStage({status:'VOID'},null).key,'CLOSED');
+});
