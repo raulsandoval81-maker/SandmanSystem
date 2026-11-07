@@ -54,3 +54,14 @@ test("new receipt requires verified absence and separate bootstrap before any re
   assert.match(job, /releaseReady: false/);
   assert.match(job, /test.*failures.*-eq 0/);
 });
+
+test("legacy Intake Gen1 is verified explicitly, not inferred from a missing environment", () => {
+  assert.match(job, /fn.*sendEnrollmentIntakeEmail && test.*generation.*UNKNOWN/);
+  assert.match(job, /gcloud functions describe.*--gen1 --region=us-central1/);
+  assert.match(job, /\.status == "ACTIVE"/);
+  assert.match(job, /\.versionId/);
+  assert.match(job, /\.httpsTrigger\.url/);
+  assert.match(job, /GEN1_LEGACY_METADATA_UNVERIFIED/);
+  assert.match(job, /UNKNOWN_GENERATION: manual verification required/);
+  assert.match(job, /releaseReady: false/);
+});
