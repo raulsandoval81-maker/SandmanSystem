@@ -354,19 +354,22 @@ test("one synthetic case connects receipt, Intake email, submitted token consump
   const intakeRef = db.doc("intakes/"+tokenId);
   await intakeRef.set({
     tokenId,proposalId,locationId:"2c-location-"+suffix,status:"submitted",mode:"new_athlete",
-    intakeAudience:"parent_guardian",dob:"2012-04-15",
-    athlete:{name:"Synthetic Athlete",dob:"2012-04-15"},
+    intakeAudience:"parent_guardian",dob:"2010-04-15",
+    athlete:{name:"Synthetic Athlete",dob:"2010-04-15"},
     waiver:{agreed:true,signatureName:"Synthetic Guardian",signatureDate:"2026-11-08",signerType:"parent_guardian",signingAuthority:"guardian_for_athlete"},
     emergency:{name:"Synthetic Guardian",phoneDigits:"8055550100"},medical:"None",
   });
   const consume = require("../lib/enrollment/consumeSubmittedIntakeToken").consumeSubmittedIntakeToken;
   await consume.run({data:await intakeRef.get(),params:{intakeId:tokenId}});
   assert.equal((await db.doc("intakeTokens/"+tokenId).get()).get("used"),true);
+  // Own a separate teen/adult counter; the youth acceptance suite resets f8.
+  // Never depend on another test file's setup or mutate its counter assertions.
+  await db.doc("counters/f4").set({next:1});
   const activate = require("../lib/approveAndActivate").approveAndActivate;
   const result = await activate.run({auth:{uid:manager,token:{}},data:{
-    intakeId:tokenId,mode:"new_athlete",foundry:"f8",virtueName:"Courage",virtueCode:"CRG",trackCode:"Z2H-WR",
-    fullName:"Synthetic Athlete",publicName:"S. Athlete",dob:"2012-04-15",framework:"foundry8",
-    programTrack:"zero2hero",art:"wrestling",ladderKey:"F8",mint:{lane:"CB"},
+    intakeId:tokenId,mode:"new_athlete",foundry:"f4",virtueName:"Courage",virtueCode:"CRG",trackCode:"Z2H-WR",
+    fullName:"Synthetic Athlete",publicName:"S. Athlete",dob:"2010-04-15",framework:"foundry4",
+    programTrack:"path2legend",art:"wrestling",ladderKey:"F4",mint:{lane:"CB"},
     team:{name:"Synthetic Team",city:"Test",state:"CA"},parent:{},
   }});
   assert.equal(result.ok,true);
