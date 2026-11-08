@@ -743,10 +743,10 @@ function renderReadyIntakeCard(proposal) {
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
           ${receiptState.status === "SENDING" ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
-            2C — Send Paid-in-Full Receipt + Intake Email
+            Send Receipt & Intake Email
           </button>
         ` : ""}
-        ${handoffAction}
+        ${receiptState ? `<p class="small muted">Cash/Check: use the receipt-and-Intake action above. The secure token will be created or reused automatically.</p>` : handoffAction}
       </div>
     </div>
   `;
@@ -779,9 +779,9 @@ function orientRequestedProposal() {
     orientation.innerHTML =
       '<div class="management-lifecycle__heading">' +
       '<div><span class="management-lifecycle__eyebrow">Current Case Stage</span>' +
-      '<strong>Checkout &amp; Enrollment</strong></div>' +
+      '<strong>' + (proposal.paymentMethod === "cash_prepaid" ? "Cash/Check · Intake Handoff" : "Enrollment Handoff") + '</strong></div>' +
       '<span class="management-lifecycle__case"></span></div>' +
-      '<p class="management-lifecycle__guidance"><strong>Next:</strong> Choose who will complete Intake; opening this case does not create an invite.</p>';
+      '<p class="management-lifecycle__guidance"><strong>Next:</strong> ' + (proposal.paymentMethod === "cash_prepaid" ? "Verify recipient, send receipt, then send the secure Intake invitation." : "Choose the Intake recipient, then send the secure invitation.") + '</p>';
     orientation.querySelector(".management-lifecycle__case").textContent = requestedProposalId;
   }
 
@@ -1009,14 +1009,14 @@ function wireReadyIntakeButtons() {
       const initial = audience === "adult_athlete"
         ? String(athletes[0]?.email || prospect.email || "").trim()
         : String(prospect.parentEmail || prospect.primaryContactEmail || prospect.email || "").trim();
-      const entered = window.prompt("Verify the receipt and secure Intake email recipient:", initial);
+      const entered = window.prompt("Confirm the email address for the payment receipt and secure Intake invitation:", initial);
       if (entered === null) return;
       const recipientEmail = String(entered).trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
         if ($("invite-status")) $("invite-status").textContent = "Enter a valid verified recipient email.";
         return;
       }
-      if (!window.confirm(`2C for ${proposalId}: send the existing Cash/Check paid receipt and the secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation to ${recipientEmail}? No Stripe charge will be created.`)) return;
+      if (!window.confirm(`Send the Cash/Check receipt and secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) return;
       const statusBefore = await refresh2CReceiptStatus(proposalId);
       if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
         if ($("invite-status")) $("invite-status").textContent = "Receipt delivery is uncertain. Provider reconciliation is required before Intake can be sent.";
