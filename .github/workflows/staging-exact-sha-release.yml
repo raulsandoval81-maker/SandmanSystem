@@ -2346,7 +2346,7 @@ jobs:
               echo 'TARGET_ALREADY_EXISTS_STOP'
               exit 1
             fi
-            grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-run-existing.err || { echo 'RUN_LOOKUP_UNVERIFIED'; exit 1; }
+            grep -Eiq 'NOT_FOUND|not found|404|Cannot find service \[sendproposalprepaidcashreceipt\]' /tmp/2c-run-existing.err || { echo 'RUN_LOOKUP_UNVERIFIED'; exit 1; }
             echo 'FAILED_FUNCTION_WITH_MISSING_RUN_SERVICE_RECOVERY'
           else
             grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-existing.err || { echo 'TARGET_LOOKUP_UNVERIFIED'; exit 1; }
