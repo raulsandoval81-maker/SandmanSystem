@@ -69,7 +69,10 @@ assert os.environ.get('DEPLOY_APPROVAL')=='APPROVE_PHASE2C_STAGING_TWO_FUNCTIONS
 assert os.environ.get('EXPECTED_FUNCTION_BASELINE')==digest(before),'Function baseline changed after preflight'
 for name in TARGETS:
  v=before[name]['function']
- cmd=['gcloud','functions','deploy',name,'--no-gen2','--project='+PROJECT,'--region=us-central1','--runtime='+v['runtime'],'--entry-point='+name,'--source=/tmp/phase2c-package','--trigger-http','--quiet']
+ security_level=(v.get('httpsTrigger') or {}).get('securityLevel')
+ assert security_level in ('SECURE_ALWAYS','SECURE_OPTIONAL'),name+' has unknown HTTPS security level; refusing deployment'
+ security_flag={'SECURE_ALWAYS':'secure-always','SECURE_OPTIONAL':'secure-optional'}[security_level]
+ cmd=['gcloud','functions','deploy',name,'--no-gen2','--project='+PROJECT,'--region=us-central1','--runtime='+v['runtime'],'--entry-point='+name,'--source=/tmp/phase2c-package','--trigger-http','--security-level='+security_flag,'--quiet']
  # Existing deployment retains all unspecified configuration and secret bindings.
  p=subprocess.run(cmd,text=True,capture_output=True)
  if p.returncode:raise RuntimeError('Deploy failed for '+name+': '+p.stderr[:1500])
