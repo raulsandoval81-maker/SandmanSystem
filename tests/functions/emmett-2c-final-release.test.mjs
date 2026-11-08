@@ -41,3 +41,18 @@ test('boundary uses immutable dispatch SHA and reports early failures without a 
   assert.match(section,/if-no-files-found: error/);
   assert.doesNotMatch(section,/^\s{6}EMMETT_2C_FINAL_SHA: \$\{\{ inputs\.emmett_2c_final_sha \}\}$/m);
 });
+
+test('release source manifest stays limited to the six reviewed files',()=>{
+  const section=workflow.split('  emmett-2c-final-release:',2)[1];
+  const manifest=section.match(/printf '%s\\n' \\\n([\s\S]*?) \| sort > \/tmp\/2c-final-allowed/);
+  assert.ok(manifest);
+  const files=manifest[1].split('\\\n').map(line=>line.trim()).filter(Boolean);
+  assert.deepEqual(files,[
+    '.github/workflows/2c-staging-release-plan-validation.yml',
+    '.github/workflows/staging-exact-sha-release.yml',
+    'scripts/staging/emmett-2c-final-hosting-overlay.mjs',
+    'tests/functions/emmett-2c-final-blockers.test.mjs',
+    'tests/functions/emmett-2c-final-release.test.mjs',
+    'tests/functions/phase-c-management-location.test.mjs',
+  ]);
+});
