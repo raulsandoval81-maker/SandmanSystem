@@ -1,0 +1,277 @@
+name: PR561 waiver protected staging release
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Run read-only preflight or the separately approved release
+        required: true
+        default: preflight
+        type: choice
+        options: [preflight, deploy]
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+      exact_merge_sha:
+        description: Exact reviewed PR #561 merge SHA
+        required: true
+        type: string
+      deployment_approval:
+        description: For deploy only, type APPROVE_PR561_STAGING_TWO_FUNCTIONS_ONE_HOSTING_ASSET
+        required: false
+        type: string
+      expected_hosting_release:
+        description: Exact prior Hosting release from the approved preflight artifact
+        required: false
+        type: string
+      expected_hosting_version:
+        description: Exact prior Hosting version from the approved preflight artifact
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: pr561-waiver-staging-release
+  cancel-in-progress: false
+
+env:
+  PROJECT_ID: sandman-combat-staging
+  REGION: us-central1
+  PR561_SOURCE_SHA: 95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c
+  WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+  SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 25
+    steps:
+      - name: Enforce protected exact-SHA staging boundary
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          require_boundary(){ local label="$1"; shift; if ! "$@"; then echo "::error::PR561 boundary failed: ${label}"; printf 'FAILED_CONDITION=%s\n' "$label" > evidence/boundary.txt; exit 1; fi; }
+          require_boundary REPOSITORY test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          require_boundary MAIN_REF test "$GITHUB_REF" = "refs/heads/main"
+          require_boundary TRUSTED_WORKFLOW test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-pr561-waiver-staging.yml@refs/heads/main"
+          require_boundary PROJECT test "${{ inputs.confirm_project }}" = "$PROJECT_ID"
+          require_boundary EXACT_SHA test "${{ inputs.exact_merge_sha }}" = "$PR561_SOURCE_SHA"
+          require_boundary ACTION bash -c 'test "$1" = preflight || test "$1" = deploy' _ "${{ inputs.action }}"
+          if test "${{ inputs.action }}" = deploy; then
+            require_boundary DEPLOY_APPROVAL test "${{ inputs.deployment_approval }}" = "APPROVE_PR561_STAGING_TWO_FUNCTIONS_ONE_HOSTING_ASSET"
+            require_boundary HOSTING_RELEASE test -n "${{ inputs.expected_hosting_release }}"
+            require_boundary HOSTING_VERSION test -n "${{ inputs.expected_hosting_version }}"
+          fi
+          printf 'BOUNDARY_OK\n' > evidence/boundary.txt
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify immutable source manifest and corrected shared billing closure
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PR561_SOURCE_SHA"
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process');
+          const m=JSON.parse(fs.readFileSync('trusted-tooling/scripts/staging/pr561-waiver-release.json'));
+          const fail=message=>{throw Error(message)};
+          if(m.sourceSha!==process.env.PR561_SOURCE_SHA||m.project!==process.env.PROJECT_ID||m.productionChanges!==false)fail('Manifest boundary mismatch');
+          const actual=cp.execFileSync('git',['-C','application','diff','--name-only',m.baselineSha,m.sourceSha],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          if(JSON.stringify(actual)!==JSON.stringify([...m.allowedSourceFiles].sort()))fail('Exact source manifest drift');
+          for(const file of ['functions/src/billing/paymentArrangement.ts','functions/src/billing/recordProposalPrepaidCash.ts']){
+            const source=fs.readFileSync('application/'+file,'utf8');
+            if(!source.includes('supportedEnrollmentFeeCents'))fail('Corrected shared billing code missing from '+file);
+          }
+          NODE
+          node --test trusted-tooling/tests/functions/pr561-waiver-release.test.mjs
+          node --check trusted-tooling/scripts/staging/pr561-waiver-hosting-overlay.mjs
+      - name: Build and run focused waiver validation
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run build
+          node --test application/tests/browser/payment-arrangement.test.mjs \
+            application/functions/tests/paymentArrangement.test.cjs \
+            application/functions/tests/prepaidMembershipPolicy.test.cjs
+          cd application
+          npx --yes firebase-tools@15.11.0 emulators:exec --only firestore \
+            --config firebase.prepaid-emulator.json --project demo-sandman-prepaid \
+            "node --test functions/tests/prepaidCashReceipt.integration.cjs functions/tests/prepaidEnrollment.integration.cjs"
+      - name: Verify both compiled entrypoints load corrected shared code
+        run: |
+          set -euo pipefail
+          test -f application/functions/lib/billing/paymentArrangement.js
+          test -f application/functions/lib/billing/recordProposalPrepaidCash.js
+          test -f application/functions/lib/proposals/issueProposalClientReview.js
+          grep -q supportedEnrollmentFeeCents application/functions/lib/billing/paymentArrangement.js
+          grep -q paymentArrangement application/functions/lib/proposals/proposalClientReview.js
+          node -e 'const r=require("./application/functions/lib");for(const n of ["issueProposalClientReview","recordProposalPrepaidCash"]){if(!r[n]?.__endpoint?.callableTrigger)throw Error("Missing callable: "+n)}'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture target and neighboring Function rollback evidence
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          for fn in issueProposalClientReview recordProposalPrepaidCash getProposalClientReview acceptProposalClientReview createProposalCheckout sendProposalPrepaidCashReceipt; do
+            gcloud functions describe "$fn" --v2 --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-before.json"
+            gcloud functions get-iam-policy "$fn" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-iam-before.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-before.json"
+            gcloud run services get-iam-policy "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-iam-before.json"
+          done
+          for secret in RESEND_API_KEY STAGING_TEST_EMAIL_ALLOWLIST; do
+            gcloud secrets describe "$secret" --project="$PROJECT_ID" --format='json(name,replication)' > "evidence/functions/${secret}-reference.json"
+          done
+          node <<'NODE'
+          const fs=require('node:fs');
+          const read=n=>JSON.parse(fs.readFileSync(`evidence/functions/${n}-before.json`));
+          const expected={issueProposalClientReview:'sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com',recordProposalPrepaidCash:'991554514268-compute@developer.gserviceaccount.com'};
+          for(const [name,identity] of Object.entries(expected)){const f=read(name);if(f.name!==`projects/sandman-combat-staging/locations/us-central1/functions/${name}`||f.state!=='ACTIVE'||f.buildConfig?.runtime!=='nodejs22'||f.buildConfig?.entryPoint!==name||f.serviceConfig?.serviceAccountEmail!==identity)throw Error('Unexpected target baseline: '+name)}
+          const issue=read('issueProposalClientReview');
+          const keys=(issue.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort();
+          if(JSON.stringify(keys)!==JSON.stringify(['RESEND_API_KEY']))throw Error('Unexpected current Issue secret baseline');
+          NODE
+          printf '%s\n' 'Rollback: redeploy source references and configurations in *-before.json; restore IAM from *-iam-before.json.' > evidence/functions/rollback.txt
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight isolated one-file Hosting overlay
+        env:
+          PR561_DEPLOY_APPROVAL: ${{ inputs.deployment_approval }}
+          PR561_EXPECTED_HOSTING_RELEASE: ${{ inputs.expected_hosting_release }}
+          PR561_EXPECTED_HOSTING_VERSION: ${{ inputs.expected_hosting_version }}
+        run: node trusted-tooling/scripts/staging/pr561-waiver-hosting-overlay.mjs preflight application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr561-waiver-preflight-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+
+  deploy:
+    if: ${{ inputs.action == 'deploy' }}
+    needs: preflight
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture immediate target and neighbor baselines
+        run: |
+          set -euo pipefail
+          test "${{ inputs.deployment_approval }}" = "APPROVE_PR561_STAGING_TWO_FUNCTIONS_ONE_HOSTING_ASSET"
+          mkdir -p evidence/functions
+          for fn in issueProposalClientReview recordProposalPrepaidCash getProposalClientReview acceptProposalClientReview createProposalCheckout sendProposalPrepaidCashReceipt; do
+            gcloud functions describe "$fn" --v2 --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-before.json"
+            gcloud functions get-iam-policy "$fn" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-iam-before.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-before.json"
+            gcloud run services get-iam-policy "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-iam-before.json"
+          done
+      - name: Deploy exactly two existing staging callables
+        working-directory: application
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix functions
+          npm --prefix functions run build
+          test -f functions/lib/billing/paymentArrangement.js
+          common=(--gen2 --project="$PROJECT_ID" --region="$REGION" --runtime=nodejs22 --source=functions \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all \
+            --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --trigger-http --quiet)
+          gcloud functions deploy issueProposalClientReview "${common[@]}" --entry-point=issueProposalClientReview \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,STAGING_TEST_EMAIL_ALLOWLIST=STAGING_TEST_EMAIL_ALLOWLIST:latest
+          gcloud functions deploy recordProposalPrepaidCash "${common[@]}" --entry-point=recordProposalPrepaidCash \
+            --run-service-account=991554514268-compute@developer.gserviceaccount.com --clear-secrets
+      - name: Verify targets and prove IAM and neighbors unchanged
+        run: |
+          set -euo pipefail
+          for fn in issueProposalClientReview recordProposalPrepaidCash getProposalClientReview acceptProposalClientReview createProposalCheckout sendProposalPrepaidCashReceipt; do
+            gcloud functions describe "$fn" --v2 --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-after.json"
+            gcloud functions get-iam-policy "$fn" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-iam-after.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-after.json"
+            gcloud run services get-iam-policy "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-iam-after.json"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'); const dir='evidence/functions/';
+          const read=(n,s)=>JSON.parse(fs.readFileSync(`${dir}${n}-${s}.json`));
+          const stable=x=>JSON.stringify((x.bindings||[]).map(b=>({role:b.role,members:[...(b.members||[])].sort(),condition:b.condition||null})).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))));
+          const targets={issueProposalClientReview:'sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com',recordProposalPrepaidCash:'991554514268-compute@developer.gserviceaccount.com'};
+          for(const [n,identity] of Object.entries(targets)){const b=read(n,'before'),a=read(n,'after');const s=a.serviceConfig||{};if(a.state!=='ACTIVE'||a.buildConfig?.runtime!=='nodejs22'||a.buildConfig?.entryPoint!==n||a.updateTime===b.updateTime||s.serviceAccountEmail!==identity||s.availableMemory!=='256Mi'||s.timeoutSeconds!==60||s.maxInstanceCount!==20||s.maxInstanceRequestConcurrency!==80||s.ingressSettings!=='ALLOW_ALL')throw Error('Target runtime update not verified: '+n);if(stable(read(n,'iam-before'))!==stable(read(n,'iam-after'))||stable(read(n,'run-iam-before'))!==stable(read(n,'run-iam-after')))throw Error('Target IAM changed: '+n)}
+          const issue=read('issueProposalClientReview','after'); if(JSON.stringify((issue.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort())!==JSON.stringify(['RESEND_API_KEY','STAGING_TEST_EMAIL_ALLOWLIST']))throw Error('Issue secret references incorrect');
+          for(const n of ['getProposalClientReview','acceptProposalClientReview','createProposalCheckout','sendProposalPrepaidCashReceipt']){if(JSON.stringify(read(n,'before'))!==JSON.stringify(read(n,'after'))||JSON.stringify(read(n,'run-before'))!==JSON.stringify(read(n,'run-after'))||stable(read(n,'iam-before'))!==stable(read(n,'iam-after'))||stable(read(n,'run-iam-before'))!==stable(read(n,'run-iam-after')))throw Error('Neighbor changed: '+n)}
+          NODE
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Release isolated single-file Hosting overlay
+        env:
+          PR561_DEPLOY_APPROVAL: ${{ inputs.deployment_approval }}
+          PR561_EXPECTED_HOSTING_RELEASE: ${{ inputs.expected_hosting_release }}
+          PR561_EXPECTED_HOSTING_VERSION: ${{ inputs.expected_hosting_version }}
+        run: node trusted-tooling/scripts/staging/pr561-waiver-hosting-overlay.mjs deploy application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr561-waiver-deployment-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error

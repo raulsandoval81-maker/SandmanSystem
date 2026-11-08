@@ -1,0 +1,20 @@
+{
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "project": "sandman-combat-staging",
+  "region": "us-central1",
+  "sourceSha": "95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c",
+  "baselineSha": "487af8a1073b6dbb85e55d4f2a8bec47bd0095e7",
+  "functions": ["issueProposalClientReview", "recordProposalPrepaidCash"],
+  "hosting": ["public/connect/admissions/calculator/payment-arrangement.js"],
+  "allowedSourceFiles": [
+    "functions/src/billing/paymentArrangement.ts",
+    "functions/src/billing/recordProposalPrepaidCash.ts",
+    "functions/tests/paymentArrangement.test.cjs",
+    "functions/tests/prepaidEnrollment.integration.cjs",
+    "functions/tests/prepaidMembershipPolicy.test.cjs",
+    "public/connect/admissions/calculator/payment-arrangement.js",
+    "tests/browser/payment-arrangement.test.mjs"
+  ],
+  "productionChanges": false,
+  "deploymentRequiresApproval": true
+}
