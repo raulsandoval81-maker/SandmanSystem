@@ -120,6 +120,9 @@ jobs:
             --config firebase.prepaid-emulator.json --project demo-sandman-prepaid \
             "node --test functions/tests/prepaidCashReceipt.integration.cjs functions/tests/prepaidEnrollment.integration.cjs"
       - name: Verify both compiled entrypoints load corrected shared code
+        env:
+          SANDMAN_STAGING_ACK: sandman-combat-staging
+          SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT: sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com
         run: |
           set -euo pipefail
           test -f application/functions/lib/billing/paymentArrangement.js
