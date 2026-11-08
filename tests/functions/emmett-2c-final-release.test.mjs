@@ -16,6 +16,7 @@ test('final 2C release excludes receipt deployment and targets only Intake plus 
   assert.match(section,/joinsandmancombat@gmail\.com/);
   assert.match(section,/environment: staging/);
   assert.match(section,/ROLLBACK_EVIDENCE/);
+  assert.match(section,/emmett-2c-intake-release\/package\.json.*delete p\.scripts\.build/);
   assert.equal((overlay.match(/'public\//g)||[]).length,7);
   assert.match(overlay,/Unrelated Hosting file drift/);
   assert.match(overlay,/Hosting baseline changed during preparation/);

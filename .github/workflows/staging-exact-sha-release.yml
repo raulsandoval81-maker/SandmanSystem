@@ -2523,7 +2523,7 @@ jobs:
           cp application/functions/lib/modules/email/resend.js /tmp/emmett-2c-intake-release/lib/modules/email/
           cp application/functions/lib/services/staffAuthorization.js /tmp/emmett-2c-intake-release/lib/services/
           printf '%s\n' 'const admin=require("firebase-admin");if(!admin.apps.length)admin.initializeApp();exports.sendEnrollmentIntakeEmail=require("./lib/enrollment/sendEnrollmentIntakeEmail").sendEnrollmentIntakeEmail;' > /tmp/emmett-2c-intake-release/index.js
-          node -e 'const fs=require("fs"),p=require("/tmp/emmett-2c-intake-release/package.json");p.main="index.js";fs.writeFileSync("/tmp/emmett-2c-intake-release/package.json",JSON.stringify(p,null,2)+"\n")'
+          node -e 'const fs=require("fs"),p=require("/tmp/emmett-2c-intake-release/package.json");p.main="index.js";delete p.scripts.build;fs.writeFileSync("/tmp/emmett-2c-intake-release/package.json",JSON.stringify(p,null,2)+"\n")'
           npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix /tmp/emmett-2c-intake-release
           NODE_PATH=/tmp/emmett-2c-intake-release/node_modules node -e 'const m=require("/tmp/emmett-2c-intake-release");if(Object.keys(m).join(",")!=="sendEnrollmentIntakeEmail"||!m.sendEnrollmentIntakeEmail?.__endpoint?.callableTrigger)process.exit(64)'
       - uses: google-github-actions/auth@v3
