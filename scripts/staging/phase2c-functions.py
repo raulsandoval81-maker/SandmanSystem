@@ -27,14 +27,17 @@ def capture_source(name,version):
  req=urllib.request.Request(endpoint,data=json.dumps({'versionId':version}).encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='POST')
  try:
   result=json.load(urllib.request.urlopen(req,timeout=30))
-  url=result['downloadUrl'];host=urllib.parse.urlparse(url).hostname
-  assert host=='storage.googleapis.com' or host.endswith('.storage.googleapis.com'),'Unexpected source download host'
-  archive=urllib.request.urlopen(url,timeout=30).read(32*1024*1024+1)
-  assert len(archive)<=32*1024*1024 and zipfile.is_zipfile(io.BytesIO(archive)),'Invalid rollback source archive'
-  (E/(name+'-rollback-source.zip')).write_bytes(archive)
-  return {'versionId':version,'archiveSha256':hashlib.sha256(archive).hexdigest(),'bytes':len(archive)}
  except urllib.error.HTTPError as e:
-  raise RuntimeError(name+' rollback source download denied: HTTP '+str(e.code)) from None
+  raise RuntimeError(name+' rollback URL generation failed: HTTP '+str(e.code)) from None
+ url=result['downloadUrl'];host=urllib.parse.urlparse(url).hostname
+ assert host=='storage.googleapis.com' or host.endswith('.storage.googleapis.com'),'Unexpected source download host'
+ try:
+  archive=urllib.request.urlopen(url,timeout=30).read(32*1024*1024+1)
+ except urllib.error.HTTPError as e:
+  raise RuntimeError(name+' rollback archive fetch failed: HTTP '+str(e.code)) from None
+ assert len(archive)<=32*1024*1024 and zipfile.is_zipfile(io.BytesIO(archive)),'Invalid rollback source archive'
+ (E/(name+'-rollback-source.zip')).write_bytes(archive)
+ return {'versionId':version,'archiveSha256':hashlib.sha256(archive).hexdigest(),'bytes':len(archive)}
 def baseline():
  allv=inventory();before={}
  for name in TARGETS+DEPENDENCIES:
