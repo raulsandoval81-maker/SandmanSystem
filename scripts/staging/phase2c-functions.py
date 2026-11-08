@@ -1,4 +1,4 @@
-import hashlib,json,os,pathlib,subprocess,sys
+import hashlib,json,os,pathlib,subprocess,sys,urllib.request,urllib.parse,urllib.error,zipfile,io
 PROJECT='sandman-combat-staging'
 TARGETS=['sendEnrollmentIntakeEmail','recordManualEnrollmentIntakeDelivery']
 DEPENDENCIES=['sendProposalPrepaidCashReceipt','createAthleteOnboardingToken','getEnrollmentIntakeHandoffStatus','hydrateEnrollmentIntakePrefill','consumeSubmittedIntakeToken','approveAndActivate','getEnrollmentPlacementActivity','getAccessSetupStatus']
@@ -21,6 +21,20 @@ def describe(name):
  v=run(['functions','describe',name],False)
  if v.get('error') or v.get('environment')=='GEN_2' or v.get('buildConfig'):v=run(['functions','describe',name,'--gen2'],False)
  return v
+def capture_source(name,version):
+ token=subprocess.check_output(['gcloud','auth','print-access-token'],text=True).strip()
+ endpoint='https://cloudfunctions.googleapis.com/v1/projects/'+PROJECT+'/locations/us-central1/functions/'+name+':generateDownloadUrl'
+ req=urllib.request.Request(endpoint,data=json.dumps({'versionId':version}).encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='POST')
+ try:
+  result=json.load(urllib.request.urlopen(req,timeout=30))
+  url=result['downloadUrl'];host=urllib.parse.urlparse(url).hostname
+  assert host=='storage.googleapis.com' or host.endswith('.storage.googleapis.com'),'Unexpected source download host'
+  archive=urllib.request.urlopen(url,timeout=30).read(32*1024*1024+1)
+  assert len(archive)<=32*1024*1024 and zipfile.is_zipfile(io.BytesIO(archive)),'Invalid rollback source archive'
+  (E/(name+'-rollback-source.zip')).write_bytes(archive)
+  return {'versionId':version,'archiveSha256':hashlib.sha256(archive).hexdigest(),'bytes':len(archive)}
+ except urllib.error.HTTPError as e:
+  raise RuntimeError(name+' rollback source download denied: HTTP '+str(e.code)) from None
 def baseline():
  allv=inventory();before={}
  for name in TARGETS+DEPENDENCIES:
@@ -29,8 +43,8 @@ def baseline():
    assert not v.get('error'),name+' is missing or inaccessible'
    assert v.get('status')=='ACTIVE' and v.get('runtime')=='nodejs22' and not v.get('buildConfig'),name+' is not expected ACTIVE Gen1 nodejs22'
    iam=run(['functions','get-iam-policy',name]);save(name+'-iam-before',iam)
-   assert v.get('sourceArchiveUrl') or v.get('sourceRepository'),name+' rollback source unavailable'
-   before[name]={'function':v,'iam':iam}
+   source=capture_source(name,v['versionId']);save(name+'-rollback-source',source)
+   before[name]={'function':v,'iam':iam,'rollbackSource':source}
  pathlib.Path('/tmp/phase2c-baseline.json').write_text(json.dumps(before))
  save('baseline-fingerprints',{k:digest(v) for k,v in before.items()})
  print(json.dumps({'project':PROJECT,'targets':TARGETS,'dependencies':DEPENDENCIES,'baselineCaptured':True,'functionBaseline':digest(before)}))
@@ -40,13 +54,13 @@ mode=sys.argv[1]
 assert os.environ.get('GITHUB_WORKFLOW_REF')=='raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
 assert os.environ.get('GITHUB_REF')=='refs/heads/main'
 assert mode in ['preflight','deploy']
-allv,before=baseline()
 # Read-only server errors. No Firestore data queries, secret payloads, or IAM writes.
 for name in ['getenrollmentplacementactivity','getaccesssetupstatus']:
  logs=run(['logging','read','resource.type="cloud_run_revision" AND resource.labels.service_name="'+name+'" AND severity>=ERROR','--limit=8','--freshness=2d'],False)
  # Only diagnostic messages, never request headers or authenticated payloads.
  summary=[{'timestamp':x.get('timestamp'),'severity':x.get('severity'),'message':x.get('textPayload') or x.get('jsonPayload',{}).get('message')} for x in logs] if isinstance(logs,list) else logs
  save(name+'-errors',summary);print(json.dumps({'diagnostic':name,'errors':summary}))
+allv,before=baseline()
 if mode=='preflight':sys.exit(0)
 assert os.environ.get('DEPLOY_APPROVAL')=='APPROVE_PHASE2C_STAGING_TWO_FUNCTIONS_TWO_ASSETS'
 assert os.environ.get('EXPECTED_FUNCTION_BASELINE')==digest(before),'Function baseline changed after preflight'
