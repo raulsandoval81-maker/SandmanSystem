@@ -15,6 +15,7 @@ if (process.env.STRIPE_SECRET_KEY || process.env.RESEND_API_KEY) {
 const app = initializeApp({ projectId: process.env.GCLOUD_PROJECT });
 const db = getFirestore(app);
 const { hashProposalReviewToken } = require("../lib/proposals/proposalClientReview");
+const { canonicalPaymentArrangement } = require("../lib/billing/paymentArrangement");
 const prepaid = require("../lib/billing/recordProposalPrepaidCash").recordProposalPrepaidCash;
 const confirm = require("../lib/proposals/saveProposalEnrollmentAgreement").saveProposalEnrollmentAgreement;
 const approveRenewal = require("../lib/billing/approveProposalRenewalAutopay").approveProposalRenewalAutopay;
@@ -27,6 +28,7 @@ const outsider = `prepaid-outsider-${suffix}`;
 const proposalId = `P-PREPAID-${suffix}`;
 const excludedId = `${proposalId}-EXCLUDED`;
 const partialId = `${proposalId}-PARTIAL`;
+const supportedId = `${proposalId}-SUPPORTED`;
 const token = `enrollment-token-${suffix}`;
 const snapshot = {
   prospect: { familyName: "Synthetic Prepaid Family", appointmentId: null },
@@ -87,6 +89,14 @@ const activationPayload = (intakeId) => ({
 });
 
 test.before(async () => {
+  const supportedPricing = canonicalPaymentArrangement({
+    ...snapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    support: 30,
+    supportPercent: 100,
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+  }, snapshot.athletes);
+  const supportedSnapshot = { ...snapshot, pricing: supportedPricing };
   await Promise.all([
     db.doc(`staff/${manager}`).set({
       role: "management", status: "active", fullName: "Synthetic Manager",
@@ -105,6 +115,16 @@ test.before(async () => {
         unappliedMembershipAmountCents: 0,
         membershipPeriodAllocations: [], periods: [],
       }],
+    })),
+    db.doc(`proposals/${supportedId}`).set(acceptedProposal(supportedId, {
+      pricing: supportedPricing,
+      lockedSnapshot: supportedSnapshot,
+      clientAcceptance: {
+        signerName: "Synthetic Guardian",
+        consentAccepted: true,
+        signedAt: Timestamp.now(),
+        signedSnapshot: supportedSnapshot,
+      },
     })),
   ]);
 });
@@ -165,6 +185,42 @@ test("annual fee may remain fully outstanding", async () => {
     enrollmentFeeAllocations: [],
   }));
   assert.equal(result.annualEnrollmentFee.outstandingCents, 3000);
+});
+
+test("100% approved support waives authoritative cash/check enrollment liability", async () => {
+  await invoke(prepaid, manager, { proposalId: supportedId, mode: "prepare" });
+  await assert.rejects(
+    invoke(prepaid, manager, payment(supportedId, {
+      amountCents: 96000,
+      enrollmentFeeIncludedAthleteIndexes: [],
+      enrollmentFeeAllocations: [],
+    })),
+    /Review & Confirm/
+  );
+  await invoke(confirm, manager, {
+    proposalId: supportedId,
+    enrollmentToken: token,
+    confirmation: { termsConfirmed: true },
+  });
+  const result = await invoke(prepaid, manager, payment(supportedId, {
+    amountCents: 96000,
+    enrollmentFeeIncludedAthleteIndexes: [],
+    enrollmentFeeAllocations: [],
+  }));
+  assert.equal(result.membershipAmountCents, 96000);
+  assert.equal(result.annualEnrollmentFee.totalCents, 0);
+  assert.equal(result.annualEnrollmentFee.outstandingCents, 0);
+  const saved = (await db.doc(`proposals/${supportedId}`).get()).data();
+  assert.equal(saved.stripeCheckoutSessionId, undefined);
+  assert.equal(saved.stripeSubscriptionId, undefined);
+  await assert.rejects(
+    invoke(prepaid, manager, payment(supportedId, {
+      amountCents: 96000,
+      enrollmentFeeIncludedAthleteIndexes: [],
+      enrollmentFeeAllocations: [],
+    })),
+    /already been recorded/
+  );
 });
 
 test("historical enrollment attribution and partial new fee allocation remain auditable", async () => {

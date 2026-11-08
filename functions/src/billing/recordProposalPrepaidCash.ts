@@ -1,4 +1,8 @@
-import { paymentArrangement, lockedPrepaidTerms } from "./paymentArrangement";
+import {
+  lockedPrepaidTerms,
+  paymentArrangement,
+  supportedEnrollmentFeeCents,
+} from "./paymentArrangement";
 import { verifyPrepaidConversionSource } from "./prepaidConversionPolicy";
 import {
   HttpsError,
@@ -336,9 +340,13 @@ export const recordProposalPrepaidCash =
             const monthlyMembershipCents = Math.round(
               Number(lockedPricing.monthlyBalance || pricing.monthlyBalance || 0) * 100
             );
-            const enrollmentFeeTotalCents = Math.round(
-              Number(lockedPricing.enrollmentBase || pricing.enrollmentBase || 0) * 100
-            );
+            const enrollmentFeeTotalCents = supportedEnrollmentFeeCents({
+              enrollmentBase:
+                lockedPricing.enrollmentBase ?? pricing.enrollmentBase ?? 0,
+              support: lockedPricing.support ?? pricing.support ?? 0,
+              supportPercent:
+                lockedPricing.supportPercent ?? pricing.supportPercent ?? 0,
+            });
             const priorPayments = Array.isArray(proposal.priorPayments)
               ? proposal.priorPayments
               : [];
@@ -350,8 +358,11 @@ export const recordProposalPrepaidCash =
                 0
               )
             );
-            const pricingEnrollmentCents = Math.round(
-              Number(pricing.enrollmentPreviouslyPaidAmount || 0) * 100
+            const pricingEnrollmentCents = Math.min(
+              enrollmentFeeTotalCents,
+              Math.round(
+                Number(pricing.enrollmentPreviouslyPaidAmount || 0) * 100
+              )
             );
             const attributionSources = [...priorPayments];
             if (pricingEnrollmentCents > priorPaymentEnrollmentCents) {
