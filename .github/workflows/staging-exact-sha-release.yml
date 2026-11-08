@@ -2507,7 +2507,8 @@ jobs:
             .github/workflows/staging-exact-sha-release.yml \
             scripts/staging/emmett-2c-final-hosting-overlay.mjs \
             tests/functions/emmett-2c-final-blockers.test.mjs \
-            tests/functions/emmett-2c-final-release.test.mjs | sort > /tmp/2c-final-allowed
+            tests/functions/emmett-2c-final-release.test.mjs \
+            tests/functions/phase-c-management-location.test.mjs | sort > /tmp/2c-final-allowed
           diff -u /tmp/2c-final-allowed /tmp/2c-final-files
           node --check application/scripts/staging/emmett-2c-final-hosting-overlay.mjs
           node application/tests/functions/emmett-2c-final-release.test.mjs
