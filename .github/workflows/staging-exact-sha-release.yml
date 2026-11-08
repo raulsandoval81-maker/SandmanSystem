@@ -2312,7 +2312,7 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
           npm --prefix application/functions run build
-          node --test application/functions/tests/stagingEmailRecipient.test.cjs application/tests/functions/emmett-2c-final-blockers.test.mjs
+          (cd application && node --test functions/tests/stagingEmailRecipient.test.cjs tests/functions/emmett-2c-final-blockers.test.mjs)
           test ! -e /tmp/emmett-2c-receipt-release
           mkdir -p /tmp/emmett-2c-receipt-release/lib/billing /tmp/emmett-2c-receipt-release/lib/modules/email /tmp/emmett-2c-receipt-release/lib/proposals
           cp application/functions/package.json application/functions/package-lock.json /tmp/emmett-2c-receipt-release/
