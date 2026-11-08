@@ -3,6 +3,8 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { requireStaffLocation, staffHasLocation } from "../../functions/lib/services/staffAuthorization.js";
 
+const readSource = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), "utf8");
+
 test("location helper allows assigned and multi-location Management, Admin, and fails closed", () => {
   const syv = { role: "management", staff: { locationIds: ["santa-ynez-valley"] } };
   const multi = { role: "management", staff: { locationIds: ["santa-ynez-valley", "lompoc"] } };
@@ -19,7 +21,7 @@ test("access and onboarding mutations authorize against stored athlete location"
     "functions/src/access/transitionAthleteAccessMode.ts",
     "functions/src/modules/createAthleteOnboardingToken.ts",
   ]) {
-    const source = readFileSync(path, "utf8");
+    const source = readSource(path);
     assert.match(source, /requireStaffLocation\(.*athlete/s, path);
     assert.doesNotMatch(source, /req\.data\?\.locationId/);
   }
@@ -31,16 +33,16 @@ test("intake mutations authorize stored intake location and persist canonical at
     "functions/src/modules/createAthleteFromIntakeCall.ts",
     "functions/src/approveAndActivate.ts",
   ]) {
-    const source = readFileSync(path, "utf8");
+    const source = readSource(path);
     assert.match(source, /requireStaffLocation\(/, path);
     assert.match(source, /intake.*locationId|locationId.*intake/is, path);
   }
-  const create = readFileSync("functions/src/modules/createAthleteFromIntakeCall.ts", "utf8");
+  const create = readSource("functions/src/modules/createAthleteFromIntakeCall.ts");
   assert.match(create, /const athleteData = \{[\s\S]*?locationId,/);
 });
 
 test("competition listing scopes Management without broadening Coach", () => {
-  const source = readFileSync("functions/src/competitions/listCompetitionEvents.ts", "utf8");
+  const source = readSource("functions/src/competitions/listCompetitionEvents.ts");
   assert.match(source, /actor\.role !== "management"/);
   assert.match(source, /staffHasLocation\(actor\.staff, locationId\)/);
 });
@@ -52,7 +54,7 @@ test("browser queues use every assigned location and no locationIds[0] shortcut"
     "public/management/inbox/inbox.js",
     "public/management/hub/management.js",
   ]) {
-    const source = readFileSync(path, "utf8");
+    const source = readSource(path);
     assert.doesNotMatch(source, /locationIds\s*\[\s*0\s*\]/, path);
     assert.match(source, /locationId/, path);
   }

@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-const workflow=readFileSync('.github/workflows/staging-exact-sha-release.yml','utf8');
-const receipt=readFileSync('functions/src/billing/sendProposalPrepaidCashReceipt.ts','utf8');
-const intake=readFileSync('functions/src/enrollment/sendEnrollmentIntakeEmail.ts','utf8');
-const email=readFileSync('functions/src/modules/email/resend.ts','utf8');
+const workflow=readFileSync(new URL('../../.github/workflows/staging-exact-sha-release.yml',import.meta.url),'utf8');
+const receipt=readFileSync(new URL('../../functions/src/billing/sendProposalPrepaidCashReceipt.ts',import.meta.url),'utf8');
+const intake=readFileSync(new URL('../../functions/src/enrollment/sendEnrollmentIntakeEmail.ts',import.meta.url),'utf8');
+const email=readFileSync(new URL('../../functions/src/modules/email/resend.ts',import.meta.url),'utf8');
 
 test('both 2C email paths enforce the staging allowlist before provider access',()=>{
   for(const source of [receipt,intake]) {
