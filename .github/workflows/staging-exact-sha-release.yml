@@ -2434,7 +2434,8 @@ jobs:
       contents: read
       id-token: write
     env:
-      EMMETT_2C_FINAL_SHA: ${{ inputs.emmett_2c_final_sha }}
+      EMMETT_2C_FINAL_SHA: ${{ github.sha }}
+      REQUESTED_EMMETT_2C_FINAL_SHA: ${{ inputs.emmett_2c_final_sha }}
       EMMETT_2C_FINAL_APPROVAL: ${{ inputs.emmett_2c_final_approval }}
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
     steps:
@@ -2446,19 +2447,33 @@ jobs:
           ALLOWLIST_CONFIRMATION: ${{ inputs.emmett_2c_allowlist_confirmation }}
         run: |
           set -euo pipefail
-          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
-          test "$GITHUB_REF" = "refs/heads/main"
-          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
-          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
-          test "$TEST_RECIPIENT" = "joinsandmancombat@gmail.com"
-          test "$ALLOWLIST_CONFIRMATION" = "JOINSANDMANCOMBAT_GMAIL_ALLOWLIST_VERIFIED"
-          test "${#EMMETT_2C_FINAL_SHA}" = 40
-          test "$(printf '%s' "$EMMETT_2C_FINAL_SHA" | tr -cd '0-9a-f')" = "$EMMETT_2C_FINAL_SHA"
-          if test "$SELECTED_ACTION" = emmett-2c-final-deploy; then
-            test "$EMMETT_2C_FINAL_APPROVAL" = "APPROVE_2C_STAGING_INTAKE_AND_SEVEN_HOSTING_ASSETS"
-          else
-            test "$SELECTED_ACTION" = emmett-2c-final-preflight
+          mkdir -p evidence
+          require_boundary() {
+            local label="$1"
+            shift
+            if ! "$@"; then
+              echo "::error::2C release boundary failed: ${label}"
+              printf 'FAILED_CONDITION=%s\n' "$label" > evidence/boundary-status.txt
+              exit 1
+            fi
+          }
+          require_boundary REPOSITORY test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          require_boundary MAIN_REF test "$GITHUB_REF" = "refs/heads/main"
+          require_boundary TRUSTED_WORKFLOW test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          require_boundary STAGING_PROJECT test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          require_boundary APPROVED_RECIPIENT test "$TEST_RECIPIENT" = "joinsandmancombat@gmail.com"
+          require_boundary ALLOWLIST_ATTESTATION test "$ALLOWLIST_CONFIRMATION" = "JOINSANDMANCOMBAT_GMAIL_ALLOWLIST_VERIFIED"
+          require_boundary DISPATCH_SHA_LENGTH test "${#EMMETT_2C_FINAL_SHA}" = 40
+          require_boundary DISPATCH_SHA_FORMAT test "$(printf '%s' "$EMMETT_2C_FINAL_SHA" | tr -cd '0-9a-f')" = "$EMMETT_2C_FINAL_SHA"
+          if test -n "$REQUESTED_EMMETT_2C_FINAL_SHA"; then
+            require_boundary REQUESTED_SHA_MATCHES_DISPATCH test "$REQUESTED_EMMETT_2C_FINAL_SHA" = "$EMMETT_2C_FINAL_SHA"
           fi
+          if test "$SELECTED_ACTION" = emmett-2c-final-deploy; then
+            require_boundary DEPLOYMENT_APPROVAL test "$EMMETT_2C_FINAL_APPROVAL" = "APPROVE_2C_STAGING_INTAKE_AND_SEVEN_HOSTING_ASSETS"
+          else
+            require_boundary PREFLIGHT_ACTION test "$SELECTED_ACTION" = emmett-2c-final-preflight
+          fi
+          printf 'BOUNDARY_OK\n' > evidence/boundary-status.txt
       - uses: actions/checkout@v4
         with:
           ref: main
