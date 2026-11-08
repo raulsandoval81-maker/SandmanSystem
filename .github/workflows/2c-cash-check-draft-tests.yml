@@ -5,6 +5,8 @@ on:
     paths:
       - 'functions/src/billing/sendProposalPrepaidCashReceipt.ts'
       - 'functions/src/enrollment/sendEnrollmentIntakeEmail.ts'
+      - 'functions/src/enrollment/recordManualEnrollmentIntakeDelivery.ts'
+      - 'tests/browser/cash-check-enrollment-polish.test.mjs'
       - 'functions/src/index.ts'
       - 'functions/tests/prepaidCashReceipt.integration.cjs'
       - 'public/connect/proposals/proposals.js'
@@ -37,6 +39,8 @@ jobs:
         run: npm ci --prefix functions --ignore-scripts
       - name: Compile functions and run focused prepaid tests
         run: npm --prefix functions run test:payment-arrangements
+      - name: Verify Cash/Check and Stripe handoff controls
+        run: node --test tests/browser/cash-check-enrollment-polish.test.mjs
       - name: Validate edited browser module syntax without executing or sending messages
         run: |
           node --check public/connect/admissions/calculator/calculator.js
