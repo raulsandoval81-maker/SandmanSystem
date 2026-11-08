@@ -23,8 +23,9 @@ test('Pinned release has exactly two functions and two Hosting paths with no pro
  const p=readFileSync('scripts/staging/phase2c-functions.py','utf8');
  assert.match(p,/TARGETS=\['sendEnrollmentIntakeEmail','recordManualEnrollmentIntakeDelivery'\]/);
  assert.match(p,/EXPECTED_FUNCTION_BASELINE/);assert.match(p,/configuration changed/);assert.match(p,/IAM changed/);
- const w=readFileSync('.github/workflows/phase2c-final-staging.yml','utf8');
- const prod=w.slice(w.indexOf('  production-readonly:'));
- assert.doesNotMatch(prod,/functions deploy|:populateFiles|method.*POST|gcloud (functions|run|projects|secrets) (deploy|update|create|delete|add-iam)/);
- assert.match(prod,/inputs.mode == 'preflight'/);
+ const w=readFileSync('.github/workflows/staging-exact-sha-release.yml','utf8');
+ const job=w.slice(w.indexOf('  phase2c-approved-final:'));
+ assert.match(job,/phase2c-final-preflight/);assert.match(job,/phase2c-final-deploy/);
+ assert.doesNotMatch(job,/sandmandashboard|sandman-main/);
+ assert.match(job,/phase2c_function_baseline/);
 });
