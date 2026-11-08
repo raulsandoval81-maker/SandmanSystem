@@ -9,7 +9,7 @@ import path from 'node:path';
 const SITE='sandman-combat-staging';
 const SOURCE_SHA='86bde3e2c57cf8239f3660f5723e1a4864f0e7b3';
 const BASE=`https://firebasehosting.googleapis.com/v1beta1/sites/${SITE}`;
-const WORKFLOW='raulsandoval81-maker/SandmanSystem/.github/workflows/phase2c-final-staging.yml@refs/heads/main';
+const WORKFLOW='raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main';
 export const FILES=Object.freeze(['public/intake-management/management.intake.js','public/management/billing/billing.js']);
 export const PROTECTED_2C_FILES=Object.freeze([
   '/connect/admissions/calculator/calculator.js',

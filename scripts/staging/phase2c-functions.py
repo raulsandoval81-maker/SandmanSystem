@@ -37,7 +37,7 @@ def baseline():
  return allv,before
 runtime_keys=['runtime','serviceAccountEmail','buildServiceAccount','availableMemoryMb','timeout','maxInstances','minInstances','ingressSettings','vpcConnector','vpcConnectorEgressSettings','environmentVariables','secretEnvironmentVariables','secretVolumes','httpsTrigger']
 mode=sys.argv[1]
-assert os.environ.get('GITHUB_WORKFLOW_REF')=='raulsandoval81-maker/SandmanSystem/.github/workflows/phase2c-final-staging.yml@refs/heads/main'
+assert os.environ.get('GITHUB_WORKFLOW_REF')=='raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
 assert os.environ.get('GITHUB_REF')=='refs/heads/main'
 assert mode in ['preflight','deploy']
 allv,before=baseline()
