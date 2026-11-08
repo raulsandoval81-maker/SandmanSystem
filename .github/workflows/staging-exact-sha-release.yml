@@ -2772,6 +2772,11 @@ jobs:
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$PR561_SOURCE_SHA"
+          # The pinned source commit tracks functions/.env. Remove only this file
+          # from the ephemeral checkout before sending source to Cloud Build.
+          git ls-files --error-unmatch functions/.env >/dev/null
+          test -f functions/.env && test ! -L functions/.env
+          rm -- functions/.env
           test ! -e functions/.env
           common=(--gen2 --project="$PROJECT_ID" --region="$REGION" --runtime=nodejs22 --source=functions \
             --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
