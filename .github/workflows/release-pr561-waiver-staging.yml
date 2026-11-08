@@ -226,6 +226,8 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix functions
           npm --prefix functions run build
+          test "$(git rev-parse HEAD)" = "$PR561_SOURCE_SHA"
+          test ! -e functions/.env
           test -f functions/lib/billing/paymentArrangement.js
           common=(--gen2 --project="$PROJECT_ID" --region="$REGION" --runtime=nodejs22 --source=functions \
             --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
