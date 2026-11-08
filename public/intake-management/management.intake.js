@@ -743,10 +743,11 @@ function renderReadyIntakeCard(proposal) {
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
           ${receiptState.status === "SENDING" ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
-            2C — Send Paid-in-Full Receipt + Intake Email
+            Send Receipt & Intake Email
           </button>
+          <div class="pending-card-meta small" data-2c-feedback role="status"></div>
         ` : ""}
-        ${handoffAction}
+        ${receiptState ? `<p class="small muted">Cash/Check: use the receipt-and-Intake action above. The secure token will be created or reused automatically.</p>` : handoffAction}
       </div>
     </div>
   `;
@@ -779,9 +780,9 @@ function orientRequestedProposal() {
     orientation.innerHTML =
       '<div class="management-lifecycle__heading">' +
       '<div><span class="management-lifecycle__eyebrow">Current Case Stage</span>' +
-      '<strong>Checkout &amp; Enrollment</strong></div>' +
+      '<strong>' + (proposal.paymentMethod === "cash_prepaid" ? "Cash/Check · Intake Handoff" : "Enrollment Handoff") + '</strong></div>' +
       '<span class="management-lifecycle__case"></span></div>' +
-      '<p class="management-lifecycle__guidance"><strong>Next:</strong> Choose who will complete Intake; opening this case does not create an invite.</p>';
+      '<p class="management-lifecycle__guidance"><strong>Next:</strong> ' + (proposal.paymentMethod === "cash_prepaid" ? "Verify recipient, send receipt, then send the secure Intake invitation." : "Choose the Intake recipient, then send the secure invitation.") + '</p>';
     orientation.querySelector(".management-lifecycle__case").textContent = requestedProposalId;
   }
 
@@ -997,39 +998,66 @@ function wireReadyIntakeButtons() {
     button.addEventListener("click", async () => {
       const proposalId = String(button.dataset.ready2c || "").trim();
       const proposal = readyProposalMap.get(proposalId);
-      if (!proposal || button.disabled || proposal.paymentMethod !== "cash_prepaid") return;
+      if (button.disabled) return;
+      const feedback = button.closest("[data-ready-proposal]")?.querySelector("[data-2c-feedback]");
+      const report = (message) => {
+        if (feedback) feedback.textContent = message;
+        if ($("invite-status")) $("invite-status").textContent = message;
+      };
+      if (!proposal || proposal.paymentMethod !== "cash_prepaid") {
+        report("Cash/Check enrollment is no longer ready. Refresh the enrollment queue.");
+        return;
+      }
       const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
         ? proposal.lockedSnapshot.athletes : (proposal.athletes || []);
       const audience = intakeAudienceForProposal(proposal, athletes);
       if (!audience) {
-        if ($("invite-status")) $("invite-status").textContent = "Select a verified Intake audience first.";
+        report("Select a verified Intake audience first.");
         return;
       }
       const prospect = proposal.lockedSnapshot?.prospect || proposal.prospect || {};
       const initial = audience === "adult_athlete"
         ? String(athletes[0]?.email || prospect.email || "").trim()
         : String(prospect.parentEmail || prospect.primaryContactEmail || prospect.email || "").trim();
-      const entered = window.prompt("Verify the receipt and secure Intake email recipient:", initial);
-      if (entered === null) return;
+      const entered = window.prompt(
+        "Enter the verified email address for the receipt and secure Intake invitation.",
+        initial.toLowerCase().endsWith(".invalid") ? "" : initial
+      );
+      if (entered === null) {
+        report("Canceled before requesting any emails.");
+        return;
+      }
       const recipientEmail = String(entered).trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail)) {
-        if ($("invite-status")) $("invite-status").textContent = "Enter a valid verified recipient email.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail) || recipientEmail.endsWith(".invalid")) {
+        report("Enter a verified recipient email. Placeholder addresses cannot receive email.");
         return;
       }
-      if (!window.confirm(`2C for ${proposalId}: send the existing Cash/Check paid receipt and the secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation to ${recipientEmail}? No Stripe charge will be created.`)) return;
-      const statusBefore = await refresh2CReceiptStatus(proposalId);
-      if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
-        if ($("invite-status")) $("invite-status").textContent = "Receipt delivery is uncertain. Provider reconciliation is required before Intake can be sent.";
-        return;
-      }
-      if (statusBefore.status === "SENT" && statusBefore.recipient !== recipientEmail) {
-        if ($("invite-status")) $("invite-status").textContent = "Receipt was previously sent to another recipient. Resolve with Management before continuing.";
+      if (!window.confirm(`Send the Cash/Check receipt and secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
+        report("Canceled before requesting any emails.");
         return;
       }
       const original = button.textContent;
       button.disabled = true;
-      button.textContent = "Preparing 2C…";
+      button.textContent = "Checking receipt status…";
+      report("Checking receipt status before sending.");
       try {
+        let statusBefore;
+        try {
+          statusBefore = await refresh2CReceiptStatus(proposalId);
+        } catch (error) {
+          console.error("[management-enrollment] 2C receipt status unavailable:", error);
+          report("Receipt status unavailable. No emails requested. Refresh Receipt Status before retrying.");
+          return;
+        }
+        if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
+          report("Receipt delivery is uncertain. Verify it with the provider before sending Intake.");
+          return;
+        }
+        if (statusBefore.status === "SENT" && statusBefore.recipient !== recipientEmail) {
+          report("Receipt was previously sent to another recipient. Resolve with Management before continuing.");
+          return;
+        }
+        button.textContent = "Preparing 2C…";
         currentHandoffTokenId = "";
         currentHandoffAudience = "";
         const tokenReady = await generateIntakeInvite(audience, proposal);
@@ -1050,26 +1078,22 @@ function wireReadyIntakeButtons() {
         const delivered = tokenSnapshot.data() || {};
         if (delivered.deliveryStatus === "SENT") {
           if (String(delivered.deliveredTo || "").toLowerCase() !== recipientEmail) throw new Error("Intake already sent to another recipient. No duplicate email sent.");
-          if ($("invite-status")) $("invite-status").textContent = "✓ 2C already completed. Receipt and Intake were previously accepted by the email provider.";
           await loadReadyForIntake(await requireManagement());
+          report("An Intake delivery is already recorded for this recipient. No duplicate Intake email requested.");
           return;
         }
         const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true, twoC: true });
         if (intakeResult.data?.ok !== true) {
           throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
         }
-        if ($("invite-status")) {
-          setIntakeConfirmation("success");
-          $("invite-status").textContent = `✓ 2C complete: cash/check receipt and secure Intake invitation sent to ${recipientEmail}. Management continues after family Intake submission.`;
-        }
         const context = await requireManagement();
         await loadReadyForIntake(context);
+        setIntakeConfirmation("success");
+        report(`✓ Receipt and secure Intake invitation accepted for ${recipientEmail}.`);
       } catch (err) {
         console.error("[management-enrollment] 2C delivery failed:", err);
-        if ($("invite-status")) {
-          setIntakeConfirmation("error");
-          $("invite-status").textContent = `⚠ ${err?.message || "2C delivery incomplete."} Payment was not recorded again. Verify each delivery status before retrying.`;
-        }
+        setIntakeConfirmation("error");
+        report(`⚠ ${err?.message || "2C delivery incomplete."} Verify each delivery status before retrying.`);
       } finally {
         button.disabled = false;
         button.textContent = original;
