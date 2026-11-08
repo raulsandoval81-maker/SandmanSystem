@@ -1,0 +1,16 @@
+{
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "project": "sandman-combat-staging",
+  "sourceSha": "5c3ea45e0672860ec568aa67ce18244ae0c1a48f",
+  "baselineSha": "456d38ea125c6274c0b8777a35c6bd69c2059ee0",
+  "hosting": [
+    "public/connect/proposals/review/review.js"
+  ],
+  "allowedSourceFiles": [
+    "public/connect/proposals/review/review.js",
+    "tests/browser/client-review-null-choice.test.mjs"
+  ],
+  "functions": [],
+  "productionChanges": false,
+  "deploymentRequiresApproval": true
+}
