@@ -23,7 +23,8 @@ test('receipt release is exact-SHA, explicit-approval and one-function only',()=
   assert.match(workflow,/emmett-2c-receipt-deploy/);
   assert.match(workflow,/APPROVE_2C_STAGING_RECEIPT_ONE_FUNCTION/);
   assert.match(workflow,/STAGING_TEST_EMAIL_ALLOWLIST_CONFIGURED/);
-  const section=workflow.split('  emmett-2c-receipt-deploy:',2)[1];
+  const section=workflow.split('  emmett-2c-receipt-deploy:',2)[1]
+    .split('\n  emmett-2c-final-release:',1)[0];
   assert.match(section,/gcloud functions deploy sendProposalPrepaidCashReceipt --gen2/);
   assert.doesNotMatch(section,/gcloud functions deploy (?!sendProposalPrepaidCashReceipt)/);
   for(const neighbor of ['recordProposalPrepaidCash','sendEnrollmentIntakeEmail','issueProposalEnrollmentHandoff','approveAndActivate']) {
