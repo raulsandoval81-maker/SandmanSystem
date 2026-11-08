@@ -83,5 +83,18 @@ for name in TARGETS:
  assert v.get('versionId')!=after.get('versionId'),name+' version did not change'
  print(json.dumps({'deployed':name,'beforeVersion':v.get('versionId'),'afterVersion':after.get('versionId'),'configurationPreserved':True,'iamPreserved':True}))
 afterall=run(['functions','list']);save('all-functions-after',afterall)
-untouched=lambda values:{x['name']:x for x in values if x['name'].split('/')[-1] not in TARGETS}
+def untouched(values):
+ # Cloud Functions may reorder Firestore event filters when listing unchanged
+ # functions. Compare them as a multiset, but retain every filter value and
+ # strictly compare all other inventory fields.
+ result={}
+ for item in values:
+  name=item['name']
+  if name.split('/')[-1] in TARGETS:continue
+  normalized=json.loads(json.dumps(item))
+  trigger=normalized.get('eventTrigger')
+  if isinstance(trigger,dict) and isinstance(trigger.get('eventFilters'),list):
+   trigger['eventFilters']=sorted(trigger['eventFilters'],key=lambda v:json.dumps(v,sort_keys=True,separators=(',',':')))
+  result[name]=normalized
+ return result
 assert untouched(allv)==untouched(afterall),'Unrelated function inventory changed'
