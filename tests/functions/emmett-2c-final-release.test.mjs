@@ -30,3 +30,14 @@ test('receipt must be active with callable transport before final release',()=>{
   assert.match(section,/sendEnrollmentIntakeEmail/);
   assert.match(section,/STAGING_TEST_EMAIL_ALLOWLIST/);
 });
+
+test('boundary uses immutable dispatch SHA and reports early failures without a second artifact error',()=>{
+  const section=workflow.split('  emmett-2c-final-release:',2)[1];
+  assert.match(section,/EMMETT_2C_FINAL_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(section,/REQUESTED_EMMETT_2C_FINAL_SHA: \$\{\{ inputs\.emmett_2c_final_sha \}\}/);
+  assert.match(section,/REQUESTED_SHA_MATCHES_DISPATCH/);
+  assert.match(section,/2C release boundary failed: \$\{label\}/);
+  assert.match(section,/mkdir -p evidence[\s\S]*FAILED_CONDITION=%s/);
+  assert.match(section,/if-no-files-found: error/);
+  assert.doesNotMatch(section,/^\s{6}EMMETT_2C_FINAL_SHA: \$\{\{ inputs\.emmett_2c_final_sha \}\}$/m);
+});
