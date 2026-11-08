@@ -3260,6 +3260,10 @@ jobs:
           ref: 86bde3e2c57cf8239f3660f5723e1a4864f0e7b3
           path: application
           persist-credentials: false
+      - name: Test inventory normalization and Hosting-only scope
+        run: |
+          python3 -m unittest discover -s tooling/tests/staging -p test_phase2c_inventory.py
+          node --check tooling/scripts/staging/phase2c-hosting.mjs
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
