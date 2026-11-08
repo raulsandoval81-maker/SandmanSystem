@@ -120,6 +120,8 @@ on:
           - pr561-waiver-deploy
           - pr566-builder-preview-preflight
           - pr566-builder-preview-deploy
+          - pr568-cash-check-preflight
+          - pr568-cash-check-deploy
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
@@ -2914,5 +2916,176 @@ jobs:
         if: ${{ always() }}
         with:
           name: pr566-builder-preview-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+
+  pr568-cash-check-release:
+    if: ${{ inputs.action == 'pr568-cash-check-preflight' || inputs.action == 'pr568-cash-check-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PROJECT_ID: sandman-combat-staging
+      PR568_SOURCE_SHA: 87c2ee60439d47f1ef42628ebb9add6ed770181c
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Enforce protected PR568 two-asset boundary
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          require_boundary(){ local label="$1"; shift; if ! "$@"; then echo "::error::PR568 boundary failed: ${label}"; printf 'FAILED_CONDITION=%s\n' "$label" > evidence/boundary.txt; exit 1; fi; }
+          require_boundary REPOSITORY test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          require_boundary MAIN_REF test "$GITHUB_REF" = "refs/heads/main"
+          require_boundary TRUSTED_WORKFLOW test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          require_boundary PROJECT test "${{ inputs.confirm_project }}" = "$PROJECT_ID"
+          require_boundary EXACT_SHA test "${{ inputs.protected_2c_exact_merge_sha }}" = "$PR568_SOURCE_SHA"
+          if test "${{ inputs.action }}" = pr568-cash-check-deploy; then
+            require_boundary DEPLOY_APPROVAL test "${{ inputs.protected_2c_deployment_approval }}" = "APPROVE_PR568_STAGING_ONE_BUILDER_ASSET"
+            require_boundary HOSTING_RELEASE test -n "${{ inputs.protected_2c_expected_hosting_release }}"
+            require_boundary HOSTING_VERSION test -n "${{ inputs.protected_2c_expected_hosting_version }}"
+          else
+            require_boundary PREFLIGHT_ACTION test "${{ inputs.action }}" = pr568-cash-check-preflight
+          fi
+          printf 'BOUNDARY_OK\n' > evidence/boundary.txt
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 87c2ee60439d47f1ef42628ebb9add6ed770181c
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - name: Verify exact PR568 source manifest and release guards
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PR568_SOURCE_SHA"
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process');
+          const m=JSON.parse(fs.readFileSync('trusted-tooling/scripts/staging/pr568-cash-check-release.json'));
+          if(m.sourceSha!==process.env.PR568_SOURCE_SHA||m.project!==process.env.PROJECT_ID||m.productionChanges!==false||m.functions.length!==0||m.hosting.join(',')!=='public/connect/admissions/calculator/calculator.js,public/connect/admissions/calculator/index.html')throw Error('PR568 manifest boundary mismatch');
+          const actual=cp.execFileSync('git',['-C','application','diff','--name-only',m.baselineSha,m.sourceSha],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          if(JSON.stringify(actual)!==JSON.stringify([...m.allowedSourceFiles].sort()))throw Error('PR568 source manifest drift');
+          NODE
+          node --test trusted-tooling/tests/functions/pr568-cash-check-release.test.mjs
+          node --check trusted-tooling/scripts/staging/pr568-cash-check-hosting-overlay.mjs
+      - name: Run complete payment-arrangement suite
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run test:payment-arrangements | tee evidence/payment-arrangement-tests.txt
+          grep -Eq '^# tests [0-9]+
+          grep -Eq '^# pass [0-9]+
+          grep -q '# fail 0' evidence/payment-arrangement-tests.txt
+          node --check application/public/connect/admissions/calculator/calculator.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR568 Cash/Check assets
+        env:
+          PR568_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          PR568_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          PR568_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = pr568-cash-check-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr568-cash-check-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr568-cash-check-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+ evidence/payment-arrangement-tests.txt
+          grep -q '# pass 59' evidence/payment-arrangement-tests.txt
+          grep -q '# fail 0' evidence/payment-arrangement-tests.txt
+          node --check application/public/connect/admissions/calculator/calculator.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR568 Builder asset
+        env:
+          PR568_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          PR568_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          PR568_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = pr568-cash-check-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr568-cash-check-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr568-cash-check-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+ evidence/payment-arrangement-tests.txt
+          grep -q '# fail 0' evidence/payment-arrangement-tests.txt
+          node --check application/public/connect/admissions/calculator/calculator.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR568 Builder asset
+        env:
+          PR568_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          PR568_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          PR568_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = pr568-cash-check-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr568-cash-check-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr568-cash-check-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+ evidence/payment-arrangement-tests.txt
+          grep -q '# pass 59' evidence/payment-arrangement-tests.txt
+          grep -q '# fail 0' evidence/payment-arrangement-tests.txt
+          node --check application/public/connect/admissions/calculator/calculator.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR568 Builder asset
+        env:
+          PR568_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          PR568_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          PR568_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = pr568-cash-check-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr568-cash-check-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr568-cash-check-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
           path: evidence/
           if-no-files-found: error
