@@ -27,7 +27,7 @@ check(process.env.GITHUB_REPOSITORY==='raulsandoval81-maker/SandmanSystem'&&proc
   process.env.GITHUB_WORKFLOW_REF===WORKFLOW&&process.env.GITHUB_ACTIONS==='true'&&
   process.env.SANDMAN_STAGING_PROJECT_ID===SITE&&process.env.PR568_SOURCE_SHA===SOURCE_SHA,
   'Trusted PR #568 staging boundary failed');
-if(mode==='deploy')check(process.env.PR568_DEPLOY_APPROVAL==='APPROVE_PR568_STAGING_ONE_BUILDER_ASSET',
+if(mode==='deploy')check(process.env.PR568_DEPLOY_APPROVAL==='APPROVE_PR568_STAGING_TWO_CASH_CHECK_ASSETS',
   'Explicit PR #568 deployment approval missing');
 const token=execFileSync('gcloud',['auth','print-access-token'],{encoding:'utf8'}).trim();
 check(token,'Staging identity did not provide credentials');
