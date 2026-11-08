@@ -122,6 +122,8 @@ on:
           - pr566-builder-preview-deploy
           - pr568-cash-check-preflight
           - pr568-cash-check-deploy
+          - pr570-review-null-preflight
+          - pr570-review-null-deploy
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
@@ -3010,5 +3012,100 @@ jobs:
         if: ${{ always() }}
         with:
           name: pr568-cash-check-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+
+  pr570-review-null-release:
+    if: ${{ inputs.action == 'pr570-review-null-preflight' || inputs.action == 'pr570-review-null-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PROJECT_ID: sandman-combat-staging
+      PR570_SOURCE_SHA: 5c3ea45e0672860ec568aa67ce18244ae0c1a48f
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Enforce protected PR570 one-asset boundary
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          require_boundary(){ local label="$1"; shift; if ! "$@"; then echo "::error::PR570 boundary failed: ${label}"; printf 'FAILED_CONDITION=%s\n' "$label" > evidence/boundary.txt; exit 1; fi; }
+          require_boundary REPOSITORY test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          require_boundary MAIN_REF test "$GITHUB_REF" = "refs/heads/main"
+          require_boundary TRUSTED_WORKFLOW test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          require_boundary PROJECT test "${{ inputs.confirm_project }}" = "$PROJECT_ID"
+          require_boundary EXACT_SHA test "${{ inputs.protected_2c_exact_merge_sha }}" = "$PR570_SOURCE_SHA"
+          if test "${{ inputs.action }}" = pr570-review-null-deploy; then
+            require_boundary DEPLOY_APPROVAL test "${{ inputs.protected_2c_deployment_approval }}" = "APPROVE_PR570_STAGING_TWO_CASH_CHECK_ASSETS"
+            require_boundary HOSTING_RELEASE test -n "${{ inputs.protected_2c_expected_hosting_release }}"
+            require_boundary HOSTING_VERSION test -n "${{ inputs.protected_2c_expected_hosting_version }}"
+          else
+            require_boundary PREFLIGHT_ACTION test "${{ inputs.action }}" = pr570-review-null-preflight
+          fi
+          printf 'BOUNDARY_OK\n' > evidence/boundary.txt
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 5c3ea45e0672860ec568aa67ce18244ae0c1a48f
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - name: Verify exact PR570 source manifest and release guards
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PR570_SOURCE_SHA"
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process');
+          const m=JSON.parse(fs.readFileSync('trusted-tooling/scripts/staging/pr570-review-null-release.json'));
+          if(m.sourceSha!==process.env.PR570_SOURCE_SHA||m.project!==process.env.PROJECT_ID||m.productionChanges!==false||m.functions.length!==0||m.hosting.join(',')!=='public/connect/proposals/review/review.js')throw Error('PR570 manifest boundary mismatch');
+          const actual=cp.execFileSync('git',['-C','application','diff','--name-only',m.baselineSha,m.sourceSha],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          if(JSON.stringify(actual)!==JSON.stringify([...m.allowedSourceFiles].sort()))throw Error('PR570 source manifest drift');
+          NODE
+          node --test trusted-tooling/tests/functions/pr570-review-null-release.test.mjs
+          node --test application/tests/browser/client-review-null-choice.test.mjs
+          node --check trusted-tooling/scripts/staging/pr570-review-null-hosting-overlay.mjs
+      - name: Run payment-arrangement and client-review regression suites
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run test:payment-arrangements | tee evidence/payment-arrangement-tests.txt
+          grep -Eq '^# tests [0-9]+$' evidence/payment-arrangement-tests.txt
+          grep -Eq '^# pass [0-9]+$' evidence/payment-arrangement-tests.txt
+          grep -q '# fail 0' evidence/payment-arrangement-tests.txt
+          node --check application/public/connect/proposals/review/review.js
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR570 family review asset
+        env:
+          PR570_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          PR570_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          PR570_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = pr570-review-null-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr570-review-null-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr570-review-null-${{ inputs.protected_2c_exact_merge_sha }}-${{ github.run_id }}
           path: evidence/
           if-no-files-found: error
