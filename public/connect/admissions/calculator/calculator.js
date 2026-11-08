@@ -1751,11 +1751,24 @@ const extras = {
       const message = document.getElementById("paymentArrangementStatus");
       if (arrangement !== "monthly_autopay" && fees) {
         const previous = [...fees.querySelectorAll("input")].map(input => input.value);
+        // Waived enrollment fees cannot be allocated as cash/check payments.
+        // The default and maximum must use the NET fee after approved support.
+        const netFeePerAthlete = Math.max(0, enrollmentBase - support) / athletes.length;
         if (fees.querySelectorAll("input").length !== athletes.length || restoredPrepaidFees) {
-          fees.innerHTML = athletes.map((a, i) => `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${enrollmentBase / athletes.length}" value="${restoredPrepaidFees ? (restoredPrepaidFees.find(x => x.athleteIndex === i + 1)?.amountCents || 0) / 100 : (previous[i] ?? enrollmentBase / athletes.length)}"></label>`).join("");
+          fees.innerHTML = athletes.map((a, i) => {
+            const restored = restoredPrepaidFees?.find(x => x.athleteIndex === i + 1);
+            const proposed = restored ? restored.amountCents / 100 : (previous[i] ?? netFeePerAthlete);
+            const allocation = Math.min(netFeePerAthlete, Math.max(0, Number(proposed) || 0));
+            return `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${netFeePerAthlete}" value="${allocation}"></label>`;
+          }).join("");
           restoredPrepaidFees = null;
           fees.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
         }
+        // A support change can lower the fee after the allocation field exists.
+        fees.querySelectorAll("input").forEach(input => {
+          input.max = String(netFeePerAthlete);
+          if (Number(input.value) > netFeePerAthlete) input.value = String(netFeePerAthlete);
+        });
       }
       if (fees) fees.hidden = arrangement === "monthly_autopay";
       try {
@@ -1773,6 +1786,13 @@ const extras = {
         }
       } catch (error) {
         if (message) message.textContent = error.message;
+        // Never display a stale monthly Stripe quote as a failed prepaid quote.
+        if (arrangement !== "monthly_autopay") {
+          el.monthlyTotal.textContent = "Unable to quote";
+          el.summary.textContent = `Prepaid quote unavailable: ${error.message}`;
+          el.breakdown.textContent = `Correct the prepaid arrangement: ${error.message}`;
+          syncPaymentReviewActions();
+        }
         return null;
       }
       syncPaymentReviewActions();
