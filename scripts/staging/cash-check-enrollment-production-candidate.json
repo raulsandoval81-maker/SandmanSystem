@@ -1,6 +1,6 @@
 {
   "repository": "raulsandoval81-maker/SandmanSystem",
-  "applicationSha": "00e8316e139063b7e2291763a75178008d4f9b8e",
+  "applicationSha": "fc3887f6843f01d6dd88832e69dc9cdbc3c2e841",
   "baseSha": "4ee88c4f865cb66f78d7161a507c7c67ff829647",
   "status": "BLOCKED_PENDING_LIVE_STAGING_AND_PRODUCTION_INVENTORY",
   "deploymentAuthorized": false,
@@ -56,7 +56,7 @@
     "uiAndBillingChecks": 8,
     "firestoreEmulatorChecks": 34,
     "submissionCoverage": "Synthetic submitted Intake fixture plus actual consumeSubmittedIntakeToken and approveAndActivate handlers; live browser submission remains unverified",
-    "emailCoverage": "Mocked provider acceptance in isolated demo Firestore; not proof of live mailbox delivery"
+    "emailCoverage": "Mocked provider acceptance in isolated demo Firestore; not proof of live mailbox delivery",
+    "fullIntegrationChecks": 108
   }
 }
-
