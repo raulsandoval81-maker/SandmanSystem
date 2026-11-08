@@ -114,6 +114,8 @@ on:
           - emmett-2c-receipt-readonly-preflight
           - emmett-2c-runtime-rollback-readonly
           - emmett-2c-receipt-deploy
+          - emmett-2c-final-preflight
+          - emmett-2c-final-deploy
       emmett_2c_application_sha:
         description: Exact reviewed merge SHA containing the 2C staging safety repair
         required: false
@@ -124,6 +126,22 @@ on:
         type: string
       emmett_2c_recipient_safety:
         description: Confirm the secret contains only owner-approved synthetic mailboxes by typing STAGING_TEST_EMAIL_ALLOWLIST_CONFIGURED
+        required: false
+        type: string
+      emmett_2c_final_sha:
+        description: Exact merged SHA for the final Intake and seven-asset 2C staging release
+        required: false
+        type: string
+      emmett_2c_final_approval:
+        description: For final 2C staging deploy, type APPROVE_2C_STAGING_INTAKE_AND_SEVEN_HOSTING_ASSETS
+        required: false
+        type: string
+      emmett_2c_test_recipient:
+        description: Confirm the approved staging recipient
+        required: false
+        type: string
+      emmett_2c_allowlist_confirmation:
+        description: Confirm the staging secret contains only the approved mailbox by typing JOINSANDMANCOMBAT_GMAIL_ALLOWLIST_VERIFIED
         required: false
         type: string
       winter_v2_approval:
@@ -2405,4 +2423,187 @@ jobs:
         with:
           name: emmett-2c-receipt-release-${{ inputs.emmett_2c_application_sha }}
           path: /tmp/2c-release-summary.json
+          if-no-files-found: error
+
+  emmett-2c-final-release:
+    if: ${{ inputs.action == 'emmett-2c-final-preflight' || inputs.action == 'emmett-2c-final-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      EMMETT_2C_FINAL_SHA: ${{ inputs.emmett_2c_final_sha }}
+      EMMETT_2C_FINAL_APPROVAL: ${{ inputs.emmett_2c_final_approval }}
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+    steps:
+      - name: Enforce exact staging-only release boundary
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SELECTED_ACTION: ${{ inputs.action }}
+          TEST_RECIPIENT: ${{ inputs.emmett_2c_test_recipient }}
+          ALLOWLIST_CONFIRMATION: ${{ inputs.emmett_2c_allowlist_confirmation }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$TEST_RECIPIENT" = "joinsandmancombat@gmail.com"
+          test "$ALLOWLIST_CONFIRMATION" = "JOINSANDMANCOMBAT_GMAIL_ALLOWLIST_VERIFIED"
+          test "${#EMMETT_2C_FINAL_SHA}" = 40
+          test "$(printf '%s' "$EMMETT_2C_FINAL_SHA" | tr -cd '0-9a-f')" = "$EMMETT_2C_FINAL_SHA"
+          if test "$SELECTED_ACTION" = emmett-2c-final-deploy; then
+            test "$EMMETT_2C_FINAL_APPROVAL" = "APPROVE_2C_STAGING_INTAKE_AND_SEVEN_HOSTING_ASSETS"
+          else
+            test "$SELECTED_ACTION" = emmett-2c-final-preflight
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.emmett_2c_final_sha }}
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify exact merged source and release-only diff
+        run: |
+          set -euo pipefail
+          test "$(git -C trusted-tooling rev-parse HEAD)" = "$EMMETT_2C_FINAL_SHA"
+          test "$(git -C application rev-parse HEAD)" = "$EMMETT_2C_FINAL_SHA"
+          git -C application merge-base --is-ancestor 2d4fece66e9001f52fbb0896a74bfeda3cf6dad1 "$EMMETT_2C_FINAL_SHA"
+          git -C application diff --name-only 2d4fece66e9001f52fbb0896a74bfeda3cf6dad1 "$EMMETT_2C_FINAL_SHA" | sort > /tmp/2c-final-files
+          printf '%s\n' \
+            .github/workflows/2c-staging-release-plan-validation.yml \
+            .github/workflows/staging-exact-sha-release.yml \
+            scripts/staging/emmett-2c-final-hosting-overlay.mjs \
+            tests/functions/emmett-2c-final-blockers.test.mjs \
+            tests/functions/emmett-2c-final-release.test.mjs | sort > /tmp/2c-final-allowed
+          diff -u /tmp/2c-final-allowed /tmp/2c-final-files
+          node --check application/scripts/staging/emmett-2c-final-hosting-overlay.mjs
+          node application/tests/functions/emmett-2c-final-release.test.mjs
+      - name: Build and run focused 2C unit and emulator integration tests
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run build
+          node --test \
+            application/functions/tests/stagingEmailRecipient.test.cjs \
+            application/functions/tests/prepaidMembershipPolicy.test.cjs \
+            application/functions/tests/prepaidReconciliationPolicy.test.cjs \
+            application/functions/tests/operationalPaidProposal.test.cjs \
+            application/tests/functions/emmett-2c-final-blockers.test.mjs \
+            application/tests/functions/emmett-2c-final-release.test.mjs \
+            application/tests/functions/phase-c-management-location.test.mjs
+          cd application
+          npx --yes firebase-tools@15.11.0 emulators:exec --only firestore \
+            --config firebase.prepaid-emulator.json --project demo-sandman-prepaid \
+            "node --test functions/tests/prepaidCashReceipt.integration.cjs functions/tests/prepaidEnrollment.integration.cjs"
+      - name: Prepare isolated Intake source package
+        run: |
+          set -euo pipefail
+          test ! -e /tmp/emmett-2c-intake-release
+          mkdir -p /tmp/emmett-2c-intake-release/lib/enrollment /tmp/emmett-2c-intake-release/lib/modules/email /tmp/emmett-2c-intake-release/lib/services
+          cp application/functions/package.json application/functions/package-lock.json /tmp/emmett-2c-intake-release/
+          cp application/functions/lib/enrollment/sendEnrollmentIntakeEmail.js application/functions/lib/enrollment/operationalPaidProposal.js /tmp/emmett-2c-intake-release/lib/enrollment/
+          cp application/functions/lib/modules/email/resend.js /tmp/emmett-2c-intake-release/lib/modules/email/
+          cp application/functions/lib/services/staffAuthorization.js /tmp/emmett-2c-intake-release/lib/services/
+          printf '%s\n' 'const admin=require("firebase-admin");if(!admin.apps.length)admin.initializeApp();exports.sendEnrollmentIntakeEmail=require("./lib/enrollment/sendEnrollmentIntakeEmail").sendEnrollmentIntakeEmail;' > /tmp/emmett-2c-intake-release/index.js
+          node -e 'const fs=require("fs"),p=require("/tmp/emmett-2c-intake-release/package.json");p.main="index.js";fs.writeFileSync("/tmp/emmett-2c-intake-release/package.json",JSON.stringify(p,null,2)+"\n")'
+          npm ci --omit=dev --ignore-scripts --no-audit --no-fund --prefix /tmp/emmett-2c-intake-release
+          NODE_PATH=/tmp/emmett-2c-intake-release/node_modules node -e 'const m=require("/tmp/emmett-2c-intake-release");if(Object.keys(m).join(",")!=="sendEnrollmentIntakeEmail"||!m.sendEnrollmentIntakeEmail?.__endpoint?.callableTrigger)process.exit(64)'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify receipt, Intake, secrets and capture rollback evidence
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions evidence/hosting
+          gcloud functions describe sendProposalPrepaidCashReceipt --gen2 --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/receipt-before.json
+          gcloud run services describe sendproposalprepaidcashreceipt --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/receipt-run-before.json
+          gcloud functions describe sendEnrollmentIntakeEmail --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/intake-before.json
+          gcloud functions get-iam-policy sendEnrollmentIntakeEmail --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/intake-iam-before.json
+          for secret in RESEND_API_KEY STAGING_TEST_EMAIL_ALLOWLIST; do
+            gcloud secrets describe "$secret" --project=sandman-combat-staging --format=json > "evidence/functions/${secret}-metadata.json"
+            test "$(gcloud secrets versions list "$secret" --project=sandman-combat-staging --filter='state=ENABLED' --format='value(name)' --limit=1 | wc -l | tr -d ' ')" = 1
+          done
+          node <<'NODE'
+          const fs=require('fs');
+          const receipt=JSON.parse(fs.readFileSync('evidence/functions/receipt-before.json'));
+          const run=JSON.parse(fs.readFileSync('evidence/functions/receipt-run-before.json'));
+          const intake=JSON.parse(fs.readFileSync('evidence/functions/intake-before.json'));
+          const keys=(receipt.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort();
+          if(receipt.state!=='ACTIVE'||receipt.buildConfig?.entryPoint!=='sendProposalPrepaidCashReceipt'||
+             JSON.stringify(keys)!==JSON.stringify(['RESEND_API_KEY','STAGING_TEST_EMAIL_ALLOWLIST'])||
+             run.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true') throw Error('Receipt is not ACTIVE with approved callable transport');
+          if(intake.state!=='ACTIVE'||intake.environment!=='GEN_1'||intake.entryPoint!=='sendEnrollmentIntakeEmail') throw Error('Unexpected deployed Intake baseline');
+          NODE
+          printf '%s\n' 'ROLLBACK_EVIDENCE: intake-before.json + intake-iam-before.json + active Hosting release/version' > evidence/ROLLBACK.txt
+      - name: Deploy only updated Gen1 Intake email function
+        if: ${{ inputs.action == 'emmett-2c-final-deploy' }}
+        run: |
+          set -euo pipefail
+          gcloud functions deploy sendEnrollmentIntakeEmail --no-gen2 \
+            --project=sandman-combat-staging --region=us-central1 --runtime=nodejs22 \
+            --entry-point=sendEnrollmentIntakeEmail --source=/tmp/emmett-2c-intake-release \
+            --service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --memory=256Mi --timeout=60s --max-instances=20 \
+            --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging \
+            --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,STAGING_TEST_EMAIL_ALLOWLIST=STAGING_TEST_EMAIL_ALLOWLIST:latest \
+            --trigger-http --quiet
+      - name: Verify Intake deployment and unchanged invocation IAM
+        if: ${{ inputs.action == 'emmett-2c-final-deploy' }}
+        run: |
+          set -euo pipefail
+          gcloud functions describe sendEnrollmentIntakeEmail --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/intake-after.json
+          gcloud functions get-iam-policy sendEnrollmentIntakeEmail --region=us-central1 --project=sandman-combat-staging --format=json > evidence/functions/intake-iam-after.json
+          node <<'NODE'
+          const fs=require('fs');
+          const before=JSON.parse(fs.readFileSync('evidence/functions/intake-before.json'));
+          const after=JSON.parse(fs.readFileSync('evidence/functions/intake-after.json'));
+          const bindings=file=>(JSON.parse(fs.readFileSync(file)).bindings||[]).map(binding=>({
+            role:binding.role,members:[...(binding.members||[])].sort(),condition:binding.condition||null
+          })).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+          if(after.state!=='ACTIVE'||after.environment!=='GEN_1'||after.entryPoint!=='sendEnrollmentIntakeEmail'||after.updateTime===before.updateTime)throw Error('Intake update not verified');
+          if(JSON.stringify(bindings('evidence/functions/intake-iam-before.json'))!==JSON.stringify(bindings('evidence/functions/intake-iam-after.json')))throw Error('Intake invocation IAM changed');
+          NODE
+      - name: Authenticate existing staging Hosting deployer
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Preflight or release only seven reviewed Hosting assets
+        run: |
+          set -euo pipefail
+          if test "${{ inputs.action }}" = emmett-2c-final-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/emmett-2c-final-hosting-overlay.mjs "$mode" application | tee evidence/hosting/result.jsonl
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: emmett-2c-final-release-${{ inputs.emmett_2c_final_sha }}-${{ github.run_id }}
+          path: evidence/
           if-no-files-found: error

@@ -25,6 +25,8 @@ on:
       - 'functions/src/billing/sendProposalPrepaidCashReceipt.ts'
       - 'functions/src/enrollment/sendEnrollmentIntakeEmail.ts'
       - 'functions/tests/stagingEmailRecipient.test.cjs'
+      - 'scripts/staging/emmett-2c-final-hosting-overlay.mjs'
+      - 'tests/functions/emmett-2c-final-release.test.mjs'
 
 permissions:
   contents: read
@@ -45,7 +47,7 @@ jobs:
         with:
           node-version: '22'
       - name: Validate offline manifest and code contracts
-        run: node --test tests/functions/emmett-2c-final-blockers.test.mjs tests/functions/emmett-2c-runtime-rollback-readonly.test.mjs tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs tests/functions/emmett-2c-receipt-isolated-candidate.test.mjs
+        run: node --test tests/functions/emmett-2c-final-release.test.mjs tests/functions/emmett-2c-final-blockers.test.mjs tests/functions/emmett-2c-runtime-rollback-readonly.test.mjs tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs tests/functions/emmett-2c-receipt-isolated-candidate.test.mjs
       - name: Compile source-only Python preflight
         run: python3 -m py_compile scripts/staging/emmett-2c-receipt-readonly-preflight.py scripts/staging/emmett-2c-runtime-rollback-readonly.py
       - name: Assert secrets are unavailable
