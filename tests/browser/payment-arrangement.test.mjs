@@ -19,6 +19,26 @@ for(const [term,months] of [['annual',12],['six-month',6]]) {
   assert.equal(online.prepaidTerms.paidThroughDate,terms.prepaidCoverageDates(price.membershipStartDate,months).paidThroughDate);
  });
 }
+for (const percent of [0,25,50,75,100]) test(`Builder applies ${percent}% support to prepaid fee liability only`,()=>{
+ const liability=3000*(100-percent)/100;
+ const supported={...price,support:30*percent/100,supportPercent:percent};
+ const preview=previewPaymentArrangement(supported,[{name:'Synthetic',plan:'standard',billingTerm:'annual'}],
+   'prepaid_cash_check',[{athleteIndex:1,amountCents:liability}]);
+ const terms=preview.prepaidTerms;
+ assert.equal(terms.membershipAmountCents,96000);
+ assert.equal(terms.amountCents,96000+liability);
+ assert.equal(terms.nextBillingDate,'2027-11-01');
+ assert.equal(preview.automaticFuturePayments,false);
+ assert.equal(terms.feeOutstandingCents,0);
+});
+test('Builder preserves a partial allocation against supported enrollment liability',()=>{
+ const terms=previewPaymentArrangement({...price,support:15,supportPercent:50},
+   [{name:'Synthetic',plan:'standard',billingTerm:'annual'}],'prepaid_cash_check',
+   [{athleteIndex:1,amountCents:500}]).prepaidTerms;
+ assert.equal(terms.membershipAmountCents,96000);
+ assert.equal(terms.amountCents,96500);
+ assert.equal(terms.feeOutstandingCents,1000);
+});
 test('Builder preserves monthly pricing and rejects mixed terms, extra fees and invalid allocations',()=>{
  assert.equal(previewPaymentArrangement(price,[],'monthly_autopay',[]).dueNow,110);
  const athletes=[{plan:'standard',billingTerm:'annual'}];

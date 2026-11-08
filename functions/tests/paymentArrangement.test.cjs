@@ -4,10 +4,11 @@ const Module = require('node:module');
 const admin = require('firebase-admin/firestore');
 const {canonicalPaymentArrangement, lockedPrepaidTerms, prepaidFingerprint} = require('../lib/billing/paymentArrangement');
 const {isOperationalPaidProposal} = require('../lib/enrollment/operationalPaidProposal');
-function fixture(arrangement = 'prepaid_stripe', term = 'annual', fee = 2000) {
+function fixture(arrangement = 'prepaid_stripe', term = 'annual', fee = 2000, supportPercent = 0) {
   const athletes = [{name:'Synthetic Athlete',plan:'standard',billingTerm:term}];
   const pricing = canonicalPaymentArrangement({paymentArrangement:arrangement,monthlyBalance:80,
-    enrollmentBase:30,membershipStartDate:'2026-11-01',prepaidFeeAllocations:[{athleteIndex:1,amountCents:fee}]}, athletes);
+    enrollmentBase:30,support:30*supportPercent/100,supportPercent,
+    membershipStartDate:'2026-11-01',prepaidFeeAllocations:[{athleteIndex:1,amountCents:fee}]}, athletes);
   const snapshot = {athletes,pricing};
   return {status:'READY_FOR_CHECKOUT',lockedSnapshot:snapshot,clientAcceptance:{signedSnapshot:snapshot,signedAt:admin.Timestamp.now()},
     enrollmentConfirmation:{termsConfirmed:true,confirmedAt:admin.Timestamp.now()},prospect:{email:'synthetic@example.invalid'}};
@@ -23,6 +24,27 @@ for (const [term,months,end] of [['annual',12,'2027-10-31'],['six-month',6,'2027
 for (const fee of [0,1000,3000]) test(`fee allocation ${fee} is independently preserved`,()=>{
   const p=fixture('prepaid_cash_check','annual',fee);assert.equal(p.lockedSnapshot.pricing.dueNow,0);
   assert.equal(lockedPrepaidTerms(p).annualEnrollmentFee.outstandingCents,3000-fee);
+});
+for (const percent of [0,25,50,75,100]) test(`${percent}% support reduces only enrollment liability`,()=>{
+  const liability=3000*(100-percent)/100;
+  const p=fixture('prepaid_cash_check','annual',liability,percent);
+  const terms=lockedPrepaidTerms(p);
+  assert.equal(terms.membershipAmountCents,96000);
+  assert.equal(terms.amountCents,96000+liability);
+  assert.equal(terms.nextBillingDate,'2027-11-01');
+  assert.equal(terms.automaticRenewal,false);
+  assert.equal(terms.annualEnrollmentFee.totalCents,liability);
+  assert.equal(terms.annualEnrollmentFee.outstandingCents,0);
+});
+test('support preserves partial enrollment allocation and rejects inconsistent locked support',()=>{
+  const p=fixture('prepaid_cash_check','annual',500,50);
+  const terms=lockedPrepaidTerms(p);
+  assert.equal(terms.membershipAmountCents,96000);
+  assert.equal(terms.annualEnrollmentFee.totalCents,1500);
+  assert.equal(terms.annualEnrollmentFee.outstandingCents,1000);
+  assert.throws(()=>canonicalPaymentArrangement({paymentArrangement:'prepaid_cash_check',monthlyBalance:80,
+    enrollmentBase:30,support:30,supportPercent:50,membershipStartDate:'2026-11-01',
+    prepaidFeeAllocations:[{athleteIndex:1,amountCents:0}]},p.lockedSnapshot.athletes),/support/);
 });
 test('monthly path preserves existing prices and schedule byte for byte',()=>{
   const input={monthlyBalance:80,dueNow:110,firstRecurringChargeDate:'2026-12-05'};

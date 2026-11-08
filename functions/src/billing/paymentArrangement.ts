@@ -11,6 +11,22 @@ export function paymentArrangement(pricing: Record<string, any>): PaymentArrange
   return value;
 }
 
+export function supportedEnrollmentFeeCents(pricing: Record<string, any>): number {
+  const grossCents = Math.round(Number(pricing.enrollmentBase) * 100);
+  const supportCents = Math.round(Number(pricing.support || 0) * 100);
+  const supportPercent = Number(pricing.supportPercent || 0);
+  if (!Number.isSafeInteger(grossCents) || grossCents < 0 ||
+      !Number.isSafeInteger(supportCents) || supportCents < 0 ||
+      ![0, 25, 50, 75, 100].includes(supportPercent)) {
+    throw new Error("Invalid locked enrollment support.");
+  }
+  const expectedSupportCents = Math.round(grossCents * supportPercent / 100);
+  if (supportCents !== expectedSupportCents || supportCents > grossCents) {
+    throw new Error("Locked enrollment support does not match the approved percentage.");
+  }
+  return grossCents - supportCents;
+}
+
 // Reuse the V2 term, coverage and per-athlete allocation validators. Pricing
 // remains the existing proposal monthly price, never a competing rate table.
 export function canonicalPaymentArrangement(pricing: Record<string, any>, athletes: any[]) {
@@ -24,7 +40,7 @@ export function canonicalPaymentArrangement(pricing: Record<string, any>, athlet
   }
   const months = lockedPrepaidCoverageMonths({lockedSnapshot: {athletes}});
   const monthly = Math.round(Number(pricing.monthlyBalance) * 100);
-  const fee = Math.round(Number(pricing.enrollmentBase) * 100);
+  const fee = supportedEnrollmentFeeCents(pricing);
   if (!Number.isSafeInteger(monthly) || monthly <= 0 || !Number.isSafeInteger(fee) || fee < 0) {
     throw new Error("Invalid locked prepaid price.");
   }

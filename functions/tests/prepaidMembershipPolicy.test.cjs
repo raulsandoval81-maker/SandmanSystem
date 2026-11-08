@@ -42,6 +42,23 @@ test("annual enrollment selections stay per-athlete and separate", () => {
   );
 });
 
+test("historical enrollment credit is capped to the supported fee liability", () => {
+  const result = resolveFullYearPrepayment({
+    amountCents: 96000,
+    membershipAmountCents: 96000,
+    expectedMonthlyMembershipCents: 8000,
+    enrollmentFeeTotalCents: 750,
+    enrollmentFeePreviouslyPaidCents: 750,
+    enrollmentFeePreviouslyPaidAllocations: [{ athleteIndex: 1, amountCents: 750 }],
+    athletes: [athletes[0]],
+    enrollmentFeeIncludedAthleteIndexes: [],
+  });
+  assert.equal(result.membershipAmountCents, 96000);
+  assert.equal(result.annualEnrollmentFee.previouslyPaidCents, 750);
+  assert.equal(result.annualEnrollmentFee.paidWithPrepaymentCents, 0);
+  assert.equal(result.annualEnrollmentFee.outstandingCents, 0);
+});
+
 test("payment received must reconcile exactly to membership plus selected fees", () => {
   assert.throws(() => resolveFullYearPrepayment({
     amountCents: 976000,

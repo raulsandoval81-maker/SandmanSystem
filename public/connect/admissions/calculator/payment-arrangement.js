@@ -12,7 +12,16 @@ export function previewPaymentArrangement(pricing, athletes, arrangement, alloca
   const coverage = prepaidCoverageDates(pricing.membershipStartDate, months);
   if (!coverage) throw Error("A valid membership start date is required.");
   const membership = Math.round(pricing.monthlyBalance * 100) * months;
-  const totalFee = Math.round(pricing.enrollmentBase * 100);
+  const grossFee = Math.round(Number(pricing.enrollmentBase) * 100);
+  const support = Math.round(Number(pricing.support || 0) * 100);
+  const supportPercent = Number(pricing.supportPercent || 0);
+  if (!Number.isSafeInteger(grossFee) || grossFee < 0 ||
+      !Number.isSafeInteger(support) || support < 0 ||
+      ![0, 25, 50, 75, 100].includes(supportPercent) ||
+      support !== Math.round(grossFee * supportPercent / 100) || support > grossFee) {
+    throw Error("Approved enrollment support does not match the enrollment fee.");
+  }
+  const totalFee = grossFee - support;
   const perAthlete = totalFee / athletes.length;
   if (allocations.length !== athletes.length || allocations.some((a, i) =>
       a.athleteIndex !== i + 1 || !Number.isSafeInteger(a.amountCents) || a.amountCents < 0 || a.amountCents > perAthlete)) {
