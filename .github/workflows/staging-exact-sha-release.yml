@@ -2291,7 +2291,10 @@ jobs:
             'functions/src/enrollment/sendEnrollmentIntakeEmail.ts',
             'functions/src/modules/email/resend.ts',
             'functions/tests/stagingEmailRecipient.test.cjs',
+            'tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs',
             'tests/functions/emmett-2c-final-blockers.test.mjs',
+            'tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs',
+            'tests/functions/emmett-2c-runtime-rollback-readonly.test.mjs',
           ]);
           const changed=fs.readFileSync('/tmp/2c-changed.txt','utf8').trim().split('\n').filter(Boolean);
           if(!changed.length || changed.some(file=>!allowed.has(file))) throw Error('2C exact-SHA scope drift: '+changed.join(','));
