@@ -1,0 +1,16 @@
+{
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "project": "sandman-combat-staging",
+  "sourceSha": "4a1f3c0b4bfb6172a3b660a693d5a51156b9eb0b",
+  "baselineSha": "5b82cfc70591874ba78ad9c50fc5fc87668cbe88",
+  "hosting": ["public/connect/admissions/calculator/calculator.js"],
+  "allowedSourceFiles": [
+    "functions/package.json",
+    "public/connect/admissions/calculator/calculator.js",
+    "tests/browser/payment-arrangement.test.mjs",
+    "tests/browser/prepaid-builder-preview.test.mjs"
+  ],
+  "functions": [],
+  "productionChanges": false,
+  "deploymentRequiresApproval": true
+}
