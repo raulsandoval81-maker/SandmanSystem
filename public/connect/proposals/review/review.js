@@ -477,12 +477,15 @@ function moneyFromCents(value) {
 function renderMembershipChoice(
   request = {}
 ) {
+  // The review callable may return null when no choice is pending.
+  // Treat that as an inactive choice, not an invalid review link.
+  const safeRequest = request && typeof request === "object" ? request : {};
   const options =
-    Array.isArray(request.options)
-      ? request.options
+    Array.isArray(safeRequest.options)
+      ? safeRequest.options
       : [];
 
-  if (!request.active || !options.length) {
+  if (!safeRequest.active || !options.length) {
     return false;
   }
 
@@ -493,7 +496,7 @@ function renderMembershipChoice(
     true;
 
   $("membershipChoiceContext").textContent =
-    request.contextNote ||
+    safeRequest.contextNote ||
     "Choose the membership option you want Sandman Academy to prepare for final Review & Confirm.";
 
   $("membershipChoiceOptions").innerHTML =
