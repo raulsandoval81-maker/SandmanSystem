@@ -15,7 +15,7 @@ test('PR570 manifest pins exactly two reviewed files and one Hosting asset',()=>
 test('PR570 action stays distinct, exact-SHA, staging protected and approval gated',()=>{
   const job=workflow.split('\n  pr570-review-null-release:')[1];assert.ok(job);
   for(const value of ['pr570-review-null-preflight','pr570-review-null-deploy','environment: staging',
-    '5c3ea45e0672860ec568aa67ce18244ae0c1a48f','APPROVE_PR570_STAGING_TWO_CASH_CHECK_ASSETS',
+    '5c3ea45e0672860ec568aa67ce18244ae0c1a48f','APPROVE_PR570_STAGING_ONE_REVIEW_ASSET',
     'npm --prefix application/functions run test:payment-arrangements','pr570-review-null-hosting-overlay.mjs',
     "grep -Eq '^# tests [0-9]+$'", "grep -Eq '^# pass [0-9]+$'", "grep -q '# fail 0'"])assert.ok(job.includes(value),value);
   assert.doesNotMatch(job,/emmett-2c-final|winter-|pr561-waiver-hosting-overlay|gcloud functions deploy|firestore|stripe/i);
