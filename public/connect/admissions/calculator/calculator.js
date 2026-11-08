@@ -1,4 +1,24 @@
 import { previewPaymentArrangement } from "./payment-arrangement.js";
+
+export function normalizePrepaidFeeAllocations({
+  enrollmentBase,
+  support,
+  athleteCount,
+  restored = [],
+  previous = [],
+}) {
+  if (!Number.isInteger(athleteCount) || athleteCount <= 0) return [];
+  const netFeeCents = Math.max(0, Math.round((Number(enrollmentBase) - Number(support)) * 100));
+  if (netFeeCents % athleteCount !== 0) throw Error("Annual fee must divide evenly between eligible athletes.");
+  const maximumCents = netFeeCents / athleteCount;
+  return Array.from({length: athleteCount}, (_, index) => {
+    const saved = restored.find(value => value.athleteIndex === index + 1);
+    const proposedCents = saved
+      ? Number(saved.amountCents)
+      : Math.round(Number(previous[index] ?? maximumCents / 100) * 100);
+    return Math.min(maximumCents, Math.max(0, Number.isFinite(proposedCents) ? proposedCents : 0));
+  });
+}
 import {
   auth,
   db,
@@ -317,6 +337,7 @@ const extras = {
 };
 
     let restoredPrepaidFees = null;
+    let paymentArrangementValid = true;
     const el = {
       paymentArrangement: document.getElementById("paymentArrangement"),
       familyName:document.getElementById("familyName"),
@@ -469,12 +490,14 @@ const extras = {
 
     function syncPaymentReviewActions() {
       const cash = el.paymentArrangement?.value === "prepaid_cash_check";
+      const prepaid = cash || el.paymentArrangement?.value === "prepaid_stripe";
+      const valid = !prepaid || paymentArrangementValid;
       const stage = String(el.proposalWorkflowStage?.textContent || "Proposal Draft");
       const draft = stage === "Proposal Draft" || stage === "Building Proposal";
       if (pricingLabMode) return;
-      el.cashCheckReviewButton.hidden = !(cash && draft);
-      el.submitReviewButton.hidden = cash || !draft;
-      el.sendReviewButton.hidden = !draft;
+      el.cashCheckReviewButton.hidden = !(cash && draft && valid);
+      el.submitReviewButton.hidden = cash || !draft || !valid;
+      el.sendReviewButton.hidden = !draft || !valid;
       if (draft) {
         el.submitReviewButton.textContent = "2B. In-Person Confirm → Stripe";
         el.sendReviewButton.textContent = cash
@@ -1751,16 +1774,29 @@ const extras = {
       const message = document.getElementById("paymentArrangementStatus");
       if (arrangement !== "monthly_autopay" && fees) {
         const previous = [...fees.querySelectorAll("input")].map(input => input.value);
+        const normalized = normalizePrepaidFeeAllocations({
+          enrollmentBase, support, athleteCount: athletes.length,
+          restored: restoredPrepaidFees || [], previous,
+        });
+        const netFeePerAthlete = Math.max(0, enrollmentBase - support) / athletes.length;
         if (fees.querySelectorAll("input").length !== athletes.length || restoredPrepaidFees) {
-          fees.innerHTML = athletes.map((a, i) => `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${enrollmentBase / athletes.length}" value="${restoredPrepaidFees ? (restoredPrepaidFees.find(x => x.athleteIndex === i + 1)?.amountCents || 0) / 100 : (previous[i] ?? enrollmentBase / athletes.length)}"></label>`).join("");
+          fees.innerHTML = athletes.map((a, i) => {
+            return `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${netFeePerAthlete}" value="${normalized[i] / 100}"></label>`;
+          }).join("");
           restoredPrepaidFees = null;
           fees.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));
         }
+        // A support change can lower the fee after the allocation field exists.
+        fees.querySelectorAll("input").forEach(input => {
+          input.max = String(netFeePerAthlete);
+          if (Number(input.value) > netFeePerAthlete) input.value = String(netFeePerAthlete);
+        });
       }
       if (fees) fees.hidden = arrangement === "monthly_autopay";
       try {
         const allocations = fees ? [...fees.querySelectorAll("input")].map((input, i) => ({athleteIndex: i + 1, amountCents: Math.round(Number(input.value) * 100)})) : [];
         result.pricing = previewPaymentArrangement(result.pricing, athletes, arrangement, allocations);
+        paymentArrangementValid = true;
         if (message) message.textContent = "";
         if (arrangement !== "monthly_autopay") {
           const t = result.pricing.prepaidTerms;
@@ -1768,11 +1804,24 @@ const extras = {
           message.textContent = summary;
           el.dueNow.textContent = money(result.pricing.dueNow);
           el.monthlyTotal.textContent = "No recurring charge";
+          el.firstYearTotal.textContent = money(t.amountCents / 100);
+          el.annualTotal.textContent = "No automatic renewal";
           el.summary.innerHTML = `<p>${escapeHtml(summary)}</p>`;
           el.breakdown.innerHTML = `<p>${escapeHtml(summary)}</p>`;
         }
       } catch (error) {
+        paymentArrangementValid = false;
         if (message) message.textContent = error.message;
+        // Never display a stale monthly Stripe quote as a failed prepaid quote.
+        if (arrangement !== "monthly_autopay") {
+          el.dueNow.textContent = "Unable to quote";
+          el.monthlyTotal.textContent = "Unable to quote";
+          el.firstYearTotal.textContent = "Unable to quote";
+          el.annualTotal.textContent = "Unable to quote";
+          el.summary.textContent = `Prepaid quote unavailable: ${error.message}`;
+          el.breakdown.textContent = `Correct the prepaid arrangement: ${error.message}`;
+          syncPaymentReviewActions();
+        }
         return null;
       }
       syncPaymentReviewActions();
