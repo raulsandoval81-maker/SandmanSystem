@@ -48,6 +48,10 @@ jobs:
           node-version: '22'
       - name: Validate offline manifest and code contracts
         run: node --test tests/functions/emmett-2c-final-release.test.mjs tests/functions/emmett-2c-final-blockers.test.mjs tests/functions/emmett-2c-runtime-rollback-readonly.test.mjs tests/functions/emmett-2c-staging-preflight-plan.test.mjs tests/functions/emmett-2c-authorized-inventory-workflow.test.mjs tests/functions/emmett-2c-receipt-bootstrap-review.test.mjs tests/functions/emmett-2c-receipt-readonly-preflight.test.mjs tests/functions/emmett-2c-receipt-isolated-candidate.test.mjs
+      - name: Test PR568 release boundary without cloud credentials
+        run: |
+          node --check scripts/staging/pr568-cash-check-hosting-overlay.mjs
+          node --test tests/functions/pr568-cash-check-release.test.mjs
       - name: Compile source-only Python preflight
         run: python3 -m py_compile scripts/staging/emmett-2c-receipt-readonly-preflight.py scripts/staging/emmett-2c-runtime-rollback-readonly.py
       - name: Assert secrets are unavailable
