@@ -3040,7 +3040,7 @@ jobs:
           require_boundary PROJECT test "${{ inputs.confirm_project }}" = "$PROJECT_ID"
           require_boundary EXACT_SHA test "${{ inputs.protected_2c_exact_merge_sha }}" = "$PR570_SOURCE_SHA"
           if test "${{ inputs.action }}" = pr570-review-null-deploy; then
-            require_boundary DEPLOY_APPROVAL test "${{ inputs.protected_2c_deployment_approval }}" = "APPROVE_PR570_STAGING_TWO_CASH_CHECK_ASSETS"
+            require_boundary DEPLOY_APPROVAL test "${{ inputs.protected_2c_deployment_approval }}" = "APPROVE_PR570_STAGING_ONE_REVIEW_ASSET"
             require_boundary HOSTING_RELEASE test -n "${{ inputs.protected_2c_expected_hosting_release }}"
             require_boundary HOSTING_VERSION test -n "${{ inputs.protected_2c_expected_hosting_version }}"
           else
