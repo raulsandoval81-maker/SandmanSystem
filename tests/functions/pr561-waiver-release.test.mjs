@@ -50,3 +50,17 @@ test('Hosting overlay is exactly one file and protects seven existing 2C assets'
   assert.match(overlay,/Candidate changed unrelated files/);
   assert.match(overlay,/Approved Hosting baseline changed/);
 });
+
+test('PR561 deployment excludes tracked .env from temporary Cloud Build source',()=>{
+  const job=workflow.split('\n  pr561-waiver-release:')[1];
+  const step=job?.split('      - name: Deploy exactly two existing staging callables')[1]?.split('      - name: Verify deployed targets')[0];
+  assert.ok(step);
+  assert.match(step,/working-directory: application/);
+  assert.match(step,/test "\$\(git rev-parse HEAD\)" = "\$PR561_SOURCE_SHA"/);
+  assert.match(step,/git ls-files --error-unmatch functions\/\.env >\/dev\/null/);
+  assert.match(step,/test -f functions\/\.env && test ! -L functions\/\.env/);
+  assert.match(step,/rm -- functions\/\.env/);
+  assert.match(step,/test ! -e functions\/\.env/);
+  assert.ok(step.indexOf('rm -- functions/.env') < step.indexOf('gcloud functions deploy issueProposalClientReview'));
+  assert.ok(step.indexOf('rm -- functions/.env') < step.indexOf('gcloud functions deploy recordProposalPrepaidCash'));
+});
