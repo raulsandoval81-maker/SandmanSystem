@@ -1,0 +1,162 @@
+name: Phase 2C pinned final staging verification
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [preflight, deploy]
+        default: preflight
+        required: true
+      confirm_sha:
+        type: string
+        required: true
+      approval:
+        type: string
+        required: false
+      function_baseline:
+        type: string
+        required: false
+      hosting_release:
+        type: string
+        required: false
+      hosting_version:
+        type: string
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: phase2c-final-staging
+  cancel-in-progress: false
+jobs:
+  staging:
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PHASE2C_SOURCE_SHA: 86bde3e2c57cf8239f3660f5723e1a4864f0e7b3
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      DEPLOY_APPROVAL: ${{ inputs.approval }}
+      PHASE2C_DEPLOY_APPROVAL: ${{ inputs.approval }}
+      EXPECTED_FUNCTION_BASELINE: ${{ inputs.function_baseline }}
+      PHASE2C_EXPECTED_HOSTING_RELEASE: ${{ inputs.hosting_release }}
+      PHASE2C_EXPECTED_HOSTING_VERSION: ${{ inputs.hosting_version }}
+    steps:
+      - name: Enforce pinned staging boundary
+        env:
+          CONFIRM_SHA: ${{ inputs.confirm_sha }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = raulsandoval81-maker/SandmanSystem/.github/workflows/phase2c-final-staging.yml@refs/heads/main
+          test "$CONFIRM_SHA" = "$PHASE2C_SOURCE_SHA"
+          if test "$MODE" = deploy; then
+            test "$DEPLOY_APPROVAL" = APPROVE_PHASE2C_STAGING_TWO_FUNCTIONS_TWO_ASSETS
+            test -n "$EXPECTED_FUNCTION_BASELINE"
+            test -n "$PHASE2C_EXPECTED_HOSTING_RELEASE"
+            test -n "$PHASE2C_EXPECTED_HOSTING_VERSION"
+          else test "$MODE" = preflight; fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 86bde3e2c57cf8239f3660f5723e1a4864f0e7b3
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify source and build isolated two-function package
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PHASE2C_SOURCE_SHA"
+          cd application
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'; import {createHash} from 'node:crypto';
+          const m=JSON.parse(fs.readFileSync('scripts/staging/cash-check-enrollment-production-candidate.json'));
+          if(m.candidateFunctions.join(',')!=='sendEnrollmentIntakeEmail,recordManualEnrollmentIntakeDelivery'||m.candidateHosting.length!==2)throw Error('Unexpected scope');
+          for(const [file,hash] of Object.entries(m.sourceSha256))if(createHash('sha256').update(fs.readFileSync(file)).digest('hex')!==hash)throw Error('Source drift: '+file);
+          NODE
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+          node --test tests/browser/cash-check-enrollment-polish.test.mjs
+          mkdir -p /tmp/phase2c-package/lib/enrollment /tmp/phase2c-package/lib/modules/email /tmp/phase2c-package/lib/services
+          cp functions/package.json functions/package-lock.json /tmp/phase2c-package/
+          cp functions/lib/enrollment/{sendEnrollmentIntakeEmail,recordManualEnrollmentIntakeDelivery,operationalPaidProposal}.js /tmp/phase2c-package/lib/enrollment/
+          cp functions/lib/modules/email/resend.js /tmp/phase2c-package/lib/modules/email/
+          cp functions/lib/services/staffAuthorization.js /tmp/phase2c-package/lib/services/
+          printf '%s\n' 'const admin=require("firebase-admin");admin.initializeApp();exports.sendEnrollmentIntakeEmail=require("./lib/enrollment/sendEnrollmentIntakeEmail").sendEnrollmentIntakeEmail;exports.recordManualEnrollmentIntakeDelivery=require("./lib/enrollment/recordManualEnrollmentIntakeDelivery").recordManualEnrollmentIntakeDelivery;' > /tmp/phase2c-package/index.js
+          node -e 'const fs=require("fs"),p=require("/tmp/phase2c-package/package.json");p.main="index.js";delete p.scripts;fs.writeFileSync("/tmp/phase2c-package/package.json",JSON.stringify(p))'
+          printf '%s\n' "$PHASE2C_SOURCE_SHA" > /tmp/phase2c-package/PHASE2C_SOURCE_SHA
+          npm ci --prefix /tmp/phase2c-package --omit=dev --ignore-scripts --no-audit --no-fund
+          node -e 'const m=require("/tmp/phase2c-package");if(Object.keys(m).sort().join(",")!=="recordManualEnrollmentIntakeDelivery,sendEnrollmentIntakeEmail")throw Error("Unexpected exports")'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture Hosting baseline before any function deployment
+        run: node tooling/scripts/staging/phase2c-hosting.mjs preflight application evidence/hosting
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - name: Capture function baselines, diagnose errors, and deploy only approved functions
+        env:
+          MODE: ${{ inputs.mode }}
+        run: python tooling/scripts/staging/phase2c-functions.py "$MODE"
+      - uses: google-github-actions/auth@v3
+        if: ${{ inputs.mode == 'deploy' }}
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - name: Deploy only two candidate Hosting assets
+        if: ${{ inputs.mode == 'deploy' }}
+        run: node tooling/scripts/staging/phase2c-hosting.mjs deploy application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: phase2c-${{ inputs.mode }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
+  production-readonly:
+    if: ${{ inputs.mode == 'preflight' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Read production dependencies and Hosting rollback baseline
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/production
+          gcloud functions list --project=sandmandashboard --format='json(name,status,state,runtime,entryPoint,versionId,updateTime,sourceArchiveUrl,sourceRepository,buildConfig.runtime,buildConfig.entryPoint,buildConfig.source,serviceConfig.serviceAccountEmail,serviceConfig.revision,serviceConfig.uri,serviceConfig.secretEnvironmentVariables,httpsTrigger,serviceAccountEmail)' > evidence/production/functions.json
+          token="$(gcloud auth print-access-token)"
+          curl --fail --silent --show-error -H "Authorization: Bearer $token" 'https://firebasehosting.googleapis.com/v1beta1/sites/sandman-main/releases?pageSize=1' > evidence/production/hosting-baseline.json
+          python - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('evidence/production')
+          functions=json.loads((p/'functions.json').read_text());release=json.loads((p/'hosting-baseline.json').read_text())
+          wanted={'sendEnrollmentIntakeEmail','recordManualEnrollmentIntakeDelivery','sendProposalPrepaidCashReceipt','createAthleteOnboardingToken','getEnrollmentIntakeHandoffStatus','hydrateEnrollmentIntakePrefill','consumeSubmittedIntakeToken','approveAndActivate'}
+          found={x['name'].split('/')[-1]:x for x in functions if x['name'].split('/')[-1] in wanted}
+          print(json.dumps({'productionReadOnly':True,'presentDependencies':sorted(found),'missingDependencies':sorted(wanted-set(found)),'hostingRollback':release.get('releases',[{}])[0].get('name'),'hostingVersion':release.get('releases',[{}])[0].get('version',{}).get('name')}))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: phase2c-production-readonly-${{ github.run_id }}
+          path: evidence/production/
+          if-no-files-found: warn
