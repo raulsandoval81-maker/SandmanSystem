@@ -28,8 +28,14 @@ check(process.env.GITHUB_REPOSITORY==='raulsandoval81-maker/SandmanSystem'&&proc
   process.env.GITHUB_WORKFLOW_REF===WORKFLOW&&process.env.GITHUB_ACTIONS==='true'&&
   process.env.SANDMAN_STAGING_PROJECT_ID===SITE&&process.env.PHASE2C_SOURCE_SHA===SOURCE_SHA,
   'Trusted Phase 2C staging boundary failed');
-if(mode==='deploy')check(process.env.PHASE2C_DEPLOY_APPROVAL==='APPROVE_PHASE2C_STAGING_TWO_FUNCTIONS_TWO_ASSETS',
-  'Explicit Phase 2C deployment approval missing');
+if(mode==='deploy') {
+  const hostingOnly=process.env.PHASE2C_HOSTING_ONLY==='true';
+  const expectedApproval=hostingOnly
+    ? 'APPROVE_PHASE2C_STAGING_TWO_HOSTING_ASSETS_ONLY'
+    : 'APPROVE_PHASE2C_STAGING_TWO_FUNCTIONS_TWO_ASSETS';
+  check(process.env.PHASE2C_DEPLOY_APPROVAL===expectedApproval,
+    'Explicit action-specific Phase 2C Hosting deployment approval missing');
+}
 const token=execFileSync('gcloud',['auth','print-access-token'],{encoding:'utf8'}).trim();
 check(token,'Staging identity did not provide credentials');
 const api=async(url,{method='GET',body,raw}={})=>{

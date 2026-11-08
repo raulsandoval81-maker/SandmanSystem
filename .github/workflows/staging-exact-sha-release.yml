@@ -126,6 +126,8 @@ on:
           - pr570-review-null-deploy
           - phase2c-final-preflight
           - phase2c-final-deploy
+          - phase2c-hosting-only-preflight
+          - phase2c-hosting-only-deploy
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
@@ -3212,5 +3214,91 @@ jobs:
         if: ${{ always() }}
         with:
           name: phase2c-${{ inputs.action == 'phase2c-final-deploy' && 'deploy' || 'preflight' }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
+
+  phase2c-hosting-only:
+    if: ${{ inputs.action == 'phase2c-hosting-only-preflight' || inputs.action == 'phase2c-hosting-only-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PHASE2C_SOURCE_SHA: 86bde3e2c57cf8239f3660f5723e1a4864f0e7b3
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      PHASE2C_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+      PHASE2C_HOSTING_ONLY: 'true'
+      PHASE2C_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+      PHASE2C_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+    steps:
+      - name: Enforce Hosting-only continuation boundary
+        env:
+          CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+          ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main
+          test "$CONFIRM_SHA" = "$PHASE2C_SOURCE_SHA"
+          if test "$ACTION" = phase2c-hosting-only-deploy; then
+            test "$PHASE2C_DEPLOY_APPROVAL" = APPROVE_PHASE2C_STAGING_TWO_HOSTING_ASSETS_ONLY
+            test -n "$PHASE2C_EXPECTED_HOSTING_RELEASE"
+            test -n "$PHASE2C_EXPECTED_HOSTING_VERSION"
+          else
+            test "$ACTION" = phase2c-hosting-only-preflight
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 86bde3e2c57cf8239f3660f5723e1a4864f0e7b3
+          path: application
+          persist-credentials: false
+      - name: Test inventory normalization and Hosting-only scope
+        run: |
+          python3 -m unittest discover -s tooling/tests/staging -p test_phase2c_inventory.py
+          node --check tooling/scripts/staging/phase2c-hosting.mjs
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify two already-deployed Functions without modifying them
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,subprocess
+          for name in ('sendEnrollmentIntakeEmail','recordManualEnrollmentIntakeDelivery'):
+            p=subprocess.run(['gcloud','functions','describe',name,'--no-gen2','--region=us-central1','--project=sandman-combat-staging','--format=json'],check=True,capture_output=True,text=True)
+            record=json.loads(p.stdout)
+            assert record.get('status')=='ACTIVE' and record.get('runtime')=='nodejs22',(name,'unexpected function state')
+            assert str(record.get('versionId'))=='4',(name,'version has drifted')
+            if name=='recordManualEnrollmentIntakeDelivery':
+              assert record.get('httpsTrigger',{}).get('securityLevel')=='SECURE_ALWAYS',(name,'HTTPS security drifted')
+            print(name+': ACTIVE, version 4; read-only verification passed')
+          PY
+      - name: Preflight or deploy exactly two Hosting assets
+        env:
+          ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PHASE2C_SOURCE_SHA"
+          mkdir -p evidence/hosting
+          if test "$ACTION" = phase2c-hosting-only-preflight; then
+            node tooling/scripts/staging/phase2c-hosting.mjs preflight application evidence/hosting
+          else
+            node tooling/scripts/staging/phase2c-hosting.mjs deploy application evidence/hosting
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: phase2c-hosting-only-${{ github.run_id }}
           path: evidence/
           if-no-files-found: warn
