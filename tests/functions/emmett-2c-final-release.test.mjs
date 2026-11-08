@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
-const workflow=readFileSync('.github/workflows/staging-exact-sha-release.yml','utf8');
-const overlay=readFileSync('scripts/staging/emmett-2c-final-hosting-overlay.mjs','utf8');
+const workflow=readFileSync(new URL('../../.github/workflows/staging-exact-sha-release.yml',import.meta.url),'utf8');
+const overlay=readFileSync(new URL('../../scripts/staging/emmett-2c-final-hosting-overlay.mjs',import.meta.url),'utf8');
 
 test('final 2C release excludes receipt deployment and targets only Intake plus seven assets',()=>{
   for(const action of ['emmett-2c-final-preflight','emmett-2c-final-deploy'])assert.ok(workflow.includes(action));
