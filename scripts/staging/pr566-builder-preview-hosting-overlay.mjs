@@ -55,7 +55,7 @@ const changed=before.get(target)===hash?[]:[target];
 check([...before].every(([file,oldHash])=>file===target||proposed.get(file)===oldHash),'Unrelated Hosting file drift');
 const protectedBefore=Object.fromEntries(PROTECTED_2C_FILES.map(file=>[file,before.get(file)]));
 const report={mode,project:SITE,sourceSha:SOURCE_SHA,priorRelease:beforeRelease.release,priorVersion:beforeRelease.version,
-  fileCount:before.size,approvedPath:target,changedPaths:changed,protected2cBefore,
+  fileCount:before.size,approvedPath:target,changedPaths:changed,protected2cBefore:protectedBefore,
   protected2cUnchanged:PROTECTED_2C_FILES.filter(file=>file!==target),rollback:{release:beforeRelease.release,version:beforeRelease.version}};
 await mkdir(evidenceRoot,{recursive:true});await writeFile(path.join(evidenceRoot,'hosting-before.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));
 if(mode==='preflight')process.exit(0);
@@ -71,3 +71,4 @@ await api(`https://firebasehosting.googleapis.com/v1beta1/${created.name}?update
 check((await activeRelease()).version===beforeRelease.version,'Hosting baseline changed during preparation');
 const release=await api(`${BASE}/releases?versionName=${encodeURIComponent(created.name)}`,{method:'POST'}),after=await activeRelease();check(after.version===created.name,'New Hosting version not active');
 await writeFile(path.join(evidenceRoot,'hosting-after.json'),JSON.stringify({release:release.name,version:after.version,changedPaths:changed,rollback:report.rollback},null,2)+'\n');
+
