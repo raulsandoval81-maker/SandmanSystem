@@ -2092,6 +2092,14 @@ alert(
 
       const remote =
         delivery === "email";
+      // Cash/check uses family Review & Confirm, never a Stripe payment path.
+      // Reject invalid prepaid terms even if a stale control is somehow triggered.
+      const currentArrangement = el.paymentArrangement?.value || "monthly_autopay";
+      if ((currentArrangement === "prepaid_cash_check" || currentArrangement === "prepaid_stripe") &&
+          (!paymentArrangementValid || !calculate())) {
+        alert("Correct the prepaid payment arrangement before family review.");
+        return;
+      }
 
       if (!proposalId) {
         alert(
@@ -2741,6 +2749,9 @@ alert(
         el.sendReviewButton.disabled = false;
         el.sendReviewButton.textContent =
           "Send for Review — Remote";
+        // Restored payment arrangement is authoritative for review actions.
+        // Generic draft labels must not overwrite the Cash/Check route.
+        syncPaymentReviewActions();
       } else {
         document
           .querySelectorAll(
