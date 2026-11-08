@@ -41,3 +41,20 @@ test('prepaid rendering clears every monthly metric and invalid review controls'
   assert.match(source,/el\.printMonthly\.textContent = "No recurring charge"/);
   assert.match(source,/el\.printAnnualRenewal\.textContent = "No automatic renewal"/);
 });
+
+test('reload restores payment-specific review controls after generic draft labels',()=>{
+  const loaded=source.match(/async function loadProposalDraft\(\)[\s\S]*?\n    function prefillFromAppointment/);
+  assert.ok(loaded,'proposal reload implementation exists');
+  const draft=loaded[0].match(/if \(proposalStatus === "DRAFT"\) \{[\s\S]*?\n      \} else \{/);
+  assert.ok(draft,'draft reload branch exists');
+  assert.match(draft[0],/el\.sendReviewButton\.textContent =\s*"Send for Review — Remote";\s*[\s\S]*?syncPaymentReviewActions\(\);/);
+});
+
+test('cash-check review uses family review only and invalid prepaid quote is blocked',()=>{
+  const review=source.match(/async function beginProposalReview\([\s\S]*?\n    function renderProposalWorkflow/);
+  assert.ok(review);
+  assert.match(review[0],/!paymentArrangementValid \|\| !calculate\(\)/);
+  assert.match(review[0],/"submitProposalForReview"/);
+  assert.match(review[0],/"issueProposalClientReview"/);
+  assert.doesNotMatch(review[0],/createProposalCheckout|stripeCheckout|createCheckoutSession/);
+});
