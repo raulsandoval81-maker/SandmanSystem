@@ -27,5 +27,5 @@ test('Pinned release has exactly two functions and two Hosting paths with no pro
  const job=w.slice(w.indexOf('  phase2c-approved-final:'));
  assert.match(job,/phase2c-final-preflight/);assert.match(job,/phase2c-final-deploy/);
  assert.doesNotMatch(job,/sandmandashboard|sandman-main/);
- assert.match(job,/phase2c_function_baseline/);
+ assert.match(job,/EXPECTED_FUNCTION_BASELINE/);
 });

@@ -126,10 +126,6 @@ on:
           - pr570-review-null-deploy
           - phase2c-final-preflight
           - phase2c-final-deploy
-      phase2c_function_baseline:
-        description: Exact function baseline fingerprint from Phase 2C preflight (deploy only)
-        required: false
-        type: string
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
@@ -147,7 +143,7 @@ on:
         required: false
         type: string
       emmett_2c_application_sha:
-        description: Exact reviewed merge SHA containing the 2C staging safety repair
+        description: Original 2C source SHA; Phase 2C final deploy uses the preflight function fingerprint
         required: false
         type: string
       emmett_2c_approval:
@@ -3129,7 +3125,7 @@ jobs:
       SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       PHASE2C_DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
-      EXPECTED_FUNCTION_BASELINE: ${{ inputs.phase2c_function_baseline }}
+      EXPECTED_FUNCTION_BASELINE: ${{ inputs.emmett_2c_application_sha }}
       PHASE2C_EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
       PHASE2C_EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
     steps:
