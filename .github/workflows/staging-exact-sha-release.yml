@@ -2569,10 +2569,16 @@ jobs:
           const run=JSON.parse(fs.readFileSync('evidence/functions/receipt-run-before.json'));
           const intake=JSON.parse(fs.readFileSync('evidence/functions/intake-before.json'));
           const keys=(receipt.serviceConfig?.secretEnvironmentVariables||[]).map(x=>x.key).sort();
+          const isExpectedGen1Intake=value=>
+            value.name==='projects/sandman-combat-staging/locations/us-central1/functions/sendEnrollmentIntakeEmail'&&
+            value.status==='ACTIVE'&&value.runtime==='nodejs22'&&
+            value.entryPoint==='sendEnrollmentIntakeEmail'&&/^\d+$/.test(String(value.versionId||''))&&
+            value.httpsTrigger?.url==='https://us-central1-sandman-combat-staging.cloudfunctions.net/sendEnrollmentIntakeEmail'&&
+            value.buildConfig==null&&value.serviceConfig==null;
           if(receipt.state!=='ACTIVE'||receipt.buildConfig?.entryPoint!=='sendProposalPrepaidCashReceipt'||
              JSON.stringify(keys)!==JSON.stringify(['RESEND_API_KEY','STAGING_TEST_EMAIL_ALLOWLIST'])||
              run.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true') throw Error('Receipt is not ACTIVE with approved callable transport');
-          if(intake.state!=='ACTIVE'||intake.environment!=='GEN_1'||intake.entryPoint!=='sendEnrollmentIntakeEmail') throw Error('Unexpected deployed Intake baseline');
+          if(!isExpectedGen1Intake(intake)) throw Error('Unexpected deployed Intake baseline');
           NODE
           printf '%s\n' 'ROLLBACK_EVIDENCE: intake-before.json + intake-iam-before.json + active Hosting release/version' > evidence/ROLLBACK.txt
       - name: Deploy only updated Gen1 Intake email function
@@ -2598,10 +2604,16 @@ jobs:
           const fs=require('fs');
           const before=JSON.parse(fs.readFileSync('evidence/functions/intake-before.json'));
           const after=JSON.parse(fs.readFileSync('evidence/functions/intake-after.json'));
+          const isExpectedGen1Intake=value=>
+            value.name==='projects/sandman-combat-staging/locations/us-central1/functions/sendEnrollmentIntakeEmail'&&
+            value.status==='ACTIVE'&&value.runtime==='nodejs22'&&
+            value.entryPoint==='sendEnrollmentIntakeEmail'&&/^\d+$/.test(String(value.versionId||''))&&
+            value.httpsTrigger?.url==='https://us-central1-sandman-combat-staging.cloudfunctions.net/sendEnrollmentIntakeEmail'&&
+            value.buildConfig==null&&value.serviceConfig==null;
           const bindings=file=>(JSON.parse(fs.readFileSync(file)).bindings||[]).map(binding=>({
             role:binding.role,members:[...(binding.members||[])].sort(),condition:binding.condition||null
           })).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
-          if(after.state!=='ACTIVE'||after.environment!=='GEN_1'||after.entryPoint!=='sendEnrollmentIntakeEmail'||after.updateTime===before.updateTime)throw Error('Intake update not verified');
+          if(!isExpectedGen1Intake(after)||after.updateTime===before.updateTime)throw Error('Intake update not verified');
           if(JSON.stringify(bindings('evidence/functions/intake-iam-before.json'))!==JSON.stringify(bindings('evidence/functions/intake-iam-after.json')))throw Error('Intake invocation IAM changed');
           NODE
       - name: Authenticate existing staging Hosting deployer

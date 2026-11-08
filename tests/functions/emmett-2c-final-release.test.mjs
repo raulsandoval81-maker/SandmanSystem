@@ -57,3 +57,13 @@ test('release source manifest stays limited to the seven reviewed files',()=>{
     'tests/functions/phase-c-management-location.test.mjs',
   ]);
 });
+
+test('Gen1 Intake verification uses the gcloud v1 resource schema',()=>{
+  const section=workflow.split('  emmett-2c-final-release:',2)[1];
+  assert.match(section,/value\.status==='ACTIVE'/);
+  assert.match(section,/value\.runtime==='nodejs22'/);
+  assert.match(section,/value\.versionId/);
+  assert.match(section,/value\.httpsTrigger\?\.url==='https:\/\/us-central1-sandman-combat-staging\.cloudfunctions\.net\/sendEnrollmentIntakeEmail'/);
+  assert.match(section,/value\.buildConfig==null&&value\.serviceConfig==null/);
+  assert.doesNotMatch(section,/intake\.state|intake\.environment|after\.state|after\.environment/);
+});
