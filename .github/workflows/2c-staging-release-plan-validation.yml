@@ -52,6 +52,10 @@ jobs:
         run: |
           node --check scripts/staging/pr568-cash-check-hosting-overlay.mjs
           node --test tests/functions/pr568-cash-check-release.test.mjs
+      - name: Test PR570 family-review release boundary offline
+        run: |
+          node --check scripts/staging/pr570-review-null-hosting-overlay.mjs
+          node --test tests/functions/pr570-review-null-release.test.mjs tests/browser/client-review-null-choice.test.mjs
       - name: Compile source-only Python preflight
         run: python3 -m py_compile scripts/staging/emmett-2c-receipt-readonly-preflight.py scripts/staging/emmett-2c-runtime-rollback-readonly.py
       - name: Assert secrets are unavailable
