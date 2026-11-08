@@ -1,0 +1,62 @@
+{
+  "repository": "raulsandoval81-maker/SandmanSystem",
+  "applicationSha": "fc3887f6843f01d6dd88832e69dc9cdbc3c2e841",
+  "baseSha": "4ee88c4f865cb66f78d7161a507c7c67ff829647",
+  "status": "BLOCKED_PENDING_LIVE_STAGING_AND_PRODUCTION_INVENTORY",
+  "deploymentAuthorized": false,
+  "recordMutationAuthorized": false,
+  "candidateFunctions": [
+    "sendEnrollmentIntakeEmail",
+    "recordManualEnrollmentIntakeDelivery"
+  ],
+  "candidateHosting": [
+    "/management/billing/billing.js",
+    "/intake-management/management.intake.js"
+  ],
+  "sourceSha256": {
+    "functions/src/enrollment/sendEnrollmentIntakeEmail.ts": "84e50908bea54c2f114bd91eb4006ff0a8b9dd868270c85db7378a90a857210a",
+    "functions/src/enrollment/recordManualEnrollmentIntakeDelivery.ts": "dcfedd21666d853d07974c7dbd42ff623072a3a98c66cab5bf86786029d251df",
+    "public/management/billing/billing.js": "d964b429885d60694c7bc25d796f6523911e22c6c27317669806a8bfb4f390a9",
+    "public/intake-management/management.intake.js": "e1051d165a3b550dbf6342b62d03b2ca2685a724f3e7983c2386df2b0e4c6910"
+  },
+  "requiredExistingDependencies": [
+    "sendProposalPrepaidCashReceipt",
+    "createAthleteOnboardingToken",
+    "getEnrollmentIntakeHandoffStatus",
+    "hydrateEnrollmentIntakePrefill",
+    "consumeSubmittedIntakeToken",
+    "approveAndActivate"
+  ],
+  "prohibitedChanges": [
+    "Stripe configuration, checkout, subscriptions, webhooks or charges",
+    "Existing family/payment/athlete records including Emmett",
+    "Waiver content or flow",
+    "IAM, secrets, database rules or indexes",
+    "Unlisted functions or Hosting assets"
+  ],
+  "releaseGates": [
+    "Green Node 22 CI at the exact application SHA; no unresolved review findings",
+    "Controlled staging release of this exact candidate, preserving all unrelated Hosting hashes and existing Function runtime/IAM/secret configuration",
+    "Resolve staging Enrollment activity/recent activation internal errors or establish their exact cause and bounded impact",
+    "One owner-approved synthetic mailbox: accepted receipt ID followed by accepted Intake email ID for the same recipient; no duplicate sends",
+    "Live staging browser submission through the existing waiver and management activation; reconcile token, intake, athlete, receipt and proposal; no Stripe transaction",
+    "Read-only production inventory identifies actual project/site, every prerequisite revision/source hash, invoker/runtime/IAM, required secrets and Hosting release/version",
+    "If any prerequisite is missing or stale, stop and review its source diff separately; do not silently expand this candidate scope",
+    "Capture rollback source/revisions and Hosting release/version before any approved production release",
+    "Explicit owner approval for the exact production project, source SHA, function/asset manifest and rollback baseline",
+    "Separate explicit owner approval before modifying Emmett records or sending his family receipt/Intake email"
+  ],
+  "rollback": {
+    "hosting": "Restore captured prior Hosting version; verify every unrelated asset hash",
+    "functions": "Restore captured prior source/revision with original configuration; verify health and invoker IAM",
+    "records": "No automatic record rollback, deletion, payment replay, or email resend"
+  },
+  "localValidation": {
+    "paymentRegression": 61,
+    "uiAndBillingChecks": 8,
+    "firestoreEmulatorChecks": 34,
+    "submissionCoverage": "Synthetic submitted Intake fixture plus actual consumeSubmittedIntakeToken and approveAndActivate handlers; live browser submission remains unverified",
+    "emailCoverage": "Mocked provider acceptance in isolated demo Firestore; not proof of live mailbox delivery",
+    "fullIntegrationChecks": 108
+  }
+}

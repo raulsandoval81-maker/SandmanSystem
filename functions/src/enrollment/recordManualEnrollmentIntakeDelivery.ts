@@ -159,6 +159,15 @@ export const recordManualEnrollmentIntakeDelivery =
       );
     }
 
+    // Cash/Check must use the audited receipt-first email handoff. Manual
+    // delivery cannot overwrite a pending/accepted provider attempt or bypass it.
+    if (clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid") {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Cash/Check enrollment requires Send Receipt & Intake Email."
+      );
+    }
+
     const intakeAudience =
       clean(token.intakeAudience).toLowerCase() === "adult_athlete"
         ? "adult_athlete"

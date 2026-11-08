@@ -213,6 +213,11 @@ export const sendEnrollmentIntakeEmail =
         const historyRef = db.collection("proposals").doc(proposalId).collection("history").doc();
         await db.runTransaction(async tx => {
           const latest = (await tx.get(tokenRef)).data() || {};
+          const receipt = (await tx.get(db.doc(`proposals/${proposalId}/delivery/cash_check_receipt`))).data() || {};
+          if (newStatus === "SENT" && (clean(receipt.status) !== "SENT" || !clean(receipt.providerId) ||
+              normalizeEmail(receipt.recipient) !== normalizeEmail(latest.twoCEmailRecipient))) {
+            throw new functions.https.HttpsError("failed-precondition", "A provider-accepted receipt for this recipient is required before 2C Intake recovery.");
+          }
           if (latest.used === true || clean(latest.twoCEmailStatus) !== "SENDING") {
             throw new functions.https.HttpsError("failed-precondition", "Only unresolved 2C Intake sends may be reconciled.");
           }
@@ -237,19 +242,24 @@ export const sendEnrollmentIntakeEmail =
         return {ok:true,status:newStatus,tokenId,proposalId};
       }
 
-      const twoC = data?.twoC === true;
+      // Cash/Check safeguards are selected by server-owned payment evidence,
+      // never by an optional caller flag. Preserve the ordinary Stripe route.
+      const twoC = clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid";
+      if (data?.twoC === true && !twoC) {
+        throw new functions.https.HttpsError("failed-precondition", "2C Intake requires a recorded cash/check payment.");
+      }
       if (twoC) {
-        if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
-          throw new functions.https.HttpsError("failed-precondition", "2C Intake requires a recorded cash/check payment.");
-        }
-        const receipt = (await db.doc(`proposals/${proposalId}/delivery/cash_check_receipt`).get()).data() || {};
-        if (clean(receipt.status) !== "SENT" || normalizeEmail(receipt.recipient) !== recipient) {
-          throw new functions.https.HttpsError("failed-precondition", "A provider-accepted receipt for this recipient is required before 2C Intake.");
-        }
         const gate = await db.runTransaction(async tx => {
+          const receipt = (await tx.get(db.doc(`proposals/${proposalId}/delivery/cash_check_receipt`))).data() || {};
           const latest = (await tx.get(tokenRef)).data() || {};
+          if (clean(receipt.status) !== "SENT" || !clean(receipt.providerId) || normalizeEmail(receipt.recipient) !== recipient) {
+            throw new functions.https.HttpsError("failed-precondition", "A provider-accepted receipt for this recipient is required before 2C Intake.");
+          }
           if (latest.used === true) throw new functions.https.HttpsError("failed-precondition", "Intake already submitted.");
           if (clean(latest.deliveryStatus).toUpperCase() === "SENT") {
+            if (clean(latest.deliveryMethod) !== "email" || !clean(latest.resendEmailId)) {
+              throw new functions.https.HttpsError("failed-precondition", "Existing Cash/Check Intake delivery requires provider reconciliation before email handoff.");
+            }
             if (normalizeEmail(latest.deliveredTo) !== recipient) {
               throw new functions.https.HttpsError("failed-precondition", "Intake already delivered to another recipient.");
             }

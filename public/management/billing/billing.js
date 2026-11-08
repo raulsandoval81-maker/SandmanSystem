@@ -376,7 +376,7 @@ function classifyProposal(
     return {
       view: "NEEDS_ACTION",
       state: "Membership Paid in Full",
-      next: "Approve the post-coverage renewal/autopay arrangement"
+      next: "Continue to Enrollment. Renewal setup is a separate post-coverage task."
     };
   }
 
@@ -1355,7 +1355,7 @@ function render() {
                     data-cash-proposal-id="${esc(item.proposalId)}"
                     data-cash-name="${esc(item.name)}"
                   >
-                    Record Paid in Full
+                    Verify Cash/Check Payment
                   </button>
                 `
                 : ""
@@ -1379,7 +1379,7 @@ function render() {
                 ? `
                   <a class="billing-action"
                     href="/intake-management/?proposalId=${encodeURIComponent(item.proposalId)}">
-                    2C — Send Receipt + Intake Email →
+                    Continue to Enrollment →
                   </a>
                 `
                 : ""
@@ -1400,13 +1400,16 @@ function render() {
 
               ${item.canApproveRenewalAutopay
                 ? `
-                  <button
-                    class="billing-action billing-autopay-action"
-                    type="button"
-                    data-approve-renewal-proposal-id="${esc(item.proposalId)}"
-                  >
-                    Approve renewal autopay
-                  </button>
+                  <details class="billing-secondary-action">
+                    <summary>Later: renewal arrangement</summary>
+                    <button
+                      class="billing-action billing-autopay-action"
+                      type="button"
+                      data-approve-renewal-proposal-id="${esc(item.proposalId)}"
+                    >
+                      Review renewal approval
+                    </button>
+                  </details>
                 `
                 : ""
               }

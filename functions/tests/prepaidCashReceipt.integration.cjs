@@ -224,3 +224,157 @@ test("2C uncertain Intake recovery requires System Admin evidence", async () => 
   assert.equal(resolved.status,"FAILED");
   assert.equal((await db.doc("intakeTokens/" + token).get()).data().twoCEmailStatus,"FAILED");
 });
+
+const manualIntake = require("../lib/enrollment/recordManualEnrollmentIntakeDelivery").recordManualEnrollmentIntakeDelivery;
+
+test("Cash/Check generic email cannot omit or falsify the receipt-first flag", async () => {
+  const proposalId = idForOffset(10);
+  await db.doc("proposals/" + proposalId).set(paidProposal({proposalId}));
+  let sends = 0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {sends++; return {data:{id:"unexpected"}};}}});
+  for (const flag of [undefined, false]) {
+    const tokenId = "generic-no-receipt-" + suffix + String(flag);
+    await createTwoCIntake(proposalId, tokenId);
+    const before = (await db.doc("intakeTokens/" + tokenId).get()).data();
+    await assert.rejects(intakeCall(proposalId,tokenId,{twoC:flag}), /provider-accepted receipt/i);
+    assert.deepEqual((await db.doc("intakeTokens/" + tokenId).get()).data(), before);
+  }
+  assert.equal(sends,0);
+});
+
+test("Cash/Check receipt acceptance requires provider ID and matching recipient", async () => {
+  const proposalId = idForOffset(11), tokenId = "invalid-receipt-" + suffix;
+  await db.doc("proposals/" + proposalId).set(paidProposal({proposalId}));
+  await createTwoCIntake(proposalId,tokenId);
+  const receipt = db.doc("proposals/" + proposalId + "/delivery/cash_check_receipt");
+  for (const data of [
+    {status:"SENT",recipient},
+    {status:"SENT",recipient:"other@example.invalid",providerId:"accepted"},
+    {status:"SENDING",recipient,providerId:"accepted"},
+    {status:"FAILED",recipient,providerId:"accepted"},
+  ]) {
+    await receipt.set(data);
+    await assert.rejects(intakeCall(proposalId,tokenId,{twoC:false}), /provider-accepted receipt/i);
+  }
+});
+
+test("Cash/Check generic send reserves uncertain attempts and cannot duplicate", async () => {
+  const tokenId = "generic-unknown-" + suffix;
+  await createTwoCIntake(id,tokenId);
+  let sends = 0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {sends++; throw Error("unknown outcome");}}});
+  await assert.rejects(intakeCall(id,tokenId,{twoC:undefined}), /uncertain/i);
+  await assert.rejects(intakeCall(id,tokenId,{twoC:false}), /uncertain/i);
+  assert.equal(sends,1);
+});
+
+test("Cash/Check manual handoff cannot bypass or overwrite email delivery", async () => {
+  const tokenId = "manual-block-" + suffix;
+  await createTwoCIntake(id,tokenId);
+  const ref = db.doc("intakeTokens/" + tokenId);
+  for (const state of [{}, {twoCEmailStatus:"SENDING"}, {deliveryStatus:"SENT",exp:Date.now()+3600000}]) {
+    await ref.set(state,{merge:true});
+    const before = (await ref.get()).data();
+    for (const method of ["text","in_person"]) {
+      await assert.rejects(manualIntake.run({tokenId,method},{auth:{uid:manager,token:{}}}), /Cash\/Check.*Receipt/i);
+      assert.deepEqual((await ref.get()).data(), before);
+    }
+  }
+});
+
+test("Stripe generic email and manual handoff retain their existing routes", async () => {
+  const proposalId = idForOffset(12), tokenId = "stripe-regression-" + suffix;
+  const stripe = paidProposal({proposalId,paymentMethod:"stripe",cashPrepayment:null,stripeCheckoutSessionId:"cs_live_synthetic_regression",stripeLivemode:true});
+  await db.doc("proposals/" + proposalId).set(stripe);
+  await createTwoCIntake(proposalId,tokenId);
+  let sends = 0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {sends++; return {data:{id:"stripe-intake-synthetic"},error:null};}}});
+  assert.equal((await intakeCall(proposalId,tokenId,{twoC:undefined})).ok,true);
+  assert.equal(sends,1);
+  assert.equal((await db.doc("intakeTokens/" + tokenId).get()).get("twoCEmailStatus"),undefined);
+  assert.equal((await manualIntake.run({tokenId,method:"text"},{auth:{uid:manager,token:{}}})).ok,true);
+  assert.deepEqual((await db.doc("proposals/" + proposalId).get()).data(),stripe);
+});
+
+test("Cash/Check generic successful send is idempotent across concurrent callers", async () => {
+  const tokenId = "generic-concurrent-" + suffix;
+  await createTwoCIntake(id,tokenId);
+  let sends = 0;
+  emailModule.getResendClient = () => ({emails:{send:async () => {
+    sends++; return {data:{id:"generic-provider-accepted"},error:null};
+  }}});
+  const outcomes = await Promise.allSettled([
+    intakeCall(id,tokenId,{twoC:undefined}), intakeCall(id,tokenId,{twoC:false})
+  ]);
+  assert.ok(outcomes.some(result=>result.status==="fulfilled"));
+  assert.equal(sends,1);
+  assert.equal((await intakeCall(id,tokenId,{twoC:false})).alreadySent,true);
+  assert.equal(sends,1);
+});
+
+test("Cash/Check recovery cannot mark Intake sent without an accepted same-recipient receipt", async () => {
+  const proposalId = idForOffset(13), tokenId = "recovery-without-receipt-" + suffix;
+  await db.doc("proposals/" + proposalId).set(paidProposal({proposalId}));
+  await createTwoCIntake(proposalId,tokenId);
+  const ref = db.doc("intakeTokens/" + tokenId);
+  await ref.update({twoCEmailStatus:"SENDING",twoCEmailRecipient:recipient});
+  const before = (await ref.get()).data();
+  await assert.rejects(intakeCall(proposalId,tokenId,{
+    twoCRecovery:true,resolution:"confirm_sent",providerId:"synthetic-provider-id",
+    evidence:"Synthetic provider accepted the Intake email, but no receipt exists",
+    confirmation:"PROVIDER_ACCEPTED_EMAIL"
+  }), /provider-accepted receipt/i);
+  assert.deepEqual((await ref.get()).data(),before);
+});
+
+test("Cash/Check legacy manual SENT state is not mistaken for an accepted Intake email", async () => {
+  const tokenId = "legacy-manual-sent-" + suffix;
+  await createTwoCIntake(id,tokenId);
+  await db.doc("intakeTokens/" + tokenId).update({deliveryStatus:"SENT",deliveryMethod:"in_person",deliveredTo:recipient});
+  await assert.rejects(intakeCall(id,tokenId,{twoC:false}), /provider reconciliation/i);
+});
+
+test("one synthetic case connects receipt, Intake email, submitted token consumption, and activation", async () => {
+  const proposalId = idForOffset(14), tokenId = "connected-case-" + suffix;
+  const proposal = paidProposal({proposalId,lockedSnapshot:{
+    prospect:{parentEmail:recipient},athletes:[{name:"Synthetic Athlete",billingTerm:"annual",disciplines:["wrestling"]}]
+  }});
+  await proposalRef.parent.doc(proposalId).set(proposal);
+  const deliveries = [];
+  emailModule.getResendClient = () => ({emails:{send:async (payload) => {
+    deliveries.push(payload); return {data:{id:"connected-provider-"+deliveries.length},error:null};
+  }}});
+  assert.equal((await withVerifiedStagingRuntime(()=>call(manager,proposalId))).ok,true);
+  await createTwoCIntake(proposalId,tokenId);
+  assert.equal((await intakeCall(proposalId,tokenId,{twoC:undefined})).ok,true);
+  assert.equal(deliveries.length,2);
+  assert.match(deliveries[0].subject,/receipt/i);
+  assert.match(deliveries[1].text,new RegExp("invite="+tokenId));
+  // Submission fixture models the existing Intake payload; no real waiver is signed.
+  const intakeRef = db.doc("intakes/"+tokenId);
+  await intakeRef.set({
+    tokenId,proposalId,locationId:"2c-location-"+suffix,status:"submitted",mode:"new_athlete",
+    intakeAudience:"parent_guardian",dob:"2010-04-15",
+    athlete:{name:"Synthetic Athlete",dob:"2010-04-15"},
+    waiver:{agreed:true,signatureName:"Synthetic Guardian",signatureDate:"2026-11-08",signerType:"parent_guardian",signingAuthority:"guardian_for_athlete"},
+    emergency:{name:"Synthetic Guardian",phoneDigits:"8055550100"},medical:"None",
+  });
+  const consume = require("../lib/enrollment/consumeSubmittedIntakeToken").consumeSubmittedIntakeToken;
+  await consume.run({data:await intakeRef.get(),params:{intakeId:tokenId}});
+  assert.equal((await db.doc("intakeTokens/"+tokenId).get()).get("used"),true);
+  // Own a separate teen/adult counter; the youth acceptance suite resets f8.
+  // Never depend on another test file's setup or mutate its counter assertions.
+  await db.doc("counters/f4").set({next:1});
+  const activate = require("../lib/approveAndActivate").approveAndActivate;
+  const result = await activate.run({auth:{uid:manager,token:{}},data:{
+    intakeId:tokenId,mode:"new_athlete",foundry:"f4",virtueName:"Courage",virtueCode:"CRG",trackCode:"Z2H-WR",
+    fullName:"Synthetic Athlete",publicName:"S. Athlete",dob:"2010-04-15",framework:"foundry4",
+    programTrack:"path2legend",art:"wrestling",ladderKey:"F4",mint:{lane:"CB"},
+    team:{name:"Synthetic Team",city:"Test",state:"CA"},parent:{},
+  }});
+  assert.equal(result.ok,true);
+  assert.equal((await intakeRef.get()).get("approvedUid"),result.uid);
+  assert.equal((await db.doc("athletes/"+result.uid).get()).exists,true);
+  assert.deepEqual((await proposalRef.parent.doc(proposalId).get()).get("cashPrepayment"),proposal.cashPrepayment);
+  assert.equal((await proposalRef.parent.doc(proposalId).get()).get("stripeSubscriptionId"),undefined);
+});
