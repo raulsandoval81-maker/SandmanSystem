@@ -2335,10 +2335,22 @@ jobs:
         run: |
           set -euo pipefail
           if gcloud functions describe sendProposalPrepaidCashReceipt --gen2 --region=us-central1 --project=sandman-combat-staging --format=json >/tmp/2c-existing.json 2>/tmp/2c-existing.err; then
-            echo 'TARGET_ALREADY_EXISTS_STOP'
-            exit 1
+            node <<'NODE'
+          const f=require('/tmp/2c-existing.json');
+          if(f.state!=='FAILED' || f.buildConfig?.runtime!=='nodejs22' || f.buildConfig?.entryPoint!=='sendProposalPrepaidCashReceipt') {
+            console.error('TARGET_ALREADY_EXISTS_STOP');
+            process.exit(1);
+          }
+          NODE
+            if gcloud run services describe sendproposalprepaidcashreceipt --region=us-central1 --project=sandman-combat-staging --format=json >/tmp/2c-run-existing.json 2>/tmp/2c-run-existing.err; then
+              echo 'TARGET_ALREADY_EXISTS_STOP'
+              exit 1
+            fi
+            grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-run-existing.err || { echo 'RUN_LOOKUP_UNVERIFIED'; exit 1; }
+            echo 'FAILED_FUNCTION_WITH_MISSING_RUN_SERVICE_RECOVERY'
+          else
+            grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-existing.err || { echo 'TARGET_LOOKUP_UNVERIFIED'; exit 1; }
           fi
-          grep -Eiq 'NOT_FOUND|not found|404' /tmp/2c-existing.err || { echo 'TARGET_LOOKUP_UNVERIFIED'; exit 1; }
           for secret in RESEND_API_KEY STAGING_TEST_EMAIL_ALLOWLIST; do
             gcloud secrets describe "$secret" --project=sandman-combat-staging --format='value(name)' >/dev/null
             test "$(gcloud secrets versions list "$secret" --project=sandman-combat-staging --filter='state=ENABLED' --format='value(name)' --limit=1 | wc -l | tr -d ' ')" = 1
