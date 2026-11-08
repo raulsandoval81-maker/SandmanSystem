@@ -46,6 +46,34 @@ test('Builder preserves monthly pricing and rejects mixed terms, extra fees and 
  assert.throws(()=>previewPaymentArrangement(price,[{plan:'standard',billingTerm:'monthly'}],'prepaid_stripe',[]),/6- or 12-month/);
  assert.throws(()=>previewPaymentArrangement({...price,extraAmount:5},athletes,'prepaid_cash_check',[]),/extras/);
 });
+test('Builder recovers across monthly, Stripe prepaid and cash/check switching',()=>{
+ const athletes=[{name:'Synthetic',plan:'standard',billingTerm:'annual'}];
+ const allocations=[{athleteIndex:1,amountCents:0}];
+ const monthly=previewPaymentArrangement(price,athletes,'monthly_autopay',allocations);
+ assert.equal(monthly.dueNow,110);
+ const stripe=previewPaymentArrangement({...price,support:30,supportPercent:100},athletes,'prepaid_stripe',allocations);
+ assert.equal(stripe.dueNow,960);
+ assert.equal(stripe.prepaidTerms.feeOutstandingCents,0);
+ assert.throws(()=>previewPaymentArrangement(price,athletes,'prepaid_cash_check',[{athleteIndex:1,amountCents:3001}]),/allocation/);
+ const cash=previewPaymentArrangement({...price,support:30,supportPercent:100},athletes,'prepaid_cash_check',allocations);
+ assert.equal(cash.dueNow,0);
+ assert.equal(cash.automaticFuturePayments,false);
+ assert.equal(cash.prepaidTerms.membershipAmountCents,96000);
+ assert.equal(previewPaymentArrangement(price,athletes,'monthly_autopay',allocations).monthlyBalance,80);
+});
+test('Builder canonicalizes supported multi-athlete prepaid allocation',()=>{
+ const athletes=[
+  {name:'One',plan:'standard',billingTerm:'annual'},
+  {name:'Two',plan:'standard',billingTerm:'annual'},
+ ];
+ const pricing={...price,monthlyBalance:160,enrollmentBase:60,support:30,supportPercent:50};
+ const cash=previewPaymentArrangement(pricing,athletes,'prepaid_cash_check',[
+  {athleteIndex:1,amountCents:1500},{athleteIndex:2,amountCents:0},
+ ]);
+ assert.equal(cash.prepaidTerms.membershipAmountCents,192000);
+ assert.equal(cash.prepaidTerms.amountCents,193500);
+ assert.equal(cash.prepaidTerms.feeOutstandingCents,1500);
+});
 
 const enrollmentStageUrl = new URL('../../public/management/enrollment-flow/enrollment-stage.js',import.meta.url);
 const stageModule = await import('data:text/javascript;base64,' +
