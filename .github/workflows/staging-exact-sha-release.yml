@@ -2505,6 +2505,7 @@ jobs:
           printf '%s\n' \
             .github/workflows/2c-staging-release-plan-validation.yml \
             .github/workflows/staging-exact-sha-release.yml \
+            functions/tests/prepaidCashReceipt.integration.cjs \
             scripts/staging/emmett-2c-final-hosting-overlay.mjs \
             tests/functions/emmett-2c-final-blockers.test.mjs \
             tests/functions/emmett-2c-final-release.test.mjs \

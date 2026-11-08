@@ -137,7 +137,29 @@ test("2C uncertain delivery requires System Admin and provider evidence to resol
 });
 
 const sendIntake = require("../lib/enrollment/sendEnrollmentIntakeEmail").sendEnrollmentIntakeEmail;
-const intakeCall = (proposalId, tokenId, data = {}) => sendIntake.run({tokenId, recipientEmail:recipient, confirmRecipient:true, twoC:true, ...data}, {auth:{uid:manager,token:{}}});
+async function withVerifiedStagingRuntime(callback) {
+  if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.GCLOUD_PROJECT?.startsWith("demo-")) {
+    throw new Error("Verified staging runtime may be simulated only inside a demo-* Firestore emulator.");
+  }
+  const overrides = {
+    GCLOUD_PROJECT: "sandman-combat-staging",
+    SANDMAN_STAGING_ACK: "sandman-combat-staging",
+    SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
+    STAGING_TEST_EMAIL_ALLOWLIST: recipient,
+  };
+  const previous = Object.fromEntries(Object.keys(overrides).map((key) => [key, process.env[key]]));
+  Object.assign(process.env, overrides);
+  try {
+    return await callback();
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+const intakeCall = (proposalId, tokenId, data = {}) => withVerifiedStagingRuntime(() =>
+  sendIntake.run({tokenId, recipientEmail:recipient, confirmRecipient:true, twoC:true, ...data}, {auth:{uid:manager,token:{}}}));
 
 async function createTwoCIntake(proposalId, tokenId) {
   await db.doc("intakeTokens/" + tokenId).set({
@@ -159,14 +181,16 @@ test("2C Intake cannot bypass the accepted receipt gate", async () => {
 test("2C Intake accepts one provider send, then safely reuses its delivery status", async () => {
   const token = "2c-sent-" + suffix;
   await createTwoCIntake(id,token);
-  let intakeEmails = 0;
-  emailModule.getResendClient = () => ({emails:{send:async () => {
-    intakeEmails++;
-    return {data:{id:"synthetic-intake-email-" + intakeEmails},error:null};
+  const intakeEmails = [];
+  emailModule.getResendClient = () => ({emails:{send:async (payload) => {
+    intakeEmails.push(payload);
+    return {data:{id:"synthetic-intake-email-" + intakeEmails.length},error:null};
   }}});
   const first = await intakeCall(id,token);
   assert.equal(first.ok,true);
-  assert.equal(intakeEmails,1);
+  assert.equal(intakeEmails.length,1);
+  assert.match(intakeEmails[0].html,/https:\/\/sandman-combat-staging\.web\.app/);
+  assert.doesNotMatch(intakeEmails[0].html,/https:\/\/sandmancombat\.com/);
   const stored = (await db.doc("intakeTokens/" + token).get()).data();
   assert.equal(stored.twoCEmailStatus,"SENT");
   assert.equal(stored.deliveryStatus,"SENT");
@@ -174,7 +198,7 @@ test("2C Intake accepts one provider send, then safely reuses its delivery statu
   const second = await intakeCall(id,token);
   assert.equal(second.ok,true);
   assert.equal(second.alreadySent,true);
-  assert.equal(intakeEmails,1);
+  assert.equal(intakeEmails.length,1);
 });
 
 test("2C uncertain Intake provider response remains reserved and cannot resend", async () => {
