@@ -1,0 +1,18 @@
+{
+  "failedRun": 42443302886,
+  "failedWorkflowRef": "raulsandoval81-maker/SandmanSystem/.github/workflows/release-pr561-waiver-staging.yml@refs/heads/main",
+  "provenSuccessfulRun": 42439681967,
+  "authorizedWorkflowRef": "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
+  "provider": "projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging",
+  "matchingClaims": {
+    "repository_id": "1258739245",
+    "repository_owner_id": "252659069",
+    "repository": "raulsandoval81-maker/SandmanSystem",
+    "environment": "staging",
+    "ref": "refs/heads/main",
+    "event_name": "workflow_dispatch"
+  },
+  "failedCondition": "assertion.workflow_ref",
+  "iamChanged": false,
+  "providerChanged": false
+}

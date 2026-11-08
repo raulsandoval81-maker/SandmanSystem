@@ -116,6 +116,24 @@ on:
           - emmett-2c-receipt-deploy
           - emmett-2c-final-preflight
           - emmett-2c-final-deploy
+          - pr561-waiver-preflight
+          - pr561-waiver-deploy
+      pr561_exact_merge_sha:
+        description: Exact reviewed PR #561 merge SHA
+        required: false
+        type: string
+      pr561_deployment_approval:
+        description: For deploy only, type APPROVE_PR561_STAGING_TWO_FUNCTIONS_ONE_HOSTING_ASSET
+        required: false
+        type: string
+      pr561_expected_hosting_release:
+        description: Exact prior Hosting release from the approved preflight artifact
+        required: false
+        type: string
+      pr561_expected_hosting_version:
+        description: Exact prior Hosting version from the approved preflight artifact
+        required: false
+        type: string
       emmett_2c_application_sha:
         description: Exact reviewed merge SHA containing the 2C staging safety repair
         required: false
@@ -2634,5 +2652,166 @@ jobs:
         if: ${{ always() }}
         with:
           name: emmett-2c-final-release-${{ inputs.emmett_2c_final_sha }}-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: error
+
+  pr561-waiver-release:
+    if: ${{ inputs.action == 'pr561-waiver-preflight' || inputs.action == 'pr561-waiver-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PROJECT_ID: sandman-combat-staging
+      REGION: us-central1
+      PR561_SOURCE_SHA: 95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c
+      SANDMAN_STAGING_PROJECT_ID: sandman-combat-staging
+      WIF_PROVIDER: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+    steps:
+      - name: Enforce protected PR561 exact-SHA boundary
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          require_boundary(){ local label="$1"; shift; if ! "$@"; then echo "::error::PR561 boundary failed: ${label}"; printf 'FAILED_CONDITION=%s\n' "$label" > evidence/boundary.txt; exit 1; fi; }
+          require_boundary REPOSITORY test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          require_boundary MAIN_REF test "$GITHUB_REF" = "refs/heads/main"
+          require_boundary TRUSTED_WORKFLOW test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          require_boundary PROJECT test "${{ inputs.confirm_project }}" = "$PROJECT_ID"
+          require_boundary EXACT_SHA test "${{ inputs.pr561_exact_merge_sha }}" = "$PR561_SOURCE_SHA"
+          if test "${{ inputs.action }}" = pr561-waiver-deploy; then
+            require_boundary DEPLOY_APPROVAL test "${{ inputs.pr561_deployment_approval }}" = "APPROVE_PR561_STAGING_TWO_FUNCTIONS_ONE_HOSTING_ASSET"
+            require_boundary HOSTING_RELEASE test -n "${{ inputs.pr561_expected_hosting_release }}"
+            require_boundary HOSTING_VERSION test -n "${{ inputs.pr561_expected_hosting_version }}"
+          else
+            require_boundary PREFLIGHT_ACTION test "${{ inputs.action }}" = pr561-waiver-preflight
+          fi
+          printf 'BOUNDARY_OK\n' > evidence/boundary.txt
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 95e6a351226d18ac33e6220dc8c6a2d9fa6ba67c
+          path: application
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: application/functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify exact PR561 source and release contracts
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "$PR561_SOURCE_SHA"
+          node <<'NODE'
+          const fs=require('node:fs'),cp=require('node:child_process');
+          const m=JSON.parse(fs.readFileSync('trusted-tooling/scripts/staging/pr561-waiver-release.json'));
+          if(m.sourceSha!==process.env.PR561_SOURCE_SHA||m.project!==process.env.PROJECT_ID||m.productionChanges!==false)throw Error('Manifest boundary mismatch');
+          const actual=cp.execFileSync('git',['-C','application','diff','--name-only',m.baselineSha,m.sourceSha],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          if(JSON.stringify(actual)!==JSON.stringify([...m.allowedSourceFiles].sort()))throw Error('Exact source manifest drift');
+          for(const file of ['functions/src/billing/paymentArrangement.ts','functions/src/billing/recordProposalPrepaidCash.ts'])if(!fs.readFileSync('application/'+file,'utf8').includes('supportedEnrollmentFeeCents'))throw Error('Corrected billing closure missing: '+file);
+          NODE
+          node --test trusted-tooling/tests/functions/pr561-waiver-release.test.mjs
+          node --check trusted-tooling/scripts/staging/pr561-waiver-hosting-overlay.mjs
+      - name: Build and run focused waiver tests
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix application/functions
+          npm --prefix application/functions run build
+          SANDMAN_STAGING_ACK=sandman-combat-staging SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging node --test \
+            application/tests/browser/payment-arrangement.test.mjs \
+            application/functions/tests/paymentArrangement.test.cjs \
+            application/functions/tests/prepaidMembershipPolicy.test.cjs
+          cd application
+          npx --yes firebase-tools@15.11.0 emulators:exec --only firestore \
+            --config firebase.prepaid-emulator.json --project demo-sandman-prepaid \
+            "node --test functions/tests/prepaidCashReceipt.integration.cjs functions/tests/prepaidEnrollment.integration.cjs"
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture identity policy, Function, IAM and rollback evidence
+        run: |
+          set -euo pipefail
+          mkdir -p evidence/functions
+          gcloud iam workload-identity-pools providers describe sandman-hybrid-staging --project="$PROJECT_ID" --location=global --workload-identity-pool=sandman-github-staging --format='json(name,state,attributeMapping,attributeCondition)' > evidence/wif-provider.json
+          node -e 'const p=require("./evidence/wif-provider.json");const w="assertion.workflow_ref == '\''raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'\''";if(p.state!=="ACTIVE"||!p.attributeCondition.includes(w)||!p.attributeCondition.includes("assertion.environment == '\''staging'\''")||!p.attributeCondition.includes("assertion.event_name == '\''workflow_dispatch'\''"))process.exit(64)'
+          for fn in issueProposalClientReview recordProposalPrepaidCash getProposalClientReview acceptProposalClientReview createProposalCheckout sendProposalPrepaidCashReceipt; do
+            gcloud functions describe "$fn" --v2 --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-before.json"
+            gcloud functions get-iam-policy "$fn" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-iam-before.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-before.json"
+            gcloud run services get-iam-policy "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-iam-before.json"
+          done
+          for secret in RESEND_API_KEY STAGING_TEST_EMAIL_ALLOWLIST; do
+            gcloud secrets describe "$secret" --project="$PROJECT_ID" --format='json(name,replication)' > "evidence/functions/${secret}-reference.json"
+          done
+          node <<'NODE'
+          const fs=require('node:fs'),read=n=>JSON.parse(fs.readFileSync(`evidence/functions/${n}-before.json`));
+          const expected={issueProposalClientReview:'sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com',recordProposalPrepaidCash:'991554514268-compute@developer.gserviceaccount.com'};
+          for(const [name,identity] of Object.entries(expected)){const f=read(name);if(f.name!==`projects/sandman-combat-staging/locations/us-central1/functions/${name}`||f.state!=='ACTIVE'||f.buildConfig?.runtime!=='nodejs22'||f.buildConfig?.entryPoint!==name||f.serviceConfig?.serviceAccountEmail!==identity)throw Error('Unexpected target baseline: '+name)}
+          NODE
+          printf '%s\n' 'Rollback uses target *-before source/config, *-iam-before policies, and the prior Hosting release/version.' > evidence/functions/rollback.txt
+      - name: Deploy exactly two existing staging callables
+        if: ${{ inputs.action == 'pr561-waiver-deploy' }}
+        working-directory: application
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$PR561_SOURCE_SHA"
+          test ! -e functions/.env
+          common=(--gen2 --project="$PROJECT_ID" --region="$REGION" --runtime=nodejs22 --source=functions \
+            --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com \
+            --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all \
+            --update-env-vars=SANDMAN_STAGING_ACK=sandman-combat-staging,SANDMAN_STAGING_PROJECT_ID=sandman-combat-staging,SANDMAN_WRESTLING_RUNTIME_SERVICE_ACCOUNT=sandman-wrestling-runtime@sandman-combat-staging.iam.gserviceaccount.com --trigger-http --quiet)
+          gcloud functions deploy issueProposalClientReview "${common[@]}" --entry-point=issueProposalClientReview \
+            --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com \
+            --set-secrets=RESEND_API_KEY=RESEND_API_KEY:latest,STAGING_TEST_EMAIL_ALLOWLIST=STAGING_TEST_EMAIL_ALLOWLIST:latest
+          gcloud functions deploy recordProposalPrepaidCash "${common[@]}" --entry-point=recordProposalPrepaidCash \
+            --run-service-account=991554514268-compute@developer.gserviceaccount.com --clear-secrets
+      - name: Verify deployed targets, IAM and neighbors
+        if: ${{ inputs.action == 'pr561-waiver-deploy' }}
+        run: |
+          set -euo pipefail
+          for fn in issueProposalClientReview recordProposalPrepaidCash getProposalClientReview acceptProposalClientReview createProposalCheckout sendProposalPrepaidCashReceipt; do
+            gcloud functions describe "$fn" --v2 --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-after.json"
+            gcloud functions get-iam-policy "$fn" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-iam-after.json"
+            service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+            gcloud run services describe "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-after.json"
+            gcloud run services get-iam-policy "$service" --region="$REGION" --project="$PROJECT_ID" --format=json > "evidence/functions/${fn}-run-iam-after.json"
+          done
+          node trusted-tooling/scripts/staging/pr561-waiver-verify-after.mjs evidence/functions
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Preflight or release isolated PR561 Hosting asset
+        env:
+          PR561_DEPLOY_APPROVAL: ${{ inputs.pr561_deployment_approval }}
+          PR561_EXPECTED_HOSTING_RELEASE: ${{ inputs.pr561_expected_hosting_release }}
+          PR561_EXPECTED_HOSTING_VERSION: ${{ inputs.pr561_expected_hosting_version }}
+        run: |
+          if test "${{ inputs.action }}" = pr561-waiver-deploy; then mode=deploy; else mode=preflight; fi
+          node trusted-tooling/scripts/staging/pr561-waiver-hosting-overlay.mjs "$mode" application evidence/hosting
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: pr561-waiver-release-${{ inputs.pr561_exact_merge_sha }}-${{ github.run_id }}
           path: evidence/
           if-no-files-found: error
