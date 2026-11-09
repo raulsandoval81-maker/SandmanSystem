@@ -204,6 +204,33 @@ function readWaiverAcceptance() {
   }
 }
 
+// Present the canonical waiver inside Intake; retain the standalone route as a fallback.
+function mountInlineWaiver() {
+  if (!currentInviteToken || document.getElementById("inlineWaiverFrame")) return;
+  const oldButton = $("openWaiverBtn");
+  if (!oldButton) return;
+  const frame = document.createElement("iframe");
+  frame.id = "inlineWaiverFrame";
+  frame.title = "Sandman participation waiver and electronic signature";
+  frame.src = "/waiver/?audience=adult_athlete&lang=" +
+    encodeURIComponent(activeLanguage()) +
+    "&embedded=1&invite=" + encodeURIComponent(currentInviteToken);
+  frame.style.cssText = "display:block;width:100%;height:980px;border:1px solid #d1d5db;border-radius:12px;background:white;";
+  frame.setAttribute("loading", "eager");
+  oldButton.parentElement.appendChild(frame);
+  oldButton.hidden = true;
+  const note = document.querySelector("#waiverCompletionPanel p.muted");
+  if (note) note.textContent = "Read, agree, and sign the waiver above. Then submit your Intake below.";
+}
+
+window.addEventListener("message", (event) => {
+  const frame = document.getElementById("inlineWaiverFrame");
+  if (event.origin !== window.location.origin ||
+      !frame || event.source !== frame.contentWindow ||
+      event.data?.type !== "sandman-waiver-accepted") return;
+  applyWaiverAcceptance(event.data.acceptance);
+});
+
 function openWaiver(url) {
   window.open(
     url,
@@ -796,6 +823,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   wireWaiver();
   readWaiverAcceptance();
+  mountInlineWaiver();
   wirePhoneSanitizer("athletePhone");
   wirePhoneSanitizer("emergencyPhone");
 
