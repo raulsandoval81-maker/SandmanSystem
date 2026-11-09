@@ -3541,11 +3541,11 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/setup-gcloud@v3
-      - name: Evaluate exact Firestore read permissions for billing runtime, no mutations
+      - name: Impersonate billing runtime and verify staging Firestore GET/LIST without retaining data
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           REQUESTED_ACTION: enrollment-runtime-iam-readonly
-        run: python3 scripts/staging/enrollment-runtime-iam-readonly.py
+        run: python3 scripts/staging/enrollment-runtime-firestore-readonly.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
