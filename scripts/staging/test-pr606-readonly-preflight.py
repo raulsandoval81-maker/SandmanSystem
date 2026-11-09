@@ -135,12 +135,27 @@ class PreflightTests(unittest.TestCase):
         self.assertNotIn("fixture-signed-url", str(data))
         self.assertEqual(data["env"][0]["name"], "PRIVATE")
 
+    def test_hosting_credentials_are_isolated_from_function_credentials(self):
+        env = {"HOSTING_CREDENTIALS_FILE": __file__,
+               "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": "functions-credential",
+               "GOOGLE_APPLICATION_CREDENTIALS": "functions-credential"}
+        with patch.dict(p["hosting_access_token"].__globals__, {
+            "command": lambda _operation, _args, env: env["CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE"].encode()
+        }):
+            self.assertEqual(p["hosting_access_token"](env), __file__)
+            self.assertEqual(env["CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE"], "functions-credential")
+            with self.assertRaisesRegex(RuntimeError, "Dedicated Hosting credentials unavailable"):
+                p["hosting_access_token"]({})
+
     def test_workflow_scope(self):
         workflow = (Path(__file__).parents[2] / ".github/workflows/staging-exact-sha-release.yml").read_text()
         job = workflow.split("\n  pr606-readonly-preflight:\n", 1)[1]
         self.assertIn("environment: staging", job)
         self.assertIn(p["SHA"], job)
         self.assertIn("sandman-practice-deployer@", job)
+        self.assertIn("sandman-staging-deployer@", job)
+        self.assertIn("export_environment_variables: false", job)
+        self.assertIn("steps.hosting-auth.outputs.credentials_file_path", job)
         artifact_paths = job.split("          path: |", 1)[1].split("          retention-days:", 1)[0]
         self.assertEqual(len(artifact_paths.split()), 5)
         self.assertTrue(all(path.startswith("evidence/pr606/") and path.endswith(".json") and "*" not in path

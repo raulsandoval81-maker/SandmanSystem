@@ -44,14 +44,24 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def command(operation, args):
-    result = subprocess.run(args, capture_output=True, timeout=45, check=False)
+def command(operation, args, env=None):
+    result = subprocess.run(args, capture_output=True, timeout=45, check=False, env=env)
     if result.returncode:
         stderr = result.stderr.decode(errors="replace")
         reason = next((code for code in ("PERMISSION_DENIED", "NOT_FOUND", "UNAUTHENTICATED")
                        if code in stderr.upper()), f"exit {result.returncode}")
         raise RuntimeError(f"{operation}: {reason}")
     return result.stdout
+
+
+def hosting_access_token(env):
+    credentials = env.get("HOSTING_CREDENTIALS_FILE")
+    require(credentials and Path(credentials).is_file(), "Dedicated Hosting credentials unavailable")
+    token = command("Acquire existing Hosting inventory token", ["gcloud", "auth", "print-access-token"],
+                    env={**env, "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": credentials,
+                         "GOOGLE_APPLICATION_CREDENTIALS": credentials}).decode().strip()
+    require(bool(token), "Empty Hosting inventory token")
+    return token
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -252,7 +262,10 @@ def main():
             del archive
             require(get(f"{name} recheck configuration", endpoint) == record, f"{name}: configuration changed during capture")
 
-        save("hosting.json", hosting(get, asset))
+        hosting_token = hosting_access_token(os.environ)
+        save("hosting.json", hosting(
+            lambda operation, url: json.loads(read(operation, url, hosting_token)), asset))
+        result["hostingIdentity"] = f"sandman-staging-deployer@{PROJECT}.iam.gserviceaccount.com"
         runtime_token = command("Impersonate billing runtime (iam.serviceAccounts.getAccessToken)",
                                 ["gcloud", "auth", "print-access-token", f"--impersonate-service-account={RUNTIME}"]).decode().strip()
         require(bool(runtime_token), "Empty billing runtime impersonation token")
