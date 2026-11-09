@@ -33,7 +33,12 @@ test('receipt bootstrap is a non-executable, immutable staging-only review contr
 test('receipt function is exported and does not handle charges or intake activation', () => {
  assert.match(entry,/sendProposalPrepaidCashReceipt/);
  assert.match(source,/export const sendProposalPrepaidCashReceipt = onCall/);
- assert.match(source,/secrets: \[RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST\]/);
+ assert.match(source,/secrets: \[RESEND_API_KEY\]/);
+ assert.match(source,/verifyStagingEmailRecipient\(recipient\)/);
+ const emailGuard = readFileSync('functions/src/modules/email/resend.ts','utf8');
+ assert.match(emailGuard,/if \(allowed.size === 0\) return \{ allowed: false/);
+ const intake = readFileSync('functions/src/enrollment/sendEnrollmentIntakeEmail.ts','utf8');
+ assert.match(intake,/secrets: \[RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST\]/);
  assert.match(source,/getResendClient/);
  assert.match(source,/receiptRef/);
  assert.match(source,/stripeCheckoutSessionId/);
