@@ -58,5 +58,32 @@ class UnrelatedInventoryGuardTest(unittest.TestCase):
         self.assertEqual(untouched(before), untouched(after))
 
 
+class IntakeCallableInventoryTest(unittest.TestCase):
+    def setUp(self):
+        names = ("getEnrollmentPlacementActivity", "getAccessSetupStatus")
+        self.records = [{"name": f"projects/staging/locations/us-central1/functions/{name}",
+                         "state": "ACTIVE"} for name in names]
+        guard = next(n for n in tree.body if isinstance(n, ast.FunctionDef)
+                     and n.name == "verify_intake_callables")
+        namespace = {"PROJECT": "staging", "REQUIRED_INTAKE_CALLABLES": names}
+        exec(compile(ast.Module(body=[guard], type_ignores=[]), "<callable-guard>", "exec"), namespace)
+        self.verify = namespace["verify_intake_callables"]
+
+    def test_accepts_both_active_callables(self):
+        self.verify(self.records)
+
+    def test_rejects_missing_or_inactive_callable(self):
+        with self.assertRaisesRegex(RuntimeError, "getAccessSetupStatus"):
+            self.verify(self.records[:1])
+        self.records[1]["state"] = "FAILED"
+        with self.assertRaisesRegex(RuntimeError, "getAccessSetupStatus"):
+            self.verify(self.records)
+
+    def test_rejects_callable_in_wrong_region(self):
+        self.records[0]["name"] = self.records[0]["name"].replace("us-central1", "us-east1")
+        with self.assertRaisesRegex(RuntimeError, "getEnrollmentPlacementActivity"):
+            self.verify(self.records)
+
+
 if __name__ == "__main__":
     unittest.main()
