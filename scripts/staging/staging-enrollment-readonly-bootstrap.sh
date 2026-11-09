@@ -21,17 +21,39 @@ for(const f of Object.values(a)){assert.ok(f.__endpoint.callableTrigger);assert.
 NODE
 test "$ACTION" = validate && { echo 'PASS: offline only'; exit 0; }
 test "$ACTION" = bootstrap
-test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-enrollment-readonly-bootstrap.yml@refs/heads/main'
+test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
 test "$APPROVE_FUNCTIONS" = APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
 test "$APPROVE_TRANSPORT" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
 mkdir -p evidence
 gcloud functions list --regions=us-central1 --project=sandman-combat-staging --format=json > evidence/before.json
 for fn in getEnrollmentPlacementActivity getAccessSetupStatus; do
-  if gcloud functions describe "$fn" --gen2 --region=us-central1 --project=sandman-combat-staging --format=json > /tmp/exists.json 2>/tmp/lookup.err; then echo "Refusing overwrite: $fn"; exit 1; fi
-  grep -Eiq 'NOT_FOUND|not found|404|does not exist' /tmp/lookup.err || { echo 'Lookup not proven absent'; exit 1; }
+  state_file="evidence/$fn-state.txt"
+  if gcloud functions describe "$fn" --gen2 --region=us-central1 --project=sandman-combat-staging --format=json > "evidence/$fn-existing.json" 2>/tmp/enrollment-lookup.err; then
+    service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
+    gcloud run services describe "$service" --region=us-central1 --project=sandman-combat-staging --format=json > "evidence/$fn-existing-run.json"
+    jq -e --arg fn "$fn" '
+      .state=="ACTIVE" and .environment=="GEN_2" and
+      .buildConfig.entryPoint==$fn and .buildConfig.runtime=="nodejs22" and
+      .serviceConfig.serviceAccountEmail=="sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" and
+      .labels["sandman-enrollment-release"]=="two-readonly-v1" and
+      .labels["sandman-source-sha"]=="d0f6db3b5199616d066d07a58e984dbdac7d576f" and
+      ((.serviceConfig.secretEnvironmentVariables//[])|length)==0
+    ' "evidence/$fn-existing.json" >/dev/null || { echo "Unrecognized existing function: $fn" >&2; exit 1; }
+    jq -e '.status.latestReadyRevisionName != null and .metadata.annotations["run.googleapis.com/invoker-iam-disabled"] == "true"' "evidence/$fn-existing-run.json" >/dev/null || { echo "Existing Cloud Run settings are not verified: $fn" >&2; exit 1; }
+    printf '%s\n' verified-existing > "$state_file"
+  else
+    grep -Eiq 'NOT_FOUND|not found|404|does not exist' /tmp/enrollment-lookup.err || { echo "Lookup not proven absent: $fn" >&2; exit 1; }
+    printf '%s\n' missing > "$state_file"
+  fi
 done
 for fn in getEnrollmentPlacementActivity getAccessSetupStatus; do
-  gcloud functions deploy "$fn" --gen2 --project=sandman-combat-staging --region=us-central1 --runtime=nodejs22 --entry-point="$fn" --source=release-source --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all --clear-secrets --trigger-http --no-allow-unauthenticated --quiet
+  if test "$(cat "evidence/$fn-state.txt")" = verified-existing; then
+    echo "PASS: $fn already matches pinned release; no overwrite"
+    cp "evidence/$fn-existing.json" "evidence/$fn.json"
+    cp "evidence/$fn-existing-run.json" "evidence/$fn-run.json"
+    continue
+  fi
+  gcloud functions deploy "$fn" --gen2 --project=sandman-combat-staging --region=us-central1 --runtime=nodejs22 --entry-point="$fn" --source=release-source --run-service-account=sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com --build-service-account=projects/sandman-combat-staging/serviceAccounts/sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com --cpu=1 --memory=256Mi --timeout=60s --max-instances=20 --concurrency=80 --ingress-settings=all --update-labels=sandman-enrollment-release=two-readonly-v1,sandman-source-sha=d0f6db3b5199616d066d07a58e984dbdac7d576f --clear-secrets --trigger-http --no-allow-unauthenticated --quiet
   service="$(printf '%s' "$fn" | tr '[:upper:]' '[:lower:]')"
   gcloud run services update "$service" --project=sandman-combat-staging --region=us-central1 --no-invoker-iam-check --quiet
   gcloud functions describe "$fn" --gen2 --region=us-central1 --project=sandman-combat-staging --format=json > "evidence/$fn.json"
