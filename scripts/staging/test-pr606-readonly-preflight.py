@@ -66,7 +66,7 @@ class PreflightTests(unittest.TestCase):
 
     def test_source_reads_use_gen1_version_and_gen2_object_generation(self):
         reads = []
-        def read(operation, url, token=None, payload=None):
+        def read(operation, url, token=None, payload=None, gen2_functions=()):
             reads.append((operation, url, token, payload))
             if payload:
                 return json.dumps({"downloadUrl": "https://storage.googleapis.com/staging/source?signature=fixture"}).encode()
@@ -95,7 +95,7 @@ class PreflightTests(unittest.TestCase):
                   "object": f"{name}/function-source.zip", "generation": "1794099992545187"}
         record = {"buildConfig": {"sourceProvenance": {"resolvedStorageSource": source}}}
         calls = []
-        def read(operation, url, token=None, payload=None):
+        def read(operation, url, token=None, payload=None, gen2_functions=()):
             calls.append((operation, url, token, payload))
             if "storage.objects.get" in operation:
                 raise RuntimeError(f"{operation}: HTTP {status}")
