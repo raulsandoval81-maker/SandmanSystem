@@ -129,6 +129,8 @@ on:
           - pr580-hosting-inventory
           - pr580-hosting-deploy
           - pr598-hosting-deploy
+          - pr603-hosting-inventory
+          - pr603-hosting-deploy
           - pr600-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
@@ -3633,4 +3635,49 @@ jobs:
         with:
           name: pr600-hosting-deploy-${{ github.run_id }}
           path: pr600-*.json
+          if-no-files-found: error
+
+  pr603-hosting-deploy:
+    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    concurrency: sandman-staging-hosting
+    steps:
+      - name: Require waiver overlay deployment approval
+        if: inputs.action == 'pr603-hosting-deploy'
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$APPROVAL" = APPROVE_PR603_STAGING_WAIVER_OVERLAY
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 053deeae91c768c156d47edc6926f8c92e5aa4c4
+          path: candidate
+          persist-credentials: false
+      - name: Verify embedded waiver regressions
+        run: cd candidate && node --test tests/browser/inline-intake-waiver.test.mjs
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Inventory or verify staging Hosting overlay
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          MODE: ${{ inputs.action == 'pr603-hosting-deploy' && 'deploy' || 'inventory' }}
+          EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr603-hosting-deploy-${{ github.run_id }}
+          path: pr603-*.json
           if-no-files-found: error
