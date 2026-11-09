@@ -112,7 +112,7 @@ if (mode === 'deploy') {
     for (const hash of result.uploadRequiredHashes ?? []) {
       assert.equal(hash, hostingHash, 'Hosting requested an unrelated upload');
       const upload = new URL(result.uploadUrl);
-      assert.equal(upload.href, 'https://upload-firebasehosting.googleapis.com/upload/' + created.name);
+      assert.equal(upload.href, 'https://upload-firebasehosting.googleapis.com/upload/' + created.name + '/files');
       await write(upload.href + '/' + hash, 'POST', zipped, 'application/octet-stream');
     }
   }
