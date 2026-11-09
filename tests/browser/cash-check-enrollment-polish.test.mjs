@@ -32,8 +32,8 @@ test("Cash/Check pending provider attempts expose recovery controls",()=>{
   assert.doesNotMatch(render("stripe","parent_guardian","SENDING"),/data-receipt-resolve=/);
 });
 const twoCHandler = enrollment.slice(
-  enrollment.indexOf('  document.querySelectorAll("[data-ready-2c]")'),
-  enrollment.indexOf('  document.querySelectorAll("[data-ready-mark-text]")')
+  enrollment.indexOf("function wireReceiptFirstAction("),
+  enrollment.indexOf("function wireReadyIntakeButtons(")
 );
 
 function wireSyntheticSend({
@@ -45,15 +45,21 @@ function wireSyntheticSend({
   const events = [];
   const feedback = {textContent: ""};
   const handoffStatus = {textContent: ""};
-  const button = {
-    dataset: {ready2c: "P-SYNTHETIC"},
+  const makeButton = () => ({
+    dataset: {"ready-2c": "P-SYNTHETIC"},
+    getAttribute: name => name === "data-ready-2c" ? "P-SYNTHETIC" : null,
     disabled: false,
     textContent: "Send Receipt & Intake Email",
     closest: () => ({querySelector: () => feedback}),
-    addEventListener: (_event, handler) => { button.click = handler; },
+    click() { return list.handler({target: {closest: () => this}}); },
+  });
+  let button = makeButton();
+  const list = {
+    contains: candidate => candidate === button,
+    addEventListener: (_event, handler) => { list.handler = handler; },
   };
   const sandbox = {
-    document: {querySelectorAll: () => [button]},
+    list,
     $: () => handoffStatus,
     readyProposalMap: new Map([["P-SYNTHETIC", {
       paymentMethod: "cash_prepaid",
@@ -85,8 +91,8 @@ function wireSyntheticSend({
     loadReadyForIntake: async () => {},
     setIntakeConfirmation: () => {},
   };
-  vm.runInNewContext(twoCHandler, sandbox);
-  return {button, events, feedback, handoffStatus};
+  vm.runInNewContext(twoCHandler + "\nwireReceiptFirstAction(list);", sandbox);
+  return {button, events, feedback, handoffStatus, refresh: () => { button = makeButton(); return button; }};
 }
 
 test("2C clears the placeholder prefill and blocks a manually entered placeholder", async () => {
@@ -148,4 +154,14 @@ test("2C skips an Intake email already recorded for the confirmed recipient", as
     ["prompt", ""], "status", "token", "sendProposalPrepaidCashReceipt",
   ]);
   assert.match(handoffStatus.textContent, /Intake delivery is already recorded/);
+});
+
+
+test("2C delegated click still prompts once after the queue replaces the button", async () => {
+  const {button, events, refresh} = wireSyntheticSend({confirmed: false});
+  await button.click();
+  const replacement = refresh();
+  await button.click();
+  await replacement.click();
+  assert.deepEqual(events, [["prompt", ""], ["prompt", ""]]);
 });
