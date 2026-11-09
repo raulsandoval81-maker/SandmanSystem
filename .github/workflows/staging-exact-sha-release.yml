@@ -132,6 +132,7 @@ on:
           - pr603-hosting-inventory
           - pr603-hosting-deploy
           - pr606-readonly-preflight
+          - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr600-hosting-deploy
           - phase2c-hosting-only-preflight
@@ -3685,16 +3686,18 @@ jobs:
           if-no-files-found: error
 
   pr606-readonly-preflight:
-    if: ${{ inputs.action == 'pr606-readonly-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr606-readonly-preflight' || inputs.action == 'pr606-run339-recovery-snapshot') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 12
     permissions:
       contents: read
+      actions: read
       id-token: write
     steps:
       - name: Guard existing trusted staging workflow
         env:
+          REQUESTED_ACTION: ${{ inputs.action }}
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
         run: |
@@ -3703,12 +3706,17 @@ jobs:
           test "$GITHUB_REF" = refs/heads/main
           test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
           test "$CONFIRM_PROJECT" = sandman-combat-staging
-          test "$CONFIRM_SHA" = dd46b0466e739ac7871a0613f2cda1c17a31ca26
+          case "$REQUESTED_ACTION" in
+            pr606-readonly-preflight) test "$CONFIRM_SHA" = dd46b0466e739ac7871a0613f2cda1c17a31ca26 ;;
+            pr606-run339-recovery-snapshot) test "$CONFIRM_SHA" = bf043dfc50b72def1ea6202e6a3cbba3fa252c20 ;;
+            *) exit 1 ;;
+          esac
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
       - uses: actions/checkout@v4
+        if: inputs.action == 'pr606-readonly-preflight'
         with:
           ref: dd46b0466e739ac7871a0613f2cda1c17a31ca26
           path: candidate
@@ -3732,6 +3740,7 @@ jobs:
           export_environment_variables: false
       - uses: google-github-actions/setup-gcloud@v3
       - name: Capture staging rollback and test credential evidence read-only
+        if: inputs.action == 'pr606-readonly-preflight'
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
@@ -3739,7 +3748,7 @@ jobs:
           HOSTING_CREDENTIALS_FILE: ${{ steps.hosting-auth.outputs.credentials_file_path }}
         run: python3 scripts/staging/pr606-readonly-preflight.py
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && inputs.action == 'pr606-readonly-preflight'
         with:
           name: pr606-readonly-preflight-${{ github.run_id }}
           path: |
@@ -3750,6 +3759,29 @@ jobs:
             evidence/pr606/recordManualEnrollmentIntakeDelivery-configuration.json
           retention-days: 7
           if-no-files-found: warn
+
+      - uses: actions/download-artifact@v4
+        if: inputs.action == 'pr606-run339-recovery-snapshot'
+        with:
+          github-token: ${{ github.token }}
+          run-id: 42688602192
+          name: pr606-readonly-preflight-42688602192
+          path: evidence/run333
+      - name: Compare current staging to Run 333 without writes
+        if: inputs.action == 'pr606-run339-recovery-snapshot'
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+          HOSTING_CREDENTIALS_FILE: ${{ steps.hosting-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/pr606-recovery-snapshot.py
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.action == 'pr606-run339-recovery-snapshot'
+        with:
+          name: pr606-run339-recovery-snapshot-${{ github.run_id }}
+          path: evidence/run339/snapshot.json
+          if-no-files-found: error
+          retention-days: 7
 
   pr606-staging-cash-check-deploy:
     if: ${{ inputs.action == 'pr606-staging-cash-check-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
