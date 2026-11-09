@@ -151,9 +151,23 @@ jobs:
           token="$(gcloud auth print-access-token)"
           node - "$token" <<'NODE'
           const fs=require('node:fs'),token=process.argv[2],project='sandmandashboard',headers={Authorization:`Bearer ${token}`,'Content-Type':'application/json'};
-          const required=['cloudfunctions.functions.create','cloudfunctions.functions.get','cloudfunctions.functions.list','run.services.create','run.services.get','run.services.update','run.services.getIamPolicy','cloudbuild.builds.create','secretmanager.secrets.get'];
+          const required=['cloudfunctions.functions.create','cloudfunctions.functions.get','cloudfunctions.functions.list','run.services.create','run.services.get','run.services.update','run.services.getIamPolicy','cloudbuild.builds.create'];
           const request=async(url,permissions)=>{const response=await fetch(url,{method:'POST',headers,body:JSON.stringify({permissions})}),result=await response.json();if(!response.ok)throw Error(result.error?.message||'permission test failed');return result};
-          (async()=>{const result=await request(`https://cloudresourcemanager.googleapis.com/v1/projects/${project}:testIamPermissions`,required);const missing=required.filter(value=>!(result.permissions||[]).includes(value));if(missing.length)throw Error('Deployment identity missing: '+missing.join(','));fs.writeFileSync('evidence/before/deployer-permissions.json',JSON.stringify({required,granted:result.permissions},null,2)+'\n');const actAs=await request('https://iam.googleapis.com/v1/projects/-/serviceAccounts/889326401061-compute@developer.gserviceaccount.com:testIamPermissions',['iam.serviceAccounts.actAs']);fs.writeFileSync('evidence/before/runtime-actas.json',JSON.stringify(actAs,null,2)+'\n');const hostingResponse=await fetch('https://firebasehosting.googleapis.com/v1beta1/sites/sandman-main/releases?pageSize=1',{headers:{Authorization:`Bearer ${token}`}}),hosting=await hostingResponse.json();if(!hostingResponse.ok||!hosting.releases?.[0]?.version?.name)throw Error('Production Hosting baseline unavailable');fs.writeFileSync('evidence/before/hosting.json',JSON.stringify({release:hosting.releases[0].name,version:hosting.releases[0].version.name},null,2)+'\n')})().catch(error=>{console.error(error.message);process.exit(64)});
+          (async()=>{
+            const result=await request(`https://cloudresourcemanager.googleapis.com/v1/projects/${project}:testIamPermissions`,required);
+            const missing=required.filter(value=>!(result.permissions||[]).includes(value));
+            fs.writeFileSync('evidence/before/deployer-permissions.json',JSON.stringify({required,granted:result.permissions||[],missing},null,2)+'\n');
+            const secret=await request(`https://secretmanager.googleapis.com/v1/projects/${project}/secrets/RESEND_API_KEY:testIamPermissions`,['secretmanager.secrets.get']);
+            const secretAllowed=(secret.permissions||[]).includes('secretmanager.secrets.get');
+            fs.writeFileSync('evidence/before/deployer-secret-permissions.json',JSON.stringify({resource:'projects/'+project+'/secrets/RESEND_API_KEY',required:['secretmanager.secrets.get'],granted:secret.permissions||[],missing:secretAllowed?[]:['secretmanager.secrets.get']},null,2)+'\n');
+            const actAs=await request('https://iam.googleapis.com/v1/projects/-/serviceAccounts/889326401061-compute@developer.gserviceaccount.com:testIamPermissions',['iam.serviceAccounts.actAs']);
+            fs.writeFileSync('evidence/before/runtime-actas.json',JSON.stringify(actAs,null,2)+'\n');
+            if(missing.length||!secretAllowed)throw Error('Deployment identity missing: '+[...missing,...(!secretAllowed?['secretmanager.secrets.get on RESEND_API_KEY']:[])].join(','));
+            const hostingResponse=await fetch('https://firebasehosting.googleapis.com/v1beta1/sites/sandman-main/releases?pageSize=1',{headers:{Authorization:`Bearer ${token}`}});
+            const hosting=await hostingResponse.json();
+            if(!hostingResponse.ok||!hosting.releases?.[0]?.version?.name)throw Error('Production Hosting baseline unavailable');
+            fs.writeFileSync('evidence/before/hosting.json',JSON.stringify({release:hosting.releases[0].name,version:hosting.releases[0].version.name},null,2)+'\n');
+          })().catch(error=>{console.error(error.message);process.exit(64)});
           NODE
           node <<'NODE'
           const fs=require('node:fs'),versions=require('./evidence/before/resend-versions.json'),iam=require('./evidence/before/resend-iam.json'),actAs=require('./evidence/before/runtime-actas.json');
