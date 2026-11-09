@@ -756,6 +756,7 @@ async function applyInviteModeUI(invite) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  let verifiedInvite = false;
   try {
     const signedInUser =
       await ensureSignedIn();
@@ -796,6 +797,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       await applyInviteModeUI(invite);
+      verifiedInvite = true;
 
       prefillFromToken(
         invite.token.prefill || {}
@@ -823,7 +825,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   wireWaiver();
   readWaiverAcceptance();
-  mountInlineWaiver();
+  if (verifiedInvite) mountInlineWaiver();
   wirePhoneSanitizer("athletePhone");
   wirePhoneSanitizer("emergencyPhone");
 
