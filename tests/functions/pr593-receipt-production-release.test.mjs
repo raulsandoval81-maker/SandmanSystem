@@ -21,11 +21,14 @@ test('callable remains authenticated, paid-only, Stripe-excluding and fail-close
   assert.doesNotMatch(source,/stripe\.checkout\.sessions\.create|stripe\.paymentIntents\.create|stripe\.subscriptions\.create/);
 });
 test('workflow has a unique production approval and no data-plane or Hosting operations',()=>{
-  for(const contract of ['environment: production','ff4b6ca3997b89384f8287c838bce0718370172d',
+  for(const contract of ["environment: ${{ inputs.mode == 'preflight' && 'receipt-offline-preflight' || 'production' }}",'ff4b6ca3997b89384f8287c838bce0718370172d',
     'APPROVE_PR593_PRODUCTION_RECEIPT_ONE_FUNCTION','gcloud functions deploy "$FUNCTION_NAME"',
     '--no-allow-unauthenticated','--no-invoker-iam-check','RESEND_API_KEY=RESEND_API_KEY:latest'])assert.ok(workflow.includes(contract),contract);
   assert.doesNotMatch(workflow,/sandman-combat-staging|APPROVE_2C_STAGING|firebase deploy --only hosting|firestore (?:delete|set|update)|stripe/i);
   assert.match(workflow,/keys=Object\.keys\(candidate\)/);
   assert.match(workflow,/JSON\.stringify\(keys\).*sendProposalPrepaidCashReceipt/);
   assert.match(workflow,/ROLLBACK_REQUIRES_SEPARATE_DELETE_APPROVAL/);
+  assert.equal((workflow.match(/sites\/sandman-main\/releases\?pageSize=1/g)||[]).length,2);
+  assert.doesNotMatch(workflow,/sites\/sandmandashboard\/releases/);
+  assert.match(workflow,/gcloud auth activate-service-account --key-file=/);
 });
