@@ -11,6 +11,7 @@ import urllib.request
 PROJECT = "sandman-combat-staging"
 PRINCIPAL = f"sandman-billing-runtime@{PROJECT}.iam.gserviceaccount.com"
 RESOURCE = f"//firestore.googleapis.com/projects/{PROJECT}/databases/(default)"
+PROJECT_RESOURCE = f"//cloudresourcemanager.googleapis.com/projects/{PROJECT}"
 PERMISSIONS = ("datastore.entities.get", "datastore.entities.list")
 WORKFLOW = ("raulsandoval81-maker/SandmanSystem/.github/workflows/"
             "staging-exact-sha-release.yml@refs/heads/main")
@@ -30,10 +31,10 @@ def guard():
     require(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"), "missing trusted WIF credentials")
 
 
-def query(permission, token):
+def query(permission, token, resource=RESOURCE):
     payload = json.dumps({"accessTuple": {
         "principal": PRINCIPAL,
-        "fullResourceName": RESOURCE,
+        "fullResourceName": resource,
         "permission": permission,
     }}).encode()
     request = urllib.request.Request(
@@ -114,9 +115,42 @@ def main():
                     errors.append(permission + ": " + state)
             except urllib.error.HTTPError as exc:
                 diagnostic = sanitized_http_error(exc)
-                result["checks"].append({"permission": permission, "error": "IAM_API_HTTP_" + str(exc.code),
-                                         "diagnostic": diagnostic})
-                errors.append(permission + ": IAM API request failed (HTTP " + str(exc.code) + ")")
+                # Some valid Firestore database names are not accepted by the
+                # Policy Troubleshooter resource parser. A project-level check
+                # may help diagnose IAM, but MUST NOT authorize deployment:
+                # database-scoped policies and conditions remain unproven.
+                if (exc.code == 400 and
+                        diagnostic.get("googleStatus") == "INVALID_ARGUMENT" and
+                        "accessTuple.fullResourceName" in diagnostic.get("fields", [])):
+                    try:
+                        fallback = query(permission, token, PROJECT_RESOURCE)
+                        fallback_tuple = fallback.get("accessTuple", {})
+                        require(fallback_tuple.get("principal") == PRINCIPAL and
+                                fallback_tuple.get("fullResourceName") == PROJECT_RESOURCE and
+                                fallback_tuple.get("permission") == permission,
+                                "Project-scope response tuple mismatch")
+                        result["checks"].append({
+                            "permission": permission,
+                            "error": "DATABASE_RESOURCE_UNSUPPORTED",
+                            "diagnostic": diagnostic,
+                            "projectPolicyState": fallback.get("overallAccessState", "MISSING"),
+                            "projectPolicyResource": PROJECT_RESOURCE,
+                            "databaseAccessProven": False,
+                        })
+                    except (urllib.error.HTTPError, urllib.error.URLError,
+                            TimeoutError, ValueError, RuntimeError):
+                        result["checks"].append({
+                            "permission": permission,
+                            "error": "DATABASE_RESOURCE_UNSUPPORTED",
+                            "diagnostic": diagnostic,
+                            "projectPolicyState": "UNVERIFIED",
+                            "databaseAccessProven": False,
+                        })
+                    errors.append(permission + ": database-scoped access not proven; project-policy check is diagnostic only")
+                else:
+                    result["checks"].append({"permission": permission, "error": "IAM_API_HTTP_" + str(exc.code),
+                                             "diagnostic": diagnostic})
+                    errors.append(permission + ": IAM API request failed (HTTP " + str(exc.code) + ")")
             except (urllib.error.URLError, TimeoutError, ValueError, RuntimeError) as exc:
                 result["checks"].append({"permission": permission, "error": "UNVERIFIED"})
                 errors.append(permission + ": IAM access could not be established (" + type(exc).__name__ + ")")
