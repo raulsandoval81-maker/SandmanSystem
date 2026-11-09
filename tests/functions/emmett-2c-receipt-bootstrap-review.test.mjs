@@ -38,7 +38,7 @@ test('receipt function is exported and does not handle charges or intake activat
  const emailGuard = readFileSync('functions/src/modules/email/resend.ts','utf8');
  assert.match(emailGuard,/if \(allowed.size === 0\) return \{ allowed: false/);
  const intake = readFileSync('functions/src/enrollment/sendEnrollmentIntakeEmail.ts','utf8');
- assert.match(intake,/secrets: \[RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST, STRIPE_SECRET_KEY\]/);
+ assert.match(intake,/secrets: \[RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST\]/);
  assert.match(source,/getResendClient/);
  assert.match(source,/receiptRef/);
  assert.match(source,/stripeCheckoutSessionId/);
