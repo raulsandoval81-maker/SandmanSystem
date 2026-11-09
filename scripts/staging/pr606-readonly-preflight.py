@@ -60,13 +60,15 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 def read(operation, url, token=None, signed_url_request=None):
-    # Gen1 signed download URL generation is the only non-GET API call.
+    # Signed source URL generation is the only non-GET API call.
     data = None
     if signed_url_request is not None:
-        require(url.endswith(":generateDownloadUrl") and url.startswith(
-            f"https://cloudfunctions.googleapis.com/v1/projects/{PROJECT}/locations/{REGION}/functions/"),
-            "Unexpected source URL operation")
-        data = json.dumps(signed_url_request).encode()
+        prefix = "https://cloudfunctions.googleapis.com/"
+        allowed = {f"{prefix}v1/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
+                   for name, generation in FUNCTIONS.items() if generation == 1}
+        allowed.add(f"{prefix}v2alpha/projects/{PROJECT}/locations/{REGION}/functions/sendProposalPrepaidCashReceipt:generateDownloadUrl")
+        require(url in allowed, "Unexpected source URL operation")
+        data = b"" if signed_url_request == {} else json.dumps(signed_url_request).encode()
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     if data:
         headers["Content-Type"] = "application/json"
@@ -94,18 +96,22 @@ def redact(value):
     return value
 
 
+def signed_source(name, api, payload, token):
+    endpoint = f"https://cloudfunctions.googleapis.com/{api}/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
+    result = json.loads(read(f"{name} {api} generateDownloadUrl", endpoint, token, payload))
+    url = result.get("downloadUrl", "")
+    parsed = urllib.parse.urlsplit(url)
+    require(parsed.scheme == "https" and parsed.port in (None, 443) and not parsed.username
+            and (parsed.hostname == "storage.googleapis.com" or
+                 (parsed.hostname or "").endswith(".storage.googleapis.com")), "Unexpected signed source host")
+    return read(f"{name} signed archive download", url)
+
+
 def source_archive(name, generation, record, token):
     if generation == 1:
-        endpoint = f"https://cloudfunctions.googleapis.com/v1/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
         version = str(record.get("versionId", ""))
         require(version.isdigit(), f"{name}: missing Gen1 version ID")
-        result = json.loads(read(f"{name} generateDownloadUrl", endpoint, token, {"versionId": version}))
-        url = result.get("downloadUrl", "")
-        parsed = urllib.parse.urlsplit(url)
-        require(parsed.scheme == "https" and parsed.port in (None, 443) and not parsed.username
-                and (parsed.hostname == "storage.googleapis.com" or
-                     (parsed.hostname or "").endswith(".storage.googleapis.com")), "Unexpected signed source host")
-        return read(f"{name} signed archive download", url), {
+        return signed_source(name, "v1", {"versionId": version}, token), {
             "function": f"projects/{PROJECT}/locations/{REGION}/functions/{name}",
             "versionId": version,
         }
@@ -116,9 +122,22 @@ def source_archive(name, generation, record, token):
             and obj == f"{name}/function-source.zip" and version.isdigit(), f"{name}: immutable Gen2 source generation missing")
     escaped = urllib.parse.quote(obj, safe="")
     url = f"https://storage.googleapis.com/storage/v1/b/{urllib.parse.quote(bucket, safe='')}/o/{escaped}?alt=media&generation={version}"
-    return read(f"{name} storage.objects.get for pinned generation", url, token), {
-        "bucket": bucket, "object": obj, "generation": version,
-    }
+    reference = {"bucket": bucket, "object": obj, "generation": version}
+    operation = f"{name} storage.objects.get for pinned generation"
+    try:
+        return read(operation, url, token), reference
+    except RuntimeError as exc:
+        if str(exc) != f"{operation}: HTTP 403":
+            raise
+        # This API returns the current deployed source. The caller compares the
+        # whole function description again before accepting the recovery evidence.
+        try:
+            archive = signed_source(name, "v2alpha", {}, token)
+        except RuntimeError as fallback:
+            raise RuntimeError(f"{exc}; signed fallback: {fallback}") from None
+        return archive, {**reference, "retrievedVia": "v2alpha.generateDownloadUrl",
+                         "directObjectRead": "HTTP 403"}
+
 
 
 def archive_evidence(archive):
@@ -201,6 +220,10 @@ def main():
         require(actual == SHA, "Candidate checkout SHA mismatch")
         asset = Path("candidate/public" + TARGET).read_bytes()
         require(sha(asset) == ASSET_SHA, "Candidate asset SHA-256 mismatch")
+        source = Path("candidate/functions/src/enrollment/sendEnrollmentIntakeEmail.ts").read_text()
+        require(re.search(r"secrets:\s*\[RESEND_API_KEY,\s*STAGING_TEST_EMAIL_ALLOWLIST,\s*STRIPE_SECRET_KEY\]", source),
+                "Candidate Intake must declare the existing Stripe secret")
+        result["candidateStripeAttachment"] = "DECLARED"
 
         token = command("Acquire existing staging deployer token", ["gcloud", "auth", "print-access-token"]).decode().strip()
         require(bool(token), "Empty staging deployer token")
@@ -239,7 +262,7 @@ def main():
         stripe_test_key(base64.b64decode(secret["payload"]["data"], validate=True))
         result["stripeCredential"] = {"runtime": RUNTIME, "effectiveAccess": True, "testKeyFormat": True}
         require(result["stripeAttachment"]["status"] == "VERIFIED",
-                "Intake Stripe secret attachment is missing or differs from the expected staging attachment")
+                "Intake deployed Stripe attachment is missing or mismatched; a separately reviewed release must attach the existing secret")
         result["status"] = "PASS"
     except (RuntimeError, OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:
         result["blocker"] = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__
