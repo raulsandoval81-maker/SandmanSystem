@@ -1805,7 +1805,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
 
     let response;
     try {
-      response = await sendIntake({ tokenId, combinedReceipt: true });
+      response = await sendIntake({ tokenId });
     } catch (initialError) {
       if (!/No valid intake email is attached/i.test(String(initialError?.message || ""))) {
         throw initialError;
@@ -1828,7 +1828,6 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
         tokenId,
         recipientEmail,
         confirmRecipient: true,
-        combinedReceipt: true,
       });
     }
 
