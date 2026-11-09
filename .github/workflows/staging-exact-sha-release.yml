@@ -3533,6 +3533,8 @@ jobs:
         with:
           ref: main
           persist-credentials: false
+      - name: Run isolated runtime read-only regression tests (offline)
+        run: python3 scripts/staging/test-enrollment-runtime-firestore-readonly.py
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
