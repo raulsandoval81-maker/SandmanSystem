@@ -3791,7 +3791,8 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npm run build
           node --check ../public/intake-management/management.intake.js
-          node --test tests/combinedEnrollmentReceipt.test.cjs ../tests/browser/cash-check-enrollment-polish.test.mjs
+          cd ..
+          node --test functions/tests/combinedEnrollmentReceipt.test.cjs tests/browser/cash-check-enrollment-polish.test.mjs
       - name: Package only the three callable entry points
         run: python3 scripts/staging/pr606-cash-check-deploy.py --package
       - uses: google-github-actions/auth@v3
