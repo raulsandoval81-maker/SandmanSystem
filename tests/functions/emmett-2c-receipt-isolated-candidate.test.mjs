@@ -37,6 +37,6 @@ test('receipt source enforces management identity, payment authority and retry g
   'cashPrepayment','stripeCheckoutSessionId','stripeSubscriptionId','SENDING','RESEND_API_KEY'])
   assert.ok(callable.includes(guard),guard);
  assert.match(suite,/FIRESTORE_EMULATOR_HOST/);
- assert.match(suite,/example\.invalid/);
+ assert.match(suite,/example\.test/);
  assert.match(suite,/STRIPE_SECRET_KEY \|\| process\.env\.RESEND_API_KEY/);
 });
