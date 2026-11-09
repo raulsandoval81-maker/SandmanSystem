@@ -1,0 +1,40 @@
+{
+  "run": 42688602192,
+  "hosting": {
+    "release": "sites/sandman-combat-staging/releases/1794250279860000",
+    "version": "sites/sandman-combat-staging/versions/e4dfaace0cf9ea43",
+    "fingerprint": "17a82748bd9d94deae09e7afdecaa1d9a983e0c01072e2c6d8a8558d4b05954a"
+  },
+  "functions": {
+    "recordManualEnrollmentIntakeDelivery": {
+      "bytes": 43608,
+      "recovery": {
+        "function": "projects/sandman-combat-staging/locations/us-central1/functions/recordManualEnrollmentIntakeDelivery",
+        "versionId": "5"
+      },
+      "sha256": "81ca8e6bb7abb81f0dfafee626055bef6fc714803c1e679cbb39403d7473b2ae",
+      "fingerprint": "63b109933307a32f88612b6345bab14a4f00bf81a43e3dd9e7431b72fe0b2db2"
+    },
+    "sendEnrollmentIntakeEmail": {
+      "bytes": 43608,
+      "recovery": {
+        "function": "projects/sandman-combat-staging/locations/us-central1/functions/sendEnrollmentIntakeEmail",
+        "versionId": "5"
+      },
+      "sha256": "81ca8e6bb7abb81f0dfafee626055bef6fc714803c1e679cbb39403d7473b2ae",
+      "fingerprint": "49256d54c6956e3c6373ffc9738ebf03e2cf5b65e8eba6c2c6f86fc885457f75"
+    },
+    "sendProposalPrepaidCashReceipt": {
+      "bytes": 38376,
+      "recovery": {
+        "bucket": "gcf-v2-sources-991554514268-us-central1",
+        "directObjectRead": "HTTP 403",
+        "generation": "1794099992545187",
+        "object": "sendProposalPrepaidCashReceipt/function-source.zip",
+        "retrievedVia": "v2alpha.generateDownloadUrl"
+      },
+      "sha256": "4bbc1781fc1664aa1b4b56150513a83ff6ec1c944e82bb0d381f08fc5091c03b",
+      "fingerprint": "82993fb06980a71d6d4d802baff423742de64736146f2c4ef109a903332c4b17"
+    }
+  }
+}
