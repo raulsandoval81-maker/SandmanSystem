@@ -159,7 +159,7 @@
       </div>
 
       <button id="waiverAcceptBtn" class="waiver-accept-btn" type="button" disabled>
-        Accept & Return to Intake
+        Accept Waiver & Continue
       </button>
 
       <div id="waiverAcceptStatus" class="waiver-accept-status" hidden></div>
@@ -382,6 +382,15 @@
             ? 'Exención aceptada. Regresando al registro…'
             : 'Waiver accepted. Returning to Intake…';
 
+        if (params.get('embedded') === '1' && window.parent !== window) {
+          // Same-origin Intake owns the final submission and waiver persistence.
+          window.parent.postMessage(
+            { type: 'sandman-waiver-accepted', acceptance },
+            window.location.origin
+          );
+          acceptButton.disabled = true;
+          return;
+        }
         window.setTimeout(() => {
           window.close();
         }, 250);
