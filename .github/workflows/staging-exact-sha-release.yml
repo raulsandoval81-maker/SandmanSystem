@@ -131,12 +131,22 @@ on:
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
+          - enrollment-two-callable-validate
+          - enrollment-two-callable-bootstrap
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
         type: string
       protected_2c_deployment_approval:
         description: For deploy only, enter the action-specific approval phrase
+        required: false
+        type: string
+      enrollment_two_callable_approval:
+        description: Bootstrap only — APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
+        required: false
+        type: string
+      enrollment_two_callable_transport_approval:
+        description: Bootstrap only — APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
         required: false
         type: string
       protected_2c_expected_hosting_release:
@@ -3420,5 +3430,90 @@ jobs:
         if: always()
         with:
           name: enrollment-wif-readonly-preflight-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
+
+  enrollment-two-callable-validate:
+    if: ${{ (inputs.action == 'enrollment-two-callable-validate' || inputs.action == 'enrollment-two-callable-bootstrap') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: d0f6db3b5199616d066d07a58e984dbdac7d576f
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Offline source/export validation (no credentials)
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: validate
+        run: bash trusted-tooling/scripts/staging/staging-enrollment-readonly-bootstrap.sh validate
+
+  enrollment-two-callable-bootstrap:
+    if: ${{ inputs.action == 'enrollment-two-callable-bootstrap' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    needs: enrollment-two-callable-validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: staging-enrollment-two-readonly-callables
+      cancel-in-progress: false
+    steps:
+      - name: Require independent deployment and application-auth approvals
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_FUNCTIONS: ${{ inputs.enrollment_two_callable_approval }}
+          APPROVE_TRANSPORT: ${{ inputs.enrollment_two_callable_transport_approval }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$APPROVE_FUNCTIONS" = APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
+          test "$APPROVE_TRANSPORT" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: d0f6db3b5199616d066d07a58e984dbdac7d576f
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Create only absent or verify exact-release existing Enrollment callables
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_FUNCTIONS: ${{ inputs.enrollment_two_callable_approval }}
+          APPROVE_TRANSPORT: ${{ inputs.enrollment_two_callable_transport_approval }}
+          ACTION: bootstrap
+        run: bash trusted-tooling/scripts/staging/staging-enrollment-readonly-bootstrap.sh bootstrap
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enrollment-two-callable-bootstrap-${{ github.run_id }}
           path: evidence/
           if-no-files-found: warn
