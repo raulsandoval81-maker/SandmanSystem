@@ -1,4 +1,5 @@
 import io
+import json
 from pathlib import Path
 import runpy
 import unittest
@@ -63,12 +64,58 @@ class PreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "release changed"):
             p["hosting"](get, b"candidate")
 
+    def test_source_reads_use_gen1_version_and_gen2_object_generation(self):
+        reads = []
+        def read(operation, url, token=None, payload=None):
+            reads.append((operation, url, token, payload))
+            if payload:
+                return json.dumps({"downloadUrl": "https://storage.googleapis.com/staging/source?signature=fixture"}).encode()
+            return b"zip bytes"
+        with patch.dict(p["source_archive"].__globals__, {"read": read}):
+            _, gen1 = p["source_archive"]("sendEnrollmentIntakeEmail", 1, {"versionId": "5"}, "fixture")
+            self.assertEqual(reads[0][3], {"versionId": "5"})
+            self.assertIsNone(reads[1][2])
+            self.assertEqual(gen1["versionId"], "5")
+            self.assertNotIn("signature", str(gen1))
+            source = {"bucket": "gcf-v2-sources-991554514268-us-central1",
+                      "object": "sendProposalPrepaidCashReceipt/function-source.zip",
+                      "generation": "1794099992545187"}
+            record = {"buildConfig": {"sourceProvenance": {"resolvedStorageSource": source}}}
+            _, gen2 = p["source_archive"]("sendProposalPrepaidCashReceipt", 2, record, "fixture")
+            self.assertEqual(gen2, source)
+            self.assertIn("generation=1794099992545187", reads[2][1])
+            source["generation"] = ""
+            with self.assertRaisesRegex(RuntimeError, "immutable Gen2"):
+                p["source_archive"]("sendProposalPrepaidCashReceipt", 2, record, "fixture")
+            self.assertEqual(len(reads), 3)
+
+    def test_stripe_access_and_attachment_are_independent(self):
+        p["stripe_test_key"](b"sk_test_fixture")
+        self.assertEqual(p["stripe_attachment"]({})["status"], "MISSING")
+        entry = {"key": "STRIPE_SECRET_KEY", "secret": "STRIPE_SECRET_KEY",
+                 "projectId": p["PROJECT_NUMBER"], "version": "latest"}
+        self.assertEqual(p["stripe_attachment"]({"secretEnvironmentVariables": [entry]})["status"], "VERIFIED")
+        self.assertEqual(p["stripe_attachment"]({"secretEnvironmentVariables": [
+            {**entry, "projectId": "other-project"}]})["status"], "MISMATCH")
+
+    def test_cloud_run_inline_env_values_and_signed_urls_are_redacted(self):
+        data = p["redact"]({"env": [{"name": "PRIVATE", "value": "fixture-sensitive"}],
+                            "sourceUploadUrl": "fixture-signed-url"})
+        self.assertNotIn("fixture-sensitive", str(data))
+        self.assertNotIn("fixture-signed-url", str(data))
+        self.assertEqual(data["env"][0]["name"], "PRIVATE")
+
     def test_workflow_scope(self):
         workflow = (Path(__file__).parents[2] / ".github/workflows/staging-exact-sha-release.yml").read_text()
         job = workflow.split("\n  pr606-readonly-preflight:\n", 1)[1]
         self.assertIn("environment: staging", job)
         self.assertIn(p["SHA"], job)
         self.assertIn("sandman-practice-deployer@", job)
+        artifact_paths = job.split("          path: |", 1)[1].split("          retention-days:", 1)[0]
+        self.assertEqual(len(artifact_paths.split()), 5)
+        self.assertTrue(all(path.startswith("evidence/pr606/") and path.endswith(".json") and "*" not in path
+                            for path in artifact_paths.split()))
+        self.assertNotIn(".write_bytes(", Path(__file__).with_name("pr606-readonly-preflight.py").read_text())
         self.assertNotRegex(job, r"\bgcloud .*\b(deploy|update|delete)\b")
         self.assertEqual(set(p["FUNCTIONS"]), {"sendEnrollmentIntakeEmail",
                          "sendProposalPrepaidCashReceipt", "recordManualEnrollmentIntakeDelivery"})

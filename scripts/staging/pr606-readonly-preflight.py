@@ -20,6 +20,7 @@ TARGET = "/intake-management/management.intake.js"
 ASSET_SHA = "9b2fe1df706bbba1ad13bfe8cd37e13ee137b1c8f7c692f6290bf57bd61d10e2"
 FUNCTIONS = {"sendEnrollmentIntakeEmail": 1, "sendProposalPrepaidCashReceipt": 2,
              "recordManualEnrollmentIntakeDelivery": 1}
+PROJECT_NUMBER = "991554514268"
 RUNTIME = f"sandman-billing-runtime@{PROJECT}.iam.gserviceaccount.com"
 REPO = "raulsandoval81-maker/SandmanSystem"
 WORKFLOW = f"{REPO}/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
@@ -104,7 +105,10 @@ def source_archive(name, generation, record, token):
         require(parsed.scheme == "https" and parsed.port in (None, 443) and not parsed.username
                 and (parsed.hostname == "storage.googleapis.com" or
                      (parsed.hostname or "").endswith(".storage.googleapis.com")), "Unexpected signed source host")
-        return read(f"{name} signed archive download", url)
+        return read(f"{name} signed archive download", url), {
+            "function": f"projects/{PROJECT}/locations/{REGION}/functions/{name}",
+            "versionId": version,
+        }
 
     storage = record.get("buildConfig", {}).get("sourceProvenance", {}).get("resolvedStorageSource", {})
     bucket, obj, version = (str(storage.get(k, "")) for k in ("bucket", "object", "generation"))
@@ -112,7 +116,9 @@ def source_archive(name, generation, record, token):
             and obj == f"{name}/function-source.zip" and version.isdigit(), f"{name}: immutable Gen2 source generation missing")
     escaped = urllib.parse.quote(obj, safe="")
     url = f"https://storage.googleapis.com/storage/v1/b/{urllib.parse.quote(bucket, safe='')}/o/{escaped}?alt=media&generation={version}"
-    return read(f"{name} storage.objects.get for pinned generation", url, token)
+    return read(f"{name} storage.objects.get for pinned generation", url, token), {
+        "bucket": bucket, "object": obj, "generation": version,
+    }
 
 
 def archive_evidence(archive):
@@ -128,6 +134,19 @@ def stripe_test_key(payload):
     require(bool(re.fullmatch(rb"(?:sk|rk)_test_[A-Za-z0-9_]+", payload)),
             "Existing Stripe credential does not have a verified test-mode key format")
 
+
+
+def stripe_attachment(runtime):
+    entries = [item for item in runtime.get("secretEnvironmentVariables", [])
+               if item.get("key") == "STRIPE_SECRET_KEY"]
+    if not entries:
+        return {"status": "MISSING"}
+    valid = len(entries) == 1 and entries[0].get("secret") == "STRIPE_SECRET_KEY" \
+        and str(entries[0].get("projectId")) in (PROJECT, PROJECT_NUMBER) \
+        and entries[0].get("version") == "latest"
+    return {"status": "VERIFIED" if valid else "MISMATCH",
+            "attachments": [{key: item.get(key) for key in ("key", "secret", "projectId", "version")}
+                            for item in entries]}
 
 def hosting(get, candidate):
     base = f"https://firebasehosting.googleapis.com/v1beta1/{SITE}"
@@ -195,6 +214,7 @@ def main():
             runtime = record if generation == 1 else record.get("serviceConfig", {})
             if name == "sendEnrollmentIntakeEmail":
                 require(runtime.get("serviceAccountEmail") == RUNTIME, "Intake runtime identity changed")
+                result["stripeAttachment"] = stripe_attachment(runtime)
             policies = {"functions": get(f"{name} Functions IAM policy", endpoint + ":getIamPolicy")}
             if generation == 2:
                 service = runtime.get("service", "")
@@ -204,10 +224,10 @@ def main():
                 policies["run"] = get(f"{name} Cloud Run service", run)
                 policies["runIam"] = get(f"{name} Cloud Run IAM policy", run + ":getIamPolicy")
             save(f"{name}-configuration.json", redact({"function": record, "transport": policies}))
-            archive = source_archive(name, generation, record, token)
-            result["functions"][name] = archive_evidence(archive)
+            archive, recovery = source_archive(name, generation, record, token)
+            result["functions"][name] = {**archive_evidence(archive), "recovery": recovery}
+            del archive
             require(get(f"{name} recheck configuration", endpoint) == record, f"{name}: configuration changed during capture")
-            (root / f"{name}-rollback.zip").write_bytes(archive)
 
         save("hosting.json", hosting(get, asset))
         runtime_token = command("Impersonate billing runtime (iam.serviceAccounts.getAccessToken)",
@@ -218,6 +238,8 @@ def main():
                                  runtime_token))
         stripe_test_key(base64.b64decode(secret["payload"]["data"], validate=True))
         result["stripeCredential"] = {"runtime": RUNTIME, "effectiveAccess": True, "testKeyFormat": True}
+        require(result["stripeAttachment"]["status"] == "VERIFIED",
+                "Intake Stripe secret attachment is missing or differs from the expected staging attachment")
         result["status"] = "PASS"
     except (RuntimeError, OSError, ValueError, KeyError, subprocess.SubprocessError) as exc:
         result["blocker"] = str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__

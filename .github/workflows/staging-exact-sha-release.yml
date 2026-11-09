@@ -3732,6 +3732,11 @@ jobs:
         if: always()
         with:
           name: pr606-readonly-preflight-${{ github.run_id }}
-          path: evidence/pr606/
+          path: |
+            evidence/pr606/summary.json
+            evidence/pr606/hosting.json
+            evidence/pr606/sendEnrollmentIntakeEmail-configuration.json
+            evidence/pr606/sendProposalPrepaidCashReceipt-configuration.json
+            evidence/pr606/recordManualEnrollmentIntakeDelivery-configuration.json
           retention-days: 7
           if-no-files-found: warn
