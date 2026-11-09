@@ -1,0 +1,105 @@
+name: Production Management read-only inventory
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: "Type sandmandashboard"
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sandman-production-management-inventory
+  cancel-in-progress: false
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 15
+    steps:
+      - name: Check explicit production project
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: test "$CONFIRM_PROJECT" = "sandmandashboard"
+      - name: Authenticate read-only inventory
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Gather sanitized immutable production baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gcloud functions list --project=sandmandashboard --regions=us-central1 --format=json > "$RUNNER_TEMP/functions.json"
+          gcloud run services list --project=sandmandashboard --region=us-central1 --format=json > "$RUNNER_TEMP/services.json"
+          python3 - "$RUNNER_TEMP/functions.json" "$RUNNER_TEMP/services.json" <<'PY'
+          import json,sys,subprocess,urllib.request,urllib.parse,hashlib,pathlib
+          out=pathlib.Path("evidence")
+          project="sandmandashboard"
+          site="sandman-main"
+          def digest(data):return hashlib.sha256(data).hexdigest()
+          def get_token():
+              return subprocess.check_output(["gcloud","auth","print-access-token"],text=True).strip()
+          token=get_token()
+          def get(path):
+              req=urllib.request.Request("https://firebasehosting.googleapis.com/v1beta1/"+path,
+                headers={"Authorization":"Bearer "+token})
+              with urllib.request.urlopen(req,timeout=40) as res:
+                  return json.load(res)
+          releases=get("sites/"+site+"/releases?pageSize=1").get("releases",[])
+          if len(releases)!=1:raise SystemExit("BLOCKED: no unique active Hosting release")
+          version=releases[0].get("version",{})
+          version_name=version.get("name","")
+          if not version_name.startswith("sites/"+site+"/versions/"):
+              raise SystemExit("BLOCKED: unexpected Hosting version")
+          files={}
+          next_page=""
+          while True:
+              suffix="?pageSize=1000"+("&pageToken="+urllib.parse.quote(next_page) if next_page else "")
+              data=get(version_name+"/files"+suffix)
+              for item in data.get("files",[]):
+                  path=item.get("path","")
+                  if not path.startswith("/") or path in files or not item.get("hash"):
+                      raise SystemExit("BLOCKED: invalid or repeated Hosting manifest path")
+                  files[path]=item["hash"]
+              next_page=data.get("nextPageToken","")
+              if not next_page:break
+          if len(files)<100:raise SystemExit("BLOCKED: unexpectedly small Hosting manifest")
+          def narrow_fn(f):
+              b=f.get("buildConfig") or {}
+              s=f.get("serviceConfig") or {}
+              return {"name":f.get("name"),"state":f.get("state"),"environment":f.get("environment"),
+                "updateTime":f.get("updateTime"),"runtime":b.get("runtime"),"entryPoint":b.get("entryPoint"),
+                "source":b.get("source"),"serviceAccountEmail":s.get("serviceAccountEmail"),
+                "uri":s.get("uri"),"revision":s.get("revision")}
+          def narrow_service(s):
+              spec=s.get("spec") or {}
+              status=s.get("status") or {}
+              meta=s.get("metadata") or {}
+              return {"name":meta.get("name") or s.get("name"),"generation":meta.get("generation"),
+                "latestReadyRevisionName":status.get("latestReadyRevisionName"),
+                "latestCreatedRevisionName":status.get("latestCreatedRevisionName"),
+                "traffic":[{"revisionName":t.get("revisionName"),"percent":t.get("percent")} for t in status.get("traffic",[])],
+                "serviceAccountName":(spec.get("template") or {}).get("spec",{}).get("serviceAccountName")}
+          functions=[narrow_fn(f) for f in json.load(open(sys.argv[1]))]
+          services=[narrow_service(s) for s in json.load(open(sys.argv[2]))]
+          manifest=dict(sorted(files.items()))
+          full={"project":project,"site":site,"releaseName":releases[0].get("name"),
+                "versionName":version_name,"versionStatus":version.get("status"),
+                "hostingConfigSha256":digest(json.dumps(version.get("config",{}),sort_keys=True).encode()),
+                "manifest":manifest,"functions":functions,"cloudRunServices":services}
+          (out/"inventory.json").write_text(json.dumps(full,sort_keys=True,indent=2)+"\n")
+          summary={"project":project,"hostingVersion":version_name,"hostingFileCount":len(files),
+                   "manifestSha256":digest(json.dumps(manifest,sort_keys=True).encode()),
+                   "functions":len(functions),"services":len(services)}
+          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
+          print("READ_ONLY_INVENTORY_PASS",json.dumps(summary))
+          PY
+      - name: Upload sanitized read-only baseline
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: management-production-inventory
+          path: evidence/
+          retention-days: 7
+          if-no-files-found: error
