@@ -1,5 +1,4 @@
-import { cashReceiptDetails, stripeReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
-import { getStripe, STRIPE_SECRET_KEY } from "../billing/stripeClient";
+import { cashReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
 import { isOperationalPaidProposal, enrollmentIntakeBaseUrl } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
@@ -55,7 +54,7 @@ function intakeUrl(
 export const sendEnrollmentIntakeEmail =
   functions
     .runWith({
-      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST, STRIPE_SECRET_KEY]
+      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST]
     })
     .https
     .onCall(async (data, context) => {
@@ -247,11 +246,13 @@ export const sendEnrollmentIntakeEmail =
       }
 
       if (data?.combinedReceipt === true) {
-        if (cash && !overrideEmail) {
+        if (!cash) {
+          throw new functions.https.HttpsError("failed-precondition", "Stripe uses its existing receipt and separate Intake invitation.");
+        }
+        if (!overrideEmail) {
           throw new functions.https.HttpsError("invalid-argument", "Confirm the Cash/Check receipt recipient first.");
         }
-        const payment = cash ? cashReceiptDetails(proposal) : stripeReceiptDetails(
-          proposal, await getStripe().checkout.sessions.retrieve(clean(proposal.stripeCheckoutSessionId)), proposalId);
+        const payment = cashReceiptDetails(proposal);
         const url = intakeUrl(tokenId, clean(token.intakeAudience));
         const result = await sendCombinedEnrollmentReceipt({
           db, proposalId, tokenId, recipient, uid: context.auth.uid, proposal, token, payment, url,
@@ -271,8 +272,8 @@ export const sendEnrollmentIntakeEmail =
       }
 
       const twoC = data?.twoC === true;
-      if (!twoC || !cash) {
-        throw new functions.https.HttpsError("failed-precondition", "Use the combined receipt action. Standalone email is available for Cash/Check receipt recovery.");
+      if (cash && !twoC) {
+        throw new functions.https.HttpsError("failed-precondition", "Use the combined Cash/Check receipt action; standalone Intake is reserved for accepted-receipt recovery.");
       }
       if (twoC) {
         if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
