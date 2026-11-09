@@ -1,3 +1,4 @@
+import { requireVerifiedCashCheckIntakePayment } from "./enrollment/requireVerifiedCashCheckIntakePayment";
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
@@ -786,6 +787,7 @@ const safePriorExperienceValidation =
 
           const intakeData =
             intakeSnap.data() || {};
+          await requireVerifiedCashCheckIntakePayment(db, tx, intakeData);
 
           const existingStatus =
             String(intakeData.status || "")
@@ -1216,6 +1218,10 @@ const safePriorExperienceValidation =
       }
 
       const intakeData = intakeSnap.data() || {};
+      const cashCheck = await requireVerifiedCashCheckIntakePayment(db, tx, intakeData);
+      if (cashCheck && intakeData.cashCheckMintedAthleteUid && intakeData.status !== "approved") {
+        throw new HttpsError("already-exists", "This Cash/Check Intake already has a minted athlete.");
+      }
 
       const onboardingRelationship =
         onboardingRelationshipFields(

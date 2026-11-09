@@ -1,3 +1,4 @@
+import { requireVerifiedCashCheckIntakePayment } from "../enrollment/requireVerifiedCashCheckIntakePayment";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { MANAGEMENT_STAFF_ROLES, requireActiveStaff, requireStaffLocation } from "../services/staffAuthorization";
@@ -48,11 +49,20 @@ export const createAthleteFromIntakeCall = onCall(async (req) => {
 
   const athleteRef = db.collection("athletes").doc(mint.uid);
   await db.runTransaction(async (tx) => {
+    const latest = await tx.get(intakeSnap.ref);
+    if (!latest.exists) throw new HttpsError("not-found", "Intake not found.");
+    const current = latest.data() || {};
+    requireStaffLocation(actor, current.locationId, "This intake is outside your authorized location scope.");
+    const cashCheck = await requireVerifiedCashCheckIntakePayment(db, tx, current);
+    if (cashCheck && (current.cashCheckMintedAthleteUid || current.approvedUid)) {
+      throw new HttpsError("already-exists", "This Cash/Check Intake already has a minted athlete.");
+    }
     const existing = await tx.get(athleteRef);
     if (existing.exists) {
       throw new HttpsError("already-exists", "Athlete record already exists.");
     }
     tx.create(athleteRef, athleteData);
+    if (cashCheck) tx.update(latest.ref, { cashCheckMintedAthleteUid: mint.uid });
   });
 
   return { athlete: athleteData };

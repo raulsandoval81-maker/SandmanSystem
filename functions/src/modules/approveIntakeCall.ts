@@ -1,3 +1,4 @@
+import { requireVerifiedCashCheckIntakePayment } from "../enrollment/requireVerifiedCashCheckIntakePayment";
 import {
   onCall,
   HttpsError,
@@ -72,14 +73,21 @@ export const approveIntakeCall = onCall(async (req) => {
     }
   }
 
-  await intakeRef.update({
-    status: "approved",
-    approvedUid,
-    approvedAt: FieldValue.serverTimestamp(),
-    note: note || null,
-    linkedParentUid: parentUid || null,
-    parentLinked: !!parentUid,
-    updatedAt: FieldValue.serverTimestamp(),
+  await db.runTransaction(async (tx) => {
+    const latest = await tx.get(intakeRef);
+    if (!latest.exists) throw new HttpsError("not-found", "Intake not found.");
+    const current = latest.data() || {};
+    requireStaffLocation(actor, current.locationId, "This intake is outside your authorized location scope.");
+    await requireVerifiedCashCheckIntakePayment(db, tx, current);
+    tx.update(intakeRef, {
+      status: "approved",
+      approvedUid,
+      approvedAt: FieldValue.serverTimestamp(),
+      note: note || null,
+      linkedParentUid: parentUid || null,
+      parentLinked: !!parentUid,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
   });
 
   if (parentUid) {
