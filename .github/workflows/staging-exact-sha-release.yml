@@ -3767,7 +3767,7 @@ jobs:
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
       EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
-      CANDIDATE_PACKAGE: ${{ runner.temp }}/pr606-source.zip
+      CANDIDATE_PACKAGE: /tmp/pr606-source.zip
     steps:
       - uses: actions/checkout@v4
         with:
