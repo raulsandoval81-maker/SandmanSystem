@@ -3721,12 +3721,21 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
           export_environment_variables: true
+      - uses: google-github-actions/auth@v3
+        id: hosting-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: false
       - uses: google-github-actions/setup-gcloud@v3
       - name: Capture staging rollback and test credential evidence read-only
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
           REQUESTED_ACTION: pr606-readonly-preflight
+          HOSTING_CREDENTIALS_FILE: ${{ steps.hosting-auth.outputs.credentials_file_path }}
         run: python3 scripts/staging/pr606-readonly-preflight.py
       - uses: actions/upload-artifact@v4
         if: always()
