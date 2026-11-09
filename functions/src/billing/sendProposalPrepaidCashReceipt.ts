@@ -67,6 +67,7 @@ export const sendProposalPrepaidCashReceipt = onCall(
         requestedAt: recorded.requestedAt?.toMillis?.() || null,
         sentAt: recorded.sentAt?.toMillis?.() || null,
         resolvedAt: recorded.resolvedAt?.toMillis?.() || null,
+        combined: Boolean(recorded.combinedAttempt),
       };
     }
     if (mode === "confirm_sent" || mode === "confirm_not_sent") {
@@ -84,7 +85,7 @@ export const sendProposalPrepaidCashReceipt = onCall(
       return db.runTransaction(async tx => {
         const previous = await tx.get(receiptRef);
         const record = previous.data() || {};
-        if (record.status !== "SENDING") {
+        if (record.combinedAttempt || record.status !== "SENDING") {
           throw new HttpsError("failed-precondition", "Only an uncertain SENDING receipt may be manually resolved.");
         }
         const resolvedStatus = mode === "confirm_sent" ? "SENT" : "FAILED";
@@ -158,7 +159,7 @@ export const sendProposalPrepaidCashReceipt = onCall(
       if (current.status === "SENT") {
         return { status: "SENT" as const, recipient: clean(current.recipient) };
       }
-      if (current.status === "SENDING") {
+      if (current.combinedAttempt || current.status === "SENDING") {
         throw new HttpsError("failed-precondition", "Receipt send is pending. Check delivery before retrying.");
       }
       if (previous.exists && current.status !== "FAILED") {

@@ -1,3 +1,5 @@
+import { cashReceiptDetails, stripeReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
+import { getStripe, STRIPE_SECRET_KEY } from "../billing/stripeClient";
 import { isOperationalPaidProposal, enrollmentIntakeBaseUrl } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
@@ -53,7 +55,7 @@ function intakeUrl(
 export const sendEnrollmentIntakeEmail =
   functions
     .runWith({
-      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST]
+      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST, STRIPE_SECRET_KEY]
     })
     .https
     .onCall(async (data, context) => {
@@ -106,7 +108,7 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
-      if (token.used === true) {
+      if (token.used === true && data?.twoCRecovery !== true) {
         throw new functions.https.HttpsError(
           "failed-precondition",
           "This intake has already been submitted."
@@ -118,7 +120,7 @@ export const sendEnrollmentIntakeEmail =
         clean(token.deliveryStatus).toUpperCase() === "SENT";
 
       if (
-        alreadySent &&
+        data?.twoCRecovery !== true && alreadySent &&
         existingExp &&
         existingExp < Date.now()
       ) {
@@ -164,10 +166,10 @@ export const sendEnrollmentIntakeEmail =
 
       const attachedEmail = normalizeEmail(token.prefill?.email);
       const overrideEmail = normalizeEmail(data?.recipientEmail);
-      const recipient = overrideEmail || attachedEmail;
+      const recipient = data?.twoCRecovery === true ? normalizeEmail(token.twoCEmailRecipient) : overrideEmail || attachedEmail;
 
       if (
-        !recipient ||
+        !recipient || recipient.endsWith(".invalid") ||
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)
       ) {
         throw new functions.https.HttpsError(
@@ -195,8 +197,10 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
+      const cash = clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid";
+      const receiptRef = db.doc(`proposals/${proposalId}/delivery/${cash ? "cash_check_receipt" : "stripe_enrollment_receipt"}`);
       if (data?.twoCRecovery === true) {
-        if (actor.role !== "admin" || clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
+        if (!["admin", "system_admin"].includes(actor.role) || (!cash && !token.combinedAttempt)) {
           throw new functions.https.HttpsError("permission-denied", "2C Intake recovery requires System Admin authority.");
         }
         const action = clean(data?.resolution);
@@ -210,10 +214,15 @@ export const sendEnrollmentIntakeEmail =
           throw new functions.https.HttpsError("invalid-argument", "Exact confirmation and provider evidence are required.");
         }
         const newStatus = action === "confirm_sent" ? "SENT" : "FAILED";
+        if (token.combinedAttempt) {
+          await finishCombinedDelivery({db, proposalId, tokenId, receiptRef, attempt: token.combinedAttempt,
+            recipient, uid: context.auth.uid, providerId, accepted: newStatus === "SENT", evidence});
+          return {ok: true, status: newStatus, tokenId, proposalId};
+        }
         const historyRef = db.collection("proposals").doc(proposalId).collection("history").doc();
         await db.runTransaction(async tx => {
           const latest = (await tx.get(tokenRef)).data() || {};
-          if (latest.used === true || clean(latest.twoCEmailStatus) !== "SENDING") {
+          if (latest.combinedAttempt || latest.used === true || clean(latest.twoCEmailStatus) !== "SENDING") {
             throw new functions.https.HttpsError("failed-precondition", "Only unresolved 2C Intake sends may be reconciled.");
           }
           tx.update(tokenRef, {
@@ -237,7 +246,34 @@ export const sendEnrollmentIntakeEmail =
         return {ok:true,status:newStatus,tokenId,proposalId};
       }
 
+      if (data?.combinedReceipt === true) {
+        if (cash && !overrideEmail) {
+          throw new functions.https.HttpsError("invalid-argument", "Confirm the Cash/Check receipt recipient first.");
+        }
+        const payment = cash ? cashReceiptDetails(proposal) : stripeReceiptDetails(
+          proposal, await getStripe().checkout.sessions.retrieve(clean(proposal.stripeCheckoutSessionId)), proposalId);
+        const url = intakeUrl(tokenId, clean(token.intakeAudience));
+        const result = await sendCombinedEnrollmentReceipt({
+          db, proposalId, tokenId, recipient, uid: context.auth.uid, proposal, token, payment, url,
+          send: async (lines, link) => {
+            const delivery = await getResendClient().emails.send({
+              from: "Sandman Combat <join@sandmancombat.com>", replyTo: "joinsandmancombat@gmail.com", to: recipient,
+              subject: `Sandman payment receipt — ${proposalId}`,
+              text: [...lines, "", `Complete Enrollment: ${link}`, "This secure link is valid for 48 hours."].join("\n"),
+              html: `<h1>Payment receipt</h1>${lines.map(line => `<p>${escapeHtml(line)}</p>`).join("")}<p><a style="display:inline-block;padding:12px 20px;background:#facc15;color:#111;border-radius:8px;text-decoration:none;font-weight:bold" href="${escapeHtml(link)}">Complete Enrollment</a></p><p>This secure link is valid for 48 hours.</p>`,
+            });
+            return delivery.error
+              ? {rejected: ["validation_error", "invalid_parameter", "missing_required_field", "invalid_from_address", "invalid_to_address"].includes(delivery.error.name)}
+              : {providerId: clean(delivery.data?.id)};
+          },
+        });
+        return {...result, proposalId, tokenId, intakeAudience: clean(token.intakeAudience)};
+      }
+
       const twoC = data?.twoC === true;
+      if (!twoC || !cash) {
+        throw new functions.https.HttpsError("failed-precondition", "Use the combined receipt action. Standalone email is available for Cash/Check receipt recovery.");
+      }
       if (twoC) {
         if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid") {
           throw new functions.https.HttpsError("failed-precondition", "2C Intake requires a recorded cash/check payment.");
@@ -247,6 +283,11 @@ export const sendEnrollmentIntakeEmail =
           throw new functions.https.HttpsError("failed-precondition", "A provider-accepted receipt for this recipient is required before 2C Intake.");
         }
         const gate = await db.runTransaction(async tx => {
+          const latestReceipt = (await tx.get(receiptRef)).data() || {};
+          if (latestReceipt.status !== "SENT" || latestReceipt.combinedAttempt ||
+              normalizeEmail(latestReceipt.recipient) !== recipient) {
+            throw new functions.https.HttpsError("failed-precondition", "Standalone Intake requires a separate accepted receipt for this recipient.");
+          }
           const latest = (await tx.get(tokenRef)).data() || {};
           if (latest.used === true) throw new functions.https.HttpsError("failed-precondition", "Intake already submitted.");
           if (clean(latest.deliveryStatus).toUpperCase() === "SENT") {
