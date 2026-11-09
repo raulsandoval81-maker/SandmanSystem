@@ -132,6 +132,7 @@ on:
           - pr603-hosting-inventory
           - pr603-hosting-deploy
           - pr606-readonly-preflight
+          - pr606-staging-cash-check-deploy
           - pr600-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
@@ -3749,3 +3750,66 @@ jobs:
             evidence/pr606/recordManualEnrollmentIntakeDelivery-configuration.json
           retention-days: 7
           if-no-files-found: warn
+
+  pr606-staging-cash-check-deploy:
+    if: ${{ inputs.action == 'pr606-staging-cash-check-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    concurrency: sandman-staging-hosting
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REQUESTED_ACTION: ${{ inputs.action }}
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+      DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+      EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+      EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+      CANDIDATE_PACKAGE: ${{ runner.temp }}/pr606-source.zip
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify exact approval and test release guards
+        run: |
+          python3 scripts/staging/test-pr606-cash-check-deploy.py
+          python3 scripts/staging/pr606-cash-check-deploy.py --guard-only
+      - uses: actions/checkout@v4
+        with:
+          ref: bf043dfc50b72def1ea6202e6a3cbba3fa252c20
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and test pinned application before cloud authentication
+        working-directory: candidate/functions
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run build
+          node --check ../public/intake-management/management.intake.js
+          cd ..
+          node --test functions/tests/combinedEnrollmentReceipt.test.cjs tests/browser/cash-check-enrollment-polish.test.mjs
+      - name: Package only the three callable entry points
+        run: python3 scripts/staging/pr606-cash-check-deploy.py --package
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/auth@v3
+        id: pr606-hosting-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: false
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify live rollback baseline and deploy the four approved targets
+        env:
+          HOSTING_CREDENTIALS_FILE: ${{ steps.pr606-hosting-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/pr606-cash-check-deploy.py
