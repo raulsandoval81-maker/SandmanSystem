@@ -924,6 +924,116 @@ async function recordManualIntakeDelivery({
   return response?.data || {};
 }
 
+// The queue replaces its cards on refresh. Bind the receipt action to the list once.
+function wireReceiptFirstAction(list) {
+  list?.addEventListener("click", async (event) => {
+    const button = event.target?.closest?.("button[data-ready-2c]");
+    if (!button || !list.contains(button)) return;
+    const proposalId = String(button.getAttribute("data-ready-2c") || "").trim();
+    const proposal = readyProposalMap.get(proposalId);
+    if (button.disabled) return;
+    const feedback = button.closest("[data-ready-proposal]")?.querySelector("[data-2c-feedback]");
+    const report = (message) => {
+      if (feedback) feedback.textContent = message;
+      if ($("invite-status")) $("invite-status").textContent = message;
+    };
+    if (!proposal || proposal.paymentMethod !== "cash_prepaid") {
+      report("Cash/Check enrollment is no longer ready. Refresh the enrollment queue.");
+      return;
+    }
+    const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
+      ? proposal.lockedSnapshot.athletes : (proposal.athletes || []);
+    const audience = intakeAudienceForProposal(proposal, athletes);
+    if (!audience) {
+      report("Select a verified Intake audience first.");
+      return;
+    }
+    const prospect = proposal.lockedSnapshot?.prospect || proposal.prospect || {};
+    const initial = audience === "adult_athlete"
+      ? String(athletes[0]?.email || prospect.email || "").trim()
+      : String(prospect.parentEmail || prospect.primaryContactEmail || prospect.email || "").trim();
+    const entered = window.prompt(
+      "Enter the verified email address for the receipt and secure Intake invitation.",
+      initial.toLowerCase().endsWith(".invalid") ? "" : initial
+    );
+    if (entered === null) {
+      report("Canceled before requesting any emails.");
+      return;
+    }
+    const recipientEmail = String(entered).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail) || recipientEmail.endsWith(".invalid")) {
+      report("Enter a verified recipient email. Placeholder addresses cannot receive email.");
+      return;
+    }
+    if (!window.confirm(`Send the Cash/Check receipt and secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
+      report("Canceled before requesting any emails.");
+      return;
+    }
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Checking receipt status…";
+    report("Checking receipt status before sending.");
+    try {
+      let statusBefore;
+      try {
+        statusBefore = await refresh2CReceiptStatus(proposalId);
+      } catch (error) {
+        console.error("[management-enrollment] 2C receipt status unavailable:", error);
+        report("Receipt status unavailable. No emails requested. Refresh Receipt Status before retrying.");
+        return;
+      }
+      if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
+        report("Receipt delivery is uncertain. Verify it with the provider before sending Intake.");
+        return;
+      }
+      if (statusBefore.status === "SENT" && statusBefore.recipient !== recipientEmail) {
+        report("Receipt was previously sent to another recipient. Resolve with Management before continuing.");
+        return;
+      }
+      button.textContent = "Preparing 2C…";
+      currentHandoffTokenId = "";
+      currentHandoffAudience = "";
+      const tokenReady = await generateIntakeInvite(audience, proposal);
+      if (!tokenReady || !currentHandoffTokenId) {
+        throw new Error("Secure Intake token could not be verified. No emails sent.");
+      }
+      const tokenId = currentHandoffTokenId;
+      const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
+      const receiptResult = await receipt({ proposalId, recipientEmail, confirmRecipient: true });
+      if (receiptResult.data?.ok !== true) {
+        throw new Error("Receipt delivery was not confirmed. Intake email not sent.");
+      }
+      if (String(receiptResult.data?.recipient || "").toLowerCase() !== recipientEmail) {
+        throw new Error("Receipt was sent to a different recipient. Resolve the delivery mismatch before sending Intake.");
+      }
+      const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
+      const tokenSnapshot = await getDoc(doc(db, "intakeTokens", tokenId));
+      const delivered = tokenSnapshot.data() || {};
+      if (delivered.deliveryStatus === "SENT") {
+        if (String(delivered.deliveredTo || "").toLowerCase() !== recipientEmail) throw new Error("Intake already sent to another recipient. No duplicate email sent.");
+        await loadReadyForIntake(await requireManagement());
+        report("An Intake delivery is already recorded for this recipient. No duplicate Intake email requested.");
+        return;
+      }
+      const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true, twoC: true });
+      if (intakeResult.data?.ok !== true) {
+        throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
+      }
+      const context = await requireManagement();
+      await loadReadyForIntake(context);
+      setIntakeConfirmation("success");
+      report(`✓ Receipt and secure Intake invitation accepted for ${recipientEmail}.`);
+    } catch (err) {
+      console.error("[management-enrollment] 2C delivery failed:", err);
+      setIntakeConfirmation("error");
+      report(`⚠ ${err?.message || "2C delivery incomplete."} Verify each delivery status before retrying.`);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  });
+}
+
 function wireReadyIntakeButtons() {
   document.querySelectorAll("[data-intake-2c-resolve]").forEach(button => {
     button.addEventListener("click", async () => {
@@ -992,115 +1102,6 @@ function wireReadyIntakeButtons() {
       } finally { button.disabled = false; }
     });
   });
-  // 2C reuses the existing secure token and Intake email sender.
-  // Receipt and invitation have independent persisted delivery status.
-  document.querySelectorAll("[data-ready-2c]").forEach(button => {
-    button.addEventListener("click", async () => {
-      const proposalId = String(button.dataset.ready2c || "").trim();
-      const proposal = readyProposalMap.get(proposalId);
-      if (button.disabled) return;
-      const feedback = button.closest("[data-ready-proposal]")?.querySelector("[data-2c-feedback]");
-      const report = (message) => {
-        if (feedback) feedback.textContent = message;
-        if ($("invite-status")) $("invite-status").textContent = message;
-      };
-      if (!proposal || proposal.paymentMethod !== "cash_prepaid") {
-        report("Cash/Check enrollment is no longer ready. Refresh the enrollment queue.");
-        return;
-      }
-      const athletes = Array.isArray(proposal.lockedSnapshot?.athletes)
-        ? proposal.lockedSnapshot.athletes : (proposal.athletes || []);
-      const audience = intakeAudienceForProposal(proposal, athletes);
-      if (!audience) {
-        report("Select a verified Intake audience first.");
-        return;
-      }
-      const prospect = proposal.lockedSnapshot?.prospect || proposal.prospect || {};
-      const initial = audience === "adult_athlete"
-        ? String(athletes[0]?.email || prospect.email || "").trim()
-        : String(prospect.parentEmail || prospect.primaryContactEmail || prospect.email || "").trim();
-      const entered = window.prompt(
-        "Enter the verified email address for the receipt and secure Intake invitation.",
-        initial.toLowerCase().endsWith(".invalid") ? "" : initial
-      );
-      if (entered === null) {
-        report("Canceled before requesting any emails.");
-        return;
-      }
-      const recipientEmail = String(entered).trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipientEmail) || recipientEmail.endsWith(".invalid")) {
-        report("Enter a verified recipient email. Placeholder addresses cannot receive email.");
-        return;
-      }
-      if (!window.confirm(`Send the Cash/Check receipt and secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
-        report("Canceled before requesting any emails.");
-        return;
-      }
-      const original = button.textContent;
-      button.disabled = true;
-      button.textContent = "Checking receipt status…";
-      report("Checking receipt status before sending.");
-      try {
-        let statusBefore;
-        try {
-          statusBefore = await refresh2CReceiptStatus(proposalId);
-        } catch (error) {
-          console.error("[management-enrollment] 2C receipt status unavailable:", error);
-          report("Receipt status unavailable. No emails requested. Refresh Receipt Status before retrying.");
-          return;
-        }
-        if (statusBefore.status === "SENDING" || statusBefore.status === "UNKNOWN") {
-          report("Receipt delivery is uncertain. Verify it with the provider before sending Intake.");
-          return;
-        }
-        if (statusBefore.status === "SENT" && statusBefore.recipient !== recipientEmail) {
-          report("Receipt was previously sent to another recipient. Resolve with Management before continuing.");
-          return;
-        }
-        button.textContent = "Preparing 2C…";
-        currentHandoffTokenId = "";
-        currentHandoffAudience = "";
-        const tokenReady = await generateIntakeInvite(audience, proposal);
-        if (!tokenReady || !currentHandoffTokenId) {
-          throw new Error("Secure Intake token could not be verified. No emails sent.");
-        }
-        const tokenId = currentHandoffTokenId;
-        const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
-        const receiptResult = await receipt({ proposalId, recipientEmail, confirmRecipient: true });
-        if (receiptResult.data?.ok !== true) {
-          throw new Error("Receipt delivery was not confirmed. Intake email not sent.");
-        }
-        if (String(receiptResult.data?.recipient || "").toLowerCase() !== recipientEmail) {
-          throw new Error("Receipt was sent to a different recipient. Resolve the delivery mismatch before sending Intake.");
-        }
-        const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
-        const tokenSnapshot = await getDoc(doc(db, "intakeTokens", tokenId));
-        const delivered = tokenSnapshot.data() || {};
-        if (delivered.deliveryStatus === "SENT") {
-          if (String(delivered.deliveredTo || "").toLowerCase() !== recipientEmail) throw new Error("Intake already sent to another recipient. No duplicate email sent.");
-          await loadReadyForIntake(await requireManagement());
-          report("An Intake delivery is already recorded for this recipient. No duplicate Intake email requested.");
-          return;
-        }
-        const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true, twoC: true });
-        if (intakeResult.data?.ok !== true) {
-          throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
-        }
-        const context = await requireManagement();
-        await loadReadyForIntake(context);
-        setIntakeConfirmation("success");
-        report(`✓ Receipt and secure Intake invitation accepted for ${recipientEmail}.`);
-      } catch (err) {
-        console.error("[management-enrollment] 2C delivery failed:", err);
-        setIntakeConfirmation("error");
-        report(`⚠ ${err?.message || "2C delivery incomplete."} Verify each delivery status before retrying.`);
-      } finally {
-        button.disabled = false;
-        button.textContent = original;
-      }
-    });
-  });
-
   document.querySelectorAll("[data-ready-mark-text]").forEach((button) => {
     button.addEventListener("click", async () => {
       const proposalId =
@@ -2028,6 +2029,8 @@ $("btn-find-intakes")?.addEventListener("click", async () => {
     loadReadyForIntake(managementContext)
   ]);
 });
+
+wireReceiptFirstAction($("ready-intake-list"));
 
 // Recently Activated is intentionally owned by enrollment-recent.js.
 // This module stops at intake handoff, submitted intake review, and activation.
