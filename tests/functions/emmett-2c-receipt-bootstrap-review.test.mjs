@@ -49,9 +49,23 @@ test('existing receipt tests refuse real credentials', () => {
  assert.match(suite,/FIRESTORE_EMULATOR_HOST/);
  assert.match(suite,/startsWith\("demo-"\)/);
  assert.match(suite,/STRIPE_SECRET_KEY \|\| process\.env\.RESEND_API_KEY/);
- assert.match(suite,/example\.invalid/);
+ assert.match(suite,/example\.test/);
 });
 test('review contract cannot be selected as an approved deployment entry', () => {
  assert.doesNotMatch(trusted,/emmett-2c-receipt-bootstrap-review-only/);
  assert.equal(plan.guards.deploymentAuthorized,false);
+});
+
+test('Cash/Check combined send is isolated from Stripe while both use the same Intake routes', () => {
+ const intake = readFileSync('functions/src/enrollment/sendEnrollmentIntakeEmail.ts','utf8');
+ const management = readFileSync('public/intake-management/management.intake.js','utf8');
+ assert.doesNotMatch(intake,/getStripe|STRIPE_SECRET_KEY|stripeReceiptDetails/);
+ assert.match(intake,/if \(!cash\) \{/);
+ assert.match(intake,/Stripe uses its existing receipt and separate Intake invitation/);
+ assert.match(intake,/const payment = cashReceiptDetails\(proposal\)/);
+ assert.match(intake,/if \(cash && !twoC\)/);
+ assert.match(management,/sendIntake\(\{ tokenId \}\)/);
+ assert.match(management,/\.\.\.\(recoveryOnly \? \{twoC: true\} : \{combinedReceipt: true\}\)/);
+ assert.match(intake,/\/intake-athlete\//);
+ assert.match(intake,/\/intake-parent\//);
 });

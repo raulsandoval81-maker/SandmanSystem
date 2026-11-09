@@ -22,7 +22,7 @@ const idForOffset = (offset) => "P-" + String((Number(suffix) + offset) % 100000
 const id = idForOffset(0);
 const manager = "2c-manager-" + suffix;
 const outsider = "2c-outsider-" + suffix;
-const recipient = "synthetic-receipt@example.invalid";
+const recipient = "synthetic-receipt@example.test";
 const call = (uid, proposalId = id, extra = {}) =>
   sendReceipt.run({auth: {uid, token: {}}, data: {proposalId, ...extra}});
 const receiptRef = db.doc("proposals/" + id + "/delivery/cash_check_receipt");

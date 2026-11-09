@@ -39,7 +39,6 @@ const twoCHandler = enrollment.slice(
 function wireSyntheticSend({
   promptValue = "approved@example.com",
   confirmed = true,
-  intakeDelivery = {},
   receiptStatus = async () => ({status: "NOT_SENT"}),
 } = {}) {
   const events = [];
@@ -79,14 +78,13 @@ function wireSyntheticSend({
       sandbox.currentHandoffTokenId = "synthetic-token";
       return true;
     },
-    httpsCallable: (_functions, name) => async () => {
-      events.push(name);
+    httpsCallable: (_functions, name) => async (payload) => {
+      events.push([name, payload]);
       return {data: {ok: true, recipient: promptValue}};
     },
     functions: {},
     db: {},
     doc: () => ({}),
-    getDoc: async () => ({data: () => intakeDelivery}),
     requireManagement: async () => ({}),
     loadReadyForIntake: async () => {},
     setIntakeConfirmation: () => {},
@@ -136,26 +134,26 @@ test("2C reports pending receipt delivery and leaves the token and email paths u
   }
 });
 
-test("2C requests receipt before Intake after the status gate passes", async () => {
+test("2C requests one combined send after payment status and token checks", async () => {
   const {button, events} = wireSyntheticSend();
   await button.click();
-  assert.deepEqual(events, [
-    ["prompt", ""], "status", "token",
-    "sendProposalPrepaidCashReceipt", "sendEnrollmentIntakeEmail",
-  ]);
+  assert.deepEqual(events.slice(0, 3), [["prompt", ""], "status", "token"]);
+  assert.equal(events.length, 4);
+  assert.equal(events[3][0], "sendEnrollmentIntakeEmail");
+  assert.equal(events[3][1].combinedReceipt, true);
+  assert.equal(events[3][1].tokenId, "synthetic-token");
 });
 
-test("2C skips an Intake email already recorded for the confirmed recipient", async () => {
-  const {button, events, handoffStatus} = wireSyntheticSend({
-    intakeDelivery: {deliveryStatus: "SENT", deliveredTo: "approved@example.com"},
+test("2C uses only standalone Intake recovery after a separate accepted receipt", async () => {
+  const {button, events} = wireSyntheticSend({
+    receiptStatus: async () => ({status: "SENT", recipient: "approved@example.com"}),
   });
   await button.click();
-  assert.deepEqual(events, [
-    ["prompt", ""], "status", "token", "sendProposalPrepaidCashReceipt",
-  ]);
-  assert.match(handoffStatus.textContent, /Intake delivery is already recorded/);
+  assert.equal(events.length, 4);
+  assert.equal(events[3][0], "sendEnrollmentIntakeEmail");
+  assert.equal(events[3][1].twoC, true);
+  assert.equal(events[3][1].combinedReceipt, undefined);
 });
-
 
 test("2C delegated click still prompts once after the queue replaces the button", async () => {
   const {button, events, refresh} = wireSyntheticSend({confirmed: false});

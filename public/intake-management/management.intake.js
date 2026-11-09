@@ -736,12 +736,12 @@ function renderReadyIntakeCard(proposal) {
         </div>
       </div>
       <div class="pending-card-actions">
+        ${twoCIntake?.twoCEmailStatus === "SENDING" ? `<button class="small outline-blue" type="button" data-intake-2c-resolve="${esc(proposalId)}">System Admin: Resolve Pending Intake Email</button>` : ""}
         ${receiptState ? `
           <div class="pending-card-meta small">2C · ${esc(receiptState.label)}${esc(receiptState.recipient)}</div>
           <div class="pending-card-meta small">${esc(twoCIntakeStatusText(proposalId))}</div>
-          ${twoCIntake?.twoCEmailStatus === "SENDING" ? `<button class="small outline-blue" type="button" data-intake-2c-resolve="${esc(proposalId)}">System Admin: Resolve Pending Intake Email</button>` : ""}
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
-          ${receiptState.status === "SENDING" ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
+          ${receiptState.status === "SENDING" && !twoCIntake?.combinedAttempt ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
             Send Receipt & Intake Email
           </button>
@@ -965,7 +965,7 @@ function wireReceiptFirstAction(list) {
       report("Enter a verified recipient email. Placeholder addresses cannot receive email.");
       return;
     }
-    if (!window.confirm(`Send the Cash/Check receipt and secure ${audience === "adult_athlete" ? "adult" : "parent"} Intake invitation for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
+    if (!window.confirm(`Send the Cash/Check receipt with the secure ${audience === "adult_athlete" ? "adult" : "parent"} enrollment link for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
       report("Canceled before requesting any emails.");
       return;
     }
@@ -998,31 +998,17 @@ function wireReceiptFirstAction(list) {
         throw new Error("Secure Intake token could not be verified. No emails sent.");
       }
       const tokenId = currentHandoffTokenId;
-      const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
-      const receiptResult = await receipt({ proposalId, recipientEmail, confirmRecipient: true });
-      if (receiptResult.data?.ok !== true) {
-        throw new Error("Receipt delivery was not confirmed. Intake email not sent.");
-      }
-      if (String(receiptResult.data?.recipient || "").toLowerCase() !== recipientEmail) {
-        throw new Error("Receipt was sent to a different recipient. Resolve the delivery mismatch before sending Intake.");
-      }
       const sendIntake = httpsCallable(functions, "sendEnrollmentIntakeEmail");
-      const tokenSnapshot = await getDoc(doc(db, "intakeTokens", tokenId));
-      const delivered = tokenSnapshot.data() || {};
-      if (delivered.deliveryStatus === "SENT") {
-        if (String(delivered.deliveredTo || "").toLowerCase() !== recipientEmail) throw new Error("Intake already sent to another recipient. No duplicate email sent.");
-        await loadReadyForIntake(await requireManagement());
-        report("An Intake delivery is already recorded for this recipient. No duplicate Intake email requested.");
-        return;
-      }
-      const intakeResult = await sendIntake({ tokenId, recipientEmail, confirmRecipient: true, twoC: true });
-      if (intakeResult.data?.ok !== true) {
-        throw new Error("Receipt confirmed, but the Intake email was not confirmed. Retry 2C without re-recording payment.");
-      }
+      const recoveryOnly = statusBefore.status === "SENT" && !statusBefore.combined;
+      const result = await sendIntake({
+        tokenId, recipientEmail, confirmRecipient: true,
+        ...(recoveryOnly ? {twoC: true} : {combinedReceipt: true}),
+      });
+      if (result.data?.ok !== true) throw new Error("Delivery was not confirmed. Check delivery status before retrying.");
       const context = await requireManagement();
       await loadReadyForIntake(context);
       setIntakeConfirmation("success");
-      report(`✓ Receipt and secure Intake invitation accepted for ${recipientEmail}.`);
+      report(`✓ ${recoveryOnly ? "Standalone Intake invitation" : "Receipt with Complete Enrollment link"} accepted for ${recipientEmail}.`);
     } catch (err) {
       console.error("[management-enrollment] 2C delivery failed:", err);
       setIntakeConfirmation("error");
@@ -1040,7 +1026,7 @@ function wireReadyIntakeButtons() {
       const proposalId = String(button.dataset.intake2cResolve || "").trim();
       const state = twoCIntakeStatuses.get(proposalId);
       if (state?.twoCEmailStatus !== "SENDING" || !state.tokenId) return;
-      const resolution = window.prompt("System Admin Intake recovery: type ACCEPTED or NOT_ACCEPTED based on verified provider evidence.");
+      const resolution = window.prompt("System Admin delivery recovery: type ACCEPTED or NOT_ACCEPTED based on verified provider evidence.");
       if (!["ACCEPTED", "NOT_ACCEPTED"].includes(resolution || "")) return;
       const providerId = resolution === "ACCEPTED" ? window.prompt("Enter the exact provider acceptance ID:") : "";
       if (resolution === "ACCEPTED" && !providerId?.trim()) return;
@@ -1348,14 +1334,16 @@ async function loadReadyForIntake(managementContext) {
   const queueItems =
     readinessChecks.filter(Boolean);
 
-  await Promise.all(queueItems.filter(item => item.proposal?.paymentMethod === "cash_prepaid").map(async item => {
+  await Promise.all(queueItems.map(async item => {
     const proposalId = String(item.proposal.proposalId || item.proposal.id || "").trim();
-    try { await refresh2CReceiptStatus(proposalId); }
-    catch { twoCReceiptStatuses.set(proposalId, {status:"UNKNOWN"}); }
+    if (item.proposal?.paymentMethod === "cash_prepaid") {
+      try { await refresh2CReceiptStatus(proposalId); }
+      catch { twoCReceiptStatuses.set(proposalId, {status:"UNKNOWN"}); }
+    }
     try {
       const tokenId = String(item.handoff?.tokenId || "").trim();
       const token = tokenId ? (await getDoc(doc(db, "intakeTokens", tokenId))).data() || {} : {};
-      twoCIntakeStatuses.set(proposalId, {tokenId, twoCEmailStatus:token.twoCEmailStatus || "",deliveryStatus:token.deliveryStatus || "",recipient:token.deliveredTo || ""});
+      twoCIntakeStatuses.set(proposalId, {tokenId, combinedAttempt:token.combinedAttempt, twoCEmailStatus:token.twoCEmailStatus || "",deliveryStatus:token.deliveryStatus || "",recipient:token.deliveredTo || ""});
     } catch {
       twoCIntakeStatuses.set(proposalId, {tokenId:"",twoCEmailStatus:"UNKNOWN"});
     }
@@ -1793,7 +1781,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
       !window.confirm(
         "Sandman already recorded this Intake email as sent" +
         (existingStatus.deliveredTo ? " to " + existingStatus.deliveredTo : "") +
-        ". Send it again?"
+        ". Check the recorded delivery before continuing?"
       )) {
     return;
   }
@@ -1839,7 +1827,7 @@ $("btn-send-intake-email")?.addEventListener("click", async () => {
       response = await sendIntake({
         tokenId,
         recipientEmail,
-        confirmRecipient: true
+        confirmRecipient: true,
       });
     }
 

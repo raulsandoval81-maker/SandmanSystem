@@ -30,7 +30,7 @@ export const recordManualEnrollmentIntakeDelivery =
     }
 
     const actor = await requireActiveStaff(
-      context.auth.uid,
+      context.auth!.uid,
       MANAGEMENT_STAFF_ROLES,
       "Active Management access is required."
     );
@@ -176,41 +176,52 @@ export const recordManualEnrollmentIntakeDelivery =
     const now =
       FieldValue.serverTimestamp();
 
-    await tokenRef.set(
-      {
-        deliveryStatus: "SENT",
-        deliveryMethod: method,
-        exp,
-        deliveredAt: now,
-        deliveredTo,
-        deliveredByUid: context.auth.uid,
-        manualDelivery: true,
-        manualDeliveryNote: note || null,
-        updatedAt: now,
-      },
-      { merge: true }
-    );
-
     const eventRef =
       db
         .collection(`proposals/${proposalId}/history`)
         .doc();
 
-    await eventRef.set({
-      proposalId,
-      event: "INTAKE_INVITE_MANUALLY_SENT",
-      fromStatus: "PAID",
-      toStatus: "PAID",
-      createdBy: context.auth.uid,
-      createdByName: "Management",
-      intakeTokenId: tokenId,
-      intakeAudience,
-      deliveryMethod: method,
-      recipient: deliveredTo || null,
-      note: note || null,
-      source: "management_enrollment_manual_delivery",
-      occurredAt: FieldValue.serverTimestamp(),
-      createdAt: FieldValue.serverTimestamp(),
+    await db.runTransaction(async tx => {
+      const receiptRef = db.doc(`proposals/${proposalId}/delivery/${clean(proposal.paymentMethod).toLowerCase() === "cash_prepaid" ? "cash_check_receipt" : "stripe_enrollment_receipt"}`);
+      const [latestToken, receipt] = await Promise.all([tx.get(tokenRef), tx.get(receiptRef)]);
+      const current = latestToken.data() || {};
+      if (!latestToken.exists || receipt.data()?.combinedAttempt) {
+        throw new functions.https.HttpsError("failed-precondition", "Review the combined receipt before recording manual delivery.");
+      }
+      if (current.used === true || current.deliveryStatus === "SENT" ||
+          current.twoCEmailStatus === "SENDING" || current.combinedAttempt) {
+        throw new functions.https.HttpsError("failed-precondition", "Existing Intake delivery needs review before recording manual delivery.");
+      }
+      tx.set(tokenRef,
+        {
+          deliveryStatus: "SENT",
+          deliveryMethod: method,
+          exp,
+          deliveredAt: now,
+          deliveredTo,
+          deliveredByUid: context.auth!.uid,
+          manualDelivery: true,
+          manualDeliveryNote: note || null,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+      tx.set(eventRef, {
+        proposalId,
+        event: "INTAKE_INVITE_MANUALLY_SENT",
+        fromStatus: "PAID",
+        toStatus: "PAID",
+        createdBy: context.auth!.uid,
+        createdByName: "Management",
+        intakeTokenId: tokenId,
+        intakeAudience,
+        deliveryMethod: method,
+        recipient: deliveredTo || null,
+        note: note || null,
+        source: "management_enrollment_manual_delivery",
+        occurredAt: FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
+      });
     });
 
     return {
