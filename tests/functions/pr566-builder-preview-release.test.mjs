@@ -13,7 +13,7 @@ test('PR566 manifest pins exactly four reviewed files and one Hosting asset',()=
   assert.deepEqual(manifest.hosting,['public/connect/admissions/calculator/calculator.js']);
 });
 test('PR566 action stays distinct, exact-SHA, staging protected and approval gated',()=>{
-  const job=workflow.split('\n  pr566-builder-preview-release:')[1];assert.ok(job);
+  const job=workflow.split('\n  pr566-builder-preview-release:')[1]?.split(/\n  [a-z][a-z0-9-]*:/,1)[0];assert.ok(job);
   for(const value of ['pr566-builder-preview-preflight','pr566-builder-preview-deploy','environment: staging',
     '4a1f3c0b4bfb6172a3b660a693d5a51156b9eb0b','APPROVE_PR566_STAGING_ONE_BUILDER_ASSET',
     'npm --prefix application/functions run test:payment-arrangements','pr566-builder-preview-hosting-overlay.mjs',
