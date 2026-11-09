@@ -39,11 +39,44 @@ def query(permission, token):
     request = urllib.request.Request(
         "https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot",
         data=payload,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json",
+                 "x-goog-user-project": PROJECT},
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=35) as response:
         return json.load(response)
+
+
+def sanitized_http_error(exc):
+    """Return only bounded non-sensitive Google error diagnostics."""
+    details = {"httpStatus": exc.code, "googleStatus": "UNKNOWN", "reason": "UNKNOWN"}
+    try:
+        raw = exc.read(8192)
+        payload = json.loads(raw)
+        err = payload.get("error", {})
+        allowed_statuses = {"INVALID_ARGUMENT", "FAILED_PRECONDITION",
+                            "PERMISSION_DENIED", "UNAUTHENTICATED", "NOT_FOUND",
+                            "RESOURCE_EXHAUSTED", "UNAVAILABLE"}
+        status = err.get("status")
+        if status in allowed_statuses:
+            details["googleStatus"] = status
+        for item in err.get("details", []):
+            if not isinstance(item, dict):
+                continue
+            if item.get("@type", "").endswith("google.rpc.ErrorInfo"):
+                reason = item.get("reason", "")
+                if isinstance(reason, str) and len(reason) <= 80 and reason.replace("_", "").isalnum():
+                    details["reason"] = reason
+            elif item.get("@type", "").endswith("google.rpc.BadRequest"):
+                fields = [x.get("field", "") for x in item.get("fieldViolations", [])
+                          if isinstance(x, dict) and x.get("field") in
+                          ("accessTuple", "accessTuple.fullResourceName", "accessTuple.permission",
+                           "accessTuple.principal")]
+                if fields:
+                    details["fields"] = sorted(set(fields))
+    except (ValueError, UnicodeError, TypeError):
+        pass
+    return details
 
 
 def main():
@@ -80,8 +113,10 @@ def main():
                 if state != "CAN_ACCESS":
                     errors.append(permission + ": " + state)
             except urllib.error.HTTPError as exc:
-                result["checks"].append({"permission": permission, "error": "IAM_API_HTTP_" + str(exc.code)})
-                errors.append(permission + ": IAM API unavailable (HTTP " + str(exc.code) + ")")
+                diagnostic = sanitized_http_error(exc)
+                result["checks"].append({"permission": permission, "error": "IAM_API_HTTP_" + str(exc.code),
+                                         "diagnostic": diagnostic})
+                errors.append(permission + ": IAM API request failed (HTTP " + str(exc.code) + ")")
             except (urllib.error.URLError, TimeoutError, ValueError, RuntimeError) as exc:
                 result["checks"].append({"permission": permission, "error": "UNVERIFIED"})
                 errors.append(permission + ": IAM access could not be established (" + type(exc).__name__ + ")")
