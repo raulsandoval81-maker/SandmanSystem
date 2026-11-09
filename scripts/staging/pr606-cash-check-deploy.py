@@ -19,6 +19,10 @@ inventory = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(inventory)
 
 ACTION = "pr606-staging-cash-check-deploy"
+CONTINUE_ACTION = "pr606-staging-cash-check-continue"
+CONTINUE_APPROVAL = "APPROVE_PR606_STAGING_CASH_CHECK_CONTINUATION"
+MANUAL = "recordManualEnrollmentIntakeDelivery"
+RECEIPT = "sendProposalPrepaidCashReceipt"
 APPROVAL = "APPROVE_PR606_STAGING_CASH_CHECK_RELEASE"
 SHA = "bf043dfc50b72def1ea6202e6a3cbba3fa252c20"
 ASSET_SHA = "e293ff8d4bdbaccb2c61acbb6f46b1dd60a87693e06251a78fc767bd78013ae0"
@@ -31,10 +35,12 @@ BASELINE = json.loads((HERE / "pr606-cash-check-baseline.json").read_text())
 
 
 def guard(env):
+    action = env.get("REQUESTED_ACTION")
+    require(action in (ACTION, CONTINUE_ACTION), "Unexpected REQUESTED_ACTION")
     expected = {
         "GITHUB_REPOSITORY": inventory.REPO, "GITHUB_REF": "refs/heads/main",
-        "GITHUB_WORKFLOW_REF": inventory.WORKFLOW, "REQUESTED_ACTION": ACTION,
-        "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": SHA, "DEPLOY_APPROVAL": APPROVAL,
+        "GITHUB_WORKFLOW_REF": inventory.WORKFLOW, "REQUESTED_ACTION": action,
+        "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": SHA, "DEPLOY_APPROVAL": CONTINUE_APPROVAL if action == CONTINUE_ACTION else APPROVAL,
         "EXPECTED_HOSTING_RELEASE": BASELINE["hosting"]["release"],
         "EXPECTED_HOSTING_VERSION": BASELINE["hosting"]["version"],
     }
@@ -98,18 +104,42 @@ def runtime_config(config):
     if "buildConfig" in record:
         record["buildConfig"] = {key: value for key, value in record["buildConfig"].items()
                                  if key not in {"source", "sourceProvenance", "build"}}
+        record["serviceConfig"] = dict(record["serviceConfig"])
+        record["serviceConfig"].pop("revision", None)
         service = dict(transport["run"])
+        for key in ("conditions", "terminalCondition"):
+            if key in service:
+                def condition(value):
+                    return {k: v for k, v in value.items() if k != "lastTransitionTime"}
+                service[key] = ([condition(value) for value in service[key]] if key == "conditions"
+                                else condition(service[key]))
+        service["buildConfig"] = {k: v for k, v in service["buildConfig"].items()
+                                  if k not in {"name", "sourceLocation"}}
+        annotations = dict(service.get("annotations", {}))
+        if annotations.get("cloudfunctions.googleapis.com/function-id") == RECEIPT:
+            annotations.pop("cloudfunctions.googleapis.com/function-id")
+        service["annotations"] = annotations
         for key in ("etag", "generation", "observedGeneration", "updateTime", "lastModifier",
-                    "latestCreatedRevision", "latestReadyRevision", "conditions", "terminalCondition"):
+                    "latestCreatedRevision", "latestReadyRevision"):
             service.pop(key, None)
         service["template"] = dict(service["template"])
-        service["template"].pop("revision", None)
+        template = service["template"]
+        template.pop("revision", None)
+        if template.get("client") in {"cloudfunctions", "cloud-console"}:
+            template.pop("client")
+        labels = dict(template.get("labels", {}))
+        for key, expected in {"goog-drz-cloudfunctions-id": RECEIPT.lower(),
+                              "goog-drz-cloudfunctions-location": REGION}.items():
+            if labels.get(key) == expected:
+                labels.pop(key)
+        template["labels"] = labels
         service["template"]["containers"] = [
             {key: value for key, value in container.items() if key != "image"}
             for container in service["template"]["containers"]
         ]
         service["trafficStatuses"] = [
-            {key: value for key, value in traffic.items() if key != "revision"}
+            {key: value for key, value in traffic.items() if key != "revision" or
+             traffic.get("type") != "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"}
             for traffic in service.get("trafficStatuses", [])
         ]
         transport["run"] = service
@@ -204,8 +234,36 @@ def verify_version(version, config, manifest, token):
     require(found == manifest, "Finalized Hosting manifest differs")
 
 
+def archive_contents(data):
+    import io
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        names = [item.filename for item in archive.infolist() if not item.is_dir()]
+        require(len(set(names)) == len(names), "Duplicate archive paths")
+        return {name: inventory.sha(archive.read(name)) for name in names}
+
+
+def deployed_source(name, config, token):
+    if FUNCTIONS[name] == 2:
+        return inventory.signed_source(name, "v2alpha", {}, token)
+    return inventory.source_archive(name, 1, config["function"], token)[0]
+
+
+def verify_receipt_traffic(config):
+    run = config["transport"]["run"]
+    name = RECEIPT.lower() + "-00003-taq"
+    expected = {"percent": 100, "type": "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"}
+    require(run["traffic"] == [expected] and run["trafficStatuses"] == [{**expected, "revision": name}]
+            and run["latestReadyRevision"] == run["name"] + "/revisions/" + name
+            and run["latestCreatedRevision"] == run["latestReadyRevision"]
+            and run["terminalCondition"]["state"] == "CONDITION_SUCCEEDED"
+            and config["function"]["serviceConfig"]["revision"] == name,
+            "Receipt no longer serves the approved healthy revision at 100%")
+    return run["name"] + "/revisions/" + RECEIPT.lower() + "-00002-8v7"
+
+
 def main():
     guard(os.environ)
+    continuation = os.environ["REQUESTED_ACTION"] == CONTINUE_ACTION
     actual = subprocess.check_output(["git", "-C", "candidate", "rev-parse", "HEAD"], text=True).strip()
     require(actual == SHA, "Candidate checkout SHA mismatch")
     asset = Path("candidate/public" + TARGET).read_bytes()
@@ -225,6 +283,22 @@ def main():
     with tempfile.TemporaryDirectory(prefix="pr606-rollback-") as recovery_dir:
         for name, generation in FUNCTIONS.items():
             config = function_config(name, token)
+            if continuation:
+                snapshot = BASELINE["continuation"]["functions"][name]
+                require(fingerprint(inventory.redact(config)) == snapshot["fingerprint"],
+                        f"{name}: configuration or transport differs from Run #340")
+                if name != MANUAL:
+                    deployed = deployed_source(name, config, token)
+                    require(inventory.sha(deployed) == snapshot["sha256"]
+                            and archive_contents(deployed) == archive_contents(archive),
+                            f"{name}: deployed source does not match reviewed candidate")
+                    if name == RECEIPT:
+                        revision = verify_receipt_traffic(config)
+                        prior = get("Verify original receipt revision", "https://run.googleapis.com/v2/" + revision, token)
+                        require(prior.get("name") == revision and prior.get("containers"),
+                                "Original receipt revision unavailable")
+                    configs[name] = config
+                    continue
             approved = BASELINE["functions"][name]
             require(fingerprint(inventory.redact(config)) == approved["fingerprint"],
                     f"{name}: configuration or transport differs from approved baseline")
@@ -248,23 +322,28 @@ def main():
         require(hosting_inventory(asset, hosting_token) == hosting, "Hosting changed before deployment")
         for name, config in configs.items():
             require(function_config(name, token) == config, f"{name}: changed before deployment")
-        version = prepare_hosting(hosting, asset, hosting_token)
+        version = (BASELINE["continuation"]["version"] if continuation
+                   else prepare_hosting(hosting, asset, hosting_token))
         verify_version(version, hosting["config"], hosting["proposed"], hosting_token)
         updated = []
         try:
+            verified = dict(configs)
             for name, config in configs.items():
+                if continuation and name != MANUAL:
+                    continue
                 require(function_config(name, token) == config, f"{name}: changed before update")
                 print(f"Updating source for {name}", flush=True)
                 updated.append(name)
                 source_update(name, archive, token)
                 after = function_config(name, token)
                 require(runtime_config(after) == runtime_config(config), f"{name}: runtime or transport changed")
-                if FUNCTIONS[name] == 2:
-                    deployed_archive = inventory.signed_source(name, "v2alpha", {}, token)
-                else:
-                    deployed_archive, _ = inventory.source_archive(name, 1, after["function"], token)
+                deployed_archive = deployed_source(name, after, token)
+                verified[name] = after
                 require(inventory.sha(deployed_archive) == inventory.sha(archive), f"{name}: deployed source differs")
+            for name, config in verified.items():
+                require(function_config(name, token) == config, f"{name}: changed before Hosting publish")
             require(hosting_inventory(asset, hosting_token) == hosting, "Hosting changed before publish")
+            verify_version(version, hosting["config"], hosting["proposed"], hosting_token)
             query = urllib.parse.urlencode({"versionName": version})
             release = write("Publish Hosting overlay", HOSTING_API + SITE + "/releases?" + query, "POST", {},
                             hosting_token)["name"]

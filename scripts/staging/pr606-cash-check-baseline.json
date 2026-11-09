@@ -36,5 +36,23 @@
       "sha256": "4bbc1781fc1664aa1b4b56150513a83ff6ec1c944e82bb0d381f08fc5091c03b",
       "fingerprint": "82993fb06980a71d6d4d802baff423742de64736146f2c4ef109a903332c4b17"
     }
+  },
+  "continuation": {
+    "run": 42697406509,
+    "version": "sites/sandman-combat-staging/versions/8f33ab588a8c7fdd",
+    "functions": {
+      "recordManualEnrollmentIntakeDelivery": {
+        "fingerprint": "63b109933307a32f88612b6345bab14a4f00bf81a43e3dd9e7431b72fe0b2db2",
+        "sha256": "81ca8e6bb7abb81f0dfafee626055bef6fc714803c1e679cbb39403d7473b2ae"
+      },
+      "sendEnrollmentIntakeEmail": {
+        "fingerprint": "13d89c953a604b80124f3dbd850206039d786a322abcfa4da2df9e679fe291ca",
+        "sha256": "ddb448af5d71569f2994a0fe35b5982d72eabe82377fb83efc0fbcbf593bf5d2"
+      },
+      "sendProposalPrepaidCashReceipt": {
+        "fingerprint": "74f3478926181007ce7b7a31e60e0424d55e75a484635b6b046483b2cb7eba91",
+        "sha256": "ddb448af5d71569f2994a0fe35b5982d72eabe82377fb83efc0fbcbf593bf5d2"
+      }
+    }
   }
 }

@@ -134,6 +134,7 @@ on:
           - pr606-readonly-preflight
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
+          - pr606-staging-cash-check-continue
           - pr600-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
@@ -3784,7 +3785,7 @@ jobs:
           retention-days: 7
 
   pr606-staging-cash-check-deploy:
-    if: ${{ inputs.action == 'pr606-staging-cash-check-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr606-staging-cash-check-deploy' || inputs.action == 'pr606-staging-cash-check-continue') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     concurrency: sandman-staging-hosting
