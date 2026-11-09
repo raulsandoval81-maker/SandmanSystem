@@ -132,6 +132,7 @@ on:
           - pr603-hosting-inventory
           - pr603-hosting-deploy
           - pr606-readonly-preflight
+          - pr614-readonly-preflight
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr606-staging-cash-check-continue
@@ -3687,7 +3688,7 @@ jobs:
           if-no-files-found: error
 
   pr606-readonly-preflight:
-    if: ${{ (inputs.action == 'pr606-readonly-preflight' || inputs.action == 'pr606-run339-recovery-snapshot') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr606-readonly-preflight' || inputs.action == 'pr606-run339-recovery-snapshot' || inputs.action == 'pr614-readonly-preflight') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 12
@@ -3710,6 +3711,7 @@ jobs:
           case "$REQUESTED_ACTION" in
             pr606-readonly-preflight) test "$CONFIRM_SHA" = dd46b0466e739ac7871a0613f2cda1c17a31ca26 ;;
             pr606-run339-recovery-snapshot) test "$CONFIRM_SHA" = bf043dfc50b72def1ea6202e6a3cbba3fa252c20 ;;
+            pr614-readonly-preflight) test "$CONFIRM_SHA" = 334e98de3a443c19d9f45722bda45a1ff92fb336 ;;
             *) exit 1 ;;
           esac
       - uses: actions/checkout@v4
@@ -3722,6 +3724,16 @@ jobs:
           ref: dd46b0466e739ac7871a0613f2cda1c17a31ca26
           path: candidate
           persist-credentials: false
+      - uses: actions/checkout@v4
+        if: inputs.action == 'pr614-readonly-preflight'
+        with:
+          ref: 334e98de3a443c19d9f45722bda45a1ff92fb336
+          path: pr614-candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate PR 614 manifest offline
+        if: inputs.action == 'pr614-readonly-preflight'
+        run: python3 scripts/staging/pr614-readonly-preflight.py --offline
       - name: Run preflight boundary tests offline
         run: python3 scripts/staging/test-pr606-readonly-preflight.py
       - uses: google-github-actions/auth@v3
@@ -3781,6 +3793,22 @@ jobs:
         with:
           name: pr606-run339-recovery-snapshot-${{ github.run_id }}
           path: evidence/run339/snapshot.json
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Capture PR 614 staging release prerequisites
+        if: inputs.action == 'pr614-readonly-preflight'
+        env:
+          REQUESTED_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+          HOSTING_CREDENTIALS_FILE: ${{ steps.hosting-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/pr614-readonly-preflight.py
+      - uses: actions/upload-artifact@v4
+        if: always() && inputs.action == 'pr614-readonly-preflight'
+        with:
+          name: pr614-readonly-preflight-${{ github.run_id }}
+          path: pr614-preflight.json
           if-no-files-found: error
           retention-days: 7
 

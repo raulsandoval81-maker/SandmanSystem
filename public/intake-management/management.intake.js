@@ -743,7 +743,7 @@ function renderReadyIntakeCard(proposal) {
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
           ${receiptState.status === "SENDING" && !twoCIntake?.combinedAttempt ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
-            Send Receipt & Intake Email
+            ${receiptState.intakeComplete ? "Send Payment Receipt" : "Send Receipt & Intake Email"}
           </button>
           <div class="pending-card-meta small" data-2c-feedback role="status"></div>
         ` : ""}
@@ -965,7 +965,8 @@ function wireReceiptFirstAction(list) {
       report("Enter a verified recipient email. Placeholder addresses cannot receive email.");
       return;
     }
-    if (!window.confirm(`Send the Cash/Check receipt with the secure ${audience === "adult_athlete" ? "adult" : "parent"} enrollment link for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
+    const receiptOnly = twoCReceiptStatuses.get(proposalId)?.intakeComplete === true;
+    if (!window.confirm(receiptOnly ? `Send only the Cash/Check payment receipt for ${proposalId} to ${recipientEmail}?` : `Send the Cash/Check receipt with the secure ${audience === "adult_athlete" ? "adult" : "parent"} enrollment link for ${proposalId} to ${recipientEmail}? No Stripe charge will be created.`)) {
       report("Canceled before requesting any emails.");
       return;
     }
@@ -990,6 +991,20 @@ function wireReceiptFirstAction(list) {
         report("Receipt was previously sent to another recipient. Resolve with Management before continuing.");
         return;
       }
+      if (statusBefore.intakeComplete) {
+        if (!receiptOnly) {
+          await loadReadyForIntake(await requireManagement());
+          report("Intake is now complete. Use Send Payment Receipt.");
+          return;
+        }
+        const receipt = httpsCallable(functions, "sendProposalPrepaidCashReceipt");
+        const result = await receipt({proposalId, mode: "send", recipientEmail, confirmRecipient: true});
+        if (result.data?.ok !== true) throw new Error("Payment receipt delivery was not confirmed.");
+        await loadReadyForIntake(await requireManagement());
+        report("Payment receipt recorded. Intake paperwork is already on file.");
+        return;
+      }
+      if (receiptOnly) throw new Error("Completed Intake could no longer be verified.");
       button.textContent = "Preparing 2C…";
       currentHandoffTokenId = "";
       currentHandoffAudience = "";
@@ -1283,6 +1298,11 @@ async function loadReadyForIntake(managementContext) {
             await getDocs(intakeQuery);
 
           if (!intakeSnapshot.empty) {
+            if (runtimeEnvironment === "staging" && proposal.paymentMethod === "cash_prepaid" &&
+                proposal.earlyCashCheckIntakeTokenId &&
+                intakeSnapshot.docs.some(doc => doc.id === proposal.earlyCashCheckIntakeTokenId)) {
+              return {state: "ready", proposal, handoff: null};
+            }
             return null;
           }
 

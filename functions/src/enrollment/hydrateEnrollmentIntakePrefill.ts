@@ -1,3 +1,4 @@
+import { canStartEarlyCashCheckIntake } from "./earlyCashCheckIntake";
 import {
   FieldValue,
   getFirestore,
@@ -82,7 +83,12 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
   }
 
   const proposal = proposalSnap.data() || {};
-  if (!isOperationalPaidProposal(proposal)) {
+  const early = token.earlyCashCheckOwnerUid === req.auth.uid &&
+    proposal.earlyCashCheckIntakeTokenId === tokenId && canStartEarlyCashCheckIntake(proposal);
+  if (token.earlyCashCheckOwnerUid && token.earlyCashCheckOwnerUid !== req.auth.uid) {
+    throw new HttpsError("permission-denied", "Resume Intake in the original secure session.");
+  }
+  if (!early && !isOperationalPaidProposal(proposal)) {
     throw new HttpsError("failed-precondition", "Enrollment proposal is not operationally paid.");
   }
 

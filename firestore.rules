@@ -274,7 +274,11 @@ service cloud.firestore {
     match /intakeTokens/{id} {
       // Family pages authenticate anonymously before resolving
       // their bearer invite. Management/Admin may also read.
-      allow get: if request.auth != null;
+      allow get: if request.auth != null &&
+        (!("earlyCashCheckOwnerUid" in resource.data)
+          || resource.data.earlyCashCheckOwnerUid == request.auth.uid
+          || isAdmin()
+          || managementHasLocation(resource.data.locationId));
 
       allow list: if false;
 
@@ -313,6 +317,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    function earlyCashCheckIntakeAllowed(id) {
+      let invite = get(/databases/$(database)/documents/intakeTokens/$(id)).data;
+      return !("earlyCashCheckOwnerUid" in invite) ||
+        (invite.earlyCashCheckOwnerUid == request.auth.uid
+         && invite.exp is number
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.earlyCashCheckIntakeTokenId == id
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.lockedSnapshot.pricing.paymentArrangement == "prepaid_cash_check"
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.clientAcceptance.consentAccepted == true
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.enrollmentConfirmation.termsConfirmed == true
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.status in ["READY_FOR_CHECKOUT", "PAID"]);
+    }
+
     match /intakes/{id} {
       // A family may create only the intake represented by
       // a real, unused, unexpired invite token.
@@ -338,6 +354,7 @@ service cloud.firestore {
             /databases/$(database)/documents/intakeTokens/$(id)
           ).data.exp > request.time.toMillis()
         )
+        && earlyCashCheckIntakeAllowed(id)
         && request.resource.data.intakeAudience ==
           get(
             /databases/$(database)/documents/intakeTokens/$(id)

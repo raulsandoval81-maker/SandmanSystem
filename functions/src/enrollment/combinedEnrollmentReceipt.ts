@@ -77,6 +77,9 @@ export async function sendCombinedEnrollmentReceipt(input: {
     ]);
     const latest = latestToken.data() || {};
     const paid = latestProposal.data() || {};
+    if (paid.paymentMethod === "cash_prepaid" && paid.earlyCashCheckIntakeTokenId) {
+      throw new HttpsError("failed-precondition", "This family already started secure Intake. Use the payment receipt action once paperwork is complete.");
+    }
     if (!latestToken.exists || intake.exists || !isOperationalPaidProposal(paid) ||
         paid.paymentMethod !== proposal.paymentMethod || paid.locationId !== proposal.locationId ||
         paid.stripeCheckoutSessionId !== proposal.stripeCheckoutSessionId ||

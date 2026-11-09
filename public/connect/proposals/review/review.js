@@ -1,8 +1,9 @@
+import { runtimeEnvironment } from "/assets/js/runtime-environment.js";
 import "./auto-checkout.js";
 
 import {
   functions,
-  httpsCallable
+  httpsCallable, ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
 const params =
@@ -287,6 +288,16 @@ function renderProposal(
 
   const pricing =
     proposal.pricing || {};
+  if (runtimeEnvironment === "staging" && pricing.paymentArrangement === "prepaid_cash_check" &&
+      !$("cashTermsConfirmed")) {
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = "cashTermsConfirmed";
+    label.append(checkbox, " I confirm the prepaid amount, membership term, coverage dates, annual fee allocation and separate outstanding balance shown above. No automatic renewal is authorized.");
+    $("acceptProposalButton").before(label);
+  }
+
 
   const familyName =
     prospect.familyName ||
@@ -738,6 +749,12 @@ async function acceptProposal() {
     return;
   }
 
+  const cashAcknowledgment = $("cashTermsConfirmed");
+  if (cashAcknowledgment && !cashAcknowledgment.checked) {
+    showMessage("Confirm the prepaid payment terms before signing.", true);
+    return;
+  }
+
   const button =
     $("acceptProposalButton");
 
@@ -748,6 +765,7 @@ async function acceptProposal() {
     "Submitting…";
 
   try {
+    if (cashAcknowledgment) await ensureSignedIn();
     const accept =
       httpsCallable(
         functions,
@@ -761,7 +779,8 @@ async function acceptProposal() {
         signerRole,
         signerName,
         signature,
-        consentAccepted
+        consentAccepted,
+        ...(cashAcknowledgment ? {cashTermsConfirmed: true} : {})
       });
 
     if (
@@ -808,6 +827,7 @@ async function continueToCheckout() {
     "Opening Review & Confirm…";
 
   try {
+    if (runtimeEnvironment === "staging" && $("cashTermsConfirmed")) await ensureSignedIn();
     const issueEnrollment =
       httpsCallable(
         functions,
@@ -823,9 +843,14 @@ async function continueToCheckout() {
           "local"
       });
 
+    if (response.data?.intakeComplete) {
+      showConfirmation("Paperwork Complete", "Your Intake is complete. Management will verify the payment separately.");
+      button.hidden = true;
+      return;
+    }
     const enrollmentPath =
       String(
-        response.data?.enrollmentPath || ""
+        response.data?.intakePath || response.data?.enrollmentPath || ""
       ).trim();
 
     if (!enrollmentPath) {

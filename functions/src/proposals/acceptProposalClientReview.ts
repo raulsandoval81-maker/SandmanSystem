@@ -1,3 +1,4 @@
+import { isStagingEnrollmentRuntime } from "../enrollment/operationalPaidProposal";
 import {
   HttpsError,
   onCall,
@@ -168,6 +169,12 @@ export const acceptProposalClientReview =
               "The proposal review snapshot is missing."
             );
           }
+          const acknowledgeCashTerms = isStagingEnrollmentRuntime() &&
+            review.snapshot.pricing?.paymentArrangement === "prepaid_cash_check" &&
+            req.data?.cashTermsConfirmed === true;
+          if (acknowledgeCashTerms && !req.auth) {
+            throw new HttpsError("unauthenticated", "Secure Intake session required.");
+          }
           // The family's acceptance cannot authorize stale cash terms.
           // Compare the current ledger/disposition to the frozen review
           // disclosure; changing either requires an entirely new review.
@@ -256,6 +263,14 @@ export const acceptProposalClientReview =
                   preparedAt: FieldValue.serverTimestamp()},
               } : {}),
 
+              ...(acknowledgeCashTerms ? { enrollmentConfirmation: {
+                version: "pricing-confirmation-v1",
+                termsConfirmed: true,
+                confirmedByName: signerName,
+                confirmationSource: "signed_proposal",
+                confirmedAt: FieldValue.serverTimestamp(),
+              } } : {}),
+
               clientAcceptance: {
                 signerName,
                 signature,
@@ -326,6 +341,14 @@ export const acceptProposalClientReview =
                 FieldValue.serverTimestamp(),
             }
           );
+
+          if (acknowledgeCashTerms) {
+            tx.create(proposalRef.collection("history").doc(), {
+              proposalId, event: "ENROLLMENT_TERMS_CONFIRMED",
+              confirmationVersion: "pricing-confirmation-v1", confirmedByName: signerName,
+              createdAt: FieldValue.serverTimestamp(),
+            });
+          }
 
           return {
             status:
