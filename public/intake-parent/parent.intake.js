@@ -251,6 +251,14 @@ function readWaiverAcceptance() {
 }
 
 // Present the canonical waiver inside Intake; retain the standalone route as a fallback.
+function californiaDateISO(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  const part = (type) => parts.find((entry) => entry.type === type).value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
 function mountInlineWaiver() {
   if (!currentInviteToken || document.getElementById("inlineWaiverFrame")) return;
   const oldButton = $("openWaiverBtn");
@@ -261,20 +269,27 @@ function mountInlineWaiver() {
   frame.src = "/waiver/?audience=parent_guardian&lang=" +
     encodeURIComponent(activeLanguage()) +
     "&embedded=1&invite=" + encodeURIComponent(currentInviteToken);
-  frame.style.cssText = "display:block;width:100%;height:980px;border:1px solid #d1d5db;border-radius:12px;background:white;";
+  frame.style.cssText = "display:block;width:100%;height:70vh;border:1px solid #d1d5db;border-radius:12px;background:white;";
   frame.setAttribute("loading", "eager");
   oldButton.parentElement.appendChild(frame);
-  oldButton.hidden = true;
   const note = document.querySelector("#waiverCompletionPanel p.muted");
-  if (note) note.textContent = "Read, agree, and sign the waiver above. Then submit your Intake below.";
+  if (note) note.textContent = activeLanguage() === "es"
+    ? "Lea, acepte y firme la exención. Luego envíe el registro."
+    : "Read, agree, and sign the waiver. Then submit your Intake.";
 }
 
 window.addEventListener("message", (event) => {
   const frame = document.getElementById("inlineWaiverFrame");
   if (event.origin !== window.location.origin ||
-      !frame || event.source !== frame.contentWindow ||
-      event.data?.type !== "sandman-waiver-accepted") return;
-  applyWaiverAcceptance(event.data.acceptance);
+      !frame || event.source !== frame.contentWindow) return;
+  if (event.data?.type === "sandman-waiver-size") {
+    const { height } = event.data;
+    if (Number.isInteger(height) && height > 0 && height <= 20000) {
+      frame.style.height = `${height}px`;
+    }
+  } else if (event.data?.type === "sandman-waiver-accepted") {
+    applyWaiverAcceptance(event.data.acceptance);
+  }
 });
 
 function openWaiver(url) {
@@ -564,8 +579,12 @@ async function writeIntake(tokenId, payload) {
 }
 
 // -------------------- Submit handler --------------------
+let submittingIntake = false;
+
 async function handleSubmit(e) {
   e?.preventDefault?.();
+  if (submittingIntake) return;
+  submittingIntake = true;
 
   const btn = $("submitBtn");
   btn?.setAttribute("disabled", "disabled");
@@ -684,7 +703,7 @@ async function handleSubmit(e) {
       );
     }
 
-    if (signDate !== localDateISO()) {
+    if (signDate !== californiaDateISO()) {
       fail(
         activeLanguage() === "es"
           ? "La fecha de la firma debe ser hoy."
@@ -825,6 +844,7 @@ async function handleSubmit(e) {
     window.location.href = "/intake-parent/thanks.html";
   } catch (err) {
     console.error("[intake-parent] submit error:", err);
+    submittingIntake = false;
     btn?.removeAttribute("disabled");
     setWaiverStatusStrong(`⚠ ${err?.message || err}`, "#fbbf24");
     maybeUnlockSubmit();
