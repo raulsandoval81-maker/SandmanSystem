@@ -69,14 +69,15 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def read(operation, url, token=None, signed_url_request=None):
+def read(operation, url, token=None, signed_url_request=None, gen2_functions=("sendProposalPrepaidCashReceipt",)):
     # Signed source URL generation is the only non-GET API call.
     data = None
     if signed_url_request is not None:
         prefix = "https://cloudfunctions.googleapis.com/"
         allowed = {f"{prefix}v1/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
                    for name, generation in FUNCTIONS.items() if generation == 1}
-        allowed.add(f"{prefix}v2alpha/projects/{PROJECT}/locations/{REGION}/functions/sendProposalPrepaidCashReceipt:generateDownloadUrl")
+        allowed.update(f"{prefix}v2alpha/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
+                       for name in gen2_functions)
         require(url in allowed, "Unexpected source URL operation")
         data = b"" if signed_url_request == {} else json.dumps(signed_url_request).encode()
     headers = {"Authorization": f"Bearer {token}"} if token else {}
@@ -106,9 +107,9 @@ def redact(value):
     return value
 
 
-def signed_source(name, api, payload, token):
+def signed_source(name, api, payload, token, gen2_functions=("sendProposalPrepaidCashReceipt",)):
     endpoint = f"https://cloudfunctions.googleapis.com/{api}/projects/{PROJECT}/locations/{REGION}/functions/{name}:generateDownloadUrl"
-    result = json.loads(read(f"{name} {api} generateDownloadUrl", endpoint, token, payload))
+    result = json.loads(read(f"{name} {api} generateDownloadUrl", endpoint, token, payload, gen2_functions))
     url = result.get("downloadUrl", "")
     parsed = urllib.parse.urlsplit(url)
     require(parsed.scheme == "https" and parsed.port in (None, 443) and not parsed.username

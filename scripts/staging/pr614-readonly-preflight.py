@@ -7,6 +7,7 @@ import re
 import subprocess
 import urllib.error
 import urllib.request
+from urllib.parse import quote, urlencode
 
 inventory = __import__("pr606-readonly-preflight")
 PROJECT = inventory.PROJECT
@@ -49,8 +50,7 @@ REQUIREMENTS = {
     "functions": ["cloudfunctions.functions.get", "cloudfunctions.functions.update",
                   "cloudfunctions.functions.sourceCodeGet", "cloudfunctions.functions.sourceCodeSet",
                   "run.services.get", "run.services.getIamPolicy", "run.revisions.get"],
-    "hosting": ["firebasehosting.sites.get", "firebasehosting.versions.create",
-                "firebasehosting.versions.update", "firebasehosting.releases.create"],
+    "hosting": ["firebasehosting.sites.get", "firebasehosting.sites.update"],
     "rules": ["firebaserules.releases.get", "firebaserules.releases.update",
               "firebaserules.rulesets.get", "firebaserules.rulesets.create"],
 }
@@ -123,10 +123,38 @@ def live():
         if evidence and evidence["missing"]:
             result["errors"].append({"check": surface, "missing": evidence["missing"]})
 
+    def inventory_athlete_callable():
+        target = "createAthleteFromIntakeCall"
+        found = []
+        for generation in (1, 2):
+            url = f"https://cloudfunctions.googleapis.com/v{generation}/projects/{PROJECT}/locations/us-central1/functions"
+            page_token = ""
+            seen = set()
+            while True:
+                page = get(f"Gen{generation} us-central1 Function inventory",
+                           url + "?" + urlencode({"pageSize": 100, "pageToken": page_token}), token)
+                inventory.require(not page.get("unreachable"), "Incomplete regional Function inventory")
+                for fn in page.get("functions", []):
+                    name = fn["name"]
+                    entry = fn.get("entryPoint") or fn.get("buildConfig", {}).get("entryPoint")
+                    if name.rsplit("/", 1)[-1].lower() == target.lower() or entry == target:
+                        found.append({"name": name, "generation": generation, "entryPoint": entry})
+                page_token = page.get("nextPageToken")
+                if not page_token:
+                    break
+                inventory.require(page_token not in seen, "Repeated Function inventory page token")
+                seen.add(page_token)
+        return found
+
     for name, (generation, _) in FUNCTIONS.items():
         def describe():
             url = f"https://cloudfunctions.googleapis.com/v{generation}/projects/{PROJECT}/locations/us-central1/functions/{name}"
-            record = get(name, url, token)
+            try:
+                record = get(name, url, token)
+            except RuntimeError as exc:
+                if name == "createAthleteFromIntakeCall" and str(exc) == f"{name}: HTTP 404":
+                    result["athleteCallableInventory"] = capture("Athlete callable regional inventory", inventory_athlete_callable)
+                raise
             runtime = record if generation == 1 else record["serviceConfig"]
             identity = runtime["serviceAccountEmail"]
             inventory.require(identity.endswith(f"@{PROJECT}.iam.gserviceaccount.com") or
@@ -163,10 +191,19 @@ def live():
                 inventory.require(bucket == f"gcf-v2-sources-{inventory.PROJECT_NUMBER}-us-central1"
                                   and obj == f"{name}/function-source.zip" and version.isdigit(),
                                   f"{name}: immutable staging source reference missing")
-                from urllib.parse import quote
-                archive = inventory.read(name + " rollback source",
-                    f"https://storage.googleapis.com/storage/v1/b/{bucket}/o/{quote(obj, safe='')}?alt=media&generation={version}", token)
                 reference = {"bucket": bucket, "object": obj, "generation": version}
+                label = name + " rollback source"
+                try:
+                    archive = inventory.read(label,
+                        f"https://storage.googleapis.com/storage/v1/b/{bucket}/o/{quote(obj, safe='')}?alt=media&generation={version}", token)
+                except RuntimeError as exc:
+                    if str(exc) != f"{label}: HTTP 403":
+                        raise
+                    entry["directRollbackRead"] = {"status": 403, **reference}
+                    archive = inventory.signed_source(name, "v2alpha", {}, token,
+                        gen2_functions=tuple(key for key, (gen, _) in FUNCTIONS.items() if gen == 2))
+                    reference["retrievedVia"] = "v2alpha.generateDownloadUrl"
+
             entry["rollbackSource"] = {**inventory.archive_evidence(archive), "reference": reference}
             entry["actAs"] = permission_probe(name + " runtime actAs",
                 f"https://iam.googleapis.com/v1/projects/{PROJECT}/serviceAccounts/{identity}", token,
