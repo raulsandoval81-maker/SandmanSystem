@@ -89,6 +89,36 @@ class PreflightTests(unittest.TestCase):
                 p["source_archive"]("sendProposalPrepaidCashReceipt", 2, record, "fixture")
             self.assertEqual(len(reads), 3)
 
+    def test_gen2_falls_back_only_for_forbidden_object_read(self):
+        name = "sendProposalPrepaidCashReceipt"
+        source = {"bucket": "gcf-v2-sources-991554514268-us-central1",
+                  "object": f"{name}/function-source.zip", "generation": "1794099992545187"}
+        record = {"buildConfig": {"sourceProvenance": {"resolvedStorageSource": source}}}
+        calls = []
+        def read(operation, url, token=None, payload=None):
+            calls.append((operation, url, token, payload))
+            if "storage.objects.get" in operation:
+                raise RuntimeError(f"{operation}: HTTP {status}")
+            if "generateDownloadUrl" in operation:
+                self.assertIn("/v2alpha/", url)
+                self.assertEqual(payload, {})
+                return b'{"downloadUrl":"https://storage.googleapis.com/fixture?signature=private"}'
+            self.assertIsNone(token)
+            return b"source archive"
+        with patch.dict(p["source_archive"].__globals__, {"read": read}):
+            status = 403
+            archive, reference = p["source_archive"](name, 2, record, "fixture")
+            self.assertEqual(archive, b"source archive")
+            self.assertEqual(reference["generation"], source["generation"])
+            self.assertEqual(reference["retrievedVia"], "v2alpha.generateDownloadUrl")
+            self.assertNotIn("private", str(reference))
+            self.assertEqual(len(calls), 3)
+            status = 404
+            calls.clear()
+            with self.assertRaisesRegex(RuntimeError, "HTTP 404"):
+                p["source_archive"](name, 2, record, "fixture")
+            self.assertEqual(len(calls), 1)
+
     def test_stripe_access_and_attachment_are_independent(self):
         p["stripe_test_key"](b"sk_test_fixture")
         self.assertEqual(p["stripe_attachment"]({})["status"], "MISSING")
