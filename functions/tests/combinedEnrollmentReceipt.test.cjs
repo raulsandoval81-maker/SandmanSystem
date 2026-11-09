@@ -123,3 +123,10 @@ test("definite provider rejection allows retry but failed finalization keeps the
   assert.equal(f.calls(), 1);
   assert.equal(f.state.get(f.receiptPath).status, "SENDING");
 });
+
+test("a started early Cash/Check Intake cannot reserve a second invitation", async () => {
+  const f = fixture({ ...cash, earlyCashCheckIntakeTokenId: "0123456789abcdef0123456789abcdef" });
+  await assert.rejects(sendCombinedEnrollmentReceipt(f.input), /already started secure Intake/);
+  assert.equal(f.calls(), 0);
+  assert.equal(f.state.has(f.receiptPath), false);
+});

@@ -55,6 +55,13 @@ export const sendProposalPrepaidCashReceipt = onCall(
       throw new HttpsError("failed-precondition", "Cash/check receipt cannot be sent on a Stripe-linked payment.");
     }
 
+    const earlyTokenId = clean(proposal.earlyCashCheckIntakeTokenId);
+    const submitted = /^[a-f0-9]{32}$/.test(earlyTokenId)
+      ? (await db.doc(`intakes/${earlyTokenId}`).get()).data() : undefined;
+    const intakeComplete = submitted?.proposalId === proposalId &&
+      submitted?.locationId === proposal.locationId &&
+      ["submitted", "approved"].includes(submitted?.status);
+
     if (mode === "status") {
       const snapshot = await receiptRef.get();
       const recorded = snapshot.data() || {};
@@ -68,6 +75,7 @@ export const sendProposalPrepaidCashReceipt = onCall(
         sentAt: recorded.sentAt?.toMillis?.() || null,
         resolvedAt: recorded.resolvedAt?.toMillis?.() || null,
         combined: Boolean(recorded.combinedAttempt),
+        intakeComplete,
       };
     }
     if (mode === "confirm_sent" || mode === "confirm_not_sent") {
@@ -186,7 +194,8 @@ export const sendProposalPrepaidCashReceipt = onCall(
       `Coverage: ${startDate} through ${paidThrough}`,
       `Earliest renewal: ${nextBilling} (separate approval required)`,
       "No new payment or automatic renewal has been authorized.",
-      "Your separate secure Intake invitation will be issued through Sandman Management."
+      intakeComplete ? "Your Intake paperwork is already on file." :
+        "Your separate secure Intake invitation will be issued through Sandman Management."
     ];
     const text = description.join("\n");
     const html = `<div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#181818">

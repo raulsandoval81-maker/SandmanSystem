@@ -2,7 +2,7 @@
 
 import {
   functions,
-  httpsCallable
+  httpsCallable, ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
 (function () {
@@ -73,7 +73,8 @@ import {
     );
   }
 
-  async function saveConfirmation(confirmation) {
+  async function saveConfirmation(confirmation, secureIntake = false) {
+    if (secureIntake) await ensureSignedIn();
     const {
       enrollmentToken,
       proposalId

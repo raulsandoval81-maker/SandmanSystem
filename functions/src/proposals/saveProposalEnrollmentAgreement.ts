@@ -1,3 +1,5 @@
+import { isStagingEnrollmentRuntime } from "../enrollment/operationalPaidProposal";
+import { canStartEarlyCashCheckIntake, issueEarlyCashCheckIntake } from "../enrollment/earlyCashCheckIntake";
 import {
   HttpsError,
   onCall,
@@ -79,6 +81,11 @@ export const saveProposalEnrollmentAgreement =
           proposal,
           enrollmentToken
         );
+
+        if (isStagingEnrollmentRuntime() &&
+            proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
+            proposal.enrollmentConfirmation?.termsConfirmed === true &&
+            proposal.enrollmentConfirmation.confirmedAt) return;
 
         const status =
           clean(proposal.status)
@@ -173,6 +180,12 @@ export const saveProposalEnrollmentAgreement =
     const proposal =
       saved.data() || {};
 
+    const early = canStartEarlyCashCheckIntake(proposal) ? await db.runTransaction(async tx => {
+      const current = (await tx.get(proposalRef)).data() || {};
+      validateProposalEnrollmentToken(current, enrollmentToken);
+      return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid);
+    }) : {};
+
     const snapshot =
       proposal.lockedSnapshot || {};
 
@@ -202,6 +215,7 @@ export const saveProposalEnrollmentAgreement =
     return {
       ok: true,
       enrollment: {
+        ...early,
         proposalId,
         status:
           prepaidReconciliation

@@ -1,3 +1,4 @@
+import { runtimeEnvironment } from "/assets/js/runtime-environment.js";
 "use strict";
 
 import {
@@ -87,6 +88,14 @@ import {
         state.enrollment.paymentRoute === "management_prepaid_reconciliation" &&
         state.enrollment.confirmation?.termsConfirmed === true
       ) {
+        if (runtimeEnvironment === "staging" &&
+            state.enrollment.pricing?.paymentArrangement === "prepaid_cash_check") {
+          const result = normalizeEnrollment(await service.saveConfirmation({termsConfirmed: true}, true));
+          if (result.intakePath) {
+            window.location.assign(result.intakePath);
+            return;
+          }
+        }
         showPrepaidCompletion();
       }
     } catch (error) {
@@ -418,7 +427,8 @@ import {
 
       const confirmResponse =
         await service.saveConfirmation(
-          confirmation
+          confirmation, runtimeEnvironment === "staging" &&
+            state.enrollment.pricing?.paymentArrangement === "prepaid_cash_check"
         );
 
       state.enrollment =
@@ -430,6 +440,10 @@ import {
         state.enrollment.paymentRoute ===
         "management_prepaid_reconciliation"
       ) {
+        if (state.enrollment.intakePath) {
+          window.location.assign(state.enrollment.intakePath);
+          return;
+        }
         setButtonBusy(submitButton, false);
         showPrepaidCompletion();
         return;
@@ -466,6 +480,7 @@ import {
 
   function showPrepaidCompletion() {
     showNotice(
+      state.enrollment.intakeComplete ? "Your paperwork is complete. Management will verify payment separately." :
       "Review & Confirm is complete. Management will verify the previously received paid-in-full payment and continue the secure Intake handoff. No online payment is being created.",
       false
     );

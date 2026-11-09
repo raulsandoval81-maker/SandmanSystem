@@ -1,3 +1,4 @@
+import { canStartEarlyCashCheckIntake, issueEarlyCashCheckIntake } from "../enrollment/earlyCashCheckIntake";
 import {
   HttpsError,
   onCall,
@@ -156,6 +157,19 @@ export const issueProposalEnrollmentHandoff =
           "failed-precondition",
           "Only checkout-ready proposals may enter Review & Confirm."
         );
+      }
+
+      if (delivery === "local" && clientReviewToken && canStartEarlyCashCheckIntake(proposal)) {
+        return db.runTransaction(async tx => {
+          const current = (await tx.get(proposalRef)).data() || {};
+          const review = current.clientReview || {};
+          if (hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
+              !(review.expiresAt instanceof Timestamp) || review.expiresAt.toMillis() <= Date.now() ||
+              !canStartEarlyCashCheckIntake(current)) {
+            throw new HttpsError("failed-precondition", "The signed Cash/Check proposal is no longer eligible for Intake.");
+          }
+          return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid);
+        });
       }
 
       const currentHandoff =
