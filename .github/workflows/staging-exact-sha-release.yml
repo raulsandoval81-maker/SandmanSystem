@@ -130,6 +130,7 @@ on:
           - pr580-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
+          - enrollment-wif-readonly-preflight
       protected_2c_exact_merge_sha:
         description: Exact reviewed merge SHA for the selected protected 2C action
         required: false
@@ -3373,3 +3374,51 @@ jobs:
           name: pr580-hosting-deploy-${{ github.run_id }}
           path: pr580-*.json
           if-no-files-found: error
+
+  enrollment-wif-readonly-preflight:
+    if: ${{ inputs.action == 'enrollment-wif-readonly-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Guard previously authorized workflow identity and staging boundary
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Inspect WIF condition and staging deployment identity read-only
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gcloud iam workload-identity-pools providers describe sandman-hybrid-staging \
+            --project=sandman-combat-staging --location=global \
+            --workload-identity-pool=sandman-github-staging --format=json > /tmp/enrollment-wif-provider.json
+          jq -e '.state=="ACTIVE" and (.attributeCondition|type=="string")' /tmp/enrollment-wif-provider.json >/dev/null
+          jq '{state, attributeCondition, attributeMapping: .attributeMapping}' /tmp/enrollment-wif-provider.json > evidence/wif-condition-sanitized.json
+          gcloud iam service-accounts get-iam-policy sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com \
+            --project=sandman-combat-staging --format=json > /tmp/enrollment-sa-policy.json
+          jq '{bindings: [.bindings[]? | {role, members: [.members[]? | select(startswith("principalSet://") or startswith("principal://"))]}]}' /tmp/enrollment-sa-policy.json > evidence/identity-bindings-sanitized.json
+          gcloud functions list --regions=us-central1 --project=sandman-combat-staging --format=json > /tmp/enrollment-function-inventory.json
+          jq '{targetFunctions:[.[] | select((.name|endswith("/getEnrollmentPlacementActivity")) or (.name|endswith("/getAccessSetupStatus"))) | {name,state,environment}], count:length}' /tmp/enrollment-function-inventory.json > evidence/enrollment-targets.json
+          echo 'Read-only WIF condition and function inventory collected; no deployment or IAM writes.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enrollment-wif-readonly-preflight-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
