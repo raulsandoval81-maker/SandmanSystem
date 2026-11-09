@@ -128,6 +128,7 @@ on:
           - phase2c-final-deploy
           - pr580-hosting-inventory
           - pr580-hosting-deploy
+          - pr598-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
@@ -3554,3 +3555,43 @@ jobs:
           name: enrollment-runtime-iam-readonly-${{ github.run_id }}
           path: evidence/enrollment-runtime-iam/
           if-no-files-found: warn
+
+  pr598-hosting-deploy:
+    if: ${{ inputs.action == 'pr598-hosting-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    concurrency: sandman-staging-hosting
+    steps:
+      - name: Require single-file deployment approval
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$APPROVAL" = APPROVE_PR598_STAGING_SINGLE_FILE
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: d322114598f5374358289e041e084af35c52b9e9
+          path: candidate
+          persist-credentials: false
+      - name: Verify audience handoff regression
+        run: node --test candidate/tests/browser/enrollment-handoff-audience.test.mjs
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Publish and verify staging Hosting overlay
+        run: node scripts/staging/pr598-hosting-inventory.mjs deploy
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr598-hosting-deploy-${{ github.run_id }}
+          path: pr598-*.json
+          if-no-files-found: error
+
