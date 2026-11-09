@@ -32,7 +32,7 @@ test('workflow has a unique production approval and no data-plane or Hosting ope
   assert.doesNotMatch(workflow,/sites\/sandmandashboard\/releases/);
   assert.match(workflow,/gcloud auth activate-service-account --key-file=/);
   assert.ok(workflow.includes('secretmanager.googleapis.com/v1/projects/${project}/secrets/RESEND_API_KEY:testIamPermissions'));
-  assert.match(workflow,/deployer-secret-permissions\\.json/);
-  assert.match(workflow,/cloudbuild\\.builds\\.create/);
-  assert.doesNotMatch(workflow,/cloudbuild\\.builds\\.create','secretmanager\\.secrets\\.get/);
+  assert.ok(workflow.includes('deployer-secret-permissions.json'));
+  assert.ok(workflow.includes('cloudbuild.builds.create'));
+  assert.ok(!workflow.includes("'cloudbuild.builds.create','secretmanager.secrets.get'"));
 });
