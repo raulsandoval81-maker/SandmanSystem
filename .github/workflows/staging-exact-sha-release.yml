@@ -131,6 +131,7 @@ on:
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
+          - enrollment-runtime-iam-readonly
           - enrollment-two-callable-validate
           - enrollment-two-callable-bootstrap
       protected_2c_exact_merge_sha:
@@ -3508,4 +3509,46 @@ jobs:
         with:
           name: enrollment-two-callable-bootstrap-${{ github.run_id }}
           path: evidence/
+          if-no-files-found: warn
+
+  enrollment-runtime-iam-readonly:
+    if: ${{ inputs.action == 'enrollment-runtime-iam-readonly' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Guard existing trusted staging workflow
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'raulsandoval81-maker/SandmanSystem'
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Evaluate exact Firestore read permissions for billing runtime, no mutations
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          REQUESTED_ACTION: enrollment-runtime-iam-readonly
+        run: python3 scripts/staging/enrollment-runtime-iam-readonly.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enrollment-runtime-iam-readonly-${{ github.run_id }}
+          path: evidence/enrollment-runtime-iam/
           if-no-files-found: warn
