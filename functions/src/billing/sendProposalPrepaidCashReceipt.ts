@@ -21,7 +21,11 @@ const escapeHtml = (v: unknown): string => clean(v)
   .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 
 export const sendProposalPrepaidCashReceipt = onCall(
-  { secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST] },
+  {
+    region: "us-central1",
+    serviceAccount: "889326401061-compute@developer.gserviceaccount.com",
+    secrets: [RESEND_API_KEY],
+  },
   async (req) => {
     if (!req.auth) throw new HttpsError("unauthenticated", "Management sign-in required.");
     const actor = await requireProposalStaffAccess(req.auth.uid);

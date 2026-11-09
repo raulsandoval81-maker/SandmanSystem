@@ -53,7 +53,7 @@ function intakeUrl(
 export const sendEnrollmentIntakeEmail =
   functions
     .runWith({
-      secrets: [RESEND_API_KEY, STAGING_TEST_EMAIL_ALLOWLIST]
+      secrets: [RESEND_API_KEY]
     })
     .https
     .onCall(async (data, context) => {
