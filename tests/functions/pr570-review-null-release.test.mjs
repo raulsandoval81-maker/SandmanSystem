@@ -13,7 +13,7 @@ test('PR570 manifest pins exactly two reviewed files and one Hosting asset',()=>
   assert.deepEqual(manifest.hosting,['public/connect/proposals/review/review.js']);
 });
 test('PR570 action stays distinct, exact-SHA, staging protected and approval gated',()=>{
-  const job=workflow.split('\n  pr570-review-null-release:')[1];assert.ok(job);
+  const job=workflow.split('\n  pr570-review-null-release:')[1]?.split(/\n  [a-z][a-z0-9-]*:/,1)[0];assert.ok(job);
   for(const value of ['pr570-review-null-preflight','pr570-review-null-deploy','environment: staging',
     '5c3ea45e0672860ec568aa67ce18244ae0c1a48f','APPROVE_PR570_STAGING_ONE_REVIEW_ASSET',
     'npm --prefix application/functions run test:payment-arrangements','pr570-review-null-hosting-overlay.mjs',
