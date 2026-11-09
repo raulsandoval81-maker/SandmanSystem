@@ -14,7 +14,9 @@ const p='release-source/package.json',v=JSON.parse(fs.readFileSync(p));v.main='i
 fs.writeFileSync('release-source/index.cjs',"const {getApps,initializeApp}=require('firebase-admin/app');if(!getApps().some(a=>a.name==='[DEFAULT]')) initializeApp();module.exports={getEnrollmentPlacementActivity:require('./lib/enrollment/enrollmentActivity').getEnrollmentPlacementActivity,getAccessSetupStatus:require('./lib/access/getAccessSetupStatus').getAccessSetupStatus};\n");
 NODE
 if find release-source -type f \( -name .env -o -name '.env.*' \) -print -quit | grep -q .; then exit 1; fi
-NODE_PATH="$PWD/application/functions/node_modules" node - <<'NODE'
+# Local export verification must not parse GitHub's WIF JSON as a Firebase Admin service-account key.
+# Unset ADC only for this child process; leave gcloud's deploy credentials unchanged.
+env -u GOOGLE_APPLICATION_CREDENTIALS -u CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE NODE_PATH="$PWD/application/functions/node_modules" node - <<'NODE'
 const a=require('./release-source/index.cjs'),assert=require('assert/strict');
 assert.deepEqual(Object.keys(a).sort(),['getAccessSetupStatus','getEnrollmentPlacementActivity']);
 for(const f of Object.values(a)){assert.ok(f.__endpoint.callableTrigger);assert.ok(!f.__endpoint.httpsTrigger)}
