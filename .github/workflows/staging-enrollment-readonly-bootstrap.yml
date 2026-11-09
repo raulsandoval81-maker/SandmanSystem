@@ -1,0 +1,115 @@
+name: Staging Enrollment — two read-only callable bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Validate offline or bootstrap exactly two staging callables
+        required: true
+        type: choice
+        options: [validate, bootstrap]
+      confirm_project:
+        description: Enter sandman-combat-staging
+        required: true
+        type: string
+      approve_functions:
+        description: Bootstrap only — type APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
+        required: false
+        type: string
+      approve_transport:
+        description: Bootstrap only — type APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: staging-enrollment-two-readonly-callables
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: d0f6db3b5199616d066d07a58e984dbdac7d576f
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm protected project and action
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: validate
+        run: |
+          test "${GITHUB_REF}" = refs/heads/main
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test -z "${STRIPE_SECRET_KEY:-}"
+          test -z "${RESEND_API_KEY:-}"
+      - name: Build pinned source and verify only two exports
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: validate
+        run: bash trusted-tooling/scripts/staging/staging-enrollment-readonly-bootstrap.sh validate
+
+  bootstrap:
+    if: ${{ inputs.action == 'bootstrap' }}
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    steps:
+      - name: Require exact separate approvals before cloud credentials
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_FUNCTIONS: ${{ inputs.approve_functions }}
+          APPROVE_TRANSPORT: ${{ inputs.approve_transport }}
+        run: |
+          test "${GITHUB_REF}" = refs/heads/main
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$APPROVE_FUNCTIONS" = APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
+          test "$APPROVE_TRANSPORT" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted-tooling
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: d0f6db3b5199616d066d07a58e984dbdac7d576f
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Deploy exactly two functions from pinned source
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVE_FUNCTIONS: ${{ inputs.approve_functions }}
+          APPROVE_TRANSPORT: ${{ inputs.approve_transport }}
+          ACTION: bootstrap
+        run: bash trusted-tooling/scripts/staging/staging-enrollment-readonly-bootstrap.sh bootstrap
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: staging-enrollment-two-readonly-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
