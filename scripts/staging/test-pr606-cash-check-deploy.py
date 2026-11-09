@@ -24,6 +24,34 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, key):
                 deployment.guard({**env, key: "invalid"})
 
+    def test_continuation_requires_distinct_approval(self):
+        env = {
+            "GITHUB_REPOSITORY": deployment.inventory.REPO, "GITHUB_REF": "refs/heads/main",
+            "GITHUB_WORKFLOW_REF": deployment.inventory.WORKFLOW,
+            "REQUESTED_ACTION": deployment.CONTINUE_ACTION, "CONFIRM_PROJECT": deployment.PROJECT,
+            "CONFIRM_SHA": deployment.SHA, "DEPLOY_APPROVAL": deployment.CONTINUE_APPROVAL,
+            "EXPECTED_HOSTING_RELEASE": deployment.BASELINE["hosting"]["release"],
+            "EXPECTED_HOSTING_VERSION": deployment.BASELINE["hosting"]["version"],
+        }
+        deployment.guard(env)
+        with self.assertRaisesRegex(RuntimeError, "DEPLOY_APPROVAL"):
+            deployment.guard({**env, "DEPLOY_APPROVAL": deployment.APPROVAL})
+
+    def test_receipt_traffic_rejects_old_or_split_revision(self):
+        name = deployment.RECEIPT.lower() + "-00003-taq"
+        service = "service"
+        ready = service + "/revisions/" + name
+        traffic = {"percent": 100, "type": "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"}
+        run = {"name": service, "traffic": [traffic], "latestReadyRevision": ready,
+               "latestCreatedRevision": ready, "terminalCondition": {"state": "CONDITION_SUCCEEDED"},
+               "trafficStatuses": [{**traffic, "revision": name}]}
+        config = {"function": {"serviceConfig": {"revision": name}}, "transport": {"run": run}}
+        self.assertTrue(deployment.verify_receipt_traffic(config).endswith("-00002-8v7"))
+        for change in ({"revision": "old"}, {"percent": 99}):
+            run["trafficStatuses"] = [{**traffic, "revision": name, **change}]
+            with self.assertRaisesRegex(RuntimeError, "100%"):
+                deployment.verify_receipt_traffic(config)
+
     def test_exact_targets(self):
         self.assertEqual(deployment.FUNCTIONS, {
             "sendEnrollmentIntakeEmail": 1, "sendProposalPrepaidCashReceipt": 2,
