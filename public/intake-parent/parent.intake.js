@@ -1082,7 +1082,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   wireWaiver();
   readWaiverAcceptance();
-  mountInlineWaiver();
+  if (inviteReady) mountInlineWaiver();
   wirePhoneSanitizer("parentPhone");
   wirePhoneSanitizer("emergencyPhone");
 
