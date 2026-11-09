@@ -131,6 +131,7 @@ on:
           - pr598-hosting-deploy
           - pr603-hosting-inventory
           - pr603-hosting-deploy
+          - pr606-readonly-preflight
           - pr600-hosting-deploy
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
@@ -3681,3 +3682,61 @@ jobs:
           name: pr603-hosting-deploy-${{ github.run_id }}
           path: pr603-*.json
           if-no-files-found: error
+
+  pr606-readonly-preflight:
+    if: ${{ inputs.action == 'pr606-readonly-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 12
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Guard existing trusted staging workflow
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'raulsandoval81-maker/SandmanSystem'
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$CONFIRM_SHA" = dd46b0466e739ac7871a0613f2cda1c17a31ca26
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: dd46b0466e739ac7871a0613f2cda1c17a31ca26
+          path: candidate
+          persist-credentials: false
+      - name: Run preflight boundary tests offline
+        run: python3 scripts/staging/test-pr606-readonly-preflight.py
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture staging rollback and test credential evidence read-only
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+          REQUESTED_ACTION: pr606-readonly-preflight
+        run: python3 scripts/staging/pr606-readonly-preflight.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr606-readonly-preflight-${{ github.run_id }}
+          path: |
+            evidence/pr606/summary.json
+            evidence/pr606/hosting.json
+            evidence/pr606/sendEnrollmentIntakeEmail-configuration.json
+            evidence/pr606/sendProposalPrepaidCashReceipt-configuration.json
+            evidence/pr606/recordManualEnrollmentIntakeDelivery-configuration.json
+          retention-days: 7
+          if-no-files-found: warn
