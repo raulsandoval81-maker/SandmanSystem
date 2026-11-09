@@ -138,15 +138,7 @@ on:
         required: false
         type: string
       protected_2c_deployment_approval:
-        description: For deploy only, enter the action-specific approval phrase
-        required: false
-        type: string
-      enrollment_two_callable_approval:
-        description: Bootstrap only — APPROVE_TWO_STAGING_ENROLLMENT_READONLY_CALLABLES
-        required: false
-        type: string
-      enrollment_two_callable_transport_approval:
-        description: Bootstrap only — APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+        description: Enter action-specific deployment approval for protected releases (including Enrollment bootstrap)
         required: false
         type: string
       protected_2c_expected_hosting_release:
@@ -210,7 +202,7 @@ on:
         required: false
         type: string
       confirm_public_invocation:
-        description: Only for Billing bootstrap, type APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH
+        description: Billing approval APPROVE_PUBLIC_HTTP_INVOCATION_WITH_APPLICATION_AUTH; Enrollment approval APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
         required: false
         type: string
       confirm_stripe_test_key:
@@ -3475,8 +3467,8 @@ jobs:
       - name: Require independent deployment and application-auth approvals
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          APPROVE_FUNCTIONS: ${{ inputs.enrollment_two_callable_approval }}
-          APPROVE_TRANSPORT: ${{ inputs.enrollment_two_callable_transport_approval }}
+          APPROVE_FUNCTIONS: ${{ inputs.protected_2c_deployment_approval }}
+          APPROVE_TRANSPORT: ${{ inputs.confirm_public_invocation }}
         run: |
           set -euo pipefail
           test "$GITHUB_WORKFLOW_REF" = 'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main'
@@ -3507,8 +3499,8 @@ jobs:
       - name: Create only absent or verify exact-release existing Enrollment callables
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          APPROVE_FUNCTIONS: ${{ inputs.enrollment_two_callable_approval }}
-          APPROVE_TRANSPORT: ${{ inputs.enrollment_two_callable_transport_approval }}
+          APPROVE_FUNCTIONS: ${{ inputs.protected_2c_deployment_approval }}
+          APPROVE_TRANSPORT: ${{ inputs.confirm_public_invocation }}
           ACTION: bootstrap
         run: bash trusted-tooling/scripts/staging/staging-enrollment-readonly-bootstrap.sh bootstrap
       - uses: actions/upload-artifact@v4
