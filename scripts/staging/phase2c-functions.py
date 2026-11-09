@@ -2,6 +2,7 @@ import hashlib,json,os,pathlib,subprocess,sys,urllib.request,urllib.parse,urllib
 PROJECT='sandman-combat-staging'
 TARGETS=['sendEnrollmentIntakeEmail','recordManualEnrollmentIntakeDelivery']
 DEPENDENCIES=['sendProposalPrepaidCashReceipt','createAthleteOnboardingToken','getEnrollmentIntakeHandoffStatus','hydrateEnrollmentIntakePrefill','consumeSubmittedIntakeToken','approveAndActivate','getEnrollmentPlacementActivity','getAccessSetupStatus']
+REQUIRED_INTAKE_CALLABLES=('getEnrollmentPlacementActivity','getAccessSetupStatus')
 E=pathlib.Path('evidence/functions');E.mkdir(parents=True,exist_ok=True)
 def run(args,check=True):
  p=subprocess.run(['gcloud',*args,'--project='+PROJECT,'--format=json'],text=True,capture_output=True)
@@ -18,8 +19,8 @@ def digest(v):return hashlib.sha256(json.dumps(v,sort_keys=True).encode()).hexdi
 def inventory():
  v=run(['functions','list']);save('all-functions',v);return v
 def describe(name):
- v=run(['functions','describe',name],False)
- if v.get('error') or v.get('environment')=='GEN_2' or v.get('buildConfig'):v=run(['functions','describe',name,'--gen2'],False)
+ v=run(['functions','describe',name,'--region=us-central1'],False)
+ if v.get('error') or v.get('environment')=='GEN_2' or v.get('buildConfig'):v=run(['functions','describe',name,'--gen2','--region=us-central1'],False)
  return v
 def capture_source(name,version):
  token=subprocess.check_output(['gcloud','auth','print-access-token'],text=True).strip()
@@ -38,8 +39,19 @@ def capture_source(name,version):
  assert len(archive)<=32*1024*1024 and zipfile.is_zipfile(io.BytesIO(archive)),'Invalid rollback source archive'
  (E/(name+'-rollback-source.zip')).write_bytes(archive)
  return {'versionId':version,'archiveSha256':hashlib.sha256(archive).hexdigest(),'bytes':len(archive)}
+def verify_intake_callables(records):
+ by_name={record.get('name'):record for record in records}
+ unavailable=[]
+ for name in REQUIRED_INTAKE_CALLABLES:
+  resource=f'projects/{PROJECT}/locations/us-central1/functions/{name}'
+  record=by_name.get(resource,{})
+  if record.get('state',record.get('status'))!='ACTIVE':
+   unavailable.append(name)
+ if unavailable:
+  raise RuntimeError('Staging Intake callable missing or inactive in us-central1: '+', '.join(unavailable))
 def baseline():
  allv=inventory();before={}
+ verify_intake_callables(allv)
  for name in TARGETS+DEPENDENCIES:
   v=describe(name);save(name+'-before',v)
   if name in TARGETS:
