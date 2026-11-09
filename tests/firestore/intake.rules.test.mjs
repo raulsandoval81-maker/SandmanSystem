@@ -504,3 +504,41 @@ test(
     );
   }
 );
+
+test("early 2C Intake is bound to the signed proposal and original authenticated session", async () => {
+  const inviteId = "earlycash1";
+  const owner = "early-cash-guardian";
+  const seed = async (overrides = {}) => env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, "intakeTokens", inviteId), {
+      exp: Date.now() + 60000, used: false, intakeAudience: "parent_guardian",
+      proposalId: "proposal-syv-1", locationId: "santa-ynez-valley", earlyCashCheckOwnerUid: owner,
+    });
+    await setDoc(doc(db, "proposals", "proposal-syv-1"), {
+      status: "READY_FOR_CHECKOUT", earlyCashCheckIntakeTokenId: inviteId,
+      lockedSnapshot: { pricing: { paymentArrangement: "prepaid_cash_check" } },
+      clientAcceptance: { consentAccepted: true },
+      enrollmentConfirmation: { termsConfirmed: true },
+      ...overrides,
+    });
+  });
+  await seed();
+  const guardian = env.authenticatedContext(owner).firestore();
+  const outsider = env.authenticatedContext("outsider").firestore();
+  await assertFails(getDoc(doc(outsider, "intakeTokens", inviteId)));
+  await assertFails(setDoc(doc(outsider, "intakes", inviteId), parentPayload("outsider", inviteId)));
+  await assertSucceeds(getDoc(doc(guardian, "intakeTokens", inviteId)));
+  const intake = doc(guardian, "intakes", inviteId);
+  for (const invalid of [
+    { enrollmentConfirmation: { termsConfirmed: false } },
+    { clientAcceptance: { consentAccepted: false } },
+    { earlyCashCheckIntakeTokenId: "superseded" },
+    { lockedSnapshot: { pricing: { paymentArrangement: "prepaid_stripe" } } },
+  ]) {
+    await seed(invalid);
+    await assertFails(setDoc(intake, parentPayload(owner, inviteId)));
+  }
+  await seed();
+  await assertSucceeds(setDoc(intake, parentPayload(owner, inviteId)));
+  await assertFails(setDoc(intake, { ...parentPayload(owner, inviteId), status: "approved" }));
+});

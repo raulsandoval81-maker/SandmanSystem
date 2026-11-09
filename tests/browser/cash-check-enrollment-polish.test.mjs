@@ -39,6 +39,7 @@ const twoCHandler = enrollment.slice(
 function wireSyntheticSend({
   promptValue = "approved@example.com",
   confirmed = true,
+  intakeComplete = false,
   receiptStatus = async () => ({status: "NOT_SENT"}),
 } = {}) {
   const events = [];
@@ -65,6 +66,7 @@ function wireSyntheticSend({
       prospect: {email: "fixture@example.invalid"},
     }]]),
     intakeAudienceForProposal: () => "parent_guardian",
+    twoCReceiptStatuses: new Map([["P-SYNTHETIC", {intakeComplete}]]),
     window: {
       prompt: (_message, initial) => { events.push(["prompt", initial]); return promptValue; },
       confirm: () => confirmed,
@@ -162,4 +164,15 @@ test("2C delegated click still prompts once after the queue replaces the button"
   await button.click();
   await replacement.click();
   assert.deepEqual(events, [["prompt", ""], ["prompt", ""]]);
+});
+
+test("2C sends only the payment receipt after Intake is complete", async () => {
+  const {button, events} = wireSyntheticSend({
+    intakeComplete: true,
+    receiptStatus: async () => ({status: "NOT_SENT", intakeComplete: true}),
+  });
+  await button.click();
+  assert.equal(events.includes("token"), false);
+  assert.deepEqual(events.filter(Array.isArray).map(([event]) => event),
+    ["prompt", "sendProposalPrepaidCashReceipt"]);
 });
