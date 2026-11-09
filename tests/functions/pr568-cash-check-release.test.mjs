@@ -13,7 +13,7 @@ test('PR568 manifest pins exactly three reviewed files and two Hosting assets',(
   assert.deepEqual(manifest.hosting,['public/connect/admissions/calculator/calculator.js','public/connect/admissions/calculator/index.html']);
 });
 test('PR568 action stays distinct, exact-SHA, staging protected and approval gated',()=>{
-  const job=workflow.split('\n  pr568-cash-check-release:')[1];assert.ok(job);
+  const job=workflow.split('\n  pr568-cash-check-release:')[1]?.split(/\n  [a-z][a-z0-9-]*:/,1)[0];assert.ok(job);
   for(const value of ['pr568-cash-check-preflight','pr568-cash-check-deploy','environment: staging',
     '87c2ee60439d47f1ef42628ebb9add6ed770181c','APPROVE_PR568_STAGING_TWO_CASH_CHECK_ASSETS',
     'npm --prefix application/functions run test:payment-arrangements','pr568-cash-check-hosting-overlay.mjs',
