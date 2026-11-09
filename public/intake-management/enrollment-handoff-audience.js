@@ -471,15 +471,18 @@ async function createInvite(proposal, audience) {
 
 async function normalizeCard(card) {
   const proposalId = clean(card.dataset.readyProposal);
-  if (!proposalId || card.dataset.audienceNormalized === "true") return;
+  if (!proposalId || card.dataset.audienceNormalized === "true" ||
+      card.querySelector("[data-ready-2c]")) return;
 
   const snap = await getDoc(doc(db, "proposals", proposalId));
   if (!snap.exists()) return;
 
   const proposal = { id: snap.id, ...snap.data() };
+  // Cash/Check handoff is owned by the receipt-first controls.
+  if (proposal.paymentMethod === "cash_prepaid") return;
   const audience = await inferAudienceWithLead(proposal);
   const actions = card.querySelector(".pending-card-actions");
-  if (!actions) return;
+  if (!actions || actions.querySelector("[data-ready-2c]")) return;
 
   // If the proposal does not contain enough authoritative data to infer
   // Parent/Guardian vs Adult Athlete, keep the Enrollment page's explicit
