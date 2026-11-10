@@ -183,7 +183,7 @@ def verify_postdeploy():
             nonce = f"{RECOVERY_RELEASE.rsplit('/', 1)[-1]}-verify-{attempt}"
             url = f"https://{PROJECT}.web.app{path}?" + urlencode({"pr622Verification": nonce})
             body = inventory.read("Read live approved Hosting asset", url)
-            if body[:2] == b"\\x1f\\x8b":
+            if body[:2] == b"\x1f\x8b":
                 body = gzip.decompress(body)
             digest = inventory.sha(body)
             found.append(digest)
@@ -197,7 +197,7 @@ def verify_postdeploy():
               "hostingRelease": RECOVERY_RELEASE, "hostingVersion": RECOVERY_VERSION,
               "verifiedRevisions": revisions, "hostingManifestVerified": True,
               "assets": checks, "passed": all(x["matches"] for x in checks.values())}
-    RECOVERY.write_text(json.dumps(result, indent=2, sort_keys=True) + "\\n")
+    RECOVERY.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     require(result["passed"], "Live Hosting asset hashes remain different; stop without redeploying")
     print(json.dumps({"status": "VERIFIED", "mode": "READ_ONLY",
                       "hostingRelease": RECOVERY_RELEASE, "verifiedAssets": len(checks)}))
