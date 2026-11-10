@@ -47,6 +47,20 @@ class Pr614ReleaseTests(unittest.TestCase):
         self.assertIn('base + f"projects/{PROJECT}/releases/cloud.firestore", host_token', source)
         self.assertNotIn('"createAthleteFromIntakeCall": (2,', source)
 
+    def test_rules_rollback_accepts_only_known_single_nonempty_sources(self):
+        for name in ("firestore.rules", "staging-promotions-candidate.rules"):
+            self.assertEqual(deploy.preflight.rollback_rule_source(
+                [{"name": name, "content": "rules_version = '2';"}])["name"], name)
+        for files in ([],
+                      [{"name": "unexpected.rules", "content": "rules"}],
+                      [{"name": "firestore.rules", "content": "rules"},
+                       {"name": "other.rules", "content": "rules"}]):
+            with self.subTest(files=files), self.assertRaisesRegex(RuntimeError, "Unexpected active Rules scope"):
+                deploy.preflight.rollback_rule_source(files)
+        with self.assertRaisesRegex(RuntimeError, "rollback source is empty"):
+            deploy.preflight.rollback_rule_source(
+                [{"name": "staging-promotions-candidate.rules", "content": ""}])
+
     def test_build_is_isolated_from_clean_release_candidate(self):
         workflow = Path(__file__).parents[2] / ".github/workflows/staging-exact-sha-release.yml"
         source = workflow.read_text()
