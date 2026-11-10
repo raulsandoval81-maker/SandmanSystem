@@ -576,3 +576,11 @@ button {
     text-align: left;
   }
 }
+
+/* Compact pathway-aware family enrollment progress. */
+.enrollment-progress li strong { font: inherit; font-weight: 800; line-height: 1.35; }
+.enrollment-progress li small { font-size: .68rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.enrollment-progress li[data-status="complete"] { color: var(--gold); }
+.enrollment-progress li[data-status="complete"] span { border-color: var(--gold); }
+.enrollment-progress li[data-status="current"] { color: var(--gold); }
+.enrollment-progress li[data-status="current"] span { background: var(--gold); border-color: var(--gold); color: #090909; }
