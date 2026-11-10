@@ -99,7 +99,7 @@ def permission_probe(label, resource, token, required):
     return {"required": required, "granted": sorted(granted), "missing": sorted(set(required) - set(granted))}
 
 
-def live():
+def live(*, include_rules=True, output=Path("pr614-preflight.json")):
     for key, expected in {
         "GITHUB_REPOSITORY": inventory.REPO, "GITHUB_REF": "refs/heads/main",
         "GITHUB_WORKFLOW_REF": inventory.WORKFLOW, "CONFIRM_PROJECT": PROJECT,
@@ -223,9 +223,10 @@ def live():
         return {**baseline, "candidateSha256": result["candidateHashes"]["public" + inventory.TARGET],
                 "proposed": proposed, "changedPaths": sorted(changed)}
 
-    result["firestoreRollback"] = capture("Firestore Rules", rules)
+    if include_rules:
+        result["firestoreRollback"] = capture("Firestore Rules", rules)
     result["hostingRollback"] = capture("Hosting", hosting)
-    Path("pr614-preflight.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    output.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     return int(bool(result["errors"]))
 
 
