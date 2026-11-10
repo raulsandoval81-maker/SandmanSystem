@@ -61,6 +61,36 @@ class Pr614ReleaseTests(unittest.TestCase):
             deploy.preflight.rollback_rule_source(
                 [{"name": "staging-promotions-candidate.rules", "content": ""}])
 
+    def test_runtime_guard_ignores_only_exact_platform_managed_identity_labels(self):
+        def normalized(labels):
+            config = {
+                "function": {
+                    "name": "projects/sandman-combat-staging/locations/us-central1/functions/hydrateEnrollmentIntakePrefill",
+                    "buildConfig": {"runtime": "nodejs22"},
+                    "serviceConfig": {},
+                },
+                "transport": {
+                    "functions": {},
+                    "runIam": {},
+                    "run": {
+                        "buildConfig": {}, "annotations": {}, "template": {"labels": labels, "containers": []},
+                        "trafficStatuses": [],
+                    },
+                },
+            }
+            return deploy.preserved_runtime_config(config)["transport"]["run"]["template"]["labels"]
+
+        managed = {
+            "goog-drz-cloudfunctions-id": "hydrateenrollmentintakeprefill",
+            "goog-drz-cloudfunctions-location": "us-central1",
+            "application-security-label": "preserved",
+        }
+        self.assertEqual(normalized(managed), {"application-security-label": "preserved"})
+        self.assertEqual(normalized({"goog-drz-cloudfunctions-id": "different-function"}),
+                         {"goog-drz-cloudfunctions-id": "different-function"})
+        self.assertEqual(normalized({"goog-drz-cloudfunctions-location": "europe-west1"}),
+                         {"goog-drz-cloudfunctions-location": "europe-west1"})
+
     def test_build_is_isolated_from_clean_release_candidate(self):
         workflow = Path(__file__).parents[2] / ".github/workflows/staging-exact-sha-release.yml"
         source = workflow.read_text()
