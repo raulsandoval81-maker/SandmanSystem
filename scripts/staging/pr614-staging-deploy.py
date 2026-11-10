@@ -144,6 +144,29 @@ def deployed_source(name, config, token):
         key for key, generation in FUNCTIONS.items() if generation == 2))
 
 
+def preserved_runtime_config(config):
+    """Ignore only an exact platform-managed Function identity label."""
+    result = release.runtime_config(config)
+    function = result["function"]
+    if "buildConfig" not in function:
+        return result
+    function_id = function["name"].rsplit("/", 1)[-1].lower()
+    transport = dict(result["transport"])
+    run = dict(transport["run"])
+    template = dict(run["template"])
+    labels = dict(template.get("labels", {}))
+    for key, expected in {
+        "goog-drz-cloudfunctions-id": function_id,
+        "goog-drz-cloudfunctions-location": REGION,
+    }.items():
+        if labels.get(key) == expected:
+            labels.pop(key)
+    template["labels"] = labels
+    run["template"] = template
+    transport["run"] = run
+    return {"function": function, "transport": transport}
+
+
 def package():
     guard(os.environ)
     require(set(ENTRY_POINTS) == set(FUNCTIONS) and "createAthleteFromIntakeCall" not in FUNCTIONS,
@@ -225,7 +248,7 @@ def main():
             updated.append(name)
             release.source_update(name, archive, function_token)
             after = release.function_config(name, function_token)
-            require(release.runtime_config(after) == release.runtime_config(before),
+            require(preserved_runtime_config(after) == preserved_runtime_config(before),
                     f"{name}: runtime identity, IAM, secrets, or transport changed")
             require(inventory.sha(deployed_source(name, after, function_token)) == inventory.sha(archive),
                     f"{name}: deployed source differs from reviewed package")
