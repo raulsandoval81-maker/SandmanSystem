@@ -1,5 +1,7 @@
 """Fail-closed continuation of Run #347. Staging only; no replay of updated Functions."""
 import json
+import io
+import zipfile
 import os
 from pathlib import Path
 import subprocess
@@ -75,6 +77,28 @@ def verify_snapshot(name, config, entry):
                 f"{name}: Cloud Run IAM changed after preflight")
 
 
+def archive_file_digests(content):
+    """Compare exact source contents; ZIP metadata is not part of executable source."""
+    inventory.archive_evidence(content)
+    with zipfile.ZipFile(io.BytesIO(content)) as package:
+        names = package.namelist()
+        require(len(names) == len(set(names)) and all(
+            name and not name.startswith("/") and "\\\\" not in name and
+            ".." not in Path(name).parts and not name.endswith("/")
+            for name in names), "Source ZIP has duplicate, unsafe, or directory entries")
+        return {name: inventory.sha(package.read(name)) for name in names}
+
+
+def verify_deployed_archive(name, deployed, reviewed):
+    actual = archive_file_digests(deployed)
+    expected = archive_file_digests(reviewed)
+    require(actual == expected,
+            f"{name}: deployed source file mismatch; only-deployed="
+            f"{sorted(set(actual) - set(expected))}; only-reviewed="
+            f"{sorted(set(expected) - set(actual))}; changed="
+            f"{sorted(k for k in actual.keys() & expected.keys() if actual[k] != expected[k])}")
+
+
 def prepared_manifest(evidence):
     hosting = evidence["hostingRollback"]
     require(hosting["release"] == os.environ["EXPECTED_HOSTING_RELEASE"] and
@@ -110,8 +134,7 @@ def main():
                 f"{name}: not at recorded Run #347 revision ({expected})")
     # All four previously updated source packages must match before any write.
     for name in ALREADY_UPDATED:
-        require(inventory.sha(original.deployed_source(name, live[name], functions_token))
-                == inventory.sha(archive), f"{name}: deployed source does not match pinned package")
+        verify_deployed_archive(name, original.deployed_source(name, live[name], functions_token), archive)
     first_asset = Path("pr614-candidate/public" + original.ASSETS[0]).read_bytes()
     active_hosting = original.current_hosting(platform_token, first_asset)
     require(all(active_hosting[key] == hosting[key] for key in ("release", "version", "manifest", "config")),
@@ -133,8 +156,7 @@ def main():
             require(original.preserved_runtime_config(after) ==
                     original.preserved_runtime_config(live[name]),
                     f"{name}: runtime identity, IAM, secrets, or transport changed")
-            require(inventory.sha(original.deployed_source(name, after, functions_token))
-                    == inventory.sha(archive), f"{name}: deployed source differs from reviewed package")
+            verify_deployed_archive(name, original.deployed_source(name, after, functions_token), archive)
         for name in ALREADY_UPDATED:
             after = release.function_config(name, functions_token)
             require(after == live[name], f"{name}: previously updated Function changed")
