@@ -1,5 +1,7 @@
 """Offline invariants for the strictly scoped PR614 partial-staging continuation."""
 import importlib.util
+import io
+import zipfile
 from pathlib import Path
 import unittest
 
@@ -40,6 +42,39 @@ class ContinuationTests(unittest.TestCase):
         self.assertEqual(module.REMAINING["approveIntakeCall"], "00001-tul")
         self.assertEqual(module.PREPARED_HOSTING,
                          "sites/sandman-combat-staging/versions/32d5bddfa69e2f06")
+
+    def test_metadata_only_zip_difference_is_accepted(self):
+        def archive(timestamp, payload=b"approved source"):
+            memory = io.BytesIO()
+            with zipfile.ZipFile(memory, "w") as handle:
+                entry = zipfile.ZipInfo("lib/index.js", timestamp)
+                handle.writestr(entry, payload)
+                handle.writestr("APPLICATION_SHA", module.SHA + "\\n")
+            return memory.getvalue()
+        first = archive((2024, 1, 1, 0, 0, 0))
+        second = archive((2026, 11, 10, 0, 0, 0))
+        self.assertNotEqual(first, second)
+        module.verify_deployed_archive("approveAndActivate", first, second)
+        with self.assertRaisesRegex(RuntimeError, "changed=.*lib/index.js"):
+            module.verify_deployed_archive("approveAndActivate", first,
+                archive((2026, 11, 10, 0, 0, 0), b"modified source"))
+
+    def test_extra_files_and_duplicates_are_rejected(self):
+        def archive(entries):
+            memory = io.BytesIO()
+            with zipfile.ZipFile(memory, "w") as handle:
+                for name, content in entries:
+                    handle.writestr(name, content)
+            return memory.getvalue()
+        approved = archive([("lib/index.js", "good"), ("APPLICATION_SHA", module.SHA)])
+        extra = archive([("lib/index.js", "good"), ("APPLICATION_SHA", module.SHA),
+                         ("unexpected.js", "different")])
+        duplicate = archive([("lib/index.js", "good"), ("lib/index.js", "bad"),
+                             ("APPLICATION_SHA", module.SHA)])
+        with self.assertRaisesRegex(RuntimeError, "only-deployed"):
+            module.verify_deployed_archive("approveAndActivate", extra, approved)
+        with self.assertRaisesRegex(RuntimeError, "duplicate"):
+            module.verify_deployed_archive("approveAndActivate", duplicate, approved)
 
     def test_workflow_has_separate_protected_action(self):
         workflow = (PATH.parents[2] / ".github/workflows/staging-exact-sha-release.yml").read_text()
