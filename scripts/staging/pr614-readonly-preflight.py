@@ -7,7 +7,7 @@ import re
 import subprocess
 import urllib.error
 import urllib.request
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 
 inventory = __import__("pr606-readonly-preflight")
 PROJECT = inventory.PROJECT
@@ -21,7 +21,6 @@ FUNCTIONS = {
     "sendEnrollmentIntakeEmail": (1, "enrollment/sendEnrollmentIntakeEmail"),
     "hydrateEnrollmentIntakePrefill": (2, "enrollment/hydrateEnrollmentIntakePrefill"),
     "approveIntakeCall": (2, "modules/approveIntakeCall"),
-    "createAthleteFromIntakeCall": (2, "modules/createAthleteFromIntakeCall"),
     "acceptProposalClientReview": (2, "proposals/acceptProposalClientReview"),
     "issueProposalEnrollmentHandoff": (2, "proposals/issueProposalEnrollmentHandoff"),
     "saveProposalEnrollmentAgreement": (2, "proposals/saveProposalEnrollmentAgreement"),
@@ -33,6 +32,7 @@ ASSETS = (
     "/intake-management/management.intake.js",
 )
 SUPPORT = {
+    "functions/src/modules/createAthleteFromIntakeCall.ts",
     "functions/src/enrollment/combinedEnrollmentReceipt.ts",
     "functions/src/enrollment/earlyCashCheckIntake.ts",
     "functions/src/enrollment/requireVerifiedCashCheckIntakePayment.ts",
@@ -115,46 +115,18 @@ def live():
         result["errors"].append({"check": "Firebase project", "error": "Staging project ID/number not verified"})
     result["permissionProbes"] = {}
     for surface, requirements in REQUIREMENTS.items():
-        principal = "sandman-staging-deployer" if surface == "hosting" else "sandman-practice-deployer"
+        principal = "sandman-staging-deployer" if surface in {"hosting", "rules"} else "sandman-practice-deployer"
         evidence = capture(surface + " project IAM", lambda: permission_probe(
-            surface, project_url, host_token if surface == "hosting" else token, requirements))
+            surface, project_url, host_token if surface in {"hosting", "rules"} else token, requirements))
         result["permissionProbes"][surface] = {"principal": f"{principal}@{PROJECT}.iam.gserviceaccount.com",
                                                "evidence": evidence}
         if evidence and evidence["missing"]:
             result["errors"].append({"check": surface, "missing": evidence["missing"]})
 
-    def inventory_athlete_callable():
-        target = "createAthleteFromIntakeCall"
-        found = []
-        for generation in (1, 2):
-            url = f"https://cloudfunctions.googleapis.com/v{generation}/projects/{PROJECT}/locations/us-central1/functions"
-            page_token = ""
-            seen = set()
-            while True:
-                page = get(f"Gen{generation} us-central1 Function inventory",
-                           url + "?" + urlencode({"pageSize": 100, "pageToken": page_token}), token)
-                inventory.require(not page.get("unreachable"), "Incomplete regional Function inventory")
-                for fn in page.get("functions", []):
-                    name = fn["name"]
-                    entry = fn.get("entryPoint") or fn.get("buildConfig", {}).get("entryPoint")
-                    if name.rsplit("/", 1)[-1].lower() == target.lower() or entry == target:
-                        found.append({"name": name, "generation": generation, "entryPoint": entry})
-                page_token = page.get("nextPageToken")
-                if not page_token:
-                    break
-                inventory.require(page_token not in seen, "Repeated Function inventory page token")
-                seen.add(page_token)
-        return found
-
     for name, (generation, _) in FUNCTIONS.items():
         def describe():
             url = f"https://cloudfunctions.googleapis.com/v{generation}/projects/{PROJECT}/locations/us-central1/functions/{name}"
-            try:
-                record = get(name, url, token)
-            except RuntimeError as exc:
-                if name == "createAthleteFromIntakeCall" and str(exc) == f"{name}: HTTP 404":
-                    result["athleteCallableInventory"] = capture("Athlete callable regional inventory", inventory_athlete_callable)
-                raise
+            record = get(name, url, token)
             runtime = record if generation == 1 else record["serviceConfig"]
             identity = runtime["serviceAccountEmail"]
             inventory.require(identity.endswith(f"@{PROJECT}.iam.gserviceaccount.com") or
@@ -216,11 +188,11 @@ def live():
 
     def rules():
         base = "https://firebaserules.googleapis.com/v1/"
-        release = get("Firestore active release", base + f"projects/{PROJECT}/releases/cloud.firestore", token)
+        release = get("Firestore active release", base + f"projects/{PROJECT}/releases/cloud.firestore", host_token)
         ruleset = release["rulesetName"]
         inventory.require(re.fullmatch(rf"projects/{PROJECT}/rulesets/[a-zA-Z0-9-]+", ruleset),
                           "Unexpected Firestore ruleset reference")
-        source = get("Firestore rollback source", base + ruleset, token)["source"]["files"]
+        source = get("Firestore rollback source", base + ruleset, host_token)["source"]["files"]
         inventory.require(len(source) == 1 and source[0]["name"] == "firestore.rules", "Unexpected active Rules scope")
         return {"release": release["name"], "ruleset": ruleset,
                 "sha256": inventory.sha(source[0]["content"].encode())}
