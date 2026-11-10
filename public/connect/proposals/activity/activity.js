@@ -369,6 +369,15 @@ function lifecycleState(
     placementEvents.has("EXPERIENCE_VALIDATED") ||
     placementEvents.has("PLACEMENT_RECORDED");
 
+  // Preserve the established post-activation placement and assessment record.
+  if (activated && !assessmentRequested) complete.add("placement");
+  if (placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
+      placementEvents.has("EXPERIENCE_VALIDATED") ||
+      placementEvents.has("PLACEMENT_RECORDED")) complete.add("coach_assessment");
+  if (placementEvents.has("EXPERIENCE_VALIDATED") ||
+      placementEvents.has("PLACEMENT_RECORDED")) complete.add("management_validation");
+  if (placementEvents.has("PLACEMENT_RECORDED")) complete.add("placement");
+
   const current = enrollmentSteps(isCashCheck(proposal)).find(
     (step) =>
       !complete.has(step.key)
@@ -411,6 +420,28 @@ function lifecycleHtml(
             <span class="activity-lifecycle-number">${index + 1}</span>
             <div><strong>${esc(label)}</strong><small>${esc(step.description)}</small></div>
             <span class="activity-lifecycle-state">${done ? "Completed" : current ? "Current" : "Waiting"}</span>
+          </li>`;
+        }).join("")}
+      </ol>
+      <div class="activity-lifecycle-head">
+        <h3>Placement &amp; Assessment</h3>
+        <p>Roster placement, optional Coach assessment, Management validation, and starting XP remain tracked separately.</p>
+      </div>
+      <ol class="activity-lifecycle-list">
+        ${[
+          {key: "placement", label: "Roster Placement & Starting Progression",
+            description: "Athlete roster placement and starting progression are recorded by Management."},
+          {key: "coach_assessment", label: "Coach Assessment",
+            description: "Optional when Management requests validation of prior experience."},
+          {key: "management_validation", label: "Management Validation & Starting XP",
+            description: "Management reviews Coach findings and applies any approved prior-work XP."},
+        ].map((step) => {
+          const skipped = state.activated && !state.assessmentRequested && step.key !== "placement";
+          const complete = state.complete.has(step.key);
+          return `<li class="activity-lifecycle-step ${skipped ? "is-skipped" : complete ? "is-complete" : "is-pending"}">
+            <span class="activity-lifecycle-number">•</span>
+            <div><strong>${esc(step.label)}</strong><small>${esc(step.description)}</small></div>
+            <span class="activity-lifecycle-state">${skipped ? "Not Required" : complete ? "Completed" : "Waiting"}</span>
           </li>`;
         }).join("")}
       </ol>
