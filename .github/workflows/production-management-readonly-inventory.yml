@@ -6,6 +6,11 @@ on:
         description: "Type sandmandashboard"
         required: true
         type: string
+      receipt_intake_inventory:
+        description: Capture exact receipt/Intake source recovery, runtime, IAM and Rules metadata (read-only)
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: read
 concurrency:
@@ -21,10 +26,38 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
         run: test "$CONFIRM_PROJECT" = "sandmandashboard"
+      - uses: actions/checkout@v4
+        if: ${{ inputs.receipt_intake_inventory }}
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        if: ${{ inputs.receipt_intake_inventory }}
+        with:
+          ref: 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        if: ${{ inputs.receipt_intake_inventory }}
+        with:
+          node-version: '22'
+      - name: Validate and compile pinned receipt Intake candidate
+        if: ${{ inputs.receipt_intake_inventory }}
+        run: |
+          python3 -m unittest discover -s trusted/tests/production -p 'test_receipt_intake_inventory.py'
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
       - name: Authenticate read-only inventory
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - name: Capture targeted receipt Intake recovery inventory
+        if: ${{ inputs.receipt_intake_inventory }}
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          CONFIRM_SOURCE_SHA: 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+        run: python3 trusted/scripts/production/receipt_intake_inventory.py
       - name: Gather sanitized immutable production baseline
         shell: bash
         run: |
