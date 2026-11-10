@@ -29,58 +29,31 @@ const getPlacementActivity =
     "getEnrollmentPlacementActivity"
   );
 
-const lifecycle = [
-  {
-    key: "proposal",
-    label: "Proposal Created",
-    description: "Family proposal record exists."
-  },
-  {
-    key: "review",
-    label: "Client Review",
-    description: "Proposal is issued for family review."
-  },
-  {
-    key: "signature",
-    label: "Client Signature",
-    description: "Family accepts and signs the proposal."
-  },
-  {
-    key: "checkout",
-    label: "Checkout",
-    description: "Approved pricing moves into Stripe checkout."
-  },
-  {
-    key: "payment",
-    label: "Payment",
-    description: "Required enrollment payment is completed."
-  },
-  {
-    key: "intake",
-    label: "Intake",
-    description: "Secure athlete or parent intake is completed."
-  },
-  {
-    key: "activation",
-    label: "Athlete Activation",
-    description: "Athlete profile is activated by Management."
-  },
-  {
-    key: "coach_assessment",
-    label: "Coach Assessment",
-    description: "Optional when Management requests Coach assessment before final findings."
-  },
-  {
-    key: "management_validation",
-    label: "Management Validation",
-    description: "Returned Coach findings are reviewed when an assessment was requested."
-  },
-  {
-    key: "placement",
-    label: "Placement",
-    description: "Starting placement is established at activation or finalized after assessment."
-  }
-];
+function isCashCheck(proposal) {
+  return (proposal.lockedSnapshot?.pricing?.paymentArrangement ??
+    proposal.pricing?.paymentArrangement) === "prepaid_cash_check" ||
+    proposal.paymentMethod === "cash_prepaid";
+}
+
+function enrollmentSteps(cash) {
+  const payment = {key: "payment", label: cash ? "Verify Cash/Check" : "Payment",
+    description: cash ? "Management reconciles the existing payment." : "Family completes secure Stripe payment."};
+  const intake = {key: "intake", label: "Intake & Waiver", description: "Family submits secure enrollment paperwork."};
+  return [
+    {key: "review", label: "Proposal Review", description: "Management issues the proposal for family review."},
+    {key: "signature", label: "Sign & Confirm", description: "Family accepts the proposal and confirms the terms."},
+    ...(cash ? [intake, payment] : [payment, intake]),
+    {key: "activation", label: "Review & Mint", description: "Management reviews the paperwork and activates the athlete."},
+  ];
+}
+
+function enrollmentAction(current, cash, id) {
+  const query = `?proposalId=${encodeURIComponent(id)}`;
+  if (current === "payment") return [cash ? "Open Billing to Verify Cash/Check" : "Open Billing", "/management/billing/" + query];
+  if (current === "intake" || current === "activation") return ["Open Management Enrollment", "/intake-management/" + query];
+  if (current) return ["Open Proposals", "/connect/proposals/"];
+  return ["Back to Pipeline History", "/management/pipeline-history/"];
+}
 
 function esc(value = "") {
   return String(value)
@@ -328,8 +301,7 @@ function lifecycleState(
   historyRecords,
   placementRecords
 ) {
-  const complete = new Set(["proposal"]);
-  const skipped = new Set();
+  const complete = new Set();
   const historyEvents = new Set(
     historyRecords.map((item) =>
       String(item.event || "").trim().toUpperCase()
@@ -373,18 +345,6 @@ function lifecycleState(
   }
 
   if (
-    historyEvents.has("CHECKOUT_CREATED") ||
-    historyEvents.has("CHECKOUT_RESTARTED") ||
-    [
-      "CHECKOUT_CREATED",
-      "PAYMENT_PENDING",
-      "PAID"
-    ].includes(status)
-  ) {
-    complete.add("checkout");
-  }
-
-  if (
     historyEvents.has("PAID") ||
     status === "PAID"
   ) {
@@ -409,40 +369,22 @@ function lifecycleState(
     placementEvents.has("EXPERIENCE_VALIDATED") ||
     placementEvents.has("PLACEMENT_RECORDED");
 
-  if (activated && !assessmentRequested) {
-    skipped.add("coach_assessment");
-    skipped.add("management_validation");
-    complete.add("placement");
-  } else if (assessmentRequested) {
-    if (
-      placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
+  // Preserve the established post-activation placement and assessment record.
+  if (activated && !assessmentRequested) complete.add("placement");
+  if (placementEvents.has("COACH_ASSESSMENT_RETURNED") ||
       placementEvents.has("EXPERIENCE_VALIDATED") ||
-      placementEvents.has("PLACEMENT_RECORDED")
-    ) {
-      complete.add("coach_assessment");
-    }
+      placementEvents.has("PLACEMENT_RECORDED")) complete.add("coach_assessment");
+  if (placementEvents.has("EXPERIENCE_VALIDATED") ||
+      placementEvents.has("PLACEMENT_RECORDED")) complete.add("management_validation");
+  if (placementEvents.has("PLACEMENT_RECORDED")) complete.add("placement");
 
-    if (
-      placementEvents.has("EXPERIENCE_VALIDATED") ||
-      placementEvents.has("PLACEMENT_RECORDED")
-    ) {
-      complete.add("management_validation");
-    }
-
-    if (placementEvents.has("PLACEMENT_RECORDED")) {
-      complete.add("placement");
-    }
-  }
-
-  const current = lifecycle.find(
+  const current = enrollmentSteps(isCashCheck(proposal)).find(
     (step) =>
-      !complete.has(step.key) &&
-      !skipped.has(step.key)
+      !complete.has(step.key)
   )?.key || null;
 
   return {
     complete,
-    skipped,
     current,
     activated,
     assessmentRequested
@@ -465,79 +407,42 @@ function lifecycleHtml(
     placementRecords
   );
 
+  const cash = isCashCheck(proposal);
   return `
-    <section class="activity-lifecycle" aria-label="Case lifecycle">
-      <div class="activity-lifecycle-head">
-        <div>
-          <h2>Full Case Chain</h2>
-          <p>
-            Coach assessment is optional. If Management requests one, the case continues through Coach return and Management validation. Otherwise, the athlete begins from the starting placement established at activation.
-          </p>
-        </div>
-      </div>
-
+    <section class="activity-lifecycle" aria-label="Enrollment progress">
+      <div class="activity-lifecycle-head"><h2>Enrollment Progress</h2></div>
       <ol class="activity-lifecycle-list">
-        ${lifecycle.map((step, index) => {
-          const isComplete = state.complete.has(step.key);
-          const isSkipped = state.skipped.has(step.key);
-          const isCurrent =
-            state.current === step.key &&
-            !isComplete &&
-            !isSkipped;
-          const className = isSkipped
-            ? "is-skipped"
-            : isComplete
-              ? "is-complete"
-              : isCurrent
-                ? "is-current"
-                : "is-pending";
-          const stateLabel = isSkipped
-            ? "Not Required"
-            : isComplete
-              ? "Completed"
-              : isCurrent
-                ? "Current"
-                : "Waiting";
-
-          let label = step.label;
-          let description = step.description;
-
-          if (
-            membershipChoiceActive &&
-            step.key === "signature"
-          ) {
-            label = "Membership Choice";
-            description =
-              "Family chooses one of the issued membership options before the final Review & Confirm step.";
-          }
-
-          if (isSkipped && step.key === "coach_assessment") {
-            description = "No Coach assessment was requested for this enrollment.";
-          }
-
-          if (isSkipped && step.key === "management_validation") {
-            description = "No returned Coach assessment required Management validation.";
-          }
-
-          if (
-            isComplete &&
-            step.key === "placement" &&
-            state.activated &&
-            !state.assessmentRequested
-          ) {
-            description = "Starting placement was established when the athlete was activated.";
-          }
-
-          return `
-            <li class="activity-lifecycle-step ${className}">
-              <span class="activity-lifecycle-number">${index + 1}</span>
-              <div>
-                <strong>${esc(label)}</strong>
-                <small>${esc(description)}</small>
-              </div>
-              <span class="activity-lifecycle-state">${stateLabel}</span>
-            </li>
-          `;
+        ${enrollmentSteps(cash).map((step, index) => {
+          const done = state.complete.has(step.key);
+          const current = state.current === step.key;
+          const label = membershipChoiceActive && step.key === "signature" ? "Membership Choice" : step.label;
+          return `<li class="activity-lifecycle-step ${done ? "is-complete" : current ? "is-current" : "is-pending"}">
+            <span class="activity-lifecycle-number">${index + 1}</span>
+            <div><strong>${esc(label)}</strong><small>${esc(step.description)}</small></div>
+            <span class="activity-lifecycle-state">${done ? "Completed" : current ? "Current" : "Waiting"}</span>
+          </li>`;
+        }).join("")}
+      </ol>
+      <div class="activity-lifecycle-head">
+        <h3>Placement &amp; Assessment</h3>
+        <p>Roster placement, optional Coach assessment, Management validation, and starting XP remain tracked separately.</p>
+      </div>
+      <ol class="activity-lifecycle-list">
+        ${[
+          {key: "placement", label: "Roster Placement & Starting Progression",
+            description: "Athlete roster placement and starting progression are recorded by Management."},
+          {key: "coach_assessment", label: "Coach Assessment",
+            description: "Optional when Management requests validation of prior experience."},
+          {key: "management_validation", label: "Management Validation & Starting XP",
+            description: "Management reviews Coach findings and applies any approved prior-work XP."},
+        ].map((step) => {
+          const skipped = state.activated && !state.assessmentRequested && step.key !== "placement";
+          const complete = state.complete.has(step.key);
+          return `<li class="activity-lifecycle-step ${skipped ? "is-skipped" : complete ? "is-complete" : "is-pending"}">
+            <span class="activity-lifecycle-number">•</span>
+            <div><strong>${esc(step.label)}</strong><small>${esc(step.description)}</small></div>
+            <span class="activity-lifecycle-state">${skipped ? "Not Required" : complete ? "Completed" : "Waiting"}</span>
+          </li>`;
         }).join("")}
       </ol>
     </section>
@@ -622,6 +527,8 @@ async function load() {
     placementRecords
   );
 
+  const [actionLabel, actionUrl] = enrollmentAction(lifecycleStatus.current, isCashCheck(proposal), proposalId);
+
   const placementEmptyMessage =
     lifecycleStatus.activated &&
     !lifecycleStatus.assessmentRequested
@@ -647,7 +554,8 @@ async function load() {
         <strong>${esc(
           membershipChoiceActive
             ? "Membership Choice Pending"
-            : statusLabel(proposal.status)
+            : isCashCheck(proposal) && proposal.status === "READY_FOR_CHECKOUT"
+              ? "Cash/Check reconciliation pending" : statusLabel(proposal.status)
         )}</strong>
       </div>
       <div>
@@ -686,6 +594,8 @@ async function load() {
       placementItems,
       placementEmptyMessage
     )}
+
+    <div class="activity-actions"><a class="button button-secondary" href="${esc(actionUrl)}">${esc(actionLabel)}</a></div>
   `;
 }
 

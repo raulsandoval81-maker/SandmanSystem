@@ -50,3 +50,31 @@ test("existing secure token is reused, session bound, and completed Intake does 
   assert.equal(current.status, "READY_FOR_CHECKOUT");
   assert.equal(current.cashPrepayment, undefined);
 });
+
+test("source-only Gen2 runtime recovers project identity without relaxing staging markers", async () => {
+  const { resolveEarlyIntakeStagingRuntime } = require("../lib/enrollment/earlyCashCheckIntake");
+  const environment = {
+    K_SERVICE: "saveproposalenrollmentagreement",
+    SANDMAN_STAGING_ACK: "sandman-combat-staging",
+    SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
+  };
+  const metadata = async (url, options) => {
+    assert.match(url, /^http:\/\/metadata\.google\.internal\/computeMetadata\/v1\/project\/project-id$/);
+    assert.equal(options.headers["Metadata-Flavor"], "Google");
+    assert.equal(options.redirect, "error");
+    return new Response("sandman-combat-staging", {headers: {"Metadata-Flavor": "Google"}});
+  };
+  assert.equal(canStartEarlyCashCheckIntake(proposal, false), false);
+  assert.equal(canStartEarlyCashCheckIntake(proposal, await resolveEarlyIntakeStagingRuntime(environment, metadata)), true);
+  for (const invalid of [
+    {...environment, GOOGLE_CLOUD_PROJECT: "sandmandashboard"},
+    {...environment, SANDMAN_STAGING_ACK: undefined},
+    {...environment, K_SERVICE: undefined},
+  ]) {
+    assert.equal(await resolveEarlyIntakeStagingRuntime(invalid, () => assert.fail("Unexpected metadata lookup")), false);
+  }
+  assert.equal(await resolveEarlyIntakeStagingRuntime(environment, async () =>
+    new Response("sandmandashboard", {headers: {"Metadata-Flavor": "Google"}})), false);
+  assert.equal(await resolveEarlyIntakeStagingRuntime(environment, async () => new Response("sandman-combat-staging")), false);
+  assert.equal(await resolveEarlyIntakeStagingRuntime(environment, async () => { throw new Error("unavailable"); }), false);
+});

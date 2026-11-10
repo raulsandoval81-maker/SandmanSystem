@@ -38,9 +38,9 @@
 
       <h1>Complete Your Enrollment</h1>
 
-      <p class="enrollment-intro">
-        Review your approved enrollment and pricing, confirm the details,
-        and continue to secure payment.
+      <p id="enrollmentIntro" class="enrollment-intro">
+        Review your approved enrollment and pricing. The next step follows your
+        payment arrangement and Management verification status.
       </p>
     </header>
 
@@ -81,15 +81,11 @@
         aria-label="Enrollment progress"
       >
         <ol>
-          <li data-step="summary" aria-current="step">
-            <span>1</span>
-            Review &amp; Confirm
-          </li>
-
-          <li>
-            <span>2</span>
-            Secure Payment
-          </li>
+          <li data-step="summary" aria-current="step"><span>1</span><strong>Review &amp; Confirm</strong><small>You</small></li>
+          <li data-step="payment"><span>2</span><strong id="paymentStepLabel">Payment / Verification</strong><small id="paymentStepOwner">You / Management</small></li>
+          <li data-step="intake"><span>3</span><strong>Intake &amp; Waiver</strong><small>You</small></li>
+          <li data-step="approval"><span>4</span><strong>Management Approval &amp; Athlete Creation</strong><small>Management</small></li>
+          <li data-step="onboarding"><span>5</span><strong>Account Setup &amp; Onboarding</strong><small>Management / You</small></li>
         </ol>
       </nav>
 
@@ -213,7 +209,7 @@
   ></script>
   <script
     type="module"
-    src="/connect/enrollment/enrollment.js?v=20261028-1"
+    src="/connect/enrollment/enrollment.js?v=20261110-2"
   ></script>
 </body>
 </html>

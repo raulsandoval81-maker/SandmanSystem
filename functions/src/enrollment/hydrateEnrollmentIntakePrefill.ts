@@ -1,4 +1,4 @@
-import { canStartEarlyCashCheckIntake } from "./earlyCashCheckIntake";
+import { resolveEarlyIntakeStagingRuntime, canStartEarlyCashCheckIntake } from "./earlyCashCheckIntake";
 import {
   FieldValue,
   getFirestore,
@@ -84,7 +84,7 @@ export const hydrateEnrollmentIntakePrefill = onCall(async (req) => {
 
   const proposal = proposalSnap.data() || {};
   const early = token.earlyCashCheckOwnerUid === req.auth.uid &&
-    proposal.earlyCashCheckIntakeTokenId === tokenId && canStartEarlyCashCheckIntake(proposal);
+    proposal.earlyCashCheckIntakeTokenId === tokenId && canStartEarlyCashCheckIntake(proposal, await resolveEarlyIntakeStagingRuntime());
   if (token.earlyCashCheckOwnerUid && token.earlyCashCheckOwnerUid !== req.auth.uid) {
     throw new HttpsError("permission-denied", "Resume Intake in the original secure session.");
   }

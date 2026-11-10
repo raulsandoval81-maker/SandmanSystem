@@ -1,4 +1,4 @@
-import { isStagingEnrollmentRuntime } from "../enrollment/operationalPaidProposal";
+import { resolveEarlyIntakeStagingRuntime } from "../enrollment/earlyCashCheckIntake";
 import {
   HttpsError,
   onCall,
@@ -97,6 +97,7 @@ export const acceptProposalClientReview =
       );
     }
 
+    const staging = await resolveEarlyIntakeStagingRuntime();
     const db =
       getFirestore();
 
@@ -169,7 +170,7 @@ export const acceptProposalClientReview =
               "The proposal review snapshot is missing."
             );
           }
-          const acknowledgeCashTerms = isStagingEnrollmentRuntime() &&
+          const acknowledgeCashTerms = staging &&
             review.snapshot.pricing?.paymentArrangement === "prepaid_cash_check" &&
             req.data?.cashTermsConfirmed === true;
           if (acknowledgeCashTerms && !req.auth) {
