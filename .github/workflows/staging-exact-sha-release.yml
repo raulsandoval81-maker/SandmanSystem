@@ -3893,6 +3893,7 @@ jobs:
       EXPECTED_HOSTING_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
       EXPECTED_HOSTING_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
       CANDIDATE_PACKAGE: /tmp/pr614-source.zip
+      PR614_BUILD_ROOT: pr614-build
     steps:
       - uses: actions/checkout@v4
         with:
@@ -3909,11 +3910,17 @@ jobs:
           path: pr614-candidate
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 334e98de3a443c19d9f45722bda45a1ff92fb336
+          path: pr614-build
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: pr614-candidate/functions/package-lock.json
+          cache-dependency-path: pr614-build/functions/package-lock.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -3921,15 +3928,15 @@ jobs:
       - name: Build and run focused enrollment safeguards
         run: |
           set -euo pipefail
-          npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-candidate
-          npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-candidate/functions
-          npm --prefix pr614-candidate/functions run build
-          (cd pr614-candidate && node --test \
+          npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build
+          npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
+          npm --prefix pr614-build/functions run build
+          (cd pr614-build && node --test \
             functions/tests/cashCheckIntakePayment.test.cjs \
             functions/tests/combinedEnrollmentReceipt.test.cjs \
             functions/tests/earlyCashCheckIntake.test.cjs \
             tests/browser/cash-check-enrollment-polish.test.mjs)
-          (cd pr614-candidate && npx --yes firebase-tools@14.13.0 emulators:exec \
+          (cd pr614-build && npx --yes firebase-tools@14.13.0 emulators:exec \
             --only firestore --project demo-sandman-pr614 \
             'node --test tests/firestore/intake.rules.test.mjs')
       - name: Package exactly eight existing callables

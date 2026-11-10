@@ -47,6 +47,18 @@ class Pr614ReleaseTests(unittest.TestCase):
         self.assertIn('base + f"projects/{PROJECT}/releases/cloud.firestore", host_token', source)
         self.assertNotIn('"createAthleteFromIntakeCall": (2,', source)
 
+    def test_build_is_isolated_from_clean_release_candidate(self):
+        workflow = Path(__file__).parents[2] / ".github/workflows/staging-exact-sha-release.yml"
+        source = workflow.read_text()
+        job = source[source.index("  pr614-staging-deploy:"):]
+        self.assertIn("PR614_BUILD_ROOT: pr614-build", job)
+        self.assertIn("path: pr614-candidate", job)
+        self.assertIn("path: pr614-build", job)
+        self.assertIn("npm --prefix pr614-build/functions run build", job)
+        self.assertNotIn("npm --prefix pr614-candidate/functions run build", job)
+        preflight = Path(__file__).with_name("pr614-readonly-preflight.py").read_text()
+        self.assertIn('status", "--porcelain", "--untracked-files=no"', preflight)
+
     def test_release_is_source_only_and_has_no_payment_or_stripe_operation(self):
         source = Path(__file__).with_name("pr614-staging-deploy.py").read_text()
         self.assertIn("release.source_update(name, archive, function_token)", source)
