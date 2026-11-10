@@ -148,7 +148,10 @@ def package():
     guard(os.environ)
     require(set(ENTRY_POINTS) == set(FUNCTIONS) and "createAthleteFromIntakeCall" not in FUNCTIONS,
             "Unexpected Function scope")
-    root = Path("pr614-candidate/functions")
+    build_root = Path(os.environ.get("PR614_BUILD_ROOT", "pr614-build"))
+    require(subprocess.check_output(["git", "-C", str(build_root), "rev-parse", "HEAD"], text=True).strip() == SHA,
+            "Build checkout SHA mismatch")
+    root = build_root / "functions"
     metadata = json.loads((root / "package.json").read_text())
     metadata["main"] = "index.js"
     metadata.pop("scripts", None)
