@@ -155,16 +155,12 @@ on:
         description: Enter action-specific deployment approval for protected releases (including Enrollment bootstrap)
         required: false
         type: string
-      pr622_expected_baseline_sha256:
-        description: SHA-256 printed by the approved PR 622 read-only preflight
-        required: false
-        type: string
       protected_2c_expected_hosting_release:
         description: Exact prior Hosting release from the approved preflight artifact
         required: false
         type: string
       protected_2c_expected_hosting_version:
-        description: Exact prior Hosting version from the approved preflight artifact
+        description: Existing release Hosting version; for PR622 only, approved preflight SHA-256
         required: false
         type: string
       emmett_2c_application_sha:
@@ -4098,7 +4094,7 @@ jobs:
       CONFIRM_PROJECT: ${{ inputs.confirm_project }}
       CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
-      EXPECTED_BASELINE_SHA256: ${{ inputs.pr622_expected_baseline_sha256 }}
+      EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
       CANDIDATE_PACKAGE: /tmp/pr622-source.zip
       PR614_BUILD_ROOT: pr614-build
     steps:
