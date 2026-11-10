@@ -57,6 +57,9 @@ import {
     elements.fundingRoute = document.getElementById("fundingRoute");
 
     elements.agreementForm = document.getElementById("agreementForm");
+    elements.intro = document.getElementById("enrollmentIntro");
+    elements.paymentStepLabel = document.getElementById("paymentStepLabel");
+    elements.paymentStepOwner = document.getElementById("paymentStepOwner");
     elements.termsConfirmed = document.getElementById(
       "termsConfirmed"
     );
@@ -83,6 +86,7 @@ import {
       elements.app.hidden = false;
 
       restoreCorrectStep();
+      renderEnrollmentProgress();
 
       if (
         state.enrollment.paymentRoute === "management_prepaid_reconciliation" &&
@@ -134,7 +138,7 @@ import {
       const consent = document.querySelector("label.enrollment-checkbox span");
       if (consent) consent.textContent = "I confirm the membership term, prepaid amount, coverage dates, annual-fee allocation and separately outstanding balance shown above. No automatic renewal is authorized.";
       const continueButton = document.getElementById("saveAgreementButton");
-      if (continueButton) continueButton.textContent = pricing.paymentArrangement === "prepaid_cash_check" ? "Confirm & Return to Management Reconciliation" : "Confirm & Continue to One-Time Secure Payment";
+      if (continueButton) continueButton.textContent = pricing.paymentArrangement === "prepaid_cash_check" ? "Confirm & Continue to Intake" : "Confirm & Continue to One-Time Payment";
       elements.dueNowAmount.textContent = formatMoney(pricing.dueNow);
       elements.monthlyAmount.textContent = `No recurring charge — ${t.monthsCovered} months prepaid`;
       elements.annualRenewalAmount.textContent = `Annual fee separately outstanding: ${formatMoney(t.annualEnrollmentFee.outstandingCents / 100)}`;
@@ -368,6 +372,56 @@ import {
       .replaceAll("'", "&#039;");
   }
 
+  function enrollmentPathway(enrollment) {
+    const pricing = enrollment.pricing || {};
+    const cash = enrollment.paymentRoute === "management_prepaid_reconciliation" ||
+      pricing.paymentArrangement === "prepaid_cash_check";
+    const oneTime = pricing.paymentArrangement === "prepaid_stripe" ||
+      pricing.billingType === "seasonal_one_time";
+    const confirmed = enrollment.confirmation?.termsConfirmed === true;
+    const paid = enrollment.paymentStatus === "PAID";
+    return { cash, oneTime, confirmed, paid };
+  }
+
+  function renderEnrollmentProgress() {
+    const enrollment = state.enrollment;
+    if (!enrollment) return;
+    const path = enrollmentPathway(enrollment);
+    elements.paymentStepLabel.textContent = path.cash
+      ? "Cash/Check Verification"
+      : path.oneTime ? "One-Time Payment" : "Secure Payment";
+    elements.paymentStepOwner.textContent = path.cash ? "Management" : "You";
+    elements.intro.textContent = path.cash
+      ? "Review your enrollment and confirm the existing Cash/Check arrangement. Management verifies the payment separately; no new online payment is required."
+      : "Review your approved enrollment and pricing, confirm the terms, and continue to the required payment step.";
+    const stages = document.querySelectorAll(".enrollment-progress [data-step]");
+    stages.forEach((element) => {
+      element.removeAttribute("aria-current");
+      element.removeAttribute("data-status");
+    });
+    const done = new Set();
+    if (path.confirmed) done.add("summary");
+    if (path.paid) done.add("payment");
+    if (enrollment.intakeComplete) done.add("intake");
+    // A completed family confirmation does not prove payment or Intake is complete.
+    const current = !path.confirmed ? "summary"
+      : path.cash && !enrollment.intakeComplete ? "intake"
+      : !path.paid ? "payment"
+      : !enrollment.intakeComplete ? "intake"
+      : "approval";
+    stages.forEach((element) => {
+      const stage = element.dataset.step;
+      element.dataset.status = done.has(stage) ? "complete" : stage === current ? "current" : "pending";
+      if (stage === current) element.setAttribute("aria-current", "step");
+    });
+    const button = document.getElementById("saveAgreementButton");
+    if (button && !path.confirmed) {
+      button.textContent = path.cash ? "Confirm & Continue to Intake"
+        : path.oneTime ? "Confirm & Continue to One-Time Payment"
+        : "Confirm & Continue to Secure Payment";
+    }
+  }
+
   function restoreCorrectStep() {
     showStep("summary");
   }
@@ -382,7 +436,7 @@ import {
       });
 
     document
-      .querySelectorAll("[data-step]")
+      .querySelectorAll("[data-panel-step]")
       .forEach(function (step) {
         const isCurrent = step.dataset.step === stepName;
 
@@ -416,7 +470,8 @@ import {
     setButtonBusy(
       submitButton,
       true,
-      "Opening Secure Payment..."
+      state.enrollment.paymentRoute === "management_prepaid_reconciliation"
+        ? "Requesting Secure Intake..." : "Opening Secure Payment..."
     );
 
     try {
@@ -435,6 +490,7 @@ import {
         normalizeEnrollment(
           confirmResponse
         );
+      renderEnrollmentProgress();
 
       if (
         state.enrollment.paymentRoute ===
@@ -486,7 +542,9 @@ import {
     );
     const submitButton = elements.agreementForm?.querySelector('[type="submit"]');
     if (submitButton) {
-      submitButton.textContent = "Review & Confirm Complete";
+      submitButton.textContent = state.enrollment.intakeComplete
+        ? "Enrollment Paperwork Complete"
+        : "Awaiting Secure Intake / Management";
       submitButton.disabled = true;
     }
     elements.termsConfirmed.disabled = true;
