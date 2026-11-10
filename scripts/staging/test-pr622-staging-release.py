@@ -35,6 +35,17 @@ class ReleaseGuards(unittest.TestCase):
         self.env["EXPECTED_BASELINE_SHA256"] = "a" * 64
         release.guard(self.env)
 
+    def test_readonly_recovery_guard_and_pinned_release(self):
+        self.env["REQUESTED_ACTION"] = release.VERIFY
+        release.guard(self.env)
+        self.assertEqual(release.RECOVERY_RELEASE,
+            "sites/sandman-combat-staging/releases/1794346535116000")
+        self.assertEqual(release.RECOVERY_VERSION,
+            "sites/sandman-combat-staging/versions/47353efb145a2546")
+        self.assertEqual(set(release.RECOVERY_REVISIONS), set(release.ENTRY_POINTS))
+        self.assertEqual(len(release.RECOVERY_REVISIONS), 4)
+        self.assertEqual(len(release.ASSETS), 5)
+
     def test_manifest_matches_git(self):
         self.assertEqual(set(release.offline()), release.MANIFEST)
         self.assertEqual(len(release.MANIFEST), 13)

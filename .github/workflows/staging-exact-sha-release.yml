@@ -137,6 +137,7 @@ on:
           - pr614-staging-continue
           - pr622-readonly-preflight
           - pr622-staging-deploy
+          - pr622-postdeploy-verify
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr606-staging-cash-check-continue
@@ -4081,7 +4082,7 @@ jobs:
           retention-days: 14
 
   pr622-staging-release:
-    if: ${{ (inputs.action == 'pr622-readonly-preflight' || inputs.action == 'pr622-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr622-readonly-preflight' || inputs.action == 'pr622-staging-deploy' || inputs.action == 'pr622-postdeploy-verify') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     concurrency: sandman-staging-hosting
@@ -4115,7 +4116,7 @@ jobs:
           python3 scripts/staging/pr622-staging-release.py --offline
           python3 scripts/staging/test-pr622-staging-release.py
       - uses: actions/checkout@v4
-        if: inputs.action == 'pr622-staging-deploy'
+        if: inputs.action == 'pr622-staging-deploy' || inputs.action == 'pr622-postdeploy-verify'
         with:
           ref: 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
           path: pr614-build
@@ -4125,7 +4126,7 @@ jobs:
         with:
           node-version: '22'
       - name: Build and test the exact release candidate
-        if: inputs.action == 'pr622-staging-deploy'
+        if: inputs.action == 'pr622-staging-deploy' || inputs.action == 'pr622-postdeploy-verify'
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
@@ -4164,5 +4165,6 @@ jobs:
           path: |
             pr622-preflight.json
             pr622-deploy-result.json
+            pr622-recovery-result.json
           if-no-files-found: warn
           retention-days: 14
