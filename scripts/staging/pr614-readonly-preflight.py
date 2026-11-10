@@ -54,6 +54,7 @@ REQUIREMENTS = {
     "rules": ["firebaserules.releases.get", "firebaserules.releases.update",
               "firebaserules.rulesets.get", "firebaserules.rulesets.create"],
 }
+ROLLBACK_RULE_SOURCE_NAMES = {"firestore.rules", "staging-promotions-candidate.rules"}
 
 
 def candidate_bytes(path):
@@ -75,6 +76,15 @@ def offline():
 
 def get(label, url, token):
     return json.loads(inventory.read(label, url, token))
+
+
+def rollback_rule_source(files):
+    names = [item.get("name") for item in files]
+    inventory.require(len(files) == 1 and names[0] in ROLLBACK_RULE_SOURCE_NAMES,
+                      f"Unexpected active Rules scope: {names}")
+    inventory.require(isinstance(files[0].get("content"), str) and files[0]["content"],
+                      "Active Rules rollback source is empty")
+    return files[0]
 
 
 def permission_probe(label, resource, token, required):
@@ -192,10 +202,10 @@ def live():
         ruleset = release["rulesetName"]
         inventory.require(re.fullmatch(rf"projects/{PROJECT}/rulesets/[a-zA-Z0-9-]+", ruleset),
                           "Unexpected Firestore ruleset reference")
-        source = get("Firestore rollback source", base + ruleset, host_token)["source"]["files"]
-        inventory.require(len(source) == 1 and source[0]["name"] == "firestore.rules", "Unexpected active Rules scope")
+        source = rollback_rule_source(
+            get("Firestore rollback source", base + ruleset, host_token)["source"]["files"])
         return {"release": release["name"], "ruleset": ruleset,
-                "sha256": inventory.sha(source[0]["content"].encode())}
+                "sourceName": source["name"], "sha256": inventory.sha(source["content"].encode())}
 
     def hosting():
         candidate = candidate_bytes("public" + inventory.TARGET)
