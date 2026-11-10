@@ -83,7 +83,7 @@ def archive_file_digests(content):
     with zipfile.ZipFile(io.BytesIO(content)) as package:
         names = package.namelist()
         require(len(names) == len(set(names)) and all(
-            name and not name.startswith("/") and "\\\\" not in name and
+            name and not name.startswith("/") and chr(92) not in name and
             ".." not in Path(name).parts and not name.endswith("/")
             for name in names), "Source ZIP has duplicate, unsafe, or directory entries")
         return {name: inventory.sha(package.read(name)) for name in names}
