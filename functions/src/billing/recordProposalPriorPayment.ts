@@ -3,6 +3,8 @@ import {
   onCall,
 } from "firebase-functions/v2/https";
 
+import { getApps, initializeApp } from "firebase-admin/app";
+
 import {
   FieldValue,
   Timestamp,
@@ -100,6 +102,11 @@ export const recordProposalPriorPayment =
         "unauthenticated",
         "You must be signed in to record a prior payment."
       );
+    }
+
+    // Isolated releases load this callable without the shared entry point.
+    if (!getApps().some((app) => app.name === "[DEFAULT]")) {
+      initializeApp();
     }
 
     const staffAccess =
