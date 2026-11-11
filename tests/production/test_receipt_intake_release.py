@@ -53,7 +53,7 @@ class ReleaseTest(unittest.TestCase):
             }))
             # Auth action credentials are not necessarily registered by 'gcloud auth list'.
             env = {"CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": str(credentials)}
-            with patch.object(release.subprocess, "check_output", return_value="test-token\\n") as check:
+            with patch.object(release.subprocess, "check_output", return_value="test-token\n") as check:
                 self.assertEqual(release.authenticated_release_token(env), "test-token")
             check.assert_called_once_with(
                 ["gcloud", "auth", "print-access-token"], text=True
