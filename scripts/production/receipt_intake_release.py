@@ -274,6 +274,28 @@ def guard(mode):
                 "Reviewed synthetic staging evidence is missing")
 
 
+def authenticated_release_token(env=None):
+    """Validate the Actions credential-file identity without using gcloud's account store."""
+    env = os.environ if env is None else env
+    credential_file = (env.get("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE")
+                       or env.get("GOOGLE_APPLICATION_CREDENTIALS"))
+    require(bool(credential_file), "Production credential-file override missing")
+    try:
+        credentials = json.loads(Path(credential_file).read_text())
+    except (OSError, ValueError):
+        raise RuntimeError("Production credential file unavailable or invalid") from None
+    require(isinstance(credentials, dict)
+            and credentials.get("type") == "service_account"
+            and credentials.get("project_id") == PROJECT
+            and credentials.get("client_email")
+            == "github-action-1258739245@sandmandashboard.iam.gserviceaccount.com",
+            "Unexpected production release credential identity")
+    print("Production release credential identity verified", flush=True)
+    token = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True).strip()
+    require(bool(token), "Production access token unavailable")
+    return token
+
+
 def main():
     mode = os.environ["RELEASE_MODE"]
     guard(mode)
@@ -282,16 +304,7 @@ def main():
     require(sha == PLAN["candidate"], "Application checkout SHA differs")
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
-    account = subprocess.check_output(
-        ["gcloud", "auth", "list", "--filter=status:ACTIVE", "--format=value(account)"],
-        text=True,
-    ).strip()
-    require(account == "github-action-1258739245@sandmandashboard.iam.gserviceaccount.com",
-            "Unexpected active production release identity")
-    print(f"Production release identity: {account}", flush=True)
-    token = subprocess.check_output(
-        ["gcloud", "auth", "print-access-token", "--account", account], text=True
-    ).strip()
+    token = authenticated_release_token()
     if mode == "rollback":
         rollback(token, packages)
         return
