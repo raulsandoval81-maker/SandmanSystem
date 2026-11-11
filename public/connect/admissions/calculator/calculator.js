@@ -64,6 +64,7 @@ const appointmentId =
 let proposalId =
   params.get("proposalId") || "";
 
+const conversionSourceProposalId = params.get("conversionSourceProposalId") || "";
 let pendingPriorPaymentHandoff = null;
 let priorPaymentRecordedFromHandoff = false;
 let proposalEnrollmentPreviouslyPaid = false;
@@ -1953,6 +1954,7 @@ const functionName =
           await saveDraft({
             proposalId:
               proposalId || null,
+            ...(!isExistingProposal && conversionSourceProposalId ? { conversionSourceProposalId } : {}),
 
             appointmentId:
               appointmentId || null,
@@ -1998,6 +2000,14 @@ const functionName =
           throw new Error(
             "Proposal ID was not returned."
           );
+        }
+
+        if (response.data?.idempotent && conversionSourceProposalId) {
+          const existing = new URL(window.location.href);
+          existing.searchParams.set("proposalId", savedProposalId);
+          existing.searchParams.delete("conversionSourceProposalId");
+          window.location.replace(existing.href);
+          return;
         }
 
         // The first save creates the proposal ID.
@@ -3490,11 +3500,26 @@ alert(
       });
     } else if (appointmentId) {
       loadAdmissionsAppointment()
-        .then((appointment) => {
+        .then(async (appointment) => {
           prefillFromAppointment(
             appointment
           );
-          applyManagementPricingHandoff();
+          if (!conversionSourceProposalId) {
+            applyManagementPricingHandoff();
+            return;
+          }
+          if (!/^P-\d{6}$/.test(conversionSourceProposalId)) throw new Error("Invalid prior proposal ID.");
+          const source = (await getDoc(doc(db, "proposals", conversionSourceProposalId))).data();
+          if (!source || source.prospect?.appointmentId !== appointmentId) {
+            throw new Error("The prior proposal does not match this appointment.");
+          }
+          const priorPayments = Array.isArray(source.priorPayments) ? source.priorPayments : [];
+          proposalEnrollmentPreviouslyPaidAmount = priorPayments.reduce(
+            (total, payment) => total + (Number(payment?.enrollmentFeeAmountCents) || 0), 0
+          ) / 100;
+          el.paymentArrangement.value = "prepaid_cash_check";
+          el.athleteList.querySelectorAll("select.billing-term").forEach(select => { select.value = "annual"; });
+          calculate();
         })
         .catch((error) => {
           console.error(

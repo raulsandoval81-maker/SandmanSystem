@@ -45,11 +45,15 @@ export function verifyPrepaidConversionSource(input: {
   }
   const sourceEmail = normal(
     source.lockedSnapshot?.prospect?.parentEmail ||
-    source.prospect?.parentEmail
+    source.lockedSnapshot?.prospect?.email ||
+    source.prospect?.parentEmail ||
+    source.prospect?.email
   );
   const targetEmail = normal(
     target.lockedSnapshot?.prospect?.parentEmail ||
-    target.prospect?.parentEmail
+    target.lockedSnapshot?.prospect?.email ||
+    target.prospect?.parentEmail ||
+    target.prospect?.email
   );
   if (!sourceEmail || !targetEmail || sourceEmail !== targetEmail) {
     throw new Error("The prior and new agreement must have the same verified guardian email.");

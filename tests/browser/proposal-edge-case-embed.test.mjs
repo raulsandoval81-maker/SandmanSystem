@@ -30,11 +30,11 @@ function proposalHarness() {
   return {render: context.edgeCaseReviewHtml, receive: context.receive, source, calls};
 }
 
-test('Proposal Management uses a unique URL for the deployed PR 644 script', () => {
+test('Proposal Management uses a unique URL for the current proposal script', () => {
   const hash = createHash('sha256').update(proposals).digest('hex');
   const sources = [...proposalHtml.matchAll(/src="(\/connect\/proposals\/proposals\.js[^"]*)"/g)];
   assert.deepEqual(sources.map(match => match[1]), [
-    '/connect/proposals/proposals.js?v=pr644-' + hash.slice(0, 12),
+    '/connect/proposals/proposals.js?v=linked-prepaid-' + hash.slice(0, 12),
   ]);
 });
 

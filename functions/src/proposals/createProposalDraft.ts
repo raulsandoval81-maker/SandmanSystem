@@ -16,6 +16,7 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "./proposalAccess";
+import { verifyPrepaidConversionSource } from "../billing/prepaidConversionPolicy";
 import { canonicalizeProposalPricing } from "./seasonalProposal";
 
 function cleanString(value: unknown): string {
@@ -52,6 +53,10 @@ export const createProposalDraft =
       );
 
     const data = req.data || {};
+    const conversionSourceProposalId = cleanString(data.conversionSourceProposalId);
+    if (conversionSourceProposalId && !/^P-\d{6}$/.test(conversionSourceProposalId)) {
+      throw new HttpsError("invalid-argument", "A valid prior proposal ID is required.");
+    }
 
     const appointmentId =
       nullableString(data.appointmentId);
@@ -287,6 +292,38 @@ export const createProposalDraft =
             const proposalId =
               `P-${pad6(current)}`;
 
+            if (conversionSourceProposalId) {
+              if (pricing.paymentArrangement !== "prepaid_cash_check") {
+                throw new HttpsError("failed-precondition", "A linked conversion requires a Cash/Check Paid-in-Full agreement.");
+              }
+              const sourceRef = db.collection("proposals").doc(conversionSourceProposalId);
+              const source = (await tx.get(sourceRef)).data();
+              if (!source || source.locationId !== locationId ||
+                  source.prospect?.appointmentId !== appointmentId) {
+                throw new HttpsError("failed-precondition", "The prior proposal must belong to this appointment and location.");
+              }
+              const evidence = await tx.get(sourceRef.collection("manualAdjustments").doc("conversionEvidence"));
+              try {
+                verifyPrepaidConversionSource({
+                  sourceProposalId: conversionSourceProposalId,
+                  source,
+                  historicalEvidenceFingerprint: evidence.get("fingerprint"),
+                  target: {
+                    proposalId, locationId, prospect: { email: proposalEmail },
+                    athletes: proposalAthletes, pricing, lockedSnapshot: { pricing },
+                  },
+                  newMembershipStartDate: cleanString(pricing.membershipStartDate),
+                });
+              } catch (error) {
+                throw new HttpsError("failed-precondition", error instanceof Error ? error.message : "Unable to verify the prior agreement.");
+              }
+              const existing = await tx.get(db.collection("proposals")
+                .where("conversionSourceProposalId", "==", conversionSourceProposalId));
+              const active = existing.docs.find(doc =>
+                doc.get("locationId") === locationId && !["VOID", "RETIRED"].includes(doc.get("status")));
+              if (active) return { proposalId: active.id, status: active.get("status"), idempotent: true };
+            }
+
             const proposalRef =
               db
                 .collection("proposals")
@@ -302,6 +339,7 @@ export const createProposalDraft =
               Record<string, unknown> = {
                 proposalId,
                 status: "DRAFT",
+                ...(conversionSourceProposalId ? { conversionSourceProposalId } : {}),
 
                 locationId,
 
@@ -405,6 +443,7 @@ export const createProposalDraft =
 
                 event:
                   "CREATED",
+                ...(conversionSourceProposalId ? { conversionSourceProposalId } : {}),
 
                 fromStatus:
                   null,
