@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { hasConflictingStripeActivity } from "../billing/prepaidReconciliationPolicy";
 import { summarizeHistoricalCash } from "../billing/historicalCashReconciliation";
 
 /**
@@ -24,12 +25,24 @@ function onePeriod(payment: Record<string, any>): string {
   }
   return found[0];
 }
+function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_, item) => item && typeof item === "object" && !Array.isArray(item)
+    ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]]))
+    : item);
+}
+
 function fingerprint(proposal: Record<string, any>): string {
   // Serializes all fields affecting reconciliation, including receipt IDs,
   // cash-disposition state and agreement terms. No client-supplied financial
   // state is ever trusted.
-  return createHash("sha256").update(JSON.stringify({
+  return createHash("sha256").update(stableJson({
     status: proposal.status,
+    prospect: proposal.prospect,
+    athletes: proposal.athletes,
+    agreement: proposal.agreement,
+    stripePaymentIntentId: proposal.stripePaymentIntentId,
+    stripeInvoiceId: proposal.stripeInvoiceId,
+    stripeCustomerId: proposal.stripeCustomerId,
     locationId: proposal.locationId,
     pricing: proposal.pricing,
     priorPayments: proposal.priorPayments,
@@ -45,7 +58,8 @@ function fingerprint(proposal: Record<string, any>): string {
 }
 export function buildManualProposalAdjustment(
   proposal: Record<string, any>,
-  entries: Array<Record<string, unknown>>
+  entries: Array<Record<string, unknown>>,
+  certifyConversion = false
 ) {
   if (clean(proposal.status).toUpperCase() !== "DRAFT" ||
       proposal.clientReview?.tokenHash || proposal.clientAcceptance ||
@@ -59,7 +73,7 @@ export function buildManualProposalAdjustment(
   if (!Array.isArray(originals) || !originals.length || originals.length > 24) {
     throw new Error("A proposal with 1–24 existing historical receipts is required.");
   }
-  if (!Array.isArray(entries) || !entries.length || entries.length > 24) {
+  if (!Array.isArray(entries) || (!certifyConversion && !entries.length) || entries.length > 24) {
     throw new Error("Select at least one existing receipt.");
   }
   const monthly = Math.round(Number(proposal.pricing?.monthlyBalance) * 100);
@@ -130,11 +144,27 @@ export function buildManualProposalAdjustment(
   if (result.totalRecordedCents !== receiptTotal) {
     throw new Error("Adjustment cannot change collected cash.");
   }
-  if (JSON.stringify(after) === JSON.stringify(originals)) {
+  if (certifyConversion && (
+    hasConflictingStripeActivity(proposal) ||
+    !Array.isArray(proposal.athletes) || proposal.athletes.length !== 1 ||
+    clean(proposal.athletes[0]?.billingTerm).toLowerCase() !== "month-to-month" ||
+    after.length !== 1 || result.fullyPaidPeriods.length !== 1 ||
+    !Array.isArray(after[0].periods) || after[0].periods.length !== 1 ||
+    after[0].periods[0] !== result.fullyPaidPeriods[0] ||
+    result.partiallyPaidPeriods.length || result.unappliedMembershipCents !== 0 ||
+    fee <= 0 || result.enrollmentPaidCents !== fee
+  )) {
+    throw new Error("Conversion evidence requires one month-to-month athlete, one fully allocated receipt, and the full annual enrollment fee paid.");
+  }
+  if (!certifyConversion && JSON.stringify(after) === JSON.stringify(originals)) {
     throw new Error("No allocation changed.");
   }
   return {
-    fingerprint: fingerprint(proposal),
+    fingerprint: createHash("sha256").update(stableJson({
+      source: fingerprint(proposal), entries, certifyConversion,
+    })).digest("hex"),
+    conversionEvidenceFingerprint: certifyConversion
+      ? fingerprint({ ...proposal, priorPayments: after }) : null,
     originalTotalCents: receiptTotal,
     before, afterSummary: result, beforePayments: originals, afterPayments: after,
     affectsSignedAgreement: false,

@@ -122,3 +122,32 @@ test("Never reallocate Stripe-backed or unknown-method receipts",()=>{
  const q=proposal(); q.priorPayments[0].stripePaymentIntentId="pi_test";
  assert.throws(()=>buildManualProposalAdjustment(q,october),/cash\/check/);
 });
+
+test("only certified, unchanged historical cash can support the separate $960 Cash/Check agreement", () => {
+ const {verifyPrepaidConversionSource}=require(`${root}/billing/prepaidConversionPolicy.js`);
+ const {canonicalPaymentArrangement}=require(`${root}/billing/paymentArrangement.js`);
+ const base=proposal();
+ const athletes=[{name:"Synthetic Edge Case",plan:"standard",billingTerm:"month-to-month"}];
+ const prospect={parentEmail:"synthetic@example.invalid"};
+ const prior={...base.priorPayments[1],amountCents:11000,enrollmentFeeAmountCents:1000};
+ const source={...base,status:"DRAFT",locationId:"synthetic",athletes,prospect,priorPayments:[prior]};
+ const entries=[{paymentId:prior.paymentId,historicalMonthlyRateCents:8000,enrollmentFeeAmountCents:3000}];
+ const evidence=buildManualProposalAdjustment(source,entries,true);
+ const corrected={...source,priorPayments:evidence.afterPayments};
+ const targetAthletes=[{...athletes[0],billingTerm:"annual"}];
+ const pricing=canonicalPaymentArrangement({paymentArrangement:"prepaid_cash_check",monthlyBalance:80,
+   enrollmentBase:30,enrollmentPreviouslyPaidAmount:30,membershipStartDate:"2026-11-01"},targetAthletes);
+ const target={proposalId:"P-999999",locationId:"synthetic",prospect,athletes:targetAthletes,pricing,lockedSnapshot:{pricing,athletes:targetAthletes,prospect}};
+ const request={sourceProposalId:"P-123456",source:corrected,target,newMembershipStartDate:"2026-11-01"};
+ assert.throws(()=>verifyPrepaidConversionSource(request),/verified PAID/);
+ assert.throws(()=>buildManualProposalAdjustment({...source,stripeInvoiceId:"in_synthetic"},entries,true),/Conversion evidence/);
+ assert.equal(verifyPrepaidConversionSource({...request,historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}).historicalEnrollmentCents,3000);
+ assert.throws(()=>verifyPrepaidConversionSource({...request,source:{...corrected,stripeInvoiceId:"in_synthetic"},
+   historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}),/verified PAID/);
+ assert.equal(pricing.prepaidTerms.amountCents,96000);
+ assert.equal(pricing.prepaidTerms.annualEnrollmentFee.outstandingCents,0);
+ assert.equal(pricing.prepaidTerms.paidThroughDate,"2027-10-31");
+ assert.equal(source.priorPayments[0].amountCents,11000);
+ assert.equal(corrected.priorPayments[0].amountCents,11000);
+ assert.notEqual(evidence.fingerprint,buildManualProposalAdjustment(source,entries).fingerprint);
+});

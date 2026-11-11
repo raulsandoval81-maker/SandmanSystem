@@ -117,3 +117,43 @@ test("Already-adjusted proposal cannot commit an obsolete preview as a new actio
     actionId:actionId+"-duplicate"
   }),e=>e.code==="failed-precondition"||e.code==="aborted");
 });
+
+test("verified $80 October and $30 fee support a separate $960 check without changing historical cash", async () => {
+  const { verifyPrepaidConversionSource } = require("../lib/billing/prepaidConversionPolicy");
+  const { canonicalPaymentArrangement } = require("../lib/billing/paymentArrangement");
+  const prospect = {parentEmail:"synthetic@example.invalid"};
+  const athletes = [{name:"Synthetic Edge Case", plan:"standard", billingTerm:"month-to-month"}];
+  const prior = {...receipt("conversion", "2026-10", 10000), amountCents:11000,
+    enrollmentFeeAmountCents:1000};
+  await proposalRef.set({...original(), prospect, athletes, priorPayments:[prior]});
+  const entries = [{paymentId:prior.paymentId, enrollmentFeeAmountCents:3000, historicalMonthlyRateCents:8000}];
+  const preview = await invoke(manager,{proposalId,mode:"preview",entries,certifyConversion:true});
+  assert.equal(preview.originalTotalCents,11000);
+  assert.equal(preview.after.enrollmentRemainingCents,0);
+  const request = {proposalId,mode:"commit",entries,certifyConversion:true,
+    expectedFingerprint:preview.fingerprint,reason:"Verified synthetic discounted October and paid fee",
+    actionId:actionId+"-conversion"};
+  await assert.rejects(invoke(manager,{...request,certifyConversion:false}),e=>e.code==="aborted");
+  const result = await invoke(manager,request);
+  assert.equal((await invoke(manager,request)).idempotent,true);
+  const source = (await proposalRef.get()).data();
+  assert.equal(source.status,"DRAFT");
+  assert.equal(source.priorPayments[0].amountCents,11000);
+  assert.equal(source.priorPayments[0].membershipAmountCents,8000);
+  assert.equal(source.priorPayments[0].enrollmentFeeAmountCents,3000);
+  const audit = (await proposalRef.collection("history").doc(result.auditId).get()).data();
+  assert.deepEqual(audit.priorPaymentsBefore,[prior]);
+  const evidence = (await proposalRef.collection("manualAdjustments").doc("conversionEvidence").get()).data();
+  const targetAthletes = [{...athletes[0],billingTerm:"annual"}];
+  const pricing = canonicalPaymentArrangement({paymentArrangement:"prepaid_cash_check",monthlyBalance:80,
+    enrollmentBase:30,enrollmentPreviouslyPaidAmount:30,membershipStartDate:"2026-11-01"},targetAthletes);
+  const target = {proposalId:"P-999999",locationId,prospect,athletes:targetAthletes,pricing,lockedSnapshot:{pricing,athletes:targetAthletes,prospect}};
+  const conversion = {sourceProposalId:proposalId,source,target,newMembershipStartDate:"2026-11-01",
+    historicalEvidenceFingerprint:evidence.fingerprint};
+  assert.equal(verifyPrepaidConversionSource(conversion).historicalEnrollmentCents,3000);
+  assert.throws(()=>verifyPrepaidConversionSource({...conversion,historicalEvidenceFingerprint:undefined}),/verified PAID/);
+  assert.throws(()=>verifyPrepaidConversionSource({...conversion,source:{...source,pricing:{...source.pricing,monthlyBalance:81}}}),/verified PAID/);
+  assert.equal(pricing.prepaidTerms.amountCents,96000);
+  assert.equal(pricing.prepaidTerms.annualEnrollmentFee.outstandingCents,0);
+  assert.equal(pricing.prepaidTerms.paidThroughDate,"2027-10-31");
+});
