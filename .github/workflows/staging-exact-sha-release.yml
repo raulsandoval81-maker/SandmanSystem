@@ -131,6 +131,7 @@ on:
           - pr598-hosting-deploy
           - pr603-hosting-inventory
           - pr603-hosting-deploy
+          - pr629-hosting-deploy
           - pr606-readonly-preflight
           - pr614-readonly-preflight
           - pr614-staging-deploy
@@ -3690,6 +3691,49 @@ jobs:
         with:
           name: pr603-hosting-deploy-${{ github.run_id }}
           path: pr603-*.json
+          if-no-files-found: error
+
+  pr629-hosting-deploy:
+    if: ${{ inputs.action == 'pr629-hosting-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    concurrency: sandman-staging-hosting
+    steps:
+      - name: Require exact staging project and review overlay approval
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && test "$APPROVAL" = APPROVE_PR629_STAGING_REVIEW_ONLY
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: a92bfd47957403f32d3d180cb92b6fcdd0cfea25
+          path: candidate
+          persist-credentials: false
+      - name: Verify Management activation retry regressions
+        run: cd candidate && node --test tests/browser/management-activation-retry.test.mjs
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Publish and verify one staging Hosting asset
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: node scripts/staging/pr629-hosting-overlay.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr629-hosting-deploy-${{ github.run_id }}
+          path: pr629-*.json
           if-no-files-found: error
 
   pr606-readonly-preflight:
