@@ -38,15 +38,22 @@ class ReleaseTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, key):
                 release.guard({**env, key: "wrong"})
 
-    def test_wrapper_installs_correct_guard_before_inherited_main(self):
-        # Regression for run #43053811107: the inherited main validates first.
-        source = (Path(__file__).with_name("pr632-staging-release.py")).read_text()
-        self.assertIn("protected.guard = guard", source)
-        self.assertLess(source.index("protected.guard = guard"), source.index("protected.main()"))
-        with patch.dict(os.environ, environment(release.PREFLIGHT)):
-            release.guard(os.environ)
-            with self.assertRaisesRegex(RuntimeError, "Unexpected REQUESTED_ACTION"):
-                release.protected.guard(os.environ)
+    def test_wrapper_installs_guard_offline_and_scope_before_inherited_main(self):
+        # Regression for failed runs #43053811107 and #43055224672.
+        engine = release.protected
+        with (patch.dict(os.environ, environment(release.PREFLIGHT)),
+              patch.object(engine, "guard"),
+              patch.object(engine, "offline"),
+              patch.object(engine, "bind_scope"),
+              patch.object(engine, "main") as inherited):
+            def validate_dispatch():
+                self.assertIs(engine.guard, release.guard)
+                self.assertIs(engine.offline, release.offline)
+                self.assertIs(engine.bind_scope, release.bind_scope)
+                engine.guard(os.environ)
+            inherited.side_effect = validate_dispatch
+            release.run_release()
+            inherited.assert_called_once_with()
 
     def test_readonly_preflight_does_not_reach_write_path(self):
         engine = release.protected
