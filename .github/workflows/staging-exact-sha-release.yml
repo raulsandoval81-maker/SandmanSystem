@@ -131,6 +131,8 @@ on:
           - pr598-hosting-deploy
           - pr603-hosting-inventory
           - pr603-hosting-deploy
+          - edge-case-embed-hosting-preflight
+          - edge-case-embed-hosting-deploy
           - pr629-hosting-deploy
           - pr636-hosting-preflight
           - pr636-hosting-deploy
@@ -3656,7 +3658,7 @@ jobs:
           if-no-files-found: error
 
   pr603-hosting-deploy:
-    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory' || inputs.action == 'edge-case-embed-hosting-preflight' || inputs.action == 'edge-case-embed-hosting-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 10
@@ -3670,15 +3672,24 @@ jobs:
         env:
           APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
         run: test "$APPROVAL" = APPROVE_PR603_STAGING_WAIVER_OVERLAY
+      - name: Require Edge Case overlay deployment approval
+        if: inputs.action == 'edge-case-embed-hosting-deploy'
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$APPROVAL" = APPROVE_EDGE_CASE_EMBED_STAGING_HOSTING
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 053deeae91c768c156d47edc6926f8c92e5aa4c4
+          ref: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'bcae7043f868173e3497731fa8ddbef46ea70821' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
           path: candidate
           persist-credentials: false
+      - name: Verify Proposal Management Edge Case regressions
+        if: startsWith(inputs.action, 'edge-case-embed-')
+        run: cd candidate && node --test tests/browser/proposal-edge-case-embed.test.mjs
       - name: Verify embedded waiver regressions
+        if: startsWith(inputs.action, 'pr603-')
         run: cd candidate && node --test tests/browser/inline-intake-waiver.test.mjs
       - uses: google-github-actions/auth@v3
         with:
@@ -3689,15 +3700,18 @@ jobs:
       - name: Inventory or verify staging Hosting overlay
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          MODE: ${{ inputs.action == 'pr603-hosting-deploy' && 'deploy' || 'inventory' }}
+          MODE: ${{ endsWith(inputs.action, '-deploy') && 'deploy' || 'inventory' }}
+          PROFILE: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed' || 'waiver' }}
           EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
           EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
-        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE"
+        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE" "$PROFILE"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr603-hosting-deploy-${{ github.run_id }}
-          path: pr603-*.json
+          name: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed-hosting' || 'pr603-hosting-deploy' }}-${{ github.run_id }}
+          path: |
+            pr603-*.json
+            edge-case-embed-*.json
           if-no-files-found: error
 
   pr629-hosting-deploy:
