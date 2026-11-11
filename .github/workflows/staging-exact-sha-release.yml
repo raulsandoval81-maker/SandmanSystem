@@ -3682,7 +3682,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'bcae7043f868173e3497731fa8ddbef46ea70821' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
+          ref: ${{ startsWith(inputs.action, 'edge-case-embed-') && '42e07b2dbed063c1216e9fbb509e4f9709dae192' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
           path: candidate
           persist-credentials: false
       - name: Verify Proposal Management Edge Case regressions

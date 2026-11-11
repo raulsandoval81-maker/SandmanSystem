@@ -28,9 +28,16 @@ function proposalHarness() {
   return {render: context.edgeCaseReviewHtml, receive: context.receive, source, calls};
 }
 
-test('standard proposals without historical payments keep their original actions', () => {
+test('proposals without historical payments open a read-only review and keep their original actions', () => {
   const {render} = proposalHarness();
-  assert.equal(render({...draft, priorPayments: []}, id), '');
+  for (const payments of [undefined, null, [], {}]) {
+    const html = render({...draft, priorPayments: payments}, id);
+    assert.match(html, /<details class="proposal-edge-case">/);
+    assert.match(html, /Management Actions · Edge Case Review/);
+    assert.match(html, /Corrections require an existing manually recorded Cash\/Check receipt/);
+    assert.doesNotMatch(html, /<iframe|<form/);
+  }
+  assert.match(render(draft, 'legacy-id'), /Corrections require a valid proposal ID/);
   assert.match(proposals, /\$\{proposalActionHtml\(/);
 });
 

@@ -1664,15 +1664,17 @@ const edgeCaseAudits = new Map();
 
 function edgeCaseReviewHtml(proposal, id) {
   const payments = proposal.priorPayments;
-  if (!/^P-\d{6}$/.test(id) || !Array.isArray(payments) || !payments.length) return "";
-
   let blocked = "";
-  if (String(proposal.status || "").trim().toUpperCase() !== "DRAFT" ||
+  if (!/^P-\d{6}$/.test(id)) {
+    blocked = "Corrections require a valid proposal ID.";
+  } else if (String(proposal.status || "").trim().toUpperCase() !== "DRAFT" ||
       proposal.clientReview?.tokenHash || proposal.clientAcceptance || proposal.lockedSnapshot ||
       proposal.pendingCheckoutSessionId || proposal.stripeCheckoutSessionId ||
       proposal.stripeSubscriptionId || proposal.stripePaymentIntentId || proposal.cashPrepayment ||
       proposal.historicalCashDisposition?.status === "recorded") {
     blocked = "Corrections require an unsigned, uncharged Draft without a recorded cash disposition.";
+  } else if (!Array.isArray(payments) || !payments.length) {
+    blocked = "Corrections require an existing manually recorded Cash/Check receipt. Record verified payment history through the normal Cash/Check workflow first.";
   } else if (payments.length > 24 || payments.some(payment =>
     !["cash", "check"].includes(String(payment?.paymentMethod || "").trim().toLowerCase()) ||
     payment?.stripePaymentIntentId || payment?.stripeCheckoutSessionId || payment?.stripeChargeId
