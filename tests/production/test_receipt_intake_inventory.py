@@ -34,11 +34,25 @@ class InventoryTests(unittest.TestCase):
   self.assertNotIn('acceptProposalClientReview',m.FUNCTIONS)
   self.assertFalse(any('runtime-environment' in p or 'sponsor' in p for p in m.ASSETS))
   for p in m.ASSETS:self.assertTrue((ROOT/('public'+p)).is_file())
+ def test_management_promotion_inventory_is_exact_and_readonly(self):
+  from unittest.mock import patch
+  with patch.multiple(m, SHA=m.SHA, FUNCTIONS=m.FUNCTIONS, ASSETS=m.ASSETS):
+   m.configure_inventory('management-promotion')
+   self.assertEqual(m.SHA, '01dfea8ac9660a313a32b4a02ab210c921a2d9ef')
+   self.assertEqual(len(m.FUNCTIONS), 13)
+   self.assertEqual(len(m.ASSETS), 12)
+   self.assertTrue({'createProposalDraft','updateProposalDraft','issueProposalClientReview',
+    'recordProposalPrepaidCash'} <= m.FUNCTIONS.keys())
+   for path in m.PROMOTION_ASSETS: self.assertTrue((ROOT/('public'+path)).is_file())
+   endpoint=f'https://cloudfunctions.googleapis.com/v2alpha/projects/{m.PROJECT}/locations/us-central1/functions/createProposalDraft'
+   m.permitted(endpoint+':generateDownloadUrl', {})
+   with self.assertRaises(RuntimeError): m.permitted(endpoint+':call', {})
+   with self.assertRaises(RuntimeError): m.configure_inventory('deploy')
  def test_deployment_not_exposed(self):
   src=(ROOT/'scripts/production/receipt_intake_inventory.py').read_text()
   self.assertNotIn('firebase deploy',src);self.assertNotIn('setIamPolicy',src)
   workflow=(ROOT/'.github/workflows/production-management-readonly-inventory.yml').read_text()
-  self.assertIn('environment: production',workflow);self.assertIn('ref: '+m.SHA,workflow)
+  self.assertIn('environment: production',workflow);self.assertIn(m.SHA,workflow);self.assertIn(m.MANAGEMENT_PROMOTION_SHA,workflow)
   self.assertIn('default: false',workflow);self.assertNotIn('mode: deploy',workflow)
  def test_archive_not_exported(self):
   src=(ROOT/'scripts/production/receipt_intake_inventory.py').read_text()
