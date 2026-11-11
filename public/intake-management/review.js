@@ -1433,13 +1433,20 @@ function preventDoubleTap(btn, fn) {
     btn.setAttribute("aria-busy", "true");
     btn.classList.add("is-busy");
 
-    try {
-      await fn(e);
-    } catch (err) {
+    const unlock = () => {
       busy = false;
       btn.disabled = false;
       btn.removeAttribute("aria-busy");
       btn.classList.remove("is-busy");
+    };
+
+    try {
+      // Validation and cancelled confirmations return false without throwing.
+      // They must unlock the guard so Management can correct and retry.
+      const completed = await fn(e);
+      if (completed === false) unlock();
+    } catch (err) {
+      unlock();
       throw err;
     }
   };
@@ -1779,7 +1786,7 @@ if (linkExistingBtn) {
 
       if (!existingUid) {
         alert("Enter existing athlete UID.");
-        return;
+        return false;
       }
 
       if (
@@ -1787,7 +1794,7 @@ if (linkExistingBtn) {
           `Link this intake to existing athlete ${existingUid}?`
         )
       ) {
-        return;
+        return false;
       }
 
       const statusEl = $("link-existing-status");
