@@ -1,0 +1,225 @@
+{
+  "inventoryRun": 43088148654,
+  "inventoryArtifact": 13887627174,
+  "candidate": "01dfea8ac9660a313a32b4a02ab210c921a2d9ef",
+  "functionOrder": [
+    "approveAndActivate",
+    "approveIntakeCall",
+    "createAthleteFromIntakeCall",
+    "hydrateEnrollmentIntakePrefill",
+    "createProposalDraft",
+    "updateProposalDraft",
+    "issueProposalClientReview",
+    "recordProposalPrepaidCash",
+    "recordManualEnrollmentIntakeDelivery",
+    "sendProposalPrepaidCashReceipt",
+    "sendEnrollmentIntakeEmail"
+  ],
+  "functions": {
+    "approveAndActivate": {
+      "configurationSha256": "3bba408f32c85c57049e54dd421541f773c4099527e22920d1db53bc53a09e22",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959873967591",
+        "object": "approveAndActivate/function-source.zip"
+      },
+      "candidateClosureSha256": "0d2a80b16dc011a7ce752a031503d41f3671bf3c3475b8e5ba3efbeb99941d04",
+      "runtimeSha256": "74f3721492e1d1efaf3cb03b03f93eb229c03eae5fa9850cf55729bc7434ada1"
+    },
+    "approveIntakeCall": {
+      "configurationSha256": "f63474457aacc5ffa24eefbf244f0bc40fab36a517393bff274cd0f9a8738acf",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959873958581",
+        "object": "approveIntakeCall/function-source.zip"
+      },
+      "candidateClosureSha256": "0f2cf6ee50ae90ea0b4307c0ebcb0bf681ec070ecd5d1074e7b990867d774faf",
+      "runtimeSha256": "9e17b3a597b61d7d0c923b35ceb3deb7fcf49d4dcdd78ebfc229648104e3e8f1"
+    },
+    "createAthleteFromIntakeCall": {
+      "configurationSha256": "347597fb8a4c46b31e4ccee7f86bef5872aad99df07f6d85a9b170ced698473b",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959873928111",
+        "object": "createAthleteFromIntakeCall/function-source.zip"
+      },
+      "candidateClosureSha256": "9a9cf4a97051010a730d5e8990b6acdbd51699e25787fe6cb7cf2420b7fb925f",
+      "runtimeSha256": "be6bdc9e343d4f7a3f92b528c35429d175f67cc7975e67ad90a3638d0048fd93"
+    },
+    "createProposalDraft": {
+      "configurationSha256": "65ee36fdcde97d0eaf27aa89a7f20a7cf1699101bab4483bd98a401ba20f1c3c",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959922368605",
+        "object": "createProposalDraft/function-source.zip"
+      },
+      "candidateClosureSha256": "41f87868ec88731912eff4228458a92a1fd6b32428839eb7394904154f650e4e",
+      "runtimeSha256": "f5907e4e1aa7e6d62f4ec3ee22e1cee7ce3fdaaf936e8d572dee5d7a8effe288"
+    },
+    "getAccessSetupStatus": {
+      "configurationSha256": "d45d43a2ceff326e3352d1f1327902a38c2de340f2c87caf3d97a54dde6b34e7",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959923273971",
+        "object": "getAccessSetupStatus/function-source.zip"
+      }
+    },
+    "getEnrollmentPlacementActivity": {
+      "configurationSha256": "644b962e3ec9512d658c17ada724f26d2d6e8fcd9e860f3c2db5b97e000522e2",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959873959184",
+        "object": "getEnrollmentPlacementActivity/function-source.zip"
+      }
+    },
+    "hydrateEnrollmentIntakePrefill": {
+      "configurationSha256": "fa906b59036144c663443956d326b7585d1ce4a29360ef44bf039b228b49a802",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959913621359",
+        "object": "hydrateEnrollmentIntakePrefill/function-source.zip"
+      },
+      "candidateClosureSha256": "1924e455d21508d34a976b12fad111cf8caf275027189193a5b07390010a7de3",
+      "runtimeSha256": "4ea4e8cc8d47b95d85535ddf200d667c48c7ca2d209248b2f6801d358d33f114"
+    },
+    "issueProposalClientReview": {
+      "configurationSha256": "63cb8c36e348aad0a805c9ec3d45ac75d7c0120895367dad460a9f69e8e48be0",
+      "recoveryFilesSha256": "e0741962d2e5b6c7be9c5269f4a0c872919cbcf4edfb995825040b8e1e7f0a9a",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1793635596369286",
+        "object": "issueProposalClientReview/function-source.zip"
+      },
+      "candidateClosureSha256": "8af665c8698e8e43b87ca1b3ca176a22874be63e9206815264d797c3b24ee640",
+      "runtimeSha256": "d6860b05d8af5084aefb72e9c208911cf5901e88c5ca04b8d6d4ea909348e6b4"
+    },
+    "recordManualEnrollmentIntakeDelivery": {
+      "configurationSha256": "fd13be1c2829dce9cc787bd558a635d2049eca1e423e56eb9af3a821b6c14f1f",
+      "recoveryFilesSha256": "2a0ccb0555d5f56809eec3530c968a99501862239871f7884847d9f42530498f",
+      "reference": {
+        "versionId": "3"
+      },
+      "candidateClosureSha256": "fb3c00906bc033ea2a74303c45e9f02a133ef716a81428478dfba21a622f2240",
+      "runtimeSha256": "b3b2df37bd32381d8843aff0433bcae750566b49dbce837ad3fe20971b04cf32"
+    },
+    "recordProposalPrepaidCash": {
+      "configurationSha256": "400d50d09fd0d241636c40c2cdc2f9f3722698b5e13d1d3684710ae288b02cc7",
+      "recoveryFilesSha256": "a88e9c00e86663e4a3979c12ba3b7d65a7c7a82fcd196341523d40d90c1a5656",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790968151567153",
+        "object": "recordProposalPrepaidCash/function-source.zip"
+      },
+      "candidateClosureSha256": "79325daad3d9124323f84d63e07f68b53712c707a3c877479a5dbfc4bbd98cfa",
+      "runtimeSha256": "2465307a6217054894c8a9277f1a81be32ba19ec63e2ffd2c2ab643d5fd3ecdb"
+    },
+    "sendEnrollmentIntakeEmail": {
+      "configurationSha256": "8a68e34f079ab9aad754a664527d57868de948141de3f07a615485580b4e9300",
+      "recoveryFilesSha256": "1d61270dbe8d58a30ae3797682c7a04fa4876f381762d0d7be0b6effcbc57d45",
+      "reference": {
+        "versionId": "5"
+      },
+      "candidateClosureSha256": "ae2027f95adce2ffec5433a8563a25b14886462729c9b028be4f2267f7c8c844",
+      "runtimeSha256": "b8830b476ce20ff7269c98b09441518f0c89b1e7a7a190b14b1379c66c6b9463"
+    },
+    "sendProposalPrepaidCashReceipt": {
+      "configurationSha256": "aff63373cf27f563c8e6b083ae0bfdbea54dbe98783ac1f4632da986963773b4",
+      "recoveryFilesSha256": "94ba196ad96e12e3ab9ebbe4f0330d777ce835f439d2891a209b37df02621104",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1794206951416135",
+        "object": "sendProposalPrepaidCashReceipt/function-source.zip"
+      },
+      "candidateClosureSha256": "323763792d2f3836b20dabb779193b5372755ffb0fb951d6a095cfc3f68964c2",
+      "runtimeSha256": "890e8428b035aed2fcb621d227a591a3a0a4ded2679e2804518bd7a943527c8a"
+    },
+    "updateProposalDraft": {
+      "configurationSha256": "ad7afee5cb53e6a6b2b3bf62bc0d079f6a9189cab826840ef2d3d8b6e873f777",
+      "recoveryFilesSha256": "ea17f3caac0f8986f13a0bba1aa33f7cb9ed3c1c756e2ee06da830d1ef992238",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790959922413562",
+        "object": "updateProposalDraft/function-source.zip"
+      },
+      "candidateClosureSha256": "533209f875da69307bd35617f164452346792095c43cf406013715ff733c8277",
+      "runtimeSha256": "9a45678a3cc318c606c1a2a4f0f59f2fc3510d8c8200165ec96017b48cd47702"
+    }
+  },
+  "hosting": {
+    "release": "sites/sandman-main/releases/1794019888521000",
+    "version": "sites/sandman-main/versions/9fdc18cbad660374",
+    "manifestSha256": "cb8d605aa95ebcd43d546abf87a4824680f007237e8df6a9ac5b29782dd73ecf",
+    "configSha256": "917ec17d9aff8b8792e963d2665720cc489770e0d505c55896ab0d2817faa41a",
+    "assets": {
+      "/connect/admissions/calculator/calculator.js": {
+        "baselineHash": "d608e472801e8449dc41cd9d55a82c848ab4082e18fe5928eaefb35e3bc1684c",
+        "candidateSha256": "de5b9aef2cb646db98868742c770842fcc66483cf692a4428586462af316ed28",
+        "hostingHash": "edebd76a684185585613ca18002e67ca0574fc426d87037e77e607dcc8df8d51"
+      },
+      "/connect/admissions/calculator/payment-arrangement.js": {
+        "baselineHash": null,
+        "candidateSha256": "939f1597ce53280be6f2027c4db72e2628d4613715c1f7f6e30048c28754f373",
+        "hostingHash": "6dce1582fe0dc6635a1810a05f3ea40fe7ac157b63dfdb9c2aab44592b0ceabf"
+      },
+      "/connect/proposals/review/review.js": {
+        "baselineHash": "fdd1e981f0956d2ea57c2e2be9da794d8df9360bd8d2b7a8c4ca326ce12cbad2",
+        "candidateSha256": "94d38ee0bd3b06b0d3368773efe2f1b83819d88bfdf534cbd04c7a5d0a8a95a0",
+        "hostingHash": "4949b513827feb97cd4e0ad1e6e7da83c922e4cb56dde4ed77404c025890a22b"
+      },
+      "/intake-athlete/athlete.intake.js": {
+        "baselineHash": "49e193f4ffe28c271a393f035eb4ce6883a3237c3ef835e41ba36dec41fc32b7",
+        "candidateSha256": "87c8345a8bc77e3cda95110bd3c5931b768f7c227189ac527d94b4c1b7ff9454",
+        "hostingHash": "a556d6d00c187de1f40a790b25a7e22a388efda987121e9dffab5f7d577b06cd"
+      },
+      "/intake-management/enrollment-handoff-audience.js": {
+        "baselineHash": "5c328bab58583ecfe34e7080d691be4704ae9244a2cdfda93582701ec5b6ffe6",
+        "candidateSha256": "6b5cde234f5052ffbb5b946d09836299a68d5f011222f87dc62e1fc5adacfd6d",
+        "hostingHash": "9deaacb973ec3505cd72c318e118757eb64e7296a8f018b8916e6daf334a0feb"
+      },
+      "/intake-management/index.html": {
+        "baselineHash": "2bc286218471bafde7d23f19840352ac4f5e3b67311ac45a62bc551b30814538",
+        "candidateSha256": "6048a8ec5761d230f5f33edcc7696f47ba1008dc205a3eccb76a3214c6c0d709",
+        "hostingHash": "1acbd148c94402bcec46137e3bc79c9888ef9370b541ccf259f8c5cd48601643"
+      },
+      "/intake-management/management.intake.js": {
+        "baselineHash": "3505e64cf332509e4b26e34bd7e18f9775c4ad0cc15da039cb47a04db13206ab",
+        "candidateSha256": "97323c3ca418ed05ffc8311c30cf0d8b01f1d338e73eb2a2ee47b0bed5106483",
+        "hostingHash": "2b6f5f441b3f7a395f5e5e4133a68aea81a8afb0174e37d7c25048ec58d61b60"
+      },
+      "/intake-management/review.js": {
+        "baselineHash": "35787e27db778c5974cc4d4cb444de2e704a447d123f508f64d79614f5ae1a94",
+        "candidateSha256": "c94f18d28353629b08323371846b83df90a69d364f51efb6d3d0de2717aca08b",
+        "hostingHash": "d620ddb09e6d747786475bd406dfda6916e604c03e4b54cd89c8a35b696c92af"
+      },
+      "/intake-parent/parent.intake.js": {
+        "baselineHash": "74e9c8360961bc77703706b3cad5c657e52336eb627b220e7e0c7e5ba3e42240",
+        "candidateSha256": "3854208b270595db466c4192666db51572b31cbc045e9f9b4c71f1175324d486",
+        "hostingHash": "bd877b89f36f2940aab645ae6da165fbaaa3a86e7fbf649873d0df5826a4b301"
+      },
+      "/management/pricing/pricing.js": {
+        "baselineHash": "73c9938f6a95406cad0b80c7692223a7bf2dd749d78afff4373d9074af1441c6",
+        "candidateSha256": "5557df6ce09a16e96748310a7e6df92a374d5c68872f1f53086593edf0b4a3d1",
+        "hostingHash": "9034c0bbf12aa1047aecd9cbb47b90b776b4b846178500d8d3983d3818c86de2"
+      },
+      "/waiver/index.html": {
+        "baselineHash": "196bd75e55849ac2b1126cd6b3a36eef5f7e51d98c2365aebf5b60a0de257bd7",
+        "candidateSha256": "776295841c8fbe8c70c3da572571de4e866a3d2eecf5e11cc0189f7d1a31eaac",
+        "hostingHash": "173809202a19ed2a8bf8d6eb3879c287e40f68e9f218e303da11fc1ba36bb9d2"
+      }
+    }
+  },
+  "rulesSha256": "326f885f866337c39b27fb395e362cce9e8a6952c934f5126f9d38ba8acf4c66",
+  "stagingAcceptance": {
+    "unpaidActivation": null,
+    "combinedDelivery": null,
+    "historicalPaymentConversion": null,
+    "waiverAndActivation": null
+  }
+}

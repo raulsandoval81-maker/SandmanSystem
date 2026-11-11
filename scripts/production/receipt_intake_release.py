@@ -14,7 +14,14 @@ import receipt_intake_inventory as inventory
 import importlib
 release = importlib.import_module("pr606-cash-check-deploy")
 
-PLAN = json.loads(Path(__file__).with_suffix(".json").read_text())
+PROFILE = os.environ.get("RELEASE_PROFILE", "receipt-intake")
+inventory.require(PROFILE in {"receipt-intake", "management-promotion"}, "Unknown release profile")
+if PROFILE == "management-promotion":
+    inventory.configure_inventory(PROFILE)
+    plan_path = Path(__file__).with_name("management_promotion_preflight.json")
+else:
+    plan_path = Path(__file__).with_suffix(".json")
+PLAN = json.loads(plan_path.read_text())
 PROJECT, SITE = inventory.PROJECT, inventory.SITE
 HOSTING = release.HOSTING_API
 REGION = "us-central1"
@@ -263,6 +270,8 @@ def guard(mode):
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
     require(mode in {"preflight", "deploy", "rollback"}, "Unsupported mode")
+    if PROFILE == "management-promotion":
+        require(mode == "preflight", "Management promotion is preflight-only pending staging acceptance")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
