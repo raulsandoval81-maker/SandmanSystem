@@ -15,6 +15,7 @@ PROJECT = 'sandmandashboard'
 NUMBER = '889326401061'
 SITE = 'sites/sandman-main'
 SHA = '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981'
+MANAGEMENT_PROMOTION_SHA = '01dfea8ac9660a313a32b4a02ab210c921a2d9ef'
 WORKFLOW = 'raulsandoval81-maker/SandmanSystem/.github/workflows/production-management-readonly-inventory.yml@refs/heads/main'
 FUNCTIONS = {
  'sendEnrollmentIntakeEmail': (1, 'enrollment/sendEnrollmentIntakeEmail'),
@@ -32,6 +33,29 @@ ASSETS = ('/intake-management/management.intake.js', '/intake-management/enrollm
  '/intake-management/index.html', '/intake-management/review.js',
  '/intake-parent/parent.intake.js', '/intake-athlete/athlete.intake.js', '/waiver/index.html',
  '/connect/enrollment/enrollment.service.js')
+
+# PR #632 source consumers and the PR #632/#636 Hosting surface. The older
+# inventory remains available for its separately pinned release.
+PROMOTION_FUNCTIONS = {
+ 'createProposalDraft': (2, 'proposals/createProposalDraft'),
+ 'updateProposalDraft': (2, 'proposals/updateProposalDraft'),
+ 'issueProposalClientReview': (2, 'proposals/issueProposalClientReview'),
+}
+PROMOTION_ASSETS = (
+ '/management/pricing/pricing.js',
+ '/connect/admissions/calculator/calculator.js',
+ '/connect/admissions/calculator/payment-arrangement.js',
+ '/connect/proposals/review/review.js',
+)
+
+def configure_inventory(profile):
+ global SHA, FUNCTIONS, ASSETS
+ require(profile in ('receipt-intake', 'management-promotion'), 'Unknown inventory profile')
+ if profile == 'management-promotion':
+  SHA = MANAGEMENT_PROMOTION_SHA
+  FUNCTIONS = {**FUNCTIONS, **PROMOTION_FUNCTIONS}
+  ASSETS = (*ASSETS, *PROMOTION_ASSETS)
+
 
 def require(ok, message):
  if not ok: raise RuntimeError(message)
@@ -229,4 +253,6 @@ def main():
  print(json.dumps({'status':result['status'],'errors':result['errors'],'deploymentEnabled':False}))
  return bool(result['errors'])
 
-if __name__=='__main__': raise SystemExit(main())
+if __name__=='__main__':
+ configure_inventory(os.environ.get('INVENTORY_PROFILE', 'receipt-intake'))
+ raise SystemExit(main())
