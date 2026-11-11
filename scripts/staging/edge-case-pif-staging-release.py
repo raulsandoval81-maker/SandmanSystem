@@ -76,13 +76,46 @@ def bind_scope():
 bind_existing_scope = protected.bind_scope
 
 
+# Immutable recovery evidence from staging runs 43100754172 and 43101701015.
+RECOVERY_FUNCTION = "manualEdgeCaseProposal"
+RECOVERY_REVISION = "projects/sandman-combat-staging/locations/us-central1/services/manualedgecaseproposal/revisions/manualedgecaseproposal-00001-lin"
+RECOVERY_RUNTIME_SHA256 = "8b25f2b14ee4d2497816c67eee2406cf7a9680b8df2bd376ae78e977e1c7d317"
+CONTINUATION_REVISION = "projects/sandman-combat-staging/locations/us-central1/services/manualedgecaseproposal/revisions/manualedgecaseproposal-00003-lix"
+RECOVERY_HOSTING_VERSION = "sites/sandman-combat-staging/versions/166107f2285d89dd"
+
+
+def verify_existing(live, evidence, archive, token):
+    require(evidence["hostingRollback"]["version"] == RECOVERY_HOSTING_VERSION,
+            "Original Edge Case Hosting rollback baseline changed")
+    entry = evidence["functions"][RECOVERY_FUNCTION]
+    require(entry["rollbackRevision"] == CONTINUATION_REVISION,
+            "Unexpected active Edge Case Function revision")
+    snapshot = {"function": entry["configuration"], "transport": {
+        "functions": entry["iam"], "run": entry["run"], "runIam": entry["runIam"],
+    }}
+    runtime = protected.original.preserved_runtime_config(snapshot)
+    template = runtime["transport"]["run"]["template"]
+    # This exact client tag is platform metadata on the verified revision.
+    if template.get("client") == "gcloud":
+        template.pop("client")
+    digest = inventory.sha(json.dumps(runtime, sort_keys=True, separators=(",", ":")).encode())
+    require(digest == RECOVERY_RUNTIME_SHA256, "Edge Case Function runtime differs from original baseline")
+    rollback = protected.preflight.get("Original Edge Case rollback revision",
+                                       "https://run.googleapis.com/v2/" + RECOVERY_REVISION, token)
+    require(rollback["name"] == RECOVERY_REVISION, "Original Edge Case rollback revision unavailable")
+    deployed = protected.original.deployed_source(RECOVERY_FUNCTION, live[RECOVERY_FUNCTION], token)
+    protected.continuation.verify_deployed_archive(RECOVERY_FUNCTION, deployed, archive)
+    return {RECOVERY_FUNCTION: protected.continuation.expected_revision(
+        RECOVERY_FUNCTION, live[RECOVERY_FUNCTION])}
+
+
 def run_release():
     # The inherited engine calls guard() and offline() before bind_scope().
     # Install both EDGE_CASE_PIF validators before invoking its main entrypoint.
     protected.guard = guard
     protected.offline = offline
     protected.bind_scope = bind_scope
-    protected.main()
+    protected.main(verify_existing=verify_existing)
 
 
 if __name__ == "__main__":

@@ -203,7 +203,7 @@ def verify_postdeploy():
                       "hostingRelease": RECOVERY_RELEASE, "verifiedAssets": len(checks)}))
 
 
-def main():
+def main(*, verify_existing=None):
     guard(os.environ)
     offline()
     bind_scope()
@@ -230,15 +230,18 @@ def main():
         require(all(current[key] == hosting[key] for key in ("release", "version", "manifest", "config")),
                 "Active Hosting baseline changed")
 
+    revisions = verify_existing(live, evidence, archive, token) if verify_existing else {}
     verify_active()
     version, manifest = original.prepare_hosting(hosting, host_token)
     require(manifest == hosting["proposed"], "Prepared Hosting manifest differs from preflight")
     original.verify_hosting_version(version, hosting["config"], manifest, host_token)
-    attempted, revisions = [], {}
+    attempted = []
     published = None
     try:
         for name in ENTRY_POINTS:
             require(release.function_config(name, token) == live[name], f"{name}: changed since preflight")
+            if name in revisions:
+                continue
             attempted.append(name)
             release.source_update(name, archive, token)
             after = release.function_config(name, token)

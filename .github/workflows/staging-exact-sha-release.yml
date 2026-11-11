@@ -4347,6 +4347,8 @@ jobs:
           python3 "scripts/staging/${RELEASE_KEY}-staging-release.py" --offline
           if [[ "$RELEASE_KEY" == pr632 ]]; then
             python3 scripts/staging/test-pr632-staging-release.py
+          else
+            python3 scripts/staging/test-edge-case-pif-staging-recovery.py
           fi
       - uses: actions/checkout@v4
         if: endsWith(inputs.action, '-staging-deploy')
