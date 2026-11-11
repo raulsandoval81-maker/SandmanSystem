@@ -41,9 +41,11 @@ class ReleaseTest(unittest.TestCase):
     def test_wrapper_installs_guard_offline_and_scope_before_inherited_main(self):
         # Regression for failed runs #43053811107 and #43055224672.
         engine = release.protected
-        with patch.dict(os.environ, environment(release.PREFLIGHT)), \\
-                patch.object(engine, "guard"), patch.object(engine, "offline"), \\
-                patch.object(engine, "bind_scope"), patch.object(engine, "main") as inherited:
+        with (patch.dict(os.environ, environment(release.PREFLIGHT)),
+              patch.object(engine, "guard"),
+              patch.object(engine, "offline"),
+              patch.object(engine, "bind_scope"),
+              patch.object(engine, "main") as inherited):
             def validate_dispatch():
                 self.assertIs(engine.guard, release.guard)
                 self.assertIs(engine.offline, release.offline)
