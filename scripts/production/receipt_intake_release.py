@@ -74,6 +74,25 @@ def pinned_recovery(name, snapshot, token):
     return archive
 
 
+def capture_recovery(snapshots, token, report_all=False):
+    recovery = {}
+    failed = []
+    for name in NAMES:
+        try:
+            archive = pinned_recovery(name, snapshots[name], token)
+            require(config(name, token) == snapshots[name], f"{name}: recovery capture raced a release")
+        except RuntimeError as error:
+            if not report_all:
+                raise
+            failed.append(name)
+            print(f"Rollback source check failed for {name}: {error}", flush=True)
+        else:
+            recovery[name] = archive
+            print(f"Verified pinned rollback source for {name}", flush=True)
+    require(not failed, "Pinned rollback source checks failed: " + ", ".join(failed))
+    return recovery
+
+
 def rollback(token, packages):
     verify_rules(token)
     baseline = PLAN["hosting"]
@@ -263,16 +282,21 @@ def main():
     require(sha == PLAN["candidate"], "Application checkout SHA differs")
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
-    token = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True).strip()
+    account = subprocess.check_output(
+        ["gcloud", "auth", "list", "--filter=status:ACTIVE", "--format=value(account)"],
+        text=True,
+    ).strip()
+    require(account == "github-action-1258739245@sandmandashboard.iam.gserviceaccount.com",
+            "Unexpected active production release identity")
+    print(f"Production release identity: {account}", flush=True)
+    token = subprocess.check_output(
+        ["gcloud", "auth", "print-access-token", "--account", account], text=True
+    ).strip()
     if mode == "rollback":
         rollback(token, packages)
         return
     snapshots, (configuration, manifest) = preflight(token)
-    recovery = {}
-    for name in NAMES:
-        archive = pinned_recovery(name, snapshots[name], token)
-        require(config(name, token) == snapshots[name], f"{name}: recovery capture raced a release")
-        recovery[name] = archive
+    recovery = capture_recovery(snapshots, token, report_all=(mode == "preflight"))
     proposed = dict(manifest)
     payloads = {}
     for path, body in overlay.items():
