@@ -34,8 +34,7 @@ export function canonicalPaymentArrangement(pricing: Record<string, any>, athlet
   if (arrangement === "monthly_autopay") return pricing;
   if (pricing.billingType === "seasonal_one_time" || !athletes.length ||
       athletes.some(a => String(a.plan).toLowerCase() === "fitness") ||
-      Number(pricing.additionalMembershipMonthsDue || 0) || Number(pricing.extraAmount || 0) ||
-      Number(pricing.enrollmentPreviouslyPaidAmount || 0)) {
+      Number(pricing.additionalMembershipMonthsDue || 0) || Number(pricing.extraAmount || 0)) {
     throw new Error("Prepaid arrangement requires an unmixed Combat membership without historical fees or extra charges.");
   }
   const months = lockedPrepaidCoverageMonths({lockedSnapshot: {athletes}});
@@ -44,13 +43,18 @@ export function canonicalPaymentArrangement(pricing: Record<string, any>, athlet
   if (!Number.isSafeInteger(monthly) || monthly <= 0 || !Number.isSafeInteger(fee) || fee < 0) {
     throw new Error("Invalid locked prepaid price.");
   }
-  const allocations = pricing.prepaidFeeAllocations ?? athletes.map((a, i) => ({athleteIndex: i + 1, amountCents: fee / athletes.length}));
+  const priorFee = Math.round(Number(pricing.enrollmentPreviouslyPaidAmount ?? 0) * 100);
+  if (!Number.isSafeInteger(priorFee) || priorFee < 0 ||
+      (priorFee > 0 && (arrangement !== "prepaid_cash_check" || athletes.length !== 1 || priorFee !== fee))) {
+    throw new Error("Prepaid historical fee credit requires Cash/Check and one athlete with the full net annual fee previously paid.");
+  }
+  const allocations = pricing.prepaidFeeAllocations ?? athletes.map((a, i) => ({athleteIndex: i + 1, amountCents: (fee - priorFee) / athletes.length}));
   if (!Array.isArray(allocations)) throw new Error("Annual fee allocations are required.");
   const feePaid = allocations.reduce((sum: number, a: any) => sum + Number(a.amountCents), 0);
   const membership = monthly * months;
   const allocation = resolveFullYearPrepayment({amountCents: membership + feePaid,
     membershipAmountCents: membership, expectedMonthlyMembershipCents: monthly, monthsCovered: months,
-    enrollmentFeeTotalCents: fee, enrollmentFeePreviouslyPaidCents: 0, athletes,
+    enrollmentFeeTotalCents: fee, enrollmentFeePreviouslyPaidCents: priorFee, athletes,
     enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: allocations});
   const start = String(pricing.membershipStartDate || "");
   const renewal = new Date(`${start}T12:00:00Z`);

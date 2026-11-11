@@ -424,7 +424,13 @@ export const recordProposalPrepaidCash =
 
             if (arrangement === "prepaid_cash_check") {
               const signed = lockedPrepaidTerms(proposal);
+              if (signed.annualEnrollmentFee.previouslyPaidCents > 0 &&
+                  conversionSource?.historicalEnrollmentCents !== signed.annualEnrollmentFee.previouslyPaidCents) {
+                throw new HttpsError("failed-precondition", "Select the verified prior agreement for the signed enrollment-fee credit.");
+              }
               if (amountCents !== signed.amountCents ||
+                  (signed.annualEnrollmentFee.previouslyPaidCents > 0 &&
+                   allocation.annualEnrollmentFee.previouslyPaidCents !== signed.annualEnrollmentFee.previouslyPaidCents) ||
                   JSON.stringify(allocation.annualEnrollmentFee.selections) !== JSON.stringify(signed.annualEnrollmentFee.selections)) {
                 throw new HttpsError("failed-precondition", "Payment allocation must match the family-confirmed prepaid agreement.");
               }

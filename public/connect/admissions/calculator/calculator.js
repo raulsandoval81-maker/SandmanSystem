@@ -1778,10 +1778,12 @@ const extras = {
           enrollmentBase, support, athleteCount: athletes.length,
           restored: restoredPrepaidFees || [], previous,
         });
-        const netFeePerAthlete = Math.max(0, enrollmentBase - support) / athletes.length;
+        const prepaidFeeCredit = arrangement === "prepaid_cash_check" && athletes.length === 1
+          ? enrollmentPreviouslyPaidAmount : 0;
+        const netFeePerAthlete = Math.max(0, enrollmentBase - support - prepaidFeeCredit) / athletes.length;
         if (fees.querySelectorAll("input").length !== athletes.length || restoredPrepaidFees) {
           fees.innerHTML = athletes.map((a, i) => {
-            return `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${netFeePerAthlete}" value="${normalized[i] / 100}"></label>`;
+            return `<label>Annual fee allocated for ${escapeHtml(a.name || `Athlete ${i + 1}`)}<input data-prepaid-fee-index="${i + 1}" type="number" min="0" step="0.01" max="${netFeePerAthlete}" value="${Math.min(normalized[i] / 100, netFeePerAthlete)}"></label>`;
           }).join("");
           restoredPrepaidFees = null;
           fees.querySelectorAll("input").forEach(input => input.addEventListener("input", calculate));

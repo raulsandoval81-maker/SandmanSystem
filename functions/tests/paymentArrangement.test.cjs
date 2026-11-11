@@ -137,3 +137,38 @@ test('failed create may retry the same claim without changing idempotency key',a
     assert.equal(createCalls[0].options.idempotencyKey,`membership-prepaid-P-SYNTHETIC-${fingerprint}`);
   }finally{stripe.checkout.sessions.create=original;}
 });
+
+test('Cash/Check conversion locks a verified prior fee separately from the new check', () => {
+  const { verifyPrepaidConversionSource } = require('../lib/billing/prepaidConversionPolicy');
+  const athletes = [{ name: 'Synthetic Athlete', plan: 'standard', billingTerm: 'annual' }];
+  const prospect = { parentEmail: 'synthetic@example.invalid' };
+  const input = {
+    paymentArrangement: 'prepaid_cash_check', monthlyBalance: 80,
+    enrollmentBase: 30, enrollmentPreviouslyPaidAmount: 30, membershipStartDate: '2026-11-01',
+  };
+  const pricing = canonicalPaymentArrangement(input, athletes);
+  const snapshot = { athletes, pricing, prospect };
+  const target = {
+    proposalId: 'P-SYNTHETIC-NEW', locationId: 'test', pricing, lockedSnapshot: snapshot,
+    clientAcceptance: { signedAt: admin.Timestamp.now(), signedSnapshot: snapshot },
+  };
+  const source = {
+    status: 'PAID', locationId: 'test', prospect,
+    athletes: [{ ...athletes[0], billingTerm: 'monthly' }],
+    priorPayments: [{ membershipAmountCents: 8000, enrollmentFeeAmountCents: 3000, periods: ['2026-10'] }],
+  };
+  const conversion = { sourceProposalId: 'P-SYNTHETIC-OLD', source, target, newMembershipStartDate: '2026-11-01' };
+  const terms = lockedPrepaidTerms(target);
+  assert.equal(terms.amountCents, 96000);
+  assert.equal(terms.annualEnrollmentFee.previouslyPaidCents, 3000);
+  assert.equal(terms.annualEnrollmentFee.paidWithPrepaymentCents, 0);
+  assert.equal(terms.annualEnrollmentFee.outstandingCents, 0);
+  assert.equal(terms.paidThroughDate, '2027-10-31');
+  assert.equal(terms.nextBillingDate, '2027-11-01');
+  assert.equal(terms.automaticRenewal, false);
+  assert.equal(verifyPrepaidConversionSource(conversion).historicalEnrollmentCents, 3000);
+  assert.throws(() => verifyPrepaidConversionSource({ ...conversion, source: { ...source, priorPayments: [] } }), /Verified prior/);
+  assert.throws(() => canonicalPaymentArrangement({ ...input, paymentArrangement: 'prepaid_stripe' }, athletes), /historical fee credit/);
+  assert.throws(() => canonicalPaymentArrangement({ ...input, enrollmentPreviouslyPaidAmount: 10 }, athletes), /historical fee credit/);
+  assert.throws(() => canonicalPaymentArrangement({ ...input, prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 3000 }] }, athletes), /exceeds/);
+});

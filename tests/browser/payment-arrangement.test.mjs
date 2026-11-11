@@ -44,7 +44,7 @@ test('Builder preserves monthly pricing and rejects mixed terms, extra fees and 
  const athletes=[{plan:'standard',billingTerm:'annual'}];
  assert.throws(()=>previewPaymentArrangement(price,athletes,'prepaid_stripe',[{athleteIndex:1,amountCents:3001}]),/allocation/);
  assert.throws(()=>previewPaymentArrangement(price,[{plan:'standard',billingTerm:'monthly'}],'prepaid_stripe',[]),/6- or 12-month/);
- assert.throws(()=>previewPaymentArrangement({...price,extraAmount:5},athletes,'prepaid_cash_check',[]),/extras/);
+ assert.throws(()=>previewPaymentArrangement({...price,extraAmount:5},athletes,'prepaid_cash_check',[]),/extra charges/);
 });
 test('Builder recovers across monthly, Stripe prepaid and cash/check switching',()=>{
  const athletes=[{name:'Synthetic',plan:'standard',billingTerm:'annual'}];
