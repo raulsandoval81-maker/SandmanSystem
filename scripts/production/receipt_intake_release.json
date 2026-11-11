@@ -8,6 +8,7 @@
     "createAthleteFromIntakeCall",
     "hydrateEnrollmentIntakePrefill",
     "recordManualEnrollmentIntakeDelivery",
+    "sendProposalPrepaidCashReceipt",
     "sendEnrollmentIntakeEmail"
   ],
   "functions": {
@@ -107,7 +108,9 @@
         "bucket": "gcf-v2-sources-889326401061-us-central1",
         "generation": "1794206951416135",
         "object": "sendProposalPrepaidCashReceipt/function-source.zip"
-      }
+      },
+      "candidateClosureSha256": "323763792d2f3836b20dabb779193b5372755ffb0fb951d6a095cfc3f68964c2",
+      "runtimeSha256": "890e8428b035aed2fcb621d227a591a3a0a4ded2679e2804518bd7a943527c8a"
     }
   },
   "hosting": {
