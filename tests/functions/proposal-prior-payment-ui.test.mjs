@@ -190,3 +190,13 @@ test("recorded prior payment refreshes the open dialog and cannot be submitted t
   assert.match(open, /submit\.disabled = false/);
   assert.match(open, /refreshPriorPaymentFeePreview\(dialog\)/);
 });
+
+test("Management Pricing scopes draft lookup to the appointment location", () => {
+  const pricing = read("public/management/pricing/pricing.js");
+  const lookup = pricing.match(/async function findDraftProposalForAppointment\(\) \{([\s\S]*?)\n\}/)?.[1];
+  assert.ok(lookup, "Draft lookup exists");
+  assert.match(lookup, /sourceAppointment\?\.locationId/);
+  assert.match(lookup, /where\("locationId", "==", locationId\)/);
+  assert.match(lookup, /where\("prospect\.appointmentId", "==", appointmentId\)/);
+  assert.match(lookup, /if \(!locationId\)/);
+});

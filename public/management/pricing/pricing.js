@@ -1614,9 +1614,16 @@ async function loadPricingSource() {
 }
 
 async function findDraftProposalForAppointment() {
+  // Management may only list proposals at its authorized appointment location.
+  // An appointment-only collection query can fail the location-scoped rules.
+  const locationId = String(sourceAppointment?.locationId || "").trim();
+  if (!locationId) {
+    throw new Error("The appointment has no canonical locationId; proposal lookup is blocked.");
+  }
   const snapshot = await getDocs(
     query(
       collection(db, "proposals"),
+      where("locationId", "==", locationId),
       where("prospect.appointmentId", "==", appointmentId)
     )
   );
