@@ -208,10 +208,10 @@ export const recordProposalPrepaidCash =
     const note =
       cleanString(req.data?.note) ||
       null;
-    const conversionSourceProposalId = cleanString(req.data?.conversionSourceProposalId);
-    if (conversionSourceProposalId &&
-        (!/^[-A-Za-z0-9]{1,80}$/.test(conversionSourceProposalId) ||
-         conversionSourceProposalId === proposalId)) {
+    const requestedConversionSource = cleanString(req.data?.conversionSourceProposalId);
+    if (requestedConversionSource &&
+        (!/^[-A-Za-z0-9]{1,80}$/.test(requestedConversionSource) ||
+         requestedConversionSource === proposalId)) {
       throw new HttpsError("invalid-argument", "A different valid prior agreement ID is required.");
     }
 
@@ -237,6 +237,11 @@ export const recordProposalPrepaidCash =
               proposal.locationId
             );
 
+            const linkedSource = cleanString(proposal.conversionSourceProposalId);
+            if (linkedSource && requestedConversionSource && linkedSource !== requestedConversionSource) {
+              throw new HttpsError("failed-precondition", "The reconciliation source must match the linked prior agreement.");
+            }
+            const conversionSourceProposalId = linkedSource || requestedConversionSource;
             const sourceSnap = conversionSourceProposalId
               ? await tx.get(db.collection("proposals").doc(conversionSourceProposalId))
               : null;

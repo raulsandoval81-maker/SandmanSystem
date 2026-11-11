@@ -1682,6 +1682,12 @@ function edgeCaseReviewHtml(proposal, id) {
     blocked = "Corrections require 1–24 existing manually recorded Cash/Check receipts.";
   }
 
+  const appointmentId = proposal.prospect?.appointmentId;
+  const conversionUrl = !blocked && appointmentId && payments.some(payment =>
+    Number(payment?.enrollmentFeeAmountCents) > 0 && payment?.periods?.length
+  ) ? "/connect/admissions/calculator/?" + new URLSearchParams({
+    appointmentId, conversionSourceProposalId: id,
+  }) : "";
   const auditId = edgeCaseAudits.get(id);
   const terms = (Array.isArray(proposal.athletes) ? proposal.athletes : [])
     .map(athlete => athlete?.billingTerm).filter(Boolean);
@@ -1696,6 +1702,7 @@ function edgeCaseReviewHtml(proposal, id) {
         <p>Current proposal: ${esc([...new Set(terms)].join(", ") || "Agreement term unavailable")} ·
           ${esc(formatAmount(proposal.pricing?.monthlyBalance))} monthly ·
           ${esc(formatAmount(proposal.pricing?.enrollmentBase))} enrollment fee before credits</p>
+        ${conversionUrl ? `<a class="proposal-open-btn" href="${esc(conversionUrl)}">Start Linked Paid-in-Full Agreement</a>` : ""}
         <iframe title="Edge Case Review for ${esc(id)}" data-edge-case-url="${esc(url)}"
           data-edge-case-proposal="${esc(id)}" style="width:100%;height:min(78vh,760px);border:0"></iframe>
       `}

@@ -121,7 +121,11 @@ test("Already-adjusted proposal cannot commit an obsolete preview as a new actio
 test("verified $80 October and $30 fee support a separate $960 check without changing historical cash", async () => {
   const { verifyPrepaidConversionSource } = require("../lib/billing/prepaidConversionPolicy");
   const { canonicalPaymentArrangement } = require("../lib/billing/paymentArrangement");
-  const prospect = {parentEmail:"synthetic@example.invalid"};
+  const appointmentId = id("conversion-appointment");
+  const prospect = {appointmentId, email:"synthetic@example.invalid"};
+  await db.collection("admissions_appointments").doc(appointmentId).set({
+    locationId, email: prospect.email, athleteName: "Synthetic Edge Case",
+  });
   const athletes = [{name:"Synthetic Edge Case", plan:"standard", billingTerm:"month-to-month"}];
   const prior = {...receipt("conversion", "2026-10", 10000), amountCents:11000,
     enrollmentFeeAmountCents:1000};
@@ -156,4 +160,25 @@ test("verified $80 October and $30 fee support a separate $960 check without cha
   assert.equal(pricing.prepaidTerms.amountCents,96000);
   assert.equal(pricing.prepaidTerms.annualEnrollmentFee.outstandingCents,0);
   assert.equal(pricing.prepaidTerms.paidThroughDate,"2027-10-31");
+
+  const create = require("../lib/proposals/createProposalDraft").createProposalDraft;
+  const createLinked = (overrides = {}) => create.run({auth:{uid:manager},data:{
+    appointmentId, conversionSourceProposalId:proposalId, athletes:targetAthletes, pricing,
+    agreement:{membershipStartDate:"2026-11-01"}, ...overrides,
+  }});
+  await assert.rejects(createLinked({athletes:[{...targetAthletes[0],name:"Different athlete"}]}),
+    error=>error.code==="failed-precondition" && /same athletes/.test(error.message));
+  const created = await createLinked();
+  assert.notEqual(created.proposalId,proposalId);
+  const targetRef = db.collection("proposals").doc(created.proposalId);
+  const draft = (await targetRef.get()).data();
+  assert.equal(draft.conversionSourceProposalId,proposalId);
+  assert.equal(draft.pricing.prepaidTerms.amountCents,96000);
+  assert.equal(draft.pricing.prepaidTerms.annualEnrollmentFee.previouslyPaidCents,3000);
+  assert.equal(draft.priorPayments,undefined);
+  assert.deepEqual((await proposalRef.get()).data(),source);
+  const replay = await createLinked();
+  assert.equal(replay.idempotent,true);
+  assert.equal(replay.proposalId,created.proposalId);
+  assert.equal((await targetRef.collection("history").get()).size,1);
 });
