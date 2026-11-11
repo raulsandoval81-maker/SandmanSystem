@@ -1,6 +1,7 @@
 import io
 import json
 import os
+import tempfile
 from pathlib import Path
 import unittest
 from unittest.mock import Mock, patch
@@ -41,6 +42,39 @@ class ReleaseTest(unittest.TestCase):
                 self.assertNotIn(message, result)
             else:
                 self.assertEqual(result, "")
+
+    def test_actions_credential_override_works_with_empty_gcloud_account_store(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            credentials = Path(tmp) / "gha-creds.json"
+            credentials.write_text(json.dumps({
+                "type": "service_account",
+                "project_id": release.PROJECT,
+                "client_email": "github-action-1258739245@sandmandashboard.iam.gserviceaccount.com",
+            }))
+            # Auth action credentials are not necessarily registered by 'gcloud auth list'.
+            env = {"CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": str(credentials)}
+            with patch.object(release.subprocess, "check_output", return_value="test-token\\n") as check:
+                self.assertEqual(release.authenticated_release_token(env), "test-token")
+            check.assert_called_once_with(
+                ["gcloud", "auth", "print-access-token"], text=True
+            )
+
+    def test_wrong_or_missing_actions_identity_fails_before_token_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            credentials = Path(tmp) / "gha-creds.json"
+            credentials.write_text(json.dumps({
+                "type": "service_account",
+                "project_id": release.PROJECT,
+                "client_email": "wrong-service-account@example.invalid",
+            }))
+            with patch.object(release.subprocess, "check_output") as check:
+                with self.assertRaisesRegex(RuntimeError, "credential identity"):
+                    release.authenticated_release_token({
+                        "GOOGLE_APPLICATION_CREDENTIALS": str(credentials)
+                    })
+                with self.assertRaisesRegex(RuntimeError, "override missing"):
+                    release.authenticated_release_token({})
+            check.assert_not_called()
 
     def test_preflight_checks_every_archive_and_fails_closed(self):
         snapshots = {name: {} for name in release.NAMES}
