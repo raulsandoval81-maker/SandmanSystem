@@ -148,6 +148,8 @@ on:
           - pr632-staging-deploy
           - edge-case-pif-readonly-preflight
           - edge-case-pif-staging-deploy
+          - prior-payment-readonly-preflight
+          - prior-payment-staging-deploy
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr606-staging-cash-check-continue
@@ -4325,7 +4327,7 @@ jobs:
           retention-days: 14
 
   pr632-staging-release:
-    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy' || inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy' || inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy' || inputs.action == 'prior-payment-readonly-preflight' || inputs.action == 'prior-payment-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     concurrency: sandman-staging-hosting
@@ -4339,8 +4341,8 @@ jobs:
       CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
-      RELEASE_KEY: ${{ startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
-      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
+      RELEASE_KEY: ${{ startsWith(inputs.action, 'prior-payment-') && 'prior-payment' || startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
+      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
       CANDIDATE_PACKAGE: /tmp/management-staging-source.zip
       PR614_BUILD_ROOT: pr614-build
     steps:
@@ -4361,7 +4363,7 @@ jobs:
           python3 "scripts/staging/${RELEASE_KEY}-staging-release.py" --offline
           if [[ "$RELEASE_KEY" == pr632 ]]; then
             python3 scripts/staging/test-pr632-staging-release.py
-          else
+          elif [[ "$RELEASE_KEY" == edge-case-pif ]]; then
             python3 scripts/staging/test-edge-case-pif-staging-recovery.py
           fi
       - uses: actions/checkout@v4
@@ -4385,7 +4387,9 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
           npm --prefix pr614-build/functions run build
-          if [[ "$RELEASE_KEY" == edge-case-pif ]]; then
+          if [[ "$RELEASE_KEY" == prior-payment ]]; then
+            (cd pr614-build && node --test functions/tests/recordProposalPriorPaymentStartup.test.cjs functions/tests/priorPaymentAllocation.test.cjs)
+          elif [[ "$RELEASE_KEY" == edge-case-pif ]]; then
             (cd pr614-build && node --test \
               functions/tests/paymentArrangement.test.cjs \
               tests/functions/manual-edge-case-proposal.test.mjs \
@@ -4411,6 +4415,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/auth@v3
+        if: env.RELEASE_KEY != 'prior-payment'
         id: pr614-platform-auth
         with:
           project_id: sandman-combat-staging
