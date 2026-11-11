@@ -11,8 +11,9 @@ const profile = process.argv[3] ?? 'waiver';
 assert(['waiver', 'edge-case-embed'].includes(profile));
 const edgeCase = profile === 'edge-case-embed';
 const evidencePrefix = edgeCase ? 'edge-case-embed' : 'pr603';
-const candidateSha = edgeCase ? '42e07b2dbed063c1216e9fbb509e4f9709dae192' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
+const candidateSha = edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
 const targets = new Map(edgeCase ? [
+  ['/connect/proposals/index.html', 'f0076ded80713f8b46d2ec1ab6b0a27ef3d2f4146408f0233f3d151b6832569c'],
   ['/connect/proposals/proposals.js', '54922a5f18e63ef02ae04f14b32807d7e2acb764c22038c6d0727ad9d837dd6c'],
   ['/management/manual-edge-case-proposal/index.html', '732d6d76d7acc7739619055711e6de5167011eddb1bce9615ec8807962c2202d'],
   ['/management/manual-edge-case-proposal/tool.js', '7a1c38e8e03275194d21caa7b4637ad683b7ac0fdb38f3e9c053ea498f935ff3'],
@@ -95,7 +96,7 @@ for (const [path, {hostingHash}] of assets) {
 }
 const changedPaths = [...live.keys()].filter(path => live.get(path) !== proposed.get(path));
 assert.deepEqual(changedPaths.sort(), edgeCase
-  ? ['/connect/proposals/proposals.js']
+  ? ['/connect/proposals/index.html']
   : [...targets.keys()].sort());
 const evidence = {site, baseline, rollback: baseline, candidateSha, rawHashes: Object.fromEntries(targets),
   changedPaths, fileCount: live.size, live: Object.fromEntries(live), proposed: Object.fromEntries(proposed)};

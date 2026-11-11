@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
 const proposals = readFileSync(new URL('../../public/connect/proposals/proposals.js', import.meta.url), 'utf8');
+const proposalHtml = readFileSync(new URL('../../public/connect/proposals/index.html', import.meta.url), 'utf8');
 const tool = readFileSync(new URL('../../public/management/manual-edge-case-proposal/tool.js', import.meta.url), 'utf8');
 const id = 'P-000123';
 const origin = 'https://sandman-combat-staging.web.app';
@@ -27,6 +29,14 @@ function proposalHarness() {
   vm.runInContext(proposals.slice(proposals.indexOf('const edgeCaseAudits'), proposals.indexOf('function proposalCardHtml')), context);
   return {render: context.edgeCaseReviewHtml, receive: context.receive, source, calls};
 }
+
+test('Proposal Management uses a unique URL for the deployed PR 644 script', () => {
+  const hash = createHash('sha256').update(proposals).digest('hex');
+  const sources = [...proposalHtml.matchAll(/src="(\/connect\/proposals\/proposals\.js[^"]*)"/g)];
+  assert.deepEqual(sources.map(match => match[1]), [
+    '/connect/proposals/proposals.js?v=pr644-' + hash.slice(0, 12),
+  ]);
+});
 
 test('proposals without historical payments open a read-only review and keep their original actions', () => {
   const {render} = proposalHarness();
