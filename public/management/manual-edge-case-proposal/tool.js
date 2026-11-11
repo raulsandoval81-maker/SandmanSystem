@@ -43,6 +43,7 @@ function renderReceipts() {
 async function loadCase(event) {
   event?.preventDefault();
   invalidate(); $("editPanel").hidden = true; proposal = null;
+  $("certifyConversion").checked = false;
   const id = clean($("proposalId").value).toUpperCase();
   if (!/^P-\d{6}$/.test(id)) return status("Enter a valid proposal ID.");
   status("Loading proposal...");
@@ -77,7 +78,7 @@ function entriesFromForm() {
       entries.push({paymentId: clean(p.paymentId), enrollmentFeeAmountCents: fee, historicalMonthlyRateCents: rate});
     }
   });
-  if (!entries.length) throw new Error("Change an allocation before previewing.");
+  if (!entries.length && !$("certifyConversion").checked) throw new Error("Change an allocation before previewing.");
   return entries;
 }
 async function previewCase() {
@@ -85,7 +86,7 @@ async function previewCase() {
   try {
     pendingEntries = entriesFromForm();
     status("Calculating authoritative preview...");
-    const response = await call({proposalId:proposal.proposalId, mode:"preview", entries:pendingEntries});
+    const response = await call({proposalId:proposal.proposalId, mode:"preview", entries:pendingEntries, certifyConversion:$("certifyConversion").checked});
     preview = response.data;
     const b = preview.before, a = preview.after;
     $("previewResults").textContent =
@@ -102,6 +103,7 @@ async function previewCase() {
       ).map(x => "  " + x.paymentId + ": membership " + money(x.beforeMembershipCents) +
         " → " + money(x.afterMembershipCents) + "; enrollment " +
         money(x.beforeEnrollmentCents) + " → " + money(x.afterEnrollmentCents)).join("\n") +
+      (preview.certifyConversion ? "\nVerified history may support a separately signed Paid-in-Full agreement." : "") +
       "\nCheckout authorized: NO";
     $("previewResults").style.whiteSpace = "pre-wrap";
     $("previewPanel").hidden = false;
@@ -122,6 +124,7 @@ async function commitCase() {
     const response = await call({
       proposalId:proposal.proposalId, mode:"commit",
       entries:pendingEntries, expectedFingerprint:preview.fingerprint,
+      certifyConversion:preview.certifyConversion,
       reason, actionId:crypto.randomUUID()
     });
     invalidate();
@@ -137,6 +140,7 @@ $("preview").addEventListener("click", previewCase);
 $("confirm").addEventListener("change", () => $("commit").disabled = !preview || !$("confirm").checked);
 $("commit").addEventListener("click", commitCase);
 $("reason").addEventListener("input", invalidate);
+$("certifyConversion").addEventListener("change", invalidate);
 $("proposalId").value = new URLSearchParams(location.search).get("proposalId") || "";
 requireManagement().then(() => {
   if ($("proposalId").value) void loadCase();

@@ -17,10 +17,11 @@ export const manualEdgeCaseProposal = onCall(async req => {
   const proposalId = clean(req.data?.proposalId);
   const mode = clean(req.data?.mode);
   const entries = req.data?.entries;
+  const certifyConversion = req.data?.certifyConversion === true;
   const reason = clean(req.data?.reason);
   const expectedFingerprint = clean(req.data?.expectedFingerprint);
   const actionId = clean(req.data?.actionId);
-  const requestFingerprint = createHash("sha256").update(JSON.stringify({ entries, reason })).digest("hex");
+  const requestFingerprint = createHash("sha256").update(JSON.stringify(certifyConversion ? { entries, reason, certifyConversion } : { entries, reason })).digest("hex");
   if (!/^P-\d{6}$/.test(proposalId) || !["load", "preview", "commit"].includes(mode)) {
     throw new HttpsError("invalid-argument", "A valid proposal ID and preview/commit action are required.");
   }
@@ -28,7 +29,7 @@ export const manualEdgeCaseProposal = onCall(async req => {
   if (mode === "commit" && (
     reason.length < 10 || reason.length > 500 ||
     !/^[a-f0-9]{64}$/.test(expectedFingerprint) ||
-    !/^[a-zA-Z0-9_-]{8,80}$/.test(actionId)
+    (!/^[a-zA-Z0-9_-]{8,80}$/.test(actionId) || actionId === "conversionEvidence")
   )) {
     throw new HttpsError("invalid-argument", "Commit requires a reason, current preview fingerprint, and unique action ID.");
   }
@@ -73,10 +74,11 @@ export const manualEdgeCaseProposal = onCall(async req => {
     const proposal = snap.data() || {};
     requireProposalLocationAccess(staff, proposal.locationId);
     try {
-      const result = buildManualProposalAdjustment(proposal, entries);
+      const result = buildManualProposalAdjustment(proposal, entries, certifyConversion);
       return {
         proposalId, mode: "preview", fingerprint: result.fingerprint,
         originalTotalCents: result.originalTotalCents,
+        certifyConversion,
         before: result.before, after: result.afterSummary,
         receiptChanges: result.afterPayments.map((p: any, i: number) => ({
           paymentId: p.paymentId,
@@ -109,7 +111,7 @@ export const manualEdgeCaseProposal = onCall(async req => {
     }
     let result;
     try {
-      result = buildManualProposalAdjustment(proposal, entries);
+      result = buildManualProposalAdjustment(proposal, entries, certifyConversion);
     } catch (error) {
       throw new HttpsError("failed-precondition", error instanceof Error ? error.message : "Invalid adjustment.");
     }
@@ -127,12 +129,19 @@ export const manualEdgeCaseProposal = onCall(async req => {
       event: "MANUAL_PROPOSAL_ALLOCATION_ADJUSTED",
       proposalId, reason, originalTotalCents: result.originalTotalCents,
       before: result.before, after: result.afterSummary,
+      certifyConversion,
       priorPaymentsBefore: result.beforePayments,
       priorPaymentsAfter: result.afterPayments,
       createdAt: stamp, performedBy: req.auth!.uid,
       performedByName: staff.fullName || null,
       checkoutAuthorized: false, stripeChargeCreated: false,
     });
+    if (result.conversionEvidenceFingerprint) {
+      tx.set(proposalRef.collection("manualAdjustments").doc("conversionEvidence"), {
+        fingerprint: result.conversionEvidenceFingerprint,
+        auditId: historyRef.id, performedBy: req.auth!.uid, performedAt: stamp,
+      });
+    }
     tx.create(actionRef, {
       auditId: historyRef.id, expectedFingerprint, requestFingerprint,
       performedBy: req.auth!.uid, performedAt: stamp,

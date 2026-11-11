@@ -144,6 +144,8 @@ on:
           - pr622-postdeploy-verify
           - pr632-readonly-preflight
           - pr632-staging-deploy
+          - edge-case-pif-readonly-preflight
+          - edge-case-pif-staging-deploy
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr606-staging-cash-check-continue
@@ -4393,5 +4395,97 @@ jobs:
           path: |
             pr632-preflight.json
             pr632-deploy-result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  edge-case-pif-staging-release:
+    if: ${{ (inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    concurrency: sandman-staging-hosting
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REQUESTED_ACTION: ${{ inputs.action }}
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
+      DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+      EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
+      CANDIDATE_PACKAGE: /tmp/edge-case-pif-source.zip
+      PR614_BUILD_ROOT: pr614-build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify staging release guard
+        run: python3 scripts/staging/edge-case-pif-staging-release.py --guard-only
+      - uses: actions/checkout@v4
+        with:
+          ref: 45808357791e2523f80f68ca74e82663d0252a12
+          path: pr614-candidate
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate exact application manifest and release guards
+        run: |
+          python3 scripts/staging/edge-case-pif-staging-release.py --offline
+      - uses: actions/checkout@v4
+        if: inputs.action == 'edge-case-pif-staging-deploy'
+        with:
+          ref: 45808357791e2523f80f68ca74e82663d0252a12
+          path: pr614-build
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        if: inputs.action == 'edge-case-pif-staging-deploy'
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build and test the exact release candidate
+        if: inputs.action == 'edge-case-pif-staging-deploy'
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
+          npm --prefix pr614-build/functions run build
+          (cd pr614-build && node --test \
+            functions/tests/paymentArrangement.test.cjs \
+            tests/functions/manual-edge-case-proposal.test.mjs \
+            tests/functions/manual-edge-case-elias-handoff.test.mjs)
+          (cd pr614-build && npx --yes firebase-tools@15.11.0 emulators:exec \
+            --config firebase.prepaid-emulator.json --project demo-manual-edge-case --only firestore \
+            'node --test functions/tests/manualEdgeCaseProposal.integration.cjs')
+          python3 scripts/staging/edge-case-pif-staging-release.py --package
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/auth@v3
+        id: pr614-platform-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: false
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture baseline or apply approved source and Hosting release
+        env:
+          HOSTING_CREDENTIALS_FILE: ${{ steps.pr614-platform-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/edge-case-pif-staging-release.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: edge-case-pif-staging-${{ github.run_id }}
+          path: |
+            edge-case-pif-preflight.json
+            edge-case-pif-deploy-result.json
           if-no-files-found: warn
           retention-days: 14

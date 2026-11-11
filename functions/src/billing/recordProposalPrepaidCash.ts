@@ -240,12 +240,17 @@ export const recordProposalPrepaidCash =
             const sourceSnap = conversionSourceProposalId
               ? await tx.get(db.collection("proposals").doc(conversionSourceProposalId))
               : null;
+            const sourceProposal = sourceSnap?.data() || {};
+            const historicalEvidence = sourceSnap?.exists && cleanString(sourceProposal.status).toUpperCase() === "DRAFT"
+              ? await tx.get(sourceSnap.ref.collection("manualAdjustments").doc("conversionEvidence"))
+              : null;
             let conversionSource = null;
             if (conversionSourceProposalId) {
               try {
                 conversionSource = verifyPrepaidConversionSource({
                   sourceProposalId: conversionSourceProposalId,
-                  source: sourceSnap?.exists ? sourceSnap.data() || {} : {},
+                  source: sourceProposal,
+                  historicalEvidenceFingerprint: historicalEvidence?.get("fingerprint"),
                   target: { ...proposal, proposalId },
                   newMembershipStartDate: membershipStartDateRaw,
                 });

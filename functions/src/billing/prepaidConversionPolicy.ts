@@ -1,3 +1,5 @@
+import { manualAdjustmentFingerprint } from "../management/manualEdgeCaseProposalPolicy";
+
 // Audited carry-forward for a separately accepted prepaid agreement.
 // A prior payment never becomes a payment against the new agreement.
 function clean(value: unknown): string {
@@ -10,6 +12,7 @@ export function verifyPrepaidConversionSource(input: {
   sourceProposalId: string;
   source: Record<string, any>;
   target: Record<string, any>;
+  historicalEvidenceFingerprint?: string;
   newMembershipStartDate: string;
 }): {
   sourceProposalId: string;
@@ -25,7 +28,13 @@ export function verifyPrepaidConversionSource(input: {
   if (!source || clean(source.locationId) !== clean(target.locationId)) {
     throw new Error("The prior agreement must exist in the same location.");
   }
-  if (normal(source.status) !== "paid") {
+  // Only a server-written Edge Case audit can certify an existing Draft
+  // ledger for fee carry-forward. This never marks the original proposal paid.
+  const certifiedDraft = normal(source.status) === "draft" &&
+    target.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
+    !!input.historicalEvidenceFingerprint &&
+    manualAdjustmentFingerprint(source) === input.historicalEvidenceFingerprint;
+  if (normal(source.status) !== "paid" && !certifiedDraft) {
     throw new Error("The prior agreement must have a verified PAID status before conversion.");
   }
   // Do not migrate a family away from an existing live recurring charge.
