@@ -58,3 +58,20 @@ test('cash-check review uses family review only and invalid prepaid quote is blo
   assert.match(review[0],/"issueProposalClientReview"/);
   assert.doesNotMatch(review[0],/createProposalCheckout|stripeCheckout|createCheckoutSession/);
 });
+
+test('Cash/Check preview keeps a previously paid fee outside the new check', async () => {
+  const termsPath = path.join(root, 'public/management/billing/prepaid-terms.js');
+  const termsUrl = 'data:text/javascript;base64,' + Buffer.from(await readFile(termsPath, 'utf8')).toString('base64');
+  const arrangementPath = path.join(root, 'public/connect/admissions/calculator/payment-arrangement.js');
+  const arrangementSource = (await readFile(arrangementPath, 'utf8'))
+    .replace('/management/billing/prepaid-terms.js', termsUrl);
+  const arrangementUrl = 'data:text/javascript;base64,' + Buffer.from(arrangementSource).toString('base64');
+  const { previewPaymentArrangement } = await import(arrangementUrl);
+  const pricing = { monthlyBalance: 80, membershipStartDate: '2026-11-01', enrollmentBase: 30, enrollmentPreviouslyPaidAmount: 30 };
+  const athletes = [{ plan: 'standard', billingTerm: 'annual' }];
+  const allocations = [{ athleteIndex: 1, amountCents: 0 }];
+  const result = previewPaymentArrangement(pricing, athletes, 'prepaid_cash_check', allocations);
+  assert.equal(result.prepaidTerms.amountCents, 96000);
+  assert.equal(result.prepaidTerms.feeOutstandingCents, 0);
+  assert.throws(() => previewPaymentArrangement(pricing, athletes, 'prepaid_stripe', allocations), /historical fee credit/);
+});

@@ -324,6 +324,7 @@ function renderProposal(
       scheduleItem("Payment arrangement", pricing.paymentArrangement === "prepaid_stripe" ? "Paid in Full — one-time Stripe payment" : "Paid in Full — existing cash/check reconciliation"),
       scheduleItem("Locked membership", `${t.monthsCovered} months · ${moneyFromCents(t.membershipAmountCents)}`),
       scheduleItem("Coverage", `${t.membershipStartDate} through ${t.paidThroughDate}`),
+      ...(t.annualEnrollmentFee.previouslyPaidCents > 0 ? [scheduleItem("Annual fee previously paid", moneyFromCents(t.annualEnrollmentFee.previouslyPaidCents))] : []),
       scheduleItem("Annual fee allocated", moneyFromCents(t.annualEnrollmentFee.paidWithPrepaymentCents)),
       scheduleItem("Annual fee separately outstanding", moneyFromCents(t.annualEnrollmentFee.outstandingCents)),
       scheduleItem("Earliest renewal", `${t.nextBillingDate} — separate approval required`),

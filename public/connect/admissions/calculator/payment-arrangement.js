@@ -6,8 +6,8 @@ export function previewPaymentArrangement(pricing, athletes, arrangement, alloca
   if (!["prepaid_stripe", "prepaid_cash_check"].includes(arrangement)) throw Error("Unsupported payment arrangement.");
   const months = lockedPrepaidMonths({lockedSnapshot: {athletes}});
   if (!months || athletes.some(a => a.plan === "fitness") || Number(pricing.extraAmount) ||
-      Number(pricing.additionalMembershipMonthsDue) || Number(pricing.enrollmentPreviouslyPaidAmount)) {
-    throw Error("Paid in Full requires matching 6- or 12-month Combat commitments, without extras or historical fee credits.");
+      Number(pricing.additionalMembershipMonthsDue)) {
+    throw Error("Paid in Full requires matching 6- or 12-month Combat commitments, without extra charges.");
   }
   const coverage = prepaidCoverageDates(pricing.membershipStartDate, months);
   if (!coverage) throw Error("A valid membership start date is required.");
@@ -22,7 +22,12 @@ export function previewPaymentArrangement(pricing, athletes, arrangement, alloca
     throw Error("Approved enrollment support does not match the enrollment fee.");
   }
   const totalFee = grossFee - support;
-  const perAthlete = totalFee / athletes.length;
+  const priorFee = Math.round(Number(pricing.enrollmentPreviouslyPaidAmount ?? 0) * 100);
+  if (!Number.isSafeInteger(priorFee) || priorFee < 0 ||
+      (priorFee > 0 && (arrangement !== "prepaid_cash_check" || athletes.length !== 1 || priorFee !== totalFee))) {
+    throw Error("Prepaid historical fee credit requires Cash/Check and one athlete with the full net annual fee previously paid.");
+  }
+  const perAthlete = (totalFee - priorFee) / athletes.length;
   if (allocations.length !== athletes.length || allocations.some((a, i) =>
       a.athleteIndex !== i + 1 || !Number.isSafeInteger(a.amountCents) || a.amountCents < 0 || a.amountCents > perAthlete)) {
     throw Error("Each annual fee allocation must be between zero and that athlete's fee.");
@@ -32,5 +37,5 @@ export function previewPaymentArrangement(pricing, athletes, arrangement, alloca
     dueNow: arrangement === "prepaid_stripe" ? (membership + feePaid) / 100 : 0,
     prepaidTerms: {monthsCovered: months, membershipAmountCents: membership, amountCents: membership + feePaid,
       membershipStartDate: pricing.membershipStartDate, paidThroughDate: coverage.paidThroughDate,
-      nextBillingDate: coverage.nextBillingDate, feeOutstandingCents: totalFee - feePaid}};
+      nextBillingDate: coverage.nextBillingDate, feeOutstandingCents: totalFee - priorFee - feePaid}};
 }
