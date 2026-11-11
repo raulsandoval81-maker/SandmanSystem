@@ -5,6 +5,9 @@ const $ = id => document.getElementById(id);
 const clean = x => String(x ?? "").trim();
 const esc = x => clean(x).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 const money = n => "$" + (Number(n) / 100).toFixed(2);
+const params = new URLSearchParams(location.search);
+const embedded = window.parent !== window && params.get("embedded") === "1";
+const initialProposalId = clean(params.get("proposalId")).toUpperCase();
 const call = httpsCallable(functions, "manualEdgeCaseProposal");
 let proposal = null;
 let preview = null;
@@ -44,13 +47,14 @@ async function loadCase(event) {
   event?.preventDefault();
   invalidate(); $("editPanel").hidden = true; proposal = null;
   $("certifyConversion").checked = false;
-  const id = clean($("proposalId").value).toUpperCase();
+  const id = embedded ? initialProposalId : clean($("proposalId").value).toUpperCase();
   if (!/^P-\d{6}$/.test(id)) return status("Enter a valid proposal ID.");
   status("Loading proposal...");
   try {
     await requireManagement();
     const response = await call({ proposalId: id, mode: "load" });
     proposal = response.data;
+    if (proposal.proposalId !== id) throw new Error("The loaded proposal does not match the requested proposal.");
     if (clean(proposal.status).toUpperCase() !== "DRAFT") {
       return status("Only unsigned DRAFT proposals can use this allocation correction.");
     }
@@ -130,6 +134,13 @@ async function commitCase() {
     invalidate();
     $("editPanel").hidden = true;
     status("Saved and audited: "+response.data.auditId+". No money collected. Reload the record before another adjustment.");
+    if (embedded && response.data.proposalId === initialProposalId && response.data.auditId) {
+      window.parent.postMessage({
+        type: "sandman:edge-case-saved",
+        proposalId: initialProposalId,
+        auditId: response.data.auditId,
+      }, location.origin);
+    }
   } catch(e) {
     invalidate();
     status("Not saved: "+(e.message || "Commit failed")+". Reload and preview again.");
@@ -141,7 +152,12 @@ $("confirm").addEventListener("change", () => $("commit").disabled = !preview ||
 $("commit").addEventListener("click", commitCase);
 $("reason").addEventListener("input", invalidate);
 $("certifyConversion").addEventListener("change", invalidate);
-$("proposalId").value = new URLSearchParams(location.search).get("proposalId") || "";
+$("proposalId").value = initialProposalId;
+if (embedded) {
+  $("loadForm").hidden = true;
+  $("backToBilling").hidden = true;
+  $("caseHeading").textContent = "1. Review existing proposal";
+}
 requireManagement().then(() => {
-  if ($("proposalId").value) void loadCase();
+  if (embedded || initialProposalId) void loadCase();
 }).catch(() => location.replace(managementLoginUrl()));
