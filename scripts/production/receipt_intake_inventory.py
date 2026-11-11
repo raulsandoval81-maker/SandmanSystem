@@ -80,6 +80,28 @@ def permitted(url, payload=None, signed=False):
    require(payload=={} or set(payload)=={'versionId'},'Invalid source request')
   else: require(set(payload)=={'permissions'},'Invalid permission probe')
 
+def storage_error_detail(error):
+ # Emit only fixed categories, since Google's message can include identities or policy details.
+ try:
+  body = json.loads(error.read(16384)).get('error', {})
+ except (ValueError, OSError):
+  return ''
+ if not isinstance(body, dict):
+  return ''
+ message = str(body.get('message', '')).lower()
+ errors = body.get('errors') or []
+ reasons = {entry.get('reason') for entry in errors if isinstance(entry, dict)}
+ if 'vpcServiceControls' in reasons or 'vpc service controls' in message or "organization's policy" in message:
+  return ' (organization perimeter or policy)'
+ if 'insufficientAuthenticationScopes' in reasons or 'insufficient authentication scopes' in message:
+  return ' (insufficient token scope)'
+ if 'userProjectMissing' in reasons or 'requester pays' in message:
+  return ' (Requester Pays billing project required)'
+ if 'storage.objects.get' in message:
+  return ' (storage.objects.get denied for the requested resource)'
+ return ''
+
+
 def request(url, token, payload=None, signed=False):
  permitted(url,payload,signed)
  headers={'Authorization':'Bearer '+token} if token else {}
@@ -87,7 +109,10 @@ def request(url, token, payload=None, signed=False):
  req=urllib.request.Request(url,headers=headers,data=None if payload is None else json.dumps(payload).encode())
  try:
   with urllib.request.build_opener(NoRedirect()).open(req,timeout=45) as r: data=r.read(32*1024*1024+1)
- except urllib.error.HTTPError as e: raise RuntimeError(f'{urllib.parse.urlsplit(url).path}: HTTP {e.code}') from None
+ except urllib.error.HTTPError as error:
+  path = urllib.parse.urlsplit(url).path
+  detail = storage_error_detail(error) if path.startswith('/storage/v1/b/') and not signed else ''
+  raise RuntimeError(f'{path}: HTTP {error.code}{detail}') from None
  require(len(data)<=32*1024*1024,'Response too large')
  return data
 

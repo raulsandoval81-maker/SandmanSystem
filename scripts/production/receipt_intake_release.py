@@ -74,6 +74,25 @@ def pinned_recovery(name, snapshot, token):
     return archive
 
 
+def capture_recovery(snapshots, token, report_all=False):
+    recovery = {}
+    failed = []
+    for name in NAMES:
+        try:
+            archive = pinned_recovery(name, snapshots[name], token)
+            require(config(name, token) == snapshots[name], f"{name}: recovery capture raced a release")
+        except RuntimeError as error:
+            if not report_all:
+                raise
+            failed.append(name)
+            print(f"Rollback source check failed for {name}: {error}", flush=True)
+        else:
+            recovery[name] = archive
+            print(f"Verified pinned rollback source for {name}", flush=True)
+    require(not failed, "Pinned rollback source checks failed: " + ", ".join(failed))
+    return recovery
+
+
 def rollback(token, packages):
     verify_rules(token)
     baseline = PLAN["hosting"]
@@ -255,6 +274,28 @@ def guard(mode):
                 "Reviewed synthetic staging evidence is missing")
 
 
+def authenticated_release_token(env=None):
+    """Validate the Actions credential-file identity without using gcloud's account store."""
+    env = os.environ if env is None else env
+    credential_file = (env.get("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE")
+                       or env.get("GOOGLE_APPLICATION_CREDENTIALS"))
+    require(bool(credential_file), "Production credential-file override missing")
+    try:
+        credentials = json.loads(Path(credential_file).read_text())
+    except (OSError, ValueError):
+        raise RuntimeError("Production credential file unavailable or invalid") from None
+    require(isinstance(credentials, dict)
+            and credentials.get("type") == "service_account"
+            and credentials.get("project_id") == PROJECT
+            and credentials.get("client_email")
+            == "github-action-1258739245@sandmandashboard.iam.gserviceaccount.com",
+            "Unexpected production release credential identity")
+    print("Production release credential identity verified", flush=True)
+    token = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True).strip()
+    require(bool(token), "Production access token unavailable")
+    return token
+
+
 def main():
     mode = os.environ["RELEASE_MODE"]
     guard(mode)
@@ -263,16 +304,12 @@ def main():
     require(sha == PLAN["candidate"], "Application checkout SHA differs")
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
-    token = subprocess.check_output(["gcloud", "auth", "print-access-token"], text=True).strip()
+    token = authenticated_release_token()
     if mode == "rollback":
         rollback(token, packages)
         return
     snapshots, (configuration, manifest) = preflight(token)
-    recovery = {}
-    for name in NAMES:
-        archive = pinned_recovery(name, snapshots[name], token)
-        require(config(name, token) == snapshots[name], f"{name}: recovery capture raced a release")
-        recovery[name] = archive
+    recovery = capture_recovery(snapshots, token, report_all=(mode == "preflight"))
     proposed = dict(manifest)
     payloads = {}
     for path, body in overlay.items():
