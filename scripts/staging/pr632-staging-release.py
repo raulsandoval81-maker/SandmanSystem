@@ -94,5 +94,8 @@ if __name__ == "__main__":
         protected.original.package()
     else:
         require(not sys.argv[1:], "Unexpected PR #632 release arguments")
+        # The inherited engine validates its action before calling bind_scope.
+        # Install the PR #632 guard first, then let main bind the scoped release.
+        protected.guard = guard
         protected.bind_scope = bind_scope
         protected.main()
