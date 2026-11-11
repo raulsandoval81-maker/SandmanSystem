@@ -1,0 +1,68 @@
+name: Production receipt and Intake release
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [preflight, deploy, rollback]
+        default: preflight
+        required: true
+      confirm_project:
+        description: Type sandmandashboard
+        type: string
+        required: true
+      confirm_sha:
+        description: Reviewed application SHA
+        type: string
+        required: true
+      confirm_release:
+        description: DEPLOY-RECEIPT-INTAKE-42924733167 or ROLLBACK-RECEIPT-INTAKE-42924733167
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: sandmandashboard-production
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 100
+    env:
+      PYTHONPATH: trusted/scripts/staging:trusted/scripts/production
+      RELEASE_MODE: ${{ inputs.mode }}
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      CONFIRM_SHA: ${{ inputs.confirm_sha }}
+      CONFIRM_RELEASE: ${{ inputs.confirm_release }}
+    steps:
+      - name: Require main and the pinned application commit
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test "$CONFIRM_PROJECT" = sandmandashboard
+          test "$CONFIRM_SHA" = 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate release gates before authentication
+        run: python3 -c 'import os, receipt_intake_release as release; release.guard(os.environ["RELEASE_MODE"])'
+      - name: Build and validate reviewed packages
+        run: |
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          python3 -m unittest discover -s trusted/tests/production -p test_receipt_intake_release.py
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Verify production baseline and execute selected mode
+        run: python3 trusted/scripts/production/receipt_intake_release.py
