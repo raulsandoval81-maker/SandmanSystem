@@ -1664,13 +1664,29 @@ const edgeCaseAudits = new Map();
 
 function edgeCaseReviewHtml(proposal, id) {
   const payments = proposal.priorPayments;
+  const status = String(proposal.status || "").trim().toUpperCase();
+  const validId = /^P-\\d{6}$/.test(id);
+  const unsignedUncharged = !proposal.clientReview?.tokenHash &&
+    !proposal.clientAcceptance && !proposal.lockedSnapshot &&
+    !proposal.pendingCheckoutSessionId && !proposal.stripeCheckoutSessionId &&
+    !proposal.stripeSubscriptionId && !proposal.stripePaymentIntentId &&
+    !proposal.cashPrepayment;
+  const historicalReceipts = Array.isArray(payments) && payments.length > 0 &&
+    payments.some(payment => Number(payment?.enrollmentFeeAmountCents) > 0 &&
+      Array.isArray(payment?.periods) && payment.periods.length > 0);
+  const appointmentId = proposal.prospect?.appointmentId;
+  // Conversion is not a ledger edit. Allow REVIEW to start the separately
+  // verified handoff; the server checks the original certification in full.
+  const conversionUrl = validId && appointmentId && historicalReceipts &&
+    unsignedUncharged && ["DRAFT", "REVIEW"].includes(status) &&
+    proposal.historicalCashDisposition?.status !== "recorded"
+    ? "/connect/admissions/calculator/?" + new URLSearchParams({
+        appointmentId, conversionSourceProposalId: id,
+      }) : "";
   let blocked = "";
-  if (!/^P-\d{6}$/.test(id)) {
+  if (!validId) {
     blocked = "Corrections require a valid proposal ID.";
-  } else if (String(proposal.status || "").trim().toUpperCase() !== "DRAFT" ||
-      proposal.clientReview?.tokenHash || proposal.clientAcceptance || proposal.lockedSnapshot ||
-      proposal.pendingCheckoutSessionId || proposal.stripeCheckoutSessionId ||
-      proposal.stripeSubscriptionId || proposal.stripePaymentIntentId || proposal.cashPrepayment ||
+  } else if (status !== "DRAFT" || !unsignedUncharged ||
       proposal.historicalCashDisposition?.status === "recorded") {
     blocked = "Corrections require an unsigned, uncharged Draft without a recorded cash disposition.";
   } else if (!Array.isArray(payments) || !payments.length) {
@@ -1681,13 +1697,6 @@ function edgeCaseReviewHtml(proposal, id) {
   )) {
     blocked = "Corrections require 1–24 existing manually recorded Cash/Check receipts.";
   }
-
-  const appointmentId = proposal.prospect?.appointmentId;
-  const conversionUrl = !blocked && appointmentId && payments.some(payment =>
-    Number(payment?.enrollmentFeeAmountCents) > 0 && payment?.periods?.length
-  ) ? "/connect/admissions/calculator/?" + new URLSearchParams({
-    appointmentId, conversionSourceProposalId: id,
-  }) : "";
   const auditId = edgeCaseAudits.get(id);
   const terms = (Array.isArray(proposal.athletes) ? proposal.athletes : [])
     .map(athlete => athlete?.billingTerm).filter(Boolean);
@@ -1698,11 +1707,11 @@ function edgeCaseReviewHtml(proposal, id) {
     ${auditId ? `<p role="status">Edge Case adjustment saved. Audit reference: ${esc(auditId)}</p>` : ""}
     <details class="proposal-edge-case">
       <summary>Management Actions · Edge Case Review</summary>
+      <p>Current proposal: ${esc([...new Set(terms)].join(", ") || "Agreement term unavailable")} ·
+        ${esc(formatAmount(proposal.pricing?.monthlyBalance))} monthly ·
+        ${esc(formatAmount(proposal.pricing?.enrollmentBase))} enrollment fee before credits</p>
+      ${conversionUrl ? `<a class="proposal-open-btn" href="${esc(conversionUrl)}">Start Linked Paid-in-Full Agreement</a>` : ""}
       ${blocked ? `<p>${esc(blocked)}</p>` : `
-        <p>Current proposal: ${esc([...new Set(terms)].join(", ") || "Agreement term unavailable")} ·
-          ${esc(formatAmount(proposal.pricing?.monthlyBalance))} monthly ·
-          ${esc(formatAmount(proposal.pricing?.enrollmentBase))} enrollment fee before credits</p>
-        ${conversionUrl ? `<a class="proposal-open-btn" href="${esc(conversionUrl)}">Start Linked Paid-in-Full Agreement</a>` : ""}
         <iframe title="Edge Case Review for ${esc(id)}" data-edge-case-url="${esc(url)}"
           data-edge-case-proposal="${esc(id)}" style="width:100%;height:min(78vh,760px);border:0"></iframe>
       `}
