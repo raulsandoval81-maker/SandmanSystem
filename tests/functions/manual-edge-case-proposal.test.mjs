@@ -142,6 +142,24 @@ test("only certified, unchanged historical cash can support the separate $960 Ca
  assert.throws(()=>verifyPrepaidConversionSource(request),/verified PAID/);
  assert.throws(()=>buildManualProposalAdjustment({...source,stripeInvoiceId:"in_synthetic"},entries,true),/Conversion evidence/);
  assert.equal(verifyPrepaidConversionSource({...request,historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}).historicalEnrollmentCents,3000);
+ // REVIEW changes status and tracking metadata, not the certified financial record.
+ const reviewed={...corrected,status:"REVIEW",submittedForReviewBy:"test-admin"};
+ assert.equal(verifyPrepaidConversionSource({...request,source:reviewed,
+   historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}).historicalEnrollmentCents,3000);
+ for(const unsafe of [
+   {...reviewed,priorPayments:[{...reviewed.priorPayments[0],membershipAmountCents:7000}]},
+   {...reviewed,clientAcceptance:{accepted:true}},
+   {...reviewed,lockedSnapshot:{pricing}},
+   {...reviewed,clientReview:{tokenHash:"issued"}},
+   {...reviewed,stripeSubscriptionId:"sub_abc"},
+   {...reviewed,status:"AWAITING_CLIENT_SIGNATURE"},
+ ]) {
+   assert.throws(()=>verifyPrepaidConversionSource({...request,source:unsafe,
+     historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}),/verified PAID/);
+ }
+ assert.throws(()=>verifyPrepaidConversionSource({...request,source:reviewed,
+   newMembershipStartDate:"2026-10-01",historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}),/precede/);
+
  assert.throws(()=>verifyPrepaidConversionSource({...request,source:{...corrected,stripeInvoiceId:"in_synthetic"},
    historicalEvidenceFingerprint:evidence.conversionEvidenceFingerprint}),/verified PAID/);
  assert.equal(pricing.prepaidTerms.amountCents,96000);
@@ -150,4 +168,13 @@ test("only certified, unchanged historical cash can support the separate $960 Ca
  assert.equal(source.priorPayments[0].amountCents,11000);
  assert.equal(corrected.priorPayments[0].amountCents,11000);
  assert.notEqual(evidence.fingerprint,buildManualProposalAdjustment(source,entries).fingerprint);
+});
+
+test("REVIEW conversion never unlocks the Draft-only Edge Case ledger editor", () => {
+ const ui=readFileSync("public/connect/proposals/proposals.js","utf8");
+ const reconciliation=readFileSync("functions/src/billing/recordProposalPrepaidCash.ts","utf8");
+ assert.match(ui,/\["DRAFT", "REVIEW"\]\.includes\(status\)/);
+ assert.match(ui,/status !== "DRAFT"/);
+ assert.match(ui,/\$\{blocked \? \x60<p>/);
+ assert.match(reconciliation,/\["DRAFT", "REVIEW"\]\.includes\(cleanString\(sourceProposal\.status\)/);
 });

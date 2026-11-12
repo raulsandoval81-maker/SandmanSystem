@@ -28,13 +28,22 @@ export function verifyPrepaidConversionSource(input: {
   if (!source || clean(source.locationId) !== clean(target.locationId)) {
     throw new Error("The prior agreement must exist in the same location.");
   }
-  // Only a server-written Edge Case audit can certify an existing Draft
-  // ledger for fee carry-forward. This never marks the original proposal paid.
-  const certifiedDraft = normal(source.status) === "draft" &&
+  // Only server-written certification can carry the prior enrollment fee into
+  // a separate prepaid agreement. Review submission changes status, not the
+  // certified receipt/terms: compare a REVIEW source as its original DRAFT.
+  // The source stays unchanged; this is not a payment or status transition.
+  const status = normal(source.status);
+  const unsignedReview = status === "review" &&
+    !source.clientReview?.tokenHash && !source.clientAcceptance &&
+    !source.lockedSnapshot && !source.pendingCheckoutSessionId &&
+    !source.stripeCheckoutSessionId && !source.stripePaymentIntentId &&
+    !source.stripeSubscriptionId && !source.cashPrepayment;
+  const certifiedSource = (status === "draft" || unsignedReview) &&
     target.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
     !!input.historicalEvidenceFingerprint &&
-    manualAdjustmentFingerprint(source) === input.historicalEvidenceFingerprint;
-  if (normal(source.status) !== "paid" && !certifiedDraft) {
+    manualAdjustmentFingerprint(unsignedReview
+      ? { ...source, status: "DRAFT" } : source) === input.historicalEvidenceFingerprint;
+  if (status !== "paid" && !certifiedSource) {
     throw new Error("The prior agreement must have a verified PAID status before conversion.");
   }
   // Do not migrate a family away from an existing live recurring charge.
