@@ -131,6 +131,8 @@ on:
           - pr598-hosting-deploy
           - pr603-hosting-inventory
           - pr603-hosting-deploy
+          - edge-case-embed-hosting-preflight
+          - edge-case-embed-hosting-deploy
           - pr629-hosting-deploy
           - pr636-hosting-preflight
           - pr636-hosting-deploy
@@ -144,6 +146,16 @@ on:
           - pr622-postdeploy-verify
           - pr632-readonly-preflight
           - pr632-staging-deploy
+          - edge-case-pif-readonly-preflight
+          - edge-case-pif-staging-deploy
+          - pr650-readonly-preflight
+          - pr650-staging-deploy
+          - pr647-readonly-preflight
+          - pr647-staging-deploy
+          - pr652-intake-readonly-preflight
+          - pr652-intake-staging-deploy
+          - prior-payment-readonly-preflight
+          - prior-payment-staging-deploy
           - pr606-run339-recovery-snapshot
           - pr606-staging-cash-check-deploy
           - pr606-staging-cash-check-continue
@@ -3654,7 +3666,7 @@ jobs:
           if-no-files-found: error
 
   pr603-hosting-deploy:
-    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory' || inputs.action == 'edge-case-embed-hosting-preflight' || inputs.action == 'edge-case-embed-hosting-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 10
@@ -3668,15 +3680,24 @@ jobs:
         env:
           APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
         run: test "$APPROVAL" = APPROVE_PR603_STAGING_WAIVER_OVERLAY
+      - name: Require Edge Case overlay deployment approval
+        if: inputs.action == 'edge-case-embed-hosting-deploy'
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$APPROVAL" = APPROVE_EDGE_CASE_EMBED_STAGING_HOSTING
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 053deeae91c768c156d47edc6926f8c92e5aa4c4
+          ref: ${{ startsWith(inputs.action, 'edge-case-embed-') && '47b986f27ebbf98e456af5f64f1f6450023f279c' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
           path: candidate
           persist-credentials: false
+      - name: Verify Proposal Management Edge Case regressions
+        if: startsWith(inputs.action, 'edge-case-embed-')
+        run: cd candidate && node --test tests/browser/proposal-edge-case-embed.test.mjs
       - name: Verify embedded waiver regressions
+        if: startsWith(inputs.action, 'pr603-')
         run: cd candidate && node --test tests/browser/inline-intake-waiver.test.mjs
       - uses: google-github-actions/auth@v3
         with:
@@ -3687,15 +3708,18 @@ jobs:
       - name: Inventory or verify staging Hosting overlay
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          MODE: ${{ inputs.action == 'pr603-hosting-deploy' && 'deploy' || 'inventory' }}
+          MODE: ${{ endsWith(inputs.action, '-deploy') && 'deploy' || 'inventory' }}
+          PROFILE: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed' || 'waiver' }}
           EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
           EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
-        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE"
+        run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE" "$PROFILE"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr603-hosting-deploy-${{ github.run_id }}
-          path: pr603-*.json
+          name: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed-hosting' || 'pr603-hosting-deploy' }}-${{ github.run_id }}
+          path: |
+            pr603-*.json
+            edge-case-embed-*.json
           if-no-files-found: error
 
   pr629-hosting-deploy:
@@ -4309,7 +4333,7 @@ jobs:
           retention-days: 14
 
   pr632-staging-release:
-    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy' || inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy' || inputs.action == 'pr652-intake-readonly-preflight' || inputs.action == 'pr652-intake-staging-deploy' || inputs.action == 'prior-payment-readonly-preflight' || inputs.action == 'prior-payment-staging-deploy' || inputs.action == 'pr647-readonly-preflight' || inputs.action == 'pr647-staging-deploy' || inputs.action == 'pr650-readonly-preflight' || inputs.action == 'pr650-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     concurrency: sandman-staging-hosting
@@ -4323,7 +4347,9 @@ jobs:
       CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
-      CANDIDATE_PACKAGE: /tmp/pr632-source.zip
+      RELEASE_KEY: ${{ startsWith(inputs.action, 'pr652-intake-') && 'pr652-intake' || startsWith(inputs.action, 'pr650-') && 'pr650' || startsWith(inputs.action, 'pr647-') && 'pr647' || startsWith(inputs.action, 'prior-payment-') && 'prior-payment' || startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
+      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'pr652-intake-') && 'cf972948fde155d1330f8a9b7d75f84695132e26' || startsWith(inputs.action, 'pr650-') && '335be5278aabe3a8e17a541b934cd3261592fc85' || startsWith(inputs.action, 'pr647-') && 'c928ce342983cbf9ab82850844dd0bb343d2ec13' || startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
+      CANDIDATE_PACKAGE: /tmp/management-staging-source.zip
       PR614_BUILD_ROOT: pr614-build
     steps:
       - uses: actions/checkout@v4
@@ -4331,41 +4357,74 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
       - name: Verify staging release guard
-        run: python3 scripts/staging/pr632-staging-release.py --guard-only
+        run: python3 "scripts/staging/${RELEASE_KEY}-staging-release.py" --guard-only
       - uses: actions/checkout@v4
         with:
-          ref: 6da9769d6aa7c9bfc8472ad6c4311805128e92d9
+          ref: ${{ env.CANDIDATE_SHA }}
           path: pr614-candidate
           fetch-depth: 0
           persist-credentials: false
       - name: Validate exact application manifest and release guards
         run: |
-          python3 scripts/staging/pr632-staging-release.py --offline
-          python3 scripts/staging/test-pr632-staging-release.py
+          python3 "scripts/staging/${RELEASE_KEY}-staging-release.py" --offline
+          if [[ "$RELEASE_KEY" == pr632 ]]; then
+            python3 scripts/staging/test-pr632-staging-release.py
+          elif [[ "$RELEASE_KEY" == edge-case-pif ]]; then
+            python3 scripts/staging/test-edge-case-pif-staging-recovery.py
+          fi
       - uses: actions/checkout@v4
-        if: inputs.action == 'pr632-staging-deploy'
+        if: endsWith(inputs.action, '-staging-deploy')
         with:
-          ref: 6da9769d6aa7c9bfc8472ad6c4311805128e92d9
+          ref: ${{ env.CANDIDATE_SHA }}
           path: pr614-build
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - uses: actions/setup-java@v4
+        if: inputs.action == 'edge-case-pif-staging-deploy' || inputs.action == 'pr647-staging-deploy' || inputs.action == 'pr650-staging-deploy'
+        with:
+          distribution: temurin
+          java-version: '21'
       - name: Build and test the exact release candidate
-        if: inputs.action == 'pr632-staging-deploy'
+        if: endsWith(inputs.action, '-staging-deploy')
         run: |
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
           npm --prefix pr614-build/functions run build
-          (cd pr614-build && node --test \
-            functions/tests/paymentArrangement.test.cjs \
-            functions/tests/prepaidMembershipPolicy.test.cjs \
-            functions/tests/prepaidReconciliationPolicy.test.cjs \
-            tests/browser/payment-arrangement.test.mjs \
-            tests/browser/prepaid-builder-preview.test.mjs \
-            tests/browser/billing-prepaid-terms.test.mjs)
-          python3 scripts/staging/pr632-staging-release.py --package
+          if [[ "$RELEASE_KEY" == pr652-intake ]]; then
+            (cd pr614-build && node --test functions/tests/operationalPaidProposal.test.cjs)
+          elif [[ "$RELEASE_KEY" == prior-payment ]]; then
+            (cd pr614-build && node --test functions/tests/recordProposalPriorPaymentStartup.test.cjs functions/tests/priorPaymentAllocation.test.cjs)
+          elif [[ "$RELEASE_KEY" == pr650 ]]; then
+            (cd pr614-build && node --test functions/tests/paymentArrangement.test.cjs tests/browser/proposal-edge-case-embed.test.mjs tests/functions/manual-edge-case-proposal.test.mjs)
+            (cd pr614-build && npx --yes firebase-tools@15.11.0 emulators:exec \
+              --config firebase.prepaid-emulator.json --project demo-linked-prepaid --only firestore \
+              'node --test functions/tests/manualEdgeCaseProposal.integration.cjs')
+          elif [[ "$RELEASE_KEY" == pr647 ]]; then
+            (cd pr614-build && node --test functions/tests/paymentArrangement.test.cjs tests/browser/proposal-edge-case-embed.test.mjs)
+            (cd pr614-build && npx --yes firebase-tools@15.11.0 emulators:exec \
+              --config firebase.prepaid-emulator.json --project demo-linked-prepaid --only firestore \
+              'node --test functions/tests/manualEdgeCaseProposal.integration.cjs')
+          elif [[ "$RELEASE_KEY" == edge-case-pif ]]; then
+            (cd pr614-build && node --test \
+              functions/tests/paymentArrangement.test.cjs \
+              tests/functions/manual-edge-case-proposal.test.mjs \
+              tests/functions/manual-edge-case-elias-handoff.test.mjs)
+            (cd pr614-build && npx --yes firebase-tools@15.11.0 emulators:exec \
+              --config firebase.prepaid-emulator.json --project demo-manual-edge-case --only firestore \
+              'node --test functions/tests/manualEdgeCaseProposal.integration.cjs')
+          else
+            (cd pr614-build && node --test \
+              functions/tests/paymentArrangement.test.cjs \
+              functions/tests/prepaidMembershipPolicy.test.cjs \
+              functions/tests/prepaidReconciliationPolicy.test.cjs \
+              tests/browser/payment-arrangement.test.mjs \
+              tests/browser/prepaid-builder-preview.test.mjs \
+              tests/browser/billing-prepaid-terms.test.mjs)
+          fi
+          python3 "scripts/staging/${RELEASE_KEY}-staging-release.py" --package
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
@@ -4374,6 +4433,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/auth@v3
+        if: env.RELEASE_KEY != 'prior-payment' && env.RELEASE_KEY != 'pr652-intake'
         id: pr614-platform-auth
         with:
           project_id: sandman-combat-staging
@@ -4385,13 +4445,13 @@ jobs:
       - name: Capture baseline or apply approved source and Hosting release
         env:
           HOSTING_CREDENTIALS_FILE: ${{ steps.pr614-platform-auth.outputs.credentials_file_path }}
-        run: python3 scripts/staging/pr632-staging-release.py
+        run: python3 "scripts/staging/${RELEASE_KEY}-staging-release.py"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr632-staging-${{ github.run_id }}
+          name: ${{ env.RELEASE_KEY }}-staging-${{ github.run_id }}
           path: |
-            pr632-preflight.json
-            pr632-deploy-result.json
+            ${{ env.RELEASE_KEY }}-preflight.json
+            ${{ env.RELEASE_KEY }}-deploy-result.json
           if-no-files-found: warn
           retention-days: 14

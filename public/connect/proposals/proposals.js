@@ -1660,6 +1660,79 @@ function proposalStageInfo(
   }
 }
 
+const edgeCaseAudits = new Map();
+
+function edgeCaseReviewHtml(proposal, id) {
+  const payments = proposal.priorPayments;
+  const status = String(proposal.status || "").trim().toUpperCase();
+  const validId = /^P-\d{6}$/.test(id);
+  const unsignedUncharged = !proposal.clientReview?.tokenHash &&
+    !proposal.clientAcceptance && !proposal.lockedSnapshot &&
+    !proposal.pendingCheckoutSessionId && !proposal.stripeCheckoutSessionId &&
+    !proposal.stripeSubscriptionId && !proposal.stripePaymentIntentId &&
+    !proposal.cashPrepayment;
+  const historicalReceipts = Array.isArray(payments) && payments.length > 0 &&
+    payments.some(payment => Number(payment?.enrollmentFeeAmountCents) > 0 &&
+      Array.isArray(payment?.periods) && payment.periods.length > 0);
+  const appointmentId = proposal.prospect?.appointmentId;
+  // Conversion is not a ledger edit. Allow REVIEW to start the separately
+  // verified handoff; the server checks the original certification in full.
+  const conversionUrl = validId && appointmentId && historicalReceipts &&
+    unsignedUncharged && ["DRAFT", "REVIEW"].includes(status) &&
+    proposal.historicalCashDisposition?.status !== "recorded"
+    ? "/connect/admissions/calculator/?" + new URLSearchParams({
+        appointmentId, conversionSourceProposalId: id,
+      }) : "";
+  let blocked = "";
+  if (!validId) {
+    blocked = "Corrections require a valid proposal ID.";
+  } else if (status !== "DRAFT" || !unsignedUncharged ||
+      proposal.historicalCashDisposition?.status === "recorded") {
+    blocked = "Corrections require an unsigned, uncharged Draft without a recorded cash disposition.";
+  } else if (!Array.isArray(payments) || !payments.length) {
+    blocked = "Corrections require an existing manually recorded Cash/Check receipt. Record verified payment history through the normal Cash/Check workflow first.";
+  } else if (payments.length > 24 || payments.some(payment =>
+    !["cash", "check"].includes(String(payment?.paymentMethod || "").trim().toLowerCase()) ||
+    payment?.stripePaymentIntentId || payment?.stripeCheckoutSessionId || payment?.stripeChargeId
+  )) {
+    blocked = "Corrections require 1–24 existing manually recorded Cash/Check receipts.";
+  }
+  const auditId = edgeCaseAudits.get(id);
+  const terms = (Array.isArray(proposal.athletes) ? proposal.athletes : [])
+    .map(athlete => athlete?.billingTerm).filter(Boolean);
+  const formatAmount = value => value == null ? "Unavailable" : money(value);
+  const url = "/management/manual-edge-case-proposal/?" +
+    new URLSearchParams({ proposalId: id, embedded: "1" });
+  return `
+    ${auditId ? `<p role="status">Edge Case adjustment saved. Audit reference: ${esc(auditId)}</p>` : ""}
+    <details class="proposal-edge-case">
+      <summary>Management Actions · Edge Case Review</summary>
+      <p>Current proposal: ${esc([...new Set(terms)].join(", ") || "Agreement term unavailable")} ·
+        ${esc(formatAmount(proposal.pricing?.monthlyBalance))} monthly ·
+        ${esc(formatAmount(proposal.pricing?.enrollmentBase))} enrollment fee before credits</p>
+      ${conversionUrl ? `<a class="proposal-open-btn" href="${esc(conversionUrl)}">Start Linked Paid-in-Full Agreement</a>` : ""}
+      ${blocked ? `<p>${esc(blocked)}</p>` : `
+        <iframe title="Edge Case Review for ${esc(id)}" data-edge-case-url="${esc(url)}"
+          data-edge-case-proposal="${esc(id)}" style="width:100%;height:min(78vh,760px);border:0"></iframe>
+      `}
+    </details>
+  `;
+}
+
+async function handleEdgeCaseSaved(event) {
+  if (event.origin !== window.location.origin || event.data?.type !== "sandman:edge-case-saved") return;
+  const { proposalId: savedId, auditId } = event.data;
+  if (typeof auditId !== "string" || !/^[A-Za-z0-9_-]{1,128}$/.test(auditId)) return;
+
+  const frame = Array.from(document.querySelectorAll("iframe[data-edge-case-proposal]"))
+    .find(item => item.contentWindow === event.source && item.dataset.edgeCaseProposal === savedId);
+  if (!frame || edgeCaseAudits.get(savedId) === auditId) return;
+  edgeCaseAudits.set(savedId, auditId);
+  await loadProposalQueue(savedId);
+}
+
+window.addEventListener("message", handleEdgeCaseSaved);
+
 function proposalCardHtml(
   proposal,
   {
@@ -1917,6 +1990,7 @@ function proposalCardHtml(
             : ""
         }
       </div>
+      ${edgeCaseReviewHtml(proposal, id)}
     </article>
   `;
 }
@@ -2002,7 +2076,7 @@ function proposalGroupKey(
    Load Review & Approve
    ================================================== */
 
-async function loadProposalQueue() {
+async function loadProposalQueue(selectedProposalId = proposalId) {
   proposalQueueStyles();
 
   const queue =
@@ -2273,11 +2347,18 @@ async function loadProposalQueue() {
       })
       .join("");
 
+  body.querySelectorAll("iframe[data-edge-case-url]").forEach(frame => {
+    const details = frame.closest("details");
+    details.addEventListener("toggle", () => {
+      if (details.open && !frame.hasAttribute("src")) frame.src = frame.dataset.edgeCaseUrl;
+    });
+  });
+
   // Open the same proposal selected in Billing or Enrollment Flow.
   // This is navigation only; permissions and workflow actions remain unchanged.
-  if (proposalId) {
+  if (selectedProposalId) {
     const selectedCard = Array.from(body.querySelectorAll(".proposal-card"))
-      .find(card => card.dataset.proposalId === proposalId);
+      .find(card => card.dataset.proposalId === selectedProposalId);
     if (selectedCard) {
       const group = selectedCard.closest("details.proposal-group");
       if (group) group.open = true;

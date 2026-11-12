@@ -142,13 +142,19 @@ async function withVerifiedStagingRuntime(callback) {
     throw new Error("Verified staging runtime may be simulated only inside a demo-* Firestore emulator.");
   }
   const overrides = {
-    GCLOUD_PROJECT: "sandman-combat-staging",
+    GCLOUD_PROJECT: undefined,
+    GCP_PROJECT: undefined,
+    GOOGLE_CLOUD_PROJECT: undefined,
+    FIREBASE_CONFIG: JSON.stringify({projectId: "sandman-combat-staging"}),
     SANDMAN_STAGING_ACK: "sandman-combat-staging",
     SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
     STAGING_TEST_EMAIL_ALLOWLIST: recipient,
   };
   const previous = Object.fromEntries(Object.keys(overrides).map((key) => [key, process.env[key]]));
-  Object.assign(process.env, overrides);
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value === undefined) delete process.env[key];
+    else process.env[key] = value;
+  }
   try {
     return await callback();
   } finally {

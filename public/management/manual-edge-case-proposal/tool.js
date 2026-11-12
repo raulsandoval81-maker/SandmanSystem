@@ -5,6 +5,9 @@ const $ = id => document.getElementById(id);
 const clean = x => String(x ?? "").trim();
 const esc = x => clean(x).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
 const money = n => "$" + (Number(n) / 100).toFixed(2);
+const params = new URLSearchParams(location.search);
+const embedded = window.parent !== window && params.get("embedded") === "1";
+const initialProposalId = clean(params.get("proposalId")).toUpperCase();
 const call = httpsCallable(functions, "manualEdgeCaseProposal");
 let proposal = null;
 let preview = null;
@@ -43,13 +46,15 @@ function renderReceipts() {
 async function loadCase(event) {
   event?.preventDefault();
   invalidate(); $("editPanel").hidden = true; proposal = null;
-  const id = clean($("proposalId").value).toUpperCase();
+  $("certifyConversion").checked = false;
+  const id = embedded ? initialProposalId : clean($("proposalId").value).toUpperCase();
   if (!/^P-\d{6}$/.test(id)) return status("Enter a valid proposal ID.");
   status("Loading proposal...");
   try {
     await requireManagement();
     const response = await call({ proposalId: id, mode: "load" });
     proposal = response.data;
+    if (proposal.proposalId !== id) throw new Error("The loaded proposal does not match the requested proposal.");
     if (clean(proposal.status).toUpperCase() !== "DRAFT") {
       return status("Only unsigned DRAFT proposals can use this allocation correction.");
     }
@@ -77,7 +82,7 @@ function entriesFromForm() {
       entries.push({paymentId: clean(p.paymentId), enrollmentFeeAmountCents: fee, historicalMonthlyRateCents: rate});
     }
   });
-  if (!entries.length) throw new Error("Change an allocation before previewing.");
+  if (!entries.length && !$("certifyConversion").checked) throw new Error("Change an allocation before previewing.");
   return entries;
 }
 async function previewCase() {
@@ -85,7 +90,7 @@ async function previewCase() {
   try {
     pendingEntries = entriesFromForm();
     status("Calculating authoritative preview...");
-    const response = await call({proposalId:proposal.proposalId, mode:"preview", entries:pendingEntries});
+    const response = await call({proposalId:proposal.proposalId, mode:"preview", entries:pendingEntries, certifyConversion:$("certifyConversion").checked});
     preview = response.data;
     const b = preview.before, a = preview.after;
     $("previewResults").textContent =
@@ -102,6 +107,7 @@ async function previewCase() {
       ).map(x => "  " + x.paymentId + ": membership " + money(x.beforeMembershipCents) +
         " → " + money(x.afterMembershipCents) + "; enrollment " +
         money(x.beforeEnrollmentCents) + " → " + money(x.afterEnrollmentCents)).join("\n") +
+      (preview.certifyConversion ? "\nVerified history may support a separately signed Paid-in-Full agreement." : "") +
       "\nCheckout authorized: NO";
     $("previewResults").style.whiteSpace = "pre-wrap";
     $("previewPanel").hidden = false;
@@ -122,11 +128,19 @@ async function commitCase() {
     const response = await call({
       proposalId:proposal.proposalId, mode:"commit",
       entries:pendingEntries, expectedFingerprint:preview.fingerprint,
+      certifyConversion:preview.certifyConversion,
       reason, actionId:crypto.randomUUID()
     });
     invalidate();
     $("editPanel").hidden = true;
     status("Saved and audited: "+response.data.auditId+". No money collected. Reload the record before another adjustment.");
+    if (embedded && response.data.proposalId === initialProposalId && response.data.auditId) {
+      window.parent.postMessage({
+        type: "sandman:edge-case-saved",
+        proposalId: initialProposalId,
+        auditId: response.data.auditId,
+      }, location.origin);
+    }
   } catch(e) {
     invalidate();
     status("Not saved: "+(e.message || "Commit failed")+". Reload and preview again.");
@@ -137,7 +151,13 @@ $("preview").addEventListener("click", previewCase);
 $("confirm").addEventListener("change", () => $("commit").disabled = !preview || !$("confirm").checked);
 $("commit").addEventListener("click", commitCase);
 $("reason").addEventListener("input", invalidate);
-$("proposalId").value = new URLSearchParams(location.search).get("proposalId") || "";
+$("certifyConversion").addEventListener("change", invalidate);
+$("proposalId").value = initialProposalId;
+if (embedded) {
+  $("loadForm").hidden = true;
+  $("backToBilling").hidden = true;
+  $("caseHeading").textContent = "1. Review existing proposal";
+}
 requireManagement().then(() => {
-  if ($("proposalId").value) void loadCase();
+  if (embedded || initialProposalId) void loadCase();
 }).catch(() => location.replace(managementLoginUrl()));

@@ -1,3 +1,5 @@
+import { manualAdjustmentFingerprint } from "../management/manualEdgeCaseProposalPolicy";
+
 // Audited carry-forward for a separately accepted prepaid agreement.
 // A prior payment never becomes a payment against the new agreement.
 function clean(value: unknown): string {
@@ -10,6 +12,7 @@ export function verifyPrepaidConversionSource(input: {
   sourceProposalId: string;
   source: Record<string, any>;
   target: Record<string, any>;
+  historicalEvidenceFingerprint?: string;
   newMembershipStartDate: string;
 }): {
   sourceProposalId: string;
@@ -25,7 +28,22 @@ export function verifyPrepaidConversionSource(input: {
   if (!source || clean(source.locationId) !== clean(target.locationId)) {
     throw new Error("The prior agreement must exist in the same location.");
   }
-  if (normal(source.status) !== "paid") {
+  // Only server-written certification can carry the prior enrollment fee into
+  // a separate prepaid agreement. Review submission changes status, not the
+  // certified receipt/terms: compare a REVIEW source as its original DRAFT.
+  // The source stays unchanged; this is not a payment or status transition.
+  const status = normal(source.status);
+  const unsignedReview = status === "review" &&
+    !source.clientReview?.tokenHash && !source.clientAcceptance &&
+    !source.lockedSnapshot && !source.pendingCheckoutSessionId &&
+    !source.stripeCheckoutSessionId && !source.stripePaymentIntentId &&
+    !source.stripeSubscriptionId && !source.cashPrepayment;
+  const certifiedSource = (status === "draft" || unsignedReview) &&
+    target.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
+    !!input.historicalEvidenceFingerprint &&
+    manualAdjustmentFingerprint(unsignedReview
+      ? { ...source, status: "DRAFT" } : source) === input.historicalEvidenceFingerprint;
+  if (status !== "paid" && !certifiedSource) {
     throw new Error("The prior agreement must have a verified PAID status before conversion.");
   }
   // Do not migrate a family away from an existing live recurring charge.
@@ -36,11 +54,15 @@ export function verifyPrepaidConversionSource(input: {
   }
   const sourceEmail = normal(
     source.lockedSnapshot?.prospect?.parentEmail ||
-    source.prospect?.parentEmail
+    source.lockedSnapshot?.prospect?.email ||
+    source.prospect?.parentEmail ||
+    source.prospect?.email
   );
   const targetEmail = normal(
     target.lockedSnapshot?.prospect?.parentEmail ||
-    target.prospect?.parentEmail
+    target.lockedSnapshot?.prospect?.email ||
+    target.prospect?.parentEmail ||
+    target.prospect?.email
   );
   if (!sourceEmail || !targetEmail || sourceEmail !== targetEmail) {
     throw new Error("The prior and new agreement must have the same verified guardian email.");

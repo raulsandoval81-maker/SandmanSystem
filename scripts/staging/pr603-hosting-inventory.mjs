@@ -7,8 +7,17 @@ import {gzipSync} from 'node:zlib';
 const mode = process.argv[2] ?? 'inventory';
 assert(['inventory', 'deploy'].includes(mode));
 const site = 'sites/sandman-combat-staging';
-const candidateSha = '053deeae91c768c156d47edc6926f8c92e5aa4c4';
-const targets = new Map([
+const profile = process.argv[3] ?? 'waiver';
+assert(['waiver', 'edge-case-embed'].includes(profile));
+const edgeCase = profile === 'edge-case-embed';
+const evidencePrefix = edgeCase ? 'edge-case-embed' : 'pr603';
+const candidateSha = edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
+const targets = new Map(edgeCase ? [
+  ['/connect/proposals/index.html', 'f0076ded80713f8b46d2ec1ab6b0a27ef3d2f4146408f0233f3d151b6832569c'],
+  ['/connect/proposals/proposals.js', '54922a5f18e63ef02ae04f14b32807d7e2acb764c22038c6d0727ad9d837dd6c'],
+  ['/management/manual-edge-case-proposal/index.html', '732d6d76d7acc7739619055711e6de5167011eddb1bce9615ec8807962c2202d'],
+  ['/management/manual-edge-case-proposal/tool.js', '7a1c38e8e03275194d21caa7b4637ad683b7ac0fdb38f3e9c053ea498f935ff3'],
+] : [
   ['/intake-parent/parent.intake.js', '3854208b270595db466c4192666db51572b31cbc045e9f9b4c71f1175324d486'],
   ['/intake-athlete/athlete.intake.js', '87c8345a8bc77e3cda95110bd3c5931b768f7c227189ac527d94b4c1b7ff9454'],
   ['/waiver/index.html', '776295841c8fbe8c70c3da572571de4e866a3d2eecf5e11cc0189f7d1a31eaac'],
@@ -86,10 +95,12 @@ for (const [path, {hostingHash}] of assets) {
   proposed.set(path, hostingHash);
 }
 const changedPaths = [...live.keys()].filter(path => live.get(path) !== proposed.get(path));
-assert.deepEqual(changedPaths.sort(), [...targets.keys()].sort());
+assert.deepEqual(changedPaths.sort(), edgeCase
+  ? ['/connect/proposals/index.html']
+  : [...targets.keys()].sort());
 const evidence = {site, baseline, rollback: baseline, candidateSha, rawHashes: Object.fromEntries(targets),
   changedPaths, fileCount: live.size, live: Object.fromEntries(live), proposed: Object.fromEntries(proposed)};
-writeFileSync('pr603-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
+writeFileSync(evidencePrefix + '-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
 console.log(JSON.stringify({baseline, candidateSha, changedPaths, fileCount: live.size}));
 
 if (mode === 'deploy') {
@@ -135,15 +146,20 @@ if (mode === 'deploy') {
   assert.deepEqual(after, {release: released.name, version: created.name});
   const deployed = await manifest(after.version);
   assert.deepEqual(deployed, proposed);
+  if (edgeCase) {
+    writeFileSync(evidencePrefix + '-published.json', JSON.stringify({
+      ...evidence, after, deployed: Object.fromEntries(deployed),
+    }, null, 2) + '\n');
+  }
   for (const [path, hash] of targets) {
-    const route = path === '/waiver/index.html' ? '/waiver/' : path;
+    const route = path.endsWith('/index.html') ? path.slice(0, -'index.html'.length) : path;
     const url = 'https://sandman-combat-staging.web.app' + route + '?release=' + encodeURIComponent(after.release);
     const response = await fetch(url, {redirect: 'error', headers: {'Cache-Control': 'no-cache'}});
     assert(response.ok, 'Live asset could not be fetched: ' + path);
     assert.equal(sha256(Buffer.from(await response.arrayBuffer())), hash, 'Live asset hash differs: ' + path);
   }
   assert.deepEqual(await activeRelease(), after, 'Hosting release changed during verification');
-  writeFileSync('pr603-deployed.json', JSON.stringify({
+  writeFileSync(evidencePrefix + '-deployed.json', JSON.stringify({
     ...evidence, after, deployed: Object.fromEntries(deployed), verifiedLiveHashes: Object.fromEntries(targets),
   }, null, 2) + '\n');
   console.log(JSON.stringify({after, rollback: baseline, verifiedLiveHashes: Object.fromEntries(targets)}));

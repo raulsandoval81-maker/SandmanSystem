@@ -2,12 +2,6 @@ name: Production receipt and Intake release
 on:
   workflow_dispatch:
     inputs:
-      profile:
-        description: Exact release plan (management-promotion is read-only)
-        type: choice
-        options: [receipt-intake, management-promotion]
-        default: receipt-intake
-        required: true
       mode:
         type: choice
         options: [preflight, deploy, rollback]
@@ -36,8 +30,6 @@ jobs:
     timeout-minutes: 100
     env:
       PYTHONPATH: trusted/scripts/staging:trusted/scripts/production
-      RELEASE_PROFILE: ${{ inputs.profile }}
-      CANDIDATE_SHA: ${{ inputs.profile == 'management-promotion' && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
       RELEASE_MODE: ${{ inputs.mode }}
       CONFIRM_PROJECT: ${{ inputs.confirm_project }}
       CONFIRM_SHA: ${{ inputs.confirm_sha }}
@@ -47,7 +39,7 @@ jobs:
         run: |
           test "$GITHUB_REF" = refs/heads/main
           test "$CONFIRM_PROJECT" = sandmandashboard
-          test "$CONFIRM_SHA" = "$CANDIDATE_SHA"
+          test "$CONFIRM_SHA" = 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -55,7 +47,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.CANDIDATE_SHA }}
+          ref: 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
           path: application
           persist-credentials: false
       - uses: actions/setup-node@v4

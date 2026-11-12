@@ -24,7 +24,7 @@ class ReleaseTest(unittest.TestCase):
             release.PLAN, stagingAcceptance={"unpaidActivation": None, "combinedDelivery": None}
         ):
             release.guard("preflight")
-            with self.assertRaisesRegex(RuntimeError, "staging evidence|preflight-only"):
+            with self.assertRaisesRegex(RuntimeError, "staging evidence"):
                 release.guard("deploy")
 
     def test_storage_error_categories_do_not_emit_provider_text(self):
@@ -94,20 +94,7 @@ class ReleaseTest(unittest.TestCase):
                 self.assertTrue(all(path.startswith("lib/") or path in
                                     {"index.js", "package.json", "package-lock.json"} for path in files))
                 release.check_export(name, archive, root / "functions")
-        self.assertEqual(len(release.assets(root)), 11 if release.PROFILE == "management-promotion" else 7)
-
-    def test_management_candidate_cannot_run_deploy_or_rollback(self):
-        repo = "raulsandoval81-maker/SandmanSystem"
-        env = {
-            "GITHUB_REPOSITORY": repo, "GITHUB_REF": "refs/heads/main",
-            "GITHUB_WORKFLOW_REF": f"{repo}/.github/workflows/production-receipt-intake-release.yml@refs/heads/main",
-            "CONFIRM_PROJECT": release.PROJECT, "CONFIRM_SHA": release.PLAN["candidate"],
-        }
-        with patch.dict(os.environ, env, clear=True), patch.object(release, "PROFILE", "management-promotion"):
-            release.guard("preflight")
-            for mode in ("deploy", "rollback"):
-                with self.assertRaisesRegex(RuntimeError, "preflight-only"):
-                    release.guard(mode)
+        self.assertEqual(len(release.assets(root)), 7)
 
 
 if __name__ == "__main__":
