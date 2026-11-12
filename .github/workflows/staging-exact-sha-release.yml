@@ -135,6 +135,7 @@ on:
           - edge-case-embed-hosting-deploy
           - v1-ui-hosting-preflight
           - v1-ui-hosting-deploy
+          - v1-activation-members-repair
           - pr629-hosting-deploy
           - pr636-hosting-preflight
           - pr636-hosting-deploy
@@ -4468,3 +4469,41 @@ jobs:
             ${{ env.RELEASE_KEY }}-deploy-result.json
           if-no-files-found: warn
           retention-days: 14
+
+
+  v1-activation-members-repair:
+    if: ${{ inputs.action == 'v1-activation-members-repair' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: staging-v1-activation-members
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build and verify focused regressions
+        run: |
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+          node --test functions/tests/operationalPaidProposal.test.cjs tests/browser/enrollment-activity-pathways.test.mjs tests/functions/v1-activation-history-recovery.test.cjs
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Repair two staging Functions and reconcile one history event
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+        run: bash scripts/staging/v1-activation-members-release.sh
