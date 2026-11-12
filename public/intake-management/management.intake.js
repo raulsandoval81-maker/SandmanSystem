@@ -59,7 +59,7 @@ function receiptStatusText(proposalId) {
     UNKNOWN:"Receipt status unavailable — do not resend until verified"
   }[info.status] || "Receipt delivery requires review";
   const recipient = info.recipient ? ` · ${info.recipient}` : "";
-  return {label, recipient, status:info.status};
+  return {label, recipient, status:info.status, intakeComplete: info.intakeComplete === true};
 }
 
 async function refresh2CReceiptStatus(proposalId) {
@@ -739,7 +739,7 @@ function renderReadyIntakeCard(proposal) {
         ${twoCIntake?.twoCEmailStatus === "SENDING" ? `<button class="small outline-blue" type="button" data-intake-2c-resolve="${esc(proposalId)}">System Admin: Resolve Pending Intake Email</button>` : ""}
         ${receiptState ? `
           <div class="pending-card-meta small">2C · ${esc(receiptState.label)}${esc(receiptState.recipient)}</div>
-          <div class="pending-card-meta small">${esc(twoCIntakeStatusText(proposalId))}</div>
+          <div class="pending-card-meta small">${esc(receiptState.intakeComplete ? "Intake paperwork is already on file" : twoCIntakeStatusText(proposalId))}</div>
           <button class="small outline-blue" type="button" data-receipt-refresh="${esc(proposalId)}">Refresh Receipt Status</button>
           ${receiptState.status === "SENDING" && !twoCIntake?.combinedAttempt ? `<button class="small outline-blue" type="button" data-receipt-resolve="${esc(proposalId)}">System Admin: Resolve Pending Receipt</button>` : ""}
           <button class="small solid-blue" type="button" data-ready-2c="${esc(proposalId)}">
@@ -747,7 +747,7 @@ function renderReadyIntakeCard(proposal) {
           </button>
           <div class="pending-card-meta small" data-2c-feedback role="status"></div>
         ` : ""}
-        ${receiptState ? `<p class="small muted">Cash/Check: use the receipt-and-Intake action above. The secure token will be created or reused automatically.</p>` : handoffAction}
+        ${receiptState ? `<p class="small muted">${receiptState.intakeComplete ? "Cash/Check: send the payment receipt for the completed enrollment paperwork." : "Cash/Check: use the receipt-and-Intake action above. The secure token will be created or reused automatically."}</p>` : handoffAction}
       </div>
     </div>
   `;

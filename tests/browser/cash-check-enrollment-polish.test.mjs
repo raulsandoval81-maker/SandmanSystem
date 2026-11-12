@@ -4,10 +4,12 @@ import vm from "node:vm";
 import {readFileSync} from "node:fs";
 const enrollment = readFileSync("public/intake-management/management.intake.js","utf8");
 const card = enrollment.slice(enrollment.indexOf("function renderReadyIntakeCard("), enrollment.indexOf("let readyProposalMap"));
-function render(paymentMethod,audience="parent_guardian",status="NOT_SENT") {
-  return vm.runInNewContext(card + ';renderReadyIntakeCard(proposal)', {
+const receiptStatus = enrollment.slice(enrollment.indexOf("function receiptStatusText("),
+  enrollment.indexOf("async function refresh2CReceiptStatus("));
+function render(paymentMethod,audience="parent_guardian",status="NOT_SENT",intakeComplete=false) {
+  return vm.runInNewContext(receiptStatus + card + ';renderReadyIntakeCard(proposal)', {
     proposal:{proposalId:"P-SYNTHETIC",locationId:"test",paymentMethod,athletes:[{name:"Synthetic Athlete"}]},
-    intakeAudienceForProposal:()=>audience, receiptStatusText:()=>({status,label:status,recipient:""}),
+    intakeAudienceForProposal:()=>audience, twoCReceiptStatuses:new Map([["P-SYNTHETIC",{status,intakeComplete}]]),
     twoCIntakeStatuses:new Map(),twoCIntakeStatusText:()=>"Not sent",esc:String,paidProposalName:()=>"Synthetic Family",
   });
 }
@@ -18,6 +20,12 @@ test("Cash/Check ready cards give one receipt-and-Intake action across audiences
     assert.doesNotMatch(html,/data-ready-(parent|adult|mark-text)=/);
     assert.equal((html.match(/data-ready-2c=/g)||[]).length,1);
   }
+});
+test("completed early Intake exposes only the payment receipt and existing paperwork", () => {
+  const html = render("cash_prepaid", "parent_guardian", "NOT_SENT", true);
+  assert.match(html, /Send Payment Receipt/);
+  assert.match(html, /Intake paperwork is already on file/);
+  assert.doesNotMatch(html, /Send Receipt & Intake Email|token will be created/);
 });
 test("Stripe parent and adult ready cards retain standard handoff controls",()=>{
   for (const audience of ["parent_guardian","adult_athlete"]) {
