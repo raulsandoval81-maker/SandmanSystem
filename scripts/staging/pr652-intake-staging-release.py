@@ -13,7 +13,7 @@ protected = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(protected)
 original, release, inventory = protected.original, protected.release, protected.inventory
 require = inventory.require
-SHA = "cf972948fde155d1330f8a9b7d75f84695132e26"
+SHA = "3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8"
 BASE = "00e3367730beb2e650662ace36f6f96c73b017c1"
 NAME = "sendEnrollmentIntakeEmail"
 PREFLIGHT = "pr652-intake-readonly-preflight"
@@ -21,6 +21,8 @@ DEPLOY = "pr652-intake-staging-deploy"
 APPROVAL = "APPROVE_PR652_STAGING_INTAKE_EMAIL_ONE_FUNCTION"
 ROOT = Path("pr614-candidate")
 MANIFEST = {
+    ".github/workflows/staging-exact-sha-release.yml",
+    "scripts/staging/pr652-intake-staging-release.py",
     "functions/src/enrollment/operationalPaidProposal.ts",
     "functions/tests/operationalPaidProposal.test.cjs",
     "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
