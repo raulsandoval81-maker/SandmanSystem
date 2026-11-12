@@ -2,7 +2,7 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { recover } = require('../../scripts/staging/recover-v1-activation-history.cjs');
+const { recover, stagingFirestoreOptions } = require('../../scripts/staging/recover-v1-activation-history.cjs');
 const { isOperationalPaidProposal } = require('../../functions/lib/enrollment/operationalPaidProposal.js');
 
 const intakeId = '5e6c8aa4daf2c4132eaf9e7490c0732a';
@@ -150,4 +150,41 @@ test('compiled Members callable returns the direct and location match only once'
   const result = await searchManagementMembers({ auth: { uid: 'test-management' }, data: { search: 'F8_0002' } });
   assert.equal(result.members.length, 1);
   assert.equal(result.members[0].athleteId, 'F8_0002');
+});
+
+test('repair accepts only the protected staging WIF provider and impersonated deployer', () => {
+  const path = '/runner/staging-wif.json';
+  const env = {
+    GOOGLE_APPLICATION_CREDENTIALS: path,
+    GOOGLE_GHA_CREDS_PATH: path,
+    CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: path,
+    GOOGLE_CLOUD_PROJECT: 'sandman-combat-staging',
+  };
+  const valid = {
+    type: 'external_account',
+    audience: '//iam.googleapis.com/projects/991554514268/locations/global/' +
+      'workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging',
+    subject_token_type: 'urn:ietf:params:oauth:token-type:jwt',
+    token_url: 'https://sts.googleapis.com/v1/token',
+    service_account_impersonation_url: 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/' +
+      'sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com:generateAccessToken',
+  };
+  const read = credential => (file, encoding) => {
+    assert.equal(file, path);
+    assert.equal(encoding, 'utf8');
+    return JSON.stringify(credential);
+  };
+  assert.deepEqual(stagingFirestoreOptions(env, read(valid)), {
+    projectId: 'sandman-combat-staging', keyFilename: path,
+  });
+  for (const changed of [
+    { type: 'service_account' },
+    { audience: valid.audience + '-different' },
+    { service_account_impersonation_url: valid.service_account_impersonation_url.replace('staging', 'production') },
+    { token_url: 'https://example.invalid/token' },
+  ]) {
+    assert.throws(() => stagingFirestoreOptions(env, read({ ...valid, ...changed })), /does not match/);
+  }
+  assert.throws(() => stagingFirestoreOptions({ ...env, GOOGLE_CLOUD_PROJECT: 'production' }, read(valid)), /credential file and project/);
+  assert.throws(() => stagingFirestoreOptions({ ...env, GOOGLE_GHA_CREDS_PATH: '/other.json' }, read(valid)), /credential file and project/);
 });

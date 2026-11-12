@@ -60,7 +60,28 @@ async function recover(db, serverTimestamp, isOperationalPaidProposal, apply) {
   });
 }
 
-module.exports = { recover };
+function stagingFirestoreOptions(env, readFile) {
+  const keyFilename = env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (!keyFilename || env.GOOGLE_GHA_CREDS_PATH !== keyFilename ||
+      env.CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE !== keyFilename ||
+      env.GOOGLE_CLOUD_PROJECT !== PROJECT) {
+    throw new Error('Expected the protected staging WIF credential file and project.');
+  }
+  const credential = JSON.parse(readFile(keyFilename, 'utf8'));
+  const audience = '//iam.googleapis.com/projects/991554514268/locations/global/' +
+    'workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging';
+  const impersonationUrl = 'https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/' +
+    `sandman-practice-deployer@${PROJECT}.iam.gserviceaccount.com:generateAccessToken`;
+  if (credential.type !== 'external_account' || credential.audience !== audience ||
+      credential.subject_token_type !== 'urn:ietf:params:oauth:token-type:jwt' ||
+      credential.token_url !== 'https://sts.googleapis.com/v1/token' ||
+      credential.service_account_impersonation_url !== impersonationUrl) {
+    throw new Error('WIF credential does not match the protected staging provider and deployer.');
+  }
+  return { projectId: PROJECT, keyFilename };
+}
+
+module.exports = { recover, stagingFirestoreOptions };
 
 if (require.main === module) {
   (async () => {
@@ -73,10 +94,13 @@ if (require.main === module) {
         !['--check', '--apply'].includes(process.argv[2]) || process.argv.length !== 3) {
       throw new Error('Protected staging recovery guard failed.');
     }
-    const { initializeApp } = require('firebase-admin/app');
-    const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+    // Firebase Admin's credential-file parser rejects external_account JSON.
+    // The Firestore client delegates WIF exchange and refresh to Google Auth.
+    const { readFileSync } = require('node:fs');
+    const options = stagingFirestoreOptions(process.env, readFileSync);
+    const { Firestore, FieldValue } = require('@google-cloud/firestore');
     const { isOperationalPaidProposal } = require('../../functions/lib/enrollment/operationalPaidProposal.js');
-    const db = getFirestore(initializeApp({ projectId: PROJECT }));
+    const db = new Firestore(options);
     try {
       console.log(await recover(db, FieldValue.serverTimestamp, isOperationalPaidProposal, process.argv[2] === '--apply'));
     } finally {
