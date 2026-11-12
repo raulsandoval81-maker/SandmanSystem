@@ -14,7 +14,7 @@ on:
         required: true
         default: pif-v2
         type: choice
-        options: [pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release, seven-hosting-readonly-preflight, seven-hosting-controlled-release, run25-postpublish-readonly-audit]
+        options: [pif-v2, proposal-correction, proposal-correction-function-only, payment-arrangements, payment-arrangements-authorization, run15-recovery-audit, six-function-recovery-audit, six-function-candidate-package, six-function-controlled-release, seven-hosting-readonly-preflight, seven-hosting-controlled-release, run25-postpublish-readonly-audit]
       approve_release:
         description: For deploy only, enter the exact approval phrase for the selected scope
         required: false
@@ -316,7 +316,7 @@ jobs:
           if-no-files-found: warn
 
   proposal-correction-validate:
-    if: ${{ inputs.release_scope == 'proposal-correction' }}
+    if: ${{ (inputs.release_scope == 'proposal-correction' || inputs.release_scope == 'proposal-correction-function-only') }}
     runs-on: ubuntu-24.04
     environment: staging
     env:
@@ -392,6 +392,7 @@ jobs:
           gcloud run services describe issueproposalclientreview --region="${REGION}" \
             --project="${PROJECT_ID}" --format=json > evidence/sibling-run.json
       - name: Authenticate as existing staging Hosting identity
+        if: inputs.release_scope == 'proposal-correction'
         id: proposal-hosting-preflight-auth
         uses: google-github-actions/auth@v3
         with:
@@ -402,6 +403,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Capture exact Hosting rollback baseline without publishing
+        if: inputs.release_scope == 'proposal-correction'
         env:
           STAGING_HOSTING_TOKEN: ${{ steps.proposal-hosting-preflight-auth.outputs.access_token }}
         run: |
@@ -420,7 +422,7 @@ jobs:
           if-no-files-found: error
 
   proposal-correction-deploy:
-    if: ${{ inputs.release_scope == 'proposal-correction' && inputs.action == 'deploy' }}
+    if: ${{ (inputs.release_scope == 'proposal-correction' || inputs.release_scope == 'proposal-correction-function-only') && inputs.action == 'deploy' }}
     needs: proposal-correction-validate
     runs-on: ubuntu-24.04
     environment: staging
@@ -435,12 +437,17 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           APPROVE_RELEASE: ${{ inputs.approve_release }}
+          RELEASE_SCOPE: ${{ inputs.release_scope }}
         run: |
           set -euo pipefail
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/paid-in-full-v2-readonly-preflight.yml@refs/heads/main"
           test "${CONFIRM_PROJECT}" = "${PROJECT_ID}"
-          test "${APPROVE_RELEASE}" = "APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET"
+          case "$RELEASE_SCOPE" in
+            proposal-correction-function-only) test "$APPROVE_RELEASE" = APPROVE_STAGING_RETURN_PROPOSAL_TO_DRAFT_ONE_FUNCTION ;;
+            proposal-correction) test "$APPROVE_RELEASE" = APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET ;;
+            *) exit 64 ;;
+          esac
       - name: Check out protected tooling and pinned source
         uses: actions/checkout@v4
         with:
@@ -544,7 +551,18 @@ jobs:
           if(r.metadata?.annotations?.['run.googleapis.com/invoker-iam-disabled']!=='true')throw Error('Callable transport configuration missing');
           console.log('PROPOSAL_CORRECTION_FUNCTION_VERIFIED');
           NODE
+      - name: Verify callable transport and anonymous rejection
+        if: inputs.release_scope == 'proposal-correction-function-only'
+        run: |
+          set -euo pipefail
+          url="https://${REGION}-${PROJECT_ID}.cloudfunctions.net/returnProposalToDraft"
+          test "$(curl -sS --max-time 25 -o /dev/null -w '%{http_code}' -X OPTIONS \
+            -H "Origin: https://${PROJECT_ID}.web.app" -H 'Access-Control-Request-Method: POST' "$url")" = 204
+          test "$(curl -sS --max-time 25 -o release-evidence/anonymous-probe.json -w '%{http_code}' \
+            -H 'Content-Type: application/json' --data '{"data":{}}' "$url")" = 401
+          node -e 'if(require("./release-evidence/anonymous-probe.json").error?.status!=="UNAUTHENTICATED")process.exit(64)'
       - name: Authenticate as staging Hosting identity
+        if: inputs.release_scope == 'proposal-correction'
         id: proposal-hosting-deploy-auth
         uses: google-github-actions/auth@v3
         with:
@@ -555,6 +573,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - name: Publish exactly one approved Hosting asset
+        if: inputs.release_scope == 'proposal-correction'
         env:
           STAGING_HOSTING_TOKEN: ${{ steps.proposal-hosting-deploy-auth.outputs.access_token }}
           PROPOSAL_CORRECTION_FUNCTION_VERIFIED: yes
