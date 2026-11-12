@@ -45,7 +45,7 @@ function evidence() {
 
 test("proposal correction uses an existing authorized workflow with exact staging scope", () => {
   assert.match(workflow, /release_scope:/);
-  assert.match(workflow, /options: \[pif-v2, proposal-correction, payment-arrangements, payment-arrangements-authorization\]/);
+  assert.match(workflow, /options: \[pif-v2, proposal-correction, proposal-correction-function-only, payment-arrangements, payment-arrangements-authorization(?:, [^\]]+)?\]/);
   assert.match(correctionDeployJob, /APPROVE_STAGING_PROPOSAL_CORRECTION_ONE_FUNCTION_ONE_ASSET/);
   assert.match(correctionDeployJob, /ref: 786dba9824663feea4aa092a1bbe54b151c8233a/);
   assert.equal((correctionDeployJob.match(/gcloud functions deploy /g) || []).length, 1);
@@ -75,4 +75,13 @@ test("preflight accepts only a verified missing Function and exact near-term inv
     /exact near-term one-service/);
   const noCreate = evidence(); noCreate.practiceRole.includedPermissions.shift();
   assert.throws(() => verifyPrerequisites(noCreate), /cloudfunctions\.functions\.create/);
+});
+
+test("function-only restore cannot execute Hosting writes and uses separate approval", () => {
+  assert.match(correctionDeployJob, /proposal-correction-function-only\) test "\$APPROVE_RELEASE" = APPROVE_STAGING_RETURN_PROPOSAL_TO_DRAFT_ONE_FUNCTION/);
+  for (const step of ["Authenticate as staging Hosting identity", "Publish exactly one approved Hosting asset"]) {
+    assert.ok(correctionDeployJob.includes(step + "\n        if: inputs.release_scope == 'proposal-correction'"));
+  }
+  assert.match(correctionDeployJob, /anonymous-probe\.json/);
+  assert.match(correctionDeployJob, /UNAUTHENTICATED/);
 });
