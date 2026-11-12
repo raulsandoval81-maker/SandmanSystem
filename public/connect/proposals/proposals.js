@@ -1665,7 +1665,7 @@ const edgeCaseAudits = new Map();
 function edgeCaseReviewHtml(proposal, id) {
   const payments = proposal.priorPayments;
   const status = String(proposal.status || "").trim().toUpperCase();
-  const validId = /^P-\\d{6}$/.test(id);
+  const validId = /^P-\d{6}$/.test(id);
   const unsignedUncharged = !proposal.clientReview?.tokenHash &&
     !proposal.clientAcceptance && !proposal.lockedSnapshot &&
     !proposal.pendingCheckoutSessionId && !proposal.stripeCheckoutSessionId &&
