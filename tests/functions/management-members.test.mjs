@@ -44,17 +44,27 @@ test("Members browser uses guarded search and existing access callables only", (
   assert.match(source, /requireManagement\(\)/);
   assert.match(source, /searchManagementMembers/);
   assert.match(source, /issueAccessInvitation/);
-  assert.match(source, /transitionAthleteAccessMode/);
+  const callables = [...source.matchAll(/httpsCallable\(\s*functions,\s*"([^"]+)"/g)]
+    .map(([, name]) => name).sort();
+  assert.deepEqual(callables, [
+    "getAccessSetupStatus",
+    "issueAccessInvitation",
+    "searchManagementMembers",
+    "sendAccessInvitationEmail",
+  ]);
   assert.doesNotMatch(source, /updateDoc|setDoc|addDoc|deleteDoc/);
 });
 
 test("active access lanes provide recovery rather than duplicate invitations", () => {
   const source = readFileSync("public/management/members/members.js", "utf8");
-  assert.match(source, /const actionBlock = active/);
-  assert.match(source, /data-recovery-role/);
-  assert.match(source, /Send Password Reset/);
-  assert.match(source, /data-send-access-role/);
-  assert.match(source, /status: status\.parentStatus/);
+  const [, recovery, invitation] = source.match(
+    /const actionBlock = active\s*\? `([\s\S]+?)`\s*: `([\s\S]+?)`;/
+  );
+  assert.match(recovery, /data-recovery-role/);
+  assert.match(recovery, /Send Password Reset/);
+  assert.doesNotMatch(recovery, /data-send-access-role/);
+  assert.match(invitation, /data-send-access-role/);
+  assert.match(source, /status: isAdult\(member\)\s*\? "not_applicable"\s*: status\.parentStatus/);
   assert.match(source, /status: status\.athleteStatus/);
 });
 
