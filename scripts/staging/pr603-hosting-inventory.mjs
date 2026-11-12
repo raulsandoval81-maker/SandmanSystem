@@ -12,10 +12,12 @@ assert(['waiver', 'edge-case-embed', 'v1-ui'].includes(profile));
 const edgeCase = profile === 'edge-case-embed';
 const v1Ui = profile === 'v1-ui';
 const evidencePrefix = v1Ui ? 'v1-ui' : edgeCase ? 'edge-case-embed' : 'pr603';
-const candidateSha = v1Ui ? '6c2c7c0332a7a5923168a35bcb56e27593de70a2' : edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
+const candidateSha = v1Ui ? 'eeb0552e3acf0904f63934aa2c9b303915b74cd7' : edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
 const targets = new Map(v1Ui ? [
   ['/connect/proposals/review/review.js', 'd6110610bb918a261d1457c7d94653be8aef9c401c236be82e09794ec27f5323'],
   ['/intake-parent/parent.intake.js', 'fbb0494959035f666ec1650d3c050503e3758d6adf3e85c2165b29fd504253e4'],
+  ['/intake-management/index.html', 'e4d533ad1c7e304796787315bab1df247c5b4459f51adf73f871aca536827afa'],
+  ['/intake-management/management.intake.js', '8699206f09907e716591bf79f0804b49420c18b74d4587b2f0ac2abdea7a14d5'],
 ] : edgeCase ? [
   ['/connect/proposals/index.html', 'f0076ded80713f8b46d2ec1ab6b0a27ef3d2f4146408f0233f3d151b6832569c'],
   ['/connect/proposals/proposals.js', '54922a5f18e63ef02ae04f14b32807d7e2acb764c22038c6d0727ad9d837dd6c'],
