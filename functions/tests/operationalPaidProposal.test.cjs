@@ -5,7 +5,8 @@ const path = require("node:path");
 const {
   isOperationalPaidProposal,
   isStagingEnrollmentRuntime,
-  enrollmentIntakeBaseUrl
+  enrollmentIntakeBaseUrl,
+  resolveEnrollmentIntakeBaseUrl
 } = require("../lib/enrollment/operationalPaidProposal");
 
 const staging = {
@@ -85,4 +86,46 @@ test("Gen1 FIREBASE_CONFIG supplies verified staging identity without GCLOUD_PRO
     assert.equal(isStagingEnrollmentRuntime(invalid), false);
     assert.throws(() => enrollmentIntakeBaseUrl(invalid), /verified staging runtime/);
   }
+});
+
+test("source-only Gen1 runtime needs independent project identity before issuing a staging URL", async () => {
+  const { GCLOUD_PROJECT: project, ...markers } = staging;
+  assert.throws(() => enrollmentIntakeBaseUrl(markers), /verified staging runtime/);
+  const metadata = async (url, options) => {
+    assert.equal(url, "http://metadata.google.internal/computeMetadata/v1/project/project-id");
+    assert.equal(options.headers["Metadata-Flavor"], "Google");
+    assert.equal(options.redirect, "error");
+    assert.ok(options.signal);
+    return new Response(project, {headers: {"Metadata-Flavor": "Google"}});
+  };
+  assert.equal(await resolveEnrollmentIntakeBaseUrl(markers, metadata), "https://sandman-combat-staging.web.app");
+
+  for (const response of [
+    new Response("sandmandashboard", {headers: {"Metadata-Flavor": "Google"}}),
+    new Response(project),
+    new Response(project, {status: 503, headers: {"Metadata-Flavor": "Google"}}),
+  ]) {
+    await assert.rejects(resolveEnrollmentIntakeBaseUrl(markers, async () => response), /verified staging runtime/);
+  }
+  await assert.rejects(resolveEnrollmentIntakeBaseUrl(markers, async () => {
+    throw new Error("metadata unavailable");
+  }), /verified staging runtime/);
+});
+
+test("project metadata cannot override declared conflicts or replace a missing staging marker", async () => {
+  let reads = 0;
+  const metadata = async () => { reads++; };
+  const { GCLOUD_PROJECT, ...markers } = staging;
+  for (const conflict of [
+    { ...markers, GCLOUD_PROJECT: "sandmandashboard" },
+    { ...markers, GCP_PROJECT: "sandmandashboard" },
+    { ...markers, GOOGLE_CLOUD_PROJECT: "sandmandashboard" },
+    { ...staging, FIREBASE_CONFIG: '{"projectId":"sandmandashboard"}' },
+    { ...markers, SANDMAN_STAGING_ACK: undefined },
+    { ...markers, SANDMAN_STAGING_PROJECT_ID: undefined },
+  ]) {
+    await assert.rejects(resolveEnrollmentIntakeBaseUrl(conflict, metadata), /verified staging runtime/);
+  }
+  assert.equal(await resolveEnrollmentIntakeBaseUrl(production, metadata), "https://sandmancombat.com");
+  assert.equal(reads, 0);
 });

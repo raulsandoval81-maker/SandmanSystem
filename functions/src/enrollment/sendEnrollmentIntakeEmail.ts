@@ -1,5 +1,5 @@
 import { cashReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
-import { isOperationalPaidProposal, enrollmentIntakeBaseUrl } from "./operationalPaidProposal";
+import { isOperationalPaidProposal, resolveEnrollmentIntakeBaseUrl, STAGING_PROJECT_ID } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
   FieldValue,
@@ -39,6 +39,7 @@ function escapeHtml(value: unknown): string {
 }
 
 function intakeUrl(
+  baseUrl: string,
   tokenId: string,
   intakeAudience: string
 ): string {
@@ -47,7 +48,7 @@ function intakeUrl(
       ? "/intake-athlete/"
       : "/intake-parent/";
 
-  return `${enrollmentIntakeBaseUrl()}${route}?invite=${encodeURIComponent(tokenId)}`;
+  return `${baseUrl}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
 
 
@@ -186,7 +187,11 @@ export const sendEnrollmentIntakeEmail =
         );
       }
 
-      const stagingRecipient = verifyStagingEmailRecipient(recipient);
+      const baseUrl = await resolveEnrollmentIntakeBaseUrl();
+      const stagingRecipient = verifyStagingEmailRecipient(
+        recipient,
+        baseUrl === `https://${STAGING_PROJECT_ID}.web.app` ? STAGING_PROJECT_ID : undefined
+      );
       if (!stagingRecipient.allowed) {
         throw new functions.https.HttpsError(
           "failed-precondition",
@@ -253,7 +258,7 @@ export const sendEnrollmentIntakeEmail =
           throw new functions.https.HttpsError("invalid-argument", "Confirm the Cash/Check receipt recipient first.");
         }
         const payment = cashReceiptDetails(proposal);
-        const url = intakeUrl(tokenId, clean(token.intakeAudience));
+        const url = intakeUrl(baseUrl, tokenId, clean(token.intakeAudience));
         const result = await sendCombinedEnrollmentReceipt({
           db, proposalId, tokenId, recipient, uid: context.auth.uid, proposal, token, payment, url,
           send: async (lines, link) => {
@@ -323,7 +328,7 @@ export const sendEnrollmentIntakeEmail =
         "your athlete";
 
       const url =
-        intakeUrl(tokenId, intakeAudience);
+        intakeUrl(baseUrl, tokenId, intakeAudience);
 
       const audienceText =
         intakeAudience === "adult_athlete"

@@ -40,8 +40,10 @@ export function stagingRecipientDecision(
   return { allowed: true };
 }
 
-export function verifyStagingEmailRecipient(recipient: string): StagingRecipientDecision {
-  const projectId = currentFirebaseProjectId();
+export function verifyStagingEmailRecipient(
+  recipient: string,
+  projectId = currentFirebaseProjectId()
+): StagingRecipientDecision {
   return stagingRecipientDecision(
     recipient,
     projectId,

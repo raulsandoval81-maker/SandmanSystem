@@ -13,8 +13,8 @@ protected = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(protected)
 original, release, inventory = protected.original, protected.release, protected.inventory
 require = inventory.require
-SHA = "5fdd14876e36309c23f16cdc2c604b43f93f1e57"
-BASE = "80dfa0d308a2751b07443ad29ff7f86001e1619d"
+SHA = "cf972948fde155d1330f8a9b7d75f84695132e26"
+BASE = "00e3367730beb2e650662ace36f6f96c73b017c1"
 NAME = "sendEnrollmentIntakeEmail"
 PREFLIGHT = "pr652-intake-readonly-preflight"
 DEPLOY = "pr652-intake-staging-deploy"
@@ -23,7 +23,9 @@ ROOT = Path("pr614-candidate")
 MANIFEST = {
     "functions/src/enrollment/operationalPaidProposal.ts",
     "functions/tests/operationalPaidProposal.test.cjs",
-    "functions/tests/prepaidCashReceipt.integration.cjs",
+    "functions/src/enrollment/sendEnrollmentIntakeEmail.ts",
+    "functions/src/modules/email/resend.ts",
+    "tests/functions/emmett-2c-final-blockers.test.mjs",
 }
 
 

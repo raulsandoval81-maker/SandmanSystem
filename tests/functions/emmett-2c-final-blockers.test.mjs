@@ -8,11 +8,19 @@ const intake=readFileSync(new URL('../../functions/src/enrollment/sendEnrollment
 const email=readFileSync(new URL('../../functions/src/modules/email/resend.ts',import.meta.url),'utf8');
 
 test('both 2C email paths enforce the staging allowlist before provider access',()=>{
-  for(const source of [receipt,intake]) {
-    assert.match(source,/STAGING_TEST_EMAIL_ALLOWLIST/);
-    assert.match(source,/verifyStagingEmailRecipient\(recipient\)/);
-    assert.ok(source.indexOf('verifyStagingEmailRecipient(recipient)') < source.indexOf('getResendClient()'));
+  for (const source of [receipt, intake]) {
+    assert.match(source, /STAGING_TEST_EMAIL_ALLOWLIST/);
   }
+  const receiptCheck = receipt.indexOf('verifyStagingEmailRecipient(recipient)');
+  assert.ok(receiptCheck >= 0 && receiptCheck < receipt.indexOf('getResendClient()'));
+
+  const resolve = intake.indexOf('const baseUrl = await resolveEnrollmentIntakeBaseUrl()');
+  const intakeCheck = intake.match(/verifyStagingEmailRecipient\(\s*recipient,\s*baseUrl === `https:\/\/\$\{STAGING_PROJECT_ID\}\.web\.app` \? STAGING_PROJECT_ID : undefined\s*\)/);
+  assert.ok(intakeCheck, 'Intake must pass the verified staging project to the recipient check');
+  assert.ok(resolve >= 0 && resolve < intakeCheck.index);
+  assert.ok(intakeCheck.index < intake.indexOf('getResendClient()'));
+  assert.match(email, /verifyStagingEmailRecipient\(\s*recipient: string,\s*projectId = currentFirebaseProjectId\(\)/);
+  assert.match(email, /projectId === STAGING_PROJECT \? STAGING_TEST_EMAIL_ALLOWLIST\.value\(\)/);
   assert.match(email,/projectId !== STAGING_PROJECT/);
   assert.match(email,/ALLOWLIST_NOT_CONFIGURED/);
   assert.match(email,/RECIPIENT_NOT_ALLOWED/);
