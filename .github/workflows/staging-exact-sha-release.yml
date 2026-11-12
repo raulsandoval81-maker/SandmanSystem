@@ -3693,13 +3693,13 @@ jobs:
         if: inputs.action == 'v1-ui-hosting-deploy'
         env:
           APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
-        run: test "$APPROVAL" = APPROVE_V1_STAGING_TWO_UI_ASSETS
+        run: test "$APPROVAL" = APPROVE_V1_STAGING_FOUR_UI_ASSETS
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: ${{ startsWith(inputs.action, 'v1-ui-') && '6c2c7c0332a7a5923168a35bcb56e27593de70a2' || startsWith(inputs.action, 'edge-case-embed-') && '47b986f27ebbf98e456af5f64f1f6450023f279c' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
+          ref: ${{ startsWith(inputs.action, 'v1-ui-') && 'eeb0552e3acf0904f63934aa2c9b303915b74cd7' || startsWith(inputs.action, 'edge-case-embed-') && '47b986f27ebbf98e456af5f64f1f6450023f279c' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
           path: candidate
           persist-credentials: false
       - name: Verify Proposal Management Edge Case regressions
@@ -3708,6 +3708,9 @@ jobs:
       - name: Verify embedded waiver regressions
         if: startsWith(inputs.action, 'pr603-') || startsWith(inputs.action, 'v1-ui-')
         run: cd candidate && node --test tests/browser/inline-intake-waiver.test.mjs
+      - name: Verify completed Intake receipt-only routing
+        if: startsWith(inputs.action, 'v1-ui-')
+        run: cd candidate && node --test tests/browser/cash-check-enrollment-polish.test.mjs
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
