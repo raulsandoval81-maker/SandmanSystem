@@ -3,14 +3,29 @@
  */
 export const STAGING_PROJECT_ID = "sandman-combat-staging";
 
+function runtimeProjectIds(environment: Record<string, string | undefined>): string[] {
+  const projects = [environment.GCLOUD_PROJECT, environment.GCP_PROJECT, environment.GOOGLE_CLOUD_PROJECT]
+    .filter((id): id is string => Boolean(id));
+  // Gen1 Firebase Functions supplies FIREBASE_CONFIG even where the GCP project
+  // aliases are absent. Never let a conflicting identity override another.
+  if (environment.FIREBASE_CONFIG) {
+    try {
+      const config = JSON.parse(environment.FIREBASE_CONFIG);
+      if (typeof config?.projectId === "string" && config.projectId.trim()) {
+        projects.push(config.projectId);
+      }
+    } catch {
+      // Unparseable configuration is not usable identity evidence.
+    }
+  }
+  return projects;
+}
+
 export function isStagingEnrollmentRuntime(
   environment: Record<string, string | undefined> = process.env
 ): boolean {
-  const project =
-    environment.GCLOUD_PROJECT ||
-    environment.GCP_PROJECT ||
-    environment.GOOGLE_CLOUD_PROJECT;
-  return project === STAGING_PROJECT_ID &&
+  const projects = runtimeProjectIds(environment);
+  return projects.length > 0 && projects.every(project => project === STAGING_PROJECT_ID) &&
     environment.SANDMAN_STAGING_ACK === STAGING_PROJECT_ID &&
     environment.SANDMAN_STAGING_PROJECT_ID === STAGING_PROJECT_ID;
 }
@@ -58,10 +73,8 @@ export function isOperationalPaidProposal(
 export function enrollmentIntakeBaseUrl(
   environment: Record<string, string | undefined> = process.env
 ): string {
-  const project = environment.GCLOUD_PROJECT ||
-    environment.GCP_PROJECT ||
-    environment.GOOGLE_CLOUD_PROJECT;
-  if (project === STAGING_PROJECT_ID ||
+  const projects = runtimeProjectIds(environment);
+  if (projects.includes(STAGING_PROJECT_ID) ||
       environment.SANDMAN_STAGING_ACK === STAGING_PROJECT_ID ||
       environment.SANDMAN_STAGING_PROJECT_ID === STAGING_PROJECT_ID) {
     if (!isStagingEnrollmentRuntime(environment)) {
