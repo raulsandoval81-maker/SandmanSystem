@@ -4348,7 +4348,7 @@ jobs:
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
       RELEASE_KEY: ${{ startsWith(inputs.action, 'pr652-intake-') && 'pr652-intake' || startsWith(inputs.action, 'pr650-') && 'pr650' || startsWith(inputs.action, 'pr647-') && 'pr647' || startsWith(inputs.action, 'prior-payment-') && 'prior-payment' || startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
-      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'pr652-intake-') && '5fdd14876e36309c23f16cdc2c604b43f93f1e57' || startsWith(inputs.action, 'pr650-') && '335be5278aabe3a8e17a541b934cd3261592fc85' || startsWith(inputs.action, 'pr647-') && 'c928ce342983cbf9ab82850844dd0bb343d2ec13' || startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
+      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'pr652-intake-') && 'cf972948fde155d1330f8a9b7d75f84695132e26' || startsWith(inputs.action, 'pr650-') && '335be5278aabe3a8e17a541b934cd3261592fc85' || startsWith(inputs.action, 'pr647-') && 'c928ce342983cbf9ab82850844dd0bb343d2ec13' || startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
       CANDIDATE_PACKAGE: /tmp/management-staging-source.zip
       PR614_BUILD_ROOT: pr614-build
     steps:
