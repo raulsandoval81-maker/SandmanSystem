@@ -65,3 +65,24 @@ test("intake prefill uses the shared paid-proposal policy", () => {
   assert.doesNotMatch(hydrateSource, /function isOperationalPaidProposal/);
   assert.doesNotMatch(hydrateSource, /!checkoutSessionId\.startsWith\("cs_test_"\)/);
 });
+
+test("Gen1 FIREBASE_CONFIG supplies verified staging identity without GCLOUD_PROJECT", () => {
+  const gen1 = {
+    SANDMAN_STAGING_ACK: "sandman-combat-staging",
+    SANDMAN_STAGING_PROJECT_ID: "sandman-combat-staging",
+    FIREBASE_CONFIG: JSON.stringify({ projectId: "sandman-combat-staging", storageBucket: "test" })
+  };
+  assert.equal(isStagingEnrollmentRuntime(gen1), true);
+  assert.equal(enrollmentIntakeBaseUrl(gen1), "https://sandman-combat-staging.web.app");
+  for (const invalid of [
+    { ...gen1, FIREBASE_CONFIG: '{"projectId":"sandmandashboard"}' },
+    { ...gen1, FIREBASE_CONFIG: "{}" },
+    { ...gen1, FIREBASE_CONFIG: "not-json" },
+    { ...gen1, GCLOUD_PROJECT: "sandmandashboard" },
+    { ...gen1, SANDMAN_STAGING_ACK: "" },
+    { ...gen1, SANDMAN_STAGING_PROJECT_ID: "" },
+  ]) {
+    assert.equal(isStagingEnrollmentRuntime(invalid), false);
+    assert.throws(() => enrollmentIntakeBaseUrl(invalid), /verified staging runtime/);
+  }
+});
