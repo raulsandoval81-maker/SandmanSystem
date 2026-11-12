@@ -152,6 +152,8 @@ on:
           - pr650-staging-deploy
           - pr647-readonly-preflight
           - pr647-staging-deploy
+          - pr652-intake-readonly-preflight
+          - pr652-intake-staging-deploy
           - prior-payment-readonly-preflight
           - prior-payment-staging-deploy
           - pr606-run339-recovery-snapshot
@@ -4331,7 +4333,7 @@ jobs:
           retention-days: 14
 
   pr632-staging-release:
-    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy' || inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy' || inputs.action == 'prior-payment-readonly-preflight' || inputs.action == 'prior-payment-staging-deploy' || inputs.action == 'pr647-readonly-preflight' || inputs.action == 'pr647-staging-deploy' || inputs.action == 'pr650-readonly-preflight' || inputs.action == 'pr650-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr632-readonly-preflight' || inputs.action == 'pr632-staging-deploy' || inputs.action == 'edge-case-pif-readonly-preflight' || inputs.action == 'edge-case-pif-staging-deploy' || inputs.action == 'pr652-intake-readonly-preflight' || inputs.action == 'pr652-intake-staging-deploy' || inputs.action == 'prior-payment-readonly-preflight' || inputs.action == 'prior-payment-staging-deploy' || inputs.action == 'pr647-readonly-preflight' || inputs.action == 'pr647-staging-deploy' || inputs.action == 'pr650-readonly-preflight' || inputs.action == 'pr650-staging-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     concurrency: sandman-staging-hosting
@@ -4345,8 +4347,8 @@ jobs:
       CONFIRM_SHA: ${{ inputs.protected_2c_exact_merge_sha }}
       DEPLOY_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
       EXPECTED_BASELINE_SHA256: ${{ inputs.protected_2c_expected_hosting_version }}
-      RELEASE_KEY: ${{ startsWith(inputs.action, 'pr650-') && 'pr650' || startsWith(inputs.action, 'pr647-') && 'pr647' || startsWith(inputs.action, 'prior-payment-') && 'prior-payment' || startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
-      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'pr650-') && '335be5278aabe3a8e17a541b934cd3261592fc85' || startsWith(inputs.action, 'pr647-') && 'c928ce342983cbf9ab82850844dd0bb343d2ec13' || startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
+      RELEASE_KEY: ${{ startsWith(inputs.action, 'pr652-intake-') && 'pr652-intake' || startsWith(inputs.action, 'pr650-') && 'pr650' || startsWith(inputs.action, 'pr647-') && 'pr647' || startsWith(inputs.action, 'prior-payment-') && 'prior-payment' || startsWith(inputs.action, 'edge-case-pif-') && 'edge-case-pif' || 'pr632' }}
+      CANDIDATE_SHA: ${{ startsWith(inputs.action, 'pr652-intake-') && '5fdd14876e36309c23f16cdc2c604b43f93f1e57' || startsWith(inputs.action, 'pr650-') && '335be5278aabe3a8e17a541b934cd3261592fc85' || startsWith(inputs.action, 'pr647-') && 'c928ce342983cbf9ab82850844dd0bb343d2ec13' || startsWith(inputs.action, 'prior-payment-') && '5b0b628f57e09b217af26a69efcd4c0579b03335' || startsWith(inputs.action, 'edge-case-pif-') && '45808357791e2523f80f68ca74e82663d0252a12' || '6da9769d6aa7c9bfc8472ad6c4311805128e92d9' }}
       CANDIDATE_PACKAGE: /tmp/management-staging-source.zip
       PR614_BUILD_ROOT: pr614-build
     steps:
@@ -4391,7 +4393,9 @@ jobs:
           set -euo pipefail
           npm ci --ignore-scripts --no-audit --no-fund --prefix pr614-build/functions
           npm --prefix pr614-build/functions run build
-          if [[ "$RELEASE_KEY" == prior-payment ]]; then
+          if [[ "$RELEASE_KEY" == pr652-intake ]]; then
+            (cd pr614-build && node --test functions/tests/operationalPaidProposal.test.cjs)
+          elif [[ "$RELEASE_KEY" == prior-payment ]]; then
             (cd pr614-build && node --test functions/tests/recordProposalPriorPaymentStartup.test.cjs functions/tests/priorPaymentAllocation.test.cjs)
           elif [[ "$RELEASE_KEY" == pr650 ]]; then
             (cd pr614-build && node --test functions/tests/paymentArrangement.test.cjs tests/browser/proposal-edge-case-embed.test.mjs tests/functions/manual-edge-case-proposal.test.mjs)
@@ -4429,7 +4433,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/auth@v3
-        if: env.RELEASE_KEY != 'prior-payment'
+        if: env.RELEASE_KEY != 'prior-payment' && env.RELEASE_KEY != 'pr652-intake'
         id: pr614-platform-auth
         with:
           project_id: sandman-combat-staging
