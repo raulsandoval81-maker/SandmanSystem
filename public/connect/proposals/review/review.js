@@ -157,7 +157,7 @@ function labelDiscipline(value = "") {
   );
 }
 
-function labelBilling(value = "") {
+function labelBilling(value = "", prepaid = false) {
   const key =
     normalize(value);
 
@@ -166,7 +166,7 @@ function labelBilling(value = "") {
     key === "12-month" ||
     key === "12_month"
   ) {
-    return "12-month agreement + autopay";
+    return prepaid ? "12-month paid-in-full agreement" : "12-month agreement + autopay";
   }
 
   if (
@@ -202,7 +202,8 @@ function hideMessage() {
 }
 
 function renderAthletes(
-  athletes = []
+  athletes = [],
+  prepaid = false
 ) {
   $("athletes").innerHTML =
     athletes.length
@@ -252,7 +253,8 @@ function renderAthletes(
                 <p class="athlete-line">
                   ${esc(
                     labelBilling(
-                      athlete.billingTerm
+                      athlete.billingTerm,
+                      prepaid
                     )
                   )}
                 </p>
@@ -319,7 +321,7 @@ function renderProposal(
     $("dueNow").textContent = money(pricing.dueNow);
     $("monthlyMembership").textContent = "No recurring charge";
     $("annualRenewal").textContent = "No automatic renewal";
-    renderAthletes(Array.isArray(proposal.athletes) ? proposal.athletes : []);
+    renderAthletes(Array.isArray(proposal.athletes) ? proposal.athletes : [], true);
     $("paymentSchedule").innerHTML = [
       scheduleItem("Payment arrangement", pricing.paymentArrangement === "prepaid_stripe" ? "Paid in Full — one-time Stripe payment" : "Paid in Full — existing cash/check reconciliation"),
       scheduleItem("Locked membership", `${t.monthsCovered} months · ${moneyFromCents(t.membershipAmountCents)}`),
