@@ -78,6 +78,25 @@ export function canonicalPaymentArrangement(pricing: Record<string, any>, athlet
     dueNow: arrangement === "prepaid_stripe" ? (membership + feePaid) / 100 : 0,
     enrollmentDueNow: arrangement === "prepaid_stripe" ? feePaid / 100 : 0};
 }
+// Keep this projection aligned with the Prospect Builder review contract.
+export function prepaidReviewTerms(pricing: Record<string, any>) {
+  const arrangement = paymentArrangement(pricing);
+  if (arrangement === "monthly_autopay") return null;
+  const terms = pricing.prepaidTerms;
+  return [
+    arrangement,
+    terms.monthsCovered,
+    terms.membershipAmountCents,
+    terms.amountCents,
+    terms.membershipStartDate,
+    terms.paidThroughDate,
+    terms.nextBillingDate,
+    Math.round(Number(pricing.support || 0) * 100),
+    terms.annualEnrollmentFee.previouslyPaidCents,
+    terms.annualEnrollmentFee.outstandingCents,
+    pricing.prepaidFeeAllocations.map(({athleteIndex, amountCents}: {athleteIndex: number; amountCents: number}) => [athleteIndex, amountCents]),
+  ];
+}
 export function lockedPrepaidTerms(proposal: Record<string, any>) {
   const snapshot = proposal.lockedSnapshot;
   if (!snapshot || !proposal.clientAcceptance?.signedAt || JSON.stringify(proposal.clientAcceptance?.signedSnapshot) !== JSON.stringify(snapshot)) {

@@ -172,3 +172,54 @@ test('Cash/Check conversion locks a verified prior fee separately from the new c
   assert.throws(() => canonicalPaymentArrangement({ ...input, enrollmentPreviouslyPaidAmount: 10 }, athletes), /historical fee credit/);
   assert.throws(() => canonicalPaymentArrangement({ ...input, prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 3000 }] }, athletes), /exceeds/);
 });
+
+test('Builder, saved draft, issued snapshot and reconciliation preserve each fee treatment', async () => {
+  const {readFile} = require('node:fs/promises');
+  const path = require('node:path');
+  const {canonicalizeProposalPricing} = require('../lib/proposals/seasonalProposal');
+  const {buildClientProposalSnapshot} = require('../lib/proposals/proposalClientReview');
+  const {prepaidReviewTerms} = require('../lib/billing/paymentArrangement');
+  const {resolveFullYearPrepayment} = require('../lib/billing/prepaidMembershipPolicy');
+  const root = path.join(__dirname, '../../public');
+  const moduleUrl = source => 'data:text/javascript;base64,' + Buffer.from(source).toString('base64');
+  const coverage = moduleUrl(await readFile(path.join(root, 'management/billing/prepaid-terms.js'), 'utf8'));
+  const source = await readFile(path.join(root, 'connect/admissions/calculator/payment-arrangement.js'), 'utf8');
+  const browser = await import(moduleUrl(source.replace('"/management/billing/prepaid-terms.js"', JSON.stringify(coverage))));
+  const athletes = [{name: 'Synthetic', plan: 'standard', billingTerm: 'annual'}];
+  const termsByTreatment = new Map();
+  for (const [treatment, support, prior, allocated, outstanding] of [
+    ['prior payment', 0, 30, 0, 0],
+    ['waiver', 30, 0, 0, 0],
+    ['included', 0, 0, 3000, 0],
+    ['outstanding', 0, 0, 0, 3000],
+  ]) {
+    const preview = browser.previewPaymentArrangement({
+      monthlyBalance: 80, enrollmentBase: 30, support, supportPercent: support ? 100 : 0,
+      enrollmentPreviouslyPaidAmount: prior, membershipStartDate: '2026-11-01',
+    }, athletes, 'prepaid_cash_check', [{athleteIndex: 1, amountCents: allocated}]);
+    const pricing = JSON.parse(JSON.stringify(canonicalizeProposalPricing(preview, athletes)));
+    const snapshot = buildClientProposalSnapshot('P-000008', {athletes, pricing});
+    const expected = browser.prepaidReviewTerms(preview);
+    termsByTreatment.set(treatment, expected);
+    assert.deepEqual(browser.prepaidReviewTerms(pricing), expected, treatment);
+    assert.deepEqual(prepaidReviewTerms(snapshot.pricing), expected, treatment);
+    const signed = lockedPrepaidTerms({
+      lockedSnapshot: snapshot,
+      clientAcceptance: {signedSnapshot: snapshot, signedAt: admin.Timestamp.now()},
+    });
+    assert.equal(signed.automaticRenewal, false);
+    assert.equal(signed.membershipAmountCents, 96000);
+    assert.equal(signed.amountCents, 96000 + allocated);
+    assert.equal(signed.annualEnrollmentFee.outstandingCents, outstanding);
+    assert.deepEqual(resolveFullYearPrepayment({
+      amountCents: signed.amountCents, membershipAmountCents: 96000,
+      expectedMonthlyMembershipCents: 8000, monthsCovered: 12, athletes,
+      enrollmentFeeTotalCents: (30 - support) * 100,
+      enrollmentFeePreviouslyPaidCents: prior * 100,
+      enrollmentFeeIncludedAthleteIndexes: [],
+      enrollmentFeeAllocations: pricing.prepaidFeeAllocations,
+    }).annualEnrollmentFee, signed.annualEnrollmentFee);
+  }
+  assert.notDeepEqual(termsByTreatment.get('included'), termsByTreatment.get('outstanding'));
+  assert.notDeepEqual(termsByTreatment.get('prior payment'), termsByTreatment.get('waiver'));
+});

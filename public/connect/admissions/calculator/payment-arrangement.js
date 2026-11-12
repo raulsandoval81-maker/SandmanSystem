@@ -39,3 +39,25 @@ export function previewPaymentArrangement(pricing, athletes, arrangement, alloca
       membershipStartDate: pricing.membershipStartDate, paidThroughDate: coverage.paidThroughDate,
       nextBillingDate: coverage.nextBillingDate, feeOutstandingCents: totalFee - priorFee - feePaid}};
 }
+
+// Compare the Builder preview with canonical pricing without conflating a
+// waiver, a prior payment, and a fee included in this payment.
+export function prepaidReviewTerms(pricing) {
+  const arrangement = pricing?.paymentArrangement;
+  if (arrangement !== "prepaid_cash_check" && arrangement !== "prepaid_stripe") return null;
+  const terms = pricing.prepaidTerms;
+  const fee = terms.annualEnrollmentFee;
+  return [
+    arrangement,
+    terms.monthsCovered,
+    terms.membershipAmountCents,
+    terms.amountCents,
+    terms.membershipStartDate,
+    terms.paidThroughDate,
+    terms.nextBillingDate,
+    Math.round(Number(pricing.support || 0) * 100),
+    fee?.previouslyPaidCents ?? Math.round(Number(pricing.enrollmentPreviouslyPaidAmount || 0) * 100),
+    fee?.outstandingCents ?? terms.feeOutstandingCents,
+    pricing.prepaidFeeAllocations.map(({athleteIndex, amountCents}) => [athleteIndex, amountCents]),
+  ];
+}
