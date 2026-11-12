@@ -53,8 +53,10 @@ test('reload restores payment-specific review controls after generic draft label
 test('cash-check review uses family review only and invalid prepaid quote is blocked',()=>{
   const review=source.match(/async function beginProposalReview\([\s\S]*?\n    function renderProposalWorkflow/);
   assert.ok(review);
-  assert.match(review[0],/!paymentArrangementValid \|\| !calculate\(\)/);
+  assert.match(review[0],/!preview \|\| !paymentArrangementValid/);
   assert.match(review[0],/"submitProposalForReview"/);
+  assert.ok(review[0].indexOf('prepaidReviewTerms(saved.data().pricing)') < review[0].indexOf('await submitReview({'));
+  assert.match(review[0], /expectedPrepaidTerms,[\s\S]*?await issueReview/);
   assert.match(review[0],/"issueProposalClientReview"/);
   assert.doesNotMatch(review[0],/createProposalCheckout|stripeCheckout|createCheckoutSession/);
 });

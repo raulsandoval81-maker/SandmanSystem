@@ -21,6 +21,7 @@ import {
   hashProposalReviewToken,
 } from "./proposalClientReview";
 
+import { prepaidReviewTerms } from "../billing/paymentArrangement";
 import { resolveBillingPublicBaseUrl } from "./billingPublicBaseUrl";
 
 import {
@@ -344,6 +345,14 @@ export const issueProposalClientReview =
                 proposalId,
                 proposalForSnapshot
               );
+
+            if (req.data?.expectedPrepaidTerms !== undefined &&
+                JSON.stringify(req.data.expectedPrepaidTerms) !== JSON.stringify(prepaidReviewTerms(clientSnapshot.pricing))) {
+              throw new HttpsError(
+                "failed-precondition",
+                "The saved prepaid terms changed. Verify them in Prospect Builder before issuing family review.",
+              );
+            }
 
             const historyRef =
               proposalRef

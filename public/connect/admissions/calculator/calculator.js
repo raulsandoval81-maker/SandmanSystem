@@ -1,4 +1,4 @@
-import { previewPaymentArrangement } from "./payment-arrangement.js";
+import { previewPaymentArrangement, prepaidReviewTerms } from "./payment-arrangement.js?v=prepaid-review-fee-integrity";
 
 export function normalizePrepaidFeeAllocations({
   enrollmentBase,
@@ -2107,8 +2107,8 @@ alert(
       // Cash/check uses family Review & Confirm, never a Stripe payment path.
       // Reject invalid prepaid terms even if a stale control is somehow triggered.
       const currentArrangement = el.paymentArrangement?.value || "monthly_autopay";
-      if ((currentArrangement === "prepaid_cash_check" || currentArrangement === "prepaid_stripe") &&
-          (!paymentArrangementValid || !calculate())) {
+      const preview = currentArrangement === "monthly_autopay" ? null : calculate();
+      if (currentArrangement !== "monthly_autopay" && (!preview || !paymentArrangementValid)) {
         alert("Correct the prepaid payment arrangement before family review.");
         return;
       }
@@ -2120,6 +2120,7 @@ alert(
         return;
       }
 
+      const expectedPrepaidTerms = prepaidReviewTerms(preview?.pricing);
       const confirmed =
         window.confirm(
           remote
@@ -2176,6 +2177,11 @@ alert(
             "submitProposalForReview"
           );
 
+        const saved = await getDoc(doc(db, "proposals", proposalId));
+        if (!saved.exists() || JSON.stringify(prepaidReviewTerms(saved.data().pricing)) !== JSON.stringify(expectedPrepaidTerms)) {
+          throw new Error("The prepaid terms differ from the saved draft. Save the intended terms before starting family review.");
+        }
+
         const submitResponse =
           await submitReview({
             proposalId,
@@ -2214,10 +2220,12 @@ alert(
           remote
             ? {
                 proposalId,
-                delivery: "email"
+                delivery: "email",
+                expectedPrepaidTerms,
               }
             : {
-                proposalId
+                proposalId,
+                expectedPrepaidTerms,
               };
 
         const issueResponse =
