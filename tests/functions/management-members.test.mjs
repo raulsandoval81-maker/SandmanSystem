@@ -48,17 +48,25 @@ test("Members browser uses guarded search and existing access callables only", (
   assert.doesNotMatch(source, /updateDoc|setDoc|addDoc|deleteDoc/);
 });
 
-test("bound athletes cannot receive duplicate invitations in the Members UI", () => {
+test("active access lanes provide recovery rather than duplicate invitations", () => {
   const source = readFileSync("public/management/members/members.js", "utf8");
-  assert.match(source, /Duplicate invitations are disabled/);
-  assert.match(source, /active \? renderActiveAccess\(member\) : renderInvitationForm\(member\)/);
+  assert.match(source, /const actionBlock = active/);
+  assert.match(source, /data-recovery-role/);
+  assert.match(source, /Send Password Reset/);
+  assert.match(source, /data-send-access-role/);
+  assert.match(source, /status: status\.parentStatus/);
+  assert.match(source, /status: status\.athleteStatus/);
 });
 
-test("hybrid invitations require Parent approval while self-managed invitations do not", () => {
+test("direct Athlete access under age 14 requires recorded Parent approval", () => {
   const source = readFileSync("public/management/members/members.js", "utf8");
-  assert.match(source, /accessMode === "hybrid" && .*parentApproval/);
-  assert.match(source, /Record Parent approval before issuing hybrid access/);
-  assert.match(source, /<option value="self_managed">Self Managed<\/option>/);
+  assert.match(source, /function athleteNeedsParentApproval\(member\)/);
+  assert.match(source, /return !Number\.isFinite\(age\) \|\| age < 14/);
+  assert.match(source, /data-parent-approval/);
+  assert.match(source, /if \(\s*!approval\?\.checked\s*\)/);
+  assert.match(source, /Record Parent \/ Guardian approval before issuing direct Athlete access/);
+  assert.match(source, /\{ parentApproved \}/);
+  assert.match(source, /role === "athlete" &&/);
 });
 
 test("Members summary and transition code do not mutate progression or Parent relationships", () => {
