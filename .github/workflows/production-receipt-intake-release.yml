@@ -39,7 +39,7 @@ jobs:
         run: |
           test "$GITHUB_REF" = refs/heads/main
           test "$CONFIRM_PROJECT" = sandmandashboard
-          test "$CONFIRM_SHA" = 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+          test "$CONFIRM_SHA" = 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
@@ -47,7 +47,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 8b2c58868eaae79c9bddfdc1cd3afa9a50d72981
+          ref: 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
           path: application
           persist-credentials: false
       - uses: actions/setup-node@v4
