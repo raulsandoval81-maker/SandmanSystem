@@ -272,6 +272,8 @@ function mountInlineWaiver() {
   frame.style.cssText = "display:block;width:100%;height:70vh;border:1px solid #d1d5db;border-radius:12px;background:white;";
   frame.setAttribute("loading", "eager");
   oldButton.parentElement.appendChild(frame);
+  // The waiver is already visible inline; keep the old button only as a fallback.
+  oldButton.style.display = "none";
   const note = document.querySelector("#waiverCompletionPanel p.muted");
   if (note) note.textContent = activeLanguage() === "es"
     ? "Lea, acepte y firme la exención. Luego envíe el registro."
