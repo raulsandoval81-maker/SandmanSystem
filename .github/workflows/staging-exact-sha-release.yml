@@ -133,6 +133,8 @@ on:
           - pr603-hosting-deploy
           - edge-case-embed-hosting-preflight
           - edge-case-embed-hosting-deploy
+          - v1-ui-hosting-preflight
+          - v1-ui-hosting-deploy
           - pr629-hosting-deploy
           - pr636-hosting-preflight
           - pr636-hosting-deploy
@@ -3668,7 +3670,7 @@ jobs:
           if-no-files-found: error
 
   pr603-hosting-deploy:
-    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory' || inputs.action == 'edge-case-embed-hosting-preflight' || inputs.action == 'edge-case-embed-hosting-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'pr603-hosting-deploy' || inputs.action == 'pr603-hosting-inventory' || inputs.action == 'edge-case-embed-hosting-preflight' || inputs.action == 'edge-case-embed-hosting-deploy' || inputs.action == 'v1-ui-hosting-preflight' || inputs.action == 'v1-ui-hosting-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 10
@@ -3687,19 +3689,24 @@ jobs:
         env:
           APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
         run: test "$APPROVAL" = APPROVE_EDGE_CASE_EMBED_STAGING_HOSTING
+      - name: Require exact V1 UI staging deployment approval
+        if: inputs.action == 'v1-ui-hosting-deploy'
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: test "$APPROVAL" = APPROVE_V1_STAGING_TWO_UI_ASSETS
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: ${{ startsWith(inputs.action, 'edge-case-embed-') && '47b986f27ebbf98e456af5f64f1f6450023f279c' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
+          ref: ${{ startsWith(inputs.action, 'v1-ui-') && '6c2c7c0332a7a5923168a35bcb56e27593de70a2' || startsWith(inputs.action, 'edge-case-embed-') && '47b986f27ebbf98e456af5f64f1f6450023f279c' || '053deeae91c768c156d47edc6926f8c92e5aa4c4' }}
           path: candidate
           persist-credentials: false
       - name: Verify Proposal Management Edge Case regressions
         if: startsWith(inputs.action, 'edge-case-embed-')
         run: cd candidate && node --test tests/browser/proposal-edge-case-embed.test.mjs
       - name: Verify embedded waiver regressions
-        if: startsWith(inputs.action, 'pr603-')
+        if: startsWith(inputs.action, 'pr603-') || startsWith(inputs.action, 'v1-ui-')
         run: cd candidate && node --test tests/browser/inline-intake-waiver.test.mjs
       - uses: google-github-actions/auth@v3
         with:
@@ -3711,17 +3718,18 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           MODE: ${{ endsWith(inputs.action, '-deploy') && 'deploy' || 'inventory' }}
-          PROFILE: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed' || 'waiver' }}
+          PROFILE: ${{ startsWith(inputs.action, 'v1-ui-') && 'v1-ui' || startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed' || 'waiver' }}
           EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
           EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
         run: test "$CONFIRM_PROJECT" = sandman-combat-staging && node scripts/staging/pr603-hosting-inventory.mjs "$MODE" "$PROFILE"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ${{ startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed-hosting' || 'pr603-hosting-deploy' }}-${{ github.run_id }}
+          name: ${{ startsWith(inputs.action, 'v1-ui-') && 'v1-ui-hosting' || startsWith(inputs.action, 'edge-case-embed-') && 'edge-case-embed-hosting' || 'pr603-hosting-deploy' }}-${{ github.run_id }}
           path: |
             pr603-*.json
             edge-case-embed-*.json
+            v1-ui-*.json
           if-no-files-found: error
 
   pr629-hosting-deploy:

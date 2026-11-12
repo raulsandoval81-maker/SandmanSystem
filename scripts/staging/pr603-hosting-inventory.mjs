@@ -8,11 +8,15 @@ const mode = process.argv[2] ?? 'inventory';
 assert(['inventory', 'deploy'].includes(mode));
 const site = 'sites/sandman-combat-staging';
 const profile = process.argv[3] ?? 'waiver';
-assert(['waiver', 'edge-case-embed'].includes(profile));
+assert(['waiver', 'edge-case-embed', 'v1-ui'].includes(profile));
 const edgeCase = profile === 'edge-case-embed';
-const evidencePrefix = edgeCase ? 'edge-case-embed' : 'pr603';
-const candidateSha = edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
-const targets = new Map(edgeCase ? [
+const v1Ui = profile === 'v1-ui';
+const evidencePrefix = v1Ui ? 'v1-ui' : edgeCase ? 'edge-case-embed' : 'pr603';
+const candidateSha = v1Ui ? '6c2c7c0332a7a5923168a35bcb56e27593de70a2' : edgeCase ? '47b986f27ebbf98e456af5f64f1f6450023f279c' : '053deeae91c768c156d47edc6926f8c92e5aa4c4';
+const targets = new Map(v1Ui ? [
+  ['/connect/proposals/review/review.js', 'd6110610bb918a261d1457c7d94653be8aef9c401c236be82e09794ec27f5323'],
+  ['/intake-parent/parent.intake.js', 'fbb0494959035f666ec1650d3c050503e3758d6adf3e85c2165b29fd504253e4'],
+] : edgeCase ? [
   ['/connect/proposals/index.html', 'f0076ded80713f8b46d2ec1ab6b0a27ef3d2f4146408f0233f3d151b6832569c'],
   ['/connect/proposals/proposals.js', '54922a5f18e63ef02ae04f14b32807d7e2acb764c22038c6d0727ad9d837dd6c'],
   ['/management/manual-edge-case-proposal/index.html', '732d6d76d7acc7739619055711e6de5167011eddb1bce9615ec8807962c2202d'],
