@@ -84,3 +84,29 @@ export function enrollmentIntakeBaseUrl(
   }
   return "https://sandmancombat.com";
 }
+
+
+// Source-only Gen1 deployments can lack Firebase CLI project identity inputs.
+export async function resolveEnrollmentIntakeBaseUrl(
+  environment: Record<string, string | undefined> = process.env,
+  readMetadata = fetch
+): Promise<string> {
+  if (runtimeProjectIds(environment).length > 0 ||
+      environment.SANDMAN_STAGING_ACK !== STAGING_PROJECT_ID ||
+      environment.SANDMAN_STAGING_PROJECT_ID !== STAGING_PROJECT_ID) {
+    return enrollmentIntakeBaseUrl(environment);
+  }
+
+  let projectId: string | undefined;
+  try {
+    const response = await readMetadata("http://metadata.google.internal/computeMetadata/v1/project/project-id", {
+      headers: { "Metadata-Flavor": "Google" }, redirect: "error", signal: AbortSignal.timeout(1500),
+    });
+    if (response.ok && response.headers.get("Metadata-Flavor") === "Google") {
+      projectId = (await response.text()).trim();
+    }
+  } catch {
+    // Without verified project identity the existing guard must fail closed.
+  }
+  return enrollmentIntakeBaseUrl({ ...environment, GCLOUD_PROJECT: projectId });
+}
