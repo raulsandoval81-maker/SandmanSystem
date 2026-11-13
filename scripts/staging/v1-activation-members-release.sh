@@ -43,11 +43,15 @@ jq -e --arg rev "$trigger_revision" '
     length == 1 and .[0].value == "intakes/{intakeId}" and .[0].operator == "match-path-pattern")
 ' "$temp/trigger.json" >/dev/null
 describe "$members" > "$temp/members.json"
+jq -c '{state, environment, entryPoint: .buildConfig.entryPoint, runtime: .buildConfig.runtime,
+  sourceGeneration: .buildConfig.sourceProvenance.resolvedStorageSource.generation,
+  revision: .serviceConfig.revision, runtimeAccount: .serviceConfig.serviceAccountEmail,
+  release: .labels["sandman-enrollment-release"], sourceSha: .labels["sandman-source-sha"]}' "$temp/members.json"
 jq -e --arg sha "$deployed_sha" --arg release "$release_label" '
   .state == "ACTIVE" and .environment == "GEN_2" and
   .buildConfig.entryPoint == "searchManagementMembers" and .buildConfig.runtime == "nodejs22" and
   (.buildConfig.sourceProvenance.resolvedStorageSource.generation | tostring) == "1794551034782213" and
-  (.serviceConfig.revision == "searchmanagementmembers-00001-doh" or .serviceConfig.revision == "searchmanagementmembers-00002-jtw") and
+  (.serviceConfig.revision | split("/") | last | . == "searchmanagementmembers-00001-doh" or . == "searchmanagementmembers-00002-jtw") and
   .serviceConfig.serviceAccountEmail == "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" and
   .labels["sandman-enrollment-release"] == $release and .labels["sandman-source-sha"] == $sha
 ' "$temp/members.json" >/dev/null
