@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "saveProposalEnrollmentAgreement": "proposals/saveProposalEnrollmentAgreement",
+    "issueProposalEnrollmentHandoff": "proposals/issueProposalEnrollmentHandoff"
+  },
+  "hostingSha256": {
+    "public/connect/enrollment/enrollment.js": "3898c4b99cffab883f367d10fd168afe92fc910c2bbe5b2bc32f216bb7ac07bc",
+    "public/connect/enrollment/enrollment.service.js": "102186eeb72339f0026e23070f61491a3a08769bfe039b203b860512141f7566",
+    "public/connect/enrollment/index.html": "99351a9fd6bab66e29e2679d53b0477bcf3bab80b23450890d6a529c724bdbaf"
+  }
+}
