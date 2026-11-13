@@ -136,6 +136,7 @@ on:
           - v1-ui-hosting-preflight
           - v1-ui-hosting-deploy
           - v1-activation-members-repair
+          - staging-review-project-identity
           - pr629-hosting-deploy
           - pr636-hosting-preflight
           - pr636-hosting-deploy
@@ -4507,3 +4508,95 @@ jobs:
           APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
           TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
         run: bash scripts/staging/v1-activation-members-release.sh
+
+  staging-review-project-identity:
+    if: ${{ inputs.action == 'staging-review-project-identity' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+      PROJECT: sandman-combat-staging
+      REGION: us-central1
+      FUNCTION: issueProposalClientReview
+      SERVICE: issueproposalclientreview
+      BASELINE: issueproposalclientreview-00008-baw
+    steps:
+      - name: Verify release inputs
+        run: |
+          test "$CONFIRM_PROJECT" = "$PROJECT"
+          test "$APPROVAL" = APPROVE_STAGING_REVIEW_PROJECT_IDENTITY
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Patch and verify only the staging Function environment
+        run: |
+          set -euo pipefail
+          umask 077
+          cd "$(mktemp -d)"
+          endpoint="https://cloudfunctions.googleapis.com/v2/projects/$PROJECT/locations/$REGION/functions/$FUNCTION"
+          api() {
+            curl --silent --show-error --fail -H "Authorization: Bearer $(gcloud auth print-access-token)" "$@"
+          }
+          capture() {
+            api "$endpoint" > "$1-function.json"
+            gcloud run services describe "$SERVICE" --region="$REGION" --project="$PROJECT" --format=json > "$1-run.json"
+            gcloud run services get-iam-policy "$SERVICE" --region="$REGION" --project="$PROJECT" --format=json > "$1-run-iam.json"
+            api "$endpoint:getIamPolicy" > "$1-function-iam.json"
+          }
+          capture before
+          jq -e --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
+            .name == $name and .state == "ACTIVE" and
+            .buildConfig.entryPoint == "issueProposalClientReview" and
+            .buildConfig.runtime == "nodejs22" and
+            .serviceConfig.serviceAccountEmail == ("sandman-billing-runtime@" + $project + ".iam.gserviceaccount.com") and
+            .serviceConfig.environmentVariables.SANDMAN_STAGING_PROJECT_ID == $project and
+            (.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT") | not) and
+            ([.serviceConfig.secretEnvironmentVariables[].key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"]
+          ' before-function.json >/dev/null
+          jq -e --arg rev "$BASELINE" '
+            .status.latestReadyRevisionName == $rev and
+            ([.status.traffic[] | select(.percent > 0) | [.revisionName,.percent]] == [[$rev,100]])
+          ' before-run.json >/dev/null
+          jq --arg project "$PROJECT" '
+            {name, serviceConfig: {environmentVariables: (.serviceConfig.environmentVariables + {GOOGLE_CLOUD_PROJECT: $project})}}
+          ' before-function.json > patch.json
+          api -X PATCH -H 'Content-Type: application/json' --data-binary @patch.json \
+            "$endpoint?updateMask=serviceConfig.environmentVariables" > operation.json
+          operation=$(jq -er '.name | select(startswith("projects/sandman-combat-staging/locations/us-central1/operations/"))' operation.json)
+          for attempt in {1..60}; do
+            api "https://cloudfunctions.googleapis.com/v2/$operation" > operation.json
+            if jq -e '.done == true' operation.json >/dev/null; then break; fi
+            sleep 8
+          done
+          jq -e '.done == true and (.error | not)' operation.json >/dev/null
+          capture after
+          jq -e --slurpfile before before-function.json --slurpfile patch patch.json '
+            . as $after | $before[0] as $old |
+            .state == "ACTIVE" and .name == $old.name and .buildConfig == $old.buildConfig and
+            .serviceConfig.environmentVariables == $patch[0].serviceConfig.environmentVariables and
+            (($after.serviceConfig | del(.environmentVariables,.revision)) ==
+             ($old.serviceConfig | del(.environmentVariables,.revision)))
+          ' after-function.json >/dev/null
+          for policy in run-iam function-iam; do
+            diff -u <(jq -S . "before-$policy.json") <(jq -S . "after-$policy.json") >/dev/null
+          done
+          jq -e --slurpfile before before-run.json '
+            .spec.template.spec.containers[0].image == $before[0].spec.template.spec.containers[0].image
+          ' after-run.json >/dev/null
+          revision=$(jq -er --arg old "$BASELINE" --arg project "$PROJECT" '
+            .status.latestReadyRevisionName as $rev |
+            select(($rev | startswith("issueproposalclientreview-")) and $rev != $old) |
+            select([.status.traffic[] | select(.percent > 0) | [.revisionName,.percent]] == [[$rev,100]]) |
+            select(any(.spec.template.spec.containers[0].env[]; .name == "GOOGLE_CLOUD_PROJECT" and .value == $project)) |
+            $rev
+          ' after-run.json)
+          printf 'Project: %s\nPrevious revision: %s\nServing revision: %s (100%%)\nChanged variable: GOOGLE_CLOUD_PROJECT=%s\nRollback: restore the previous environment map by removing only GOOGLE_CLOUD_PROJECT.\n' \
+            "$PROJECT" "$BASELINE" "$revision" "$PROJECT" | tee -a "$GITHUB_STEP_SUMMARY"
