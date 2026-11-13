@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -Eeuo pipefail
+trap 'printf "Staging release stopped at line %s (exit %s).\n" "$LINENO" "$?" >&2' ERR
 
 project=sandman-combat-staging
 region=us-central1
@@ -66,20 +67,27 @@ if describe "$members" > "$temp/members.json" 2>"$temp/members-error"; then
     "$temp/members.json" >/dev/null
   members_missing=false
 else
-  grep -Eiq 'NOT_FOUND|not found|404|does not exist' "$temp/members-error"
+  if ! grep -Eiq 'NOT_FOUND|not found|404|does not exist' "$temp/members-error"; then
+    echo 'Members function lookup failed without proving absence.' >&2
+    if grep -Eiq 'PERMISSION_DENIED|permission|403' "$temp/members-error"; then
+      echo 'Members function lookup was denied by Google Cloud.' >&2
+    fi
+    exit 1
+  fi
+  echo 'Members function absence verified.'
   members_missing=true
 fi
 
 case "$old_revision" in
   recordenrollmentathleteactivated-00001-saz)
-    unzip -p "$temp/rollback/activation-trigger.zip" lib/enrollment/enrollmentActivity.js > "$temp/deployed-trigger.js"
-    grep -q 'stripeCheckoutSessionId' "$temp/deployed-trigger.js"
-    grep -q 'function isOperationalPaidProposal' "$temp/deployed-trigger.js"
-    if grep -Eq 'cash_prepaid|operationalPaidProposal.*require' "$temp/deployed-trigger.js"; then
-      echo 'The deployed predicate does not match the Stripe-only diagnosis.' >&2
+    expected_source="gs://gcf-v2-sources-991554514268-us-central1/recordEnrollmentAthleteActivated/function-source.zip#1793763285373279"
+    expected_sha256="603b32d6af0349a8df37092291d8cedf1cff39d87fe9445c524c3a697c6f0a0d"
+    if [[ "$old_source" != "$expected_source" ]] ||
+       ! printf '%s  %s\n' "$expected_sha256" "$temp/rollback/activation-trigger.zip" | sha256sum --check --status; then
+      echo 'Activation rollback generation or SHA-256 differs from the reviewed baseline.' >&2
       exit 1
     fi
-    echo 'Deployed trigger requires a Stripe session for an operational paid proposal.'
+    echo 'Verified exact activation trigger rollback generation and SHA-256.'
     (cd "$temp/source" && zip -qr "$temp/trigger-source.zip" .)
     python3 - "$temp/trigger-source.zip" <<'PY'
 import importlib.util
