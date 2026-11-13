@@ -4538,8 +4538,10 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v3
       - name: Patch and verify only the staging Function environment
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
           umask 077
+          phase=READ_ONLY_PREFLIGHT
+          trap 'status=$?; echo "::error::Staging identity recovery failed in phase $phase at script line $LINENO (exit $status). Inspect the preceding named checkpoint. PATCH may have occurred only if phase is PATCH_REQUESTED or later."; exit "$status"' ERR
           cd "$(mktemp -d)"
           endpoint="https://cloudfunctions.googleapis.com/v2/projects/$PROJECT/locations/$REGION/functions/$FUNCTION"
           api() {
@@ -4551,7 +4553,9 @@ jobs:
             gcloud run services get-iam-policy "$SERVICE" --region="$REGION" --project="$PROJECT" --format=json > "$1-run-iam.json"
             api "$endpoint:getIamPolicy" > "$1-function-iam.json"
           }
+          echo "::notice::READ_ONLY_PREFLIGHT: capture function, service, and both IAM policies"
           capture before
+          echo "::notice::READ_ONLY_PREFLIGHT: verify function runtime, identity, secret bindings, environment"
           jq -e --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
             .name == $name and .state == "ACTIVE" and
             .buildConfig.entryPoint == "issueProposalClientReview" and
@@ -4561,23 +4565,32 @@ jobs:
             (.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT") | not) and
             ([.serviceConfig.secretEnvironmentVariables[].key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"]
           ' before-function.json >/dev/null
+          echo "::notice::READ_ONLY_PREFLIGHT: verify pinned serving revision and 100 percent traffic"
           jq -e --arg rev "$BASELINE" '
             .status.latestReadyRevisionName == $rev and
             ([.status.traffic[] | select(.percent > 0) | [.revisionName,.percent]] == [[$rev,100]])
           ' before-run.json >/dev/null
+          echo "::notice::READ_ONLY_PREFLIGHT: complete; prepare exact environment-only PATCH"
           jq --arg project "$PROJECT" '
             {name, serviceConfig: {environmentVariables: (.serviceConfig.environmentVariables + {GOOGLE_CLOUD_PROJECT: $project})}}
           ' before-function.json > patch.json
+          phase=PATCH_REQUESTED
+          echo "::notice::PATCH_REQUESTED: submitting environment-only update"
           api -X PATCH -H 'Content-Type: application/json' --data-binary @patch.json \
             "$endpoint?updateMask=serviceConfig.environmentVariables" > operation.json
+          phase=PATCH_RESPONSE_RECEIVED
           operation=$(jq -er '.name | select(startswith("projects/sandman-combat-staging/locations/us-central1/operations/"))' operation.json)
+          phase=PATCH_OPERATION_POLL
           for attempt in {1..60}; do
             api "https://cloudfunctions.googleapis.com/v2/$operation" > operation.json
             if jq -e '.done == true' operation.json >/dev/null; then break; fi
             sleep 8
           done
           jq -e '.done == true and (.error | not)' operation.json >/dev/null
+          phase=POST_PATCH_VERIFY
+          echo "::notice::POST_PATCH_VERIFY: capture function, service, and IAM policies"
           capture after
+          echo "::notice::POST_PATCH_VERIFY: compare preserved runtime and secrets"
           jq -e --slurpfile before before-function.json --slurpfile patch patch.json '
             . as $after | $before[0] as $old |
             .state == "ACTIVE" and .name == $old.name and .buildConfig == $old.buildConfig and
@@ -4585,12 +4598,15 @@ jobs:
             (($after.serviceConfig | del(.environmentVariables,.revision)) ==
              ($old.serviceConfig | del(.environmentVariables,.revision)))
           ' after-function.json >/dev/null
+          echo "::notice::POST_PATCH_VERIFY: compare IAM policies"
           for policy in run-iam function-iam; do
             diff -u <(jq -S . "before-$policy.json") <(jq -S . "after-$policy.json") >/dev/null
           done
+          echo "::notice::POST_PATCH_VERIFY: compare source image"
           jq -e --slurpfile before before-run.json '
             .spec.template.spec.containers[0].image == $before[0].spec.template.spec.containers[0].image
           ' after-run.json >/dev/null
+          echo "::notice::POST_PATCH_VERIFY: check new revision and 100 percent traffic"
           revision=$(jq -er --arg old "$BASELINE" --arg project "$PROJECT" '
             .status.latestReadyRevisionName as $rev |
             select(($rev | startswith("issueproposalclientreview-")) and $rev != $old) |
