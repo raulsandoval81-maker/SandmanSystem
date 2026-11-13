@@ -18,7 +18,7 @@ test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
 # Continue only the exact deployment completed by run 43378051277.
 deployed_sha=da90ad105f7325d5edfa72bea50f1a04502d2d23
 trigger_revision=recordenrollmentathleteactivated-00002-xaz
-members_revision=searchmanagementmembers-00001-doh
+members_revision=searchmanagementmembers-00002-jtw
 rollback_source="gs://gcf-v2-sources-991554514268-us-central1/recordEnrollmentAthleteActivated/function-source.zip#1793763285373279"
 rollback_sha256=603b32d6af0349a8df37092291d8cedf1cff39d87fe9445c524c3a697c6f0a0d
 
