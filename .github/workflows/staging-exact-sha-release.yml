@@ -4556,28 +4556,43 @@ jobs:
           echo "::notice::READ_ONLY_PREFLIGHT: capture function, service, and both IAM policies"
           capture before
           echo "::notice::READ_ONLY_PREFLIGHT: verify function runtime, identity, secret bindings, environment"
-          jq -e --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
+          # Report only booleans, not values, for existing identity variables and secrets.
+          # Distinguish an already-set correct identity from a conflicting one.
+          jq -r --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
+            .serviceConfig.environmentVariables as $env |
             {
               name: (.name == $name),
               active: (.state == "ACTIVE"),
               entry_point: (.buildConfig.entryPoint == "issueProposalClientReview"),
               runtime: (.buildConfig.runtime == "nodejs22"),
               runtime_service_account: (.serviceConfig.serviceAccountEmail == ("sandman-billing-runtime@" + $project + ".iam.gserviceaccount.com")),
-              staging_project_marker: (.serviceConfig.environmentVariables.SANDMAN_STAGING_PROJECT_ID == $project),
-              google_project_not_previously_set: ((.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT")) | not),
+              staging_project_marker: ($env.SANDMAN_STAGING_PROJECT_ID == $project),
+              google_project_absent: (($env | has("GOOGLE_CLOUD_PROJECT")) | not),
+              google_project_matches_staging: ($env.GOOGLE_CLOUD_PROJECT == $project),
+              gcloud_project_conflicts: (($env.GCLOUD_PROJECT // $project) != $project),
+              gcp_project_conflicts: (($env.GCP_PROJECT // $project) != $project),
+              firebase_config_conflicts: ((try ($env.FIREBASE_CONFIG | fromjson | .projectId) catch $project) != $project),
               secret_bindings: (([.serviceConfig.secretEnvironmentVariables[]?.key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"])
-            } as $checks |
-            ($checks | to_entries | map(select(.value == false) | .key)) as $failed |
-            if ($failed | length) > 0 then
-              $failed[] | "FAILED_STAGING_CONFIGURATION_CHECK: " + .
-            else
-              "PASS_STAGING_CONFIGURATION_CHECKS"
-            end
+            } | to_entries[] | .key + "=" + (.value | tostring)
           ' before-function.json | while IFS= read -r check; do
-            echo "::notice::$check"
-            if [[ "$check" == FAILED_STAGING_CONFIGURATION_CHECK:* ]]; then exit 1; fi
+            echo "::notice::IDENTITY_INSPECTION: $check"
           done
+          # The original deployment authorization only permits adding an absent variable;
+          # a present variable (even if correct) requires separate reconciliation.
+          jq -e --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
+            .name == $name and .state == "ACTIVE" and
+            .buildConfig.entryPoint == "issueProposalClientReview" and
+            .buildConfig.runtime == "nodejs22" and
+            .serviceConfig.serviceAccountEmail == ("sandman-billing-runtime@" + $project + ".iam.gserviceaccount.com") and
+            .serviceConfig.environmentVariables.SANDMAN_STAGING_PROJECT_ID == $project and
+            (.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT") | not) and
+            ([.serviceConfig.secretEnvironmentVariables[]?.key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"]
+          ' before-function.json >/dev/null
           echo "::notice::READ_ONLY_PREFLIGHT: verify pinned serving revision and 100 percent traffic"
+          jq -r --arg rev "$BASELINE" '
+            "REVISION_INSPECTION: expected_revision_matches=" + ((.status.latestReadyRevisionName == $rev) | tostring),
+            "REVISION_INSPECTION: pinned_revision_has_full_traffic=" + (([.status.traffic[] | select(.percent > 0) | [.revisionName,.percent]] == [[$rev,100]]) | tostring)
+          ' before-run.json | while IFS= read -r check; do echo "::notice::$check"; done
           jq -e --arg rev "$BASELINE" '
             .status.latestReadyRevisionName == $rev and
             ([.status.traffic[] | select(.percent > 0) | [.revisionName,.percent]] == [[$rev,100]])
