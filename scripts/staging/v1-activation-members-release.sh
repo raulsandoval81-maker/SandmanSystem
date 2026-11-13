@@ -43,14 +43,26 @@ jq -e --arg rev "$trigger_revision" '
     length == 1 and .[0].value == "intakes/{intakeId}" and .[0].operator == "match-path-pattern")
 ' "$temp/trigger.json" >/dev/null
 describe "$members" > "$temp/members.json"
-jq -e --arg rev "$members_revision" --arg sha "$deployed_sha" --arg release "$release_label" '
+jq -e --arg sha "$deployed_sha" --arg release "$release_label" '
   .state == "ACTIVE" and .environment == "GEN_2" and
   .buildConfig.entryPoint == "searchManagementMembers" and .buildConfig.runtime == "nodejs22" and
-  .buildConfig.sourceProvenance.resolvedStorageSource.generation == "1794551034782213" and
-  .serviceConfig.revision == $rev and .serviceConfig.allTrafficOnLatestRevision == true and
+  (.buildConfig.sourceProvenance.resolvedStorageSource.generation | tostring) == "1794551034782213" and
+  (.serviceConfig.revision == "searchmanagementmembers-00001-doh" or .serviceConfig.revision == "searchmanagementmembers-00002-jtw") and
   .serviceConfig.serviceAccountEmail == "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" and
   .labels["sandman-enrollment-release"] == $release and .labels["sandman-source-sha"] == $sha
 ' "$temp/members.json" >/dev/null
+gcloud run services describe searchmanagementmembers --project="$project" --region="$region" --format=json > "$temp/members-run.json"
+jq -e --arg rev "$members_revision" '
+  .metadata.annotations["run.googleapis.com/invoker-iam-disabled"] == "true" and
+  .status.latestReadyRevisionName == $rev and
+  ([.status.traffic[] | select((.percent // 0) > 0)] |
+    length == 1 and .[0].revisionName == $rev and .[0].percent == 100)
+' "$temp/members-run.json" >/dev/null
+gcloud run revisions describe "$members_revision" --project="$project" --region="$region" --format=json > "$temp/members-revision.json"
+jq -e '
+  .spec.serviceAccountName == "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com" and
+  (.status.imageDigest | split("@") | last) == "sha256:041490769997e5cd3dba74cd70a3de6ff9aba37aff95776f74b0d96d145584d2"
+' "$temp/members-revision.json" >/dev/null
 printf 'Verified existing revisions: %s, %s\n' "$trigger_revision" "$members_revision"
 
 gcloud storage cp "$rollback_source" "$temp/activation-trigger.zip" --project="$project"
