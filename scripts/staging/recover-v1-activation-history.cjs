@@ -11,12 +11,18 @@ async function recover(db, serverTimestamp, isOperationalPaidProposal, apply) {
   const history = proposalRef.collection('history');
   const target = history.doc(HISTORY);
   return db.runTransaction(async tx => {
-    const [proposal, intakes, athletes, events] = await Promise.all([
-      tx.get(proposalRef),
-      tx.get(db.collection('intakes').where('proposalId', '==', PROPOSAL)),
-      tx.get(db.collection('athletes').where('uid', '==', ATHLETE)),
-      tx.get(history.where('event', '==', 'ATHLETE_ACTIVATED')),
-    ]);
+    const read = async (operation, ref) => {
+      try {
+        return await tx.get(ref);
+      } catch (error) {
+        const code = Number.isInteger(error.code) ? error.code : 'unknown';
+        throw new Error(`Firestore ${operation} failed (status ${code}).`, { cause: error });
+      }
+    };
+    const proposal = await read('BatchGet proposal (opens transaction)', proposalRef);
+    const intakes = await read('RunQuery approved Intake', db.collection('intakes').where('proposalId', '==', PROPOSAL));
+    const athletes = await read('RunQuery athlete UID', db.collection('athletes').where('uid', '==', ATHLETE));
+    const events = await read('RunQuery activation history', history.where('event', '==', 'ATHLETE_ACTIVATED'));
     const payment = proposal.data();
     const intake = intakes.docs.find(doc => doc.id === INTAKE)?.data();
     const approved = intakes.docs.filter(doc => doc.data().status === 'approved' && doc.data().minted === true);
@@ -57,7 +63,7 @@ async function recover(db, serverTimestamp, isOperationalPaidProposal, apply) {
       createdAt: serverTimestamp(),
     });
     return 'created one activation history event';
-  });
+  }, apply ? undefined : { readOnly: true });
 }
 
 function stagingFirestoreOptions(env, readFile) {
@@ -100,6 +106,13 @@ if (require.main === module) {
     const options = stagingFirestoreOptions(process.env, readFileSync);
     const { Firestore, FieldValue } = require('@google-cloud/firestore');
     const { isOperationalPaidProposal } = require('../../functions/lib/enrollment/operationalPaidProposal.js');
+    const { execFileSync } = require('node:child_process');
+    const active = execFileSync('gcloud', ['auth', 'list', '--filter=status:ACTIVE',
+      '--format=value(account)'], { encoding: 'utf8' }).trim();
+    if (active !== `sandman-practice-deployer@${PROJECT}.iam.gserviceaccount.com`) {
+      throw new Error('Active gcloud identity does not match the protected staging deployer.');
+    }
+    console.log(`Verified staging deployer: ${active}`);
     const db = new Firestore(options);
     try {
       console.log(await recover(db, FieldValue.serverTimestamp, isOperationalPaidProposal, process.argv[2] === '--apply'));

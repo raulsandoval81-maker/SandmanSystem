@@ -188,3 +188,18 @@ test('repair accepts only the protected staging WIF provider and impersonated de
   assert.throws(() => stagingFirestoreOptions({ ...env, GOOGLE_CLOUD_PROJECT: 'production' }, read(valid)), /credential file and project/);
   assert.throws(() => stagingFirestoreOptions({ ...env, GOOGLE_GHA_CREDS_PATH: '/other.json' }, read(valid)), /credential file and project/);
 });
+
+test('preflight uses a read-only transaction and identifies the first denied Firestore operation', async () => {
+  const db = {
+    doc: () => ({ collection: () => ({ doc: () => 'history' }) }),
+    runTransaction: (callback, options) => {
+      assert.deepEqual(options, { readOnly: true });
+      return callback({
+        get: async () => { throw Object.assign(new Error('private detail'), { code: 7 }); },
+      });
+    },
+  };
+  await assert.rejects(recover(db, () => null, isOperationalPaidProposal, false), {
+    message: 'Firestore BatchGet proposal (opens transaction) failed (status 7).',
+  });
+});
