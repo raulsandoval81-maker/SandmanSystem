@@ -7,20 +7,21 @@ const html = readFileSync("public/connect/enrollment/index.html", "utf8");
 const source = readFileSync("public/connect/enrollment/enrollment.js", "utf8");
 const css = readFileSync("public/connect/enrollment/enrollment.css", "utf8");
 
-function simulate(enrollment) {
+function simulate(enrollment, runtimeEnvironment = "staging") {
   const progress = ["summary", "payment", "intake", "approval", "onboarding"].map((step) => ({
     dataset: { step }, setAttribute(key, value) { this[key] = value; },
     removeAttribute(key) { delete this[key]; },
   }));
   const button = { textContent: "" };
   const elements = {
+    earlyIntakeButton: { hidden: true },
     paymentStepLabel: { textContent: "" },
     paymentStepOwner: { textContent: "" },
     intro: { textContent: "" },
   };
   const section = source.slice(source.indexOf("  function enrollmentPathway("), source.indexOf("  function restoreCorrectStep("));
   const context = {
-    state: { enrollment }, elements,
+    state: { enrollment }, elements, runtimeEnvironment,
     document: { querySelectorAll() { return progress; }, getElementById() { return button; } },
   };
   runInNewContext(section + "\nrenderEnrollmentProgress();", context);
@@ -28,6 +29,7 @@ function simulate(enrollment) {
     stages: progress.map((item) => [item.dataset.step, item.dataset.status]),
     current: progress.find((item) => item["aria-current"] === "step")?.dataset.step,
     button: button.textContent,
+    earlyIntakeVisible: !elements.earlyIntakeButton.hidden,
     payment: elements.paymentStepLabel.textContent,
     owner: elements.paymentStepOwner.textContent,
     intro: elements.intro.textContent,
@@ -43,21 +45,24 @@ test("family page has all five compact stages and existing buttons", () => {
   assert.match(html, /id="saveAgreementButton"/);
 });
 
-test("unsigned Cash/Check shows Intake next and avoids Stripe language", () => {
+test("unsigned Cash/Check defaults to waiting for Management and avoids Stripe language", () => {
   const result = simulate({ paymentRoute: "management_prepaid_reconciliation", pricing: {
     paymentArrangement: "prepaid_cash_check" }, confirmation: { termsConfirmed: false } });
   assert.equal(result.current, "summary");
   assert.equal(result.payment, "Cash/Check Verification");
   assert.equal(result.owner, "Management");
-  assert.equal(result.button, "Confirm & Continue to Intake");
+  assert.equal(result.button, "Confirm & Wait for Management");
+  assert.equal(result.earlyIntakeVisible, true);
+  assert.equal(simulate({ paymentRoute: "management_prepaid_reconciliation" }, "prod").earlyIntakeVisible, false);
   assert.doesNotMatch(result.intro, /Stripe/);
 });
 
 test("confirmed Cash/Check does not claim payment verified or Intake completed", () => {
   const result = simulate({ paymentRoute: "management_prepaid_reconciliation", pricing: {
     paymentArrangement: "prepaid_cash_check" }, confirmation: { termsConfirmed: true } });
-  assert.equal(result.current, "intake");
-  assert.equal(result.stages.find(([key]) => key === "payment")[1], "pending");
+  assert.equal(result.current, "payment");
+  assert.equal(result.stages.find(([key]) => key === "payment")[1], "current");
+  assert.equal(result.stages.find(([key]) => key === "intake")[1], "pending");
 });
 
 test("Stripe monthly and one-time present distinct payment labels", () => {
@@ -79,4 +84,14 @@ test("paid family with completed Intake moves to Management stage", () => {
 test("family page never creates a payment authorization from progress state", () => {
   const section = source.slice(source.indexOf("  function enrollmentPathway("), source.indexOf("  function restoreCorrectStep("));
   assert.doesNotMatch(section, /createCheckout|httpsCallable|issueEarlyCashCheckIntake|stripe\.checkout/);
+});
+
+test("explicit early Cash/Check Intake retains the Intake progress step", () => {
+  const result = simulate({
+    paymentRoute: "management_prepaid_reconciliation",
+    confirmation: { termsConfirmed: true },
+    intakePath: "/intake-parent/?invite=synthetic",
+  });
+  assert.equal(result.current, "intake");
+  assert.equal(result.earlyIntakeVisible, false);
 });

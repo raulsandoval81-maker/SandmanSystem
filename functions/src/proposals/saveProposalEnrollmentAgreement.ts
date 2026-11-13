@@ -180,10 +180,12 @@ export const saveProposalEnrollmentAgreement =
     const proposal =
       saved.data() || {};
 
-    const early = canStartEarlyCashCheckIntake(proposal, staging) ? await db.runTransaction(async tx => {
+    const requestedEarlyIntake = req.data?.startEarlyIntake === true;
+    const early = (requestedEarlyIntake || proposal.earlyCashCheckIntakeTokenId) &&
+      canStartEarlyCashCheckIntake(proposal, staging) ? await db.runTransaction(async tx => {
       const current = (await tx.get(proposalRef)).data() || {};
       validateProposalEnrollmentToken(current, enrollmentToken);
-      return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid, staging);
+      return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid, staging, requestedEarlyIntake);
     }) : {};
 
     const snapshot =

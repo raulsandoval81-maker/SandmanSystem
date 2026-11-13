@@ -46,8 +46,10 @@ export function canStartEarlyCashCheckIntake(proposal: Record<string, any>, stag
 export async function issueEarlyCashCheckIntake(
   tx: Transaction, proposalRef: DocumentReference, proposal: Record<string, any>, uid: string | undefined,
   staging = isStagingEnrollmentRuntime(),
+  requestedEarlyIntake = false,
 ) {
-  if (!canStartEarlyCashCheckIntake(proposal, staging)) return {};
+  if ((!requestedEarlyIntake && !proposal.earlyCashCheckIntakeTokenId) ||
+      !canStartEarlyCashCheckIntake(proposal, staging)) return {};
   if (!uid) throw new HttpsError("unauthenticated", "Secure Intake session required.");
   const db = proposalRef.firestore;
   const audience = proposal.clientAcceptance.signerRole;

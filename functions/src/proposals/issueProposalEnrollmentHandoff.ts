@@ -162,13 +162,13 @@ export const issueProposalEnrollmentHandoff =
       const staging = delivery === "local" && Boolean(clientReviewToken) &&
         proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
         await resolveEarlyIntakeStagingRuntime();
-      if (canStartEarlyCashCheckIntake(proposal, staging)) {
+      if (proposal.earlyCashCheckIntakeTokenId && canStartEarlyCashCheckIntake(proposal, staging)) {
         return db.runTransaction(async tx => {
           const current = (await tx.get(proposalRef)).data() || {};
           const review = current.clientReview || {};
           if (hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
               !(review.expiresAt instanceof Timestamp) || review.expiresAt.toMillis() <= Date.now() ||
-              !canStartEarlyCashCheckIntake(current, staging)) {
+              !current.earlyCashCheckIntakeTokenId || !canStartEarlyCashCheckIntake(current, staging)) {
             throw new HttpsError("failed-precondition", "The signed Cash/Check proposal is no longer eligible for Intake.");
           }
           return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid, staging);

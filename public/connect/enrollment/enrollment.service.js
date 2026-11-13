@@ -73,7 +73,7 @@ import {
     );
   }
 
-  async function saveConfirmation(confirmation, secureIntake = false) {
+  async function saveConfirmation(confirmation, secureIntake = false, startEarlyIntake = false) {
     if (secureIntake) await ensureSignedIn();
     const {
       enrollmentToken,
@@ -85,7 +85,8 @@ import {
       {
         proposalId,
         enrollmentToken,
-        confirmation
+        confirmation,
+        ...(startEarlyIntake ? { startEarlyIntake: true } : {})
       }
     );
   }
