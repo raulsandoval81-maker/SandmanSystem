@@ -50,6 +50,11 @@ jobs:
           ref: 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
           path: application
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: eeb0552e3acf0904f63934aa2c9b303915b74cd7
+          path: staging-ui
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
