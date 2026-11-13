@@ -170,7 +170,7 @@
   },
   "rulesSha256": "326f885f866337c39b27fb395e362cce9e8a6952c934f5126f9d38ba8acf4c66",
   "stagingAcceptance": {
-    "unpaidActivation": null,
+    "unpaidActivation": "https://sandman-combat-staging.web.app/intake-management/?proposalId=P-000004",
     "combinedDelivery": null
   }
 }
