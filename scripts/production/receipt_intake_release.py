@@ -165,9 +165,14 @@ def check_export(name, archive, root):
 
 
 def assets(root):
+    hosting = PLAN["hosting"]
+    ui_root = root.parent / "staging-ui"
+    ui_sha = subprocess.check_output(["git", "-C", str(ui_root), "rev-parse", "HEAD"], text=True).strip()
+    require(ui_sha == hosting["uiCandidate"], "Staging UI checkout SHA differs")
     result = {}
     for path, expected in PLAN["hosting"]["assets"].items():
-        raw = (root / ("public" + path)).read_bytes()
+        asset_root = ui_root if path in hosting["uiPaths"] else root
+        raw = (asset_root / ("public" + path)).read_bytes()
         require(inventory.sha(raw) == expected["candidateSha256"], f"{path}: source differs")
         zipped = subprocess.run(
             ["node", "-e", "process.stdout.write(require('zlib').gzipSync(require('fs').readFileSync(0)))"],

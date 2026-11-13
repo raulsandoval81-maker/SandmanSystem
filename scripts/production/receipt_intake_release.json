@@ -131,13 +131,13 @@
       },
       "/intake-management/index.html": {
         "baselineHash": "2bc286218471bafde7d23f19840352ac4f5e3b67311ac45a62bc551b30814538",
-        "candidateSha256": "6048a8ec5761d230f5f33edcc7696f47ba1008dc205a3eccb76a3214c6c0d709",
-        "hostingHash": "1acbd148c94402bcec46137e3bc79c9888ef9370b541ccf259f8c5cd48601643"
+        "candidateSha256": "e4d533ad1c7e304796787315bab1df247c5b4459f51adf73f871aca536827afa",
+        "hostingHash": "1318c0bb95fb386577ec744732ba1fbac4dabe675d7e1a27e6fdfca5c9da9777"
       },
       "/intake-management/management.intake.js": {
         "baselineHash": "3505e64cf332509e4b26e34bd7e18f9775c4ad0cc15da039cb47a04db13206ab",
-        "candidateSha256": "97323c3ca418ed05ffc8311c30cf0d8b01f1d338e73eb2a2ee47b0bed5106483",
-        "hostingHash": "2b6f5f441b3f7a395f5e5e4133a68aea81a8afb0174e37d7c25048ec58d61b60"
+        "candidateSha256": "8699206f09907e716591bf79f0804b49420c18b74d4587b2f0ac2abdea7a14d5",
+        "hostingHash": "cdb424aa989283b38ec715a5e7b059de2e44d2fb7069057b87eae39b5ef4e642"
       },
       "/intake-management/review.js": {
         "baselineHash": "35787e27db778c5974cc4d4cb444de2e704a447d123f508f64d79614f5ae1a94",
@@ -146,15 +146,27 @@
       },
       "/intake-parent/parent.intake.js": {
         "baselineHash": "74e9c8360961bc77703706b3cad5c657e52336eb627b220e7e0c7e5ba3e42240",
-        "candidateSha256": "3854208b270595db466c4192666db51572b31cbc045e9f9b4c71f1175324d486",
-        "hostingHash": "bd877b89f36f2940aab645ae6da165fbaaa3a86e7fbf649873d0df5826a4b301"
+        "candidateSha256": "fbb0494959035f666ec1650d3c050503e3758d6adf3e85c2165b29fd504253e4",
+        "hostingHash": "324a7ea580a46689071fd3d21e1f8dc965a972b8e4bebb380c8dae7e5f7fa8f5"
       },
       "/waiver/index.html": {
         "baselineHash": "196bd75e55849ac2b1126cd6b3a36eef5f7e51d98c2365aebf5b60a0de257bd7",
         "candidateSha256": "776295841c8fbe8c70c3da572571de4e866a3d2eecf5e11cc0189f7d1a31eaac",
         "hostingHash": "173809202a19ed2a8bf8d6eb3879c287e40f68e9f218e303da11fc1ba36bb9d2"
+      },
+      "/connect/proposals/review/review.js": {
+        "baselineHash": "fdd1e981f0956d2ea57c2e2be9da794d8df9360bd8d2b7a8c4ca326ce12cbad2",
+        "candidateSha256": "d6110610bb918a261d1457c7d94653be8aef9c401c236be82e09794ec27f5323",
+        "hostingHash": "abc829c7d0aa64e4bbf7f7d92da7fad7771312a071c4f71c73d6b51faad784fd"
       }
-    }
+    },
+    "uiCandidate": "eeb0552e3acf0904f63934aa2c9b303915b74cd7",
+    "uiPaths": [
+      "/connect/proposals/review/review.js",
+      "/intake-parent/parent.intake.js",
+      "/intake-management/management.intake.js",
+      "/intake-management/index.html"
+    ]
   },
   "rulesSha256": "326f885f866337c39b27fb395e362cce9e8a6952c934f5126f9d38ba8acf4c66",
   "stagingAcceptance": {
