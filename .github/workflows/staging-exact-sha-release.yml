@@ -4557,14 +4557,26 @@ jobs:
           capture before
           echo "::notice::READ_ONLY_PREFLIGHT: verify function runtime, identity, secret bindings, environment"
           jq -e --arg project "$PROJECT" --arg name "${endpoint#*/v2/}" '
-            .name == $name and .state == "ACTIVE" and
-            .buildConfig.entryPoint == "issueProposalClientReview" and
-            .buildConfig.runtime == "nodejs22" and
-            .serviceConfig.serviceAccountEmail == ("sandman-billing-runtime@" + $project + ".iam.gserviceaccount.com") and
-            .serviceConfig.environmentVariables.SANDMAN_STAGING_PROJECT_ID == $project and
-            (.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT") | not) and
-            ([.serviceConfig.secretEnvironmentVariables[].key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"]
-          ' before-function.json >/dev/null
+            {
+              name: (.name == $name),
+              active: (.state == "ACTIVE"),
+              entry_point: (.buildConfig.entryPoint == "issueProposalClientReview"),
+              runtime: (.buildConfig.runtime == "nodejs22"),
+              runtime_service_account: (.serviceConfig.serviceAccountEmail == ("sandman-billing-runtime@" + $project + ".iam.gserviceaccount.com")),
+              staging_project_marker: (.serviceConfig.environmentVariables.SANDMAN_STAGING_PROJECT_ID == $project),
+              google_project_not_previously_set: ((.serviceConfig.environmentVariables | has("GOOGLE_CLOUD_PROJECT")) | not),
+              secret_bindings: (([.serviceConfig.secretEnvironmentVariables[]?.key] | sort) == ["RESEND_API_KEY","STAGING_TEST_EMAIL_ALLOWLIST"])
+            } as $checks |
+            ($checks | to_entries | map(select(.value == false) | .key)) as $failed |
+            if ($failed | length) > 0 then
+              $failed[] | "FAILED_STAGING_CONFIGURATION_CHECK: " + .
+            else
+              "PASS_STAGING_CONFIGURATION_CHECKS"
+            end
+          ' before-function.json | while IFS= read -r check; do
+            echo "::notice::$check"
+            if [[ "$check" == FAILED_STAGING_CONFIGURATION_CHECK:* ]]; then exit 1; fi
+          done
           echo "::notice::READ_ONLY_PREFLIGHT: verify pinned serving revision and 100 percent traffic"
           jq -e --arg rev "$BASELINE" '
             .status.latestReadyRevisionName == $rev and
