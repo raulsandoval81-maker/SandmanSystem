@@ -483,8 +483,8 @@ const extras = {
     cashCheckReviewButton.id = "cashCheckReviewButton";
     cashCheckReviewButton.type = "button";
     cashCheckReviewButton.className = "button";
-    cashCheckReviewButton.textContent = "2C. Cash/Check — Begin Family Review (No Stripe)";
-    cashCheckReviewButton.title = "Begin required family review. Management reconciles the existing check only after Review & Confirm.";
+    cashCheckReviewButton.textContent = "2C. In-Person Confirm — Cash/Check (No Stripe)";
+    cashCheckReviewButton.title = "Open 2C in-person Cash/Check proposal review. Management verifies the payment separately after the family signs.";
     cashCheckReviewButton.hidden = true;
     sendReviewButton.insertAdjacentElement("afterend", cashCheckReviewButton);
     el.cashCheckReviewButton = cashCheckReviewButton;
