@@ -38,8 +38,11 @@ test("existing secure token is reused, session bound, and completed Intake does 
     create: (ref, data) => { assert.equal(docs.has(ref), false); docs.set(ref, data); },
     update: (target, data) => { assert.equal(target, ref); Object.assign(current, data); },
   };
-  await assert.rejects(issueEarlyCashCheckIntake(tx, ref, current), { code: "unauthenticated" });
-  const first = await issueEarlyCashCheckIntake(tx, ref, current, "guardian");
+  assert.deepEqual(await issueEarlyCashCheckIntake(tx, ref, current, "guardian"), {});
+  assert.equal(docs.size, 0);
+  assert.equal(current.earlyCashCheckIntakeTokenId, undefined);
+  await assert.rejects(issueEarlyCashCheckIntake(tx, ref, current, undefined, true, true), { code: "unauthenticated" });
+  const first = await issueEarlyCashCheckIntake(tx, ref, current, "guardian", true, true);
   assert.match(first.intakePath, /^\/intake-parent\/\?invite=[a-f0-9]{32}$/);
   assert.deepEqual(await issueEarlyCashCheckIntake(tx, ref, current, "guardian"), first);
   await assert.rejects(issueEarlyCashCheckIntake(tx, ref, current, "unrelated"), { code: "permission-denied" });

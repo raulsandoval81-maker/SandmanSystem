@@ -3,7 +3,7 @@ import { runtimeEnvironment } from "/assets/js/runtime-environment.js";
 
 import {
   SandmanEnrollmentService as service
-} from "./enrollment.service.js?v=20261002-6";
+} from "./enrollment.service.js?v=staging-cash-check-sequencing";
 
 import {
   SANDMAN_PRICING_CATALOG
@@ -56,6 +56,7 @@ import {
     );
     elements.fundingRoute = document.getElementById("fundingRoute");
 
+    elements.earlyIntakeButton = document.getElementById("earlyIntakeButton");
     elements.agreementForm = document.getElementById("agreementForm");
     elements.intro = document.getElementById("enrollmentIntro");
     elements.paymentStepLabel = document.getElementById("paymentStepLabel");
@@ -405,7 +406,7 @@ import {
     if (enrollment.intakeComplete) done.add("intake");
     // A completed family confirmation does not prove payment or Intake is complete.
     const current = !path.confirmed ? "summary"
-      : path.cash && !enrollment.intakeComplete ? "intake"
+      : path.cash && enrollment.intakePath && !enrollment.intakeComplete ? "intake"
       : !path.paid ? "payment"
       : !enrollment.intakeComplete ? "intake"
       : "approval";
@@ -415,8 +416,11 @@ import {
       if (stage === current) element.setAttribute("aria-current", "step");
     });
     const button = document.getElementById("saveAgreementButton");
+    if (elements.earlyIntakeButton) {
+      elements.earlyIntakeButton.hidden = runtimeEnvironment !== "staging" || !path.cash || path.confirmed;
+    }
     if (button && !path.confirmed) {
-      button.textContent = path.cash ? "Confirm & Continue to Intake"
+      button.textContent = path.cash ? "Confirm & Wait for Management"
         : path.oneTime ? "Confirm & Continue to One-Time Payment"
         : "Confirm & Continue to Secure Payment";
     }
@@ -463,15 +467,13 @@ import {
     }
 
     const submitButton =
-      elements.agreementForm.querySelector(
-        '[type="submit"]'
-      );
+      event.submitter || document.getElementById("saveAgreementButton");
 
     setButtonBusy(
       submitButton,
       true,
       state.enrollment.paymentRoute === "management_prepaid_reconciliation"
-        ? "Requesting Secure Intake..." : "Opening Secure Payment..."
+        ? "Saving Confirmation..." : "Opening Secure Payment..."
     );
 
     try {
@@ -483,7 +485,8 @@ import {
       const confirmResponse =
         await service.saveConfirmation(
           confirmation, runtimeEnvironment === "staging" &&
-            state.enrollment.pricing?.paymentArrangement === "prepaid_cash_check"
+            state.enrollment.pricing?.paymentArrangement === "prepaid_cash_check",
+          runtimeEnvironment === "staging" && event.submitter === elements.earlyIntakeButton
         );
 
       state.enrollment =
