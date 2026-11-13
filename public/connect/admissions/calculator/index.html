@@ -231,6 +231,22 @@
       gap: 10px;
     }
 
+    .proposal-review-choice {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px;
+    }
+
+    .proposal-review-choice > summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .proposal-review-choice > .small {
+      margin: 10px 0;
+    }
+
     #submitReviewButton {
       order: 2;
     }
@@ -1014,9 +1030,6 @@
           Save the proposal, then choose family confirmation. Cash/Check proceeds to Management payment verification; only Stripe arrangements use Stripe checkout.
         </p>
 
-
-
-
         <div class="workflow-actions">
           <button
             id="saveDraftButton"
@@ -1025,16 +1038,24 @@
           >
             Save Draft
           </button>
-
-          <button
-            id="submitReviewButton"
-            class="button"
-            type="button"
-          >
-            Submit for Review
-          </button>
-
         </div>
+
+        <details class="proposal-review-choice" open>
+          <summary>Family Review — Choose In Person or Remote</summary>
+          <p class="small muted">
+            Select how the family will review and sign this proposal.
+            Payment verification, receipt delivery, and Intake remain separate Management steps.
+          </p>
+          <div class="workflow-actions">
+            <button
+              id="submitReviewButton"
+              class="button"
+              type="button"
+            >
+              Submit for Review
+            </button>
+          </div>
+        </details>
       </section>
     </section>
   </main>
