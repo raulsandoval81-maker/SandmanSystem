@@ -25,11 +25,17 @@ describe() {
 }
 
 describe "$trigger" > "$temp/trigger-before.json"
-jq -e '.state == "ACTIVE" and .eventTrigger.eventType == "google.cloud.firestore.document.v1.updated" and
-  any(.eventTrigger.eventFilters | to_entries[]; .key == "document" and .value == "intakes/{intakeId}")' \
-  "$temp/trigger-before.json" >/dev/null ||
-  jq -e '.state == "ACTIVE" and .eventTrigger.eventType == "google.cloud.firestore.document.v1.updated" and
-    .eventTrigger.eventFilterPathPatterns.document == "intakes/{intakeId}"' "$temp/trigger-before.json" >/dev/null
+# Cloud Functions v2 returns an array of attribute/value/operator filters.
+jq -c '{state, eventType: .eventTrigger.eventType, documentFilters:
+  [.eventTrigger.eventFilters[]? | objects | select(.attribute == "document") |
+    {attribute, value, operator}]}' "$temp/trigger-before.json"
+if ! jq -e '.state == "ACTIVE" and .eventTrigger.eventType == "google.cloud.firestore.document.v1.updated" and
+  ([.eventTrigger.eventFilters[]? | objects | select(.attribute == "document")] |
+    length == 1 and .[0].value == "intakes/{intakeId}" and .[0].operator == "match-path-pattern")' \
+  "$temp/trigger-before.json" >/dev/null; then
+  echo 'Activation trigger is not ACTIVE with the exact Intake update path pattern.' >&2
+  exit 1
+fi
 old_revision="$(jq -er '.serviceConfig.revision | split("/") | last' "$temp/trigger-before.json")"
 old_source="$(jq -er '.buildConfig.source.storageSource | "gs://\(.bucket)/\(.object)#\(.generation)"' "$temp/trigger-before.json")"
 gcloud storage cp "$old_source" "$temp/rollback/activation-trigger.zip" --project="$project"
