@@ -19,10 +19,13 @@ PROJECT, SITE = inventory.PROJECT, inventory.SITE
 HOSTING = release.HOSTING_API
 REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
+EXCLUDED_NAMES = tuple(name for name in PLAN["functions"] if name not in NAMES)
 RESTORE_NAME = "saveProposalEnrollmentAgreement"
 VERIFY_RESTORATION_MODE = "verify-save-proposal-restoration"
 VERIFY_RESTORATION_CONFIRMATION = "VERIFY-SAVE-PROPOSAL-AGREEMENT-READ-ONLY"
 RESTORE_CONFIRMATION = "RESTORE-SAVE-PROPOSAL-AGREEMENT-SOURCE-ONLY-43564596875"
+FORWARD_RESUME_MODE = "forward-resume-release-10"
+FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
 RESTORATION = {
     "configurationSha256": "b4066c965108fbe4793ee44d48b0e4770ba8cb8f8372a27e5e388af802125fc2",
     "candidateGeneration": "1794629107340168",
@@ -258,9 +261,9 @@ def verify_rules(token):
     return snapshot
 
 
-def verify_healthy_serving(snapshot, expected_revision=None):
+def verify_healthy_serving(snapshot, expected_revision=None, name=RESTORE_NAME):
     run = snapshot["run"]
-    service = f"projects/{PROJECT}/locations/{REGION}/services/{RESTORE_NAME.lower()}"
+    service = f"projects/{PROJECT}/locations/{REGION}/services/{name.lower()}"
     ready = run.get("latestReadyRevision", "")
     revision = ready.rsplit("/", 1)[-1]
     require(run.get("name") == service and ready == f"{service}/revisions/{revision}"
@@ -282,6 +285,17 @@ def verify_healthy_serving(snapshot, expected_revision=None):
     return revision
 
 
+def verify_function_healthy(name, snapshot, expected_revision=None):
+    """Require ACTIVE Gen1 or healthy single-revision Gen2 service state."""
+    if release.FUNCTIONS[name] == 1:
+        version = str(snapshot["function"].get("versionId", ""))
+        require(snapshot["function"].get("status") == "ACTIVE" and version.isdigit()
+                and (expected_revision is None or version == str(expected_revision)),
+                f"{name}: expected ACTIVE Gen1 version is not serving")
+        return version
+    return verify_healthy_serving(snapshot, expected_revision, name)
+
+
 def hosting_state(token):
     configuration, manifest = hosting_baseline(token)
     return {"active": active(token), "configuration": configuration, "manifest": manifest}
@@ -298,6 +312,142 @@ def unrelated_state(token):
 def require_unrelated_unchanged(token, expected):
     require(unrelated_state(token) == expected,
             "Excluded Functions, Hosting, or Firestore Rules changed")
+
+
+def forward_state(token):
+    """Capture every resource that must remain exact between forward writes."""
+    return {
+        "functions": {name: config(name, token) for name in NAMES},
+        "excluded": {name: config(name, token) for name in EXCLUDED_NAMES},
+        "hosting": hosting_state(token),
+        "rules": verify_rules(token),
+    }
+
+
+def require_forward_state(token, expected):
+    require(forward_state(token) == expected,
+            "Function, Hosting, or Firestore Rules changed outside the verified forward state")
+
+
+def verify_original_function_baseline(name, snapshot):
+    require(name in NAMES[1:], "Only remaining Functions use original baselines")
+    require(digest(inventory.sanitize(snapshot))
+            == PLAN["functions"][name]["configurationSha256"],
+            f"{name}: original configuration fingerprint mismatch")
+    return verify_function_healthy(name, snapshot)
+
+
+def verified_excluded_baselines(token):
+    """Reject pre-existing configuration drift in all four non-target Functions."""
+    excluded = {name: config(name, token) for name in EXCLUDED_NAMES}
+    for name, snapshot in excluded.items():
+        require(digest(inventory.sanitize(snapshot))
+                == PLAN["functions"][name]["configurationSha256"],
+                f"{name}: excluded Function configuration fingerprint mismatch")
+    return excluded
+
+
+def forward_resume_preflight(token, packages):
+    """Verify the interrupted release boundary without using the stale first baseline."""
+    first = config(RESTORE_NAME, token)
+    require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
+            "First Function configuration fingerprint mismatch")
+    verify_release_permissions(token)
+    first_revision = verify_function_healthy(
+        RESTORE_NAME, first, RESTORATION["servingRevision"])
+    diagnostic = diagnose_release_10(token, packages[RESTORE_NAME], report=False)
+    require(diagnostic["sourceFilesMatch"]
+            and diagnostic["liveArchiveSha256"] == RESTORATION["candidateArchiveSha256"],
+            "First Function candidate source mismatch")
+
+    snapshots = {RESTORE_NAME: first}
+    recovery = {}
+    for name in NAMES[1:]:
+        snapshot = config(name, token)
+        verify_original_function_baseline(name, snapshot)
+        archive = pinned_recovery(name, snapshot, token)
+        require(digest(archive_hashes(archive))
+                == PLAN["functions"][name]["recoveryFilesSha256"],
+                f"{name}: rollback archive mismatch")
+        snapshots[name] = snapshot
+        recovery[name] = archive
+
+    excluded = verified_excluded_baselines(token)
+
+    hosting = hosting_state(token)
+    rules = verify_rules(token)
+    expected = {"functions": snapshots, "excluded": excluded,
+                "hosting": hosting, "rules": rules}
+    require_forward_state(token, expected)
+    return expected, recovery, first_revision
+
+
+def forward_resume(token, packages, overlay):
+    """Resume release #10 without touching its already-updated first Function."""
+    expected, recovery, first_revision = forward_resume_preflight(token, packages)
+    configuration = expected["hosting"]["configuration"]
+    manifest = expected["hosting"]["manifest"]
+    proposed = dict(manifest)
+    payloads = {}
+    for path, body in overlay.items():
+        require(manifest.get(path) == PLAN["hosting"]["assets"][path]["baselineHash"],
+                f"{path}: asset baseline drift")
+        proposed[path] = inventory.sha(body)
+        payloads[proposed[path]] = body
+
+    in_flight = "Hosting overlay preparation"
+    try:
+        version = prepare_hosting(configuration, proposed, payloads, token)
+        in_flight = None
+        for name in NAMES[1:]:
+            require_forward_state(token, expected)
+            before = expected["functions"][name]
+            previous_revision = verify_function_healthy(name, before)
+            in_flight = name
+            release.source_update(name, packages[name], token)
+            after = config(name, token)
+            new_revision = verify_function_healthy(name, after)
+            require(new_revision != previous_revision,
+                    f"{name}: source update did not create a new serving revision")
+            verify_updated_runtime(name, before, after)
+            require(archive_hashes(source(name, after, token))
+                    == archive_hashes(packages[name]),
+                    f"{name}: candidate source file hashes differ")
+            expected["functions"][name] = after
+            in_flight = None
+            require_forward_state(token, expected)
+            print(f"Verified forward update {name}", flush=True)
+
+        require(config(RESTORE_NAME, token) == expected["functions"][RESTORE_NAME],
+                "First Function changed during forward resume")
+        require(verify_function_healthy(RESTORE_NAME, expected["functions"][RESTORE_NAME],
+                                        first_revision) == first_revision,
+                "First Function serving revision changed")
+        in_flight = "Hosting publication"
+        publish(version, token)
+        release.verify_version(version, configuration, proposed, token)
+        in_flight = None
+        require(verify_rules(token) == expected["rules"], "Firestore Rules changed")
+        for name in NAMES:
+            require(config(name, token) == expected["functions"][name],
+                    f"{name}: final Function state differs")
+        for name in EXCLUDED_NAMES:
+            require(config(name, token) == expected["excluded"][name],
+                    f"{name}: excluded Function changed during Hosting publication")
+        print(json.dumps({
+            "forwardResume": "PASS",
+            "alreadyUpdatedFunction": RESTORE_NAME,
+            "deployedFunctions": NAMES[1:],
+            "hostingAssets": sorted(PLAN["hosting"]["assets"]),
+            "hostingVersion": version,
+            "firestoreRulesChanged": False,
+            "historicalFirstFunctionFingerprintMatches": False,
+            "rollbackArchivesVerified": sorted(recovery),
+        }, sort_keys=True), flush=True)
+    except Exception:
+        print(json.dumps({"forwardResume": "FAIL", "STOP_NO_RETRY": True,
+                          "uncertainWrite": in_flight or "none"}, sort_keys=True), flush=True)
+        raise
 
 
 def restoration_preflight(token, candidate):
@@ -417,7 +567,7 @@ def publish(version, token):
     require(active(token) == (receipt["name"], version), "Hosting publication could not be verified")
 
 
-def preflight(token):
+def verify_release_permissions(token):
     required = [
         "cloudfunctions.functions.get", "cloudfunctions.functions.update",
         "cloudfunctions.functions.sourceCodeGet", "cloudfunctions.functions.sourceCodeSet",
@@ -428,6 +578,11 @@ def preflight(token):
     url = f"https://cloudresourcemanager.googleapis.com/v1/projects/{PROJECT}:testIamPermissions"
     granted = json.loads(inventory.request(url, token, {"permissions": required}))
     require(set(required) <= set(granted.get("permissions", [])), "Production release permissions drift")
+    return required
+
+
+def preflight(token):
+    verify_release_permissions(token)
     snapshots = {}
     for name, expected in PLAN["functions"].items():
         snapshot = config(name, token)
@@ -447,7 +602,8 @@ def guard(mode):
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
     require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
-                     "restore-save-proposal-agreement", "deploy", "rollback"}, "Unsupported mode")
+                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE,
+                     "deploy", "rollback"}, "Unsupported mode")
     if mode == VERIFY_RESTORATION_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == VERIFY_RESTORATION_CONFIRMATION,
                 "Read-only restoration verification confirmation missing")
@@ -465,6 +621,14 @@ def guard(mode):
     if mode == "restore-save-proposal-agreement":
         require(os.environ.get("CONFIRM_RELEASE") == RESTORE_CONFIRMATION,
                 "Single-Function restoration confirmation missing")
+    if mode == FORWARD_RESUME_MODE:
+        require(os.environ.get("CONFIRM_RELEASE") == FORWARD_RESUME_CONFIRMATION,
+                "Forward-resume owner confirmation missing")
+        require(all(isinstance(value, str) and value.startswith("https://")
+                    for value in PLAN["stagingAcceptance"].values()),
+                "Reviewed synthetic staging evidence is missing")
+        require(not PLAN["pendingCoreFunctionBaseline"],
+                "Core Function baseline and compatibility review is pending")
 
 
 def authenticated_release_token(env=None):
@@ -574,6 +738,9 @@ def main():
         return
     if mode == "rollback":
         rollback(token, packages)
+        return
+    if mode == FORWARD_RESUME_MODE:
+        forward_resume(token, packages, overlay)
         return
     snapshots, (configuration, manifest) = preflight(token)
     recovery = capture_recovery(snapshots, token, report_all=(mode == "preflight"))
