@@ -277,7 +277,7 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "deploy", "rollback"}, "Unsupported mode")
+    require(mode in {"preflight", "diagnose-release-10", "deploy", "rollback"}, "Unsupported mode")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
@@ -313,6 +313,44 @@ def authenticated_release_token(env=None):
     return token
 
 
+def diagnose_release_10(token, candidate):
+    """Read the pinned live source and compare protected fingerprints without writes."""
+    name = "saveProposalEnrollmentAgreement"
+    expected = PLAN["functions"][name]
+    before = config(name, token)
+    live = before["function"]["buildConfig"]["sourceProvenance"]["resolvedStorageSource"]
+    generation = "1794629107340168"
+    require(live["bucket"] == expected["reference"]["bucket"]
+            and live["object"] == expected["reference"]["object"]
+            and str(live["generation"]) == generation, "Release #10 live source changed")
+    object_name = urllib.parse.quote(live["object"], safe="")
+    query = urllib.parse.urlencode({"alt": "media", "generation": generation})
+    archive = inventory.request(
+        f"https://storage.googleapis.com/storage/v1/b/{live['bucket']}/o/{object_name}?{query}", token)
+    rollback_archive = pinned_recovery(name, before, token)
+    after = config(name, token)
+    require(after == before, "Function changed during diagnostics")
+    actual_files = archive_hashes(archive)
+    candidate_files = archive_hashes(candidate)
+    normalized = runtime(name, inventory.sanitize(before))
+    actual_runtime = digest(normalized)
+    result = {
+        "function": name,
+        "sourceGeneration": generation,
+        "liveArchiveSha256": inventory.sha(archive),
+        "candidateArchiveSha256": inventory.sha(candidate),
+        "sourceFilesMatch": actual_files == candidate_files,
+        "differentSourcePaths": sorted(path for path in actual_files.keys() | candidate_files.keys()
+                                       if actual_files.get(path) != candidate_files.get(path)),
+        "rollbackArchiveSha256": inventory.sha(rollback_archive),
+        "expectedRuntimeSha256": expected["runtimeSha256"],
+        "liveRuntimeSha256": actual_runtime,
+        "runtimeMatches": actual_runtime == expected["runtimeSha256"],
+    }
+    print(json.dumps(result, sort_keys=True), flush=True)
+    require(result["sourceFilesMatch"], "Release #10 live source differs from reviewed package")
+
+
 def main():
     mode = os.environ["RELEASE_MODE"]
     guard(mode)
@@ -322,6 +360,9 @@ def main():
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
     token = authenticated_release_token()
+    if mode == "diagnose-release-10":
+        diagnose_release_10(token, packages["saveProposalEnrollmentAgreement"])
+        return
     if mode == "rollback":
         rollback(token, packages)
         return
