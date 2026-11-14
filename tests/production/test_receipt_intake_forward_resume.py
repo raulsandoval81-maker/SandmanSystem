@@ -38,15 +38,19 @@ class ForwardResumeTest(unittest.TestCase):
         self.names = release.NAMES
         self.packages = {name: archive(f"candidate-{name}".encode()) for name in self.names}
         self.before = {name: serving(name, f"{name.lower()}-old") for name in self.names}
+        self.excluded = {name: serving(name, f"{name.lower()}-old")
+                         for name in release.EXCLUDED_NAMES}
         self.after = {name: serving(name, f"{name.lower()}-new") for name in self.names[1:]}
         self.hosting = {"active": ("release", "version"), "configuration": {},
                         "manifest": {path: item["baselineHash"]
                                      for path, item in release.PLAN["hosting"]["assets"].items()}}
         self.rules = {"release": "rules", "rollback": "ruleset"}
         self.expected = {"functions": deepcopy(self.before),
+                         "excluded": deepcopy(self.excluded),
                          "hosting": deepcopy(self.hosting), "rules": deepcopy(self.rules)}
 
-    def run_forward(self, *, update_error=None, publish_error=None, source_mismatch=None):
+    def run_forward(self, *, update_error=None, publish_error=None, source_mismatch=None,
+                    excluded_drift_after=None, excluded_drift_on_publish=False):
         state = deepcopy(self.expected)
         events = []
 
@@ -55,9 +59,13 @@ class ForwardResumeTest(unittest.TestCase):
             if update_error == name:
                 raise RuntimeError("uncertain update")
             state["functions"][name] = deepcopy(self.after[name])
+            if excluded_drift_after == name:
+                state["excluded"][release.EXCLUDED_NAMES[0]]["iam"]["bindings"] = [{"role": "drift"}]
 
         def publish(_version, _token):
             events.append("Hosting")
+            if excluded_drift_on_publish:
+                state["excluded"][release.EXCLUDED_NAMES[0]]["iam"]["bindings"] = [{"role": "drift"}]
             if publish_error:
                 raise publish_error
 
@@ -79,6 +87,38 @@ class ForwardResumeTest(unittest.TestCase):
             release.forward_resume("token", self.packages,
                                    {path: b"asset" for path in self.hosting["manifest"]})
         return events
+
+    def test_excluded_function_baselines_all_required_before_any_write(self):
+        self.assertEqual(len(release.EXCLUDED_NAMES), 4)
+        for drift_name in release.EXCLUDED_NAMES:
+            with self.subTest(name=drift_name):
+                def fingerprint(value):
+                    for name, original in self.excluded.items():
+                        if value == original:
+                            return ("incorrect" if name == drift_name
+                                    else release.PLAN["functions"][name]["configurationSha256"])
+                    raise AssertionError("unexpected excluded snapshot")
+                with patch.object(release, "config",
+                                  side_effect=lambda name, _token: deepcopy(self.excluded[name])), \
+                     patch.object(release.inventory, "sanitize", side_effect=lambda value: value), \
+                     patch.object(release, "digest", side_effect=fingerprint):
+                    with self.assertRaisesRegex(RuntimeError,
+                                                f"{drift_name}: excluded Function"):
+                        release.verified_excluded_baselines("token")
+
+    def test_excluded_function_mid_release_drift_stops_before_next_write(self):
+        name = self.names[1]
+        with redirect_stdout(io.StringIO()) as output, \
+             self.assertRaisesRegex(RuntimeError, "outside the verified"):
+            self.run_forward(excluded_drift_after=name)
+        self.assertIn('"STOP_NO_RETRY": true', output.getvalue())
+        self.assertIn('"uncertainWrite": "none"', output.getvalue())
+
+    def test_excluded_function_drift_during_hosting_publication_stops(self):
+        with redirect_stdout(io.StringIO()) as output, \
+             self.assertRaisesRegex(RuntimeError, "excluded Function changed"):
+            self.run_forward(excluded_drift_on_publish=True)
+        self.assertIn('"STOP_NO_RETRY": true', output.getvalue())
 
     def test_success_updates_only_seven_then_publishes_eleven_assets(self):
         events = self.run_forward()
