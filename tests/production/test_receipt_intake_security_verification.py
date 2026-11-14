@@ -39,6 +39,8 @@ def function_snapshot(name):
 class SecurityVerificationTest(unittest.TestCase):
     def test_success_writes_only_redacted_protected_evidence(self):
         target = function_snapshot(TARGET)
+        target["run"]["template"]["containers"][0]["env"].append(
+            {"name": "PRIVATE_VALUE", "value": "do-not-retain-runtime-secret"})
         snapshots = {name: function_snapshot(name) for name in release.NAMES}
         snapshots[TARGET] = target
         excluded = {name: function_snapshot(name) for name in release.EXCLUDED_NAMES}
@@ -97,7 +99,10 @@ class SecurityVerificationTest(unittest.TestCase):
                           output.getvalue())
             self.assertNotIn('"PASS"', output.getvalue())
             self.assertEqual(evidence["mode"], "READ_ONLY")
-            self.assertEqual(evidence["productionWrites"], 0)
+            self.assertEqual(evidence["applicationWrites"], 0)
+            self.assertEqual(evidence["evidenceObjectWritesPlanned"], 1)
+            self.assertIn('"evidenceObjectWrites": 1', output.getvalue())
+            self.assertIn('"applicationWrites": 0', output.getvalue())
             self.assertFalse(evidence["deploymentAuthorized"])
             self.assertIn("current", evidence)
             self.assertIn("historical", evidence)
@@ -109,6 +114,14 @@ class SecurityVerificationTest(unittest.TestCase):
             self.assertIn("cloudFunctionPolicy", serialized)
             self.assertIn("cloudRunPolicy", serialized)
             self.assertIn("policyAnalysis", serialized)
+            runtime_evidence = evidence["current"]["privateRuntimeEvidence"]
+            self.assertIn("cloudFunctionConfiguration", runtime_evidence)
+            self.assertIn("cloudRunConfiguration", runtime_evidence)
+            self.assertEqual(runtime_evidence["servingRevision"]["name"], "serving-revision")
+            self.assertFalse(runtime_evidence["servingRevision"]["revisionResourceFetched"])
+            self.assertEqual(runtime_evidence["cloudRunConfiguration"]["ingress"],
+                             target["run"]["ingress"])
+            self.assertNotIn("do-not-retain-runtime-secret", serialized)
             for sensitive in ("sensitive-runtime@example.invalid",
                               "sensitive-principal@example.invalid", "secretKeyRef"):
                 self.assertNotIn(sensitive, output.getvalue())
@@ -253,7 +266,8 @@ class SecurityVerificationTest(unittest.TestCase):
             with patch.object(release.subprocess, "check_output", side_effect=check_output), \
                     patch.object(release.subprocess, "run") as upload:
                 receipt = release.retain_protected_security_evidence(
-                    {"mode": "READ_ONLY", "productionWrites": 0}, env)
+                    {"mode": "READ_ONLY", "applicationWrites": 0,
+                     "evidenceObjectWritesPlanned": 1}, env)
             self.assertRegex(receipt["evidenceSha256"], r"^[a-f0-9]{64}$")
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
             upload.assert_called_once()
