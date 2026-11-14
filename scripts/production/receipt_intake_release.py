@@ -52,6 +52,29 @@ def runtime(name, snapshot):
                       **{key: snapshot[key] for key in ("run", "runIam") if key in snapshot}}})
 
 
+def post_update_runtime(name, snapshot):
+    """Compare protected settings independently of Cloud Run rollout diagnostics."""
+    normalized = runtime(name, snapshot)
+    run = normalized["transport"].get("run")
+    if run is not None:
+        run.pop("conditions", None)
+        run.pop("terminalCondition", None)
+        run.pop("reconciling", None)
+        for target in run["trafficStatuses"]:
+            target.pop("uri", None)
+    return normalized
+
+
+def verify_updated_runtime(name, before, after):
+    run = after.get("run")
+    if run is not None:
+        require(not run.get("reconciling", False)
+                and run.get("terminalCondition", {}).get("state") == "CONDITION_SUCCEEDED",
+                f"{name}: Cloud Run rollout is not ready")
+    require(post_update_runtime(name, after) == post_update_runtime(name, before),
+            f"{name}: runtime or IAM changed")
+
+
 def source(name, snapshot, token, version=None):
     generation = release.FUNCTIONS[name]
     api = "v1" if generation == 1 else "v2alpha"
@@ -390,7 +413,7 @@ def main():
             in_flight = name
             release.source_update(name, packages[name], token)
             after = config(name, token)
-            require(runtime(name, after) == runtime(name, snapshots[name]), f"{name}: runtime or IAM changed")
+            verify_updated_runtime(name, snapshots[name], after)
             require(archive_hashes(source(name, after, token)) == archive_hashes(packages[name]),
                     f"{name}: live source differs")
             completed.append((name, after))
