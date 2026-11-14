@@ -33,7 +33,14 @@ export function canonicalSeasonalPricing(
   const schedule = clean(rawPricing.trainingSchedule) as WinterWrestlingSchedule;
   const payInFull = rawPricing.payInFull === true;
   const lateEnrollmentReviewed = rawPricing.lateEnrollmentReviewed === true;
+  const siblingRelationshipVerified = rawPricing.siblingRelationshipVerified === true;
+  const earlyRegistration = enrollmentDate <= WINTER_WRESTLING_2026_27.earlyRegistrationDeadline;
+  // A draft date alone is not a paid registration: checkout revalidates the deadline.
 
+  if (athleteCount > 1 && !siblingRelationshipVerified) {
+    throw new HttpsError("failed-precondition",
+      "Management must verify additional athletes are siblings in the same household.");
+  }
   if (!WINTER_WRESTLING_SCHEDULES.includes(schedule)) {
     throw new HttpsError(
       "invalid-argument",
@@ -49,6 +56,7 @@ export function canonicalSeasonalPricing(
       enrollmentDate,
       payInFull,
       schedule,
+      earlyRegistration,
     );
     proration = winterWrestlingProration({
       athleteCount,
@@ -70,12 +78,22 @@ export function canonicalSeasonalPricing(
     seasonStart: WINTER_WRESTLING_2026_27.seasonStart,
     seasonEnd: WINTER_WRESTLING_2026_27.seasonEnd,
     athleteCount,
-    perAthleteCents: WINTER_WRESTLING_2026_27.perAthleteCents,
-    listPriceTotalCents:
-      athleteCount * WINTER_WRESTLING_2026_27.perAthleteCents,
+    perAthleteCents: earlyRegistration
+      ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
+      : WINTER_WRESTLING_2026_27.perAthleteCents,
+    additionalSiblingCents: WINTER_WRESTLING_2026_27.additionalSiblingCents,
+    siblingRelationshipVerified,
+    enrollmentFeeFaceValueCents: athleteCount * WINTER_WRESTLING_2026_27.enrollmentFeeWaivedPerAthleteCents,
+    enrollmentFeeWaivedCents: athleteCount * WINTER_WRESTLING_2026_27.enrollmentFeeWaivedPerAthleteCents,
+    enrollmentFeeDueCents: 0,
+    earlyRegistration,
+    earlyRegistrationDeadline: WINTER_WRESTLING_2026_27.earlyRegistrationDeadline,
+    listPriceTotalCents: WINTER_WRESTLING_2026_27.perAthleteCents +
+      (athleteCount - 1) * WINTER_WRESTLING_2026_27.additionalSiblingCents,
     seasonalEnrollmentDate: enrollmentDate,
     trainingSchedule: schedule,
     payInFull,
+    discountTotalCents: earlyRegistration ? (WINTER_WRESTLING_2026_27.perAthleteCents - WINTER_WRESTLING_2026_27.earlyPerAthleteCents) : 0,
     totalCents: paymentSchedule.totalCents,
     dueNowCents: paymentSchedule.installments[0].amountCents,
     installments: paymentSchedule.installments.map((installment) => ({
@@ -91,7 +109,11 @@ export function canonicalSeasonalPricing(
       missedRequiredPracticeCount: proration.missedRequiredPracticeCount,
       appliedPercent: proration.appliedPercent,
       perAthleteDiscountCents: proration.perAthleteDiscountCents,
-      totalDiscountCents: proration.totalDiscountCents,
+      totalDiscountCents: ((earlyRegistration
+        ? WINTER_WRESTLING_2026_27.earlyPerAthleteCents
+        : WINTER_WRESTLING_2026_27.perAthleteCents) +
+        (athleteCount - 1) * WINTER_WRESTLING_2026_27.additionalSiblingCents) -
+        paymentSchedule.totalCents,
       excludesThanksgivingClosure: true,
       excludesOptionalSessions: true,
     },

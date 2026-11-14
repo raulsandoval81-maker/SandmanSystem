@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
+import { winterWrestlingEarlyPaymentOnTime } from "../proposals/winterWrestlingSeasonPolicy";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -18,10 +19,20 @@ function seasonalMetadata(session: Stripe.Checkout.Session) {
 
 export async function handleSeasonalProposalPaymentSucceeded(
   session: Stripe.Checkout.Session,
+  eventCreatedSeconds?: number,
 ): Promise<string | null> {
   const metadata = seasonalMetadata(session);
   if (!metadata) return null;
   if (session.payment_status !== "paid") return metadata.proposalId;
+  // Trust Stripe's settled amount, currency and mode, not only session metadata.
+  if (
+    session.mode !== "payment" ||
+    clean(session.currency).toLowerCase() !== "usd" ||
+    !Number.isSafeInteger(session.amount_total) ||
+    session.amount_total !== metadata.amountCents
+  ) {
+    throw new Error("Seasonal Stripe payment amount, currency or mode does not match the locked installment.");
+  }
   const paymentIntentId = typeof session.payment_intent === "string"
     ? session.payment_intent
     : session.payment_intent?.id || null;
@@ -63,16 +74,24 @@ export async function handleSeasonalProposalPaymentSucceeded(
         }
       : entry);
     const complete = updated.every((entry) => entry.status === "paid");
+    // A real payment after the promotional grace period must remain accounted for,
+    // but cannot automatically complete discounted enrollment. Requires Management review.
+    const lateEarlyPayment = metadata.installmentNumber === 1 &&
+      proposal.lockedSnapshot?.pricing?.earlyRegistration === true &&
+      !winterWrestlingEarlyPaymentOnTime(eventCreatedSeconds);
+    const requiresReview = lateEarlyPayment || proposal.seasonalEarlyPaymentReviewRequired === true;
+    const nextStatus = requiresReview ? "PAYMENT_REVIEW_REQUIRED" : complete ? "PAID" : "PARTIALLY_PAID";
     const historyRef = proposalRef.collection("history").doc();
     tx.update(proposalRef, {
-      status: complete ? "PAID" : "PARTIALLY_PAID",
+      status: nextStatus,
       seasonalPaymentLedger: updated,
       pendingCheckoutSessionId: FieldValue.delete(),
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
       stripeLivemode: session.livemode,
-      paymentStatus: complete ? "paid" : "partially_paid",
-      ...(complete ? { paidAt: FieldValue.serverTimestamp() } : {}),
+      paymentStatus: requiresReview ? "review_required" : complete ? "paid" : "partially_paid",
+      ...(lateEarlyPayment ? { seasonalEarlyPaymentReviewRequired: true } : {}),
+      ...(complete && !requiresReview ? { paidAt: FieldValue.serverTimestamp() } : {}),
       updatedAt: FieldValue.serverTimestamp(),
     });
     tx.create(historyRef, {
@@ -82,7 +101,8 @@ export async function handleSeasonalProposalPaymentSucceeded(
       amountCents: metadata.amountCents,
       stripeCheckoutSessionId: session.id,
       stripePaymentIntentId: paymentIntentId,
-      toStatus: complete ? "PAID" : "PARTIALLY_PAID",
+      toStatus: nextStatus,
+      ...(lateEarlyPayment ? { reason: "EARLY_RATE_PAYMENT_AFTER_GRACE", eventCreatedSeconds: eventCreatedSeconds ?? null } : {}),
       createdBy: "stripe",
       createdAt: FieldValue.serverTimestamp(),
     });

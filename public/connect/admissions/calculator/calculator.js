@@ -194,21 +194,8 @@ async function loadAdmissionsRequest() {
     return;
   }
 
-  console.log(
-    "Admissions request loaded:",
-    {
-      id: snapshot.id,
-      ...snapshot.data()
-    }
-  );
+  return { id: snapshot.id, ...snapshot.data() };
 }
-
-loadAdmissionsRequest().catch((error) => {
-  console.error(
-    "Unable to load admissions request:",
-    error
-  );
-});
 
 async function loadAdmissionsAppointment() {
   if (!appointmentId) {
@@ -357,6 +344,7 @@ const extras = {
       seasonalSchedule:document.getElementById("seasonalSchedule"),
       seasonalEnrollmentDate:document.getElementById("seasonalEnrollmentDate"),
       seasonalPayInFull:document.getElementById("seasonalPayInFull"),
+      seasonalSiblingVerified:document.getElementById("seasonalSiblingVerified"),
       lateEnrollmentReviewed:document.getElementById("lateEnrollmentReviewed"),
 
       membershipStartDate:
@@ -1834,13 +1822,24 @@ const extras = {
     function calculateWinterWrestling(athletes){
       const athleteCount = athletes.length;
       if (!el.seasonalEnrollmentDate.value) {
-        el.seasonalEnrollmentDate.value = "2026-11-15";
+        const parts = new Intl.DateTimeFormat("en-US", {timeZone:"America/Los_Angeles", year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+        const part = (type) => parts.find(item => item.type === type)?.value || "";
+        el.seasonalEnrollmentDate.value = `${part("year")}-${part("month")}-${part("day")}`;
       }
-      const baseCents = athleteCount * 35000;
+      const early = el.seasonalEnrollmentDate.value <= "2026-11-30";
+      const listCents = 35000 + Math.max(0, athleteCount - 1) * 15000;
+      const baseCents = (early ? 32000 : 35000) + Math.max(0, athleteCount - 1) * 15000;
       const schedule = el.seasonalSchedule.value;
+      if (!["monday-wednesday-saturday", "tuesday-thursday-saturday"].includes(schedule)) {
+        el.summary.textContent = "Management must confirm Group A or Group B before issuing a Winter Wrestling proposal.";
+        el.breakdown.textContent = "Seasonal schedule approval required.";
+        el.dueNow.textContent = "—";
+        el.monthlyTotal.textContent = "No recurring charge";
+        return null;
+      }
       const enrollmentDate = el.seasonalEnrollmentDate.value;
-      const start = new Date("2026-11-29T12:00:00Z");
-      const end = new Date("2027-02-14T12:00:00Z");
+      const start = new Date("2026-11-30T12:00:00Z");
+      const end = new Date("2027-02-27T12:00:00Z");
       const weekdays = schedule === "monday-wednesday-saturday"
         ? new Set([1,3,6]) : new Set([2,4,6]);
       let required = 0;
@@ -1852,28 +1851,36 @@ const extras = {
         if (date < enrollmentDate) missed += 1;
       }
       const appliedPercent = Math.min(25, required ? (missed / required) * 100 : 0);
-      const discountCents = Math.round(35000 * appliedPercent / 100) * athleteCount;
+      const discountCents = Math.round(baseCents * appliedPercent / 100);
       const totalCents = baseCents - discountCents;
-      const defaultFirst = ({1:20000,2:40000,3:45000,4:60000,5:75000})[athleteCount] || 0;
+      const savingsCents = early ? 3000 : 0;
+      const installmentBaseCents = Math.floor(totalCents / 3);
       const dueNowCents = el.seasonalPayInFull.checked
         ? totalCents
-        : Math.max(0, defaultFirst - discountCents);
+        : installmentBaseCents;
+      const feeWaivedCents = athleteCount * 3000;
+      const seasonalMoney = cents => new Intl.NumberFormat("en-US", {
+        style: "currency", currency: "USD"
+      }).format(cents / 100);
 
-      el.dueNow.textContent = money(dueNowCents / 100);
+      el.dueNow.textContent = seasonalMoney(dueNowCents);
       el.monthlyTotal.textContent = "No recurring charge";
-      el.firstYearTotal.textContent = money(totalCents / 100);
-      el.projectedSavings.textContent = money(discountCents / 100);
-      el.annualTotal.textContent = "Season ends Feb 14, 2027";
+      el.firstYearTotal.textContent = seasonalMoney(totalCents);
+      el.projectedSavings.textContent = seasonalMoney(discountCents + savingsCents);
+      el.annualTotal.textContent = "Enrollment fee waived";
       el.breakdown.innerHTML = `
-        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${money(baseCents/100)}</strong></div>
-        <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${money(discountCents/100)}</strong></div>
-        <div><span>Season total</span><strong>${money(totalCents/100)}</strong></div>
-        <div><span>Due in next one-time Checkout</span><strong>${money(dueNowCents/100)}</strong></div>`;
+        <div><span>Winter Wrestling — ${athleteCount} athlete${athleteCount === 1 ? "" : "s"}</span><strong>${seasonalMoney(listCents)}</strong></div>
+        <div><span>Early registration savings</span><strong>−${seasonalMoney(savingsCents)}</strong></div>
+        <div><span>Missed required practices (${missed}/${required}, max 25%)</span><strong>−${seasonalMoney(discountCents)}</strong></div>
+        <div><span>Regular annual enrollment (${athleteCount} × $30)</span><strong>${seasonalMoney(feeWaivedCents)}</strong></div>
+        <div><span>Seasonal enrollment fee waived</span><strong>−${seasonalMoney(feeWaivedCents)}</strong></div>
+        <div><span>Season total</span><strong>${seasonalMoney(totalCents)}</strong></div>
+        <div><span>Due in next one-time Checkout</span><strong>${seasonalMoney(dueNowCents)}</strong></div>`;
       el.summary.innerHTML = `
         <p><strong>Winter Wrestling 2026–27</strong></p>
-        <p>November 15, 2026 – February 14, 2027 · $350 per athlete before an approved late-start adjustment.</p>
+        <p>November 30, 2026 – February 27, 2027 · ${early ? "$320 early registration" : "$350 regular registration"} first athlete, $150 each additional sibling, before any approved late-start adjustment.</p>
         <p>${schedule === "monday-wednesday-saturday" ? "Monday / Wednesday / Saturday" : "Tuesday / Thursday / Saturday"}</p>
-        <p><strong>${money(totalCents/100)}</strong> total · ${el.seasonalPayInFull.checked ? "pay in full" : "separate one-time installments"}</p>
+        <p><strong>${seasonalMoney(totalCents)}</strong> total · enrollment fee waived (${seasonalMoney(feeWaivedCents)}) · ${el.seasonalPayInFull.checked ? "pay in full" : "three separate payments, every 14 days"}</p>
         <p>No automatic future payments. Enrollment cutoff remains pending owner confirmation.</p>`;
 
       return {
@@ -1883,6 +1890,7 @@ const extras = {
           seasonalEnrollmentDate: enrollmentDate,
           trainingSchedule: schedule,
           payInFull: el.seasonalPayInFull.checked,
+          siblingRelationshipVerified: el.seasonalSiblingVerified?.checked === true,
           lateEnrollmentReviewed: el.lateEnrollmentReviewed.checked
         },
         agreement: {
@@ -2804,6 +2812,61 @@ alert(
       return true;
     }
 
+    function prefillFromAdmissionsRequest(request) {
+      if (!request) throw new Error("Admissions request not found.");
+      const isWinter = request.requestType === "SEASONAL_INTEREST"
+        && request.campaignId === "winter-wrestling-2026-27";
+      el.familyName.value = String(request.contactName || "").trim();
+      el.athleteList.innerHTML = "";
+      addAthlete({
+        name: String(request.athleteName || "").trim(),
+        journey: "zero2hero",
+        enrollmentType: "youth",
+        plan: "standard",
+        trainingAccess: "core-2",
+        disciplines: ["wrestling"]
+      });
+      if (isWinter) {
+        if (!el.billingProgram || !el.seasonalSchedule || !el.seasonalEnrollmentDate) {
+          throw new Error("This Management Builder does not support Winter Wrestling yet.");
+        }
+        el.billingProgram.value = "seasonal_one_time";
+        const map = {
+          "mon-wed-sat": "monday-wednesday-saturday",
+          "tue-thu-sat": "tuesday-thursday-saturday"
+        };
+        const requestedSchedule = String(request.scheduleSelection || request.schedulePreference || "");
+        const knownSchedule = map[requestedSchedule];
+        if (knownSchedule) {
+          el.seasonalSchedule.value = knownSchedule;
+        } else {
+          // Group C / unsure must be deliberately resolved by Management.
+          if (!el.seasonalSchedule.querySelector('option[value=""]')) {
+            el.seasonalSchedule.insertAdjacentHTML("afterbegin", '<option value="">Confirm approved schedule with family</option>');
+          }
+          el.seasonalSchedule.value = "";
+        }
+        el.seasonalEnrollmentDate.value = "";
+        el.seasonalPayInFull.checked = false;
+        if (el.seasonalSiblingVerified) el.seasonalSiblingVerified.checked = false;
+        if (el.lateEnrollmentReviewed) el.lateEnrollmentReviewed.checked = false;
+        const preferredDays = Array.isArray(request.preferredWeekdays)
+          ? request.preferredWeekdays.join(", ") : "";
+        el.coachRecommendation.value = [
+          "Winter Wrestling inquiry: " + String(request.id || requestId),
+          "Requested schedule: " + (requestedSchedule || "unsure")
+            + (preferredDays ? " (" + preferredDays + ")" : ""),
+          request.familyPricingInterest ? "Sibling pricing requested — verify same household before approving." : "",
+          request.scholarshipInterest ? "Scholarship information requested — Management decision required." : "",
+          "Verify family, athlete, schedule and age eligibility before issuing proposal."
+        ].filter(Boolean).join("\n");
+      } else {
+        el.coachRecommendation.value = "Admissions request " + String(request.id || requestId) + " — verify details and program before issuing.";
+      }
+      calculate();
+      renderProposalWorkflow("BUILDING");
+    }
+
     function prefillFromAppointment(
       appointment
     ) {
@@ -3539,6 +3602,13 @@ alert(
             error?.message ||
             "Unable to load the Admissions appointment."
           );
+        });
+    } else if (requestId) {
+      loadAdmissionsRequest()
+        .then(prefillFromAdmissionsRequest)
+        .catch((error) => {
+          console.error("Unable to prepare Admissions request in Prospect Builder:", error);
+          alert(error?.message || "Unable to load Admissions request. Do not create a proposal until the request is verified.");
         });
     } else {
       addAthlete({
