@@ -71,8 +71,8 @@ class SecurityVerificationTest(unittest.TestCase):
             stack.enter_context(patch.object(release, "verified_excluded_baselines",
                                              return_value=deepcopy(excluded)))
             stack.enter_context(patch.object(release, "runtime_access_summary",
-                                             return_value={"supported": True, "policyCount": 1,
-                                                           "policySetSha256": "c" * 64}))
+                                             return_value={"supported": True, "fullyExplored": True,
+                                                           "analysisResults": [{"policy": {"binding": {"role": "roles/viewer"}}}]}))
             stack.enter_context(patch.object(release, "source", return_value=b"source"))
             stack.enter_context(patch.object(release, "pinned_recovery", return_value=b"rollback"))
             stack.enter_context(patch.object(release, "archive_hashes", return_value=files))
@@ -103,9 +103,15 @@ class SecurityVerificationTest(unittest.TestCase):
             self.assertIn("historical", evidence)
             self.assertNotEqual(evidence["current"]["configurationSha256"],
                                 evidence["historical"]["configurationSha256"])
+            # Private evidence intentionally retains IAM principals and conditions
+            # for independent review; only the public summary must omit them.
+            self.assertIn("sensitive-principal@example.invalid", serialized)
+            self.assertIn("cloudFunctionPolicy", serialized)
+            self.assertIn("cloudRunPolicy", serialized)
+            self.assertIn("policyAnalysis", serialized)
             for sensitive in ("sensitive-runtime@example.invalid",
                               "sensitive-principal@example.invalid", "secretKeyRef"):
-                self.assertNotIn(sensitive, serialized)
+                self.assertNotIn(sensitive, output.getvalue())
             prepare.assert_not_called()
             update.assert_not_called()
             publish.assert_not_called()
@@ -115,6 +121,10 @@ class SecurityVerificationTest(unittest.TestCase):
         self.assertEqual(release.security_collection_status(True, False), "UNVERIFIED")
         self.assertEqual(release.security_collection_status(True, True),
                          "COLLECTED_NOT_CLEARED")
+        self.assertEqual(release.security_collection_status(True, True, ["public-invoker"]),
+                         "FAIL")
+        self.assertEqual(release.security_collection_status(True, True, analysis_complete=False),
+                         "UNVERIFIED")
         self.assertNotIn("PASS", {release.security_collection_status(False, True),
                                    release.security_collection_status(True, False),
                                    release.security_collection_status(True, True)})
@@ -128,8 +138,10 @@ class SecurityVerificationTest(unittest.TestCase):
         summary = release.invocation_summary(value)
         self.assertTrue(summary["cloudFunctions"]["anonymous"])
         self.assertEqual(summary["cloudFunctions"]["conditionalBindingCount"], 1)
-        self.assertEqual(release.security_collection_status(True, True),
-                         "COLLECTED_NOT_CLEARED")
+        violations = release.verified_security_violations(
+            value, summary, release.protected_reference_summary(value)[0])
+        self.assertIn("cloudFunctions-public-invoker-binding", violations)
+        self.assertEqual(release.security_collection_status(True, True, violations), "FAIL")
 
     def test_missing_required_read_permission_fails_closed(self):
         response = json.dumps({"permissions": ["cloudfunctions.functions.get"]}).encode()
@@ -259,7 +271,60 @@ class SecurityVerificationTest(unittest.TestCase):
         with patch.object(release.urllib.request, "build_opener", return_value=opener):
             result = release.runtime_access_summary("sensitive@example.invalid", "token")
         self.assertEqual(result, {"supported": False,
-                                  "reason": "cloud-asset-access-unavailable"})
+                                  "reason": "cloud-asset-access-unavailable",
+                                  "effectiveAccessVerified": False})
+
+    def test_policy_analyzer_retains_details_and_incomplete_reads_are_unverified(self):
+        response = {
+            "fullyExplored": True,
+            "mainAnalysis": {"fullyExplored": True, "analysisResults": [{
+                "policy": {
+                    "attachedResource": "//cloudresourcemanager.googleapis.com/projects/sandmandashboard",
+                    "binding": {
+                        "role": "roles/editor",
+                        "members": ["serviceAccount:sensitive@example.invalid"],
+                        "condition": {"expression": "request.time < timestamp('2027-01-01T00:00:00Z')"},
+                    }
+                },
+                "accessControlLists": [{"accesses": [{"permission": "resourcemanager.projects.get"}]}],
+            }]},
+        }
+        opener = Mock()
+        response_mock = Mock()
+        response_mock.__enter__ = Mock(return_value=io.BytesIO(json.dumps(response).encode()))
+        response_mock.__exit__ = Mock(return_value=False)
+        opener.open.return_value = response_mock
+        with patch.object(release.urllib.request, "build_opener", return_value=opener):
+            result = release.runtime_access_summary("sensitive@example.invalid", "token")
+        self.assertTrue(result["fullyExplored"])
+        self.assertFalse(result["effectiveAccessVerified"])
+        self.assertEqual(result["analysisResultCount"], 1)
+        self.assertEqual(result["analysisResults"][0]["policy"]["binding"]["role"], "roles/editor")
+        self.assertIn("ancestor-policy-scope-not-proven", result["limitations"])
+        request = opener.open.call_args.args[0]
+        self.assertEqual(request.get_method(), "POST")
+        self.assertIn(b"analysisQuery", request.data)
+        response["fullyExplored"] = False
+        with patch.object(release.urllib.request, "build_opener", return_value=opener):
+            result = release.runtime_access_summary("sensitive@example.invalid", "token")
+        self.assertFalse(result["fullyExplored"])
+        self.assertEqual(release.security_collection_status(True, True,
+                                                            analysis_complete=result["fullyExplored"]),
+                         "UNVERIFIED")
+
+    def test_verified_config_violations_fail_without_deploying(self):
+        snapshot = function_snapshot(TARGET)
+        invocation = release.invocation_summary(snapshot)
+        protected, _ = release.protected_reference_summary(snapshot)
+        self.assertFalse(release.verified_security_violations(snapshot, invocation, protected))
+        snapshot["run"]["invokerIamDisabled"] = True
+        self.assertIn("cloud-run-invoker-iam-disabled",
+                      release.verified_security_violations(snapshot, invocation, protected))
+        snapshot["run"]["invokerIamDisabled"] = False
+        snapshot["run"]["template"]["serviceAccount"] = "changed@example.invalid"
+        protected, _ = release.protected_reference_summary(snapshot)
+        self.assertIn("runtime-service-account-mismatch",
+                      release.verified_security_violations(snapshot, invocation, protected))
 
     def test_separate_guard_and_workflow_have_no_artifact_export(self):
         repo = "raulsandoval81-maker/SandmanSystem"
