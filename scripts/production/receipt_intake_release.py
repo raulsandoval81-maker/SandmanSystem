@@ -723,7 +723,8 @@ def verify_issue_handoff_security(token, packages, env=None):
             "issueHandoffSecurityVerification": "UNVERIFIED",
             "reason": "approved-private-evidence-retention-not-configured",
             "independentReviewPossible": False,
-            "productionWrites": 0,
+            "applicationWrites": 0,
+            "evidenceObjectWrites": 0,
             "deploymentAuthorized": False,
         }, sort_keys=True), flush=True)
         return "UNVERIFIED"
@@ -794,6 +795,19 @@ def verify_issue_handoff_security(token, packages, env=None):
                 "cloudRunPolicy": inventory.sanitize(current["runIam"]),
                 "policyAnalysis": inventory.sanitize(access.get("analysisResults", [])),
             },
+            "privateRuntimeEvidence": {
+                "cloudFunctionConfiguration": inventory.sanitize(current["function"]),
+                "cloudRunConfiguration": inventory.sanitize(current["run"]),
+                "servingRevision": {
+                    "name": revision,
+                    "latestReadyRevision": current["run"].get("latestReadyRevision"),
+                    "latestCreatedRevision": current["run"].get("latestCreatedRevision"),
+                    "traffic": inventory.sanitize(current["run"].get("traffic", [])),
+                    "trafficStatuses": inventory.sanitize(
+                        current["run"].get("trafficStatuses", [])),
+                    "revisionResourceFetched": False,
+                },
+            },
         },
         "historical": {
             "configurationSha256": historical["configurationSha256"],
@@ -808,7 +822,8 @@ def verify_issue_handoff_security(token, packages, env=None):
             "firestoreRulesSha256": digest(rules),
         },
         "recoveryArchives": recovery,
-        "productionWrites": 0,
+        "applicationWrites": 0,
+        "evidenceObjectWritesPlanned": 1,
         "deploymentAuthorized": False,
     }
     candidate_matches = current_files == candidate_files
@@ -837,7 +852,8 @@ def verify_issue_handoff_security(token, packages, env=None):
         "protectedEvidenceRetained": True,
         "evidenceSha256": retention["evidenceSha256"],
         "independentReviewPossible": True,
-        "productionWrites": 0,
+        "applicationWrites": 0,
+        "evidenceObjectWrites": 1,
         "deploymentAuthorized": False,
     }, sort_keys=True), flush=True)
     return status
@@ -1208,7 +1224,8 @@ def main():
             print(json.dumps({
                 "issueHandoffSecurityVerification": "FAIL",
                 "securityConfigurationApproved": False,
-                "productionWrites": 0,
+                "applicationWrites": 0,
+                "evidenceObjectWrites": 0,
                 "deploymentAuthorized": False,
             }, sort_keys=True), flush=True)
             raise SystemExit(1) from None
@@ -1216,7 +1233,8 @@ def main():
             print(json.dumps({
                 "issueHandoffSecurityVerification": "UNVERIFIED",
                 "securityConfigurationApproved": False,
-                "productionWrites": 0,
+                "applicationWrites": 0,
+                "evidenceObjectWrites": "UNVERIFIED",
                 "deploymentAuthorized": False,
             }, sort_keys=True), flush=True)
             raise SystemExit(1) from None
