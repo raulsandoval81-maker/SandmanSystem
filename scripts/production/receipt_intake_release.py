@@ -508,8 +508,8 @@ def protected_reference_summary(snapshot):
     """Hash runtime identity and secret references without retaining their values."""
     runtime_account = snapshot["function"].get("serviceConfig", {}).get("serviceAccountEmail")
     run_account = snapshot["run"].get("template", {}).get("serviceAccount")
-    require(runtime_account and runtime_account == run_account,
-            "Function and Cloud Run runtime service accounts differ")
+    require(runtime_account and run_account, "Runtime service account missing")
+    identity_matches = runtime_account == run_account
     references = []
 
     def visit(value, key=""):
@@ -537,6 +537,8 @@ def protected_reference_summary(snapshot):
     }
     return {
         "runtimeServiceAccountSha256": inventory.sha(runtime_account.encode()),
+        "runServiceAccountSha256": inventory.sha(run_account.encode()),
+        "runtimeIdentityMatches": identity_matches,
         "secretReferenceCount": len(set(references)),
         "secretReferencesSha256": digest(sorted(set(references))),
         "environmentConfigurationSha256": digest(inventory.sanitize(environment)),
@@ -549,27 +551,66 @@ def protected_reference_summary(snapshot):
 
 
 def runtime_access_summary(runtime_account, token):
-    """Use Cloud Asset IAM search when the existing credential supports it."""
-    base = f"https://cloudasset.googleapis.com/v1/projects/{PROJECT}:searchAllIamPolicies"
-    query = urllib.parse.urlencode({"query": f"policy:{runtime_account}", "pageSize": "500"})
-    request = urllib.request.Request(base + "?" + query,
-                                     headers={"Authorization": "Bearer " + token}, method="GET")
+    """Analyze IAM allow policies for this runtime identity, not just policy counts.
+
+    Cloud Asset is best-effort and does not evaluate IAM deny, principal access
+    boundaries or necessarily ancestor policies. These are retained as explicit
+    limitations; this mode never declares effective access cleared.
+    """
+    url = f"https://cloudasset.googleapis.com/v1/projects/{PROJECT}:analyzeIamPolicy"
+    query = {
+        "analysisQuery": {
+            "scope": f"projects/{PROJECT}",
+            "identitySelector": {"identity": "serviceAccount:" + runtime_account},
+            "options": {"expandRoles": True},
+        }
+    }
+    request = urllib.request.Request(
+        url, data=json.dumps(query).encode(),
+        headers={"Authorization": "Bearer " + token,
+                 "Content-Type": "application/json"}, method="POST")
     try:
         opener = urllib.request.build_opener(inventory.NoRedirect())
         with opener.open(request, timeout=45) as response:
             payload = json.load(response)
     except urllib.error.HTTPError as error:
         if error.code in {401, 403, 404}:
-            return {"supported": False, "reason": "cloud-asset-access-unavailable"}
-        raise RuntimeError("Runtime service-account access analysis failed") from None
+            return {"supported": False, "reason": "cloud-asset-access-unavailable",
+                    "effectiveAccessVerified": False}
+        raise RuntimeError("Runtime access analysis failed") from None
     except (urllib.error.URLError, TimeoutError, ValueError):
-        raise RuntimeError("Runtime service-account access analysis unavailable") from None
-    require(not payload.get("nextPageToken"),
-            "Runtime access analysis exceeds the bounded protected evidence read")
-    policies = payload.get("results", [])
-    require(isinstance(policies, list), "Malformed runtime access analysis")
-    return {"supported": True, "policyCount": len(policies),
-            "policySetSha256": digest(inventory.sanitize(policies))}
+        raise RuntimeError("Runtime access analysis unavailable") from None
+    analysis = payload.get("mainAnalysis", {})
+    results = analysis.get("analysisResults", [])
+    require(isinstance(results, list), "Malformed policy analysis results")
+    fully_explored = (payload.get("fullyExplored") is True
+                      and analysis.get("fullyExplored") is True
+                      and not analysis.get("nonCriticalErrors"))
+    policy_bindings = []
+    for item in results:
+        binding = item.get("iamBinding", {}) if isinstance(item, dict) else {}
+        if not binding:
+            binding = item.get("policy", {}).get("binding", {})
+        require(isinstance(binding, dict), "Malformed policy analysis binding")
+        policy_bindings.append({
+            "role": binding.get("role"),
+            "condition": binding.get("condition"),
+            "resources": item.get("accessControlLists", []),
+            "identityList": item.get("identityList", {}),
+            "accessList": item.get("accessList", {}),
+            "policy": item.get("policy", {}),
+        })
+    return {
+        "supported": True, "fullyExplored": fully_explored,
+        "effectiveAccessVerified": False,
+        "limitations": ["iam-deny-not-evaluated", "ancestor-policy-scope-not-proven",
+                        "principal-access-boundaries-not-evaluated",
+                        "independent-approved-role-baseline-missing"],
+        "analysisResults": policy_bindings,
+        "analysisResultsSha256": digest(inventory.sanitize(results)),
+        "analysisResultCount": len(results),
+        "nonCriticalErrorCount": len(analysis.get("nonCriticalErrors", [])),
+    }
 
 
 def security_evidence_destination(env=None):
@@ -643,12 +684,26 @@ def retain_protected_security_evidence(evidence, env=None):
             "capturedAt": captured_at}
 
 
-def security_collection_status(candidate_matches, runtime_access_supported):
-    if not candidate_matches:
+def security_collection_status(candidate_matches, runtime_access_supported,
+                               violations=(), analysis_complete=True):
+    if not candidate_matches or violations:
         return "FAIL"
-    if not runtime_access_supported:
+    if not runtime_access_supported or not analysis_complete:
         return "UNVERIFIED"
     return "COLLECTED_NOT_CLEARED"
+
+
+def verified_security_violations(snapshot, invocation, protected):
+    """Only facts independently sufficient to establish an unsafe state."""
+    violations = []
+    if not protected["runtimeIdentityMatches"]:
+        violations.append("runtime-service-account-mismatch")
+    if snapshot["run"].get("invokerIamDisabled") is True:
+        violations.append("cloud-run-invoker-iam-disabled")
+    for system in ("cloudFunctions", "cloudRun"):
+        if invocation[system]["anonymous"]:
+            violations.append(system + "-public-invoker-binding")
+    return violations
 
 
 def verify_issue_handoff_security(token, packages, env=None):
@@ -671,6 +726,7 @@ def verify_issue_handoff_security(token, packages, env=None):
     invocation = invocation_summary(current)
     protected, runtime_account = protected_reference_summary(current)
     access = runtime_access_summary(runtime_account, token)
+    violations = verified_security_violations(current, invocation, protected)
     current_files = archive_hashes(source(target, current, token))
     candidate_files = archive_hashes(packages[target])
 
@@ -723,6 +779,12 @@ def verify_issue_handoff_security(token, packages, env=None):
             "invocation": invocation,
             "protectedReferences": protected,
             "runtimeAccess": access,
+            "verifiedSecurityViolations": violations,
+            "privateIamEvidence": {
+                "cloudFunctionPolicy": inventory.sanitize(current["iam"]),
+                "cloudRunPolicy": inventory.sanitize(current["runIam"]),
+                "policyAnalysis": inventory.sanitize(access.get("analysisResults", [])),
+            },
         },
         "historical": {
             "configurationSha256": historical["configurationSha256"],
@@ -742,7 +804,9 @@ def verify_issue_handoff_security(token, packages, env=None):
     }
     candidate_matches = current_files == candidate_files
     retention = retain_protected_security_evidence(evidence, env)
-    status = security_collection_status(candidate_matches, access["supported"])
+    status = security_collection_status(
+        candidate_matches, access["supported"], violations,
+        analysis_complete=access.get("fullyExplored") is True)
     print(json.dumps({
         "issueHandoffSecurityVerification": status,
         "target": target,
@@ -752,6 +816,8 @@ def verify_issue_handoff_security(token, packages, env=None):
         "securityConfigurationApproved": False,
         "secretReferenceCount": protected["secretReferenceCount"],
         "runtimeAccessAnalysisSupported": access["supported"],
+        "runtimeAccessAnalysisFullyExplored": access.get("fullyExplored") is True,
+        "verifiedSecurityViolationCount": len(violations),
         "remainingFunctionBaselinesVerified": len(snapshots) - 1,
         "recoveryArchivesVerified": len(recovery),
         "hostingBaselineVerified": True,
