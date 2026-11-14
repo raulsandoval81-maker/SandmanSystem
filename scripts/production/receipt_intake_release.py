@@ -300,7 +300,7 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "diagnose-release-10", "deploy", "rollback"}, "Unsupported mode")
+    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", "deploy", "rollback"}, "Unsupported mode")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
@@ -374,6 +374,29 @@ def diagnose_release_10(token, candidate):
     require(result["sourceFilesMatch"], "Release #10 live source differs from reviewed package")
 
 
+def capture_restoration_evidence(token, candidate):
+    """Capture redacted production evidence for the exact interrupted update."""
+    name = "saveProposalEnrollmentAgreement"
+    snapshot = config(name, token)
+    run = snapshot["run"]
+    revision = "saveproposalenrollmentagreement-00007-zuk"
+    require(run.get("latestReadyRevision", "").endswith("/revisions/" + revision)
+            and run.get("reconciling") is False
+            and run.get("terminalCondition", {}).get("state") == "CONDITION_SUCCEEDED",
+            "Expected Cloud Run revision is not ready")
+    traffic = [target for target in run.get("trafficStatuses", []) if target.get("percent", 0)]
+    require(len(traffic) == 1 and traffic[0].get("revision") == revision
+            and traffic[0].get("percent") == 100, "Unexpected serving traffic")
+    diagnose_release_10(token, candidate)
+    require(config(name, token) == snapshot, "Configuration changed during evidence capture")
+    evidence = inventory.sanitize(snapshot)
+    path = Path("recovery-evidence") / "saveProposalEnrollmentAgreement.json"
+    path.parent.mkdir(mode=0o700, exist_ok=True)
+    with path.open("x") as stream:
+        json.dump(evidence, stream, indent=2, sort_keys=True)
+    print(f"Captured redacted Function, Cloud Run and both IAM policies: {digest(evidence)}")
+
+
 def main():
     mode = os.environ["RELEASE_MODE"]
     guard(mode)
@@ -383,6 +406,9 @@ def main():
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
     token = authenticated_release_token()
+    if mode == "capture-restoration-evidence":
+        capture_restoration_evidence(token, packages["saveProposalEnrollmentAgreement"])
+        return
     if mode == "diagnose-release-10":
         diagnose_release_10(token, packages["saveProposalEnrollmentAgreement"])
         return
