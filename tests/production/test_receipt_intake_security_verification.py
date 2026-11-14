@@ -296,10 +296,15 @@ class SecurityVerificationTest(unittest.TestCase):
             }]},
         }
         opener = Mock()
-        response_mock = MagicMock()
-        response_mock.__enter__ = Mock(return_value=io.BytesIO(json.dumps(response).encode()))
-        response_mock.__exit__ = Mock(return_value=False)
-        opener.open.return_value = response_mock
+
+        def fresh_response(*_args, **_kwargs):
+            response_mock = MagicMock()
+            response_mock.__enter__ = Mock(
+                return_value=io.BytesIO(json.dumps(response).encode()))
+            response_mock.__exit__ = Mock(return_value=False)
+            return response_mock
+
+        opener.open.side_effect = fresh_response
         with patch.object(release.urllib.request, "build_opener", return_value=opener):
             result = release.runtime_access_summary("sensitive@example.invalid", "token")
         self.assertTrue(result["fullyExplored"])
