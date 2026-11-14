@@ -9,17 +9,53 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
+    env:
+      PYTHONPATH: trusted/scripts/staging:trusted/scripts/production:trusted/tests/production
     steps:
-      - name: Checkout PR branch
+      - name: Checkout PR branch (trusted release scripts)
         uses: actions/checkout@v4
+        with:
+          path: trusted
+          persist-credentials: false
+      - name: Checkout pinned application candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8
+          path: application
+          persist-credentials: false
+      - name: Checkout pinned staging UI candidate
+        uses: actions/checkout@v4
+        with:
+          ref: eeb0552e3acf0904f63934aa2c9b303915b74cd7
+          path: staging-ui
+          persist-credentials: false
+      - name: Checkout pinned staging core candidate
+        uses: actions/checkout@v4
+        with:
+          ref: 77949da45bfd9c4f9f1e3aa514d523be54779e86
+          path: staging-core
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile release scripts
-        run: python3 -m py_compile scripts/production/receipt_intake_release.py tests/production/test_receipt_intake_forward_resume.py
-      - name: Run focused forward-resume runtime and restoration regressions
-        env:
-          PYTHONPATH: scripts/staging:scripts/production:tests/production
-        run: python3 -m unittest test_receipt_intake_forward_resume test_receipt_intake_runtime test_receipt_intake_restoration -v
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build pinned application and staging core
+        run: |
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          npm ci --prefix staging-core/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix staging-core/functions
+      - name: Compile production scripts
+        run: python3 -m py_compile trusted/scripts/production/receipt_intake_release.py trusted/tests/production/test_receipt_intake_forward_resume.py
+      - name: Run complete receipt/intake production regression suite
+        run: python3 -m unittest discover -s trusted/tests/production -p 'test_receipt_intake_*.py' -v
+      - name: Run staging Python regressions
+        run: python3 -m unittest discover -s trusted/tests/staging -p 'test_*.py' -v
+      - name: Run relevant Node tests
+        run: |
+          node --test application/functions/tests/paymentArrangement.test.cjs application/functions/tests/prepaidMembershipPolicy.test.cjs application/functions/tests/prepaidReconciliationPolicy.test.cjs application/functions/tests/operationalPaidProposal.test.cjs application/tests/browser/payment-arrangement.test.mjs application/tests/browser/prepaid-builder-preview.test.mjs
