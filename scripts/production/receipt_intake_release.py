@@ -489,11 +489,20 @@ def invocation_summary(snapshot):
     def policy(value, role):
         bindings = [item for item in value.get("bindings", []) if item.get("role") == role]
         members = [member for item in bindings for member in item.get("members", [])]
+        public = {"allUsers", "allAuthenticatedUsers"}
+        unconditional_public = any(
+            not item.get("condition") and public.intersection(item.get("members", []))
+            for item in bindings)
+        conditional_public = any(
+            item.get("condition") and public.intersection(item.get("members", []))
+            for item in bindings)
         conditions = [item["condition"] for item in value.get("bindings", []) if "condition" in item]
         return {
             "bindingCount": len(bindings),
             "memberCount": len(members),
-            "anonymous": any(member in {"allUsers", "allAuthenticatedUsers"} for member in members),
+            "anonymous": any(member in public for member in members),
+            "unconditionalAnonymous": bool(unconditional_public),
+            "conditionalAnonymous": bool(conditional_public),
             "conditionalBindingCount": len(conditions),
             "conditionsSha256": digest(inventory.sanitize(conditions)),
             "policySha256": digest(inventory.sanitize(value)),
@@ -701,8 +710,8 @@ def verified_security_violations(snapshot, invocation, protected):
     if snapshot["run"].get("invokerIamDisabled") is True:
         violations.append("cloud-run-invoker-iam-disabled")
     for system in ("cloudFunctions", "cloudRun"):
-        if invocation[system]["anonymous"]:
-            violations.append(system + "-public-invoker-binding")
+        if invocation[system]["unconditionalAnonymous"]:
+            violations.append(system + "-unconditional-public-invoker-binding")
     return violations
 
 
@@ -804,9 +813,12 @@ def verify_issue_handoff_security(token, packages, env=None):
     }
     candidate_matches = current_files == candidate_files
     retention = retain_protected_security_evidence(evidence, env)
+    ambiguous_public = any(invocation[key]["conditionalAnonymous"]
+                           for key in ("cloudFunctions", "cloudRun"))
     status = security_collection_status(
         candidate_matches, access["supported"], violations,
-        analysis_complete=access.get("fullyExplored") is True)
+        analysis_complete=(access.get("fullyExplored") is True
+                           and not ambiguous_public))
     print(json.dumps({
         "issueHandoffSecurityVerification": status,
         "target": target,
