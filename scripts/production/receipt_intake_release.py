@@ -337,6 +337,16 @@ def verify_original_function_baseline(name, snapshot):
     return verify_function_healthy(name, snapshot)
 
 
+def verified_excluded_baselines(token):
+    """Reject pre-existing configuration drift in all four non-target Functions."""
+    excluded = {name: config(name, token) for name in EXCLUDED_NAMES}
+    for name, snapshot in excluded.items():
+        require(digest(inventory.sanitize(snapshot))
+                == PLAN["functions"][name]["configurationSha256"],
+                f"{name}: excluded Function configuration fingerprint mismatch")
+    return excluded
+
+
 def forward_resume_preflight(token, packages):
     """Verify the interrupted release boundary without using the stale first baseline."""
     first = config(RESTORE_NAME, token)
@@ -362,11 +372,7 @@ def forward_resume_preflight(token, packages):
         snapshots[name] = snapshot
         recovery[name] = archive
 
-    excluded = {name: config(name, token) for name in EXCLUDED_NAMES}
-    for name, snapshot in excluded.items():
-        require(digest(inventory.sanitize(snapshot))
-                == PLAN["functions"][name]["configurationSha256"],
-                f"{name}: excluded Function configuration fingerprint mismatch")
+    excluded = verified_excluded_baselines(token)
 
     hosting = hosting_state(token)
     rules = verify_rules(token)
