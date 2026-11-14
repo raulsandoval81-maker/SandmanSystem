@@ -20,6 +20,8 @@ HOSTING = release.HOSTING_API
 REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
 RESTORE_NAME = "saveProposalEnrollmentAgreement"
+VERIFY_RESTORATION_MODE = "verify-save-proposal-restoration"
+VERIFY_RESTORATION_CONFIRMATION = "VERIFY-SAVE-PROPOSAL-AGREEMENT-READ-ONLY"
 RESTORE_CONFIRMATION = "RESTORE-SAVE-PROPOSAL-AGREEMENT-SOURCE-ONLY-43564596875"
 RESTORATION = {
     "configurationSha256": "b4066c965108fbe4793ee44d48b0e4770ba8cb8f8372a27e5e388af802125fc2",
@@ -298,8 +300,8 @@ def require_unrelated_unchanged(token, expected):
             "Excluded Functions, Hosting, or Firestore Rules changed")
 
 
-def restore_single_function(token, candidate):
-    """Separately authorized source-only restoration for one interrupted Function."""
+def restoration_preflight(token, candidate):
+    """Verify the exact restoration prerequisites using production reads."""
     name = RESTORE_NAME
     before = config(name, token)
     require(digest(inventory.sanitize(before)) == RESTORATION["configurationSha256"],
@@ -317,8 +319,45 @@ def restore_single_function(token, candidate):
             == PLAN["functions"][name]["recoveryFilesSha256"],
             "Pinned restoration archive differs from reviewed evidence")
     excluded = unrelated_state(token)
+    for excluded_name, snapshot in excluded["functions"].items():
+        require(digest(inventory.sanitize(snapshot)) == PLAN["functions"][excluded_name]["configurationSha256"],
+                f"{excluded_name}: Excluded Function configuration fingerprint mismatch")
     require(config(name, token) == before, "Target Function changed before restoration")
     require_unrelated_unchanged(token, excluded)
+    return before, prior_revision, rollback_archive, excluded
+
+
+def verify_single_function_restoration(root):
+    """Emit a public-safe report from the guarded, read-only mode."""
+    try:
+        candidate = package(RESTORE_NAME, root / "functions")
+        token = authenticated_release_token()
+        _, revision, _, excluded = restoration_preflight(token, candidate)
+    except Exception:
+        # The runner log is public. Exception text may contain API or source details.
+        print(json.dumps({"restorationPreflight": "FAIL", "function": RESTORE_NAME,
+                          "historicalRuntimeFingerprintMatches": False}), flush=True)
+        raise SystemExit(1) from None
+    print(json.dumps({
+        "restorationPreflight": "PASS",
+        "function": RESTORE_NAME,
+        "servingRevision": revision,
+        "trafficPercent": 100,
+        "configurationSha256": RESTORATION["configurationSha256"],
+        "functionAndRunIamVerified": True,
+        "candidateArchiveSha256": RESTORATION["candidateArchiveSha256"],
+        "rollbackArchiveSha256": RESTORATION["rollbackArchiveSha256"],
+        "excludedFunctionBaselinesVerified": sorted(excluded["functions"]),
+        "hostingBaselineVerified": True,
+        "firestoreRulesBaselineVerified": True,
+        "historicalRuntimeFingerprintMatches": False,
+    }, sort_keys=True), flush=True)
+
+
+def restore_single_function(token, candidate):
+    """Separately authorized source-only restoration for one interrupted Function."""
+    name = RESTORE_NAME
+    before, prior_revision, rollback_archive, excluded = restoration_preflight(token, candidate)
     try:
         release.source_update(name, rollback_archive, token)
     except Exception:
@@ -407,8 +446,11 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence",
+    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
                      "restore-save-proposal-agreement", "deploy", "rollback"}, "Unsupported mode")
+    if mode == VERIFY_RESTORATION_MODE:
+        require(os.environ.get("CONFIRM_RELEASE") == VERIFY_RESTORATION_CONFIRMATION,
+                "Read-only restoration verification confirmation missing")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
@@ -513,6 +555,9 @@ def main():
     root = Path("application")
     sha = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
     require(sha == PLAN["candidate"], "Application checkout SHA differs")
+    if mode == VERIFY_RESTORATION_MODE:
+        verify_single_function_restoration(root)
+        return
     if mode == "restore-save-proposal-agreement":
         candidate = package(RESTORE_NAME, root / "functions")
         token = authenticated_release_token()

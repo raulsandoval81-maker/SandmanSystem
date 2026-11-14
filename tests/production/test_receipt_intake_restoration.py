@@ -132,7 +132,7 @@ class SingleFunctionRestorationTest(unittest.TestCase):
             patch.object(release, "diagnose_release_10", return_value={
                 "sourceFilesMatch": True, "liveArchiveSha256": "a" * 64}),
             patch.object(release, "pinned_recovery", return_value=self.rollback),
-            patch.object(release, "unrelated_state", return_value={"protected": True}),
+            patch.object(release, "unrelated_state", return_value={"functions": {}}),
             patch.object(release, "require_unrelated_unchanged"),
         )
 
@@ -173,6 +173,56 @@ class SingleFunctionRestorationTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "configuration fingerprint"):
                 release.restore_single_function("token", self.candidate)
         update.assert_not_called()
+
+    def test_pre_existing_drift_in_each_excluded_function_stops_before_write(self):
+        names = [name for name in release.NAMES if name != release.RESTORE_NAME]
+        self.assertEqual(len(names), 7)
+        baseline = {name: {"function": {"name": name, "state": "ACTIVE"}} for name in names}
+        pins = {name: {"configurationSha256": release.digest(release.inventory.sanitize(value))}
+                for name, value in baseline.items()}
+        for drifted_name in names:
+            live = deepcopy(baseline)
+            live[drifted_name]["function"]["state"] = "DRIFTED"
+            live[release.RESTORE_NAME] = self.before
+            contexts = self.patches()
+            with self.subTest(function=drifted_name), contexts[0], contexts[1], contexts[2], contexts[3], \
+                    patch.dict(release.PLAN["functions"], pins), \
+                    patch.object(release, "config", side_effect=lambda name, _: live[name]), \
+                    patch.object(release, "hosting_state", return_value={}), \
+                    patch.object(release, "verify_rules", return_value={}), \
+                    patch.object(release.release, "source_update") as update:
+                with self.assertRaisesRegex(RuntimeError, drifted_name + ": Excluded Function"):
+                    release.restore_single_function("token", self.candidate)
+                update.assert_not_called()
+
+    def test_read_only_mode_reports_pass_and_redacts_failure(self):
+        for error in (None, RuntimeError("private runtime or IAM value")):
+            with self.subTest(failing=error is not None), \
+                    patch.dict(os.environ, {"RELEASE_MODE": release.VERIFY_RESTORATION_MODE}), \
+                    patch.object(release, "guard"), \
+                    patch.object(release.subprocess, "check_output", return_value=release.PLAN["candidate"]), \
+                    patch.object(release, "authenticated_release_token", return_value="token"), \
+                    patch.object(release, "package", return_value=self.candidate), \
+                    patch.object(release, "restoration_preflight", side_effect=error,
+                                 return_value=(self.before, REVISION, self.rollback, {"functions": {}})) as preflight, \
+                    patch.object(release.release, "write") as write, \
+                    patch.object(release.release, "source_update") as update, \
+                    redirect_stdout(io.StringIO()) as output:
+                if error is None:
+                    release.main()
+                    report = json.loads(output.getvalue())
+                    self.assertEqual(report["restorationPreflight"], "PASS")
+                    self.assertEqual(report["trafficPercent"], 100)
+                    self.assertFalse(report["historicalRuntimeFingerprintMatches"])
+                else:
+                    with self.assertRaises(SystemExit) as stopped:
+                        release.main()
+                    self.assertEqual(stopped.exception.code, 1)
+                    self.assertEqual(json.loads(output.getvalue())["restorationPreflight"], "FAIL")
+                    self.assertNotIn("private", output.getvalue())
+                preflight.assert_called_once_with("token", self.candidate)
+                write.assert_not_called()
+                update.assert_not_called()
 
     def test_candidate_or_rollback_archive_mismatch_stops_before_write(self):
         for diagnostic, rollback in (
@@ -296,6 +346,12 @@ class SingleFunctionRestorationTest(unittest.TestCase):
                 release.guard("restore-save-proposal-agreement")
         with patch.dict(os.environ, {**base, "CONFIRM_RELEASE": release.RESTORE_CONFIRMATION}, clear=True):
             release.guard("restore-save-proposal-agreement")
+            with self.assertRaisesRegex(RuntimeError, "verification confirmation"):
+                release.guard(release.VERIFY_RESTORATION_MODE)
+        with patch.dict(os.environ, {**base, "CONFIRM_RELEASE": release.VERIFY_RESTORATION_CONFIRMATION}, clear=True):
+            release.guard(release.VERIFY_RESTORATION_MODE)
+            with self.assertRaisesRegex(RuntimeError, "restoration confirmation"):
+                release.guard("restore-save-proposal-agreement")
         for mode, confirmation in (("deploy", "DEPLOY-RECEIPT-INTAKE-42924733167"),
                                    ("rollback", "ROLLBACK-RECEIPT-INTAKE-42924733167")):
             with patch.dict(os.environ, {**base, "CONFIRM_RELEASE": confirmation}, clear=True):
