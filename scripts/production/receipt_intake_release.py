@@ -19,6 +19,7 @@ PROJECT, SITE = inventory.PROJECT, inventory.SITE
 HOSTING = release.HOSTING_API
 REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
+EXCLUDED_NAMES = tuple(name for name in PLAN["functions"] if name not in NAMES)
 RESTORE_NAME = "saveProposalEnrollmentAgreement"
 VERIFY_RESTORATION_MODE = "verify-save-proposal-restoration"
 VERIFY_RESTORATION_CONFIRMATION = "VERIFY-SAVE-PROPOSAL-AGREEMENT-READ-ONLY"
@@ -317,6 +318,7 @@ def forward_state(token):
     """Capture every resource that must remain exact between forward writes."""
     return {
         "functions": {name: config(name, token) for name in NAMES},
+        "excluded": {name: config(name, token) for name in EXCLUDED_NAMES},
         "hosting": hosting_state(token),
         "rules": verify_rules(token),
     }
@@ -360,9 +362,16 @@ def forward_resume_preflight(token, packages):
         snapshots[name] = snapshot
         recovery[name] = archive
 
+    excluded = {name: config(name, token) for name in EXCLUDED_NAMES}
+    for name, snapshot in excluded.items():
+        require(digest(inventory.sanitize(snapshot))
+                == PLAN["functions"][name]["configurationSha256"],
+                f"{name}: excluded Function configuration fingerprint mismatch")
+
     hosting = hosting_state(token)
     rules = verify_rules(token)
-    expected = {"functions": snapshots, "hosting": hosting, "rules": rules}
+    expected = {"functions": snapshots, "excluded": excluded,
+                "hosting": hosting, "rules": rules}
     require_forward_state(token, expected)
     return expected, recovery, first_revision
 
@@ -416,6 +425,9 @@ def forward_resume(token, packages, overlay):
         for name in NAMES:
             require(config(name, token) == expected["functions"][name],
                     f"{name}: final Function state differs")
+        for name in EXCLUDED_NAMES:
+            require(config(name, token) == expected["excluded"][name],
+                    f"{name}: excluded Function changed during Hosting publication")
         print(json.dumps({
             "forwardResume": "PASS",
             "alreadyUpdatedFunction": RESTORE_NAME,
