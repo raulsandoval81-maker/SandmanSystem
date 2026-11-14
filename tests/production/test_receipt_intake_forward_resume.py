@@ -76,7 +76,8 @@ class ForwardResumeTest(unittest.TestCase):
                           return_value=(deepcopy(self.expected), {n: b"rollback" for n in self.names[1:]},
                                         f"{self.names[0].lower()}-old")), \
                 patch.object(release, "forward_state", side_effect=current), \
-                patch.object(release, "config", side_effect=lambda n, _t: deepcopy(state["functions"][n])), \
+                patch.object(release, "config", side_effect=lambda n, _t: deepcopy(
+                    state["functions"][n] if n in state["functions"] else state["excluded"][n])), \
                 patch.object(release, "prepare_hosting", return_value="new-version"), \
                 patch.object(release.release, "source_update", side_effect=update), \
                 patch.object(release, "source", side_effect=lambda name, *_:
