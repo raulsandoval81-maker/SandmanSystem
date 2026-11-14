@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [preflight, diagnose-release-10, capture-restoration-evidence, deploy, rollback]
+        options: [preflight, diagnose-release-10, capture-restoration-evidence, restore-save-proposal-agreement, deploy, rollback]
         default: preflight
         required: true
       confirm_project:
@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       confirm_release:
-        description: DEPLOY-RECEIPT-INTAKE-42924733167 or ROLLBACK-RECEIPT-INTAKE-42924733167
+        description: Exact mode-specific owner confirmation phrase
         type: string
 permissions:
   contents: read

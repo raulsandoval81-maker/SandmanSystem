@@ -19,6 +19,17 @@ PROJECT, SITE = inventory.PROJECT, inventory.SITE
 HOSTING = release.HOSTING_API
 REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
+RESTORE_NAME = "saveProposalEnrollmentAgreement"
+RESTORE_CONFIRMATION = "RESTORE-SAVE-PROPOSAL-AGREEMENT-SOURCE-ONLY-43564596875"
+RESTORATION = {
+    "configurationSha256": "b4066c965108fbe4793ee44d48b0e4770ba8cb8f8372a27e5e388af802125fc2",
+    "candidateGeneration": "1794629107340168",
+    "candidateArchiveSha256": "4a3e75891f160f3a5e28acb4b395406e4e6c34dfb7015afbe1d049c02a89f8ed",
+    "rollbackGeneration": "1790999969350187",
+    "rollbackArchiveSha256": "63b997fe83d1d092480d3e159b2b255fe28b0ec228c9311a765bab92e7f5b6a6",
+    "servingRevision": "saveproposalenrollmentagreement-00007-zuk",
+    "capturedRuntimeSha256": "68a0c620d9a4dd462d2e151f0c265fe1decab092defe44cb197a67ea4b14890a",
+}
 release.PROJECT, release.SITE = PROJECT, SITE
 release.FUNCTIONS = {name: generation for name, (generation, _) in inventory.FUNCTIONS.items()}
 for core_name in ("saveProposalEnrollmentAgreement", "issueProposalEnrollmentHandoff"):
@@ -242,6 +253,102 @@ def verify_rules(token):
     snapshot = {"release": active_rules, "rollback": ruleset,
                 "candidateSha256": inventory.sha(Path("application/firestore.rules").read_bytes())}
     require(digest(snapshot) == PLAN["rulesSha256"], "Rules baseline drift")
+    return snapshot
+
+
+def verify_healthy_serving(snapshot, expected_revision=None):
+    run = snapshot["run"]
+    service = f"projects/{PROJECT}/locations/{REGION}/services/{RESTORE_NAME.lower()}"
+    ready = run.get("latestReadyRevision", "")
+    revision = ready.rsplit("/", 1)[-1]
+    require(run.get("name") == service and ready == f"{service}/revisions/{revision}"
+            and run.get("latestCreatedRevision") == ready
+            and (expected_revision is None or revision == expected_revision)
+            and run.get("generation") is not None
+            and run.get("generation") == run.get("observedGeneration")
+            and run.get("reconciling", False) is False
+            and run.get("terminalCondition", {}).get("state") == "CONDITION_SUCCEEDED",
+            "Expected Cloud Run revision is not ready")
+    configured = [target for target in run.get("traffic", []) if target.get("percent", 0)]
+    serving = [target for target in run.get("trafficStatuses", []) if target.get("percent", 0)]
+    require(len(configured) == 1
+            and configured[0].get("type") == "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+            and configured[0].get("percent") == 100
+            and len(serving) == 1 and serving[0].get("revision") == revision
+            and serving[0].get("percent") == 100,
+            "Unexpected serving traffic")
+    return revision
+
+
+def hosting_state(token):
+    configuration, manifest = hosting_baseline(token)
+    return {"active": active(token), "configuration": configuration, "manifest": manifest}
+
+
+def unrelated_state(token):
+    return {
+        "functions": {name: config(name, token) for name in NAMES if name != RESTORE_NAME},
+        "hosting": hosting_state(token),
+        "rules": verify_rules(token),
+    }
+
+
+def require_unrelated_unchanged(token, expected):
+    require(unrelated_state(token) == expected,
+            "Excluded Functions, Hosting, or Firestore Rules changed")
+
+
+def restore_single_function(token, candidate):
+    """Separately authorized source-only restoration for one interrupted Function."""
+    name = RESTORE_NAME
+    before = config(name, token)
+    require(digest(inventory.sanitize(before)) == RESTORATION["configurationSha256"],
+            "Restoration configuration fingerprint mismatch")
+    prior_revision = verify_healthy_serving(before, RESTORATION["servingRevision"])
+    diagnostic = diagnose_release_10(token, candidate, report=False)
+    require(diagnostic["sourceFilesMatch"]
+            and diagnostic["liveArchiveSha256"] == RESTORATION["candidateArchiveSha256"],
+            "Current candidate source differs from reviewed package")
+    rollback_archive = pinned_recovery(name, before, token)
+    reference = PLAN["functions"][name]["reference"]
+    require(str(reference["generation"]) == RESTORATION["rollbackGeneration"]
+            and inventory.sha(rollback_archive) == RESTORATION["rollbackArchiveSha256"]
+            and digest(archive_hashes(rollback_archive))
+            == PLAN["functions"][name]["recoveryFilesSha256"],
+            "Pinned restoration archive differs from reviewed evidence")
+    excluded = unrelated_state(token)
+    require(config(name, token) == before, "Target Function changed before restoration")
+    require_unrelated_unchanged(token, excluded)
+    try:
+        release.source_update(name, rollback_archive, token)
+    except Exception:
+        print(json.dumps({"STOP_NO_RETRY": True, "uncertainWrite": name}, sort_keys=True), flush=True)
+        raise
+    after = config(name, token)
+    restored_revision = verify_healthy_serving(after)
+    require(restored_revision != prior_revision,
+            "Restoration did not create a new serving revision")
+    verify_updated_runtime(name, before, after)
+    restored_archive = source(name, after, token)
+    restored_files = archive_hashes(restored_archive)
+    require(restored_files == archive_hashes(rollback_archive)
+            and digest(restored_files) == PLAN["functions"][name]["recoveryFilesSha256"],
+            "Restored source differs from pinned rollback archive")
+    require_unrelated_unchanged(token, excluded)
+    print(json.dumps({
+        "function": name,
+        "previousRevision": prior_revision,
+        "restoredRevision": restored_revision,
+        "restoredArchiveSha256": inventory.sha(restored_archive),
+        "restoredArchiveByteForByteMatch":
+            inventory.sha(restored_archive) == RESTORATION["rollbackArchiveSha256"],
+        "restoredFileHashesMatch": True,
+        "configurationProtected": True,
+        "excludedResourcesUnchanged": True,
+        "historicalRuntimeFingerprintMatches": False,
+        "capturedCurrentRuntimeSha256": RESTORATION["capturedRuntimeSha256"],
+        "historicalRuntimeSha256": PLAN["functions"][name]["runtimeSha256"],
+    }, sort_keys=True), flush=True)
 
 
 def prepare_hosting(configuration, manifest, payloads, token):
@@ -300,7 +407,8 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", "deploy", "rollback"}, "Unsupported mode")
+    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence",
+                     "restore-save-proposal-agreement", "deploy", "rollback"}, "Unsupported mode")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
@@ -312,6 +420,9 @@ def guard(mode):
                 "Reviewed synthetic staging evidence is missing")
         require(not PLAN["pendingCoreFunctionBaseline"],
                 "Core Function baseline and compatibility review is pending")
+    if mode == "restore-save-proposal-agreement":
+        require(os.environ.get("CONFIRM_RELEASE") == RESTORE_CONFIRMATION,
+                "Single-Function restoration confirmation missing")
 
 
 def authenticated_release_token(env=None):
@@ -342,7 +453,7 @@ def diagnose_release_10(token, candidate, *, report=True):
     expected = PLAN["functions"][name]
     before = config(name, token)
     live = before["function"]["buildConfig"]["sourceProvenance"]["resolvedStorageSource"]
-    generation = "1794629107340168"
+    generation = RESTORATION["candidateGeneration"]
     require(live["bucket"] == expected["reference"]["bucket"]
             and live["object"] == expected["reference"]["object"]
             and str(live["generation"]) == generation, "Release #10 live source changed")
@@ -380,21 +491,7 @@ def capture_restoration_evidence(token, candidate):
     """Capture redacted production evidence for the exact interrupted update."""
     name = "saveProposalEnrollmentAgreement"
     snapshot = config(name, token)
-    run = snapshot["run"]
-    revision = "saveproposalenrollmentagreement-00007-zuk"
-    resource = f"projects/{PROJECT}/locations/{REGION}/services/{name.lower()}"
-    revision_path = f"{resource}/revisions/{revision}"
-    require(run.get("name") == resource
-            and run.get("latestReadyRevision") == revision_path
-            and run.get("latestCreatedRevision") == revision_path
-            and run.get("generation") is not None
-            and run.get("generation") == run.get("observedGeneration")
-            and run.get("reconciling", False) is False
-            and run.get("terminalCondition", {}).get("state") == "CONDITION_SUCCEEDED",
-            "Expected Cloud Run revision is not ready")
-    traffic = [target for target in run.get("trafficStatuses", []) if target.get("percent", 0)]
-    require(len(traffic) == 1 and traffic[0].get("revision") == revision
-            and traffic[0].get("percent") == 100, "Unexpected serving traffic")
+    verify_healthy_serving(snapshot, RESTORATION["servingRevision"])
     result = diagnose_release_10(token, candidate, report=False)
     require(config(name, token) == snapshot, "Configuration changed during evidence capture")
     # The protected run log is the receipt. A future authorized run must re-read
@@ -416,6 +513,11 @@ def main():
     root = Path("application")
     sha = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
     require(sha == PLAN["candidate"], "Application checkout SHA differs")
+    if mode == "restore-save-proposal-agreement":
+        candidate = package(RESTORE_NAME, root / "functions")
+        token = authenticated_release_token()
+        restore_single_function(token, candidate)
+        return
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
     token = authenticated_release_token()
