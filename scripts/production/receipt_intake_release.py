@@ -326,10 +326,13 @@ def restore_single_function(token, candidate):
         raise
     after = config(name, token)
     restored_revision = verify_healthy_serving(after)
+    require(restored_revision != prior_revision,
+            "Restoration did not create a new serving revision")
     verify_updated_runtime(name, before, after)
     restored_archive = source(name, after, token)
-    require(inventory.sha(restored_archive) == RESTORATION["rollbackArchiveSha256"]
-            and archive_hashes(restored_archive) == archive_hashes(rollback_archive),
+    restored_files = archive_hashes(restored_archive)
+    require(restored_files == archive_hashes(rollback_archive)
+            and digest(restored_files) == PLAN["functions"][name]["recoveryFilesSha256"],
             "Restored source differs from pinned rollback archive")
     require_unrelated_unchanged(token, excluded)
     print(json.dumps({
@@ -337,6 +340,9 @@ def restore_single_function(token, candidate):
         "previousRevision": prior_revision,
         "restoredRevision": restored_revision,
         "restoredArchiveSha256": inventory.sha(restored_archive),
+        "restoredArchiveByteForByteMatch":
+            inventory.sha(restored_archive) == RESTORATION["rollbackArchiveSha256"],
+        "restoredFileHashesMatch": True,
         "configurationProtected": True,
         "excludedResourcesUnchanged": True,
         "historicalRuntimeFingerprintMatches": False,
