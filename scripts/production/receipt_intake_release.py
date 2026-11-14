@@ -21,6 +21,9 @@ REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
 release.PROJECT, release.SITE = PROJECT, SITE
 release.FUNCTIONS = {name: generation for name, (generation, _) in inventory.FUNCTIONS.items()}
+for core_name in ("saveProposalEnrollmentAgreement", "issueProposalEnrollmentHandoff"):
+    inventory.FUNCTIONS[core_name] = (2, f"proposals/{core_name}")
+    release.FUNCTIONS[core_name] = 2
 require = inventory.require
 
 
@@ -132,6 +135,10 @@ def rollback(token, packages):
 
 
 def package(name, root):
+    if PLAN["functions"][name].get("source") == "staging-core":
+        root = root.parent.parent / "staging-core" / "functions"
+        sha = subprocess.check_output(["git", "-C", str(root.parent), "rev-parse", "HEAD"], text=True).strip()
+        require(sha == PLAN["hosting"]["coreCandidate"], "Staging Core checkout SHA differs")
     entry = inventory.FUNCTIONS[name][1]
     closure = inventory.closure(root, entry)
     require(digest(closure) == PLAN["functions"][name]["candidateClosureSha256"],
@@ -258,27 +265,6 @@ def preflight(token):
         require(digest(inventory.sanitize(snapshot)) == expected["configurationSha256"],
                 f"{name}: Function configuration, revision or IAM drift")
         snapshots[name] = snapshot
-    core_inventory = {
-        "saveProposalEnrollmentAgreement": (2, "proposals/saveProposalEnrollmentAgreement"),
-        "issueProposalEnrollmentHandoff": (2, "proposals/issueProposalEnrollmentHandoff"),
-    }
-    for name in PLAN["pendingCoreFunctionBaseline"]:
-        require(name in core_inventory, "Unapproved Core dependency")
-        inventory.FUNCTIONS[name] = core_inventory[name]
-        release.FUNCTIONS[name] = 2
-        snapshot = config(name, token)
-        evidence = inventory.source(name, 2, snapshot["function"], token)
-        require(config(name, token) == snapshot, f"{name}: configuration changed during inventory")
-        candidate = inventory.closure(Path("staging-core/functions"), f"proposals/{name}")
-        print(json.dumps({"coreDependency": name,
-                          "configurationSha256": digest(inventory.sanitize(snapshot)),
-                          "runtimeSha256": digest(runtime(name, inventory.sanitize(snapshot))),
-                          "reference": evidence["reference"],
-                          "recoveryFilesSha256": digest(evidence["files"]),
-                          "archiveSha256": evidence["archiveSha256"],
-                          "candidateClosure": candidate,
-                          "liveClosure": {path: value for path, value in evidence["files"].items()
-                                          if path in candidate}}, sort_keys=True), flush=True)
     hosting = hosting_baseline(token)
     verify_rules(token)
     return snapshots, hosting
