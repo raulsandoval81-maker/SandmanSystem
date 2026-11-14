@@ -300,7 +300,7 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "diagnose-release-10", "deploy", "rollback"}, "Unsupported mode")
+    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", "deploy", "rollback"}, "Unsupported mode")
     if mode == "rollback":
         require(os.environ.get("CONFIRM_RELEASE") == "ROLLBACK-RECEIPT-INTAKE-42924733167",
                 "Rollback confirmation missing")
@@ -336,7 +336,7 @@ def authenticated_release_token(env=None):
     return token
 
 
-def diagnose_release_10(token, candidate):
+def diagnose_release_10(token, candidate, *, report=True):
     """Read the pinned live source and compare protected fingerprints without writes."""
     name = "saveProposalEnrollmentAgreement"
     expected = PLAN["functions"][name]
@@ -370,8 +370,44 @@ def diagnose_release_10(token, candidate):
         "liveRuntimeSha256": actual_runtime,
         "runtimeMatches": actual_runtime == expected["runtimeSha256"],
     }
-    print(json.dumps(result, sort_keys=True), flush=True)
+    if report:
+        print(json.dumps(result, sort_keys=True), flush=True)
     require(result["sourceFilesMatch"], "Release #10 live source differs from reviewed package")
+    return result
+
+
+def capture_restoration_evidence(token, candidate):
+    """Capture redacted production evidence for the exact interrupted update."""
+    name = "saveProposalEnrollmentAgreement"
+    snapshot = config(name, token)
+    run = snapshot["run"]
+    revision = "saveproposalenrollmentagreement-00007-zuk"
+    resource = f"projects/{PROJECT}/locations/{REGION}/services/{name.lower()}"
+    revision_path = f"{resource}/revisions/{revision}"
+    require(run.get("name") == resource
+            and run.get("latestReadyRevision") == revision_path
+            and run.get("latestCreatedRevision") == revision_path
+            and run.get("generation") is not None
+            and run.get("generation") == run.get("observedGeneration")
+            and run.get("reconciling", False) is False
+            and run.get("terminalCondition", {}).get("state") == "CONDITION_SUCCEEDED",
+            "Expected Cloud Run revision is not ready")
+    traffic = [target for target in run.get("trafficStatuses", []) if target.get("percent", 0)]
+    require(len(traffic) == 1 and traffic[0].get("revision") == revision
+            and traffic[0].get("percent") == 100, "Unexpected serving traffic")
+    result = diagnose_release_10(token, candidate, report=False)
+    require(config(name, token) == snapshot, "Configuration changed during evidence capture")
+    # The protected run log is the receipt. A future authorized run must re-read
+    # all four records and match this digest before making any write.
+    print(json.dumps({
+        "configurationSha256": digest(inventory.sanitize(snapshot)),
+        "sourceFilesMatch": result["sourceFilesMatch"],
+        "liveArchiveSha256": result["liveArchiveSha256"],
+        "rollbackArchiveSha256": result["rollbackArchiveSha256"],
+        "liveRuntimeSha256": result["liveRuntimeSha256"],
+        "runtimeMatches": result["runtimeMatches"],
+        "servingRevisionVerified": True,
+    }, sort_keys=True), flush=True)
 
 
 def main():
@@ -383,6 +419,9 @@ def main():
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
     token = authenticated_release_token()
+    if mode == "capture-restoration-evidence":
+        capture_restoration_evidence(token, packages["saveProposalEnrollmentAgreement"])
+        return
     if mode == "diagnose-release-10":
         diagnose_release_10(token, packages["saveProposalEnrollmentAgreement"])
         return
