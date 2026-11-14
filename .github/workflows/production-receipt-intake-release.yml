@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [preflight, diagnose-release-10, deploy, rollback]
+        options: [preflight, diagnose-release-10, capture-restoration-evidence, deploy, rollback]
         default: preflight
         required: true
       confirm_project:
@@ -78,3 +78,11 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Verify production baseline and execute selected mode
         run: python3 trusted/scripts/production/receipt_intake_release.py
+
+      - uses: actions/upload-artifact@v4
+        if: inputs.mode == 'capture-restoration-evidence'
+        with:
+          name: single-function-restoration-evidence
+          path: recovery-evidence/saveProposalEnrollmentAgreement.json
+          if-no-files-found: error
+          retention-days: 7
