@@ -8,7 +8,6 @@
     "createAthleteFromIntakeCall",
     "hydrateEnrollmentIntakePrefill",
     "recordManualEnrollmentIntakeDelivery",
-    "sendProposalPrepaidCashReceipt",
     "sendEnrollmentIntakeEmail"
   ],
   "functions": {
@@ -158,6 +157,21 @@
         "baselineHash": "fdd1e981f0956d2ea57c2e2be9da794d8df9360bd8d2b7a8c4ca326ce12cbad2",
         "candidateSha256": "d6110610bb918a261d1457c7d94653be8aef9c401c236be82e09794ec27f5323",
         "hostingHash": "abc829c7d0aa64e4bbf7f7d92da7fad7771312a071c4f71c73d6b51faad784fd"
+      },
+      "/connect/enrollment/enrollment.js": {
+        "baselineHash": "945dc4a777de491034c9528fb32f4c9d092600fca024b57c3ff4c63ecf386be7",
+        "candidateSha256": "3898c4b99cffab883f367d10fd168afe92fc910c2bbe5b2bc32f216bb7ac07bc",
+        "hostingHash": "eceef7444d84a368bd238e8b772439069cc16db45af2191ff042fbd109502c5a"
+      },
+      "/connect/enrollment/enrollment.service.js": {
+        "baselineHash": "9bcbe4b167bd8cd0edc8f8cb0bceb523f2cd71d33e2159af2364eb1eccafd560",
+        "candidateSha256": "102186eeb72339f0026e23070f61491a3a08769bfe039b203b860512141f7566",
+        "hostingHash": "db0fb7b7aad0a826ff5ef981ef63a74301186b76a1684530ded5e3b7451f8604"
+      },
+      "/connect/enrollment/index.html": {
+        "baselineHash": "4ab132cd2042ac618d142924237646be52ef82ad12e12404dce4b59c0e3adaaf",
+        "candidateSha256": "99351a9fd6bab66e29e2679d53b0477bcf3bab80b23450890d6a529c724bdbaf",
+        "hostingHash": "a85b1ba388ddc47f3338d643a16368ec1e55c2ebff64a0a1423be7e1be8147ba"
       }
     },
     "uiCandidate": "eeb0552e3acf0904f63934aa2c9b303915b74cd7",
@@ -166,11 +180,21 @@
       "/intake-parent/parent.intake.js",
       "/intake-management/management.intake.js",
       "/intake-management/index.html"
+    ],
+    "coreCandidate": "77949da45bfd9c4f9f1e3aa514d523be54779e86",
+    "corePaths": [
+      "/connect/enrollment/enrollment.js",
+      "/connect/enrollment/enrollment.service.js",
+      "/connect/enrollment/index.html"
     ]
   },
   "rulesSha256": "326f885f866337c39b27fb395e362cce9e8a6952c934f5126f9d38ba8acf4c66",
   "stagingAcceptance": {
     "unpaidActivation": "https://sandman-combat-staging.web.app/intake-management/?proposalId=P-000004",
-    "combinedDelivery": null
-  }
+    "combinedDelivery": "https://sandman-combat-staging.web.app/intake-management/?proposalId=P-000012"
+  },
+  "pendingCoreFunctionBaseline": [
+    "saveProposalEnrollmentAgreement",
+    "issueProposalEnrollmentHandoff"
+  ]
 }

@@ -55,6 +55,11 @@ jobs:
           ref: eeb0552e3acf0904f63934aa2c9b303915b74cd7
           path: staging-ui
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 77949da45bfd9c4f9f1e3aa514d523be54779e86
+          path: staging-core
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -64,6 +69,8 @@ jobs:
         run: |
           npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
           npm run build --prefix application/functions
+          npm ci --prefix staging-core/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix staging-core/functions
           python3 -m unittest discover -s trusted/tests/production -p test_receipt_intake_release.py
       - uses: google-github-actions/auth@v2
         with:

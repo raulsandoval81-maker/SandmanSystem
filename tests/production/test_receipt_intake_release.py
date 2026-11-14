@@ -94,7 +94,7 @@ class ReleaseTest(unittest.TestCase):
                 self.assertTrue(all(path.startswith("lib/") or path in
                                     {"index.js", "package.json", "package-lock.json"} for path in files))
                 release.check_export(name, archive, root / "functions")
-        self.assertEqual(len(release.assets(root)), 8)
+        self.assertEqual(len(release.assets(root)), 11)
         self.assertEqual(set(release.PLAN["hosting"]["uiPaths"]), {
             "/connect/proposals/review/review.js",
             "/intake-parent/parent.intake.js",
