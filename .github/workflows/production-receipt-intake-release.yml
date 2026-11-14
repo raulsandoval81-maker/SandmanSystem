@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [preflight, deploy, rollback]
+        options: [preflight, diagnose-release-10, deploy, rollback]
         default: preflight
         required: true
       confirm_project:
