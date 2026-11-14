@@ -258,7 +258,13 @@ def preflight(token):
         require(digest(inventory.sanitize(snapshot)) == expected["configurationSha256"],
                 f"{name}: Function configuration, revision or IAM drift")
         snapshots[name] = snapshot
+    core_inventory = {
+        "saveProposalEnrollmentAgreement": (2, "proposals/saveProposalEnrollmentAgreement"),
+        "issueProposalEnrollmentHandoff": (2, "proposals/issueProposalEnrollmentHandoff"),
+    }
     for name in PLAN["pendingCoreFunctionBaseline"]:
+        require(name in core_inventory, "Unapproved Core dependency")
+        inventory.FUNCTIONS[name] = core_inventory[name]
         release.FUNCTIONS[name] = 2
         snapshot = config(name, token)
         evidence = inventory.source(name, 2, snapshot["function"], token)
