@@ -26,6 +26,8 @@ VERIFY_RESTORATION_CONFIRMATION = "VERIFY-SAVE-PROPOSAL-AGREEMENT-READ-ONLY"
 RESTORE_CONFIRMATION = "RESTORE-SAVE-PROPOSAL-AGREEMENT-SOURCE-ONLY-43564596875"
 FORWARD_RESUME_MODE = "forward-resume-release-10"
 VERIFY_FORWARD_MODE = "verify-forward-resume-release-10"
+DIAGNOSE_FAILED_FORWARD_MODE = "diagnose-failed-forward-update-15"
+DIAGNOSE_FAILED_FORWARD_CONFIRMATION = "DIAGNOSE-FAILED-FORWARD-UPDATE-15-READ-ONLY"
 VERIFY_FORWARD_CONFIRMATION = "VERIFY-FORWARD-RESUME-RELEASE-10-READ-ONLY"
 FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
 RESTORATION = {
@@ -415,6 +417,47 @@ def verify_forward_resume_readonly(token, packages, overlay):
     }, sort_keys=True), flush=True)
 
 
+def diagnose_failed_forward_update(token, packages):
+    """Read-only evidence after an uncertain first Function update; never resumes or restores."""
+    target = NAMES[1]
+    require(target == "issueProposalEnrollmentHandoff", "Unexpected diagnostic target")
+    snapshot = config(target, token)
+    current_source = archive_hashes(source(target, snapshot, token))
+    candidate_source = archive_hashes(packages[target])
+    original = PLAN["functions"][target]
+    current_runtime_sha = digest(runtime(target, inventory.sanitize(snapshot)))
+    original_configuration_sha = digest(inventory.sanitize(snapshot))
+    revision = verify_function_healthy(target, snapshot)
+    # Assert the untouched boundaries, separately from the target's now-uncertain state.
+    first = config(RESTORE_NAME, token)
+    require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
+            "Already-updated Function drift")
+    other = {}
+    for name in NAMES[2:]:
+        value = config(name, token)
+        other[name] = digest(inventory.sanitize(value)) == PLAN["functions"][name]["configurationSha256"]
+    excluded = verified_excluded_baselines(token)
+    hosting_baseline(token)
+    verify_rules(token)
+    print(json.dumps({
+        "failedForwardDiagnostic": "INSPECTED_NOT_CLEARED",
+        "target": target,
+        "targetServingRevisionSha256": inventory.sha(revision.encode()),
+        "targetCandidateSourceMatches": current_source == candidate_source,
+        "targetOriginalSourceMatches": digest(current_source) == original["recoveryFilesSha256"],
+        "targetOriginalConfigurationMatches": original_configuration_sha == original["configurationSha256"],
+        "targetPinnedRuntimeMatches": current_runtime_sha == original["runtimeSha256"],
+        "targetCurrentRuntimeSha256": current_runtime_sha,
+        "otherRemainingFunctionsUnchanged": other,
+        "excludedFunctionCountVerified": len(excluded),
+        "alreadyUpdatedFunctionUnchanged": True,
+        "hostingBaselineUnchanged": True,
+        "firestoreRulesUnchanged": True,
+        "productionWrites": 0,
+        "deploymentAuthorized": False,
+    }, sort_keys=True), flush=True)
+
+
 def forward_resume(token, packages, overlay):
     """Resume release #10 without touching its already-updated first Function."""
     expected, recovery, first_revision = forward_resume_preflight(token, packages)
@@ -635,7 +678,7 @@ def guard(mode):
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
     require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
-                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE,
+                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE, DIAGNOSE_FAILED_FORWARD_MODE,
                      "deploy", "rollback"}, "Unsupported mode")
     if mode == VERIFY_RESTORATION_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == VERIFY_RESTORATION_CONFIRMATION,
@@ -657,6 +700,9 @@ def guard(mode):
     if mode == VERIFY_FORWARD_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == VERIFY_FORWARD_CONFIRMATION,
                 "Read-only forward verification confirmation missing")
+    if mode == DIAGNOSE_FAILED_FORWARD_MODE:
+        require(os.environ.get("CONFIRM_RELEASE") == DIAGNOSE_FAILED_FORWARD_CONFIRMATION,
+                "Failed forward-update diagnostic confirmation missing")
     if mode == FORWARD_RESUME_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == FORWARD_RESUME_CONFIRMATION,
                 "Forward-resume owner confirmation missing")
@@ -777,6 +823,9 @@ def main():
         return
     if mode == VERIFY_FORWARD_MODE:
         verify_forward_resume_readonly(token, packages, overlay)
+        return
+    if mode == DIAGNOSE_FAILED_FORWARD_MODE:
+        diagnose_failed_forward_update(token, packages)
         return
     if mode == FORWARD_RESUME_MODE:
         forward_resume(token, packages, overlay)

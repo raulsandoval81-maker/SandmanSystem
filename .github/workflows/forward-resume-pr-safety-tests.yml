@@ -4,6 +4,7 @@ on:
     branches:
       - fix/forward-resume-release-10
       - fix/forward-resume-readonly-verification
+      - fix/forward-resume-failed-update-diagnostic
   workflow_dispatch:
 permissions:
   contents: read

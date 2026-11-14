@@ -121,6 +121,31 @@ class ForwardResumeTest(unittest.TestCase):
             self.run_forward(excluded_drift_on_publish=True)
         self.assertIn('"STOP_NO_RETRY": true', output.getvalue())
 
+    def test_failed_forward_diagnostic_reads_only_and_never_authorizes_deploy(self):
+        name = release.NAMES[1]
+        target = deepcopy(self.after[name])
+        with patch.object(release, "config", side_effect=lambda n, _token:
+                          deepcopy(target if n == name else self.before[n] if n in self.before else self.excluded[n])), \
+             patch.object(release, "source", return_value=self.packages[name]), \
+             patch.object(release, "verify_function_healthy", return_value="serving-revision"), \
+             patch.object(release, "verified_excluded_baselines", return_value=deepcopy(self.excluded)), \
+             patch.object(release, "hosting_baseline"), \
+             patch.object(release, "verify_rules"), \
+             patch.dict(release.RESTORATION, {"configurationSha256": release.digest(release.inventory.sanitize(self.before[release.RESTORE_NAME]))}), \
+             patch.object(release, "prepare_hosting") as prepare, \
+             patch.object(release.release, "source_update") as update, \
+             patch.object(release, "publish") as publish, \
+             redirect_stdout(io.StringIO()) as output:
+            release.diagnose_failed_forward_update("token", self.packages)
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["failedForwardDiagnostic"], "INSPECTED_NOT_CLEARED")
+        self.assertTrue(report["targetCandidateSourceMatches"])
+        self.assertEqual(report["productionWrites"], 0)
+        self.assertFalse(report["deploymentAuthorized"])
+        prepare.assert_not_called()
+        update.assert_not_called()
+        publish.assert_not_called()
+
     def test_readonly_forward_check_verifies_all_and_never_writes(self):
         overlay = {path: path.encode() for path in release.PLAN["hosting"]["assets"]}
         def asset_hash(body):
