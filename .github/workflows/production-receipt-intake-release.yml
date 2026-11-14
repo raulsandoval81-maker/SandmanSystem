@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [preflight, diagnose-release-10, capture-restoration-evidence, verify-save-proposal-restoration, restore-save-proposal-agreement, verify-forward-resume-release-10, forward-resume-release-10, deploy, rollback]
+        options: [preflight, diagnose-release-10, capture-restoration-evidence, verify-save-proposal-restoration, restore-save-proposal-agreement, verify-forward-resume-release-10, diagnose-failed-forward-update-15, forward-resume-release-10, deploy, rollback]
         default: preflight
         required: true
       confirm_project:
