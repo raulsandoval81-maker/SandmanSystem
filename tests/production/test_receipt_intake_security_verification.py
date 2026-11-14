@@ -7,7 +7,7 @@ import urllib.error
 from contextlib import ExitStack, redirect_stdout
 from copy import deepcopy
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import receipt_intake_release as release
 from test_receipt_intake_runtime import snapshot as runtime_snapshot
@@ -296,7 +296,7 @@ class SecurityVerificationTest(unittest.TestCase):
             }]},
         }
         opener = Mock()
-        response_mock = Mock()
+        response_mock = MagicMock()
         response_mock.__enter__ = Mock(return_value=io.BytesIO(json.dumps(response).encode()))
         response_mock.__exit__ = Mock(return_value=False)
         opener.open.return_value = response_mock
