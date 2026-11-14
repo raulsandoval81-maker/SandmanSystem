@@ -3,6 +3,8 @@
   "inventoryArtifact": 13812879099,
   "candidate": "3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8",
   "functionOrder": [
+    "saveProposalEnrollmentAgreement",
+    "issueProposalEnrollmentHandoff",
     "approveAndActivate",
     "approveIntakeCall",
     "createAthleteFromIntakeCall",
@@ -110,6 +112,30 @@
       },
       "candidateClosureSha256": "6b017c7027ba7f2bc2a643cef3bd45b909d22f6f7776c3b27ca509f7ee17ec14",
       "runtimeSha256": "890e8428b035aed2fcb621d227a591a3a0a4ded2679e2804518bd7a943527c8a"
+    },
+    "saveProposalEnrollmentAgreement": {
+      "configurationSha256": "84087a4e1fb4edca2bff6a4e6d4c0d3753cc39cfd45aac1b68039b3c8d80ab50",
+      "runtimeSha256": "a3bfe73472a2e055a4b97e555313f722f84e863cd23335873497ebd02037b95f",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790999969350187",
+        "object": "saveProposalEnrollmentAgreement/function-source.zip"
+      },
+      "recoveryFilesSha256": "c164cf8b68b4bfea2430a8dbc0ea02a291daa63ae158678f75ecdad4d128fac5",
+      "candidateClosureSha256": "0de4868380708a5eb6ef5216190c5cd2ae0f274f8ec3554b7390a49799aa106b",
+      "source": "staging-core"
+    },
+    "issueProposalEnrollmentHandoff": {
+      "configurationSha256": "e528fc1fd68dd87eb19b26ec56aa34369f194f313c97ab2d5395631d24fc75fb",
+      "runtimeSha256": "892dbd7c540bccc1fd248aafdc4cbd8a6f56286883795c4332476700407be486",
+      "reference": {
+        "bucket": "gcf-v2-sources-889326401061-us-central1",
+        "generation": "1790999969251009",
+        "object": "issueProposalEnrollmentHandoff/function-source.zip"
+      },
+      "recoveryFilesSha256": "c164cf8b68b4bfea2430a8dbc0ea02a291daa63ae158678f75ecdad4d128fac5",
+      "candidateClosureSha256": "296f2143010aaa9eaf42e31493a1135804106e0a80b72143ff88bc95474db1ee",
+      "source": "staging-core"
     }
   },
   "hosting": {
@@ -193,8 +219,5 @@
     "unpaidActivation": "https://sandman-combat-staging.web.app/intake-management/?proposalId=P-000004",
     "combinedDelivery": "https://sandman-combat-staging.web.app/intake-management/?proposalId=P-000012"
   },
-  "pendingCoreFunctionBaseline": [
-    "saveProposalEnrollmentAgreement",
-    "issueProposalEnrollmentHandoff"
-  ]
+  "pendingCoreFunctionBaseline": []
 }
