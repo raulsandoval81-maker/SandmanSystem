@@ -3,12 +3,14 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import urllib.parse
 import urllib.error
 import urllib.request
 import zipfile
+from datetime import datetime, timezone
 
 import receipt_intake_inventory as inventory
 
@@ -32,6 +34,7 @@ DIAGNOSE_FAILED_FORWARD_MODE = "diagnose-failed-forward-update-15"
 DIAGNOSE_FAILED_FORWARD_CONFIRMATION = "DIAGNOSE-FAILED-FORWARD-UPDATE-15-READ-ONLY"
 SECURITY_VERIFY_MODE = "verify-issue-handoff-security"
 SECURITY_VERIFY_CONFIRMATION = "VERIFY-ISSUE-HANDOFF-PRODUCTION-SECURITY-READ-ONLY"
+SECURITY_RETENTION_APPROVAL = "APPROVED-PRIVATE-PRODUCTION-SECURITY-EVIDENCE"
 VERIFY_FORWARD_CONFIRMATION = "VERIFY-FORWARD-RESUME-RELEASE-10-READ-ONLY"
 FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
 RESTORATION = {
@@ -49,6 +52,10 @@ for core_name in ("saveProposalEnrollmentAgreement", "issueProposalEnrollmentHan
     inventory.FUNCTIONS[core_name] = (2, f"proposals/{core_name}")
     release.FUNCTIONS[core_name] = 2
 require = inventory.require
+
+
+class SecurityViolation(RuntimeError):
+    """A collected fact proves security or configuration drift."""
 
 
 def digest(value):
@@ -482,10 +489,13 @@ def invocation_summary(snapshot):
     def policy(value, role):
         bindings = [item for item in value.get("bindings", []) if item.get("role") == role]
         members = [member for item in bindings for member in item.get("members", [])]
+        conditions = [item["condition"] for item in value.get("bindings", []) if "condition" in item]
         return {
             "bindingCount": len(bindings),
             "memberCount": len(members),
             "anonymous": any(member in {"allUsers", "allAuthenticatedUsers"} for member in members),
+            "conditionalBindingCount": len(conditions),
+            "conditionsSha256": digest(inventory.sanitize(conditions)),
             "policySha256": digest(inventory.sanitize(value)),
         }
     return {
@@ -515,10 +525,26 @@ def protected_reference_summary(snapshot):
 
     visit(snapshot["function"])
     visit(snapshot["run"])
+    service = snapshot["function"].get("serviceConfig", {})
+    run = snapshot["run"]
+    containers = run.get("template", {}).get("containers", [])
+    environment = [container.get("env", []) for container in containers]
+    networking = {
+        "ingress": run.get("ingress"),
+        "invokerIamDisabled": run.get("invokerIamDisabled"),
+        "vpcAccess": service.get("vpcConnector"),
+        "vpcEgress": service.get("vpcConnectorEgressSettings"),
+    }
     return {
         "runtimeServiceAccountSha256": inventory.sha(runtime_account.encode()),
         "secretReferenceCount": len(set(references)),
         "secretReferencesSha256": digest(sorted(set(references))),
+        "environmentConfigurationSha256": digest(inventory.sanitize(environment)),
+        "networking": networking,
+        "trafficSha256": digest(inventory.sanitize({
+            "configured": run.get("traffic", []),
+            "serving": run.get("trafficStatuses", []),
+        })),
     }, runtime_account
 
 
@@ -546,22 +572,97 @@ def runtime_access_summary(runtime_account, token):
             "policySetSha256": digest(inventory.sanitize(policies))}
 
 
-def write_protected_security_evidence(evidence, env=None):
+def security_evidence_destination(env=None):
     env = os.environ if env is None else env
+    if (env.get("SECURITY_EVIDENCE_RETENTION_APPROVAL") != SECURITY_RETENTION_APPROVAL
+            or not env.get("SECURITY_EVIDENCE_GCS_URI")
+            or not env.get("SECURITY_EVIDENCE_RETENTION_DAYS")):
+        return None
+    uri = env["SECURITY_EVIDENCE_GCS_URI"].rstrip("/")
+    require(re.fullmatch(r"gs://[a-z0-9][a-z0-9._-]{2,221}/[A-Za-z0-9._/-]+", uri),
+            "Protected security evidence destination is invalid")
+    days = int(env["SECURITY_EVIDENCE_RETENTION_DAYS"])
+    require(days >= 30, "Protected security evidence retention is insufficient")
+    return uri, days
+
+
+def retain_protected_security_evidence(evidence, env=None):
+    env = os.environ if env is None else env
+    destination = security_evidence_destination(env)
+    require(destination is not None, "Approved persistent security evidence destination missing")
+    base_uri, retention_days = destination
     root = Path(env.get("SECURITY_EVIDENCE_ROOT", "")).resolve()
     path = Path(env.get("SECURITY_EVIDENCE_PATH", "")).resolve()
     require(path.parent == root and path.name == "issue-handoff-security-verification.json",
             "Protected security evidence destination differs")
+    captured_at = datetime.now(timezone.utc).isoformat()
+    payload = {**evidence, "capturedAt": captured_at,
+               "retentionDaysRequired": retention_days}
+    payload_bytes = (json.dumps(payload, sort_keys=True) + "\n").encode()
+    evidence_sha = inventory.sha(payload_bytes)
     descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(descriptor, "w") as output:
-        json.dump(evidence, output, sort_keys=True)
-        output.write("\n")
+        output.write(payload_bytes.decode())
     require((path.stat().st_mode & 0o777) == 0o600,
             "Protected security evidence permissions differ")
+    bucket = base_uri.split("/", 3)[2]
+    bucket_uri = "gs://" + bucket
+    policy = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "buckets", "get-iam-policy", bucket_uri, "--format=json"],
+        text=True))
+    public = {"allUsers", "allAuthenticatedUsers"}
+    require(not any(public & set(binding.get("members", []))
+                    for binding in policy.get("bindings", [])),
+            "Security evidence bucket permits public access")
+    description = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "buckets", "describe", bucket_uri, "--format=json"],
+        text=True))
+    retention = description.get("retentionPolicy", {})
+    uniform = description.get("iamConfiguration", {}).get("uniformBucketLevelAccess", {})
+    require(uniform.get("enabled") is True
+            and int(retention.get("retentionPeriod", 0)) >= retention_days * 86400,
+            "Security evidence bucket controls are insufficient")
+    run_id = env.get("GITHUB_RUN_ID", "")
+    run_attempt = env.get("GITHUB_RUN_ATTEMPT", "")
+    require(run_id.isdigit() and run_attempt.isdigit(), "Protected run identity missing")
+    object_uri = (f"{base_uri}/{run_id}-{run_attempt}/"
+                  "issue-handoff-security-verification.json")
+    subprocess.run([
+        "gcloud", "storage", "cp", str(path), object_uri,
+        "--if-generation-match=0", f"--custom-metadata=sha256={evidence_sha}", "--quiet",
+    ], check=True, capture_output=True, text=True)
+    metadata = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "objects", "describe", object_uri, "--format=json"],
+        text=True))
+    require(metadata.get("metadata", {}).get("sha256") == evidence_sha
+            and int(metadata.get("size", -1)) == len(payload_bytes)
+            and str(metadata.get("generation", "")).isdigit(),
+            "Persisted security evidence integrity verification failed")
+    return {"evidenceSha256": evidence_sha,
+            "objectGenerationSha256": inventory.sha(str(metadata["generation"]).encode()),
+            "capturedAt": captured_at}
+
+
+def security_collection_status(candidate_matches, runtime_access_supported):
+    if not candidate_matches:
+        return "FAIL"
+    if not runtime_access_supported:
+        return "UNVERIFIED"
+    return "COLLECTED_NOT_CLEARED"
 
 
 def verify_issue_handoff_security(token, packages, env=None):
     """Read-only security inspection; current and historical baselines stay separate."""
+    env = os.environ if env is None else env
+    if security_evidence_destination(env) is None:
+        print(json.dumps({
+            "issueHandoffSecurityVerification": "UNVERIFIED",
+            "reason": "approved-private-evidence-retention-not-configured",
+            "independentReviewPossible": False,
+            "productionWrites": 0,
+            "deploymentAuthorized": False,
+        }, sort_keys=True), flush=True)
+        return "UNVERIFIED"
     target = "issueProposalEnrollmentHandoff"
     require(target == NAMES[1], "Unexpected security verification target")
     verify_security_read_permissions(token)
@@ -599,14 +700,20 @@ def verify_issue_handoff_security(token, packages, env=None):
             "fileSetSha256": expected["recoveryFilesSha256"],
         }
 
-    require(config(target, token) == current,
-            "Target configuration changed during security verification")
-    require(hosting_state(token) == hosting_state_value, "Hosting changed during security verification")
-    require(verify_rules(token) == rules, "Firestore Rules changed during security verification")
+    if config(target, token) != current:
+        raise SecurityViolation("Target configuration changed during security verification")
+    if hosting_state(token) != hosting_state_value:
+        raise SecurityViolation("Hosting changed during security verification")
+    if verify_rules(token) != rules:
+        raise SecurityViolation("Firestore Rules changed during security verification")
     historical = PLAN["functions"][target]
     evidence = {
         "mode": "READ_ONLY",
         "target": target,
+        "resources": {
+            "cloudFunction": current["function"].get("name"),
+            "cloudRunService": current["run"].get("name"),
+        },
         "current": {
             "configurationSha256": digest(inventory.sanitize(current)),
             "runtimeSha256": digest(runtime(target, inventory.sanitize(current))),
@@ -633,22 +740,29 @@ def verify_issue_handoff_security(token, packages, env=None):
         "productionWrites": 0,
         "deploymentAuthorized": False,
     }
-    write_protected_security_evidence(evidence, env)
+    candidate_matches = current_files == candidate_files
+    retention = retain_protected_security_evidence(evidence, env)
+    status = security_collection_status(candidate_matches, access["supported"])
     print(json.dumps({
-        "issueHandoffSecurityVerification": "PASS",
+        "issueHandoffSecurityVerification": status,
         "target": target,
         "servingHealthy": True,
-        "invocationPoliciesVerified": True,
+        "candidateSourceMatches": candidate_matches,
+        "invocationEvidenceCollected": True,
+        "securityConfigurationApproved": False,
         "secretReferenceCount": protected["secretReferenceCount"],
         "runtimeAccessAnalysisSupported": access["supported"],
         "remainingFunctionBaselinesVerified": len(snapshots) - 1,
         "recoveryArchivesVerified": len(recovery),
         "hostingBaselineVerified": True,
         "firestoreRulesVerified": True,
-        "protectedEvidenceStored": True,
+        "protectedEvidenceRetained": True,
+        "evidenceSha256": retention["evidenceSha256"],
+        "independentReviewPossible": True,
         "productionWrites": 0,
         "deploymentAuthorized": False,
     }, sort_keys=True), flush=True)
+    return status
 
 
 def forward_resume(token, packages, overlay):
@@ -1010,7 +1124,26 @@ def main():
         target = "issueProposalEnrollmentHandoff"
         candidate = package(target, root / "functions")
         token = authenticated_release_token()
-        verify_issue_handoff_security(token, {target: candidate})
+        try:
+            status = verify_issue_handoff_security(token, {target: candidate})
+        except SecurityViolation:
+            print(json.dumps({
+                "issueHandoffSecurityVerification": "FAIL",
+                "securityConfigurationApproved": False,
+                "productionWrites": 0,
+                "deploymentAuthorized": False,
+            }, sort_keys=True), flush=True)
+            raise SystemExit(1) from None
+        except RuntimeError:
+            print(json.dumps({
+                "issueHandoffSecurityVerification": "UNVERIFIED",
+                "securityConfigurationApproved": False,
+                "productionWrites": 0,
+                "deploymentAuthorized": False,
+            }, sort_keys=True), flush=True)
+            raise SystemExit(1) from None
+        if status != "COLLECTED_NOT_CLEARED":
+            raise SystemExit(1)
         return
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)

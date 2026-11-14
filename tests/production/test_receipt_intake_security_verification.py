@@ -51,7 +51,10 @@ class SecurityVerificationTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
             path = Path(directory) / "issue-handoff-security-verification.json"
-            env = {"SECURITY_EVIDENCE_ROOT": directory, "SECURITY_EVIDENCE_PATH": str(path)}
+            env = {"SECURITY_EVIDENCE_ROOT": directory, "SECURITY_EVIDENCE_PATH": str(path),
+                   "SECURITY_EVIDENCE_GCS_URI": "gs://approved-private-bucket/security",
+                   "SECURITY_EVIDENCE_RETENTION_DAYS": "30",
+                   "SECURITY_EVIDENCE_RETENTION_APPROVAL": release.SECURITY_RETENTION_APPROVAL}
             stack.enter_context(patch.dict(
                 release.RESTORATION,
                 {"configurationSha256": release.digest(release.inventory.sanitize(
@@ -68,22 +71,31 @@ class SecurityVerificationTest(unittest.TestCase):
             stack.enter_context(patch.object(release, "verified_excluded_baselines",
                                              return_value=deepcopy(excluded)))
             stack.enter_context(patch.object(release, "runtime_access_summary",
-                                             return_value={"supported": False,
-                                                           "reason": "cloud-asset-access-unavailable"}))
+                                             return_value={"supported": True, "policyCount": 1,
+                                                           "policySetSha256": "c" * 64}))
             stack.enter_context(patch.object(release, "source", return_value=b"source"))
             stack.enter_context(patch.object(release, "pinned_recovery", return_value=b"rollback"))
             stack.enter_context(patch.object(release, "archive_hashes", return_value=files))
             stack.enter_context(patch.object(release, "hosting_state", return_value=deepcopy(hosting)))
             stack.enter_context(patch.object(release, "verify_rules", return_value=deepcopy(rules)))
+            retained = stack.enter_context(patch.object(
+                release, "retain_protected_security_evidence",
+                return_value={"evidenceSha256": "d" * 64,
+                              "objectGenerationSha256": "e" * 64,
+                              "capturedAt": "2026-11-14T00:00:00+00:00"}))
             prepare = stack.enter_context(patch.object(release, "prepare_hosting"))
             update = stack.enter_context(patch.object(release.release, "source_update"))
             publish = stack.enter_context(patch.object(release, "publish"))
-            stack.enter_context(redirect_stdout(io.StringIO()))
-            release.verify_issue_handoff_security("token", {TARGET: b"candidate"}, env)
+            output = io.StringIO()
+            stack.enter_context(redirect_stdout(output))
+            status = release.verify_issue_handoff_security("token", {TARGET: b"candidate"}, env)
 
-            evidence = json.loads(path.read_text())
-            serialized = path.read_text()
-            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            evidence = retained.call_args.args[0]
+            serialized = json.dumps(evidence, sort_keys=True)
+            self.assertEqual(status, "COLLECTED_NOT_CLEARED")
+            self.assertIn('"issueHandoffSecurityVerification": "COLLECTED_NOT_CLEARED"',
+                          output.getvalue())
+            self.assertNotIn('"PASS"', output.getvalue())
             self.assertEqual(evidence["mode"], "READ_ONLY")
             self.assertEqual(evidence["productionWrites"], 0)
             self.assertFalse(evidence["deploymentAuthorized"])
@@ -98,6 +110,27 @@ class SecurityVerificationTest(unittest.TestCase):
             update.assert_not_called()
             publish.assert_not_called()
 
+    def test_source_mismatch_fails_and_unknown_effective_access_is_unverified(self):
+        self.assertEqual(release.security_collection_status(False, True), "FAIL")
+        self.assertEqual(release.security_collection_status(True, False), "UNVERIFIED")
+        self.assertEqual(release.security_collection_status(True, True),
+                         "COLLECTED_NOT_CLEARED")
+        self.assertNotIn("PASS", {release.security_collection_status(False, True),
+                                   release.security_collection_status(True, False),
+                                   release.security_collection_status(True, True)})
+
+    def test_iam_conditions_and_anonymous_access_are_evidence_not_approval(self):
+        value = function_snapshot(TARGET)
+        value["iam"]["bindings"].append({
+            "role": "roles/cloudfunctions.invoker", "members": ["allUsers"],
+            "condition": {"title": "unexpected", "expression": "true"},
+        })
+        summary = release.invocation_summary(value)
+        self.assertTrue(summary["cloudFunctions"]["anonymous"])
+        self.assertEqual(summary["cloudFunctions"]["conditionalBindingCount"], 1)
+        self.assertEqual(release.security_collection_status(True, True),
+                         "COLLECTED_NOT_CLEARED")
+
     def test_missing_required_read_permission_fails_closed(self):
         response = json.dumps({"permissions": ["cloudfunctions.functions.get"]}).encode()
         with patch.object(release.inventory, "request", return_value=response):
@@ -106,46 +139,118 @@ class SecurityVerificationTest(unittest.TestCase):
 
     def test_target_configuration_drift_is_rejected(self):
         target = function_snapshot(TARGET)
-        changed = deepcopy(target)
-        changed["runIam"]["etag"] = "changed"
-        calls = 0
+        cases = {
+            "iam-condition": lambda value: value["runIam"]["bindings"].append({
+                "role": "roles/run.invoker", "members": ["allUsers"],
+                "condition": {"title": "unexpected", "expression": "true"}}),
+            "secret-reference": lambda value: value["run"]["template"]["containers"][0]["env"][1]
+            ["valueSource"]["secretKeyRef"].update({"version": "changed"}),
+            "service-account": lambda value: value["run"]["template"].update(
+                {"serviceAccount": "changed@example.invalid"}),
+            "ingress": lambda value: value["run"].update(
+                {"ingress": "INGRESS_TRAFFIC_INTERNAL_ONLY"}),
+        }
+        for label, mutate in cases.items():
+            changed = deepcopy(target)
+            mutate(changed)
+            calls = 0
 
-        def config(name, _token):
-            nonlocal calls
-            if name == TARGET:
-                calls += 1
-                return deepcopy(target if calls == 1 else changed)
-            return function_snapshot(name)
+            def config(name, _token):
+                nonlocal calls
+                if name == TARGET:
+                    calls += 1
+                    return deepcopy(target if calls == 1 else changed)
+                return function_snapshot(name)
 
-        with tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
-            stack.enter_context(patch.object(release, "verify_security_read_permissions"))
-            stack.enter_context(patch.object(release, "config", side_effect=config))
-            stack.enter_context(patch.object(release, "verify_function_healthy", return_value="revision"))
-            stack.enter_context(patch.object(release, "invocation_summary", return_value={}))
-            stack.enter_context(patch.object(release, "protected_reference_summary",
-                                             return_value=({}, "runtime@example.invalid")))
-            stack.enter_context(patch.object(release, "runtime_access_summary",
-                                             return_value={"supported": False}))
-            stack.enter_context(patch.object(release, "source", return_value=b"source"))
-            stack.enter_context(patch.object(release, "archive_hashes", return_value={}))
-            stack.enter_context(patch.dict(
-                release.RESTORATION,
-                {"configurationSha256": release.digest(release.inventory.sanitize(
-                    function_snapshot(release.RESTORE_NAME)))}))
-            stack.enter_context(patch.object(release, "verify_original_function_baseline"))
-            stack.enter_context(patch.object(release, "verified_excluded_baselines", return_value={}))
-            stack.enter_context(patch.object(release, "hosting_state", return_value={}))
-            stack.enter_context(patch.object(release, "verify_rules", return_value={}))
-            stack.enter_context(patch.object(release, "pinned_recovery", return_value=b"rollback"))
-            for name in release.NAMES:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as directory, ExitStack() as stack:
+                stack.enter_context(patch.object(release, "verify_security_read_permissions"))
+                stack.enter_context(patch.object(release, "config", side_effect=config))
+                stack.enter_context(patch.object(release, "verify_function_healthy", return_value="revision"))
+                stack.enter_context(patch.object(release, "runtime_access_summary",
+                                                 return_value={"supported": False}))
+                stack.enter_context(patch.object(release, "source", return_value=b"source"))
+                stack.enter_context(patch.object(release, "archive_hashes", return_value={}))
                 stack.enter_context(patch.dict(
-                    release.PLAN["functions"][name],
-                    {"recoveryFilesSha256": release.digest({})}))
-            env = {"SECURITY_EVIDENCE_ROOT": directory,
-                   "SECURITY_EVIDENCE_PATH": str(Path(directory) /
-                                                 "issue-handoff-security-verification.json")}
-            with self.assertRaisesRegex(RuntimeError, "Target configuration changed"):
-                release.verify_issue_handoff_security("token", {TARGET: b"candidate"}, env)
+                    release.RESTORATION,
+                    {"configurationSha256": release.digest(release.inventory.sanitize(
+                        function_snapshot(release.RESTORE_NAME)))}))
+                stack.enter_context(patch.object(release, "verify_original_function_baseline"))
+                stack.enter_context(patch.object(release, "verified_excluded_baselines", return_value={}))
+                stack.enter_context(patch.object(release, "hosting_state", return_value={}))
+                stack.enter_context(patch.object(release, "verify_rules", return_value={}))
+                stack.enter_context(patch.object(release, "pinned_recovery", return_value=b"rollback"))
+                for name in release.NAMES:
+                    stack.enter_context(patch.dict(
+                        release.PLAN["functions"][name],
+                        {"recoveryFilesSha256": release.digest({})}))
+                env = {"SECURITY_EVIDENCE_ROOT": directory,
+                       "SECURITY_EVIDENCE_PATH": str(Path(directory) /
+                                                     "issue-handoff-security-verification.json"),
+                       "SECURITY_EVIDENCE_GCS_URI": "gs://approved-private-bucket/security",
+                       "SECURITY_EVIDENCE_RETENTION_DAYS": "30",
+                       "SECURITY_EVIDENCE_RETENTION_APPROVAL": release.SECURITY_RETENTION_APPROVAL}
+                with self.assertRaisesRegex(release.SecurityViolation,
+                                            "Target configuration changed"):
+                    release.verify_issue_handoff_security("token", {TARGET: b"candidate"}, env)
+
+    def test_unexpected_traffic_is_rejected(self):
+        value = function_snapshot(TARGET)
+        value["run"]["trafficStatuses"] = [
+            {"revision": "one", "percent": 50}, {"revision": "two", "percent": 50}]
+        with self.assertRaisesRegex(RuntimeError, "traffic"):
+            release.verify_function_healthy(TARGET, value)
+
+    def test_missing_retention_is_unverified_before_cloud_reads(self):
+        with patch.object(release, "verify_security_read_permissions") as permissions, \
+                redirect_stdout(io.StringIO()) as output:
+            status = release.verify_issue_handoff_security("token", {TARGET: b"candidate"}, {})
+        self.assertEqual(status, "UNVERIFIED")
+        self.assertIn('"independentReviewPossible": false', output.getvalue())
+        permissions.assert_not_called()
+
+    def test_private_retention_requires_access_controls_and_integrity_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "issue-handoff-security-verification.json"
+            env = {"SECURITY_EVIDENCE_ROOT": directory, "SECURITY_EVIDENCE_PATH": str(path),
+                   "SECURITY_EVIDENCE_GCS_URI": "gs://approved-private-bucket/security",
+                   "SECURITY_EVIDENCE_RETENTION_DAYS": "30",
+                   "SECURITY_EVIDENCE_RETENTION_APPROVAL": release.SECURITY_RETENTION_APPROVAL,
+                   "GITHUB_RUN_ID": "123", "GITHUB_RUN_ATTEMPT": "1"}
+            policy = {"bindings": [{"role": "roles/storage.objectViewer",
+                                     "members": ["group:security@example.invalid"]}]}
+            bucket = {"iamConfiguration": {"uniformBucketLevelAccess": {"enabled": True}},
+                      "retentionPolicy": {"retentionPeriod": str(30 * 86400)}}
+            metadata = {"metadata": {}, "size": "0", "generation": "99"}
+
+            def check_output(command, text):
+                if "get-iam-policy" in command:
+                    return json.dumps(policy)
+                if "buckets" in command and "describe" in command:
+                    return json.dumps(bucket)
+                payload = path.read_bytes()
+                sha = release.inventory.sha(payload)
+                return json.dumps({**metadata, "metadata": {"sha256": sha},
+                                   "size": str(len(payload))})
+
+            with patch.object(release.subprocess, "check_output", side_effect=check_output), \
+                    patch.object(release.subprocess, "run") as upload:
+                receipt = release.retain_protected_security_evidence(
+                    {"mode": "READ_ONLY", "productionWrites": 0}, env)
+            self.assertRegex(receipt["evidenceSha256"], r"^[a-f0-9]{64}$")
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            upload.assert_called_once()
+            self.assertIn("--if-generation-match=0", upload.call_args.args[0])
+
+            public_policy = {"bindings": [{"members": ["allUsers"]}]}
+            second = Path(directory) / "second"
+            second.mkdir()
+            bad_env = {**env, "SECURITY_EVIDENCE_ROOT": str(second),
+                       "SECURITY_EVIDENCE_PATH": str(
+                           second / "issue-handoff-security-verification.json")}
+            with patch.object(release.subprocess, "check_output",
+                              return_value=json.dumps(public_policy)), \
+                    self.assertRaisesRegex(RuntimeError, "public access"):
+                release.retain_protected_security_evidence({}, bad_env)
 
     def test_cloud_asset_permission_limit_is_redacted_and_nonfatal(self):
         error = urllib.error.HTTPError("https://redacted.invalid", 403, "denied", {}, None)
@@ -181,13 +286,30 @@ class SecurityVerificationTest(unittest.TestCase):
                              return_value=release.PLAN["candidate"] + "\n"), \
                 patch.object(release, "package", return_value=b"candidate"), \
                 patch.object(release, "authenticated_release_token", return_value="token"), \
-                patch.object(release, "verify_issue_handoff_security") as verify, \
+                patch.object(release, "verify_issue_handoff_security",
+                             return_value="COLLECTED_NOT_CLEARED") as verify, \
                 patch.object(release, "forward_resume") as deploy, \
                 patch.object(release, "rollback") as rollback:
             release.main()
         verify.assert_called_once_with("token", {TARGET: b"candidate"})
         deploy.assert_not_called()
         rollback.assert_not_called()
+
+        for result in ("FAIL", "UNVERIFIED"):
+            with self.subTest(result=result), \
+                    patch.dict(os.environ, {"RELEASE_MODE": release.SECURITY_VERIFY_MODE}, clear=True), \
+                    patch.object(release, "guard"), \
+                    patch.object(release.subprocess, "check_output",
+                                 return_value=release.PLAN["candidate"] + "\n"), \
+                    patch.object(release, "package", return_value=b"candidate"), \
+                    patch.object(release, "authenticated_release_token", return_value="token"), \
+                    patch.object(release, "verify_issue_handoff_security", return_value=result), \
+                    patch.object(release, "forward_resume") as deploy, \
+                    patch.object(release, "rollback") as rollback, \
+                    self.assertRaises(SystemExit):
+                release.main()
+            deploy.assert_not_called()
+            rollback.assert_not_called()
 
 
 if __name__ == "__main__":

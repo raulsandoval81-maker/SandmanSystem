@@ -36,6 +36,9 @@ jobs:
       CONFIRM_RELEASE: ${{ inputs.confirm_release }}
       SECURITY_EVIDENCE_PATH: ${{ runner.temp }}/issue-handoff-security-verification.json
       SECURITY_EVIDENCE_ROOT: ${{ runner.temp }}
+      SECURITY_EVIDENCE_GCS_URI: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_GCS_URI }}
+      SECURITY_EVIDENCE_RETENTION_DAYS: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_DAYS }}
+      SECURITY_EVIDENCE_RETENTION_APPROVAL: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_APPROVAL }}
     steps:
       - name: Require main and the pinned application commit
         run: |
