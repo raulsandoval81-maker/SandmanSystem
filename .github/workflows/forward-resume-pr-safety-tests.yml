@@ -1,0 +1,25 @@
+name: Forward-resume PR safety tests
+on:
+  push:
+    branches:
+      - fix/forward-resume-release-10
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile release scripts
+        run: python3 -m py_compile scripts/production/receipt_intake_release.py tests/production/test_receipt_intake_forward_resume.py
+      - name: Run focused forward-resume runtime and restoration regressions
+        env:
+          PYTHONPATH: scripts/staging:scripts/production:tests/production
+        run: python3 -m unittest test_receipt_intake_forward_resume test_receipt_intake_runtime test_receipt_intake_restoration -v
