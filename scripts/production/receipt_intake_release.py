@@ -169,9 +169,12 @@ def assets(root):
     ui_root = root.parent / "staging-ui"
     ui_sha = subprocess.check_output(["git", "-C", str(ui_root), "rev-parse", "HEAD"], text=True).strip()
     require(ui_sha == hosting["uiCandidate"], "Staging UI checkout SHA differs")
+    core_root = root.parent / "staging-core"
+    core_sha = subprocess.check_output(["git", "-C", str(core_root), "rev-parse", "HEAD"], text=True).strip()
+    require(core_sha == hosting["coreCandidate"], "Staging Core checkout SHA differs")
     result = {}
     for path, expected in PLAN["hosting"]["assets"].items():
-        asset_root = ui_root if path in hosting["uiPaths"] else root
+        asset_root = ui_root if path in hosting["uiPaths"] else core_root if path in hosting["corePaths"] else root
         raw = (asset_root / ("public" + path)).read_bytes()
         require(inventory.sha(raw) == expected["candidateSha256"], f"{path}: source differs")
         zipped = subprocess.run(
@@ -255,6 +258,21 @@ def preflight(token):
         require(digest(inventory.sanitize(snapshot)) == expected["configurationSha256"],
                 f"{name}: Function configuration, revision or IAM drift")
         snapshots[name] = snapshot
+    for name in PLAN["pendingCoreFunctionBaseline"]:
+        release.FUNCTIONS[name] = 2
+        snapshot = config(name, token)
+        evidence = inventory.source(name, 2, snapshot["function"], token)
+        require(config(name, token) == snapshot, f"{name}: configuration changed during inventory")
+        candidate = inventory.closure(Path("staging-core/functions"), f"proposals/{name}")
+        print(json.dumps({"coreDependency": name,
+                          "configurationSha256": digest(inventory.sanitize(snapshot)),
+                          "runtimeSha256": digest(runtime(name, inventory.sanitize(snapshot))),
+                          "reference": evidence["reference"],
+                          "recoveryFilesSha256": digest(evidence["files"]),
+                          "archiveSha256": evidence["archiveSha256"],
+                          "candidateClosure": candidate,
+                          "liveClosure": {path: value for path, value in evidence["files"].items()
+                                          if path in candidate}}, sort_keys=True), flush=True)
     hosting = hosting_baseline(token)
     verify_rules(token)
     return snapshots, hosting
@@ -277,6 +295,8 @@ def guard(mode):
         require(all(isinstance(value, str) and value.startswith("https://")
                     for value in PLAN["stagingAcceptance"].values()),
                 "Reviewed synthetic staging evidence is missing")
+        require(not PLAN["pendingCoreFunctionBaseline"],
+                "Core Function baseline and compatibility review is pending")
 
 
 def authenticated_release_token(env=None):
