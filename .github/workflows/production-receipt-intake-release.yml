@@ -4,7 +4,7 @@ on:
     inputs:
       mode:
         type: choice
-        options: [preflight, diagnose-release-10, capture-restoration-evidence, verify-save-proposal-restoration, restore-save-proposal-agreement, verify-forward-resume-release-10, diagnose-failed-forward-update-15, forward-resume-release-10, deploy, rollback]
+        options: [preflight, diagnose-release-10, capture-restoration-evidence, verify-save-proposal-restoration, restore-save-proposal-agreement, verify-forward-resume-release-10, diagnose-failed-forward-update-15, verify-issue-handoff-security, forward-resume-release-10, deploy, rollback]
         default: preflight
         required: true
       confirm_project:
@@ -34,6 +34,11 @@ jobs:
       CONFIRM_PROJECT: ${{ inputs.confirm_project }}
       CONFIRM_SHA: ${{ inputs.confirm_sha }}
       CONFIRM_RELEASE: ${{ inputs.confirm_release }}
+      SECURITY_EVIDENCE_PATH: ${{ runner.temp }}/issue-handoff-security-verification.json
+      SECURITY_EVIDENCE_ROOT: ${{ runner.temp }}
+      SECURITY_EVIDENCE_GCS_URI: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_GCS_URI }}
+      SECURITY_EVIDENCE_RETENTION_DAYS: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_DAYS }}
+      SECURITY_EVIDENCE_RETENTION_APPROVAL: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_APPROVAL }}
     steps:
       - name: Require main and the pinned application commit
         run: |

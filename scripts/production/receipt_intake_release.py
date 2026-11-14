@@ -3,10 +3,14 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import urllib.parse
+import urllib.error
+import urllib.request
 import zipfile
+from datetime import datetime, timezone
 
 import receipt_intake_inventory as inventory
 
@@ -28,6 +32,9 @@ FORWARD_RESUME_MODE = "forward-resume-release-10"
 VERIFY_FORWARD_MODE = "verify-forward-resume-release-10"
 DIAGNOSE_FAILED_FORWARD_MODE = "diagnose-failed-forward-update-15"
 DIAGNOSE_FAILED_FORWARD_CONFIRMATION = "DIAGNOSE-FAILED-FORWARD-UPDATE-15-READ-ONLY"
+SECURITY_VERIFY_MODE = "verify-issue-handoff-security"
+SECURITY_VERIFY_CONFIRMATION = "VERIFY-ISSUE-HANDOFF-PRODUCTION-SECURITY-READ-ONLY"
+SECURITY_RETENTION_APPROVAL = "APPROVED-PRIVATE-PRODUCTION-SECURITY-EVIDENCE"
 VERIFY_FORWARD_CONFIRMATION = "VERIFY-FORWARD-RESUME-RELEASE-10-READ-ONLY"
 FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
 RESTORATION = {
@@ -45,6 +52,10 @@ for core_name in ("saveProposalEnrollmentAgreement", "issueProposalEnrollmentHan
     inventory.FUNCTIONS[core_name] = (2, f"proposals/{core_name}")
     release.FUNCTIONS[core_name] = 2
 require = inventory.require
+
+
+class SecurityViolation(RuntimeError):
+    """A collected fact proves security or configuration drift."""
 
 
 def digest(value):
@@ -458,6 +469,380 @@ def diagnose_failed_forward_update(token, packages):
     }, sort_keys=True), flush=True)
 
 
+def verify_security_read_permissions(token):
+    """Require only the reads used by the separately gated security inspection."""
+    required = [
+        "cloudfunctions.functions.get", "cloudfunctions.functions.getIamPolicy",
+        "cloudfunctions.functions.sourceCodeGet",
+        "firebasehosting.sites.get", "firebaserules.releases.get",
+        "firebaserules.rulesets.get", "run.services.get", "run.services.getIamPolicy",
+    ]
+    url = f"https://cloudresourcemanager.googleapis.com/v1/projects/{PROJECT}:testIamPermissions"
+    granted = json.loads(inventory.request(url, token, {"permissions": required}))
+    missing = sorted(set(required) - set(granted.get("permissions", [])))
+    require(not missing, "Production security read permissions unavailable")
+    return required
+
+
+def invocation_summary(snapshot):
+    """Reduce invocation policies without retaining or emitting member identities."""
+    def policy(value, role):
+        bindings = [item for item in value.get("bindings", []) if item.get("role") == role]
+        members = [member for item in bindings for member in item.get("members", [])]
+        public = {"allUsers", "allAuthenticatedUsers"}
+        unconditional_public = any(
+            not item.get("condition") and public.intersection(item.get("members", []))
+            for item in bindings)
+        conditional_public = any(
+            item.get("condition") and public.intersection(item.get("members", []))
+            for item in bindings)
+        conditions = [item["condition"] for item in value.get("bindings", []) if "condition" in item]
+        return {
+            "bindingCount": len(bindings),
+            "memberCount": len(members),
+            "anonymous": any(member in public for member in members),
+            "unconditionalAnonymous": bool(unconditional_public),
+            "conditionalAnonymous": bool(conditional_public),
+            "conditionalBindingCount": len(conditions),
+            "conditionsSha256": digest(inventory.sanitize(conditions)),
+            "policySha256": digest(inventory.sanitize(value)),
+        }
+    return {
+        "cloudFunctions": policy(snapshot["iam"], "roles/cloudfunctions.invoker"),
+        "cloudRun": policy(snapshot["runIam"], "roles/run.invoker"),
+    }
+
+
+def protected_reference_summary(snapshot):
+    """Hash runtime identity and secret references without retaining their values."""
+    runtime_account = snapshot["function"].get("serviceConfig", {}).get("serviceAccountEmail")
+    run_account = snapshot["run"].get("template", {}).get("serviceAccount")
+    require(runtime_account and run_account, "Runtime service account missing")
+    identity_matches = runtime_account == run_account
+    references = []
+
+    def visit(value, key=""):
+        if isinstance(value, dict):
+            if key in {"secretEnvironmentVariables", "secretKeyRef"}:
+                references.append(digest(inventory.sanitize(value)))
+                return
+            for child_key, child in value.items():
+                visit(child, child_key)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child, key)
+
+    visit(snapshot["function"])
+    visit(snapshot["run"])
+    service = snapshot["function"].get("serviceConfig", {})
+    run = snapshot["run"]
+    containers = run.get("template", {}).get("containers", [])
+    environment = [container.get("env", []) for container in containers]
+    networking = {
+        "ingress": run.get("ingress"),
+        "invokerIamDisabled": run.get("invokerIamDisabled"),
+        "vpcAccess": service.get("vpcConnector"),
+        "vpcEgress": service.get("vpcConnectorEgressSettings"),
+    }
+    return {
+        "runtimeServiceAccountSha256": inventory.sha(runtime_account.encode()),
+        "runServiceAccountSha256": inventory.sha(run_account.encode()),
+        "runtimeIdentityMatches": identity_matches,
+        "secretReferenceCount": len(set(references)),
+        "secretReferencesSha256": digest(sorted(set(references))),
+        "environmentConfigurationSha256": digest(inventory.sanitize(environment)),
+        "networking": networking,
+        "trafficSha256": digest(inventory.sanitize({
+            "configured": run.get("traffic", []),
+            "serving": run.get("trafficStatuses", []),
+        })),
+    }, runtime_account
+
+
+def runtime_access_summary(runtime_account, token):
+    """Analyze IAM allow policies for this runtime identity, not just policy counts.
+
+    Cloud Asset is best-effort and does not evaluate IAM deny, principal access
+    boundaries or necessarily ancestor policies. These are retained as explicit
+    limitations; this mode never declares effective access cleared.
+    """
+    url = f"https://cloudasset.googleapis.com/v1/projects/{PROJECT}:analyzeIamPolicy"
+    query = {
+        "analysisQuery": {
+            "scope": f"projects/{PROJECT}",
+            "identitySelector": {"identity": "serviceAccount:" + runtime_account},
+            "options": {"expandRoles": True},
+        }
+    }
+    request = urllib.request.Request(
+        url, data=json.dumps(query).encode(),
+        headers={"Authorization": "Bearer " + token,
+                 "Content-Type": "application/json"}, method="POST")
+    try:
+        opener = urllib.request.build_opener(inventory.NoRedirect())
+        with opener.open(request, timeout=45) as response:
+            payload = json.load(response)
+    except urllib.error.HTTPError as error:
+        if error.code in {401, 403, 404}:
+            return {"supported": False, "reason": "cloud-asset-access-unavailable",
+                    "effectiveAccessVerified": False}
+        raise RuntimeError("Runtime access analysis failed") from None
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        raise RuntimeError("Runtime access analysis unavailable") from None
+    analysis = payload.get("mainAnalysis", {})
+    results = analysis.get("analysisResults", [])
+    require(isinstance(results, list), "Malformed policy analysis results")
+    fully_explored = (payload.get("fullyExplored") is True
+                      and analysis.get("fullyExplored") is True
+                      and not analysis.get("nonCriticalErrors"))
+    policy_bindings = []
+    for item in results:
+        binding = item.get("iamBinding", {}) if isinstance(item, dict) else {}
+        if not binding:
+            binding = item.get("policy", {}).get("binding", {})
+        require(isinstance(binding, dict), "Malformed policy analysis binding")
+        policy_bindings.append({
+            "role": binding.get("role"),
+            "condition": binding.get("condition"),
+            "resources": item.get("accessControlLists", []),
+            "identityList": item.get("identityList", {}),
+            "accessList": item.get("accessList", {}),
+            "policy": item.get("policy", {}),
+        })
+    return {
+        "supported": True, "fullyExplored": fully_explored,
+        "effectiveAccessVerified": False,
+        "limitations": ["iam-deny-not-evaluated", "ancestor-policy-scope-not-proven",
+                        "principal-access-boundaries-not-evaluated",
+                        "independent-approved-role-baseline-missing"],
+        "analysisResults": policy_bindings,
+        "analysisResultsSha256": digest(inventory.sanitize(results)),
+        "analysisResultCount": len(results),
+        "nonCriticalErrorCount": len(analysis.get("nonCriticalErrors", [])),
+    }
+
+
+def security_evidence_destination(env=None):
+    env = os.environ if env is None else env
+    if (env.get("SECURITY_EVIDENCE_RETENTION_APPROVAL") != SECURITY_RETENTION_APPROVAL
+            or not env.get("SECURITY_EVIDENCE_GCS_URI")
+            or not env.get("SECURITY_EVIDENCE_RETENTION_DAYS")):
+        return None
+    uri = env["SECURITY_EVIDENCE_GCS_URI"].rstrip("/")
+    require(re.fullmatch(r"gs://[a-z0-9][a-z0-9._-]{2,221}/[A-Za-z0-9._/-]+", uri),
+            "Protected security evidence destination is invalid")
+    days = int(env["SECURITY_EVIDENCE_RETENTION_DAYS"])
+    require(days >= 30, "Protected security evidence retention is insufficient")
+    return uri, days
+
+
+def retain_protected_security_evidence(evidence, env=None):
+    env = os.environ if env is None else env
+    destination = security_evidence_destination(env)
+    require(destination is not None, "Approved persistent security evidence destination missing")
+    base_uri, retention_days = destination
+    root = Path(env.get("SECURITY_EVIDENCE_ROOT", "")).resolve()
+    path = Path(env.get("SECURITY_EVIDENCE_PATH", "")).resolve()
+    require(path.parent == root and path.name == "issue-handoff-security-verification.json",
+            "Protected security evidence destination differs")
+    captured_at = datetime.now(timezone.utc).isoformat()
+    payload = {**evidence, "capturedAt": captured_at,
+               "retentionDaysRequired": retention_days}
+    payload_bytes = (json.dumps(payload, sort_keys=True) + "\n").encode()
+    evidence_sha = inventory.sha(payload_bytes)
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(descriptor, "w") as output:
+        output.write(payload_bytes.decode())
+    require((path.stat().st_mode & 0o777) == 0o600,
+            "Protected security evidence permissions differ")
+    bucket = base_uri.split("/", 3)[2]
+    bucket_uri = "gs://" + bucket
+    policy = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "buckets", "get-iam-policy", bucket_uri, "--format=json"],
+        text=True))
+    public = {"allUsers", "allAuthenticatedUsers"}
+    require(not any(public & set(binding.get("members", []))
+                    for binding in policy.get("bindings", [])),
+            "Security evidence bucket permits public access")
+    description = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "buckets", "describe", bucket_uri, "--format=json"],
+        text=True))
+    retention = description.get("retentionPolicy", {})
+    uniform = description.get("iamConfiguration", {}).get("uniformBucketLevelAccess", {})
+    require(uniform.get("enabled") is True
+            and int(retention.get("retentionPeriod", 0)) >= retention_days * 86400,
+            "Security evidence bucket controls are insufficient")
+    run_id = env.get("GITHUB_RUN_ID", "")
+    run_attempt = env.get("GITHUB_RUN_ATTEMPT", "")
+    require(run_id.isdigit() and run_attempt.isdigit(), "Protected run identity missing")
+    object_uri = (f"{base_uri}/{run_id}-{run_attempt}/"
+                  "issue-handoff-security-verification.json")
+    subprocess.run([
+        "gcloud", "storage", "cp", str(path), object_uri,
+        "--if-generation-match=0", f"--custom-metadata=sha256={evidence_sha}", "--quiet",
+    ], check=True, capture_output=True, text=True)
+    metadata = json.loads(subprocess.check_output(
+        ["gcloud", "storage", "objects", "describe", object_uri, "--format=json"],
+        text=True))
+    require(metadata.get("metadata", {}).get("sha256") == evidence_sha
+            and int(metadata.get("size", -1)) == len(payload_bytes)
+            and str(metadata.get("generation", "")).isdigit(),
+            "Persisted security evidence integrity verification failed")
+    return {"evidenceSha256": evidence_sha,
+            "objectGenerationSha256": inventory.sha(str(metadata["generation"]).encode()),
+            "capturedAt": captured_at}
+
+
+def security_collection_status(candidate_matches, runtime_access_supported,
+                               violations=(), analysis_complete=True):
+    if not candidate_matches or violations:
+        return "FAIL"
+    if not runtime_access_supported or not analysis_complete:
+        return "UNVERIFIED"
+    return "COLLECTED_NOT_CLEARED"
+
+
+def verified_security_violations(snapshot, invocation, protected):
+    """Only facts independently sufficient to establish an unsafe state."""
+    violations = []
+    if not protected["runtimeIdentityMatches"]:
+        violations.append("runtime-service-account-mismatch")
+    if snapshot["run"].get("invokerIamDisabled") is True:
+        violations.append("cloud-run-invoker-iam-disabled")
+    for system in ("cloudFunctions", "cloudRun"):
+        if invocation[system]["unconditionalAnonymous"]:
+            violations.append(system + "-unconditional-public-invoker-binding")
+    return violations
+
+
+def verify_issue_handoff_security(token, packages, env=None):
+    """Read-only security inspection; current and historical baselines stay separate."""
+    env = os.environ if env is None else env
+    if security_evidence_destination(env) is None:
+        print(json.dumps({
+            "issueHandoffSecurityVerification": "UNVERIFIED",
+            "reason": "approved-private-evidence-retention-not-configured",
+            "independentReviewPossible": False,
+            "productionWrites": 0,
+            "deploymentAuthorized": False,
+        }, sort_keys=True), flush=True)
+        return "UNVERIFIED"
+    target = "issueProposalEnrollmentHandoff"
+    require(target == NAMES[1], "Unexpected security verification target")
+    verify_security_read_permissions(token)
+    current = config(target, token)
+    revision = verify_function_healthy(target, current)
+    invocation = invocation_summary(current)
+    protected, runtime_account = protected_reference_summary(current)
+    access = runtime_access_summary(runtime_account, token)
+    violations = verified_security_violations(current, invocation, protected)
+    current_files = archive_hashes(source(target, current, token))
+    candidate_files = archive_hashes(packages[target])
+
+    snapshots = {target: current}
+    first = config(RESTORE_NAME, token)
+    require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
+            "Already-updated Function current baseline drift")
+    snapshots[RESTORE_NAME] = first
+    for name in NAMES[2:]:
+        value = config(name, token)
+        verify_original_function_baseline(name, value)
+        snapshots[name] = value
+    excluded = verified_excluded_baselines(token)
+    snapshots.update(excluded)
+    hosting_state_value = hosting_state(token)
+    rules = verify_rules(token)
+
+    recovery = {}
+    for name, value in snapshots.items():
+        archive = pinned_recovery(name, value, token)
+        expected = PLAN["functions"][name]
+        require(digest(archive_hashes(archive)) == expected["recoveryFilesSha256"],
+                f"{name}: pinned recovery archive mismatch")
+        recovery[name] = {
+            "reference": expected["reference"],
+            "archiveSha256": inventory.sha(archive),
+            "fileSetSha256": expected["recoveryFilesSha256"],
+        }
+
+    if config(target, token) != current:
+        raise SecurityViolation("Target configuration changed during security verification")
+    if hosting_state(token) != hosting_state_value:
+        raise SecurityViolation("Hosting changed during security verification")
+    if verify_rules(token) != rules:
+        raise SecurityViolation("Firestore Rules changed during security verification")
+    historical = PLAN["functions"][target]
+    evidence = {
+        "mode": "READ_ONLY",
+        "target": target,
+        "resources": {
+            "cloudFunction": current["function"].get("name"),
+            "cloudRunService": current["run"].get("name"),
+        },
+        "current": {
+            "configurationSha256": digest(inventory.sanitize(current)),
+            "runtimeSha256": digest(runtime(target, inventory.sanitize(current))),
+            "sourceFilesSha256": digest(current_files),
+            "servingRevisionSha256": inventory.sha(revision.encode()),
+            "candidateSourceMatches": current_files == candidate_files,
+            "invocation": invocation,
+            "protectedReferences": protected,
+            "runtimeAccess": access,
+            "verifiedSecurityViolations": violations,
+            "privateIamEvidence": {
+                "cloudFunctionPolicy": inventory.sanitize(current["iam"]),
+                "cloudRunPolicy": inventory.sanitize(current["runIam"]),
+                "policyAnalysis": inventory.sanitize(access.get("analysisResults", [])),
+            },
+        },
+        "historical": {
+            "configurationSha256": historical["configurationSha256"],
+            "runtimeSha256": historical["runtimeSha256"],
+            "recoveryFilesSha256": historical["recoveryFilesSha256"],
+            "reference": historical["reference"],
+        },
+        "remainingBaselines": {
+            "functionCount": len(snapshots) - 1,
+            "hostingConfigurationSha256": digest(hosting_state_value["configuration"]),
+            "hostingManifestSha256": digest(hosting_state_value["manifest"]),
+            "firestoreRulesSha256": digest(rules),
+        },
+        "recoveryArchives": recovery,
+        "productionWrites": 0,
+        "deploymentAuthorized": False,
+    }
+    candidate_matches = current_files == candidate_files
+    retention = retain_protected_security_evidence(evidence, env)
+    ambiguous_public = any(invocation[key]["conditionalAnonymous"]
+                           for key in ("cloudFunctions", "cloudRun"))
+    status = security_collection_status(
+        candidate_matches, access["supported"], violations,
+        analysis_complete=(access.get("fullyExplored") is True
+                           and not ambiguous_public))
+    print(json.dumps({
+        "issueHandoffSecurityVerification": status,
+        "target": target,
+        "servingHealthy": True,
+        "candidateSourceMatches": candidate_matches,
+        "invocationEvidenceCollected": True,
+        "securityConfigurationApproved": False,
+        "secretReferenceCount": protected["secretReferenceCount"],
+        "runtimeAccessAnalysisSupported": access["supported"],
+        "runtimeAccessAnalysisFullyExplored": access.get("fullyExplored") is True,
+        "verifiedSecurityViolationCount": len(violations),
+        "remainingFunctionBaselinesVerified": len(snapshots) - 1,
+        "recoveryArchivesVerified": len(recovery),
+        "hostingBaselineVerified": True,
+        "firestoreRulesVerified": True,
+        "protectedEvidenceRetained": True,
+        "evidenceSha256": retention["evidenceSha256"],
+        "independentReviewPossible": True,
+        "productionWrites": 0,
+        "deploymentAuthorized": False,
+    }, sort_keys=True), flush=True)
+    return status
+
+
 def forward_resume(token, packages, overlay):
     """Resume release #10 without touching its already-updated first Function."""
     expected, recovery, first_revision = forward_resume_preflight(token, packages)
@@ -678,7 +1063,8 @@ def guard(mode):
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
     require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
-                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE, DIAGNOSE_FAILED_FORWARD_MODE,
+                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE,
+                     DIAGNOSE_FAILED_FORWARD_MODE, SECURITY_VERIFY_MODE,
                      "deploy", "rollback"}, "Unsupported mode")
     if mode == VERIFY_RESTORATION_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == VERIFY_RESTORATION_CONFIRMATION,
@@ -703,6 +1089,9 @@ def guard(mode):
     if mode == DIAGNOSE_FAILED_FORWARD_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == DIAGNOSE_FAILED_FORWARD_CONFIRMATION,
                 "Failed forward-update diagnostic confirmation missing")
+    if mode == SECURITY_VERIFY_MODE:
+        require(os.environ.get("CONFIRM_RELEASE") == SECURITY_VERIFY_CONFIRMATION,
+                "Issue handoff security verification confirmation missing")
     if mode == FORWARD_RESUME_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == FORWARD_RESUME_CONFIRMATION,
                 "Forward-resume owner confirmation missing")
@@ -808,6 +1197,31 @@ def main():
         candidate = package(RESTORE_NAME, root / "functions")
         token = authenticated_release_token()
         restore_single_function(token, candidate)
+        return
+    if mode == SECURITY_VERIFY_MODE:
+        target = "issueProposalEnrollmentHandoff"
+        candidate = package(target, root / "functions")
+        token = authenticated_release_token()
+        try:
+            status = verify_issue_handoff_security(token, {target: candidate})
+        except SecurityViolation:
+            print(json.dumps({
+                "issueHandoffSecurityVerification": "FAIL",
+                "securityConfigurationApproved": False,
+                "productionWrites": 0,
+                "deploymentAuthorized": False,
+            }, sort_keys=True), flush=True)
+            raise SystemExit(1) from None
+        except RuntimeError:
+            print(json.dumps({
+                "issueHandoffSecurityVerification": "UNVERIFIED",
+                "securityConfigurationApproved": False,
+                "productionWrites": 0,
+                "deploymentAuthorized": False,
+            }, sort_keys=True), flush=True)
+            raise SystemExit(1) from None
+        if status != "COLLECTED_NOT_CLEARED":
+            raise SystemExit(1)
         return
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
