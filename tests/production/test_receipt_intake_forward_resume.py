@@ -131,6 +131,7 @@ class ForwardResumeTest(unittest.TestCase):
              patch.object(release, "verified_excluded_baselines", return_value=deepcopy(self.excluded)), \
              patch.object(release, "hosting_baseline"), \
              patch.object(release, "verify_rules"), \
+             patch.dict(release.RESTORATION, {"configurationSha256": release.digest(release.inventory.sanitize(self.before[release.RESTORE_NAME]))}), \
              patch.object(release, "prepare_hosting") as prepare, \
              patch.object(release.release, "source_update") as update, \
              patch.object(release, "publish") as publish, \
