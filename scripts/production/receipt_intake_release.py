@@ -25,6 +25,8 @@ VERIFY_RESTORATION_MODE = "verify-save-proposal-restoration"
 VERIFY_RESTORATION_CONFIRMATION = "VERIFY-SAVE-PROPOSAL-AGREEMENT-READ-ONLY"
 RESTORE_CONFIRMATION = "RESTORE-SAVE-PROPOSAL-AGREEMENT-SOURCE-ONLY-43564596875"
 FORWARD_RESUME_MODE = "forward-resume-release-10"
+VERIFY_FORWARD_MODE = "verify-forward-resume-release-10"
+VERIFY_FORWARD_CONFIRMATION = "VERIFY-FORWARD-RESUME-RELEASE-10-READ-ONLY"
 FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
 RESTORATION = {
     "configurationSha256": "b4066c965108fbe4793ee44d48b0e4770ba8cb8f8372a27e5e388af802125fc2",
@@ -382,6 +384,37 @@ def forward_resume_preflight(token, packages):
     return expected, recovery, first_revision
 
 
+def verify_forward_resume_readonly(token, packages, overlay):
+    """Read-only full forward-release preflight. Never stage Hosting or update Functions."""
+    try:
+        expected, recovery, _ = forward_resume_preflight(token, packages)
+        manifest = expected["hosting"]["manifest"]
+        require(set(overlay) == set(PLAN["hosting"]["assets"]),
+                "Candidate Hosting asset scope differs")
+        for path, body in overlay.items():
+            require(manifest.get(path) == PLAN["hosting"]["assets"][path]["baselineHash"],
+                    f"{path}: baseline Hosting asset drift")
+            require(inventory.sha(body) == PLAN["hosting"]["assets"][path]["hostingHash"],
+                    f"{path}: candidate Hosting bytes differ")
+        require_forward_state(token, expected)
+    except Exception:
+        print(json.dumps({"forwardResumeReadOnly": "FAIL",
+                          "historicalFirstFunctionFingerprintMatches": False}), flush=True)
+        raise SystemExit(1) from None
+    print(json.dumps({
+        "forwardResumeReadOnly": "PASS",
+        "alreadyUpdatedFunction": RESTORE_NAME,
+        "remainingFunctionsVerified": list(NAMES[1:]),
+        "excludedFunctionsVerified": list(EXCLUDED_NAMES),
+        "candidateHostingAssetsVerified": len(overlay),
+        "rollbackArchivesVerified": len(recovery),
+        "hostingBaselineVerified": True,
+        "firestoreRulesVerified": True,
+        "productionWrites": 0,
+        "historicalFirstFunctionFingerprintMatches": False,
+    }, sort_keys=True), flush=True)
+
+
 def forward_resume(token, packages, overlay):
     """Resume release #10 without touching its already-updated first Function."""
     expected, recovery, first_revision = forward_resume_preflight(token, packages)
@@ -602,7 +635,7 @@ def guard(mode):
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
     require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
-                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE,
+                     "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE,
                      "deploy", "rollback"}, "Unsupported mode")
     if mode == VERIFY_RESTORATION_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == VERIFY_RESTORATION_CONFIRMATION,
@@ -621,6 +654,9 @@ def guard(mode):
     if mode == "restore-save-proposal-agreement":
         require(os.environ.get("CONFIRM_RELEASE") == RESTORE_CONFIRMATION,
                 "Single-Function restoration confirmation missing")
+    if mode == VERIFY_FORWARD_MODE:
+        require(os.environ.get("CONFIRM_RELEASE") == VERIFY_FORWARD_CONFIRMATION,
+                "Read-only forward verification confirmation missing")
     if mode == FORWARD_RESUME_MODE:
         require(os.environ.get("CONFIRM_RELEASE") == FORWARD_RESUME_CONFIRMATION,
                 "Forward-resume owner confirmation missing")
@@ -738,6 +774,9 @@ def main():
         return
     if mode == "rollback":
         rollback(token, packages)
+        return
+    if mode == VERIFY_FORWARD_MODE:
+        verify_forward_resume_readonly(token, packages, overlay)
         return
     if mode == FORWARD_RESUME_MODE:
         forward_resume(token, packages, overlay)

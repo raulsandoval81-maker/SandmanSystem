@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - fix/forward-resume-release-10
+      - fix/forward-resume-readonly-verification
   workflow_dispatch:
 permissions:
   contents: read

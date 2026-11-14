@@ -121,6 +121,46 @@ class ForwardResumeTest(unittest.TestCase):
             self.run_forward(excluded_drift_on_publish=True)
         self.assertIn('"STOP_NO_RETRY": true', output.getvalue())
 
+    def test_readonly_forward_check_verifies_all_and_never_writes(self):
+        overlay = {path: path.encode() for path in release.PLAN["hosting"]["assets"]}
+        def asset_hash(body):
+            return release.PLAN["hosting"]["assets"][body.decode()]["hostingHash"]
+        with patch.object(release, "forward_resume_preflight",
+                          return_value=(deepcopy(self.expected),
+                                        {name: b"rollback" for name in self.names[1:]}, "revision")), \
+             patch.object(release, "require_forward_state") as unchanged, \
+             patch.object(release.inventory, "sha", side_effect=asset_hash), \
+             patch.object(release, "prepare_hosting") as prepare, \
+             patch.object(release.release, "source_update") as update, \
+             patch.object(release, "publish") as publish, \
+             redirect_stdout(io.StringIO()) as output:
+            release.verify_forward_resume_readonly("token", self.packages, overlay)
+        self.assertIn('"forwardResumeReadOnly": "PASS"', output.getvalue())
+        self.assertIn('"productionWrites": 0', output.getvalue())
+        self.assertEqual(unchanged.call_count, 1)
+        prepare.assert_not_called()
+        update.assert_not_called()
+        publish.assert_not_called()
+
+    def test_readonly_forward_check_fails_closed_on_drift_without_writes(self):
+        overlay = {path: path.encode() for path in release.PLAN["hosting"]["assets"]}
+        for path in overlay:
+            with self.subTest(path=path):
+                drift = deepcopy(self.expected)
+                drift["hosting"]["manifest"][path] = "drift"
+                with patch.object(release, "forward_resume_preflight",
+                                  return_value=(drift, {}, "revision")), \
+                     patch.object(release, "prepare_hosting") as prepare, \
+                     patch.object(release.release, "source_update") as update, \
+                     patch.object(release, "publish") as publish, \
+                     redirect_stdout(io.StringIO()) as output, \
+                     self.assertRaises(SystemExit):
+                    release.verify_forward_resume_readonly("token", self.packages, overlay)
+                self.assertIn('"forwardResumeReadOnly": "FAIL"', output.getvalue())
+                prepare.assert_not_called()
+                update.assert_not_called()
+                publish.assert_not_called()
+
     def test_success_updates_only_seven_then_publishes_eleven_assets(self):
         events = self.run_forward()
         self.assertEqual(events, [*self.names[1:], "Hosting"])
