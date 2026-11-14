@@ -140,7 +140,13 @@ class SecurityVerificationTest(unittest.TestCase):
         self.assertEqual(summary["cloudFunctions"]["conditionalBindingCount"], 1)
         violations = release.verified_security_violations(
             value, summary, release.protected_reference_summary(value)[0])
-        self.assertIn("cloudFunctions-public-invoker-binding", violations)
+        # Conditional public access cannot be assumed effective without context.
+        self.assertNotIn("cloudFunctions-unconditional-public-invoker-binding", violations)
+        value["iam"]["bindings"][-1].pop("condition")
+        summary = release.invocation_summary(value)
+        violations = release.verified_security_violations(
+            value, summary, release.protected_reference_summary(value)[0])
+        self.assertIn("cloudFunctions-unconditional-public-invoker-binding", violations)
         self.assertEqual(release.security_collection_status(True, True, violations), "FAIL")
 
     def test_missing_required_read_permission_fails_closed(self):
