@@ -715,9 +715,11 @@ def verified_security_violations(snapshot, invocation, protected):
     return violations
 
 
-def verify_issue_handoff_security(token, packages, env=None):
-    """Read-only security inspection; current and historical baselines stay separate."""
+def verify_issue_handoff_security(token, packages, env=None, progress=None):
+    """Read-only inspection; report only fixed stage names on failures."""
     env = os.environ if env is None else env
+    progress = {} if progress is None else progress
+    progress["stage"] = "evidence-configuration"
     if security_evidence_destination(env) is None:
         print(json.dumps({
             "issueHandoffSecurityVerification": "UNVERIFIED",
@@ -730,16 +732,21 @@ def verify_issue_handoff_security(token, packages, env=None):
         return "UNVERIFIED"
     target = "issueProposalEnrollmentHandoff"
     require(target == NAMES[1], "Unexpected security verification target")
+    progress["stage"] = "required-read-permissions"
     verify_security_read_permissions(token)
+    progress["stage"] = "target-function-and-cloud-run"
     current = config(target, token)
     revision = verify_function_healthy(target, current)
     invocation = invocation_summary(current)
     protected, runtime_account = protected_reference_summary(current)
+    progress["stage"] = "effective-runtime-access"
     access = runtime_access_summary(runtime_account, token)
     violations = verified_security_violations(current, invocation, protected)
+    progress["stage"] = "live-function-source"
     current_files = archive_hashes(source(target, current, token))
     candidate_files = archive_hashes(packages[target])
 
+    progress["stage"] = "remaining-function-baselines"
     snapshots = {target: current}
     first = config(RESTORE_NAME, token)
     require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
@@ -751,9 +758,12 @@ def verify_issue_handoff_security(token, packages, env=None):
         snapshots[name] = value
     excluded = verified_excluded_baselines(token)
     snapshots.update(excluded)
+    progress["stage"] = "hosting-baseline"
     hosting_state_value = hosting_state(token)
+    progress["stage"] = "firestore-rules"
     rules = verify_rules(token)
 
+    progress["stage"] = "recovery-archive-reads"
     recovery = {}
     for name, value in snapshots.items():
         archive = pinned_recovery(name, value, token)
@@ -766,6 +776,7 @@ def verify_issue_handoff_security(token, packages, env=None):
             "fileSetSha256": expected["recoveryFilesSha256"],
         }
 
+    progress["stage"] = "production-stability-recheck"
     if config(target, token) != current:
         raise SecurityViolation("Target configuration changed during security verification")
     if hosting_state(token) != hosting_state_value:
@@ -827,6 +838,7 @@ def verify_issue_handoff_security(token, packages, env=None):
         "deploymentAuthorized": False,
     }
     candidate_matches = current_files == candidate_files
+    progress["stage"] = "private-evidence-retention"
     retention = retain_protected_security_evidence(evidence, env)
     ambiguous_public = any(invocation[key]["conditionalAnonymous"]
                            for key in ("cloudFunctions", "cloudRun"))
@@ -1218,11 +1230,13 @@ def main():
         target = "issueProposalEnrollmentHandoff"
         candidate = package(target, root / "functions")
         token = authenticated_release_token()
+        progress = {"stage": "inspection-entry"}
         try:
-            status = verify_issue_handoff_security(token, {target: candidate})
+            status = verify_issue_handoff_security(token, {target: candidate}, progress=progress)
         except SecurityViolation:
             print(json.dumps({
                 "issueHandoffSecurityVerification": "FAIL",
+                "failureStage": progress["stage"],
                 "securityConfigurationApproved": False,
                 "applicationWrites": 0,
                 "evidenceObjectWrites": 0,
@@ -1232,6 +1246,7 @@ def main():
         except RuntimeError:
             print(json.dumps({
                 "issueHandoffSecurityVerification": "UNVERIFIED",
+                "failureStage": progress["stage"],
                 "securityConfigurationApproved": False,
                 "applicationWrites": 0,
                 "evidenceObjectWrites": "UNVERIFIED",
