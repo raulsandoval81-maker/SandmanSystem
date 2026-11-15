@@ -518,5 +518,75 @@ class SecurityVerificationTest(unittest.TestCase):
         rollback.assert_not_called()
 
 
+    def test_malformed_zip_is_redacted_at_real_recovery_boundary(self):
+        name = "getAccessSetupStatus"
+        progress = {"stage": "recovery-archive-reads"}
+        with patch.object(release, "pinned_recovery", return_value=b"not a ZIP archive"):
+            with self.assertRaisesRegex(RuntimeError, "^Recovery archive inspection failed$") as failure:
+                release.inspect_recovery_archives({name: function_snapshot(name)},
+                                                  "token", progress)
+        self.assertEqual(progress["failureFunction"], name)
+        self.assertEqual(progress["failureCategory"], "unclassified-read-failure")
+        self.assertIsNone(failure.exception.__cause__)
+        self.assertTrue(failure.exception.__suppress_context__)
+
+    def test_transport_exception_is_redacted_at_recovery_boundary(self):
+        name = "getEnrollmentPlacementActivity"
+        private_message = "private-url/token secret@example.invalid"
+        progress = {"stage": "recovery-archive-reads"}
+        with patch.object(release, "pinned_recovery",
+                          side_effect=urllib.error.URLError(private_message)):
+            with self.assertRaisesRegex(RuntimeError, "^Recovery archive inspection failed$"):
+                release.inspect_recovery_archives({name: function_snapshot(name)},
+                                                  "token", progress)
+        self.assertEqual(progress["failureFunction"], name)
+        self.assertEqual(progress["failureCategory"], "unclassified-read-failure")
+        self.assertNotIn(private_message, json.dumps(progress))
+
+    def test_malformed_zip_end_to_end_has_structured_failure_and_no_traceback(self):
+        name = "recordProposalPrepaidCash"
+        sensitive = "private-bucket/path secret@example.invalid"
+        def failed_inspection(_token, _packages, progress):
+            progress["stage"] = "recovery-archive-reads"
+            with patch.object(release, "pinned_recovery", return_value=b"not a zip " +
+                              sensitive.encode()):
+                release.inspect_recovery_archives({name: function_snapshot(name)},
+                                                  "token", progress)
+
+        with patch.dict(os.environ, {"RELEASE_MODE": release.SECURITY_VERIFY_MODE}, clear=True), \
+                patch.object(release, "guard"), \
+                patch.object(release.subprocess, "check_output",
+                             return_value=release.PLAN["candidate"] + "\n"), \
+                patch.object(release, "package", return_value=b"candidate"), \
+                patch.object(release, "authenticated_release_token", return_value="token"), \
+                patch.object(release, "verify_issue_handoff_security",
+                             side_effect=failed_inspection), \
+                patch.object(release, "forward_resume") as deploy, \
+                patch.object(release, "rollback") as rollback, \
+                redirect_stdout(io.StringIO()) as output, \
+                self.assertRaises(SystemExit):
+            release.main()
+        raw = output.getvalue()
+        report = json.loads(raw)
+        self.assertEqual(report["issueHandoffSecurityVerification"], "UNVERIFIED")
+        self.assertEqual(report["failureStage"], "recovery-archive-reads")
+        self.assertEqual(report["failureFunction"], name)
+        self.assertEqual(report["failureCategory"], "unclassified-read-failure")
+        self.assertEqual(report["applicationWrites"], 0)
+        self.assertFalse(report["deploymentAuthorized"])
+        self.assertNotIn(sensitive, raw)
+        self.assertNotIn("Traceback", raw)
+        deploy.assert_not_called()
+        rollback.assert_not_called()
+
+    def test_security_violation_not_downgraded_during_recovery_read(self):
+        name = "getAccessSetupStatus"
+        with patch.object(release, "pinned_recovery",
+                          side_effect=release.SecurityViolation("sensitive config changed")):
+            with self.assertRaises(release.SecurityViolation):
+                release.inspect_recovery_archives({name: function_snapshot(name)},
+                                                  "token", {"stage": "recovery-archive-reads"})
+
+
 if __name__ == "__main__":
     unittest.main()
