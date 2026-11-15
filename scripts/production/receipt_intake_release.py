@@ -731,9 +731,9 @@ def inspect_recovery_archives(snapshots, token, progress):
         except RuntimeError as error:
             # Never publish the exception, URL, API response, or IAM details.
             message = str(error)
-            if re.search(r"\\bHTTP 403\\b", message):
+            if re.search(r"\bHTTP 403\b", message):
                 progress["failureCategory"] = "http-403"
-            elif re.search(r"\\bHTTP 404\\b", message):
+            elif re.search(r"\bHTTP 404\b", message):
                 progress["failureCategory"] = "http-404"
             elif "pinned rollback bytes differ" in message or "pinned recovery archive mismatch" in message:
                 progress["failureCategory"] = "hash-mismatch"
