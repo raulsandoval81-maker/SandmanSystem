@@ -728,16 +728,23 @@ def inspect_recovery_archives(snapshots, token, progress):
             expected = PLAN["functions"][name]
             require(digest(archive_hashes(archive)) == expected["recoveryFilesSha256"],
                     f"{name}: pinned recovery archive mismatch")
-        except RuntimeError as error:
-            # Never publish the exception, URL, API response, or IAM details.
-            message = str(error)
-            if re.search(r"\bHTTP 403\b", message):
-                progress["failureCategory"] = "http-403"
-            elif re.search(r"\bHTTP 404\b", message):
-                progress["failureCategory"] = "http-404"
-            elif "pinned rollback bytes differ" in message or "pinned recovery archive mismatch" in message:
-                progress["failureCategory"] = "hash-mismatch"
-            raise
+        except Exception as error:
+            # Catch malformed ZIPs and transport/library exceptions as well as
+            # RuntimeError. Never allow a private traceback into public CI logs.
+            if isinstance(error, SecurityViolation):
+                raise
+            if isinstance(error, RuntimeError):
+                message = str(error)
+                if re.search(r"\bHTTP 403\b", message):
+                    progress["failureCategory"] = "http-403"
+                elif re.search(r"\bHTTP 404\b", message):
+                    progress["failureCategory"] = "http-404"
+                elif ("pinned rollback bytes differ" in message
+                      or "pinned recovery archive mismatch" in message):
+                    progress["failureCategory"] = "hash-mismatch"
+            # Strip the originating exception and its traceback; the entry
+            # point prints only the approved function and safe category.
+            raise RuntimeError("Recovery archive inspection failed") from None
         else:
             recovery[name] = {
                 "reference": expected["reference"],
