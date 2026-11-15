@@ -381,7 +381,7 @@ class SecurityVerificationTest(unittest.TestCase):
                 patch.object(release, "forward_resume") as deploy, \
                 patch.object(release, "rollback") as rollback:
             release.main()
-        verify.assert_called_once_with("token", {TARGET: b"candidate"})
+        verify.assert_called_once_with("token", {TARGET: b"candidate"}, progress={"stage": "inspection-entry"})
         deploy.assert_not_called()
         rollback.assert_not_called()
 
@@ -400,6 +400,47 @@ class SecurityVerificationTest(unittest.TestCase):
                 release.main()
             deploy.assert_not_called()
             rollback.assert_not_called()
+
+
+    def test_failure_reports_only_fixed_stage_without_secret_error_text(self):
+        private_message = "sensitive-account@example.invalid unauthorized secret"
+        def failed_inspection(_token, _packages, progress):
+            progress["stage"] = "required-read-permissions"
+            raise RuntimeError(private_message)
+
+        with patch.dict(os.environ, {"RELEASE_MODE": release.SECURITY_VERIFY_MODE}, clear=True), \
+                patch.object(release, "guard"), \
+                patch.object(release.subprocess, "check_output",
+                             return_value=release.PLAN["candidate"] + "\n"), \
+                patch.object(release, "package", return_value=b"candidate"), \
+                patch.object(release, "authenticated_release_token", return_value="token"), \
+                patch.object(release, "verify_issue_handoff_security",
+                             side_effect=failed_inspection), \
+                patch.object(release, "forward_resume") as deploy, \
+                patch.object(release, "rollback") as rollback, \
+                redirect_stdout(io.StringIO()) as output, \
+                self.assertRaises(SystemExit):
+            release.main()
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["failureStage"], "required-read-permissions")
+        self.assertEqual(report["issueHandoffSecurityVerification"], "UNVERIFIED")
+        self.assertEqual(report["applicationWrites"], 0)
+        self.assertEqual(report["evidenceObjectWrites"], "UNVERIFIED")
+        self.assertNotIn(private_message, output.getvalue())
+        deploy.assert_not_called()
+        rollback.assert_not_called()
+
+    def test_stage_set_before_sensitive_cloud_permission_read(self):
+        progress = {}
+        env = {"SECURITY_EVIDENCE_GCS_URI": "gs://approved-private-bucket/security",
+               "SECURITY_EVIDENCE_RETENTION_DAYS": "30",
+               "SECURITY_EVIDENCE_RETENTION_APPROVAL": release.SECURITY_RETENTION_APPROVAL}
+        with patch.object(release, "verify_security_read_permissions",
+                          side_effect=RuntimeError("private-read-denied")), \
+                self.assertRaisesRegex(RuntimeError, "private-read-denied"):
+            release.verify_issue_handoff_security("token", {TARGET: b"candidate"},
+                                                  env=env, progress=progress)
+        self.assertEqual(progress["stage"], "required-read-permissions")
 
 
 if __name__ == "__main__":
