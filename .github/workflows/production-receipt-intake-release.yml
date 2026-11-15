@@ -34,8 +34,6 @@ jobs:
       CONFIRM_PROJECT: ${{ inputs.confirm_project }}
       CONFIRM_SHA: ${{ inputs.confirm_sha }}
       CONFIRM_RELEASE: ${{ inputs.confirm_release }}
-      SECURITY_EVIDENCE_PATH: ${{ runner.temp }}/issue-handoff-security-verification.json
-      SECURITY_EVIDENCE_ROOT: ${{ runner.temp }}
       SECURITY_EVIDENCE_GCS_URI: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_GCS_URI }}
       SECURITY_EVIDENCE_RETENTION_DAYS: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_DAYS }}
       SECURITY_EVIDENCE_RETENTION_APPROVAL: ${{ secrets.PRODUCTION_SECURITY_EVIDENCE_RETENTION_APPROVAL }}
@@ -82,4 +80,7 @@ jobs:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
       - uses: google-github-actions/setup-gcloud@v2
       - name: Verify production baseline and execute selected mode
+        env:
+          SECURITY_EVIDENCE_PATH: ${{ runner.temp }}/issue-handoff-security-verification.json
+          SECURITY_EVIDENCE_ROOT: ${{ runner.temp }}
         run: python3 trusted/scripts/production/receipt_intake_release.py
