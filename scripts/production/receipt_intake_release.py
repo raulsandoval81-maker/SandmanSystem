@@ -715,6 +715,40 @@ def verified_security_violations(snapshot, invocation, protected):
     return violations
 
 
+def inspect_recovery_archives(snapshots, token, progress):
+    """Record only manifest-pinned function names and fixed failure categories."""
+    recovery = {}
+    for name, value in snapshots.items():
+        # The names come exclusively from approved manifest-backed snapshots.
+        require(name in PLAN["functions"], "Recovery function outside approved manifest")
+        progress["failureFunction"] = name
+        progress["failureCategory"] = "unclassified-read-failure"
+        try:
+            archive = pinned_recovery(name, value, token)
+            expected = PLAN["functions"][name]
+            require(digest(archive_hashes(archive)) == expected["recoveryFilesSha256"],
+                    f"{name}: pinned recovery archive mismatch")
+        except RuntimeError as error:
+            # Never publish the exception, URL, API response, or IAM details.
+            message = str(error)
+            if re.search(r"\bHTTP 403\b", message):
+                progress["failureCategory"] = "http-403"
+            elif re.search(r"\bHTTP 404\b", message):
+                progress["failureCategory"] = "http-404"
+            elif "pinned rollback bytes differ" in message or "pinned recovery archive mismatch" in message:
+                progress["failureCategory"] = "hash-mismatch"
+            raise
+        else:
+            recovery[name] = {
+                "reference": expected["reference"],
+                "archiveSha256": inventory.sha(archive),
+                "fileSetSha256": expected["recoveryFilesSha256"],
+            }
+    progress.pop("failureFunction", None)
+    progress.pop("failureCategory", None)
+    return recovery
+
+
 def verify_issue_handoff_security(token, packages, env=None, progress=None):
     """Read-only inspection; report only fixed stage names on failures."""
     env = os.environ if env is None else env
@@ -764,17 +798,7 @@ def verify_issue_handoff_security(token, packages, env=None, progress=None):
     rules = verify_rules(token)
 
     progress["stage"] = "recovery-archive-reads"
-    recovery = {}
-    for name, value in snapshots.items():
-        archive = pinned_recovery(name, value, token)
-        expected = PLAN["functions"][name]
-        require(digest(archive_hashes(archive)) == expected["recoveryFilesSha256"],
-                f"{name}: pinned recovery archive mismatch")
-        recovery[name] = {
-            "reference": expected["reference"],
-            "archiveSha256": inventory.sha(archive),
-            "fileSetSha256": expected["recoveryFilesSha256"],
-        }
+    recovery = inspect_recovery_archives(snapshots, token, progress)
 
     progress["stage"] = "production-stability-recheck"
     if config(target, token) != current:
@@ -1237,6 +1261,10 @@ def main():
             print(json.dumps({
                 "issueHandoffSecurityVerification": "FAIL",
                 "failureStage": progress["stage"],
+                **({"failureFunction": progress["failureFunction"],
+                    "failureCategory": progress["failureCategory"]}
+                   if progress["stage"] == "recovery-archive-reads"
+                   and "failureFunction" in progress else {}),
                 "securityConfigurationApproved": False,
                 "applicationWrites": 0,
                 "evidenceObjectWrites": 0,
@@ -1247,6 +1275,10 @@ def main():
             print(json.dumps({
                 "issueHandoffSecurityVerification": "UNVERIFIED",
                 "failureStage": progress["stage"],
+                **({"failureFunction": progress["failureFunction"],
+                    "failureCategory": progress["failureCategory"]}
+                   if progress["stage"] == "recovery-archive-reads"
+                   and "failureFunction" in progress else {}),
                 "securityConfigurationApproved": False,
                 "applicationWrites": 0,
                 "evidenceObjectWrites": "UNVERIFIED",
