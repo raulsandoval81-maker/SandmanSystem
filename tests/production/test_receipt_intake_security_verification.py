@@ -411,7 +411,7 @@ class SecurityVerificationTest(unittest.TestCase):
         with patch.dict(os.environ, {"RELEASE_MODE": release.SECURITY_VERIFY_MODE}, clear=True), \
                 patch.object(release, "guard"), \
                 patch.object(release.subprocess, "check_output",
-                             return_value=release.PLAN["candidate"] + "\\n"), \
+                             return_value=release.PLAN["candidate"] + "\n"), \
                 patch.object(release, "package", return_value=b"candidate"), \
                 patch.object(release, "authenticated_release_token", return_value="token"), \
                 patch.object(release, "verify_issue_handoff_security",
