@@ -443,5 +443,80 @@ class SecurityVerificationTest(unittest.TestCase):
         self.assertEqual(progress["stage"], "required-read-permissions")
 
 
+    def test_recovery_failure_identifies_only_approved_name_and_safe_category(self):
+        name = "getAccessSetupStatus"
+        snapshots = {name: function_snapshot(name)}
+        cases = (
+            ("private-url/secret HTTP 403 account@example.invalid", "http-403"),
+            ("private-url/secret HTTP 404 account@example.invalid", "http-404"),
+            ("unrelated private diagnostic", "unclassified-read-failure"),
+        )
+        for private_error, expected_category in cases:
+            with self.subTest(category=expected_category), \
+                    patch.object(release, "pinned_recovery",
+                                 side_effect=RuntimeError(private_error)):
+                progress = {"stage": "recovery-archive-reads"}
+                with self.assertRaises(RuntimeError):
+                    release.inspect_recovery_archives(snapshots, "token", progress)
+                self.assertEqual(progress["failureFunction"], name)
+                self.assertEqual(progress["failureCategory"], expected_category)
+                self.assertNotIn("account@example.invalid", json.dumps(progress))
+                self.assertNotIn("private", json.dumps(progress))
+
+    def test_recovery_mismatch_category_and_success_clear_failure_fields(self):
+        name = "getAccessSetupStatus"
+        snapshots = {name: function_snapshot(name)}
+        expected_files = {"index.js": "a" * 64}
+        with patch.object(release, "pinned_recovery", return_value=b"archive"), \
+                patch.object(release, "archive_hashes", return_value=expected_files), \
+                patch.dict(release.PLAN["functions"][name],
+                           {"recoveryFilesSha256": "0" * 64}):
+            progress = {"stage": "recovery-archive-reads"}
+            with self.assertRaises(RuntimeError):
+                release.inspect_recovery_archives(snapshots, "token", progress)
+            self.assertEqual(progress["failureCategory"], "hash-mismatch")
+            self.assertEqual(progress["failureFunction"], name)
+        with patch.object(release, "pinned_recovery", return_value=b"archive"), \
+                patch.object(release, "archive_hashes", return_value=expected_files), \
+                patch.dict(release.PLAN["functions"][name],
+                           {"recoveryFilesSha256": release.digest(expected_files)}):
+            progress = {"stage": "recovery-archive-reads"}
+            result = release.inspect_recovery_archives(snapshots, "token", progress)
+            self.assertEqual(set(result), {name})
+            self.assertNotIn("failureFunction", progress)
+            self.assertNotIn("failureCategory", progress)
+
+    def test_main_redacts_recovery_failure_name_and_category(self):
+        name = "getAccessSetupStatus"
+        private_message = "secret@example.invalid HTTP 403 private-key"
+        def failed_inspection(_token, _packages, progress):
+            progress.update({"stage": "recovery-archive-reads",
+                             "failureFunction": name, "failureCategory": "http-403"})
+            raise RuntimeError(private_message)
+
+        with patch.dict(os.environ, {"RELEASE_MODE": release.SECURITY_VERIFY_MODE}, clear=True), \
+                patch.object(release, "guard"), \
+                patch.object(release.subprocess, "check_output",
+                             return_value=release.PLAN["candidate"] + "\n"), \
+                patch.object(release, "package", return_value=b"candidate"), \
+                patch.object(release, "authenticated_release_token", return_value="token"), \
+                patch.object(release, "verify_issue_handoff_security",
+                             side_effect=failed_inspection), \
+                patch.object(release, "forward_resume") as deploy, \
+                patch.object(release, "rollback") as rollback, \
+                redirect_stdout(io.StringIO()) as output, \
+                self.assertRaises(SystemExit):
+            release.main()
+        report = json.loads(output.getvalue())
+        self.assertEqual(report["failureStage"], "recovery-archive-reads")
+        self.assertEqual(report["failureFunction"], name)
+        self.assertEqual(report["failureCategory"], "http-403")
+        self.assertEqual(report["applicationWrites"], 0)
+        self.assertFalse(report["deploymentAuthorized"])
+        self.assertNotIn(private_message, output.getvalue())
+        deploy.assert_not_called()
+        rollback.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main()
