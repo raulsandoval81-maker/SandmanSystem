@@ -528,8 +528,7 @@ class SecurityVerificationTest(unittest.TestCase):
         self.assertEqual(progress["failureFunction"], name)
         self.assertEqual(progress["failureCategory"], "unclassified-read-failure")
         self.assertIsNone(failure.exception.__cause__)
-        self.assertIsNone(failure.exception.__context__ if
-                          not failure.exception.__suppress_context__ else None)
+        self.assertTrue(failure.exception.__suppress_context__)
 
     def test_transport_exception_is_redacted_at_recovery_boundary(self):
         name = "getEnrollmentPlacementActivity"
