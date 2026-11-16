@@ -214,7 +214,10 @@ def package(name, root):
 
 
 def check_export(name, archive, root):
-    with tempfile.TemporaryDirectory() as directory:
+    with tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as home:
+        # Module loading must not consume the runner's explicit or cached ADC.
+        env = {**os.environ, "HOME": home, "NODE_PATH": str((root / "node_modules").resolve())}
+        env.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
         with zipfile.ZipFile(io.BytesIO(archive)) as package:
             package.extractall(directory)
         subprocess.run(
@@ -222,7 +225,7 @@ def check_export(name, archive, root):
              "const e=require(process.argv[1]);const n=process.argv[2];"
              "if(Object.keys(e).join()!==n||typeof e[n]!=='function')process.exit(1)",
              directory, name],
-            env={**os.environ, "NODE_PATH": str((root / "node_modules").resolve())},
+            env=env,
             check=True,
         )
 
