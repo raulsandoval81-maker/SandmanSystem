@@ -482,6 +482,8 @@ def diagnose_failed_forward_update(token, packages):
         "failedForwardDiagnostic": "INSPECTED_NOT_CLEARED",
         "target": target,
         "targetServingRevisionSha256": inventory.sha(revision.encode()),
+        "targetServingRevision": revision,
+        "targetCurrentConfigurationSha256": original_configuration_sha,
         "targetCandidateSourceMatches": current_source == candidate_source,
         "targetOriginalSourceMatches": digest(current_source) == original["recoveryFilesSha256"],
         "targetOriginalConfigurationMatches": original_configuration_sha == original["configurationSha256"],
