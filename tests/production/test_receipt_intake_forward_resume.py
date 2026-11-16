@@ -213,6 +213,30 @@ class ForwardResumeTest(unittest.TestCase):
         update.assert_not_called()
         publish.assert_not_called()
 
+    def test_failed_forward_diagnostic_outputs_only_reviewable_handoff_baseline(self):
+        target = release.HANDOFF_NAME
+        snapshot = deepcopy(self.before[target])
+        revision = "issueproposalenrollmenthandoff-00007-abc"
+        with patch.object(release, "config", side_effect=lambda name, _: deepcopy(
+                 snapshot if name == target else
+                 self.before[name] if name in self.before else self.excluded[name])), \
+             patch.object(release, "source", return_value=self.packages[target]), \
+             patch.object(release, "verify_function_healthy", return_value=revision), \
+             patch.object(release, "verified_excluded_baselines", return_value=self.excluded), \
+             patch.object(release, "hosting_baseline"), \
+             patch.object(release, "verify_rules"), \
+             patch.object(release, "digest", return_value="a" * 64), \
+             patch.object(release.inventory, "sanitize", side_effect=lambda x: x), \
+             patch.object(release, "runtime", return_value={}), \
+             redirect_stdout(io.StringIO()) as output:
+            release.diagnose_failed_forward_update("token", self.packages)
+        data = json.loads(output.getvalue())
+        self.assertEqual(data["targetCurrentConfigurationSha256"], "a" * 64)
+        self.assertEqual(data["targetServingRevision"], revision)
+        self.assertEqual(data["productionWrites"], 0)
+        self.assertFalse(data["deploymentAuthorized"])
+        self.assertNotIn("bindings", output.getvalue())
+
     def test_success_updates_only_six_then_publishes_eleven_assets(self):
         events = self.run_forward()
         self.assertEqual(events, [*self.names[2:], "Hosting"])
