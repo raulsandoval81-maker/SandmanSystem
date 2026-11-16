@@ -40,7 +40,7 @@ class ForwardResumeTest(unittest.TestCase):
         self.before = {name: serving(name, f"{name.lower()}-old") for name in self.names}
         self.excluded = {name: serving(name, f"{name.lower()}-old")
                          for name in release.EXCLUDED_NAMES}
-        self.after = {name: serving(name, f"{name.lower()}-new") for name in self.names[1:]}
+        self.after = {name: serving(name, f"{name.lower()}-new") for name in self.names[2:]}
         self.hosting = {"active": ("release", "version"), "configuration": {},
                         "manifest": {path: item["baselineHash"]
                                      for path, item in release.PLAN["hosting"]["assets"].items()}}
@@ -73,8 +73,8 @@ class ForwardResumeTest(unittest.TestCase):
             return deepcopy(state)
 
         with patch.object(release, "forward_resume_preflight",
-                          return_value=(deepcopy(self.expected), {n: b"rollback" for n in self.names[1:]},
-                                        f"{self.names[0].lower()}-old")), \
+                          return_value=(deepcopy(self.expected), {n: b"rollback" for n in self.names[2:]},
+                                        {n: f"{n.lower()}-old" for n in self.names[:2]})), \
                 patch.object(release, "forward_state", side_effect=current), \
                 patch.object(release, "config", side_effect=lambda n, _t: deepcopy(
                     state["functions"][n] if n in state["functions"] else state["excluded"][n])), \
@@ -85,8 +85,14 @@ class ForwardResumeTest(unittest.TestCase):
                 patch.object(release, "publish", side_effect=publish), \
                 patch.object(release.release, "verify_version"), \
                 patch.object(release, "verify_rules", return_value=deepcopy(self.rules)):
-            release.forward_resume("token", self.packages,
-                                   {path: b"asset" for path in self.hosting["manifest"]})
+            overlay = {path: path.encode() for path in self.hosting["manifest"]}
+            original_sha = release.inventory.sha
+            asset_hashes = {body: release.PLAN["hosting"]["assets"][path]["hostingHash"]
+                            for path, body in overlay.items()}
+            def asset_hash(body):
+                return asset_hashes.get(body) or original_sha(body)
+            with patch.object(release.inventory, "sha", side_effect=asset_hash):
+                release.forward_resume("token", self.packages, overlay)
         return events
 
     def test_excluded_function_baselines_all_required_before_any_write(self):
@@ -108,7 +114,7 @@ class ForwardResumeTest(unittest.TestCase):
                         release.verified_excluded_baselines("token")
 
     def test_excluded_function_mid_release_drift_stops_before_next_write(self):
-        name = self.names[1]
+        name = self.names[2]
         with redirect_stdout(io.StringIO()) as output, \
              self.assertRaisesRegex(RuntimeError, "outside the verified"):
             self.run_forward(excluded_drift_after=name)
@@ -123,7 +129,7 @@ class ForwardResumeTest(unittest.TestCase):
 
     def test_failed_forward_diagnostic_reads_only_and_never_authorizes_deploy(self):
         name = release.NAMES[1]
-        target = deepcopy(self.after[name])
+        target = serving(name, f"{name.lower()}-new")
         with patch.object(release, "config", side_effect=lambda n, _token:
                           deepcopy(target if n == name else self.before[n] if n in self.before else self.excluded[n])), \
              patch.object(release, "source", return_value=self.packages[name]), \
@@ -152,7 +158,7 @@ class ForwardResumeTest(unittest.TestCase):
             return release.PLAN["hosting"]["assets"][body.decode()]["hostingHash"]
         with patch.object(release, "forward_resume_preflight",
                           return_value=(deepcopy(self.expected),
-                                        {name: b"rollback" for name in self.names[1:]}, "revision")), \
+                                        {name: b"rollback" for name in self.names[2:]}, {})), \
              patch.object(release, "require_forward_state") as unchanged, \
              patch.object(release.inventory, "sha", side_effect=asset_hash), \
              patch.object(release, "prepare_hosting") as prepare, \
@@ -186,10 +192,11 @@ class ForwardResumeTest(unittest.TestCase):
                 update.assert_not_called()
                 publish.assert_not_called()
 
-    def test_success_updates_only_seven_then_publishes_eleven_assets(self):
+    def test_success_updates_only_six_then_publishes_eleven_assets(self):
         events = self.run_forward()
-        self.assertEqual(events, [*self.names[1:], "Hosting"])
+        self.assertEqual(events, [*self.names[2:], "Hosting"])
         self.assertNotIn(release.RESTORE_NAME, events)
+        self.assertNotIn(release.HANDOFF_NAME, events)
         self.assertEqual(len(release.PLAN["hosting"]["assets"]), 11)
 
     def test_first_fingerprint_and_each_remaining_fingerprint_are_required(self):
@@ -199,31 +206,47 @@ class ForwardResumeTest(unittest.TestCase):
                 patch.object(release, "digest", return_value="wrong"):
             with self.assertRaisesRegex(RuntimeError, "First Function configuration"):
                 release.forward_resume_preflight("token", self.packages)
-        for name in self.names[1:]:
+        for name in self.names[2:]:
             with self.subTest(name=name), \
                     patch.object(release.inventory, "sanitize", return_value={}), \
                     patch.object(release, "digest", return_value="wrong"):
                 with self.assertRaisesRegex(RuntimeError, name):
                     release.verify_original_function_baseline(name, self.before[name])
 
-    def test_missing_or_mismatched_rollback_archive_stops_preflight(self):
-        with patch.object(release, "config", side_effect=[self.before[self.names[0]],
-                                                          self.before[self.names[1]]]), \
-                patch.object(release, "digest", side_effect=[
-                    release.RESTORATION["configurationSha256"],
-                    release.PLAN["functions"][self.names[1]]["configurationSha256"]]), \
+    def test_reviewed_handoff_pin_and_each_write_target_recovery_are_required(self):
+        handoff = self.before[release.HANDOFF_NAME]
+        baseline = {
+            "configurationSha256": release.digest(release.inventory.sanitize(handoff)),
+            "servingRevision": f"{release.HANDOFF_NAME.lower()}-old",
+        }
+        first_sha = release.digest(release.inventory.sanitize(self.before[release.RESTORE_NAME]))
+        with patch.object(release, "config", side_effect=lambda name, _: self.before[name]), \
+                patch.dict(release.RESTORATION, {"configurationSha256": first_sha}), \
                 patch.object(release, "verify_release_permissions"), \
                 patch.object(release, "verify_function_healthy", return_value="revision"), \
+                patch.object(release, "verify_original_function_baseline"), \
                 patch.object(release, "diagnose_release_10",
                              return_value={"sourceFilesMatch": True,
                                            "liveArchiveSha256": release.RESTORATION["candidateArchiveSha256"]}), \
-                patch.object(release, "pinned_recovery", side_effect=RuntimeError("rollback missing")):
-            with self.assertRaisesRegex(RuntimeError, "rollback missing"):
+                patch.object(release, "source", return_value=self.packages[release.HANDOFF_NAME]), \
+                patch.object(release, "pinned_recovery", side_effect=RuntimeError("rollback missing")) as recovery:
+            with self.assertRaisesRegex(RuntimeError, "reviewed handoff"):
                 release.forward_resume_preflight("token", self.packages)
+            recovery.assert_not_called()
+            with patch.dict(release.PLAN, {"reviewedHandoffBaseline": {
+                **baseline, "configurationSha256": "0" * 64,
+            }}):
+                with self.assertRaisesRegex(RuntimeError, "Handoff.*fingerprint mismatch"):
+                    release.forward_resume_preflight("token", self.packages)
+            recovery.assert_not_called()
+            with patch.dict(release.PLAN, {"reviewedHandoffBaseline": baseline}):
+                with self.assertRaisesRegex(RuntimeError, "rollback missing"):
+                    release.forward_resume_preflight("token", self.packages)
+            self.assertEqual(recovery.call_args.args[0], self.names[2])
 
     def test_runtime_iam_split_or_unhealthy_traffic_stops(self):
         before = self.before[self.names[1]]
-        drift = deepcopy(self.after[self.names[1]])
+        drift = serving(self.names[1], f"{self.names[1].lower()}-new")
         drift["runIam"]["bindings"] = [{"role": "changed"}]
         with self.assertRaisesRegex(RuntimeError, "runtime or IAM"):
             release.verify_updated_runtime(self.names[1], before, drift)
@@ -252,7 +275,7 @@ class ForwardResumeTest(unittest.TestCase):
         self.assertIn('"uncertainWrite": "Hosting publication"', output.getvalue())
 
     def test_candidate_source_hash_mismatch_stops_without_advancing(self):
-        name = self.names[1]
+        name = self.names[2]
         with redirect_stdout(io.StringIO()) as output, \
                 self.assertRaisesRegex(RuntimeError, "candidate source file hashes"):
             self.run_forward(source_mismatch=name)

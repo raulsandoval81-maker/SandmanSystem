@@ -23,6 +23,8 @@ PROJECT, SITE = inventory.PROJECT, inventory.SITE
 HOSTING = release.HOSTING_API
 REGION = "us-central1"
 NAMES = PLAN["functionOrder"]
+HANDOFF_NAME = "issueProposalEnrollmentHandoff"
+FORWARD_TARGETS = NAMES[2:]
 EXCLUDED_NAMES = tuple(name for name in PLAN["functions"] if name not in NAMES)
 RESTORE_NAME = "saveProposalEnrollmentAgreement"
 VERIFY_RESTORATION_MODE = "verify-save-proposal-restoration"
@@ -36,7 +38,7 @@ SECURITY_VERIFY_MODE = "verify-issue-handoff-security"
 SECURITY_VERIFY_CONFIRMATION = "VERIFY-ISSUE-HANDOFF-PRODUCTION-SECURITY-READ-ONLY"
 SECURITY_RETENTION_APPROVAL = "APPROVED-PRIVATE-PRODUCTION-SECURITY-EVIDENCE"
 VERIFY_FORWARD_CONFIRMATION = "VERIFY-FORWARD-RESUME-RELEASE-10-READ-ONLY"
-FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SEVEN-FUNCTIONS-43612662882"
+FORWARD_RESUME_CONFIRMATION = "FORWARD-RESUME-RELEASE-10-SIX-FUNCTIONS"
 RESTORATION = {
     "configurationSha256": "b4066c965108fbe4793ee44d48b0e4770ba8cb8f8372a27e5e388af802125fc2",
     "candidateGeneration": "1794629107340168",
@@ -363,7 +365,7 @@ def verified_excluded_baselines(token):
 
 
 def forward_resume_preflight(token, packages):
-    """Verify the interrupted release boundary without using the stale first baseline."""
+    """Verify the interrupted release boundary for both serving candidates and the remaining write scope."""
     first = config(RESTORE_NAME, token)
     require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
             "First Function configuration fingerprint mismatch")
@@ -375,9 +377,20 @@ def forward_resume_preflight(token, packages):
             and diagnostic["liveArchiveSha256"] == RESTORATION["candidateArchiveSha256"],
             "First Function candidate source mismatch")
 
-    snapshots = {RESTORE_NAME: first}
+    baseline = PLAN.get("reviewedHandoffBaseline") or {}
+    require(re.fullmatch(r"[a-f0-9]{64}", baseline.get("configurationSha256", ""))
+            and baseline.get("servingRevision"),
+            "Independently reviewed handoff configuration and revision are required")
+    handoff = config(HANDOFF_NAME, token)
+    require(digest(inventory.sanitize(handoff)) == baseline["configurationSha256"],
+            "Handoff Function configuration or IAM fingerprint mismatch")
+    handoff_revision = verify_function_healthy(HANDOFF_NAME, handoff, baseline["servingRevision"])
+    require(archive_hashes(source(HANDOFF_NAME, handoff, token))
+            == archive_hashes(packages[HANDOFF_NAME]),
+            "Handoff Function candidate source mismatch")
+    snapshots = {RESTORE_NAME: first, HANDOFF_NAME: handoff}
     recovery = {}
-    for name in NAMES[1:]:
+    for name in FORWARD_TARGETS:
         snapshot = config(name, token)
         verify_original_function_baseline(name, snapshot)
         archive = pinned_recovery(name, snapshot, token)
@@ -394,7 +407,7 @@ def forward_resume_preflight(token, packages):
     expected = {"functions": snapshots, "excluded": excluded,
                 "hosting": hosting, "rules": rules}
     require_forward_state(token, expected)
-    return expected, recovery, first_revision
+    return expected, recovery, {RESTORE_NAME: first_revision, HANDOFF_NAME: handoff_revision}
 
 
 def verify_forward_resume_readonly(token, packages, overlay):
@@ -416,8 +429,8 @@ def verify_forward_resume_readonly(token, packages, overlay):
         raise SystemExit(1) from None
     print(json.dumps({
         "forwardResumeReadOnly": "PASS",
-        "alreadyUpdatedFunction": RESTORE_NAME,
-        "remainingFunctionsVerified": list(NAMES[1:]),
+        "alreadyUpdatedFunctions": [RESTORE_NAME, HANDOFF_NAME],
+        "remainingFunctionsVerified": list(FORWARD_TARGETS),
         "excludedFunctionsVerified": list(EXCLUDED_NAMES),
         "candidateHostingAssetsVerified": len(overlay),
         "rollbackArchivesVerified": len(recovery),
@@ -903,23 +916,28 @@ def verify_issue_handoff_security(token, packages, env=None, progress=None):
 
 
 def forward_resume(token, packages, overlay):
-    """Resume release #10 without touching its already-updated first Function."""
-    expected, recovery, first_revision = forward_resume_preflight(token, packages)
+    """Resume release #10 without touching either already-updated Function."""
+    expected, recovery, serving_revisions = forward_resume_preflight(token, packages)
     configuration = expected["hosting"]["configuration"]
     manifest = expected["hosting"]["manifest"]
     proposed = dict(manifest)
     payloads = {}
+    require(set(overlay) == set(PLAN["hosting"]["assets"]), "Candidate Hosting asset scope differs")
     for path, body in overlay.items():
         require(manifest.get(path) == PLAN["hosting"]["assets"][path]["baselineHash"],
                 f"{path}: asset baseline drift")
-        proposed[path] = inventory.sha(body)
-        payloads[proposed[path]] = body
+        candidate_hash = inventory.sha(body)
+        require(candidate_hash == PLAN["hosting"]["assets"][path]["hostingHash"],
+                f"{path}: candidate Hosting bytes differ")
+        proposed[path] = candidate_hash
+        payloads[candidate_hash] = body
 
     in_flight = "Hosting overlay preparation"
     try:
+        require_forward_state(token, expected)
         version = prepare_hosting(configuration, proposed, payloads, token)
         in_flight = None
-        for name in NAMES[1:]:
+        for name in FORWARD_TARGETS:
             require_forward_state(token, expected)
             before = expected["functions"][name]
             previous_revision = verify_function_healthy(name, before)
@@ -938,11 +956,9 @@ def forward_resume(token, packages, overlay):
             require_forward_state(token, expected)
             print(f"Verified forward update {name}", flush=True)
 
-        require(config(RESTORE_NAME, token) == expected["functions"][RESTORE_NAME],
-                "First Function changed during forward resume")
-        require(verify_function_healthy(RESTORE_NAME, expected["functions"][RESTORE_NAME],
-                                        first_revision) == first_revision,
-                "First Function serving revision changed")
+        require_forward_state(token, expected)
+        for name, revision in serving_revisions.items():
+            verify_function_healthy(name, expected["functions"][name], revision)
         in_flight = "Hosting publication"
         publish(version, token)
         release.verify_version(version, configuration, proposed, token)
@@ -956,8 +972,8 @@ def forward_resume(token, packages, overlay):
                     f"{name}: excluded Function changed during Hosting publication")
         print(json.dumps({
             "forwardResume": "PASS",
-            "alreadyUpdatedFunction": RESTORE_NAME,
-            "deployedFunctions": NAMES[1:],
+            "alreadyUpdatedFunctions": [RESTORE_NAME, HANDOFF_NAME],
+            "deployedFunctions": FORWARD_TARGETS,
             "hostingAssets": sorted(PLAN["hosting"]["assets"]),
             "hostingVersion": version,
             "firestoreRulesChanged": False,
