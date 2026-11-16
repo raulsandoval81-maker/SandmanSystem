@@ -51,26 +51,70 @@ class HandoffReleaseTests(unittest.TestCase):
                 handoff.guard({**env, key: "unexpected"})
 
     def test_preflight_does_not_write(self):
-        handoff.run(b"candidate", "test-token")
+        handoff.run(b"candidate", "test-token", "handoff-preflight")
         self.update.assert_not_called()
 
     def test_rejects_unapproved_package_before_cloud_reads(self):
         with self.assertRaisesRegex(RuntimeError, "file-set hash differs"):
-            handoff.run(b"old", "test-token")
+            handoff.run(b"old", "test-token", "handoff-preflight")
         self.config.assert_not_called()
         self.update.assert_not_called()
 
     def test_rejects_live_drift_before_write(self):
         self.config.side_effect = [self.before, self.after]
         with self.assertRaisesRegex(RuntimeError, "drifted during capture"):
-            handoff.run(b"candidate", "test-token")
+            handoff.run(b"candidate", "test-token", "handoff-preflight")
         self.update.assert_not_called()
 
     def test_rejects_duplicate_source(self):
         self.old_files = self.candidate_files
         with self.assertRaisesRegex(RuntimeError, "already serves"):
-            handoff.run(b"candidate", "test-token")
+            handoff.run(b"candidate", "test-token", "handoff-preflight")
         self.update.assert_not_called()
+
+
+    def approved_baseline(self):
+        return handoff.release.digest({
+            "snapshot": self.before,
+            "recoveryFilesSha256": handoff.release.digest(self.old_files),
+            "candidateFilesSha256": self.candidate_digest,
+        })
+
+    def test_deploy_rejects_baseline_mismatch(self):
+        with self.assertRaisesRegex(RuntimeError, "differs from approved preflight"):
+            handoff.run(b"candidate", "test-token", "handoff-deploy")
+        self.update.assert_not_called()
+
+    def test_deploy_rejects_drift_after_baseline_match(self):
+        self.config.side_effect = [self.before, self.after]
+        with patch.object(handoff, "BASELINE_SHA", self.approved_baseline()):
+            with self.assertRaisesRegex(RuntimeError, "drifted during capture"):
+                handoff.run(b"candidate", "test-token", "handoff-deploy")
+        self.update.assert_not_called()
+
+    def test_deploy_updates_only_target_and_verifies_serving_source(self):
+        self.config.side_effect = [self.before, self.before, self.after, self.after]
+        with (
+            patch.object(handoff, "BASELINE_SHA", self.approved_baseline()),
+            patch.object(handoff.release, "verify_function_healthy", side_effect=["before", "after"]),
+            patch.object(handoff.release, "verify_updated_runtime") as verify_runtime,
+            patch.object(handoff.release, "source", side_effect=[b"old", b"candidate"]) as source,
+        ):
+            handoff.run(b"candidate", "test-token", "handoff-deploy")
+        self.update.assert_called_once_with(handoff.NAME, b"candidate", "test-token")
+        verify_runtime.assert_called_once_with(handoff.NAME, self.before, self.after)
+        source.assert_called_with(handoff.NAME, self.after, "test-token")
+
+    def test_deploy_stops_on_unexpected_serving_source(self):
+        self.config.side_effect = [self.before, self.before, self.after]
+        with (
+            patch.object(handoff, "BASELINE_SHA", self.approved_baseline()),
+            patch.object(handoff.release, "verify_function_healthy", side_effect=["before", "after"]),
+            patch.object(handoff.release, "verify_updated_runtime"),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "Serving staging source differs"):
+                handoff.run(b"candidate", "test-token", "handoff-deploy")
+        self.update.assert_called_once()
 
 
 class ExportVerificationTests(unittest.TestCase):

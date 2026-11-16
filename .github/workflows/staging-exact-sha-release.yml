@@ -172,6 +172,7 @@ on:
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
           - handoff-preflight
+          - handoff-deploy
           - enrollment-runtime-iam-readonly
           - enrollment-two-callable-validate
           - enrollment-two-callable-bootstrap
@@ -3420,7 +3421,7 @@ jobs:
           if-no-files-found: error
 
   handoff-preflight:
-    if: ${{ inputs.action == 'handoff-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    if: ${{ (inputs.action == 'handoff-preflight' || inputs.action == 'handoff-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
     environment: staging
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -3477,7 +3478,7 @@ jobs:
           service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
           create_credentials_file: true
       - uses: google-github-actions/setup-gcloud@v2
-      - name: Capture staging baseline without updating source
+      - name: Verify staging baseline and execute the selected handoff action
         run: python3 trusted/scripts/staging/staging-handoff-release.py
 
   enrollment-wif-readonly-preflight:

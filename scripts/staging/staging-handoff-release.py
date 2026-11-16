@@ -1,4 +1,4 @@
-"""Protected, read-only staging preflight for the reviewed enrollment handoff."""
+"""Protected, single-Function staging release for the reviewed enrollment handoff."""
 import json
 import os
 from pathlib import Path
@@ -13,6 +13,7 @@ NAME = "issueProposalEnrollmentHandoff"
 SHA = "a2d716eb4a54d022ff403f6860138861465b8cda"
 CORE = "77949da45bfd9c4f9f1e3aa514d523be54779e86"
 FILES_SHA = "9a9ec9e5f3f25fc99bb2148004328caaf51c27527471e83d4d01a0fdf40e39ee"
+BASELINE_SHA = "0f7d8db2529e552484dacb18d2e2d4f3225df1b727de267ab94549b2049910c3"
 require = release.require
 
 
@@ -22,11 +23,12 @@ def guard(env):
         "GITHUB_REF": "refs/heads/main",
         "GITHUB_WORKFLOW_REF": f"{REPO}/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
         "GITHUB_RUN_ATTEMPT": "1",
-        "HANDOFF_ACTION": "handoff-preflight",
         "CONFIRM_PROJECT": PROJECT,
         "CONFIRM_SHA": SHA,
     }.items():
         require(env.get(key) == expected, f"Staging guard: {key}")
+    require(env.get("HANDOFF_ACTION") in ("handoff-preflight", "handoff-deploy"),
+            "Staging guard: HANDOFF_ACTION")
 
 
 def package():
@@ -67,7 +69,8 @@ def configuration(access_token):
     return snapshot
 
 
-def run(archive, access_token):
+def run(archive, access_token, action):
+    require(action in ("handoff-preflight", "handoff-deploy"), "Unexpected handoff action")
     candidate_files = release.archive_hashes(archive)
     require(release.digest(candidate_files) == FILES_SHA, "Handoff package file-set hash differs")
     release.PROJECT = release.inventory.PROJECT = release.release.PROJECT = PROJECT
@@ -80,13 +83,31 @@ def run(archive, access_token):
         "recoveryFilesSha256": release.digest(old_files),
         "candidateFilesSha256": FILES_SHA,
     })
+    if action == "handoff-deploy":
+        require(baseline == BASELINE_SHA, "Staging baseline differs from approved preflight")
     require(configuration(access_token) == before, "Staging target drifted during capture")
     print(json.dumps({"project": PROJECT, "function": NAME, "sourceSha": SHA,
                       "beforeRevision": revision, "baselineSha256": baseline,
                       "recoveryFilesSha256": release.digest(old_files),
                       "candidateFilesSha256": FILES_SHA}), flush=True)
 
+    if action == "handoff-preflight":
+        return
+
+    release.release.source_update(NAME, archive, access_token)
+    after = configuration(access_token)
+    serving_revision = release.verify_function_healthy(NAME, after)
+    require(serving_revision != revision, "Staging update did not create a new serving revision")
+    release.verify_updated_runtime(NAME, before, after)
+    deployed_files = release.archive_hashes(release.source(NAME, after, access_token))
+    require(deployed_files == candidate_files, "Serving staging source differs from approved package")
+    require(configuration(access_token) == after, "Staging target drifted during verification")
+    print(json.dumps({"project": PROJECT, "function": NAME, "sourceSha": SHA,
+                      "servingRevision": serving_revision,
+                      "servingFilesSha256": release.digest(deployed_files),
+                      "handoffDeploy": "PASS"}), flush=True)
+
 
 if __name__ == "__main__":
     guard(os.environ)
-    run(package(), token())
+    run(package(), token(), os.environ["HANDOFF_ACTION"])
