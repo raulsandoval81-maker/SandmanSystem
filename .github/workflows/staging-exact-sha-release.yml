@@ -3426,6 +3426,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
+      actions: read
       id-token: write
     env:
       PYTHONPATH: trusted/scripts/production:trusted/scripts/staging
@@ -3439,9 +3440,15 @@ jobs:
           path: trusted
           persist-credentials: false
       - name: Verify protected staging dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           python3 -c 'import importlib, os; importlib.import_module("staging-handoff-release").guard(os.environ)'
-          curl --fail --silent --show-error "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/staging" |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/staging" |
             jq -e '.can_admins_bypass == false and any(.protection_rules[]; .type == "required_reviewers" and any(.reviewers[]; .type == "User" and .reviewer.login == "raulsandoval81-maker"))' >/dev/null
       - uses: actions/checkout@v4
         with:
