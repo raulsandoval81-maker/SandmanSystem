@@ -192,6 +192,27 @@ class ForwardResumeTest(unittest.TestCase):
                 update.assert_not_called()
                 publish.assert_not_called()
 
+
+    def test_readonly_failure_reports_safe_stage_without_exception_details(self):
+        overlay = {path: path.encode() for path in release.PLAN["hosting"]["assets"]}
+        def fail(_token, _packages, progress=None):
+            progress["stage"] = "reviewed-handoff-baseline"
+            raise RuntimeError("private sensitive configuration must not appear in logs")
+        with patch.object(release, "forward_resume_preflight", side_effect=fail), \
+             patch.object(release, "prepare_hosting") as prepare, \
+             patch.object(release.release, "source_update") as update, \
+             patch.object(release, "publish") as publish, \
+             redirect_stdout(io.StringIO()) as output, \
+             self.assertRaises(SystemExit):
+            release.verify_forward_resume_readonly("token", self.packages, overlay)
+        record = json.loads(output.getvalue().strip())
+        self.assertEqual(record["failureStage"], "reviewed-handoff-baseline")
+        self.assertEqual(record["productionWrites"], 0)
+        self.assertNotIn("private sensitive", output.getvalue())
+        prepare.assert_not_called()
+        update.assert_not_called()
+        publish.assert_not_called()
+
     def test_success_updates_only_six_then_publishes_eleven_assets(self):
         events = self.run_forward()
         self.assertEqual(events, [*self.names[2:], "Hosting"])

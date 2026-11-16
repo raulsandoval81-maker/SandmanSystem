@@ -367,8 +367,10 @@ def verified_excluded_baselines(token):
     return excluded
 
 
-def forward_resume_preflight(token, packages):
+def forward_resume_preflight(token, packages, progress=None):
     """Verify the interrupted release boundary for both serving candidates and the remaining write scope."""
+    progress = {} if progress is None else progress
+    progress["stage"] = "first-function-baseline"
     first = config(RESTORE_NAME, token)
     require(digest(inventory.sanitize(first)) == RESTORATION["configurationSha256"],
             "First Function configuration fingerprint mismatch")
@@ -380,6 +382,7 @@ def forward_resume_preflight(token, packages):
             and diagnostic["liveArchiveSha256"] == RESTORATION["candidateArchiveSha256"],
             "First Function candidate source mismatch")
 
+    progress["stage"] = "reviewed-handoff-baseline"
     baseline = PLAN.get("reviewedHandoffBaseline") or {}
     require(re.fullmatch(r"[a-f0-9]{64}", baseline.get("configurationSha256", ""))
             and baseline.get("servingRevision"),
@@ -388,11 +391,13 @@ def forward_resume_preflight(token, packages):
     require(digest(inventory.sanitize(handoff)) == baseline["configurationSha256"],
             "Handoff Function configuration or IAM fingerprint mismatch")
     handoff_revision = verify_function_healthy(HANDOFF_NAME, handoff, baseline["servingRevision"])
+    progress["stage"] = "handoff-source-match"
     require(archive_hashes(source(HANDOFF_NAME, handoff, token))
             == archive_hashes(packages[HANDOFF_NAME]),
             "Handoff Function candidate source mismatch")
     snapshots = {RESTORE_NAME: first, HANDOFF_NAME: handoff}
     recovery = {}
+    progress["stage"] = "remaining-function-recovery"
     for name in FORWARD_TARGETS:
         snapshot = config(name, token)
         verify_original_function_baseline(name, snapshot)
@@ -403,8 +408,10 @@ def forward_resume_preflight(token, packages):
         snapshots[name] = snapshot
         recovery[name] = archive
 
+    progress["stage"] = "excluded-function-baselines"
     excluded = verified_excluded_baselines(token)
 
+    progress["stage"] = "hosting-and-rules-baseline"
     hosting = hosting_state(token)
     rules = verify_rules(token)
     expected = {"functions": snapshots, "excluded": excluded,
@@ -415,8 +422,10 @@ def forward_resume_preflight(token, packages):
 
 def verify_forward_resume_readonly(token, packages, overlay):
     """Read-only full forward-release preflight. Never stage Hosting or update Functions."""
+    progress = {"stage": "preflight-entry"}
     try:
-        expected, recovery, _ = forward_resume_preflight(token, packages)
+        expected, recovery, _ = forward_resume_preflight(token, packages, progress=progress)
+        progress["stage"] = "hosting-candidate-assets"
         manifest = expected["hosting"]["manifest"]
         require(set(overlay) == set(PLAN["hosting"]["assets"]),
                 "Candidate Hosting asset scope differs")
@@ -425,9 +434,12 @@ def verify_forward_resume_readonly(token, packages, overlay):
                     f"{path}: baseline Hosting asset drift")
             require(inventory.sha(body) == PLAN["hosting"]["assets"][path]["hostingHash"],
                     f"{path}: candidate Hosting bytes differ")
+        progress["stage"] = "final-stability-recheck"
         require_forward_state(token, expected)
     except Exception:
         print(json.dumps({"forwardResumeReadOnly": "FAIL",
+                          "failureStage": progress["stage"],
+                          "productionWrites": 0,
                           "historicalFirstFunctionFingerprintMatches": False}), flush=True)
         raise SystemExit(1) from None
     print(json.dumps({
