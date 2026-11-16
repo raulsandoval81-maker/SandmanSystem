@@ -2,6 +2,15 @@
   "inventoryRun": 42924733167,
   "inventoryArtifact": 13812879099,
   "candidate": "3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8",
+  "pendingHandoffCorrection": {
+    "status": "pending-protected-staging-and-security-review",
+    "writeTarget": "issueProposalEnrollmentHandoff",
+    "sourcePath": "functions/src/proposals/issueProposalEnrollmentHandoff.ts",
+    "sourceSha256": "e89cad02fa007dea466f606d25987bf42ff650d0ca75419655e20f4a97d071dc",
+    "stagingCoreBase": "77949da45bfd9c4f9f1e3aa514d523be54779e86",
+    "localCandidateClosureSha256": "209c985b28607d5f2c3bcaf766dc014ec7949b467c85c8935fc2ab913e7c40d3",
+    "localCandidateFileSetSha256": "9a9ec9e5f3f25fc99bb2148004328caaf51c27527471e83d4d01a0fdf40e39ee"
+  },
   "functionOrder": [
     "saveProposalEnrollmentAgreement",
     "issueProposalEnrollmentHandoff",

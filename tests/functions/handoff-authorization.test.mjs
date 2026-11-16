@@ -33,7 +33,7 @@ class Timestamp {
   }
 }
 
-function fixture({ exists = true, expired = false, staffAllowed = true, locationAllowed = true } = {}) {
+function fixture({ exists = true, expired = false, staffAllowed = true, locationAllowed = true, changeBeforeCommit = {} } = {}) {
   const events = [];
   const proposal = {
     status: "READY_FOR_CHECKOUT",
@@ -47,12 +47,22 @@ function fixture({ exists = true, expired = false, staffAllowed = true, location
       return { exists, data: () => proposal };
     },
     update: async () => { events.push("proposal-write"); },
-    collection: () => ({ add: async () => { events.push("history-write"); } }),
+    collection: () => ({ doc: () => ({}) }),
   };
   const modules = {
     "firebase-functions/v2/https": { HttpsError, onCall: (_, handler) => handler },
     "firebase-admin/firestore": {
-      getFirestore: () => ({ collection: () => ({ doc: () => ref }) }),
+      getFirestore: () => ({
+        collection: () => ({ doc: () => ref }),
+        runTransaction: async handler => handler({
+          get: async () => {
+            events.push("transaction-read");
+            return { exists, data: () => ({ ...proposal, ...changeBeforeCommit }) };
+          },
+          update: () => { events.push("proposal-write"); },
+          create: () => { events.push("history-write"); },
+        }),
+      }),
       FieldValue: { serverTimestamp: () => "server-time" },
       Timestamp,
     },
@@ -66,9 +76,9 @@ function fixture({ exists = true, expired = false, staffAllowed = true, location
         if (!staffAllowed) throw new HttpsError("permission-denied", "staff denied");
         return { role: "management" };
       },
-      requireProposalLocationAccess: () => {
+      requireProposalLocationAccess: (_staff, location) => {
         events.push("location-check");
-        if (!locationAllowed) throw new HttpsError("permission-denied", "location denied");
+        if (!locationAllowed || location !== "synthetic") throw new HttpsError("permission-denied", "location denied");
       },
     },
     "../enrollment/earlyCashCheckIntake": {
@@ -143,7 +153,7 @@ test("valid review token can issue a local handoff", async () => {
   const result = await f.call(request({ clientReviewToken: "valid" }));
   assert.equal(result.ok, true);
   assert.match(result.enrollmentPath, /token=new-token/);
-  assert.deepEqual(f.events, ["proposal-read", "token-mint", "proposal-write", "history-write"]);
+  assert.deepEqual(f.events, ["proposal-read", "transaction-read", "token-mint", "proposal-write", "history-write"]);
 });
 
 test("authorized Management can issue and email for the assigned location", async () => {
@@ -151,6 +161,34 @@ test("authorized Management can issue and email for the assigned location", asyn
   const result = await f.call(request({ delivery: "email" }, staff));
   assert.equal(result.ok, true);
   assert.equal(result.emailId, "synthetic");
-  assert.deepEqual(f.events, ["staff-check", "proposal-read", "location-check", "token-mint",
+  assert.deepEqual(f.events, ["staff-check", "proposal-read", "location-check", "transaction-read", "location-check", "token-mint",
     "proposal-write", "history-write", "email-send", "proposal-write"]);
+});
+
+test("revocation between lookup and transaction prevents token minting and writes", async () => {
+  const f = fixture({ changeBeforeCommit: { clientReview: {} } });
+  assert.deepEqual(await denial(f, request({ clientReviewToken: "valid" })),
+    ["permission-denied", "This proposal review link is invalid or expired."]);
+  assert.deepEqual(f.events, ["proposal-read", "transaction-read"]);
+});
+
+test("expiry between lookup and transaction prevents handoff writes", async () => {
+  const f = fixture({ changeBeforeCommit: {
+    clientReview: { tokenHash: "hash:valid", expiresAt: new Timestamp(Date.now() - 1000) },
+  } });
+  assert.equal((await denial(f, request({ clientReviewToken: "valid" })))[0], "permission-denied");
+  assert.deepEqual(f.events, ["proposal-read", "transaction-read"]);
+});
+
+test("proposal eligibility changes before the transaction stop handoff", async () => {
+  const f = fixture({ changeBeforeCommit: { status: "DRAFT" } });
+  assert.equal((await denial(f, request({ clientReviewToken: "valid" })))[0], "failed-precondition");
+  assert.deepEqual(f.events, ["proposal-read", "transaction-read"]);
+});
+
+test("a proposal moved out of Management's location cannot be sent", async () => {
+  const f = fixture({ changeBeforeCommit: { locationId: "out-of-scope" } });
+  assert.equal((await denial(f, request({ delivery: "email" }, staff)))[0], "permission-denied");
+  assert.deepEqual(f.events, ["staff-check", "proposal-read", "location-check",
+    "transaction-read", "location-check"]);
 });
