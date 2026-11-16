@@ -12,9 +12,13 @@ on:
       - 'functions/tests/prepaidCashReceipt.integration.cjs'
       - 'public/connect/proposals/proposals.js'
       - 'functions/src/proposals/issueProposalEnrollmentHandoff.ts'
+      - 'tests/functions/handoff-authorization.test.mjs'
       - 'public/management/billing/billing.js'
       - 'public/intake-management/management.intake.js'
       - 'public/connect/admissions/calculator/**'
+      - '.github/workflows/staging-handoff-release.yml'
+      - 'scripts/staging/staging-handoff-release.py'
+      - 'tests/staging/test_handoff_release.py'
       - '.github/workflows/2c-cash-check-draft-tests.yml'
   workflow_dispatch:
 
@@ -41,7 +45,9 @@ jobs:
       - name: Compile functions and run focused prepaid tests
         run: npm --prefix functions run test:payment-arrangements
       - name: Test combined receipt reservation and Management handoff
-        run: node --test functions/tests/combinedEnrollmentReceipt.test.cjs tests/browser/cash-check-enrollment-polish.test.mjs
+        run: node --test functions/tests/combinedEnrollmentReceipt.test.cjs tests/browser/cash-check-enrollment-polish.test.mjs tests/functions/handoff-authorization.test.mjs
+      - name: Test protected handoff staging release
+        run: python3 -m unittest discover -s tests/staging -p test_handoff_release.py
       - name: Validate edited browser module syntax without executing or sending messages
         run: |
           node --check public/connect/admissions/calculator/calculator.js

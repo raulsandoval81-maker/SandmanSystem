@@ -6,6 +6,7 @@ import {
 
 import {
   FieldValue,
+  type DocumentSnapshot,
   Timestamp,
   getFirestore,
 } from "firebase-admin/firestore";
@@ -72,219 +73,195 @@ export const issueProposalEnrollmentHandoff =
         );
       }
 
-      const db = getFirestore();
-
-      const proposalRef =
-        db.collection("proposals")
-          .doc(proposalId);
-
-      const proposalSnap =
-        await proposalRef.get();
-
-      if (!proposalSnap.exists) {
-        throw new HttpsError(
-          "not-found",
-          `Proposal ${proposalId} was not found.`
-        );
-      }
-
-      const proposal =
-        proposalSnap.data() || {};
-
-      let actorUid = "client";
-
-      if (clientReviewToken) {
-        const review =
-          proposal.clientReview || {};
-
-        const tokenMatches =
-          hashProposalReviewToken(
-            clientReviewToken
-          ) === clean(review.tokenHash);
-
-        const reviewExpiresAt =
-          review.expiresAt;
-
-        if (
-          !tokenMatches ||
-          !(reviewExpiresAt instanceof Timestamp) ||
-          reviewExpiresAt.toMillis() < Date.now()
-        ) {
-          throw new HttpsError(
-            "permission-denied",
-            "This proposal review link is invalid or expired."
-          );
-        }
-
-        if (delivery !== "local") {
-          throw new HttpsError(
-            "permission-denied",
-            "Only Management may email a new Review & Confirm link."
-          );
-        }
-      } else if (req.auth) {
-        const access =
-          await requireProposalStaffAccess(
-            req.auth.uid
-          );
-
-        requireProposalLocationAccess(
-          access,
-          proposal.locationId
-        );
-
-        actorUid = req.auth.uid;
-      } else {
+      if (!clientReviewToken && !req.auth) {
         throw new HttpsError(
           "unauthenticated",
           "A valid proposal review link or Management sign-in is required."
         );
       }
 
-      const status =
-        clean(proposal.status)
-          .toUpperCase();
+      const reviewDenied = () => new HttpsError(
+        "permission-denied",
+        "This proposal review link is invalid or expired."
+      );
+      const staffDenied = () => new HttpsError(
+        "permission-denied",
+        "This proposal is unavailable to your account."
+      );
+      // The browser token authorizes local handoff only. Authenticate staff
+      // before looking up a proposal, and mask unavailable or out-of-scope IDs.
+      if (clientReviewToken && delivery !== "local") throw reviewDenied();
+      const staff = !clientReviewToken && req.auth
+        ? await requireProposalStaffAccess(req.auth.uid)
+        : null;
 
-      if (
-        ![
-          "READY_FOR_CHECKOUT",
-          "CHECKOUT_CREATED",
-          "PARTIALLY_PAID",
-          "PAYMENT_FAILED",
-        ].includes(status)
-      ) {
-        throw new HttpsError(
-          "failed-precondition",
-          "Only checkout-ready proposals may enter Review & Confirm."
-        );
-      }
+      const db = getFirestore();
+      const proposalRef = db.collection("proposals").doc(proposalId);
+      const actorUid = staff && req.auth ? req.auth.uid : "client";
+      const authorizeProposal = (snapshot: DocumentSnapshot) => {
+        if (!snapshot.exists) throw clientReviewToken ? reviewDenied() : staffDenied();
+        const proposal = snapshot.data() || {};
+        if (clientReviewToken) {
+          const review = proposal.clientReview || {};
+          if (
+            hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
+            !(review.expiresAt instanceof Timestamp) ||
+            review.expiresAt.toMillis() <= Date.now()
+          ) {
+            throw reviewDenied();
+          }
+        } else if (staff) {
+          try {
+            requireProposalLocationAccess(staff, proposal.locationId);
+          } catch (error) {
+            if (error instanceof HttpsError &&
+                (error.code === "permission-denied" || error.code === "failed-precondition")) {
+              throw staffDenied();
+            }
+            throw error;
+          }
+        } else {
+          throw staffDenied();
+        }
 
+        const status = clean(proposal.status).toUpperCase();
+        if (!["READY_FOR_CHECKOUT", "CHECKOUT_CREATED", "PARTIALLY_PAID", "PAYMENT_FAILED"].includes(status)) {
+          throw new HttpsError("failed-precondition", "Only checkout-ready proposals may enter Review & Confirm.");
+        }
+        return { proposal, status };
+      };
+
+      const { proposal: initialProposal } = authorizeProposal(await proposalRef.get());
       const staging = delivery === "local" && Boolean(clientReviewToken) &&
-        proposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
+        initialProposal.lockedSnapshot?.pricing?.paymentArrangement === "prepaid_cash_check" &&
         await resolveEarlyIntakeStagingRuntime();
-      if (proposal.earlyCashCheckIntakeTokenId && canStartEarlyCashCheckIntake(proposal, staging)) {
+      if (initialProposal.earlyCashCheckIntakeTokenId && canStartEarlyCashCheckIntake(initialProposal, staging)) {
         return db.runTransaction(async tx => {
-          const current = (await tx.get(proposalRef)).data() || {};
-          const review = current.clientReview || {};
-          if (hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
-              !(review.expiresAt instanceof Timestamp) || review.expiresAt.toMillis() <= Date.now() ||
-              !current.earlyCashCheckIntakeTokenId || !canStartEarlyCashCheckIntake(current, staging)) {
+          const { proposal: current } = authorizeProposal(await tx.get(proposalRef));
+          if (!current.earlyCashCheckIntakeTokenId || !canStartEarlyCashCheckIntake(current, staging)) {
             throw new HttpsError("failed-precondition", "The signed Cash/Check proposal is no longer eligible for Intake.");
           }
           return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid, staging);
         });
       }
 
-      const currentHandoff =
-        proposal.enrollmentHandoff || {};
+      // A changed proposal invalidates the Firestore transaction. Recheck
+      // authorization and eligibility on every transaction attempt.
+      const { proposal, status, prospect, recipient, enrollmentPath, expiresAt, canReuseExistingToken } =
+        await db.runTransaction(async tx => {
+          const { proposal, status } = authorizeProposal(await tx.get(proposalRef));
 
-      const currentExpiresAt =
-        currentHandoff.expiresAt;
+          const currentHandoff =
+            proposal.enrollmentHandoff || {};
 
-      const canReuseExistingToken =
-        Boolean(
-          existingEnrollmentToken &&
-          hashProposalReviewToken(
-            existingEnrollmentToken
-          ) ===
-            clean(
-              currentHandoff.tokenHash
-            ) &&
-          currentExpiresAt instanceof
-            Timestamp &&
-          currentExpiresAt.toMillis() >
-            Date.now()
-        );
+          const currentExpiresAt =
+            currentHandoff.expiresAt;
 
-      const rawToken =
-        canReuseExistingToken
-          ? existingEnrollmentToken
-          : createProposalReviewToken();
-
-      const tokenHash =
-        hashProposalReviewToken(
-          rawToken
-        );
-
-      const expiresAt =
-        canReuseExistingToken
-          ? currentExpiresAt
-          : Timestamp.fromMillis(
-              Date.now() +
-              7 * 24 * 60 * 60 * 1000
+          const canReuseExistingToken =
+            Boolean(
+              existingEnrollmentToken &&
+              hashProposalReviewToken(
+                existingEnrollmentToken
+              ) ===
+                clean(
+                  currentHandoff.tokenHash
+                ) &&
+              currentExpiresAt instanceof
+                Timestamp &&
+              currentExpiresAt.toMillis() >
+                Date.now()
             );
 
-      const prospect =
-        proposal.prospect &&
-        typeof proposal.prospect === "object"
-          ? proposal.prospect as Record<string, unknown>
-          : {};
-
-      const recipient =
-        clean(prospect.email)
-          .toLowerCase();
-
-      if (
-        delivery === "email" &&
-        !recipient
-      ) {
-        throw new HttpsError(
-          "failed-precondition",
-          "This proposal does not have a client email address."
-        );
-      }
-
-      const enrollmentPath =
-        "/connect/enrollment/" +
-        `?proposalId=${encodeURIComponent(
-          proposalId
-        )}` +
-        `&token=${encodeURIComponent(
-          rawToken
-        )}`;
-
-      await proposalRef.update({
-        enrollmentHandoff: {
-          tokenHash,
-          expiresAt,
-          issuedBy:
-            actorUid,
-          issuedAt:
+          const rawToken =
             canReuseExistingToken
-              ? (
-                  currentHandoff.issuedAt ||
-                  FieldValue.serverTimestamp()
-                )
-              : FieldValue.serverTimestamp(),
-          delivery,
-          recipient:
-            delivery === "email"
-              ? recipient
-              : null,
-        },
+              ? existingEnrollmentToken
+              : createProposalReviewToken();
 
-        updatedAt:
-          FieldValue.serverTimestamp(),
-      });
+          const tokenHash =
+            hashProposalReviewToken(
+              rawToken
+            );
 
-      await proposalRef
-        .collection("history")
-        .add({
-          proposalId,
-          event:
-            "ENROLLMENT_VERIFICATION_ISSUED",
-          delivery,
-          recipient:
-            delivery === "email"
-              ? recipient
-              : null,
-          createdBy:
-            actorUid,
-          reusedPreparedLink:
-            canReuseExistingToken,
+          const expiresAt =
+            canReuseExistingToken
+              ? currentExpiresAt
+              : Timestamp.fromMillis(
+                  Date.now() +
+                  7 * 24 * 60 * 60 * 1000
+                );
 
-          createdAt:
-            FieldValue.serverTimestamp(),
+          const prospect =
+            proposal.prospect &&
+            typeof proposal.prospect === "object"
+              ? proposal.prospect as Record<string, unknown>
+              : {};
+
+          const recipient =
+            clean(prospect.email)
+              .toLowerCase();
+
+          if (
+            delivery === "email" &&
+            !recipient
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              "This proposal does not have a client email address."
+            );
+          }
+
+          const enrollmentPath =
+            "/connect/enrollment/" +
+            `?proposalId=${encodeURIComponent(
+              proposalId
+            )}` +
+            `&token=${encodeURIComponent(
+              rawToken
+            )}`;
+
+          tx.update(proposalRef, {
+            enrollmentHandoff: {
+              tokenHash,
+              expiresAt,
+              issuedBy:
+                actorUid,
+              issuedAt:
+                canReuseExistingToken
+                  ? (
+                      currentHandoff.issuedAt ||
+                      FieldValue.serverTimestamp()
+                    )
+                  : FieldValue.serverTimestamp(),
+              delivery,
+              recipient:
+                delivery === "email"
+                  ? recipient
+                  : null,
+            },
+
+            updatedAt:
+              FieldValue.serverTimestamp(),
+          });
+
+          tx.create(proposalRef.collection("history").doc(), {
+            proposalId,
+            event:
+              "ENROLLMENT_VERIFICATION_ISSUED",
+            delivery,
+            recipient:
+              delivery === "email"
+                ? recipient
+                : null,
+            createdBy:
+              actorUid,
+            reusedPreparedLink:
+              canReuseExistingToken,
+
+            createdAt:
+              FieldValue.serverTimestamp(),
+          });
+
+          return { proposal, status, prospect, recipient, enrollmentPath, expiresAt, canReuseExistingToken };
         });
 
       let emailId = "";
