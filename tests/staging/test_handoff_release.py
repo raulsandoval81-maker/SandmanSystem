@@ -1,9 +1,14 @@
 """Verify the protected staging preflight scope and write boundary."""
 import importlib
+import io
+import os
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "scripts" / name) for name in ("production", "staging")]
@@ -66,3 +71,34 @@ class HandoffReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "already serves"):
             handoff.run(b"candidate", "test-token")
         self.update.assert_not_called()
+
+
+class ExportVerificationTests(unittest.TestCase):
+    def test_export_check_isolates_credentials_and_rejects_wrong_exports(self):
+        good = (
+            "if (process.env.GOOGLE_APPLICATION_CREDENTIALS || "
+            "require('node:fs').existsSync(require('node:os').homedir() + "
+            "'/.config/gcloud/application_default_credentials.json')) process.exit(2);"
+            "exports.issueProposalEnrollmentHandoff = () => {};"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            auth = Path(directory) / ".config/gcloud/application_default_credentials.json"
+            auth.parent.mkdir(parents=True)
+            auth.write_text('{"type":"external_account"}')
+            with patch.dict(os.environ, {"HOME": directory, "GOOGLE_APPLICATION_CREDENTIALS": str(auth)}):
+                for code, valid in (
+                    (good, True),
+                    (good + "exports.extra = () => {};", False),
+                    ("exports.issueProposalEnrollmentHandoff = 42;", False),
+                ):
+                    with self.subTest(code=code):
+                        archive = io.BytesIO()
+                        with zipfile.ZipFile(archive, "w") as package:
+                            package.writestr("index.js", code)
+                        if valid:
+                            handoff.release.check_export(handoff.NAME, archive.getvalue(), Path(directory))
+                        else:
+                            with self.assertRaises(subprocess.CalledProcessError) as failure:
+                                handoff.release.check_export(handoff.NAME, archive.getvalue(), Path(directory))
+                            self.assertEqual(failure.exception.returncode, 1)
+                self.assertEqual(os.environ["GOOGLE_APPLICATION_CREDENTIALS"], str(auth))
