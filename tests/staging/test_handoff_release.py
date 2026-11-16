@@ -34,8 +34,9 @@ class HandoffReleaseTests(unittest.TestCase):
         env = {
             "GITHUB_REPOSITORY": handoff.REPO,
             "GITHUB_REF": "refs/heads/main",
-            "GITHUB_WORKFLOW_REF": f"{handoff.REPO}/.github/workflows/staging-handoff-release.yml@refs/heads/main",
+            "GITHUB_WORKFLOW_REF": f"{handoff.REPO}/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
             "GITHUB_RUN_ATTEMPT": "1",
+        "HANDOFF_ACTION": "handoff-preflight",
             "CONFIRM_PROJECT": handoff.PROJECT,
             "CONFIRM_SHA": handoff.SHA,
         }

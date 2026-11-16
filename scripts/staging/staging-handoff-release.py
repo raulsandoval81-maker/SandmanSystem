@@ -20,8 +20,9 @@ def guard(env):
     for key, expected in {
         "GITHUB_REPOSITORY": REPO,
         "GITHUB_REF": "refs/heads/main",
-        "GITHUB_WORKFLOW_REF": f"{REPO}/.github/workflows/staging-handoff-release.yml@refs/heads/main",
+        "GITHUB_WORKFLOW_REF": f"{REPO}/.github/workflows/staging-exact-sha-release.yml@refs/heads/main",
         "GITHUB_RUN_ATTEMPT": "1",
+        "HANDOFF_ACTION": "handoff-preflight",
         "CONFIRM_PROJECT": PROJECT,
         "CONFIRM_SHA": SHA,
     }.items():
