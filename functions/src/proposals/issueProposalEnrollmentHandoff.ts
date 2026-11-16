@@ -72,73 +72,55 @@ export const issueProposalEnrollmentHandoff =
         );
       }
 
-      const db = getFirestore();
-
-      const proposalRef =
-        db.collection("proposals")
-          .doc(proposalId);
-
-      const proposalSnap =
-        await proposalRef.get();
-
-      if (!proposalSnap.exists) {
-        throw new HttpsError(
-          "not-found",
-          `Proposal ${proposalId} was not found.`
-        );
-      }
-
-      const proposal =
-        proposalSnap.data() || {};
-
-      let actorUid = "client";
-
-      if (clientReviewToken) {
-        const review =
-          proposal.clientReview || {};
-
-        const tokenMatches =
-          hashProposalReviewToken(
-            clientReviewToken
-          ) === clean(review.tokenHash);
-
-        const reviewExpiresAt =
-          review.expiresAt;
-
-        if (
-          !tokenMatches ||
-          !(reviewExpiresAt instanceof Timestamp) ||
-          reviewExpiresAt.toMillis() < Date.now()
-        ) {
-          throw new HttpsError(
-            "permission-denied",
-            "This proposal review link is invalid or expired."
-          );
-        }
-
-        if (delivery !== "local") {
-          throw new HttpsError(
-            "permission-denied",
-            "Only Management may email a new Review & Confirm link."
-          );
-        }
-      } else if (req.auth) {
-        const access =
-          await requireProposalStaffAccess(
-            req.auth.uid
-          );
-
-        requireProposalLocationAccess(
-          access,
-          proposal.locationId
-        );
-
-        actorUid = req.auth.uid;
-      } else {
+      if (!clientReviewToken && !req.auth) {
         throw new HttpsError(
           "unauthenticated",
           "A valid proposal review link or Management sign-in is required."
         );
+      }
+
+      const reviewDenied = () => new HttpsError(
+        "permission-denied",
+        "This proposal review link is invalid or expired."
+      );
+      const staffDenied = () => new HttpsError(
+        "permission-denied",
+        "This proposal is unavailable to your account."
+      );
+      // The browser token authorizes local handoff only. Authenticate staff
+      // before looking up a proposal, and mask unavailable or out-of-scope IDs.
+      if (clientReviewToken && delivery !== "local") throw reviewDenied();
+      const staff = !clientReviewToken && req.auth
+        ? await requireProposalStaffAccess(req.auth.uid)
+        : null;
+
+      const db = getFirestore();
+      const proposalRef = db.collection("proposals").doc(proposalId);
+      const proposalSnap = await proposalRef.get();
+      if (!proposalSnap.exists) throw clientReviewToken ? reviewDenied() : staffDenied();
+      const proposal = proposalSnap.data() || {};
+      let actorUid = "client";
+
+      if (clientReviewToken) {
+        const review = proposal.clientReview || {};
+        if (
+          hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
+          !(review.expiresAt instanceof Timestamp) ||
+          review.expiresAt.toMillis() <= Date.now()
+        ) {
+          throw reviewDenied();
+        }
+      } else if (staff && req.auth) {
+        try {
+          requireProposalLocationAccess(staff, proposal.locationId);
+        } catch (error) {
+          if (error instanceof HttpsError &&
+              (error.code === "permission-denied" || error.code === "failed-precondition")) {
+            throw staffDenied();
+          }
+          throw error;
+        }
+        actorUid = req.auth.uid;
       }
 
       const status =
@@ -167,8 +149,10 @@ export const issueProposalEnrollmentHandoff =
           const current = (await tx.get(proposalRef)).data() || {};
           const review = current.clientReview || {};
           if (hashProposalReviewToken(clientReviewToken) !== clean(review.tokenHash) ||
-              !(review.expiresAt instanceof Timestamp) || review.expiresAt.toMillis() <= Date.now() ||
-              !current.earlyCashCheckIntakeTokenId || !canStartEarlyCashCheckIntake(current, staging)) {
+              !(review.expiresAt instanceof Timestamp) || review.expiresAt.toMillis() <= Date.now()) {
+            throw reviewDenied();
+          }
+          if (!current.earlyCashCheckIntakeTokenId || !canStartEarlyCashCheckIntake(current, staging)) {
             throw new HttpsError("failed-precondition", "The signed Cash/Check proposal is no longer eligible for Intake.");
           }
           return issueEarlyCashCheckIntake(tx, proposalRef, current, req.auth?.uid, staging);
