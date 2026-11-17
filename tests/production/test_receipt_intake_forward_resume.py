@@ -226,6 +226,7 @@ class ForwardResumeTest(unittest.TestCase):
              patch.object(release, "hosting_baseline"), \
              patch.object(release, "verify_rules"), \
              patch.object(release, "digest", return_value="a" * 64), \
+             patch.dict(release.RESTORATION, {"configurationSha256": "a" * 64}), \
              patch.object(release.inventory, "sanitize", side_effect=lambda x: x), \
              patch.object(release, "runtime", return_value={}), \
              redirect_stdout(io.StringIO()) as output:
