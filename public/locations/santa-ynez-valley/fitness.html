@@ -14,7 +14,7 @@
 
   <meta
     name="description"
-    content="Explore HIITFit, powerlifting, and performance support at Sandman Academy in the Santa Ynez Valley."
+    content="Fun, fast-paced 45-minute coach-led HIIT classes with bodyweight exercises, metabolic circuits, strength and conditioning in Santa Ynez Valley. All levels welcome."
   >
 
   <link
@@ -40,8 +40,43 @@
     }
 
     .local-fitness__hero{
-      padding:clamp(64px,9vw,105px) 0 58px;
+      position:relative;
+      isolation:isolate;
+      overflow:hidden;
+      padding:clamp(100px,15vw,180px) 0 clamp(70px,9vw,105px);
       text-align:center;
+      background:
+        linear-gradient(180deg,rgba(9,9,9,.23),rgba(9,9,9,.66) 60%,var(--page-bg,#090909) 100%),
+        radial-gradient(ellipse at 50% 10%,rgba(144,122,79,.33),transparent 65%),
+        #151515;
+    }
+
+    /* Reserved photo treatment: only add a real Academy photograph after verification. */
+    .local-fitness__hero-tagline{
+      margin:20px auto 0;
+      color:var(--heading-accent,#d4af37);
+      font-weight:850;
+      font-size:clamp(1rem,2.5vw,1.35rem);
+      letter-spacing:.025em;
+    }
+
+    .local-fitness__benefits{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      max-width:850px;
+      margin:0 auto;
+      padding:0;
+      list-style:none;
+    }
+
+    .local-fitness__benefits li{
+      border:1px solid rgba(212,175,55,.25);
+      border-radius:14px;
+      padding:18px 14px;
+      text-align:center;
+      font-weight:700;
+      background:rgba(255,255,255,.04);
     }
 
     .local-fitness__eyebrow{
@@ -250,6 +285,7 @@
     }
 
     @media(max-width:760px){
+      .local-fitness__benefits{ grid-template-columns:repeat(2,minmax(0,1fr)); }
       .local-fitness__grid{
         grid-template-columns:1fr;
       }
@@ -260,6 +296,8 @@
     }
 
     @media(max-width:560px){
+      .local-fitness__benefits{ gap:8px; }
+      .local-fitness__benefits li{ padding:13px 8px; font-size:.9rem; }
       .local-fitness__container{
         width:min(100% - 24px,1040px);
       }
@@ -402,307 +440,95 @@
 
   <main class="local-fitness">
 
+    <!-- Photo-ready hero: use verified Sandman facility/class photography only.
+         No generic or third-party gym photograph is presented as this location. -->
     <section class="local-fitness__hero">
       <div class="local-fitness__container">
-
         <div data-lang-block="en">
-          <p class="local-fitness__eyebrow">
-            Santa Ynez Valley • Everyday Fitness
-          </p>
-
-          <h1>
-            Fitness for Everyday Life
-          </h1>
-
+          <p class="local-fitness__eyebrow">Santa Ynez Valley • Everyday Fitness</p>
+          <h1>Fitness for Everyday Life</h1>
+          <p class="local-fitness__hero-tagline">45 Minutes. All Levels. Real Energy.</p>
           <p class="local-fitness__lead">
-            Coach-led 45-minute HIIT-style training built around
-            strength, conditioning, movement, and combat-inspired fitness.
-            No combat experience required.
+            Fun, fast-paced, coach-led HIIT training combining bodyweight exercises,
+            strength and conditioning, and metabolic circuits. Build endurance,
+            improve movement, and enjoy the challenge.
           </p>
         </div>
-
         <div data-lang-block="es" class="hidden-lang">
-          <p class="local-fitness__eyebrow">
-            Santa Ynez Valley • Everyday Fitness
-          </p>
-
-          <h1>
-            Fitness para la Vida Diaria
-          </h1>
-
+          <p class="local-fitness__eyebrow">Valle de Santa Ynez • Fitness para Todos</p>
+          <h1>Fitness para la Vida Diaria</h1>
+          <p class="local-fitness__hero-tagline">45 Minutos. Todos los Niveles. Toda la Energía.</p>
           <p class="local-fitness__lead">
-            Entrenamiento HIIT de 45 minutos dirigido por un coach,
-            enfocado en fuerza, acondicionamiento, movimiento y
-            fitness inspirado en deportes de combate.
+            Entrenamiento HIIT divertido, dinámico y guiado por un coach,
+            con ejercicios de peso corporal, fuerza, acondicionamiento
+            y circuitos metabólicos. Mejora tu resistencia y movimiento
+            mientras disfrutas del reto.
           </p>
         </div>
-
       </div>
     </section>
 
-
     <section class="local-fitness__section">
       <div class="local-fitness__container">
-
-        <div
-          class="local-fitness__heading"
-          data-lang-block="en"
-        >
-          <p class="local-fitness__eyebrow">
-            Everyday Fitness
-          </p>
-
-          <h2>
-            Three ways to train.
-          </h2>
-
+        <div class="local-fitness__heading" data-lang-block="en">
+          <p class="local-fitness__eyebrow">Everyday Fitness</p>
+          <h2>Train Hard. Have Fun. Keep Moving.</h2>
           <p>
-            Train in class, remotely, or combine both
-            with a Hybrid plan.
+            Every class brings a fresh mix of bodyweight training,
+            cardiovascular intervals, and functional movement.
+            Workouts can be adjusted from beginner to advanced.
           </p>
         </div>
-
-        <div
-          class="local-fitness__heading hidden-lang"
-          data-lang-block="es"
-        >
-          <p class="local-fitness__eyebrow">
-            Everyday Fitness
-          </p>
-
-          <h2>
-            Tres formas de entrenar.
-          </h2>
-
+        <div class="local-fitness__heading hidden-lang" data-lang-block="es">
+          <p class="local-fitness__eyebrow">Fitness para Todos</p>
+          <h2>Entrena. Diviértete. Sigue en Movimiento.</h2>
           <p>
-            Entrena en clase, a distancia, o combina ambos
-            con un plan Híbrido.
+            Cada clase combina ejercicios de peso corporal,
+            intervalos cardiovasculares y movimiento funcional.
+            Los entrenamientos se adaptan desde principiantes hasta avanzados.
           </p>
         </div>
-
-
-        <div class="local-fitness__grid">
-
-          <article class="local-fitness__card">
-            <span class="local-fitness__mode">
-              In Class
-            </span>
-
-            <div data-lang-block="en">
-              <h3>Coach-Led HIIT</h3>
-
-              <p>
-                45-minute sessions built around strength,
-                conditioning, bag work, pad work, movement,
-                and striking.
-              </p>
-            </div>
-
-            <div data-lang-block="es" class="hidden-lang">
-              <h3>HIIT Guiado por el Coach</h3>
-
-              <p>
-                Sesiones de 45 minutos con fuerza,
-                acondicionamiento, trabajo de saco, trabajo
-                de pads, movimiento y golpes.
-              </p>
-            </div>
-
-            <a
-              class="local-fitness__button"
-              href="/connect/interest/?academy=sandman&location=santa-ynez-valley&interest=fitness"
-            >
-              <span data-lang-block="en">Request Class Info</span>
-              <span data-lang-block="es" class="hidden-lang">Solicitar Información de Clase</span>
-            </a>
-          </article>
-
-
-          <article class="local-fitness__card">
-            <span class="local-fitness__mode">
-              Hybrid
-            </span>
-
-            <div data-lang-block="en">
-              <h3>In Class + Pocket Coach</h3>
-
-              <p>
-                Combine coach-led classes with FuelAI™ remote
-                training between sessions for greater consistency,
-                accountability, and support.
-              </p>
-            </div>
-
-            <div data-lang-block="es" class="hidden-lang">
-              <h3>En Clase + Pocket Coach</h3>
-
-              <p>
-                Combina clases guiadas por el coach con
-                entrenamiento remoto FuelAI™ entre sesiones
-                para mayor constancia, seguimiento y apoyo.
-              </p>
-            </div>
-
-            <a
-              class="local-fitness__button"
-              href="/locations/santa-ynez-valley/message.html?topic=hybrid-fitness"
-            >
-              <span data-lang-block="en">Ask About Hybrid Training</span>
-              <span data-lang-block="es" class="hidden-lang">Preguntar Sobre Entrenamiento Híbrido</span>
-            </a>
-          </article>
-
-
-          <article class="local-fitness__card">
-            <span class="local-fitness__mode">
-              Remote
-            </span>
-
-            <div data-lang-block="en">
-              <h3>FuelAI™ Pocket Coach</h3>
-
-              <p>
-                Guided HIIT sessions you can complete outside
-                the academy on your own schedule, with workout
-                tracking and structured programming.
-              </p>
-
-              <p>
-                <strong>Powered by Sandman System™</strong>
-              </p>
-            </div>
-
-            <div data-lang-block="es" class="hidden-lang">
-              <h3>FuelAI™ Pocket Coach</h3>
-
-              <p>
-                Sesiones HIIT guiadas que puedes completar
-                fuera de la academia en tu propio horario,
-                con seguimiento de entrenamientos y programación
-                estructurada.
-              </p>
-
-              <p>
-                <strong>Impulsado por Sandman System™</strong>
-              </p>
-            </div>
-
-            <a
-              class="local-fitness__button"
-              href="https://fuel-ai-gamma.vercel.app/orientation.html"
-              target="_blank"
-              rel="noopener"
-            >
-              <span data-lang-block="en">Explore FuelAI</span>
-              <span data-lang-block="es" class="hidden-lang">Explorar FuelAI</span>
-            </a>
-          </article>
-
-        </div>
-
+        <ul class="local-fitness__benefits" data-lang-block="en">
+          <li>HIIT Training</li>
+          <li>Metabolic Circuits</li>
+          <li>Bodyweight Strength</li>
+          <li>Cardio &amp; Endurance</li>
+          <li>Functional Movement</li>
+          <li>Beginner to Advanced</li>
+        </ul>
+        <ul class="local-fitness__benefits hidden-lang" data-lang-block="es">
+          <li>Entrenamiento HIIT</li>
+          <li>Circuitos Metabólicos</li>
+          <li>Fuerza con Peso Corporal</li>
+          <li>Cardio y Resistencia</li>
+          <li>Movimiento Funcional</li>
+          <li>De Principiante a Avanzado</li>
+        </ul>
       </div>
     </section>
 
-
     <section class="local-fitness__section">
       <div class="local-fitness__container">
-
-        <div
-          class="local-fitness__heading"
-          data-lang-block="en"
-        >
-          <p class="local-fitness__eyebrow">
-            45 Minute HIIT
-          </p>
-
-          <h2>
-            Strength, Kickboxing &amp; Self-Defense
-          </h2>
-
+        <div class="local-fitness__heading" data-lang-block="en">
+          <p class="local-fitness__eyebrow">Coach-Led · 45 Minutes</p>
+          <h2>A Workout That Works for You.</h2>
           <p>
-            Functional strength, bag work, pad work, striking
-            combinations, footwork, movement, and conditioning.
-            Self-defense skills develop through repetition and
-            consistent practice. No sparring required.
+            Whether you're starting out or looking for a new challenge,
+            our sessions emphasize conditioning, strength, endurance,
+            and a welcoming group atmosphere.
+            No combat experience or sparring required.
           </p>
         </div>
-
-        <div
-          class="local-fitness__heading hidden-lang"
-          data-lang-block="es"
-        >
-          <p class="local-fitness__eyebrow">
-            HIIT de 45 Minutos
-          </p>
-
-          <h2>
-            Fuerza, Kickboxing y Defensa Personal
-          </h2>
-
+        <div class="local-fitness__heading hidden-lang" data-lang-block="es">
+          <p class="local-fitness__eyebrow">Con Coach · 45 Minutos</p>
+          <h2>Un Entrenamiento Para Ti.</h2>
           <p>
-            Fuerza funcional, trabajo de saco, trabajo de pads,
-            combinaciones de golpes, desplazamiento, movimiento
-            y acondicionamiento. Las habilidades de defensa
-            personal se desarrollan mediante la repetición y
-            la práctica constante. No se requiere sparring.
+            Ya sea que estés comenzando o busques un nuevo reto,
+            nuestras sesiones se enfocan en acondicionamiento,
+            fuerza, resistencia y un ambiente de grupo acogedor.
+            No necesitas experiencia en deportes de combate ni hacer sparring.
           </p>
         </div>
-
-      </div>
-    </section>
-
-
-    <section class="local-fitness__section">
-      <div class="local-fitness__container">
-
-        <div
-          class="local-fitness__heading"
-          data-lang-block="en"
-        >
-          <p class="local-fitness__eyebrow">
-            Getting Started
-          </p>
-
-          <h2>
-            Fitness Done Your Way.
-          </h2>
-        </div>
-
-        <div
-          class="local-fitness__heading hidden-lang"
-          data-lang-block="es"
-        >
-          <p class="local-fitness__eyebrow">
-            Cómo Comenzar
-          </p>
-
-          <h2>
-            Fitness a Tu Manera.
-          </h2>
-        </div>
-
-
-        <div class="local-fitness__grid">
-
-          <div class="local-fitness__intro-copy">
-
-            <p data-lang-block="en">
-              Train in class, remotely with FuelAI™ Pocket Coach,
-              or combine both with a Hybrid plan.
-            </p>
-
-            <p
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Entrena en clase, a distancia con FuelAI™ Pocket Coach,
-              o combina ambos con un plan Híbrido.
-            </p>
-
-          </div>
-
-        </div>
-
       </div>
     </section>
 
@@ -750,7 +576,7 @@
 
             <a
               class="local-fitness__button"
-              href="/connect/interest/?academy=sandman&location=santa-ynez-valley"
+              href="/connect/interest/?academy=sandman&location=santa-ynez-valley&interest=fitness"
             >
               Solicitar Información
             </a>
