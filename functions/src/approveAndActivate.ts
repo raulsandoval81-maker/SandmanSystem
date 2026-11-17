@@ -1307,10 +1307,11 @@ const safePriorExperienceValidation =
         return { uid: existingApprovedUid, mintVirtueTag: athleteMintTag || "", idempotent: true };
       }
 
-      const exp = intakeSnap.get("exp");
-      if (typeof exp === "number" && exp < Date.now()) {
-        throw new HttpsError("failed-precondition", "Submission expired");
-      }
+      // The invitation expiry limits when a family may submit intake.
+      // Once a canonical intake has been submitted, Management approval
+      // must not expire merely because review happens after that deadline.
+      // Submission authority, status, payment and duplicate-mint checks
+      // remain enforced independently above and below this point.
 
       if (existingStatus && existingStatus !== "submitted") {
         throw new HttpsError("failed-precondition", `Submission not approvable: ${existingStatus}`);
