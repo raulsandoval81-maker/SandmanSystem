@@ -1203,7 +1203,7 @@ def guard(mode):
                 "CONFIRM_PROJECT": PROJECT, "CONFIRM_SHA": PLAN["candidate"]}
     for key, value in expected.items():
         require(os.environ.get(key) == value, f"Release guard: {key}")
-    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", VERIFY_RESTORATION_MODE,
+    require(mode in {"preflight", "diagnose-release-10", "capture-restoration-evidence", "reconcile-core-readonly", VERIFY_RESTORATION_MODE,
                      "restore-save-proposal-agreement", FORWARD_RESUME_MODE, VERIFY_FORWARD_MODE,
                      DIAGNOSE_FAILED_FORWARD_MODE, SECURITY_VERIFY_MODE,
                      "deploy", "rollback"}, "Unsupported mode")
@@ -1325,6 +1325,95 @@ def capture_restoration_evidence(token, candidate):
     }, sort_keys=True), flush=True)
 
 
+
+def reconcile_core_readonly(token, packages, overlay):
+    """Inventory only; compare current live Core sources and Hosting, never publish."""
+    require(set(packages) == set(NAMES), "Core reconciliation requires eight pinned packages")
+    require(set(overlay) == set(PLAN["hosting"]["assets"]), "Core Hosting candidate scope changed")
+    report = {
+        "mode": "CORE_READ_ONLY_RECONCILIATION",
+        "project": PROJECT,
+        "site": SITE,
+        "candidate": PLAN["candidate"],
+        "writesAuthorized": False,
+        "functions": {},
+        "hosting": {},
+    }
+    for name in NAMES:
+        before = config(name, token)
+        revision = verify_function_healthy(name, before)
+        archive = source(name, before, token)
+        require_snapshot_unchanged(before, config(name, token),
+                                   f"{name}: configuration changed during Core inventory")
+        live_files = archive_hashes(archive)
+        proposed_files = archive_hashes(packages[name])
+        changed = sorted(path for path in set(live_files) | set(proposed_files)
+                         if live_files.get(path) != proposed_files.get(path))
+        normalized = runtime(name, inventory.sanitize(before))
+        live_runtime_hash = digest(normalized)
+        historical_runtime_hash = PLAN["functions"][name].get("runtimeSha256")
+        report["functions"][name] = {
+            "generation": release.FUNCTIONS[name],
+            "servingRevision": revision,
+            "sourceMatchesPinnedCandidate": not changed,
+            "differingSourceFileCount": len(changed),
+            "historicalRuntimeFingerprintMatches": (
+                live_runtime_hash == historical_runtime_hash
+                if historical_runtime_hash else None
+            ),
+            "runtimeAndIamComponentFingerprints": {
+                key: digest(value) for key, value in normalized.items()
+            },
+            "configurationSha256": digest(inventory.sanitize(before)),
+        }
+
+    release_name, version_name = active(token)
+    version = get(HOSTING + version_name, token)
+    require(version.get("status") == "FINALIZED" and version.get("config"),
+            "Current Hosting version is not complete")
+    live_manifest = inventory.manifest(lambda url: get(url, token), version_name)
+    require(len(live_manifest) == int(version.get("fileCount", -1)),
+            "Incomplete current Hosting manifest")
+    changes = sorted(path for path, payload in overlay.items()
+                     if live_manifest.get(path) != inventory.sha(payload))
+    # Compare the *actual* three-file production promotion source separately
+    # from the older Core manifest, using the pinned staging UI checkout.
+    approved_ui = {
+        "/waiver/index.html",
+        "/intake-parent/parent.intake.js",
+        "/intake-athlete/athlete.intake.js",
+    }
+    ui_root = Path("staging-ui")
+    require(subprocess.check_output(["git", "-C", str(ui_root), "rev-parse", "HEAD"],
+                                    text=True).strip() == PLAN["hosting"]["uiCandidate"],
+            "Approved staging UI checkout differs")
+    verified_ui = {}
+    for path in sorted(approved_ui):
+        data = (ui_root / ("public" + path)).read_bytes()
+        compressed = subprocess.run(
+            ["node", "-e", "process.stdout.write(require('zlib').gzipSync(require('fs').readFileSync(0)))"],
+            input=data, capture_output=True, check=True).stdout
+        verified_ui[path] = live_manifest.get(path) == inventory.sha(compressed)
+    require(active(token) == (release_name, version_name),
+            "Hosting changed during read-only reconciliation")
+    report["hosting"] = {
+        "currentRelease": release_name,
+        "currentVersion": version_name,
+        "fileCount": len(live_manifest),
+        "historicalCoreBaselineStillActive": (
+            version_name == PLAN["hosting"]["version"]
+        ),
+        "coreCandidateMatchingPaths": sorted(set(overlay) - set(changes)),
+        "coreCandidateDifferingPaths": changes,
+        "threeFileUiPromotionVerified": verified_ui,
+        "allThreeUiFilesMatchPinnedRelease": all(verified_ui.values()),
+    }
+    report["status"] = "CAPTURED_NOT_DEPLOYMENT_APPROVAL"
+    print(json.dumps(report, sort_keys=True), flush=True)
+    return report
+
+
+
 def main():
     mode = os.environ["RELEASE_MODE"]
     guard(mode)
@@ -1380,6 +1469,9 @@ def main():
     packages = {name: package(name, root / "functions") for name in NAMES}
     overlay = assets(root)
     token = authenticated_release_token()
+    if mode == "reconcile-core-readonly":
+        reconcile_core_readonly(token, packages, overlay)
+        return
     if mode == "capture-restoration-evidence":
         capture_restoration_evidence(token, packages["saveProposalEnrollmentAgreement"])
         return
