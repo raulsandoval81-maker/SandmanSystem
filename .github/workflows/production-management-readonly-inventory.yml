@@ -17,7 +17,7 @@ on:
         default: false
         type: boolean
       emmett_2c_inventory:
-        description: Compare Emmett 2C Cash/Check enrollment Function and Hosting dependencies (read-only; no customer records)
+        description: Compare 2C Cash/Check enrollment Functions and Hosting (read-only, no customer records)
         required: false
         default: false
         type: boolean
@@ -51,112 +51,6 @@ jobs:
       - uses: actions/checkout@v4
         if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         with:
-          ref: ${{ inputs.emmett_2c_inventory && '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8' || inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
-          path: application
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
-        with:
-          node-version: '22'
-      - name: Validate and compile pinned receipt Intake candidate
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
-        run: |
-          python3 -m unittest discover -s trusted/tests/production -p 'test_receipt_intake_inventory.py'
-          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
-          npm run build --prefix application/functions
-      - name: Authenticate read-only inventory
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
-      - name: Capture targeted receipt Intake recovery inventory
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
-        env:
-          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          CONFIRM_SOURCE_SHA: ${{ inputs.emmett_2c_inventory && '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8' || inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
-          INVENTORY_PROFILE: ${{ inputs.emmett_2c_inventory && 'emmett-2c' || inputs.management_promotion_inventory && 'management-promotion' || 'receipt-intake' }}
-        run: python3 trusted/scripts/production/receipt_intake_inventory.py
-      - name: Gather sanitized immutable production baseline
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p evidence
-          gcloud functions list --project=sandmandashboard --regions=us-central1 --format=json > "$RUNNER_TEMP/functions.json"
-          gcloud run services list --project=sandmandashboard --region=us-central1 --format=json > "$RUNNER_TEMP/services.json"
-          python3 - "$RUNNER_TEMP/functions.json" "$RUNNER_TEMP/services.json" <<'PY'
-          import json,sys,subprocess,urllib.request,urllib.parse,hashlib,pathlib
-          out=pathlib.Path("evidence")
-          project="sandmandashboard"
-          site="sandman-main"
-          def digest(data):return hashlib.sha256(data).hexdigest()
-          def get_token():
-              return subprocess.check_output(["gcloud","auth","print-access-token"],text=True).strip()
-          token=get_token()
-          def get(path):
-              req=urllib.request.Request("https://firebasehosting.googleapis.com/v1beta1/"+path,
-                headers={"Authorization":"Bearer "+token})
-              with urllib.request.urlopen(req,timeout=40) as res:
-                  return json.load(res)
-          releases=get("sites/"+site+"/releases?pageSize=1").get("releases",[])
-          if len(releases)!=1:raise SystemExit("BLOCKED: no unique active Hosting release")
-          version=releases[0].get("version",{})
-          version_name=version.get("name","")
-          if not version_name.startswith("sites/"+site+"/versions/"):
-              raise SystemExit("BLOCKED: unexpected Hosting version")
-          files={}
-          next_page=""
-          while True:
-              suffix="?pageSize=1000"+("&pageToken="+urllib.parse.quote(next_page) if next_page else "")
-              data=get(version_name+"/files"+suffix)
-              for item in data.get("files",[]):
-                  path=item.get("path","")
-                  if not path.startswith("/") or path in files or not item.get("hash"):
-                      raise SystemExit("BLOCKED: invalid or repeated Hosting manifest path")
-                  files[path]=item["hash"]
-              next_page=data.get("nextPageToken","")
-              if not next_page:break
-          if len(files)<100:raise SystemExit("BLOCKED: unexpectedly small Hosting manifest")
-          def narrow_fn(f):
-              b=f.get("buildConfig") or {}
-              s=f.get("serviceConfig") or {}
-              return {"name":f.get("name"),"state":f.get("state"),"environment":f.get("environment"),
-                "updateTime":f.get("updateTime"),"runtime":b.get("runtime"),"entryPoint":b.get("entryPoint"),
-                "source":b.get("source"),"serviceAccountEmail":s.get("serviceAccountEmail"),
-                "uri":s.get("uri"),"revision":s.get("revision")}
-          def narrow_service(s):
-              spec=s.get("spec") or {}
-              status=s.get("status") or {}
-              meta=s.get("metadata") or {}
-              return {"name":meta.get("name") or s.get("name"),"generation":meta.get("generation"),
-                "latestReadyRevisionName":status.get("latestReadyRevisionName"),
-                "latestCreatedRevisionName":status.get("latestCreatedRevisionName"),
-                "traffic":[{"revisionName":t.get("revisionName"),"percent":t.get("percent")} for t in status.get("traffic",[])],
-                "serviceAccountName":(spec.get("template") or {}).get("spec",{}).get("serviceAccountName")}
-          functions=[narrow_fn(f) for f in json.load(open(sys.argv[1]))]
-          services=[narrow_service(s) for s in json.load(open(sys.argv[2]))]
-          manifest=dict(sorted(files.items()))
-          full={"project":project,"site":site,"releaseName":releases[0].get("name"),
-                "versionName":version_name,"versionStatus":version.get("status"),
-                "hostingConfigSha256":digest(json.dumps(version.get("config",{}),sort_keys=True).encode()),
-                "manifest":manifest,"functions":functions,"cloudRunServices":services}
-          (out/"inventory.json").write_text(json.dumps(full,sort_keys=True,indent=2)+"\n")
-          summary={"project":project,"hostingVersion":version_name,"hostingFileCount":len(files),
-                   "manifestSha256":digest(json.dumps(manifest,sort_keys=True).encode()),
-                   "functions":len(functions),"services":len(services)}
-          (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
-          print("READ_ONLY_INVENTORY_PASS",json.dumps(summary))
-          PY
-      - name: Upload sanitized read-only baseline
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: management-production-inventory
-          path: evidence/
-          retention-days: 7
-          if-no-files-found: error
-)" = 1
-      - uses: actions/checkout@v4
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
-        with:
           ref: ${{ github.sha }}
           path: trusted
           persist-credentials: false
@@ -185,7 +79,7 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           CONFIRM_SOURCE_SHA: ${{ inputs.emmett_2c_inventory && '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8' || inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
-          INVENTORY_PROFILE: ${{ inputs.management_promotion_inventory && 'management-promotion' || 'receipt-intake' }}
+          INVENTORY_PROFILE: ${{ inputs.emmett_2c_inventory && 'emmett-2c' || inputs.management_promotion_inventory && 'management-promotion' || 'receipt-intake' }}
         run: python3 trusted/scripts/production/receipt_intake_inventory.py
       - name: Gather sanitized immutable production baseline
         shell: bash
