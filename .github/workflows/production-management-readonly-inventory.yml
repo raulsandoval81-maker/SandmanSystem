@@ -43,11 +43,11 @@ jobs:
           EMMETT_2C: ${{ inputs.emmett_2c_inventory }}
         run: |
           test "$GITHUB_REF" = refs/heads/main
-          test "$(printf '%s\\n' "$RECEIPT_INTAKE" "$MANAGEMENT_PROMOTION" "$EMMETT_2C" | grep -c '^true ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
-        with:
-          ref: ${{ github.sha }}
-          path: trusted
-          persist-credentials: false
+          count=0
+          for value in "$RECEIPT_INTAKE" "$MANAGEMENT_PROMOTION" "$EMMETT_2C"; do
+            if [ "$value" = true ]; then count=$((count + 1)); fi
+          done
+          test "$count" = 1
       - uses: actions/checkout@v4
         if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         with:
