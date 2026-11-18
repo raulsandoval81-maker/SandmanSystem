@@ -78,6 +78,55 @@ def config(name, token):
             **{key: transport[key] for key in ("run", "runIam") if key in transport}}
 
 
+
+def snapshot_difference_paths(before, after, limit=20):
+    """Report changed field *paths* only, never IAM members, environment data or values."""
+    differences = []
+    redacted_fields = {"environmentVariables", "secretEnvironmentVariables",
+                       "secretVolumes", "members", "auditConfigs", "headers"}
+
+    def walk(old, new, path):
+        if len(differences) >= limit:
+            return
+        if type(old) is not type(new):
+            differences.append(path or "<root>")
+        elif isinstance(old, dict):
+            for key in sorted(old.keys() | new.keys()):
+                if len(differences) >= limit:
+                    return
+                field = str(key)
+                location = (path + "." if path else "") + field
+                if field in redacted_fields:
+                    if old.get(key) != new.get(key):
+                        differences.append(location + ".<redacted>")
+                elif key not in old or key not in new:
+                    differences.append(location)
+                else:
+                    walk(old[key], new[key], location)
+        elif isinstance(old, list):
+            if len(old) != len(new):
+                differences.append((path or "<root>") + ".length")
+            else:
+                for index, (left, right) in enumerate(zip(old, new)):
+                    walk(left, right, f"{path}[{index}]")
+                    if len(differences) >= limit:
+                        return
+        elif old != new:
+            differences.append(path or "<root>")
+
+    walk(before, after, "")
+    return differences
+
+
+def require_snapshot_unchanged(before, after, message):
+    """Fail closed on *any* drift; attach redacted paths for read-only diagnosis."""
+    if before == after:
+        return
+    fields = snapshot_difference_paths(before, after)
+    raise RuntimeError(message + "; changed fields: " + ", ".join(fields))
+
+
+
 def runtime(name, snapshot):
     release.RECEIPT = name
     return release.runtime_config({"function": snapshot["function"],
@@ -1232,7 +1281,7 @@ def diagnose_release_10(token, candidate, *, report=True):
         f"https://storage.googleapis.com/storage/v1/b/{live['bucket']}/o/{object_name}?{query}", token)
     rollback_archive = pinned_recovery(name, before, token)
     after = config(name, token)
-    require(after == before, "Function changed during diagnostics")
+    require_snapshot_unchanged(before, after, "Function changed during diagnostics")
     actual_files = archive_hashes(archive)
     candidate_files = archive_hashes(candidate)
     normalized = runtime(name, inventory.sanitize(before))
@@ -1262,7 +1311,7 @@ def capture_restoration_evidence(token, candidate):
     snapshot = config(name, token)
     verify_healthy_serving(snapshot, RESTORATION["servingRevision"])
     result = diagnose_release_10(token, candidate, report=False)
-    require(config(name, token) == snapshot, "Configuration changed during evidence capture")
+    require_snapshot_unchanged(snapshot, config(name, token), "Configuration changed during evidence capture")
     # The protected run log is the receipt. A future authorized run must re-read
     # all four records and match this digest before making any write.
     print(json.dumps({
