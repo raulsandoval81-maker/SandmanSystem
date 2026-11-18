@@ -16,6 +16,7 @@ NUMBER = '889326401061'
 SITE = 'sites/sandman-main'
 SHA = '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981'
 MANAGEMENT_PROMOTION_SHA = '01dfea8ac9660a313a32b4a02ab210c921a2d9ef'
+EMMETT_2C_SHA = '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8'
 WORKFLOW = 'raulsandoval81-maker/SandmanSystem/.github/workflows/production-management-readonly-inventory.yml@refs/heads/main'
 FUNCTIONS = {
  'sendEnrollmentIntakeEmail': (1, 'enrollment/sendEnrollmentIntakeEmail'),
@@ -48,13 +49,53 @@ PROMOTION_ASSETS = (
  '/connect/proposals/review/review.js',
 )
 
+# Inspect the prepaid 2C enrollment dependency chain independently of the
+# interrupted broad production release. This profile never accesses a family
+# record or invokes a callable; it compares pinned compiled code and Hosting.
+EMMETT_2C_FUNCTIONS = {
+ 'createProposalDraft': (2, 'proposals/createProposalDraft'),
+ 'updateProposalDraft': (2, 'proposals/updateProposalDraft'),
+ 'issueProposalClientReview': (2, 'proposals/issueProposalClientReview'),
+ 'saveProposalEnrollmentAgreement': (2, 'proposals/saveProposalEnrollmentAgreement'),
+ 'recordProposalPrepaidCash': (2, 'billing/recordProposalPrepaidCash'),
+ 'sendProposalPrepaidCashReceipt': (2, 'billing/sendProposalPrepaidCashReceipt'),
+ 'issueProposalEnrollmentHandoff': (2, 'proposals/issueProposalEnrollmentHandoff'),
+ 'sendEnrollmentIntakeEmail': (1, 'enrollment/sendEnrollmentIntakeEmail'),
+ 'recordManualEnrollmentIntakeDelivery': (1, 'enrollment/recordManualEnrollmentIntakeDelivery'),
+ 'hydrateEnrollmentIntakePrefill': (2, 'enrollment/hydrateEnrollmentIntakePrefill'),
+ 'approveAndActivate': (2, 'approveAndActivate'),
+ 'approveIntakeCall': (2, 'modules/approveIntakeCall'),
+ 'createAthleteFromIntakeCall': (2, 'modules/createAthleteFromIntakeCall'),
+}
+EMMETT_2C_ASSETS = (
+ '/connect/admissions/calculator/calculator.js',
+ '/connect/admissions/calculator/index.html',
+ '/connect/admissions/calculator/payment-arrangement.js',
+ '/connect/proposals/proposals.js',
+ '/connect/proposals/review/review.js',
+ '/management/pricing/pricing.js',
+ '/management/billing/billing.js',
+ '/management/enrollment-flow/enrollment-flow.js',
+ '/management/enrollment-flow/enrollment-stage.js',
+ '/intake-management/index.html',
+ '/intake-management/management.intake.js',
+ '/intake-management/enrollment-handoff-audience.js',
+ '/intake-management/review.js',
+ '/intake-parent/parent.intake.js',
+ '/intake-athlete/athlete.intake.js',
+)
+
 def configure_inventory(profile):
  global SHA, FUNCTIONS, ASSETS
- require(profile in ('receipt-intake', 'management-promotion'), 'Unknown inventory profile')
+ require(profile in ('receipt-intake', 'management-promotion', 'emmett-2c'), 'Unknown inventory profile')
  if profile == 'management-promotion':
   SHA = MANAGEMENT_PROMOTION_SHA
   FUNCTIONS = {**FUNCTIONS, **PROMOTION_FUNCTIONS}
   ASSETS = (*ASSETS, *PROMOTION_ASSETS)
+ elif profile == 'emmett-2c':
+  SHA = EMMETT_2C_SHA
+  FUNCTIONS = dict(EMMETT_2C_FUNCTIONS)
+  ASSETS = EMMETT_2C_ASSETS
 
 
 def require(ok, message):

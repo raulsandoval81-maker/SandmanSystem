@@ -48,6 +48,33 @@ class InventoryTests(unittest.TestCase):
    m.permitted(endpoint+':generateDownloadUrl', {})
    with self.assertRaises(RuntimeError): m.permitted(endpoint+':call', {})
    with self.assertRaises(RuntimeError): m.configure_inventory('deploy')
+ def test_emmett_2c_inventory_is_review_only_and_narrow(self):
+  from unittest.mock import patch
+  with patch.multiple(m, SHA=m.SHA, FUNCTIONS=m.FUNCTIONS, ASSETS=m.ASSETS):
+   m.configure_inventory('emmett-2c')
+   self.assertEqual(m.SHA, '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8')
+   self.assertEqual(m.FUNCTIONS, m.EMMETT_2C_FUNCTIONS)
+   self.assertEqual(m.ASSETS, m.EMMETT_2C_ASSETS)
+   for required in ('createProposalDraft','recordProposalPrepaidCash',
+                    'sendProposalPrepaidCashReceipt','sendEnrollmentIntakeEmail',
+                    'approveAndActivate'):
+    self.assertIn(required, m.FUNCTIONS)
+   for path in m.ASSETS:
+    self.assertTrue((ROOT/('public'+path)).is_file(), path)
+   self.assertNotIn('stripeBillingWebhook', m.FUNCTIONS)
+   f=f'https://cloudfunctions.googleapis.com/v2/projects/{m.PROJECT}/locations/us-central1/functions/recordProposalPrepaidCash'
+   m.permitted(f)
+   with self.assertRaises(RuntimeError): m.permitted(f+':call',{})
+   with self.assertRaises(RuntimeError): m.permitted(f+':patch',{})
+ def test_emmett_2c_workflow_requires_main_and_one_profile(self):
+  workflow=(ROOT/'.github/workflows/production-management-readonly-inventory.yml').read_text()
+  self.assertIn('emmett_2c_inventory:', workflow)
+  self.assertIn('test "$GITHUB_REF" = refs/heads/main', workflow)
+  self.assertIn('test "$count" = 1', workflow)
+  self.assertIn(m.EMMETT_2C_SHA, workflow)
+  self.assertIn("'emmett-2c'", workflow)
+  self.assertIn('environment: production', workflow)
+  self.assertNotIn('firebase deploy', workflow)
  def test_deployment_not_exposed(self):
   src=(ROOT/'scripts/production/receipt_intake_inventory.py').read_text()
   self.assertNotIn('firebase deploy',src);self.assertNotIn('setIamPolicy',src)

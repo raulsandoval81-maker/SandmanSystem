@@ -16,6 +16,11 @@ on:
         required: false
         default: false
         type: boolean
+      emmett_2c_inventory:
+        description: Compare 2C Cash/Check enrollment Functions and Hosting (read-only, no customer records)
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: read
 concurrency:
@@ -31,24 +36,36 @@ jobs:
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
         run: test "$CONFIRM_PROJECT" = "sandmandashboard"
+      - name: Require main and exactly one read-only inventory profile
+        env:
+          RECEIPT_INTAKE: ${{ inputs.receipt_intake_inventory }}
+          MANAGEMENT_PROMOTION: ${{ inputs.management_promotion_inventory }}
+          EMMETT_2C: ${{ inputs.emmett_2c_inventory }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          count=0
+          for value in "$RECEIPT_INTAKE" "$MANAGEMENT_PROMOTION" "$EMMETT_2C"; do
+            if [ "$value" = true ]; then count=$((count + 1)); fi
+          done
+          test "$count" = 1
       - uses: actions/checkout@v4
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory }}
+        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         with:
           ref: ${{ github.sha }}
           path: trusted
           persist-credentials: false
       - uses: actions/checkout@v4
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory }}
+        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         with:
-          ref: ${{ inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
+          ref: ${{ inputs.emmett_2c_inventory && '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8' || inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
           path: application
           persist-credentials: false
       - uses: actions/setup-node@v4
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory }}
+        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         with:
           node-version: '22'
       - name: Validate and compile pinned receipt Intake candidate
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory }}
+        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         run: |
           python3 -m unittest discover -s trusted/tests/production -p 'test_receipt_intake_inventory.py'
           npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
@@ -58,11 +75,11 @@ jobs:
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
       - name: Capture targeted receipt Intake recovery inventory
-        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory }}
+        if: ${{ inputs.receipt_intake_inventory || inputs.management_promotion_inventory || inputs.emmett_2c_inventory }}
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          CONFIRM_SOURCE_SHA: ${{ inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
-          INVENTORY_PROFILE: ${{ inputs.management_promotion_inventory && 'management-promotion' || 'receipt-intake' }}
+          CONFIRM_SOURCE_SHA: ${{ inputs.emmett_2c_inventory && '3d0b36ea0d1eb2382ec6d0ad76a3c7852b0a1ff8' || inputs.management_promotion_inventory && '01dfea8ac9660a313a32b4a02ab210c921a2d9ef' || '8b2c58868eaae79c9bddfdc1cd3afa9a50d72981' }}
+          INVENTORY_PROFILE: ${{ inputs.emmett_2c_inventory && 'emmett-2c' || inputs.management_promotion_inventory && 'management-promotion' || 'receipt-intake' }}
         run: python3 trusted/scripts/production/receipt_intake_inventory.py
       - name: Gather sanitized immutable production baseline
         shell: bash
