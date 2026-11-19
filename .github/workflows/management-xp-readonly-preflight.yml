@@ -1,0 +1,74 @@
+name: Management XP production source and rollback preflight
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: Type sandmandashboard/us-central1/createManagementXpAdjustment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-management-xp-production-preflight
+  cancel-in-progress: false
+
+jobs:
+  fictional-regression:
+    if: github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: trusted
+      - uses: actions/checkout@v4
+        with:
+          ref: eb3db00a5940b71b55e2d0024db7fb125fa5bbbb
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.22.3'
+      - name: Validate exact target and fictional regressions
+        env:
+          CONFIRM_TARGET: ${{ inputs.confirm_target }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM_TARGET" = sandmandashboard/us-central1/createManagementXpAdjustment
+          python3 -m unittest discover -s trusted/tests/production -p test_management_xp_preflight.py
+          cp trusted/tests/functions/management-xp-classification.test.mjs application/tests/functions/
+          cd application
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          node --test tests/functions/{management-xp-classification,management-discipline-xp-authority,authoritative-xp-service}.test.mjs
+          npm --prefix functions run build
+          node --test tests/functions/{management-xp-classification,management-discipline-xp-authority,authoritative-xp-service,authoritative-xp-idempotency,authoritative-xp-lifetime-components,lifetime-xp-components-policy,decay-sweep-hardening,progression-cycle-promotion,xp-domain-firewall,staging-xp-route-contract,experience-authority}.test.mjs
+
+  read-only-production:
+    needs: fictional-regression
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: trusted
+      - uses: actions/checkout@v4
+        with:
+          ref: eb3db00a5940b71b55e2d0024db7fb125fa5bbbb
+          persist-credentials: false
+          path: application
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: sandmandashboard
+          create_credentials_file: true
+          export_environment_variables: true
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Check live identity and generation-pinned rollback bytes
+        env:
+          CONFIRM_TARGET: ${{ inputs.confirm_target }}
+        run: python3 trusted/scripts/production/management_xp_preflight.py application
