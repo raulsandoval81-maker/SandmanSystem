@@ -45,7 +45,7 @@ function renderReceipts() {
 }
 async function loadCase(event) {
   event?.preventDefault();
-  invalidate(); $("editPanel").hidden = true; proposal = null;
+  invalidate(); $("editPanel").hidden = true; $("recoveryPanel").hidden = true; proposal = null;
   $("certifyConversion").checked = false;
   const id = embedded ? initialProposalId : clean($("proposalId").value).toUpperCase();
   if (!/^P-\d{6}$/.test(id)) return status("Enter a valid proposal ID.");
@@ -55,8 +55,25 @@ async function loadCase(event) {
     const response = await call({ proposalId: id, mode: "load" });
     proposal = response.data;
     if (proposal.proposalId !== id) throw new Error("The loaded proposal does not match the requested proposal.");
+    if (proposal.caseType === "paid_in_full_recovery" && proposal.readOnly === true) {
+      const p = proposal.payment || {};
+      const display = value => value == null ? "Requires verification" : money(value);
+      const lines = [
+        "Collected Cash/Check: " + display(p.amountCents),
+        "Membership allocation: " + display(p.membershipAmountCents),
+        "Annual fee outstanding: " + display(p.annualFeeOutstandingCents),
+        "Coverage starts: " + (p.membershipStartDate || "Requires verification"),
+        "Paid through: " + (p.membershipPaidThroughDate || "Requires verification"),
+        "Next billing: " + (p.nextBillingDate || "Requires verification"),
+        "Adjustment state: READ-ONLY; no payment or renewal authorized"
+      ];
+      $("recoverySummary").textContent = lines.join("\\n");
+      $("recoveryIntakeLink").href = "/intake-management/?proposalId=" + encodeURIComponent(id);
+      $("recoveryPanel").hidden = false;
+      return status("Verified Paid-in-Full proposal loaded. Continue through Intake Management; the Draft ledger editor is locked.");
+    }
     if (clean(proposal.status).toUpperCase() !== "DRAFT") {
-      return status("Only unsigned DRAFT proposals can use this allocation correction.");
+      return status("This proposal requires Management review; no edit is available.");
     }
     $("editPanel").hidden = false;
     renderReceipts();
