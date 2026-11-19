@@ -115,6 +115,40 @@ def build_record(resource):
     ))
 
 
+def image_repository(reference):
+    """Remove OCI digest and tag while preserving the full registry and repository."""
+    name = reference.split("@", 1)[0]
+    leaf = name.rsplit("/", 1)[-1]
+    return name.rsplit(":", 1)[0] if ":" in leaf else name
+
+
+def verify_build_image(build, resource, image, revision):
+    repository, digest_value = image.rsplit("@", 1)
+    repository = image_repository(repository)
+    results = build.get("results", {}).get("images", [])
+    matches = [
+        record for record in results
+        if image_repository(record.get("name", "")) == repository
+        and record.get("digest") == digest_value
+        and ("@" not in record.get("name", "") or record["name"].split("@", 1)[1] == digest_value)
+    ]
+    if build.get("status") == "SUCCESS" and matches:
+        return
+    # Emit only selected control-plane fields. Never dump a build or its environment.
+    print(json.dumps({
+        "check": "serving-image-provenance",
+        "revision": revision,
+        "servingRepository": repository,
+        "servingDigest": digest_value,
+        "functionBuild": resource,
+        "functionBuildStatus": build.get("status"),
+        "reportedImageCount": len(results),
+        "repositoryMatched": any(image_repository(item.get("name", "")) == repository for item in results),
+        "digestMatched": any(item.get("digest") == digest_value for item in results),
+    }, sort_keys=True), flush=True)
+    raise RuntimeError("Function build does not prove provenance of the serving image")
+
+
 def access_token():
     """Use only the credentials file exported by the guarded auth action."""
     credentials = os.environ.get("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE")
@@ -196,12 +230,9 @@ def preflight(candidate):
             and len(rev.get("containers", [])) == 1
             and re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", image),
             "Serving revision is missing an immutable image digest")
-    build = build_record(config.get("build", ""))
-    require(build.get("status") == "SUCCESS"
-            and any(item.get("name", "").split("@")[0].rsplit(":", 1)[0] == image.split("@")[0]
-                    and item.get("digest") == image.split("@")[1]
-                    for item in build.get("results", {}).get("images", [])),
-            "Function build does not prove provenance of the serving image")
+    build_resource = config.get("build", "")
+    build = build_record(build_resource)
+    verify_build_image(build, build_resource, image, revision)
 
     function_source = source_ref(config)
     serving_source = source_ref(build)
@@ -231,6 +262,8 @@ def preflight(candidate):
         bool(explicit_build_scripts) if explicit_build_scripts is not None
         else bool(scripts.get("gcp-build", scripts.get("build")))
     )
+    require(read_archive(function_source, token) == rollback,
+            "Generation-pinned rollback bytes failed recovery verification")
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
@@ -254,6 +287,7 @@ def preflight(candidate):
         "baselineComponentSha256": {
             name: digest(value) for name, value in {**baseline, "revision": rev}.items()
         },
+        "durableRollbackRetentionVerified": False,
         "deploymentEnabled": False,
     }, sort_keys=True))
 
