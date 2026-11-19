@@ -16,20 +16,17 @@ table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px so
 <a href="/coaches/team/">← Team Operations</a>
 <h1>Academy-Wide XP Reconciliation</h1>
 <p>Prepare a roster-level paper XP review without inventing practice dates or athlete IDs.</p>
-<p><strong>Review-only draft. This page cannot submit reports or award XP.</strong></p>
-<section><h2>Report details</h2>
-<label>Location ID<input disabled placeholder="Verified location required"></label>
-<label>Reporting period<input disabled placeholder="Reporting period"></label>
-<label>Coach explanation<textarea disabled rows="3" placeholder="Supporting notes"></textarea></label>
-</section>
-<section><h2>Athlete ledger schema</h2><div class="scroll"><table>
-<thead><tr><th>Athlete</th><th>Athlete ID (optional)</th><th>Status</th><th>Practice XP</th><th>Competition attendance XP</th><th>Podium XP</th><th>Evidence</th></tr></thead>
-<tbody><tr><td colspan="7">Awaiting secured Coach submission and Management review implementation.</td></tr></tbody>
-</table></div>
-<p class="note">Paper-only and enrollment-pending athletes must be accepted without an athlete ID. All XP totals are unverified until reconciled against credited transactions.</p>
-</section>
-<section><h2>Submission unavailable</h2><p>Server-side authorization, immutable report storage, audit trail, and Management review must be verified before submission is enabled.</p>
-<button type="button" disabled>Submit for Management review</button></section>
+<p id="access" role="status">Verifying Coach access…</p>
+<section><h2>Send one paper XP report to Management</h2>
+<form id="paperForm">
+<label>Location ID<input id="location" required placeholder="santa-ynez-valley"></label>
+<label>Athlete entries — one per line<textarea id="entries" rows="16" required placeholder="Paul | 40 | Paper tally&#10;Theo | 20 | Paper tally"></textarea></label>
+<p class="note">Format: Athlete name | Paper XP total | optional evidence. These are paper totals, NOT confirmed missing XP. No athlete ID or invented practice dates required. Active athletes first.</p>
+<label>Coach explanation<textarea id="note" rows="4" required minlength="8" maxlength="1500" placeholder="Paper tally reconciliation for 13 active athletes; Management to verify existing credits before adjusting."></textarea></label>
+<button id="submit" type="submit" disabled>Submit to Management — No XP Awarded</button>
+</form><p id="result" role="status"></p></section>
+<section><h2>My Submitted Reports</h2><button type="button" id="refresh">Refresh</button><div id="reports">Loading…</div></section>
 </main>
 <script src="/coaches/_ui/coach-shell.js?v=2"></script>
+<script type="module" src="./report.js?v=1"></script>
 </body></html>
