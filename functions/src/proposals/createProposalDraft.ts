@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   HttpsError,
   onCall,
@@ -58,17 +59,23 @@ export const createProposalDraft =
       throw new HttpsError("invalid-argument", "A valid prior proposal ID is required.");
     }
 
+    const historicalInput = data.managementHistorical &&
+      typeof data.managementHistorical === "object" && !Array.isArray(data.managementHistorical)
+        ? data.managementHistorical as Record<string, unknown>
+        : null;
     const appointmentId =
       nullableString(data.appointmentId);
 
     const admissionsRequestId =
       nullableString(data.admissionsRequestId);
 
-    if (!appointmentId && !admissionsRequestId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "An appointmentId or admissionsRequestId is required."
-      );
+    if (!appointmentId && !admissionsRequestId && !historicalInput) {
+      throw new HttpsError("invalid-argument",
+        "An Admissions source or documented Management historical case is required.");
+    }
+    if (historicalInput && (appointmentId || admissionsRequestId || conversionSourceProposalId)) {
+      throw new HttpsError("invalid-argument",
+        "Historical Management entry cannot be mixed with Admissions or conversion routes.");
     }
 
     const familyName =
@@ -167,11 +174,45 @@ export const createProposalDraft =
       }
     }
 
+    // A historical case is a staff-owned record of an existing paper
+    // agreement, not a fabricated Admissions appointment or payment proof.
+    const historicalReference = historicalInput
+      ? cleanString(historicalInput.sourceReference)
+      : "";
+    if (historicalInput) {
+      const selectedLocation = cleanString(historicalInput.locationId);
+      if (!selectedLocation || selectedLocation.length > 128 ||
+          historicalReference.length < 8 || historicalReference.length > 200 ||
+          historicalInput.confirmExistingAgreement !== true) {
+        throw new HttpsError("invalid-argument",
+          "Historical entry requires a location, agreement/check reference and staff attestation.");
+      }
+      locationId = selectedLocation;
+      const enteredEmail = cleanEmail(data.prospect?.email || data.email);
+      const enteredName = cleanString(data.prospect?.primaryContactName);
+      const rawAthlete = athletes[0] && typeof athletes[0] === "object"
+        ? athletes[0] as Record<string, unknown> : {};
+      const enteredAthlete = cleanString(rawAthlete.name);
+      const startDate = cleanString((requestedPricing as Record<string, unknown>).membershipStartDate);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail) ||
+          !enteredName || !enteredAthlete || enteredName.length > 160 ||
+          enteredAthlete.length > 160 || athletes.length !== 1 ||
+          cleanString(rawAthlete.plan) !== "standard" ||
+          cleanString(rawAthlete.billingTerm) !== "annual" ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
+          !Number.isFinite(Date.parse(startDate)) ||
+          startDate > new Date().toISOString().slice(0, 10)) {
+        throw new HttpsError("invalid-argument",
+          "Historical case requires one annual Combat athlete, actual start date, and contact identity.");
+      }
+      appointmentProspect = {
+        registrantRole: cleanString(data.prospect?.registrantRole) || "parent-guardian",
+        parentName: enteredName,
+      };
+    }
     if (!locationId) {
-      throw new HttpsError(
-        "failed-precondition",
-        "A proposal must be connected to an appointment with a valid location."
-      );
+      throw new HttpsError("failed-precondition",
+        "A proposal requires an authorized enrollment location.");
     }
 
     requireProposalLocationAccess(
@@ -259,6 +300,17 @@ export const createProposalDraft =
       proposalAthletes,
     );
 
+    // Identity + membership start date own the atomic deduplication key.
+    // A different typed reference must never mint a second proposal.
+    const historicalCaseId = historicalInput
+      ? createHash("sha256").update(JSON.stringify([
+          locationId, cleanEmail(data.prospect?.email || data.email),
+          cleanString((athletes[0] as Record<string, unknown>).name).toLowerCase(),
+          cleanString((requestedPricing as Record<string, unknown>).membershipStartDate),
+        ])).digest("hex")
+      : null;
+    const historicalCaseRef = historicalCaseId
+      ? db.collection("historicalProposalCases").doc(historicalCaseId) : null;
     const counterRef =
       db
         .collection("counters")
@@ -268,6 +320,18 @@ export const createProposalDraft =
       const result =
         await db.runTransaction(
           async (tx) => {
+            if (historicalCaseRef) {
+              const existingCase = await tx.get(historicalCaseRef);
+              if (existingCase.exists) {
+                const existingProposalId = cleanString(existingCase.get("proposalId"));
+                if (!/^P-\d{6}$/.test(existingProposalId)) {
+                  throw new HttpsError("failed-precondition",
+                    "Historical case has inconsistent proposal evidence.");
+                }
+                return { proposalId: existingProposalId, status: "DRAFT" as const,
+                  idempotent: true };
+              }
+            }
             const counterSnap =
               await tx.get(counterRef);
 
@@ -340,6 +404,12 @@ export const createProposalDraft =
                 proposalId,
                 status: "DRAFT",
                 ...(conversionSourceProposalId ? { conversionSourceProposalId } : {}),
+                ...(historicalCaseId ? {
+                  managementHistorical: {
+                    caseId: historicalCaseId, sourceReference: historicalReference,
+                    paymentReconciled: false, recordedBy: callerUid,
+                  },
+                } : {}),
 
                 locationId,
 
@@ -435,6 +505,12 @@ export const createProposalDraft =
               proposalRef,
               proposalData
             );
+            if (historicalCaseRef) {
+              tx.create(historicalCaseRef, {
+                proposalId, locationId, sourceReference: historicalReference,
+                createdBy: callerUid, createdAt: FieldValue.serverTimestamp(),
+              });
+            }
 
             tx.create(
               historyRef,
@@ -442,7 +518,11 @@ export const createProposalDraft =
                 proposalId,
 
                 event:
-                  "CREATED",
+                  historicalCaseId ? "MANAGEMENT_HISTORICAL_DRAFT_CREATED" : "CREATED",
+                ...(historicalCaseId ? {
+                  historicalCaseId, sourceReference: historicalReference,
+                  paymentVerified: false,
+                } : {}),
                 ...(conversionSourceProposalId ? { conversionSourceProposalId } : {}),
 
                 fromStatus:
