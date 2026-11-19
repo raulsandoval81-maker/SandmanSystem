@@ -195,7 +195,7 @@ export const createProposalDraft =
       const enteredAthlete = cleanString(rawAthlete.name);
       const startDate = cleanString((requestedPricing as Record<string, unknown>).membershipStartDate);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail) ||
-          !enteredName || !enteredAthlete || /^Member \\d+$/.test(enteredAthlete) || enteredName.length > 160 ||
+          !enteredName || !enteredAthlete || /^Member \d+$/.test(enteredAthlete) || enteredName.length > 160 ||
           enteredAthlete.length > 160 || athletes.length !== 1 ||
           cleanString(rawAthlete.plan) !== "standard" ||
           cleanString(rawAthlete.billingTerm) !== "annual" ||
@@ -311,6 +311,28 @@ export const createProposalDraft =
       : null;
     const historicalCaseRef = historicalCaseId
       ? db.collection("historicalProposalCases").doc(historicalCaseId) : null;
+    if (historicalCaseId) {
+      // Guard against an older proposal issued before this case-key registry
+      // existed. Never silently duplicate a signed or payment-bearing record.
+      const prior = await db.collection("proposals")
+        .where("prospect.email", "==", cleanEmail(data.prospect?.email || data.email))
+        .limit(200).get();
+      const sameEnrollment = prior.docs.find((candidate) => {
+        const existing = candidate.data();
+        const first = Array.isArray(existing.athletes) ? existing.athletes[0] : null;
+        return existing.locationId === locationId &&
+          cleanString(first?.name).toLowerCase() ===
+            cleanString((athletes[0] as Record<string, unknown>).name).toLowerCase() &&
+          cleanString(existing.pricing?.membershipStartDate) ===
+            cleanString((requestedPricing as Record<string, unknown>).membershipStartDate) &&
+          !["VOID", "RETIRED"].includes(cleanString(existing.status).toUpperCase()) &&
+          existing.managementHistorical?.caseId !== historicalCaseId;
+      });
+      if (sameEnrollment) {
+        throw new HttpsError("already-exists",
+          "An existing proposal matches this athlete and membership start date. Review that proposal before creating another.");
+      }
+    }
     const counterRef =
       db
         .collection("counters")
