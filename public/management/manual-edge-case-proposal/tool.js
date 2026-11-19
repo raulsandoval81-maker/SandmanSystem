@@ -67,7 +67,7 @@ async function loadCase(event) {
         "Next billing: " + (p.nextBillingDate || "Requires verification"),
         "Adjustment state: READ-ONLY; no payment or renewal authorized"
       ];
-      $("recoverySummary").textContent = lines.join("\\n");
+      $("recoverySummary").textContent = lines.join("\n");
       $("recoveryIntakeLink").href = "/intake-management/?proposalId=" + encodeURIComponent(id);
       $("recoveryPanel").hidden = false;
       return status("Verified Paid-in-Full proposal loaded. Continue through Intake Management; the Draft ledger editor is locked.");
