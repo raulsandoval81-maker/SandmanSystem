@@ -25,6 +25,12 @@ import { requireManagement } from "/management/shared/guards/management-guard.js
 
 const appointmentId = new URLSearchParams(window.location.search).get("appointmentId") || "";
 const enrollmentEntrySource = document.getElementById("enrollmentEntrySource");
+const managementHistoricalFields = document.getElementById("managementHistoricalFields");
+const historicalLocationId = document.getElementById("historicalLocationId");
+const historicalContactName = document.getElementById("historicalContactName");
+const historicalContactEmail = document.getElementById("historicalContactEmail");
+const historicalSourceReference = document.getElementById("historicalSourceReference");
+const historicalAttestation = document.getElementById("historicalAttestation");
 const enrollmentPaymentRoute = document.getElementById("enrollmentPaymentRoute");
 const historicalPaymentRouteNotice = document.getElementById("historicalPaymentRouteNotice");
 const enrollmentRegistrantRole = document.getElementById("enrollmentRegistrantRole");
@@ -1567,18 +1573,27 @@ function syncEnrollmentEntry() {
   const existing = athleteRecord === "existing";
   const historical = enrollmentPaymentRoute?.value === "historical_prepaid_check";
   if (historicalPaymentRouteNotice) historicalPaymentRouteNotice.hidden = !historical;
+  const directHistorical = source === "management_historical";
+  if (managementHistoricalFields) managementHistoricalFields.hidden = !directHistorical;
   if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
 
   // Only the existing, appointment-backed NEW athlete path is wired to
   // createProposalDraft. Never claim a walk-in or existing-athlete link
   // was saved while the canonical backend handoff is not implemented.
-  const supported = source === "admissions" && !existing && Boolean(sourceAppointment && appointmentId);
+  const supported = !existing && (
+    (source === "admissions" && Boolean(sourceAppointment && appointmentId)) ||
+    (directHistorical && historical)
+  );
   if (continueProposalBtn) continueProposalBtn.hidden = !supported;
   if (enrollmentEntryStatus) {
-    enrollmentEntryStatus.textContent = historical && !sourceAppointment
-      ? "Historical cash/check requires an existing Admissions appointment. Locate the original lead/appointment first; no placeholder proposal will be created."
-      : existing
+    enrollmentEntryStatus.textContent = existing
       ? "Existing / legacy athlete linking is not yet enabled. Management must verify and link the canonical athlete ID before creating a proposal. Pricing is a preview only."
+      : directHistorical && !historical
+        ? "Direct historical Management entry requires Historical Paid-in-Full cash/check selection. No proposal created."
+      : directHistorical
+        ? "Document the real signed agreement, customer identity and location. Pricing can issue a canonical P-number without fabricating an appointment. Original payment remains unverified."
+      : historical && !sourceAppointment
+        ? "Admissions route requires a real appointment. To enter an existing paper customer, choose Existing paper agreement — Management historical entry."
       : source === "walk_in"
         ? "Direct Management entry is not yet connected to proposal creation. No appointment will be fabricated; pricing is a preview only."
         : sourceAppointment && appointmentId
@@ -1591,7 +1606,16 @@ function syncEnrollmentEntry() {
   .forEach((control) => control?.addEventListener("change", syncEnrollmentEntry));
 
 async function loadPricingSource() {
-  await requireManagement();
+  const management = await requireManagement();
+  const staff = management?.staff || {};
+  const assigned = [...new Set(
+    [...(Array.isArray(staff.locationIds) ? staff.locationIds : []),
+      staff.locationId].filter(Boolean).map(value => String(value).trim())
+  )];
+  if (historicalLocationId && assigned.length === 1) {
+    historicalLocationId.value = assigned[0];
+    historicalLocationId.readOnly = true;
+  }
   if (!appointmentId) {
     pricingSourceStatus.textContent = "Standalone estimate. Open a lead or appointment to continue into a proposal.";
     syncEnrollmentEntry();
@@ -1746,9 +1770,10 @@ function proposalPricingSnapshot() {
 continueProposalBtn?.addEventListener(
   "click",
   async () => {
-    if (enrollmentEntrySource?.value !== "admissions" ||
-        enrollmentAthleteRecord?.value !== "new" ||
-        !sourceAppointment || !appointmentId) {
+    const managementHistorical = enrollmentEntrySource?.value === "management_historical";
+    const normalAdmission = enrollmentEntrySource?.value === "admissions" && Boolean(sourceAppointment && appointmentId);
+    if (enrollmentAthleteRecord?.value !== "new" ||
+        !(normalAdmission || (managementHistorical && enrollmentPaymentRoute?.value === "historical_prepaid_check"))) {
       syncEnrollmentEntry();
       return;
     }
@@ -1762,9 +1787,22 @@ continueProposalBtn?.addEventListener(
 
     try {
       const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
+      if (managementHistorical) {
+        const identity = [historicalLocationId?.value, historicalContactName?.value,
+          historicalContactEmail?.value, historicalSourceReference?.value];
+        if (identity.some(value => !String(value || "").trim()) ||
+            !historicalAttestation?.checked ||
+            String(historicalSourceReference.value).trim().length < 8 ||
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(historicalContactEmail.value).trim())) {
+          throw new Error("Verify location, full contact name, email, original agreement/check reference and staff attestation.");
+        }
+      }
       if (historicalPrepaid) {
         if (!enrollmentStartDate?.value) throw new Error("Enter the original membership start date before creating the Paid-in-Full proposal.");
-        if (priorPaymentHandoff()) throw new Error("For a full-year already-paid check, leave the separate Historical payment to Billing fields empty. The cash/check Paid-in-Full reconciliation owns that payment and prevents a duplicate ledger entry.");
+        if (priorPaymentHandoff() || [priorPaymentAmount?.value, priorPaymentFirstMonth?.value, priorPaymentLastMonth?.value, priorPaymentEnrollmentAmount?.value, priorPaymentNote?.value].some(value => String(value || "").trim()) ||
+            (priorPaymentMethod?.value && priorPaymentMethod.value !== "none") || priorPaymentEnrollmentIncluded?.checked) {
+          throw new Error("Leave separate Historical payment to Billing fields empty. Reconcile the Paid-in-Full check once, later in Management.");
+        }
         const cards = [...athleteList.querySelectorAll(".pricing-athlete")];
         if (cards.length !== 1 || cards[0]?.querySelector(".athlete-plan")?.value !== "standard") throw new Error("Historical Paid-in-Full currently requires exactly one Combat athlete. Do not use a partial or multi-athlete workaround.");
         const term = cards[0].querySelector(".billing-term");
@@ -1788,8 +1826,7 @@ continueProposalBtn?.addEventListener(
         JSON.stringify(handoff)
       );
 
-      let proposal =
-        await findDraftProposalForAppointment();
+      let proposal = managementHistorical ? null : await findDraftProposalForAppointment();
 
       let proposalId =
         String(proposal?.proposalId || proposal?.id || "");
@@ -1798,18 +1835,27 @@ continueProposalBtn?.addEventListener(
         proposalPricingSnapshot();
 
       const proposalPayload = {
-        appointmentId,
+        appointmentId: managementHistorical ? null : appointmentId,
+        ...(managementHistorical ? { managementHistorical: {
+          locationId: String(historicalLocationId.value).trim(),
+          sourceReference: String(historicalSourceReference.value).trim(),
+          confirmExistingAgreement: true,
+        }} : {}),
         admissionsRequestId:
-          sourceAppointment.admissionsRequestId ||
-          sourceAppointment.requestId ||
+          sourceAppointment?.admissionsRequestId ||
+          sourceAppointment?.requestId ||
           null,
         prospect: {
-          appointmentId,
+          appointmentId: managementHistorical ? null : appointmentId,
+          primaryContactName: managementHistorical ? String(historicalContactName.value).trim() : null,
+          email: managementHistorical ? String(historicalContactEmail.value).trim().toLowerCase() : null,
+          registrantRole: managementHistorical ? (enrollmentRegistrantRole?.value === "athlete" ? "adult-athlete" : "parent-guardian") : null,
           familyName:
-            sourceAppointment.parentName ||
-            sourceAppointment.guardianName ||
-            sourceAppointment.participantName ||
-            sourceAppointment.athleteName ||
+            (managementHistorical ? String(historicalContactName.value).trim() : null) ||
+            sourceAppointment?.parentName ||
+            sourceAppointment?.guardianName ||
+            sourceAppointment?.participantName ||
+            sourceAppointment?.athleteName ||
             null
         },
         coach: {
@@ -1897,8 +1943,9 @@ continueProposalBtn?.addEventListener(
 
       window.location.href =
         "/connect/admissions/calculator/" +
-        `?appointmentId=${encodeURIComponent(appointmentId)}` +
-        `&proposalId=${encodeURIComponent(proposalId)}` +
+        (managementHistorical ? "" : `?appointmentId=${encodeURIComponent(appointmentId)}&`) +
+        (managementHistorical ? "?" : "") +
+        `proposalId=${encodeURIComponent(proposalId)}` +
         (historicalPrepaid ? "&historicalPrepaid=1" : "");
     } catch (error) {
       console.error(
