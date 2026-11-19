@@ -195,7 +195,7 @@ export const createProposalDraft =
       const enteredAthlete = cleanString(rawAthlete.name);
       const startDate = cleanString((requestedPricing as Record<string, unknown>).membershipStartDate);
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(enteredEmail) ||
-          !enteredName || !enteredAthlete || enteredName.length > 160 ||
+          !enteredName || !enteredAthlete || /^Member \\d+$/.test(enteredAthlete) || enteredName.length > 160 ||
           enteredAthlete.length > 160 || athletes.length !== 1 ||
           cleanString(rawAthlete.plan) !== "standard" ||
           cleanString(rawAthlete.billingTerm) !== "annual" ||
@@ -328,7 +328,14 @@ export const createProposalDraft =
                   throw new HttpsError("failed-precondition",
                     "Historical case has inconsistent proposal evidence.");
                 }
-                return { proposalId: existingProposalId, status: "DRAFT" as const,
+                const existingProposal = await tx.get(db.collection("proposals").doc(existingProposalId));
+                if (!existingProposal.exists || existingProposal.get("locationId") !== locationId ||
+                    existingProposal.get("managementHistorical.caseId") !== historicalCaseId) {
+                  throw new HttpsError("failed-precondition",
+                    "Historical case points to inconsistent proposal; manual review required.");
+                }
+                return { proposalId: existingProposalId,
+                  status: cleanString(existingProposal.get("status")) || "DRAFT",
                   idempotent: true };
               }
             }
@@ -407,7 +414,7 @@ export const createProposalDraft =
                 ...(historicalCaseId ? {
                   managementHistorical: {
                     caseId: historicalCaseId, sourceReference: historicalReference,
-                    paymentReconciled: false, recordedBy: callerUid,
+                    paymentVerificationAtEntry: "NOT_VERIFIED", recordedBy: callerUid,
                   },
                 } : {}),
 
