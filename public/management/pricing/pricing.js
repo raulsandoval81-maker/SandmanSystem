@@ -1573,6 +1573,12 @@ function syncEnrollmentEntry() {
   const existing = athleteRecord === "existing";
   const historical = enrollmentPaymentRoute?.value === "historical_prepaid_check";
   if (historicalPaymentRouteNotice) historicalPaymentRouteNotice.hidden = !historical;
+  // The agreement length is twelve months, but paid-in-full has no autopay.
+  athleteList.querySelectorAll('.billing-term option[value="annual"]').forEach(option => {
+    option.textContent = historical
+      ? "12-month agreement — Cash/Check Paid-in-Full set in Proposal"
+      : "12-month agreement + autopay";
+  });
   const directHistorical = source === "management_historical";
   if (managementHistoricalFields) managementHistoricalFields.hidden = !directHistorical;
   if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
