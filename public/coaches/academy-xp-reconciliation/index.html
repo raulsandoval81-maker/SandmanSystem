@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Academy XP Reconciliation | Sandman Coach</title>
+<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=3">
+<style>
+main{max-width:1050px;margin:auto;padding:24px}section{border:1px solid #606976;border-radius:12px;padding:18px;margin:16px 0}
+label{display:block;margin:12px 0}input,select,textarea{width:100%;padding:10px;margin-top:6px;border-radius:6px}
+table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #7776;text-align:left}
+.note{opacity:.85}button{padding:10px;border-radius:6px} .scroll{overflow:auto}
+</style>
+</head>
+<body class="coach-shell-page" data-coach-page="Academy XP Reconciliation" data-coach-area="team">
+<main data-coach-shell-content>
+<a href="/coaches/team/">← Team Operations</a>
+<h1>Academy-Wide XP Reconciliation</h1>
+<p>Prepare a roster-level paper XP review without inventing practice dates or athlete IDs.</p>
+<p><strong>Review-only draft. This page cannot submit reports or award XP.</strong></p>
+<section><h2>Report details</h2>
+<label>Location ID<input disabled placeholder="Verified location required"></label>
+<label>Reporting period<input disabled placeholder="Reporting period"></label>
+<label>Coach explanation<textarea disabled rows="3" placeholder="Supporting notes"></textarea></label>
+</section>
+<section><h2>Athlete ledger schema</h2><div class="scroll"><table>
+<thead><tr><th>Athlete</th><th>Athlete ID (optional)</th><th>Status</th><th>Practice XP</th><th>Competition attendance XP</th><th>Podium XP</th><th>Evidence</th></tr></thead>
+<tbody><tr><td colspan="7">Awaiting secured Coach submission and Management review implementation.</td></tr></tbody>
+</table></div>
+<p class="note">Paper-only and enrollment-pending athletes must be accepted without an athlete ID. All XP totals are unverified until reconciled against credited transactions.</p>
+</section>
+<section><h2>Submission unavailable</h2><p>Server-side authorization, immutable report storage, audit trail, and Management review must be verified before submission is enabled.</p>
+<button type="button" disabled>Submit for Management review</button></section>
+</main>
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
+</body></html>
