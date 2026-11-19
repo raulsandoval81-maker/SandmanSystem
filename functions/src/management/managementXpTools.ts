@@ -1317,14 +1317,10 @@ export const createManagementXpAdjustment =
           xpAuthority.progression;
 
         const base =
-          xpAuthority.progressionPrefix
-            ? classifyAthlete(
-                progression
-              )
-            : classifyAthlete(
-                athlete,
-                athleteUid
-              );
+          classifyAthlete(
+            progression,
+            xpAuthority.progressionPrefix ? null : athleteUid
+          );
 
         const tier =
           athleteTier(

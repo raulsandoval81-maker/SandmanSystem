@@ -271,25 +271,67 @@ function athleteTier(athlete, base) {
         return (0, f8CurriculumCompatibilityPolicy_1.resolveF8ProgressionTier)(athlete);
     return String(athlete?.tier ?? athlete?.tierCode ?? athlete?.rank ?? "T0").toUpperCase();
 }
+const PROGRAM_MARKERS = {
+    F8: ["F8", "FOUNDRY8", "FOUNDRY-8", "YOUTH", "Z2H", "ZERO2HERO", "ROAD2CHAMPION"],
+    F4: ["F4", "FOUNDRY4", "FOUNDRY-4", "TEEN", "P2L", "PATH2LEGEND"],
+    ADULT: ["ADULT", "Q2M", "QUEST2MASTERY", "MASTERY"],
+};
+const PROGRAM_BASES = Object.keys(PROGRAM_MARKERS);
+function programMarkerBase(marker) {
+    return PROGRAM_BASES.find((base) => PROGRAM_MARKERS[base].includes(marker));
+}
+// A null document ID classifies a standalone progression without identity inference.
 function classifyAthlete(athlete, documentId = "") {
-    const id = String(documentId || athlete?.uid || athlete?.id || "").toUpperCase();
-    const markers = [athlete?.trackBase, athlete?.track, athlete?.programTrack,
-        athlete?.trackCode, athlete?.journey, athlete?.program]
-        .map((value) => String(value ?? "").toUpperCase()).join(" ");
-    const f8 = id.startsWith("F8_")
-        || /(^|\W)(F8|Z2H|ROAD2CHAMPION)(\W|$)|FOUNDRY8|YOUTH/.test(markers);
-    const f4 = id.startsWith("F4_")
-        || /(^|\W)(F4|P2L|PATH2LEGEND)(\W|$)|FOUNDRY4|TEEN/.test(markers);
-    const adult = /ADULT|Q2M|QUEST2MASTERY|MASTERY/.test(markers);
-    const matches = [f8, f4, adult].filter(Boolean).length;
-    if (matches !== 1) {
-        throw new https_1.HttpsError("failed-precondition", matches > 1 ? "AMBIGUOUS_ATHLETE_PROGRAM" : "UNCLASSIFIED_ATHLETE_PROGRAM");
+    const id = documentId === null
+        ? ""
+        : String(documentId || athlete?.uid || athlete?.id || "").toUpperCase();
+    const bases = new Set();
+    if (id.startsWith("F8_"))
+        bases.add("F8");
+    if (id.startsWith("F4_"))
+        bases.add("F4");
+    // Legacy track and program labels can contain a discipline suffix.
+    const legacyMarkers = [athlete?.trackBase, athlete?.track, athlete?.programTrack,
+        athlete?.trackCode, athlete?.program];
+    for (const value of legacyMarkers) {
+        const marker = String(value ?? "").trim().toUpperCase();
+        const base = programMarkerBase(marker);
+        if (base) {
+            bases.add(base);
+            continue;
+        }
+        for (const token of marker.split(/[^A-Z0-9]+/)) {
+            const tokenBase = programMarkerBase(token);
+            if (tokenBase)
+                bases.add(tokenBase);
+        }
     }
-    if (f8)
-        return "F8";
-    if (adult)
-        return "ADULT";
-    return "F4";
+    let unknownMarker = false;
+    for (const value of [athlete?.ladderKey, athlete?.journey]) {
+        const marker = String(value ?? "").trim().toUpperCase();
+        if (!marker)
+            continue;
+        const base = programMarkerBase(marker);
+        if (base)
+            bases.add(base);
+        else
+            unknownMarker = true;
+    }
+    const framework = String(athlete?.framework ?? "").trim().toUpperCase();
+    if (framework) {
+        const base = programMarkerBase(framework);
+        if (!base) {
+            unknownMarker = true;
+        }
+        else if (!(["FOUNDRY4", "FOUNDRY-4"].includes(framework) && bases.has("ADULT"))) {
+            // The Adult intake ladder uses the Foundry4 framework.
+            bases.add(base);
+        }
+    }
+    if (bases.size !== 1 || unknownMarker) {
+        throw new https_1.HttpsError("failed-precondition", bases.size > 1 ? "AMBIGUOUS_ATHLETE_PROGRAM" : "UNCLASSIFIED_ATHLETE_PROGRAM");
+    }
+    return [...bases][0];
 }
 function activeXpCap(athlete, base) {
     const tier = athleteTier(athlete, base);

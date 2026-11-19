@@ -585,9 +585,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
                 "ATHLETE_DISCIPLINE_NOT_FOUND");
         }
         const progression = xpAuthority.progression;
-        const base = xpAuthority.progressionPrefix
-            ? (0, authoritativeXpService_1.classifyAthlete)(progression)
-            : (0, authoritativeXpService_1.classifyAthlete)(athlete, athleteUid);
+        const base = (0, authoritativeXpService_1.classifyAthlete)(progression, xpAuthority.progressionPrefix ? null : athleteUid);
         const tier = (0, authoritativeXpService_1.athleteTier)(progression, base);
         const xpCap = (0, authoritativeXpService_1.activeXpCap)(progression, base);
         const beforeXp = xpAuthority.authoritativeBeforeXp;
