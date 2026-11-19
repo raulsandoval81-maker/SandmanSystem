@@ -2746,12 +2746,33 @@ alert(
         });
       }
 
-      calculate();
-
       const proposalStatus =
         String(
           proposal.status || "DRAFT"
         ).toUpperCase();
+
+      // Pricing owns entry. Only draft proposals may be preselected for
+      // historical cash/check; this is UI configuration, NOT payment proof.
+      const historicalEntry = new URLSearchParams(location.search).get("historicalPrepaid") === "1";
+      if (historicalEntry && proposalStatus === "DRAFT") {
+        if (Array.isArray(proposal.priorPayments) && proposal.priorPayments.length) {
+          throw new Error("This draft already has recorded prior payments. Review the existing ledger before choosing Paid-in-Full.");
+        }
+        if (athletes.length !== 1 || athletes[0]?.plan === "fitness") {
+          throw new Error("Historical Paid-in-Full entry requires one Combat athlete.");
+        }
+        el.paymentArrangement.value = "prepaid_cash_check";
+        el.athleteList.querySelectorAll("select.billing-term").forEach(select => {
+          select.value = "annual";
+        });
+      }
+      calculate();
+      if (historicalEntry && proposalStatus === "DRAFT") {
+        const status = document.getElementById("paymentArrangementStatus");
+        if (status && paymentArrangementValid) {
+          status.textContent += " Historical check entry selected from Pricing. Save this Cash/Check Paid-in-Full draft before family Review & Confirm. The original payment is NOT yet reconciled; Management must verify it before receipt delivery.";
+        }
+      }
 
       renderProposalWorkflow(
         proposalStatus
