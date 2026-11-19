@@ -182,3 +182,30 @@ test("verified $80 October and $30 fee support a separate $960 check without cha
   assert.equal(replay.proposalId,created.proposalId);
   assert.equal((await targetRef.collection("history").get()).size,1);
 });
+
+test("Verified Paid-in-Full load is read-only, scoped and never edits payment records",async()=>{
+  const paidId="P-9"+suffix.slice(1);
+  const paidRef=db.collection("proposals").doc(paidId);
+  const payment={
+    amountCents:96000,membershipAmountCents:96000,membershipPaidInFull:true,
+    paymentMethod:"check",membershipStartDate:"2026-11-01",
+    membershipPaidThroughDate:"2027-10-31",nextBillingDate:"2027-11-01",
+    annualEnrollmentFee:{outstandingCents:3000}
+  };
+  await paidRef.set({...original(),proposalId:paidId,status:"PAID",
+    paymentMethod:"cash_prepaid",cashPrepayment:payment});
+  const before=(await paidRef.get()).data();
+  const loaded=await invoke(manager,{proposalId:paidId,mode:"load"});
+  assert.equal(loaded.caseType,"paid_in_full_recovery");
+  assert.equal(loaded.readOnly,true);
+  assert.equal(loaded.checkoutAuthorized,false);
+  assert.equal(loaded.payment.amountCents,96000);
+  assert.equal(loaded.payment.annualFeeOutstandingCents,3000);
+  assert.equal(loaded.priorPayments,undefined);
+  await assert.rejects(invoke(outsider,{proposalId:paidId,mode:"load"}),e=>e.code==="permission-denied");
+  await assert.rejects(invoke(manager,{proposalId:paidId,mode:"preview",entries:adjustments()}),
+    e=>e.code==="failed-precondition");
+  assert.deepEqual((await paidRef.get()).data(),before);
+  await paidRef.update({"cashPrepayment.membershipPaidInFull":false});
+  await assert.rejects(invoke(manager,{proposalId:paidId,mode:"load"}),e=>e.code==="failed-precondition");
+});
