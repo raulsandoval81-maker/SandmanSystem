@@ -15,6 +15,7 @@ on:
       - 'functions/src/proposals/createProposalDraft.ts'
       - 'public/management/pricing/**'
       - 'tests/functions/management-pricing-*.test.mjs'
+      - 'functions/tests/managementHistoricalDraft.integration.cjs'
       - 'public/management/billing/billing.js'
       - 'public/intake-management/management.intake.js'
       - 'public/connect/admissions/calculator/**'
@@ -93,4 +94,4 @@ jobs:
           npx --yes firebase-tools@14.13.0 emulators:exec \
             --only firestore \
             --project demo-sandman-2c-acceptance \
-            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs'
+            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs functions/tests/managementHistoricalDraft.integration.cjs'
