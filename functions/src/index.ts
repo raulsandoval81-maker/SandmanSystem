@@ -392,3 +392,5 @@ export {
   listCoachXpRecoveryRequests,
   reviewCoachXpRecoveryRequest,
 } from "./management/coachXpRecoveryRequests";
+
+export { submitCoachPaperXpReport, listCoachPaperXpReports, reviewCoachPaperXpReport } from "./management/coachPaperXpReports";
