@@ -1,0 +1,143 @@
+name: PR729 Coach Paper XP exact-five-file Hosting release
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Read-only preflight or guarded staging-then-production deploy
+        required: true
+        type: choice
+        options: [preflight, deploy]
+      staging_release:
+        description: Exact staging live release from preflight
+        required: false
+        type: string
+      staging_version:
+        description: Exact staging live version from preflight
+        required: false
+        type: string
+      production_release:
+        description: Exact production live release from preflight
+        required: false
+        type: string
+      production_version:
+        description: Exact production live version from preflight
+        required: false
+        type: string
+      approval:
+        description: For deploy type APPROVE_PR729_FIVE_FILES_STAGING_THEN_PRODUCTION
+        required: false
+        type: string
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: sandman-pr729-coach-xp-hosting
+  cancel-in-progress: false
+jobs:
+  staging:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a
+          path: application
+          persist-credentials: false
+      - name: Verify immutable source and approval
+        env:
+          MODE: ${{ inputs.mode }}
+          APPROVAL: ${{ inputs.approval }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(git -C application rev-parse HEAD)" = c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a
+          if [ "$MODE" = deploy ]; then
+            test "$APPROVAL" = APPROVE_PR729_FIVE_FILES_STAGING_THEN_PRODUCTION
+          fi
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install google-auth requests
+      - name: Guarded staging Hosting overlay
+        env:
+          MODE: ${{ inputs.mode }}
+          EXPECTED_RELEASE: ${{ inputs.staging_release }}
+          EXPECTED_VERSION: ${{ inputs.staging_version }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/hosting/pr729-coach-xp-overlay.py \
+            --environment staging --mode "$MODE" --source-root application \
+            --source-sha c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a \
+            --expected-release "$EXPECTED_RELEASE" --expected-version "$EXPECTED_VERSION" \
+            --evidence-dir evidence/staging
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr729-staging-${{ github.run_id }}
+          path: evidence/staging/
+          if-no-files-found: warn
+  production:
+    needs: staging
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a
+          path: application
+          persist-credentials: false
+      - name: Verify immutable source and approval
+        env:
+          MODE: ${{ inputs.mode }}
+          APPROVAL: ${{ inputs.approval }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$(git -C application rev-parse HEAD)" = c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a
+          if [ "$MODE" = deploy ]; then
+            test "$APPROVAL" = APPROVE_PR729_FIVE_FILES_STAGING_THEN_PRODUCTION
+          fi
+      - uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install google-auth requests
+      - name: Guarded production Hosting overlay
+        env:
+          MODE: ${{ inputs.mode }}
+          EXPECTED_RELEASE: ${{ inputs.production_release }}
+          EXPECTED_VERSION: ${{ inputs.production_version }}
+        run: |
+          set -euo pipefail
+          python trusted/scripts/hosting/pr729-coach-xp-overlay.py \
+            --environment production --mode "$MODE" --source-root application \
+            --source-sha c22c1d8abf37ca4c52dd4cbc4b1f1c0e513f537a \
+            --expected-release "$EXPECTED_RELEASE" --expected-version "$EXPECTED_VERSION" \
+            --evidence-dir evidence/production
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr729-production-${{ github.run_id }}
+          path: evidence/production/
+          if-no-files-found: warn
