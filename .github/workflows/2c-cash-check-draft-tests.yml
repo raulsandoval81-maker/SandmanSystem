@@ -12,6 +12,9 @@ on:
       - 'functions/tests/prepaidCashReceipt.integration.cjs'
       - 'public/connect/proposals/proposals.js'
       - 'functions/src/proposals/issueProposalEnrollmentHandoff.ts'
+      - 'functions/src/proposals/createProposalDraft.ts'
+      - 'public/management/pricing/**'
+      - 'tests/functions/management-pricing-*.test.mjs'
       - 'public/management/billing/billing.js'
       - 'public/intake-management/management.intake.js'
       - 'public/connect/admissions/calculator/**'
@@ -47,6 +50,10 @@ jobs:
           node --check public/connect/admissions/calculator/calculator.js
           node --check public/management/billing/billing.js
           node --check public/intake-management/management.intake.js
+      - name: Test historical Management entry and Pricing regressions
+        run: |
+          node --test tests/functions/management-pricing-enrollment-entry.test.mjs tests/functions/management-pricing-historical-pif-entry.test.mjs tests/functions/management-pricing-direct-historical-entry.test.mjs
+          node --check public/management/pricing/pricing.js
       - name: Verify no payment/email secrets or cloud credentials available
         run: |
           test -z "${STRIPE_SECRET_KEY}"

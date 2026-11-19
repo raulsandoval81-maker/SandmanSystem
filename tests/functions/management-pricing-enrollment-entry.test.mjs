@@ -21,9 +21,9 @@ test("options distinguish entry origin, registrant and athlete record", () => {
   }
 });
 
-test("only canonical appointment-backed new-athlete path can continue", () => {
-  assert.match(js, /source === "admissions" && !existing && Boolean\(sourceAppointment && appointmentId\)/);
-  assert.match(js, /enrollmentEntrySource\?\.value !== "admissions"/);
+test("canonical Admissions and documented historical routes block unsupported athlete linking", () => {
+  assert.match(js, /source === "admissions" && Boolean\(sourceAppointment && appointmentId\)/);
+  assert.match(js, /directHistorical && historical/);
   assert.match(js, /enrollmentAthleteRecord\?\.value !== "new"/);
   assert.match(js, /continueProposalBtn\.hidden = !supported/);
   assert.match(html, /id="enrollmentExistingAthleteSearch"[\s\S]*?disabled>/);
