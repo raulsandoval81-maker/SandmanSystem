@@ -9,13 +9,14 @@ const builder = readFileSync(new URL("../../public/connect/admissions/calculator
 test("historical enrollment entry is in Pricing, not a competing Edge Case proposal creator", () => {
   assert.match(html, /id="enrollmentPaymentRoute"/);
   assert.match(html, /value="historical_prepaid_check"/);
-  assert.match(html, /original payment and family confirmation/);
+  assert.match(html, /Management must reconcile the check and obtain family confirmation/);
   assert.match(pricing, /"createProposalDraft"/);
   assert.match(pricing, /historicalPrepaid \? "&historicalPrepaid=1"/);
 });
 
-test("historical PIF requires appointment, original start date, single Combat annual athlete", () => {
-  assert.match(pricing, /!sourceAppointment \|\| !appointmentId/);
+test("historical PIF preserves Admissions and adds documented Management entry", () => {
+  assert.match(pricing, /normalAdmission/);
+  assert.match(pricing, /managementHistorical/);
   assert.match(pricing, /original membership start date/);
   assert.match(pricing, /cards\.length !== 1/);
   assert.match(pricing, /term\.value = "annual"/);
