@@ -78,6 +78,20 @@
           </select>
         </div>
       </div>
+      <div class="pricing-field" style="margin-top:1rem">
+        <label for="enrollmentPaymentRoute">Enrollment payment route</label>
+        <select id="enrollmentPaymentRoute">
+          <option value="standard">Standard — payment follows proposal confirmation</option>
+          <option value="historical_prepaid_check">Historical Paid-in-Full — cash/check already received</option>
+        </select>
+        <p id="historicalPaymentRouteNotice" class="pricing-disclaimer" hidden>
+          Use an existing Admissions appointment. Pricing creates the regular P-number proposal;
+          the next Proposal Builder step sets the 12-month Cash/Check Paid-in-Full
+          agreement. Management must verify the original payment and family confirmation
+          before issuing a receipt or activating the athlete. No Stripe charge or
+          duplicate prior-payment ledger entry is created by selecting this route.
+        </p>
+      </div>
       <div id="enrollmentExistingLookup" class="pricing-field" hidden>
         <label for="enrollmentExistingAthleteSearch">Find existing athlete</label>
         <input id="enrollmentExistingAthleteSearch" type="search"
