@@ -179,3 +179,43 @@ test("missing nested rank evidence still requires review before any write", asyn
   await assert.rejects(adjust(), /F8_PROGRESSION_TIER_REVIEW_REQUIRED/);
   assert.equal(writes.length, 0);
 });
+
+test("fictional +60 paper XP preserves wrestling authority, legacy credit and receipt identity", async () => {
+  const { athlete, adjust, writes } = fixture();
+  const secondaryBefore = structuredClone({
+    boxing: athlete.disciplines.boxing,
+    mma: athlete.disciplines.mma,
+  });
+  const request = { amount: 60, adjustmentId: "fictional-paper-plus-60" };
+  const first = await adjust(request);
+
+  assert.equal(first.base, "F8");
+  assert.equal(first.discipline, "wrestling");
+  assert.equal(first.xpAuthoritySource, "xp");
+  assert.equal(first.primaryXpMirrored, true);
+  assert.equal(first.xpCap, 800);
+  assert.equal(first.delta, 60);
+  assert.equal(first.lifetimeXpDelta, 60);
+  assert.equal(athlete.xp, 160);
+  assert.equal(athlete.disciplines.wrestling.xp, 160);
+  assert.equal(athlete.lifetimeCombatXp, 60);
+  assert.equal(athlete.lifetimeXp, 160);
+  assert.equal(athlete.lifetimeLegacyXp, 100);
+  assert.equal(athlete.legacy, true);
+  assert.equal(athlete.legacyCreditTotal, 100);
+  assert.equal(athlete.legacyCreditIssued, 100);
+  assert.equal(athlete.legacyNote, "Fictional existing recognition");
+  assert.deepEqual({
+    boxing: athlete.disciplines.boxing,
+    mma: athlete.disciplines.mma,
+  }, secondaryBefore);
+
+  const writeCount = writes.length;
+  const storedAthlete = JSON.stringify(athlete);
+  const retry = await adjust(request);
+  assert.equal(retry.idempotent, true);
+  assert.equal(retry.logId, first.logId);
+  assert.equal(writes.length, writeCount);
+  assert.equal(writes.filter(([operation]) => operation === "create").length, 1);
+  assert.equal(JSON.stringify(athlete), storedAthlete);
+});
