@@ -60,7 +60,8 @@
           <label for="enrollmentEntrySource">How did they arrive?</label>
           <select id="enrollmentEntrySource">
             <option value="admissions">Admissions — Lead / Appointment</option>
-            <option value="walk_in">Walk-in — Direct Management</option>
+            <option value="walk_in">Walk-in — Direct Management (not yet connected)</option>
+            <option value="management_historical">Existing paper agreement — Management historical entry</option>
           </select>
         </div>
         <div class="pricing-field">
@@ -85,12 +86,24 @@
           <option value="historical_prepaid_check">Historical Paid-in-Full — cash/check already received</option>
         </select>
         <p id="historicalPaymentRouteNotice" class="pricing-disclaimer" hidden>
-          Use an existing Admissions appointment. Pricing creates the regular P-number proposal;
-          the next Proposal Builder step sets the 12-month Cash/Check Paid-in-Full
-          agreement. Management must verify the original payment and family confirmation
-          before issuing a receipt or activating the athlete. No Stripe charge or
-          duplicate prior-payment ledger entry is created by selecting this route.
+          Existing Admissions appointments continue normally. For a customer already past Admissions, select
+          Existing paper agreement — Management historical entry, verify the original agreement
+          and contact details below, and create the regular P-number. Proposal Builder sets
+          12-month Cash/Check Paid-in-Full. The original payment is NOT verified by this selection.
+          Management must reconcile the check and obtain family confirmation before a receipt or activation.
+          No Stripe charge or duplicate prior-payment ledger entry is created here.
         </p>
+      </div>
+      <div id="managementHistoricalFields" hidden>
+        <h3>Historical customer identity and existing agreement</h3>
+        <p class="pricing-disclaimer">Use the real paper agreement/check evidence. This entry creates a proposal draft only; it does not record or verify payment. An already-activated athlete must be linked using a verified athlete ID rather than recreated at Intake.</p>
+        <div class="pricing-field-grid">
+          <div class="pricing-field"><label for="historicalLocationId">Authorized location ID</label><input id="historicalLocationId" type="text" maxlength="128" autocomplete="off" placeholder="Existing Academy location ID"></div>
+          <div class="pricing-field"><label for="historicalContactName">Parent / contact full name</label><input id="historicalContactName" type="text" maxlength="160" autocomplete="name"></div>
+          <div class="pricing-field"><label for="historicalContactEmail">Parent / contact email</label><input id="historicalContactEmail" type="email" maxlength="200" autocomplete="email"></div>
+          <div class="pricing-field"><label for="historicalSourceReference">Original signed agreement / check evidence reference</label><input id="historicalSourceReference" type="text" maxlength="200" placeholder="Existing document or check reference"></div>
+        </div>
+        <label><input id="historicalAttestation" type="checkbox"> I reviewed the original customer identity and agreement evidence, and understand this is not payment reconciliation.</label>
       </div>
       <div id="enrollmentExistingLookup" class="pricing-field" hidden>
         <label for="enrollmentExistingAthleteSearch">Find existing athlete</label>
