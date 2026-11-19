@@ -40,8 +40,35 @@ export const manualEdgeCaseProposal = onCall(async req => {
     if (!snap.exists) throw new HttpsError("not-found", "Proposal not found.");
     const proposal = snap.data() || {};
     requireProposalLocationAccess(staff, proposal.locationId);
-    if (clean(proposal.status).toUpperCase() !== "DRAFT") {
-      throw new HttpsError("failed-precondition", "Only unsigned DRAFT proposals can use this tool.");
+    const status = clean(proposal.status).toUpperCase();
+    if (status === "PAID") {
+      // Paid-in-full cases are read-only here. All payment, receipt,
+      // delivery and activation changes remain with their existing
+      // authorized callables; never unlock the Draft ledger editor.
+      const payment = proposal.cashPrepayment;
+      if (clean(proposal.paymentMethod).toLowerCase() !== "cash_prepaid" ||
+          payment?.membershipPaidInFull !== true ||
+          !Number.isSafeInteger(payment?.amountCents) || payment.amountCents <= 0) {
+        throw new HttpsError("failed-precondition", "This paid account needs Management review; it is not a verified Cash/Check Paid-in-Full case.");
+      }
+      return {
+        proposalId, status, caseType: "paid_in_full_recovery",
+        readOnly: true, checkoutAuthorized: false,
+        payment: {
+          amountCents: payment.amountCents,
+          membershipAmountCents: Number.isSafeInteger(payment.membershipAmountCents)
+            ? payment.membershipAmountCents : null,
+          annualFeeOutstandingCents: Number.isSafeInteger(payment.annualEnrollmentFee?.outstandingCents)
+            ? payment.annualEnrollmentFee.outstandingCents : null,
+          membershipStartDate: clean(payment.membershipStartDate),
+          membershipPaidThroughDate: clean(payment.membershipPaidThroughDate),
+          nextBillingDate: clean(payment.nextBillingDate || proposal.nextBillingDate),
+          paymentMethod: clean(payment.paymentMethod),
+        },
+      };
+    }
+    if (status !== "DRAFT") {
+      throw new HttpsError("failed-precondition", "Only unsigned DRAFT or verified Paid-in-Full proposals can use this tool.");
     }
     // Only financial summary fields needed by this screen; no prospect,
     // identity, contact, or complete Firestore document is exposed.

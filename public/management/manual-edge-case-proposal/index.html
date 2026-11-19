@@ -15,6 +15,13 @@
 <form id="loadForm"><label for="proposalId">Proposal ID</label>
 <div class="tool-line"><input required id="proposalId" placeholder="P-000019" pattern="P-[0-9]{6}" autocomplete="off"><button type="submit">Load</button></div></form>
 <p id="status" role="status" aria-live="polite">Enter an existing proposal ID.</p></section>
+<section id="recoveryPanel" class="tool-panel" hidden>
+<h2>Paid-in-Full Recovery</h2>
+<p>This paid account is read-only here. Original payments and signed agreements cannot be edited through the Draft allocation tool.</p>
+<div id="recoverySummary" role="status" style="white-space:pre-wrap"></div>
+<p>Continue in the existing Intake Management workflow to inspect the handoff, receipt and activation state. Do not record another payment.</p>
+<p><a id="recoveryIntakeLink" href="/intake-management/">Open Intake Management</a></p>
+</section>
 <section id="editPanel" class="tool-panel" hidden><h2>2. Adjust allocation</h2>
 <p>Amounts in dollars. The original receipt amount is fixed. Historical membership rates may differ from today's agreement rate.</p>
 <div id="receiptRows"></div>

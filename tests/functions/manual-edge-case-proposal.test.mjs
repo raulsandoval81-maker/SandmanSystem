@@ -178,3 +178,19 @@ test("REVIEW conversion never unlocks the Draft-only Edge Case ledger editor", (
  assert.match(ui,/\$\{blocked \? \x60<p>/);
  assert.match(reconciliation,/\["DRAFT", "REVIEW"\]\.includes\(cleanString\(sourceProposal\.status\)/);
 });
+
+test("Paid-in-Full recovery remains read-only and never unlocks financial edits", () => {
+ const server = readFileSync("functions/src/management/manualEdgeCaseProposal.ts","utf8");
+ const client = readFileSync("public/management/manual-edge-case-proposal/tool.js","utf8");
+ const html = readFileSync("public/management/manual-edge-case-proposal/index.html","utf8");
+ assert.match(server,/caseType: "paid_in_full_recovery"/);
+ assert.match(server,/payment\?\.membershipPaidInFull !== true/);
+ assert.match(server,/readOnly: true, checkoutAuthorized: false/);
+ assert.match(server,/if \(status !== "DRAFT"\)/);
+ assert.match(server,/buildManualProposalAdjustment\(proposal, entries, certifyConversion\)/);
+ assert.match(client,/proposal\.caseType === "paid_in_full_recovery" && proposal\.readOnly === true/);
+ assert.match(client,/recoveryPanel"\)\.hidden = false/);
+ assert.match(client,/\/intake-management\/\?proposalId=/);
+ assert.match(html,/id="recoverySummary"/);
+ assert.match(html,/Original payments and signed agreements cannot be edited/);
+});
