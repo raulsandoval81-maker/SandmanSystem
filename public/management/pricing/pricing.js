@@ -25,6 +25,8 @@ import { requireManagement } from "/management/shared/guards/management-guard.js
 
 const appointmentId = new URLSearchParams(window.location.search).get("appointmentId") || "";
 const enrollmentEntrySource = document.getElementById("enrollmentEntrySource");
+const enrollmentPaymentRoute = document.getElementById("enrollmentPaymentRoute");
+const historicalPaymentRouteNotice = document.getElementById("historicalPaymentRouteNotice");
 const enrollmentRegistrantRole = document.getElementById("enrollmentRegistrantRole");
 const enrollmentAthleteRecord = document.getElementById("enrollmentAthleteRecord");
 const enrollmentExistingLookup = document.getElementById("enrollmentExistingLookup");
@@ -1563,6 +1565,8 @@ function syncEnrollmentEntry() {
   const source = enrollmentEntrySource?.value || "admissions";
   const athleteRecord = enrollmentAthleteRecord?.value || "new";
   const existing = athleteRecord === "existing";
+  const historical = enrollmentPaymentRoute?.value === "historical_prepaid_check";
+  if (historicalPaymentRouteNotice) historicalPaymentRouteNotice.hidden = !historical;
   if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
 
   // Only the existing, appointment-backed NEW athlete path is wired to
@@ -1571,7 +1575,9 @@ function syncEnrollmentEntry() {
   const supported = source === "admissions" && !existing && Boolean(sourceAppointment && appointmentId);
   if (continueProposalBtn) continueProposalBtn.hidden = !supported;
   if (enrollmentEntryStatus) {
-    enrollmentEntryStatus.textContent = existing
+    enrollmentEntryStatus.textContent = historical && !sourceAppointment
+      ? "Historical cash/check requires an existing Admissions appointment. Locate the original lead/appointment first; no placeholder proposal will be created."
+      : existing
       ? "Existing / legacy athlete linking is not yet enabled. Management must verify and link the canonical athlete ID before creating a proposal. Pricing is a preview only."
       : source === "walk_in"
         ? "Direct Management entry is not yet connected to proposal creation. No appointment will be fabricated; pricing is a preview only."
@@ -1581,7 +1587,7 @@ function syncEnrollmentEntry() {
   }
 }
 
-[enrollmentEntrySource, enrollmentRegistrantRole, enrollmentAthleteRecord]
+[enrollmentEntrySource, enrollmentRegistrantRole, enrollmentAthleteRecord, enrollmentPaymentRoute]
   .forEach((control) => control?.addEventListener("change", syncEnrollmentEntry));
 
 async function loadPricingSource() {
@@ -1755,6 +1761,17 @@ continueProposalBtn?.addEventListener(
       "Creating Proposal…";
 
     try {
+      const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
+      if (historicalPrepaid) {
+        if (!enrollmentStartDate?.value) throw new Error("Enter the original membership start date before creating the Paid-in-Full proposal.");
+        if (priorPaymentHandoff()) throw new Error("For a full-year already-paid check, leave the separate Historical payment to Billing fields empty. The cash/check Paid-in-Full reconciliation owns that payment and prevents a duplicate ledger entry.");
+        const cards = [...athleteList.querySelectorAll(".pricing-athlete")];
+        if (cards.length !== 1 || cards[0]?.querySelector(".athlete-plan")?.value !== "standard") throw new Error("Historical Paid-in-Full currently requires exactly one Combat athlete. Do not use a partial or multi-athlete workaround.");
+        const term = cards[0].querySelector(".billing-term");
+        if (!term) throw new Error("Membership billing term is missing.");
+        term.value = "annual";
+        renderPricing();
+      }
       const handoff = {
         appointmentId,
         createdAt: Date.now(),
@@ -1762,7 +1779,8 @@ continueProposalBtn?.addEventListener(
         membershipStartDate:
           enrollmentStartDate?.value || "",
         priorPayment:
-          priorPaymentHandoff(),
+          historicalPrepaid ? null : priorPaymentHandoff(),
+        historicalPrepaid,
       };
 
       sessionStorage.setItem(
@@ -1845,7 +1863,7 @@ continueProposalBtn?.addEventListener(
       }
 
       const priorPayment =
-        priorPaymentHandoff();
+        historicalPrepaid ? null : priorPaymentHandoff();
 
       if (priorPayment) {
         const recordPriorPayment =
@@ -1880,7 +1898,8 @@ continueProposalBtn?.addEventListener(
       window.location.href =
         "/connect/admissions/calculator/" +
         `?appointmentId=${encodeURIComponent(appointmentId)}` +
-        `&proposalId=${encodeURIComponent(proposalId)}`;
+        `&proposalId=${encodeURIComponent(proposalId)}` +
+        (historicalPrepaid ? "&historicalPrepaid=1" : "");
     } catch (error) {
       console.error(
         "Pricing → Proposal handoff failed:",
