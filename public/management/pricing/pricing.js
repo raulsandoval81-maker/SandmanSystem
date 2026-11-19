@@ -1577,9 +1577,9 @@ function syncEnrollmentEntry() {
   if (managementHistoricalFields) managementHistoricalFields.hidden = !directHistorical;
   if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
 
-  // Only the existing, appointment-backed NEW athlete path is wired to
-  // createProposalDraft. Never claim a walk-in or existing-athlete link
-  // was saved while the canonical backend handoff is not implemented.
+  // Admissions and documented Management historical entry use the same
+  // canonical proposal creator. Existing athlete linking stays blocked
+  // until a verified athlete ID can be carried through Intake.
   const supported = !existing && (
     (source === "admissions" && Boolean(sourceAppointment && appointmentId)) ||
     (directHistorical && historical)
@@ -1617,7 +1617,7 @@ async function loadPricingSource() {
     historicalLocationId.readOnly = true;
   }
   if (!appointmentId) {
-    pricingSourceStatus.textContent = "Standalone estimate. Open a lead or appointment to continue into a proposal.";
+    pricingSourceStatus.textContent = "Standalone pricing estimate. Open Admissions for a new customer, or select Existing paper agreement for a documented historical enrollment.";
     syncEnrollmentEntry();
     return;
   }
@@ -1788,6 +1788,7 @@ continueProposalBtn?.addEventListener(
     try {
       const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
       if (managementHistorical) {
+        if (appointmentId) throw new Error("Do not mix an existing Admissions appointment with direct Management historical entry. Open Pricing without an appointmentId.");
         const identity = [historicalLocationId?.value, historicalContactName?.value,
           historicalContactEmail?.value, historicalSourceReference?.value];
         if (identity.some(value => !String(value || "").trim()) ||
@@ -1811,7 +1812,7 @@ continueProposalBtn?.addEventListener(
         renderPricing();
       }
       const handoff = {
-        appointmentId,
+        appointmentId: managementHistorical ? "" : appointmentId,
         createdAt: Date.now(),
         athletes: readAthletes(),
         membershipStartDate:
@@ -1841,10 +1842,11 @@ continueProposalBtn?.addEventListener(
           sourceReference: String(historicalSourceReference.value).trim(),
           confirmExistingAgreement: true,
         }} : {}),
-        admissionsRequestId:
+        admissionsRequestId: managementHistorical ? null : (
           sourceAppointment?.admissionsRequestId ||
           sourceAppointment?.requestId ||
-          null,
+          null
+        ),
         prospect: {
           appointmentId: managementHistorical ? null : appointmentId,
           primaryContactName: managementHistorical ? String(historicalContactName.value).trim() : null,
