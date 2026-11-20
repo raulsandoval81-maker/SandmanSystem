@@ -71,6 +71,8 @@ export class SchedulingService {
     return authorized(this.foundation,ctx,"management.schedule","session",session.id,session.organizationId,() =>
       authorized(this.foundation,ctx,"management.schedule","session",session.id,session.organizationId,() => {
         this.validate(session);
+        const hasAttendance=this.foundation.store.list<AttendanceRecord>("attendance",session.organizationId).some(a=>a.sessionId===session.id);
+        if(hasAttendance&&(session.programId!==existing.programId||session.academyId!==existing.academyId||session.locationId!==existing.locationId)) throw new Error("SESSION_WITH_ATTENDANCE_CANNOT_MOVE");
         this.foundation.store.put("sessions",session,true);
         return structuredClone(session);
       },session.academyId,[session.locationId])
