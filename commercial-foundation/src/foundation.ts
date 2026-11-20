@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { Academy, AuditEvent, AuthorizationContext, Entitlement, IdentityAuthority, Location, Membership, Organization, Program, VerifiedIdentity } from "./contracts";
 import { assertId, validateEntitlement, validateMembership, validateProgram } from "./validation";
 
@@ -11,7 +10,7 @@ const key = (organizationId: string, id: string) => JSON.stringify([organization
 export class InMemoryTestIdentityAuthority implements IdentityAuthority {
   private readonly sessions = new Map<string, VerifiedIdentity>();
   mint(userId: string, selectedOrganizationId: string, systemAdmin = false): AuthorizationContext {
-    const sessionId = randomUUID();
+    const sessionId = globalThis.crypto.randomUUID();
     this.sessions.set(sessionId, Object.freeze({ userId, selectedOrganizationId, systemAdmin }));
     return Object.freeze({ sessionId });
   }
