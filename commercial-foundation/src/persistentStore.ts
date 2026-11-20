@@ -68,9 +68,32 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       const program = this.get("programs", session.organizationId, session.programId) as import("./contracts").Program | undefined;
       if (!academy || !location || !program || location.academyId !== academy.id || program.academyId !== academy.id || !program.locationIds.includes(location.id)) throw new Error("INVALID_PERSISTED_SESSION_REFERENCE");
     }
-    for (const athlete of this.athletes.values()) if (!(this.get("programs", athlete.organizationId, athlete.programId))) throw new Error("INVALID_PERSISTED_ATHLETE_REFERENCE");
-    for (const attendance of this.attendance.values()) if (!this.get("sessions", attendance.organizationId, attendance.sessionId) || !this.get("athletes", attendance.organizationId, attendance.athleteId)) throw new Error("INVALID_PERSISTED_ATTENDANCE_REFERENCE");
-    for (const note of this.practiceNotes.values()) if (!this.get("sessions", note.organizationId, note.sessionId)) throw new Error("INVALID_PERSISTED_NOTE_REFERENCE");
+    for (const athlete of this.athletes.values()) {
+      const program = this.get<import("./contracts").Program>("programs", athlete.organizationId, athlete.programId);
+      if (!program || athlete.synthetic !== true || typeof athlete.displayName !== "string" || !athlete.displayName.trim()) throw new Error("INVALID_PERSISTED_ATHLETE_REFERENCE");
+    }
+    const validDate = (value: unknown) => typeof value === "string" && !Number.isNaN(Date.parse(value));
+    for (const session of this.sessions.values()) {
+      if (!["scheduled", "completed", "cancelled"].includes(session.state) || !validDate(session.startsAt) || !validDate(session.endsAt) || Date.parse(session.endsAt) <= Date.parse(session.startsAt) ||
+        !Array.isArray(session.coachUserIds) || !session.coachUserIds.length || new Set(session.coachUserIds).size !== session.coachUserIds.length ||
+        session.coachUserIds.some(userId => typeof userId !== "string" || !this.list<import("./contracts").Membership>("memberships", session.organizationId).some(m =>
+          m.userId === userId && m.role === "coach" && (m.scopeType === "organization" || (m.scopeType === "academy" && m.scopeId === session.academyId) || (m.scopeType === "location" && m.scopeId === session.locationId))))) {
+        throw new Error("INVALID_PERSISTED_SESSION_STATE");
+      }
+    }
+    for (const attendance of this.attendance.values()) {
+      const session = this.get<import("./contracts").PracticeSession>("sessions", attendance.organizationId, attendance.sessionId);
+      const athlete = this.get<import("./contracts").CommercialAthlete>("athletes", attendance.organizationId, attendance.athleteId);
+      if (!session || !athlete || athlete.programId !== session.programId) throw new Error("INVALID_PERSISTED_ATTENDANCE_REFERENCE");
+      if (attendance.id !== `${attendance.sessionId}--${attendance.athleteId}` || !["present", "absent", "excused"].includes(attendance.state) ||
+        typeof attendance.recordedByUserId !== "string" || !attendance.recordedByUserId || !validDate(attendance.recordedAt) ||
+        (attendance.correctedAt !== undefined && !validDate(attendance.correctedAt))) throw new Error("INVALID_PERSISTED_ATTENDANCE_STATE");
+    }
+    for (const note of this.practiceNotes.values()) {
+      const session = this.get<import("./contracts").PracticeSession>("sessions", note.organizationId, note.sessionId);
+      if (!session) throw new Error("INVALID_PERSISTED_NOTE_REFERENCE");
+      if (typeof note.authorUserId !== "string" || !note.authorUserId || typeof note.body !== "string" || !note.body.trim() || note.body.length > 2000 || !validDate(note.createdAt)) throw new Error("INVALID_PERSISTED_NOTE_STATE");
+    }
     if (state.audits.some(event => !event || typeof event.id !== "string" || !/^audit-[1-9][0-9]*$/.test(event.id) || !this.getOrganization(event.selectedOrganizationId) ||
       typeof event.actorUserId !== "string" || !["permitted", "rejected"].includes(event.outcome))) throw new Error("INVALID_PERSISTED_AUDIT");
     if (new Set(state.audits.map(event => event.id)).size !== state.audits.length) throw new Error("DUPLICATE_PERSISTED_AUDIT");
