@@ -1,0 +1,14 @@
+{
+  "schema": "sandman.commercial.registry.v1",
+  "products": [
+    { "id": "sandman-commercial", "owner": "Sandman Systems", "lifecycle": "proposed", "capabilityIds": ["org.manage", "academy.manage", "locations.manage", "programs.manage", "roster.manage", "schedule.manage", "attendance.manage", "coach.workspace", "parent.portal", "athlete.portal", "curriculum.deliver", "xp.progression", "advanced.reporting"], "integrationType": "native", "dataBoundary": "independent_customer_tenants", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "head-coach-wtm", "owner": "Head Coach WTM", "lifecycle": "private_preview", "capabilityIds": ["wtm.access"], "integrationType": "optional_adapter", "dataBoundary": "independent_wtm", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "combat-trainer", "owner": "Combat Trainer", "lifecycle": "prelaunch", "capabilityIds": ["combat-trainer.access"], "integrationType": "optional_adapter", "dataBoundary": "independent_combat_trainer", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "combat-practice-clipboard", "owner": "Combat Practice Clipboard", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "not_established", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "cornerman-ai", "owner": "CornermanAI", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "independent", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "fuel-ai", "owner": "FuelAI", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "independent", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "fightroom", "owner": "FightRoom", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "independent", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "combat-games", "owner": "Combat Games", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "independent", "compatibilityVersion": "1.0.0", "approvedRelease": false },
+    { "id": "ghostmedia-ai", "owner": "GhostMediaAI", "lifecycle": "unverified", "capabilityIds": [], "integrationType": "optional_adapter", "dataBoundary": "independent", "compatibilityVersion": "1.0.0", "approvedRelease": false }
+  ]
+}
