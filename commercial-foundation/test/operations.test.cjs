@@ -73,3 +73,13 @@ test("restart rejects persisted attendance belonging to another program and malf
   writeFileSync(f.file,JSON.stringify(original));
   assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
 });
+
+test("completed attendance prevents a session from being moved to another program or location",()=>{
+  const f=setup();
+  operate(f,A,f.adminA,f.coachA);
+  f.foundation.createLocation(f.adminA,{id:"location-new",organizationId:A,academyId:"academy-local",name:"New Gym",state:"active"});
+  const p=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...p,locationIds:["location-local","location-new"]},true);
+  assert.throws(()=>f.scheduling.update(f.adminA,{...session(A),locationId:"location-new"}),/SESSION_WITH_ATTENDANCE_CANNOT_MOVE/);
+  assert.equal(f.store.get("sessions",A,"session-local").locationId,"location-local");
+});
