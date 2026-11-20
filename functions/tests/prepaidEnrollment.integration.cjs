@@ -70,6 +70,7 @@ const payment = (id, overrides = {}) => ({
   amountCents: 99000,
   membershipAmountCents: 96000,
   paymentMethod: "check",
+  paymentEvidenceReference: `synthetic-check-${id}-${suffix}`,
   paymentDate: "2026-10-01",
   membershipStartDate: "2026-10-05",
   membershipPaidThroughDate: "2027-10-04",
@@ -221,6 +222,59 @@ test("100% approved support waives authoritative cash/check enrollment liability
     })),
     /already been recorded/
   );
+});
+
+test("payment evidence is mandatory, and a rejected payment creates no claim", async () => {
+  const unrecorded = `${proposalId}-MISSING-EVIDENCE`;
+  await db.doc(`proposals/${unrecorded}`).set(acceptedProposal(unrecorded));
+  await invoke(prepaid, manager, { proposalId: unrecorded, mode: "prepare" });
+  await invoke(confirm, manager, {
+    proposalId: unrecorded, enrollmentToken: token, confirmation: { termsConfirmed: true },
+  });
+  await assert.rejects(invoke(prepaid, manager, payment(unrecorded, {
+    paymentEvidenceReference: "",
+  })), /evidence reference/);
+  assert.equal((await db.doc(`proposals/${unrecorded}`).get()).get("cashPrepayment"), undefined);
+});
+
+test("same verified check cannot be posted to two proposals concurrently", async () => {
+  const a = `${proposalId}-DUPLICATE-CHECK-A`;
+  const b = `${proposalId}-DUPLICATE-CHECK-B`;
+  await Promise.all([a, b].map((id) =>
+    db.doc(`proposals/${id}`).set(acceptedProposal(id))));
+  await Promise.all([a, b].map((id) =>
+    invoke(prepaid, manager, { proposalId: id, mode: "prepare" })));
+  await Promise.all([a, b].map((id) =>
+    invoke(confirm, manager, {
+      proposalId: id, enrollmentToken: token,
+      confirmation: { termsConfirmed: true },
+    })));
+  const reference = `verified-bank-deposit-${suffix}-one`;
+  const requests = [a, b].map((id, index) => invoke(prepaid, manager, payment(id, {
+    amountCents: 96000,
+    paymentEvidenceReference: index ? reference.toUpperCase().replace(/-/g, " ") : reference,
+    enrollmentFeeIncludedAthleteIndexes: [],
+    enrollmentFeeAllocations: [],
+  })));
+  const outcomes = await Promise.allSettled(requests);
+  assert.equal(outcomes.filter((result) => result.status === "fulfilled").length, 1);
+  assert.equal(outcomes.filter((result) => result.status === "rejected").length, 1);
+  const statuses = await Promise.all([a, b].map(async (id) =>
+    (await db.doc(`proposals/${id}`).get()).data()));
+  assert.deepEqual(statuses.map((record) => record.status).sort(),
+    ["PAID", "READY_FOR_CHECKOUT"]);
+  const paid = statuses.find((record) => record.status === "PAID");
+  const unpaid = statuses.find((record) => record.status !== "PAID");
+  assert.equal(unpaid.cashPrepayment, undefined);
+  assert.equal(paid.cashPrepayment.amountCents, 96000);
+  const claims = await db.collection("prepaidPaymentEvidenceClaims").get();
+  assert.equal(claims.docs.filter((doc) => doc.get("proposalId") === a ||
+    doc.get("proposalId") === b).length, 1);
+  await assert.rejects(invoke(prepaid, manager, payment(
+    paid.proposalId === a ? b : a, {
+      amountCents: 96000, paymentEvidenceReference: reference,
+      enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+    })), /already been credited/);
 });
 
 test("historical enrollment attribution and partial new fee allocation remain auditable", async () => {

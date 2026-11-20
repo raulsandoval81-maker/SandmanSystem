@@ -1973,6 +1973,14 @@ function ensureCashDialog() {
         </label>
 
         <label>
+          <span>Verified check/deposit or cash-receipt reference</span>
+          <input id="prepaidCashEvidenceReference" type="text" minlength="8" maxlength="160"
+            autocomplete="off" required
+            placeholder="Reference from original payment evidence">
+          <small>Use the original check/deposit transaction or issued cash receipt identifier. Never use a proposal number or an unverified description.</small>
+        </label>
+
+        <label>
           <span id="prepaidCashMembershipLabel">Locked-term membership allocation</span>
           <input
             id="prepaidCashMembershipAmount"
@@ -2123,6 +2131,9 @@ function ensureCashDialog() {
         const paymentDate = clean(
           document.getElementById("prepaidCashPaymentDate")?.value
         );
+        const paymentEvidenceReference = clean(
+          document.getElementById("prepaidCashEvidenceReference")?.value
+        );
         const membershipStartDate = clean(
           document.getElementById("prepaidCashStartDate")?.value
         );
@@ -2178,6 +2189,7 @@ function ensureCashDialog() {
           !Number.isFinite(membershipAmount) ||
           membershipAmount <= 0 ||
           !paymentMethod ||
+          paymentEvidenceReference.length < 8 ||
           !paymentDate ||
           !membershipStartDate ||
           !membershipPaidThroughDate ||
@@ -2214,6 +2226,7 @@ function ensureCashDialog() {
             membershipAmountCents:
               Math.round(membershipAmount * 100),
             paymentMethod,
+            paymentEvidenceReference,
             paymentDate,
             membershipStartDate,
             membershipPaidThroughDate,
@@ -2304,6 +2317,7 @@ function openCashDialog(
     proposal.pricing?.membershipStartDate
   );
   document.getElementById("prepaidCashPaymentDate").value = "";
+  document.getElementById("prepaidCashEvidenceReference").value = "";
   document.getElementById("prepaidCashStartDate").value = startDate;
 
   const coverage = prepaidCoverageDates(startDate, monthsCovered);
