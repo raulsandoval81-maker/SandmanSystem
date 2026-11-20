@@ -32,6 +32,25 @@ export class InMemoryCommercialStore {
   programs = new Map<string, Program>(); memberships = new Map<string, Membership>();
   entitlements = new Map<string, Entitlement>(); audits: AuditEvent[] = [];
   protected sequence = 0;
+  /** Snapshot/restore protect the reference adapter from partial multi-step operations. */
+  protected snapshotState() {
+    return {
+      organizations: new Map(this.organizations), academies: new Map(this.academies),
+      locations: new Map(this.locations), programs: new Map(this.programs),
+      memberships: new Map(this.memberships), entitlements: new Map(this.entitlements),
+      audits: structuredClone(this.audits), sequence: this.sequence
+    };
+  }
+  protected restoreState(state: ReturnType<InMemoryCommercialStore["snapshotState"]>): void {
+    this.organizations = state.organizations; this.academies = state.academies;
+    this.locations = state.locations; this.programs = state.programs;
+    this.memberships = state.memberships; this.entitlements = state.entitlements;
+    this.audits = state.audits; this.sequence = state.sequence;
+  }
+  transaction<T>(work: () => T): T {
+    const previous = this.snapshotState();
+    try { return work(); } catch (error) { this.restoreState(previous); throw error; }
+  }
   createOrganization(record: Organization): void {
     if (this.organizations.has(record.id)) throw new Error("DUPLICATE_RECORD_ID");
     this.organizations.set(record.id, structuredClone(record));
@@ -64,6 +83,7 @@ export class InMemoryCommercialStore {
 
 export class CommercialFoundation {
   constructor(readonly store: InMemoryCommercialStore, private readonly authority: IdentityAuthority, private readonly now = () => new Date()) {}
+  transaction<T>(work: () => T): T { return this.store.transaction(work); }
   private identity(ctx: AuthorizationContext): VerifiedIdentity { return this.authority.verify(ctx); }
   private memberships(identity: VerifiedIdentity): Membership[] {
     return this.store.list<Membership>("memberships", identity.selectedOrganizationId)
