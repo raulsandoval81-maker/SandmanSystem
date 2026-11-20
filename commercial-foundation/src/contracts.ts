@@ -32,4 +32,8 @@ export interface AuditEvent {
   action: string; resourceType: string; resourceId: string; outcome: "permitted" | "rejected";
   reason?: string;
 }
-export interface AuthorizationContext { userId: string; selectedOrganizationId: string; systemAdmin?: boolean }
+
+/** Opaque request credential; user/role/organization claims are resolved by trusted server authority. */
+export interface AuthorizationContext { sessionId: string }
+export interface VerifiedIdentity { userId: string; selectedOrganizationId: string; systemAdmin: boolean }
+export interface IdentityAuthority { verify(ctx: AuthorizationContext): VerifiedIdentity }
