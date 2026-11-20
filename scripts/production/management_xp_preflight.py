@@ -12,7 +12,7 @@ import zipfile
 import receipt_intake_inventory as inventory
 
 REPOSITORY = "raulsandoval81-maker/SandmanSystem"
-SHA = "eb3db00a5940b71b55e2d0024db7fb125fa5bbbb"
+SHA = "8734b84762e6765bccf51cadbdf59c52434a7843"
 TARGET = "createManagementXpAdjustment"
 SHARED = "searchManagementMembers"
 PROJECT = "sandmandashboard"
@@ -21,10 +21,17 @@ LOCATION = f"projects/{PROJECT}/locations/{REGION}"
 FUNCTION = f"https://cloudfunctions.googleapis.com/v2/{LOCATION}/functions/{TARGET}"
 SERVICE = f"https://run.googleapis.com/v2/{LOCATION}/services/{TARGET.lower()}"
 BUCKET = f"gcf-v2-sources-{inventory.NUMBER}-{REGION}"
+APPROVED_SOURCE = {
+    "bucket": BUCKET,
+    "object": f"{TARGET}/function-source.zip",
+    "generation": "1791403805929116",
+}
+APPROVED_ARCHIVE_SHA256 = "ec8c60adea97dc837498926e4c8ac33782b6a717e672c6cae32170db79fe49a1"
+
 OVERLAY = {
     "lib/management/managementXpTools.js": (
         "011fb62d8b74782315118ddaeed0799544459ee8bf25abc229db3a4f21701fb4",
-        "715d2ae2828dc8c53d953289de4ab3c49b1fe8ad6938d36aae92b5934c67456e",
+        "fee80c7d2f62e40626063c4cd4fb42a45f7a4a7e29108c7476e24aa0d0fe83fc",
     ),
     "lib/services/authoritativeXpService.js": (
         "ce363c13485f9232cabd2528272559bd33005ab0d51aa9ccb7e9b9c8f81634c8",
@@ -115,6 +122,24 @@ def build_record(resource):
     ))
 
 
+def verify_approved_source(reference, archive_digest):
+    require(reference == APPROVED_SOURCE, "Function source differs from the approved recovery generation")
+    require(archive_digest == APPROVED_ARCHIVE_SHA256, "Approved recovery archive SHA-256 mismatch")
+
+
+def read_matching_source(function_source, serving_source, token):
+    rollback = read_archive(function_source, token)
+    if serving_source != function_source:
+        require(read_archive(serving_source, token) == rollback,
+                "Function and serving build source archives differ byte-for-byte")
+    return rollback
+
+
+def verify_rollback_recovery(source, token, original):
+    require(read_archive(source, token) == original,
+            "Generation-pinned rollback bytes failed recovery verification")
+
+
 def image_repository(reference):
     """Remove OCI digest and tag while preserving the full registry and repository."""
     name = reference.split("@", 1)[0]
@@ -143,6 +168,13 @@ def verify_build_image(build, resource, image, revision):
         "functionBuild": resource,
         "functionBuildStatus": build.get("status"),
         "reportedImageCount": len(results),
+        "declaredImageCount": len(build.get("images") or []),
+        "structuredDockerPushStepCount": sum(
+            step.get("args", [])[:1] == ["push"]
+            and ("docker" in step.get("name", "").rsplit("/", 1)[-1].split(":", 1)[0]
+                 or step.get("entrypoint") == "docker")
+            for step in build.get("steps", [])
+        ),
         "repositoryMatched": any(image_repository(item.get("name", "")) == repository for item in results),
         "digestMatched": any(item.get("digest") == digest_value for item in results),
     }, sort_keys=True), flush=True)
@@ -236,10 +268,9 @@ def preflight(candidate):
 
     function_source = source_ref(config)
     serving_source = source_ref(build)
-    rollback = read_archive(function_source, token)
-    if serving_source != function_source:
-        require(manifest(read_archive(serving_source, token)) == manifest(rollback),
-                "Shared image was built from different source bytes")
+    require(function_source == APPROVED_SOURCE, "Function source differs from the approved recovery generation")
+    rollback = read_matching_source(function_source, serving_source, token)
+    verify_approved_source(function_source, sha(rollback))
     candidate_functions = candidate / "functions"
     rollback_manifest = manifest(rollback)
     dependencies = inventory.closure(candidate_functions, "management/managementXpTools")
@@ -262,8 +293,7 @@ def preflight(candidate):
         bool(explicit_build_scripts) if explicit_build_scripts is not None
         else bool(scripts.get("gcp-build", scripts.get("build")))
     )
-    require(read_archive(function_source, token) == rollback,
-            "Generation-pinned rollback bytes failed recovery verification")
+    verify_rollback_recovery(function_source, token, rollback)
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
@@ -289,7 +319,8 @@ def preflight(candidate):
         },
         "durableRollbackRetentionVerified": False,
         "deploymentEnabled": False,
-    }, sort_keys=True))
+    }, sort_keys=True), flush=True)
+    require(not rebuild_expected, "Build scripts may regenerate the approved compiled overlay")
 
 
 if __name__ == "__main__":
