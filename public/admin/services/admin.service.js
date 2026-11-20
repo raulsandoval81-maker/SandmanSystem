@@ -5,10 +5,8 @@ import { db } from "/assets/js/firebase-init.js";
 
 import {
   doc,
-  getDoc,
-  updateDoc,
   collection,
-  addDoc,
+  runTransaction,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
@@ -57,84 +55,98 @@ export async function applyXpAdjustment({
     throw new Error("Missing athlete ID");
   }
 
-  if (!Number.isFinite(xpAmount) || xpAmount === 0) {
+  if (!Number.isSafeInteger(xpAmount) || xpAmount === 0) {
     throw new Error("Invalid XP amount");
   }
 
   const athleteRef = doc(db, "athletes", athleteIdClean);
-  const athleteSnap = await getDoc(athleteRef);
+  const logRef = doc(collection(db, "xpLogs"));
 
-  if (!athleteSnap.exists()) {
-    throw new Error("Athlete not found");
-  }
+  const result = await runTransaction(db, async (tx) => {
+    const athleteSnap = await tx.get(athleteRef);
 
-  const athlete = athleteSnap.data() || {};
+    if (!athleteSnap.exists()) {
+      throw new Error("Athlete not found");
+    }
 
-  const beforeXp = Number(athlete.xp || 0);
-  const afterXp = Math.max(0, beforeXp + xpAmount);
+    const athlete = athleteSnap.data() || {};
 
-  const accountabilityType = accountabilityLevelFromKind(xpKind);
-  const transitionType = transitionStatusFromKind(xpKind);
+    const beforeXp = Number(athlete.xp || 0);
+    if (!Number.isSafeInteger(beforeXp) || beforeXp < 0) {
+      throw new Error("Invalid athlete XP balance");
+    }
+    const afterXp = Math.max(0, beforeXp + xpAmount);
+    if (!Number.isSafeInteger(afterXp)) {
+      throw new Error("XP result exceeds the supported range");
+    }
+    const appliedDelta = afterXp - beforeXp;
 
-  const adjustmentKey = safeKeyFromDate();
+    const accountabilityType = accountabilityLevelFromKind(xpKind);
+    const transitionType = transitionStatusFromKind(xpKind);
 
-  const athletePatch = {
-    xp: afterXp,
-    updatedAt: serverTimestamp()
-  };
+    const adjustmentKey = safeKeyFromDate();
 
-  if (accountabilityType) {
-    athletePatch[`accountability.${adjustmentKey}`] = {
-      amount: xpAmount,
-      type: accountabilityType,
-      reason: xpNote || "Conduct inconsistent with program standards",
-      appliedAt: serverTimestamp()
+    const athletePatch = {
+      xp: afterXp,
+      updatedAt: serverTimestamp()
     };
-  }
 
-  if (transitionType) {
-    athletePatch[`transitionAdjustments.${adjustmentKey}`] = {
-      amount: xpAmount,
-      type: transitionType,
-      reason: xpNote || "F4 ladder migration transition credit",
-      appliedAt: serverTimestamp()
-    };
-  }
+    if (accountabilityType) {
+      athletePatch[`accountability.${adjustmentKey}`] = {
+        amount: xpAmount,
+        type: accountabilityType,
+        reason: xpNote || "Conduct inconsistent with program standards",
+        appliedAt: serverTimestamp()
+      };
+    }
 
-  console.log("[XP ADJUST]", {
-    athleteIdClean,
-    beforeXp,
-    xpAmount,
-    afterXp,
-    xpKind
+    if (transitionType) {
+      athletePatch[`transitionAdjustments.${adjustmentKey}`] = {
+        amount: xpAmount,
+        type: transitionType,
+        reason: xpNote || "F4 ladder migration transition credit",
+        appliedAt: serverTimestamp()
+      };
+    }
+
+    console.log("[XP ADJUST]", {
+      athleteIdClean,
+      beforeXp,
+      xpAmount,
+      afterXp,
+      xpKind
+    });
+
+    tx.update(athleteRef, athletePatch);
+
+    tx.set(logRef, {
+      uid: athleteIdClean,
+      amount: appliedDelta,
+      requestedAmount: xpAmount,
+      beforeXp,
+      afterXp,
+      kind: xpKind,
+      track: athlete.track || "",
+      lane: "combat",
+      xpCap: Number(athlete.xpCap || 0),
+      coachUid: athlete.coachUid || "ADMIN",
+      meta: {
+        source: "admin_adjustment",
+        note: xpNote,
+        accountabilityType,
+        transitionType
+      },
+      createdAt: serverTimestamp()
+    });
+
+    return { beforeXp, afterXp, appliedDelta };
   });
-
-  await updateDoc(athleteRef, athletePatch);
-
-  await addDoc(collection(db, "xpLogs"), {
-    uid: athleteIdClean,
-    amount: xpAmount,
-    beforeXp,
-    afterXp,
-    kind: xpKind,
-    track: athlete.track || "",
-    lane: "combat",
-    xpCap: Number(athlete.xpCap || 0),
-    coachUid: athlete.coachUid || "ADMIN",
-    meta: {
-      source: "admin_adjustment",
-      note: xpNote,
-      accountabilityType,
-      transitionType
-    },
-    createdAt: serverTimestamp()
-  });
-
   return {
     uid: athleteIdClean,
-    beforeXp,
-    afterXp,
-    amount: xpAmount,
+    beforeXp: result.beforeXp,
+    afterXp: result.afterXp,
+    amount: result.appliedDelta,
+    requestedAmount: xpAmount,
     kind: xpKind
   };
 }

@@ -63,6 +63,9 @@ const selectedAthlete =
 const adjustmentPanel =
   $("adjustmentPanel");
 
+const adjustmentSemanticInput = document.getElementById("adjustmentSemantic");
+const adjustmentSemanticField = document.getElementById("adjustmentSemanticField");
+
 const adjustmentForm =
   $("adjustmentForm");
 
@@ -1456,6 +1459,13 @@ function syncRecognitionInput() {
 function syncAdjustmentCategoryUi() {
   syncOverrideAvailability();
 
+  const isCorrection = categoryInput?.value === "correction";
+  if (adjustmentSemanticField) adjustmentSemanticField.hidden = !isCorrection;
+  if (adjustmentSemanticInput) {
+    adjustmentSemanticInput.required = isCorrection;
+    if (!isCorrection) adjustmentSemanticInput.value = "";
+  }
+
   const isOverride =
     categoryInput?.value ===
     "verified_experience_override";
@@ -1523,6 +1533,8 @@ managementRecognitionXp?.addEventListener(
 );
 
 syncAdjustmentCategoryUi();
+
+const pendingAdjustmentIds = new Map();
 
 function createAdjustmentId() {
   if (
@@ -1739,6 +1751,10 @@ adjustmentForm.addEventListener(
             amountInput.value
           );
 
+    const semantic = category === "correction"
+      ? clean(adjustmentSemanticInput?.value)
+      : undefined;
+
     const reason =
       clean(
         reasonInput.value
@@ -1780,6 +1796,11 @@ adjustmentForm.addEventListener(
       return;
     }
 
+    if (category === "correction" && !["NEW_EARNED_XP", "RESTORE_ALREADY_COUNTED_XP"].includes(semantic)) {
+      setAdjustmentStatus("Select whether this correction adds new lifetime XP or restores previously counted XP.", true);
+      return;
+    }
+
     if (!reason) {
       setAdjustmentStatus(
         "Document the reason for this adjustment.",
@@ -1795,6 +1816,7 @@ adjustmentForm.addEventListener(
       `${athlete.name} (${athlete.athleteId})`,
       `${disciplineLabel(selectedDiscipline)}`,
       `${categoryLabel(category)}`,
+      ...(semantic ? [`Classification: ${semantic}`] : []),
       isExperienceOverride
         ? `${recognitionPlan.total} XP total — ${recognitionPlan.now} now${recognitionPlan.held ? ` + ${recognitionPlan.held} held for Tier 1` : ""}`
         : `+${amount} XP`,
@@ -1810,45 +1832,26 @@ adjustmentForm.addEventListener(
       return;
     }
 
-    const adjustmentId =
-      createAdjustmentId();
+    const payload = {
+      athleteUid: athlete.athleteId,
+      discipline: selectedDiscipline,
+      amount,
+      verifiedExperienceYears: isExperienceOverride ? Number(verifiedExperienceYears.value) : null,
+      recognitionPerStage: isExperienceOverride ? recognitionPlan.perStage : null,
+      reason,
+      category,
+      ...(semantic ? { semantic } : {})
+    };
+    const requestKey = JSON.stringify(payload);
+    const adjustmentId = pendingAdjustmentIds.get(requestKey) ?? createAdjustmentId();
+    pendingAdjustmentIds.set(requestKey, adjustmentId);
 
     applyButton.disabled = true;
     clearButton.disabled = true;
-
-    setAdjustmentStatus(
-      "Applying verified XP adjustment…"
-    );
+    setAdjustmentStatus("Applying verified XP adjustment…");
 
     try {
-      const response =
-        await createAdjustment({
-          athleteUid:
-            athlete.athleteId,
-
-          discipline:
-            selectedDiscipline,
-
-          amount,
-
-          verifiedExperienceYears:
-            isExperienceOverride
-              ? Number(
-                  verifiedExperienceYears.value
-                )
-              : null,
-
-          recognitionPerStage:
-            isExperienceOverride
-              ? recognitionPlan.perStage
-              : null,
-
-          reason,
-
-          category,
-
-          adjustmentId
-        });
+      const response = await createAdjustment({ ...payload, adjustmentId });
 
       const result =
         response.data || {};
@@ -1917,6 +1920,7 @@ adjustmentForm.addEventListener(
       }
       reasonInput.value = "";
       syncAdjustmentCategoryUi();
+      pendingAdjustmentIds.delete(requestKey);
 
     } catch (error) {
       console.error(

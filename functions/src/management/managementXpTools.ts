@@ -1097,10 +1097,22 @@ export const createManagementXpAdjustment =
         req.data?.category
       ).toLowerCase();
 
+    const requestedSemantic = clean(req.data?.semantic);
+    // Management may credit new earned XP or restore previously counted XP.
+    // Deductions, lifetime reversals, and decay remain System/Admin authority.
+    if (category === "correction" &&
+        !["NEW_EARNED_XP", "RESTORE_ALREADY_COUNTED_XP"].includes(requestedSemantic)) {
+      throw new HttpsError("invalid-argument", "MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED");
+    }
+    if (category !== "correction" && requestedSemantic &&
+        requestedSemantic !== "NEW_EARNED_XP" &&
+        !(category === "downtime_recovery" && requestedSemantic === "RESTORE_ALREADY_COUNTED_XP")) {
+      throw new HttpsError("invalid-argument", "UNSUPPORTED_MANAGEMENT_SEMANTIC");
+    }
     const semantic =
       resolveManagementAdjustmentSemantic(
         category,
-        clean(req.data?.semantic) as any || undefined
+        requestedSemantic as any || undefined
       );
 
     const adjustmentId =
@@ -1178,8 +1190,7 @@ export const createManagementXpAdjustment =
         );
       }
     } else if (
-      !Number.isFinite(amount) ||
-      !Number.isInteger(amount) ||
+      !Number.isSafeInteger(amount) ||
       amount <= 0
     ) {
       throw new HttpsError(
@@ -1382,21 +1393,18 @@ export const createManagementXpAdjustment =
           );
         }
 
-        const beforeStripeCount =
-          persistedStripeCount(
-            base,
-            tier,
-            beforeXp,
-            xpCap
-          );
-
-        const stripeCount =
-          persistedStripeCount(
-            base,
-            tier,
-            afterXp,
-            xpCap
-          );
+        const storedStripeCount = Number(progression.stripeCount ?? 0);
+        if (!Number.isInteger(storedStripeCount) || storedStripeCount < 0 || storedStripeCount > 4) {
+          throw new HttpsError("failed-precondition", "INVALID_EARNED_STRIPE_COUNT");
+        }
+        const beforeStripeCount = Math.max(
+          storedStripeCount,
+          persistedStripeCount(base, tier, beforeXp, xpCap)
+        );
+        const stripeCount = Math.max(
+          beforeStripeCount,
+          persistedStripeCount(base, tier, afterXp, xpCap)
+        );
 
         const athletePatch:
           Record<string, any> = {

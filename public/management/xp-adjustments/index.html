@@ -462,6 +462,16 @@
               </select>
             </label>
 
+            <label id="adjustmentSemanticField" class="field" hidden>
+              <span>Correction XP Classification</span>
+              <select id="adjustmentSemantic">
+                <option value="">Select correction classification…</option>
+                <option value="NEW_EARNED_XP">Previously unrecorded earned XP (adds lifetime XP)</option>
+                <option value="RESTORE_ALREADY_COUNTED_XP">Restore already-counted XP (no lifetime increase)</option>
+              </select>
+              <small>Management corrections are positive only. Deduction and decay remain under existing System/Admin authority.</small>
+            </label>
+
             <label id="adjustmentAmountField" class="field">
               <span>
                 XP Amount
