@@ -146,8 +146,9 @@ test("restart rejects cross-academy program location and forged membership scope
   writeFileSync(f.file, JSON.stringify(corruptProgram));
   assert.throws(() => new PersistentJsonCommercialStore(f.file), /INVALID_PERSISTED_PROGRAM_REFERENCE/);
   const corruptMembership = structuredClone(original);
-  corruptMembership.memberships[0].scopeType = "academy";
-  corruptMembership.memberships[0].scopeId = "not-a-real-academy";
+  const coachMembership = corruptMembership.memberships.find(member => member.role === "coach");
+  coachMembership.scopeType = "academy";
+  coachMembership.scopeId = "not-a-real-academy";
   writeFileSync(f.file, JSON.stringify(corruptMembership));
   assert.throws(() => new PersistentJsonCommercialStore(f.file), /INVALID_PERSISTED_MEMBERSHIP_SCOPE/);
   const corruptEntitlement = structuredClone(original);
