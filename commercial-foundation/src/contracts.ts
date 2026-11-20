@@ -37,3 +37,6 @@ export interface AuditEvent {
 export interface AuthorizationContext { sessionId: string }
 export interface VerifiedIdentity { userId: string; selectedOrganizationId: string; systemAdmin: boolean }
 export interface IdentityAuthority { verify(ctx: AuthorizationContext): VerifiedIdentity }
+export interface SwitchableIdentityAuthority extends IdentityAuthority {
+  switchOrganization(ctx: AuthorizationContext, organizationId: string): AuthorizationContext;
+}
