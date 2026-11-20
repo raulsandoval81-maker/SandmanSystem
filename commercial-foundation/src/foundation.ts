@@ -134,14 +134,20 @@ export class CommercialFoundation {
     }
   }
   /**
-   * Internal adapter entrypoint; accepts operational actions only.
-   * Never expose this or the raw store through an HTTP/request boundary.
-   * Actual service methods enforce resource-specific constraints.
+   * Authorize a known operational action, without executing caller-provided callbacks.
+   * The unexported adapter executor in operations.ts owns the actual operation.
+   * Never expose this foundation or its test-only mutable store to untrusted clients.
    */
-  runAuthorized<T>(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", type: string, id: string, organizationId: string, operation: (identity: VerifiedIdentity) => T, academyId?: string, locationIds: string[] = []): T {
+  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
+    const identity = this.identity(ctx);
     const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace"];
     if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
-    return this.execute(ctx, action, type, id, organizationId, operation, academyId, locationIds);
+    this.authorize(identity, action, organizationId, academyId, locationIds);
+    if (this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
+    return identity;
+  }
+  auditOperational(identity: VerifiedIdentity, action: string, type: string, id: string, outcome: AuditEvent["outcome"], reason?: string): void {
+    this.store.audit(identity, action, type, id, outcome, reason);
   }
   createOrganization(ctx: AuthorizationContext, organization: Organization): Organization {
     const identity = this.identity(ctx);
