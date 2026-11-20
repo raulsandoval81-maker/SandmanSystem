@@ -55,7 +55,7 @@ export async function applyXpAdjustment({
     throw new Error("Missing athlete ID");
   }
 
-  if (!Number.isFinite(xpAmount) || xpAmount === 0) {
+  if (!Number.isSafeInteger(xpAmount) || xpAmount === 0) {
     throw new Error("Invalid XP amount");
   }
 
@@ -72,7 +72,14 @@ export async function applyXpAdjustment({
   const athlete = athleteSnap.data() || {};
 
   const beforeXp = Number(athlete.xp || 0);
+  if (!Number.isSafeInteger(beforeXp) || beforeXp < 0) {
+    throw new Error("Invalid athlete XP balance");
+  }
   const afterXp = Math.max(0, beforeXp + xpAmount);
+  if (!Number.isSafeInteger(afterXp)) {
+    throw new Error("XP result exceeds the supported range");
+  }
+  const appliedDelta = afterXp - beforeXp;
 
   const accountabilityType = accountabilityLevelFromKind(xpKind);
   const transitionType = transitionStatusFromKind(xpKind);
@@ -114,7 +121,8 @@ export async function applyXpAdjustment({
 
   tx.set(logRef, {
     uid: athleteIdClean,
-    amount: xpAmount,
+    amount: appliedDelta,
+    requestedAmount: xpAmount,
     beforeXp,
     afterXp,
     kind: xpKind,
@@ -131,13 +139,14 @@ export async function applyXpAdjustment({
     createdAt: serverTimestamp()
   });
 
-  return { beforeXp, afterXp };
+  return { beforeXp, afterXp, appliedDelta };
   });
   return {
     uid: athleteIdClean,
     beforeXp: result.beforeXp,
     afterXp: result.afterXp,
-    amount: xpAmount,
+    amount: result.appliedDelta,
+    requestedAmount: xpAmount,
     kind: xpKind
   };
 }
