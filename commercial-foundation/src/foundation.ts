@@ -1,8 +1,8 @@
-import { Academy, AuditEvent, AuthorizationContext, Entitlement, IdentityAuthority, Location, Membership, Organization, Program, SwitchableIdentityAuthority, VerifiedIdentity } from "./contracts";
+import { Academy, AttendanceRecord, AuditEvent, AuthorizationContext, CommercialAthlete, Entitlement, IdentityAuthority, Location, Membership, Organization, PracticeNote, PracticeSession, Program, SwitchableIdentityAuthority, VerifiedIdentity } from "./contracts";
 import { assertId, validateEntitlement, validateMembership, validateProgram } from "./validation";
 
-export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements";
-export type TenantRecord = Academy | Location | Program | Membership | Entitlement;
+export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements" | "sessions" | "athletes" | "attendance" | "practiceNotes";
+export type TenantRecord = Academy | Location | Program | Membership | Entitlement | PracticeSession | CommercialAthlete | AttendanceRecord | PracticeNote;
 const essentialCapabilities = new Set(["security.access", "customer_data.read"]);
 const key = (organizationId: string, id: string) => JSON.stringify([organizationId, id]);
 
@@ -30,21 +30,21 @@ export class InMemoryCommercialStore {
   organizations = new Map<string, Organization>();
   academies = new Map<string, Academy>(); locations = new Map<string, Location>();
   programs = new Map<string, Program>(); memberships = new Map<string, Membership>();
-  entitlements = new Map<string, Entitlement>(); audits: AuditEvent[] = [];
+  entitlements = new Map<string, Entitlement>(); sessions = new Map<string, PracticeSession>(); athletes = new Map<string, CommercialAthlete>(); attendance = new Map<string, AttendanceRecord>(); practiceNotes = new Map<string, PracticeNote>(); audits: AuditEvent[] = [];
   protected sequence = 0;
   /** Snapshot/restore protect the reference adapter from partial multi-step operations. */
   protected snapshotState() {
     return {
       organizations: new Map(this.organizations), academies: new Map(this.academies),
       locations: new Map(this.locations), programs: new Map(this.programs),
-      memberships: new Map(this.memberships), entitlements: new Map(this.entitlements),
+      memberships: new Map(this.memberships), entitlements: new Map(this.entitlements), sessions: new Map(this.sessions), athletes: new Map(this.athletes), attendance: new Map(this.attendance), practiceNotes: new Map(this.practiceNotes),
       audits: structuredClone(this.audits), sequence: this.sequence
     };
   }
   protected restoreState(state: ReturnType<InMemoryCommercialStore["snapshotState"]>): void {
     this.organizations = state.organizations; this.academies = state.academies;
     this.locations = state.locations; this.programs = state.programs;
-    this.memberships = state.memberships; this.entitlements = state.entitlements;
+    this.memberships = state.memberships; this.entitlements = state.entitlements; this.sessions = state.sessions; this.athletes = state.athletes; this.attendance = state.attendance; this.practiceNotes = state.practiceNotes;
     this.audits = state.audits; this.sequence = state.sequence;
   }
   transaction<T>(work: () => T): T {
@@ -103,7 +103,12 @@ export class CommercialFoundation {
     const members = this.memberships(identity).filter(m => this.validScope(m));
     if (!members.length) throw new Error("MEMBERSHIP_REQUIRED");
     const orgAdmin = members.some(m => m.role === "organization_admin" && m.scopeType === "organization");
+    const scoped = (m: Membership) => m.scopeType === "organization" || (m.scopeType === "academy" && m.scopeId === academyId) || (m.scopeType === "location" && locationIds.includes(m.scopeId));
+    const manager = members.some(m => (m.role === "organization_admin" || m.role === "management") && scoped(m));
+    const coach = members.some(m => m.role === "coach" && scoped(m));
     if (action === "capability.read") return; // membership verified; grants remain organization-scoped
+    if (["management.overview", "management.schedule", "management.athlete"].includes(action)) { if (manager) return; throw new Error("ROLE_DENIED"); }
+    if (["session.read", "attendance.record", "practice-note.manage", "coach.workspace"].includes(action)) { if (manager || coach) return; throw new Error("ROLE_DENIED"); }
     if (action === "program.read") {
       if (orgAdmin || members.some(m =>
         m.scopeType === "organization" ||
@@ -127,6 +132,27 @@ export class CommercialFoundation {
       this.store.audit(identity, action, type, id, "rejected", error instanceof Error ? error.message : "UNKNOWN");
       throw error;
     }
+  }
+  /**
+   * Authorize a known operational action, without executing caller-provided callbacks.
+   * The unexported adapter executor in operations.ts owns the actual operation.
+   * Never expose this foundation or its test-only mutable store to untrusted clients.
+   */
+  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", type: string, id: string, organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
+    const identity = this.identity(ctx);
+    try {
+      const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace"];
+      if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
+      this.authorize(identity, action, organizationId, academyId, locationIds);
+      if (this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
+      return identity;
+    } catch (error) {
+      this.store.audit(identity, action, type, id, "rejected", error instanceof Error ? error.message : "UNKNOWN");
+      throw error;
+    }
+  }
+  auditOperational(identity: VerifiedIdentity, action: string, type: string, id: string, outcome: AuditEvent["outcome"], reason?: string): void {
+    this.store.audit(identity, action, type, id, outcome, reason);
   }
   createOrganization(ctx: AuthorizationContext, organization: Organization): Organization {
     const identity = this.identity(ctx);

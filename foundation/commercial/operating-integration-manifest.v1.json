@@ -1,0 +1,13 @@
+{
+  "schema": "sandman.commercial.operating-integration.v1",
+  "baseline": "213209c2d53b9b7319ff70ac41e1197f18ad1aab",
+  "academyRuntimeModified": false,
+  "components": [
+    { "component": "management", "inspected": ["public/management/", "public/admin/services/staff.service.js", "functions/src/services/staffAuthorization.ts", "tests/functions/management-members.test.mjs"], "reused": ["active staff membership semantics", "Admin/Management/Coach role vocabulary", "location-scoped authority", "audit-first operations"], "adapter": "commercial-foundation/src/operations.ts#ManagementService", "excluded": ["Firebase claims", "Academy staff records", "production callables"] },
+    { "component": "scheduling", "inspected": ["public/assets/js/location-schedule-live-state.js", "functions/src/schedules/crossTrainingPolicy.ts", "tests/functions/location-schedule-phase2.test.mjs"], "reused": ["scheduled/completed state concepts", "academy-location-program relationships", "coach assignment"], "adapter": "commercial-foundation/src/operations.ts#SchedulingService", "excluded": ["Academy schedule data", "calendar imports", "production location IDs"] },
+    { "component": "attendance", "inspected": ["functions/src/practice/practiceSessions.ts", "tests/emulator/attendance-practice-lifecycle.test.mjs", "tests/functions/practice-attendance-lanes.test.mjs"], "reused": ["session-linked attendance", "duplicate protection", "authorized correction audit"], "adapter": "commercial-foundation/src/operations.ts#AttendanceService", "excluded": ["real athlete records", "XP awards", "progression effects"] },
+    { "component": "coach", "inspected": ["public/coaches/", "public/mat/", "functions/src/practice/", "tests/functions/coach-operations-navigation.test.mjs"], "reused": ["assigned-practice workspace", "program visibility", "practice notes", "attendance handoff"], "adapter": "commercial-foundation/src/operations.ts#CoachService", "excluded": ["Coach UI migration", "curriculum", "Strength/Honor", "XP", "ranks", "CornermanAI"] }
+  ],
+  "security": ["trusted opaque sessions", "selected-organization enforcement", "organization-qualified identifiers", "academy/location/program validation", "active membership and scope checks", "entitlement enforcement", "audited permitted and rejected operations"],
+  "nextGate": "Independent review of production persistence, identity provider, privacy model, and API transport before extraction or deployment."
+}

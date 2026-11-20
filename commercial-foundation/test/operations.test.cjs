@@ -1,0 +1,85 @@
+const test=require("node:test");const assert=require("node:assert/strict");
+const {mkdtempSync,readFileSync,writeFileSync}=require("node:fs");const {tmpdir}=require("node:os");const {join}=require("node:path");
+const {AttendanceService,CoachService,CommercialFoundation,InMemoryTestIdentityAuthority,ManagementService,OrganizationOnboardingService,PersistentJsonCommercialStore,SchedulingService}=require("../lib");
+const A="org-alpha",B="org-beta",now=()=>new Date("2026-11-20T20:00:00Z");
+const request=(org)=>({organizationId:org,organizationName:org,academyId:"academy-local",academyName:"Academy",locationId:"location-local",locationName:"Gym",programId:"program-local",programName:"Wrestling",disciplines:["wrestling"],administratorUserId:`admin-${org}`,coachUserId:`coach-${org}`,packageSource:"Plus",capabilityIds:["programs.manage","schedule.manage","attendance.manage","coach.workspace"],startsAt:"2026-01-01T00:00:00Z",expiresAt:"2027-01-01T00:00:00Z"});
+const session=(org)=>({id:"session-local",organizationId:org,academyId:"academy-local",locationId:"location-local",programId:"program-local",coachUserIds:[`coach-${org}`],startsAt:"2026-11-21T18:00:00Z",endsAt:"2026-11-21T19:30:00Z",state:"scheduled"});
+function setup(){const file=join(mkdtempSync(join(tmpdir(),"sandman-s4-")),"store.json"),identity=new InMemoryTestIdentityAuthority(),store=new PersistentJsonCommercialStore(file),foundation=new CommercialFoundation(store,identity,now),onboarding=new OrganizationOnboardingService(foundation),management=new ManagementService(foundation),scheduling=new SchedulingService(foundation),attendance=new AttendanceService(foundation,now),coach=new CoachService(foundation,scheduling);for(const org of[A,B])onboarding.onboard(identity.mint("root",org,true),request(org));return{file,identity,store,foundation,management,scheduling,attendance,coach,adminA:identity.mint(`admin-${A}`,A),adminB:identity.mint(`admin-${B}`,B),coachA:identity.mint(`coach-${A}`,A),coachB:identity.mint(`coach-${B}`,B)};}
+function operate(f,org,admin,coach){f.scheduling.create(admin,session(org));f.attendance.createSyntheticAthlete(admin,{id:"athlete-local",organizationId:org,programId:"program-local",displayName:"Synthetic Athlete",synthetic:true});f.attendance.record(coach,org,"session-local","athlete-local","present");f.coach.note(coach,org,"session-local","note-local","Synthetic practice completed safely.");}
+
+test("two organizations complete Management to Coach to attendance workflow with identical IDs",()=>{const f=setup();operate(f,A,f.adminA,f.coachA);operate(f,B,f.adminB,f.coachB);assert.equal(f.store.sessions.size,2);assert.equal(f.store.attendance.size,2);assert.equal(f.management.overview(f.adminA,A).programs.length,1);assert.equal(f.coach.workspace(f.coachA,A,`coach-${A}`).sessions.length,1);});
+test("restart preserves operational records and tenant ownership",()=>{const f=setup();operate(f,A,f.adminA,f.coachA);const restarted=new PersistentJsonCommercialStore(f.file);assert.equal(restarted.list("sessions",A).length,1);assert.equal(restarted.list("attendance",A).length,1);assert.equal(restarted.list("practiceNotes",A).length,1);assert.equal(restarted.list("sessions",B).length,0);});
+test("cross-tenant Management and Coach operations are rejected and audited",()=>{const f=setup();operate(f,B,f.adminB,f.coachB);assert.throws(()=>f.scheduling.read(f.coachA,B,"session-local"),/TENANT_BOUNDARY_DENIED/);assert.throws(()=>f.scheduling.cancel(f.adminA,B,"session-local"),/TENANT_BOUNDARY_DENIED/);assert.throws(()=>f.attendance.record(f.coachA,B,"session-local","athlete-local","present"),/TENANT_BOUNDARY_DENIED|INVALID_ATTENDANCE/);assert.equal(f.store.listAudits(A).some(a=>a.outcome==="rejected"),true);});
+test("revoked coach immediately loses session and attendance access",()=>{const f=setup();f.scheduling.create(f.adminA,session(A));f.attendance.createSyntheticAthlete(f.adminA,{id:"athlete-local",organizationId:A,programId:"program-local",displayName:"Synthetic",synthetic:true});f.management.revokeStaff(f.adminA,A,"member-coach");assert.throws(()=>f.scheduling.read(f.coachA,A,"session-local"),/MEMBERSHIP_REQUIRED/);assert.throws(()=>f.attendance.record(f.coachA,A,"session-local","athlete-local","present"),/MEMBERSHIP_REQUIRED/);});
+test("invalid dates, coaches and cross-academy relationships fail without corrupting state",()=>{const f=setup();assert.throws(()=>f.scheduling.create(f.adminA,{...session(A),endsAt:"2026-11-21T17:00:00Z"}),/INVALID_SESSION_TIME/);assert.throws(()=>f.scheduling.create(f.adminA,{...session(A),coachUserIds:["unknown"]}),/INVALID_SESSION_COACH/);assert.equal(f.store.list("sessions",A).length,0);assert.equal(f.store.listAudits(A).filter(a=>a.action==="management.schedule"&&a.outcome==="rejected").length,2);assert.equal(JSON.parse(readFileSync(f.file,"utf8")).sessions.length,0);});
+test("duplicate attendance is rejected and corrections are audited",()=>{const f=setup();operate(f,A,f.adminA,f.coachA);assert.throws(()=>f.attendance.record(f.coachA,A,"session-local","athlete-local","present"),/DUPLICATE_ATTENDANCE/);const corrected=f.attendance.correct(f.adminA,A,"session-local--athlete-local","excused");assert.equal(corrected.state,"excused");assert.ok(corrected.correctedAt);assert.equal(f.store.listAudits(A).some(a=>a.action==="attendance.record"&&a.outcome==="rejected"),true);});
+test("attendance cannot attach an athlete from another program or missing session",()=>{const f=setup();f.scheduling.create(f.adminA,session(A));f.foundation.store.put("athletes",{id:"wrong",organizationId:A,programId:"another-program",displayName:"Synthetic",synthetic:true});assert.throws(()=>f.attendance.record(f.coachA,A,"session-local","wrong","present"),/INVALID_ATTENDANCE_RELATIONSHIP/);assert.throws(()=>f.attendance.record(f.coachA,A,"missing","wrong","present"),/SESSION_NOT_FOUND/);});
+test("coach workspace exposes only assigned sessions and programs",()=>{const f=setup();f.scheduling.create(f.adminA,session(A));const workspace=f.coach.workspace(f.coachA,A,`coach-${A}`);assert.deepEqual(workspace.sessions.map(s=>s.id),["session-local"]);assert.deepEqual(workspace.programs.map(p=>p.id),["program-local"]);assert.throws(()=>f.coach.workspace(f.coachA,A,"someone-else"),/COACH_IDENTITY_MISMATCH/);});
+test("entitlement revocation denies capability but preserves sessions attendance and notes",()=>{const f=setup();operate(f,A,f.adminA,f.coachA);f.foundation.revokeEntitlement(f.adminA,A,"package-3-attendance-manage");assert.throws(()=>f.attendance.correct(f.adminA,A,"session-local--athlete-local","excused"),/ENTITLEMENT_REQUIRED/);assert.equal(f.store.list("sessions",A).length,1);assert.equal(f.store.list("attendance",A).length,1);assert.equal(f.store.list("practiceNotes",A).length,1);});
+test("coach cannot grant administrator authority",()=>{const f=setup();assert.throws(()=>f.management.assignStaff(f.coachA,{id:"escalate",organizationId:A,userId:`coach-${A}`,role:"organization_admin",scopeType:"organization",scopeId:A,state:"active"}),/ROLE_DENIED/);});
+
+test("location manager cannot relocate another location's existing session into their scope",()=>{
+  const f=setup();
+  f.scheduling.create(f.adminA,session(A));
+  f.foundation.createLocation(f.adminA,{id:"location-other",organizationId:A,academyId:"academy-local",name:"Other",state:"active"});
+  const program=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...program,locationIds:["location-local","location-other"]},true);
+  f.foundation.assignMembership(f.adminA,{id:"other-manager",userId:"scoped-manager",organizationId:A,role:"management",scopeType:"location",scopeId:"location-other",state:"active"});
+  const manager=f.identity.mint("scoped-manager",A);
+  assert.throws(()=>f.scheduling.update(manager,{...session(A),locationId:"location-other"}),/ROLE_DENIED/);
+  assert.equal(f.store.get("sessions",A,"session-local").locationId,"location-local");
+  assert.equal(new PersistentJsonCommercialStore(f.file).get("sessions",A,"session-local").locationId,"location-local");
+});
+
+test("scoped coach workspace only shows sessions assigned within permitted location",()=>{
+  const f=setup();
+  f.foundation.createLocation(f.adminA,{id:"location-other",organizationId:A,academyId:"academy-local",name:"Other",state:"active"});
+  const p=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...p,locationIds:["location-local","location-other"]},true);
+  f.foundation.assignMembership(f.adminA,{id:"scoped-coach",userId:"scoped-coach",organizationId:A,role:"coach",scopeType:"location",scopeId:"location-local",state:"active"});
+  f.scheduling.create(f.adminA,{...session(A),coachUserIds:["scoped-coach"]});
+  f.scheduling.create(f.adminA,{...session(A),id:"session-other",locationId:"location-other",coachUserIds:[`coach-${A}`]});
+  const ctx=f.identity.mint("scoped-coach",A);
+  assert.deepEqual(f.coach.workspace(ctx,A,"scoped-coach").sessions.map(s=>s.id),["session-local"]);
+  assert.throws(()=>f.scheduling.read(ctx,A,"session-other"),/ROLE_DENIED/);
+  assert.equal(f.coach.note(ctx,A,"session-local","note-scoped","Practice note").sessionId,"session-local");
+});
+
+test("public generic operation callback is absent and invented actions are denied",()=>{
+  const f=setup();
+  assert.equal(typeof f.foundation.runAuthorized,"undefined");
+  assert.throws(()=>f.foundation.authorizeOperational(f.coachA,"capability.read","session","forged",A),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.throws(()=>f.foundation.authorizeOperational(f.adminA,"management.elevate","membership","forged",A),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.equal(f.store.list("sessions",A).length,0);
+});
+
+test("restart rejects persisted attendance belonging to another program and malformed notes",()=>{
+  const f=setup();operate(f,A,f.adminA,f.coachA);
+  const original=JSON.parse(readFileSync(f.file,"utf8"));
+  const extraProgram={...original.programs[0],id:"other-program",name:"Second"};
+  const mismatched=structuredClone(original);
+  mismatched.programs.push(extraProgram);
+  mismatched.athletes[0].programId="other-program";
+  writeFileSync(f.file,JSON.stringify(mismatched));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_ATTENDANCE_REFERENCE/);
+  const invalidNote=structuredClone(original);
+  invalidNote.practiceNotes[0].body="  ";
+  writeFileSync(f.file,JSON.stringify(invalidNote));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_NOTE_STATE/);
+  const invalidAttendance=structuredClone(original);
+  invalidAttendance.attendance[0].state="unchecked";
+  writeFileSync(f.file,JSON.stringify(invalidAttendance));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_ATTENDANCE_STATE/);
+  writeFileSync(f.file,JSON.stringify(original));
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
+
+test("completed attendance prevents a session from being moved to another program or location",()=>{
+  const f=setup();
+  operate(f,A,f.adminA,f.coachA);
+  f.foundation.createLocation(f.adminA,{id:"location-new",organizationId:A,academyId:"academy-local",name:"New Gym",state:"active"});
+  const p=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...p,locationIds:["location-local","location-new"]},true);
+  assert.throws(()=>f.scheduling.update(f.adminA,{...session(A),locationId:"location-new"}),/SESSION_WITH_ATTENDANCE_CANNOT_MOVE/);
+  assert.equal(f.store.get("sessions",A,"session-local").locationId,"location-local");
+});
