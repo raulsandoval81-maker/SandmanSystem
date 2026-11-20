@@ -4,10 +4,25 @@ import { assertId } from "./validation";
 
 const validDate = (value: string) => typeof value === "string" && !Number.isNaN(Date.parse(value));
 
+// Module-private operation executor: callers cannot supply arbitrary authorization callbacks.
+type OperationalAction = "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace";
+function authorized<T>(foundation: CommercialFoundation, ctx: AuthorizationContext, action: OperationalAction, type: string, id: string, organizationId: string, operation: (identity: import("./contracts").VerifiedIdentity) => T, academyId?: string, locationIds: string[] = []): T {
+  const identity = foundation.authorizeOperational(ctx, action, type, id, organizationId, academyId, locationIds);
+  try {
+    const result = operation(identity);
+    foundation.auditOperational(identity, action, type, id, "permitted");
+    return result;
+  } catch (error) {
+    foundation.auditOperational(identity, action, type, id, "rejected", error instanceof Error ? error.message : "UNKNOWN");
+    throw error;
+  }
+}
+
+
 export class ManagementService {
   constructor(private readonly foundation: CommercialFoundation) {}
   overview(ctx: AuthorizationContext, organizationId: string) {
-    return this.foundation.runAuthorized(ctx,"management.overview","organization",organizationId,organizationId,() => ({
+    return authorized(this.foundation,ctx,"management.overview","organization",organizationId,organizationId,() => ({
       organization: this.foundation.store.getOrganization(organizationId),
       academies: this.foundation.store.list("academies",organizationId), locations: this.foundation.store.list("locations",organizationId),
       programs: this.foundation.store.list("programs",organizationId), staff: this.foundation.store.list("memberships",organizationId),
@@ -22,7 +37,7 @@ export class SchedulingService {
   constructor(private readonly foundation: CommercialFoundation) {}
   create(ctx: AuthorizationContext, session: PracticeSession): PracticeSession {
     this.requireCapability(ctx,"schedule.manage");
-    return this.foundation.runAuthorized(ctx,"management.schedule","session",session.id,session.organizationId,() => {
+    return authorized(this.foundation,ctx,"management.schedule","session",session.id,session.organizationId,() => {
       this.validate(session);
       this.foundation.store.put("sessions",session); return structuredClone(session);
     },session.academyId,[session.locationId]);
@@ -33,7 +48,7 @@ export class SchedulingService {
     const sessions = this.foundation.store.list<PracticeSession>("sessions",organizationId);
     return sessions.filter(session => {
       try {
-        this.foundation.runAuthorized(ctx,"management.schedule","session",session.id,organizationId,() => true,session.academyId,[session.locationId]);
+        authorized(this.foundation,ctx,"management.schedule","session",session.id,organizationId,() => true,session.academyId,[session.locationId]);
         return true;
       } catch (error) {
         if (error instanceof Error && ["ROLE_DENIED", "MEMBERSHIP_REQUIRED"].includes(error.message)) return false;
@@ -43,7 +58,7 @@ export class SchedulingService {
   }
   read(ctx: AuthorizationContext, organizationId: string, sessionId: string): PracticeSession {
     const session = this.required(organizationId,sessionId);
-    return this.foundation.runAuthorized(ctx,"session.read","session",sessionId,organizationId,identity => {
+    return authorized(this.foundation,ctx,"session.read","session",sessionId,organizationId,identity => {
       if (session.coachUserIds.includes(identity.userId) || this.isManagement(identity.userId,organizationId,session)) return session;
       throw new Error("COACH_NOT_ASSIGNED");
     },session.academyId,[session.locationId]);
@@ -53,8 +68,8 @@ export class SchedulingService {
     // Authorize the ORIGINAL record before authorizing the requested destination.
     // A location manager must never move a foreign session into their own scope.
     const existing = this.required(session.organizationId,session.id);
-    return this.foundation.runAuthorized(ctx,"management.schedule","session",session.id,session.organizationId,() =>
-      this.foundation.runAuthorized(ctx,"management.schedule","session",session.id,session.organizationId,() => {
+    return authorized(this.foundation,ctx,"management.schedule","session",session.id,session.organizationId,() =>
+      authorized(this.foundation,ctx,"management.schedule","session",session.id,session.organizationId,() => {
         this.validate(session);
         this.foundation.store.put("sessions",session,true);
         return structuredClone(session);
@@ -82,13 +97,13 @@ export class SchedulingService {
 export class AttendanceService {
   constructor(private readonly foundation: CommercialFoundation,private readonly now=()=>new Date()) {}
   createSyntheticAthlete(ctx: AuthorizationContext, athlete: CommercialAthlete) {
-    return this.foundation.runAuthorized(ctx,"management.athlete","athlete",athlete.id,athlete.organizationId,()=>{ assertId(athlete.id); if(!athlete.synthetic||!athlete.displayName.trim()||!this.foundation.store.get("programs",athlete.organizationId,athlete.programId)) throw new Error("INVALID_SYNTHETIC_ATHLETE"); this.foundation.store.put("athletes",athlete); return structuredClone(athlete); });
+    return authorized(this.foundation,ctx,"management.athlete","athlete",athlete.id,athlete.organizationId,()=>{ assertId(athlete.id); if(!athlete.synthetic||!athlete.displayName.trim()||!this.foundation.store.get("programs",athlete.organizationId,athlete.programId)) throw new Error("INVALID_SYNTHETIC_ATHLETE"); this.foundation.store.put("athletes",athlete); return structuredClone(athlete); });
   }
   record(ctx: AuthorizationContext, organizationId: string, sessionId: string, athleteId: string, state: AttendanceState): AttendanceRecord {
     if(!this.foundation.hasCapability(ctx,"attendance.manage"))throw new Error("ENTITLEMENT_REQUIRED");
     if(!["present","absent","excused"].includes(state))throw new Error("INVALID_ATTENDANCE_STATE");
     const session=this.session(organizationId,sessionId); const id=`${sessionId}--${athleteId}`;
-    return this.foundation.runAuthorized(ctx,"attendance.record","attendance",id,organizationId,identity=>{
+    return authorized(this.foundation,ctx,"attendance.record","attendance",id,organizationId,identity=>{
       if(!session.coachUserIds.includes(identity.userId)&&!this.isManagement(identity.userId,organizationId,session)) throw new Error("COACH_NOT_ASSIGNED");
       const athlete=this.foundation.store.get<CommercialAthlete>("athletes",organizationId,athleteId); if(!athlete||athlete.programId!==session.programId) throw new Error("INVALID_ATTENDANCE_RELATIONSHIP");
       if(this.foundation.store.get("attendance",organizationId,id)) throw new Error("DUPLICATE_ATTENDANCE");
@@ -99,7 +114,7 @@ export class AttendanceService {
     if(!this.foundation.hasCapability(ctx,"attendance.manage"))throw new Error("ENTITLEMENT_REQUIRED");
     if(!["present","absent","excused"].includes(state))throw new Error("INVALID_ATTENDANCE_STATE");
     const existing=this.foundation.store.get<AttendanceRecord>("attendance",organizationId,id); if(!existing) throw new Error("ATTENDANCE_NOT_FOUND"); const session=this.session(organizationId,existing.sessionId);
-    return this.foundation.runAuthorized(ctx,"attendance.record","attendance",id,organizationId,identity=>{if(!session.coachUserIds.includes(identity.userId)&&!this.isManagement(identity.userId,organizationId,session))throw new Error("COACH_NOT_ASSIGNED");const updated={...existing,state,recordedByUserId:identity.userId,correctedAt:this.now().toISOString()}; this.foundation.store.put("attendance",updated,true); return updated; },session.academyId,[session.locationId]);
+    return authorized(this.foundation,ctx,"attendance.record","attendance",id,organizationId,identity=>{if(!session.coachUserIds.includes(identity.userId)&&!this.isManagement(identity.userId,organizationId,session))throw new Error("COACH_NOT_ASSIGNED");const updated={...existing,state,recordedByUserId:identity.userId,correctedAt:this.now().toISOString()}; this.foundation.store.put("attendance",updated,true); return updated; },session.academyId,[session.locationId]);
   }
   private session(org:string,id:string){const value=this.foundation.store.get<PracticeSession>("sessions",org,id);if(!value)throw new Error("SESSION_NOT_FOUND");return value;}
   private isManagement(userId:string,org:string,session:PracticeSession){return this.foundation.store.list<Membership>("memberships",org).some(m=>m.userId===userId&&m.state==="active"&&(m.role==="management"||m.role==="organization_admin")&&(m.scopeType==="organization"||(m.scopeType==="academy"&&m.scopeId===session.academyId)||(m.scopeType==="location"&&m.scopeId===session.locationId)));}
@@ -115,7 +130,7 @@ export class CoachService {
     const first=memberships[0];
     const academyId=first?.scopeType==="academy"?first.scopeId:undefined;
     const locationIds=first?.scopeType==="location"?[first.scopeId]:[];
-    return this.foundation.runAuthorized(ctx,"coach.workspace","coach",coachUserId,organizationId,identity=>{
+    return authorized(this.foundation,ctx,"coach.workspace","coach",coachUserId,organizationId,identity=>{
       if(identity.userId!==coachUserId)throw new Error("COACH_IDENTITY_MISMATCH");
       if(!memberships.length)throw new Error("COACH_MEMBERSHIP_REQUIRED");
       const inScope=(session:PracticeSession)=>memberships.some(m=>
@@ -129,5 +144,5 @@ export class CoachService {
       return{memberships,sessions,programs};
     },academyId,locationIds);
   }
-  note(ctx:AuthorizationContext,organizationId:string,sessionId:string,noteId:string,body:string):PracticeNote{if(!this.foundation.hasCapability(ctx,"coach.workspace"))throw new Error("ENTITLEMENT_REQUIRED");const session=this.scheduling.read(ctx,organizationId,sessionId);return this.foundation.runAuthorized(ctx,"practice-note.manage","practiceNote",noteId,organizationId,identity=>{if(!body.trim()||body.length>2000)throw new Error("INVALID_PRACTICE_NOTE");const note={id:noteId,organizationId,sessionId,authorUserId:identity.userId,body:body.trim(),createdAt:new Date().toISOString()};this.foundation.store.put("practiceNotes",note);return note;},session.academyId,[session.locationId]);}
+  note(ctx:AuthorizationContext,organizationId:string,sessionId:string,noteId:string,body:string):PracticeNote{if(!this.foundation.hasCapability(ctx,"coach.workspace"))throw new Error("ENTITLEMENT_REQUIRED");const session=this.scheduling.read(ctx,organizationId,sessionId);return authorized(this.foundation,ctx,"practice-note.manage","practiceNote",noteId,organizationId,identity=>{if(!body.trim()||body.length>2000)throw new Error("INVALID_PRACTICE_NOTE");const note={id:noteId,organizationId,sessionId,authorUserId:identity.userId,body:body.trim(),createdAt:new Date().toISOString()};this.foundation.store.put("practiceNotes",note);return note;},session.academyId,[session.locationId]);}
 }
