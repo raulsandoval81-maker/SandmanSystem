@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { mkdtempSync, readFileSync, statSync, writeFileSync } = require("node:fs");
+const { mkdtempSync, readFileSync, statSync, writeFileSync, renameSync, mkdirSync, rmdirSync } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { join } = require("node:path");
 const { CommercialFoundation, InMemoryTestIdentityAuthority, OrganizationOnboardingService, PersistentJsonCommercialStore } = require("../lib");
@@ -84,4 +84,76 @@ test("durable store rejects corrupt schemas and duplicate records", () => {
   const corrupt = join(f.directory,"corrupt.json");
   writeFileSync(corrupt, JSON.stringify({schema:"unknown"}));
   assert.throws(() => new PersistentJsonCommercialStore(corrupt), /INVALID_PERSISTENCE_SCHEMA/);
+});
+
+test("invalid onboarding rolls back every record and audit without creating a file", () => {
+  const f = setup();
+  const broken = { ...request(ORG_A, "Broken"), disciplines: [] };
+  assert.throws(() => f.onboarding.onboard(f.identity.mint("system-owner", ORG_A, true), broken), /INVALID_PROGRAM/);
+  assert.equal(f.store.organizations.size, 0);
+  assert.equal(f.store.memberships.size, 0);
+  assert.equal(f.store.academies.size, 0);
+  assert.equal(f.store.audits.length, 0);
+  assert.throws(() => readFileSync(f.file), /ENOENT/);
+});
+
+test("failed atomic file replacement rolls memory back and retains the last durable snapshot", () => {
+  const f = setup();
+  f.onboarding.onboard(f.identity.mint("system-owner", ORG_A, true), request(ORG_A, "Stable"));
+  const original = readFileSync(f.file, "utf8");
+  const backup = join(f.directory, "backup.json");
+  renameSync(f.file, backup);
+  mkdirSync(f.file); // force rename(temp, target) to fail on all supported platforms
+  try {
+    const administrator = f.identity.mint(`admin-${ORG_A}`, ORG_A);
+    assert.throws(() => f.foundation.createAcademy(administrator, {
+      id: "uncommitted", organizationId: ORG_A, name: "Should Roll Back", state: "active"
+    }), /EISDIR|ENOTEMPTY|EPERM|EEXIST|directory/i);
+    assert.equal(f.store.get("academies", ORG_A, "uncommitted"), undefined);
+    assert.equal(f.store.getOrganization(ORG_A).displayName, "Stable");
+  } finally {
+    rmdirSync(f.file);
+    renameSync(backup, f.file);
+  }
+  assert.equal(readFileSync(f.file, "utf8"), original);
+  assert.equal(new PersistentJsonCommercialStore(f.file).get("academies", ORG_A, "uncommitted"), undefined);
+});
+
+test("failed final onboarding commit rolls back all in-memory changes and audit events", () => {
+  const f = setup();
+  f.onboarding.onboard(f.identity.mint("system-owner", ORG_A, true), request(ORG_A, "Stable"));
+  const before = readFileSync(f.file, "utf8");
+  const beforeCount = f.store.audits.length;
+  const backup = join(f.directory, "snapshot.json");
+  renameSync(f.file, backup); mkdirSync(f.file);
+  try {
+    assert.throws(() => f.onboarding.onboard(f.identity.mint("system-owner", ORG_B, true), request(ORG_B, "Uncommitted")), /EISDIR|ENOTEMPTY|EPERM|EEXIST|directory/i);
+    assert.equal(f.store.getOrganization(ORG_B), undefined);
+    assert.equal(f.store.list("programs", ORG_B).length, 0);
+    assert.equal(f.store.audits.length, beforeCount);
+  } finally {
+    rmdirSync(f.file); renameSync(backup, f.file);
+  }
+  assert.equal(readFileSync(f.file, "utf8"), before);
+});
+
+test("restart rejects cross-academy program location and forged membership scope", () => {
+  const f = setup();
+  f.onboarding.onboard(f.identity.mint("system-owner", ORG_A, true), request(ORG_A, "A"));
+  const original = JSON.parse(readFileSync(f.file, "utf8"));
+  const corruptProgram = structuredClone(original);
+  corruptProgram.programs[0].locationIds = ["not-a-real-location"];
+  writeFileSync(f.file, JSON.stringify(corruptProgram));
+  assert.throws(() => new PersistentJsonCommercialStore(f.file), /INVALID_PERSISTED_PROGRAM_REFERENCE/);
+  const corruptMembership = structuredClone(original);
+  corruptMembership.memberships[0].scopeType = "academy";
+  corruptMembership.memberships[0].scopeId = "not-a-real-academy";
+  writeFileSync(f.file, JSON.stringify(corruptMembership));
+  assert.throws(() => new PersistentJsonCommercialStore(f.file), /INVALID_PERSISTED_MEMBERSHIP_SCOPE/);
+  const corruptEntitlement = structuredClone(original);
+  corruptEntitlement.entitlements[0].organizationId = "nonexistent-organization";
+  writeFileSync(f.file, JSON.stringify(corruptEntitlement));
+  assert.throws(() => new PersistentJsonCommercialStore(f.file), /INVALID_PERSISTED_ENTITLEMENT_ORGANIZATION/);
+  writeFileSync(f.file, JSON.stringify(original));
+  assert.doesNotThrow(() => new PersistentJsonCommercialStore(f.file));
 });
