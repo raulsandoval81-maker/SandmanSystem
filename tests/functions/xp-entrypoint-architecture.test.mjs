@@ -40,3 +40,17 @@ test("coach entry point dispatches to authoritative XP service", () => {
   assert.match(authority, /export async function awardXpAuthoritatively/);
   assert.match(authority, /db\.runTransaction/);
 });
+
+test("admin rejects fractional or unsafe XP and records effective delta", () => {
+  assert.match(admin, /Number\\.isSafeInteger\\(xpAmount\\)/);
+  assert.match(admin, /Number\\.isSafeInteger\\(beforeXp\\)/);
+  assert.match(admin, /amount: appliedDelta/);
+  assert.match(admin, /requestedAmount: xpAmount/);
+  assert.match(admin, /amount: result\\.appliedDelta/);
+});
+
+test("management does not silently treat a deduction as earned XP", () => {
+  assert.match(management, /amount <= 0/);
+  assert.match(management, /resolveManagementAdjustmentSemantic/);
+  assert.match(management, /resolveLifetimeXpEffects/);
+});
