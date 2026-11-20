@@ -1,13 +1,13 @@
 const {test} = require("node:test");
 const assert = require("node:assert/strict");
-const {cashReceiptDetails, stripeReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery} =
+const {cashReceiptDetails, cashReceiptPdf, stripeReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery} =
   require("../lib/enrollment/combinedEnrollmentReceipt");
 
 const proposalId = "P-000901";
 const tokenId = "synthetic";
 const recipient = "fixture@example.test";
 const cash = {status: "PAID", paymentStatus: "paid", paymentMethod: "cash_prepaid", paidAt: 1,
-  locationId: "synthetic", cashPrepayment: {
+  locationId: "synthetic", prospect: {email: recipient}, cashPrepayment: {
     amountCents: 99000, membershipAmountCents: 96000, paymentMethod: "check",
     annualEnrollmentFee: {paidWithPrepaymentCents: 3000, outstandingCents: 0},
     paymentDate: "2026-11-08", membershipStartDate: "2026-12-01",
@@ -128,5 +128,34 @@ test("a started early Cash/Check Intake cannot reserve a second invitation", asy
   const f = fixture({ ...cash, earlyCashCheckIntakeTokenId: "0123456789abcdef0123456789abcdef" });
   await assert.rejects(sendCombinedEnrollmentReceipt(f.input), /already started secure Intake/);
   assert.equal(f.calls(), 0);
+  assert.equal(f.state.has(f.receiptPath), false);
+});
+
+test("cash receipt attachment contains verified allocation and coverage without the bearer link", async () => {
+  const f = fixture(cash);
+  f.input.send = async (lines, url, attempt) => {
+    const pdf = cashReceiptPdf(lines).toString();
+    assert.match(pdf, /^%PDF-1\.4/);
+    const xref = Number(/startxref\n(\d+)/.exec(pdf)[1]);
+    assert.equal(pdf.slice(xref, xref + 4), "xref");
+    for (const value of ["CASH-P-000901", "$990.00 by check", "2026-11-08", "$960.00", "$30.00",
+      "$0.00", "2027-11-30", "2027-12-01", "There is no automatic renewal"]) {
+      assert.ok(pdf.includes(value), value);
+    }
+    assert.ok(!pdf.includes(url));
+    assert.equal(attempt, f.state.get(f.receiptPath).combinedAttempt);
+    return {providerId: "accepted"};
+  };
+  await sendCombinedEnrollmentReceipt(f.input);
+});
+
+test("cash delivery requires a matching canonical proposal contact and bound Intake recipient", async () => {
+  for (const proposal of [{...cash, prospect: {}}, {...cash, prospect: {email: "different@example.test"}}]) {
+    const f = fixture(proposal);
+    await assert.rejects(sendCombinedEnrollmentReceipt(f.input), /does not match the recipient/);
+    assert.equal(f.calls(), 0);
+  }
+  const f = fixture(cash, {prefill: {}});
+  await assert.rejects(sendCombinedEnrollmentReceipt(f.input), /does not match the recipient/);
   assert.equal(f.state.has(f.receiptPath), false);
 });

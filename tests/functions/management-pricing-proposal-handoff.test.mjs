@@ -10,13 +10,13 @@ test("walk-in retains appointment source and routes through Management Pricing",
   assert.match(leads, /\/management\/pricing\/\?appointmentId=/);
 });
 
-test("pricing requires Management and canonical appointment before proposal handoff", () => {
+test("pricing requires Management and retains the appointment ID for the Admissions handoff", () => {
   const pricing = read("public/management/pricing/pricing.js");
   assert.match(pricing, /await requireManagement\(\)/);
   assert.match(pricing, /"admissions_appointments", appointmentId/);
   assert.match(pricing, /if \(!appointment\.locationId\)/);
   assert.match(pricing, /sandmanPricingProposalHandoff/);
-  assert.match(pricing, /\/connect\/admissions\/calculator\/\?appointmentId=/);
+  assert.match(pricing, /"\/connect\/admissions\/calculator\/"\s*\+\s*\(managementHistorical \? "" : `\?appointmentId=\$\{encodeURIComponent\(appointmentId\)\}&`\)/);
 });
 
 test("Prospect Builder matches the appointment handoff and retains canonical proposal API", () => {

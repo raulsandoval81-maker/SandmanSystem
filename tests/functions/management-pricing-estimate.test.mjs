@@ -71,10 +71,12 @@ test("I–J: reset returns to current default and print uses the same live resul
   assert.match(script, /function resetEstimate\(\)[\s\S]*trainingAccess: "core-2"/);
   assert.match(script, /enrollmentSupport\.value = "0"/);
   assert.match(script, /monthlySponsor\.value = "0"/);
-  assert.match(script, /window\.print\(\)/);
+  const printHandler = script.match(/printBtn\?\.addEventListener\([\s\S]*?\n\);/)?.[0];
+  assert.match(printHandler, /buildCustomerEstimate\(\);\s*window\.print\(\)/);
+  assert.doesNotMatch(printHandler, /httpsCallable|setDoc|addDoc/);
   assert.match(html, /id="annualMembershipTotal"/);
   assert.match(html, /id="dueAtEnrollment"/);
   assert.match(html, /id="nextMonthlyPayment"/);
-  assert.doesNotMatch(script, /httpsCallable|checkout\.sessions|subscriptions\.create|setDoc|addDoc/);
+  assert.doesNotMatch(script, /checkout\.sessions|subscriptions\.create|setDoc|addDoc/);
   assert.doesNotMatch(html, /value="combo"|Primary Sport|Second Sport|>\s*Sports\s*</);
 });
