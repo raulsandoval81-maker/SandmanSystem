@@ -18,6 +18,7 @@ interface PersistedState {
  */
 export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
   readonly filePath: string;
+  private inTransaction = false;
   constructor(filePath: string) {
     super();
     this.filePath = resolve(filePath);
@@ -34,6 +35,32 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     for (const record of state.programs as TenantRecord[]) { validateProgram(record as import("./contracts").Program); super.put("programs",record); }
     for (const record of state.memberships as TenantRecord[]) { validateMembership(record as import("./contracts").Membership); super.put("memberships",record); }
     for (const record of state.entitlements as TenantRecord[]) { validateEntitlement(record as import("./contracts").Entitlement); super.put("entitlements",record); }
+    // Loading is fail-closed: every child and authorization scope must resolve inside its own tenant.
+    for (const academy of this.academies.values()) {
+      if (!this.getOrganization(academy.organizationId) || !academy.name?.trim() || !["active", "suspended", "archived"].includes(academy.state)) throw new Error("INVALID_PERSISTED_ACADEMY");
+    }
+    for (const location of this.locations.values()) {
+      const parent = this.get<import("./contracts").Academy>("academies", location.organizationId, location.academyId);
+      if (!parent || !location.name?.trim() || !["active", "suspended", "archived"].includes(location.state)) throw new Error("INVALID_PERSISTED_LOCATION");
+    }
+    for (const program of this.programs.values()) {
+      const academy = this.get<import("./contracts").Academy>("academies", program.organizationId, program.academyId);
+      if (!academy || program.locationIds.some(id => {
+        const location = this.get<import("./contracts").Location>("locations", program.organizationId, id);
+        return !location || location.academyId !== program.academyId;
+      }) || !["active", "suspended", "archived"].includes(program.state)) throw new Error("INVALID_PERSISTED_PROGRAM_REFERENCE");
+    }
+    for (const member of this.memberships.values()) {
+      if (!this.getOrganization(member.organizationId)) throw new Error("INVALID_PERSISTED_MEMBERSHIP_ORGANIZATION");
+      if (member.scopeType === "academy" && !this.get("academies", member.organizationId, member.scopeId)) throw new Error("INVALID_PERSISTED_MEMBERSHIP_SCOPE");
+      if (member.scopeType === "location" && !this.get("locations", member.organizationId, member.scopeId)) throw new Error("INVALID_PERSISTED_MEMBERSHIP_SCOPE");
+    }
+    for (const grant of this.entitlements.values()) {
+      if (!this.getOrganization(grant.organizationId)) throw new Error("INVALID_PERSISTED_ENTITLEMENT_ORGANIZATION");
+    }
+    if (state.audits.some(event => !event || typeof event.id !== "string" || !/^audit-[1-9][0-9]*$/.test(event.id) || !this.getOrganization(event.selectedOrganizationId) ||
+      typeof event.actorUserId !== "string" || !["permitted", "rejected"].includes(event.outcome))) throw new Error("INVALID_PERSISTED_AUDIT");
+    if (new Set(state.audits.map(event => event.id)).size !== state.audits.length) throw new Error("DUPLICATE_PERSISTED_AUDIT");
     this.audits = state.audits.map(event => structuredClone(event));
     this.sequence = this.audits.reduce((max, event) => Math.max(max, Number(event.id.replace(/^audit-/, "")) || 0), 0);
   }
@@ -50,10 +77,39 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       renameSync(temporary, this.filePath);
     } finally { if (existsSync(temporary)) unlinkSync(temporary); }
   }
-  override createOrganization(record: Organization): void { super.createOrganization(record); this.flush(); }
-  override updateOrganization(record: Organization): void { super.updateOrganization(record); this.flush(); }
-  override put(kind: StoreKind, record: TenantRecord, replace = false): void { super.put(kind, record, replace); this.flush(); }
+  /** Single-process all-or-nothing batch: no file is changed until the full operation succeeds. */
+  override transaction<T>(work: () => T): T {
+    if (this.inTransaction) throw new Error("NESTED_TRANSACTION_UNSUPPORTED");
+    const previous = this.snapshotState();
+    this.inTransaction = true;
+    try {
+      const result = work();
+      this.flush();
+      return result;
+    } catch (error) {
+      this.restoreState(previous);
+      throw error;
+    } finally {
+      this.inTransaction = false;
+    }
+  }
+  /** Roll back in-memory state when disk replacement fails; never acknowledge unpersisted writes. */
+  private mutate(work: () => void): void {
+    const previous = this.snapshotState();
+    try {
+      work();
+      if (!this.inTransaction) this.flush();
+    } catch (error) {
+      this.restoreState(previous);
+      throw error;
+    }
+  }
+  override createOrganization(record: Organization): void { this.mutate(() => super.createOrganization(record)); }
+  override updateOrganization(record: Organization): void { this.mutate(() => super.updateOrganization(record)); }
+  override put(kind: StoreKind, record: TenantRecord, replace = false): void {
+    this.mutate(() => super.put(kind, record, replace));
+  }
   override audit(identity: VerifiedIdentity, action: string, resourceType: string, resourceId: string, outcome: AuditEvent["outcome"], reason?: string): void {
-    super.audit(identity, action, resourceType, resourceId, outcome, reason); this.flush();
+    this.mutate(() => super.audit(identity, action, resourceType, resourceId, outcome, reason));
   }
 }
