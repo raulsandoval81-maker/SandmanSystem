@@ -107,7 +107,7 @@ export class CommercialFoundation {
     const manager = members.some(m => (m.role === "organization_admin" || m.role === "management") && scoped(m));
     const coach = members.some(m => m.role === "coach" && scoped(m));
     if (action === "capability.read") return; // membership verified; grants remain organization-scoped
-    if (action.startsWith("management.")) { if (manager) return; throw new Error("ROLE_DENIED"); }
+    if (["management.overview", "management.schedule", "management.athlete"].includes(action)) { if (manager) return; throw new Error("ROLE_DENIED"); }
     if (["session.read", "attendance.record", "practice-note.manage", "coach.workspace"].includes(action)) { if (manager || coach) return; throw new Error("ROLE_DENIED"); }
     if (action === "program.read") {
       if (orgAdmin || members.some(m =>
@@ -133,7 +133,14 @@ export class CommercialFoundation {
       throw error;
     }
   }
-  runAuthorized<T>(ctx: AuthorizationContext, action: string, type: string, id: string, organizationId: string, operation: (identity: VerifiedIdentity) => T, academyId?: string, locationIds: string[] = []): T {
+  /**
+   * Internal adapter entrypoint; accepts operational actions only.
+   * Never expose this or the raw store through an HTTP/request boundary.
+   * Actual service methods enforce resource-specific constraints.
+   */
+  runAuthorized<T>(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", type: string, id: string, organizationId: string, operation: (identity: VerifiedIdentity) => T, academyId?: string, locationIds: string[] = []): T {
+    const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace"];
+    if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
     return this.execute(ctx, action, type, id, organizationId, operation, academyId, locationIds);
   }
   createOrganization(ctx: AuthorizationContext, organization: Organization): Organization {
