@@ -19,3 +19,64 @@ test("family services do not modify XP billing curriculum or practice notes",()=
 test("coach roster is limited to assigned athletes in the authorized program",()=>{const f=setup();familyFlow(f,A,f.adminA);f.family.registerAthlete(f.adminA,{id:"unassigned",organizationId:A,programId:"program-local",displayName:"Unassigned",synthetic:true,participationState:"active",adult:false,assignedCoachUserIds:[]});assert.deepEqual(f.family.coachRoster(f.coachA,A,"program-local").map(a=>a.id),["athlete-local"]);});
 test("revoked Parent membership denies an otherwise active family link",()=>{const f=setup(),access=familyFlow(f,A,f.adminA);f.foundation.revokeMembership(f.adminA,A,"member-parent");assert.throws(()=>f.parent.overview(access.parent,A),/MEMBERSHIP_REQUIRED/);});
 test("failed relationship validation preserves links and records only its rejection audit",()=>{const f=setup();familyFlow(f,A,f.adminA);const before=f.store.guardianLinks.size;assert.throws(()=>f.family.linkGuardian(f.adminA,{id:"invalid-link",organizationId:A,guardianId:"guardian-local",athleteId:"missing",state:"active",permissions:["profile"]}),/INVALID_FAMILY_OWNERSHIP/);assert.equal(f.store.guardianLinks.size,before);assert.equal(f.store.get("guardianLinks",A,"invalid-link"),undefined);const restarted=new PersistentJsonCommercialStore(f.file);assert.equal(restarted.get("guardianLinks",A,"invalid-link"),undefined);assert.equal(restarted.audits.at(-1).outcome,"rejected");});
+
+test("Parent Hub grants profile schedule and attendance separately without leaking full athlete data",()=>{
+  for(const permission of ["profile","schedule","attendance"]){
+    const f=setup(),access=familyFlow(f,A,f.adminA);
+    const link=f.store.get("guardianLinks",A,"family-link");
+    f.store.put("guardianLinks",{...link,permissions:[permission]},true);
+    const item=f.parent.overview(access.parent,A).athletes[0];
+    assert.equal(item.program!==undefined,permission==="profile");
+    assert.equal(item.athlete!==undefined,permission==="profile");
+    assert.equal(item.sessions.length,permission==="schedule"?1:0);
+    assert.equal(item.attendance.length,permission==="attendance"?1:0);
+    if(item.athlete){
+      assert.deepEqual(Object.keys(item.athlete).sort(),["displayName","id","participationState"]);
+      assert.equal("assignedCoachUserIds" in item.athlete,false);
+    }
+  }
+});
+test("guardian linkage rejects inactive profiles, duplicated permissions, invalid link states and unrelated scopes",()=>{
+  const f=setup();familyFlow(f,A,f.adminA);
+  const base={id:"new-link",organizationId:A,guardianId:"guardian-local",athleteId:"athlete-local",state:"active",permissions:["profile"]};
+  const g=f.store.get("guardians",A,"guardian-local");
+  f.store.put("guardians",{...g,state:"suspended"},true);
+  assert.throws(()=>f.family.linkGuardian(f.adminA,base),/INVALID_FAMILY_OWNERSHIP/);
+  f.store.put("guardians",g,true);
+  assert.throws(()=>f.family.linkGuardian(f.adminA,{...base,permissions:["profile","profile"]}),/INVALID_FAMILY_OWNERSHIP/);
+  assert.throws(()=>f.family.linkGuardian(f.adminA,{...base,permissions:["malicious"]}),/INVALID_FAMILY_OWNERSHIP/);
+  assert.throws(()=>f.family.linkGuardian(f.adminA,{...base,state:"suspended"}),/INVALID_FAMILY_OWNERSHIP/);
+  assert.equal(f.store.get("guardianLinks",A,"new-link"),undefined);
+});
+test("athlete identity creation rejects multiple active links for the same user",()=>{
+  const f=setup();const access=familyFlow(f,A,f.adminA);
+  assert.throws(()=>f.family.linkAthleteIdentity(f.adminA,{id:"duplicate-identity",organizationId:A,userId:`athlete-user-${A}`,athleteId:"athlete-local",state:"active",access:"minor_read_only"}),/INVALID_ATHLETE_IDENTITY_LINK/);
+  assert.equal(f.athleteAccess.self(access.athlete,A).athlete.id,"athlete-local");
+});
+test("athlete self access fails closed if two active identity links exist in local fixture",()=>{
+  const f=setup(),access=familyFlow(f,A,f.adminA);
+  f.store.put("athleteIdentityLinks",{id:"forged-second",organizationId:A,userId:`athlete-user-${A}`,athleteId:"athlete-local",state:"active",access:"minor_read_only"});
+  assert.throws(()=>f.athleteAccess.self(access.athlete,A),/AMBIGUOUS_ATHLETE_IDENTITY/);
+});
+test("restart rejects malformed guardian permissions and duplicate active athlete identities",()=>{
+  const f=setup();familyFlow(f,A,f.adminA);
+  const original=JSON.parse(readFileSync(f.file,"utf8"));
+  const badPermissions=structuredClone(original);
+  badPermissions.guardianLinks[0].permissions=["profile","forged"];
+  writeFileSync(f.file,JSON.stringify(badPermissions));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_GUARDIAN_LINK/);
+  const dupPermissions=structuredClone(original);
+  dupPermissions.guardianLinks[0].permissions=["profile","profile"];
+  writeFileSync(f.file,JSON.stringify(dupPermissions));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_GUARDIAN_LINK/);
+  const suspendedGuardian=structuredClone(original);
+  suspendedGuardian.guardians[0].state="suspended";
+  writeFileSync(f.file,JSON.stringify(suspendedGuardian));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_GUARDIAN_LINK/);
+  const duplicateIdentity=structuredClone(original);
+  duplicateIdentity.athleteIdentityLinks.push({...duplicateIdentity.athleteIdentityLinks[0],id:"duplicate"});
+  writeFileSync(f.file,JSON.stringify(duplicateIdentity));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_ATHLETE_IDENTITY/);
+  writeFileSync(f.file,JSON.stringify(original));
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
