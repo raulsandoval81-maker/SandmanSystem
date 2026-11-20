@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "sprint": 6,
+  "baseline": "bc820875e1065a68b9d416c71b256d3a302ed908",
+  "purpose": "Clean-room Commercial curriculum and progression integration provenance",
+  "authoritativeSourcesInspected": [
+    "functions/src/policy/f8ProgressionPolicy.ts",
+    "functions/src/policy/progressionCyclePolicy.ts",
+    "functions/src/services/authoritativeXpService.ts",
+    "functions/src/engines/promotion-engine/programThresholds.ts",
+    "functions/src/engines/stripe-engine/stripeStatus.ts",
+    "functions/src/modules/decay/decayRecoveryPolicy.ts",
+    "docs/architecture/XP_DOMAINS.md",
+    "docs/architecture/F8_CURRICULUM_COMPATIBILITY.md",
+    "public/assets/js/road2champion-progression.js",
+    "public/athletes/profile/path2legend-skills.js",
+    "tests/functions/progression-cycle-promotion.test.mjs",
+    "tests/functions/authoritative-xp-service.test.mjs",
+    "tests/functions/road2champion-server-consumers.test.mjs"
+  ],
+  "commercialModules": [
+    "commercial-foundation/src/progression.ts",
+    "commercial-foundation/src/contracts.ts",
+    "commercial-foundation/src/persistentStore.ts",
+    "commercial-foundation/test/progression.test.cjs"
+  ],
+  "lockedPolicy": {
+    "road2champion": [800, 1600, 2400, 2800, 3200],
+    "path2legend": [1000, 1600, 2400, 2800, 3000],
+    "stripesPerRank": 4,
+    "promotionResetsActiveCycleXp": true,
+    "historicalXpAndPromotionsPreserved": true
+  },
+  "unresolvedDoctrine": [
+    "Academy Path2Legend sources conflict on Hero, Veteran, and Legend thresholds; the Sprint 6 locked table is used only by the isolated Commercial adapter.",
+    "The proposed recovery schedule 30/30/30/150 is not established as final policy and remains disabled.",
+    "Brazilian Jiu-Jitsu curriculum is rejected until an approved authoritative curriculum is verified.",
+    "Production advancement gates and consent/privacy review require separate approval."
+  ],
+  "exclusions": [
+    "Academy production source modification",
+    "Firebase or Stripe integration",
+    "production data migration",
+    "live recovery activation",
+    "curriculum content invention",
+    "automatic deployment or release approval"
+  ]
+}

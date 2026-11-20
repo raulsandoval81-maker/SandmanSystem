@@ -1,8 +1,8 @@
-import { Academy, AthleteIdentityLink, AttendanceRecord, AuditEvent, AuthorizationContext, CommercialAthlete, Entitlement, GuardianAthleteLink, GuardianProfile, IdentityAuthority, Location, Membership, Organization, PracticeNote, PracticeSession, Program, SwitchableIdentityAuthority, VerifiedIdentity } from "./contracts";
+import { Academy, AthleteIdentityLink, AttendanceRecord, AuditEvent, AuthorizationContext, CommercialAthlete, CurriculumAssignment, CurriculumDefinition, Entitlement, GuardianAthleteLink, GuardianProfile, IdentityAuthority, Location, Membership, Organization, PracticeNote, PracticeSession, Program, ProgressionCycle, PromotionRecord, SkillEvaluation, SwitchableIdentityAuthority, VerifiedIdentity, XpEvent } from "./contracts";
 import { assertId, validateEntitlement, validateMembership, validateProgram } from "./validation";
 
-export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements" | "sessions" | "athletes" | "attendance" | "practiceNotes" | "guardians" | "guardianLinks" | "athleteIdentityLinks";
-export type TenantRecord = Academy | Location | Program | Membership | Entitlement | PracticeSession | CommercialAthlete | AttendanceRecord | PracticeNote | GuardianProfile | GuardianAthleteLink | AthleteIdentityLink;
+export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements" | "sessions" | "athletes" | "attendance" | "practiceNotes" | "guardians" | "guardianLinks" | "athleteIdentityLinks" | "curricula" | "curriculumAssignments" | "skillEvaluations" | "progressionCycles" | "xpEvents" | "promotions";
+export type TenantRecord = Academy | Location | Program | Membership | Entitlement | PracticeSession | CommercialAthlete | AttendanceRecord | PracticeNote | GuardianProfile | GuardianAthleteLink | AthleteIdentityLink | CurriculumDefinition | CurriculumAssignment | SkillEvaluation | ProgressionCycle | XpEvent | PromotionRecord;
 const essentialCapabilities = new Set(["security.access", "customer_data.read"]);
 const key = (organizationId: string, id: string) => JSON.stringify([organizationId, id]);
 
@@ -30,21 +30,21 @@ export class InMemoryCommercialStore {
   organizations = new Map<string, Organization>();
   academies = new Map<string, Academy>(); locations = new Map<string, Location>();
   programs = new Map<string, Program>(); memberships = new Map<string, Membership>();
-  entitlements = new Map<string, Entitlement>(); sessions = new Map<string, PracticeSession>(); athletes = new Map<string, CommercialAthlete>(); attendance = new Map<string, AttendanceRecord>(); practiceNotes = new Map<string, PracticeNote>(); guardians = new Map<string, GuardianProfile>(); guardianLinks = new Map<string, GuardianAthleteLink>(); athleteIdentityLinks = new Map<string, AthleteIdentityLink>(); audits: AuditEvent[] = [];
+  entitlements = new Map<string, Entitlement>(); sessions = new Map<string, PracticeSession>(); athletes = new Map<string, CommercialAthlete>(); attendance = new Map<string, AttendanceRecord>(); practiceNotes = new Map<string, PracticeNote>(); guardians = new Map<string, GuardianProfile>(); guardianLinks = new Map<string, GuardianAthleteLink>(); athleteIdentityLinks = new Map<string, AthleteIdentityLink>(); curricula = new Map<string, CurriculumDefinition>(); curriculumAssignments = new Map<string, CurriculumAssignment>(); skillEvaluations = new Map<string, SkillEvaluation>(); progressionCycles = new Map<string, ProgressionCycle>(); xpEvents = new Map<string, XpEvent>(); promotions = new Map<string, PromotionRecord>(); audits: AuditEvent[] = [];
   protected sequence = 0;
   /** Snapshot/restore protect the reference adapter from partial multi-step operations. */
   protected snapshotState() {
     return {
       organizations: new Map(this.organizations), academies: new Map(this.academies),
       locations: new Map(this.locations), programs: new Map(this.programs),
-      memberships: new Map(this.memberships), entitlements: new Map(this.entitlements), sessions: new Map(this.sessions), athletes: new Map(this.athletes), attendance: new Map(this.attendance), practiceNotes: new Map(this.practiceNotes), guardians:new Map(this.guardians),guardianLinks:new Map(this.guardianLinks),athleteIdentityLinks:new Map(this.athleteIdentityLinks),
+      memberships: new Map(this.memberships), entitlements: new Map(this.entitlements), sessions: new Map(this.sessions), athletes: new Map(this.athletes), attendance: new Map(this.attendance), practiceNotes: new Map(this.practiceNotes), guardians:new Map(this.guardians),guardianLinks:new Map(this.guardianLinks),athleteIdentityLinks:new Map(this.athleteIdentityLinks), curricula:new Map(this.curricula),curriculumAssignments:new Map(this.curriculumAssignments),skillEvaluations:new Map(this.skillEvaluations),progressionCycles:new Map(this.progressionCycles),xpEvents:new Map(this.xpEvents),promotions:new Map(this.promotions),
       audits: structuredClone(this.audits), sequence: this.sequence
     };
   }
   protected restoreState(state: ReturnType<InMemoryCommercialStore["snapshotState"]>): void {
     this.organizations = state.organizations; this.academies = state.academies;
     this.locations = state.locations; this.programs = state.programs;
-    this.memberships = state.memberships; this.entitlements = state.entitlements; this.sessions = state.sessions; this.athletes = state.athletes; this.attendance = state.attendance; this.practiceNotes = state.practiceNotes;this.guardians=state.guardians;this.guardianLinks=state.guardianLinks;this.athleteIdentityLinks=state.athleteIdentityLinks;
+    this.memberships = state.memberships; this.entitlements = state.entitlements; this.sessions = state.sessions; this.athletes = state.athletes; this.attendance = state.attendance; this.practiceNotes = state.practiceNotes;this.guardians=state.guardians;this.guardianLinks=state.guardianLinks;this.athleteIdentityLinks=state.athleteIdentityLinks;this.curricula=state.curricula;this.curriculumAssignments=state.curriculumAssignments;this.skillEvaluations=state.skillEvaluations;this.progressionCycles=state.progressionCycles;this.xpEvents=state.xpEvents;this.promotions=state.promotions;
     this.audits = state.audits; this.sequence = state.sequence;
   }
   transaction<T>(work: () => T): T {
@@ -112,6 +112,8 @@ export class CommercialFoundation {
     if (action === "family.manage") { if (manager) return; throw new Error("ROLE_DENIED"); }
     if (action === "parent.hub") { if (members.some(m=>m.role==="parent"&&scoped(m))) return; throw new Error("ROLE_DENIED"); }
     if (action === "athlete.self") { if (members.some(m=>(m.role==="athlete"||m.role==="adult_athlete")&&scoped(m))) return; throw new Error("ROLE_DENIED"); }
+    if (action === "xp.manage") { if (manager) return; throw new Error("ROLE_DENIED"); }
+    if (action === "xp.coach") { if (coach) return; throw new Error("ROLE_DENIED"); }
     if (action === "program.read") {
       if (orgAdmin || members.some(m =>
         m.scopeType === "organization" ||
@@ -141,10 +143,10 @@ export class CommercialFoundation {
    * The unexported adapter executor in operations.ts owns the actual operation.
    * Never expose this foundation or its test-only mutable store to untrusted clients.
    */
-  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace" | "family.manage" | "parent.hub" | "athlete.self", type: string, id: string, organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
+  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace" | "family.manage" | "parent.hub" | "athlete.self" | "xp.manage" | "xp.coach", type: string, id: string, organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
     const identity = this.identity(ctx);
     try {
-      const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace", "family.manage", "parent.hub", "athlete.self"];
+      const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace", "family.manage", "parent.hub", "athlete.self", "xp.manage", "xp.coach"];
       if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
       this.authorize(identity, action, organizationId, academyId, locationIds);
       if (this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
