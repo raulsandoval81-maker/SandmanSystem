@@ -1,5 +1,5 @@
 const test=require("node:test");const assert=require("node:assert/strict");
-const {mkdtempSync,readFileSync}=require("node:fs");const {tmpdir}=require("node:os");const {join}=require("node:path");
+const {mkdtempSync,readFileSync,writeFileSync}=require("node:fs");const {tmpdir}=require("node:os");const {join}=require("node:path");
 const {AttendanceService,CoachService,CommercialFoundation,InMemoryTestIdentityAuthority,ManagementService,OrganizationOnboardingService,PersistentJsonCommercialStore,SchedulingService}=require("../lib");
 const A="org-alpha",B="org-beta",now=()=>new Date("2026-11-20T20:00:00Z");
 const request=(org)=>({organizationId:org,organizationName:org,academyId:"academy-local",academyName:"Academy",locationId:"location-local",locationName:"Gym",programId:"program-local",programName:"Wrestling",disciplines:["wrestling"],administratorUserId:`admin-${org}`,coachUserId:`coach-${org}`,packageSource:"Plus",capabilityIds:["programs.manage","schedule.manage","attendance.manage","coach.workspace"],startsAt:"2026-01-01T00:00:00Z",expiresAt:"2027-01-01T00:00:00Z"});
@@ -17,3 +17,60 @@ test("attendance cannot attach an athlete from another program or missing sessio
 test("coach workspace exposes only assigned sessions and programs",()=>{const f=setup();f.scheduling.create(f.adminA,session(A));const workspace=f.coach.workspace(f.coachA,A,`coach-${A}`);assert.deepEqual(workspace.sessions.map(s=>s.id),["session-local"]);assert.deepEqual(workspace.programs.map(p=>p.id),["program-local"]);assert.throws(()=>f.coach.workspace(f.coachA,A,"someone-else"),/COACH_IDENTITY_MISMATCH/);});
 test("entitlement revocation denies capability but preserves sessions attendance and notes",()=>{const f=setup();operate(f,A,f.adminA,f.coachA);f.foundation.revokeEntitlement(f.adminA,A,"package-3-attendance-manage");assert.throws(()=>f.attendance.correct(f.adminA,A,"session-local--athlete-local","excused"),/ENTITLEMENT_REQUIRED/);assert.equal(f.store.list("sessions",A).length,1);assert.equal(f.store.list("attendance",A).length,1);assert.equal(f.store.list("practiceNotes",A).length,1);});
 test("coach cannot grant administrator authority",()=>{const f=setup();assert.throws(()=>f.management.assignStaff(f.coachA,{id:"escalate",organizationId:A,userId:`coach-${A}`,role:"organization_admin",scopeType:"organization",scopeId:A,state:"active"}),/ROLE_DENIED/);});
+
+test("location manager cannot relocate another location's existing session into their scope",()=>{
+  const f=setup();
+  f.scheduling.create(f.adminA,session(A));
+  f.foundation.createLocation(f.adminA,{id:"location-other",organizationId:A,academyId:"academy-local",name:"Other",state:"active"});
+  const program=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...program,locationIds:["location-local","location-other"]},true);
+  f.foundation.assignMembership(f.adminA,{id:"other-manager",userId:"scoped-manager",organizationId:A,role:"management",scopeType:"location",scopeId:"location-other",state:"active"});
+  const manager=f.identity.mint("scoped-manager",A);
+  assert.throws(()=>f.scheduling.update(manager,{...session(A),locationId:"location-other"}),/ROLE_DENIED/);
+  assert.equal(f.store.get("sessions",A,"session-local").locationId,"location-local");
+  assert.equal(new PersistentJsonCommercialStore(f.file).get("sessions",A,"session-local").locationId,"location-local");
+});
+
+test("scoped coach workspace only shows sessions assigned within permitted location",()=>{
+  const f=setup();
+  f.foundation.createLocation(f.adminA,{id:"location-other",organizationId:A,academyId:"academy-local",name:"Other",state:"active"});
+  const p=f.store.get("programs",A,"program-local");
+  f.store.put("programs",{...p,locationIds:["location-local","location-other"]},true);
+  f.foundation.assignMembership(f.adminA,{id:"scoped-coach",userId:"scoped-coach",organizationId:A,role:"coach",scopeType:"location",scopeId:"location-local",state:"active"});
+  f.scheduling.create(f.adminA,{...session(A),coachUserIds:["scoped-coach"]});
+  f.scheduling.create(f.adminA,{...session(A),id:"session-other",locationId:"location-other",coachUserIds:[`coach-${A}`]});
+  const ctx=f.identity.mint("scoped-coach",A);
+  assert.deepEqual(f.coach.workspace(ctx,A,"scoped-coach").sessions.map(s=>s.id),["session-local"]);
+  assert.throws(()=>f.scheduling.read(ctx,A,"session-other"),/ROLE_DENIED/);
+  assert.equal(f.coach.note(ctx,A,"session-local","note-scoped","Practice note").sessionId,"session-local");
+});
+
+test("generic callback entrypoint rejects capability.read and invented actions",()=>{
+  const f=setup();
+  assert.throws(()=>f.foundation.runAuthorized(f.coachA,"capability.read","session","forged",A,()=>{
+    f.store.put("sessions",session(A));return true;
+  }),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.throws(()=>f.foundation.runAuthorized(f.adminA,"management.elevate","member","forged",A,()=>true),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.equal(f.store.list("sessions",A).length,0);
+});
+
+test("restart rejects persisted attendance belonging to another program and malformed notes",()=>{
+  const f=setup();operate(f,A,f.adminA,f.coachA);
+  const original=JSON.parse(readFileSync(f.file,"utf8"));
+  const extraProgram={...original.programs[0],id:"other-program",name:"Second"};
+  const mismatched=structuredClone(original);
+  mismatched.programs.push(extraProgram);
+  mismatched.athletes[0].programId="other-program";
+  writeFileSync(f.file,JSON.stringify(mismatched));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_ATTENDANCE_REFERENCE/);
+  const invalidNote=structuredClone(original);
+  invalidNote.practiceNotes[0].body="  ";
+  writeFileSync(f.file,JSON.stringify(invalidNote));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_NOTE_STATE/);
+  const invalidAttendance=structuredClone(original);
+  invalidAttendance.attendance[0].state="unchecked";
+  writeFileSync(f.file,JSON.stringify(invalidAttendance));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_ATTENDANCE_STATE/);
+  writeFileSync(f.file,JSON.stringify(original));
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
