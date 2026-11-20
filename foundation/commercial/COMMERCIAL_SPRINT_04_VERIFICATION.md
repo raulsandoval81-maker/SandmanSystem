@@ -22,3 +22,15 @@ Verification:
 The tests onboard two fictional organizations with identical academy, location, program, session, athlete and note IDs. Both complete Management → Scheduling → Coach → Attendance → Management review and survive persistence restart. Negative tests cover cross-tenant access, privilege escalation, revoked coaches, invalid session relationships/times/coaches, duplicate attendance, unrelated athletes, identity mismatch and revoked entitlement behavior.
 
 The local JSON adapter remains a single-process reference implementation. No production identity provider, database rules, API transport, encryption, backup, recovery, deployment or Commercial transfer is proven or authorized.
+
+## Post-review security corrections (PR #743 remains draft)
+
+- Scheduling updates now require authorization for both the existing session scope and the requested destination scope; staff scoped to another location cannot move an existing session into their own location.
+- Sessions with recorded attendance cannot change academy, location or program ownership.
+- Operational callback execution is now module-private in `operations.ts`; the previous public `runAuthorized(..., callback)` interface has been removed. A limited `authorizeOperational` check remains for trusted internal adapters. The local store remains explicitly test-only and publicly mutable in-process; it must never be exposed as an HTTP API or production authorization boundary.
+- Scheduling lists filter per-session scope; coach workspaces honor coach academy/location membership and filter assigned sessions and programs.
+- Attendance and session reads now apply management roles to the actual session scope, rather than granting organization-wide access from an unrelated location assignment.
+- Persistent restart validation rejects attendance associated with the wrong program, malformed attendance states and timestamps, blank/malformed notes, and invalid sessions.
+- Added adversarial tests for unauthorized session moves, scoped coach workspace, removed callback entrypoint, malformed restored records, and changes that would orphan attendance.
+
+CI for the new commits must be verified separately. The earlier 34/34 check does not validate these review changes. No production deployment, Academy runtime modification, or Commercial import was authorized.
