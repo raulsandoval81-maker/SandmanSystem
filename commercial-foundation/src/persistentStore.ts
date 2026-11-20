@@ -147,12 +147,109 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     for(const curriculum of this.curricula.values()) if(!this.get("academies",curriculum.organizationId,curriculum.academyId)||!expectedRanks[curriculum.pathway]||JSON.stringify(curriculum.ranks.map(r=>r.requiredXp))!==JSON.stringify(expectedRanks[curriculum.pathway])||!Array.isArray(curriculum.skills)) throw new Error("INVALID_PERSISTED_CURRICULUM");
     for(const assignment of this.curriculumAssignments.values()){const athlete=this.get("athletes",assignment.organizationId,assignment.athleteId);const curriculum=this.get("curricula",assignment.organizationId,assignment.curriculumId);if(!athlete||!curriculum||!["active","completed","revoked"].includes(assignment.state)||!validDate(assignment.assignedAt))throw new Error("INVALID_PERSISTED_CURRICULUM_ASSIGNMENT");}
     const activeCycles=new Set<string>();
-    for(const cycle of this.progressionCycles.values()){const athlete=this.get("athletes",cycle.organizationId,cycle.athleteId),assignment=this.get("curriculumAssignments",cycle.organizationId,cycle.assignmentId) as import("./contracts").CurriculumAssignment|undefined,key=JSON.stringify([cycle.organizationId,cycle.athleteId]);if(!athlete||!assignment||assignment.athleteId!==cycle.athleteId||!expectedRanks[cycle.pathway]||!Number.isInteger(cycle.rankIndex)||cycle.rankIndex<0||cycle.rankIndex>4||!Number.isInteger(cycle.activeXp)||cycle.activeXp<0||!Number.isInteger(cycle.lifetimeXp)||cycle.lifetimeXp<0||!Number.isInteger(cycle.earnedStripes)||cycle.earnedStripes<0||cycle.earnedStripes>4||(cycle.state==="active"&&activeCycles.has(key)))throw new Error("INVALID_PERSISTED_PROGRESSION_CYCLE");if(cycle.state==="active")activeCycles.add(key);}
+    for(const assignment of this.curriculumAssignments.values()){
+      const athlete=this.get<import("./contracts").CommercialAthlete>("athletes",assignment.organizationId,assignment.athleteId);
+      const curriculum=this.get<import("./contracts").CurriculumDefinition>("curricula",assignment.organizationId,assignment.curriculumId);
+      if(!athlete||!curriculum||athlete.academyId!==curriculum.academyId)throw new Error("INVALID_PERSISTED_CURRICULUM_ASSIGNMENT");
+    }
+    for(const evaluation of this.skillEvaluations.values()){
+      const assignment=this.get<import("./contracts").CurriculumAssignment>("curriculumAssignments",evaluation.organizationId,evaluation.assignmentId);
+      const curriculum=assignment&&this.get<import("./contracts").CurriculumDefinition>("curricula",evaluation.organizationId,assignment.curriculumId);
+      if(!assignment||!curriculum||assignment.athleteId!==evaluation.athleteId||
+        !curriculum.skills.some(s=>s.id===evaluation.skillId)||
+        !["introduced","developing","approved"].includes(evaluation.status)||!validDate(evaluation.evaluatedAt))
+        throw new Error("INVALID_PERSISTED_SKILL_EVALUATION");
+    }
+    for(const cycle of this.progressionCycles.values()){
+      const athlete=this.get<import("./contracts").CommercialAthlete>("athletes",cycle.organizationId,cycle.athleteId);
+      const assignment=this.get<import("./contracts").CurriculumAssignment>("curriculumAssignments",cycle.organizationId,cycle.assignmentId);
+      const curriculum=assignment&&this.get<import("./contracts").CurriculumDefinition>("curricula",cycle.organizationId,assignment.curriculumId);
+      const key=JSON.stringify([cycle.organizationId,cycle.athleteId]);
+      if(!athlete||!assignment||!curriculum||assignment.athleteId!==cycle.athleteId||
+        curriculum.pathway!==cycle.pathway||!expectedRanks[cycle.pathway]||
+        !Number.isInteger(cycle.rankIndex)||cycle.rankIndex<0||cycle.rankIndex>4||
+        !Number.isInteger(cycle.activeXp)||cycle.activeXp<0||
+        !Number.isInteger(cycle.lifetimeXp)||cycle.lifetimeXp<0||
+        !Number.isInteger(cycle.earnedStripes)||cycle.earnedStripes<0||cycle.earnedStripes>4||
+        !Number.isInteger(cycle.sequence)||cycle.sequence<0||
+        !["preseason","in_season","postseason"].includes(cycle.seasonPhase)||
+        !["active","completed","suspended"].includes(cycle.state)||
+        (cycle.state==="active"&&(assignment.state!=="active"||activeCycles.has(key))))
+        throw new Error("INVALID_PERSISTED_PROGRESSION_CYCLE");
+      if(cycle.state==="active")activeCycles.add(key);
+    }
     const eventIds=new Set<string>();
-    for(const event of this.xpEvents.values()){const athlete=this.get("athletes",event.organizationId,event.athleteId),cycle=this.get("progressionCycles",event.organizationId,event.cycleId);const key=JSON.stringify([event.organizationId,event.sourceEventId]);if(!athlete||!cycle||!Number.isInteger(event.amount)||event.amount===0||eventIds.has(key)||!validDate(event.occurredAt))throw new Error("INVALID_PERSISTED_XP_EVENT");eventIds.add(key);}
+    for(const event of this.xpEvents.values()){
+      const athlete=this.get<import("./contracts").CommercialAthlete>("athletes",event.organizationId,event.athleteId);
+      const cycle=this.get<import("./contracts").ProgressionCycle>("progressionCycles",event.organizationId,event.cycleId);
+      const key=JSON.stringify([event.organizationId,event.sourceEventId]);
+      if(!athlete||!cycle||cycle.athleteId!==event.athleteId||
+        !Number.isInteger(event.rankIndexAtAward)||event.rankIndexAtAward<0||event.rankIndexAtAward>4||
+        event.id!==event.sourceEventId||!/^[a-zA-Z0-9._:-]+$/.test(event.sourceEventId)||
+        !Number.isInteger(event.amount)||event.amount===0||
+        !["strength","honor","adjustment"].includes(event.lane)||
+        (event.lane==="strength"&&(![5,10].includes(event.amount)||event.source!=="structured-strength"))||
+        (event.lane==="honor"&&(event.amount!==5||event.source!=="verified-honor"))||
+        (event.lane==="adjustment"&&(!event.reason?.trim()||event.source!=="management-adjustment"))||
+        (event.correctionOf!==undefined&&!this.get("xpEvents",event.organizationId,event.correctionOf))||
+        eventIds.has(key)||!validDate(event.occurredAt))
+        throw new Error("INVALID_PERSISTED_XP_EVENT");
+      eventIds.add(key);
+    }
     const promotionKeys=new Set<string>();
-    for(const promotion of this.promotions.values()){const athlete=this.get("athletes",promotion.organizationId,promotion.athleteId),cycle=this.get("progressionCycles",promotion.organizationId,promotion.cycleId),key=JSON.stringify([promotion.organizationId,promotion.athleteId,promotion.fromRank,promotion.toRank]);if(!athlete||!cycle||promotion.requirementsVerified!==true||!validDate(promotion.promotedAt)||promotionKeys.has(key))throw new Error("INVALID_PERSISTED_PROMOTION");promotionKeys.add(key);}
-    for(const evaluation of this.skillEvaluations.values()){const assignment=this.get("curriculumAssignments",evaluation.organizationId,evaluation.assignmentId) as import("./contracts").CurriculumAssignment|undefined;if(!assignment||assignment.athleteId!==evaluation.athleteId||!["introduced","developing","approved"].includes(evaluation.status)||!validDate(evaluation.evaluatedAt))throw new Error("INVALID_PERSISTED_SKILL_EVALUATION");}
+    for(const promotion of this.promotions.values()){
+      const athlete=this.get<import("./contracts").CommercialAthlete>("athletes",promotion.organizationId,promotion.athleteId);
+      const cycle=this.get<import("./contracts").ProgressionCycle>("progressionCycles",promotion.organizationId,promotion.cycleId);
+      const key=JSON.stringify([promotion.organizationId,promotion.athleteId,promotion.fromRank,promotion.toRank]);
+      if(!athlete||!cycle||cycle.athleteId!==promotion.athleteId||cycle.pathway!==promotion.pathway||
+        promotion.requirementsVerified!==true||!Number.isInteger(promotion.historicalXpAtPromotion)||
+        !validDate(promotion.promotedAt)||promotionKeys.has(key))
+        throw new Error("INVALID_PERSISTED_PROMOTION");
+      promotionKeys.add(key);
+    }
+    // Deterministic local ledger replay: events are append-only and tagged with the
+    // rank cycle in which they were awarded. Rank transitions reset only active XP.
+    for(const cycle of this.progressionCycles.values()){
+      const org=cycle.organizationId;
+      const curriculumAssignment=this.get<import("./contracts").CurriculumAssignment>("curriculumAssignments",org,cycle.assignmentId);
+      const definition=curriculumAssignment&&this.get<import("./contracts").CurriculumDefinition>("curricula",org,curriculumAssignment.curriculumId);
+      const ranks=definition?.ranks;
+      if(!ranks||ranks.length!==5)throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+      const events=this.list<import("./contracts").XpEvent>("xpEvents",org).filter(e=>e.cycleId===cycle.id);
+      const promotions=this.list<import("./contracts").PromotionRecord>("promotions",org).filter(p=>p.cycleId===cycle.id);
+      if(promotions.length!==cycle.rankIndex||cycle.sequence!==promotions.length)
+        throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+      let lifetime=0,active=0,stripes=0,previousLifetimeFloor=0;
+      for(let stage=0;stage<=cycle.rankIndex;stage++){
+        active=0;stripes=0;
+        const threshold=ranks[stage].requiredXp;
+        for(const event of events.filter(e=>e.rankIndexAtAward===stage)){
+          if(event.correctionOf){
+            const original=this.get<import("./contracts").XpEvent>("xpEvents",org,event.correctionOf);
+            if(!original||original.athleteId!==cycle.athleteId)throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+          }
+          const next=active+event.amount;
+          lifetime+=event.amount;
+          if(next<Math.ceil(threshold*stripes/4)||lifetime<previousLifetimeFloor||next<0)
+            throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+          active=next;
+          stripes=Math.max(stripes,Math.min(4,Math.floor(active/(threshold/4))));
+        }
+        if(stage<cycle.rankIndex){
+          const promotion=promotions.find(p=>p.fromRank===ranks[stage].key&&p.toRank===ranks[stage+1].key);
+          const required=definition!.skills.filter(skill=>skill.required);
+          const approvals=this.list<import("./contracts").SkillEvaluation>("skillEvaluations",org).filter(e=>
+            e.athleteId===cycle.athleteId&&e.assignmentId===cycle.assignmentId&&e.status==="approved");
+          if(!promotion||active<threshold||promotion.historicalXpAtPromotion!==lifetime||
+            !required.length||required.some(skill=>!approvals.some(e=>e.skillId===skill.id)))
+            throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+          previousLifetimeFloor=lifetime;
+        }
+      }
+      if(events.some(e=>e.athleteId!==cycle.athleteId||e.rankIndexAtAward>cycle.rankIndex)||
+        cycle.lifetimeXp!==lifetime||cycle.activeXp!==active||cycle.earnedStripes!==stripes)
+        throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
+    }
     if (state.audits.some(event => !event || typeof event.id !== "string" || !/^audit-[1-9][0-9]*$/.test(event.id) || !this.getOrganization(event.selectedOrganizationId) ||
       typeof event.actorUserId !== "string" || !["permitted", "rejected"].includes(event.outcome))) throw new Error("INVALID_PERSISTED_AUDIT");
     if (new Set(state.audits.map(event => event.id)).size !== state.audits.length) throw new Error("DUPLICATE_PERSISTED_AUDIT");
