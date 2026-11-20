@@ -5,10 +5,8 @@ import { db } from "/assets/js/firebase-init.js";
 
 import {
   doc,
-  getDoc,
-  updateDoc,
   collection,
-  addDoc,
+  runTransaction,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
@@ -62,7 +60,10 @@ export async function applyXpAdjustment({
   }
 
   const athleteRef = doc(db, "athletes", athleteIdClean);
-  const athleteSnap = await getDoc(athleteRef);
+  const logRef = doc(collection(db, "xpLogs"));
+
+  const result = await runTransaction(db, async (tx) => {
+  const athleteSnap = await tx.get(athleteRef);
 
   if (!athleteSnap.exists()) {
     throw new Error("Athlete not found");
@@ -109,9 +110,9 @@ export async function applyXpAdjustment({
     xpKind
   });
 
-  await updateDoc(athleteRef, athletePatch);
+  tx.update(athleteRef, athletePatch);
 
-  await addDoc(collection(db, "xpLogs"), {
+  tx.set(logRef, {
     uid: athleteIdClean,
     amount: xpAmount,
     beforeXp,
@@ -130,10 +131,12 @@ export async function applyXpAdjustment({
     createdAt: serverTimestamp()
   });
 
+  return { beforeXp, afterXp };
+  });
   return {
     uid: athleteIdClean,
-    beforeXp,
-    afterXp,
+    beforeXp: result.beforeXp,
+    afterXp: result.afterXp,
     amount: xpAmount,
     kind: xpKind
   };
