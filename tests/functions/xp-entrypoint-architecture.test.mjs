@@ -42,15 +42,15 @@ test("coach entry point dispatches to authoritative XP service", () => {
 });
 
 test("admin rejects fractional or unsafe XP and records effective delta", () => {
-  assert.match(admin, /Number\\.isSafeInteger\\(xpAmount\\)/);
-  assert.match(admin, /Number\\.isSafeInteger\\(beforeXp\\)/);
-  assert.match(admin, /amount: appliedDelta/);
-  assert.match(admin, /requestedAmount: xpAmount/);
-  assert.match(admin, /amount: result\\.appliedDelta/);
+  assert.ok(admin.includes("Number.isSafeInteger(xpAmount)"));
+  assert.ok(admin.includes("Number.isSafeInteger(beforeXp)"));
+  assert.ok(admin.includes("amount: appliedDelta"));
+  assert.ok(admin.includes("requestedAmount: xpAmount"));
+  assert.ok(admin.includes("amount: result.appliedDelta"));
 });
 
 test("management does not silently treat a deduction as earned XP", () => {
-  assert.match(management, /amount <= 0/);
-  assert.match(management, /resolveManagementAdjustmentSemantic/);
-  assert.match(management, /resolveLifetimeXpEffects/);
+  assert.ok(management.includes("amount <= 0"));
+  assert.ok(management.includes("resolveManagementAdjustmentSemantic"));
+  assert.ok(management.includes("resolveLifetimeXpEffects"));
 });
