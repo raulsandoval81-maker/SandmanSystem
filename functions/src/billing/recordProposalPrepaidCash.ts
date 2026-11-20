@@ -493,6 +493,11 @@ export const recordProposalPrepaidCash =
             ).digest("hex");
             const evidenceClaimRef = db.collection("prepaidPaymentEvidenceClaims")
               .doc(evidenceFingerprint);
+            const existingEvidenceClaim = await tx.get(evidenceClaimRef);
+            if (existingEvidenceClaim.exists) {
+              throw new HttpsError("already-exists",
+                "This check/deposit or cash receipt has already been credited. Review the original proposal; do not record it again.");
+            }
             tx.create(evidenceClaimRef, {
               proposalId,
               locationId: proposal.locationId,
