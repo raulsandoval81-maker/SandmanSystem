@@ -1534,6 +1534,8 @@ managementRecognitionXp?.addEventListener(
 
 syncAdjustmentCategoryUi();
 
+const pendingAdjustmentIds = new Map();
+
 function createAdjustmentId() {
   if (
     typeof crypto !== "undefined" &&
@@ -1830,47 +1832,26 @@ adjustmentForm.addEventListener(
       return;
     }
 
-    const adjustmentId =
-      createAdjustmentId();
+    const payload = {
+      athleteUid: athlete.athleteId,
+      discipline: selectedDiscipline,
+      amount,
+      verifiedExperienceYears: isExperienceOverride ? Number(verifiedExperienceYears.value) : null,
+      recognitionPerStage: isExperienceOverride ? recognitionPlan.perStage : null,
+      reason,
+      category,
+      ...(semantic ? { semantic } : {})
+    };
+    const requestKey = JSON.stringify(payload);
+    const adjustmentId = pendingAdjustmentIds.get(requestKey) ?? createAdjustmentId();
+    pendingAdjustmentIds.set(requestKey, adjustmentId);
 
     applyButton.disabled = true;
     clearButton.disabled = true;
-
-    setAdjustmentStatus(
-      "Applying verified XP adjustment…"
-    );
+    setAdjustmentStatus("Applying verified XP adjustment…");
 
     try {
-      const response =
-        await createAdjustment({
-          athleteUid:
-            athlete.athleteId,
-
-          discipline:
-            selectedDiscipline,
-
-          amount,
-
-          verifiedExperienceYears:
-            isExperienceOverride
-              ? Number(
-                  verifiedExperienceYears.value
-                )
-              : null,
-
-          recognitionPerStage:
-            isExperienceOverride
-              ? recognitionPlan.perStage
-              : null,
-
-          reason,
-
-          category,
-
-          semantic,
-
-          adjustmentId
-        });
+      const response = await createAdjustment({ ...payload, adjustmentId });
 
       const result =
         response.data || {};
@@ -1939,6 +1920,7 @@ adjustmentForm.addEventListener(
       }
       reasonInput.value = "";
       syncAdjustmentCategoryUi();
+      pendingAdjustmentIds.delete(requestKey);
 
     } catch (error) {
       console.error(

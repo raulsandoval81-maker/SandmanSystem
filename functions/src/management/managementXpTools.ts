@@ -1105,7 +1105,8 @@ export const createManagementXpAdjustment =
       throw new HttpsError("invalid-argument", "MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED");
     }
     if (category !== "correction" && requestedSemantic &&
-        requestedSemantic !== "NEW_EARNED_XP") {
+        requestedSemantic !== "NEW_EARNED_XP" &&
+        !(category === "downtime_recovery" && requestedSemantic === "RESTORE_ALREADY_COUNTED_XP")) {
       throw new HttpsError("invalid-argument", "UNSUPPORTED_MANAGEMENT_SEMANTIC");
     }
     const semantic =
@@ -1189,8 +1190,7 @@ export const createManagementXpAdjustment =
         );
       }
     } else if (
-      !Number.isFinite(amount) ||
-      !Number.isInteger(amount) ||
+      !Number.isSafeInteger(amount) ||
       amount <= 0
     ) {
       throw new HttpsError(
@@ -1393,21 +1393,18 @@ export const createManagementXpAdjustment =
           );
         }
 
-        const beforeStripeCount =
-          persistedStripeCount(
-            base,
-            tier,
-            beforeXp,
-            xpCap
-          );
-
-        const stripeCount =
-          persistedStripeCount(
-            base,
-            tier,
-            afterXp,
-            xpCap
-          );
+        const storedStripeCount = Number(progression.stripeCount ?? 0);
+        if (!Number.isInteger(storedStripeCount) || storedStripeCount < 0 || storedStripeCount > 4) {
+          throw new HttpsError("failed-precondition", "INVALID_EARNED_STRIPE_COUNT");
+        }
+        const beforeStripeCount = Math.max(
+          storedStripeCount,
+          persistedStripeCount(base, tier, beforeXp, xpCap)
+        );
+        const stripeCount = Math.max(
+          beforeStripeCount,
+          persistedStripeCount(base, tier, afterXp, xpCap)
+        );
 
         const athletePatch:
           Record<string, any> = {

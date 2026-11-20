@@ -1,33 +1,15 @@
-# XP entrypoint reconciliation — read-only source audit (2026-11-20)
+# XP entrypoint reconciliation
 
-**Status: production NO-GO.** This branch contains an unmerged Admin client-side atomicity correction and no deployed XP changes. This report describes source, not live behavior.
+Production remains NO-GO pending Management XP provenance and independent rollback verification.
 
-## Source-backed inventory
+| Entry point | Authority |
+| --- | --- |
+| Admin | Existing client-side correction authority and Firestore rules. The athlete update and audit log share one transaction. Signed amounts, accountability, transition metadata, and zero-floor behavior remain in place. |
+| Management | Existing server-side callable, active staff and location checks, discipline-specific operational XP, and atomic transaction for balance, audit logs, and receipt. Positive corrections require an explicit lifetime classification. Earned stripes are preserved. |
+| Coach and System | Existing authoritative award, progression, decay, and recovery code. Management decay is deferred. |
 
-| Entry point | Client | Backend | Key behavior |
-| --- | --- | --- | --- |
-| Admin | `public/admin/system/xp-adjustments.page.js` | `public/admin/services/admin.service.js` | Reads `athletes/{uid}`, calculates `Math.max(0, xp + amount)`, and now updates athlete and writes `xpLogs` in one client-side Firestore transaction (draft only). |
-| Management | `public/management/xp-adjustments/xp-adjustments.js` | `functions/src/management/managementXpTools.ts` | Calls `createManagementXpAdjustment`; staff and location checks, transaction, discipline authority, lifetime effects, idempotency receipt. |
-| Coach | coach XP clients | `functions/src/modules/xpHttp.ts` → `functions/src/services/authoritativeXpService.ts` | Authenticated, coach/athlete access checked; authoritative XP dispatcher and transaction. |
+A correction for new earned XP increases lifetime XP by the accepted, capped amount. A restoration of already-counted XP leaves lifetime totals intact. The dashboard reuses the adjustment ID for the same pending payload within the current page, including a retry after an ambiguous response.
 
-## Confirmed gaps
+The Admin transaction remains a separate legacy entry point under the existing Admin rules. This change does not migrate it to the Management callable or give Management deduction authority.
 
-1. **Admin is not the shared authoritative implementation.** It writes `athletes.xp` directly from the browser. The admin screen is a functional reference, not a safe implementation to copy.
-2. **Admin atomicity patch prepared on this draft branch.** Athlete and audit writes are now staged in a single Firestore transaction; this does not resolve the direct-client-write security and policy mismatch. Production remains unchanged.
-3. **Admin does not visibly enforce the same server-side discipline, active-rank cap, lifetime XP, or idempotency receipt rules as Management.** Firestore security rules and live behavior still need separate verification.
-4. **Management's current handler rejects nonpositive effective XP changes** (`delta <= 0` → `XP_CAP_REACHED`), while Admin accepts negative amounts and floors the result at zero. Management cannot be claimed to have Admin's deduction parity.
-5. **Log schemas differ.** Admin writes `xpLogs`; Management writes canonical and compatibility logs and receipts. Cross-interface history needs explicit reconciliation before any migration.
-6. **Coach and Management are not the same function**, even though they import shared authoritative XP helpers. Their policies must be compared for every adjustment semantic.
-
-## Release prerequisites
-
-- Agree on a canonical server-side adjustment contract: actor role, athlete ID, discipline, signed delta, reason, semantic, stable adjustment ID, result and receipt.
-- Define signed-deduction semantics and protection against undoing earned lifetime XP, stripes, ranks, and previously issued recognition. Never assume `Math.max(0, xp + delta)` is sufficient.
-- Preserve Admin's accountability and transition metadata, and ensure old `xpLogs` consumers remain compatible.
-- Add emulator-backed tests for Admin/Management/Coach parity: positive award, deduction, cap, non-primary discipline, frozen athlete, concurrent requests, duplicate ID, unauthorized actor, cross-location access, and failed audit write.
-- Inspect Firestore rules and production logs read-only; validate Admin's current live behavior without sending a test award.
-- Resolve draft PR #734's serving-image provenance and independent rollback requirements before any Management production release. Do not rerun failed protected workflows without separate authorization.
-
-## Safety
-
-No production writes, test awards, merges, deployments, IAM edits, Storage copies, or protected workflow reruns are authorized by this audit. This document and companion test capture the differences and an unmerged Admin atomicity correction; they do **not** claim feature parity or release readiness.
+The existing protected staging workflow has no reviewed Management XP target for this change. A scoped staging deployment and fictional dashboard verification require an exact candidate, captured rollback evidence, and the existing staging approvals. Production also requires verified source-to-serving-image provenance and independently recoverable rollback bytes.

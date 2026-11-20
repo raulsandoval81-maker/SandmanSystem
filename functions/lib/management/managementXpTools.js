@@ -490,7 +490,19 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const verifiedExperienceYears = Number(req.data?.verifiedExperienceYears || 0);
     const reason = clean(req.data?.reason);
     const category = clean(req.data?.category).toLowerCase();
-    const semantic = (0, xpDomainPolicy_1.resolveManagementAdjustmentSemantic)(category, clean(req.data?.semantic) || undefined);
+    const requestedSemantic = clean(req.data?.semantic);
+    // Management may credit new earned XP or restore previously counted XP.
+    // Deductions, lifetime reversals, and decay remain System/Admin authority.
+    if (category === "correction" &&
+        !["NEW_EARNED_XP", "RESTORE_ALREADY_COUNTED_XP"].includes(requestedSemantic)) {
+        throw new https_1.HttpsError("invalid-argument", "MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED");
+    }
+    if (category !== "correction" && requestedSemantic &&
+        requestedSemantic !== "NEW_EARNED_XP" &&
+        !(category === "downtime_recovery" && requestedSemantic === "RESTORE_ALREADY_COUNTED_XP")) {
+        throw new https_1.HttpsError("invalid-argument", "UNSUPPORTED_MANAGEMENT_SEMANTIC");
+    }
+    const semantic = (0, xpDomainPolicy_1.resolveManagementAdjustmentSemantic)(category, requestedSemantic || undefined);
     const adjustmentId = clean(req.data?.adjustmentId);
     const discipline = clean(req.data?.discipline).toLowerCase();
     const isVerifiedExperienceOverride = category === "verified_experience_override";
@@ -527,8 +539,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("invalid-argument", `Recognition XP per stage must be a whole number from 1 to ${recognitionStageCap} for the selected Coach verification / suggestion.`);
         }
     }
-    else if (!Number.isFinite(amount) ||
-        !Number.isInteger(amount) ||
+    else if (!Number.isSafeInteger(amount) ||
         amount <= 0) {
         throw new https_1.HttpsError("invalid-argument", "Adjustment XP must be a positive whole number.");
     }
@@ -613,8 +624,12 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("failed-precondition", clean(error?.message) ||
                 "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE");
         }
-        const beforeStripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap);
-        const stripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap);
+        const storedStripeCount = Number(progression.stripeCount ?? 0);
+        if (!Number.isInteger(storedStripeCount) || storedStripeCount < 0 || storedStripeCount > 4) {
+            throw new https_1.HttpsError("failed-precondition", "INVALID_EARNED_STRIPE_COUNT");
+        }
+        const beforeStripeCount = Math.max(storedStripeCount, (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap));
+        const stripeCount = Math.max(beforeStripeCount, (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap));
         const athletePatch = {
             updatedAt: now
         };

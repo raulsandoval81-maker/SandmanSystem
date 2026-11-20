@@ -9,11 +9,12 @@ const compiled = readFileSync(moduleUrl, "utf8");
 const require = createRequire(moduleUrl);
 const { classifyAthlete } = require("../services/authoritativeXpService");
 
-function fixture({ xp = 100 } = {}) {
+function fixture({ xp = 100, stripeCount = 0, staffRole = "admin", authenticated = true } = {}) {
   const athleteId = "F8_0023";
   const athlete = {
     uid: athleteId,
     primaryDiscipline: "wrestling",
+    locationId: "fictional-location",
     xp,
     lifetimeXp: 100,
     legacy: true,
@@ -23,6 +24,7 @@ function fixture({ xp = 100 } = {}) {
     disciplines: {
       wrestling: {
         xp: 0,
+        stripeCount,
         framework: "foundry8",
         ladderKey: "F8",
         journey: "zero2hero",
@@ -71,13 +73,17 @@ function fixture({ xp = 100 } = {}) {
     "firebase-functions/v2/https": { ...require("firebase-functions/v2/https"), onCall: (handler) => handler },
     "../services/staffAuthorization": {
       normalizeStaffRole: (role) => role,
-      requireActiveStaff: async () => ({ staff: { role: "admin" } }),
+      requireActiveStaff: async (_uid, allowed) => {
+        if (!allowed.includes(staffRole)) throw new Error("Management access required");
+        return { staff: { role: staffRole, locationId: "other-location" } };
+      },
+      MANAGEMENT_STAFF_ROLES: Object.freeze(["admin", "management"]),
     },
   };
   const exports = {};
   runInNewContext(compiled, { exports, require: (name) => stubs[name] ?? require(name) });
   const adjust = (data = {}) => exports.createManagementXpAdjustment({
-    auth: { uid: "fictional-manager" },
+    auth: authenticated ? { uid: "fictional-manager" } : undefined,
     data: {
       athleteUid: athleteId,
       discipline: "wrestling",
@@ -218,4 +224,58 @@ test("fictional +60 paper XP preserves wrestling authority, legacy credit and re
   assert.equal(writes.length, writeCount);
   assert.equal(writes.filter(([operation]) => operation === "create").length, 1);
   assert.equal(JSON.stringify(athlete), storedAthlete);
+});
+
+test("explicit correction classification distinguishes restoration from new earnings", async () => {
+  for (const [semantic, lifetimeDelta] of [
+    ["RESTORE_ALREADY_COUNTED_XP", 0],
+    ["NEW_EARNED_XP", 60],
+  ]) {
+    const { athlete, adjust, writes } = fixture({ stripeCount: 2 });
+    const request = { category: "correction", amount: 60, semantic };
+    const result = await adjust(request);
+    assert.equal(result.lifetimeXpDelta, lifetimeDelta);
+    assert.equal(athlete.lifetimeXp, 100 + lifetimeDelta);
+    assert.equal(athlete.xp, 160);
+    assert.equal(athlete.disciplines.wrestling.xp, 160);
+    assert.equal(athlete.disciplines.wrestling.stripeCount, 2);
+    assert.equal(athlete.disciplines.boxing.xp, 35);
+    assert.equal(result.earnedStripe, false);
+    assert.equal(writes.length, 4);
+    assert.equal((await adjust(request)).idempotent, true);
+    assert.equal(writes.length, 4);
+  }
+});
+
+test("invalid semantics, deductions, unsafe integers and cap exhaustion make no writes", async () => {
+  const { adjust, writes } = fixture({ xp: 800 });
+  for (const [request, error] of [
+    [{ category: "correction" }, /MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED/],
+    [{ category: "correction", semantic: "REVERSE_ERRONEOUS_AWARD" }, /MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED/],
+    [{ semantic: "RESTORE_ALREADY_COUNTED_XP" }, /UNSUPPORTED_MANAGEMENT_SEMANTIC/],
+    [{ amount: -1 }, /positive whole number/],
+    [{ amount: Number.MAX_SAFE_INTEGER + 1 }, /positive whole number/],
+    [{}, /XP_CAP_REACHED/],
+  ]) await assert.rejects(adjust(request), error);
+  assert.equal(writes.length, 0);
+});
+
+test("existing downtime recovery can restore counted XP without adding lifetime XP", async () => {
+  const { athlete, adjust } = fixture();
+  const result = await adjust({ category: "downtime_recovery", semantic: "RESTORE_ALREADY_COUNTED_XP" });
+  assert.equal(result.lifetimeXpDelta, 0);
+  assert.equal(athlete.xp, 210);
+  assert.equal(athlete.lifetimeXp, 100);
+});
+
+test("unauthenticated, coach and cross-location requests cannot write", async () => {
+  for (const [options, error] of [
+    [{ authenticated: false }, /unauthenticated|sign.in|required/i],
+    [{ staffRole: "coach" }, /Management access required/],
+    [{ staffRole: "management" }, /outside your assigned location/],
+  ]) {
+    const { adjust, writes } = fixture(options);
+    await assert.rejects(adjust(), error);
+    assert.equal(writes.length, 0);
+  }
 });
