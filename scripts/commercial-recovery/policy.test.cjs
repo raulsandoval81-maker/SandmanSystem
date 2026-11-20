@@ -38,3 +38,51 @@ test("rejects production paths, credential markers and unsupported Git modes", (
   assert.throws(() => scan({ toString: () => "sk_" + "live_" + "Z".repeat(22) }));
   assert.throws(() => validatePlan(plan(keep), [{ ...source[0], mode: "120000" }]));
 });
+
+test("rejects unsafe output paths even when supplied as additions", () => {
+  const cases = [
+    ".github/workflows/deploy.yml",
+    "functions/lib/generated.js",
+    "scripts/production/deploy.js",
+    "archive/customer.csv",
+    "private/records.json",
+    ".env.production",
+    "firebase.json",
+  ];
+  for (const path of cases) {
+    const added = { path, action: "add", reason: "demo-fixture", sha256, base64: "" };
+    assert.throws(() => validatePlan(plan(keep, added), source), path);
+  }
+});
+
+test("rejects a file colliding with an output directory", () => {
+  const src = [
+    { path: "a", mode: "100644", type: "blob", oid },
+    { path: "b", mode: "100644", type: "blob", oid: "3".repeat(40) },
+  ];
+  const a = { path: "a", action: "keep", reason: "application-code", oid, sha256 };
+  const b = { path: "a/child", action: "add", reason: "demo-fixture", sha256, base64: "" };
+  const exclude = { path: "b", action: "exclude", reason: "unused-source", oid: src[1].oid };
+  assert.throws(() => validatePlan(plan(a, exclude, b), src));
+});
+
+test("rejects malformed review metadata and missing content digests", () => {
+  for (const record of [
+    { ...keep, sha256: undefined },
+    { ...keep, reason: "../unsafe" },
+    { ...keep, oid: undefined },
+    { ...keep, action: "replace", base64: "not-base64!" },
+  ]) assert.throws(() => validatePlan(plan(record), source));
+});
+
+test("rejects additional Academy endpoints and credential formats", () => {
+  for (const marker of [
+    "sandmandashboard",
+    "sandman-combat-staging",
+    "sandman-main",
+    "P-000019",
+    "-----BEGIN PRIVATE KEY-----",
+    "github_pat_" + "A".repeat(35),
+    "AKIA" + "A".repeat(16),
+  ]) assert.throws(() => scan(Buffer.from(marker)), marker);
+});
