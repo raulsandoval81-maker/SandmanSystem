@@ -8,7 +8,7 @@ interface PersistedState {
   schema: "sandman.commercial.local-store.v1";
   organizations: Organization[];
   academies: TenantRecord[]; locations: TenantRecord[]; programs: TenantRecord[];
-  memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; audits: AuditEvent[];
+  memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; guardians: TenantRecord[]; guardianLinks: TenantRecord[]; athleteIdentityLinks: TenantRecord[]; audits: AuditEvent[];
 }
 
 /**
@@ -28,7 +28,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
   private load(): void {
     const state = JSON.parse(readFileSync(this.filePath, "utf8")) as PersistedState;
     if (state.schema !== "sandman.commercial.local-store.v1") throw new Error("INVALID_PERSISTENCE_SCHEMA");
-    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
+    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.guardians, state.guardianLinks, state.athleteIdentityLinks, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
     for (const record of state.organizations) { assertId(record.id); if (!record.displayName?.trim() || !["active","suspended","archived"].includes(record.state)) throw new Error("INVALID_PERSISTED_ORGANIZATION"); super.createOrganization(record); }
     for (const record of state.academies as TenantRecord[]) { assertId(record.id); assertId(record.organizationId,"organizationId"); if (!this.getOrganization(record.organizationId)) throw new Error("INVALID_PERSISTED_TENANT_REFERENCE"); super.put("academies",record); }
     for (const record of state.locations as TenantRecord[]) { assertId(record.id); const value = record as import("./contracts").Location; if (!this.get<import("./contracts").Academy>("academies",value.organizationId,value.academyId)) throw new Error("INVALID_PERSISTED_ACADEMY_REFERENCE"); super.put("locations",record); }
@@ -39,6 +39,9 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     for (const record of state.athletes as TenantRecord[]) super.put("athletes", record);
     for (const record of state.attendance as TenantRecord[]) super.put("attendance", record);
     for (const record of state.practiceNotes as TenantRecord[]) super.put("practiceNotes", record);
+    for (const record of state.guardians as TenantRecord[]) super.put("guardians",record);
+    for (const record of state.guardianLinks as TenantRecord[]) super.put("guardianLinks",record);
+    for (const record of state.athleteIdentityLinks as TenantRecord[]) super.put("athleteIdentityLinks",record);
     // Loading is fail-closed: every child and authorization scope must resolve inside its own tenant.
     for (const academy of this.academies.values()) {
       if (!this.getOrganization(academy.organizationId) || !academy.name?.trim() || !["active", "suspended", "archived"].includes(academy.state)) throw new Error("INVALID_PERSISTED_ACADEMY");
@@ -94,6 +97,9 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       if (!session) throw new Error("INVALID_PERSISTED_NOTE_REFERENCE");
       if (typeof note.authorUserId !== "string" || !note.authorUserId || typeof note.body !== "string" || !note.body.trim() || note.body.length > 2000 || !validDate(note.createdAt)) throw new Error("INVALID_PERSISTED_NOTE_STATE");
     }
+    for(const guardian of this.guardians.values()) if(!guardian.synthetic||!guardian.displayName?.trim()||!["active","suspended","revoked"].includes(guardian.state)) throw new Error("INVALID_PERSISTED_GUARDIAN");
+    for(const link of this.guardianLinks.values()) if(!this.get("guardians",link.organizationId,link.guardianId)||!this.get("athletes",link.organizationId,link.athleteId)||!["active","suspended","revoked"].includes(link.state)||!Array.isArray(link.permissions)) throw new Error("INVALID_PERSISTED_GUARDIAN_LINK");
+    for(const link of this.athleteIdentityLinks.values()) if(!this.get("athletes",link.organizationId,link.athleteId)||!["active","suspended","revoked"].includes(link.state)||!["adult_self","minor_read_only"].includes(link.access)) throw new Error("INVALID_PERSISTED_ATHLETE_IDENTITY");
     if (state.audits.some(event => !event || typeof event.id !== "string" || !/^audit-[1-9][0-9]*$/.test(event.id) || !this.getOrganization(event.selectedOrganizationId) ||
       typeof event.actorUserId !== "string" || !["permitted", "rejected"].includes(event.outcome))) throw new Error("INVALID_PERSISTED_AUDIT");
     if (new Set(state.audits.map(event => event.id)).size !== state.audits.length) throw new Error("DUPLICATE_PERSISTED_AUDIT");
@@ -105,7 +111,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       schema: "sandman.commercial.local-store.v1",
       organizations: [...this.organizations.values()],
       academies: [...this.academies.values()], locations: [...this.locations.values()], programs: [...this.programs.values()],
-      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], audits: this.audits
+      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], guardians:[...this.guardians.values()], guardianLinks:[...this.guardianLinks.values()], athleteIdentityLinks:[...this.athleteIdentityLinks.values()], audits: this.audits
     };
     const temporary = `${this.filePath}.${globalThis.crypto.randomUUID()}.tmp`;
     try {

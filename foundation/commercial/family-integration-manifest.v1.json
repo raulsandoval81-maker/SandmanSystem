@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "sprint": 5,
+  "purpose": "Document the Academy family-access capabilities inspected for a clean-room Commercial implementation.",
+  "sourceRepository": "SandmanSystem",
+  "sourceBaseline": "58acff9f99ee44a99b979af2169cfb952f9d1c4b",
+  "requiredAncestor": "0f87190a68c51ff445c9c07167cb7a7f374e37b3",
+  "inspectedSurfaces": [
+    "public/athletes",
+    "public/parent",
+    "functions/src/access/issueAccessInvitation.ts",
+    "functions/src/access/consumeAccessInvitation.ts",
+    "functions/src/access/transitionAthleteAccessMode.ts",
+    "tests/functions/parent-access-invitations.test.mjs",
+    "tests/functions/athlete-lane-context.test.mjs",
+    "tests/emulator/athlete-lane-flow.test.mjs"
+  ],
+  "reusedConcepts": [
+    "explicit guardian-to-athlete relationships",
+    "invitation-backed identity activation",
+    "minor versus adult athlete access modes",
+    "tenant-scoped parent and athlete views",
+    "immediate revocation"
+  ],
+  "commercialImplementation": [
+    "commercial-foundation/src/family.ts",
+    "commercial-foundation/src/contracts.ts",
+    "commercial-foundation/src/persistentStore.ts",
+    "commercial-foundation/test/family.test.cjs"
+  ],
+  "deliberatelyExcluded": [
+    "Academy production data",
+    "Academy UI and branding",
+    "curriculum, XP, ranks and promotion logic",
+    "billing and payment behavior",
+    "practice-note authoring",
+    "deployment and product release approval"
+  ],
+  "dataPolicy": "Fictional synthetic records only; no Academy customer or athlete records are copied."
+}
