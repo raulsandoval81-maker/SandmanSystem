@@ -17,6 +17,7 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "./proposalAccess";
+import { CANONICAL_LOCATION_IDS } from "../admin/staffGovernancePolicy";
 import { verifyPrepaidConversionSource } from "../billing/prepaidConversionPolicy";
 import { canonicalizeProposalPricing } from "./seasonalProposal";
 
@@ -63,8 +64,11 @@ export const createProposalDraft =
       typeof data.managementHistorical === "object" && !Array.isArray(data.managementHistorical)
         ? data.managementHistorical as Record<string, unknown>
         : null;
-    const appointmentId =
-      nullableString(data.appointmentId);
+    const historicalAppointmentId = nullableString(historicalInput?.historicalAppointmentId);
+    if (historicalAppointmentId && !/^[A-Za-z0-9_-]{1,128}$/.test(historicalAppointmentId)) {
+      throw new HttpsError("invalid-argument", "A valid historical appointment ID is required.");
+    }
+    const appointmentId = historicalAppointmentId || nullableString(data.appointmentId);
 
     const admissionsRequestId =
       nullableString(data.admissionsRequestId);
@@ -73,7 +77,7 @@ export const createProposalDraft =
       throw new HttpsError("invalid-argument",
         "An Admissions source or documented Management historical case is required.");
     }
-    if (historicalInput && (appointmentId || admissionsRequestId || conversionSourceProposalId)) {
+    if (historicalInput && (data.appointmentId || admissionsRequestId || conversionSourceProposalId)) {
       throw new HttpsError("invalid-argument",
         "Historical Management entry cannot be mixed with Admissions or conversion routes.");
     }
@@ -140,16 +144,13 @@ export const createProposalDraft =
     // server-side from the authoritative appointment. Do not trust
     // browser-supplied values for enrollment ownership data.
     let locationId: string | null = null;
+    const appointmentRef = appointmentId ? db.collection("admissions_appointments").doc(appointmentId) : null;
 
     let appointmentProspect:
       Record<string, unknown> = {};
 
-    if (appointmentId) {
-      const appointmentSnap =
-        await db
-          .collection("admissions_appointments")
-          .doc(appointmentId)
-          .get();
+    if (appointmentRef) {
+      const appointmentSnap = await appointmentRef.get();
 
       if (!appointmentSnap.exists) {
         throw new HttpsError(
@@ -166,7 +167,7 @@ export const createProposalDraft =
           appointmentSnap.get("locationId")
         );
 
-      if (!locationId) {
+      if (!locationId && !historicalAppointmentId) {
         throw new HttpsError(
           "failed-precondition",
           "The appointment does not have a valid location."
@@ -205,9 +206,23 @@ export const createProposalDraft =
         throw new HttpsError("invalid-argument",
           "Historical case requires one annual Combat athlete, actual start date, and contact identity.");
       }
+      if (historicalAppointmentId) {
+        const canonicalLocation = cleanString(appointmentProspect.locationId);
+        if (!canonicalLocation && !["admin", "system_admin"].includes(staffAccess.role)) {
+          throw new HttpsError("permission-denied", "An administrator must verify ownership of an unscoped legacy appointment.");
+        }
+        if (!CANONICAL_LOCATION_IDS.includes(selectedLocation) ||
+            (canonicalLocation && canonicalLocation !== selectedLocation) ||
+            cleanEmail(appointmentProspect.email) !== enteredEmail ||
+            cleanString(appointmentProspect.athleteName || appointmentProspect.participantName).toLowerCase() !== enteredAthlete.toLowerCase()) {
+          throw new HttpsError("failed-precondition", "Historical appointment identity or location requires review.");
+        }
+      }
       appointmentProspect = {
-        registrantRole: cleanString(data.prospect?.registrantRole) || "parent-guardian",
-        parentName: enteredName,
+        ...appointmentProspect,
+        registrantRole: cleanString(appointmentProspect.registrantRole) ||
+          cleanString(data.prospect?.registrantRole) || "parent-guardian",
+        parentName: cleanString(appointmentProspect.parentName) || enteredName,
       };
     }
     if (!locationId) {
@@ -311,28 +326,10 @@ export const createProposalDraft =
       : null;
     const historicalCaseRef = historicalCaseId
       ? db.collection("historicalProposalCases").doc(historicalCaseId) : null;
-    if (historicalCaseId) {
-      // Guard against an older proposal issued before this case-key registry
-      // existed. Never silently duplicate a signed or payment-bearing record.
-      const prior = await db.collection("proposals")
-        .where("prospect.email", "==", cleanEmail(data.prospect?.email || data.email))
-        .limit(200).get();
-      const sameEnrollment = prior.docs.find((candidate) => {
-        const existing = candidate.data();
-        const first = Array.isArray(existing.athletes) ? existing.athletes[0] : null;
-        return existing.locationId === locationId &&
-          cleanString(first?.name).toLowerCase() ===
-            cleanString((athletes[0] as Record<string, unknown>).name).toLowerCase() &&
-          cleanString(existing.pricing?.membershipStartDate) ===
-            cleanString((requestedPricing as Record<string, unknown>).membershipStartDate) &&
-          !["VOID", "RETIRED"].includes(cleanString(existing.status).toUpperCase()) &&
-          existing.managementHistorical?.caseId !== historicalCaseId;
-      });
-      if (sameEnrollment) {
-        throw new HttpsError("already-exists",
-          "An existing proposal matches this athlete and membership start date. Review that proposal before creating another.");
-      }
-    }
+    const proposals = db.collection("proposals");
+    const historicalEmail = cleanEmail(data.prospect?.email || data.email);
+    const historicalAthleteName = cleanString((athletes[0] as Record<string, unknown> | undefined)?.name).toLowerCase();
+    const historicalStart = cleanString(requestedPricing.membershipStartDate);
     const counterRef =
       db
         .collection("counters")
@@ -342,6 +339,15 @@ export const createProposalDraft =
       const result =
         await db.runTransaction(
           async (tx) => {
+            if (historicalAppointmentId && appointmentRef) {
+              const legacy = await tx.get(appointmentRef);
+              if (!legacy.exists ||
+                  nullableString(legacy.get("locationId")) !== nullableString(appointmentProspect.locationId) ||
+                  cleanEmail(legacy.get("email")) !== historicalEmail ||
+                  cleanString(legacy.get("athleteName") || legacy.get("participantName")).toLowerCase() !== historicalAthleteName) {
+                throw new HttpsError("failed-precondition", "Historical appointment changed. Reopen Pricing and verify the current record.");
+              }
+            }
             if (historicalCaseRef) {
               const existingCase = await tx.get(historicalCaseRef);
               if (existingCase.exists) {
@@ -352,7 +358,8 @@ export const createProposalDraft =
                 }
                 const existingProposal = await tx.get(db.collection("proposals").doc(existingProposalId));
                 if (!existingProposal.exists || existingProposal.get("locationId") !== locationId ||
-                    existingProposal.get("managementHistorical.caseId") !== historicalCaseId) {
+                    existingProposal.get("managementHistorical.caseId") !== historicalCaseId ||
+                    nullableString(existingProposal.get("prospect.appointmentId")) !== appointmentId) {
                   throw new HttpsError("failed-precondition",
                     "Historical case points to inconsistent proposal; manual review required.");
                 }
@@ -360,6 +367,62 @@ export const createProposalDraft =
                   status: cleanString(existingProposal.get("status")) || "DRAFT",
                   idempotent: true };
               }
+            }
+            if (historicalCaseRef) {
+              // Include legacy and closed records. A candidate with incomplete
+              // coverage or conflicting identity requires staff review.
+              const prior = await tx.get(proposals.where("prospect.email", "==", historicalEmail));
+              const byAppointment = historicalAppointmentId
+                ? await tx.get(proposals.where("prospect.appointmentId", "==", historicalAppointmentId))
+                : null;
+              const candidates = prior.docs.filter(candidate => {
+                const existing = candidate.data();
+                return Array.isArray(existing.athletes) &&
+                  existing.athletes.some((athlete: { name?: unknown } | null) =>
+                    cleanString(athlete?.name).toLowerCase() === historicalAthleteName);
+              });
+              if (byAppointment?.docs.some(candidate => !candidates.some(match => match.id === candidate.id))) {
+                throw new HttpsError("failed-precondition", "A linked proposal has conflicting customer identity. Review it before proceeding.");
+              }
+              if (candidates.length) {
+                const [candidate] = candidates;
+                const status = cleanString(candidate.get("status")).toUpperCase();
+                const coverage = cleanString(candidate.get("lockedSnapshot.pricing.membershipStartDate") ||
+                  candidate.get("pricing.membershipStartDate"));
+                if (candidates.length !== 1 || !/^P-\d{6}$/.test(candidate.id) ||
+                    candidate.get("proposalId") !== candidate.id ||
+                    candidate.get("locationId") !== locationId ||
+                    candidate.get("athletes").length !== 1 ||
+                    !status || ["VOID", "VOIDED", "RETIRED", "CANCELED", "CANCELLED"].includes(status) ||
+                    coverage !== historicalStart) {
+                  throw new HttpsError("failed-precondition",
+                    "Existing historical proposals require identity and coverage review before proceeding.");
+                }
+                const existingAppointmentId = nullableString(candidate.get("prospect.appointmentId") ||
+                  candidate.get("appointmentId"));
+                if (appointmentId && existingAppointmentId && existingAppointmentId !== appointmentId) {
+                  throw new HttpsError("failed-precondition", "The matching proposal has a different Admissions link. Review the records before proceeding.");
+                }
+                return { proposalId: candidate.id, status, idempotent: true };
+              }
+            }
+            if (appointmentId && !conversionSourceProposalId) {
+              const linked = await tx.get(proposals.where("prospect.appointmentId", "==", appointmentId));
+              if (!linked.empty) {
+                const [candidate] = linked.docs;
+                const status = cleanString(candidate.get("status")).toUpperCase();
+                if (linked.size !== 1 || candidate.get("locationId") !== locationId ||
+                    !/^P-\d{6}$/.test(candidate.id) || candidate.get("proposalId") !== candidate.id ||
+                    !status || ["VOID", "VOIDED", "RETIRED", "CANCELED", "CANCELLED"].includes(status)) {
+                  throw new HttpsError("failed-precondition",
+                    "Existing appointment proposals require review before proceeding.");
+                }
+                return { proposalId: candidate.id, status, idempotent: true };
+              }
+            }
+            if (historicalInput && historicalInput.confirmIdentityReview !== true) {
+              throw new HttpsError("failed-precondition",
+                "Verify the original agreement and search Admissions, Proposals, Billing and Members before issuing a new historical proposal.");
             }
             const counterSnap =
               await tx.get(counterRef);
@@ -437,6 +500,9 @@ export const createProposalDraft =
                   managementHistorical: {
                     caseId: historicalCaseId, sourceReference: historicalReference,
                     paymentVerificationAtEntry: "NOT_VERIFIED", recordedBy: callerUid,
+                    identityReviewedBy: callerUid,
+                    ...(historicalAppointmentId && !appointmentProspect.locationId
+                      ? { verifiedLegacyAppointmentLocation: locationId } : {}),
                   },
                 } : {}),
 
@@ -444,7 +510,9 @@ export const createProposalDraft =
 
                 prospect: {
                   appointmentId,
-                  admissionsRequestId,
+                  admissionsRequestId: historicalAppointmentId
+                    ? nullableString(appointmentProspect.admissionsRequestId || appointmentProspect.requestId)
+                    : admissionsRequestId,
 
                   familyName:
                     familyName ||

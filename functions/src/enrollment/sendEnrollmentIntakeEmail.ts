@@ -1,4 +1,4 @@
-import { cashReceiptDetails, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
+import { cashReceiptDetails, cashReceiptPdf, sendCombinedEnrollmentReceipt, finishCombinedDelivery } from "./combinedEnrollmentReceipt";
 import { isOperationalPaidProposal, resolveEnrollmentIntakeBaseUrl, STAGING_PROJECT_ID } from "./operationalPaidProposal";
 import * as functions from "firebase-functions";
 import {
@@ -151,9 +151,13 @@ export const sendEnrollmentIntakeEmail =
 
       const proposal = proposalSnap.data() || {};
 
+      if (!clean(proposal.locationId) || clean(token.locationId) !== clean(proposal.locationId)) {
+        throw new functions.https.HttpsError("failed-precondition", "Intake location does not match the paid enrollment.");
+      }
+
       requireStaffLocation(
         actor,
-        clean(token.locationId || proposal.locationId),
+        clean(proposal.locationId),
         "This enrollment is outside your Management location scope."
       );
 
@@ -261,13 +265,14 @@ export const sendEnrollmentIntakeEmail =
         const url = intakeUrl(baseUrl, tokenId, clean(token.intakeAudience));
         const result = await sendCombinedEnrollmentReceipt({
           db, proposalId, tokenId, recipient, uid: context.auth.uid, proposal, token, payment, url,
-          send: async (lines, link) => {
+          send: async (lines, link, attempt) => {
             const delivery = await getResendClient().emails.send({
               from: "Sandman Combat <join@sandmancombat.com>", replyTo: "joinsandmancombat@gmail.com", to: recipient,
               subject: `Sandman payment receipt — ${proposalId}`,
+              attachments: [{filename: `CASH-${proposalId}.pdf`, content: cashReceiptPdf(lines)}],
               text: [...lines, "", `Complete Enrollment: ${link}`, "This secure link is valid for 48 hours."].join("\n"),
               html: `<h1>Payment receipt</h1>${lines.map(line => `<p>${escapeHtml(line)}</p>`).join("")}<p><a style="display:inline-block;padding:12px 20px;background:#facc15;color:#111;border-radius:8px;text-decoration:none;font-weight:bold" href="${escapeHtml(link)}">Complete Enrollment</a></p><p>This secure link is valid for 48 hours.</p>`,
-            });
+            }, {idempotencyKey: `sandman-combined-enrollment/${proposalId}/${attempt}`});
             return delivery.error
               ? {rejected: ["validation_error", "invalid_parameter", "missing_required_field", "invalid_from_address", "invalid_to_address"].includes(delivery.error.name)}
               : {providerId: clean(delivery.data?.id)};

@@ -22,7 +22,7 @@ test("options distinguish entry origin, registrant and athlete record", () => {
 });
 
 test("canonical Admissions and documented historical routes block unsupported athlete linking", () => {
-  assert.match(js, /source === "admissions" && Boolean\(sourceAppointment && appointmentId\)/);
+  assert.match(js, /source === "admissions" && Boolean\(sourceAppointment\?\.locationId && appointmentId\)/);
   assert.match(js, /directHistorical && historical/);
   assert.match(js, /enrollmentAthleteRecord\?\.value !== "new"/);
   assert.match(js, /continueProposalBtn\.hidden = !supported/);

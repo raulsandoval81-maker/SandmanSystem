@@ -14,7 +14,7 @@ test("Management historical paper entry is separate from unsupported walk-in / e
   assert.match(html, /id="historicalAttestation"/);
   assert.match(pricing, /directHistorical && historical/);
   assert.match(pricing, /enrollmentAthleteRecord\?\.value !== "new"/);
-  assert.match(pricing, /if \(appointmentId\) throw new Error/);
+  assert.match(pricing, /if \(appointmentId && !sourceAppointment\)/);
 });
 
 test("Direct route creates same canonical proposal without manufacturing an appointment", () => {
@@ -34,7 +34,7 @@ test("Server enforces authorized historical source and one actual annual athlete
   assert.match(backend, /rawAthlete\.billingTerm\) !== "annual"/);
   assert.match(backend, /athletes\.length !== 1/);
   assert.match(backend, /startDate > new Date\(\)/);
-  assert.match(backend, /historicalInput && \(appointmentId \|\| admissionsRequestId \|\| conversionSourceProposalId\)/);
+  assert.match(backend, /historicalInput && \(data\.appointmentId \|\| admissionsRequestId \|\| conversionSourceProposalId\)/);
 });
 
 test("Atomic case key reuses original proposal and does not assert payment reconciliation", () => {
