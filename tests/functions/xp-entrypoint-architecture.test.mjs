@@ -17,11 +17,12 @@ test("admin and management are separate active adjustment entry points", () => {
   assert.match(management, /export const createManagementXpAdjustment/);
 });
 
-test("document current admin direct-write behavior before any migration", () => {
-  assert.match(admin, /await updateDoc\(athleteRef, athletePatch\)/);
-  assert.match(admin, /await addDoc\(collection\(db, "xpLogs"\)/);
+test("admin adjustment and log commit atomically", () => {
+  assert.match(admin, /await runTransaction\(db, async \(tx\) =>/);
+  assert.match(admin, /tx\.update\(athleteRef, athletePatch\)/);
+  assert.match(admin, /tx\.set\(logRef, \{/);
   assert.match(admin, /Math\.max\(0, beforeXp \+ xpAmount\)/);
-  assert.doesNotMatch(admin, /runTransaction|writeBatch|httpsCallable/);
+  assert.doesNotMatch(admin, /await updateDoc|await addDoc/);
 });
 
 test("management uses a server transaction, staff and location checks, and idempotency receipt", () => {
