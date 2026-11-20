@@ -189,6 +189,7 @@ test("multi-athlete historical annual fees require explicit immutable attributio
   const base = {
     proposalId: "multi-attribution", amountCents: 196000,
     membershipAmountCents: 192000, paymentMethod: "cash",
+    paymentEvidenceReference: "synthetic-multi-attribution-receipt",
     paymentDate: "2026-11-01", membershipStartDate: "2026-11-05",
     membershipPaidThroughDate: "2027-11-04", nextBillingDate: "2027-11-05",
     enrollmentFeeIncludedAthleteIndexes: [1, 2],
@@ -221,7 +222,7 @@ test("full 12-month cash payment with fee included produces separately reconcile
   const record = await callable("manager", "recordProposalPrepaidCash");
   await record({
     proposalId: "full-included", amountCents: 99000, membershipAmountCents: 96000,
-    paymentMethod: "cash", paymentDate: "2026-11-01",
+    paymentMethod: "cash", paymentEvidenceReference: "synthetic-cash-full-included", paymentDate: "2026-11-01",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [1],
     enrollmentFeeAllocations: [{ athleteIndex: 1, amountCents: 3000 }],
@@ -242,7 +243,7 @@ test("full 12-month check payment can exclude the separate annual fee", async ()
   const record = await callable("manager", "recordProposalPrepaidCash");
   await record({
     proposalId: "full-excluded", amountCents: 96000, membershipAmountCents: 96000,
-    paymentMethod: "check", paymentDate: "2026-11-02",
+    paymentMethod: "check", paymentEvidenceReference: "synthetic-check-full-excluded", paymentDate: "2026-11-02",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [],
     enrollmentFeeAllocations: [],
@@ -259,13 +260,13 @@ test("renewal is date-guarded, blocked before approval, and approval is audited 
   const record = await callable("manager", "recordProposalPrepaidCash");
   await assert.rejects(record({
     proposalId: "bad-date", amountCents: 96000, membershipAmountCents: 96000,
-    paymentMethod: "cash", paymentDate: "2026-11-01",
+    paymentMethod: "cash", paymentEvidenceReference: "synthetic-cash-full-included", paymentDate: "2026-11-01",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-04", enrollmentFeeIncludedAthleteIndexes: [],
   }), /after the prepaid paid-through date/i);
   await assert.rejects(record({
     proposalId: "bad-date", amountCents: 96000, membershipAmountCents: 96000,
-    paymentMethod: "cash", paymentDate: "2026-02-30",
+    paymentMethod: "cash", paymentEvidenceReference: "synthetic-bad-date-check", paymentDate: "2026-02-30",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [],
   }), /date is invalid/i);
@@ -286,7 +287,7 @@ test("duplicate prepaid payment is rejected without a second audit event", async
   const record = await callable("manager", "recordProposalPrepaidCash");
   await assert.rejects(record({
     proposalId: "full-excluded", amountCents: 96000, membershipAmountCents: 96000,
-    paymentMethod: "check", paymentDate: "2026-11-02",
+    paymentMethod: "check", paymentEvidenceReference: "synthetic-check-full-excluded", paymentDate: "2026-11-02",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [],
   }));
@@ -298,7 +299,7 @@ test("Review & Confirm status, Intake, activation, and legacy prepaid safeguards
   const record = await callable("manager", "recordProposalPrepaidCash");
   await assert.rejects(record({
     proposalId: "not-accepted", amountCents: 96000, membershipAmountCents: 96000,
-    paymentMethod: "cash", paymentDate: "2026-11-01",
+    paymentMethod: "cash", paymentEvidenceReference: "synthetic-cash-full-included", paymentDate: "2026-11-01",
     membershipStartDate: "2026-11-05", membershipPaidThroughDate: "2027-11-04",
     nextBillingDate: "2027-11-05", enrollmentFeeIncludedAthleteIndexes: [],
   }));
