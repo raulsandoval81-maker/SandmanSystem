@@ -1,0 +1,14 @@
+{
+  "schema": "sandman.commercial.extraction-manifest.v1",
+  "baseline": "27eb8123f14336bf85fa2d966122886c609f5618",
+  "transferAuthorized": false,
+  "priorities": [
+    { "priority": 1, "component": "management-os", "classification": "REQUIRES_ADAPTER", "source": ["public/management", "public/admin", "functions/src/services/staffAuthorization.ts"], "reuse": ["workflow vocabulary", "role doctrine", "tested policy functions"], "adapter": ["organization-qualified repositories", "trusted identity claims", "academy/location authorization"], "exclude": ["customer records", "global collection assumptions", "deployment configuration"], "blockers": ["no production Commercial database or identity provider approved"] },
+    { "priority": 2, "component": "scheduling-attendance", "classification": "REQUIRES_ADAPTER", "source": ["functions/src/practice", "public/assets/js/location-schedule-live-state.js"], "reuse": ["schedule state policy", "attendance lifecycle concepts"], "adapter": ["tenant-owned schedules", "location scope", "organization audit stream"], "exclude": ["Academy location identifiers", "live attendance records"], "blockers": ["cross-tenant emulator rules not implemented"] },
+    { "priority": 3, "component": "coach-os", "classification": "REQUIRES_ADAPTER", "source": ["public/coaches", "public/mat", "functions/src/practice"], "reuse": ["practice workflow", "coach experience contracts"], "adapter": ["scoped roster and practice repositories", "capability enforcement"], "exclude": ["production coach accounts", "Academy runtime endpoints"], "blockers": ["workspace API contract not yet extracted"] },
+    { "priority": 4, "component": "athlete-parent-os", "classification": "REQUIRES_ADAPTER", "source": ["public/athletes", "public/parent", "functions/src/access"], "reuse": ["relationship policy", "invitation-state concepts"], "adapter": ["organization-owned athlete/relationship IDs", "consent and retention policy"], "exclude": ["athlete and family records", "access tokens"], "blockers": ["privacy and data-retention approval required"] },
+    { "priority": 5, "component": "curriculum-progression-xp-ranks", "classification": "REQUIRES_ADAPTER", "source": ["functions/src/policy", "public/vault", "public/strength"], "reuse": ["locked curriculum and XP policy after owner approval", "pure policy functions"], "adapter": ["tenant-scoped progress repository", "licensed content delivery"], "exclude": ["methodology changes", "production progression records"], "blockers": ["content licensing and doctrine-owner review required"] }
+  ],
+  "globalExclusions": ["credentials", "service accounts", "Stripe connections and price IDs", "Firebase project identifiers", "production URLs", "customer data", "Academy-only pricing", "deployment workflows"],
+  "nextGate": "Owner-approved persistence, identity, privacy and extraction security review before any SandmanCommercial transfer."
+}

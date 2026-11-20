@@ -1,8 +1,8 @@
-import { Academy, AuditEvent, AuthorizationContext, Entitlement, IdentityAuthority, Location, Membership, Organization, Program, VerifiedIdentity } from "./contracts";
+import { Academy, AuditEvent, AuthorizationContext, Entitlement, IdentityAuthority, Location, Membership, Organization, Program, SwitchableIdentityAuthority, VerifiedIdentity } from "./contracts";
 import { assertId, validateEntitlement, validateMembership, validateProgram } from "./validation";
 
-type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements";
-type TenantRecord = Academy | Location | Program | Membership | Entitlement;
+export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements";
+export type TenantRecord = Academy | Location | Program | Membership | Entitlement;
 const essentialCapabilities = new Set(["security.access", "customer_data.read"]);
 const key = (organizationId: string, id: string) => JSON.stringify([organizationId, id]);
 
@@ -19,6 +19,10 @@ export class InMemoryTestIdentityAuthority implements IdentityAuthority {
     if (!identity) throw new Error("UNVERIFIED_IDENTITY");
     return identity;
   }
+  switchOrganization(ctx: AuthorizationContext, organizationId: string): AuthorizationContext {
+    const identity = this.verify(ctx);
+    return this.mint(identity.userId, organizationId, identity.systemAdmin);
+  }
 }
 
 /** TEST-ONLY persistence. Composite keys prevent duplicate local IDs across organizations. */
@@ -27,7 +31,19 @@ export class InMemoryCommercialStore {
   academies = new Map<string, Academy>(); locations = new Map<string, Location>();
   programs = new Map<string, Program>(); memberships = new Map<string, Membership>();
   entitlements = new Map<string, Entitlement>(); audits: AuditEvent[] = [];
-  private sequence = 0;
+  protected sequence = 0;
+  createOrganization(record: Organization): void {
+    if (this.organizations.has(record.id)) throw new Error("DUPLICATE_RECORD_ID");
+    this.organizations.set(record.id, structuredClone(record));
+  }
+  updateOrganization(record: Organization): void {
+    if (!this.organizations.has(record.id)) throw new Error("ORGANIZATION_NOT_FOUND");
+    this.organizations.set(record.id, structuredClone(record));
+  }
+  getOrganization(id: string): Organization | undefined {
+    const record = this.organizations.get(id); return record ? structuredClone(record) : undefined;
+  }
+  listAudits(organizationId: string): AuditEvent[] { return this.audits.filter(a => a.selectedOrganizationId === organizationId).map(a => structuredClone(a)); }
   audit(identity: VerifiedIdentity, action: string, resourceType: string, resourceId: string, outcome: AuditEvent["outcome"], reason?: string) {
     this.audits.push({ id: `audit-${++this.sequence}`, at: new Date().toISOString(), actorUserId: identity.userId, selectedOrganizationId: identity.selectedOrganizationId, action, resourceType, resourceId, outcome, reason });
   }
@@ -62,7 +78,7 @@ export class CommercialFoundation {
   private authorize(identity: VerifiedIdentity, action: string, resourceOrg: string, academyId?: string, locationIds: string[] = []): void {
     if (identity.selectedOrganizationId !== resourceOrg) throw new Error("TENANT_BOUNDARY_DENIED");
     if (identity.systemAdmin) return;
-    const org = this.store.organizations.get(resourceOrg);
+    const org = this.store.getOrganization(resourceOrg);
     if (!org || org.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
     const members = this.memberships(identity).filter(m => this.validScope(m));
     if (!members.length) throw new Error("MEMBERSHIP_REQUIRED");
@@ -83,7 +99,7 @@ export class CommercialFoundation {
     const identity = this.identity(ctx); // unverified claims are never used or audited as trusted identities
     try {
       this.authorize(identity, action, organizationId, academyId, locationIds);
-      if (action !== "organization.create" && this.store.organizations.get(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
+      if (action !== "organization.create" && this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
       const result = operation(identity);
       this.store.audit(identity, action, type, id, "permitted");
       return result;
@@ -97,15 +113,14 @@ export class CommercialFoundation {
     return this.execute(ctx, "organization.create", "organization", organization.id, organization.id, () => {
       if (!identity.systemAdmin) throw new Error("SYSTEM_ADMIN_REQUIRED");
       assertId(organization.id);
-      if (this.store.organizations.has(organization.id)) throw new Error("DUPLICATE_RECORD_ID");
-      this.store.organizations.set(organization.id, structuredClone(organization));
+      this.store.createOrganization(organization);
       return structuredClone(organization);
     });
   }
   createAcademy(ctx: AuthorizationContext, academy: Academy): Academy {
     return this.execute(ctx, "academy.create", "academy", academy.id, academy.organizationId, () => {
       assertId(academy.id); assertId(academy.organizationId);
-      if (!this.store.organizations.has(academy.organizationId)) throw new Error("INVALID_ORGANIZATION_REFERENCE");
+      if (!this.store.getOrganization(academy.organizationId)) throw new Error("INVALID_ORGANIZATION_REFERENCE");
       this.store.put("academies", academy);
       return structuredClone(academy);
     });
@@ -156,14 +171,46 @@ export class CommercialFoundation {
       return structuredClone(entitlement);
     });
   }
+  revokeMembership(ctx: AuthorizationContext, organizationId: string, id: string): Membership {
+    return this.execute(ctx, "membership.manage", "membership", id, organizationId, () => {
+      const membership = this.store.get<Membership>("memberships", organizationId, id);
+      if (!membership) throw new Error("MEMBERSHIP_NOT_FOUND");
+      membership.state = "revoked";
+      this.store.put("memberships", membership, true);
+      return structuredClone(membership);
+    });
+  }
+  suspendOrganization(ctx: AuthorizationContext, organizationId: string): Organization {
+    return this.execute(ctx, "organization.suspend", "organization", organizationId, organizationId, identity => {
+      if (!identity.systemAdmin) throw new Error("SYSTEM_ADMIN_REQUIRED");
+      const organization = this.store.getOrganization(organizationId);
+      if (!organization) throw new Error("ORGANIZATION_NOT_FOUND");
+      organization.state = "suspended";
+      this.store.updateOrganization(organization);
+      return structuredClone(organization);
+    });
+  }
+  switchOrganization(ctx: AuthorizationContext, organizationId: string): AuthorizationContext {
+    assertId(organizationId, "organizationId");
+    const identity = this.identity(ctx);
+    const authority = this.authority as IdentityAuthority & Partial<SwitchableIdentityAuthority>;
+    if (!authority.switchOrganization) throw new Error("ORGANIZATION_SWITCH_UNSUPPORTED");
+    const target = this.store.getOrganization(organizationId);
+    if (!target || target.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
+    if (!identity.systemAdmin && !this.store.list<Membership>("memberships", organizationId).some(m => m.userId === identity.userId && m.state === "active" && this.validScope(m))) throw new Error("MEMBERSHIP_REQUIRED");
+    const next = authority.switchOrganization(ctx, organizationId);
+    this.store.audit({ ...identity, selectedOrganizationId: organizationId }, "organization.switch", "organization", organizationId, "permitted");
+    return next;
+  }
   hasCapability(ctx: AuthorizationContext, capabilityId: string): boolean {
     const identity = this.identity(ctx);
-    this.authorize(identity, "capability.read", identity.selectedOrganizationId);
-    if (essentialCapabilities.has(capabilityId)) return true;
-    const time = this.now().getTime();
-    return this.store.list<Entitlement>("entitlements", identity.selectedOrganizationId).some(e =>
-      e.capabilityId === capabilityId && e.state === "active" &&
-      Date.parse(e.startsAt) <= time && (!e.expiresAt || Date.parse(e.expiresAt) > time));
+    return this.execute(ctx, "capability.read", "capability", capabilityId, identity.selectedOrganizationId, () => {
+      if (essentialCapabilities.has(capabilityId)) return true;
+      const time = this.now().getTime();
+      return this.store.list<Entitlement>("entitlements", identity.selectedOrganizationId).some(e =>
+        e.capabilityId === capabilityId && e.state === "active" &&
+        Date.parse(e.startsAt) <= time && (!e.expiresAt || Date.parse(e.expiresAt) > time));
+    });
   }
   readProgram(ctx: AuthorizationContext, id: string): Program {
     const identity = this.identity(ctx);

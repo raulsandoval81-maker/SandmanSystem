@@ -21,3 +21,11 @@ npm run check:production-dependencies
 The PR adds a GitHub Actions workflow running the same tests on pull requests. Passing unit tests do not prove Firebase Firestore, real token verification, durable storage or commercial multi-tenancy. An independent trusted persistence/security adapter and emulator integration testing are required before any deployment.
 
 **Never copy Academy production Firestore rules, Firebase config, credentials, customer records or Stripe connections into Commercial.**
+
+## Sprint 3 local persistence
+
+`PersistentJsonCommercialStore` is a replaceable durable adapter for isolated development and restart testing. It uses organization-qualified records, rejects silent creates over existing IDs, persists audit events, and atomically replaces a mode-0600 JSON file. It does not connect to Academy or Firebase.
+
+The adapter is intentionally single-process. It is not suitable for production concurrency, distributed transactions, encryption/key management, backup, retention, or disaster recovery. A production database adapter must implement equivalent repository boundaries and pass independent integration and security review.
+
+`OrganizationOnboardingService` composes the existing trusted authorization operations to create a fictional organization, academy, location, program, administrator, coach, disciplines, and provisional capability grants. Organization switching is issued only by a trusted identity authority after active target membership is verified.
