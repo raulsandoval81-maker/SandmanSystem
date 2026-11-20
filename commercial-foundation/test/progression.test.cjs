@@ -59,3 +59,13 @@ test("restart rejects tampered cycle balances, event rank/athlete, and promotion
   writeFileSync(f.file,JSON.stringify(original));
   assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
 });
+
+test("negative Management adjustments cannot reduce XP below an earned stripe floor",()=>{
+  const f=setup(),x=flow(f,A);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"stripe-gain",amount:400,reason:"synthetic fixture"});
+  assert.equal(f.read.athlete(x.athlete,A).earnedStripes,2);
+  assert.throws(()=>f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"stripe-loss",amount:-250,reason:"attempted reduction"}),/EARNED_STRIPE_FLOOR_PROTECTED/);
+  assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").activeXp,400);
+  assert.equal(f.store.get("xpEvents",A,"stripe-loss"),undefined);
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
