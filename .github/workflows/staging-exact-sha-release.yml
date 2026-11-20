@@ -171,6 +171,7 @@ on:
           - phase2c-hosting-only-preflight
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
+          - historical-enrollment-preflight
           - handoff-preflight
           - handoff-deploy
           - enrollment-runtime-iam-readonly
@@ -3419,6 +3420,66 @@ jobs:
           name: pr580-hosting-deploy-${{ github.run_id }}
           path: pr580-*.json
           if-no-files-found: error
+
+  historical-enrollment-preflight:
+    if: ${{ inputs.action == 'historical-enrollment-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    environment: staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    env:
+      PYTHONPATH: trusted/scripts/production:trusted/scripts/staging
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      HISTORICAL_ENROLLMENT_ACTION: ${{ inputs.action }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - name: Verify staging approval protections
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 -c 'import importlib, os; importlib.import_module("historical-enrollment-preflight").guard(os.environ)'
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/staging" |
+            jq -e '.can_admins_bypass == false and any(.protection_rules[]; .type == "required_reviewers" and any(.reviewers[]; .type == "User" and .reviewer.login == "raulsandoval81-maker"))' >/dev/null
+      - uses: actions/checkout@v4
+        with:
+          ref: 58acff9f99ee44a99b979af2169cfb952f9d1c4b
+          path: application
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build exact candidate before cloud access
+        run: |
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          python3 -c 'from pathlib import Path; import importlib; m = importlib.import_module("historical-enrollment-preflight"); m.set_staging_scope(); m.candidate(Path("application"))'
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Capture sanitized staging baseline without deploying
+        run: python3 trusted/scripts/staging/historical-enrollment-preflight.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical-enrollment-staging-preflight-${{ github.run_id }}
+          path: evidence/historical-enrollment/
+          if-no-files-found: warn
 
   handoff-preflight:
     if: ${{ (inputs.action == 'handoff-preflight' || inputs.action == 'handoff-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
