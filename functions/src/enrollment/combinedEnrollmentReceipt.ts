@@ -26,6 +26,15 @@ export function cashReceiptDetails(proposal: Data) {
   return {amount, membership, allocated, outstanding, method, dates, currency: "usd"};
 }
 
+function proposalReceiptRecipient(proposal: Data): string {
+  const locked = proposal.lockedSnapshot || {};
+  const prospects = [locked.prospect, proposal.prospect];
+  const contacts = [locked.contact || locked.parent, proposal.contact || proposal.parent];
+  return [...prospects.flatMap(prospect => [prospect?.email, prospect?.parentEmail, prospect?.primaryContactEmail]),
+    ...contacts.flatMap(contact => [contact?.email, contact?.parentEmail])]
+    .map(email).find(value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) && !value.endsWith(".invalid")) || "";
+}
+
 export function stripeReceiptDetails(proposal: Data, session: Data, proposalId: string) {
   const intent = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
   if (!isOperationalPaidProposal(proposal) || proposal.paymentMethod === "cash_prepaid" ||
@@ -60,10 +69,37 @@ export function receiptReservation(receipt: Data, token: Data, recipient: string
   return "SEND";
 }
 
+// The receipt contains only fixed labels and verified ASCII payment fields.
+export function cashReceiptPdf(lines: string[]): Buffer {
+  const commands = lines.map(line =>
+    "(" + line.replace(/[\\()]/g, "\\$&").replace(/[^ -~]/g, "?") + ") Tj"
+  );
+  const stream = ["BT", "/F1 12 Tf", "18 TL", "54 738 Td",
+    commands.join("\nT*\n"), "ET", ""].join("\n");
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${Buffer.byteLength(stream)} >>\nstream\n${stream}endstream`,
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = objects.map((object, index) => {
+    const offset = Buffer.byteLength(pdf);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+    return offset;
+  });
+  const xref = Buffer.byteLength(pdf);
+  pdf += "xref\n0 6\n0000000000 65535 f \n";
+  pdf += offsets.map(offset => `${String(offset).padStart(10, "0")} 00000 n \n`).join("");
+  pdf += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`;
+  return Buffer.from(pdf);
+}
+
 export async function sendCombinedEnrollmentReceipt(input: {
   db: Firestore; proposalId: string; tokenId: string; recipient: string; uid: string;
   proposal: Data; token: Data; payment: Data; url: string;
-  send: (lines: string[], url: string) => Promise<{providerId?: string; rejected?: boolean}>;
+  send: (lines: string[], url: string, attempt: string) => Promise<{providerId?: string; rejected?: boolean}>;
 }) {
   const {db, proposalId, tokenId, recipient, uid, proposal, token, payment, url, send} = input;
   const proposalRef = db.doc(`proposals/${proposalId}`);
@@ -84,7 +120,9 @@ export async function sendCombinedEnrollmentReceipt(input: {
         paid.paymentMethod !== proposal.paymentMethod || paid.locationId !== proposal.locationId ||
         paid.stripeCheckoutSessionId !== proposal.stripeCheckoutSessionId ||
         paid.stripePaymentIntentId !== proposal.stripePaymentIntentId ||
-        (paid.paymentMethod === "cash_prepaid" && JSON.stringify(cashReceiptDetails(paid)) !== JSON.stringify(payment)) ||
+        (paid.paymentMethod === "cash_prepaid" &&
+          (JSON.stringify(cashReceiptDetails(paid)) !== JSON.stringify(payment) ||
+           proposalReceiptRecipient(paid) !== recipient || email(latest.prefill?.email) !== recipient)) ||
         latest.proposalId !== proposalId || latest.locationId !== paid.locationId ||
         latest.source !== "management_enrollment" || (latest.mode || "new_athlete") !== "new_athlete" ||
         latest.intakeAudience !== token.intakeAudience || !["parent_guardian", "adult_athlete"].includes(latest.intakeAudience) ||
@@ -108,16 +146,19 @@ export async function sendCombinedEnrollmentReceipt(input: {
   if (reservation === "ALREADY_SENT") return {ok: true, alreadySent: true, recipient, exp: token.exp};
 
   const money = (cents: number) => (cents / 100).toLocaleString("en-US", {style: "currency", currency: payment.currency.toUpperCase()});
-  const lines = [`Payment receipt for ${proposalId}`, `Received: ${money(payment.amount)} by ${payment.method}`];
+  const lines = [`Sandman Academy payment receipt for ${proposalId}`, `Received: ${money(payment.amount)} by ${payment.method}`];
   if (payment.dates) {
     const [paidOn, start, through, renewal] = payment.dates;
-    lines.push(`Payment date: ${paidOn}`, `Membership: ${money(payment.membership)}`,
-      `Annual enrollment fee allocated: ${money(payment.allocated)}; outstanding: ${money(payment.outstanding)}`,
-      `Coverage: ${start} through ${through}`, `Earliest renewal: ${renewal} (separate approval required)`);
+    lines.push(`Receipt number: CASH-${proposalId}`, `Payment date: ${paidOn}`,
+      `Paid-in-full membership: ${money(payment.membership)}`,
+      `Annual enrollment fee paid with this payment: ${money(payment.allocated)}`,
+      `Annual enrollment fee remaining: ${money(payment.outstanding)}`,
+      `Coverage: ${start} through ${through}`, `Earliest renewal: ${renewal}`,
+      "Renewal requires separate approval. There is no automatic renewal.");
   }
   let result;
   try {
-    result = await send(lines, url);
+    result = await send(lines, url, attempt);
   } catch {
     throw new HttpsError("failed-precondition", "Provider acceptance is uncertain. Verify delivery before retrying.");
   }

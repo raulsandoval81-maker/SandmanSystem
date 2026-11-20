@@ -30,6 +30,7 @@ function entry(overrides = {}) {
       locationId,
       sourceReference: "signed-paper-agreement-" + suffix,
       confirmExistingAgreement: true,
+      confirmIdentityReview: true,
     },
     prospect: {
       familyName: "Synthetic Historical Family",
@@ -112,7 +113,7 @@ test("direct historical entry cannot mix Admissions or conversion sources", asyn
     (error) => error.code === "invalid-argument");
 });
 
-test("existing legacy proposal with same email, athlete and coverage blocks duplicate creation", async () => {
+test("existing legacy proposal with same email, athlete and coverage is reused without rewriting it", async () => {
   const legacyId = "P-698765";
   const legacyEmail = "synthetic-legacy-" + suffix + "@example.test";
   await db.doc("proposals/" + legacyId).set({
@@ -121,8 +122,62 @@ test("existing legacy proposal with same email, athlete and coverage blocks dupl
     athletes: [{name: "Legacy Synthetic Athlete", plan: "standard", billingTerm: "annual"}],
     pricing: {membershipStartDate},
   });
-  await assert.rejects(invoke(manager, entry({
+  const request = entry({
     prospect: {...entry().prospect, email: legacyEmail},
     athletes: [{name: "Legacy Synthetic Athlete", plan: "standard", billingTerm: "annual"}],
-  })), (error) => error.code === "already-exists");
+  });
+  assert.deepEqual(await invoke(manager, request), { ok: true, proposalId: legacyId, status: "PAID", idempotent: true });
+  assert.equal((await db.doc("proposals/" + legacyId).get()).get("managementHistorical"), undefined);
+  await db.doc("proposals/" + legacyId).update({ status: "VOID" });
+  await assert.rejects(invoke(manager, request), (error) => error.code === "failed-precondition");
+});
+
+test("new historical identity requires completed records review", async () => {
+  const request = entry({
+    prospect: {...entry().prospect, email: "no-review-" + email},
+    managementHistorical: {...entry().managementHistorical, confirmIdentityReview: false},
+  });
+  await assert.rejects(invoke(manager, request), (error) => error.code === "failed-precondition");
+});
+
+test("two concurrent Admissions handoffs reuse one proposal for the same appointment", async () => {
+  const appointmentId = "synthetic-appointment-" + suffix;
+  await db.doc("admissions_appointments/" + appointmentId).set({ locationId, email });
+  const request = entry({ managementHistorical: null, appointmentId });
+  const results = await Promise.all([invoke(manager, request), invoke(manager, request)]);
+  assert.equal(results[0].proposalId, results[1].proposalId);
+  assert.equal(results.filter(result => result.idempotent).length, 1);
+});
+
+test("recover an unscoped legacy appointment without changing its Admissions record", async () => {
+  const admin = "historical-test-admin-" + suffix;
+  const legacyAppointmentId = "legacy-appointment-" + suffix;
+  const legacyEmail = "unscoped-" + email;
+  const appointment = {
+    athleteName: "Synthetic Historical Athlete",
+    parentName: "Synthetic Parent",
+    email: legacyEmail,
+    admissionsStatus: "ready_to_enroll",
+    appointmentStatus: "completed",
+  };
+  await db.doc("staff/" + admin).set({ role: "admin", status: "active" });
+  const source = db.doc("admissions_appointments/" + legacyAppointmentId);
+  await source.set(appointment);
+  const request = entry({
+    managementHistorical: {...entry().managementHistorical, legacyAppointmentId, locationId: "santa-ynez-valley"},
+    prospect: {...entry().prospect, email: legacyEmail},
+  });
+
+  await assert.rejects(invoke(manager, request), error => error.code === "permission-denied");
+  await assert.rejects(invoke(admin, {...request, prospect: {...request.prospect, email}}),
+    error => error.code === "failed-precondition");
+  const recovered = await invoke(admin, request);
+  assert.equal(recovered.status, "DRAFT");
+  const draft = await db.doc("proposals/" + recovered.proposalId).get();
+  assert.equal(draft.get("prospect.appointmentId"), legacyAppointmentId);
+  assert.equal(draft.get("locationId"), "santa-ynez-valley");
+  assert.equal(draft.get("managementHistorical.verifiedLegacyAppointmentLocation"), "santa-ynez-valley");
+  assert.equal(draft.get("cashPrepayment"), undefined);
+  assert.deepEqual((await source.get()).data(), appointment);
+  assert.equal((await invoke(admin, request)).proposalId, recovered.proposalId);
 });

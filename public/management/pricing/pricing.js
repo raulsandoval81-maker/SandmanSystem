@@ -1601,8 +1601,8 @@ function syncEnrollmentEntry() {
   // canonical proposal creator. Existing athlete linking stays blocked
   // until a verified athlete ID can be carried through Intake.
   const supported = !existing && (
-    (source === "admissions" && Boolean(sourceAppointment && appointmentId)) ||
-    (directHistorical && historical)
+    (source === "admissions" && Boolean(sourceAppointment?.locationId && appointmentId)) ||
+    (directHistorical && historical && (!appointmentId || Boolean(sourceAppointment && !sourceAppointment.locationId)))
   );
   if (continueProposalBtn) continueProposalBtn.hidden = !supported;
   if (enrollmentEntryStatus) {
@@ -1619,6 +1619,9 @@ function syncEnrollmentEntry() {
         : sourceAppointment && appointmentId
           ? "Admissions appointment connected. Standard new-athlete proposal handoff remains available."
           : "Admissions entry selected. Open a lead or appointment to continue into a proposal.";
+    if (sourceAppointment && !sourceAppointment.locationId && !directHistorical) {
+      enrollmentEntryStatus.textContent = "This legacy appointment has no location ID. An administrator can verify location and recover its proposal through the historical agreement route.";
+    }
   }
 }
 
@@ -1644,8 +1647,13 @@ async function loadPricingSource() {
   const snapshot = await getDoc(doc(db, "admissions_appointments", appointmentId));
   if (!snapshot.exists()) throw new Error("The admissions appointment was not found or is not accessible.");
   const appointment = snapshot.data();
-  if (!appointment.locationId) throw new Error("The appointment has no canonical locationId; proposal handoff is blocked.");
   sourceAppointment = appointment;
+  if (!appointment.locationId) {
+    if (enrollmentEntrySource) enrollmentEntrySource.value = "management_historical";
+    if (enrollmentPaymentRoute) enrollmentPaymentRoute.value = "historical_prepaid_check";
+    if (historicalContactName) historicalContactName.value = appointment.parentName || appointment.guardianName || "";
+    if (historicalContactEmail) historicalContactEmail.value = appointment.email || "";
+  }
   athleteList.innerHTML = "";
   addAthlete(recommendationFromAppointment(appointment));
   pricingSourceStatus.textContent = `Admissions context loaded for ${appointment.participantName || appointment.athleteName || "this prospect"}.`;
@@ -1791,7 +1799,7 @@ continueProposalBtn?.addEventListener(
   "click",
   async () => {
     const managementHistorical = enrollmentEntrySource?.value === "management_historical";
-    const normalAdmission = enrollmentEntrySource?.value === "admissions" && Boolean(sourceAppointment && appointmentId);
+    const normalAdmission = enrollmentEntrySource?.value === "admissions" && Boolean(sourceAppointment?.locationId && appointmentId);
     if (enrollmentAthleteRecord?.value !== "new" ||
         !(normalAdmission || (managementHistorical && enrollmentPaymentRoute?.value === "historical_prepaid_check"))) {
       syncEnrollmentEntry();
@@ -1808,7 +1816,9 @@ continueProposalBtn?.addEventListener(
     try {
       const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
       if (managementHistorical) {
-        if (appointmentId) throw new Error("Do not mix an existing Admissions appointment with direct Management historical entry. Open Pricing without an appointmentId.");
+        if (appointmentId && (!sourceAppointment || sourceAppointment.locationId)) {
+          throw new Error("Use the Admissions route for an appointment with a verified location.");
+        }
         const identity = [historicalLocationId?.value, historicalContactName?.value,
           historicalContactEmail?.value, historicalSourceReference?.value];
         if (identity.some(value => !String(value || "").trim()) ||
@@ -1860,6 +1870,8 @@ continueProposalBtn?.addEventListener(
         ...(managementHistorical ? { managementHistorical: {
           locationId: String(historicalLocationId.value).trim(),
           sourceReference: String(historicalSourceReference.value).trim(),
+          ...(appointmentId ? { legacyAppointmentId: appointmentId } : {}),
+          confirmIdentityReview: document.getElementById("historicalIdentityReview")?.checked === true,
           confirmExistingAgreement: true,
         }} : {}),
         admissionsRequestId: managementHistorical ? null : (
@@ -1916,6 +1928,12 @@ continueProposalBtn?.addEventListener(
           throw new Error(
             "Proposal ID was not returned."
           );
+        }
+        if (response.data?.idempotent === true) {
+          sessionStorage.removeItem("sandmanPricingProposalHandoff");
+          const params = new URLSearchParams({ proposalId });
+          window.location.href = "/connect/proposals/?" + params.toString();
+          return;
         }
       } else {
         const updateProposalDraft =
