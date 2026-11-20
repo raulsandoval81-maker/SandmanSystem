@@ -1,0 +1,13 @@
+{
+  "name": "@sandman/commercial-foundation",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.cjs",
+    "check:production-dependencies": "node scripts/check-production-dependencies.cjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
