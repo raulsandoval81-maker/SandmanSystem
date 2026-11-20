@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   lockedPrepaidTerms,
   paymentArrangement,
@@ -37,6 +38,24 @@ import {
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
+}
+
+// One physical payment source must not be posted to multiple proposals.
+// Staff must supply a stable evidence identifier from the actual deposit,
+// check, or issued cash receipt; a proposal ID or generic note is not evidence.
+function normalizedPaymentEvidence(value: unknown): { reference: string; key: string } {
+  const reference = cleanString(value);
+  if (reference.length < 8 || reference.length > 160 ||
+      /[\r\n\u0000-\u001f]/.test(reference)) {
+    throw new HttpsError("invalid-argument",
+      "A verified check, deposit, or cash-receipt evidence reference (8–160 characters) is required.");
+  }
+  const key = reference.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (key.length < 8) {
+    throw new HttpsError("invalid-argument",
+      "Payment evidence must contain a stable identifying reference, not a generic payment label.");
+  }
+  return { reference, key };
 }
 
 function toPositiveInteger(
@@ -187,6 +206,7 @@ export const recordProposalPrepaidCash =
     const membershipAmountCents =
       toPositiveInteger(req.data?.membershipAmountCents, "membershipAmountCents");
     const paymentMethod = normalizePaymentMethod(req.data?.paymentMethod);
+    const paymentEvidence = normalizedPaymentEvidence(req.data?.paymentEvidenceReference);
     const paymentDateRaw = cleanString(req.data?.paymentDate);
     const membershipStartDateRaw = cleanString(req.data?.membershipStartDate);
     const membershipPaidThroughDateRaw = cleanString(req.data?.membershipPaidThroughDate);
@@ -463,6 +483,26 @@ export const recordProposalPrepaidCash =
               ? proposalRef.collection("history").doc()
               : null;
 
+            // Claim the source evidence atomically with the PAID state. A check
+            // presented on two proposals (even concurrently) cannot produce
+            // two membership credits. Normalize punctuation and case to avoid
+            // trivial variants of the same document reference.
+            const evidenceFingerprint = createHash("sha256").update(
+              JSON.stringify(["prepaid-evidence-v1", cleanString(proposal.locationId),
+                paymentEvidence.key])
+            ).digest("hex");
+            const evidenceClaimRef = db.collection("prepaidPaymentEvidenceClaims")
+              .doc(evidenceFingerprint);
+            tx.create(evidenceClaimRef, {
+              proposalId,
+              locationId: proposal.locationId,
+              paymentMethod,
+              amountCents,
+              evidenceFingerprint,
+              claimedBy: req.auth!.uid,
+              claimedAt: FieldValue.serverTimestamp(),
+            });
+
             // One prior annual-fee payment may not credit multiple new agreements.
             // This independent claim preserves the original payment ledger unchanged.
             if (conversionSource) {
@@ -500,6 +540,8 @@ export const recordProposalPrepaidCash =
                   membershipPaidInFull: allocation.membershipPaidInFull,
                   monthsCovered,
                   paymentMethod,
+                  paymentEvidenceReference: paymentEvidence.reference,
+                  paymentEvidenceFingerprint: evidenceFingerprint,
                   paymentDate,
                   membershipStartDate,
                   membershipPaidThroughDate,
@@ -556,6 +598,8 @@ export const recordProposalPrepaidCash =
                 membershipPaidInFull: true,
                 monthsCovered,
                 paymentMethod,
+                paymentEvidenceReference: paymentEvidence.reference,
+                paymentEvidenceFingerprint: evidenceFingerprint,
                 paymentDate,
                 membershipStartDate,
                 membershipPaidThroughDate,
