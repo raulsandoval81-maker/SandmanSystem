@@ -8,7 +8,7 @@ interface PersistedState {
   schema: "sandman.commercial.local-store.v1";
   organizations: Organization[];
   academies: TenantRecord[]; locations: TenantRecord[]; programs: TenantRecord[];
-  memberships: TenantRecord[]; entitlements: TenantRecord[]; audits: AuditEvent[];
+  memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; audits: AuditEvent[];
 }
 
 /**
@@ -28,13 +28,17 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
   private load(): void {
     const state = JSON.parse(readFileSync(this.filePath, "utf8")) as PersistedState;
     if (state.schema !== "sandman.commercial.local-store.v1") throw new Error("INVALID_PERSISTENCE_SCHEMA");
-    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
+    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
     for (const record of state.organizations) { assertId(record.id); if (!record.displayName?.trim() || !["active","suspended","archived"].includes(record.state)) throw new Error("INVALID_PERSISTED_ORGANIZATION"); super.createOrganization(record); }
     for (const record of state.academies as TenantRecord[]) { assertId(record.id); assertId(record.organizationId,"organizationId"); if (!this.getOrganization(record.organizationId)) throw new Error("INVALID_PERSISTED_TENANT_REFERENCE"); super.put("academies",record); }
     for (const record of state.locations as TenantRecord[]) { assertId(record.id); const value = record as import("./contracts").Location; if (!this.get<import("./contracts").Academy>("academies",value.organizationId,value.academyId)) throw new Error("INVALID_PERSISTED_ACADEMY_REFERENCE"); super.put("locations",record); }
     for (const record of state.programs as TenantRecord[]) { validateProgram(record as import("./contracts").Program); super.put("programs",record); }
     for (const record of state.memberships as TenantRecord[]) { validateMembership(record as import("./contracts").Membership); super.put("memberships",record); }
     for (const record of state.entitlements as TenantRecord[]) { validateEntitlement(record as import("./contracts").Entitlement); super.put("entitlements",record); }
+    for (const record of state.sessions as TenantRecord[]) super.put("sessions", record);
+    for (const record of state.athletes as TenantRecord[]) super.put("athletes", record);
+    for (const record of state.attendance as TenantRecord[]) super.put("attendance", record);
+    for (const record of state.practiceNotes as TenantRecord[]) super.put("practiceNotes", record);
     // Loading is fail-closed: every child and authorization scope must resolve inside its own tenant.
     for (const academy of this.academies.values()) {
       if (!this.getOrganization(academy.organizationId) || !academy.name?.trim() || !["active", "suspended", "archived"].includes(academy.state)) throw new Error("INVALID_PERSISTED_ACADEMY");
@@ -58,6 +62,15 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     for (const grant of this.entitlements.values()) {
       if (!this.getOrganization(grant.organizationId)) throw new Error("INVALID_PERSISTED_ENTITLEMENT_ORGANIZATION");
     }
+    for (const session of this.sessions.values()) {
+      const academy = this.get("academies", session.organizationId, session.academyId) as import("./contracts").Academy | undefined;
+      const location = this.get("locations", session.organizationId, session.locationId) as import("./contracts").Location | undefined;
+      const program = this.get("programs", session.organizationId, session.programId) as import("./contracts").Program | undefined;
+      if (!academy || !location || !program || location.academyId !== academy.id || program.academyId !== academy.id || !program.locationIds.includes(location.id)) throw new Error("INVALID_PERSISTED_SESSION_REFERENCE");
+    }
+    for (const athlete of this.athletes.values()) if (!(this.get("programs", athlete.organizationId, athlete.programId))) throw new Error("INVALID_PERSISTED_ATHLETE_REFERENCE");
+    for (const attendance of this.attendance.values()) if (!this.get("sessions", attendance.organizationId, attendance.sessionId) || !this.get("athletes", attendance.organizationId, attendance.athleteId)) throw new Error("INVALID_PERSISTED_ATTENDANCE_REFERENCE");
+    for (const note of this.practiceNotes.values()) if (!this.get("sessions", note.organizationId, note.sessionId)) throw new Error("INVALID_PERSISTED_NOTE_REFERENCE");
     if (state.audits.some(event => !event || typeof event.id !== "string" || !/^audit-[1-9][0-9]*$/.test(event.id) || !this.getOrganization(event.selectedOrganizationId) ||
       typeof event.actorUserId !== "string" || !["permitted", "rejected"].includes(event.outcome))) throw new Error("INVALID_PERSISTED_AUDIT");
     if (new Set(state.audits.map(event => event.id)).size !== state.audits.length) throw new Error("DUPLICATE_PERSISTED_AUDIT");
@@ -69,7 +82,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       schema: "sandman.commercial.local-store.v1",
       organizations: [...this.organizations.values()],
       academies: [...this.academies.values()], locations: [...this.locations.values()], programs: [...this.programs.values()],
-      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], audits: this.audits
+      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], audits: this.audits
     };
     const temporary = `${this.filePath}.${globalThis.crypto.randomUUID()}.tmp`;
     try {

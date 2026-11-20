@@ -11,6 +11,12 @@ export interface Membership {
   id: string; userId: string; organizationId: string; role: OrganizationRole;
   scopeType: ScopeType; scopeId: string; state: MembershipState;
 }
+export type PracticeSessionState = "scheduled" | "completed" | "cancelled";
+export interface PracticeSession { id: string; organizationId: string; academyId: string; locationId: string; programId: string; coachUserIds: string[]; startsAt: string; endsAt: string; state: PracticeSessionState }
+export interface CommercialAthlete { id: string; organizationId: string; programId: string; displayName: string; synthetic: true }
+export type AttendanceState = "present" | "absent" | "excused";
+export interface AttendanceRecord { id: string; organizationId: string; sessionId: string; athleteId: string; state: AttendanceState; recordedByUserId: string; recordedAt: string; correctedAt?: string }
+export interface PracticeNote { id: string; organizationId: string; sessionId: string; authorUserId: string; body: string; createdAt: string }
 
 export type ProductLifecycle = "proposed" | "private_preview" | "prelaunch" | "released" | "retired" | "unverified";
 export type IntegrationType = "none" | "planned" | "optional_adapter" | "native";
