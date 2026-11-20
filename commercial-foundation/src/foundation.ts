@@ -67,6 +67,7 @@ export class CommercialFoundation {
     const members = this.memberships(identity).filter(m => this.validScope(m));
     if (!members.length) throw new Error("MEMBERSHIP_REQUIRED");
     const orgAdmin = members.some(m => m.role === "organization_admin" && m.scopeType === "organization");
+    if (action === "capability.read") return; // membership verified; grants remain organization-scoped
     if (action === "program.read") {
       if (orgAdmin || members.some(m =>
         m.scopeType === "organization" ||
