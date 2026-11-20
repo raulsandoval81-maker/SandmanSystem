@@ -111,3 +111,42 @@ class ProtectedAuthenticationTest(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "unauthenticated"):
                 preflight.authenticated_get(preflight.FUNCTION, "")
             request.assert_not_called()
+
+
+class ServingImageProvenanceTest(unittest.TestCase):
+    repository = "us-central1-docker.pkg.dev/sandmandashboard/gcf-artifacts/searchmanagementmembers"
+    image_digest = "sha256:" + "a" * 64
+    build = "projects/sandmandashboard/locations/us-central1/builds/1234"
+    revision = "createmanagementxpadjustment-00001-abc"
+
+    def verify(self, serving, outputs, status="SUCCESS"):
+        preflight.verify_build_image(
+            {"status": status, "results": {"images": outputs}}, self.build, serving, self.revision,
+        )
+
+    def test_tagged_serving_digest_matches_cloud_build_result(self):
+        self.verify(f"{self.repository}:version_1@{self.image_digest}", [
+            {"name": f"{self.repository}:version_1", "digest": self.image_digest},
+        ])
+
+    def test_digest_only_reference_and_registry_port(self):
+        repository = "registry.example:443/project/artifacts/function"
+        self.verify(f"{repository}@{self.image_digest}", [
+            {"name": repository, "digest": self.image_digest},
+        ])
+
+    def test_refuses_missing_or_inconsistent_build_proof(self):
+        from contextlib import redirect_stdout
+
+        for outputs, status in [
+            ([], "SUCCESS"),
+            ([{"name": f"{self.repository}-other", "digest": self.image_digest}], "SUCCESS"),
+            ([{"name": self.repository, "digest": "sha256:" + "b" * 64}], "SUCCESS"),
+            ([{"name": self.repository, "digest": self.image_digest}], "FAILURE"),
+            ([{"name": f"{self.repository}@sha256:" + "b" * 64, "digest": self.image_digest}], "SUCCESS"),
+        ]:
+            with self.subTest(outputs=outputs, status=status), redirect_stdout(io.StringIO()) as log:
+                with self.assertRaisesRegex(RuntimeError, "does not prove provenance"):
+                    self.verify(f"{self.repository}@{self.image_digest}", outputs, status)
+                self.assertIn(self.revision, log.getvalue())
+                self.assertIn(self.image_digest, log.getvalue())
