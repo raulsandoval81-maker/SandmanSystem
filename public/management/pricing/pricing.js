@@ -529,6 +529,19 @@ function renderPricing() {
   dueAtEnrollment.textContent =
     money(estimate.dueAtEnrollment);
 
+  // Historical Paid-in-Full is a pricing/identity handoff, never a checkout.
+  // Do not present the standard estimate as money currently owed or scheduled.
+  // Verified cash/check balances belong to the canonical Proposal/Billing ledger.
+  const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
+  const prepaidPreview = document.getElementById("historicalPrepaidPricingSummary");
+  const prepaidValue = document.getElementById("historicalPrepaidMembershipValue");
+  if (prepaidPreview) prepaidPreview.hidden = !historicalPrepaid;
+  if (prepaidValue) prepaidValue.textContent = money(estimate.monthlyMembership * 12);
+  const dueRow = dueAtEnrollment?.closest(".pricing-summary-row");
+  const nextRow = nextMonthlyPayment?.closest(".pricing-summary-row");
+  if (dueRow) dueRow.hidden = historicalPrepaid;
+  if (nextRow) nextRow.hidden = historicalPrepaid;
+
   if (
     appliedPromotion &&
     estimate.promotion > 0
@@ -1582,6 +1595,7 @@ function syncEnrollmentEntry() {
   const directHistorical = source === "management_historical";
   if (managementHistoricalFields) managementHistoricalFields.hidden = !directHistorical;
   if (enrollmentExistingLookup) enrollmentExistingLookup.hidden = !existing;
+  renderPricing();
 
   // Admissions and documented Management historical entry use the same
   // canonical proposal creator. Existing athlete linking stays blocked
