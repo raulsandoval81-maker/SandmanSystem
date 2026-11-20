@@ -31,7 +31,7 @@ export interface CurriculumDefinition { id: string; organizationId: string; acad
 export interface CurriculumAssignment { id: string; organizationId: string; athleteId: string; curriculumId: string; assignedByUserId: string; assignedAt: string; state: "active" | "completed" | "revoked" }
 export interface SkillEvaluation { id: string; organizationId: string; assignmentId: string; athleteId: string; skillId: string; coachUserId: string; status: "introduced" | "developing" | "approved"; note?: string; evaluatedAt: string }
 export interface ProgressionCycle { id: string; organizationId: string; athleteId: string; assignmentId: string; pathway: DevelopmentPathway; rankIndex: number; activeXp: number; lifetimeXp: number; earnedStripes: number; seasonPhase: SeasonPhase; sequence: number; state: "active" | "completed" | "suspended" }
-export interface XpEvent { id: string; organizationId: string; athleteId: string; cycleId: string; lane: XpLane; amount: number; source: string; sourceEventId: string; actorUserId: string; reason?: string; correctionOf?: string; occurredAt: string }
+export interface XpEvent { id: string; organizationId: string; athleteId: string; cycleId: string; rankIndexAtAward: number; lane: XpLane; amount: number; source: string; sourceEventId: string; actorUserId: string; reason?: string; correctionOf?: string; occurredAt: string }
 export interface PromotionRecord { id: string; organizationId: string; athleteId: string; cycleId: string; pathway: DevelopmentPathway; fromRank: string; toRank: string; historicalXpAtPromotion: number; promotedByUserId: string; promotedAt: string; requirementsVerified: true }
 
 export type ProductLifecycle = "proposed" | "private_preview" | "prelaunch" | "released" | "retired" | "unverified";
