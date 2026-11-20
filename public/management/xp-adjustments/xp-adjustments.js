@@ -63,6 +63,9 @@ const selectedAthlete =
 const adjustmentPanel =
   $("adjustmentPanel");
 
+const adjustmentSemanticInput = document.getElementById("adjustmentSemantic");
+const adjustmentSemanticField = document.getElementById("adjustmentSemanticField");
+
 const adjustmentForm =
   $("adjustmentForm");
 
@@ -1456,6 +1459,13 @@ function syncRecognitionInput() {
 function syncAdjustmentCategoryUi() {
   syncOverrideAvailability();
 
+  const isCorrection = categoryInput?.value === "correction";
+  if (adjustmentSemanticField) adjustmentSemanticField.hidden = !isCorrection;
+  if (adjustmentSemanticInput) {
+    adjustmentSemanticInput.required = isCorrection;
+    if (!isCorrection) adjustmentSemanticInput.value = "";
+  }
+
   const isOverride =
     categoryInput?.value ===
     "verified_experience_override";
@@ -1739,6 +1749,10 @@ adjustmentForm.addEventListener(
             amountInput.value
           );
 
+    const semantic = category === "correction"
+      ? clean(adjustmentSemanticInput?.value)
+      : undefined;
+
     const reason =
       clean(
         reasonInput.value
@@ -1780,6 +1794,11 @@ adjustmentForm.addEventListener(
       return;
     }
 
+    if (category === "correction" && !["NEW_EARNED_XP", "RESTORE_ALREADY_COUNTED_XP"].includes(semantic)) {
+      setAdjustmentStatus("Select whether this correction adds new lifetime XP or restores previously counted XP.", true);
+      return;
+    }
+
     if (!reason) {
       setAdjustmentStatus(
         "Document the reason for this adjustment.",
@@ -1795,6 +1814,7 @@ adjustmentForm.addEventListener(
       `${athlete.name} (${athlete.athleteId})`,
       `${disciplineLabel(selectedDiscipline)}`,
       `${categoryLabel(category)}`,
+      ...(semantic ? [`Classification: ${semantic}`] : []),
       isExperienceOverride
         ? `${recognitionPlan.total} XP total — ${recognitionPlan.now} now${recognitionPlan.held ? ` + ${recognitionPlan.held} held for Tier 1` : ""}`
         : `+${amount} XP`,
@@ -1846,6 +1866,8 @@ adjustmentForm.addEventListener(
           reason,
 
           category,
+
+          semantic,
 
           adjustmentId
         });
