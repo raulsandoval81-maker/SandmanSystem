@@ -23,3 +23,17 @@ Verification commands:
 The local adapter proves restart durability and service-layer isolation in one process. It does not prove production database rules, concurrent transactions, encryption, backups, disaster recovery, or a production identity provider. Authentication failures with unverifiable sessions fail before an identity can be trusted; they are therefore denied but not attributed to a user audit record.
 
 No Firebase project, Stripe system, customer record, Commercial repository, deployment, or Academy runtime was accessed or modified.
+
+## Review remediation: atomic local onboarding and persistence failure handling
+
+The following changes were added after review, without modifying Academy runtime:
+
+- `CommercialFoundation.transaction()` delegates to a reference-store transaction boundary, so onboarding is one operation rather than a series of separately durable steps.
+- The persistent JSON adapter batches onboarded records and audit events into one final atomic file replacement. Invalid onboarding restores the previous in-memory snapshot and does not commit a partial organization.
+- Failed file replacement restores the previous in-memory maps and audit sequence. The saved snapshot remains unchanged if the atomic replacement fails.
+- Restart checks reject missing or cross-academy program locations, invalid membership academy/location scopes, dangling tenant references, malformed audit ownership, duplicate audits and invalid record shapes.
+- Adversarial tests simulate invalid onboarding, a disk replacement error, an aborted final onboarding commit, and corrupt persisted relationships.
+
+These guarantees are specific to the local single-process JSON reference adapter. They are **not** distributed transactions, database rules, encryption, durable multi-process locking, or production recovery.
+
+Updated GitHub Actions results must be checked separately after these commits; the previously reported 20/20 run does not validate the remediation.
