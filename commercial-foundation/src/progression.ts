@@ -47,7 +47,11 @@ export class CurriculumService{
   }),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   evaluate(ctx:AuthorizationContext,evaluation:Omit<SkillEvaluation,"coachUserId"|"evaluatedAt">){const athlete=this.athlete(evaluation.organizationId,evaluation.athleteId);return authorized(this.foundation,ctx,"xp.coach","skillEvaluation",evaluation.id,evaluation.organizationId,identity=>{
     const assignment=this.foundation.store.get<CurriculumAssignment>("curriculumAssignments",evaluation.organizationId,evaluation.assignmentId);const curriculum=assignment&&this.foundation.store.get<CurriculumDefinition>("curricula",evaluation.organizationId,assignment.curriculumId);
-    if(!assignment||assignment.athleteId!==athlete.id||!curriculum?.skills.some(s=>s.id===evaluation.skillId)||!(athlete.assignedCoachUserIds||[]).includes(identity.userId)||!evaluation.status||evaluation.note?.length!>2000)throw new Error("INVALID_SKILL_EVALUATION");
+    if(!assignment||assignment.state!=="active"||assignment.athleteId!==athlete.id||
+      this.foundation.store.list<ProgressionCycle>("progressionCycles",evaluation.organizationId).filter(c=>c.athleteId===athlete.id&&c.state==="active"&&c.assignmentId===assignment.id).length!==1||
+      !curriculum?.skills.some(s=>s.id===evaluation.skillId)||!(athlete.assignedCoachUserIds||[]).includes(identity.userId)||
+      !["introduced","developing","approved"].includes(evaluation.status)||
+      (evaluation.note!==undefined&&(typeof evaluation.note!=="string"||evaluation.note.length>2000)))throw new Error("INVALID_SKILL_EVALUATION");
     const record={...evaluation,coachUserId:identity.userId,evaluatedAt:this.now().toISOString()};this.foundation.store.put("skillEvaluations",record);return record;
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   private athlete(org:string,id:string){const athlete=this.foundation.store.get<CommercialAthlete>("athletes",org,id);if(!athlete||athlete.participationState!=="active")throw new Error("ATHLETE_NOT_ACTIVE");return athlete;}
@@ -58,6 +62,7 @@ export class XpLedgerService{
   submitCoach(ctx:AuthorizationContext,input:{organizationId:string;athleteId:string;sourceEventId:string;lane:"strength"|"honor";amount:number;source:string;reason?:string}){const athlete=this.athlete(input.organizationId,input.athleteId);return authorized(this.foundation,ctx,"xp.coach","xpEvent",input.sourceEventId,input.organizationId,identity=>{
     if(!(athlete.assignedCoachUserIds||[]).includes(identity.userId))throw new Error("COACH_NOT_ASSIGNED");
     if(input.lane==="strength"&&![5,10].includes(input.amount)||input.lane==="honor"&&input.amount!==5)throw new Error("UNAPPROVED_XP_AMOUNT");
+    if(input.lane==="strength"&&input.source!=="structured-strength"||input.lane==="honor"&&input.source!=="verified-honor")throw new Error("UNVERIFIED_XP_SOURCE");
     return this.append(input,identity.userId);
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   setSeasonPhase(ctx:AuthorizationContext,org:string,athleteId:string,phase:"preseason"|"in_season"|"postseason"){const athlete=this.athlete(org,athleteId);return authorized(this.foundation,ctx,"xp.coach","progressionCycle",athleteId,org,identity=>{if(!(athlete.assignedCoachUserIds||[]).includes(identity.userId))throw new Error("COACH_NOT_ASSIGNED");const cycle=this.cycle(org,athleteId),updated={...cycle,seasonPhase:phase};this.foundation.store.put("progressionCycles",updated,true);return updated;},athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
@@ -67,7 +72,8 @@ export class XpLedgerService{
     return this.append({...input,lane:"adjustment",source:"management-adjustment"},identity.userId);
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   applyDecay(ctx:AuthorizationContext,input:{organizationId:string;athleteId:string;sourceEventId:string;amount:number;reason:string}){const athlete=this.athlete(input.organizationId,input.athleteId);return authorized(this.foundation,ctx,"xp.manage","xpEvent",input.sourceEventId,input.organizationId,identity=>{
-    if(!Number.isInteger(input.amount)||input.amount>=0)throw new Error("INVALID_DECAY");return this.append({...input,lane:"decay",source:"verified-decay"},identity.userId);
+    // Do not treat a Management-supplied reason as evidence that decay is policy-approved.
+    throw new Error("DECAY_POLICY_UNVERIFIED");
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   recordRecoveryCandidate():never{throw new Error("RECOVERY_POLICY_UNVERIFIED");}
   history(ctx:AuthorizationContext,org:string,athleteId:string){const athlete=this.athlete(org,athleteId);return authorized(this.foundation,ctx,"xp.manage","xpHistory",athleteId,org,()=>this.foundation.store.list<XpEvent>("xpEvents",org).filter(e=>e.athleteId===athleteId),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
@@ -75,7 +81,19 @@ export class XpLedgerService{
   promote(ctx:AuthorizationContext,input:{organizationId:string;athleteId:string;promotionId:string;requirementsVerified:boolean}){const athlete=this.athlete(input.organizationId,input.athleteId);return authorized(this.foundation,ctx,"xp.manage","promotion",input.promotionId,input.organizationId,identity=>this.foundation.transaction(()=>{
     const cycle=this.cycle(input.organizationId,input.athleteId),ranks=ranksFor(cycle.pathway),current=ranks[cycle.rankIndex],next=ranks[cycle.rankIndex+1];
     if(this.foundation.store.get("promotions",input.organizationId,input.promotionId))throw new Error("DUPLICATE_PROMOTION");
-    if(!next)throw new Error("FINAL_RANK_CANNOT_PROMOTE");if(cycle.activeXp<current.requiredXp)throw new Error("PREMATURE_PROMOTION");if(input.requirementsVerified!==true)throw new Error("ADVANCEMENT_REQUIREMENTS_UNVERIFIED");
+    if(!next)throw new Error("FINAL_RANK_CANNOT_PROMOTE");
+    if(cycle.activeXp<current.requiredXp)throw new Error("PREMATURE_PROMOTION");
+    if(input.requirementsVerified!==true)throw new Error("ADVANCEMENT_REQUIREMENTS_UNVERIFIED");
+    const assignment=this.foundation.store.get<CurriculumAssignment>("curriculumAssignments",input.organizationId,cycle.assignmentId);
+    const curriculum=assignment&&this.foundation.store.get<CurriculumDefinition>("curricula",input.organizationId,assignment.curriculumId);
+    if(!assignment||assignment.state!=="active"||!curriculum||curriculum.state!=="active"||
+      curriculum.pathway!==cycle.pathway||!curriculum.skills.some(skill=>skill.required))throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
+    const approvals=this.foundation.store.list<SkillEvaluation>("skillEvaluations",input.organizationId).filter(e=>
+      e.athleteId===athlete.id&&e.assignmentId===assignment.id&&e.status==="approved");
+    if(curriculum.skills.filter(skill=>skill.required).some(skill=>!approvals.some(e=>e.skillId===skill.id)))
+      throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
+    // The existing generic attestation remains additional to the independently stored skill evidence.
+    // A complete production advancement policy remains a separate release gate.
     const record:PromotionRecord={id:input.promotionId,organizationId:input.organizationId,athleteId:athlete.id,cycleId:cycle.id,pathway:cycle.pathway,fromRank:current.key,toRank:next.key,historicalXpAtPromotion:cycle.lifetimeXp,promotedByUserId:identity.userId,promotedAt:this.now().toISOString(),requirementsVerified:true};
     this.foundation.store.put("promotions",record);this.foundation.store.put("progressionCycles",{...cycle,rankIndex:cycle.rankIndex+1,activeXp:0,earnedStripes:0,sequence:cycle.sequence+1},true);return record;
   }),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
@@ -85,7 +103,7 @@ export class XpLedgerService{
     if(input.correctionOf){const original=this.foundation.store.get<XpEvent>("xpEvents",input.organizationId,input.correctionOf);if(!original||original.athleteId!==input.athleteId)throw new Error("INVALID_CORRECTION_REFERENCE");}
     const historicalFloor=this.foundation.store.list<PromotionRecord>("promotions",input.organizationId).filter(p=>p.athleteId===input.athleteId).reduce((max,p)=>Math.max(max,p.historicalXpAtPromotion),0),nextLifetime=cycle.lifetimeXp+input.amount;if(nextLifetime<historicalFloor)throw new Error("PROMOTION_HISTORY_FLOOR_PROTECTED");
     const floor=Math.ceil(rank.requiredXp*Math.min(4,cycle.earnedStripes)/4),next=Math.max(floor,cycle.activeXp+input.amount);if(input.amount<0&&next!==cycle.activeXp+input.amount)throw new Error("EARNED_STRIPE_FLOOR_PROTECTED");
-    const event:XpEvent={id:input.sourceEventId,organizationId:input.organizationId,athleteId:input.athleteId,cycleId:cycle.id,lane:input.lane,amount:input.amount,source:input.source,sourceEventId:input.sourceEventId,actorUserId:actor,reason:input.reason,correctionOf:input.correctionOf,occurredAt:this.now().toISOString()};
+    const event:XpEvent={id:input.sourceEventId,organizationId:input.organizationId,athleteId:input.athleteId,cycleId:cycle.id,rankIndexAtAward:cycle.rankIndex,lane:input.lane,amount:input.amount,source:input.source,sourceEventId:input.sourceEventId,actorUserId:actor,reason:input.reason,correctionOf:input.correctionOf,occurredAt:this.now().toISOString()};
     const stripes=Math.max(cycle.earnedStripes,Math.min(4,Math.floor(next/(rank.requiredXp/4))));this.foundation.store.put("xpEvents",event);this.foundation.store.put("progressionCycles",{...cycle,activeXp:next,lifetimeXp:Math.max(0,nextLifetime),earnedStripes:stripes},true);return event;
   });}
   private cycle(org:string,athleteId:string){const cycles=this.foundation.store.list<ProgressionCycle>("progressionCycles",org).filter(c=>c.athleteId===athleteId&&c.state==="active");if(cycles.length!==1)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");return cycles[0];}
