@@ -54,3 +54,14 @@ test("management does not silently treat a deduction as earned XP", () => {
   assert.ok(management.includes("resolveManagementAdjustmentSemantic"));
   assert.ok(management.includes("resolveLifetimeXpEffects"));
 });
+
+test("management correction requires explicit safe lifetime classification on both sides", () => {
+  const ui = read("public/management/xp-adjustments/xp-adjustments.js");
+  const html = read("public/management/xp-adjustments/index.html");
+  assert.ok(html.includes('id="adjustmentSemantic"'));
+  assert.ok(ui.includes("adjustmentSemanticInput"));
+  assert.ok(ui.includes("          semantic,"));
+  assert.ok(management.includes("MANAGEMENT_CORRECTION_SEMANTIC_REQUIRED"));
+  assert.ok(management.includes("UNSUPPORTED_MANAGEMENT_SEMANTIC"));
+  assert.ok(management.includes('"RESTORE_ALREADY_COUNTED_XP"'));
+});
