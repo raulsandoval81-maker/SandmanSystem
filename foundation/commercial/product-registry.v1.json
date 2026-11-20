@@ -1,0 +1,211 @@
+{
+  "schema": "sandman.umbrella.registry.v1",
+  "status": "draft_not_for_runtime_enforcement",
+  "last_reviewed": "2026-11-20",
+  "rules": {
+    "no_customer_records": true,
+    "no_credentials": true,
+    "no_payment_details": true,
+    "no_automatic_deployment": true,
+    "entitlements_require_server_side_verification": true
+  },
+  "tier_order": [
+    "Core",
+    "Plus",
+    "Pro"
+  ],
+  "products": [
+    {
+      "id": "sandman-academy",
+      "name": "Sandman Academy OS",
+      "role": "reference_operator",
+      "readiness": "in_use_owner",
+      "data_boundary": "academy_production",
+      "integration": "no_direct_commercial_adapter",
+      "commercial_included": false
+    },
+    {
+      "id": "sandman-commercial",
+      "name": "Sandman Commercial",
+      "role": "flagship_commercial",
+      "readiness": "architecture_in_progress",
+      "data_boundary": "independent_customer_tenants",
+      "integration": "planned",
+      "commercial_included": false
+    },
+    {
+      "id": "head-coach-wtm",
+      "name": "Head Coach WTM",
+      "role": "standalone_tool",
+      "readiness": "private_preview",
+      "data_boundary": "independent_wtm",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "combat-trainer",
+      "name": "Combat Trainer",
+      "role": "standalone_tool",
+      "readiness": "implementation_prelaunch",
+      "data_boundary": "local_first_with_separate_commerce",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "combat-practice-clipboard",
+      "name": "Combat Practice Clipboard",
+      "role": "standalone_tool",
+      "readiness": "concept_extraction_pending",
+      "data_boundary": "not_established",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "cornerman-ai",
+      "name": "CornermanAI",
+      "role": "standalone_tool",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "fuel-ai",
+      "name": "FuelAI",
+      "role": "standalone_tool",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "fightroom",
+      "name": "FightRoom",
+      "role": "standalone_tool",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "combat-games",
+      "name": "Combat Games",
+      "role": "standalone_tool",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "ghostmedia-ai",
+      "name": "GhostMediaAI",
+      "role": "standalone_tool",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "optional_future",
+      "commercial_included": false
+    },
+    {
+      "id": "grant-factory-ai",
+      "name": "Grant Factory AI",
+      "role": "separate_business_lane",
+      "readiness": "unverified",
+      "data_boundary": "independent",
+      "integration": "not_part_of_combat_commercial",
+      "commercial_included": false
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "org.manage",
+      "owner_domain": "organizations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "academy.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "locations.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "programs.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "roster.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "schedule.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "attendance.manage",
+      "owner_domain": "operations",
+      "proposed_tier": "Core",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "coach.workspace",
+      "owner_domain": "coach",
+      "proposed_tier": "Plus",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "parent.portal",
+      "owner_domain": "family",
+      "proposed_tier": "Plus",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "athlete.portal",
+      "owner_domain": "athlete",
+      "proposed_tier": "Plus",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "curriculum.deliver",
+      "owner_domain": "curriculum",
+      "proposed_tier": "Plus",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "xp.progression",
+      "owner_domain": "athlete",
+      "proposed_tier": "Plus",
+      "approved": false,
+      "implementation_verified": false
+    },
+    {
+      "id": "advanced.reporting",
+      "owner_domain": "operations",
+      "proposed_tier": "Pro",
+      "approved": false,
+      "implementation_verified": false
+    }
+  ]
+}
