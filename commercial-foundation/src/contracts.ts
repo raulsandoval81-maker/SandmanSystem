@@ -16,11 +16,23 @@ export interface PracticeSession { id: string; organizationId: string; academyId
 export type AthleteParticipationState = "active" | "inactive" | "archived";
 export interface CommercialAthlete { id: string; organizationId: string; academyId?: string; locationId?: string; programId: string; displayName: string; synthetic: true; participationState?: AthleteParticipationState; adult?: boolean; assignedCoachUserIds?: string[] }
 export interface GuardianProfile { id: string; organizationId: string; userId: string; displayName: string; state: "active" | "suspended" | "revoked"; synthetic: true }
-export interface GuardianAthleteLink { id: string; organizationId: string; guardianId: string; athleteId: string; state: "active" | "suspended" | "revoked"; permissions: Array<"profile" | "schedule" | "attendance"> }
+export interface GuardianAthleteLink { id: string; organizationId: string; guardianId: string; athleteId: string; state: "active" | "suspended" | "revoked"; permissions: Array<"profile" | "schedule" | "attendance" | "progression"> }
 export interface AthleteIdentityLink { id: string; organizationId: string; userId: string; athleteId: string; state: "active" | "suspended" | "revoked"; access: "adult_self" | "minor_read_only" }
 export type AttendanceState = "present" | "absent" | "excused";
 export interface AttendanceRecord { id: string; organizationId: string; sessionId: string; athleteId: string; state: AttendanceState; recordedByUserId: string; recordedAt: string; correctedAt?: string }
 export interface PracticeNote { id: string; organizationId: string; sessionId: string; authorUserId: string; body: string; createdAt: string }
+
+export type DevelopmentPathway = "road2champion" | "path2legend";
+export type XpLane = "strength" | "honor" | "adjustment" | "decay";
+export type SeasonPhase = "preseason" | "in_season" | "postseason";
+export interface CurriculumRank { key: string; name: string; requiredXp: number; order: number }
+export interface SkillRequirement { id: string; category: string; name: string; required: boolean }
+export interface CurriculumDefinition { id: string; organizationId: string; academyId: string; discipline: "wrestling" | "boxing" | "muay_thai" | "brazilian_jiu_jitsu"; version: string; pathway: DevelopmentPathway; ranks: CurriculumRank[]; skills: SkillRequirement[]; state: "active" | "retired" }
+export interface CurriculumAssignment { id: string; organizationId: string; athleteId: string; curriculumId: string; assignedByUserId: string; assignedAt: string; state: "active" | "completed" | "revoked" }
+export interface SkillEvaluation { id: string; organizationId: string; assignmentId: string; athleteId: string; skillId: string; coachUserId: string; status: "introduced" | "developing" | "approved"; note?: string; evaluatedAt: string }
+export interface ProgressionCycle { id: string; organizationId: string; athleteId: string; assignmentId: string; pathway: DevelopmentPathway; rankIndex: number; activeXp: number; lifetimeXp: number; earnedStripes: number; seasonPhase: SeasonPhase; sequence: number; state: "active" | "completed" | "suspended" }
+export interface XpEvent { id: string; organizationId: string; athleteId: string; cycleId: string; rankIndexAtAward: number; lane: XpLane; amount: number; source: string; sourceEventId: string; actorUserId: string; reason?: string; correctionOf?: string; occurredAt: string }
+export interface PromotionRecord { id: string; organizationId: string; athleteId: string; cycleId: string; pathway: DevelopmentPathway; fromRank: string; toRank: string; historicalXpAtPromotion: number; promotedByUserId: string; promotedAt: string; requirementsVerified: true }
 
 export type ProductLifecycle = "proposed" | "private_preview" | "prelaunch" | "released" | "retired" | "unverified";
 export type IntegrationType = "none" | "planned" | "optional_adapter" | "native";
