@@ -45,12 +45,11 @@ test("scoped coach workspace only shows sessions assigned within permitted locat
   assert.equal(f.coach.note(ctx,A,"session-local","note-scoped","Practice note").sessionId,"session-local");
 });
 
-test("generic callback entrypoint rejects capability.read and invented actions",()=>{
+test("public generic operation callback is absent and invented actions are denied",()=>{
   const f=setup();
-  assert.throws(()=>f.foundation.runAuthorized(f.coachA,"capability.read","session","forged",A,()=>{
-    f.store.put("sessions",session(A));return true;
-  }),/UNSUPPORTED_OPERATION_ACTION/);
-  assert.throws(()=>f.foundation.runAuthorized(f.adminA,"management.elevate","member","forged",A,()=>true),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.equal(typeof f.foundation.runAuthorized,"undefined");
+  assert.throws(()=>f.foundation.authorizeOperational(f.coachA,"capability.read","session","forged",A),/UNSUPPORTED_OPERATION_ACTION/);
+  assert.throws(()=>f.foundation.authorizeOperational(f.adminA,"management.elevate","membership","forged",A),/UNSUPPORTED_OPERATION_ACTION/);
   assert.equal(f.store.list("sessions",A).length,0);
 });
 
