@@ -83,6 +83,7 @@ export class CommercialFoundation {
     const identity = this.identity(ctx); // unverified claims are never used or audited as trusted identities
     try {
       this.authorize(identity, action, organizationId, academyId, locationIds);
+      if (action !== "organization.create" && this.store.organizations.get(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
       const result = operation(identity);
       this.store.audit(identity, action, type, id, "permitted");
       return result;
