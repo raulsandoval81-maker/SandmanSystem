@@ -14,7 +14,7 @@ test("Management historical paper entry is separate from unsupported walk-in / e
   assert.match(html, /id="historicalAttestation"/);
   assert.match(pricing, /directHistorical && historical/);
   assert.match(pricing, /enrollmentAthleteRecord\?\.value !== "new"/);
-  assert.match(pricing, /if \(appointmentId && \(!sourceAppointment \|\| sourceAppointment\.locationId\)\)/);
+  assert.match(pricing, /if \(appointmentId && !sourceAppointment\)/);
 });
 
 test("Direct route creates same canonical proposal without manufacturing an appointment", () => {

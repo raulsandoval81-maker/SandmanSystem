@@ -1602,7 +1602,7 @@ function syncEnrollmentEntry() {
   // until a verified athlete ID can be carried through Intake.
   const supported = !existing && (
     (source === "admissions" && Boolean(sourceAppointment?.locationId && appointmentId)) ||
-    (directHistorical && historical && (!appointmentId || Boolean(sourceAppointment && !sourceAppointment.locationId)))
+    (directHistorical && historical && (!appointmentId || Boolean(sourceAppointment)))
   );
   if (continueProposalBtn) continueProposalBtn.hidden = !supported;
   if (enrollmentEntryStatus) {
@@ -1651,8 +1651,12 @@ async function loadPricingSource() {
   if (!appointment.locationId) {
     if (enrollmentEntrySource) enrollmentEntrySource.value = "management_historical";
     if (enrollmentPaymentRoute) enrollmentPaymentRoute.value = "historical_prepaid_check";
-    if (historicalContactName) historicalContactName.value = appointment.parentName || appointment.guardianName || "";
-    if (historicalContactEmail) historicalContactEmail.value = appointment.email || "";
+  }
+  if (historicalContactName) historicalContactName.value = appointment.parentName || appointment.guardianName || appointment.contactName || "";
+  if (historicalContactEmail) historicalContactEmail.value = appointment.email || "";
+  if (historicalLocationId && appointment.locationId) {
+    historicalLocationId.value = appointment.locationId;
+    historicalLocationId.readOnly = true;
   }
   athleteList.innerHTML = "";
   addAthlete(recommendationFromAppointment(appointment));
@@ -1816,8 +1820,8 @@ continueProposalBtn?.addEventListener(
     try {
       const historicalPrepaid = enrollmentPaymentRoute?.value === "historical_prepaid_check";
       if (managementHistorical) {
-        if (appointmentId && (!sourceAppointment || sourceAppointment.locationId)) {
-          throw new Error("Use the Admissions route for an appointment with a verified location.");
+        if (appointmentId && !sourceAppointment) {
+          throw new Error("Reload the original Admissions appointment before proceeding.");
         }
         const identity = [historicalLocationId?.value, historicalContactName?.value,
           historicalContactEmail?.value, historicalSourceReference?.value];
@@ -1870,7 +1874,7 @@ continueProposalBtn?.addEventListener(
         ...(managementHistorical ? { managementHistorical: {
           locationId: String(historicalLocationId.value).trim(),
           sourceReference: String(historicalSourceReference.value).trim(),
-          ...(appointmentId ? { legacyAppointmentId: appointmentId } : {}),
+          ...(appointmentId ? { historicalAppointmentId: appointmentId } : {}),
           confirmIdentityReview: document.getElementById("historicalIdentityReview")?.checked === true,
           confirmExistingAgreement: true,
         }} : {}),
