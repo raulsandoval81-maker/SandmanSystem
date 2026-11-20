@@ -115,6 +115,19 @@ def build_record(resource):
     ))
 
 
+def read_matching_source(function_source, serving_source, token):
+    rollback = read_archive(function_source, token)
+    if serving_source != function_source:
+        require(read_archive(serving_source, token) == rollback,
+                "Function and serving build source archives differ byte-for-byte")
+    return rollback
+
+
+def verify_rollback_recovery(source, token, original):
+    require(read_archive(source, token) == original,
+            "Generation-pinned rollback bytes failed recovery verification")
+
+
 def image_repository(reference):
     """Remove OCI digest and tag while preserving the full registry and repository."""
     name = reference.split("@", 1)[0]
@@ -143,6 +156,13 @@ def verify_build_image(build, resource, image, revision):
         "functionBuild": resource,
         "functionBuildStatus": build.get("status"),
         "reportedImageCount": len(results),
+        "declaredImageCount": len(build.get("images") or []),
+        "structuredDockerPushStepCount": sum(
+            step.get("args", [])[:1] == ["push"]
+            and ("docker" in step.get("name", "").rsplit("/", 1)[-1].split(":", 1)[0]
+                 or step.get("entrypoint") == "docker")
+            for step in build.get("steps", [])
+        ),
         "repositoryMatched": any(image_repository(item.get("name", "")) == repository for item in results),
         "digestMatched": any(item.get("digest") == digest_value for item in results),
     }, sort_keys=True), flush=True)
@@ -236,10 +256,7 @@ def preflight(candidate):
 
     function_source = source_ref(config)
     serving_source = source_ref(build)
-    rollback = read_archive(function_source, token)
-    if serving_source != function_source:
-        require(manifest(read_archive(serving_source, token)) == manifest(rollback),
-                "Shared image was built from different source bytes")
+    rollback = read_matching_source(function_source, serving_source, token)
     candidate_functions = candidate / "functions"
     rollback_manifest = manifest(rollback)
     dependencies = inventory.closure(candidate_functions, "management/managementXpTools")
@@ -262,8 +279,7 @@ def preflight(candidate):
         bool(explicit_build_scripts) if explicit_build_scripts is not None
         else bool(scripts.get("gcp-build", scripts.get("build")))
     )
-    require(read_archive(function_source, token) == rollback,
-            "Generation-pinned rollback bytes failed recovery verification")
+    verify_rollback_recovery(function_source, token, rollback)
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
@@ -289,7 +305,8 @@ def preflight(candidate):
         },
         "durableRollbackRetentionVerified": False,
         "deploymentEnabled": False,
-    }, sort_keys=True))
+    }, sort_keys=True), flush=True)
+    require(not rebuild_expected, "Build scripts may regenerate the approved compiled overlay")
 
 
 if __name__ == "__main__":

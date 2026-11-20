@@ -150,3 +150,44 @@ class ServingImageProvenanceTest(unittest.TestCase):
                     self.verify(f"{self.repository}@{self.image_digest}", outputs, status)
                 self.assertIn(self.revision, log.getvalue())
                 self.assertIn(self.image_digest, log.getvalue())
+
+    def test_empty_build_results_stay_blocked_even_with_declared_image(self):
+        from contextlib import redirect_stdout
+
+        with redirect_stdout(io.StringIO()) as log:
+            with self.assertRaisesRegex(RuntimeError, "does not prove provenance"):
+                preflight.verify_build_image(
+                    {"status": "SUCCESS", "images": [self.repository],
+                     "steps": [{"name": "gcr.io/cloud-builders/docker",
+                                "args": ["push", "private-build-argument"]}]},
+                    self.build, f"{self.repository}@{self.image_digest}", self.revision,
+                )
+        self.assertIn('"reportedImageCount": 0', log.getvalue())
+        self.assertIn('"declaredImageCount": 1', log.getvalue())
+        self.assertIn('"structuredDockerPushStepCount": 1', log.getvalue())
+        self.assertNotIn("private-build-argument", log.getvalue())
+
+
+class SourceRecoveryTest(unittest.TestCase):
+    def test_distinct_shared_source_requires_exact_archive_bytes(self):
+        from unittest.mock import patch
+
+        target, shared = {"generation": "42"}, {"generation": "43"}
+        with patch.object(preflight, "read_archive", side_effect=[b"archive", b"archive"]) as read:
+            self.assertEqual(preflight.read_matching_source(target, shared, "token"), b"archive")
+            self.assertEqual([call.args[0] for call in read.call_args_list], [target, shared])
+        with patch.object(preflight, "read_archive", side_effect=[b"archive", b"other"]):
+            with self.assertRaisesRegex(RuntimeError, "differ byte-for-byte"):
+                preflight.read_matching_source(target, shared, "token")
+
+    def test_changed_or_unavailable_rollback_stops_without_retry(self):
+        from unittest.mock import patch
+
+        source = {"generation": "42"}
+        for returned, error in [(b"changed", "failed recovery"), (RuntimeError("HTTP 404"), "HTTP 404")]:
+            with self.subTest(error=error), patch.object(
+                preflight, "read_archive", side_effect=[returned]
+            ) as read:
+                with self.assertRaisesRegex(RuntimeError, error):
+                    preflight.verify_rollback_recovery(source, "token", b"original")
+                read.assert_called_once_with(source, "token")
