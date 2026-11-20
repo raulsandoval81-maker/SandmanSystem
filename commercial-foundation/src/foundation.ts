@@ -138,13 +138,18 @@ export class CommercialFoundation {
    * The unexported adapter executor in operations.ts owns the actual operation.
    * Never expose this foundation or its test-only mutable store to untrusted clients.
    */
-  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
+  authorizeOperational(ctx: AuthorizationContext, action: "management.overview" | "management.schedule" | "management.athlete" | "session.read" | "attendance.record" | "practice-note.manage" | "coach.workspace", type: string, id: string, organizationId: string, academyId?: string, locationIds: string[] = []): VerifiedIdentity {
     const identity = this.identity(ctx);
-    const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace"];
-    if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
-    this.authorize(identity, action, organizationId, academyId, locationIds);
-    if (this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
-    return identity;
+    try {
+      const allowed = ["management.overview", "management.schedule", "management.athlete", "session.read", "attendance.record", "practice-note.manage", "coach.workspace"];
+      if (!allowed.includes(action)) throw new Error("UNSUPPORTED_OPERATION_ACTION");
+      this.authorize(identity, action, organizationId, academyId, locationIds);
+      if (this.store.getOrganization(organizationId)?.state !== "active") throw new Error("ORGANIZATION_INACTIVE");
+      return identity;
+    } catch (error) {
+      this.store.audit(identity, action, type, id, "rejected", error instanceof Error ? error.message : "UNKNOWN");
+      throw error;
+    }
   }
   auditOperational(identity: VerifiedIdentity, action: string, type: string, id: string, outcome: AuditEvent["outcome"], reason?: string): void {
     this.store.audit(identity, action, type, id, outcome, reason);
