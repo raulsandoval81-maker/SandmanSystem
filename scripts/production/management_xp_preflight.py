@@ -106,7 +106,15 @@ def sanitized_configuration(fn):
 
 
 def verify_sanitized_configuration(fn, expected):
-# Revision identity is verified against the ready Cloud Run revision and 100% traffic above.\n    # A retained historical revision is not a configuration setting.\n    current_config = sanitized_configuration(fn)\n    require(isinstance(expected, dict) and isinstance(expected.get("serviceConfig"), dict),\n            "Invalid retained sanitized configuration")\n    expected_config = json.loads(json.dumps(expected))\n    current_config["serviceConfig"].pop("revision", None)\n    expected_config["serviceConfig"].pop("revision", None)\n    require(current_config == expected_config, "Production sanitized configuration drift")
+    # Revision is checked independently against the ready Cloud Run revision and 100% traffic.
+    # Historical revision changes must not be mistaken for security configuration drift.
+    require(isinstance(expected, dict) and isinstance(expected.get("serviceConfig"), dict),
+            "Invalid retained sanitized configuration")
+    current_config = sanitized_configuration(fn)
+    expected_config = json.loads(json.dumps(expected))
+    current_config["serviceConfig"].pop("revision", None)
+    expected_config["serviceConfig"].pop("revision", None)
+    require(current_config == expected_config, "Production sanitized configuration drift")
 
 
 def git_head(candidate):
