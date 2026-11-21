@@ -56,3 +56,13 @@ test("database-backed state survives a new pool and application instance",async(
   const secondPool=lib.createPrivateCommercialPool(url,{max:2,connectionTimeoutMillis:10_000}),second=new lib.PostgresCommercialApplication(secondPool,identity,now),o=orgs[0];
   try{await second.run(o.id,f=>{assert.equal(f.store.get("progressionCycles",o.id,"cycle-assignment").activeXp,205);assert.equal(f.store.get("recoveryCases",o.id,"recovery").state,"completed");});}finally{await secondPool.close();}
 });
+
+test("synthetic tenant logical backup can restore a committed mutable-record loss",async()=>{
+  const o=orgs[0];let backup;
+  await boundary.tenantTransaction(o.id,async db=>{backup=(await db.query("SELECT kind,id,payload FROM commercial_application_records ORDER BY kind,id")).rows;});
+  assert.ok(backup.length>0);
+  await boundary.tenantTransaction(o.id,async db=>{assert.equal((await db.query("DELETE FROM commercial_application_records WHERE kind='sessions' AND id='next-session'")).rowCount,1);});
+  await app.run(o.id,f=>assert.equal(f.store.get("sessions",o.id,"next-session"),undefined));
+  await boundary.tenantTransaction(o.id,async db=>{for(const row of backup){if(["xpEvents","promotions","recoveryEvidence","recoveryPenalties","transferAcceptances","audits"].includes(row.kind))continue;await db.query("INSERT INTO commercial_application_records(organization_id,kind,id,payload) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (organization_id,kind,id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()",[o.id,row.kind,row.id,JSON.stringify(row.payload)]);}});
+  await app.run(o.id,f=>assert.equal(f.store.get("sessions",o.id,"next-session").state,"completed"));
+});
