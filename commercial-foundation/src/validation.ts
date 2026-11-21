@@ -6,6 +6,9 @@ const scopes = new Set(["organization", "academy", "location"]);
 const membershipStates = new Set(["invited", "active", "suspended", "revoked"]);
 const entitlementStates = new Set(["active", "suspended", "expired", "revoked"]);
 const sources = new Set(["Core", "Plus", "Pro", "add_on", "product"]);
+// Commercial active program boundary: future disciplines require explicit release approval.
+export const APPROVED_COMMERCIAL_DISCIPLINES = Object.freeze(["wrestling", "boxing", "muay_thai"] as const);
+const approvedDisciplines = new Set<string>(APPROVED_COMMERCIAL_DISCIPLINES);
 const iso = (value: string) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value) && !Number.isNaN(Date.parse(value));
 export function assertId(value: string, field = "id"): void {
   if (typeof value !== "string" || !idPattern.test(value)) throw new Error(`INVALID_${field.toUpperCase()}`);
@@ -20,7 +23,7 @@ export function validateMembership(value: Membership): Membership {
 export function validateProgram(value: Program): Program {
   assertId(value.id); assertId(value.organizationId, "organizationId"); assertId(value.academyId, "academyId");
   if (!Array.isArray(value.locationIds) || value.locationIds.some(id => typeof id !== "string" || !idPattern.test(id))) throw new Error("INVALID_PROGRAM_LOCATION");
-  if (!Array.isArray(value.disciplines) || typeof value.name !== "string" || !value.name.trim() || value.disciplines.length === 0 || value.disciplines.some(d => typeof d !== "string" || !idPattern.test(d)) || new Set(value.disciplines).size !== value.disciplines.length) throw new Error("INVALID_PROGRAM");
+  if (!Array.isArray(value.disciplines) || typeof value.name !== "string" || !value.name.trim() || value.disciplines.length === 0 || value.disciplines.some(d => typeof d !== "string" || !approvedDisciplines.has(d)) || new Set(value.disciplines).size !== value.disciplines.length) throw new Error("INVALID_PROGRAM");
   return value;
 }
 export function validateEntitlement(value: Entitlement): Entitlement {
