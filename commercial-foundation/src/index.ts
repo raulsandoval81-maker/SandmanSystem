@@ -12,3 +12,5 @@ export * from "./transfer";
 export * from "./recovery";
 export * from "./postgres";
 export * from "./postgresApplication";
+export * from "./oidc";
+export * from "./postgresIdentity";

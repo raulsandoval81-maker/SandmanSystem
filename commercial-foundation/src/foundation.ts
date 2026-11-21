@@ -63,6 +63,8 @@ export class InMemoryCommercialStore {
     const record = this.organizations.get(id); return record ? structuredClone(record) : undefined;
   }
   listAudits(organizationId: string): AuditEvent[] { return this.audits.filter(a => a.selectedOrganizationId === organizationId).map(a => structuredClone(a)); }
+  /** Persistence-adapter hydration only; preserves monotonic audit identifiers after restart. */
+  restoreAudits(records:AuditEvent[]):void { this.audits=structuredClone(records);this.sequence=records.reduce((max,a)=>{const value=/^audit-(\d+)$/.exec(a.id);return Math.max(max,value?Number(value[1]):0);},0); }
   audit(identity: VerifiedIdentity, action: string, resourceType: string, resourceId: string, outcome: AuditEvent["outcome"], reason?: string) {
     this.audits.push({ id: `audit-${++this.sequence}`, at: new Date().toISOString(), actorUserId: identity.userId, selectedOrganizationId: identity.selectedOrganizationId, action, resourceType, resourceId, outcome, reason });
   }

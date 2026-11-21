@@ -1,5 +1,5 @@
 import { Pool, PoolClient, PoolConfig } from "pg";
-import { AuditEvent, IdentityAuthority, Organization } from "./contracts";
+import { AuditEvent, AuthorizationContext, IdentityAuthority, Membership, Organization, VerifiedIdentity } from "./contracts";
 import { CommercialFoundation, InMemoryCommercialStore, StoreKind, TenantRecord } from "./foundation";
 import { PooledPostgresCommercialBoundary, SqlClient, SqlConnectionPool, SqlResult } from "./postgres";
 
@@ -46,10 +46,25 @@ export class PostgresCommercialApplication {
   migrate(id:string,sql:string){return this.boundary.migrate(id,sql);}
 
   async run<T>(organizationId:string,work:(foundation:CommercialFoundation)=>T):Promise<T>{
+    return this.runUsing(organizationId,this.authority,work);
+  }
+  async runWithIdentity<T>(organizationId:string,ctx:AuthorizationContext,identity:VerifiedIdentity,work:(foundation:CommercialFoundation)=>T,requireSelectedOrganization=true):Promise<T>{
+    if(requireSelectedOrganization&&identity.selectedOrganizationId!==organizationId)throw new Error("TENANT_BOUNDARY_DENIED");
+    const fixed:IdentityAuthority={verify:request=>{if(request?.sessionId!==ctx.sessionId)throw new Error("UNVERIFIED_IDENTITY");return identity;}};
+    return this.runUsing(organizationId,fixed,work);
+  }
+  async activeMemberships(organizationId:string,userId:string):Promise<Membership[]>{
+    if(!userId)throw new Error("INVALID_IDENTITY_SUBJECT");
+    return this.boundary.tenantTransaction(organizationId,async client=>{
+      const result=await client.query<{payload:Membership}>("SELECT payload FROM commercial_application_records WHERE kind='memberships' AND payload->>'userId'=$1 AND payload->>'state'='active' ORDER BY id",[userId]);
+      return result.rows.map(row=>structuredClone(row.payload));
+    });
+  }
+  private async runUsing<T>(organizationId:string,authority:IdentityAuthority,work:(foundation:CommercialFoundation)=>T):Promise<T>{
     return this.boundary.tenantTransaction(organizationId,async client=>{
       await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1, 0))",[`sandman-commercial:${organizationId}`]);
       const rows=await client.query<StoredRow>("SELECT kind,id,payload FROM commercial_application_records ORDER BY kind,id");
-      const store=this.hydrate(organizationId,rows.rows),foundation=new CommercialFoundation(store,this.authority,this.now);
+      const store=this.hydrate(organizationId,rows.rows),foundation=new CommercialFoundation(store,authority,this.now);
       const result=work(foundation);
       if(result instanceof Promise)throw new Error("ASYNC_DOMAIN_CALLBACK_FORBIDDEN");
       await this.flush(client,organizationId,store);
@@ -58,13 +73,14 @@ export class PostgresCommercialApplication {
   }
 
   private hydrate(organizationId:string,rows:StoredRow[]):InMemoryCommercialStore{
-    const store=new InMemoryCommercialStore();
+    const store=new InMemoryCommercialStore(),audits:AuditEvent[]=[];
     for(const row of rows){
       if(row.kind==="organization")store.createOrganization(row.payload as Organization);
-      else if(row.kind==="audits")store.audits.push(structuredClone(row.payload) as AuditEvent);
+      else if(row.kind==="audits")audits.push(structuredClone(row.payload) as AuditEvent);
       else if(kinds.includes(row.kind as StoreKind))store.put(row.kind as StoreKind,structuredClone(row.payload) as TenantRecord);
       else throw new Error("UNKNOWN_POSTGRES_RECORD_KIND");
     }
+    store.restoreAudits(audits);
     const organization=store.getOrganization(organizationId);
     if(rows.length&&(!organization||organization.id!==organizationId))throw new Error("INVALID_POSTGRES_TENANT_AGGREGATE");
     return store;
