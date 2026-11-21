@@ -105,6 +105,10 @@ def sanitized_configuration(fn):
     }
 
 
+def verify_sanitized_configuration(fn, expected):
+# Revision identity is verified against the ready Cloud Run revision and 100% traffic above.\n    # A retained historical revision is not a configuration setting.\n    current_config = sanitized_configuration(fn)\n    require(isinstance(expected, dict) and isinstance(expected.get("serviceConfig"), dict),\n            "Invalid retained sanitized configuration")\n    expected_config = json.loads(json.dumps(expected))\n    current_config["serviceConfig"].pop("revision", None)\n    expected_config["serviceConfig"].pop("revision", None)\n    require(current_config == expected_config, "Production sanitized configuration drift")
+
+
 def git_head(candidate):
     return subprocess.check_output(
         ["git", "-C", str(candidate), "rev-parse", "HEAD"], text=True,
@@ -241,7 +245,7 @@ def preflight(candidate):
             and re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", image),
             "Serving revision is missing an immutable image digest")
     expected = json.loads(read_retained(SANITIZED_CONFIG))
-    # Revision identity is verified against the ready Cloud Run revision and 100% traffic above.\n    # A retained historical revision is not a configuration setting.\n    current_config = sanitized_configuration(fn)\n    require(isinstance(expected, dict) and isinstance(expected.get("serviceConfig"), dict),\n            "Invalid retained sanitized configuration")\n    expected_config = json.loads(json.dumps(expected))\n    current_config["serviceConfig"].pop("revision", None)\n    expected_config["serviceConfig"].pop("revision", None)\n    require(current_config == expected_config, "Production sanitized configuration drift")
+    verify_sanitized_configuration(fn, expected)
     function_source = source_ref(config)
     require(function_source == ORIGINAL_SOURCE, "Production Function source identity drift")
     rollback = read_retained(recovery.BASELINE)
