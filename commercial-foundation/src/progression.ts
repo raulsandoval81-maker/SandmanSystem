@@ -151,8 +151,30 @@ export class XpLedgerService{
       const recoveries=this.foundation.store.list<RecoveryCase>("recoveryCases",input.organizationId).filter(c=>c.athleteId===input.athleteId&&c.state==="evidence_pending");
       if(recoveries.length>1)throw new Error("AMBIGUOUS_RECOVERY_CASE");const recovery=recoveries[0];
       if(recovery)throw new Error("RECOVERY_RETURN_PRACTICE_REQUIRED");
-      const returnIds=new Set(this.foundation.store.list<RecoveryCase>("recoveryCases",input.organizationId).filter(c=>c.athleteId===input.athleteId&&c.state==="completed").map(c=>c.returnPracticeSessionId).filter(Boolean));
-      if(input.practiceSessionId&&returnIds.has(input.practiceSessionId))throw new Error("RETURN_PRACTICE_AWARDS_ZERO_COMBAT_XP");
+      const completed=this.foundation.store.list<RecoveryCase>("recoveryCases",input.organizationId).filter(c=>c.athleteId===input.athleteId&&c.state==="completed");
+      if(completed.length){
+        // After any recovery, a Coach award requires verified session provenance.
+        // An omitted or unrelated session ID must never bypass the zero-XP return practice.
+        if(!input.practiceSessionId)throw new Error("RECOVERY_XP_PRACTICE_REQUIRED");
+        if(completed.some(c=>c.returnPracticeSessionId===input.practiceSessionId))throw new Error("RETURN_PRACTICE_AWARDS_ZERO_COMBAT_XP");
+        const athlete=this.athlete(input.organizationId,input.athleteId);
+        const session=this.foundation.store.get<PracticeSession>("sessions",input.organizationId,input.practiceSessionId);
+        const attendance=this.foundation.store.get<import("./contracts").AttendanceRecord>("attendance",input.organizationId,`${input.practiceSessionId}--${input.athleteId}`);
+        const startsAt=session?Date.parse(session.startsAt):NaN,endsAt=session?Date.parse(session.endsAt):NaN;
+        if(!session||session.state!=="completed"||!athlete.academyId||!athlete.locationId||
+          session.academyId!==athlete.academyId||session.locationId!==athlete.locationId||
+          session.programId!==athlete.programId||!session.coachUserIds.includes(actor)||
+          !Number.isFinite(startsAt)||!Number.isFinite(endsAt)||endsAt<=startsAt||
+          endsAt>this.now().getTime()||!attendance||attendance.athleteId!==athlete.id||
+          attendance.sessionId!==session.id||attendance.state!=="present")
+          throw new Error("RECOVERY_XP_PRACTICE_UNVERIFIED");
+        for(const completedCase of completed){
+          const returnSession=completedCase.returnPracticeSessionId&&this.foundation.store.get<PracticeSession>("sessions",input.organizationId,completedCase.returnPracticeSessionId);
+          const returnEnd=returnSession?Date.parse(returnSession.endsAt):NaN;
+          if(!Number.isFinite(returnEnd)||startsAt<returnEnd)
+            throw new Error("RECOVERY_XP_PRACTICE_NOT_AFTER_RETURN");
+        }
+      }
     }
     const historicalFloor=this.foundation.store.list<PromotionRecord>("promotions",input.organizationId).filter(p=>p.athleteId===input.athleteId).reduce((max,p)=>Math.max(max,p.historicalXpAtPromotion),0),nextLifetime=cycle.lifetimeXp+operationalAmount;if(nextLifetime<historicalFloor)throw new Error("PROMOTION_HISTORY_FLOOR_PROTECTED");
     const floor=Math.ceil(rank.requiredXp*Math.min(4,cycle.earnedStripes)/4),next=Math.max(floor,cycle.activeXp+operationalAmount);if(operationalAmount<0&&next!==cycle.activeXp+operationalAmount)throw new Error("EARNED_STRIPE_FLOOR_PROTECTED");
