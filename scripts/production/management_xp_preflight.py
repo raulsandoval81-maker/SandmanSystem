@@ -303,6 +303,13 @@ if __name__ == "__main__":
         preflight(Path(sys.argv[1]))
     except (RuntimeError, KeyError, OSError, ValueError, zipfile.BadZipFile,
             subprocess.CalledProcessError) as error:
-        detail = str(error) if type(error) is RuntimeError else type(error).__name__
+        if isinstance(error, subprocess.CalledProcessError):
+            # Never emit command arguments or captured output: either may contain secrets.
+            command = error.cmd
+            executable = Path(str(command[0])).name if isinstance(command, (list, tuple)) and command else "unknown"
+            operation = "gcloud read-only metadata/storage operation" if executable == "gcloud" else "local read-only subprocess"
+            detail = f"UNVERIFIED: {operation} failed (exit code {error.returncode})"
+        else:
+            detail = str(error) if type(error) is RuntimeError else type(error).__name__
         print(f"STOP_NO_RETRY: {detail}", file=sys.stderr)
         sys.exit(1)
