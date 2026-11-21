@@ -303,7 +303,7 @@ def safe_error_detail(error):
         # Arguments and output may contain tokens, file paths, or other private values.
         command = error.cmd
         executable = Path(str(command[0])).name if isinstance(command, (list, tuple)) and command else "unknown"
-        operation = "gcloud read-only metadata/storage operation" if executable == "gcloud" else "local read-only subprocess"
+        operation = "gcloud read-only operation" if executable == "gcloud" else "local read-only subprocess"
         return f"UNVERIFIED: {operation} failed (exit code {error.returncode})"
     return str(error) if type(error) is RuntimeError else type(error).__name__
 
