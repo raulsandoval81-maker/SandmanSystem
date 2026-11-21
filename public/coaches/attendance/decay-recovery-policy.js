@@ -1,4 +1,4 @@
-export const RECOVERY_DAYS_REQUIRED = 2;
+export const RECOVERY_DAYS_REQUIRED = 1;
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -15,7 +15,7 @@ export function resolveQualifyingRecoveryPractice({ decay = {}, practiceKey = ""
     ? Math.min(RECOVERY_DAYS_REQUIRED, Math.max(0, Math.floor(rawCompleted)))
     : 0;
   const duplicate = Boolean(key && recoveryLog.includes(key));
-  const counts = state === "DECAY_ACTIVE" && qualifies && Boolean(key) && !duplicate;
+  const counts = (state === "DECAY_ACTIVE" || state === "FROZEN") && qualifies && Boolean(key) && !duplicate;
   const completedAfter = counts
     ? Math.min(RECOVERY_DAYS_REQUIRED, completedBefore + 1)
     : completedBefore;
