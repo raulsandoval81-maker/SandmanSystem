@@ -7,6 +7,7 @@ import { assertId, validateEntitlement, validateMembership, validateProgram } fr
 interface PersistedState {
   schema: "sandman.commercial.local-store.v1";
   organizations: Organization[];
+  events?: TenantRecord[];
   academies: TenantRecord[]; locations: TenantRecord[]; programs: TenantRecord[];
   memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; guardians: TenantRecord[]; guardianLinks: TenantRecord[]; athleteIdentityLinks: TenantRecord[]; curricula: TenantRecord[]; curriculumAssignments: TenantRecord[]; skillEvaluations: TenantRecord[]; progressionCycles: TenantRecord[]; xpEvents: TenantRecord[]; promotions: TenantRecord[]; accessInvitations: TenantRecord[]; recoveryCases: TenantRecord[]; recoveryEvidence: TenantRecord[]; recoveryPenalties: TenantRecord[]; transferAcceptances: TenantRecord[]; audits: AuditEvent[];
 }
@@ -30,6 +31,12 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     if (state.schema !== "sandman.commercial.local-store.v1") throw new Error("INVALID_PERSISTENCE_SCHEMA");
     if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.guardians, state.guardianLinks, state.athleteIdentityLinks, state.curricula, state.curriculumAssignments, state.skillEvaluations, state.progressionCycles, state.xpEvents, state.promotions, state.accessInvitations, state.recoveryCases, state.recoveryEvidence, state.recoveryPenalties, state.transferAcceptances, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
     for (const record of state.organizations) { assertId(record.id); if (!record.displayName?.trim() || !["active","suspended","archived"].includes(record.state)) throw new Error("INVALID_PERSISTED_ORGANIZATION"); super.createOrganization(record); }
+    if (state.events !== undefined && !Array.isArray(state.events)) throw new Error("INVALID_PERSISTENCE_SHAPE");
+    for (const record of state.events ?? []) {
+      assertId(record.id);
+      if (!this.getOrganization(record.organizationId)) throw new Error("INVALID_PERSISTED_TENANT_REFERENCE");
+      super.put("events", record);
+    }
     for (const record of state.academies as TenantRecord[]) { assertId(record.id); assertId(record.organizationId,"organizationId"); if (!this.getOrganization(record.organizationId)) throw new Error("INVALID_PERSISTED_TENANT_REFERENCE"); super.put("academies",record); }
     for (const record of state.locations as TenantRecord[]) { assertId(record.id); const value = record as import("./contracts").Location; if (!this.get<import("./contracts").Academy>("academies",value.organizationId,value.academyId)) throw new Error("INVALID_PERSISTED_ACADEMY_REFERENCE"); super.put("locations",record); }
     for (const record of state.programs as TenantRecord[]) { validateProgram(record as import("./contracts").Program); super.put("programs",record); }
@@ -314,7 +321,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
   private flush(): void {
     const state: PersistedState = {
       schema: "sandman.commercial.local-store.v1",
-      organizations: [...this.organizations.values()],
+      events: [...this.events.values()], organizations: [...this.organizations.values()],
       academies: [...this.academies.values()], locations: [...this.locations.values()], programs: [...this.programs.values()],
       memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], guardians:[...this.guardians.values()], guardianLinks:[...this.guardianLinks.values()], athleteIdentityLinks:[...this.athleteIdentityLinks.values()], curricula:[...this.curricula.values()],curriculumAssignments:[...this.curriculumAssignments.values()],skillEvaluations:[...this.skillEvaluations.values()],progressionCycles:[...this.progressionCycles.values()],xpEvents:[...this.xpEvents.values()],promotions:[...this.promotions.values()],accessInvitations:[...this.accessInvitations.values()],recoveryCases:[...this.recoveryCases.values()],recoveryEvidence:[...this.recoveryEvidence.values()],recoveryPenalties:[...this.recoveryPenalties.values()],transferAcceptances:[...this.transferAcceptances.values()], audits: this.audits
     };

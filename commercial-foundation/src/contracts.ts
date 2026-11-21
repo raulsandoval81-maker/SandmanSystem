@@ -20,6 +20,9 @@ export interface GuardianAthleteLink { id: string; organizationId: string; guard
 export interface AthleteIdentityLink { id: string; organizationId: string; userId: string; athleteId: string; state: "active" | "suspended" | "revoked"; access: "adult_self" | "minor_read_only" }
 export type AttendanceState = "present" | "absent" | "excused";
 export interface AttendanceRecord { id: string; organizationId: string; sessionId: string; athleteId: string; state: AttendanceState; recordedByUserId: string; recordedAt: string; correctedAt?: string }
+export interface DashboardEvent {
+  id: string; organizationId: string; title: string; type: "event" | "competition"; startsAt: string;
+}
 export interface PracticeNote { id: string; organizationId: string; sessionId: string; authorUserId: string; body: string; createdAt: string }
 
 export type DevelopmentPathway = "road2champion" | "path2legend";

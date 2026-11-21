@@ -3,7 +3,7 @@ import { AuditEvent, AuthorizationContext, IdentityAuthority, Membership, Organi
 import { CommercialFoundation, InMemoryCommercialStore, StoreKind, TenantRecord } from "./foundation";
 import { PooledPostgresCommercialBoundary, SqlClient, SqlConnectionPool, SqlResult } from "./postgres";
 
-const kinds:readonly StoreKind[]=["academies","locations","programs","memberships","entitlements","sessions","athletes","attendance","practiceNotes","guardians","guardianLinks","athleteIdentityLinks","curricula","curriculumAssignments","skillEvaluations","progressionCycles","xpEvents","promotions","accessInvitations","recoveryCases","recoveryEvidence","recoveryPenalties","transferAcceptances"];
+const kinds:readonly StoreKind[]=["events","academies","locations","programs","memberships","entitlements","sessions","athletes","attendance","practiceNotes","guardians","guardianLinks","athleteIdentityLinks","curricula","curriculumAssignments","skillEvaluations","progressionCycles","xpEvents","promotions","accessInvitations","recoveryCases","recoveryEvidence","recoveryPenalties","transferAcceptances"];
 const immutableKinds=new Set<string>(["xpEvents","promotions","recoveryEvidence","recoveryPenalties","transferAcceptances","audits"]);
 type StoredRow={kind:string;id:string;payload:unknown};
 
@@ -52,6 +52,16 @@ export class PostgresCommercialApplication {
     if(requireSelectedOrganization&&identity.selectedOrganizationId!==organizationId)throw new Error("TENANT_BOUNDARY_DENIED");
     const fixed:IdentityAuthority={verify:request=>{if(request?.sessionId!==ctx.sessionId)throw new Error("UNVERIFIED_IDENTITY");return identity;}};
     return this.runUsing(organizationId,fixed,work);
+  }
+  async readWithIdentity<T>(ctx:AuthorizationContext, identity:VerifiedIdentity, work:(foundation:CommercialFoundation)=>T):Promise<T>{
+    return this.boundary.tenantTransaction(identity.selectedOrganizationId,async client=>{
+      const rows=await client.query<StoredRow>("SELECT kind,id,payload FROM commercial_application_records ORDER BY kind,id");
+      const authority:IdentityAuthority={verify:request=>{
+        if(request?.sessionId!==ctx.sessionId)throw new Error("UNVERIFIED_IDENTITY");
+        return identity;
+      }};
+      return work(new CommercialFoundation(this.hydrate(identity.selectedOrganizationId,rows.rows),authority,this.now));
+    });
   }
   async activeMemberships(organizationId:string,userId:string):Promise<Membership[]>{
     if(!userId)throw new Error("INVALID_IDENTITY_SUBJECT");

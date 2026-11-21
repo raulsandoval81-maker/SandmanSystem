@@ -1,8 +1,8 @@
-import { AccessInvitation, Academy, AthleteIdentityLink, AttendanceRecord, AuditEvent, AuthorizationContext, CommercialAthlete, CurriculumAssignment, CurriculumDefinition, Entitlement, GuardianAthleteLink, GuardianProfile, IdentityAuthority, Location, Membership, Organization, PracticeNote, PracticeSession, Program, ProgressionCycle, PromotionRecord, RecoveryCase, RecoveryPenaltyEvent, RecoveryPracticeEvidence, SkillEvaluation, SwitchableIdentityAuthority, TransferAcceptance, VerifiedIdentity, XpEvent } from "./contracts";
+import { AccessInvitation, Academy, AthleteIdentityLink, AttendanceRecord, AuditEvent, AuthorizationContext, CommercialAthlete, DashboardEvent, CurriculumAssignment, CurriculumDefinition, Entitlement, GuardianAthleteLink, GuardianProfile, IdentityAuthority, Location, Membership, Organization, PracticeNote, PracticeSession, Program, ProgressionCycle, PromotionRecord, RecoveryCase, RecoveryPenaltyEvent, RecoveryPracticeEvidence, SkillEvaluation, SwitchableIdentityAuthority, TransferAcceptance, VerifiedIdentity, XpEvent } from "./contracts";
 import { assertId, validateEntitlement, validateMembership, validateProgram } from "./validation";
 
-export type StoreKind = "academies" | "locations" | "programs" | "memberships" | "entitlements" | "sessions" | "athletes" | "attendance" | "practiceNotes" | "guardians" | "guardianLinks" | "athleteIdentityLinks" | "curricula" | "curriculumAssignments" | "skillEvaluations" | "progressionCycles" | "xpEvents" | "promotions" | "accessInvitations" | "recoveryCases" | "recoveryEvidence" | "recoveryPenalties" | "transferAcceptances";
-export type TenantRecord = Academy | Location | Program | Membership | Entitlement | PracticeSession | CommercialAthlete | AttendanceRecord | PracticeNote | GuardianProfile | GuardianAthleteLink | AthleteIdentityLink | CurriculumDefinition | CurriculumAssignment | SkillEvaluation | ProgressionCycle | XpEvent | PromotionRecord | AccessInvitation | RecoveryCase | RecoveryPracticeEvidence | RecoveryPenaltyEvent | TransferAcceptance;
+export type StoreKind = "events" | "academies" | "locations" | "programs" | "memberships" | "entitlements" | "sessions" | "athletes" | "attendance" | "practiceNotes" | "guardians" | "guardianLinks" | "athleteIdentityLinks" | "curricula" | "curriculumAssignments" | "skillEvaluations" | "progressionCycles" | "xpEvents" | "promotions" | "accessInvitations" | "recoveryCases" | "recoveryEvidence" | "recoveryPenalties" | "transferAcceptances";
+export type TenantRecord = DashboardEvent | Academy | Location | Program | Membership | Entitlement | PracticeSession | CommercialAthlete | AttendanceRecord | PracticeNote | GuardianProfile | GuardianAthleteLink | AthleteIdentityLink | CurriculumDefinition | CurriculumAssignment | SkillEvaluation | ProgressionCycle | XpEvent | PromotionRecord | AccessInvitation | RecoveryCase | RecoveryPracticeEvidence | RecoveryPenaltyEvent | TransferAcceptance;
 const essentialCapabilities = new Set(["security.access", "customer_data.read"]);
 const key = (organizationId: string, id: string) => JSON.stringify([organizationId, id]);
 
@@ -27,6 +27,7 @@ export class InMemoryTestIdentityAuthority implements IdentityAuthority {
 
 /** TEST-ONLY persistence. Composite keys prevent duplicate local IDs across organizations. */
 export class InMemoryCommercialStore {
+  events = new Map<string, DashboardEvent>();
   organizations = new Map<string, Organization>();
   academies = new Map<string, Academy>(); locations = new Map<string, Location>();
   programs = new Map<string, Program>(); memberships = new Map<string, Membership>();
@@ -35,14 +36,14 @@ export class InMemoryCommercialStore {
   /** Snapshot/restore protect the reference adapter from partial multi-step operations. */
   protected snapshotState() {
     return {
-      organizations: new Map(this.organizations), academies: new Map(this.academies),
+      events: new Map(this.events), organizations: new Map(this.organizations), academies: new Map(this.academies),
       locations: new Map(this.locations), programs: new Map(this.programs),
       memberships: new Map(this.memberships), entitlements: new Map(this.entitlements), sessions: new Map(this.sessions), athletes: new Map(this.athletes), attendance: new Map(this.attendance), practiceNotes: new Map(this.practiceNotes), guardians:new Map(this.guardians),guardianLinks:new Map(this.guardianLinks),athleteIdentityLinks:new Map(this.athleteIdentityLinks), curricula:new Map(this.curricula),curriculumAssignments:new Map(this.curriculumAssignments),skillEvaluations:new Map(this.skillEvaluations),progressionCycles:new Map(this.progressionCycles),xpEvents:new Map(this.xpEvents),promotions:new Map(this.promotions),accessInvitations:new Map(this.accessInvitations),recoveryCases:new Map(this.recoveryCases),recoveryEvidence:new Map(this.recoveryEvidence),recoveryPenalties:new Map(this.recoveryPenalties),transferAcceptances:new Map(this.transferAcceptances),
       audits: structuredClone(this.audits), sequence: this.sequence
     };
   }
   protected restoreState(state: ReturnType<InMemoryCommercialStore["snapshotState"]>): void {
-    this.organizations = state.organizations; this.academies = state.academies;
+    this.events = state.events; this.organizations = state.organizations; this.academies = state.academies;
     this.locations = state.locations; this.programs = state.programs;
     this.memberships = state.memberships; this.entitlements = state.entitlements; this.sessions = state.sessions; this.athletes = state.athletes; this.attendance = state.attendance; this.practiceNotes = state.practiceNotes;this.guardians=state.guardians;this.guardianLinks=state.guardianLinks;this.athleteIdentityLinks=state.athleteIdentityLinks;this.curricula=state.curricula;this.curriculumAssignments=state.curriculumAssignments;this.skillEvaluations=state.skillEvaluations;this.progressionCycles=state.progressionCycles;this.xpEvents=state.xpEvents;this.promotions=state.promotions;this.accessInvitations=state.accessInvitations;this.recoveryCases=state.recoveryCases;this.recoveryEvidence=state.recoveryEvidence;this.recoveryPenalties=state.recoveryPenalties;this.transferAcceptances=state.transferAcceptances;
     this.audits = state.audits; this.sequence = state.sequence;

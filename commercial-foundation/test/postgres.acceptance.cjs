@@ -140,3 +140,43 @@ test("synthetic tenant logical backup can restore a committed mutable-record los
   await boundary.tenantTransaction(o.id,async db=>{for(const row of backup){if(immutable.includes(row.kind))continue;await db.query("INSERT INTO commercial_application_records(organization_id,kind,id,payload) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (organization_id,kind,id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()",[o.id,row.kind,row.id,JSON.stringify(row.payload)]);}});
   await app.run(o.id,f=>assert.equal(f.store.get("progressionCycles",o.id,"cycle-assignment").activeXp,205));
 });
+
+test("Coach Dashboard uses the authenticated tenant and persists authorized form changes", async () => {
+  const fixture = await startHttpSecurityFixture();
+  const [own, other] = orgs;
+  try {
+    const {callback} = await fixture.login(fixture.providerOrganizations[0], `admin-${own.id}`, randomBytes(12).toString("hex"));
+    assert.equal(callback.status, 302);
+    const headers = {cookie: cookieValue(callback)};
+    const response = await fixture.request("/coach", {headers});
+    assert.equal(response.status, 200);
+    const body = await response.text();
+    assert.match(body, /Synthetic Sprint 7 Athlete/);
+    assert.match(body, /Teams and training groups/);
+    assert.doesNotMatch(body, new RegExp(other.name));
+    const csrf = body.match(/name="csrf" value="([^"]+)"/)?.[1];
+    assert.ok(csrf);
+    const submit = (fields) => fixture.request("/coach", {
+      method: "POST",
+      headers: {...headers, "content-type": "application/x-www-form-urlencoded"},
+      body: new URLSearchParams(fields)
+    });
+    const fields = {action: "event", title: "<Synthetic Competition>", type: "competition", startsAt: "2026-12-01T17:00:00Z"};
+    assert.equal((await submit({...fields, csrf: "invalid"})).status, 401);
+    assert.equal((await submit({...fields, csrf, organizationId: other.id})).status, 302);
+    const after = await fixture.request("/coach", {headers});
+    assert.match(await after.text(), /&lt;Synthetic Competition&gt;/);
+    await boundary.tenantTransaction(own.id, async db => {
+      const result = await db.query("SELECT organization_id FROM commercial_application_records WHERE kind='events'");
+      assert.deepEqual(result.rows, [{organization_id: own.id}]);
+    });
+    await boundary.tenantTransaction(other.id, async db => {
+      assert.equal((await db.query("SELECT id FROM commercial_application_records WHERE kind='events'")).rowCount, 0);
+    });
+    const profile = await fixture.request("/coach?athlete=athlete", {headers});
+    assert.equal(profile.status, 200);
+    assert.match(await profile.text(), /Synthetic Sprint 7 Athlete/);
+  } finally {
+    await fixture.host.stop();
+  }
+});
