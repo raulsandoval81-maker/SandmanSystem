@@ -96,6 +96,22 @@ class CandidateManifestTest(unittest.TestCase):
             preflight.source_ref(record)
 
 
+class SafeCommandFailureTest(unittest.TestCase):
+    def test_external_command_failure_does_not_expose_arguments_or_output(self):
+        import subprocess
+        failure = subprocess.CalledProcessError(
+            7, ["gcloud", "storage", "cat", "gs://private/token"], output="secret-value",
+            stderr="private-error")
+        detail = preflight.safe_error_detail(failure)
+        self.assertIn("UNVERIFIED", detail)
+        self.assertIn("exit code 7", detail)
+        for private in ("private", "secret-value", "storage", "cat"):
+            self.assertNotIn(private, detail)
+
+    def test_other_failure_keeps_safe_error_type(self):
+        self.assertEqual(preflight.safe_error_detail(ValueError("private")), "ValueError")
+
+
 class ProtectedAuthenticationTest(unittest.TestCase):
     def test_missing_credentials_stop_before_gcloud(self):
         from unittest.mock import patch
