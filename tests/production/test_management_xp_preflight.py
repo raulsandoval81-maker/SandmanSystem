@@ -1,63 +1,88 @@
 import io
+import json
 from pathlib import Path
 import sys
 import tempfile
 import unittest
-import zipfile
+from contextlib import redirect_stdout
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/production"))
 import management_xp_preflight as preflight
 
 
-class SourceOverlayTest(unittest.TestCase):
-    def setUp(self):
-        workspace = tempfile.TemporaryDirectory()
-        self.addCleanup(workspace.cleanup)
-        self.candidate = Path(workspace.name)
-        self.path = "lib/management/target.js"
-        self.baseline = {
-            self.path: b"old compiled JS",
-            "lib/index.js": b"entry point",
-            "lib/billing/unrelated.js": b"preserve exactly",
-            "package.json": b"{}",
-            "package-lock.json": b"{}",
+class CandidateManifestTest(unittest.TestCase):
+    def test_merged_manifest_pins_exact_single_file_candidate(self):
+        raw = preflight.MANIFEST.read_bytes()
+        manifest = json.loads(raw)
+        self.assertEqual(preflight.sha(raw), preflight.MANIFEST_SHA256)
+        self.assertEqual(manifest["candidateSha256"], preflight.CANDIDATE_SHA256)
+        self.assertEqual(list(manifest["changedEntries"]), [preflight.recovery.MANAGEMENT])
+        self.assertEqual(manifest["unchangedEntryCount"], 404)
+        self.assertFalse(manifest["deploymentEnabled"])
+
+    def test_candidate_verification_requires_both_archive_digest_and_report(self):
+        report = json.loads(preflight.MANIFEST.read_bytes())
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            for name in preflight.recovery.PINNED:
+                path = root / "functions" / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(name.encode())
+            with patch.object(preflight.recovery, "build", return_value=(b"candidate", report)) as builder, patch.object(
+                preflight, "CANDIDATE_SHA256", preflight.sha(b"candidate")
+            ):
+                self.assertEqual(preflight.verify_candidate(b"original", root), report)
+                builder.assert_called_once_with(b"original", {name: name.encode() for name in preflight.recovery.PINNED})
+                builder.return_value = (b"wrong archive", report)
+                with self.assertRaisesRegex(RuntimeError, "approved single-file manifest"):
+                    preflight.verify_candidate(b"original", root)
+                builder.return_value = (b"candidate", {**report, "unchangedEntryCount": 403})
+                with self.assertRaisesRegex(RuntimeError, "approved single-file manifest"):
+                    preflight.verify_candidate(b"original", root)
+
+    def test_retained_read_rejects_unapproved_objects_and_wrong_bytes(self):
+        with patch.object(preflight.subprocess, "check_output", return_value=b"wrong") as command:
+            with self.assertRaisesRegex(RuntimeError, "Unexpected recovery object"):
+                preflight.read_retained({**preflight.SANITIZED_CONFIG, "generation": "1"})
+            command.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "hash mismatch"):
+                preflight.read_retained(preflight.SANITIZED_CONFIG)
+            self.assertIn("#1795226241121217", command.call_args.args[0][3])
+
+    def test_sanitized_configuration_does_not_include_values_or_identities(self):
+        fn = {
+            "name": "function", "state": "ACTIVE",
+            "buildConfig": {"runtime": "nodejs22", "entryPoint": "xp", "environmentVariables": {"BUILD": "private"}},
+            "serviceConfig": {"revision": "old", "environmentVariables": {"RUN": "private"},
+                              "secretEnvironmentVariables": [{"secret": "private"}],
+                              "serviceAccountEmail": "private"},
         }
-        self.candidate_data = b"new compiled JS"
-        (self.candidate / self.path).parent.mkdir(parents=True)
-        (self.candidate / self.path).write_bytes(self.candidate_data)
-        self.expected = {self.path: (
-            preflight.sha(self.baseline[self.path]), preflight.sha(self.candidate_data),
-        )}
+        safe = preflight.sanitized_configuration(fn)
+        self.assertEqual(safe["buildConfig"]["environmentVariableNames"], ["BUILD"])
+        self.assertEqual(safe["serviceConfig"]["environmentVariableNames"], ["RUN"])
+        self.assertEqual(safe["serviceConfig"]["secretEnvironmentVariableCount"], 1)
+        self.assertTrue(safe["serviceConfig"]["serviceAccountConfigured"])
+        self.assertNotIn("private", json.dumps(safe))
 
-    def archive(self):
-        data = io.BytesIO()
-        with zipfile.ZipFile(data, "w") as output:
-            for name, value in self.baseline.items():
-                output.writestr(name, value)
-        return data.getvalue()
-
-    def test_overlay_changes_only_approved_compiled_files(self):
-        archive = self.archive()
-        candidate = preflight.make_overlay(archive, self.candidate, self.expected)
-        expected = {**self.baseline, self.path: self.candidate_data}
-        self.assertEqual(preflight.manifest(candidate),
-                         {path: preflight.sha(data) for path, data in expected.items()})
-        self.assertEqual(candidate, preflight.make_overlay(archive, self.candidate, self.expected))
-
-    def test_rejects_unknown_rollback_bytes(self):
-        self.baseline[self.path] = b"unverified live code"
-        with self.assertRaisesRegex(RuntimeError, "Unapproved baseline"):
-            preflight.make_overlay(self.archive(), self.candidate, self.expected)
-
-    def test_rejects_regenerated_candidate_bytes(self):
-        (self.candidate / self.path).write_bytes(b"unreviewed rebuild")
-        with self.assertRaisesRegex(RuntimeError, "Unapproved candidate"):
-            preflight.make_overlay(self.archive(), self.candidate, self.expected)
-
-    def test_rejects_unsafe_archive_paths(self):
-        self.baseline["lib/../unrelated.js"] = b"unsafe entry"
-        with self.assertRaisesRegex(RuntimeError, "Unsupported or duplicate"):
-            preflight.manifest(self.archive())
+    def test_historical_revision_change_is_not_configuration_drift(self):
+        fn = {
+            "name": "function", "state": "ACTIVE",
+            "buildConfig": {"runtime": "nodejs22", "entryPoint": "xp"},
+            "serviceConfig": {"revision": "new-ready-revision",
+                              "ingressSettings": "ALLOW_INTERNAL_ONLY",
+                              "serviceAccountEmail": "service@example.invalid"},
+        }
+        historical = preflight.sanitized_configuration(fn)
+        historical["serviceConfig"]["revision"] = "old-retained-revision"
+        preflight.verify_sanitized_configuration(fn, historical)
+        historical["serviceConfig"]["ingressSettings"] = "ALLOW_ALL"
+        with self.assertRaisesRegex(RuntimeError, "configuration drift"):
+            preflight.verify_sanitized_configuration(fn, historical)
+        historical["serviceConfig"]["ingressSettings"] = "ALLOW_INTERNAL_ONLY"
+        historical["serviceConfig"]["serviceAccountConfigured"] = False
+        with self.assertRaisesRegex(RuntimeError, "configuration drift"):
+            preflight.verify_sanitized_configuration(fn, historical)
 
     def test_source_requires_immutable_project_generation(self):
         record = {"sourceProvenance": {"resolvedStorageSource": {
@@ -148,5 +173,6 @@ class ServingImageProvenanceTest(unittest.TestCase):
             with self.subTest(outputs=outputs, status=status), redirect_stdout(io.StringIO()) as log:
                 with self.assertRaisesRegex(RuntimeError, "does not prove provenance"):
                     self.verify(f"{self.repository}@{self.image_digest}", outputs, status)
+                self.assertIn("UNVERIFIED" if not outputs else "CONFLICTING", log.getvalue())
                 self.assertIn(self.revision, log.getvalue())
                 self.assertIn(self.image_digest, log.getvalue())

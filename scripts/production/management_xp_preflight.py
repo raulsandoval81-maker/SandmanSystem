@@ -1,5 +1,4 @@
 """Read-only source-overlay and rollback verification for PR #731."""
-import io
 import json
 import os
 from pathlib import Path
@@ -10,9 +9,13 @@ import urllib.parse
 import zipfile
 
 import receipt_intake_inventory as inventory
+import management_xp_recovery_candidate as recovery
 
 REPOSITORY = "raulsandoval81-maker/SandmanSystem"
-SHA = "eb3db00a5940b71b55e2d0024db7fb125fa5bbbb"
+SHA = recovery.COMMIT
+CANDIDATE_SHA256 = "790511d05711c4dbd304c2c08e942a480e1f1b5f42435915bf78092a123bf346"
+MANIFEST_SHA256 = "1eebe9ccab48a228d268f3ef6f28346906313fae450fdc9d6be17721b972982c"
+MANIFEST = Path(__file__).resolve().parents[2] / "docs/releases/management-xp-recovery-candidate.json"
 TARGET = "createManagementXpAdjustment"
 SHARED = "searchManagementMembers"
 PROJECT = "sandmandashboard"
@@ -21,15 +24,16 @@ LOCATION = f"projects/{PROJECT}/locations/{REGION}"
 FUNCTION = f"https://cloudfunctions.googleapis.com/v2/{LOCATION}/functions/{TARGET}"
 SERVICE = f"https://run.googleapis.com/v2/{LOCATION}/services/{TARGET.lower()}"
 BUCKET = f"gcf-v2-sources-{inventory.NUMBER}-{REGION}"
-OVERLAY = {
-    "lib/management/managementXpTools.js": (
-        "011fb62d8b74782315118ddaeed0799544459ee8bf25abc229db3a4f21701fb4",
-        "715d2ae2828dc8c53d953289de4ab3c49b1fe8ad6938d36aae92b5934c67456e",
-    ),
-    "lib/services/authoritativeXpService.js": (
-        "ce363c13485f9232cabd2528272559bd33005ab0d51aa9ccb7e9b9c8f81634c8",
-        "08dea67eb31ddda852bd70fb5a8b08b509a9e58c040a38311394a59aeace35e7",
-    ),
+ORIGINAL_SOURCE = {
+    "bucket": BUCKET,
+    "object": f"{TARGET}/function-source.zip",
+    "generation": "1791403805929116",
+}
+SANITIZED_CONFIG = {
+    "bucket": recovery.BASELINE["bucket"],
+    "object": "xp-recovery/production-config-sanitized.json",
+    "generation": "1795226241121217",
+    "sha256": "fbe65cbca739edfa054e3e45643373550f8bb673a4ba3b61671d2f09666b579d",
 }
 require = inventory.require
 sha = inventory.sha
@@ -41,6 +45,7 @@ def digest(record):
 
 def source_ref(record):
     source = record.get("sourceProvenance", {}).get("resolvedStorageSource", {})
+    require(source, "UNVERIFIED: source provenance has no resolved storage source")
     require(source.get("bucket") == BUCKET
             and source.get("object") in {f"{name}/function-source.zip" for name in (TARGET, SHARED)}
             and re.fullmatch(r"[1-9][0-9]*", str(source.get("generation", ""))),
@@ -56,45 +61,60 @@ def read_archive(ref, token):
     )
 
 
-def manifest(archive):
-    result = {}
-    with zipfile.ZipFile(io.BytesIO(archive)) as source:
-        infos = source.infolist()
-        require(sum(info.file_size for info in infos) <= 128 * 1024 * 1024,
-                "Source expands beyond the preflight limit")
-        paths = set()
-        for info in infos:
-            path = info.filename.rstrip("/")
-            require(path and not any(part in ("", ".", "..") for part in path.split("/"))
-                    and "\\" not in path and path not in paths
-                    and (info.external_attr >> 16) & 0o170000 in (0, 0o040000, 0o100000),
-                    "Unsupported or duplicate source archive entry")
-            paths.add(path)
-            if not info.is_dir():
-                result[path] = sha(source.read(info))
-    return result
+def read_retained(ref):
+    require(ref in (recovery.BASELINE, SANITIZED_CONFIG), "Unexpected recovery object")
+    url = f"gs://{ref['bucket']}/{ref['object']}#{ref['generation']}"
+    data = subprocess.check_output(
+        ["gcloud", "storage", "cat", url, "--project", PROJECT], stderr=subprocess.DEVNULL,
+    )
+    require(sha(data) == ref["sha256"], "Retained recovery object hash mismatch")
+    return data
 
 
-def make_overlay(archive, candidate, expected=OVERLAY):
-    original = manifest(archive)
-    require({"package.json", "package-lock.json", "lib/index.js"} <= original.keys(),
-            "Missing lockfile or entry point in rollback archive")
-    replacements = {}
-    for path, (baseline_hash, candidate_hash) in expected.items():
-        require(original.get(path) == baseline_hash, f"Unapproved baseline bytes: {path}")
-        data = (candidate / path).read_bytes()
-        require(sha(data) == candidate_hash, f"Unapproved candidate bytes: {path}")
-        replacements[path] = data
+def verify_candidate(archive, candidate, manifest_path=MANIFEST):
+    raw = manifest_path.read_bytes()
+    require(sha(raw) == MANIFEST_SHA256, "Merged candidate manifest hash mismatch")
+    package, report = recovery.build(archive, {
+        name: (candidate / "functions" / name).read_bytes() for name in recovery.PINNED
+    })
+    require(sha(package) == CANDIDATE_SHA256 and report == json.loads(raw),
+            "Reconstructed candidate does not match the approved single-file manifest")
+    return report
 
-    result = io.BytesIO()
-    with zipfile.ZipFile(io.BytesIO(archive)) as source, zipfile.ZipFile(result, "w") as output:
-        for info in source.infolist():
-            data = source.read(info)
-            output.writestr(info, replacements.get(info.filename, data))
-    result = result.getvalue()
-    expected_manifest = {**original, **{path: sha(data) for path, data in replacements.items()}}
-    require(manifest(result) == expected_manifest, "Unexpected archive entry changes")
-    return result
+
+def sanitized_configuration(fn):
+    build, service = fn["buildConfig"], fn["serviceConfig"]
+    fields = ("allTrafficOnLatestRevision", "availableCpu", "availableMemory",
+              "ingressSettings", "maxInstanceCount", "maxInstanceRequestConcurrency",
+              "minInstanceCount", "revision", "timeoutSeconds")
+    return {
+        "name": fn["name"],
+        "state": fn["state"],
+        "buildConfig": {
+            "runtime": build.get("runtime"),
+            "entryPoint": build.get("entryPoint"),
+            "environmentVariableNames": sorted(build.get("environmentVariables") or {}),
+        },
+        "serviceConfig": {
+            **{key: service.get(key) for key in fields},
+            "environmentVariableNames": sorted(service.get("environmentVariables") or {}),
+            "secretEnvironmentVariableCount": len(service.get("secretEnvironmentVariables") or []),
+            "secretVolumeCount": len(service.get("secretVolumes") or []),
+            "serviceAccountConfigured": bool(service.get("serviceAccountEmail")),
+        },
+    }
+
+
+def verify_sanitized_configuration(fn, expected):
+    # Revision is checked independently against the ready Cloud Run revision and 100% traffic.
+    # Historical revision changes must not be mistaken for security configuration drift.
+    require(isinstance(expected, dict) and isinstance(expected.get("serviceConfig"), dict),
+            "Invalid retained sanitized configuration")
+    current_config = sanitized_configuration(fn)
+    expected_config = json.loads(json.dumps(expected))
+    current_config["serviceConfig"].pop("revision", None)
+    expected_config["serviceConfig"].pop("revision", None)
+    require(current_config == expected_config, "Production sanitized configuration drift")
 
 
 def git_head(candidate):
@@ -137,6 +157,7 @@ def verify_build_image(build, resource, image, revision):
     # Emit only selected control-plane fields. Never dump a build or its environment.
     print(json.dumps({
         "check": "serving-image-provenance",
+        "status": "UNVERIFIED" if not results and build.get("status") == "SUCCESS" else "CONFLICTING",
         "revision": revision,
         "servingRepository": repository,
         "servingDigest": digest_value,
@@ -146,7 +167,8 @@ def verify_build_image(build, resource, image, revision):
         "repositoryMatched": any(image_repository(item.get("name", "")) == repository for item in results),
         "digestMatched": any(item.get("digest") == digest_value for item in results),
     }, sort_keys=True), flush=True)
-    raise RuntimeError("Function build does not prove provenance of the serving image")
+    status = "UNVERIFIED" if not results and build.get("status") == "SUCCESS" else "CONFLICTING"
+    raise RuntimeError(f"{status}: Function build does not prove provenance of the serving image")
 
 
 def access_token():
@@ -230,64 +252,48 @@ def preflight(candidate):
             and len(rev.get("containers", [])) == 1
             and re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", image),
             "Serving revision is missing an immutable image digest")
-    build_resource = config.get("build", "")
-    build = build_record(build_resource)
-    verify_build_image(build, build_resource, image, revision)
-
+    expected = json.loads(read_retained(SANITIZED_CONFIG))
+    verify_sanitized_configuration(fn, expected)
     function_source = source_ref(config)
-    serving_source = source_ref(build)
-    rollback = read_archive(function_source, token)
-    if serving_source != function_source:
-        require(manifest(read_archive(serving_source, token)) == manifest(rollback),
-                "Shared image was built from different source bytes")
-    candidate_functions = candidate / "functions"
-    rollback_manifest = manifest(rollback)
-    dependencies = inventory.closure(candidate_functions, "management/managementXpTools")
-    for path in ("package.json", "package-lock.json"):
-        dependencies[path] = sha((candidate_functions / path).read_bytes())
-    for path, expected_hash in sorted(dependencies.items()):
-        if path not in OVERLAY:
-            require(rollback_manifest.get(path) == expected_hash,
-                    f"Unapproved dependency drift: {path}")
-    archive = make_overlay(rollback, candidate_functions)
-    with zipfile.ZipFile(io.BytesIO(rollback)) as source:
-        index = source.read("lib/index.js")
-    require(b"createManagementXpAdjustment" in index and b"managementXpTools" in index,
-            "Rollback archive is missing the target entry point")
-    with zipfile.ZipFile(io.BytesIO(rollback)) as source:
-        scripts = json.loads(source.read("package.json")).get("scripts", {})
-    build_environment = config.get("environmentVariables", {})
-    explicit_build_scripts = build_environment.get("GOOGLE_NODE_RUN_SCRIPTS")
-    rebuild_expected = (
-        bool(explicit_build_scripts) if explicit_build_scripts is not None
-        else bool(scripts.get("gcp-build", scripts.get("build")))
-    )
+    require(function_source == ORIGINAL_SOURCE, "Production Function source identity drift")
+    rollback = read_retained(recovery.BASELINE)
     require(read_archive(function_source, token) == rollback,
-            "Generation-pinned rollback bytes failed recovery verification")
+            "Retained rollback differs from the generation-pinned original")
+    report = verify_candidate(rollback, candidate)
+    print(json.dumps({
+        "status": "SINGLE_FILE_CANDIDATE_VERIFIED",
+        "candidateSha256": report["candidateSha256"],
+        "changedEntries": report["changedEntries"],
+        "rollbackSource": recovery.BASELINE,
+        "deploymentEnabled": False,
+    }, sort_keys=True), flush=True)
+
+    build_resource = config.get("build", "")
+    require(build_resource, "UNVERIFIED: Function does not identify a producing build")
+    try:
+        build = build_record(build_resource)
+    except subprocess.CalledProcessError:
+        raise RuntimeError("UNVERIFIED: historical Cloud Build record is unavailable") from None
+    verify_build_image(build, build_resource, image, revision)
+    serving_source = source_ref(build)
+    if serving_source != function_source:
+        require(read_archive(serving_source, token) == rollback,
+                "CONFLICTING: serving build source differs from the original archive")
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
     print(json.dumps({
-        "status": "SOURCE_OVERLAY_VERIFIED_RELEASE_BLOCKED",
-        "candidateCommit": SHA,
+        "status": "READ_ONLY_VERIFIED_RELEASE_BLOCKED",
+        "candidateSha256": report["candidateSha256"],
         "target": TARGET,
         "revision": revision,
         "image": image,
-        "build": config["build"],
-        "sharedImageRepositoryNaming": SHARED.lower() in image.lower(),
+        "build": build_resource,
         "servingSource": serving_source,
-        "rollbackSource": function_source,
-        "rollbackSha256": sha(rollback),
-        "rollbackManifestSha256": digest(rollback_manifest),
-        "dependencyManifestSha256": digest(dependencies),
-        "overlayArchiveSha256": sha(archive),
-        "overlayPaths": sorted(OVERLAY),
-        "buildScriptsMayRegenerateOverlay": rebuild_expected,
-        "baselineSha256": digest({**baseline, "revision": rev}),
+        "rollbackSource": recovery.BASELINE,
         "baselineComponentSha256": {
             name: digest(value) for name, value in {**baseline, "revision": rev}.items()
         },
-        "durableRollbackRetentionVerified": False,
         "deploymentEnabled": False,
     }, sort_keys=True))
 
