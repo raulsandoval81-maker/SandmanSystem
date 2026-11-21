@@ -27,7 +27,7 @@ export type XpLane = "strength" | "honor" | "adjustment" | "decay";
 export type SeasonPhase = "preseason" | "in_season" | "postseason";
 export interface CurriculumRank { key: string; name: string; requiredXp: number; order: number }
 export interface SkillRequirement { id: string; category: string; name: string; required: boolean }
-export interface CurriculumDefinition { id: string; organizationId: string; academyId: string; discipline: "wrestling" | "boxing" | "muay_thai" | "brazilian_jiu_jitsu"; version: string; pathway: DevelopmentPathway; ranks: CurriculumRank[]; skills: SkillRequirement[]; state: "active" | "retired" }
+export interface CurriculumDefinition { id: string; organizationId: string; academyId: string; discipline: "wrestling" | "boxing" | "muay_thai"; version: string; pathway: DevelopmentPathway; ranks: CurriculumRank[]; skills: SkillRequirement[]; state: "active" | "retired" }
 export interface CurriculumAssignment { id: string; organizationId: string; athleteId: string; curriculumId: string; assignedByUserId: string; assignedAt: string; state: "active" | "completed" | "revoked" }
 export interface SkillEvaluation { id: string; organizationId: string; assignmentId: string; athleteId: string; skillId: string; coachUserId: string; status: "introduced" | "developing" | "approved"; note?: string; evaluatedAt: string }
 export interface ProgressionCycle { id: string; organizationId: string; athleteId: string; assignmentId: string; pathway: DevelopmentPathway; rankIndex: number; activeXp: number; lifetimeXp: number; earnedStripes: number; seasonPhase: SeasonPhase; sequence: number; state: "active" | "completed" | "suspended" }
