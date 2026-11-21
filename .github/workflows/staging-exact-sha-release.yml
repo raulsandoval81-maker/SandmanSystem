@@ -3466,6 +3466,17 @@ jobs:
           npm run build --prefix application/functions
           node --test application/tests/functions/prepaid-evidence-claim-contract.test.mjs
           python3 -c 'from pathlib import Path; import importlib; m = importlib.import_module("historical-enrollment-preflight"); m.set_staging_scope(); m.candidate(Path("application"))'
+      - name: Isolated concurrency and prepaid enrollment gate (no cloud credentials)
+        working-directory: application
+        run: |
+          set -euo pipefail
+          test -z "${STRIPE_SECRET_KEY:-}"
+          test -z "${RESEND_API_KEY:-}"
+          test -z "${GOOGLE_APPLICATION_CREDENTIALS:-}"
+          npx --yes firebase-tools@14.13.0 emulators:exec \
+            --only firestore --project demo-sandman-2c-acceptance \
+            --config firebase.prepaid-emulator.json \
+            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs functions/tests/managementHistoricalDraft.integration.cjs'
       - uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
