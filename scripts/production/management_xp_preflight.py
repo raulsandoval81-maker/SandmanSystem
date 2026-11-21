@@ -298,18 +298,21 @@ def preflight(candidate):
     }, sort_keys=True))
 
 
+def safe_error_detail(error):
+    if isinstance(error, subprocess.CalledProcessError):
+        # Arguments and output may contain tokens, file paths, or other private values.
+        command = error.cmd
+        executable = Path(str(command[0])).name if isinstance(command, (list, tuple)) and command else "unknown"
+        operation = "gcloud read-only metadata/storage operation" if executable == "gcloud" else "local read-only subprocess"
+        return f"UNVERIFIED: {operation} failed (exit code {error.returncode})"
+    return str(error) if type(error) is RuntimeError else type(error).__name__
+
+
 if __name__ == "__main__":
     try:
         preflight(Path(sys.argv[1]))
     except (RuntimeError, KeyError, OSError, ValueError, zipfile.BadZipFile,
             subprocess.CalledProcessError) as error:
-        if isinstance(error, subprocess.CalledProcessError):
-            # Never emit command arguments or captured output: either may contain secrets.
-            command = error.cmd
-            executable = Path(str(command[0])).name if isinstance(command, (list, tuple)) and command else "unknown"
-            operation = "gcloud read-only metadata/storage operation" if executable == "gcloud" else "local read-only subprocess"
-            detail = f"UNVERIFIED: {operation} failed (exit code {error.returncode})"
-        else:
-            detail = str(error) if type(error) is RuntimeError else type(error).__name__
+        detail = safe_error_detail(error)
         print(f"STOP_NO_RETRY: {detail}", file=sys.stderr)
         sys.exit(1)
