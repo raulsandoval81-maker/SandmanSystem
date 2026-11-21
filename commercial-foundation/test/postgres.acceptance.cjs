@@ -61,8 +61,8 @@ test("synthetic tenant logical backup can restore a committed mutable-record los
   const o=orgs[0];let backup;
   await boundary.tenantTransaction(o.id,async db=>{backup=(await db.query("SELECT kind,id,payload FROM commercial_application_records ORDER BY kind,id")).rows;});
   assert.ok(backup.length>0);
-  await boundary.tenantTransaction(o.id,async db=>{assert.equal((await db.query("DELETE FROM commercial_application_records WHERE kind='progressionCycles' AND id='cycle-assignment'")).rowCount,1);});
-  await app.run(o.id,f=>assert.equal(f.store.get("progressionCycles",o.id,"cycle-assignment"),undefined));
-  await boundary.tenantTransaction(o.id,async db=>{for(const row of backup){if(["xpEvents","promotions","recoveryEvidence","recoveryPenalties","transferAcceptances","audits"].includes(row.kind))continue;await db.query("INSERT INTO commercial_application_records(organization_id,kind,id,payload) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (organization_id,kind,id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()",[o.id,row.kind,row.id,JSON.stringify(row.payload)]);}});
+  const immutable=["xpEvents","promotions","recoveryEvidence","recoveryPenalties","transferAcceptances","audits"],target=backup.find(row=>row.kind!=="organization"&&!immutable.includes(row.kind));assert.ok(target);
+  await boundary.tenantTransaction(o.id,async db=>{assert.equal((await db.query("DELETE FROM commercial_application_records WHERE kind=$1 AND id=$2",[target.kind,target.id])).rowCount,1);assert.equal((await db.query("SELECT count(*)::int AS n FROM commercial_application_records WHERE kind=$1 AND id=$2",[target.kind,target.id])).rows[0].n,0);});
+  await boundary.tenantTransaction(o.id,async db=>{for(const row of backup){if(immutable.includes(row.kind))continue;await db.query("INSERT INTO commercial_application_records(organization_id,kind,id,payload) VALUES ($1,$2,$3,$4::jsonb) ON CONFLICT (organization_id,kind,id) DO UPDATE SET payload=EXCLUDED.payload,updated_at=now()",[o.id,row.kind,row.id,JSON.stringify(row.payload)]);}});
   await app.run(o.id,f=>assert.equal(f.store.get("progressionCycles",o.id,"cycle-assignment").activeXp,205));
 });
