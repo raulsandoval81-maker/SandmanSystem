@@ -13,4 +13,6 @@ export * from "./recovery";
 export * from "./postgres";
 export * from "./postgresApplication";
 export * from "./oidc";
+export * from "./postgresRevocation";
+export * from "./auth0Flows";
 export * from "./postgresIdentity";

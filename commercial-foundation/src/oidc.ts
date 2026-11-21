@@ -39,7 +39,7 @@ export class OidcJwksKeyStore {
 
 /** Standards-based production OIDC verifier. Provider outages and revocation failures fail closed. */
 export class OidcIdentityAuthority implements AsyncIdentityAuthority {
-  constructor(private readonly options:{issuer:string;audience:string;keys:OidcJwksKeyStore;isRevoked:(jti:string)=>Promise<boolean>;provider?:"generic"|"auth0";now?:()=>Date;clockSkewSeconds?:number}){
+  constructor(private readonly options:{issuer:string;audience:string;keys:OidcJwksKeyStore;isRevoked:(organizationId:string,jti:string)=>Promise<boolean>;resolveOrganization?:(providerOrganizationId:string)=>Promise<string>;provider?:"generic"|"auth0";now?:()=>Date;clockSkewSeconds?:number}){
     if(new URL(options.issuer).protocol!=="https:")throw new Error("OIDC_ISSUER_HTTPS_REQUIRED");
   }
   async verify(ctx:AuthorizationContext):Promise<OidcVerifiedSession>{
@@ -55,16 +55,18 @@ export class OidcIdentityAuthority implements AsyncIdentityAuthority {
     const verifiedEmail=auth0?claims["https://sandmancommercial.com/email_verified"]:claims.email_verified;
     const audienceValid=claims.aud===this.options.audience||(Array.isArray(claims.aud)&&claims.aud.every(value=>typeof value==="string")&&claims.aud.includes(this.options.audience));
     if(claims.iss!==this.options.issuer||!audienceValid||typeof claims.sub!=="string"||!claims.sub||typeof organizationId!=="string"||!organizationId||typeof claims.exp!=="number"||!Number.isSafeInteger(claims.exp)||claims.exp<=now-skew||(claims.nbf!==undefined&&(typeof claims.nbf!=="number"||claims.nbf>now+skew))||typeof claims.iat!=="number"||claims.iat>now+skew||typeof claims.jti!=="string"||!claims.jti||verifiedEmail!==true||typeof address!=="string"||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address))throw authError();
-    try{if(await this.options.isRevoked(claims.jti))throw authError();}catch{throw authError();}
-    return Object.freeze({identity:Object.freeze({userId:claims.sub,selectedOrganizationId:organizationId,systemAdmin:claims.systemAdmin===true}),account:Object.freeze({userId:claims.sub,verifiedEmail:address.trim().toLowerCase()}),tokenId:claims.jti,expiresAt:claims.exp});
+    let commercialOrganizationId=organizationId;
+    try{if(auth0){if(!this.options.resolveOrganization)throw authError();commercialOrganizationId=await this.options.resolveOrganization(organizationId);if(typeof commercialOrganizationId!=="string"||!commercialOrganizationId)throw authError();}if(await this.options.isRevoked(commercialOrganizationId,claims.jti))throw authError();}catch{throw authError();}
+    return Object.freeze({identity:Object.freeze({userId:claims.sub,selectedOrganizationId:commercialOrganizationId,systemAdmin:claims.systemAdmin===true}),account:Object.freeze({userId:claims.sub,verifiedEmail:address.trim().toLowerCase()}),tokenId:claims.jti,expiresAt:claims.exp});
   }
 }
 
-export function createOidcIntegrationFromEnvironment(env:NodeJS.ProcessEnv,isRevoked:(jti:string)=>Promise<boolean>,fetch?:FetchLike){
+export function createOidcIntegrationFromEnvironment(env:NodeJS.ProcessEnv,isRevoked:(organizationId:string,jti:string)=>Promise<boolean>,fetch?:FetchLike,resolveOrganization?:(providerOrganizationId:string)=>Promise<string>){
   const provider=env.COMMERCIAL_OIDC_PROVIDER??"generic";
   if(provider!=="generic"&&provider!=="auth0")throw new Error("COMMERCIAL_OIDC_PROVIDER_UNSUPPORTED");
   const issuer=env.COMMERCIAL_OIDC_ISSUER,audience=env.COMMERCIAL_OIDC_AUDIENCE,jwksUrl=env.COMMERCIAL_OIDC_JWKS_URL,authorizationUrl=env.COMMERCIAL_OIDC_AUTHORIZATION_URL,logoutUrl=env.COMMERCIAL_OIDC_LOGOUT_URL;
   if(!issuer||!audience||!jwksUrl||!authorizationUrl||!logoutUrl)throw new Error("COMMERCIAL_OIDC_CONFIGURATION_REQUIRED");
   for(const endpoint of[issuer,jwksUrl,authorizationUrl,logoutUrl])if(new URL(endpoint).protocol!=="https:")throw new Error("COMMERCIAL_OIDC_HTTPS_REQUIRED");
-  const keys=new OidcJwksKeyStore({jwksUrl,fetch});return Object.freeze({authority:new OidcIdentityAuthority({issuer,audience,keys,isRevoked,provider}),authorizationUrl,logoutUrl});
+  if(provider==="auth0"&&!resolveOrganization)throw new Error("COMMERCIAL_AUTH0_ORGANIZATION_RESOLVER_REQUIRED");
+  const keys=new OidcJwksKeyStore({jwksUrl,fetch});return Object.freeze({authority:new OidcIdentityAuthority({issuer,audience,keys,isRevoked,resolveOrganization,provider}),authorizationUrl,logoutUrl});
 }
