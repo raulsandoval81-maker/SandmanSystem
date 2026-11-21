@@ -149,3 +149,30 @@ test("promotion refuses tampered curriculum after valid initial assignment",()=>
   f.store.put("curricula",original,true);
   assert.equal(f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"verified-promotion",requirementsVerified:true}).toRank,"prospect");
 });
+
+test("every rank requires new concept approval and rank attribution cannot be forged",()=>{
+  const f=setup(),x=flow(f,A);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"shadow-threshold",amount:800,reason:"fixture"});
+  const forged={id:"first-approval",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved",rankIndexAtEvaluation:4};
+  const initial=f.curriculum.evaluate(x.coach,forged);
+  assert.equal(initial.rankIndexAtEvaluation,0);
+  assert.equal(f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"to-prospect",requirementsVerified:true}).toRank,"prospect");
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"prospect-threshold",amount:1600,reason:"fixture"});
+  assert.throws(()=>f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"to-competitor",requirementsVerified:true}),/PROMOTION_EVIDENCE_UNVERIFIED/);
+  assert.equal(f.store.list("promotions",A).length,1);
+  const next=f.curriculum.evaluate(x.coach,{...forged,id:"second-approval"});
+  assert.equal(next.rankIndexAtEvaluation,1);
+  assert.equal(f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"to-competitor",requirementsVerified:true}).toRank,"competitor");
+  assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").rankIndex,2);
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
+test("local persistence rejects tampered stage attribution for verified rank approvals",()=>{
+  const f=setup(),x=flow(f,A);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"first-threshold",amount:800,reason:"fixture"});
+  f.curriculum.evaluate(x.coach,{id:"stage-zero",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved"});
+  f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"to-prospect",requirementsVerified:true});
+  const original=JSON.parse(readFileSync(f.file,"utf8"));
+  original.skillEvaluations[0].rankIndexAtEvaluation=3;
+  writeFileSync(f.file,JSON.stringify(original));
+  assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_PROGRESSION_LEDGER/);
+});

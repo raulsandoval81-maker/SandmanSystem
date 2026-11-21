@@ -157,7 +157,8 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       const curriculum=assignment&&this.get<import("./contracts").CurriculumDefinition>("curricula",evaluation.organizationId,assignment.curriculumId);
       if(!assignment||!curriculum||assignment.athleteId!==evaluation.athleteId||
         !curriculum.skills.some(s=>s.id===evaluation.skillId)||
-        !["introduced","developing","approved"].includes(evaluation.status)||!validDate(evaluation.evaluatedAt))
+        !["introduced","developing","approved"].includes(evaluation.status)||!validDate(evaluation.evaluatedAt)||
+        (evaluation.rankIndexAtEvaluation!==undefined&&(!Number.isInteger(evaluation.rankIndexAtEvaluation)||evaluation.rankIndexAtEvaluation<0||evaluation.rankIndexAtEvaluation>4)))
         throw new Error("INVALID_PERSISTED_SKILL_EVALUATION");
     }
     for(const cycle of this.progressionCycles.values()){
@@ -239,7 +240,8 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
           const promotion=promotions.find(p=>p.fromRank===ranks[stage].key&&p.toRank===ranks[stage+1].key);
           const required=definition!.skills.filter(skill=>skill.required);
           const approvals=this.list<import("./contracts").SkillEvaluation>("skillEvaluations",org).filter(e=>
-            e.athleteId===cycle.athleteId&&e.assignmentId===cycle.assignmentId&&e.status==="approved");
+            e.athleteId===cycle.athleteId&&e.assignmentId===cycle.assignmentId&&e.status==="approved"&&
+            (e.rankIndexAtEvaluation===stage||(stage===0&&e.rankIndexAtEvaluation===undefined)));
           if(!promotion||active<threshold||promotion.historicalXpAtPromotion!==lifetime||
             !required.length||required.some(skill=>!approvals.some(e=>e.skillId===skill.id)))
             throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
