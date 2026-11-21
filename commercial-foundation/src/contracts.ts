@@ -33,6 +33,10 @@ export interface SkillEvaluation { id: string; organizationId: string; assignmen
 export interface ProgressionCycle { id: string; organizationId: string; athleteId: string; assignmentId: string; pathway: DevelopmentPathway; rankIndex: number; activeXp: number; lifetimeXp: number; earnedStripes: number; seasonPhase: SeasonPhase; sequence: number; state: "active" | "completed" | "suspended" }
 export interface XpEvent { id: string; organizationId: string; athleteId: string; cycleId: string; rankIndexAtAward: number; lane: XpLane; amount: number; source: string; sourceEventId: string; actorUserId: string; reason?: string; correctionOf?: string; occurredAt: string }
 export interface PromotionRecord { id: string; organizationId: string; athleteId: string; cycleId: string; pathway: DevelopmentPathway; fromRank: string; toRank: string; historicalXpAtPromotion: number; promotedByUserId: string; promotedAt: string; requirementsVerified: true }
+export interface AccessInvitation { id: string; organizationId: string; email: string; role: OrganizationRole; scopeType: ScopeType; scopeId: string; tokenDigest: string; state: "pending" | "accepted" | "revoked" | "expired"; invitedByUserId: string; invitedAt: string; expiresAt: string; acceptedByUserId?: string; acceptedAt?: string }
+export interface RecoveryCase { id: string; organizationId: string; athleteId: string; cycleId: string; state: "evidence_pending" | "evidence_verified" | "cancelled"; openedByUserId: string; openedAt: string; verifiedPracticeIds: string[]; policyActivated: false }
+export interface RecoveryPracticeEvidence { id: string; organizationId: string; recoveryCaseId: string; athleteId: string; sessionId: string; coachUserId: string; fullParticipation: true; verifiedAt: string }
+export interface TransferAcceptance { id: string; organizationId: string; destinationAthleteId: string; sourceOrganizationId: string; sourceAthleteId: string; consentType: "adult" | "guardian"; packageDigest: string; pathway: DevelopmentPathway; rankIndex: number; earnedStripes: number; activeXp: number; lifetimeXp: number; promotionHistory: Array<{fromRank:string;toRank:string;promotedAt:string}>; acceptedByUserId: string; acceptedAt: string }
 
 export type ProductLifecycle = "proposed" | "private_preview" | "prelaunch" | "released" | "retired" | "unverified";
 export type IntegrationType = "none" | "planned" | "optional_adapter" | "native";
@@ -62,3 +66,5 @@ export interface IdentityAuthority { verify(ctx: AuthorizationContext): Verified
 export interface SwitchableIdentityAuthority extends IdentityAuthority {
   switchOrganization(ctx: AuthorizationContext, organizationId: string): AuthorizationContext;
 }
+export interface VerifiedAccountProof { userId: string; verifiedEmail: string }
+export interface AccountProofAuthority { verify(ctx: AuthorizationContext): VerifiedAccountProof }

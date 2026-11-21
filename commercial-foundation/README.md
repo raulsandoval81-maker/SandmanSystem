@@ -28,4 +28,6 @@ The PR adds a GitHub Actions workflow running the same tests on pull requests. P
 
 The adapter is intentionally single-process. It is not suitable for production concurrency, distributed transactions, encryption/key management, backup, retention, or disaster recovery. A production database adapter must implement equivalent repository boundaries and pass independent integration and security review.
 
+The `postgres/0001_commercial_core.sql` migration and `PostgresCommercialBoundary` now define the independent PostgreSQL schema, forced tenant RLS, append-only ledger constraints, migration checksum handling, and tenant transaction context. They are production adapter prerequisites, not proof of a live database deployment. `JwtIdentityAuthority` and `CommercialInvitationService` similarly provide production-facing identity boundaries while requiring an externally configured identity provider, verified-email proof provider, signing-key lifecycle, and revocation store.
+
 `OrganizationOnboardingService` composes the existing trusted authorization operations to create a fictional organization, academy, location, program, administrator, coach, disciplines, and provisional capability grants. Organization switching is issued only by a trusted identity authority after active target membership is verified.

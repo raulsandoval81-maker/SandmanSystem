@@ -7,3 +7,7 @@ export * from "./operations";
 export * from "./family";
 export * from "./progression";
 export * from "./ageTransition";
+export * from "./identity";
+export * from "./transfer";
+export * from "./recovery";
+export * from "./postgres";
