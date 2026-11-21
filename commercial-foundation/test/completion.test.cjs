@@ -1,5 +1,5 @@
 const test=require("node:test"),assert=require("node:assert/strict");
-const{generateKeyPairSync,sign}=require("node:crypto"),{mkdtempSync,readFileSync}=require("node:fs"),{tmpdir}=require("node:os"),{join}=require("node:path");
+const{generateKeyPairSync,sign,createHmac}=require("node:crypto"),{mkdtempSync,readFileSync}=require("node:fs"),{tmpdir}=require("node:os"),{join}=require("node:path");
 const{AthleteTransferService,AttendanceService,CommercialFoundation,CommercialInvitationService,CurriculumService,FamilyRelationshipService,InMemoryTestIdentityAuthority,JwtIdentityAuthority,OrganizationOnboardingService,PATH2LEGEND_RANKS,PersistentJsonCommercialStore,PostgresCommercialBoundary,PooledPostgresCommercialBoundary,ProgressionReadService,ROAD2CHAMPION_RANKS,RecoveryEvidenceService,SchedulingService,XpLedgerService}=require("../lib");
 const A="complete-alpha",B="complete-beta",now=()=>new Date("2026-11-20T20:00:00Z");
 const onboarding=org=>({organizationId:org,organizationName:org,academyId:"academy",academyName:"Academy",locationId:"location",locationName:"Gym",programId:"program",programName:"Wrestling",disciplines:["wrestling"],administratorUserId:`admin-${org}`,coachUserId:`coach-${org}`,packageSource:"Plus",capabilityIds:["schedule.manage","attendance.manage","coach.workspace"],startsAt:"2026-01-01T00:00:00Z",expiresAt:"2027-01-01T00:00:00Z"});
@@ -194,4 +194,37 @@ test("JWT identity fails closed for missing keys, invalid key material, revocati
     assert.throws(()=>authority(()=>pem).verify({sessionId:token}),/UNVERIFIED_IDENTITY/);
   }
   assert.throws(()=>authority(()=>pem).verify({sessionId:good+"#"}),/UNVERIFIED_IDENTITY/);
+});
+
+
+test("signed transfer packages fail closed for invalid consent metadata and rank claims",()=>{
+  const f=setup(),source=athleteFlow(f,A,{adult:true}),destination=athleteFlow(f,B,{adult:true});
+  const key=Buffer.alloc(32,13),transfers=new AthleteTransferService(f.foundation,f.read,key,now,verifiedAthleteBinding);
+  const valid=transfers.consentAdult(source.athlete,A,B,"2026-12-01T00:00:00Z");
+  const [body]=valid.split(".");
+  const original=JSON.parse(Buffer.from(body,"base64url").toString("utf8"));
+  const signPackage=payload=>{
+    const encoded=Buffer.from(JSON.stringify(payload)).toString("base64url");
+    return encoded+"."+createHmac("sha256",key).update(encoded).digest("base64url");
+  };
+  const mutations=[
+    {consentType:"unknown"},{destinationOrganizationId:""},{nonce:"x"},
+    {consentedAt:"not-a-date"},{consentedAt:"2027-01-01T00:00:00Z"},
+    {expiresAt:"not-a-date"},{expiresAt:"2026-11-19T00:00:00Z"},
+    {snapshot:{...original.snapshot,rank:"champion"}},
+    {snapshot:{...original.snapshot,sourceAthleteId:""}},
+    {snapshot:{...original.snapshot,readOnly:false}},
+    {snapshot:{...original.snapshot,transferAuthorized:true}}
+  ];
+  for(const [index,changes] of mutations.entries()){
+    assert.throws(()=>transfers.accept(destination.admin,{
+      organizationId:B,destinationAthleteId:"athlete",
+      transferPackage:signPackage({...original,...changes}),acceptanceId:"forged-"+index
+    }),/INVALID_TRANSFER_PACKAGE/);
+  }
+  assert.equal(f.store.transferAcceptances.size,0);
+  assert.equal(f.store.get("progressionCycles",B,"cycle-assignment").activeXp,0);
+  assert.equal(transfers.accept(destination.admin,{
+    organizationId:B,destinationAthleteId:"athlete",transferPackage:valid,acceptanceId:"valid"
+  }).sourceOrganizationId,A);
 });
