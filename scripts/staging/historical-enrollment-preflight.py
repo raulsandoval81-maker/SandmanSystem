@@ -84,10 +84,17 @@ def candidate(root):
 
 
 def set_staging_scope():
-    release.PROJECT = release.SITE = PROJECT
-    release.inventory.PROJECT = release.inventory.SITE = PROJECT
+    # Cloud Functions uses the project ID; Hosting APIs require the full
+    # sites/<site-id> resource. Do not conflate them: doing so yields HTTP 404
+    # when retrieving the active staging release.
+    hosting_site = f"sites/{PROJECT}"
+    release.PROJECT = PROJECT
+    release.SITE = hosting_site
+    release.inventory.PROJECT = PROJECT
+    release.inventory.SITE = hosting_site
     release.inventory.NUMBER = "991554514268"
-    release.release.PROJECT = release.release.SITE = PROJECT
+    release.release.PROJECT = PROJECT
+    release.release.SITE = hosting_site
     release.inventory.FUNCTIONS = dict(TARGETS)
     release.release.FUNCTIONS = {name: generation for name, (generation, _) in TARGETS.items()}
 
