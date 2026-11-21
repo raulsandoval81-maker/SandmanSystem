@@ -24,3 +24,21 @@ test("return-practice evidence is durable, requires full Coach verification, and
 test("PostgreSQL schema defines tenant RLS, composite references, replay constraints, and append-only ledgers",()=>{const sql=readFileSync(join(__dirname,"../postgres/0001_commercial_core.sql"),"utf8");for(const pattern of[/ENABLE ROW LEVEL SECURITY/g,/FORCE ROW LEVEL SECURITY/g,/WITH CHECK \(organization_id=commercial_current_tenant\(\)\)/g,/UNIQUE \(organization_id,source_event_id\)/,/FOREIGN KEY \(organization_id,athlete_id\)/,/FOREIGN KEY \(organization_id,assignment_id\)/,/xp_events_append_only/,/promotions_append_only/,/UNIQUE \(organization_id,package_digest\)/])assert.match(sql,pattern);assert.doesNotMatch(sql,/firebase|stripe_(customer|payment)|academy_production/i);});
 
 test("PostgreSQL boundary rolls back failed migrations and scopes every tenant transaction",async()=>{const calls=[],client={query:async(text,values)=>{calls.push([text,values]);if(text.startsWith("SELECT checksum"))return{rows:[],rowCount:0};return{rows:[],rowCount:0};}},boundary=new PostgresCommercialBoundary(client);assert.equal(await boundary.migrate("0001_core","SELECT 1"),"applied");await boundary.tenantTransaction(A,async db=>{await db.query("SELECT 1")});assert.ok(calls.some(([q,v])=>q.includes("set_config")&&v[0]===A));const failing={query:async text=>{calls.push([text]);if(text==="BROKEN")throw new Error("boom");return{rows:[],rowCount:0};}},broken=new PostgresCommercialBoundary(failing);await assert.rejects(()=>broken.migrate("0002_broken","BROKEN"),/boom/);assert.ok(calls.some(([q])=>q==="ROLLBACK"));});
+
+
+test("recovery practice evidence rejects same-program sessions from another academy or location",()=>{
+  const f=setup(),x=athleteFlow(f,A);
+  f.schedule.create(x.admin,{id:"return-session",organizationId:A,academyId:"academy",locationId:"location",programId:"program",coachUserIds:[`coach-${A}`],startsAt:"2026-11-19T18:00:00Z",endsAt:"2026-11-19T19:00:00Z",state:"completed"});
+  f.attendance.record(x.coach,A,"return-session","athlete","present");
+  f.recovery.open(x.admin,{id:"recovery",organizationId:A,athleteId:"athlete"});
+  const session=f.store.get("sessions",A,"return-session");
+  for(const changed of [{academyId:"unrelated-academy"},{locationId:"unrelated-location"}]){
+    f.store.put("sessions",{...session,...changed},true);
+    assert.throws(()=>f.recovery.verifyPractice(x.coach,{organizationId:A,caseId:"recovery",sessionId:"return-session",fullParticipation:true}),/RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED/);
+    assert.equal(f.store.recoveryEvidence.size,0);
+    assert.equal(f.store.get("recoveryCases",A,"recovery").state,"evidence_pending");
+  }
+  f.store.put("sessions",session,true);
+  assert.equal(f.recovery.verifyPractice(x.coach,{organizationId:A,caseId:"recovery",sessionId:"return-session",fullParticipation:true}).fullParticipation,true);
+  assert.equal(f.store.xpEvents.size,0);
+});
