@@ -5,7 +5,7 @@ import {
   XpEvent, XpLane,
 } from "./contracts";
 import { CommercialFoundation } from "./foundation";
-import { assertId } from "./validation";
+import { APPROVED_COMMERCIAL_DISCIPLINES, assertId } from "./validation";
 
 export const ROAD2CHAMPION_RANKS: readonly CurriculumRank[] = Object.freeze([
   { key:"shadow",name:"Shadow",requiredXp:800,order:0 },
@@ -32,7 +32,7 @@ const ranksFor=(pathway:DevelopmentPathway)=>pathway==="road2champion"?ROAD2CHAM
 const sameRanks=(actual:CurriculumRank[],expected:readonly CurriculumRank[])=>JSON.stringify(actual)===JSON.stringify(expected);
 // Only approved combat disciplines enter Commercial's active curriculum pipeline.
 // Future disciplines remain unpublished until separately approved and verified.
-const approvedDisciplines = new Set(["wrestling","boxing","muay_thai"]);
+const approvedDisciplines = new Set<string>(APPROVED_COMMERCIAL_DISCIPLINES);
 const validSkills = (skills:CurriculumDefinition["skills"]) =>
   Array.isArray(skills) && skills.length > 0 && skills.some(s=>s.required===true) &&
   skills.every(s=>typeof s.id==="string" && s.id.trim().length>0 &&
