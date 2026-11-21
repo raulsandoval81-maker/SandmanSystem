@@ -4,7 +4,7 @@ import {AsyncIdentityAuthority,OidcVerifiedSession} from "./oidc";
 import {PostgresCommercialApplication} from "./postgresApplication";
 
 export interface OrganizationTokenIssuer {issueOrganizationToken(session:OidcVerifiedSession,organizationId:string):Promise<string>}
-export interface TokenRevoker {revoke(tokenId:string,expiresAt:number):Promise<void>}
+export interface TokenRevoker {revoke(input:{organizationId:string;tokenId:string;subject:string;expiresAt:number}):Promise<void>}
 
 /** Production identity workflows bound to the PostgreSQL membership authority. */
 export class PostgresCommercialIdentityService {
@@ -40,5 +40,5 @@ export class PostgresCommercialIdentityService {
     return this.runAuthorized(ctx,organizationId,foundation=>new CommercialInvitationService(foundation,{verify:()=>{throw new Error("ACCOUNT_PROOF_NOT_USED_FOR_REVOKE");}},this.now).revoke(ctx,organizationId,invitationId));
   }
 
-  async logout(ctx:AuthorizationContext):Promise<void>{const session=await this.identity.verify(ctx);try{await this.revoker.revoke(session.tokenId,session.expiresAt);}catch{throw new Error("LOGOUT_REVOCATION_FAILED");}}
+  async logout(ctx:AuthorizationContext):Promise<void>{const session=await this.identity.verify(ctx);try{await this.revoker.revoke({organizationId:session.identity.selectedOrganizationId,tokenId:session.tokenId,subject:session.identity.userId,expiresAt:session.expiresAt});}catch{throw new Error("LOGOUT_REVOCATION_FAILED");}}
 }

@@ -35,11 +35,11 @@ exports.onExecutePostLogin = async (event, api) => {
 
 Never derive verified-email ownership from an invitation link, browser parameter, or client-controlled input. Auth0 login must request the target `organization` so its API token includes `org_id`. Establish verified Auth0 organization ID ↔ Commercial database organization mapping rather than assuming IDs match.
 
-## Unresolved release gates
-1. Configure Auth0 app access, Organizations, real tenant domain and issuer. Securely supply configuration only to a proper future development app service.
-2. Implement and verify native PKCE and web confidential-server login redirects with actual callbacks. No Commercial app host exists yet.
-3. Implement organization changes using a fresh Auth0 authorization request specifying `organization`; the current `OrganizationTokenIssuer` interface is not itself an implementation.
-4. Implement a persistent revoked-`jti` store checked on every protected operation, failing closed when unreachable. Logout by itself doesn't guarantee immediate JWT invalidation.
-5. Verify real-provider login, invitation, org switch, verified email, replay prevention, logout, revocation, JWKS rotation/outage, and tenant isolation before calling the integration complete.
+## Remaining release gates
+1. Add the deployed verified-email Action to the Auth0 Post Login trigger flow.
+2. Establish a real Railway development application host, then configure its exact web callback/logout URLs and the final native callback. No host exists yet, so no callback URL is invented here.
+3. Apply migration 0005 in Railway development and create synthetic Auth0 organization mappings.
+4. Wire the host's persistent authorization-transaction implementation to `Auth0AuthorizationFlow`; the exported in-memory implementation remains test-only.
+5. Verify real-provider web and iOS login, invitation, org switch, verified email, replay prevention, logout, revocation, JWKS rotation/outage, and tenant isolation before calling the integration complete.
 
 **Real-provider acceptance remains BLOCKED. No production deployment is authorized.**
