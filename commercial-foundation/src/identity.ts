@@ -3,7 +3,7 @@ import { AccessInvitation, AccountProofAuthority, AuthorizationContext, Membersh
 import { CommercialFoundation } from "./foundation";
 import { assertId } from "./validation";
 
-type JwtClaims={iss?:unknown;aud?:unknown;sub?:unknown;org?:unknown;exp?:unknown;nbf?:unknown;jti?:unknown;systemAdmin?:unknown};
+type JwtClaims={iss?:unknown;aud?:unknown;sub?:unknown;org?:unknown;exp?:unknown;nbf?:unknown;jti?:unknown;systemAdmin?:unknown;email?:unknown;email_verified?:unknown};
 const decode=(value:string)=>JSON.parse(Buffer.from(value,"base64url").toString("utf8"));
 
 /**
@@ -12,7 +12,7 @@ const decode=(value:string)=>JSON.parse(Buffer.from(value,"base64url").toString(
  * selected organization. It never accepts caller-supplied role claims.
  */
 export class JwtIdentityAuthority implements SwitchableIdentityAuthority{
-  constructor(private readonly options:{issuer:string;audience:string;publicKey:(kid:string)=>string|Buffer;isRevoked:(jti:string)=>boolean;issueOrganizationToken?:(identity:VerifiedIdentity,organizationId:string)=>string;now?:()=>Date}){}
+  constructor(private readonly options:{issuer:string;audience:string;publicKey:(kid:string)=>string|Buffer;isRevoked:(jti:string)=>boolean;issueOrganizationToken?:(identity:VerifiedIdentity,organizationId:string)=>string;canSwitchOrganization?:(identity:VerifiedIdentity,organizationId:string)=>boolean;now?:()=>Date}){}
   verify(ctx:AuthorizationContext):VerifiedIdentity{
     const token=ctx?.sessionId;if(typeof token!=="string")throw new Error("UNVERIFIED_IDENTITY");
     const parts=token.split(".");if(parts.length!==3)throw new Error("UNVERIFIED_IDENTITY");
@@ -38,8 +38,43 @@ export class JwtIdentityAuthority implements SwitchableIdentityAuthority{
     return Object.freeze({userId:claims.sub,selectedOrganizationId:claims.org,systemAdmin:claims.systemAdmin===true});
   }
   switchOrganization(ctx:AuthorizationContext,organizationId:string):AuthorizationContext{
-    const identity=this.verify(ctx);if(!this.options.issueOrganizationToken)throw new Error("ORGANIZATION_SWITCH_REQUIRES_TRUSTED_ISSUER");
-    return Object.freeze({sessionId:this.options.issueOrganizationToken(identity,organizationId)});
+    const identity=this.verify(ctx);
+    if(!this.options.issueOrganizationToken||!this.options.canSwitchOrganization)
+      throw new Error("ORGANIZATION_SWITCH_REQUIRES_TRUSTED_ISSUER");
+    // Target membership must be checked by the trusted server, never inferred from
+    // the caller's desired org or from a token's untrusted role claims.
+    if(typeof organizationId!=="string"||!organizationId.trim())throw new Error("ORGANIZATION_SWITCH_DENIED");
+    try{
+      if(!this.options.canSwitchOrganization(identity,organizationId))throw new Error("ORGANIZATION_SWITCH_DENIED");
+      const sessionId=this.options.issueOrganizationToken(identity,organizationId);
+      const issued=this.verify({sessionId});
+      if(issued.userId!==identity.userId||issued.selectedOrganizationId!==organizationId||
+         issued.systemAdmin!==identity.systemAdmin)throw new Error("ORGANIZATION_SWITCH_DENIED");
+      return Object.freeze({sessionId});
+    }catch{throw new Error("ORGANIZATION_SWITCH_DENIED");}
+  }
+}
+
+/**
+ * Account ownership proof from a signed, unexpired access token.
+ * The same trusted JWT authority verifies the token before its verified email
+ * claims may be used to accept an invitation. Never use the invitation's
+ * requested email or unverified profile input as account proof.
+ */
+export class JwtVerifiedAccountProofAuthority implements AccountProofAuthority {
+  constructor(private readonly authority:JwtIdentityAuthority){}
+  verify(ctx:AuthorizationContext){
+    let identity:VerifiedIdentity,claims:JwtClaims;
+    try{
+      identity=this.authority.verify(ctx);
+      claims=decode(ctx.sessionId.split(".")[1]) as JwtClaims;
+    }catch{throw new Error("UNVERIFIED_ACCOUNT_PROOF");}
+    if(!claims||typeof claims!=="object")throw new Error("UNVERIFIED_ACCOUNT_PROOF");
+    const address=claims.email;
+    if(claims.email_verified!==true||typeof address!=="string"||
+       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.trim())||
+       claims.sub!==identity.userId)throw new Error("UNVERIFIED_ACCOUNT_PROOF");
+    return Object.freeze({userId:identity.userId,verifiedEmail:address.trim().toLowerCase()});
   }
 }
 

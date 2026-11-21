@@ -1,6 +1,6 @@
 const test=require("node:test"),assert=require("node:assert/strict");
 const{generateKeyPairSync,sign,createHmac}=require("node:crypto"),{mkdtempSync,readFileSync}=require("node:fs"),{tmpdir}=require("node:os"),{join}=require("node:path");
-const{AthleteTransferService,AttendanceService,CommercialFoundation,CommercialInvitationService,CurriculumService,FamilyRelationshipService,InMemoryTestIdentityAuthority,JwtIdentityAuthority,OrganizationOnboardingService,PATH2LEGEND_RANKS,PersistentJsonCommercialStore,PostgresCommercialBoundary,PooledPostgresCommercialBoundary,ProgressionReadService,ROAD2CHAMPION_RANKS,RecoveryEvidenceService,SchedulingService,XpLedgerService}=require("../lib");
+const{AthleteTransferService,AttendanceService,CommercialFoundation,CommercialInvitationService,CurriculumService,FamilyRelationshipService,InMemoryTestIdentityAuthority,JwtIdentityAuthority,JwtVerifiedAccountProofAuthority,OrganizationOnboardingService,PATH2LEGEND_RANKS,PersistentJsonCommercialStore,PostgresCommercialBoundary,PooledPostgresCommercialBoundary,ProgressionReadService,ROAD2CHAMPION_RANKS,RecoveryEvidenceService,SchedulingService,XpLedgerService}=require("../lib");
 const A="complete-alpha",B="complete-beta",now=()=>new Date("2026-11-20T20:00:00Z");
 const onboarding=org=>({organizationId:org,organizationName:org,academyId:"academy",academyName:"Academy",locationId:"location",locationName:"Gym",programId:"program",programName:"Wrestling",disciplines:["wrestling"],administratorUserId:`admin-${org}`,coachUserId:`coach-${org}`,packageSource:"Plus",capabilityIds:["schedule.manage","attendance.manage","coach.workspace"],startsAt:"2026-01-01T00:00:00Z",expiresAt:"2027-01-01T00:00:00Z"});
 function setup(){const file=join(mkdtempSync(join(tmpdir(),"commercial-completion-")),"store.json"),identity=new InMemoryTestIdentityAuthority(),store=new PersistentJsonCommercialStore(file),foundation=new CommercialFoundation(store,identity,now),onboard=new OrganizationOnboardingService(foundation);for(const org of[A,B])onboard.onboard(identity.mint("root",org,true),onboarding(org));return{file,identity,store,foundation,family:new FamilyRelationshipService(foundation),curriculum:new CurriculumService(foundation,now),xp:new XpLedgerService(foundation,now),read:new ProgressionReadService(foundation),schedule:new SchedulingService(foundation),attendance:new AttendanceService(foundation,now),recovery:new RecoveryEvidenceService(foundation,now),admin:org=>identity.mint(`admin-${org}`,org),coach:org=>identity.mint(`coach-${org}`,org)};}
@@ -227,4 +227,40 @@ test("signed transfer packages fail closed for invalid consent metadata and rank
   assert.equal(transfers.accept(destination.admin,{
     organizationId:B,destinationAthleteId:"athlete",transferPackage:valid,acceptanceId:"valid"
   }).sourceOrganizationId,A);
+});
+
+
+test("Sprint 8 signed email account proof requires verified provider email and authenticated subject",()=>{
+  const {privateKey,publicKey}=generateKeyPairSync("rsa",{modulusLength:2048});
+  const pem=publicKey.export({type:"spki",format:"pem"});
+  const base={iss:"sandman-id",aud:"commercial",sub:"verified-user",org:A,exp:Math.floor(now().getTime()/1000)+300,jti:"email-proof",email:" Coach@Example.Test ",email_verified:true};
+  const identity=new JwtIdentityAuthority({issuer:"sandman-id",audience:"commercial",publicKey:()=>pem,isRevoked:()=>false,now});
+  const proof=new JwtVerifiedAccountProofAuthority(identity);
+  assert.deepEqual(proof.verify({sessionId:jwt(privateKey,"key-1",base)}),{userId:"verified-user",verifiedEmail:"coach@example.test"});
+  for(const changes of [{email_verified:false},{email_verified:"true"},{email_verified:undefined},{email:"not-an-email"},{email:""},{email:123},{exp:1},{sub:""}]){
+    assert.throws(()=>proof.verify({sessionId:jwt(privateKey,"key-1",{...base,...changes})}),/UNVERIFIED_ACCOUNT_PROOF/);
+  }
+  assert.throws(()=>proof.verify({sessionId:"unverified"}),/UNVERIFIED_ACCOUNT_PROOF/);
+});
+
+test("Sprint 8 organization switching requires trusted destination membership and correct reissued token",()=>{
+  const {privateKey,publicKey}=generateKeyPairSync("rsa",{modulusLength:2048});
+  const pem=publicKey.export({type:"spki",format:"pem"});
+  const base={iss:"sandman-id",aud:"commercial",sub:"member",org:A,exp:Math.floor(now().getTime()/1000)+300,jti:"original"};
+  const permitted=new Set([A,B]);
+  const makeAuthority=(extra={})=>new JwtIdentityAuthority({
+    issuer:"sandman-id",audience:"commercial",publicKey:()=>pem,isRevoked:()=>false,now,
+    canSwitchOrganization:(_,target)=>permitted.has(target),
+    issueOrganizationToken:(_,target)=>jwt(privateKey,"key-1",{...base,org:target,jti:"switched"}),
+    ...extra
+  });
+  const auth=makeAuthority(),ctx={sessionId:jwt(privateKey,"key-1",base)};
+  const switched=auth.switchOrganization(ctx,B);
+  assert.equal(auth.verify(switched).selectedOrganizationId,B);
+  assert.throws(()=>auth.switchOrganization(ctx,"not-member"),/ORGANIZATION_SWITCH_DENIED/);
+  assert.throws(()=>makeAuthority({canSwitchOrganization:()=>{throw new Error("membership data unavailable");}}).switchOrganization(ctx,B),/ORGANIZATION_SWITCH_DENIED/);
+  assert.throws(()=>makeAuthority({canSwitchOrganization:undefined}).switchOrganization(ctx,B),/ORGANIZATION_SWITCH_REQUIRES_TRUSTED_ISSUER/);
+  assert.throws(()=>makeAuthority({issueOrganizationToken:(_,target)=>jwt(privateKey,"key-1",{...base,org:A,jti:"wrong-target"})}).switchOrganization(ctx,B),/ORGANIZATION_SWITCH_DENIED/);
+  assert.throws(()=>makeAuthority({issueOrganizationToken:(_,target)=>jwt(privateKey,"key-1",{...base,org:target,sub:"another-user",jti:"wrong-user"})}).switchOrganization(ctx,B),/ORGANIZATION_SWITCH_DENIED/);
+  assert.throws(()=>makeAuthority({issueOrganizationToken:(_,target)=>"forged"}).switchOrganization(ctx,B),/ORGANIZATION_SWITCH_DENIED/);
 });
