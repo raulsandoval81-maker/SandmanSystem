@@ -43,7 +43,7 @@ jobs:
     env:
       PYTHONPATH: trusted/scripts/production:trusted/scripts/staging
       CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-      HISTORICAL_ENROLLMENT_ACTION: ${{ inputs.action }}
+      HISTORICAL_ENROLLMENT_ACTION: historical-enrollment-guarded-deploy
       DEPLOY_APPROVAL: ${{ inputs.deployment_approval }}
       CONFIRM_SOURCE_SHA: ${{ inputs.approved_source }}
       CONFIRM_PREFLIGHT_RUN: ${{ inputs.preflight_run }}
