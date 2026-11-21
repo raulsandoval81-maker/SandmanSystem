@@ -1,7 +1,7 @@
 import {
   AthleteIdentityLink, AuthorizationContext, CommercialAthlete, CurriculumAssignment,
   CurriculumDefinition, CurriculumRank, DevelopmentPathway, GuardianAthleteLink,
-  GuardianProfile, ProgressionCycle, PromotionRecord, SkillEvaluation, VerifiedIdentity,
+  GuardianProfile, PracticeSession, ProgressionCycle, PromotionRecord, RecoveryCase, SkillEvaluation, VerifiedIdentity,
   XpEvent, XpLane,
 } from "./contracts";
 import { CommercialFoundation } from "./foundation";
@@ -74,7 +74,7 @@ export class CurriculumService{
 
 export class XpLedgerService{
   constructor(private readonly foundation:CommercialFoundation,private readonly now=()=>new Date()){}
-  submitCoach(ctx:AuthorizationContext,input:{organizationId:string;athleteId:string;sourceEventId:string;lane:"strength"|"honor";amount:number;source:string;reason?:string}){const athlete=this.athlete(input.organizationId,input.athleteId);return authorized(this.foundation,ctx,"xp.coach","xpEvent",input.sourceEventId,input.organizationId,identity=>{
+  submitCoach(ctx:AuthorizationContext,input:{organizationId:string;athleteId:string;sourceEventId:string;lane:"strength"|"honor";amount:number;source:string;reason?:string;practiceSessionId?:string}){const athlete=this.athlete(input.organizationId,input.athleteId);return authorized(this.foundation,ctx,"xp.coach","xpEvent",input.sourceEventId,input.organizationId,identity=>{
     if(!(athlete.assignedCoachUserIds||[]).includes(identity.userId))throw new Error("COACH_NOT_ASSIGNED");
     if(input.lane==="strength"&&![5,10].includes(input.amount)||input.lane==="honor"&&input.amount!==5)throw new Error("UNAPPROVED_XP_AMOUNT");
     if(input.lane==="strength"&&input.source!=="structured-strength"||input.lane==="honor"&&input.source!=="verified-honor")throw new Error("UNVERIFIED_XP_SOURCE");
@@ -142,13 +142,43 @@ export class XpLedgerService{
     const record:PromotionRecord={id:input.promotionId,organizationId:input.organizationId,athleteId:athlete.id,cycleId:cycle.id,pathway:cycle.pathway,fromRank:current.key,toRank:next.key,historicalXpAtPromotion:cycle.lifetimeXp,promotedByUserId:identity.userId,promotedAt:this.now().toISOString(),requirementsVerified:true};
     this.foundation.store.put("promotions",record);this.foundation.store.put("progressionCycles",{...cycle,rankIndex:cycle.rankIndex+1,activeXp:0,earnedStripes:0,sequence:cycle.sequence+1},true);return record;
   }),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
-  private append(input:{organizationId:string;athleteId:string;sourceEventId:string;lane:XpLane;amount:number;source:string;reason?:string;correctionOf?:string},actor:string){return this.foundation.transaction(()=>{
+  private append(input:{organizationId:string;athleteId:string;sourceEventId:string;lane:XpLane;amount:number;source:string;reason?:string;correctionOf?:string;practiceSessionId?:string},actor:string){return this.foundation.transaction(()=>{
     if(!/^[a-zA-Z0-9._:-]+$/.test(input.sourceEventId)||this.foundation.store.list<XpEvent>("xpEvents",input.organizationId).some(e=>e.sourceEventId===input.sourceEventId))throw new Error("DUPLICATE_OR_INVALID_XP_EVENT");
     if(!Number.isInteger(input.amount))throw new Error("INVALID_XP_AMOUNT");const cycle=this.cycle(input.organizationId,input.athleteId),rank=ranksFor(cycle.pathway)[cycle.rankIndex];
     if(input.correctionOf){const original=this.foundation.store.get<XpEvent>("xpEvents",input.organizationId,input.correctionOf);if(!original||original.athleteId!==input.athleteId)throw new Error("INVALID_CORRECTION_REFERENCE");}
-    const historicalFloor=this.foundation.store.list<PromotionRecord>("promotions",input.organizationId).filter(p=>p.athleteId===input.athleteId).reduce((max,p)=>Math.max(max,p.historicalXpAtPromotion),0),nextLifetime=cycle.lifetimeXp+input.amount;if(nextLifetime<historicalFloor)throw new Error("PROMOTION_HISTORY_FLOOR_PROTECTED");
-    const floor=Math.ceil(rank.requiredXp*Math.min(4,cycle.earnedStripes)/4),next=Math.max(floor,cycle.activeXp+input.amount);if(input.amount<0&&next!==cycle.activeXp+input.amount)throw new Error("EARNED_STRIPE_FLOOR_PROTECTED");
-    const event:XpEvent={id:input.sourceEventId,organizationId:input.organizationId,athleteId:input.athleteId,cycleId:cycle.id,rankIndexAtAward:cycle.rankIndex,lane:input.lane,amount:input.amount,source:input.source,sourceEventId:input.sourceEventId,actorUserId:actor,reason:input.reason,correctionOf:input.correctionOf,occurredAt:this.now().toISOString()};
+    const operationalAmount=input.amount;
+    if(input.lane==="strength"||input.lane==="honor"){
+      const recoveries=this.foundation.store.list<RecoveryCase>("recoveryCases",input.organizationId).filter(c=>c.athleteId===input.athleteId&&c.state==="evidence_pending");
+      if(recoveries.length>1)throw new Error("AMBIGUOUS_RECOVERY_CASE");const recovery=recoveries[0];
+      if(recovery)throw new Error("RECOVERY_RETURN_PRACTICE_REQUIRED");
+      const completed=this.foundation.store.list<RecoveryCase>("recoveryCases",input.organizationId).filter(c=>c.athleteId===input.athleteId&&c.state==="completed");
+      if(completed.length){
+        // After any recovery, a Coach award requires verified session provenance.
+        // An omitted or unrelated session ID must never bypass the zero-XP return practice.
+        if(!input.practiceSessionId)throw new Error("RECOVERY_XP_PRACTICE_REQUIRED");
+        if(completed.some(c=>c.returnPracticeSessionId===input.practiceSessionId))throw new Error("RETURN_PRACTICE_AWARDS_ZERO_COMBAT_XP");
+        const athlete=this.athlete(input.organizationId,input.athleteId);
+        const session=this.foundation.store.get<PracticeSession>("sessions",input.organizationId,input.practiceSessionId);
+        const attendance=this.foundation.store.get<import("./contracts").AttendanceRecord>("attendance",input.organizationId,`${input.practiceSessionId}--${input.athleteId}`);
+        const startsAt=session?Date.parse(session.startsAt):NaN,endsAt=session?Date.parse(session.endsAt):NaN;
+        if(!session||session.state!=="completed"||!athlete.academyId||!athlete.locationId||
+          session.academyId!==athlete.academyId||session.locationId!==athlete.locationId||
+          session.programId!==athlete.programId||!session.coachUserIds.includes(actor)||
+          !Number.isFinite(startsAt)||!Number.isFinite(endsAt)||endsAt<=startsAt||
+          endsAt>this.now().getTime()||!attendance||attendance.athleteId!==athlete.id||
+          attendance.sessionId!==session.id||attendance.state!=="present")
+          throw new Error("RECOVERY_XP_PRACTICE_UNVERIFIED");
+        for(const completedCase of completed){
+          const returnSession=completedCase.returnPracticeSessionId&&this.foundation.store.get<PracticeSession>("sessions",input.organizationId,completedCase.returnPracticeSessionId);
+          const returnEnd=returnSession?Date.parse(returnSession.endsAt):NaN;
+          if(!Number.isFinite(returnEnd)||startsAt<returnEnd)
+            throw new Error("RECOVERY_XP_PRACTICE_NOT_AFTER_RETURN");
+        }
+      }
+    }
+    const historicalFloor=this.foundation.store.list<PromotionRecord>("promotions",input.organizationId).filter(p=>p.athleteId===input.athleteId).reduce((max,p)=>Math.max(max,p.historicalXpAtPromotion),0),nextLifetime=cycle.lifetimeXp+operationalAmount;if(nextLifetime<historicalFloor)throw new Error("PROMOTION_HISTORY_FLOOR_PROTECTED");
+    const floor=Math.ceil(rank.requiredXp*Math.min(4,cycle.earnedStripes)/4),next=Math.max(floor,cycle.activeXp+operationalAmount);if(operationalAmount<0&&next!==cycle.activeXp+operationalAmount)throw new Error("EARNED_STRIPE_FLOOR_PROTECTED");
+    const event:XpEvent={id:input.sourceEventId,organizationId:input.organizationId,athleteId:input.athleteId,cycleId:cycle.id,rankIndexAtAward:cycle.rankIndex,lane:input.lane,amount:input.amount,source:input.source,sourceEventId:input.sourceEventId,actorUserId:actor,reason:input.reason,correctionOf:input.correctionOf,practiceSessionId:input.practiceSessionId,occurredAt:this.now().toISOString()};
     const stripes=Math.max(cycle.earnedStripes,Math.min(4,Math.floor(next/(rank.requiredXp/4))));this.foundation.store.put("xpEvents",event);this.foundation.store.put("progressionCycles",{...cycle,activeXp:next,lifetimeXp:Math.max(0,nextLifetime),earnedStripes:stripes},true);return event;
   });}
   private cycle(org:string,athleteId:string){const cycles=this.foundation.store.list<ProgressionCycle>("progressionCycles",org).filter(c=>c.athleteId===athleteId&&c.state==="active");if(cycles.length!==1)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");return cycles[0];}
