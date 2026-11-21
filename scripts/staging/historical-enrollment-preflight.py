@@ -65,7 +65,7 @@ def candidate(root):
     for name, (_, entry) in TARGETS.items():
         lib = root / "functions"
         closure = release.inventory.closure(lib, entry)
-        release.PLAN["functions"][name] = {"candidateClosureSha256": release.digest(closure)}
+        release.PLAN["functions"].setdefault(name, {})["candidateClosureSha256"] = release.digest(closure)
         archive = release.package(name, lib)
         release.check_export(name, archive, lib)
         functions[name] = {"fileSetSha256": release.digest(release.archive_hashes(archive)),
