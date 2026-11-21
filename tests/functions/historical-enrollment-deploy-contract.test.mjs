@@ -48,7 +48,7 @@ test("all three candidate package pins exactly match preflight #44856250072", ()
     recordProposalPrepaidCash: "4f14dddf3bb4ce227990b9a7cf6a26a40de888fecef7898d480d03777fcc2cb6",
   };
   for (const [name, hash] of Object.entries(expectedPins)) {
-    const functionSection = script.split('"' + name + '": {')[1]?.split('\\n    },')[0];
+    const functionSection = script.split('"' + name + '": {')[1]?.split('\n    },')[0];
     assert.ok(functionSection, 'Missing baseline for ' + name);
     assert.ok(functionSection.includes('"fileSetSha256": "' + hash + '"'),
       'Incorrect approved candidate SHA-256 for ' + name);
