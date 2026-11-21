@@ -7,11 +7,13 @@ import {PooledPostgresCommercialBoundary} from "./postgres";
 import {PostgresAuth0OrganizationResolver,PostgresTokenRevocationStore} from "./postgresRevocation";
 import {PostgresAuthorizationTransactionStore,PostgresWebSessionStore} from "./postgresWebAuth";
 import {PostgresCommercialApplication} from "./postgresApplication";
+import {CoachDashboard} from "./coachDashboard";
+import {renderCoachDashboard} from "./coachDashboardView";
 
 type OrganizationOption={id:string;name:string};
 const cookieName="__Host-commercial_session";
 const escape=(value:string)=>value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]!));
-const page=(title:string,body:string)=>`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)} · Sandman Commercial DEV</title><style>body{font:16px system-ui;max-width:760px;margin:64px auto;padding:0 20px;color:#171717}a,button{background:#171717;color:#fff;border:0;border-radius:6px;padding:10px 14px;text-decoration:none;cursor:pointer}.card{border:1px solid #ddd;border-radius:10px;padding:24px;margin:18px 0}.muted{color:#666}form{display:inline}li{margin:18px 0}</style></head><body><h1>Sandman Commercial <small class="muted">DEV</small></h1>${body}</body></html>`;
+const page=(title:string,body:string)=>`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)} · Sandman Commercial DEV</title><style>body{font:16px system-ui;max-width:760px;margin:64px auto;padding:0 20px;color:#171717}a,button{background:#171717;color:#fff;border:0;border-radius:6px;padding:10px 14px;text-decoration:none;cursor:pointer}.card{border:1px solid #ddd;border-radius:10px;padding:24px;margin:18px 0}.muted{color:#666}form{display:inline}li{margin:18px 0}nav{display:flex;flex-wrap:wrap;gap:8px}.stack{display:grid;gap:10px;margin:18px 0}.stack label{display:grid;gap:4px}.stack input,.stack select,.stack textarea{font:inherit;padding:7px;border:1px solid #aaa;border-radius:4px}article+article{border-top:1px solid #ddd;margin-top:20px}</style></head><body><h1>Sandman Commercial <small class="muted">DEV</small></h1>${body}</body></html>`;
 const send=(res:ServerResponse,status:number,body:string,headers:Record<string,string>={})=>{res.writeHead(status,{"content-type":"text/html; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff","content-security-policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",...headers});res.end(body);};
 const redirect=(res:ServerResponse,location:string,headers:Record<string,string>={})=>{res.writeHead(302,{location,"cache-control":"no-store",...headers});res.end();};
 const parseCookie=(request:IncomingMessage)=>Object.fromEntries((request.headers.cookie??"").split(";").map(value=>value.trim().split("=")).filter(pair=>pair.length===2).map(([key,value])=>[key,decodeURIComponent(value)]));
@@ -44,7 +46,23 @@ export async function startCommercialWebServer(env:NodeJS.ProcessEnv=process.env
     const cookie=parseCookie(req)[cookieName],session=cookie?await sessions.get(cookie):undefined;
     if(!session||session.expiresAt<=Date.now()){if(cookie)await sessions.delete(cookie);redirect(res,"/",{"set-cookie":clearCookie});return;}
     const verified=await oidc.authority.verify({sessionId:session.accessToken}),memberships=await app.activeMemberships(verified.identity.selectedOrganizationId,verified.identity.userId);if(!memberships.length)throw new Error("MEMBERSHIP_REQUIRED");
-    if(req.method==="GET"&&url.pathname==="/dashboard"){const roles=memberships.map(m=>`<li>${escape(m.role)} — ${escape(m.scopeType)}: ${escape(m.scopeId)}</li>`).join("");send(res,200,page("Dashboard",`<div class="card"><h2>Development dashboard</h2><p>Signed in as <strong>${escape(verified.account.verifiedEmail)}</strong></p><p>Organization: <strong>${escape(verified.identity.selectedOrganizationId)}</strong></p><ul>${roles}</ul><p><a href="/">Switch organization</a></p><form method="post" action="/auth/logout"><input type="hidden" name="csrf" value="${escape(session.csrfToken)}"><button type="submit">Log out</button></form></div>`));return;}
+    if(url.pathname==="/coach"&&(req.method==="GET"||req.method==="POST")){
+      const ctx={sessionId:session.accessToken};
+      const dashboard=(foundation:import("./foundation").CommercialFoundation)=>new CoachDashboard(foundation,ctx,verified.identity);
+      if(req.method==="GET"){
+        const view=await app.readWithIdentity(ctx,verified.identity,foundation=>dashboard(foundation).snapshot());
+        send(res,200,page("Coach Dashboard",renderCoachDashboard(view,session.csrfToken,url.searchParams.get("athlete"))));
+        return;
+      }
+      let body="";
+      for await(const chunk of req){body+=chunk;if(Buffer.byteLength(body)>8192)throw new Error("REQUEST_TOO_LARGE");}
+      const fields=new URLSearchParams(body);
+      if(fields.get("csrf")!==session.csrfToken)throw new Error("CSRF_REJECTED");
+      await app.runWithIdentity(verified.identity.selectedOrganizationId,ctx,verified.identity,foundation=>dashboard(foundation).submit(fields));
+      redirect(res,"/coach");
+      return;
+    }
+    if(req.method==="GET"&&url.pathname==="/dashboard"){const coachLink=memberships.some(m=>["organization_admin","management","coach"].includes(m.role))?'<p><a href="/coach">Coach Dashboard</a></p>':"";const roles=memberships.map(m=>`<li>${escape(m.role)} — ${escape(m.scopeType)}: ${escape(m.scopeId)}</li>`).join("");send(res,200,page("Dashboard",`<div class="card"><h2>Development dashboard</h2><p>Signed in as <strong>${escape(verified.account.verifiedEmail)}</strong></p><p>Organization: <strong>${escape(verified.identity.selectedOrganizationId)}</strong></p><ul>${roles}</ul>${coachLink}<p><a href="/">Switch organization</a></p><form method="post" action="/auth/logout"><input type="hidden" name="csrf" value="${escape(session.csrfToken)}"><button type="submit">Log out</button></form></div>`));return;}
     if(req.method==="POST"&&url.pathname==="/auth/logout"){let body="";for await(const chunk of req){body+=chunk;if(body.length>4096)throw new Error("REQUEST_TOO_LARGE");}if(new URLSearchParams(body).get("csrf")!==session.csrfToken)throw new Error("CSRF_REJECTED");await revocations.revoke({organizationId:verified.identity.selectedOrganizationId,tokenId:verified.tokenId,subject:verified.identity.userId,expiresAt:verified.expiresAt});await sessions.delete(cookie);const location=new URL(logoutUrl);location.searchParams.set("client_id",webClientId);location.searchParams.set("returnTo",config.baseUrl);redirect(res,location.toString(),{"set-cookie":clearCookie});return;}
     send(res,404,page("Not found","<div class=\"card\"><h2>Not found</h2><a href=\"/\">Home</a></div>"));
   }catch(error){console.error("commercial_web_request_failed",error instanceof Error?error.message:"UNKNOWN");send(res,401,page("Access denied","<div class=\"card\"><h2>Access denied</h2><p>Your session or organization membership could not be verified.</p><a href=\"/\">Return to sign in</a></div>"),{"set-cookie":clearCookie});}});
