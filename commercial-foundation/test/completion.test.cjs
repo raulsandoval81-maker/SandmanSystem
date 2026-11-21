@@ -100,3 +100,34 @@ test("post-recovery XP rejects omitted, forged, old, unverified and return-sessi
   assert.equal(award("after-return","next-session").amount,5);
   assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").activeXp,5);
 });
+
+
+test("PostgreSQL boundaries sharing a connection serialize tenant contexts",async()=>{
+  const trace=[];
+  let activeTenant;
+  const client={query:async(sql,values)=>{
+    trace.push(sql==="SELECT set_config('app.organization_id', $1, true)"?`SET:${values[0]}`:sql);
+    if(sql==="BEGIN"){assert.equal(activeTenant,undefined,"a second transaction entered before the first committed");}
+    if(sql==="SELECT set_config('app.organization_id', $1, true)")activeTenant=values[0];
+    if(sql==="SELECT active_tenant")return{rows:[{tenant:activeTenant}],rowCount:1};
+    if(sql==="COMMIT"||sql==="ROLLBACK")activeTenant=undefined;
+    return{rows:[],rowCount:0};
+  }};
+  const a=new PostgresCommercialBoundary(client),b=new PostgresCommercialBoundary(client);
+  const [tenantA,tenantB]=await Promise.all([
+    a.tenantTransaction(A,async db=>{
+      const first=(await db.query("SELECT active_tenant")).rows[0].tenant;
+      await Promise.resolve();
+      const second=(await db.query("SELECT active_tenant")).rows[0].tenant;
+      assert.equal(first,second);
+      return second;
+    }),
+    b.tenantTransaction(B,async db=>(await db.query("SELECT active_tenant")).rows[0].tenant)
+  ]);
+  assert.equal(tenantA,A);
+  assert.equal(tenantB,B);
+  assert.deepEqual(trace,[
+    "BEGIN",`SET:${A}`,"SELECT active_tenant","SELECT active_tenant","COMMIT",
+    "BEGIN",`SET:${B}`,"SELECT active_tenant","COMMIT"
+  ]);
+});
