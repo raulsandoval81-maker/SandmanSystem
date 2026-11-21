@@ -33,3 +33,30 @@ export class PostgresCommercialBoundary{
   }
   async tenantTransaction<T>(organizationId:string,work:(client:SqlClient)=>Promise<T>):Promise<T>{if(!/^[a-zA-Z0-9][a-zA-Z0-9._:-]*$/.test(organizationId))throw new Error("INVALID_TENANT_ID");return exclusively(this.client,async()=>{await this.client.query("BEGIN");try{await this.client.query("SELECT set_config('app.organization_id', $1, true)",[organizationId]);const result=await work(this.client);await this.client.query("COMMIT");return result;}catch(error){await this.client.query("ROLLBACK");throw error;} });}
 }
+
+
+/** Connection leasing contract compatible with a PostgreSQL client's pool.connect(). */
+export interface LeasedSqlClient extends SqlClient {release():void}
+export interface SqlConnectionPool {connect():Promise<LeasedSqlClient>}
+
+/**
+ * A transaction's BEGIN, tenant-local RLS configuration, queries, and COMMIT
+ * must use the same leased connection. Never run tenant transactions through
+ * the pool's query() convenience method: those queries may use different clients.
+ *
+ * No implicit database provision or connection is performed by this class.
+ */
+export class PooledPostgresCommercialBoundary {
+  constructor(private readonly pool:SqlConnectionPool){}
+  private async withLease<T>(work:(boundary:PostgresCommercialBoundary)=>Promise<T>):Promise<T>{
+    const client=await this.pool.connect();
+    try{return await work(new PostgresCommercialBoundary(client));}
+    finally{client.release();}
+  }
+  async migrate(id:string,sql:string):Promise<"applied"|"already_applied">{
+    return this.withLease(boundary=>boundary.migrate(id,sql));
+  }
+  async tenantTransaction<T>(organizationId:string,work:(client:SqlClient)=>Promise<T>):Promise<T>{
+    return this.withLease(boundary=>boundary.tenantTransaction(organizationId,work));
+  }
+}

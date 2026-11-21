@@ -1,6 +1,6 @@
 const test=require("node:test"),assert=require("node:assert/strict");
 const{generateKeyPairSync,sign}=require("node:crypto"),{mkdtempSync,readFileSync}=require("node:fs"),{tmpdir}=require("node:os"),{join}=require("node:path");
-const{AthleteTransferService,AttendanceService,CommercialFoundation,CommercialInvitationService,CurriculumService,FamilyRelationshipService,InMemoryTestIdentityAuthority,JwtIdentityAuthority,OrganizationOnboardingService,PATH2LEGEND_RANKS,PersistentJsonCommercialStore,PostgresCommercialBoundary,ProgressionReadService,ROAD2CHAMPION_RANKS,RecoveryEvidenceService,SchedulingService,XpLedgerService}=require("../lib");
+const{AthleteTransferService,AttendanceService,CommercialFoundation,CommercialInvitationService,CurriculumService,FamilyRelationshipService,InMemoryTestIdentityAuthority,JwtIdentityAuthority,OrganizationOnboardingService,PATH2LEGEND_RANKS,PersistentJsonCommercialStore,PostgresCommercialBoundary,PooledPostgresCommercialBoundary,ProgressionReadService,ROAD2CHAMPION_RANKS,RecoveryEvidenceService,SchedulingService,XpLedgerService}=require("../lib");
 const A="complete-alpha",B="complete-beta",now=()=>new Date("2026-11-20T20:00:00Z");
 const onboarding=org=>({organizationId:org,organizationName:org,academyId:"academy",academyName:"Academy",locationId:"location",locationName:"Gym",programId:"program",programName:"Wrestling",disciplines:["wrestling"],administratorUserId:`admin-${org}`,coachUserId:`coach-${org}`,packageSource:"Plus",capabilityIds:["schedule.manage","attendance.manage","coach.workspace"],startsAt:"2026-01-01T00:00:00Z",expiresAt:"2027-01-01T00:00:00Z"});
 function setup(){const file=join(mkdtempSync(join(tmpdir(),"commercial-completion-")),"store.json"),identity=new InMemoryTestIdentityAuthority(),store=new PersistentJsonCommercialStore(file),foundation=new CommercialFoundation(store,identity,now),onboard=new OrganizationOnboardingService(foundation);for(const org of[A,B])onboard.onboard(identity.mint("root",org,true),onboarding(org));return{file,identity,store,foundation,family:new FamilyRelationshipService(foundation),curriculum:new CurriculumService(foundation,now),xp:new XpLedgerService(foundation,now),read:new ProgressionReadService(foundation),schedule:new SchedulingService(foundation),attendance:new AttendanceService(foundation,now),recovery:new RecoveryEvidenceService(foundation,now),admin:org=>identity.mint(`admin-${org}`,org),coach:org=>identity.mint(`coach-${org}`,org)};}
@@ -130,4 +130,46 @@ test("PostgreSQL boundaries sharing a connection serialize tenant contexts",asyn
     "BEGIN",`SET:${A}`,"SELECT active_tenant","SELECT active_tenant","COMMIT",
     "BEGIN",`SET:${B}`,"SELECT active_tenant","COMMIT"
   ]);
+});
+
+
+test("pooled PostgreSQL transactions lease dedicated connections and always release them",async()=>{
+  const trace=[],released=[];
+  let next=0;
+  const pool={connect:async()=>{
+    const id=++next;
+    let tenant=null,withinTransaction=false;
+    trace.push(`CONNECT:${id}`);
+    return{
+      query:async(sql,values)=>{
+        if(sql==="BEGIN"){assert.equal(withinTransaction,false);withinTransaction=true;}
+        if(sql==="SELECT set_config('app.organization_id', $1, true)"){assert.equal(withinTransaction,true);tenant=values[0];}
+        if(sql==="SELECT current_tenant"){assert.equal(withinTransaction,true);return{rows:[{tenant,connection:id}],rowCount:1};}
+        if(sql==="FAIL")throw new Error("database error");
+        if(sql==="ROLLBACK"||sql==="COMMIT"){assert.equal(withinTransaction,true);withinTransaction=false;}
+        trace.push(`${id}:${sql}`);
+        return{rows:[],rowCount:0};
+      },
+      release:()=>{assert.equal(withinTransaction,false,"connection released with a transaction still active");released.push(id);trace.push(`RELEASE:${id}`);}
+    };
+  }};
+  const boundary=new PooledPostgresCommercialBoundary(pool);
+  const [alpha,beta]=await Promise.all([
+    boundary.tenantTransaction(A,async db=>{
+      const first=(await db.query("SELECT current_tenant")).rows[0];
+      await Promise.resolve();
+      const second=(await db.query("SELECT current_tenant")).rows[0];
+      assert.deepEqual(first,second);
+      return first;
+    }),
+    boundary.tenantTransaction(B,async db=>(await db.query("SELECT current_tenant")).rows[0])
+  ]);
+  assert.equal(alpha.tenant,A);
+  assert.equal(beta.tenant,B);
+  assert.notEqual(alpha.connection,beta.connection);
+  assert.deepEqual(released.slice().sort((a,b)=>a-b),[1,2]);
+  await assert.rejects(()=>boundary.tenantTransaction(A,async db=>db.query("FAIL")),/database error/);
+  assert.deepEqual(released.slice().sort((a,b)=>a-b),[1,2,3]);
+  assert.ok(trace.includes("3:ROLLBACK"));
+  await assert.rejects(()=>new PooledPostgresCommercialBoundary({connect:async()=>{throw new Error("connection unavailable");}}).tenantTransaction(A,async()=>{}),/connection unavailable/);
 });
