@@ -80,3 +80,32 @@ test("restart rejects malformed guardian permissions and duplicate active athlet
   writeFileSync(f.file,JSON.stringify(original));
   assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
 });
+
+test("location manager may link and revoke only its own athlete family relationships",()=>{
+  const f=setup(),access=familyFlow(f,A,f.adminA);
+  f.foundation.createLocation(f.adminA,{id:"location-two",organizationId:A,academyId:"academy-local",name:"Second Gym",state:"active"});
+  f.foundation.assignMembership(f.adminA,{id:"manager-one",organizationId:A,userId:"manager-one",role:"management",scopeType:"location",scopeId:"location-local",state:"active"});
+  f.foundation.assignMembership(f.adminA,{id:"manager-two",organizationId:A,userId:"manager-two",role:"management",scopeType:"location",scopeId:"location-two",state:"active"});
+  const own=f.identity.mint("manager-one",A),other=f.identity.mint("manager-two",A);
+  const link={id:"manager-link",organizationId:A,guardianId:"guardian-local",athleteId:"athlete-local",state:"active",permissions:["progression"]};
+  assert.throws(()=>f.family.linkGuardian(other,link),/ROLE_DENIED/);
+  assert.equal(f.family.linkGuardian(own,link).state,"active");
+  assert.equal(f.family.revokeGuardian(own,A,"manager-link").state,"revoked");
+  assert.throws(()=>f.family.revokeGuardian(other,A,"family-link"),/ROLE_DENIED/);
+  assert.equal(f.store.get("guardianLinks",A,"family-link").state,"active");
+  assert.equal(f.parent.overview(access.parent,A).athletes.length,1);
+  assert.throws(()=>f.family.linkGuardian(f.identity.mint("outsider",A),{...link,id:"outsider-link"}),/MEMBERSHIP_REQUIRED/);
+});
+test("location manager cannot link identities for athletes at other locations or with unspecified location",()=>{
+  const f=setup();familyFlow(f,A,f.adminA);
+  f.foundation.createLocation(f.adminA,{id:"location-two",organizationId:A,academyId:"academy-local",name:"Second Gym",state:"active"});
+  f.foundation.assignMembership(f.adminA,{id:"manager-other",organizationId:A,userId:"manager-other",role:"management",scopeType:"location",scopeId:"location-two",state:"active"});
+  f.foundation.assignMembership(f.adminA,{id:"manager-own",organizationId:A,userId:"manager-own",role:"management",scopeType:"location",scopeId:"location-local",state:"active"});
+  f.foundation.assignMembership(f.adminA,{id:"second-athlete-member",organizationId:A,userId:"second-athlete-user",role:"athlete",scopeType:"organization",scopeId:A,state:"active"});
+  const own=f.identity.mint("manager-own",A),other=f.identity.mint("manager-other",A);
+  const idLink={id:"another-identity",organizationId:A,userId:"second-athlete-user",athleteId:"athlete-local",state:"active",access:"minor_read_only"};
+  assert.throws(()=>f.family.linkAthleteIdentity(other,idLink),/ROLE_DENIED/);
+  assert.equal(f.family.linkAthleteIdentity(own,idLink).state,"active");
+  f.family.registerAthlete(f.adminA,{id:"unscoped-athlete",organizationId:A,academyId:"academy-local",programId:"program-local",displayName:"Unscoped Synthetic",synthetic:true,participationState:"active",adult:false});
+  assert.throws(()=>f.family.linkAthleteIdentity(own,{...idLink,id:"unscoped-id",athleteId:"unscoped-athlete"}),/ROLE_DENIED/);
+});
