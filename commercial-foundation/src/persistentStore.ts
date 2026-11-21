@@ -8,7 +8,7 @@ interface PersistedState {
   schema: "sandman.commercial.local-store.v1";
   organizations: Organization[];
   academies: TenantRecord[]; locations: TenantRecord[]; programs: TenantRecord[];
-  memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; guardians: TenantRecord[]; guardianLinks: TenantRecord[]; athleteIdentityLinks: TenantRecord[]; curricula: TenantRecord[]; curriculumAssignments: TenantRecord[]; skillEvaluations: TenantRecord[]; progressionCycles: TenantRecord[]; xpEvents: TenantRecord[]; promotions: TenantRecord[]; audits: AuditEvent[];
+  memberships: TenantRecord[]; entitlements: TenantRecord[]; sessions: TenantRecord[]; athletes: TenantRecord[]; attendance: TenantRecord[]; practiceNotes: TenantRecord[]; guardians: TenantRecord[]; guardianLinks: TenantRecord[]; athleteIdentityLinks: TenantRecord[]; curricula: TenantRecord[]; curriculumAssignments: TenantRecord[]; skillEvaluations: TenantRecord[]; progressionCycles: TenantRecord[]; xpEvents: TenantRecord[]; promotions: TenantRecord[]; accessInvitations: TenantRecord[]; recoveryCases: TenantRecord[]; recoveryEvidence: TenantRecord[]; transferAcceptances: TenantRecord[]; audits: AuditEvent[];
 }
 
 /**
@@ -28,7 +28,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
   private load(): void {
     const state = JSON.parse(readFileSync(this.filePath, "utf8")) as PersistedState;
     if (state.schema !== "sandman.commercial.local-store.v1") throw new Error("INVALID_PERSISTENCE_SCHEMA");
-    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.guardians, state.guardianLinks, state.athleteIdentityLinks, state.curricula, state.curriculumAssignments, state.skillEvaluations, state.progressionCycles, state.xpEvents, state.promotions, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
+    if (![state.organizations, state.academies, state.locations, state.programs, state.memberships, state.entitlements, state.sessions, state.athletes, state.attendance, state.practiceNotes, state.guardians, state.guardianLinks, state.athleteIdentityLinks, state.curricula, state.curriculumAssignments, state.skillEvaluations, state.progressionCycles, state.xpEvents, state.promotions, state.accessInvitations, state.recoveryCases, state.recoveryEvidence, state.transferAcceptances, state.audits].every(Array.isArray)) throw new Error("INVALID_PERSISTENCE_SHAPE");
     for (const record of state.organizations) { assertId(record.id); if (!record.displayName?.trim() || !["active","suspended","archived"].includes(record.state)) throw new Error("INVALID_PERSISTED_ORGANIZATION"); super.createOrganization(record); }
     for (const record of state.academies as TenantRecord[]) { assertId(record.id); assertId(record.organizationId,"organizationId"); if (!this.getOrganization(record.organizationId)) throw new Error("INVALID_PERSISTED_TENANT_REFERENCE"); super.put("academies",record); }
     for (const record of state.locations as TenantRecord[]) { assertId(record.id); const value = record as import("./contracts").Location; if (!this.get<import("./contracts").Academy>("academies",value.organizationId,value.academyId)) throw new Error("INVALID_PERSISTED_ACADEMY_REFERENCE"); super.put("locations",record); }
@@ -48,6 +48,10 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
     for (const record of state.progressionCycles as TenantRecord[]) super.put("progressionCycles",record);
     for (const record of state.xpEvents as TenantRecord[]) super.put("xpEvents",record);
     for (const record of state.promotions as TenantRecord[]) super.put("promotions",record);
+    for (const record of state.accessInvitations as TenantRecord[]) super.put("accessInvitations",record);
+    for (const record of state.recoveryCases as TenantRecord[]) super.put("recoveryCases",record);
+    for (const record of state.recoveryEvidence as TenantRecord[]) super.put("recoveryEvidence",record);
+    for (const record of state.transferAcceptances as TenantRecord[]) super.put("transferAcceptances",record);
     // Loading is fail-closed: every child and authorization scope must resolve inside its own tenant.
     for (const academy of this.academies.values()) {
       if (!this.getOrganization(academy.organizationId) || !academy.name?.trim() || !["active", "suspended", "archived"].includes(academy.state)) throw new Error("INVALID_PERSISTED_ACADEMY");
@@ -228,6 +232,28 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
         throw new Error("INVALID_PERSISTED_PROMOTION");
       promotionKeys.add(key);
     }
+    for(const invitation of this.accessInvitations.values()){
+      const scopeValid=invitation.scopeType==="organization"?invitation.scopeId===invitation.organizationId:!!this.get(invitation.scopeType==="academy"?"academies":"locations",invitation.organizationId,invitation.scopeId);
+      if(!this.getOrganization(invitation.organizationId)||!scopeValid||!/^[a-f0-9]{64}$/.test(invitation.tokenDigest)||!invitation.email?.includes("@")||!["pending","accepted","revoked","expired"].includes(invitation.state)||!validDate(invitation.invitedAt)||!validDate(invitation.expiresAt)||(invitation.state==="accepted"&&(!invitation.acceptedByUserId||!invitation.acceptedAt||!validDate(invitation.acceptedAt))))throw new Error("INVALID_PERSISTED_ACCESS_INVITATION");
+    }
+    for(const recovery of this.recoveryCases.values()){
+      const athlete=this.get("athletes",recovery.organizationId,recovery.athleteId),cycle=this.get<import("./contracts").ProgressionCycle>("progressionCycles",recovery.organizationId,recovery.cycleId);
+      if(!athlete||!cycle||cycle.athleteId!==recovery.athleteId||recovery.policyActivated!==false||!["evidence_pending","evidence_verified","cancelled"].includes(recovery.state)||!Array.isArray(recovery.verifiedPracticeIds)||new Set(recovery.verifiedPracticeIds).size!==recovery.verifiedPracticeIds.length||!validDate(recovery.openedAt))throw new Error("INVALID_PERSISTED_RECOVERY_CASE");
+    }
+    for(const evidence of this.recoveryEvidence.values()){
+      const recovery=this.get<import("./contracts").RecoveryCase>("recoveryCases",evidence.organizationId,evidence.recoveryCaseId),session=this.get("sessions",evidence.organizationId,evidence.sessionId),attendance=this.get("attendance",evidence.organizationId,`${evidence.sessionId}--${evidence.athleteId}`) as {state?:string}|undefined;
+      if(!recovery||recovery.athleteId!==evidence.athleteId||!session||attendance?.state!=="present"||evidence.fullParticipation!==true||!recovery.verifiedPracticeIds.includes(evidence.sessionId)||!validDate(evidence.verifiedAt))throw new Error("INVALID_PERSISTED_RECOVERY_EVIDENCE");
+    }
+    const transferDigests=new Set<string>();
+    const transferAthletes=new Set<string>();
+    const transferRankKeys:Record<string,string[]>={road2champion:["shadow","prospect","competitor","contender","champion"],path2legend:["apprentice","warrior","hero","veteran","legend"]};
+    for(const transfer of this.transferAcceptances.values()){
+      const athlete=this.get("athletes",transfer.organizationId,transfer.destinationAthleteId),cycle=this.list<import("./contracts").ProgressionCycle>("progressionCycles",transfer.organizationId).find(c=>c.athleteId===transfer.destinationAthleteId&&c.state==="active");
+      const athleteKey=JSON.stringify([transfer.organizationId,transfer.destinationAthleteId]);
+      const keys=transferRankKeys[transfer.pathway]||[],historyValid=Array.isArray(transfer.promotionHistory)&&transfer.promotionHistory.length===transfer.rankIndex&&transfer.promotionHistory.every((p,index)=>p.fromRank===keys[index]&&p.toRank===keys[index+1]&&validDate(p.promotedAt)&&(index===0||Date.parse(p.promotedAt)>=Date.parse(transfer.promotionHistory[index-1].promotedAt)));
+      const threshold=expectedRanks[transfer.pathway]?.[transfer.rankIndex];
+      if(!athlete||!cycle||transfer.sourceOrganizationId===transfer.organizationId||cycle.pathway!==transfer.pathway||!/^[a-f0-9]{64}$/.test(transfer.packageDigest)||transferDigests.has(transfer.packageDigest)||transferAthletes.has(athleteKey)||!Number.isInteger(transfer.rankIndex)||transfer.rankIndex<0||transfer.rankIndex>4||!Number.isInteger(transfer.activeXp)||transfer.activeXp<0||!Number.isInteger(transfer.lifetimeXp)||transfer.lifetimeXp<transfer.activeXp||!Number.isInteger(transfer.earnedStripes)||transfer.earnedStripes<0||transfer.earnedStripes>4||!threshold||transfer.activeXp<Math.ceil(threshold*transfer.earnedStripes/4)||!historyValid||!validDate(transfer.acceptedAt))throw new Error("INVALID_PERSISTED_TRANSFER_ACCEPTANCE");transferDigests.add(transfer.packageDigest);transferAthletes.add(athleteKey);
+    }
     // Deterministic local ledger replay: events are append-only and tagged with the
     // rank cycle in which they were awarded. Rank transitions reset only active XP.
     for(const cycle of this.progressionCycles.values()){
@@ -238,11 +264,13 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       if(!ranks||ranks.length!==5)throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
       const events=this.list<import("./contracts").XpEvent>("xpEvents",org).filter(e=>e.cycleId===cycle.id);
       const promotions=this.list<import("./contracts").PromotionRecord>("promotions",org).filter(p=>p.cycleId===cycle.id);
-      if(promotions.length!==cycle.rankIndex||cycle.sequence!==promotions.length)
+      const transfer=this.list<import("./contracts").TransferAcceptance>("transferAcceptances",org).find(t=>t.destinationAthleteId===cycle.athleteId);
+      const baseRank=transfer?.rankIndex??0;
+      if(promotions.length!==cycle.rankIndex-baseRank||cycle.sequence!==baseRank+promotions.length)
         throw new Error("INVALID_PERSISTED_PROGRESSION_LEDGER");
-      let lifetime=0,active=0,stripes=0,previousLifetimeFloor=0;
-      for(let stage=0;stage<=cycle.rankIndex;stage++){
-        active=0;stripes=0;
+      let lifetime=transfer?.lifetimeXp??0,active=transfer?.activeXp??0,stripes=transfer?.earnedStripes??0,previousLifetimeFloor=transfer?.lifetimeXp??0;
+      for(let stage=baseRank;stage<=cycle.rankIndex;stage++){
+        if(stage>baseRank){active=0;stripes=0;}
         const threshold=ranks[stage].requiredXp;
         for(const event of events.filter(e=>e.rankIndexAtAward===stage)){
           if(event.correctionOf){
@@ -283,7 +311,7 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       schema: "sandman.commercial.local-store.v1",
       organizations: [...this.organizations.values()],
       academies: [...this.academies.values()], locations: [...this.locations.values()], programs: [...this.programs.values()],
-      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], guardians:[...this.guardians.values()], guardianLinks:[...this.guardianLinks.values()], athleteIdentityLinks:[...this.athleteIdentityLinks.values()], curricula:[...this.curricula.values()],curriculumAssignments:[...this.curriculumAssignments.values()],skillEvaluations:[...this.skillEvaluations.values()],progressionCycles:[...this.progressionCycles.values()],xpEvents:[...this.xpEvents.values()],promotions:[...this.promotions.values()], audits: this.audits
+      memberships: [...this.memberships.values()], entitlements: [...this.entitlements.values()], sessions: [...this.sessions.values()], athletes: [...this.athletes.values()], attendance: [...this.attendance.values()], practiceNotes: [...this.practiceNotes.values()], guardians:[...this.guardians.values()], guardianLinks:[...this.guardianLinks.values()], athleteIdentityLinks:[...this.athleteIdentityLinks.values()], curricula:[...this.curricula.values()],curriculumAssignments:[...this.curriculumAssignments.values()],skillEvaluations:[...this.skillEvaluations.values()],progressionCycles:[...this.progressionCycles.values()],xpEvents:[...this.xpEvents.values()],promotions:[...this.promotions.values()],accessInvitations:[...this.accessInvitations.values()],recoveryCases:[...this.recoveryCases.values()],recoveryEvidence:[...this.recoveryEvidence.values()],transferAcceptances:[...this.transferAcceptances.values()], audits: this.audits
     };
     const temporary = `${this.filePath}.${globalThis.crypto.randomUUID()}.tmp`;
     try {
