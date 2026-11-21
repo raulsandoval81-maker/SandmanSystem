@@ -44,7 +44,7 @@ BASELINES = {
         "rollbackArchiveSha256": "1aace0ade7c82a40a49077c9eff19960f7403c9e8ffc84aa7d541083f02c3193",
         "functionIamSha256": "4973eab70dcae5b0c6c3413ac22386d343e8d71ac904d612b4dacc09875a146d",
         "runIamSha256": None,
-        "fileSetSha256": "9c9f9de9515fa33948d6f3ecafeaaa7b7dd7daf",
+        "fileSetSha256": "9c9f9de9515fa33948d6f3ecafeaaa7b7dd33b109af643f139eec43077dd7daf",
     },
     "recordProposalPrepaidCash": {
         "servingVersionOrRevision": "recordproposalprepaidcash-00013-nup",
