@@ -130,3 +130,22 @@ test("minor guardian portable preview requires active link with progression perm
   assert.throws(()=>f2.read.portableGuardian(y.parent,A,"athlete"),/GUARDIAN_TRANSFER_ACCESS_REQUIRED/);
   assert.throws(()=>f2.read.portableGuardian(f2.admin(B),A,"athlete"),/TENANT_BOUNDARY_DENIED/);
 });
+
+test("promotion refuses tampered curriculum after valid initial assignment",()=>{
+  const f=setup(),x=flow(f,A);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"threshold-protected",amount:800,reason:"fixture"});
+  f.curriculum.evaluate(x.coach,{id:"approved-for-promotion",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved"});
+  const original=f.store.get("curricula",A,"curriculum");
+  for(const invalid of [
+    {...original,ranks:original.ranks.map((rank,index)=>index===0?{...rank,requiredXp:700}:rank)},
+    {...original,discipline:"brazilian_jiu_jitsu"},
+    {...original,skills:[{id:"optional-only",category:"coach_custom",name:"Optional",required:false}]}
+  ]){
+    f.store.put("curricula",invalid,true);
+    assert.throws(()=>f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"tampered-promotion",requirementsVerified:true}),/PROMOTION_EVIDENCE_UNVERIFIED/);
+    assert.equal(f.store.list("promotions",A).length,0);
+    assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").rankIndex,0);
+  }
+  f.store.put("curricula",original,true);
+  assert.equal(f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"verified-promotion",requirementsVerified:true}).toRank,"prospect");
+});
