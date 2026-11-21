@@ -74,12 +74,12 @@ test("deployment is protected, tests before auth, and uses segregated existing s
 
 test("dedicated workflow has four dispatch inputs and restores legacy 25-input limit", () => {
   const dispatch = yaml.split("    inputs:\n")[1].split("\npermissions:")[0];
-  const names = dispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\\s*$/.test(line));
+  const names = dispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\s*$/.test(line));
   assert.equal(names.length, 4);
   assert.match(yaml, /HISTORICAL_ENROLLMENT_ACTION: historical-enrollment-guarded-deploy/);
   assert.doesNotMatch(job, /inputs\.action/);
   const oldDispatch = legacy.split("    inputs:\n")[1].split("\npermissions:")[0];
-  assert.equal(oldDispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\\s*$/.test(line)).length, 25);
+  assert.equal(oldDispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\s*$/.test(line)).length, 25);
   assert.doesNotMatch(legacy, /historical_enrollment_deployment_approval|historical_enrollment_approved_source|historical_enrollment_preflight_run/);
   assert.doesNotMatch(legacy, /  historical-enrollment-guarded-deploy:/);
 });
