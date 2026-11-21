@@ -6,3 +6,4 @@ export * from "./onboarding";
 export * from "./operations";
 export * from "./family";
 export * from "./progression";
+export * from "./ageTransition";
