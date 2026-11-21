@@ -176,3 +176,22 @@ test("local persistence rejects tampered stage attribution for verified rank app
   writeFileSync(f.file,JSON.stringify(original));
   assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_PROGRESSION_LEDGER/);
 });
+
+test("local persistence rejects tampered core curriculum names, order, disciplines and missing required concepts",()=>{
+  const f=setup();flow(f,A);
+  const original=JSON.parse(readFileSync(f.file,"utf8"));
+  const tamper=mutate=>{
+    const data=structuredClone(original);
+    mutate(data.curricula[0]);
+    writeFileSync(f.file,JSON.stringify(data));
+    assert.throws(()=>new PersistentJsonCommercialStore(f.file),/INVALID_PERSISTED_CURRICULUM/);
+  };
+  tamper(c=>c.ranks[0].name="Forged Shadow");
+  tamper(c=>c.ranks[0].order=4);
+  tamper(c=>c.ranks[0].key="forged");
+  tamper(c=>c.discipline="submission_grappling");
+  tamper(c=>c.skills=[{id:"bonus",category:"custom",name:"Extra",required:false}]);
+  tamper(c=>c.skills=[{id:"stance",category:"foundation",name:"Stance",required:true},{id:"stance",category:"custom",name:"Duplicate",required:true}]);
+  writeFileSync(f.file,JSON.stringify(original));
+  assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
+});
