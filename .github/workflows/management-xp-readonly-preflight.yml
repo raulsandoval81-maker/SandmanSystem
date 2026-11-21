@@ -26,7 +26,7 @@ jobs:
           path: trusted
       - uses: actions/checkout@v4
         with:
-          ref: eb3db00a5940b71b55e2d0024db7fb125fa5bbbb
+          ref: 8734b84762e6765bccf51cadbdf59c52434a7843
           path: application
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -38,8 +38,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$CONFIRM_TARGET" = sandmandashboard/us-central1/createManagementXpAdjustment
-          python3 -m unittest discover -s trusted/tests/production -p test_management_xp_preflight.py
-          cp trusted/tests/functions/management-xp-classification.test.mjs application/tests/functions/
+          python3 -m unittest discover -s trusted/tests/production -p 'test_management_xp*.py'
           cd application
           npm ci --prefix functions --ignore-scripts --no-audit --no-fund
           node --test tests/functions/{management-xp-classification,management-discipline-xp-authority,authoritative-xp-service}.test.mjs
@@ -58,7 +57,7 @@ jobs:
           path: trusted
       - uses: actions/checkout@v4
         with:
-          ref: eb3db00a5940b71b55e2d0024db7fb125fa5bbbb
+          ref: 8734b84762e6765bccf51cadbdf59c52434a7843
           persist-credentials: false
           path: application
       - uses: google-github-actions/auth@v2
