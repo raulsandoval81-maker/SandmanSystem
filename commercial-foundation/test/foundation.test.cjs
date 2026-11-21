@@ -157,3 +157,17 @@ test("organization admin may invite staff to its locations but not other organiz
   assert.throws(()=>f.service.inviteLocationStaff(f.adminA,{...invite,id:"active-invite",userId:"new-user",state:"active"}),/INVALID_STAFF_INVITATION/);
   assert.throws(()=>f.service.inviteLocationStaff(f.coachB,{...invite,id:"coach-cross",organizationId:ORG_B,userId:"new-other"}),/ROLE_DENIED/);
 });
+
+test("Commercial program creation rejects unapproved disciplines before storing a program",()=>{
+  const f=fixture();seed(f,ORG_A,f.adminA);
+  const startingCount=f.store.list("programs",ORG_A).length;
+  for(const [i,disciplines] of [
+    ["brazilian_jiu_jitsu"],["submission_grappling"],
+    ["wrestling","brazilian_jiu_jitsu"],["catch_wrestling"],
+    [],["boxing","boxing"]
+  ].entries()){
+    assert.throws(()=>f.service.createProgram(f.adminA,{...program(ORG_A,"academy-local","invalid-"+i),disciplines}),/INVALID_PROGRAM/);
+  }
+  assert.equal(f.store.list("programs",ORG_A).length,startingCount);
+  assert.deepEqual(f.service.createProgram(f.adminA,{...program(ORG_A,"academy-local","approved-combat"),disciplines:["boxing","muay_thai"]}).disciplines,["boxing","muay_thai"]);
+});
