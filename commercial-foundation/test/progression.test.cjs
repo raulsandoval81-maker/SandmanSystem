@@ -261,3 +261,31 @@ test("portable preview rejects forged rank lineage and lifetime XP history",()=>
     assert.throws(()=>f.read.portableAdult(x.athlete,A),/INVALID_PORTABLE_PROMOTION_LINEAGE/);
   }
 });
+
+test("recovery evidence preview requires completed matching past session and present attendance, never writes XP",()=>{
+  const f=setup(),x=flow(f,A);
+  const completed={id:"completed-return",organizationId:A,academyId:"academy",locationId:"location",
+    programId:"program",coachUserIds:[`coach-${A}`],startsAt:"2026-11-19T18:00:00Z",
+    endsAt:"2026-11-19T19:00:00Z",state:"completed"};
+  f.store.put("sessions",completed);
+  assert.throws(()=>f.xp.previewRecoveryAttendance(x.admin,{organizationId:A,athleteId:"athlete",sessionId:"completed-return"}),/RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED/);
+  const attendance={id:"completed-return--athlete",organizationId:A,sessionId:"completed-return",
+    athleteId:"athlete",state:"present",recordedByUserId:`coach-${A}`,
+    recordedAt:"2026-11-19T19:00:00Z"};
+  f.store.put("attendance",attendance);
+  const initialXp=f.store.list("xpEvents",A).length;
+  const preview=f.xp.previewRecoveryAttendance(x.admin,{organizationId:A,athleteId:"athlete",sessionId:"completed-return"});
+  assert.equal(preview.attendanceVerified,true);
+  assert.equal(preview.fullPracticeVerified,false);
+  assert.equal(preview.recoveryCleared,false);
+  assert.equal(preview.combatXpAwarded,0);
+  assert.equal(preview.readOnly,true);
+  assert.equal(f.store.list("xpEvents",A).length,initialXp);
+  assert.throws(()=>f.xp.previewRecoveryAttendance(f.admin(B),{organizationId:A,athleteId:"athlete",sessionId:"completed-return"}),/TENANT_BOUNDARY_DENIED/);
+  assert.throws(()=>f.xp.previewRecoveryAttendance(x.coach,{organizationId:A,athleteId:"athlete",sessionId:"completed-return"}),/ROLE_DENIED/);
+  f.store.put("attendance",{...attendance,state:"absent"},true);
+  assert.throws(()=>f.xp.previewRecoveryAttendance(x.admin,{organizationId:A,athleteId:"athlete",sessionId:"completed-return"}),/RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED/);
+  f.store.put("attendance",attendance,true);
+  f.store.put("sessions",{...completed,state:"cancelled"},true);
+  assert.throws(()=>f.xp.previewRecoveryAttendance(x.admin,{organizationId:A,athleteId:"athlete",sessionId:"completed-return"}),/RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED/);
+});
