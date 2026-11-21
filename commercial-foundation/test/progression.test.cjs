@@ -97,3 +97,36 @@ test("Assignment fails closed when a locally injected curriculum bypasses approv
   assert.throws(()=>f.curriculum.assign(admin,{id:"bad-assignment",organizationId:A,athleteId:"transfer-protected",curriculumId:"curriculum",state:"active"}),/INVALID_CURRICULUM_ASSIGNMENT/);
   assert.equal(f.store.list("progressionCycles",A).length,0);
 });
+
+test("adult athlete can preview minimal portable achievements without private coaching records",()=>{
+  const f=setup(),x=flow(f,A);
+  const athlete=f.store.get("athletes",A,"athlete");
+  f.store.put("athletes",{...athlete,adult:true},true);
+  const identity=f.store.get("athleteIdentityLinks",A,"athlete-link");
+  f.store.put("athleteIdentityLinks",{...identity,access:"adult_self"},true);
+  const m=f.store.get("memberships",A,"athlete-member");
+  f.store.put("memberships",{...m,role:"adult_athlete"},true);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"earned-400",amount:400,reason:"fixture"});
+  const preview=f.read.portableAdult(x.athlete,A);
+  assert.equal(preview.rank,"shadow");
+  assert.equal(preview.activeXp,400);
+  assert.equal(preview.lifetimeXp,400);
+  assert.equal(preview.earnedStripes,2);
+  assert.equal(preview.transferAuthorized,false);
+  assert.equal(preview.readOnly,true);
+  assert.deepEqual(Object.keys(preview).sort(),["sourceOrganizationId","sourceAthleteId","pathway","rank","rankIndex","earnedStripes","activeXp","lifetimeXp","promotions","readOnly","transferAuthorized"].sort());
+  assert.equal(JSON.stringify(preview).includes("assignedCoach"),false);
+  assert.equal(JSON.stringify(preview).includes("note"),false);
+  assert.equal(f.store.list("progressionCycles",A)[0].activeXp,400);
+  assert.throws(()=>f.read.portableAdult(f.admin(B),A),/TENANT_BOUNDARY_DENIED/);
+});
+test("minor guardian portable preview requires active link with progression permission",()=>{
+  const f=setup(),x=flow(f,A,"road2champion",true);
+  assert.equal(f.read.portableGuardian(x.parent,A,"athlete").transferAuthorized,false);
+  assert.throws(()=>f.read.portableAdult(x.athlete,A),/ADULT_TRANSFER_CONSENT_REQUIRED/);
+  f.family.revokeGuardian(x.admin,A,"guardian-link");
+  assert.throws(()=>f.read.portableGuardian(x.parent,A,"athlete"),/GUARDIAN_TRANSFER_ACCESS_REQUIRED/);
+  const f2=setup(),y=flow(f2,A,"road2champion",false);
+  assert.throws(()=>f2.read.portableGuardian(y.parent,A,"athlete"),/GUARDIAN_TRANSFER_ACCESS_REQUIRED/);
+  assert.throws(()=>f2.read.portableGuardian(f2.admin(B),A,"athlete"),/TENANT_BOUNDARY_DENIED/);
+});
