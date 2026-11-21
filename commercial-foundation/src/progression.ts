@@ -97,7 +97,8 @@ export class XpLedgerService{
     const assignment=this.foundation.store.get<CurriculumAssignment>("curriculumAssignments",input.organizationId,cycle.assignmentId);
     const curriculum=assignment&&this.foundation.store.get<CurriculumDefinition>("curricula",input.organizationId,assignment.curriculumId);
     if(!assignment||assignment.state!=="active"||!curriculum||curriculum.state!=="active"||
-      curriculum.pathway!==cycle.pathway||!curriculum.skills.some(skill=>skill.required))throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
+      curriculum.pathway!==cycle.pathway||!approvedDisciplines.has(curriculum.discipline)||
+      !sameRanks(curriculum.ranks,ranks)||!validSkills(curriculum.skills))throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
     const approvals=this.foundation.store.list<SkillEvaluation>("skillEvaluations",input.organizationId).filter(e=>
       e.athleteId===athlete.id&&e.assignmentId===assignment.id&&e.status==="approved");
     if(curriculum.skills.filter(skill=>skill.required).some(skill=>!approvals.some(e=>e.skillId===skill.id)))
