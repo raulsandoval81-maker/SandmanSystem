@@ -175,9 +175,27 @@ export class ProgressionReadService{
       !Number.isInteger(cycle.earnedStripes)||cycle.earnedStripes<0||cycle.earnedStripes>4||
       cycle.activeXp<Math.ceil(rank.requiredXp*cycle.earnedStripes/4))
       throw new Error("INVALID_PORTABLE_PROGRESSION");
-    const promotions=this.foundation.store.list<PromotionRecord>("promotions",org)
-      .filter(p=>p.athleteId===athleteId&&p.pathway===cycle.pathway)
-      .map(p=>({id:p.id,fromRank:p.fromRank,toRank:p.toRank,promotedAt:p.promotedAt}));
+    const ranks=ranksFor(cycle.pathway);
+    const chain=this.foundation.store.list<PromotionRecord>("promotions",org)
+      .filter(p=>p.athleteId===athleteId&&p.cycleId===cycle.id);
+    // The preview is not a signed credential, but it must never display
+    // unrelated or internally inconsistent promotion milestones as portable.
+    if(cycle.sequence!==cycle.rankIndex||chain.length!==cycle.rankIndex)
+      throw new Error("INVALID_PORTABLE_PROMOTION_LINEAGE");
+    let previousLifetime=0,previousTime=-Infinity;
+    const promotions=chain.sort((a,b)=>ranks.findIndex(r=>r.key===a.fromRank)-ranks.findIndex(r=>r.key===b.fromRank))
+      .map((p,index)=>{
+        const at=Date.parse(p.promotedAt);
+        if(p.pathway!==cycle.pathway||p.requirementsVerified!==true||
+          p.fromRank!==ranks[index].key||p.toRank!==ranks[index+1].key||
+          !Number.isFinite(at)||at<previousTime||
+          !Number.isInteger(p.historicalXpAtPromotion)||
+          p.historicalXpAtPromotion<previousLifetime||
+          p.historicalXpAtPromotion>cycle.lifetimeXp)
+          throw new Error("INVALID_PORTABLE_PROMOTION_LINEAGE");
+        previousLifetime=p.historicalXpAtPromotion;previousTime=at;
+        return {fromRank:p.fromRank,toRank:p.toRank,promotedAt:p.promotedAt};
+      });
     return {
       sourceOrganizationId:org,sourceAthleteId:athleteId,
       pathway:cycle.pathway,rank:rank.key,rankIndex:cycle.rankIndex,
