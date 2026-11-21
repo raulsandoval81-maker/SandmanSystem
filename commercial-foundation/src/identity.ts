@@ -72,7 +72,7 @@ export class JwtVerifiedAccountProofAuthority implements AccountProofAuthority {
     if(!claims||typeof claims!=="object")throw new Error("UNVERIFIED_ACCOUNT_PROOF");
     const address=claims.email;
     if(claims.email_verified!==true||typeof address!=="string"||
-       !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(address.trim())||
+       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.trim())||
        claims.sub!==identity.userId)throw new Error("UNVERIFIED_ACCOUNT_PROOF");
     return Object.freeze({userId:identity.userId,verifiedEmail:address.trim().toLowerCase()});
   }
