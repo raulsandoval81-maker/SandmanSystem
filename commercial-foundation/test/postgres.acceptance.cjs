@@ -83,7 +83,8 @@ test("durable PostgreSQL revocation rejects the exact credential and stays tenan
     isRevoked:(organizationId,tokenId)=>revocations.isRevoked(organizationId,tokenId),now});
   assert.equal((await authority.verify(ctx)).identity.selectedOrganizationId,a.id);
   assert.equal(await revocations.isRevoked(a.id,jti),false);
-  await revocations.revoke({organizationId:a.id,tokenId:jti,subject:`admin-${a.id}`,expiresAt:Math.floor(now().getTime()/1000)+3600});
+  // PostgreSQL now() uses wall-clock time; the legacy synthetic JWT fixture uses a fixed clock.
+  await revocations.revoke({organizationId:a.id,tokenId:jti,subject:`admin-${a.id}`,expiresAt:Math.floor(Date.now()/1000)+3600});
   assert.equal(await revocations.isRevoked(a.id,jti),true);
   assert.equal(await revocations.isRevoked(b.id,jti),false);
   await assert.rejects(()=>authority.verify(ctx),/UNVERIFIED_IDENTITY/);
