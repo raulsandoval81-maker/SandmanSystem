@@ -25,12 +25,15 @@ export function readWebConfiguration(env:NodeJS.ProcessEnv){
   return Object.freeze({baseUrl:baseUrl.toString(),callbackUrl:new URL("/auth/callback",baseUrl).toString(),organizations:Object.freeze(organizations.map(value=>Object.freeze({...value})))});
 }
 
-export async function startCommercialWebServer(env:NodeJS.ProcessEnv=process.env){
+type WebServerFetch=(input:string,init?:{method?:string;headers?:Record<string,string>;body?:string;signal?:AbortSignal})=>Promise<{ok:boolean;status:number;json():Promise<unknown>;headers:{get(name:string):string|null}}>;
+export interface CommercialWebServerOptions {fetch?:WebServerFetch;listenPort?:number}
+
+export async function startCommercialWebServer(env:NodeJS.ProcessEnv=process.env,options:CommercialWebServerOptions={}){
   if(env.NODE_ENV!=="production")throw new Error("COMMERCIAL_WEB_PRODUCTION_MODE_REQUIRED");
   const config=readWebConfiguration(env),pool=createPrivateCommercialPool(required(env,"DATABASE_URL"),{max:10,connectionTimeoutMillis:10_000}),boundary=new PooledPostgresCommercialBoundary(pool),revocations=new PostgresTokenRevocationStore(boundary),resolver=new PostgresAuth0OrganizationResolver(pool);
   const transactions=new PostgresAuthorizationTransactionStore(pool,required(env,"COMMERCIAL_SESSION_ENCRYPTION_KEY")),sessions=new PostgresWebSessionStore(pool,required(env,"COMMERCIAL_SESSION_ENCRYPTION_KEY"));
-  const oidc=createOidcIntegrationFromEnvironment(env,(organizationId,jti)=>revocations.isRevoked(organizationId,jti),undefined,id=>resolver.resolve(id));
-  const flow=new Auth0AuthorizationFlow({authorizationUrl:oidc.authorizationUrl,tokenUrl:required(env,"COMMERCIAL_OIDC_TOKEN_URL"),audience:required(env,"COMMERCIAL_OIDC_AUDIENCE"),webClientId:required(env,"COMMERCIAL_AUTH0_WEB_CLIENT_ID"),nativeClientId:required(env,"COMMERCIAL_AUTH0_NATIVE_CLIENT_ID"),webClientSecret:required(env,"COMMERCIAL_AUTH0_WEB_CLIENT_SECRET"),transactions});
+  const oidc=createOidcIntegrationFromEnvironment(env,(organizationId,jti)=>revocations.isRevoked(organizationId,jti),options.fetch,id=>resolver.resolve(id));
+  const flow=new Auth0AuthorizationFlow({authorizationUrl:oidc.authorizationUrl,tokenUrl:required(env,"COMMERCIAL_OIDC_TOKEN_URL"),audience:required(env,"COMMERCIAL_OIDC_AUDIENCE"),webClientId:required(env,"COMMERCIAL_AUTH0_WEB_CLIENT_ID"),nativeClientId:required(env,"COMMERCIAL_AUTH0_NATIVE_CLIENT_ID"),webClientSecret:required(env,"COMMERCIAL_AUTH0_WEB_CLIENT_SECRET"),transactions,fetch:options.fetch});
   const app=new PostgresCommercialApplication(pool,{verify:()=>{throw new Error("SYNC_IDENTITY_NOT_AVAILABLE");}}),logoutUrl=required(env,"COMMERCIAL_OIDC_LOGOUT_URL"),webClientId=required(env,"COMMERCIAL_AUTH0_WEB_CLIENT_ID");
   const server=createServer(async(req,res)=>{try{
     const url=new URL(req.url??"/",config.baseUrl);
@@ -45,7 +48,7 @@ export async function startCommercialWebServer(env:NodeJS.ProcessEnv=process.env
     if(req.method==="POST"&&url.pathname==="/auth/logout"){let body="";for await(const chunk of req){body+=chunk;if(body.length>4096)throw new Error("REQUEST_TOO_LARGE");}if(new URLSearchParams(body).get("csrf")!==session.csrfToken)throw new Error("CSRF_REJECTED");await revocations.revoke({organizationId:verified.identity.selectedOrganizationId,tokenId:verified.tokenId,subject:verified.identity.userId,expiresAt:verified.expiresAt});await sessions.delete(cookie);const location=new URL(logoutUrl);location.searchParams.set("client_id",webClientId);location.searchParams.set("returnTo",config.baseUrl);redirect(res,location.toString(),{"set-cookie":clearCookie});return;}
     send(res,404,page("Not found","<div class=\"card\"><h2>Not found</h2><a href=\"/\">Home</a></div>"));
   }catch(error){console.error("commercial_web_request_failed",error instanceof Error?error.message:"UNKNOWN");send(res,401,page("Access denied","<div class=\"card\"><h2>Access denied</h2><p>Your session or organization membership could not be verified.</p><a href=\"/\">Return to sign in</a></div>"),{"set-cookie":clearCookie});}});
-  const port=Number(env.PORT??"3000");if(!Number.isInteger(port)||port<1||port>65535)throw new Error("PORT_INVALID");server.listen(port);const stop=async()=>{await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));await pool.close();};process.once("SIGTERM",()=>void stop());return{server,stop};
+  const port=options.listenPort??Number(env.PORT??"3000");if(!Number.isInteger(port)||port<0||port>65535||(options.listenPort===undefined&&port===0))throw new Error("PORT_INVALID");await new Promise<void>((resolve,reject)=>{server.once("error",reject);const listening=()=>{server.off("error",reject);resolve();};if(options.listenPort===undefined)server.listen(port,listening);else server.listen(port,"127.0.0.1",listening);});const stop=async()=>{await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));await pool.close();};process.once("SIGTERM",()=>void stop());return{server,stop};
 }
 
 if(require.main===module)startCommercialWebServer().catch(error=>{console.error(error instanceof Error?error.message:"COMMERCIAL_WEB_START_FAILED");process.exitCode=1;});
