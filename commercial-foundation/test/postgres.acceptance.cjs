@@ -75,6 +75,20 @@ test("OIDC identity, PostgreSQL membership, invitation, switching, revocation, a
   await app.run(a.id,f=>{const audits=f.store.listAudits(a.id);assert.ok(audits.some(x=>x.resourceId===`coach-${suffix}`&&x.outcome==="permitted"));assert.ok(audits.some(x=>x.resourceId===`wrong-${suffix}`&&x.outcome==="rejected"));});
 });
 
+test("durable PostgreSQL revocation rejects the exact credential and stays tenant-scoped",async()=>{
+  const a=orgs[0],b=orgs[1],jti=`durable-revoke-${Date.now()}`;
+  const ctx={sessionId:oidcToken(`admin-${a.id}`,a.id,"admin@example.test",jti)};
+  const revocations=new lib.PostgresTokenRevocationStore(boundary);
+  const authority=new lib.OidcIdentityAuthority({issuer:oidcIssuer,audience:oidcAudience,keys:oidcStore,
+    isRevoked:(organizationId,tokenId)=>revocations.isRevoked(organizationId,tokenId),now});
+  assert.equal((await authority.verify(ctx)).identity.selectedOrganizationId,a.id);
+  assert.equal(await revocations.isRevoked(a.id,jti),false);
+  await revocations.revoke({organizationId:a.id,tokenId:jti,subject:`admin-${a.id}`,expiresAt:Math.floor(now().getTime()/1000)+3600});
+  assert.equal(await revocations.isRevoked(a.id,jti),true);
+  assert.equal(await revocations.isRevoked(b.id,jti),false);
+  await assert.rejects(()=>authority.verify(ctx),/UNVERIFIED_IDENTITY/);
+});
+
 test("synthetic tenant logical backup can restore a committed mutable-record loss",async()=>{
   const o=orgs[0];let backup;
   await boundary.tenantTransaction(o.id,async db=>{backup=(await db.query("SELECT kind,id,payload FROM commercial_application_records ORDER BY kind,id")).rows;});
