@@ -90,6 +90,34 @@ export class XpLedgerService{
     // Do not treat a Management-supplied reason as evidence that decay is policy-approved.
     throw new Error("DECAY_POLICY_UNVERIFIED");
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
+  /**
+   * Non-mutating evidence check for a possible return practice. Attendance alone
+   * cannot prove full participation or clear a decay/recovery status.
+   */
+  previewRecoveryAttendance(ctx:AuthorizationContext,input:{
+    organizationId:string;athleteId:string;sessionId:string
+  }){
+    const athlete=this.athlete(input.organizationId,input.athleteId);
+    return authorized(this.foundation,ctx,"xp.manage","recoveryEvidence",input.sessionId,input.organizationId,()=>{
+      const session=this.foundation.store.get<import("./contracts").PracticeSession>(
+        "sessions",input.organizationId,input.sessionId);
+      const attendance=this.foundation.store.get<import("./contracts").AttendanceRecord>(
+        "attendance",input.organizationId,`${input.sessionId}--${input.athleteId}`);
+      if(!session||session.state!=="completed"||
+        session.programId!==athlete.programId||
+        (athlete.locationId!==undefined&&session.locationId!==athlete.locationId)||
+        (athlete.academyId!==undefined&&session.academyId!==athlete.academyId)||
+        !attendance||attendance.sessionId!==session.id||
+        attendance.athleteId!==athlete.id||attendance.state!=="present"||
+        !Number.isFinite(Date.parse(session.endsAt))||
+        Date.parse(session.endsAt)>this.now().getTime())
+        throw new Error("RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED");
+      return {
+        athleteId:athlete.id,sessionId:session.id,attendanceVerified:true,
+        fullPracticeVerified:false,recoveryCleared:false,combatXpAwarded:0,readOnly:true
+      };
+    },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);
+  }
   recordRecoveryCandidate():never{throw new Error("RECOVERY_POLICY_UNVERIFIED");}
   history(ctx:AuthorizationContext,org:string,athleteId:string){const athlete=this.athlete(org,athleteId);return authorized(this.foundation,ctx,"xp.manage","xpHistory",athleteId,org,()=>this.foundation.store.list<XpEvent>("xpEvents",org).filter(e=>e.athleteId===athleteId),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   eligibility(ctx:AuthorizationContext,org:string,athleteId:string){const athlete=this.athlete(org,athleteId);return authorized(this.foundation,ctx,"xp.manage","rankEligibility",athleteId,org,()=>{const cycle=this.cycle(org,athleteId),rank=ranksFor(cycle.pathway)[cycle.rankIndex];return{athleteId,rank:rank.name,xpEligible:cycle.activeXp>=rank.requiredXp,additionalRequirementsRequired:cycle.rankIndex<ranksFor(cycle.pathway).length-1};},athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
