@@ -5,21 +5,21 @@ import { readFileSync } from "node:fs";
 const root = new URL("../../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
 const script = read("scripts/staging/historical-enrollment-guarded-deploy.py");
-const yaml = read(".github/workflows/staging-exact-sha-release.yml");
+const yaml = read(".github/workflows/historical-enrollment-staging-deploy.yml");
+const legacy = read(".github/workflows/staging-exact-sha-release.yml");
 const begin = yaml.indexOf("\n  historical-enrollment-guarded-deploy:\n");
-const end = yaml.indexOf("\n  handoff-preflight:\n", begin);
-const job = yaml.slice(begin, end);
+const job = yaml.slice(begin);
 
 test("only approved three-function/three-file staging surface with exact SHA and explicit action", () => {
-  assert.ok(begin > 0 && end > begin);
+  assert.ok(begin > 0);
   assert.match(job, /environment: staging/);
   assert.match(job, /concurrency: sandman-staging-hosting/);
   assert.match(job, /ref: 3b89bffed91d6e1698503b813f14340c2440f240/);
   assert.match(script, /SHA = "3b89bffed91d6e1698503b813f14340c2440f240"/);
   assert.match(script, /PREFLIGHT_RUN = "44856250072"/);
   assert.match(script, /APPROVE_HISTORICAL_ENROLLMENT_STAGING_THREE_FUNCTIONS_THREE_FILES/);
-  assert.match(script, /"GITHUB_RUN_ATTEMPT"\) == "1"/);
-  assert.match(script, /preflight\.guard/);
+  assert.match(script, /"GITHUB_RUN_ATTEMPT": "1"/);
+  assert.match(script, /historical-enrollment-staging-deploy\.yml@refs\/heads\/main/);
   for (const name of ["createProposalDraft", "recordProposalPrepaidCash", "sendEnrollmentIntakeEmail"]) {
     assert.ok(script.includes('"' + name + '"'));
   }
@@ -57,9 +57,9 @@ test("all three candidate package pins exactly match preflight #44856250072", ()
 
 test("deployment is protected, tests before auth, and uses segregated existing staging identities", () => {
   assert.match(job, /can_admins_bypass == false/);
-  assert.match(job, /DEPLOY_APPROVAL: \$\{\{ inputs\.historical_enrollment_deployment_approval \}\}/);
-  assert.match(job, /CONFIRM_SOURCE_SHA: \$\{\{ inputs\.historical_enrollment_approved_source \}\}/);
-  assert.match(job, /CONFIRM_PREFLIGHT_RUN: \$\{\{ inputs\.historical_enrollment_preflight_run \}\}/);
+  assert.match(job, /DEPLOY_APPROVAL: \$\{\{ inputs\.deployment_approval \}\}/);
+  assert.match(job, /CONFIRM_SOURCE_SHA: \$\{\{ inputs\.approved_source \}\}/);
+  assert.match(job, /CONFIRM_PREFLIGHT_RUN: \$\{\{ inputs\.preflight_run \}\}/);
   assert.match(job, /prepaidEnrollment\.integration\.cjs/);
   assert.match(job, /historical-enrollment-deploy-contract\.test\.mjs/);
   assert.match(job, /service_account: sandman-practice-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
@@ -70,4 +70,16 @@ test("deployment is protected, tests before auth, and uses segregated existing s
   const authPos = job.indexOf("google-github-actions/auth@v3");
   assert.ok(testPos > 0 && authPos > testPos, "No staging auth before tests");
   assert.doesNotMatch(job, /gcloud functions deploy|firebase deploy|gcloud projects add-iam-policy-binding/);
+});
+
+test("dedicated workflow has four dispatch inputs and restores legacy 25-input limit", () => {
+  const dispatch = yaml.split("    inputs:\n")[1].split("\npermissions:")[0];
+  const names = dispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\s*$/.test(line));
+  assert.equal(names.length, 4);
+  assert.match(yaml, /HISTORICAL_ENROLLMENT_ACTION: historical-enrollment-guarded-deploy/);
+  assert.doesNotMatch(job, /inputs\.action/);
+  const oldDispatch = legacy.split("    inputs:\n")[1].split("\npermissions:")[0];
+  assert.equal(oldDispatch.split("\n").filter(line => /^      [a-zA-Z_][a-zA-Z0-9_-]*:\s*$/.test(line)).length, 25);
+  assert.doesNotMatch(legacy, /historical_enrollment_deployment_approval|historical_enrollment_approved_source|historical_enrollment_preflight_run/);
+  assert.doesNotMatch(legacy, /  historical-enrollment-guarded-deploy:/);
 });

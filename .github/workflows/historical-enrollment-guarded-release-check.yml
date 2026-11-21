@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/staging-exact-sha-release.yml'
+      - '.github/workflows/historical-enrollment-staging-deploy.yml'
       - '.github/workflows/historical-enrollment-guarded-release-check.yml'
       - 'scripts/staging/historical-enrollment-preflight.py'
       - 'scripts/staging/historical-enrollment-guarded-deploy.py'

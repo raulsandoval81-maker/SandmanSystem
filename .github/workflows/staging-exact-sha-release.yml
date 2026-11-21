@@ -172,7 +172,6 @@ on:
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
           - historical-enrollment-preflight
-          - historical-enrollment-guarded-deploy
           - handoff-preflight
           - handoff-deploy
           - enrollment-runtime-iam-readonly
@@ -192,18 +191,6 @@ on:
         type: string
       protected_2c_expected_hosting_version:
         description: Existing release Hosting version; for PR622 and PR632, approved preflight SHA-256
-        required: false
-        type: string
-      historical_enrollment_deployment_approval:
-        description: Exact owner approval for only three staging Functions and three Hosting files
-        required: false
-        type: string
-      historical_enrollment_approved_source:
-        description: Pinned historical enrollment application SHA
-        required: false
-        type: string
-      historical_enrollment_preflight_run:
-        description: Successful approved read-only preflight run ID
         required: false
         type: string
       emmett_2c_application_sha:
@@ -3514,94 +3501,6 @@ jobs:
         with:
           name: historical-enrollment-staging-preflight-${{ github.run_id }}
           path: evidence/historical-enrollment/
-          if-no-files-found: warn
-
-  historical-enrollment-guarded-deploy:
-    if: ${{ inputs.action == 'historical-enrollment-guarded-deploy' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
-    environment: staging
-    concurrency: sandman-staging-hosting
-    runs-on: ubuntu-24.04
-    timeout-minutes: 65
-    permissions:
-      contents: read
-      actions: read
-      id-token: write
-    env:
-      PYTHONPATH: trusted/scripts/production:trusted/scripts/staging
-      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-      HISTORICAL_ENROLLMENT_ACTION: ${{ inputs.action }}
-      DEPLOY_APPROVAL: ${{ inputs.historical_enrollment_deployment_approval }}
-      CONFIRM_SOURCE_SHA: ${{ inputs.historical_enrollment_approved_source }}
-      CONFIRM_PREFLIGHT_RUN: ${{ inputs.historical_enrollment_preflight_run }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-          path: trusted
-          persist-credentials: false
-      - name: Guard exact staging deployment approval and environment
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          python3 trusted/scripts/staging/historical-enrollment-guarded-deploy.py --guard-only
-          curl --fail --silent --show-error \
-            -H "Authorization: Bearer $GH_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/staging" |
-            jq -e '.can_admins_bypass == false and any(.protection_rules[]; .type == "required_reviewers" and any(.reviewers[]; .type == "User" and .reviewer.login == "raulsandoval81-maker"))' >/dev/null
-      - uses: actions/checkout@v4
-        with:
-          ref: 3b89bffed91d6e1698503b813f14340c2440f240
-          path: application
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Validate exact candidate and local source packages
-        run: |
-          set -euo pipefail
-          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
-          npm run build --prefix application/functions
-          node --test application/tests/functions/prepaid-evidence-claim-contract.test.mjs
-          node --test trusted/tests/functions/historical-enrollment-deploy-contract.test.mjs
-          python3 -c 'import importlib; from pathlib import Path; m=importlib.import_module("historical-enrollment-preflight"); m.set_staging_scope(); m.candidate(Path("application"))'
-      - name: Rerun isolated cash/check concurrency and enrollment acceptance
-        working-directory: application
-        run: |
-          set -euo pipefail
-          test -z "${STRIPE_SECRET_KEY:-}"
-          test -z "${RESEND_API_KEY:-}"
-          test -z "${GOOGLE_APPLICATION_CREDENTIALS:-}"
-          npx --yes firebase-tools@14.13.0 emulators:exec \
-            --only firestore --project demo-sandman-2c-acceptance \
-            --config firebase.prepaid-emulator.json \
-            'node --test functions/tests/prepaidEnrollment.integration.cjs functions/tests/prepaidCashReceipt.integration.cjs functions/tests/managementHistoricalDraft.integration.cjs'
-      - uses: google-github-actions/auth@v3
-        with:
-          project_id: sandman-combat-staging
-          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
-          create_credentials_file: true
-      - uses: google-github-actions/auth@v3
-        id: historical-deploy-hosting-auth
-        with:
-          project_id: sandman-combat-staging
-          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
-          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
-          create_credentials_file: true
-          export_environment_variables: false
-      - uses: google-github-actions/setup-gcloud@v3
-      - name: Perform pinned, single-attempt staging release
-        env:
-          HOSTING_CREDENTIALS_FILE: ${{ steps.historical-deploy-hosting-auth.outputs.credentials_file_path }}
-        run: python3 trusted/scripts/staging/historical-enrollment-guarded-deploy.py
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: historical-enrollment-guarded-staging-${{ github.run_id }}
-          path: evidence/historical-enrollment/guarded-deploy.json
           if-no-files-found: warn
 
   handoff-preflight:

@@ -66,7 +66,18 @@ HOSTING = {
 
 
 def guard(env):
-    preflight.guard({**env, "HISTORICAL_ENROLLMENT_ACTION": "historical-enrollment-preflight"})
+    # Dedicated protected staging workflow: reject legacy dispatch identity.
+    expected = {
+        "GITHUB_REPOSITORY": "raulsandoval81-maker/SandmanSystem",
+        "GITHUB_REF": "refs/heads/main",
+        "GITHUB_WORKFLOW_REF":
+            "raulsandoval81-maker/SandmanSystem/.github/workflows/"
+            "historical-enrollment-staging-deploy.yml@refs/heads/main",
+        "GITHUB_RUN_ATTEMPT": "1",
+        "CONFIRM_PROJECT": PROJECT,
+    }
+    for key, value in expected.items():
+        require(env.get(key) == value, "Guarded staging deployment boundary: " + key)
     require(env.get("HISTORICAL_ENROLLMENT_ACTION") == ACTION,
             "Guarded deployment action required")
     require(env.get("DEPLOY_APPROVAL") == APPROVAL,
