@@ -81,6 +81,10 @@ export class InMemoryCommercialStore {
   }
 }
 
+function locationAcademyId(store: InMemoryCommercialStore, organizationId: string, locationId: string): string | undefined {
+  return store.get<Location>("locations", organizationId, locationId)?.academyId;
+}
+
 export class CommercialFoundation {
   constructor(readonly store: InMemoryCommercialStore, private readonly authority: IdentityAuthority, private readonly now = () => new Date()) {}
   transaction<T>(work: () => T): T { return this.store.transaction(work); }
@@ -109,6 +113,7 @@ export class CommercialFoundation {
     if (action === "capability.read") return; // membership verified; grants remain organization-scoped
     if (["management.overview", "management.schedule", "management.athlete"].includes(action)) { if (manager) return; throw new Error("ROLE_DENIED"); }
     if (["session.read", "attendance.record", "practice-note.manage", "coach.workspace"].includes(action)) { if (manager || coach) return; throw new Error("ROLE_DENIED"); }
+    if (action === "membership.invite") { if (manager) return; throw new Error("ROLE_DENIED"); }
     if (action === "family.manage") { if (manager) return; throw new Error("ROLE_DENIED"); }
     if (action === "parent.hub") { if (members.some(m=>m.role==="parent"&&scoped(m))) return; throw new Error("ROLE_DENIED"); }
     if (action === "athlete.self") { if (members.some(m=>(m.role==="athlete"||m.role==="adult_athlete")&&scoped(m))) return; throw new Error("ROLE_DENIED"); }
@@ -204,6 +209,38 @@ export class CommercialFoundation {
       this.store.put("memberships", membership);
       return structuredClone(membership);
     });
+  }
+  /**
+   * Prepare a location-scoped staff invitation. This deliberately creates ONLY an
+   * invited membership; production identity/email verification and acceptance
+   * must happen in a separate trusted workflow before any role becomes active.
+   */
+  inviteLocationStaff(ctx: AuthorizationContext, invitation: Membership): Membership {
+    return this.execute(ctx, "membership.invite", "membership", invitation.id, invitation.organizationId, identity => {
+      validateMembership(invitation);
+      if (invitation.state !== "invited" || invitation.scopeType !== "location" ||
+          !["coach", "management"].includes(invitation.role)) {
+        throw new Error("INVALID_STAFF_INVITATION");
+      }
+      const location = this.store.get<Location>("locations", invitation.organizationId, invitation.scopeId);
+      if (!location || location.state !== "active") throw new Error("INVALID_INVITATION_LOCATION");
+      if (!identity.systemAdmin) {
+        const actorRoles = this.memberships(identity).filter(m => this.validScope(m));
+        const organizationAdmin = actorRoles.some(m => m.role === "organization_admin" &&
+          m.scopeType === "organization");
+        const scopedManager = actorRoles.some(m => m.role === "management" &&
+          m.scopeType === "location" && m.scopeId === invitation.scopeId);
+        if (!organizationAdmin && !scopedManager) throw new Error("INVITATION_SCOPE_DENIED");
+      }
+      if (this.store.list<Membership>("memberships", invitation.organizationId).some(m =>
+        m.userId === invitation.userId && m.role === invitation.role &&
+        m.scopeType === "location" && m.scopeId === invitation.scopeId &&
+        ["active", "invited"].includes(m.state))) {
+        throw new Error("DUPLICATE_STAFF_INVITATION");
+      }
+      this.store.put("memberships", invitation);
+      return structuredClone(invitation);
+    }, locationAcademyId(this.store, invitation.organizationId, invitation.scopeId), [invitation.scopeId]);
   }
   grantEntitlement(ctx: AuthorizationContext, entitlement: Entitlement): Entitlement {
     return this.execute(ctx, "entitlement.manage", "entitlement", entitlement.id, entitlement.organizationId, () => {

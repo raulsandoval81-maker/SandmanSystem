@@ -134,3 +134,26 @@ test("registered products are not automatically approved for release", () => {
   const registry = validateProductRegistry({ schema:"sandman.commercial.registry.v1", products:[{id:"head-coach-wtm",owner:"Head Coach WTM",lifecycle:"private_preview",capabilityIds:["wtm.access"],integrationType:"optional_adapter",dataBoundary:"independent_wtm",compatibilityVersion:"1.0.0",approvedRelease:false}]});
   assert.equal(registry.products[0].approvedRelease,false);
 });
+
+test("location manager can invite location staff but cannot activate them",()=>{
+  const f=fixture();seed(f,ORG_A,f.adminA);
+  f.service.createAcademy(f.adminA,academy(ORG_A,"academy-two"));
+  f.service.createLocation(f.adminA,location(ORG_A,"academy-two","location-two"));
+  f.store.put("memberships",membership(ORG_A,"manager-one","management","location","location-local","member-manager"));
+  const manager=f.identity.mint("manager-one",ORG_A);
+  const invite=membership(ORG_A,"new-coach","coach","location","location-local","invite-one","invited");
+  assert.equal(f.service.inviteLocationStaff(manager,invite).state,"invited");
+  assert.throws(()=>f.service.assignMembership(manager,{...invite,id:"activate-one",state:"active"}),/ROLE_DENIED/);
+  assert.throws(()=>f.service.inviteLocationStaff(manager,{...invite,id:"other-site",scopeId:"location-two"}),/ROLE_DENIED|INVITATION_SCOPE_DENIED/);
+  assert.throws(()=>f.service.inviteLocationStaff(manager,{...invite,id:"admin-invite",role:"organization_admin",scopeType:"organization",scopeId:ORG_A}),/ROLE_DENIED|INVALID_STAFF_INVITATION/);
+  assert.throws(()=>f.service.inviteLocationStaff(manager,{...invite,id:"repeat"}),/DUPLICATE_STAFF_INVITATION/);
+  assert.equal(f.store.list("memberships",ORG_A).filter(m=>m.userId==="new-coach").length,1);
+});
+test("organization admin may invite staff to its locations but not other organizations",()=>{
+  const f=fixture();seed(f,ORG_A,f.adminA);seed(f,ORG_B,f.rootB);
+  const invite=membership(ORG_A,"new-coach","coach","location","location-local","invite-two","invited");
+  assert.equal(f.service.inviteLocationStaff(f.adminA,invite).state,"invited");
+  assert.throws(()=>f.service.inviteLocationStaff(f.adminA,{...invite,id:"cross-tenant",organizationId:ORG_B}),/TENANT_BOUNDARY_DENIED/);
+  assert.throws(()=>f.service.inviteLocationStaff(f.adminA,{...invite,id:"active-invite",userId:"new-user",state:"active"}),/INVALID_STAFF_INVITATION/);
+  assert.throws(()=>f.service.inviteLocationStaff(f.coachB,{...invite,id:"coach-cross",organizationId:ORG_B,userId:"new-other"}),/ROLE_DENIED/);
+});
