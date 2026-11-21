@@ -1,0 +1,32 @@
+{
+  "status": "OFFLINE_CANDIDATE_ONLY",
+  "deploymentEnabled": false,
+  "baseline": {
+    "bucket": "sandman-xp-recovery-889326401061",
+    "object": "xp-recovery/original-xp-source.zip",
+    "generation": "1795225849852373",
+    "sha256": "ec8c60adea97dc837498926e4c8ac33782b6a717e672c6cae32170db79fe49a1"
+  },
+  "applicationCommit": "8734b84762e6765bccf51cadbdf59c52434a7843",
+  "approvedInputs": {
+    "lib/management/managementXpTools.js": "fee80c7d2f62e40626063c4cd4fb42a45f7a4a7e29108c7476e24aa0d0fe83fc",
+    "lib/services/authoritativeXpService.js": "08dea67eb31ddda852bd70fb5a8b08b509a9e58c040a38311394a59aeace35e7"
+  },
+  "proposedBuildEnvironment": {
+    "GOOGLE_NODE_RUN_SCRIPTS": ""
+  },
+  "candidateSha256": "790511d05711c4dbd304c2c08e942a480e1f1b5f42435915bf78092a123bf346",
+  "changedEntries": {
+    "lib/management/managementXpTools.js": {
+      "before": "75a8dc422abf32d40eb1b4889bc9916ffdd3c63939826d5002ae9d88ed3f67e4",
+      "after": "c52ec4c8521a4780bd987667e1d4257656e4dec415f41d1b64e0eeb5f1b6f453"
+    }
+  },
+  "preservedManagementPrefixSha256": "26c73ffdc3958fce418efa1f08ae1aea5d1f988790057bffb90f44685bd4470f",
+  "unchangedEntryCount": 404,
+  "retainedDependencyHashes": {
+    "package.json": "9bd857264baf0b8b72967c528b4e21c55128b75e12ce71444250dd6566ee1c98",
+    "package-lock.json": "f18e0b849001b6fd4c38cdd3cece0ca48f11ac1634e60221e89c5a8f69c721c1",
+    "lib/services/authoritativeXpService.js": "753d800781cd02f60fe1cbf494c56a141436c5f0b8e84978eb481b631686cc2b"
+  }
+}
