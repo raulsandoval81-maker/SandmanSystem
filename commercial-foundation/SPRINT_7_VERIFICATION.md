@@ -6,6 +6,7 @@
 |---|---|
 | `0001_commercial_core.sql` | `0d683cf04df3b94c9cd21e33a91e6db772f9d02fef03aa541b98e4102fea3a01` |
 | `0002_application_persistence.sql` | `32d60e61c8e2fbf5b37edb991ddb1fe5b2de76fb7753740c37a59d3798faaee0` |
+| `0003_mutable_record_delete.sql` | `9ae974183b864f1edea1dd751520dace697ad59a38ef8b4f17f2ac9a3efdcca4` |
 
 The migration runner records and verifies these checksums in
 `commercial_schema_migrations`. A changed migration fails with
