@@ -29,3 +29,31 @@ test("OIDC configuration rejects non-HTTPS issuer and JWKS endpoints",()=>{
 test("production OIDC environment configuration requires explicit HTTPS login and logout endpoints",()=>{
   const valid={COMMERCIAL_OIDC_ISSUER:issuer,COMMERCIAL_OIDC_AUDIENCE:audience,COMMERCIAL_OIDC_JWKS_URL:"https://identity.example.test/jwks",COMMERCIAL_OIDC_AUTHORIZATION_URL:"https://identity.example.test/authorize",COMMERCIAL_OIDC_LOGOUT_URL:"https://identity.example.test/logout"};assert.equal(createOidcIntegrationFromEnvironment(valid,async()=>false,async()=>response([jwk(one,"one")])).authorizationUrl,valid.COMMERCIAL_OIDC_AUTHORIZATION_URL);assert.throws(()=>createOidcIntegrationFromEnvironment({},async()=>false),/CONFIGURATION_REQUIRED/);assert.throws(()=>createOidcIntegrationFromEnvironment({...valid,COMMERCIAL_OIDC_LOGOUT_URL:"http://identity.test/logout"},async()=>false),/HTTPS_REQUIRED/);
 });
+
+
+test("Auth0 RFC9068 access token requires trusted org and verified-email claims",async()=>{
+  const store=new OidcJwksKeyStore({jwksUrl:"https://identity.example.test/jwks",fetch:async()=>response([jwk(one,"one")]),now});
+  const authority=new OidcIdentityAuthority({issuer,audience,keys:store,isRevoked:async()=>false,provider:"auth0",now});
+  const auth0Token=claims=>{
+    const header=Buffer.from(JSON.stringify({alg:"RS256",typ:"at+jwt",kid:"one"})).toString("base64url");
+    const payload=Buffer.from(JSON.stringify({iss:issuer,aud:audience,sub:"auth0|user",org_id:"org_auth0",iat:epoch-10,exp:epoch+300,jti:"auth0-jti",client_id:"native-client",["https://sandmancommercial.com/email"]:"USER@EXAMPLE.TEST",["https://sandmancommercial.com/email_verified"]:true,...claims})).toString("base64url");
+    return `${header}.${payload}.${sign("RSA-SHA256",Buffer.from(`${header}.${payload}`),one.privateKey).toString("base64url")}`;
+  };
+  const session=await authority.verify({sessionId:auth0Token({})});
+  assert.equal(session.identity.selectedOrganizationId,"org_auth0");
+  assert.equal(session.account.verifiedEmail,"user@example.test");
+  for(const claims of [
+    {org_id:undefined,org:"org-a"},
+    {["https://sandmancommercial.com/email_verified"]:false,email_verified:true},
+    {["https://sandmancommercial.com/email"]:undefined,email:"untrusted@example.test"},
+    {jti:undefined},
+    {aud:"wrong-audience"}
+  ])await assert.rejects(()=>authority.verify({sessionId:auth0Token(claims)}),/UNVERIFIED_IDENTITY/);
+  await assert.rejects(()=>authority.verify({sessionId:token(one,"one")}),/UNVERIFIED_IDENTITY/);
+});
+
+test("Auth0 provider selection requires an explicit supported configuration",()=>{
+  const env={COMMERCIAL_OIDC_ISSUER:issuer,COMMERCIAL_OIDC_AUDIENCE:audience,COMMERCIAL_OIDC_JWKS_URL:"https://identity.example.test/jwks",COMMERCIAL_OIDC_AUTHORIZATION_URL:"https://identity.example.test/authorize",COMMERCIAL_OIDC_LOGOUT_URL:"https://identity.example.test/logout"};
+  assert.ok(createOidcIntegrationFromEnvironment({...env,COMMERCIAL_OIDC_PROVIDER:"auth0"},async()=>false));
+  assert.throws(()=>createOidcIntegrationFromEnvironment({...env,COMMERCIAL_OIDC_PROVIDER:"other"},async()=>false),/PROVIDER_UNSUPPORTED/);
+});
