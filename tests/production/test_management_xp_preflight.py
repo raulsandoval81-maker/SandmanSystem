@@ -65,6 +65,25 @@ class CandidateManifestTest(unittest.TestCase):
         self.assertTrue(safe["serviceConfig"]["serviceAccountConfigured"])
         self.assertNotIn("private", json.dumps(safe))
 
+    def test_historical_revision_change_is_not_configuration_drift(self):
+        fn = {
+            "name": "function", "state": "ACTIVE",
+            "buildConfig": {"runtime": "nodejs22", "entryPoint": "xp"},
+            "serviceConfig": {"revision": "new-ready-revision",
+                              "ingressSettings": "ALLOW_INTERNAL_ONLY",
+                              "serviceAccountEmail": "service@example.invalid"},
+        }
+        historical = preflight.sanitized_configuration(fn)
+        historical["serviceConfig"]["revision"] = "old-retained-revision"
+        preflight.verify_sanitized_configuration(fn, historical)
+        historical["serviceConfig"]["ingressSettings"] = "ALLOW_ALL"
+        with self.assertRaisesRegex(RuntimeError, "configuration drift"):
+            preflight.verify_sanitized_configuration(fn, historical)
+        historical["serviceConfig"]["ingressSettings"] = "ALLOW_INTERNAL_ONLY"
+        historical["serviceConfig"]["serviceAccountConfigured"] = False
+        with self.assertRaisesRegex(RuntimeError, "configuration drift"):
+            preflight.verify_sanitized_configuration(fn, historical)
+
     def test_source_requires_immutable_project_generation(self):
         record = {"sourceProvenance": {"resolvedStorageSource": {
             "bucket": preflight.BUCKET,
