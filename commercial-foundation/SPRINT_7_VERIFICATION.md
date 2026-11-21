@@ -49,6 +49,6 @@ The application rejects database URLs whose host is not localhost or a
 5. Never rehearse destructive recovery with customer data.
 
 The real-database acceptance suite safely commits deletion of one mutable
-synthetic session record, restores it from an in-memory logical export, and
+synthetic progression-cycle record, restores it from an in-memory logical export, and
 reconstructs the tenant aggregate to verify recovery. Immutable histories are
 never deleted during this exercise.
