@@ -1,0 +1,15 @@
+const test=require("node:test"),assert=require("node:assert/strict"),{randomBytes}=require("node:crypto");
+const{readWebConfiguration,PostgresAuthorizationTransactionStore,PostgresWebSessionStore}=require("../lib");
+
+test("web configuration derives exact HTTPS callback and validates organizations",()=>{
+  const config=readWebConfiguration({COMMERCIAL_WEB_BASE_URL:"https://commercial-dev.example.test/",COMMERCIAL_AUTH0_ORGANIZATIONS:JSON.stringify([{id:"org_abc123",name:"Synthetic Academy"}])});
+  assert.equal(config.callbackUrl,"https://commercial-dev.example.test/auth/callback");assert.equal(config.organizations[0].id,"org_abc123");
+  assert.throws(()=>readWebConfiguration({COMMERCIAL_WEB_BASE_URL:"http://localhost:3000",COMMERCIAL_AUTH0_ORGANIZATIONS:"[]"}),/BASE_URL_INVALID/);
+  assert.throws(()=>readWebConfiguration({COMMERCIAL_WEB_BASE_URL:"https://commercial-dev.example.test/",COMMERCIAL_AUTH0_ORGANIZATIONS:JSON.stringify([{id:"tenant-a",name:"No"}])}),/ORGANIZATIONS_INVALID/);
+});
+
+function fixture(){const transactions=new Map(),sessions=new Map(),events=[];const client={query:async(sql,values=[])=>{events.push({sql,values});if(sql.includes("auth_transaction_put")){transactions.set(values[0],{ciphertext:values[1],iv:values[2],tag:values[3]});return{rows:[],rowCount:1};}if(sql.includes("auth_transaction_consume")){const value=transactions.get(values[0]);transactions.delete(values[0]);return{rows:value?[value]:[],rowCount:value?1:0};}if(sql.includes("web_session_put")){sessions.set(values[0],{ciphertext:values[1],iv:values[2],tag:values[3]});return{rows:[],rowCount:1};}if(sql.includes("web_session_get")){const value=sessions.get(values[0]);return{rows:value?[value]:[],rowCount:value?1:0};}if(sql.includes("web_session_delete")){sessions.delete(values[0]);return{rows:[],rowCount:1};}return{rows:[],rowCount:null};},release:()=>{}};return{pool:{connect:async()=>client},events,transactions,sessions};}
+
+test("PostgreSQL authorization transactions are encrypted and consumed once",async()=>{const f=fixture(),key=randomBytes(32).toString("base64"),store=new PostgresAuthorizationTransactionStore(f.pool,key),value={kind:"web",stateDigest:"a".repeat(43),nonce:"nonce",codeVerifier:"secret-verifier",providerOrganizationId:"org_abc",redirectUri:"https://app.test/auth/callback",expiresAt:2_000_000_000_000};await store.save(value);const writes=JSON.stringify(f.events);assert.equal(writes.includes("secret-verifier"),false);assert.deepEqual(await store.consume(value.stateDigest),value);assert.equal(await store.consume(value.stateDigest),undefined);});
+
+test("opaque web sessions store only cookie digest and encrypted access token",async()=>{const f=fixture(),key=randomBytes(32).toString("base64"),store=new PostgresWebSessionStore(f.pool,key),value={accessToken:"signed-sensitive-token",csrfToken:"csrf",expiresAt:2_000_000_000_000},cookie=await store.create(value);assert.match(cookie,/^[A-Za-z0-9_-]{43}$/);assert.equal(JSON.stringify(f.events).includes("signed-sensitive-token"),false);assert.deepEqual(await store.get(cookie),value);await store.delete(cookie);assert.equal(await store.get(cookie),undefined);});
