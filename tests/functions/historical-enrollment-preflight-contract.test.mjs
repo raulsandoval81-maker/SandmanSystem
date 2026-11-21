@@ -21,6 +21,15 @@ test("historical enrollment read-only staging gate is pinned to approved #748 me
   assert.doesNotMatch(action, /gcloud functions deploy|firebase deploy|gcloud run deploy/);
 });
 
+test("Hosting API uses a sites/<site-id> resource while Functions use project ID", () => {
+  assert.match(preflight, /hosting_site = f"sites\/\{PROJECT\}"/);
+  assert.match(preflight, /release\.SITE = hosting_site/);
+  assert.match(preflight, /release\.inventory\.SITE = hosting_site/);
+  assert.match(preflight, /release\.release\.SITE = hosting_site/);
+  assert.match(preflight, /release\.PROJECT = PROJECT/);
+  assert.doesNotMatch(preflight, /release\.PROJECT = release\.SITE = PROJECT/);
+});
+
 test("payment Function and Billing UI included together, no unrelated overlays", () => {
   for (const fragment of [
     '"createProposalDraft": (2, "proposals/createProposalDraft")',
