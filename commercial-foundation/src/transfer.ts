@@ -6,10 +6,23 @@ import { ProgressionReadService } from "./progression";
 type PortableSnapshot={sourceOrganizationId:string;sourceAthleteId:string;pathway:DevelopmentPathway;rank:string;rankIndex:number;earnedStripes:number;activeXp:number;lifetimeXp:number;promotions:Array<{fromRank:string;toRank:string;promotedAt:string}>;readOnly:true;transferAuthorized:false};
 type TransferPayload={version:1;nonce:string;destinationOrganizationId:string;consentType:"adult"|"guardian";consentedAt:string;expiresAt:string;snapshot:PortableSnapshot};
 const encode=(value:unknown)=>Buffer.from(JSON.stringify(value),"utf8").toString("base64url");
+/**
+ * Trusted host-supplied verification that source and destination records refer
+ * to the same person. IDs or names matching are not identity proof.
+ * A production implementation must use independently verified identity records.
+ */
+export interface TransferIdentityAuthority{
+  sameAthlete(input:{
+    sourceOrganizationId:string;sourceAthleteId:string;
+    destinationOrganizationId:string;destinationAthleteId:string;
+    consentType:"adult"|"guardian";packageDigest:string
+  }):boolean;
+}
+
 
 /** Integrity-protected, explicit consent -> receiving acceptance transfer workflow. */
 export class AthleteTransferService{
-  constructor(private readonly foundation:CommercialFoundation,private readonly reads:ProgressionReadService,private readonly signingKey:Buffer,private readonly now=()=>new Date()){
+  constructor(private readonly foundation:CommercialFoundation,private readonly reads:ProgressionReadService,private readonly signingKey:Buffer,private readonly now=()=>new Date(),private readonly identityAuthority?:TransferIdentityAuthority){
     if(signingKey.length<32)throw new Error("TRANSFER_SIGNING_KEY_TOO_SHORT");
   }
   consentAdult(ctx:AuthorizationContext,sourceOrg:string,destinationOrg:string,expiresAt:string){return this.package(this.reads.portableAdult(ctx,sourceOrg) as PortableSnapshot,"adult",destinationOrg,expiresAt);}
@@ -21,6 +34,15 @@ export class AthleteTransferService{
     try{const result=this.foundation.transaction(()=>{if(payload.destinationOrganizationId!==input.organizationId||Date.parse(payload.expiresAt)<=this.now().getTime()||payload.snapshot.sourceOrganizationId===input.organizationId)throw new Error("TRANSFER_PACKAGE_NOT_ACCEPTABLE");
       const packageDigest=createHmac("sha256",this.signingKey).update(input.transferPackage).digest("hex");
       if(this.foundation.store.list<TransferAcceptance>("transferAcceptances",input.organizationId).some(a=>a.packageDigest===packageDigest))throw new Error("TRANSFER_REPLAY_DENIED");
+      // Neither equal local athlete IDs nor Manager selection establishes personhood.
+      // Reject transfers unless a trusted independently verified binding exists.
+      if(!this.identityAuthority?.sameAthlete({
+        sourceOrganizationId:payload.snapshot.sourceOrganizationId,
+        sourceAthleteId:payload.snapshot.sourceAthleteId,
+        destinationOrganizationId:input.organizationId,
+        destinationAthleteId:athlete.id,
+        consentType:payload.consentType,packageDigest
+      }))throw new Error("TRANSFER_ATHLETE_IDENTITY_UNVERIFIED");
       const cycles=this.foundation.store.list<ProgressionCycle>("progressionCycles",input.organizationId).filter(c=>c.athleteId===athlete.id&&c.state==="active");if(cycles.length!==1)throw new Error("DESTINATION_PROGRESSION_REQUIRED");const cycle=cycles[0];
       if(cycle.pathway!==payload.snapshot.pathway)throw new Error("RECEIVING_CURRICULUM_INCOMPATIBLE");
       if(cycle.rankIndex!==0||cycle.sequence!==0||cycle.activeXp!==0||cycle.lifetimeXp!==0||cycle.earnedStripes!==0||this.foundation.store.list<TransferAcceptance>("transferAcceptances",input.organizationId).some(a=>a.destinationAthleteId===athlete.id))throw new Error("DESTINATION_PROGRESSION_NOT_PRISTINE");
