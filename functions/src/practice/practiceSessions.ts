@@ -955,10 +955,15 @@ export const finalizePracticeAttendance = onCall(async (request) => {
         athletePatch["decay.lastUpdatedAt"] = now;
         if (recovery.clearsRecoveryLock) {
           athletePatch["decay.state"] = "CLEAR";
+          // Only release a tier freeze created by inactivity decay.
+          if (String(athlete.decay?.state || "").toUpperCase() === "FROZEN"
+            && String(athlete.tierStatus || "").toLowerCase() === "frozen") {
+            athletePatch["tierStatus"] = "active";
+          }
           athletePatch["decay.nextHitAt"] = null;
           athletePatch["decay.clearedAt"] = now;
           athletePatch["decay.resolutionStatus"] = "RECOVERY_REQUIREMENT_COMPLETED";
-          athletePatch["decay.resolutionReason"] = "Recovered after 2 verified combat practices; historical decay retained.";
+          athletePatch["decay.resolutionReason"] = "Recovered after 1 verified combat practice; historical decay retained.";
           athletePatch["decay.recoveryCompletedAttendanceSessionId"] = practiceId;
           athletePatch["decay.recoveryCompletedDateKey"] = sessionDateKey;
         }

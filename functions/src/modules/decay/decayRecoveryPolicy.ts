@@ -1,4 +1,4 @@
-export const RECOVERY_DAYS_REQUIRED = 2;
+export const RECOVERY_DAYS_REQUIRED = 1;
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -25,14 +25,14 @@ export function resolveQualifyingRecoveryPractice(args: {
   const recoveryLog = uniqueRecoveryKeys(args.decay?.recoveryLog);
   const completedBefore = normalizeRecoveryProgress(args.decay?.recoveryDaysCompleted);
   const duplicate = Boolean(practiceKey && recoveryLog.includes(practiceKey));
-  const counts = state === "DECAY_ACTIVE" && args.qualifies && Boolean(practiceKey) && !duplicate;
+  const counts = (state === "DECAY_ACTIVE" || state === "FROZEN") && args.qualifies && Boolean(practiceKey) && !duplicate;
   const completedAfter = counts
     ? Math.min(RECOVERY_DAYS_REQUIRED, completedBefore + 1)
     : completedBefore;
   return Object.freeze({
     counts,
     duplicate,
-    suppressCombatXp: state === "DECAY_ACTIVE" && args.qualifies,
+    suppressCombatXp: (state === "DECAY_ACTIVE" || state === "FROZEN") && args.qualifies,
     completedBefore,
     completedAfter,
     recoveryDaysRequired: RECOVERY_DAYS_REQUIRED,
@@ -49,7 +49,7 @@ export function shouldSuppressCombatAwardForRecovery(args: {
   const kind = clean(args.awardKind).toUpperCase();
   if (kind === "STRENGTH" || kind === "HONOR") return false;
   const state = clean(args.decay?.state).toUpperCase();
-  if (state === "DECAY_ACTIVE") return true;
+  if (state === "DECAY_ACTIVE" || state === "FROZEN") return true;
   if (state !== "CLEAR" || kind !== "ATTENDANCE") return false;
   const sessionId = clean(args.attendanceSessionId);
   return Boolean(sessionId)

@@ -38,9 +38,10 @@ test("scheduled maintenance evaluates every athlete through calculateDecay", () 
   assert.match(sweep, /"decay\.state": "DECAY_ACTIVE"/);
 });
 
-test("F8 deductions use root XP with a zero floor", () => {
+test("F8 deductions use root XP with the immutable earned stripe floor", () => {
   assert.match(sweep, /if \(base === "F8"\)/);
-  assert.match(sweep, /Math\.max\(0, beforeXp - deduction\)/);
+  assert.match(sweep, /applyProtectedDecay\(/);
+  assert.match(sweep, /xpCap: activeXpCap\(athlete, base\)/);
   assert.match(sweep, /patch: \{ xp: afterXp \}/);
 });
 
