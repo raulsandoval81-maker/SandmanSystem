@@ -17,9 +17,24 @@ export class JwtIdentityAuthority implements SwitchableIdentityAuthority{
     const token=ctx?.sessionId;if(typeof token!=="string")throw new Error("UNVERIFIED_IDENTITY");
     const parts=token.split(".");if(parts.length!==3)throw new Error("UNVERIFIED_IDENTITY");
     let header:any,claims:JwtClaims;try{header=decode(parts[0]);claims=decode(parts[1]);}catch{throw new Error("UNVERIFIED_IDENTITY");}
-    if(header?.alg!=="RS256"||typeof header?.kid!=="string"||!verifySignature("RSA-SHA256",Buffer.from(`${parts[0]}.${parts[1]}`),this.options.publicKey(header.kid),Buffer.from(parts[2],"base64url")))throw new Error("UNVERIFIED_IDENTITY");
+    // All key-selection and cryptographic failures are authentication failures.
+    // Never leak an unknown key ID or a provider/key-store error to callers.
+    if(header?.alg!=="RS256"||typeof header.kid!=="string"||!header.kid||
+      !/^[A-Za-z0-9_-]+$/.test(parts[2]))throw new Error("UNVERIFIED_IDENTITY");
+    try{
+      const key=this.options.publicKey(header.kid);
+      if(!key||!verifySignature("RSA-SHA256",Buffer.from(`${parts[0]}.${parts[1]}`),key,Buffer.from(parts[2],"base64url")))
+        throw new Error("UNVERIFIED_IDENTITY");
+    }catch{throw new Error("UNVERIFIED_IDENTITY");}
     const now=Math.floor((this.options.now?.()??new Date()).getTime()/1000);
-    if(claims.iss!==this.options.issuer||claims.aud!==this.options.audience||typeof claims.sub!=="string"||!claims.sub||typeof claims.org!=="string"||!claims.org||typeof claims.exp!=="number"||claims.exp<=now||(typeof claims.nbf==="number"&&claims.nbf>now)||typeof claims.jti!=="string"||!claims.jti||this.options.isRevoked(claims.jti))throw new Error("UNVERIFIED_IDENTITY");
+    if(claims.iss!==this.options.issuer||claims.aud!==this.options.audience||
+      typeof claims.sub!=="string"||!claims.sub.trim()||
+      typeof claims.org!=="string"||!claims.org.trim()||
+      (typeof claims.exp!=="number"||!Number.isSafeInteger(claims.exp)||claims.exp<=now)||
+      (claims.nbf!==undefined&&(typeof claims.nbf!=="number"||!Number.isSafeInteger(claims.nbf)||claims.nbf>now))||
+      typeof claims.jti!=="string"||!claims.jti.trim())throw new Error("UNVERIFIED_IDENTITY");
+    try{if(this.options.isRevoked(claims.jti))throw new Error("UNVERIFIED_IDENTITY");}
+    catch{throw new Error("UNVERIFIED_IDENTITY");}
     return Object.freeze({userId:claims.sub,selectedOrganizationId:claims.org,systemAdmin:claims.systemAdmin===true});
   }
   switchOrganization(ctx:AuthorizationContext,organizationId:string):AuthorizationContext{

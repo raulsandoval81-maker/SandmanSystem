@@ -173,3 +173,25 @@ test("pooled PostgreSQL transactions lease dedicated connections and always rele
   assert.ok(trace.includes("3:ROLLBACK"));
   await assert.rejects(()=>new PooledPostgresCommercialBoundary({connect:async()=>{throw new Error("connection unavailable");}}).tenantTransaction(A,async()=>{}),/connection unavailable/);
 });
+
+
+test("JWT identity fails closed for missing keys, invalid key material, revocation failure and malformed claims",()=>{
+  const {privateKey,publicKey}=generateKeyPairSync("rsa",{modulusLength:2048});
+  const pem=publicKey.export({type:"spki",format:"pem"});
+  const base={iss:"sandman-id",aud:"commercial",sub:"user",org:A,exp:Math.floor(now().getTime()/1000)+300,jti:"verified-token"};
+  const authority=(keyLookup,revoked=()=>false)=>new JwtIdentityAuthority({issuer:"sandman-id",audience:"commercial",publicKey:keyLookup,isRevoked:revoked,now});
+  const good=jwt(privateKey,"kid",base);
+  assert.equal(authority(()=>pem).verify({sessionId:good}).userId,"user");
+  for(const keyLookup of [()=>undefined,()=>{throw new Error("provider private key detail");},()=> "NOT_A_PUBLIC_KEY"]){
+    assert.throws(()=>authority(keyLookup).verify({sessionId:good}),e=>e.message==="UNVERIFIED_IDENTITY");
+  }
+  assert.throws(()=>authority(()=>pem,()=>{throw new Error("revocation store detail");}).verify({sessionId:good}),e=>e.message==="UNVERIFIED_IDENTITY");
+  for(const changes of [
+    {exp:"9999999999"},{exp:NaN},{exp:1.5},{nbf:"tomorrow"},{nbf:1.2},
+    {org:" "},{sub:" "},{jti:" "}
+  ]){
+    const token=jwt(privateKey,"kid",{...base,...changes});
+    assert.throws(()=>authority(()=>pem).verify({sessionId:token}),/UNVERIFIED_IDENTITY/);
+  }
+  assert.throws(()=>authority(()=>pem).verify({sessionId:good+"#"}),/UNVERIFIED_IDENTITY/);
+});
