@@ -127,8 +127,8 @@ test("PostgreSQL boundaries sharing a connection serialize tenant contexts",asyn
   assert.equal(tenantA,A);
   assert.equal(tenantB,B);
   assert.deepEqual(trace,[
-    "BEGIN",`SET:${A}`,"SELECT active_tenant","SELECT active_tenant","COMMIT",
-    "BEGIN",`SET:${B}`,"SELECT active_tenant","COMMIT"
+    "BEGIN","SET LOCAL ROLE commercial_runtime",`SET:${A}`,"SELECT active_tenant","SELECT active_tenant","COMMIT",
+    "BEGIN","SET LOCAL ROLE commercial_runtime",`SET:${B}`,"SELECT active_tenant","COMMIT"
   ]);
 });
 
