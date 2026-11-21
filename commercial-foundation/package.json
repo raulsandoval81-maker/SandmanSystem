@@ -7,7 +7,8 @@
     "test": "npm run build && node --test test/*.test.cjs",
     "migrate:postgres": "npm run build && node scripts/postgres-migrate.cjs",
     "test:postgres": "npm run build && node --test test/postgres.acceptance.cjs",
-    "check:production-dependencies": "node scripts/check-production-dependencies.cjs"
+    "check:production-dependencies": "node scripts/check-production-dependencies.cjs",
+    "start:web": "node lib/webServer.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
