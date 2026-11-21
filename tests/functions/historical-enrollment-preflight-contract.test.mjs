@@ -30,6 +30,17 @@ test("Hosting API uses a sites/<site-id> resource while Functions use project ID
   assert.doesNotMatch(preflight, /release\.PROJECT = release\.SITE = PROJECT/);
 });
 
+test("Hosting inventory uses the existing separately authorized staging identity", () => {
+  assert.match(action, /id: historical-hosting-auth/);
+  assert.match(action, /service_account: sandman-staging-deployer@sandman-combat-staging\.iam\.gserviceaccount\.com/);
+  assert.match(action, /export_environment_variables: false/);
+  assert.match(action, /HOSTING_CREDENTIALS_FILE: \$\{\{ steps\.historical-hosting-auth\.outputs\.credentials_file_path \}\}/);
+  assert.match(preflight, /def authorized_hosting_token\(env\):/);
+  assert.match(preflight, /"CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": credentials/);
+  assert.match(preflight, /hosting_baseline\(authorized_hosting_token\(os\.environ\)/);
+  assert.doesNotMatch(action, /gcloud (?:projects add-iam-policy-binding|functions deploy)|firebase deploy/);
+});
+
 test("payment Function and Billing UI included together, no unrelated overlays", () => {
   for (const fragment of [
     '"createProposalDraft": (2, "proposals/createProposalDraft")',
