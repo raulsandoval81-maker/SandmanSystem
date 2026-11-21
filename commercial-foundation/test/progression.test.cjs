@@ -195,3 +195,29 @@ test("local persistence rejects tampered core curriculum names, order, disciplin
   writeFileSync(f.file,JSON.stringify(original));
   assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
 });
+
+test("family progression view redacts staff identifiers and limits approved concepts to active rank",()=>{
+  const f=setup(),x=flow(f,A);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"rank-zero-threshold",amount:800,reason:"private management note"});
+  f.curriculum.evaluate(x.coach,{id:"rank-zero-approval",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved",note:"private coach feedback"});
+  f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"private-promotion-id",requirementsVerified:true});
+  const before=f.read.parent(x.parent,A,"athlete");
+  assert.deepEqual(before.approvedSkills,[]);
+  assert.deepEqual(before.promotions,[{fromRank:"shadow",toRank:"prospect",promotedAt:"2026-11-20T20:00:00.000Z"}]);
+  assert.equal(JSON.stringify(before).includes("admin-"),false);
+  assert.equal(JSON.stringify(before).includes("coach-"),false);
+  assert.equal(JSON.stringify(before).includes("private"),false);
+  assert.equal(JSON.stringify(before).includes("promotionId"),false);
+  f.curriculum.evaluate(x.coach,{id:"rank-one-approval",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved",note:"another private note"});
+  const after=f.read.athlete(x.athlete,A);
+  assert.deepEqual(after.approvedSkills,["stance"]);
+  assert.deepEqual(after.promotions,before.promotions);
+  assert.equal(JSON.stringify(after).includes("coach-"),false);
+  assert.equal(JSON.stringify(after).includes("private"),false);
+});
+test("family progression view refuses conflicting multiple active cycles",()=>{
+  const f=setup(),x=flow(f,A);
+  const cycle=f.store.get("progressionCycles",A,"cycle-assignment");
+  f.store.put("progressionCycles",{...cycle,id:"another-cycle"});
+  assert.throws(()=>f.read.parent(x.parent,A,"athlete"),/ACTIVE_PROGRESSION_CYCLE_REQUIRED/);
+});
