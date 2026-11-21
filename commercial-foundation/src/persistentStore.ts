@@ -144,7 +144,27 @@ export class PersistentJsonCommercialStore extends InMemoryCommercialStore {
       if(link.state==="active") activeIdentityUsers.add(identityKey);
     }
     const expectedRanks:Record<string,number[]>={road2champion:[800,1600,2400,2800,3200],path2legend:[1000,1600,2400,2800,3000]};
-    for(const curriculum of this.curricula.values()) if(!this.get("academies",curriculum.organizationId,curriculum.academyId)||!expectedRanks[curriculum.pathway]||JSON.stringify(curriculum.ranks.map(r=>r.requiredXp))!==JSON.stringify(expectedRanks[curriculum.pathway])||!Array.isArray(curriculum.skills)) throw new Error("INVALID_PERSISTED_CURRICULUM");
+    const approvedDisciplines=new Set(["wrestling","boxing","muay_thai"]);
+    const canonicalRanks:Record<string,{key:string;name:string;requiredXp:number;order:number}[]>={
+      road2champion:["Shadow","Prospect","Competitor","Contender","Champion"].map((name,order)=>({key:name.toLowerCase(),name,requiredXp:expectedRanks.road2champion[order],order})),
+      path2legend:["Apprentice","Warrior","Hero","Veteran","Legend"].map((name,order)=>({key:name.toLowerCase(),name,requiredXp:expectedRanks.path2legend[order],order}))
+    };
+    for(const curriculum of this.curricula.values()){
+      const required=canonicalRanks[curriculum.pathway];
+      if(!this.get("academies",curriculum.organizationId,curriculum.academyId)||
+        curriculum.state!=="active"&&curriculum.state!=="retired"||
+        typeof curriculum.version!=="string"||!curriculum.version.trim()||
+        !approvedDisciplines.has(curriculum.discipline)||
+        !required||JSON.stringify(curriculum.ranks)!==JSON.stringify(required)||
+        !Array.isArray(curriculum.skills)||!curriculum.skills.length||
+        !curriculum.skills.some(s=>s.required===true)||
+        new Set(curriculum.skills.map(s=>s.id)).size!==curriculum.skills.length||
+        curriculum.skills.some(s=>typeof s.id!=="string"||!s.id.trim()||
+          typeof s.name!=="string"||!s.name.trim()||
+          typeof s.category!=="string"||!s.category.trim()||
+          typeof s.required!=="boolean"))
+        throw new Error("INVALID_PERSISTED_CURRICULUM");
+    }
     for(const assignment of this.curriculumAssignments.values()){const athlete=this.get("athletes",assignment.organizationId,assignment.athleteId);const curriculum=this.get("curricula",assignment.organizationId,assignment.curriculumId);if(!athlete||!curriculum||!["active","completed","revoked"].includes(assignment.state)||!validDate(assignment.assignedAt))throw new Error("INVALID_PERSISTED_CURRICULUM_ASSIGNMENT");}
     const activeCycles=new Set<string>();
     for(const assignment of this.curriculumAssignments.values()){
