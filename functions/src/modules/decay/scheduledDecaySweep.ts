@@ -43,8 +43,11 @@ import {
   resolveDisciplineXpAuthority,
 } from "../../management/disciplineXpAuthority";
 import {
+  activeXpCap,
+  athleteTier,
   classifyAthlete,
 } from "../../services/authoritativeXpService";
+import { applyProtectedDecay } from "./earnedStripeFloorPolicy";
 import {
   createParentSignal,
   PARENT_SIGNAL_TYPES,
@@ -116,7 +119,13 @@ function decayXpPatch(
     if (!Number.isFinite(beforeXp) || beforeXp < 0) {
       throw new Error("INVALID_ACTIVE_XP");
     }
-    const afterXp = Math.max(0, beforeXp - deduction);
+    const { afterXp } = applyProtectedDecay({
+      athlete,
+      tier: athleteTier(athlete, base),
+      xpCap: activeXpCap(athlete, base),
+      beforeXp,
+      deduction,
+    });
     return { patch: { xp: afterXp }, beforeXp, afterXp };
   }
 
@@ -131,7 +140,16 @@ function decayXpPatch(
   }
 
   const beforeXp = authority.authoritativeBeforeXp;
-  const afterXp = Math.max(0, beforeXp - deduction);
+  // The Academy's older Path2Legend thresholds have conflicting sources.
+  // Do not infer an earned stripe floor from a fallback tier cap.
+  const xpCap = Number(athlete?.xpCap);
+  const { afterXp } = applyProtectedDecay({
+    athlete,
+    tier: athleteTier(athlete, base),
+    xpCap,
+    beforeXp,
+    deduction,
+  });
   const patch = Object.fromEntries(
     authority.xpWriteTargets.map((field) => [field, afterXp])
   );
