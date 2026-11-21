@@ -30,6 +30,7 @@ The application rejects database URLs whose host is not localhost or a
 - Production-dependency isolation check: passed.
 - Real PostgreSQL acceptance deployment `810ff301-ccf3-4eb5-80c2-e7532b9fb685`: 5 passed, 0 failed.
 - Controlled PostgreSQL restart followed by deployment `337e8dfa-7594-419b-ba5f-13f904f62839`: 5 passed, 0 failed.
+- Final acceptance deployment `d09f74f0-bb52-45e5-a5e5-c0ae7b073e0d`: 6 passed, 0 failed, including synthetic logical restore.
 - RLS runtime role is `NOSUPERUSER` and `NOBYPASSRLS`.
 - Cross-tenant reads return no rows and cross-tenant writes fail.
 - Tenant operations use dedicated leased connections and transaction-local role and tenant context.
