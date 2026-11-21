@@ -185,6 +185,26 @@ export class ProgressionReadService{
       promotions,readOnly:true,transferAuthorized:false
     };
   }
-  private view(org:string,athleteId:string){const cycle=this.foundation.store.list<ProgressionCycle>("progressionCycles",org).find(c=>c.athleteId===athleteId&&c.state==="active");if(!cycle)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");const ranks=ranksFor(cycle.pathway),rank=ranks[cycle.rankIndex];return{athleteId,pathway:cycle.pathway,currentRank:rank.name,activeXp:cycle.activeXp,nextRankXp:rank.requiredXp,earnedStripes:cycle.earnedStripes,approvedSkills:this.foundation.store.list<SkillEvaluation>("skillEvaluations",org).filter(e=>e.athleteId===athleteId&&e.status==="approved").map(e=>e.skillId),promotions:this.foundation.store.list<PromotionRecord>("promotions",org).filter(p=>p.athleteId===athleteId),readOnly:true};}
+  private view(org:string,athleteId:string){
+    const cycles=this.foundation.store.list<ProgressionCycle>("progressionCycles",org)
+      .filter(c=>c.athleteId===athleteId&&c.state==="active");
+    if(cycles.length!==1)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");
+    const cycle=cycles[0],rank=ranksFor(cycle.pathway)[cycle.rankIndex];
+    if(!rank)throw new Error("INVALID_PROGRESSION_RANK");
+    const approvedSkills=[...new Set(this.foundation.store.list<SkillEvaluation>("skillEvaluations",org)
+      .filter(e=>e.athleteId===athleteId&&e.assignmentId===cycle.assignmentId&&
+        e.status==="approved"&&
+        (e.rankIndexAtEvaluation===cycle.rankIndex||
+          (cycle.rankIndex===0&&e.rankIndexAtEvaluation===undefined)))
+      .map(e=>e.skillId))];
+    const promotions=this.foundation.store.list<PromotionRecord>("promotions",org)
+      .filter(p=>p.athleteId===athleteId&&p.cycleId===cycle.id)
+      .map(p=>({fromRank:p.fromRank,toRank:p.toRank,promotedAt:p.promotedAt}));
+    // Family views must not expose internal coach/management identifiers,
+    // attestation actor IDs, private skill notes, or raw event provenance.
+    return {athleteId,pathway:cycle.pathway,currentRank:rank.name,activeXp:cycle.activeXp,
+      nextRankXp:rank.requiredXp,earnedStripes:cycle.earnedStripes,
+      approvedSkills,promotions,readOnly:true};
+  }
   private singleIdentity(org:string,userId:string){const links=this.foundation.store.list<AthleteIdentityLink>("athleteIdentityLinks",org).filter(l=>l.userId===userId&&l.state==="active");if(links.length!==1)throw new Error("ATHLETE_ACCESS_REQUIRED");return links[0];}
 }
