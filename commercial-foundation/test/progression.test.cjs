@@ -221,3 +221,43 @@ test("family progression view refuses conflicting multiple active cycles",()=>{
   f.store.put("progressionCycles",{...cycle,id:"another-cycle"});
   assert.throws(()=>f.read.parent(x.parent,A,"athlete"),/ACTIVE_PROGRESSION_CYCLE_REQUIRED/);
 });
+
+test("portable achievements verify complete active-cycle promotion lineage and omit other cycles",()=>{
+  const f=setup(),x=flow(f,A);
+  const athlete=f.store.get("athletes",A,"athlete");
+  f.store.put("athletes",{...athlete,adult:true},true);
+  const link=f.store.get("athleteIdentityLinks",A,"athlete-link");
+  f.store.put("athleteIdentityLinks",{...link,access:"adult_self"},true);
+  const member=f.store.get("memberships",A,"athlete-member");
+  f.store.put("memberships",{...member,role:"adult_athlete"},true);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"xp-to-shadow",amount:800,reason:"fixture"});
+  f.curriculum.evaluate(x.coach,{id:"approval-zero",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved"});
+  const promotion=f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"promote-shadow",requirementsVerified:true});
+  const preview=f.read.portableAdult(x.athlete,A);
+  assert.deepEqual(preview.promotions,[{fromRank:"shadow",toRank:"prospect",promotedAt:promotion.promotedAt}]);
+  f.store.put("promotions",{...promotion,id:"different-cycle",cycleId:"old-cycle",fromRank:"warrior",toRank:"hero"});
+  assert.deepEqual(f.read.portableAdult(x.athlete,A).promotions,preview.promotions);
+  f.store.put("promotions",{...promotion,id:"duplicate-stage"});
+  assert.throws(()=>f.read.portableAdult(x.athlete,A),/INVALID_PORTABLE_PROMOTION_LINEAGE/);
+});
+test("portable preview rejects forged rank lineage and lifetime XP history",()=>{
+  const f=setup(),x=flow(f,A);
+  const athlete=f.store.get("athletes",A,"athlete");
+  f.store.put("athletes",{...athlete,adult:true},true);
+  const identity=f.store.get("athleteIdentityLinks",A,"athlete-link");
+  f.store.put("athleteIdentityLinks",{...identity,access:"adult_self"},true);
+  const member=f.store.get("memberships",A,"athlete-member");
+  f.store.put("memberships",{...member,role:"adult_athlete"},true);
+  f.xp.adjust(x.admin,{organizationId:A,athleteId:"athlete",sourceEventId:"threshold-test",amount:800,reason:"fixture"});
+  f.curriculum.evaluate(x.coach,{id:"approved-stage",organizationId:A,assignmentId:"assignment",athleteId:"athlete",skillId:"stance",status:"approved"});
+  const promotion=f.xp.promote(x.admin,{organizationId:A,athleteId:"athlete",promotionId:"promotion-test",requirementsVerified:true});
+  for(const changed of [
+    {...promotion,fromRank:"legend"},
+    {...promotion,historicalXpAtPromotion:9999},
+    {...promotion,promotedAt:"not-a-date"},
+    {...promotion,requirementsVerified:false}
+  ]){
+    f.store.put("promotions",changed,true);
+    assert.throws(()=>f.read.portableAdult(x.athlete,A),/INVALID_PORTABLE_PROMOTION_LINEAGE/);
+  }
+});
