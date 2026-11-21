@@ -10,12 +10,14 @@ import receipt_intake_release as release
 
 REPOSITORY = "raulsandoval81-maker/SandmanSystem"
 PROJECT = "sandman-combat-staging"
-SHA = "58acff9f99ee44a99b979af2169cfb952f9d1c4b"
+SHA = "3b89bffed91d6e1698503b813f14340c2440f240"
 TARGETS = {
     "createProposalDraft": (2, "proposals/createProposalDraft"),
     "sendEnrollmentIntakeEmail": (1, "enrollment/sendEnrollmentIntakeEmail"),
+    "recordProposalPrepaidCash": (2, "billing/recordProposalPrepaidCash"),
 }
-ASSETS = ("/management/pricing/index.html", "/management/pricing/pricing.js")
+ASSETS = ("/management/pricing/index.html", "/management/pricing/pricing.js",
+          "/management/billing/billing.js")
 require = release.require
 
 
@@ -38,13 +40,27 @@ def guard(env):
 
 def candidate(root):
     require(git(root, "rev-parse", "HEAD") == SHA, "Unapproved application SHA")
-    changed = set(git(root, "diff", "--name-only", SHA + "^", SHA).splitlines())
-    require({path for path in changed if path.startswith("public/")} ==
-            {"public" + path for path in ASSETS}, "Hosting candidate scope changed")
-    require({path for path in changed if path.startswith("functions/src/")} ==
-            {"functions/src/" + entry + ".ts" for _, entry in TARGETS.values()} |
-            {"functions/src/enrollment/combinedEnrollmentReceipt.ts"},
-            "Function candidate scope changed")
+    # This pinned integration SHA contains multiple merged PRs; do NOT assume
+    # the last merge commit's diff is the complete release package.
+    # Package only these explicit function entrypoints and Hosting paths.
+    # No unrelated files are eligible for deployment by this preflight.
+    require(subprocess.run(
+        ["git", "-C", str(root), "merge-base", "--is-ancestor",
+         "58acff9f99ee44a99b979af2169cfb952f9d1c4b", SHA],
+        check=False).returncode == 0, "Historical proposal recovery is not in the candidate history")
+    for entry in ("billing/recordProposalPrepaidCash", "proposals/createProposalDraft",
+                  "enrollment/sendEnrollmentIntakeEmail"):
+        require((root / "functions" / "src" / (entry + ".ts")).is_file(),
+                "Required approved source entrypoint missing: " + entry)
+    require((root / "public/management/billing/billing.js").is_file(),
+            "Billing UI is required together with recordProposalPrepaidCash")
+    billing_source = (root / "functions/src/billing/recordProposalPrepaidCash.ts").read_text()
+    billing_ui = (root / "public/management/billing/billing.js").read_text()
+    require("prepaidPaymentEvidenceClaims" in billing_source and
+            "paymentEvidenceReference" in billing_source and
+            "prepaidCashEvidenceReference" in billing_ui and
+            "paymentEvidenceReference," in billing_ui,
+            "Candidate is missing the atomic evidence claim / matching Billing UI")
     functions = {}
     for name, (_, entry) in TARGETS.items():
         lib = root / "functions"
@@ -63,7 +79,8 @@ def candidate(root):
         ).stdout
         assets[path] = {"sourceSha256": release.inventory.sha(raw),
                         "hostingHash": release.inventory.sha(gzip)}
-    return {"functions": functions, "hostingAssets": assets}
+    return {"functions": functions, "hostingAssets": assets,
+            "exactSourceSha": SHA, "paymentEvidenceClaimGate": "source-verified"}
 
 
 def set_staging_scope():
