@@ -127,6 +127,57 @@ export class ProgressionReadService{
     const guardians=this.foundation.store.list<GuardianProfile>("guardians",org).filter(g=>g.userId===identity.userId&&g.state==="active"),ids=new Set(guardians.map(g=>g.id));
     const link=this.foundation.store.list<GuardianAthleteLink>("guardianLinks",org).find(l=>ids.has(l.guardianId)&&l.athleteId===athleteId&&l.state==="active");if(!link||!link.permissions.includes("progression"))throw new Error("PROGRESSION_PERMISSION_REQUIRED");return this.view(org,athleteId);
   });}
+  /**
+   * Read-only, minimally scoped achievement preview for a verified adult athlete.
+   * This is NOT a transfer approval, signed proof, or receiving-gym import.
+   */
+  portableAdult(ctx:AuthorizationContext,org:string){
+    return authorized(this.foundation,ctx,"athlete.self","portableAchievements","self",org,identity=>{
+      const link=this.singleIdentity(org,identity.userId);
+      if(link.access!=="adult_self")throw new Error("ADULT_TRANSFER_CONSENT_REQUIRED");
+      const athlete=this.foundation.store.get<CommercialAthlete>("athletes",org,link.athleteId);
+      if(!athlete||!athlete.adult||athlete.participationState!=="active")throw new Error("ADULT_TRANSFER_CONSENT_REQUIRED");
+      return this.portable(org,athlete.id);
+    });
+  }
+  /**
+   * Read-only preview for a linked guardian with explicit progression permission.
+   * A verified separate consent, receiving Management approval, and tamper-proof
+   * transfer provenance are still mandatory before any cross-org write.
+   */
+  portableGuardian(ctx:AuthorizationContext,org:string,athleteId:string){
+    return authorized(this.foundation,ctx,"parent.hub","portableAchievements",athleteId,org,identity=>{
+      const athlete=this.foundation.store.get<CommercialAthlete>("athletes",org,athleteId);
+      if(!athlete||athlete.adult||athlete.participationState!=="active")throw new Error("GUARDIAN_TRANSFER_ACCESS_REQUIRED");
+      const guardians=this.foundation.store.list<GuardianProfile>("guardians",org)
+        .filter(g=>g.userId===identity.userId&&g.state==="active");
+      const guardianIds=new Set(guardians.map(g=>g.id));
+      const link=this.foundation.store.list<GuardianAthleteLink>("guardianLinks",org)
+        .find(l=>l.athleteId===athleteId&&guardianIds.has(l.guardianId)&&l.state==="active"&&l.permissions.includes("progression"));
+      if(!link)throw new Error("GUARDIAN_TRANSFER_ACCESS_REQUIRED");
+      return this.portable(org,athleteId);
+    });
+  }
+  private portable(org:string,athleteId:string){
+    const cycles=this.foundation.store.list<ProgressionCycle>("progressionCycles",org)
+      .filter(c=>c.athleteId===athleteId&&c.state==="active");
+    if(cycles.length!==1)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");
+    const cycle=cycles[0],rank=ranksFor(cycle.pathway)[cycle.rankIndex];
+    if(!rank||!Number.isInteger(cycle.activeXp)||cycle.activeXp<0||
+      !Number.isInteger(cycle.lifetimeXp)||cycle.lifetimeXp<cycle.activeXp||
+      !Number.isInteger(cycle.earnedStripes)||cycle.earnedStripes<0||cycle.earnedStripes>4||
+      cycle.activeXp<Math.ceil(rank.requiredXp*cycle.earnedStripes/4))
+      throw new Error("INVALID_PORTABLE_PROGRESSION");
+    const promotions=this.foundation.store.list<PromotionRecord>("promotions",org)
+      .filter(p=>p.athleteId===athleteId&&p.pathway===cycle.pathway)
+      .map(p=>({id:p.id,fromRank:p.fromRank,toRank:p.toRank,promotedAt:p.promotedAt}));
+    return {
+      sourceOrganizationId:org,sourceAthleteId:athleteId,
+      pathway:cycle.pathway,rank:rank.key,rankIndex:cycle.rankIndex,
+      earnedStripes:cycle.earnedStripes,activeXp:cycle.activeXp,lifetimeXp:cycle.lifetimeXp,
+      promotions,readOnly:true,transferAuthorized:false
+    };
+  }
   private view(org:string,athleteId:string){const cycle=this.foundation.store.list<ProgressionCycle>("progressionCycles",org).find(c=>c.athleteId===athleteId&&c.state==="active");if(!cycle)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");const ranks=ranksFor(cycle.pathway),rank=ranks[cycle.rankIndex];return{athleteId,pathway:cycle.pathway,currentRank:rank.name,activeXp:cycle.activeXp,nextRankXp:rank.requiredXp,earnedStripes:cycle.earnedStripes,approvedSkills:this.foundation.store.list<SkillEvaluation>("skillEvaluations",org).filter(e=>e.athleteId===athleteId&&e.status==="approved").map(e=>e.skillId),promotions:this.foundation.store.list<PromotionRecord>("promotions",org).filter(p=>p.athleteId===athleteId),readOnly:true};}
   private singleIdentity(org:string,userId:string){const links=this.foundation.store.list<AthleteIdentityLink>("athleteIdentityLinks",org).filter(l=>l.userId===userId&&l.state==="active");if(links.length!==1)throw new Error("ATHLETE_ACCESS_REQUIRED");return links[0];}
 }
