@@ -148,6 +148,22 @@ def function_baseline(name, token):
             "rollbackRehearsed": False}
 
 
+def authorized_hosting_token(env):
+    # This is the existing staging Hosting inventory identity used by the
+    # PR606/PR614 protected read-only preflights, not a new IAM grant.
+    credentials = env.get("HOSTING_CREDENTIALS_FILE")
+    require(credentials and Path(credentials).is_file(),
+            "Existing dedicated Hosting credentials unavailable")
+    child_env = {**env,
+                 "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": credentials,
+                 "GOOGLE_APPLICATION_CREDENTIALS": credentials}
+    token = subprocess.check_output(
+        ["gcloud", "auth", "print-access-token"], text=True, env=child_env
+    ).strip()
+    require(bool(token), "Dedicated Hosting inventory token unavailable")
+    return token
+
+
 def hosting_baseline(token, candidate_assets):
     active = release.active(token)
     for value, collection in zip(active, ("releases", "versions")):
@@ -185,7 +201,8 @@ def main():
             except RuntimeError as error:
                 report["blockers"].append(f"{name}: {error}")
         try:
-            report["hosting"] = hosting_baseline(token, report["candidate"]["hostingAssets"])
+            report["hosting"] = hosting_baseline(authorized_hosting_token(os.environ),
+                                                  report["candidate"]["hostingAssets"])
         except RuntimeError as error:
             report["blockers"].append(f"Hosting: {error}")
         require(not report["blockers"], "Live staging baseline incomplete")
