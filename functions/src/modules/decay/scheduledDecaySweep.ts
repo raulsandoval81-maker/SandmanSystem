@@ -196,26 +196,28 @@ async function evaluateAthlete(
       return { uid: athleteId, action: "SKIPPED_RELAUNCH_REQUIRED" };
     }
 
-    if (currentState === "FROZEN") {
-      return { uid: athleteId, action: "SKIPPED_FROZEN" };
-    }
-
     if (
-      currentState === "DECAY_ACTIVE" &&
+      (currentState === "DECAY_ACTIVE" || currentState === "FROZEN") &&
       hasCanonicalRecoveryEvidence(decay)
     ) {
       tx.update(ref, {
         "decay.state": "CLEAR",
+        ...(currentState === "FROZEN" && String(athlete.tierStatus || "").toLowerCase() === "frozen"
+          ? { tierStatus: "active" } : {}),
         "decay.clearedAt": FieldValue.serverTimestamp(),
         "decay.nextHitAt": null,
         "decay.recoveryDaysCompleted": RECOVERY_DAYS_REQUIRED,
         "decay.resolutionStatus": "RECOVERY_REQUIREMENT_COMPLETED",
         "decay.resolutionReason":
-          "Recovered after 2 verified combat practices; historical decay retained.",
+          "Recovered after 1 verified combat practice; historical decay retained.",
         "decay.lastUpdatedAt": FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
       });
       return { uid: athleteId, action: "CLEARED_RECOVERED" };
+    }
+
+    if (currentState === "FROZEN") {
+      return { uid: athleteId, action: "SKIPPED_FROZEN" };
     }
 
     const calculated = calculateDecay(lastActivityAt, now);
