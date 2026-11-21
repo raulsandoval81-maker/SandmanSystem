@@ -41,6 +41,20 @@ test("release is fail-closed for baseline, source provenance, IAM and Hosting dr
   assert.match(script, /"STAGING_PUBLISHED_VERIFIED"/);
 });
 
+test("all three candidate package pins exactly match preflight #44856250072", () => {
+  const expectedPins = {
+    createProposalDraft: "c7803405b1ba7f5ac2e8c88e3597c7a2629aae5070b462056c443c40a48302d3",
+    sendEnrollmentIntakeEmail: "9c9f9de9515fa33948d6f3ecafeaaa7b7dd33b109af643f139eec43077dd7daf",
+    recordProposalPrepaidCash: "4f14dddf3bb4ce227990b9a7cf6a26a40de888fecef7898d480d03777fcc2cb6",
+  };
+  for (const [name, hash] of Object.entries(expectedPins)) {
+    const functionSection = script.split('"' + name + '": {')[1]?.split('\\n    },')[0];
+    assert.ok(functionSection, 'Missing baseline for ' + name);
+    assert.ok(functionSection.includes('"fileSetSha256": "' + hash + '"'),
+      'Incorrect approved candidate SHA-256 for ' + name);
+  }
+});
+
 test("deployment is protected, tests before auth, and uses segregated existing staging identities", () => {
   assert.match(job, /can_admins_bypass == false/);
   assert.match(job, /DEPLOY_APPROVAL: \$\{\{ inputs\.historical_enrollment_deployment_approval \}\}/);
