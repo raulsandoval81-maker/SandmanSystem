@@ -1,0 +1,31 @@
+name: Historical Enrollment Guarded Release Contract (offline)
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/staging-exact-sha-release.yml'
+      - '.github/workflows/historical-enrollment-guarded-release-check.yml'
+      - 'scripts/staging/historical-enrollment-preflight.py'
+      - 'scripts/staging/historical-enrollment-guarded-deploy.py'
+      - 'tests/functions/historical-enrollment-deploy-contract.test.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check release syntax and protected scope
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/staging/historical-enrollment-guarded-deploy.py scripts/staging/historical-enrollment-preflight.py
+          node --test tests/functions/historical-enrollment-deploy-contract.test.mjs tests/functions/historical-enrollment-preflight-contract.test.mjs
