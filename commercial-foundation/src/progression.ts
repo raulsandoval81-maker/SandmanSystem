@@ -30,18 +30,28 @@ function authorized<T>(foundation:CommercialFoundation,ctx:AuthorizationContext,
 }
 const ranksFor=(pathway:DevelopmentPathway)=>pathway==="road2champion"?ROAD2CHAMPION_RANKS:PATH2LEGEND_RANKS;
 const sameRanks=(actual:CurriculumRank[],expected:readonly CurriculumRank[])=>JSON.stringify(actual)===JSON.stringify(expected);
+// Only approved combat disciplines enter Commercial's active curriculum pipeline.
+// Future disciplines remain unpublished until separately approved and verified.
+const approvedDisciplines = new Set(["wrestling","boxing","muay_thai"]);
+const validSkills = (skills:CurriculumDefinition["skills"]) =>
+  Array.isArray(skills) && skills.length > 0 && skills.some(s=>s.required===true) &&
+  skills.every(s=>typeof s.id==="string" && s.id.trim().length>0 &&
+    typeof s.name==="string" && s.name.trim().length>0 &&
+    typeof s.category==="string" && s.category.trim().length>0 &&
+    typeof s.required==="boolean") &&
+  new Set(skills.map(s=>s.id)).size===skills.length;
 
 export class CurriculumService{
   constructor(private readonly foundation:CommercialFoundation,private readonly now=()=>new Date()){}
   createDefinition(ctx:AuthorizationContext,definition:CurriculumDefinition){return authorized(this.foundation,ctx,"xp.manage","curriculum",definition.id,definition.organizationId,()=>{
     assertId(definition.id);const academy=this.foundation.store.get("academies",definition.organizationId,definition.academyId);
-    if(!academy||!definition.version.trim()||definition.state!=="active"||definition.discipline==="brazilian_jiu_jitsu"||!sameRanks(definition.ranks,ranksFor(definition.pathway))||new Set(definition.skills.map(s=>s.id)).size!==definition.skills.length)throw new Error("INVALID_OR_UNVERIFIED_CURRICULUM");
+    if(!academy||!definition.version.trim()||definition.state!=="active"||!approvedDisciplines.has(definition.discipline)||!sameRanks(definition.ranks,ranksFor(definition.pathway))||!validSkills(definition.skills))throw new Error("INVALID_OR_UNVERIFIED_CURRICULUM");
     this.foundation.store.put("curricula",definition);return structuredClone(definition);
   },definition.academyId);}
   readDefinition(ctx:AuthorizationContext,org:string,id:string){const definition=this.foundation.store.get<CurriculumDefinition>("curricula",org,id);if(!definition)throw new Error("CURRICULUM_NOT_FOUND");return authorized(this.foundation,ctx,"xp.manage","curriculum",id,org,()=>definition,definition.academyId);}
   assign(ctx:AuthorizationContext,assignment:Omit<CurriculumAssignment,"assignedByUserId"|"assignedAt">){const athlete=this.athlete(assignment.organizationId,assignment.athleteId);return authorized(this.foundation,ctx,"xp.manage","curriculumAssignment",assignment.id,assignment.organizationId,identity=>this.foundation.transaction(()=>{
     const curriculum=this.foundation.store.get<CurriculumDefinition>("curricula",assignment.organizationId,assignment.curriculumId);
-    if(!curriculum||curriculum.academyId!==athlete.academyId||assignment.state!=="active"||this.foundation.store.list<CurriculumAssignment>("curriculumAssignments",assignment.organizationId).some(a=>a.athleteId===athlete.id&&a.state==="active"))throw new Error("INVALID_CURRICULUM_ASSIGNMENT");
+    if(!curriculum||!approvedDisciplines.has(curriculum.discipline)||!sameRanks(curriculum.ranks,ranksFor(curriculum.pathway))||!validSkills(curriculum.skills)||curriculum.academyId!==athlete.academyId||assignment.state!=="active"||this.foundation.store.list<CurriculumAssignment>("curriculumAssignments",assignment.organizationId).some(a=>a.athleteId===athlete.id&&a.state==="active"))throw new Error("INVALID_CURRICULUM_ASSIGNMENT");
     const record={...assignment,assignedByUserId:identity.userId,assignedAt:this.now().toISOString()};this.foundation.store.put("curriculumAssignments",record);
     const cycle:ProgressionCycle={id:`cycle-${assignment.id}`,organizationId:assignment.organizationId,athleteId:athlete.id,assignmentId:assignment.id,pathway:curriculum.pathway,rankIndex:0,activeXp:0,lifetimeXp:0,earnedStripes:0,seasonPhase:"preseason",sequence:0,state:"active"};this.foundation.store.put("progressionCycles",cycle);return record;
   }),athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
