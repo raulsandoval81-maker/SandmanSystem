@@ -46,6 +46,10 @@ provider. The application consumes only provider public JWKS material.
 
 ## Acceptance classification
 
+- Local Commercial regression suite: 122 passed, 0 failed.
+- Production-dependency isolation check: passed.
+- Railway PostgreSQL acceptance deployment
+  `fe3b3076-3467-430a-90d2-f91970b0cbfb`: 7 passed, 0 failed.
 - Local cryptographic provider simulation: required JWT, rotation, verified
   account, revocation, and outage cases covered.
 - Real Railway PostgreSQL: membership, invitation, switching, concurrency,
