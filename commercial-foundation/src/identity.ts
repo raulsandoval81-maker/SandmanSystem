@@ -30,8 +30,8 @@ export class JwtIdentityAuthority implements SwitchableIdentityAuthority{
     if(claims.iss!==this.options.issuer||claims.aud!==this.options.audience||
       typeof claims.sub!=="string"||!claims.sub.trim()||
       typeof claims.org!=="string"||!claims.org.trim()||
-      !Number.isSafeInteger(claims.exp)||claims.exp<=now||
-      (claims.nbf!==undefined&&(!Number.isSafeInteger(claims.nbf)||claims.nbf>now))||
+      (typeof claims.exp!=="number"||!Number.isSafeInteger(claims.exp)||claims.exp<=now)||
+      (claims.nbf!==undefined&&(typeof claims.nbf!=="number"||!Number.isSafeInteger(claims.nbf)||claims.nbf>now))||
       typeof claims.jti!=="string"||!claims.jti.trim())throw new Error("UNVERIFIED_IDENTITY");
     try{if(this.options.isRevoked(claims.jti))throw new Error("UNVERIFIED_IDENTITY");}
     catch{throw new Error("UNVERIFIED_IDENTITY");}
