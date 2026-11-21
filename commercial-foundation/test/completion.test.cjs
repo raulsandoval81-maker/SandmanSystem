@@ -37,7 +37,7 @@ test("recovery practice evidence rejects same-program sessions from another acad
   const f=setup(),x=athleteFlow(f,A);
   f.schedule.create(x.admin,{id:"return-session",organizationId:A,academyId:"academy",locationId:"location",programId:"program",coachUserIds:[`coach-${A}`],startsAt:"2026-11-19T18:00:00Z",endsAt:"2026-11-19T19:00:00Z",state:"completed"});
   f.attendance.record(x.coach,A,"return-session","athlete","present");
-  f.recovery.open(x.admin,{id:"recovery",organizationId:A,athleteId:"athlete"});
+  f.recovery.open(x.admin,{id:"recovery",organizationId:A,athleteId:"athlete",inactivityStartedAt:"2026-11-01T00:00:00Z"});
   const session=f.store.get("sessions",A,"return-session");
   for(const changed of [{academyId:"unrelated-academy"},{locationId:"unrelated-location"}]){
     f.store.put("sessions",{...session,...changed},true);
@@ -65,4 +65,38 @@ test("transfer fails closed without independently verified source-to-destination
   assert.equal(f.store.xpEvents.size,0);
   const verified=new AthleteTransferService(f.foundation,f.read,key,now,verifiedAthleteBinding);
   assert.equal(verified.accept(destination.admin,{...request,acceptanceId:"verified"}).destinationAthleteId,"athlete");
+});
+
+
+test("post-recovery XP rejects omitted, forged, old, unverified and return-session provenance",()=>{
+  const f=setup(),x=athleteFlow(f,A);
+  const sessions=[
+    ["old-session","2026-01-01T18:00:00Z","2026-01-01T19:00:00Z"],
+    ["return-session","2026-11-19T18:00:00Z","2026-11-19T19:00:00Z"],
+    ["next-session","2026-11-20T18:00:00Z","2026-11-20T19:00:00Z"],
+    ["no-attendance","2026-11-20T18:00:00Z","2026-11-20T19:00:00Z"]
+  ];
+  for(const [id,start,end] of sessions){
+    f.schedule.create(x.admin,{id,organizationId:A,academyId:"academy",locationId:"location",programId:"program",coachUserIds:[`coach-${A}`],startsAt:start,endsAt:end,state:"completed"});
+    if(id!=="no-attendance")f.attendance.record(x.coach,A,id,"athlete","present");
+  }
+  f.recovery.open(x.admin,{id:"recovery",organizationId:A,athleteId:"athlete",inactivityStartedAt:"2026-11-01T00:00:00Z"});
+  assert.throws(()=>f.recovery.verifyPractice(x.coach,{organizationId:A,caseId:"recovery",sessionId:"old-session",fullParticipation:true}),/RECOVERY_PRACTICE_EVIDENCE_UNVERIFIED/);
+  f.recovery.verifyPractice(x.coach,{organizationId:A,caseId:"recovery",sessionId:"return-session",fullParticipation:true});
+  const award=(sourceEventId,practiceSessionId)=>f.xp.submitCoach(x.coach,{
+    organizationId:A,athleteId:"athlete",sourceEventId,lane:"strength",amount:5,
+    source:"structured-strength",...(practiceSessionId===undefined?{}:{practiceSessionId})
+  });
+  const checks=[
+    ["omitted",undefined,/RECOVERY_XP_PRACTICE_REQUIRED/],
+    ["forged","made-up",/RECOVERY_XP_PRACTICE_UNVERIFIED/],
+    ["return","return-session",/RETURN_PRACTICE_AWARDS_ZERO_COMBAT_XP/],
+    ["old","old-session",/RECOVERY_XP_PRACTICE_NOT_AFTER_RETURN/],
+    ["missing-attendance","no-attendance",/RECOVERY_XP_PRACTICE_UNVERIFIED/]
+  ];
+  for(const [id,session,expected] of checks)assert.throws(()=>award(id,session),expected);
+  assert.equal(f.store.xpEvents.size,0);
+  assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").activeXp,0);
+  assert.equal(award("after-return","next-session").amount,5);
+  assert.equal(f.store.get("progressionCycles",A,"cycle-assignment").activeXp,5);
 });
