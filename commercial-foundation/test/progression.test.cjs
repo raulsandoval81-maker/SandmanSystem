@@ -69,3 +69,31 @@ test("negative Management adjustments cannot reduce XP below an earned stripe fl
   assert.equal(f.store.get("xpEvents",A,"stripe-loss"),undefined);
   assert.doesNotThrow(()=>new PersistentJsonCommercialStore(f.file));
 });
+
+test("Commercial rejects unapproved disciplines, empty core concepts, and modified rank standards",()=>{
+  const f=setup(),admin=f.admin(A),baseline=definition(A);
+  for(const [index,invalid] of [
+    {...baseline,discipline:"brazilian_jiu_jitsu"},
+    {...baseline,discipline:"submission_grappling"},
+    {...baseline,skills:[{id:"bonus",category:"optional",name:"Bonus",required:false}]},
+    {...baseline,skills:[]},
+    {...baseline,ranks:baseline.ranks.map((rank,i)=>i===4?{...rank,requiredXp:rank.requiredXp+100}:rank)}
+  ].entries()){
+    assert.throws(()=>f.curriculum.createDefinition(admin,{...invalid,id:`invalid-${index}`}),/INVALID_OR_UNVERIFIED_CURRICULUM/);
+  }
+  assert.equal(f.store.list("curricula",A).length,0);
+});
+test("Coach-custom concepts preserve the Sandman rank standard",()=>{
+  const f=setup(),admin=f.admin(A),custom=definition(A);
+  custom.skills.push({id:"coach-setup",category:"coach_custom",name:"Custom setup technique",required:false});
+  const created=f.curriculum.createDefinition(admin,custom);
+  assert.equal(created.skills.length,2);
+  assert.deepEqual(created.ranks,ROAD2CHAMPION_RANKS);
+});
+test("Assignment fails closed when a locally injected curriculum bypasses approved discipline validation",()=>{
+  const f=setup(),admin=f.admin(A);
+  f.family.registerAthlete(admin,{id:"transfer-protected",organizationId:A,academyId:"academy",locationId:"location",programId:"program",displayName:"Synthetic Athlete",synthetic:true,participationState:"active",adult:false});
+  f.store.put("curricula",{...definition(A),discipline:"brazilian_jiu_jitsu"});
+  assert.throws(()=>f.curriculum.assign(admin,{id:"bad-assignment",organizationId:A,athleteId:"transfer-protected",curriculumId:"curriculum",state:"active"}),/INVALID_CURRICULUM_ASSIGNMENT/);
+  assert.equal(f.store.list("progressionCycles",A).length,0);
+});
