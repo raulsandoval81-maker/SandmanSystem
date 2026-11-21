@@ -62,7 +62,12 @@ export class CurriculumService{
       !curriculum?.skills.some(s=>s.id===evaluation.skillId)||!(athlete.assignedCoachUserIds||[]).includes(identity.userId)||
       !["introduced","developing","approved"].includes(evaluation.status)||
       (evaluation.note!==undefined&&(typeof evaluation.note!=="string"||evaluation.note.length>2000)))throw new Error("INVALID_SKILL_EVALUATION");
-    const record={...evaluation,coachUserId:identity.userId,evaluatedAt:this.now().toISOString()};this.foundation.store.put("skillEvaluations",record);return record;
+    const activeCycle=this.foundation.store.list<ProgressionCycle>("progressionCycles",evaluation.organizationId)
+      .find(c=>c.athleteId===athlete.id&&c.state==="active"&&c.assignmentId===assignment.id);
+    if(!activeCycle)throw new Error("ACTIVE_PROGRESSION_CYCLE_REQUIRED");
+    // The server, not the coach's request, records which rank was evaluated.
+    const record={...evaluation,coachUserId:identity.userId,evaluatedAt:this.now().toISOString(),rankIndexAtEvaluation:activeCycle.rankIndex};
+    this.foundation.store.put("skillEvaluations",record);return record;
   },athlete.academyId,athlete.locationId?[athlete.locationId]:[]);}
   private athlete(org:string,id:string){const athlete=this.foundation.store.get<CommercialAthlete>("athletes",org,id);if(!athlete||athlete.participationState!=="active")throw new Error("ATHLETE_NOT_ACTIVE");return athlete;}
 }
@@ -100,7 +105,8 @@ export class XpLedgerService{
       curriculum.pathway!==cycle.pathway||!approvedDisciplines.has(curriculum.discipline)||
       !sameRanks(curriculum.ranks,ranks)||!validSkills(curriculum.skills))throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
     const approvals=this.foundation.store.list<SkillEvaluation>("skillEvaluations",input.organizationId).filter(e=>
-      e.athleteId===athlete.id&&e.assignmentId===assignment.id&&e.status==="approved");
+      e.athleteId===athlete.id&&e.assignmentId===assignment.id&&e.status==="approved"&&
+      (e.rankIndexAtEvaluation===cycle.rankIndex||(cycle.rankIndex===0&&e.rankIndexAtEvaluation===undefined)));
     if(curriculum.skills.filter(skill=>skill.required).some(skill=>!approvals.some(e=>e.skillId===skill.id)))
       throw new Error("PROMOTION_EVIDENCE_UNVERIFIED");
     // The existing generic attestation remains additional to the independently stored skill evidence.
