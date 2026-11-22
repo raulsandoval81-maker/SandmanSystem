@@ -50,6 +50,10 @@ export class CoachDashboard {
     const sessionIds = new Set(sessions.map(session => session.id));
     const programs = store.list<Program>("programs", org).filter(program =>
       sessions.some(session => session.programId === program.id) ||
+      this.staff.some(member => member.role === "coach" &&
+        store.list<CommercialAthlete>("athletes", org).some(athlete =>
+          athlete.programId === program.id && athlete.assignedCoachUserIds?.includes(this.identity.userId) &&
+          this.covers(member, program.academyId, athlete.locationId))) ||
       this.staff.some(member => member.role !== "coach" &&
         (this.covers(member, program.academyId) || program.locationIds.some(id => this.covers(member, program.academyId, id))))
     );
