@@ -151,6 +151,8 @@ test("Coach Dashboard uses the authenticated tenant and persists authorized form
     const response = await fixture.request("/coach", {headers});
     assert.equal(response.status, 200);
     assert.match(response.headers.get("content-security-policy")??"", /frame-ancestors/);
+    assert.match(response.headers.get("content-security-policy")??"", /style-src 'sha256-[A-Za-z0-9+/=]+'/);
+    assert.doesNotMatch(response.headers.get("content-security-policy")??"", /unsafe-inline/);
     assert.equal(response.headers.get("x-content-type-options"), "nosniff");
     const body = await response.text();
     assert.match(body, /Coach checklist/);
