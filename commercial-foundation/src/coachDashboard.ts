@@ -1,12 +1,12 @@
 import {randomUUID} from "node:crypto";
 import {
-  Academy, Location, AttendanceRecord, AttendanceState, AuthorizationContext, CommercialAthlete, DashboardEvent,
+  Academy, Location, AttendanceRecord, AttendanceState, AuthorizationContext, CommercialAthlete, CurriculumDefinition, CurriculumAssignment, SkillEvaluation, DashboardEvent,
   Membership, PracticeNote, PracticeSession, Program, ProgressionCycle, VerifiedIdentity, XpEvent
 } from "./contracts";
 import {CommercialFoundation} from "./foundation";
 import {FamilyRelationshipService} from "./family";
 import {AttendanceService, CoachService, SchedulingService} from "./operations";
-import {XpLedgerService} from "./progression";
+import {XpLedgerService, CurriculumService, ROAD2CHAMPION_RANKS, PATH2LEGEND_RANKS} from "./progression";
 
 export class CoachDashboard {
   readonly organizationId: string;
@@ -79,6 +79,15 @@ export class CoachDashboard {
       canWriteNotes: this.foundation.hasCapability(this.context, "coach.workspace"),
       currentUserId: this.identity.userId,
       canAwardXp: this.staff.some(member => member.role === "coach"),
+      canCreateCurriculum: this.staff.some(member => member.role === "coach") &&
+        this.foundation.hasCapability(this.context, "coach.workspace"),
+      curricula: store.list<CurriculumDefinition>("curricula", org).filter(item =>
+        programs.some(program => program.academyId === item.academyId &&
+          program.disciplines.includes(item.discipline))),
+      curriculumAssignments: store.list<CurriculumAssignment>("curriculumAssignments", org).filter(item =>
+        progressionAthleteIds.has(item.athleteId) && item.state === "active"),
+      skillEvaluations: store.list<SkillEvaluation>("skillEvaluations", org).filter(item =>
+        progressionAthleteIds.has(item.athleteId)),
       progression: store.list<ProgressionCycle>("progressionCycles", org).filter(cycle =>
         cycle.state === "active" && progressionAthleteIds.has(cycle.athleteId)),
       xpHistory: store.list<XpEvent>("xpEvents", org).filter(event => progressionAthleteIds.has(event.athleteId)),
@@ -124,6 +133,38 @@ export class CoachDashboard {
       return;
     }
 
+    if (action === "coach-curriculum") {
+      const program = this.snapshot().programs.find(item => item.id === value("program"));
+      if (!program) throw new Error("PROGRAM_NOT_IN_SCOPE");
+      const pathway = value("pathway");
+      if (pathway !== "road2champion" && pathway !== "path2legend") throw new Error("INVALID_PATHWAY");
+      const names = value("skills").split("\n").map(name => name.trim()).filter(Boolean);
+      if(!names.length || names.length > 30 || names.some(name => name.length > 120) ||
+        new Set(names.map(name => name.toLowerCase())).size !== names.length)
+        throw new Error("INVALID_CURRICULUM_SKILLS");
+      new CurriculumService(this.foundation).createCoachDefinition(this.context, {
+        id: randomUUID(), organizationId: org, academyId: program.academyId,
+        discipline: program.disciplines[0] as CurriculumDefinition["discipline"],
+        version: "1.0.0", pathway, state: "active",
+        ranks: [...(pathway === "road2champion" ? ROAD2CHAMPION_RANKS : PATH2LEGEND_RANKS)],
+        skills: names.map((name,index)=>({id:`coach-skill-${index+1}`,category:"coach_custom",name,required:true}))
+      });
+      return;
+    }
+    if (action === "coach-skill") {
+      const view=this.snapshot();
+      const athlete=view.athletes.find(item => item.id === value("athlete"));
+      const assignment=view.curriculumAssignments.find(item => item.athleteId === athlete?.id);
+      if(!athlete || !assignment || !athlete.assignedCoachUserIds?.includes(this.identity.userId))
+        throw new Error("COACH_NOT_ASSIGNED");
+      new CurriculumService(this.foundation).evaluate(this.context,{
+        id:randomUUID(),organizationId:org,assignmentId:assignment.id,
+        athleteId:athlete.id,skillId:value("skill"),
+        status:value("status") as "introduced" | "developing" | "approved",
+        note:value("note") || undefined
+      });
+      return;
+    }
     if (action === "coach-xp") {
       const athlete = this.snapshot().athletes.find(item => item.id === value("athlete"));
       if (!athlete || !athlete.assignedCoachUserIds?.includes(this.identity.userId)) throw new Error("COACH_NOT_ASSIGNED");
@@ -142,6 +183,18 @@ export class CoachDashboard {
 
     if (!this.staff.some(member => member.scopeType === "organization" && member.role === "organization_admin")) {
       throw new Error("ROLE_DENIED");
+    }
+    if (action === "curriculum-assign") {
+      const view=this.snapshot();
+      const athlete=view.athletes.find(item=>item.id===value("athlete"));
+      const curriculum=view.curricula.find(item=>item.id===value("curriculum"));
+      if(!athlete||!curriculum||athlete.academyId!==curriculum.academyId)
+        throw new Error("INVALID_CURRICULUM_SELECTION");
+      new CurriculumService(this.foundation).assign(this.context,{
+        id:randomUUID(),organizationId:org,athleteId:athlete.id,
+        curriculumId:curriculum.id,state:"active"
+      });
+      return;
     }
     if (action === "group") {
       const location = store.get<Location>("locations", org, value("location"));
