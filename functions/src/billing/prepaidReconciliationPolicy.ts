@@ -54,9 +54,9 @@ export function assertCashCheckFamilyReviewTerms(proposal: Record<string, any>):
       !Number.isSafeInteger(membershipCents) || membershipCents !== monthlyCents * months ||
       !fee || !Number.isSafeInteger(Number(fee.outstandingCents)) ||
       Number(fee.outstandingCents) < 0 ||
-      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.membershipStartDate)) ||
-      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.paidThroughDate)) ||
-      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.nextBillingDate)) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.membershipStartDate)) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.paidThroughDate)) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.nextBillingDate)) ||
       terms?.automaticRenewal !== false) {
     throw new Error("Cash/Check Paid-in-Full terms are missing or inconsistent in the signed proposal. Management must correct the agreement; do not proceed to Stripe.");
   }
