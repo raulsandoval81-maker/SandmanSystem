@@ -185,7 +185,17 @@ test("historical reconciliation rejects ordinary payments, Stripe activity and d
   assert.throws(() => assertHistoricalPrepaidReconciliation({
     ...existing, cashPrepayment: { amountCents: 96000 },
   }, "2026-10-30"), /already recorded/);
+  const ordinary = {
+    ...snapshot,
+    pricing: { ...snapshot.pricing, paymentArrangement: "monthly_autopay" },
+  };
   assert.throws(() => assertHistoricalPrepaidReconciliation({
     ...proposal(), createdAt: existing.createdAt,
-  }, "2026-10-30"), /Cash\/Check Paid-in-Full/);
+    lockedSnapshot: ordinary,
+    clientAcceptance: {
+      signedAt: { toMillis: () => Date.parse("2026-11-21T03:00:00Z") },
+      signedSnapshot: ordinary,
+      consentAccepted: true,
+    },
+  }, "2026-10-30"), /Cash.Check Paid-in-Full/);
 });
