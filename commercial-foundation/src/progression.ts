@@ -1,7 +1,7 @@
 import {
   AthleteIdentityLink, AuthorizationContext, CommercialAthlete, CurriculumAssignment,
   CurriculumDefinition, CurriculumRank, DevelopmentPathway, GuardianAthleteLink,
-  GuardianProfile, PracticeSession, ProgressionCycle, PromotionRecord, RecoveryCase, SkillEvaluation, VerifiedIdentity,
+  GuardianProfile, PracticeSession, Program, ProgressionCycle, PromotionRecord, RecoveryCase, SkillEvaluation, VerifiedIdentity,
   XpEvent, XpLane,
 } from "./contracts";
 import { CommercialFoundation } from "./foundation";
@@ -48,6 +48,23 @@ export class CurriculumService{
     if(!academy||!definition.version.trim()||definition.state!=="active"||!approvedDisciplines.has(definition.discipline)||!sameRanks(definition.ranks,ranksFor(definition.pathway))||!validSkills(definition.skills))throw new Error("INVALID_OR_UNVERIFIED_CURRICULUM");
     this.foundation.store.put("curricula",definition);return structuredClone(definition);
   },definition.academyId);}
+  /** Coach-authored material uses the same verified Sandman pathway and curriculum safeguards. */
+  createCoachDefinition(ctx:AuthorizationContext,definition:CurriculumDefinition){
+    if(!this.foundation.hasCapability(ctx,"coach.workspace"))throw new Error("ENTITLEMENT_REQUIRED");
+    return authorized(this.foundation,ctx,"xp.coach","curriculum",definition.id,definition.organizationId,()=>{
+      assertId(definition.id);
+      const academy=this.foundation.store.get("academies",definition.organizationId,definition.academyId);
+      const eligibleProgram=this.foundation.store.list<Program>("programs",definition.organizationId).some(program=>
+        program.state==="active"&&program.academyId===definition.academyId&&
+        program.disciplines.includes(definition.discipline));
+      if(!academy||academy.state!=="active"||!eligibleProgram||!definition.version.trim()||
+        definition.state!=="active"||!approvedDisciplines.has(definition.discipline)||
+        !sameRanks(definition.ranks,ranksFor(definition.pathway))||!validSkills(definition.skills))
+        throw new Error("INVALID_OR_UNVERIFIED_CURRICULUM");
+      this.foundation.store.put("curricula",definition);
+      return structuredClone(definition);
+    },definition.academyId);
+  }
   readDefinition(ctx:AuthorizationContext,org:string,id:string){const definition=this.foundation.store.get<CurriculumDefinition>("curricula",org,id);if(!definition)throw new Error("CURRICULUM_NOT_FOUND");return authorized(this.foundation,ctx,"xp.manage","curriculum",id,org,()=>definition,definition.academyId);}
   assign(ctx:AuthorizationContext,assignment:Omit<CurriculumAssignment,"assignedByUserId"|"assignedAt">){const athlete=this.athlete(assignment.organizationId,assignment.athleteId);return authorized(this.foundation,ctx,"xp.manage","curriculumAssignment",assignment.id,assignment.organizationId,identity=>this.foundation.transaction(()=>{
     const curriculum=this.foundation.store.get<CurriculumDefinition>("curricula",assignment.organizationId,assignment.curriculumId);
