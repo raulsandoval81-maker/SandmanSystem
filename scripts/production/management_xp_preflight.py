@@ -61,11 +61,21 @@ def read_archive(ref, token):
     )
 
 
+def guarded_gcloud(stage, command):
+    """Expose a fixed operation label and exit code, never command arguments or output."""
+    try:
+        return subprocess.check_output(command, stderr=subprocess.DEVNULL)
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(
+            f"UNVERIFIED: {stage} failed (exit code {error.returncode})"
+        ) from None
+
+
 def read_retained(ref):
     require(ref in (recovery.BASELINE, SANITIZED_CONFIG), "Unexpected recovery object")
     url = f"gs://{ref['bucket']}/{ref['object']}#{ref['generation']}"
-    data = subprocess.check_output(
-        ["gcloud", "storage", "cat", url, "--project", PROJECT], stderr=subprocess.DEVNULL,
+    data = guarded_gcloud(
+        "retained recovery object read", ["gcloud", "storage", "cat", url, "--project", PROJECT],
     )
     require(sha(data) == ref["sha256"], "Retained recovery object hash mismatch")
     return data
@@ -129,9 +139,10 @@ def build_record(resource):
         resource,
     )
     require(match, "Missing or out-of-scope Cloud Build resource")
-    return json.loads(subprocess.check_output(
+    return json.loads(guarded_gcloud(
+        "historical Cloud Build metadata read",
         ["gcloud", "builds", "describe", match[2], "--project", PROJECT,
-         "--region", match[1], "--format=json"], stderr=subprocess.DEVNULL,
+         "--region", match[1], "--format=json"],
     ))
 
 
@@ -243,9 +254,10 @@ def preflight(candidate):
             and traffic[0].get("revision", "").split("/")[-1] == revision,
             "Unexpected serving traffic")
     rev = get("https://run.googleapis.com/v2/" + revision_prefix + revision)
-    image_record = json.loads(subprocess.check_output(
+    image_record = json.loads(guarded_gcloud(
+        "serving Cloud Run revision metadata read",
         ["gcloud", "run", "revisions", "describe", revision, "--project", PROJECT,
-         "--region", REGION, "--format=json"], stderr=subprocess.DEVNULL,
+         "--region", REGION, "--format=json"],
     ))
     image = image_record.get("status", {}).get("imageDigest", "")
     require(image_record.get("metadata", {}).get("name") == revision
@@ -272,8 +284,8 @@ def preflight(candidate):
     require(build_resource, "UNVERIFIED: Function does not identify a producing build")
     try:
         build = build_record(build_resource)
-    except subprocess.CalledProcessError:
-        raise RuntimeError("UNVERIFIED: historical Cloud Build record is unavailable") from None
+    except RuntimeError as error:
+        raise RuntimeError(f"{error}") from None
     verify_build_image(build, build_resource, image, revision)
     serving_source = source_ref(build)
     if serving_source != function_source:

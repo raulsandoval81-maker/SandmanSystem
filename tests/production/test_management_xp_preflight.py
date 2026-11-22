@@ -112,6 +112,30 @@ class SafeCommandFailureTest(unittest.TestCase):
         self.assertEqual(preflight.safe_error_detail(ValueError("private")), "ValueError")
 
 
+class ProtectedGcloudDiagnosticsTest(unittest.TestCase):
+    def test_each_operation_reports_fixed_stage_without_sensitive_arguments(self):
+        import subprocess
+        for stage in (
+            "retained recovery object read",
+            "historical Cloud Build metadata read",
+            "serving Cloud Run revision metadata read",
+        ):
+            with self.subTest(stage=stage), patch.object(
+                preflight.subprocess, "check_output",
+                side_effect=subprocess.CalledProcessError(
+                    1, ["gcloud", "storage", "cat", "gs://private-token"],
+                    output=b"secret-output", stderr=b"secret-error",
+                ),
+            ):
+                with self.assertRaises(RuntimeError) as captured:
+                    preflight.guarded_gcloud(stage, ["gcloud", "private-argument"])
+                detail = str(captured.exception)
+                self.assertIn(stage, detail)
+                self.assertIn("exit code 1", detail)
+                for private in ("private-token", "private-argument", "secret-output", "secret-error"):
+                    self.assertNotIn(private, detail)
+
+
 class ProtectedAuthenticationTest(unittest.TestCase):
     def test_missing_credentials_stop_before_gcloud(self):
         from unittest.mock import patch
