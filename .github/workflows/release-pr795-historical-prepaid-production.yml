@@ -61,7 +61,7 @@ jobs:
             test "$APPROVAL" = "APPROVE_PR795_HISTORICAL_PREPAID_FUNCTION"
             test -n "$REVISION"
             test -n "$DIGEST"
-            case "$DIGEST" in sha256:*) ;; *) exit 1 ;; esac
+            case "$DIGEST" in *@sha256:*) ;; sha256:*) ;; *) exit 1 ;; esac
           else
             test "$MODE" = preflight
           fi
