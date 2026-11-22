@@ -109,6 +109,28 @@ export const saveProposalEnrollmentAgreement =
         const snapshot =
           proposal.lockedSnapshot || {};
 
+        // Validate before any transaction writes: a malformed prepared proposal
+        // must never receive a confirmation timestamp or proceed to checkout.
+        const preparedCash = isPreparedForPrepaidReconciliation(proposal);
+        const cashArrangement =
+          clean(snapshot.pricing?.paymentArrangement) === "prepaid_cash_check";
+        if (preparedCash || cashArrangement) {
+          if (!preparedCash) {
+            throw new HttpsError(
+              "failed-precondition",
+              "Management must prepare the Cash/Check Paid-in-Full review before the family confirms."
+            );
+          }
+          try {
+            assertCashCheckFamilyReviewTerms(proposal);
+          } catch (error) {
+            throw new HttpsError(
+              "failed-precondition",
+              error instanceof Error ? error.message : "Cash/Check Paid-in-Full terms must be verified."
+            );
+          }
+        }
+
         const priorAcceptance =
           proposal.clientAcceptance || {};
 
