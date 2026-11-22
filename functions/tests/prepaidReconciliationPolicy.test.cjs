@@ -164,7 +164,10 @@ test("historical reconciliation rejects missing consent or a changed agreement",
     undefined,
     { ...existing.clientAcceptance, consentAccepted: false },
     { ...existing.clientAcceptance, signedAt: "browser-value" },
-    { ...existing.clientAcceptance, signedSnapshot: snapshot },
+    { ...existing.clientAcceptance, signedSnapshot: {
+      ...snapshot,
+      pricing: { ...snapshot.pricing, paymentArrangement: "monthly_autopay" },
+    } },
   ]) {
     assert.throws(() => assertHistoricalPrepaidReconciliation({
       ...existing, clientAcceptance,
