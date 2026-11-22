@@ -9,7 +9,8 @@ const fixture=()=>({
   athletes:[{id:"ath-1",displayName:"Test <Athlete>",programId:"team-1",locationId:"room-1",participationState:"active"}],
   sessions:[{id:"s-1",programId:"team-1",locationId:"room-1",startsAt:"2099-01-01T17:00:00Z",endsAt:"2099-01-01T18:00:00Z",state:"scheduled"}],
   attendance:[],notes:[],events:[],activity:[],locations:[{id:"room-1",name:"Pilot Room"}],coaches:["synthetic-coach"],
-  canManageOrganization:true,canSchedule:true,canRecordAttendance:true,canWriteNotes:true
+  canManageOrganization:true,canSchedule:true,canRecordAttendance:true,canWriteNotes:true,
+  currentUserId:"synthetic-admin",canAwardXp:false,progression:[],xpHistory:[]
 });
 
 test("commercial coach workspace renders safe responsive overview, roster and workflow anchors",()=>{
@@ -42,4 +43,20 @@ test("coach-only workspace displays no organization-management forms",()=>{
   assert.ok(!html.includes("Add training group"));
   assert.ok(!html.includes('name="action" value="settings"'));
   assert.ok(html.includes('name="action" value="attendance"'));
+});
+
+
+test("profile displays progression read-only unless an assigned coach has an active cycle",()=>{
+  const view=fixture();
+  view.progression=[{athleteId:"ath-1",rankIndex:0,activeXp:10,earnedStripes:0,state:"active"}];
+  view.xpHistory=[{athleteId:"ath-1",lane:"strength",amount:10,occurredAt:"2026-11-20T12:00:00Z"}];
+  const html=renderCoachDashboard(view,"csrf","ath-1");
+  assert.match(html,/XP and progression/);
+  assert.match(html,/Active XP: 10/);
+  assert.ok(!html.includes('name="action" value="coach-xp"'));
+  view.currentUserId="synthetic-coach";view.canAwardXp=true;
+  view.athletes[0].assignedCoachUserIds=["synthetic-coach"];
+  const enabled=renderCoachDashboard(view,"csrf","ath-1");
+  assert.ok(enabled.includes('name="action" value="coach-xp"'));
+  assert.ok(enabled.includes('name="award"'));
 });
