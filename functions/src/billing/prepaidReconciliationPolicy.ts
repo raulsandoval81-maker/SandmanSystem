@@ -72,6 +72,11 @@ export function assertPrepaidReconciliationCanBePrepared(
   if (clean(proposal.status).toUpperCase() !== "READY_FOR_CHECKOUT") {
     throw new Error("Paid-in-full reconciliation can only be prepared for a checkout-ready proposal.");
   }
+  // A 6/12-month term alone is not a Cash/Check paid-in-full agreement.
+  // Never silently convert a signed monthly or Stripe agreement during preparation.
+  if (clean(proposal.lockedSnapshot?.pricing?.paymentArrangement) !== "prepaid_cash_check") {
+    throw new Error("The signed proposal must lock a Cash/Check Paid-in-Full payment arrangement before reconciliation.");
+  }
   if (!proposal.clientAcceptance?.signedAt ||
       !proposal.clientAcceptance?.signedSnapshot ||
       !proposal.lockedSnapshot) {
