@@ -100,6 +100,7 @@ export function assertPrepaidReconciliationCanBePrepared(
   if (clean(proposal.lockedSnapshot?.pricing?.paymentArrangement) !== "prepaid_cash_check") {
     throw new Error("The signed proposal must lock a Cash/Check Paid-in-Full payment arrangement before reconciliation.");
   }
+  assertCashCheckFamilyReviewTerms(proposal);
   if (!proposal.clientAcceptance?.signedAt ||
       !proposal.clientAcceptance?.signedSnapshot ||
       !proposal.lockedSnapshot) {
