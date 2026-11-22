@@ -5,7 +5,9 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.parse
+import urllib.request
 import zipfile
 
 import receipt_intake_inventory as inventory
@@ -71,12 +73,26 @@ def guarded_gcloud(stage, command):
         ) from None
 
 
-def read_retained(ref):
+def read_retained(ref, token):
     require(ref in (recovery.BASELINE, SANITIZED_CONFIG), "Unexpected recovery object")
-    url = f"gs://{ref['bucket']}/{ref['object']}#{ref['generation']}"
-    data = guarded_gcloud(
-        "retained recovery object read", ["gcloud", "storage", "cat", url, "--project", PROJECT],
-    )
+    require(bool(token), "Refusing an unauthenticated recovery object read")
+    label = "sanitized configuration" if ref == SANITIZED_CONFIG else "rollback ZIP"
+    path = urllib.parse.quote(ref["object"], safe="")
+    url = (f"https://storage.googleapis.com/storage/v1/b/{ref['bucket']}/o/{path}"
+           f"?alt=media&generation={ref['generation']}")
+    request = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    limit = 32 * 1024 * 1024
+    try:
+        with urllib.request.build_opener(inventory.NoRedirect()).open(request, timeout=45) as response:
+            data = response.read(limit + 1)
+    except urllib.error.HTTPError as error:
+        detail = inventory.storage_error_detail(error)
+        raise RuntimeError(
+            f"UNVERIFIED: retained {label} generation {ref['generation']} read returned HTTP {error.code}{detail}"
+        ) from None
+    except (urllib.error.URLError, TimeoutError):
+        raise RuntimeError(f"UNVERIFIED: retained {label} read failed at transport") from None
+    require(len(data) <= limit, "Retained recovery object exceeds size limit")
     require(sha(data) == ref["sha256"], "Retained recovery object hash mismatch")
     return data
 
@@ -264,11 +280,11 @@ def preflight(candidate):
             and len(rev.get("containers", [])) == 1
             and re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", image),
             "Serving revision is missing an immutable image digest")
-    expected = json.loads(read_retained(SANITIZED_CONFIG))
+    expected = json.loads(read_retained(SANITIZED_CONFIG, token))
     verify_sanitized_configuration(fn, expected)
     function_source = source_ref(config)
     require(function_source == ORIGINAL_SOURCE, "Production Function source identity drift")
-    rollback = read_retained(recovery.BASELINE)
+    rollback = read_retained(recovery.BASELINE, token)
     require(read_archive(function_source, token) == rollback,
             "Retained rollback differs from the generation-pinned original")
     report = verify_candidate(rollback, candidate)
