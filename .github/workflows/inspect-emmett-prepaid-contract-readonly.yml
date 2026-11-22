@@ -1,0 +1,114 @@
+name: Emmett P-000021 — read-only locked prepaid contract inspection
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandmandashboard to authorize read-only inspection
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-emmett-prepaid-contract-inspection
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: ${{ github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main' }}
+    environment: production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Enforce exact read-only scope
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$PROJECT" = sandmandashboard
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/inspect-emmett-prepaid-contract-readonly.yml@refs/heads/main"
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Authenticate as existing production inspector
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/firebase-sa.json" --quiet >/dev/null
+          gcloud config set project sandmandashboard --quiet >/dev/null
+          test "$(gcloud config get-value project 2>/dev/null)" = sandmandashboard
+          echo "Read-only inspection credentials selected (identity and credentials withheld)."
+
+      - name: Fetch exactly one proposal and publish only sanitized flags
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          TOKEN="$(gcloud auth print-access-token)"
+          STATUS="$(curl --silent --show-error \
+            --header "Authorization: Bearer $TOKEN" \
+            --header "Accept: application/json" \
+            --output "$RUNNER_TEMP/proposal-private.json" \
+            --write-out '%{http_code}' \
+            'https://firestore.googleapis.com/v1/projects/sandmandashboard/databases/(default)/documents/proposals/P-000021')"
+          unset TOKEN
+          if [ "$STATUS" != "200" ]; then
+            echo "STOP_NO_RETRY: read-only document fetch failed (HTTP $STATUS)."
+            exit 1
+          fi
+          python3 - "$RUNNER_TEMP/proposal-private.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          raw=json.loads(Path(sys.argv[1]).read_text())
+          def unwrap(v):
+              if not isinstance(v,dict): return None
+              if 'mapValue' in v:
+                  return {k:unwrap(x) for k,x in v['mapValue'].get('fields',{}).items()}
+              if 'arrayValue' in v:
+                  return [unwrap(x) for x in v['arrayValue'].get('values',[])]
+              for key in ('stringValue','integerValue','doubleValue','booleanValue','timestampValue','nullValue'):
+                  if key in v:return v[key]
+              return None
+          p={k:unwrap(v) for k,v in raw.get('fields',{}).items()}
+          locked=p.get('lockedSnapshot') or {}
+          pricing=locked.get('pricing') or {}
+          acceptance=p.get('clientAcceptance') or {}
+          signed=acceptance.get('signedSnapshot') or {}
+          terms=pricing.get('prepaidTerms')
+          reconciliation=p.get('prepaidReconciliation') or {}
+          confirmation=p.get('enrollmentConfirmation') or {}
+          stripe_fields=('stripePaymentIntentId','stripeCheckoutSessionId','pendingCheckoutSessionId','stripeSubscriptionId','stripeInvoiceId','stripeCustomerId')
+          result={
+              'status':'COLLECTED_NOT_CLEARED',
+              'project':'sandmandashboard',
+              'proposal_id':'P-000021',
+              'proposal_status':p.get('status'),
+              'locked_payment_arrangement':pricing.get('paymentArrangement') or 'MISSING',
+              'signed_payment_arrangement':(signed.get('pricing') or {}).get('paymentArrangement') or 'MISSING',
+              'locked_snapshot_matches_signed_snapshot':bool(signed) and signed==locked,
+              'has_signed_at':bool(acceptance.get('signedAt')),
+              'prepaid_review_status':reconciliation.get('status') or 'MISSING',
+              'has_locked_prepaid_terms':isinstance(terms,dict),
+              'has_prepaid_membership_amount':bool(isinstance(terms,dict) and terms.get('membershipAmountCents')),
+              'has_prepaid_coverage_dates':bool(isinstance(terms,dict) and terms.get('membershipStartDate') and terms.get('paidThroughDate')),
+              'has_enrollment_confirmation':bool(confirmation.get('termsConfirmed') and confirmation.get('confirmedAt')),
+              'has_stripe_activity':any(bool(p.get(k)) for k in stripe_fields),
+              'has_existing_membership_payment_record':bool(p.get('cashPrepayment')),
+              'note':'Read-only diagnostic only; does not establish bank deposit evidence or authorize reconciliation.'
+          }
+          Path('evidence/emmett-sanitized.json').write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps(result,indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emmett-prepaid-contract-sanitized-${{ github.run_id }}
+          path: evidence/emmett-sanitized.json
+          if-no-files-found: warn
