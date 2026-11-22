@@ -66,6 +66,17 @@ jobs:
             test "$MODE" = preflight
           fi
 
+      - name: Verify production environment requires owner review
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/production" |
+            jq -e '.can_admins_bypass == false and any(.protection_rules[]; .type == "required_reviewers")' > /dev/null
+
       - uses: actions/checkout@v4
         with:
           ref: 63ec594a5ba3b7fee56affa3c41562d64e4986d1
