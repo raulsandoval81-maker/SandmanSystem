@@ -1,9 +1,10 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
-  CoachDashboard, CommercialFoundation, CurriculumService, InMemoryCommercialStore,
+  CommercialFoundation, CurriculumService, InMemoryCommercialStore,
   InMemoryTestIdentityAuthority, OrganizationOnboardingService, ROAD2CHAMPION_RANKS
 } = require("../lib");
+const {CoachDashboard} = require("../lib/coachDashboard");
 
 function setup() {
   const identity = new InMemoryTestIdentityAuthority();
