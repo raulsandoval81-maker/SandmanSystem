@@ -114,7 +114,7 @@ jobs:
           fs.writeFileSync('isolated/firebase.json',JSON.stringify({functions:{source:'functions',runtime:'nodejs22'}},null,2)+'\n');
           NODE
           npm ci --omit=dev --prefix isolated/functions --ignore-scripts --no-audit --no-fund
-          node -e 'const x=require("./isolated/functions"); const {getApps}=require("./isolated/functions/node_modules/firebase-admin/app"); if(getApps().length!==1) throw Error("Isolated Function Firebase Admin initialization failed"); if(Object.keys(x).join()!=="recordProposalPrepaidCash" || !x.recordProposalPrepaidCash?.__endpoint?.callableTrigger) throw Error("Unexpected callable export"); const {getFirestore}=require("./isolated/functions/node_modules/firebase-admin/firestore"); if(!getFirestore()) throw Error("Firestore missing initialization");'
+          node -e 'const {createRequire}=require("node:module"); const {resolve}=require("node:path"); const isolatedRequire=createRequire(resolve("isolated/functions/index.cjs")); const x=isolatedRequire("./"); const {getApps}=isolatedRequire("firebase-admin/app"); if(getApps().length!==1) throw Error("Isolated Function Firebase Admin initialization failed"); if(Object.keys(x).join()!=="recordProposalPrepaidCash" || !x.recordProposalPrepaidCash?.__endpoint?.callableTrigger) throw Error("Unexpected callable export"); const {getFirestore}=isolatedRequire("firebase-admin/firestore"); if(!getFirestore()) throw Error("Firestore missing initialization");'
           test ! -e isolated/functions/.env
           test ! -e isolated/functions/.env.production
           test ! -e isolated/functions/.env.sandmandashboard
