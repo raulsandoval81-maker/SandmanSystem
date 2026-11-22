@@ -1,11 +1,12 @@
 import {randomUUID} from "node:crypto";
 import {
   Academy, Location, AttendanceRecord, AttendanceState, AuthorizationContext, CommercialAthlete, DashboardEvent,
-  Membership, PracticeNote, PracticeSession, Program, VerifiedIdentity
+  Membership, PracticeNote, PracticeSession, Program, ProgressionCycle, VerifiedIdentity, XpEvent
 } from "./contracts";
 import {CommercialFoundation} from "./foundation";
 import {FamilyRelationshipService} from "./family";
 import {AttendanceService, CoachService, SchedulingService} from "./operations";
+import {XpLedgerService} from "./progression";
 
 export class CoachDashboard {
   readonly organizationId: string;
@@ -68,6 +69,11 @@ export class CoachDashboard {
       canManageOrganization,
       canRecordAttendance: this.foundation.hasCapability(this.context, "attendance.manage"),
       canWriteNotes: this.foundation.hasCapability(this.context, "coach.workspace"),
+      currentUserId: this.identity.userId,
+      canAwardXp: this.staff.some(member => member.role === "coach"),
+      progression: store.list<ProgressionCycle>("progressionCycles", org).filter(cycle =>
+        cycle.state === "active" && athleteIds.has(cycle.athleteId)),
+      xpHistory: store.list<XpEvent>("xpEvents", org).filter(event => athleteIds.has(event.athleteId)),
       academies: canManageOrganization ? store.list<Academy>("academies", org) : [],
       locations: canManageOrganization ? store.list<Location>("locations", org) : [],
       coaches: canManageOrganization ? [...new Set(store.list<Membership>("memberships", org)
@@ -110,6 +116,22 @@ export class CoachDashboard {
       return;
     }
 
+    if (action === "coach-xp") {
+      const athlete = this.snapshot().athletes.find(item => item.id === value("athlete"));
+      if (!athlete || !athlete.assignedCoachUserIds?.includes(this.identity.userId)) throw new Error("COACH_NOT_ASSIGNED");
+      const lane = value("lane");
+      const amount = Number(value("amount"));
+      if (!((lane === "strength" && [5, 10].includes(amount)) ||
+        (lane === "honor" && amount === 5))) throw new Error("UNAPPROVED_XP_AMOUNT");
+      new XpLedgerService(this.foundation).submitCoach(this.context, {
+        organizationId: org, athleteId: athlete.id, sourceEventId: randomUUID(),
+        lane: lane as "strength" | "honor", amount,
+        source: lane === "strength" ? "structured-strength" : "verified-honor",
+        reason: value("reason") || undefined
+      });
+      return;
+    }
+
     if (!this.staff.some(member => member.scopeType === "organization" && member.role === "organization_admin")) {
       throw new Error("ROLE_DENIED");
     }
@@ -128,9 +150,14 @@ export class CoachDashboard {
       if (action === "athlete") {
         const displayName = value("name");
         if (!displayName || displayName.length > 120) throw new Error("INVALID_ATHLETE_NAME");
+        const assignedCoach = value("coach");
+        const eligibleCoach = store.list<Membership>("memberships", org).some(member =>
+          member.userId === assignedCoach && member.role === "coach" && member.state === "active" &&
+          this.validScope(member) && this.covers(member, program.academyId, locationId));
+        if (!eligibleCoach) throw new Error("COACH_NOT_ELIGIBLE_FOR_ASSIGNMENT");
         new FamilyRelationshipService(this.foundation).registerAthlete(this.context, {
           id: randomUUID(), organizationId: org, academyId: program.academyId, programId: program.id,
-          locationId, displayName, synthetic: true
+          locationId, displayName, synthetic: true, assignedCoachUserIds: [assignedCoach]
         });
       } else {
         this.scheduling.create(this.context, {id: randomUUID(), organizationId: org, academyId: program.academyId,
