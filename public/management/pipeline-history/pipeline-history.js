@@ -109,6 +109,10 @@ function stageFromProposalStatus(status = "") {
 }
 
 function currentStage(record) {
+  // Intake advances the case only after verified payment status on the proposal.
+  // A photographed check or emailed review is not a reconciled payment.
+  if (record.proposalId && clean(record.proposalStatus).toUpperCase() === "PAID" &&
+      record.verifiedIntakeStatus === "submitted") return "intake_started";
   if (record.proposalId) return stageFromProposalStatus(record.proposalStatus);
   if (record.closedAt || record.leadStatus === "closed" || record.status === "closed") return "closed";
   if (record.enrolledAt) return "enrolled";
@@ -262,6 +266,42 @@ function finalizeCase(caseRecord) {
     proposalUpdatedAt: currentProposal?.updatedAt || currentProposal?.createdAt || caseRecord.proposalUpdatedAt || null,
     proposalLocationId: clean(currentProposal?.locationId || caseRecord.proposalLocationId)
   };
+}
+
+function attachVerifiedIntakeState(cases = [], intakes = []) {
+  const byProposalId = new Map();
+  for (const intake of intakes) {
+    const id = clean(intake.proposalId);
+    const status = clean(intake.status).toLowerCase();
+    if (!id || !["submitted", "approved"].includes(status)) continue;
+    const previous = byProposalId.get(id);
+    if (!previous || timestampMillis(intake.updatedAt || intake.submittedAt || intake.createdAt) >
+        timestampMillis(previous.updatedAt || previous.submittedAt || previous.createdAt)) {
+      byProposalId.set(id, intake);
+    }
+  }
+  return cases.map(record => {
+    const intake = byProposalId.get(clean(record.proposalId));
+    return {...record, verifiedIntakeStatus: clean(intake?.status).toLowerCase()};
+  });
+}
+
+function cashCheckProgressLabel(record) {
+  const proposal = (record.proposals || [])[0] || {};
+  const pricing = proposal.lockedSnapshot?.pricing || proposal.pricing || {};
+  if (pricing.paymentArrangement !== "prepaid_cash_check" &&
+      proposal.paymentMethod !== "cash_prepaid") return "";
+  const status = clean(proposal.status).toUpperCase();
+  if (status === "PAID" && clean(proposal.paymentStatus).toLowerCase() === "paid" &&
+      clean(proposal.paymentMethod) === "cash_prepaid" &&
+      Number(proposal.cashPrepayment?.amountCents || 0) > 0 &&
+      clean(proposal.prepaidReconciliation?.status).toUpperCase() === "RECORDED") {
+    return "Historical Cash/Check: Reconciled";
+  }
+  if (status === "AWAITING_CLIENT_SIGNATURE") return "Historical Cash/Check: Awaiting family confirmation";
+  if (status === "READY_FOR_CHECKOUT" || status === "CLIENT_SIGNED")
+    return "Historical Cash/Check: Family confirmed; Management reconciliation required";
+  return "Historical Cash/Check: Not yet reconciled";
 }
 
 function activatedPipelineKeys(intakes = [], athletes = []) {
@@ -554,6 +594,8 @@ function render() {
           ${record.source === "lead" ? `<div><dt>Lead ID</dt><dd class="history-id">${esc(record.id)}</dd></div>` : ""}
           ${proposalId ? `<div><dt>Current Proposal</dt><dd class="history-id">${esc(proposalId)}</dd></div>` : ""}
           ${proposalId ? `<div><dt>Proposal Status</dt><dd>${esc(proposalStatusLabel(record.proposalStatus))}</dd></div>` : ""}
+          ${cashCheckProgressLabel(record) ? `<div><dt>Cash/Check</dt><dd>${esc(cashCheckProgressLabel(record))}</dd></div>` : ""}
+          ${record.verifiedIntakeStatus ? `<div><dt>Intake</dt><dd>${esc(record.verifiedIntakeStatus)}</dd></div>` : ""}
         </dl>
 
         ${renderEarlierProposals(record)}
@@ -633,9 +675,9 @@ async function loadHistory(context) {
 
   records =
     archiveFilteredRecords(
-      buildCaseRecords(
-        leads,
-        proposals
+      attachVerifiedIntakeState(
+        buildCaseRecords(leads, proposals),
+        intakes
       ).filter(
         (record) =>
           !caseIsActivated(
