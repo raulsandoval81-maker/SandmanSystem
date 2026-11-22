@@ -24,7 +24,7 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
   const upcoming = sessions.filter(session => session.state === "scheduled" && Date.parse(session.startsAt) >= Date.now()).slice(0, 3);
   const markedSessions = new Set(attendance.map(record => record.sessionId));
   const competitions = events.filter(event => event.type === "competition" && Date.parse(event.startsAt) >= Date.now());
-  const navItems: [string,string][] = [["overview","Overview"],["roster","Athletes"],["groups","Teams & groups"],["curriculum","Curriculum"],["sessions","Practice & attendance"],["events","Competitions"],["activity","Activity"],["settings","Settings"]];
+  const navItems: [string,string][] = [["overview","Overview"],["roster","Athletes"],["management","Management"],["groups","Teams & groups"],["curriculum","Curriculum"],["sessions","Practice & attendance"],["events","Competitions"],["activity","Activity"],["settings","Settings"]];
   const menu = `<nav class="sidebar" aria-label="Coach dashboard sections"><div class="sidebar-label">Coach workspace</div>${navItems.map(([id,label])=>`<a href="#${id}">${escapeHtml(label)}</a>`).join("")}<div class="sidebar-foot">Secure, organization-scoped workspace<br>Development pilot</div></nav>`;
   const empty = (heading: string, caption: string) => `<div class="empty"><strong>${escapeHtml(heading)}</strong><div>${escapeHtml(caption)}</div></div>`;
 
@@ -67,6 +67,7 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
 
   const groupChoices = options(programs);
   const locationChoices = options(view.locations);
+  const academyChoices = options(view.academies);
   const groupAndLocation = select("Group", "group", groupChoices) + select("Location", "location", locationChoices);
   const sessionCards = sessions.map(session => {
     const available = athletes.filter(athlete => athlete.programId === session.programId &&
@@ -102,10 +103,18 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
       "No athletes in your scope.") + (view.canManageOrganization && groupChoices && locationChoices ?
       form("athlete", "Add synthetic athlete", input("Display name", "name") + groupAndLocation +
         select("Assigned coach", "coach", options(view.coaches.map(id => ({id, name: id}))))) : "")) +
+    section("management", "Academies and locations",
+      view.canManageOrganization ?
+        `<p class="section-hint">Manage your training spaces before creating groups.</p>` +
+        list(view.academies.map(item=>`<span class="row-main"><strong>${escapeHtml(item.name)}</strong><span class="row-sub">Academy · ${escapeHtml(item.state)}</span></span>`),"No academy configured.")+
+        list(view.locations.map(item=>`<span class="row-main"><strong>${escapeHtml(item.name)}</strong><span class="row-sub">Location · ${escapeHtml(view.academies.find(a=>a.id===item.academyId)?.name??item.academyId)}</span></span>`),"No locations configured.")+
+        form("academy","Add academy",input("Academy name","name"))+
+        (academyChoices?form("location","Add location",input("Location name","name")+select("Academy","academy",academyChoices)):"")
+        :"<p>Academy and location administration requires organization-owner access.</p>")+
     section("groups", "Teams and training groups", `<p class="section-hint">Organize athletes by team and discipline.</p>` + list(programs.map(program =>
       `<span class="row-main"><strong>${escapeHtml(program.name)}</strong><span class="row-sub">${program.disciplines.map(escapeHtml).join(", ")}</span></span><span class="tag">${escapeHtml(program.state)}</span>`),
       "No training groups in your scope.") + (view.canManageOrganization && locationChoices ?
-      form("group", "Add training group", input("Group name", "name") + input("Discipline", "discipline") +
+      form("group", "Add training group", input("Group name", "name") + select("Discipline", "discipline", '<option value="wrestling">Wrestling</option><option value="boxing">Boxing</option><option value="muay_thai">Muay Thai</option>') +
         select("Location", "location", locationChoices)) : "")) +
     section("curriculum","Coach curriculum",`<p class="section-hint">Create your own skills within approved Sandman pathway and XP standards.</p>`+
       list(view.curricula.map(item=>`<span class="row-main"><strong>${escapeHtml(item.discipline)}</strong><span class="row-sub">${escapeHtml(item.pathway)} · ${item.skills.length} skills</span></span>`),"No curriculum created yet.")+
