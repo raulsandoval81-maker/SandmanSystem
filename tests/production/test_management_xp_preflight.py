@@ -42,13 +42,29 @@ class CandidateManifestTest(unittest.TestCase):
                     preflight.verify_candidate(b"original", root)
 
     def test_retained_read_rejects_unapproved_objects_and_wrong_bytes(self):
-        with patch.object(preflight.subprocess, "check_output", return_value=b"wrong") as command:
+        with patch.object(preflight.urllib.request, "build_opener") as opener:
             with self.assertRaisesRegex(RuntimeError, "Unexpected recovery object"):
-                preflight.read_retained({**preflight.SANITIZED_CONFIG, "generation": "1"})
-            command.assert_not_called()
+                preflight.read_retained({**preflight.SANITIZED_CONFIG, "generation": "1"}, "token")
+            opener.assert_not_called()
+            request_open = opener.return_value.open
+            request_open.return_value.__enter__.return_value.read.return_value = b"wrong"
             with self.assertRaisesRegex(RuntimeError, "hash mismatch"):
-                preflight.read_retained(preflight.SANITIZED_CONFIG)
-            self.assertIn("#1795226241121217", command.call_args.args[0][3])
+                preflight.read_retained(preflight.SANITIZED_CONFIG, "token")
+            request = request_open.call_args.args[0]
+            self.assertEqual(request.full_url,
+                "https://storage.googleapis.com/storage/v1/b/sandman-xp-recovery-889326401061"
+                "/o/xp-recovery%2Fproduction-config-sanitized.json?alt=media&generation=1795226241121217")
+            self.assertEqual(request.get_header("Authorization"), "Bearer token")
+
+    def test_retained_read_reports_http_status_without_raw_error(self):
+        for status in (401, 403, 404):
+            with self.subTest(status=status), patch.object(preflight.urllib.request, "build_opener") as opener:
+                opener.return_value.open.side_effect = preflight.urllib.error.HTTPError(
+                    "https://private", status, "private error", {}, None,
+                )
+                with self.assertRaisesRegex(RuntimeError, f"generation 1795226241121217 read returned HTTP {status}") as raised:
+                    preflight.read_retained(preflight.SANITIZED_CONFIG, "token")
+                self.assertNotIn("private", str(raised.exception))
 
     def test_sanitized_configuration_does_not_include_values_or_identities(self):
         fn = {
@@ -116,7 +132,6 @@ class ProtectedGcloudDiagnosticsTest(unittest.TestCase):
     def test_each_operation_reports_fixed_stage_without_sensitive_arguments(self):
         import subprocess
         for stage in (
-            "retained recovery object read",
             "historical Cloud Build metadata read",
             "serving Cloud Run revision metadata read",
         ):
