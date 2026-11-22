@@ -31,9 +31,21 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
   if (athleteId !== null) {
     const athlete = athletes.find(record => record.id === athleteId);
     if (!athlete) throw new Error("ATHLETE_NOT_FOUND");
+    const cycle = view.progression.find(item => item.athleteId === athlete.id);
+    const canAward = view.canAwardXp && athlete.assignedCoachUserIds?.includes(view.currentUserId) && cycle;
+    const xpPanel = cycle ? section("progression", "XP and progression",
+      `<p>Rank stage: ${cycle.rankIndex + 1} · Active XP: ${cycle.activeXp} · Earned stripes: ${cycle.earnedStripes}</p>` +
+      list(view.xpHistory.filter(item => item.athleteId === athlete.id).slice(-10).map(item =>
+        `${escapeHtml(item.lane)} · ${item.amount} XP · ${time(item.occurredAt)}`), "No XP recorded yet.") +
+      (canAward ? form("coach-xp", "Record verified XP",
+        `<input type="hidden" name="athlete" value="${escapeHtml(athlete.id)}">` +
+        select("Verified award", "award",
+          `<option value="strength:5">Strength +5</option><option value="strength:10">Strength +10</option><option value="honor:5">Honor +5</option>`) +
+        `<label>Coaching evidence / reason<input name="reason" maxlength="2000"></label>`) : "")
+    ) : section("progression", "XP and progression", "<p>No active curriculum assignment or progression cycle. An authorized manager must assign a curriculum first.</p>");
     return `<a class="profile-back" href="/coach#roster">← Back to roster</a><div class="profile-head"><div class="avatar" aria-hidden="true">${escapeHtml(athlete.displayName.slice(0, 1).toUpperCase())}</div><div><div class="eyebrow">Athlete profile · Development</div><h1>${escapeHtml(athlete.displayName)}</h1><p class="muted">${programName(athlete.programId)} · ${escapeHtml(athlete.participationState ?? "active")}</p></div></div>` +
       section("profile", "Attendance history", list(attendance.filter(record => record.athleteId === athlete.id).map(record =>
-          `<span class="row-main"><strong>${escapeHtml(record.state)}</strong><span class="row-sub">${time(record.recordedAt)}</span></span>`), "No attendance recorded yet."));
+          `<span class="row-main"><strong>${escapeHtml(record.state)}</strong><span class="row-sub">${time(record.recordedAt)}</span></span>`), "No attendance recorded yet.")) + xpPanel;
   }
 
   const groupChoices = options(programs);
@@ -71,7 +83,8 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
     section("roster", "Athlete roster", `<p class="section-hint">Athletes visible under your coaching permissions.</p>` + list(athletes.map(athlete =>
       `<span class="row-main"><strong><a href="/coach?athlete=${encodeURIComponent(athlete.id)}">${escapeHtml(athlete.displayName)}</a></strong><span class="row-sub">${programName(athlete.programId)}</span></span><span class="row-end"><a href="/coach?athlete=${encodeURIComponent(athlete.id)}">Profile</a></span>`),
       "No athletes in your scope.") + (view.canManageOrganization && groupChoices && locationChoices ?
-      form("athlete", "Add synthetic athlete", input("Display name", "name") + groupAndLocation) : "")) +
+      form("athlete", "Add synthetic athlete", input("Display name", "name") + groupAndLocation +
+        select("Assigned coach", "coach", options(view.coaches.map(id => ({id, name: id}))))) : "")) +
     section("groups", "Teams and training groups", `<p class="section-hint">Organize athletes by team and discipline.</p>` + list(programs.map(program =>
       `<span class="row-main"><strong>${escapeHtml(program.name)}</strong><span class="row-sub">${program.disciplines.map(escapeHtml).join(", ")}</span></span><span class="tag">${escapeHtml(program.state)}</span>`),
       "No training groups in your scope.") + (view.canManageOrganization && locationChoices ?
