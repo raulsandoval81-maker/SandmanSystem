@@ -129,6 +129,17 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v3
 
+      - name: Select established production service account for gcloud
+        run: |
+          set -euo pipefail
+          test -s "$GOOGLE_APPLICATION_CREDENTIALS"
+          gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS" --quiet >/dev/null
+          gcloud config set project sandmandashboard --quiet >/dev/null
+          ACTIVE_ACCOUNT="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+          test -n "$ACTIVE_ACCOUNT"
+          test "$(gcloud config get-value project 2>/dev/null)" = sandmandashboard
+          echo "Production gcloud account selected (email and credentials withheld)."
+
       - name: Capture exact production baseline and test rollback metadata (read-only)
         env:
           MODE: ${{ inputs.mode }}
