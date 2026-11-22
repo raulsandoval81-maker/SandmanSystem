@@ -196,10 +196,28 @@ export class CoachDashboard {
       });
       return;
     }
+    if (action === "academy") {
+      const name=value("name");
+      if(!name||name.length>120)throw new Error("INVALID_ACADEMY_NAME");
+      this.foundation.createAcademy(this.context,{
+        id:randomUUID(),organizationId:org,name,state:"active"
+      });
+      return;
+    }
+    if (action === "location") {
+      const academy=store.get<Academy>("academies",org,value("academy"));
+      const name=value("name");
+      if(!academy||academy.state!=="active"||!name||name.length>120)
+        throw new Error("INVALID_LOCATION");
+      this.foundation.createLocation(this.context,{
+        id:randomUUID(),organizationId:org,academyId:academy.id,name,state:"active"
+      });
+      return;
+    }
     if (action === "group") {
       const location = store.get<Location>("locations", org, value("location"));
       const name = value("name"), discipline = value("discipline");
-      if (!location || !name || name.length > 120 || !discipline || discipline.length > 80) throw new Error("INVALID_GROUP");
+      if (!location || location.state !== "active" || !name || name.length > 120 || !discipline || discipline.length > 80) throw new Error("INVALID_GROUP");
       this.foundation.createProgram(this.context, {id: randomUUID(), organizationId: org, academyId: location.academyId,
         name, locationIds: [location.id], disciplines: [discipline], state: "active"});
       return;
