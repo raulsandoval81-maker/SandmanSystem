@@ -18,6 +18,7 @@ const { hashProposalReviewToken } = require("../lib/proposals/proposalClientRevi
 const { canonicalPaymentArrangement } = require("../lib/billing/paymentArrangement");
 const prepaid = require("../lib/billing/recordProposalPrepaidCash").recordProposalPrepaidCash;
 const confirm = require("../lib/proposals/saveProposalEnrollmentAgreement").saveProposalEnrollmentAgreement;
+const correctProposal = require("../lib/proposals/returnProposalToDraft").returnProposalToDraft;
 const approveRenewal = require("../lib/billing/approveProposalRenewalAutopay").approveProposalRenewalAutopay;
 const activate = require("../lib/approveAndActivate").approveAndActivate;
 
@@ -169,6 +170,28 @@ test("wrong-location Management cannot prepare prepaid reconciliation", async ()
     invoke(prepaid, outsider, { proposalId, mode: "prepare" }),
     (error) => error.code === "permission-denied"
   );
+});
+
+test("controlled correction invalidates old Cash/Check review and secure link without altering history", async () => {
+  const id = `${proposalId}-CORRECT-CONTRACT`;
+  await db.doc(`proposals/${id}`).set(acceptedProposal(id, {
+    prepaidReconciliation: { status: "AWAITING_FAMILY_CONFIRMATION", route: "management_prepaid_reconciliation" },
+    enrollmentConfirmation: { termsConfirmed: true, confirmedAt: Timestamp.now() },
+  }));
+  const response = await invoke(correctProposal, manager, {
+    proposalId: id,
+    reason: "Correct previously signed paid-in-full terms",
+  });
+  assert.equal(response.status, "DRAFT");
+  const saved = (await db.doc(`proposals/${id}`).get()).data();
+  assert.equal(saved.lockedSnapshot, undefined);
+  assert.equal(saved.clientAcceptance, undefined);
+  assert.equal(saved.prepaidReconciliation, undefined);
+  assert.equal(saved.enrollmentConfirmation, undefined);
+  assert.equal(saved.enrollmentHandoff, undefined);
+  const history = await db.doc(`proposals/${id}`).collection("history")
+    .where("event", "==", "STATUS_CHANGED").get();
+  assert.equal(history.size, 1);
 });
 
 test("accepted locked proposal prepares an auditable prepaid family route", async () => {
