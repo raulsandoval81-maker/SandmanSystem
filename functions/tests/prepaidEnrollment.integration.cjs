@@ -327,7 +327,12 @@ test("separate existing $80 month and $30 fee remain untouched when $960 annual 
   const conversionSnapshot = {
     ...snapshot,
     prospect: sameProspect,
-    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+    pricing: canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement: "prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount: 30,
+      prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+    }, snapshot.athletes),
   };
   const source = {
     proposalId: oldId,
@@ -335,7 +340,7 @@ test("separate existing $80 month and $30 fee remain untouched when $960 annual 
     status: "PAID",
     prospect: sameProspect,
     athletes: snapshot.athletes,
-    lockedSnapshot: { ...snapshot, prospect: sameProspect },
+    lockedSnapshot: { ...baseSnapshot, prospect: sameProspect },
     priorPayments: [
       { paymentId: "first-month", amountCents: 8000, membershipAmountCents: 8000,
         enrollmentFeeAmountCents: 0, periods: ["2026-09"], paymentMethod: "check" },
@@ -400,7 +405,12 @@ test("conversion rejects wrong guardian and does not record the $960 check", asy
   const sameProspect = { parentEmail: "synthetic-target@example.invalid" };
   const conversionSnapshot = {
     ...snapshot, prospect: sameProspect,
-    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+    pricing: canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement: "prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount: 30,
+      prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+    }, snapshot.athletes),
   };
   await db.doc(`proposals/${oldId}`).set({
     proposalId: oldId, locationId, status: "PAID",
@@ -441,7 +451,12 @@ test("conversion refuses a potentially active legacy Stripe subscription", async
   const newId = `${proposalId}-NEW-ACTIVE-OLD`;
   const prospect = {parentEmail:"synthetic-active@example.invalid"};
   const locked = {...snapshot, prospect,
-    pricing:{...snapshot.pricing,enrollmentPreviouslyPaidAmount:30}};
+    pricing:canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement:"prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount:30,
+      prepaidFeeAllocations:[{athleteIndex:1,amountCents:0}],
+    },snapshot.athletes)};
   await db.doc(`proposals/${previousId}`).set({
     proposalId:previousId,locationId,prospect,status:"PAID",
     athletes:snapshot.athletes,
