@@ -30,7 +30,7 @@ const excludedId = `${proposalId}-EXCLUDED`;
 const partialId = `${proposalId}-PARTIAL`;
 const supportedId = `${proposalId}-SUPPORTED`;
 const token = `enrollment-token-${suffix}`;
-const snapshot = {
+const baseSnapshot = {
   prospect: { familyName: "Synthetic Prepaid Family", appointmentId: null },
   athletes: [{
     name: "Synthetic Athlete", plan: "standard", billingTerm: "annual",
@@ -40,6 +40,15 @@ const snapshot = {
     monthlyBalance: 80, enrollmentBase: 30,
     membershipStartDate: "2026-10-05", dueNow: 110,
   },
+};
+// Prepaid integration cases must use a genuinely locked/signed Cash/Check
+// arrangement, not a recurring monthly offer mislabeled as prepaid.
+const snapshot = {
+  ...baseSnapshot,
+  pricing: canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+  }, baseSnapshot.athletes),
 };
 
 const acceptedProposal = (id, overrides = {}) => ({
