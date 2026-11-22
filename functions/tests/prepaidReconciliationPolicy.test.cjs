@@ -51,7 +51,7 @@ test("family Cash/Check view refuses a prepared monthly agreement or missing pre
       pricing: { ...valid.lockedSnapshot.pricing, paymentArrangement: "monthly_autopay" },
     },
   };
-  assert.throws(() => assertCashCheckFamilyReviewTerms(invalidMonthly), /Cash\\/Check Paid-in-Full terms/);
+  assert.throws(() => assertCashCheckFamilyReviewTerms(invalidMonthly), /Cash.Check Paid-in-Full terms/);
   const absentTerms = {
     ...valid,
     lockedSnapshot: {
@@ -83,7 +83,7 @@ test("a 12-month monthly or Stripe proposal cannot enter Cash/Check prepaid revi
       ...proposal(),
       lockedSnapshot: wrongSnapshot,
       clientAcceptance: { signedAt: { toMillis: () => 1 }, signedSnapshot: wrongSnapshot },
-    }), /Cash\\/Check Paid-in-Full/);
+    }), /Cash.Check Paid-in-Full/);
   }
 });
 
