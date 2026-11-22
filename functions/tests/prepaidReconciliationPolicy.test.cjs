@@ -11,7 +11,7 @@ const {
 
 const snapshot = {
   athletes: [{ name: "Synthetic Athlete", plan: "standard", billingTerm: "annual" }],
-  pricing: { monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05" },
+  pricing: { paymentArrangement: "prepaid_cash_check", monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05" },
 };
 const proposal = () => ({
   status: "READY_FOR_CHECKOUT",
@@ -21,6 +21,20 @@ const proposal = () => ({
 
 test("accepted locked 12-month proposal can enter Management prepaid reconciliation", () => {
   assert.doesNotThrow(() => assertPrepaidReconciliationCanBePrepared(proposal()));
+});
+
+test("a 12-month monthly or Stripe proposal cannot enter Cash/Check prepaid review", () => {
+  for (const paymentArrangement of ["monthly_autopay", "prepaid_stripe"]) {
+    const wrongSnapshot = {
+      ...snapshot,
+      pricing: { ...snapshot.pricing, paymentArrangement },
+    };
+    assert.throws(() => assertPrepaidReconciliationCanBePrepared({
+      ...proposal(),
+      lockedSnapshot: wrongSnapshot,
+      clientAcceptance: { signedAt: { toMillis: () => 1 }, signedSnapshot: wrongSnapshot },
+    }), /Cash\\/Check Paid-in-Full/);
+  }
 });
 
 test("prepaid preparation rejects missing acceptance, nonannual terms, and Stripe activity", () => {
