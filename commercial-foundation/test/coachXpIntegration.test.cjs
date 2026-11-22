@@ -87,7 +87,7 @@ test("coach creates custom curriculum, owner assigns it, coach evaluates skills 
     action:"coach-curriculum",program:"wrestling",pathway:"invalid",skills:"Stance"
   })),/INVALID_PATHWAY/);
   f.coach.submit(new URLSearchParams({
-    action:"coach-curriculum",program:"wrestling",pathway:"road2champion",skills:"Stance\\nMotion"
+    action:"coach-curriculum",program:"wrestling",pathway:"road2champion",skills:["Stance","Motion"].join(String.fromCharCode(10))
   }));
   const definition=f.store.list("curricula",f.org)[0];
   assert.equal(definition.discipline,"wrestling");
