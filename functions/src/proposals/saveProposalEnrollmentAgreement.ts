@@ -214,6 +214,16 @@ export const saveProposalEnrollmentAgreement =
     const prepaidReconciliation =
       isPreparedForPrepaidReconciliation(proposal);
 
+    // A previously prepared but incorrectly configured proposal must never
+    // present the ordinary Stripe flow or accept misleading family terms.
+    if (prepaidReconciliation &&
+        clean(snapshot.pricing?.paymentArrangement) !== "prepaid_cash_check") {
+      throw new HttpsError(
+        "failed-precondition",
+        "The locked proposal does not contain Cash/Check Paid-in-Full terms. Management must correct the agreement before confirmation."
+      );
+    }
+
     return {
       ok: true,
       enrollment: {
