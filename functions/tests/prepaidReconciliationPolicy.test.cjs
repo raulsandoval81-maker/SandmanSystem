@@ -60,8 +60,16 @@ test("family Cash/Check view refuses a prepared monthly agreement or missing pre
     },
   };
   assert.throws(() => assertCashCheckFamilyReviewTerms(absentTerms), /missing or inconsistent/);
-  const changedMembership = structuredClone(valid);
-  changedMembership.lockedSnapshot.pricing.prepaidTerms.membershipAmountCents = 8000;
+  const changedMembership = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: {
+        ...valid.lockedSnapshot.pricing,
+        prepaidTerms: { ...valid.lockedSnapshot.pricing.prepaidTerms, membershipAmountCents: 8000 },
+      },
+    },
+  };
   assert.throws(() => assertCashCheckFamilyReviewTerms(changedMembership), /missing or inconsistent/);
 });
 
