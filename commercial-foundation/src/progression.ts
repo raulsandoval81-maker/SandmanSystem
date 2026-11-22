@@ -1,5 +1,5 @@
 import {
-  AthleteIdentityLink, AuthorizationContext, CommercialAthlete, CurriculumAssignment,
+  Academy, AthleteIdentityLink, AuthorizationContext, CommercialAthlete, CurriculumAssignment,
   CurriculumDefinition, CurriculumRank, DevelopmentPathway, GuardianAthleteLink,
   GuardianProfile, PracticeSession, Program, ProgressionCycle, PromotionRecord, RecoveryCase, SkillEvaluation, VerifiedIdentity,
   XpEvent, XpLane,
@@ -53,7 +53,7 @@ export class CurriculumService{
     if(!this.foundation.hasCapability(ctx,"coach.workspace"))throw new Error("ENTITLEMENT_REQUIRED");
     return authorized(this.foundation,ctx,"xp.coach","curriculum",definition.id,definition.organizationId,()=>{
       assertId(definition.id);
-      const academy=this.foundation.store.get("academies",definition.organizationId,definition.academyId);
+      const academy=this.foundation.store.get<Academy>("academies",definition.organizationId,definition.academyId);
       const eligibleProgram=this.foundation.store.list<Program>("programs",definition.organizationId).some(program=>
         program.state==="active"&&program.academyId===definition.academyId&&
         program.disciplines.includes(definition.discipline));
