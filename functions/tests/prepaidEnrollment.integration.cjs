@@ -538,3 +538,73 @@ test("conversion rejects historical payment claims from an unverified draft sour
     newMembershipStartDate: "2026-10-01",
   }), /verified PAID status/);
 });
+
+
+test("authorized historical reconciliation preserves the proposal and feeds the combined receipt", async () => {
+  const { cashReceiptDetails } = require("../lib/enrollment/combinedEnrollmentReceipt");
+  const admin = `prepaid-admin-${suffix}`;
+  const id = `${proposalId}-HISTORICAL`;
+  const duplicateId = `${id}-DUPLICATE`;
+  const ref = db.doc(`proposals/${id}`);
+  const historicalPricing = canonicalPaymentArrangement({
+    ...snapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+  }, snapshot.athletes);
+  const signedSnapshot = { ...snapshot, pricing: historicalPricing };
+  const historicalProposal = (proposalId) => acceptedProposal(proposalId, {
+    createdAt: Timestamp.fromDate(new Date("2026-10-03T19:00:00Z")),
+    pricing: historicalPricing,
+    lockedSnapshot: signedSnapshot,
+    clientAcceptance: {
+      signerName: "Synthetic Guardian",
+      consentAccepted: true,
+      signedAt: Timestamp.now(),
+      signedSnapshot,
+    },
+  });
+  await Promise.all([
+    db.doc(`staff/${admin}`).set({ role: "admin", status: "active" }),
+    ref.set(historicalProposal(id)),
+    db.doc(`proposals/${duplicateId}`).set(historicalProposal(duplicateId)),
+  ]);
+
+  const data = payment(id, {
+    mode: "record_historical",
+    confirmHistoricalEvidence: true,
+    amountCents: 96000,
+    enrollmentFeeIncludedAthleteIndexes: [],
+    enrollmentFeeAllocations: [],
+  });
+  await assert.rejects(invoke(prepaid, manager, data), /administrator/);
+  await assert.rejects(invoke(prepaid, admin, {
+    ...data, confirmHistoricalEvidence: false,
+  }), /explicitly confirm/);
+  await assert.rejects(invoke(prepaid, admin, {
+    ...data, paymentEvidenceReference: "",
+  }), /evidence reference/);
+  assert.equal((await ref.get()).get("cashPrepayment"), undefined);
+
+  const result = await invoke(prepaid, admin, data);
+  assert.equal(result.proposalId, id);
+  assert.equal(result.annualEnrollmentFee.outstandingCents, 3000);
+  const saved = (await ref.get()).data();
+  assert.deepEqual(saved.lockedSnapshot, signedSnapshot);
+  assert.equal(saved.prepaidReconciliation.route, "management_historical_prepaid_reconciliation");
+  assert.equal(saved.enrollmentConfirmation, undefined);
+  assert.equal(saved.stripeCheckoutSessionId, undefined);
+  assert.equal(saved.stripeSubscriptionId, undefined);
+  assert.deepEqual(cashReceiptDetails(saved), {
+    amount: 96000, membership: 96000, allocated: 0, outstanding: 3000,
+    method: "check", dates: ["2026-10-01", "2026-10-05", "2027-10-04", "2027-10-05"],
+    currency: "usd",
+  });
+  await assert.rejects(invoke(prepaid, admin, data), /already been recorded/);
+  await assert.rejects(invoke(prepaid, admin, {
+    ...data, proposalId: duplicateId,
+  }), /already been credited/);
+  const history = await ref.collection("history").where("event", "==", "CASH_PREPAYMENT_RECORDED").get();
+  assert.equal(history.size, 1);
+  assert.equal(history.docs[0].get("reconciliationRoute"), "management_historical_prepaid_reconciliation");
+  assert.equal(history.docs[0].get("createdBy"), admin);
+});

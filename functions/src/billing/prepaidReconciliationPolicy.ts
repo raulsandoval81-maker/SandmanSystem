@@ -108,3 +108,33 @@ export function assertPrepaidFamilyConfirmation(
     throw new Error("Completed Review & Confirm is required before recording paid-in-full cash or check.");
   }
 }
+
+/** Uses the existing, server-recorded agreement for cash received before this proposal. */
+export function assertHistoricalPrepaidReconciliation(
+  proposal: Record<string, any>,
+  paymentDate: string
+): void {
+  assertPrepaidReconciliationCanBePrepared(proposal);
+  if (proposal.lockedSnapshot.pricing.paymentArrangement !== "prepaid_cash_check") {
+    throw new Error("Historical reconciliation requires a locked Cash/Check Paid-in-Full agreement.");
+  }
+
+  const signedAt = proposal.clientAcceptance.signedAt?.toMillis?.();
+  if (proposal.clientAcceptance.consentAccepted !== true || !Number.isFinite(signedAt) || signedAt <= 0) {
+    throw new Error("A timestamped family acceptance of the locked agreement is required.");
+  }
+
+  const createdAt = proposal.createdAt?.toMillis?.();
+  if (!Number.isFinite(createdAt) || createdAt <= 0) {
+    throw new Error("The existing proposal creation date could not be verified.");
+  }
+  const proposalDate = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "America/Los_Angeles",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(createdAt);
+  if (paymentDate >= proposalDate) {
+    throw new Error("Historical payment must predate the existing proposal.");
+  }
+}

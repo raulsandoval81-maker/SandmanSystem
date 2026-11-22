@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  assertHistoricalPrepaidReconciliation,
   assertPrepaidFamilyConfirmation,
   assertPrepaidReconciliationCanBePrepared,
   hasConflictingStripeActivity,
@@ -68,4 +69,59 @@ test("only server-recorded route and timestamped confirmation authorize recordin
     ...prepared,
     enrollmentConfirmation: { termsConfirmed: true, confirmedAt: { toMillis: () => 10 } },
   }));
+});
+
+const historicalProposal = () => {
+  const cashSnapshot = {
+    ...snapshot,
+    pricing: { ...snapshot.pricing, paymentArrangement: "prepaid_cash_check" },
+  };
+  return {
+    ...proposal(),
+    createdAt: { toMillis: () => Date.parse("2026-11-21T02:00:00Z") },
+    lockedSnapshot: cashSnapshot,
+    clientAcceptance: {
+      consentAccepted: true,
+      signedAt: { toMillis: () => Date.parse("2026-11-21T03:00:00Z") },
+      signedSnapshot: cashSnapshot,
+    },
+  };
+};
+
+test("historical Cash/Check uses the existing accepted agreement without Review & Confirm", () => {
+  const existing = historicalProposal();
+  assert.doesNotThrow(() => assertHistoricalPrepaidReconciliation(existing, "2026-10-30"));
+  assert.throws(() => assertPrepaidFamilyConfirmation(existing), /must prepare/);
+});
+
+test("historical reconciliation rejects missing consent or a changed agreement", () => {
+  const existing = historicalProposal();
+  for (const clientAcceptance of [
+    undefined,
+    { ...existing.clientAcceptance, consentAccepted: false },
+    { ...existing.clientAcceptance, signedAt: "browser-value" },
+    { ...existing.clientAcceptance, signedSnapshot: snapshot },
+  ]) {
+    assert.throws(() => assertHistoricalPrepaidReconciliation({
+      ...existing, clientAcceptance,
+    }, "2026-10-30"), /accept|matches/);
+  }
+});
+
+test("historical reconciliation rejects ordinary payments, Stripe activity and duplicate membership credits", () => {
+  const existing = historicalProposal();
+  assert.throws(() => assertHistoricalPrepaidReconciliation(existing, "2026-11-20"), /predate/);
+  assert.throws(() => assertHistoricalPrepaidReconciliation(existing, "2026-11-22"), /predate/);
+  assert.throws(() => assertHistoricalPrepaidReconciliation({
+    ...existing, createdAt: undefined,
+  }, "2026-10-30"), /creation date/);
+  assert.throws(() => assertHistoricalPrepaidReconciliation({
+    ...existing, stripeCheckoutSessionId: "cs_test_1",
+  }, "2026-10-30"), /Stripe activity/);
+  assert.throws(() => assertHistoricalPrepaidReconciliation({
+    ...existing, cashPrepayment: { amountCents: 96000 },
+  }, "2026-10-30"), /already recorded/);
+  assert.throws(() => assertHistoricalPrepaidReconciliation({
+    ...proposal(), createdAt: existing.createdAt,
+  }, "2026-10-30"), /locked Cash\/Check/);
 });
