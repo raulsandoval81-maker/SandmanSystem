@@ -39,6 +39,29 @@ export function isPreparedForPrepaidReconciliation(
     "AWAITING_FAMILY_CONFIRMATION";
 }
 
+// Never let a prepared Cash/Check case render the generic monthly/Stripe
+// confirmation page when its locked prepaid display terms are absent.
+export function assertCashCheckFamilyReviewTerms(proposal: Record<string, any>): void {
+  const pricing = proposal.lockedSnapshot?.pricing || {};
+  const terms = pricing.prepaidTerms;
+  const months = Number(terms?.monthsCovered);
+  const monthlyCents = Math.round(Number(pricing.monthlyBalance) * 100);
+  const membershipCents = Number(terms?.membershipAmountCents);
+  const fee = terms?.annualEnrollmentFee;
+  if (clean(pricing.paymentArrangement) !== "prepaid_cash_check" ||
+      ![6, 12].includes(months) ||
+      !Number.isSafeInteger(monthlyCents) || monthlyCents <= 0 ||
+      !Number.isSafeInteger(membershipCents) || membershipCents !== monthlyCents * months ||
+      !fee || !Number.isSafeInteger(Number(fee.outstandingCents)) ||
+      Number(fee.outstandingCents) < 0 ||
+      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.membershipStartDate)) ||
+      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.paidThroughDate)) ||
+      !/^\\d{4}-\\d{2}-\\d{2}$/.test(clean(terms?.nextBillingDate)) ||
+      terms?.automaticRenewal !== false) {
+    throw new Error("Cash/Check Paid-in-Full terms are missing or inconsistent in the signed proposal. Management must correct the agreement; do not proceed to Stripe.");
+  }
+}
+
 // Term is derived exclusively from the family's accepted, locked snapshot.
 // Never trust a client-supplied month count or silently mix household terms.
 export function lockedPrepaidCoverageMonths(
