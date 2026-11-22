@@ -14,7 +14,7 @@ const fixture=()=>({
 
 test("commercial coach workspace renders safe responsive overview, roster and workflow anchors",()=>{
   const html=renderCoachDashboard(fixture(),"csrf-synthetic",null);
-  for(const name of ["Coach workspace","Coach checklist","Athlete roster","Practice & attendance","Events and competitions","Activity history","Organization settings"])assert.ok(html.includes(name),name);
+  for(const name of ["Coach workspace","Coach checklist","Athlete roster","Practice &amp; attendance","Events and competitions","Activity history","Organization settings"])assert.ok(html.includes(name),name);
   for(const anchor of ['id="overview"','id="roster"','id="groups"','id="sessions"','id="events"','id="activity"','id="settings"'])assert.ok(html.includes(anchor),anchor);
   assert.match(html,/dashboard-grid/);
   assert.match(html,/data-list/);
