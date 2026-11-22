@@ -8,7 +8,7 @@ const fixture=()=>({
   programs:[{id:"team-1",name:"Varsity Wrestling",disciplines:["wrestling"],state:"active",locationIds:["room-1"],academyId:"a-1"}],
   athletes:[{id:"ath-1",displayName:"Test <Athlete>",programId:"team-1",locationId:"room-1",participationState:"active"}],
   sessions:[{id:"s-1",programId:"team-1",locationId:"room-1",startsAt:"2099-01-01T17:00:00Z",endsAt:"2099-01-01T18:00:00Z",state:"scheduled"}],
-  attendance:[],notes:[],events:[],activity:[],locations:[{id:"room-1",name:"Pilot Room"}],coaches:["synthetic-coach"],
+  attendance:[],notes:[],events:[],activity:[],academies:[],locations:[{id:"room-1",name:"Pilot Room"}],coaches:["synthetic-coach"],
   canManageOrganization:true,canSchedule:true,canRecordAttendance:true,canWriteNotes:true,
   currentUserId:"synthetic-admin",canAwardXp:false,canCreateCurriculum:false,
   progression:[],xpHistory:[],curricula:[],curriculumAssignments:[],skillEvaluations:[]
