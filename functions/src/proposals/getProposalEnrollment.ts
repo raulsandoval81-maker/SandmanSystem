@@ -144,6 +144,14 @@ export const getProposalEnrollment =
     const prepaidReconciliation =
       isPreparedForPrepaidReconciliation(proposal);
 
+    if (clean(snapshot.pricing?.paymentArrangement) === "prepaid_cash_check" &&
+        !prepaidReconciliation) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Management must prepare the Cash/Check Paid-in-Full review before the family confirms."
+      );
+    }
+
     // A previously prepared but incorrectly configured proposal must never
     // present the ordinary Stripe flow or accept misleading family terms.
     if (prepaidReconciliation ||
