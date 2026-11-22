@@ -1,0 +1,135 @@
+name: PR795 production runtime parity — read-only diagnostic
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        type: string
+        description: Type sandmandashboard
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-functions-readonly
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: ${{ github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main' }}
+    environment: production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Guard exact read-only scope
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$PROJECT" = sandmandashboard
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/pr795-runtime-parity-readonly.yml@refs/heads/main"
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Select existing production credential
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/firebase-sa.json" --quiet >/dev/null
+          gcloud config set project sandmandashboard --quiet >/dev/null
+          test -n "$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+
+      - name: Inspect serving revision and original baseline without modifying production
+        run: |
+          set -euo pipefail
+          mkdir -p private evidence
+          gcloud functions describe recordProposalPrepaidCash --gen2 --region us-central1 --project sandmandashboard --format=json > private/function-current.json
+          gcloud run services describe recordproposalprepaidcash --region us-central1 --project sandmandashboard --format=json > private/service-current.json
+          gcloud run revisions describe recordproposalprepaidcash-00008-naw --region us-central1 --project sandmandashboard --format=json > private/revision-old.json
+          CURRENT="$(jq -r '.status.latestReadyRevisionName' private/service-current.json)"
+          test -n "$CURRENT" && test "$CURRENT" != null
+          test "$(jq -r '.status.traffic[] | select(.percent == 100) | .revisionName' private/service-current.json)" = "$CURRENT"
+          test "$CURRENT" != recordproposalprepaidcash-00008-naw
+          gcloud run revisions describe "$CURRENT" --region us-central1 --project sandmandashboard --format=json > private/revision-new.json
+          test "$(jq -r '.state' private/function-current.json)" = ACTIVE
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          old = json.loads(Path("private/revision-old.json").read_text())
+          new = json.loads(Path("private/revision-new.json").read_text())
+          fun = json.loads(Path("private/function-current.json").read_text())
+          svc = json.loads(Path("private/service-current.json").read_text())
+          def revision_fields(rev):
+              spec = rev.get("spec", {})
+              cs = spec.get("containers", [])
+              if len(cs) != 1: raise RuntimeError("EXPECTED_ONE_CONTAINER")
+              c = cs[0]
+              env = {}
+              for e in c.get("env", []):
+                  key = e.get("name")
+                  if not key: raise RuntimeError("MALFORMED_ENV")
+                  env[key] = {"value": e.get("value"), "valueFrom": e.get("valueFrom")}
+              return {
+                  "serviceAccountName": spec.get("serviceAccountName"),
+                  "timeoutSeconds": spec.get("timeoutSeconds"),
+                  "containerConcurrency": spec.get("containerConcurrency"),
+                  "resources": c.get("resources"),
+                  "ports": c.get("ports"),
+                  "env": env,
+                  "volumes": spec.get("volumes"),
+                  "volumeMounts": c.get("volumeMounts"),
+                  "startupProbe": c.get("startupProbe"),
+                  "livenessProbe": c.get("livenessProbe"),
+                  "executionEnvironment": rev.get("metadata", {}).get("annotations", {}).get("run.googleapis.com/execution-environment"),
+              }
+          a,b=revision_fields(old),revision_fields(new)
+          paths=[]
+          def compare(x,y,path=""):
+              if isinstance(x,dict) and isinstance(y,dict):
+                  for k in sorted(set(x)|set(y)):
+                      if k not in x or k not in y:
+                          paths.append(path + "." + k if path else k)
+                      else: compare(x[k],y[k],path + "." + k if path else k)
+              elif isinstance(x,list) and isinstance(y,list):
+                  if x != y: paths.append(path + " (list changed)")
+              elif x != y: paths.append(path)
+          compare(a,b)
+          # Emit ONLY difference field paths; never values, secret names, IAM members, or credentials.
+          safe=[]
+          for path in paths:
+              if path.startswith("env."):
+                  safe.append("env.[redacted]."+path.split(".")[-1])
+              elif "volume" in path.lower() or "secret" in path.lower():
+                  safe.append("[redacted-volume-or-secret-field]")
+              else:
+                  safe.append(path)
+          safe=sorted(set(safe))
+          before = old.get("metadata",{}).get("name")
+          after = new.get("metadata",{}).get("name")
+          report = {
+              "status": "COLLECTED_NOT_CLEARED",
+              "old_revision": before,
+              "new_revision": after,
+              "new_revision_serving_100_percent": True,
+              "cloud_function_state": fun.get("state"),
+              "revision_runtime_difference_paths": safe,
+              "difference_count": len(paths),
+              "note": "Revision comparison is diagnostic; original Cloud Functions serviceConfig before deployment was not retained as a downloadable artifact. Cannot certify complete parity from revisions alone.",
+              "rollback_action_taken": False,
+              "production_write_performed": False
+          }
+          Path("evidence/parity-report.json").write_text(json.dumps(report,indent=2)+"\n")
+          print(json.dumps(report,indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr795-runtime-parity-diagnostic-${{ github.run_id }}
+          path: evidence/parity-report.json
+          if-no-files-found: warn
