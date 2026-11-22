@@ -29,6 +29,7 @@ import {
   validateFullYearCoverage,
 } from "./prepaidMembershipPolicy";
 import {
+  assertHistoricalPrepaidReconciliation,
   assertPrepaidFamilyConfirmation,
   assertPrepaidReconciliationCanBePrepared,
   hasConflictingStripeActivity,
@@ -141,8 +142,20 @@ export const recordProposalPrepaidCash =
     if (![
       "prepare",
       "record",
+      "record_historical",
     ].includes(mode)) {
       throw new HttpsError("invalid-argument", "Unsupported prepaid reconciliation mode.");
+    }
+
+    const historical = mode === "record_historical";
+    if (historical && (
+      !["admin", "system_admin"].includes(staffAccess.role) ||
+      req.data?.confirmHistoricalEvidence !== true
+    )) {
+      throw new HttpsError(
+        "permission-denied",
+        "An administrator must explicitly confirm the historical payment evidence."
+      );
     }
 
     const db = getFirestore();
@@ -322,8 +335,12 @@ export const recordProposalPrepaidCash =
             }
 
             try {
-              assertPrepaidReconciliationCanBePrepared(proposal);
-              assertPrepaidFamilyConfirmation(proposal);
+              if (historical) {
+                assertHistoricalPrepaidReconciliation(proposal, paymentDateRaw);
+              } else {
+                assertPrepaidReconciliationCanBePrepared(proposal);
+                assertPrepaidFamilyConfirmation(proposal);
+              }
             } catch (error) {
               throw new HttpsError(
                 "failed-precondition",
@@ -562,6 +579,11 @@ export const recordProposalPrepaidCash =
                     FieldValue.serverTimestamp(),
                 },
 
+                ...(historical ? {
+                  "prepaidReconciliation.route": "management_historical_prepaid_reconciliation",
+                  "prepaidReconciliation.agreementSignedAt": proposal.clientAcceptance.signedAt,
+                } : {}),
+
                 "prepaidReconciliation.status":
                   "RECORDED",
 
@@ -591,6 +613,10 @@ export const recordProposalPrepaidCash =
 
                 event:
                   "CASH_PREPAYMENT_RECORDED",
+                ...(historical ? {
+                  reconciliationRoute: "management_historical_prepaid_reconciliation",
+                  agreementSignedAt: proposal.clientAcceptance.signedAt,
+                } : {}),
 
                 fromStatus:
                   currentStatus,
