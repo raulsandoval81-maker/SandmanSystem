@@ -137,5 +137,5 @@ test("historical reconciliation rejects ordinary payments, Stripe activity and d
   }, "2026-10-30"), /already recorded/);
   assert.throws(() => assertHistoricalPrepaidReconciliation({
     ...proposal(), createdAt: existing.createdAt,
-  }, "2026-10-30"), /locked Cash\/Check/);
+  }, "2026-10-30"), /Cash\/Check Paid-in-Full/);
 });
