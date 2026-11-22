@@ -1,0 +1,4 @@
+# Install compiler/type definitions during the install phase, before Nixpacks mounts the build cache.
+# Do not run npm ci in the build phase: node_modules/.cache is a mounted cache there.
+[phases.install]
+cmds = ["npm ci --include=dev"]
