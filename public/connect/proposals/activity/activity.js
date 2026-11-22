@@ -38,10 +38,9 @@ function isCashCheck(proposal) {
 function enrollmentSteps(cash) {
   if (cash) return [
     {key: "review", label: "Proposal Review", description: "Management issues the existing proposal for family review."},
-    {key: "signature", label: "Family Confirmation", description: "Family confirms the historical Cash/Check terms."},
     {key: "payment", label: "Reconcile Existing Cash/Check", description: "Management verifies the already-received payment. No Stripe charge."},
-    {key: "receipt", label: "Paid-in-Full Receipt", description: "Management issues a receipt after verified reconciliation."},
-    {key: "intake", label: "Intake & Waiver", description: "Family submits the secure intake."},
+    {key: "combined_delivery", label: "Receipt + Intake Invitation", description: "One combined delivery includes the paid-in-full receipt and secure Intake link."},
+    {key: "intake", label: "Intake & Waiver Submitted", description: "Family submits the Intake and Waiver using the secure link."},
     {key: "management_approval", label: "Management Intake Approval", description: "Management reviews and approves the intake."},
     {key: "activation", label: "Athlete Activation", description: "Management activates the athlete after approval."},
   ];
@@ -56,8 +55,8 @@ function enrollmentSteps(cash) {
 
 function enrollmentAction(current, cash, id) {
   const query = `?proposalId=${encodeURIComponent(id)}`;
-  if (current === "payment" || current === "receipt") return [cash ? "Open Billing to Reconcile Existing Cash/Check" : "Open Billing", "/management/billing/" + query];
-  if (current === "intake" || current === "management_approval" || current === "activation") return ["Open Management Enrollment", "/intake-management/" + query];
+  if (current === "payment") return [cash ? "Open Billing to Reconcile Existing Cash/Check" : "Open Billing", "/management/billing/" + query];
+  if (current === "combined_delivery" || current === "intake" || current === "management_approval" || current === "activation") return ["Open Management Enrollment", "/intake-management/" + query];
   if (current) return ["Open Proposals", "/connect/proposals/"];
   return ["Back to Pipeline History", "/management/pipeline-history/"];
 }
@@ -361,10 +360,13 @@ function lifecycleState(
   if (cash ? reconciled : (historyEvents.has("PAID") || status === "PAID")) {
     complete.add("payment");
   }
-  if (cash && reconciled && [
-    "PREPAID_CASH_RECEIPT_SENT", "CASH_CHECK_RECEIPT_SENT",
-    "PAID_IN_FULL_RECEIPT_SENT", "RECEIPT_SENT"
-  ].some(event => historyEvents.has(event))) complete.add("receipt");
+  // The Cash/Check receipt and secure Intake invitation are a single
+  // provider-accepted delivery, not two separate family actions.
+  if (cash && reconciled &&
+      historyEvents.has("COMBINED_RECEIPT_SENT") &&
+      historyEvents.has("INTAKE_INVITE_SENT")) {
+    complete.add("combined_delivery");
+  }
 
   if (historyEvents.has("INTAKE_SUBMITTED") ||
       historyEvents.has("ATHLETE_ACTIVATED")) complete.add("intake");
