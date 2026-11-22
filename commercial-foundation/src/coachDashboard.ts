@@ -119,8 +119,8 @@ export class CoachDashboard {
     if (action === "coach-xp") {
       const athlete = this.snapshot().athletes.find(item => item.id === value("athlete"));
       if (!athlete || !athlete.assignedCoachUserIds?.includes(this.identity.userId)) throw new Error("COACH_NOT_ASSIGNED");
-      const lane = value("lane");
-      const amount = Number(value("amount"));
+      const [lane, amountText] = value("award").split(":");
+      const amount = Number(amountText);
       if (!((lane === "strength" && [5, 10].includes(amount)) ||
         (lane === "honor" && amount === 5))) throw new Error("UNAPPROVED_XP_AMOUNT");
       new XpLedgerService(this.foundation).submitCoach(this.context, {
