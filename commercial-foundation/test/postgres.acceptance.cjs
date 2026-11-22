@@ -150,7 +150,11 @@ test("Coach Dashboard uses the authenticated tenant and persists authorized form
     const headers = {cookie: cookieValue(callback)};
     const response = await fixture.request("/coach", {headers});
     assert.equal(response.status, 200);
+    assert.match(response.headers.get("content-security-policy")??"", /frame-ancestors/);
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
     const body = await response.text();
+    assert.match(body, /Coach checklist/);
+    assert.match(body, /dashboard-grid/);
     assert.match(body, /Synthetic Sprint 7 Athlete/);
     assert.match(body, /Teams and training groups/);
     assert.doesNotMatch(body, new RegExp(other.name));
