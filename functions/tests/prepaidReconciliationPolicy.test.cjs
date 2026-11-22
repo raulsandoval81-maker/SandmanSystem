@@ -12,7 +12,16 @@ const {
 
 const snapshot = {
   athletes: [{ name: "Synthetic Athlete", plan: "standard", billingTerm: "annual" }],
-  pricing: { paymentArrangement: "prepaid_cash_check", monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05" },
+  pricing: {
+    paymentArrangement: "prepaid_cash_check",
+    monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05",
+    prepaidTerms: {
+      monthsCovered: 12, membershipAmountCents: 96000,
+      membershipStartDate: "2026-10-05", paidThroughDate: "2027-10-04",
+      nextBillingDate: "2027-10-05", automaticRenewal: false,
+      annualEnrollmentFee: { outstandingCents: 3000 },
+    },
+  },
 };
 const proposal = () => ({
   status: "READY_FOR_CHECKOUT",
