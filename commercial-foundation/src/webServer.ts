@@ -1,5 +1,5 @@
 import {createServer,IncomingMessage,ServerResponse} from "node:http";
-import {randomBytes} from "node:crypto";
+import {createHash,randomBytes} from "node:crypto";
 import {Auth0AuthorizationFlow} from "./auth0Flows";
 import {createOidcIntegrationFromEnvironment} from "./oidc";
 import {createPrivateCommercialPool} from "./postgresApplication";
@@ -13,9 +13,10 @@ import {commercialStyles} from "./commercialStyles";
 
 type OrganizationOption={id:string;name:string};
 const cookieName="__Host-commercial_session";
+const stylesheetHash = createHash("sha256").update(commercialStyles,"utf8").digest("base64");
 const escape=(value:string)=>value.replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]!));
 const page=(title:string,body:string)=>`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(title)} · Sandman Commercial DEV</title><style>${commercialStyles}</style></head><body><div class="shell"><header class="site-header"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true">S</span><span><span class="brand-name">SANDMAN</span><span class="brand-sub">Commercial · Coach OS</span></span></a><div class="site-actions"><span class="env-pill">DEVELOPMENT</span><a class="subtle-link" href="/dashboard">Account</a></div></header><main id="main">${body}</main><footer class="footer">SANDMAN SYSTEMS · COMMERCIAL DEVELOPMENT · Pilot data only</footer></div></body></html>`;
-const send=(res:ServerResponse,status:number,body:string,headers:Record<string,string>={})=>{res.writeHead(status,{"content-type":"text/html; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff","content-security-policy":"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",...headers});res.end(body);};
+const send=(res:ServerResponse,status:number,body:string,headers:Record<string,string>={})=>{res.writeHead(status,{"content-type":"text/html; charset=utf-8","cache-control":"no-store","x-content-type-options":"nosniff",`content-security-policy`:`default-src 'none'; style-src 'sha256-${stylesheetHash}'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,...headers});res.end(body);};
 const redirect=(res:ServerResponse,location:string,headers:Record<string,string>={})=>{res.writeHead(302,{location,"cache-control":"no-store",...headers});res.end();};
 const parseCookie=(request:IncomingMessage)=>Object.fromEntries((request.headers.cookie??"").split(";").map(value=>value.trim().split("=")).filter(pair=>pair.length===2).map(([key,value])=>[key,decodeURIComponent(value)]));
 const clearCookie=`${cookieName}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
