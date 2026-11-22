@@ -1,0 +1,180 @@
+name: PR795 historical prepaid — protected single-Function production release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Read-only baseline or authorized single-Function deployment
+        type: choice
+        options: [preflight, deploy]
+        default: preflight
+        required: true
+      confirm_project:
+        description: Type sandmandashboard
+        type: string
+        required: true
+      confirm_source_sha:
+        description: Exact reviewed PR795 merge commit
+        type: string
+        required: true
+      expected_revision:
+        description: Serving Cloud Run revision from approved preflight (deploy only)
+        type: string
+        required: false
+      expected_digest:
+        description: Serving image digest from approved preflight (deploy only)
+        type: string
+        required: false
+      deployment_approval:
+        description: Deploy only — type APPROVE_PR795_HISTORICAL_PREPAID_FUNCTION
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-functions
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: ${{ github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 45
+    steps:
+      - name: Enforce immutable target and explicit deploy approval
+        env:
+          MODE: ${{ inputs.mode }}
+          PROJECT: ${{ inputs.confirm_project }}
+          SOURCE: ${{ inputs.confirm_source_sha }}
+          REVISION: ${{ inputs.expected_revision }}
+          DIGEST: ${{ inputs.expected_digest }}
+          APPROVAL: ${{ inputs.deployment_approval }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-pr795-historical-prepaid-production.yml@refs/heads/main"
+          test "$PROJECT" = "sandmandashboard"
+          test "$SOURCE" = "63ec594a5ba3b7fee56affa3c41562d64e4986d1"
+          if [ "$MODE" = deploy ]; then
+            test "$APPROVAL" = "APPROVE_PR795_HISTORICAL_PREPAID_FUNCTION"
+            test -n "$REVISION"
+            test -n "$DIGEST"
+            case "$DIGEST" in sha256:*) ;; *) exit 1 ;; esac
+          else
+            test "$MODE" = preflight
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          ref: 63ec594a5ba3b7fee56affa3c41562d64e4986d1
+          path: application
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build and check exact application source and historical safeguards
+        run: |
+          set -euo pipefail
+          test "$(git -C application rev-parse HEAD)" = "63ec594a5ba3b7fee56affa3c41562d64e4986d1"
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          node --test application/functions/tests/prepaidReconciliationPolicy.test.cjs
+          node -e 'const x=require("./application/functions/lib/billing/recordProposalPrepaidCash.js"); if(!x.recordProposalPrepaidCash?.__endpoint?.callableTrigger) throw Error("Missing callable")'
+
+      - name: Build isolated deployment package containing exactly one export
+        run: |
+          set -euo pipefail
+          mkdir -p isolated/functions
+          cp -R application/functions/lib isolated/functions/lib
+          cp application/functions/package-lock.json isolated/functions/package-lock.json
+          node <<'NODE'
+          const fs=require('node:fs');
+          const pkg=JSON.parse(fs.readFileSync('application/functions/package.json','utf8'));
+          pkg.main='index.cjs'; pkg.scripts={};
+          fs.writeFileSync('isolated/functions/package.json',JSON.stringify(pkg,null,2)+'\n');
+          fs.writeFileSync('isolated/functions/index.cjs',
+            'module.exports = { recordProposalPrepaidCash: require("./lib/billing/recordProposalPrepaidCash.js").recordProposalPrepaidCash };\n');
+          fs.writeFileSync('isolated/firebase.json',JSON.stringify({functions:{source:'functions',runtime:'nodejs22'}},null,2)+'\n');
+          NODE
+          npm ci --omit=dev --prefix isolated/functions --ignore-scripts --no-audit --no-fund
+          node -e 'const x=require("./isolated/functions"); if(Object.keys(x).join()!=="recordProposalPrepaidCash" || !x.recordProposalPrepaidCash?.__endpoint?.callableTrigger) throw Error("Unexpected callable export")'
+          test ! -e isolated/functions/.env
+          test ! -e isolated/functions/.env.production
+          test ! -e isolated/functions/.env.sandmandashboard
+
+      - name: Authenticate using established production credential
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase-sa.json"
+          chmod 600 "$RUNNER_TEMP/firebase-sa.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-sa.json" >> "$GITHUB_ENV"
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Capture exact production baseline and test rollback metadata (read-only)
+        env:
+          MODE: ${{ inputs.mode }}
+          EXPECTED_REVISION: ${{ inputs.expected_revision }}
+          EXPECTED_DIGEST: ${{ inputs.expected_digest }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gcloud functions describe recordProposalPrepaidCash --gen2 --region=us-central1 --project=sandmandashboard --format=json > evidence/function-before.json
+          gcloud run services describe recordproposalprepaidcash --region=us-central1 --project=sandmandashboard --format=json > evidence/service-before.json
+          gcloud run services get-iam-policy recordproposalprepaidcash --region=us-central1 --project=sandmandashboard --format=json > evidence/iam-before.json
+          REVISION=$(jq -r '.status.latestReadyRevisionName' evidence/service-before.json)
+          test -n "$REVISION" && test "$REVISION" != null
+          test "$(jq -r '.status.traffic[] | select(.percent == 100) | .revisionName' evidence/service-before.json)" = "$REVISION"
+          gcloud run revisions describe "$REVISION" --region=us-central1 --project=sandmandashboard --format=json > evidence/revision-before.json
+          DIGEST=$(jq -r '.status.imageDigest // empty' evidence/revision-before.json)
+          test -n "$DIGEST"
+          test "$(jq -r '.buildConfig.source.storageSource.bucket // empty' evidence/function-before.json)" != ""
+          test "$(jq -r '.buildConfig.source.storageSource.object // empty' evidence/function-before.json)" != ""
+          jq -S '{serviceConfig: .serviceConfig, buildSource: .buildConfig.source}' evidence/function-before.json > evidence/rollback-source-and-config.json
+          jq -S '{template: .spec.template, annotations: .metadata.annotations}' evidence/service-before.json > evidence/runtime-before.json
+          jq -S '.' evidence/iam-before.json > evidence/iam-normalized-before.json
+          sha256sum evidence/runtime-before.json evidence/iam-normalized-before.json > evidence/baseline-hashes.txt
+          printf 'SERVING_REVISION=%s\nSERVING_DIGEST=%s\n' "$REVISION" "$DIGEST" | tee evidence/baseline-reference.txt
+          if [ "$MODE" = deploy ]; then
+            test "$REVISION" = "$EXPECTED_REVISION"
+            test "$DIGEST" = "$EXPECTED_DIGEST"
+          fi
+
+      - name: Deploy only recordProposalPrepaidCash, no Hosting and no others
+        if: ${{ inputs.mode == 'deploy' }}
+        working-directory: isolated
+        run: |
+          set -euo pipefail
+          npx --yes firebase-tools@15.11.0 deploy --config firebase.json --only functions:recordProposalPrepaidCash --project sandmandashboard --non-interactive
+
+      - name: Verify production health, configuration, and IAM parity
+        if: ${{ inputs.mode == 'deploy' }}
+        run: |
+          set -euo pipefail
+          gcloud functions describe recordProposalPrepaidCash --gen2 --region=us-central1 --project=sandmandashboard --format=json > evidence/function-after.json
+          gcloud run services describe recordproposalprepaidcash --region=us-central1 --project=sandmandashboard --format=json > evidence/service-after.json
+          gcloud run services get-iam-policy recordproposalprepaidcash --region=us-central1 --project=sandmandashboard --format=json > evidence/iam-after.json
+          test "$(jq -r '.state' evidence/function-after.json)" = ACTIVE
+          AFTER_REVISION=$(jq -r '.status.latestReadyRevisionName' evidence/service-after.json)
+          test -n "$AFTER_REVISION" && test "$AFTER_REVISION" != null
+          test "$(jq -r '.status.traffic[] | select(.percent == 100) | .revisionName' evidence/service-after.json)" = "$AFTER_REVISION"
+          jq -S '.' evidence/iam-after.json > evidence/iam-normalized-after.json
+          cmp evidence/iam-normalized-before.json evidence/iam-normalized-after.json
+          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-before.json > evidence/function-parity-before.json
+          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-after.json > evidence/function-parity-after.json
+          cmp evidence/function-parity-before.json evidence/function-parity-after.json
+          printf 'DEPLOYED_FUNCTION=recordProposalPrepaidCash\nNEW_SERVING_REVISION=%s\n' "$AFTER_REVISION" | tee evidence/deploy-result.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr795-production-function-${{ github.run_id }}-${{ inputs.mode }}
+          path: evidence/
+          if-no-files-found: warn
