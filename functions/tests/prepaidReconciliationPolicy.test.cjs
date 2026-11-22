@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   assertHistoricalPrepaidReconciliation,
+  assertCashCheckFamilyReviewTerms,
   assertPrepaidFamilyConfirmation,
   assertPrepaidReconciliationCanBePrepared,
   hasConflictingStripeActivity,
@@ -21,6 +22,47 @@ const proposal = () => ({
 
 test("accepted locked 12-month proposal can enter Management prepaid reconciliation", () => {
   assert.doesNotThrow(() => assertPrepaidReconciliationCanBePrepared(proposal()));
+});
+
+test("family Cash/Check view refuses a prepared monthly agreement or missing prepaid terms", () => {
+  const valid = {
+    ...proposal(),
+    lockedSnapshot: {
+      ...snapshot,
+      pricing: {
+        ...snapshot.pricing,
+        prepaidTerms: {
+          monthsCovered: 12,
+          membershipAmountCents: 96000,
+          annualEnrollmentFee: { outstandingCents: 3000 },
+          membershipStartDate: "2026-11-01",
+          paidThroughDate: "2027-10-31",
+          nextBillingDate: "2027-11-01",
+          automaticRenewal: false,
+        },
+      },
+    },
+  };
+  assert.doesNotThrow(() => assertCashCheckFamilyReviewTerms(valid));
+  const invalidMonthly = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: { ...valid.lockedSnapshot.pricing, paymentArrangement: "monthly_autopay" },
+    },
+  };
+  assert.throws(() => assertCashCheckFamilyReviewTerms(invalidMonthly), /Cash\\/Check Paid-in-Full terms/);
+  const absentTerms = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: { ...valid.lockedSnapshot.pricing, prepaidTerms: undefined },
+    },
+  };
+  assert.throws(() => assertCashCheckFamilyReviewTerms(absentTerms), /missing or inconsistent/);
+  const changedMembership = structuredClone(valid);
+  changedMembership.lockedSnapshot.pricing.prepaidTerms.membershipAmountCents = 8000;
+  assert.throws(() => assertCashCheckFamilyReviewTerms(changedMembership), /missing or inconsistent/);
 });
 
 test("a 12-month monthly or Stripe proposal cannot enter Cash/Check prepaid review", () => {
