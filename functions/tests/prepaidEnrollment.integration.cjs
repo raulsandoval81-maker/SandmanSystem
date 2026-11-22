@@ -18,6 +18,7 @@ const { hashProposalReviewToken } = require("../lib/proposals/proposalClientRevi
 const { canonicalPaymentArrangement } = require("../lib/billing/paymentArrangement");
 const prepaid = require("../lib/billing/recordProposalPrepaidCash").recordProposalPrepaidCash;
 const confirm = require("../lib/proposals/saveProposalEnrollmentAgreement").saveProposalEnrollmentAgreement;
+const correctProposal = require("../lib/proposals/returnProposalToDraft").returnProposalToDraft;
 const approveRenewal = require("../lib/billing/approveProposalRenewalAutopay").approveProposalRenewalAutopay;
 const activate = require("../lib/approveAndActivate").approveAndActivate;
 
@@ -30,7 +31,7 @@ const excludedId = `${proposalId}-EXCLUDED`;
 const partialId = `${proposalId}-PARTIAL`;
 const supportedId = `${proposalId}-SUPPORTED`;
 const token = `enrollment-token-${suffix}`;
-const snapshot = {
+const baseSnapshot = {
   prospect: { familyName: "Synthetic Prepaid Family", appointmentId: null },
   athletes: [{
     name: "Synthetic Athlete", plan: "standard", billingTerm: "annual",
@@ -40,6 +41,15 @@ const snapshot = {
     monthlyBalance: 80, enrollmentBase: 30,
     membershipStartDate: "2026-10-05", dueNow: 110,
   },
+};
+// Prepaid integration cases must use a genuinely locked/signed Cash/Check
+// arrangement, not a recurring monthly offer mislabeled as prepaid.
+const snapshot = {
+  ...baseSnapshot,
+  pricing: canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+  }, baseSnapshot.athletes),
 };
 
 const acceptedProposal = (id, overrides = {}) => ({
@@ -98,6 +108,24 @@ test.before(async () => {
     prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
   }, snapshot.athletes);
   const supportedSnapshot = { ...snapshot, pricing: supportedPricing };
+  const feeExcludedPricing = canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+  }, snapshot.athletes);
+  const feeExcludedSnapshot = { ...snapshot, pricing: feeExcludedPricing };
+  const partialFeePricing = canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 1000 }],
+  }, snapshot.athletes);
+  const partialFeeSnapshot = { ...snapshot, pricing: partialFeePricing };
+  const signed = (locked) => ({
+    signerName: "Synthetic Guardian",
+    consentAccepted: true,
+    signedAt: Timestamp.now(),
+    signedSnapshot: locked,
+  });
   await Promise.all([
     db.doc(`staff/${manager}`).set({
       role: "management", status: "active", fullName: "Synthetic Manager",
@@ -108,8 +136,13 @@ test.before(async () => {
       locationIds: ["another-location"],
     }),
     db.doc(`proposals/${proposalId}`).set(acceptedProposal(proposalId)),
-    db.doc(`proposals/${excludedId}`).set(acceptedProposal(excludedId)),
+    db.doc(`proposals/${excludedId}`).set(acceptedProposal(excludedId, {
+      pricing: feeExcludedPricing, lockedSnapshot: feeExcludedSnapshot,
+      clientAcceptance: signed(feeExcludedSnapshot),
+    })),
     db.doc(`proposals/${partialId}`).set(acceptedProposal(partialId, {
+      pricing: partialFeePricing, lockedSnapshot: partialFeeSnapshot,
+      clientAcceptance: signed(partialFeeSnapshot),
       priorPayments: [{
         paymentId: "enrollment-only", amountCents: 1000,
         membershipAmountCents: 0, enrollmentFeeAmountCents: 1000,
@@ -137,6 +170,28 @@ test("wrong-location Management cannot prepare prepaid reconciliation", async ()
     invoke(prepaid, outsider, { proposalId, mode: "prepare" }),
     (error) => error.code === "permission-denied"
   );
+});
+
+test("controlled correction invalidates old Cash/Check review and secure link without altering history", async () => {
+  const id = `${proposalId}-CORRECT-CONTRACT`;
+  await db.doc(`proposals/${id}`).set(acceptedProposal(id, {
+    prepaidReconciliation: { status: "AWAITING_FAMILY_CONFIRMATION", route: "management_prepaid_reconciliation" },
+    enrollmentConfirmation: { termsConfirmed: true, confirmedAt: Timestamp.now() },
+  }));
+  const response = await invoke(correctProposal, manager, {
+    proposalId: id,
+    reason: "Correct previously signed paid-in-full terms",
+  });
+  assert.equal(response.status, "DRAFT");
+  const saved = (await db.doc(`proposals/${id}`).get()).data();
+  assert.equal(saved.lockedSnapshot, undefined);
+  assert.equal(saved.clientAcceptance, undefined);
+  assert.equal(saved.prepaidReconciliation, undefined);
+  assert.equal(saved.enrollmentConfirmation, undefined);
+  assert.equal(saved.enrollmentHandoff, undefined);
+  const history = await db.doc(`proposals/${id}`).collection("history")
+    .where("event", "==", "STATUS_CHANGED").get();
+  assert.equal(history.size, 1);
 });
 
 test("accepted locked proposal prepares an auditable prepaid family route", async () => {
@@ -251,10 +306,7 @@ test("same verified check cannot be posted to two proposals concurrently", async
     })));
   const reference = `verified-bank-deposit-${suffix}-one`;
   const requests = [a, b].map((id, index) => invoke(prepaid, manager, payment(id, {
-    amountCents: 96000,
     paymentEvidenceReference: index ? reference.toUpperCase().replace(/-/g, " ") : reference,
-    enrollmentFeeIncludedAthleteIndexes: [],
-    enrollmentFeeAllocations: [],
   })));
   const outcomes = await Promise.allSettled(requests);
   assert.equal(outcomes.filter((result) => result.status === "fulfilled").length, 1);
@@ -266,14 +318,13 @@ test("same verified check cannot be posted to two proposals concurrently", async
   const paid = statuses.find((record) => record.status === "PAID");
   const unpaid = statuses.find((record) => record.status !== "PAID");
   assert.equal(unpaid.cashPrepayment, undefined);
-  assert.equal(paid.cashPrepayment.amountCents, 96000);
+  assert.equal(paid.cashPrepayment.amountCents, 99000);
   const claims = await db.collection("prepaidPaymentEvidenceClaims").get();
   assert.equal(claims.docs.filter((doc) => doc.get("proposalId") === a ||
     doc.get("proposalId") === b).length, 1);
   await assert.rejects(invoke(prepaid, manager, payment(
     paid.proposalId === a ? b : a, {
-      amountCents: 96000, paymentEvidenceReference: reference,
-      enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+      paymentEvidenceReference: reference,
     })), /already been credited/);
 });
 
@@ -299,7 +350,12 @@ test("separate existing $80 month and $30 fee remain untouched when $960 annual 
   const conversionSnapshot = {
     ...snapshot,
     prospect: sameProspect,
-    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+    pricing: canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement: "prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount: 30,
+      prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+    }, snapshot.athletes),
   };
   const source = {
     proposalId: oldId,
@@ -307,7 +363,7 @@ test("separate existing $80 month and $30 fee remain untouched when $960 annual 
     status: "PAID",
     prospect: sameProspect,
     athletes: snapshot.athletes,
-    lockedSnapshot: { ...snapshot, prospect: sameProspect },
+    lockedSnapshot: { ...baseSnapshot, prospect: sameProspect },
     priorPayments: [
       { paymentId: "first-month", amountCents: 8000, membershipAmountCents: 8000,
         enrollmentFeeAmountCents: 0, periods: ["2026-09"], paymentMethod: "check" },
@@ -372,7 +428,12 @@ test("conversion rejects wrong guardian and does not record the $960 check", asy
   const sameProspect = { parentEmail: "synthetic-target@example.invalid" };
   const conversionSnapshot = {
     ...snapshot, prospect: sameProspect,
-    pricing: { ...snapshot.pricing, enrollmentPreviouslyPaidAmount: 30 },
+    pricing: canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement: "prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount: 30,
+      prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+    }, snapshot.athletes),
   };
   await db.doc(`proposals/${oldId}`).set({
     proposalId: oldId, locationId, status: "PAID",
@@ -413,7 +474,12 @@ test("conversion refuses a potentially active legacy Stripe subscription", async
   const newId = `${proposalId}-NEW-ACTIVE-OLD`;
   const prospect = {parentEmail:"synthetic-active@example.invalid"};
   const locked = {...snapshot, prospect,
-    pricing:{...snapshot.pricing,enrollmentPreviouslyPaidAmount:30}};
+    pricing:canonicalPaymentArrangement({
+      ...baseSnapshot.pricing,
+      paymentArrangement:"prepaid_cash_check",
+      enrollmentPreviouslyPaidAmount:30,
+      prepaidFeeAllocations:[{athleteIndex:1,amountCents:0}],
+    },snapshot.athletes)};
   await db.doc(`proposals/${previousId}`).set({
     proposalId:previousId,locationId,prospect,status:"PAID",
     athletes:snapshot.athletes,

@@ -132,6 +132,11 @@ export const returnProposalToDraft =
         clientReview: FieldValue.delete(),
         clientAcceptance: FieldValue.delete(),
         lockedSnapshot: FieldValue.delete(),
+        // Invalidate any prepaid review and secure enrollment verification
+        // tied to the superseded signed terms. History remains append-only.
+        prepaidReconciliation: FieldValue.delete(),
+        enrollmentConfirmation: FieldValue.delete(),
+        enrollmentHandoff: FieldValue.delete(),
         approvedAt: FieldValue.delete(),
         approvedBy: FieldValue.delete(),
         lockedAt: FieldValue.delete(),

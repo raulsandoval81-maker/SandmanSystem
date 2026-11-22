@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
   assertHistoricalPrepaidReconciliation,
+  assertCashCheckFamilyReviewTerms,
   assertPrepaidFamilyConfirmation,
   assertPrepaidReconciliationCanBePrepared,
   hasConflictingStripeActivity,
@@ -11,7 +12,16 @@ const {
 
 const snapshot = {
   athletes: [{ name: "Synthetic Athlete", plan: "standard", billingTerm: "annual" }],
-  pricing: { monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05" },
+  pricing: {
+    paymentArrangement: "prepaid_cash_check",
+    monthlyBalance: 80, enrollmentBase: 30, membershipStartDate: "2026-10-05",
+    prepaidTerms: {
+      monthsCovered: 12, membershipAmountCents: 96000,
+      membershipStartDate: "2026-10-05", paidThroughDate: "2027-10-04",
+      nextBillingDate: "2027-10-05", automaticRenewal: false,
+      annualEnrollmentFee: { outstandingCents: 3000 },
+    },
+  },
 };
 const proposal = () => ({
   status: "READY_FOR_CHECKOUT",
@@ -21,6 +31,69 @@ const proposal = () => ({
 
 test("accepted locked 12-month proposal can enter Management prepaid reconciliation", () => {
   assert.doesNotThrow(() => assertPrepaidReconciliationCanBePrepared(proposal()));
+});
+
+test("family Cash/Check view refuses a prepared monthly agreement or missing prepaid terms", () => {
+  const valid = {
+    ...proposal(),
+    lockedSnapshot: {
+      ...snapshot,
+      pricing: {
+        ...snapshot.pricing,
+        prepaidTerms: {
+          monthsCovered: 12,
+          membershipAmountCents: 96000,
+          annualEnrollmentFee: { outstandingCents: 3000 },
+          membershipStartDate: "2026-11-01",
+          paidThroughDate: "2027-10-31",
+          nextBillingDate: "2027-11-01",
+          automaticRenewal: false,
+        },
+      },
+    },
+  };
+  assert.doesNotThrow(() => assertCashCheckFamilyReviewTerms(valid));
+  const invalidMonthly = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: { ...valid.lockedSnapshot.pricing, paymentArrangement: "monthly_autopay" },
+    },
+  };
+  assert.throws(() => assertCashCheckFamilyReviewTerms(invalidMonthly), /Cash.Check Paid-in-Full terms/);
+  const absentTerms = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: { ...valid.lockedSnapshot.pricing, prepaidTerms: undefined },
+    },
+  };
+  assert.throws(() => assertCashCheckFamilyReviewTerms(absentTerms), /missing or inconsistent/);
+  const changedMembership = {
+    ...valid,
+    lockedSnapshot: {
+      ...valid.lockedSnapshot,
+      pricing: {
+        ...valid.lockedSnapshot.pricing,
+        prepaidTerms: { ...valid.lockedSnapshot.pricing.prepaidTerms, membershipAmountCents: 8000 },
+      },
+    },
+  };
+  assert.throws(() => assertCashCheckFamilyReviewTerms(changedMembership), /missing or inconsistent/);
+});
+
+test("a 12-month monthly or Stripe proposal cannot enter Cash/Check prepaid review", () => {
+  for (const paymentArrangement of ["monthly_autopay", "prepaid_stripe"]) {
+    const wrongSnapshot = {
+      ...snapshot,
+      pricing: { ...snapshot.pricing, paymentArrangement },
+    };
+    assert.throws(() => assertPrepaidReconciliationCanBePrepared({
+      ...proposal(),
+      lockedSnapshot: wrongSnapshot,
+      clientAcceptance: { signedAt: { toMillis: () => 1 }, signedSnapshot: wrongSnapshot },
+    }), /Cash.Check Paid-in-Full/);
+  }
 });
 
 test("prepaid preparation rejects missing acceptance, nonannual terms, and Stripe activity", () => {
@@ -100,7 +173,10 @@ test("historical reconciliation rejects missing consent or a changed agreement",
     undefined,
     { ...existing.clientAcceptance, consentAccepted: false },
     { ...existing.clientAcceptance, signedAt: "browser-value" },
-    { ...existing.clientAcceptance, signedSnapshot: snapshot },
+    { ...existing.clientAcceptance, signedSnapshot: {
+      ...snapshot,
+      pricing: { ...snapshot.pricing, paymentArrangement: "monthly_autopay" },
+    } },
   ]) {
     assert.throws(() => assertHistoricalPrepaidReconciliation({
       ...existing, clientAcceptance,
@@ -121,7 +197,17 @@ test("historical reconciliation rejects ordinary payments, Stripe activity and d
   assert.throws(() => assertHistoricalPrepaidReconciliation({
     ...existing, cashPrepayment: { amountCents: 96000 },
   }, "2026-10-30"), /already recorded/);
+  const ordinary = {
+    ...snapshot,
+    pricing: { ...snapshot.pricing, paymentArrangement: "monthly_autopay" },
+  };
   assert.throws(() => assertHistoricalPrepaidReconciliation({
     ...proposal(), createdAt: existing.createdAt,
-  }, "2026-10-30"), /locked Cash\/Check/);
+    lockedSnapshot: ordinary,
+    clientAcceptance: {
+      signedAt: { toMillis: () => Date.parse("2026-11-21T03:00:00Z") },
+      signedSnapshot: ordinary,
+      consentAccepted: true,
+    },
+  }, "2026-10-30"), /Cash.Check Paid-in-Full/);
 });

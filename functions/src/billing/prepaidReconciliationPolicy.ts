@@ -39,6 +39,29 @@ export function isPreparedForPrepaidReconciliation(
     "AWAITING_FAMILY_CONFIRMATION";
 }
 
+// Never let a prepared Cash/Check case render the generic monthly/Stripe
+// confirmation page when its locked prepaid display terms are absent.
+export function assertCashCheckFamilyReviewTerms(proposal: Record<string, any>): void {
+  const pricing = proposal.lockedSnapshot?.pricing || {};
+  const terms = pricing.prepaidTerms;
+  const months = Number(terms?.monthsCovered);
+  const monthlyCents = Math.round(Number(pricing.monthlyBalance) * 100);
+  const membershipCents = Number(terms?.membershipAmountCents);
+  const fee = terms?.annualEnrollmentFee;
+  if (clean(pricing.paymentArrangement) !== "prepaid_cash_check" ||
+      ![6, 12].includes(months) ||
+      !Number.isSafeInteger(monthlyCents) || monthlyCents <= 0 ||
+      !Number.isSafeInteger(membershipCents) || membershipCents !== monthlyCents * months ||
+      !fee || !Number.isSafeInteger(Number(fee.outstandingCents)) ||
+      Number(fee.outstandingCents) < 0 ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.membershipStartDate)) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.paidThroughDate)) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(clean(terms?.nextBillingDate)) ||
+      terms?.automaticRenewal !== false) {
+    throw new Error("Cash/Check Paid-in-Full terms are missing or inconsistent in the signed proposal. Management must correct the agreement; do not proceed to Stripe.");
+  }
+}
+
 // Term is derived exclusively from the family's accepted, locked snapshot.
 // Never trust a client-supplied month count or silently mix household terms.
 export function lockedPrepaidCoverageMonths(
@@ -72,6 +95,12 @@ export function assertPrepaidReconciliationCanBePrepared(
   if (clean(proposal.status).toUpperCase() !== "READY_FOR_CHECKOUT") {
     throw new Error("Paid-in-full reconciliation can only be prepared for a checkout-ready proposal.");
   }
+  // A 6/12-month term alone is not a Cash/Check paid-in-full agreement.
+  // Never silently convert a signed monthly or Stripe agreement during preparation.
+  if (clean(proposal.lockedSnapshot?.pricing?.paymentArrangement) !== "prepaid_cash_check") {
+    throw new Error("The signed proposal must lock a Cash/Check Paid-in-Full payment arrangement before reconciliation.");
+  }
+  assertCashCheckFamilyReviewTerms(proposal);
   if (!proposal.clientAcceptance?.signedAt ||
       !proposal.clientAcceptance?.signedSnapshot ||
       !proposal.lockedSnapshot) {

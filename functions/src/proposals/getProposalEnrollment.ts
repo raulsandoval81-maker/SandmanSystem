@@ -13,6 +13,7 @@ import {
 } from "./proposalClientReview";
 import {
   isPreparedForPrepaidReconciliation,
+  assertCashCheckFamilyReviewTerms,
   PREPAID_RECONCILIATION_ROUTE,
 } from "../billing/prepaidReconciliationPolicy";
 
@@ -142,6 +143,28 @@ export const getProposalEnrollment =
 
     const prepaidReconciliation =
       isPreparedForPrepaidReconciliation(proposal);
+
+    if (clean(snapshot.pricing?.paymentArrangement) === "prepaid_cash_check" &&
+        !prepaidReconciliation) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Management must prepare the Cash/Check Paid-in-Full review before the family confirms."
+      );
+    }
+
+    // A previously prepared but incorrectly configured proposal must never
+    // present the ordinary Stripe flow or accept misleading family terms.
+    if (prepaidReconciliation ||
+        clean(snapshot.pricing?.paymentArrangement) === "prepaid_cash_check") {
+      try {
+        assertCashCheckFamilyReviewTerms(proposal);
+      } catch (error) {
+        throw new HttpsError(
+          "failed-precondition",
+          error instanceof Error ? error.message : "Cash/Check Paid-in-Full terms must be verified."
+        );
+      }
+    }
 
     const paymentStatus =
       status === "PAID"
