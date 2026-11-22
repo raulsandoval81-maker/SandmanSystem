@@ -8,7 +8,7 @@ const fixture=()=>({
   programs:[{id:"team-1",name:"Varsity Wrestling",disciplines:["wrestling"],state:"active",locationIds:["room-1"],academyId:"a-1"}],
   athletes:[{id:"ath-1",displayName:"Test <Athlete>",programId:"team-1",locationId:"room-1",participationState:"active"}],
   sessions:[{id:"s-1",programId:"team-1",locationId:"room-1",startsAt:"2099-01-01T17:00:00Z",endsAt:"2099-01-01T18:00:00Z",state:"scheduled"}],
-  attendance:[],notes:[],events:[],activity:[],locations:[{id:"room-1",name:"Pilot Room"}],coaches:["synthetic-coach"],
+  attendance:[],notes:[],events:[],activity:[],academies:[],locations:[{id:"room-1",academyId:"a-1",name:"Pilot Room",state:"active"}],coaches:["synthetic-coach"],
   canManageOrganization:true,canSchedule:true,canRecordAttendance:true,canWriteNotes:true,
   currentUserId:"synthetic-admin",canAwardXp:false,canCreateCurriculum:false,
   progression:[],xpHistory:[],curricula:[],curriculumAssignments:[],skillEvaluations:[]
@@ -70,4 +70,18 @@ test("coach curriculum builder is available only to authorized coach UI",()=>{
   assert.ok(html.includes('name="action" value="coach-curriculum"'));
   view.canCreateCurriculum=false;
   assert.ok(!renderCoachDashboard(view,"csrf",null).includes('name="action" value="coach-curriculum"'));
+});
+
+test("owner Management UI exposes academy and location setup but coach-only UI does not",()=>{
+  const owner=fixture();
+  owner.academies=[{id:"a-1",name:"Pilot Academy",state:"active"}];
+  const html=renderCoachDashboard(owner,"csrf-synthetic",null);
+  assert.match(html,/Academies and locations/);
+  assert.ok(html.includes('name="action" value="academy"'));
+  assert.ok(html.includes('name="action" value="location"'));
+  assert.ok(html.includes('<option value="wrestling">Wrestling</option>'));
+  owner.canManageOrganization=false;
+  const coach=renderCoachDashboard(owner,"csrf-synthetic",null);
+  assert.ok(!coach.includes('name="action" value="academy"'));
+  assert.ok(!coach.includes('name="action" value="location"'));
 });

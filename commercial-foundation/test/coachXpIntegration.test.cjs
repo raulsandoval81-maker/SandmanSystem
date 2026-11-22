@@ -125,3 +125,40 @@ test("coach curriculum cannot bypass verified pathway ranks or approved program 
   assert.throws(()=>service.createCoachDefinition(f.ownerCtx,valid),/ROLE_DENIED/);
   assert.equal(f.store.list("curricula",f.org).length,0);
 });
+
+test("owner creates an academy, location, approved program, and an XP-ready coached athlete",()=>{
+  const f=setup();
+  f.owner.submit(new URLSearchParams({action:"academy",name:"Second Training Academy"}));
+  const academy=f.store.list("academies",f.org).find(item=>item.name==="Second Training Academy");
+  assert.ok(academy);
+  f.owner.submit(new URLSearchParams({action:"location",name:"North Mat Room",academy:academy.id}));
+  const location=f.store.list("locations",f.org).find(item=>item.name==="North Mat Room");
+  assert.equal(location.academyId,academy.id);
+  f.owner.submit(new URLSearchParams({action:"group",name:"North Wrestling",discipline:"wrestling",location:location.id}));
+  const program=f.store.list("programs",f.org).find(item=>item.name==="North Wrestling");
+  assert.equal(program.academyId,academy.id);
+  f.owner.submit(new URLSearchParams({
+    action:"athlete",name:"Synthetic North Athlete",group:program.id,location:location.id,coach:"coach"
+  }));
+  const athlete=f.store.list("athletes",f.org).find(item=>item.displayName==="Synthetic North Athlete");
+  assert.deepEqual(athlete.assignedCoachUserIds,["coach"]);
+  assert.ok(f.coach.snapshot().athletes.some(item=>item.id===athlete.id));
+  f.coach.submit(new URLSearchParams({
+    action:"coach-curriculum",program:program.id,pathway:"road2champion",skills:"Stance"
+  }));
+  const curriculum=f.store.list("curricula",f.org).find(item=>item.academyId===academy.id);
+  assert.ok(curriculum);
+  f.owner.submit(new URLSearchParams({action:"curriculum-assign",athlete:athlete.id,curriculum:curriculum.id}));
+  f.coach.submit(new URLSearchParams({action:"coach-skill",athlete:athlete.id,skill:"coach-skill-1",status:"approved"}));
+  f.coach.submit(new URLSearchParams({action:"coach-xp",athlete:athlete.id,award:"strength:10"}));
+  assert.equal(f.store.list("progressionCycles",f.org).find(item=>item.athleteId===athlete.id).activeXp,10);
+});
+
+test("coach cannot create academies or locations and owner cannot use an unknown academy",()=>{
+  const f=setup();
+  assert.throws(()=>f.coach.submit(new URLSearchParams({action:"academy",name:"Unauthorized"})),/ROLE_DENIED/);
+  assert.throws(()=>f.coach.submit(new URLSearchParams({action:"location",academy:"academy",name:"Unauthorized"})),/ROLE_DENIED/);
+  assert.throws(()=>f.owner.submit(new URLSearchParams({action:"location",academy:"nonexistent",name:"Unknown"})),/INVALID_LOCATION/);
+  assert.equal(f.store.list("academies",f.org).length,1);
+  assert.equal(f.store.list("locations",f.org).length,1);
+});
