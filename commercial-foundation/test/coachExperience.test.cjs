@@ -10,7 +10,8 @@ const fixture=()=>({
   sessions:[{id:"s-1",programId:"team-1",locationId:"room-1",startsAt:"2099-01-01T17:00:00Z",endsAt:"2099-01-01T18:00:00Z",state:"scheduled"}],
   attendance:[],notes:[],events:[],activity:[],locations:[{id:"room-1",name:"Pilot Room"}],coaches:["synthetic-coach"],
   canManageOrganization:true,canSchedule:true,canRecordAttendance:true,canWriteNotes:true,
-  currentUserId:"synthetic-admin",canAwardXp:false,progression:[],xpHistory:[]
+  currentUserId:"synthetic-admin",canAwardXp:false,canCreateCurriculum:false,
+  progression:[],xpHistory:[],curricula:[],curriculumAssignments:[],skillEvaluations:[]
 });
 
 test("commercial coach workspace renders safe responsive overview, roster and workflow anchors",()=>{
@@ -59,4 +60,14 @@ test("profile displays progression read-only unless an assigned coach has an act
   const enabled=renderCoachDashboard(view,"csrf","ath-1");
   assert.ok(enabled.includes('name="action" value="coach-xp"'));
   assert.ok(enabled.includes('name="award"'));
+});
+
+
+test("coach curriculum builder is available only to authorized coach UI",()=>{
+  const view=fixture();view.canCreateCurriculum=true;
+  const html=renderCoachDashboard(view,"csrf",null);
+  assert.match(html,/Coach curriculum/);
+  assert.ok(html.includes('name="action" value="coach-curriculum"'));
+  view.canCreateCurriculum=false;
+  assert.ok(!renderCoachDashboard(view,"csrf",null).includes('name="action" value="coach-curriculum"'));
 });
