@@ -11,6 +11,31 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/production
 import management_xp_preflight as preflight
 
 
+class RecoveryStorageAccessTest(unittest.TestCase):
+    def test_reports_only_email_and_checks_both_objects_after_expected_denial(self):
+        email = "example@project.iam.gserviceaccount.com"
+        generation = preflight.SANITIZED_CONFIG["generation"]
+        denial = f"UNVERIFIED: retained sanitized configuration generation {generation} read returned HTTP 403"
+        with tempfile.TemporaryDirectory() as directory:
+            credentials = Path(directory) / "credentials.json"
+            credentials.write_text(json.dumps({
+                "type": "service_account", "client_email": email, "private_key": "private-key",
+            }))
+            with patch.dict(preflight.os.environ, {"CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE": str(credentials)}), \
+                    patch.object(preflight, "require_workflow_scope") as scope, \
+                    patch.object(preflight, "access_token", return_value="private-token"), \
+                    patch.object(preflight, "read_retained", side_effect=[RuntimeError(denial), b"private-zip"]) as read, \
+                    redirect_stdout(io.StringIO()) as output:
+                with self.assertRaisesRegex(RuntimeError, "one or more pinned recovery reads"):
+                    preflight.recovery_storage_access()
+                scope.assert_called_once_with()
+                self.assertEqual([call.args[0] for call in read.call_args_list],
+                                 [preflight.SANITIZED_CONFIG, preflight.recovery.BASELINE])
+                self.assertIn(email, output.getvalue())
+                self.assertIn(denial, output.getvalue())
+                self.assertNotIn("private-", output.getvalue())
+
+
 class CandidateManifestTest(unittest.TestCase):
     def test_merged_manifest_pins_exact_single_file_candidate(self):
         raw = preflight.MANIFEST.read_bytes()
