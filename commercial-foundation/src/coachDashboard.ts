@@ -66,6 +66,10 @@ export class CoachDashboard {
             (athlete.locationId ? session.locationId === athlete.locationId : member.scopeType !== "location"))));
     });
     const athleteIds = new Set(athletes.map(athlete => athlete.id));
+    const progressionAthleteIds = new Set(athletes.filter(athlete =>
+      this.staff.some(member => member.role !== "coach" ||
+        athlete.assignedCoachUserIds?.includes(this.identity.userId)))
+      .map(athlete => athlete.id));
     const canManageOrganization = this.staff.some(member =>
       member.scopeType === "organization" && member.role === "organization_admin");
     return {
@@ -76,8 +80,8 @@ export class CoachDashboard {
       currentUserId: this.identity.userId,
       canAwardXp: this.staff.some(member => member.role === "coach"),
       progression: store.list<ProgressionCycle>("progressionCycles", org).filter(cycle =>
-        cycle.state === "active" && athleteIds.has(cycle.athleteId)),
-      xpHistory: store.list<XpEvent>("xpEvents", org).filter(event => athleteIds.has(event.athleteId)),
+        cycle.state === "active" && progressionAthleteIds.has(cycle.athleteId)),
+      xpHistory: store.list<XpEvent>("xpEvents", org).filter(event => progressionAthleteIds.has(event.athleteId)),
       academies: canManageOrganization ? store.list<Academy>("academies", org) : [],
       locations: canManageOrganization ? store.list<Location>("locations", org) : [],
       coaches: canManageOrganization ? [...new Set(store.list<Membership>("memberships", org)
