@@ -135,12 +135,13 @@ jobs:
           gcloud run revisions describe "$REVISION" --region=us-central1 --project=sandmandashboard --format=json > evidence/revision-before.json
           DIGEST=$(jq -r '.status.imageDigest // empty' evidence/revision-before.json)
           test -n "$DIGEST"
-          test "$(jq -r '.buildConfig.source.storageSource.bucket // empty' evidence/function-before.json)" != ""
-          test "$(jq -r '.buildConfig.source.storageSource.object // empty' evidence/function-before.json)" != ""
-          jq -S '{serviceConfig: .serviceConfig, buildSource: .buildConfig.source}' evidence/function-before.json > evidence/rollback-source-and-config.json
-          jq -S '{template: .spec.template, annotations: .metadata.annotations}' evidence/service-before.json > evidence/runtime-before.json
-          jq -S '.' evidence/iam-before.json > evidence/iam-normalized-before.json
-          sha256sum evidence/runtime-before.json evidence/iam-normalized-before.json > evidence/baseline-hashes.txt
+          # Keep original production configuration in the ephemeral runner only.
+          # Do not upload environment values, secrets, IAM members or source archive URLs.
+          test "$(jq -r '.buildConfig.source.storageSource.bucket // .buildConfig.source.repoSource.repoName // empty' evidence/function-before.json)" != ""
+          jq -S '{serviceConfig: .serviceConfig, buildSource: .buildConfig.source}' evidence/function-before.json > rollback-private.json
+          jq -S '{template: .spec.template, annotations: .metadata.annotations}' evidence/service-before.json > runtime-private.json
+          jq -S '.' evidence/iam-before.json > iam-private.json
+          sha256sum runtime-private.json iam-private.json rollback-private.json | sed -E 's/  .*/  [redacted-private-evidence]/' > evidence/baseline-hashes.txt
           printf 'SERVING_REVISION=%s\nSERVING_DIGEST=%s\n' "$REVISION" "$DIGEST" | tee evidence/baseline-reference.txt
           if [ "$MODE" = deploy ]; then
             test "$REVISION" = "$EXPECTED_REVISION"
@@ -165,16 +166,24 @@ jobs:
           AFTER_REVISION=$(jq -r '.status.latestReadyRevisionName' evidence/service-after.json)
           test -n "$AFTER_REVISION" && test "$AFTER_REVISION" != null
           test "$(jq -r '.status.traffic[] | select(.percent == 100) | .revisionName' evidence/service-after.json)" = "$AFTER_REVISION"
-          jq -S '.' evidence/iam-after.json > evidence/iam-normalized-after.json
-          cmp evidence/iam-normalized-before.json evidence/iam-normalized-after.json
-          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-before.json > evidence/function-parity-before.json
-          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-after.json > evidence/function-parity-after.json
-          cmp evidence/function-parity-before.json evidence/function-parity-after.json
+          jq -S '.' evidence/iam-after.json > iam-after-private.json
+          cmp iam-private.json iam-after-private.json
+          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-before.json > function-parity-before-private.json
+          jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount}' evidence/function-after.json > function-parity-after-private.json
+          cmp function-parity-before-private.json function-parity-after-private.json
           printf 'DEPLOYED_FUNCTION=recordProposalPrepaidCash\nNEW_SERVING_REVISION=%s\n' "$AFTER_REVISION" | tee evidence/deploy-result.txt
 
+      - name: Upload redacted evidence only
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p safe-evidence
+          for file in evidence/baseline-reference.txt evidence/baseline-hashes.txt evidence/deploy-result.txt; do
+            if test -f "$file"; then cp "$file" safe-evidence/; fi
+          done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pr795-production-function-${{ github.run_id }}-${{ inputs.mode }}
-          path: evidence/
+          path: safe-evidence/
           if-no-files-found: warn
