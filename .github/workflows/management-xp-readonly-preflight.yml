@@ -7,6 +7,14 @@ on:
         required: true
         type: string
 
+      check:
+        description: Read-only check to perform
+        type: choice
+        default: preflight
+        options:
+          - preflight
+          - recovery-storage-access
+
 permissions:
   contents: read
 
@@ -70,4 +78,5 @@ jobs:
       - name: Check live identity and generation-pinned rollback bytes
         env:
           CONFIRM_TARGET: ${{ inputs.confirm_target }}
+          XP_READONLY_CHECK: ${{ inputs.check }}
         run: python3 trusted/scripts/production/management_xp_preflight.py application

@@ -227,8 +227,7 @@ def authenticated_get(url, token):
         raise
 
 
-def preflight(candidate):
-    require(git_head(candidate) == SHA, "Wrong application commit")
+def require_workflow_scope():
     require(os.environ.get("GITHUB_REPOSITORY") == REPOSITORY
             and os.environ.get("GITHUB_REF") == "refs/heads/main"
             and os.environ.get("GITHUB_WORKFLOW_REF") ==
@@ -236,6 +235,33 @@ def preflight(candidate):
             and os.environ.get("CONFIRM_TARGET") == f"{PROJECT}/{REGION}/{TARGET}",
             "Outside approved read-only workflow scope")
 
+def recovery_storage_access():
+    require_workflow_scope()
+    token = access_token()
+    credentials_path = Path(os.environ["CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE"])
+    credentials = json.loads(credentials_path.read_text())
+    email = credentials.get("client_email")
+    require(credentials.get("type") == "service_account" and isinstance(email, str)
+            and re.fullmatch(r"[a-z0-9._-]+@[a-z0-9.-]+\.gserviceaccount\.com", email),
+            "Protected credentials do not identify a service account")
+    print(json.dumps({"authenticatedServiceAccount": email}), flush=True)
+    denied = False
+    for label, ref in (("sanitized configuration", SANITIZED_CONFIG), ("rollback ZIP", recovery.BASELINE)):
+        try:
+            read_retained(ref, token)
+        except RuntimeError as error:
+            if f"generation {ref['generation']} read returned HTTP 403" not in str(error):
+                raise
+            print(str(error), flush=True)
+            denied = True
+        else:
+            print(json.dumps({"verified": label, "generation": ref["generation"]}), flush=True)
+    require(not denied, "UNVERIFIED: one or more pinned recovery reads returned HTTP 403")
+
+
+def preflight(candidate):
+    require(git_head(candidate) == SHA, "Wrong application commit")
+    require_workflow_scope()
     token = access_token()
 
     def get(url):
@@ -338,7 +364,12 @@ def safe_error_detail(error):
 
 if __name__ == "__main__":
     try:
-        preflight(Path(sys.argv[1]))
+        check = os.environ.get("XP_READONLY_CHECK") or "preflight"
+        require(check in ("preflight", "recovery-storage-access"), "Unknown read-only check")
+        if check == "recovery-storage-access":
+            recovery_storage_access()
+        else:
+            preflight(Path(sys.argv[1]))
     except (RuntimeError, KeyError, OSError, ValueError, zipfile.BadZipFile,
             subprocess.CalledProcessError) as error:
         detail = safe_error_detail(error)
