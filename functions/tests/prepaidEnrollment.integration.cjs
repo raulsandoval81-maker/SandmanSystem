@@ -107,6 +107,24 @@ test.before(async () => {
     prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
   }, snapshot.athletes);
   const supportedSnapshot = { ...snapshot, pricing: supportedPricing };
+  const feeExcludedPricing = canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 0 }],
+  }, snapshot.athletes);
+  const feeExcludedSnapshot = { ...snapshot, pricing: feeExcludedPricing };
+  const partialFeePricing = canonicalPaymentArrangement({
+    ...baseSnapshot.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    prepaidFeeAllocations: [{ athleteIndex: 1, amountCents: 1000 }],
+  }, snapshot.athletes);
+  const partialFeeSnapshot = { ...snapshot, pricing: partialFeePricing };
+  const signed = (locked) => ({
+    signerName: "Synthetic Guardian",
+    consentAccepted: true,
+    signedAt: Timestamp.now(),
+    signedSnapshot: locked,
+  });
   await Promise.all([
     db.doc(`staff/${manager}`).set({
       role: "management", status: "active", fullName: "Synthetic Manager",
@@ -117,8 +135,13 @@ test.before(async () => {
       locationIds: ["another-location"],
     }),
     db.doc(`proposals/${proposalId}`).set(acceptedProposal(proposalId)),
-    db.doc(`proposals/${excludedId}`).set(acceptedProposal(excludedId)),
+    db.doc(`proposals/${excludedId}`).set(acceptedProposal(excludedId, {
+      pricing: feeExcludedPricing, lockedSnapshot: feeExcludedSnapshot,
+      clientAcceptance: signed(feeExcludedSnapshot),
+    })),
     db.doc(`proposals/${partialId}`).set(acceptedProposal(partialId, {
+      pricing: partialFeePricing, lockedSnapshot: partialFeeSnapshot,
+      clientAcceptance: signed(partialFeeSnapshot),
       priorPayments: [{
         paymentId: "enrollment-only", amountCents: 1000,
         membershipAmountCents: 0, enrollmentFeeAmountCents: 1000,
@@ -260,10 +283,7 @@ test("same verified check cannot be posted to two proposals concurrently", async
     })));
   const reference = `verified-bank-deposit-${suffix}-one`;
   const requests = [a, b].map((id, index) => invoke(prepaid, manager, payment(id, {
-    amountCents: 96000,
     paymentEvidenceReference: index ? reference.toUpperCase().replace(/-/g, " ") : reference,
-    enrollmentFeeIncludedAthleteIndexes: [],
-    enrollmentFeeAllocations: [],
   })));
   const outcomes = await Promise.allSettled(requests);
   assert.equal(outcomes.filter((result) => result.status === "fulfilled").length, 1);
@@ -275,14 +295,13 @@ test("same verified check cannot be posted to two proposals concurrently", async
   const paid = statuses.find((record) => record.status === "PAID");
   const unpaid = statuses.find((record) => record.status !== "PAID");
   assert.equal(unpaid.cashPrepayment, undefined);
-  assert.equal(paid.cashPrepayment.amountCents, 96000);
+  assert.equal(paid.cashPrepayment.amountCents, 99000);
   const claims = await db.collection("prepaidPaymentEvidenceClaims").get();
   assert.equal(claims.docs.filter((doc) => doc.get("proposalId") === a ||
     doc.get("proposalId") === b).length, 1);
   await assert.rejects(invoke(prepaid, manager, payment(
     paid.proposalId === a ? b : a, {
-      amountCents: 96000, paymentEvidenceReference: reference,
-      enrollmentFeeIncludedAthleteIndexes: [], enrollmentFeeAllocations: [],
+      paymentEvidenceReference: reference,
     })), /already been credited/);
 });
 
