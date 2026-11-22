@@ -122,6 +122,23 @@ import {
     const pricing = enrollment.pricing || {};
     const confirmation = enrollment.confirmation || {};
 
+    // Do not show generic monthly/Stripe terms for a Cash/Check review,
+    // even if the deployed enrollment Function is temporarily out of sync.
+    if (enrollment.paymentRoute === "management_prepaid_reconciliation" ||
+        pricing.paymentArrangement === "prepaid_cash_check") {
+      const terms = pricing.prepaidTerms;
+      if (enrollment.paymentRoute !== "management_prepaid_reconciliation" ||
+          pricing.paymentArrangement !== "prepaid_cash_check" ||
+          !terms || ![6, 12].includes(Number(terms.monthsCovered)) ||
+          !Number.isSafeInteger(Number(terms.membershipAmountCents)) ||
+          !terms.annualEnrollmentFee ||
+          !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(terms.membershipStartDate || "")) ||
+          !/^\\d{4}-\\d{2}-\\d{2}$/.test(String(terms.paidThroughDate || "")) ||
+          terms.automaticRenewal !== false) {
+        throw new Error("Paid-in-Full agreement details are not verified. Contact Management; do not proceed to payment.");
+      }
+    }
+
     elements.familyName.textContent =
       prospect.familyName ||
       enrollment.familyName ||
