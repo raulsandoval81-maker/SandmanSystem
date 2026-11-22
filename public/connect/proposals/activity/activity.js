@@ -36,21 +36,28 @@ function isCashCheck(proposal) {
 }
 
 function enrollmentSteps(cash) {
-  const payment = {key: "payment", label: cash ? "Verify Cash/Check" : "Payment",
-    description: cash ? "Management reconciles the existing payment." : "Family completes secure Stripe payment."};
-  const intake = {key: "intake", label: "Intake & Waiver", description: "Family submits secure enrollment paperwork."};
+  if (cash) return [
+    {key: "review", label: "Proposal Review", description: "Management issues the existing proposal for family review."},
+    {key: "signature", label: "Family Confirmation", description: "Family confirms the historical Cash/Check terms."},
+    {key: "payment", label: "Reconcile Existing Cash/Check", description: "Management verifies the already-received payment. No Stripe charge."},
+    {key: "receipt", label: "Paid-in-Full Receipt", description: "Management issues a receipt after verified reconciliation."},
+    {key: "intake", label: "Intake & Waiver", description: "Family submits the secure intake."},
+    {key: "management_approval", label: "Management Intake Approval", description: "Management reviews and approves the intake."},
+    {key: "activation", label: "Athlete Activation", description: "Management activates the athlete after approval."},
+  ];
   return [
     {key: "review", label: "Proposal Review", description: "Management issues the proposal for family review."},
     {key: "signature", label: "Sign & Confirm", description: "Family accepts the proposal and confirms the terms."},
-    ...(cash ? [intake, payment] : [payment, intake]),
+    {key: "payment", label: "Payment", description: "Family completes secure Stripe payment."},
+    {key: "intake", label: "Intake & Waiver", description: "Family submits secure enrollment paperwork."},
     {key: "activation", label: "Review & Mint", description: "Management reviews the paperwork and activates the athlete."},
   ];
 }
 
 function enrollmentAction(current, cash, id) {
   const query = `?proposalId=${encodeURIComponent(id)}`;
-  if (current === "payment") return [cash ? "Open Billing to Verify Cash/Check" : "Open Billing", "/management/billing/" + query];
-  if (current === "intake" || current === "activation") return ["Open Management Enrollment", "/intake-management/" + query];
+  if (current === "payment" || current === "receipt") return [cash ? "Open Billing to Reconcile Existing Cash/Check" : "Open Billing", "/management/billing/" + query];
+  if (current === "intake" || current === "management_approval" || current === "activation") return ["Open Management Enrollment", "/intake-management/" + query];
   if (current) return ["Open Proposals", "/connect/proposals/"];
   return ["Back to Pipeline History", "/management/pipeline-history/"];
 }
@@ -344,19 +351,26 @@ function lifecycleState(
     complete.add("signature");
   }
 
-  if (
-    historyEvents.has("PAID") ||
-    status === "PAID"
-  ) {
+  const cash = isCashCheck(proposal);
+  // Historical Cash/Check must never advance on a letter, photo, or PAID status alone.
+  const reconciled = status === "PAID" &&
+    String(proposal.paymentStatus || "").toLowerCase() === "paid" &&
+    proposal.paymentMethod === "cash_prepaid" &&
+    String(proposal.prepaidReconciliation?.status || "").toUpperCase() === "RECORDED" &&
+    Number(proposal.cashPrepayment?.amountCents || 0) > 0;
+  if (cash ? reconciled : (historyEvents.has("PAID") || status === "PAID")) {
     complete.add("payment");
   }
+  if (cash && reconciled && [
+    "PREPAID_CASH_RECEIPT_SENT", "CASH_CHECK_RECEIPT_SENT",
+    "PAID_IN_FULL_RECEIPT_SENT", "RECEIPT_SENT"
+  ].some(event => historyEvents.has(event))) complete.add("receipt");
 
-  if (
-    historyEvents.has("INTAKE_SUBMITTED") ||
-    historyEvents.has("ATHLETE_ACTIVATED")
-  ) {
-    complete.add("intake");
-  }
+  if (historyEvents.has("INTAKE_SUBMITTED") ||
+      historyEvents.has("ATHLETE_ACTIVATED")) complete.add("intake");
+  if (cash && ["INTAKE_APPROVED", "ENROLLMENT_INTAKE_APPROVED"].some(
+    event => historyEvents.has(event)
+  )) complete.add("management_approval");
 
   const activated = historyEvents.has("ATHLETE_ACTIVATED");
   if (activated) {
@@ -378,7 +392,7 @@ function lifecycleState(
       placementEvents.has("PLACEMENT_RECORDED")) complete.add("management_validation");
   if (placementEvents.has("PLACEMENT_RECORDED")) complete.add("placement");
 
-  const current = enrollmentSteps(isCashCheck(proposal)).find(
+  const current = enrollmentSteps(cash).find(
     (step) =>
       !complete.has(step.key)
   )?.key || null;
