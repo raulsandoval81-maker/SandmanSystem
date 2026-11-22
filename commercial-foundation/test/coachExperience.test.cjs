@@ -71,3 +71,17 @@ test("coach curriculum builder is available only to authorized coach UI",()=>{
   view.canCreateCurriculum=false;
   assert.ok(!renderCoachDashboard(view,"csrf",null).includes('name="action" value="coach-curriculum"'));
 });
+
+test("owner Management UI exposes academy and location setup but coach-only UI does not",()=>{
+  const owner=fixture();
+  owner.academies=[{id:"a-1",name:"Pilot Academy",state:"active"}];
+  const html=renderCoachDashboard(owner,"csrf-synthetic",null);
+  assert.match(html,/Academies and locations/);
+  assert.ok(html.includes('name="action" value="academy"'));
+  assert.ok(html.includes('name="action" value="location"'));
+  assert.ok(html.includes('<option value="wrestling">Wrestling</option>'));
+  owner.canManageOrganization=false;
+  const coach=renderCoachDashboard(owner,"csrf-synthetic",null);
+  assert.ok(!coach.includes('name="action" value="academy"'));
+  assert.ok(!coach.includes('name="action" value="location"'));
+});
