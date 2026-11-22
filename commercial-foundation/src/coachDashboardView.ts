@@ -24,7 +24,7 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
   const upcoming = sessions.filter(session => session.state === "scheduled" && Date.parse(session.startsAt) >= Date.now()).slice(0, 3);
   const markedSessions = new Set(attendance.map(record => record.sessionId));
   const competitions = events.filter(event => event.type === "competition" && Date.parse(event.startsAt) >= Date.now());
-  const navItems: [string,string][] = [["overview","Overview"],["roster","Athletes"],["groups","Teams & groups"],["sessions","Practice & attendance"],["events","Competitions"],["activity","Activity"],["settings","Settings"]];
+  const navItems: [string,string][] = [["overview","Overview"],["roster","Athletes"],["groups","Teams & groups"],["curriculum","Curriculum"],["sessions","Practice & attendance"],["events","Competitions"],["activity","Activity"],["settings","Settings"]];
   const menu = `<nav class="sidebar" aria-label="Coach dashboard sections"><div class="sidebar-label">Coach workspace</div>${navItems.map(([id,label])=>`<a href="#${id}">${escapeHtml(label)}</a>`).join("")}<div class="sidebar-foot">Secure, organization-scoped workspace<br>Development pilot</div></nav>`;
   const empty = (heading: string, caption: string) => `<div class="empty"><strong>${escapeHtml(heading)}</strong><div>${escapeHtml(caption)}</div></div>`;
 
@@ -32,6 +32,23 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
     const athlete = athletes.find(record => record.id === athleteId);
     if (!athlete) throw new Error("ATHLETE_NOT_FOUND");
     const cycle = view.progression.find(item => item.athleteId === athlete.id);
+    const assignment = view.curriculumAssignments.find(item=>item.athleteId===athlete.id);
+    const curriculum = view.curricula.find(item=>item.id===assignment?.curriculumId);
+    const canEvaluate = view.canAwardXp && athlete.assignedCoachUserIds?.includes(view.currentUserId);
+    const curriculumPanel = section("athlete-curriculum", "Curriculum & skill assessment",
+      curriculum ? `<p>Discipline: ${escapeHtml(curriculum.discipline)} · Pathway: ${escapeHtml(curriculum.pathway)}</p>` +
+      list(curriculum.skills.map(skill =>
+        `${escapeHtml(skill.name)} · ${escapeHtml(view.skillEvaluations.filter(e=>e.athleteId===athlete.id&&e.skillId===skill.id).at(-1)?.status ?? "not yet assessed")}`),"No curriculum skills.") +
+      (canEvaluate ? form("coach-skill","Record skill assessment",
+        `<input type="hidden" name="athlete" value="${escapeHtml(athlete.id)}">` +
+        select("Skill","skill",options(curriculum.skills.map(skill=>({id:skill.id,name:skill.name})))) +
+        select("Assessment","status",'<option value="introduced">Introduced</option><option value="developing">Developing</option><option value="approved">Approved</option>') +
+        '<label>Assessment note<input name="note" maxlength="2000"></label>') : "") :
+      "<p>No curriculum assigned.</p>" +
+      (view.canManageOrganization ? form("curriculum-assign","Assign curriculum",
+        `<input type="hidden" name="athlete" value="${escapeHtml(athlete.id)}">` +
+        select("Curriculum","curriculum",options(view.curricula.filter(item=>item.academyId===athlete.academyId)
+          .map(item=>({id:item.id,name:`${item.discipline} — ${item.pathway} (${item.id.slice(0,8)})`}))))) : ""));
     const canAward = view.canAwardXp && athlete.assignedCoachUserIds?.includes(view.currentUserId) && cycle;
     const xpPanel = cycle ? section("progression", "XP and progression",
       `<p>Rank stage: ${cycle.rankIndex + 1} · Active XP: ${cycle.activeXp} · Earned stripes: ${cycle.earnedStripes}</p>` +
@@ -45,7 +62,7 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
     ) : section("progression", "XP and progression", "<p>No active curriculum assignment or progression cycle. An authorized manager must assign a curriculum first.</p>");
     return `<a class="profile-back" href="/coach#roster">← Back to roster</a><div class="profile-head"><div class="avatar" aria-hidden="true">${escapeHtml(athlete.displayName.slice(0, 1).toUpperCase())}</div><div><div class="eyebrow">Athlete profile · Development</div><h1>${escapeHtml(athlete.displayName)}</h1><p class="muted">${programName(athlete.programId)} · ${escapeHtml(athlete.participationState ?? "active")}</p></div></div>` +
       section("profile", "Attendance history", list(attendance.filter(record => record.athleteId === athlete.id).map(record =>
-          `<span class="row-main"><strong>${escapeHtml(record.state)}</strong><span class="row-sub">${time(record.recordedAt)}</span></span>`), "No attendance recorded yet.")) + xpPanel;
+          `<span class="row-main"><strong>${escapeHtml(record.state)}</strong><span class="row-sub">${time(record.recordedAt)}</span></span>`), "No attendance recorded yet.")) + curriculumPanel + xpPanel;
   }
 
   const groupChoices = options(programs);
@@ -90,6 +107,12 @@ export function renderCoachDashboard(view: ReturnType<CoachDashboard["snapshot"]
       "No training groups in your scope.") + (view.canManageOrganization && locationChoices ?
       form("group", "Add training group", input("Group name", "name") + input("Discipline", "discipline") +
         select("Location", "location", locationChoices)) : "")) +
+    section("curriculum","Coach curriculum",`<p class="section-hint">Create your own skills within approved Sandman pathway and XP standards.</p>`+
+      list(view.curricula.map(item=>`<span class="row-main"><strong>${escapeHtml(item.discipline)}</strong><span class="row-sub">${escapeHtml(item.pathway)} · ${item.skills.length} skills</span></span>`),"No curriculum created yet.")+
+      (view.canCreateCurriculum && groupChoices ? form("coach-curriculum","Create coach curriculum",
+        select("Program","program",groupChoices)+
+        select("Progression pathway","pathway",'<option value="road2champion">Road2Champion</option><option value="path2legend">Path2Legend</option>')+
+        '<label>Required skills (one per line; 1–30)<textarea name="skills" required maxlength="3600" rows="5"></textarea></label>'):""))+
     section("sessions", "Training sessions and attendance", `<p class="section-hint">Record participation, share coach notes, and plan practices.</p>` + sessionCards.join("") +
       (sessions.length ? "" : '<p class="muted">No training sessions in your scope.</p>') +
       (view.canManageOrganization && view.canSchedule && groupChoices && locationChoices && view.coaches.length ?

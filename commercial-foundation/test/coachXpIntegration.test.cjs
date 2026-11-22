@@ -78,3 +78,50 @@ test("assigned coach awards validated XP through the Commercial dashboard withou
     action:"coach-xp",athlete:athlete.id,award:"strength:10"
   })),/COACH_NOT_ASSIGNED/);
 });
+
+test("coach creates custom curriculum, owner assigns it, coach evaluates skills and awards XP",()=>{
+  const f=setup();
+  f.owner.submit(new URLSearchParams({action:"athlete",name:"Synthetic Wrestler",group:"wrestling",location:"room",coach:"coach"}));
+  const athlete=f.store.list("athletes",f.org)[0];
+  assert.throws(()=>f.coach.submit(new URLSearchParams({
+    action:"coach-curriculum",program:"wrestling",pathway:"invalid",skills:"Stance"
+  })),/INVALID_PATHWAY/);
+  f.coach.submit(new URLSearchParams({
+    action:"coach-curriculum",program:"wrestling",pathway:"road2champion",skills:["Stance","Motion"].join(String.fromCharCode(10))
+  }));
+  const definition=f.store.list("curricula",f.org)[0];
+  assert.equal(definition.discipline,"wrestling");
+  assert.deepEqual(definition.ranks,ROAD2CHAMPION_RANKS);
+  assert.equal(definition.skills.length,2);
+  assert.throws(()=>f.coach.submit(new URLSearchParams({
+    action:"curriculum-assign",athlete:athlete.id,curriculum:definition.id
+  })),/ROLE_DENIED/);
+  f.owner.submit(new URLSearchParams({
+    action:"curriculum-assign",athlete:athlete.id,curriculum:definition.id
+  }));
+  assert.equal(f.store.list("progressionCycles",f.org).length,1);
+  f.coach.submit(new URLSearchParams({
+    action:"coach-skill",athlete:athlete.id,skill:"coach-skill-1",status:"approved",note:"Coach verified"
+  }));
+  assert.equal(f.store.list("skillEvaluations",f.org)[0].status,"approved");
+  f.coach.submit(new URLSearchParams({action:"coach-xp",athlete:athlete.id,award:"strength:10"}));
+  assert.equal(f.coach.snapshot().progression[0].activeXp,10);
+});
+
+test("coach curriculum cannot bypass verified pathway ranks or approved program disciplines",()=>{
+  const f=setup(),service=new CurriculumService(f.foundation);
+  const valid={
+    id:"custom-one",organizationId:f.org,academyId:"academy",discipline:"wrestling",
+    version:"1.0.0",state:"active",pathway:"road2champion",
+    ranks:[...ROAD2CHAMPION_RANKS],
+    skills:[{id:"stance",name:"Stance",category:"coach_custom",required:true}]
+  };
+  assert.throws(()=>service.createCoachDefinition(f.coachCtx,{...valid,id:"custom-bad-rank",
+    ranks:valid.ranks.map((rank,index)=>index===0?{...rank,requiredXp:1}:rank)
+  }),/INVALID_OR_UNVERIFIED_CURRICULUM/);
+  assert.throws(()=>service.createCoachDefinition(f.coachCtx,{...valid,id:"custom-bad-discipline",
+    discipline:"mma"
+  }),/INVALID_OR_UNVERIFIED_CURRICULUM/);
+  assert.throws(()=>service.createCoachDefinition(f.ownerCtx,valid),/ROLE_DENIED/);
+  assert.equal(f.store.list("curricula",f.org).length,0);
+});
