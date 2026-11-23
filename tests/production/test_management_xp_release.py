@@ -35,6 +35,32 @@ class ManagementXpReleaseTest(unittest.TestCase):
             deploy.assert_called_once_with(Path("application"))
             preflight.assert_not_called()
 
+    def test_new_build_missing_source_can_use_verified_function_control_plane(self):
+        source = dict(release.xp.ORIGINAL_SOURCE)
+        resource = "projects/sandmandashboard/locations/us-central1/builds/build-new"
+        config = {
+            "build": resource,
+            "sourceProvenance": {"resolvedStorageSource": source},
+        }
+        with patch.object(release.xp, "source_ref", wraps=release.xp.source_ref), \
+                patch("sys.stdout") as output:
+            release.verify_new_build_source(config, {"status": "SUCCESS"},
+                                            resource, source)
+            self.assertTrue(output.write.called)
+
+    def test_new_build_rejects_conflicting_source_or_wrong_build_id(self):
+        source = dict(release.xp.ORIGINAL_SOURCE)
+        resource = "projects/sandmandashboard/locations/us-central1/builds/build-new"
+        config = {"build": resource, "sourceProvenance": {"resolvedStorageSource": source}}
+        with self.assertRaisesRegex(RuntimeError, "resource identity drift"):
+            release.verify_new_build_source({**config, "build": "wrong"},
+                                            {"status": "SUCCESS"}, resource, source)
+        with self.assertRaisesRegex(RuntimeError, "source differs"):
+            release.verify_new_build_source(config, {"status": "SUCCESS",
+                "source": {"storageSource": {**source, "generation": "1"}}}, resource, source)
+        with self.assertRaisesRegex(RuntimeError, "did not succeed"):
+            release.verify_new_build_source(config, {"status": "FAILURE"}, resource, source)
+
     def test_wrong_approval_stops_before_production(self):
         with patch.object(release.xp, "require_workflow_scope"), patch.dict(
             release.os.environ, {"DEPLOYMENT_APPROVAL": "wrong"}
