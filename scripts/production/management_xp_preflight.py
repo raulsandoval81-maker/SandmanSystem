@@ -275,7 +275,7 @@ def verify_artifact_registry_provenance(build, resource, image, revision):
         for project in (PROJECT, inventory.NUMBER)
     }
     image_name = image.split("@", 1)[0]
-    for item in report.get("provenance_summary", {}).get("provenance", []):
+    for item in (report.get("provenance_summary") or {}).get("provenance", []):
         statement = item.get("build", {}).get("inTotoSlsaProvenanceV1", {})
         if statement.get("predicateType") != "https://slsa.dev/provenance/v1":
             continue
@@ -441,7 +441,8 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
     print(json.dumps({
-        "status": "READ_ONLY_VERIFIED_RELEASE_BLOCKED",
+        "status": ("PROTECTED_RELEASE_BASELINE_GUARDS_PASSED"
+                   if workflow == RELEASE_WORKFLOW else "READ_ONLY_VERIFIED_RELEASE_BLOCKED"),
         "candidateSha256": report["candidateSha256"],
         "target": TARGET,
         "revision": revision,
@@ -452,7 +453,8 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         "baselineComponentSha256": {
             name: digest(value) for name, value in {**baseline, "revision": rev}.items()
         },
-        "deploymentEnabled": False,
+        "deploymentEnabled": workflow == RELEASE_WORKFLOW,
+        "historicalImageBuildLinkVerified": bool(build.get("results", {}).get("images", [])),
     }, sort_keys=True))
     return token, snapshot, baseline, revision, image, package
 
