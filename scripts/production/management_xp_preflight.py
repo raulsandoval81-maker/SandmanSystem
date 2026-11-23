@@ -54,7 +54,7 @@ HISTORICAL_BUILD_SOURCE = {
     "object": f"{SHARED}/function-source.zip",
     "generation": "1791403756604186",
 }
-HISTORICAL_EXCEPTION_ACK = "ACKNOWLEDGE_PINNED_OLD_IMAGE_PROVENANCE_GAP"
+HISTORICAL_EXCEPTION_ACK = "ACKNOWLEDGE_PINNED_OLD_IMAGE_AND_BUILD_SOURCE_PROVENANCE_GAPS"
 
 require = inventory.require
 sha = inventory.sha
@@ -233,10 +233,11 @@ def verify_build_image(build, resource, image, revision):
 
 
 def verify_pinned_historical_exception(build, resource, image, revision, serving_source):
-    """Release-only, owner-acknowledged exception for the *old* missing build/image link.
+    """Release-only exception for old build/image AND build/source metadata gaps.
 
-    All other baseline, source, rollback, IAM, and candidate gates still run.
-    A conflicting/nonempty build image result never qualifies for this exception.
+    The separately retained archives are verified in preflight, but do not prove
+    what bytes the legacy build consumed. No unverified source is invented.
+    New-image evidence requirements are not affected.
     """
     require(os.environ.get("HISTORICAL_PROVENANCE_ACK") == HISTORICAL_EXCEPTION_ACK,
             "Explicit historical image provenance exception approval missing")
@@ -245,16 +246,18 @@ def verify_pinned_historical_exception(build, resource, image, revision, serving
     require(build.get("status") == "SUCCESS"
             and not build.get("results", {}).get("images", []),
             "Historical build has conflicting image evidence")
-    require(serving_source == HISTORICAL_BUILD_SOURCE,
+    require(serving_source is None or serving_source == HISTORICAL_BUILD_SOURCE,
             "Historical build source identity drift")
     print(json.dumps({
-        "status": "HISTORICAL_IMAGE_PROVENANCE_UNVERIFIED_EXCEPTION",
+        "status": "HISTORICAL_BUILD_PROVENANCE_UNVERIFIED_EXCEPTION",
         "scope": "pre-update baseline only",
         "revision": revision,
         "build": resource,
-        "source": serving_source,
+        "buildSourcePointer": serving_source,
+        "buildSourcePointerVerified": serving_source is not None,
+        "buildImageLinkVerified": False,
         "image": image,
-        "reason": "Cloud Build has no reported image digest; source archives separately matched",
+        "reason": "Old build lacks image digest and may lack source reference; both pinned archives separately match rollback",
     }, sort_keys=True), flush=True)
 
 
@@ -436,17 +439,33 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         build = build_record(build_resource)
     except RuntimeError as error:
         raise RuntimeError(f"{error}") from None
-    serving_source = source_ref(build)
-    if serving_source != function_source:
-        require(read_archive(serving_source, token) == rollback,
-                "CONFLICTING: serving build source differs from the original archive")
-    # The old build published no results.images; the source archives have been
-    # compared byte-for-byte. This exception only exists in the protected
-    # release workflow, for the exact historical revision, build and digest.
-    if workflow == RELEASE_WORKFLOW and not build.get("results", {}).get("images", []):
+    # The pinned old Cloud Build record can omit both source fields and
+    # results.images. Waive that *historical* metadata gap only after the
+    # owner's new explicit acknowledgment and byte-checking BOTH known archives.
+    is_legacy_exception = (
+        workflow == RELEASE_WORKFLOW and not build.get("results", {}).get("images", [])
+    )
+    if is_legacy_exception:
+        require(os.environ.get("HISTORICAL_PROVENANCE_ACK") == HISTORICAL_EXCEPTION_ACK,
+                "Explicit historical image and build-source provenance approval missing")
+        require(build_resource == HISTORICAL_BUILD and revision == HISTORICAL_REVISION
+                and image == HISTORICAL_IMAGE and build.get("status") == "SUCCESS",
+                "Historical build identity drift")
+        require(read_archive(HISTORICAL_BUILD_SOURCE, token) == rollback,
+                "CONFLICTING: independent pinned historical source archive does not match rollback")
+        resolved = (build.get("sourceProvenance") or {}).get("resolvedStorageSource")
+        configured = (build.get("source") or {}).get("storageSource")
+        serving_source = source_ref(build) if (resolved or configured) else None
+        if serving_source is not None:
+            require(read_archive(serving_source, token) == rollback,
+                    "CONFLICTING: historical build-reported source archive differs")
         verify_pinned_historical_exception(
             build, build_resource, image, revision, serving_source)
     else:
+        serving_source = source_ref(build)
+        if serving_source != function_source:
+            require(read_archive(serving_source, token) == rollback,
+                    "CONFLICTING: serving build source differs from original")
         verify_build_image(build, build_resource, image, revision)
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
@@ -466,6 +485,7 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         },
         "deploymentEnabled": workflow == RELEASE_WORKFLOW,
         "historicalImageBuildLinkVerified": bool(build.get("results", {}).get("images", [])),
+        "historicalBuildSourcePointerVerified": serving_source is not None,
     }, sort_keys=True))
     return token, snapshot, baseline, revision, image, package
 
