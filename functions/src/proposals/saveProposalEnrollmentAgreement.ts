@@ -23,7 +23,7 @@ function clean(value: unknown): string {
 }
 
 export const saveProposalEnrollmentAgreement =
-  onCall(async (req) => {
+  onCall({ maxInstances: 20 }, async (req) => {
     const proposalId =
       clean(req.data?.proposalId);
 
