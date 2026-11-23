@@ -1,5 +1,10 @@
 name: Management Inventory - Guarded Production Release
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'functions/src/management/shirtInventory.ts'
+      - 'public/management/inventory/**'
   workflow_dispatch:
     inputs:
       mode:
@@ -29,9 +34,9 @@ jobs:
     steps:
       - name: Validate dispatch and protected branch
         env:
-          PROJECT: ${{ inputs.confirm_project }}
-          COUNT: ${{ inputs.confirm_opening }}
-          MODE: ${{ inputs.mode }}
+          PROJECT: ${{ github.event_name == 'push' && 'sandmandashboard' || inputs.confirm_project }}
+          COUNT: ${{ github.event_name == 'push' && '147' || inputs.confirm_opening }}
+          MODE: ${{ github.event_name == 'push' && 'deploy' || inputs.mode }}
         run: |
           test "${{ github.ref }}" = "refs/heads/main"
           test "$PROJECT" = "sandmandashboard"
@@ -78,7 +83,7 @@ jobs:
           MODE: preflight
         run: python scripts/production/management_inventory_hosting_overlay.py
       - name: Deploy only the new Management Inventory callable
-        if: inputs.mode == 'deploy'
+        if: github.event_name == 'push' || inputs.mode == 'deploy'
         shell: bash
         run: |
           set -euo pipefail
@@ -100,7 +105,7 @@ jobs:
           cd isolated
           npx --yes firebase-tools@14 deploy --only functions:managementShirtInventory --project sandmandashboard --config firebase.json --non-interactive
       - name: Verify the new revision before deploying Hosting
-        if: inputs.mode == 'deploy'
+        if: github.event_name == 'push' || inputs.mode == 'deploy'
         id: verify
         shell: bash
         run: |
@@ -117,13 +122,13 @@ jobs:
           NODE
           echo "verified=true" >> "$GITHUB_OUTPUT"
       - name: Overlay exactly six Hosting files, preserving all others
-        if: inputs.mode == 'deploy' && steps.verify.outputs.verified == 'true'
+        if: (github.event_name == 'push' || inputs.mode == 'deploy') && steps.verify.outputs.verified == 'true'
         env:
           MODE: deploy
           INVENTORY_FUNCTION_VERIFIED: 'true'
         run: python scripts/production/management_inventory_hosting_overlay.py
       - name: Confirm published static assets
-        if: inputs.mode == 'deploy' && steps.verify.outputs.verified == 'true'
+        if: (github.event_name == 'push' || inputs.mode == 'deploy') && steps.verify.outputs.verified == 'true'
         shell: bash
         run: |
           set -euo pipefail
