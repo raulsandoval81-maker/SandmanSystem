@@ -37,6 +37,25 @@ SANITIZED_CONFIG = {
     "generation": "1795226241121217",
     "sha256": "fbe65cbca739edfa054e3e45643373550f8bb673a4ba3b61671d2f09666b579d",
 }
+# One-time historical gap. Never used for new deployment provenance.
+RELEASE_WORKFLOW = "management-xp-production-release.yml"
+HISTORICAL_REVISION = "createmanagementxpadjustment-00019-hut"
+HISTORICAL_IMAGE = (
+    "us-central1-docker.pkg.dev/sandmandashboard/gcf-artifacts/"
+    "sandmandashboard__us--central1__search_management_members"
+    "@sha256:65b30bda41751b565c9aa9fdcc95da6f4d444022e2e0b9167901b63bbb93d675"
+)
+HISTORICAL_BUILD = (
+    "projects/889326401061/locations/us-central1/builds/"
+    "f96b1ce1-7758-4647-8b5a-6c6a5c4c0a68"
+)
+HISTORICAL_BUILD_SOURCE = {
+    "bucket": BUCKET,
+    "object": f"{SHARED}/function-source.zip",
+    "generation": "1791403756604186",
+}
+HISTORICAL_EXCEPTION_ACK = "ACKNOWLEDGE_PINNED_OLD_IMAGE_PROVENANCE_GAP"
+
 require = inventory.require
 sha = inventory.sha
 
@@ -202,6 +221,80 @@ def verify_build_image(build, resource, image, revision):
     raise RuntimeError(f"{status}: Function build does not prove provenance of the serving image")
 
 
+def verify_pinned_historical_exception(build, resource, image, revision, serving_source):
+    """Release-only, owner-acknowledged exception for the *old* missing build/image link.
+
+    All other baseline, source, rollback, IAM, and candidate gates still run.
+    A conflicting/nonempty build image result never qualifies for this exception.
+    """
+    require(os.environ.get("HISTORICAL_PROVENANCE_ACK") == HISTORICAL_EXCEPTION_ACK,
+            "Explicit historical image provenance exception approval missing")
+    require(revision == HISTORICAL_REVISION and image == HISTORICAL_IMAGE
+            and resource == HISTORICAL_BUILD, "Historical image identity drift")
+    require(build.get("status") == "SUCCESS"
+            and not build.get("results", {}).get("images", []),
+            "Historical build has conflicting image evidence")
+    require(serving_source == HISTORICAL_BUILD_SOURCE,
+            "Historical build source identity drift")
+    print(json.dumps({
+        "status": "HISTORICAL_IMAGE_PROVENANCE_UNVERIFIED_EXCEPTION",
+        "scope": "pre-update baseline only",
+        "revision": revision,
+        "build": resource,
+        "source": serving_source,
+        "image": image,
+        "reason": "Cloud Build has no reported image digest; source archives separately matched",
+    }, sort_keys=True), flush=True)
+
+
+def verify_artifact_registry_provenance(build, resource, image, revision):
+    """Require independent Google-managed build/subject linkage if Build.results.images is empty.
+
+    This is not a substitute for source-byte, IAM or ready-revision checks.
+    If Artifact Registry metadata lacks an exact match, fail closed.
+    """
+    require(build.get("status") == "SUCCESS", "New image producing build was not successful")
+    match = re.fullmatch(
+        rf"projects/(?:{PROJECT}|{inventory.NUMBER})/locations/({REGION}|global)/builds/([a-f0-9-]+)",
+        resource,
+    )
+    require(match and re.fullmatch(r"[^@]+@sha256:[0-9a-f]{64}", image),
+            "Unrecognized new build or image identity")
+    report = json.loads(guarded_gcloud(
+        "Artifact Registry image provenance read",
+        ["gcloud", "artifacts", "docker", "images", "describe", image,
+         "--show-provenance", "--project", PROJECT, "--format=json"],
+    ))
+    digest_value = image.split("@sha256:", 1)[1]
+    summary = report.get("image_summary", {})
+    require(summary.get("fully_qualified_digest") == image
+            and summary.get("digest") == "sha256:" + digest_value,
+            "Artifact Registry provenance image identity mismatch")
+    allowed_invocations = {
+        f"https://cloudbuild.googleapis.com/v1/projects/{project}/locations/{match[1]}/builds/{match[2]}"
+        for project in (PROJECT, inventory.NUMBER)
+    }
+    image_name = image.split("@", 1)[0]
+    for item in (report.get("provenance_summary") or {}).get("provenance", []):
+        statement = item.get("build", {}).get("inTotoSlsaProvenanceV1", {})
+        if statement.get("predicateType") != "https://slsa.dev/provenance/v1":
+            continue
+        metadata = statement.get("predicate", {}).get("runDetails", {}).get("metadata", {})
+        subjects = statement.get("subject", [])
+        signed = item.get("envelope", {}).get("signatures", [])
+        if (metadata.get("invocationId") in allowed_invocations and
+                any(subject.get("digest", {}).get("sha256") == digest_value and
+                    subject.get("name", "").removeprefix("https://").split(":", 1)[0] == image_name
+                    for subject in subjects) and signed):
+            print(json.dumps({
+                "status": "GOOGLE_MANAGED_ARTIFACT_PROVENANCE_MATCH",
+                "revision": revision, "build": resource, "image": image,
+                "signatureValidatedLocally": False,
+            }, sort_keys=True), flush=True)
+            return
+    raise RuntimeError("UNVERIFIED: Artifact Registry metadata does not link serving image to new build")
+
+
 def access_token():
     """Use only the credentials file exported by the guarded auth action."""
     credentials = os.environ.get("CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE")
@@ -332,16 +425,24 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         build = build_record(build_resource)
     except RuntimeError as error:
         raise RuntimeError(f"{error}") from None
-    verify_build_image(build, build_resource, image, revision)
     serving_source = source_ref(build)
     if serving_source != function_source:
         require(read_archive(serving_source, token) == rollback,
                 "CONFLICTING: serving build source differs from the original archive")
+    # The old build published no results.images; the source archives have been
+    # compared byte-for-byte. This exception only exists in the protected
+    # release workflow, for the exact historical revision, build and digest.
+    if workflow == RELEASE_WORKFLOW and not build.get("results", {}).get("images", []):
+        verify_pinned_historical_exception(
+            build, build_resource, image, revision, serving_source)
+    else:
+        verify_build_image(build, build_resource, image, revision)
     require(snapshot() == baseline
             and get("https://run.googleapis.com/v2/" + revision_prefix + revision) == rev,
             "Production configuration drifted during capture")
     print(json.dumps({
-        "status": "READ_ONLY_VERIFIED_RELEASE_BLOCKED",
+        "status": ("PROTECTED_RELEASE_BASELINE_GUARDS_PASSED"
+                   if workflow == RELEASE_WORKFLOW else "READ_ONLY_VERIFIED_RELEASE_BLOCKED"),
         "candidateSha256": report["candidateSha256"],
         "target": TARGET,
         "revision": revision,
@@ -352,7 +453,8 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         "baselineComponentSha256": {
             name: digest(value) for name, value in {**baseline, "revision": rev}.items()
         },
-        "deploymentEnabled": False,
+        "deploymentEnabled": workflow == RELEASE_WORKFLOW,
+        "historicalImageBuildLinkVerified": bool(build.get("results", {}).get("images", [])),
     }, sort_keys=True))
     return token, snapshot, baseline, revision, image, package
 

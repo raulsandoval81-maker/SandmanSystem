@@ -14,10 +14,8 @@ import management_xp_preflight as xp
 
 WORKFLOW = "management-xp-production-release.yml"
 APPROVAL = "APPROVE_MANAGEMENT_XP_SINGLE_FUNCTION_RELEASE"
-BEFORE_REVISION = "createmanagementxpadjustment-00019-hut"
-BEFORE_IMAGE = ("us-central1-docker.pkg.dev/sandmandashboard/gcf-artifacts/"
-                "sandmandashboard__us--central1__search_management_members"
-                "@sha256:65b30bda41751b565c9aa9fdcc95da6f4d444022e2e0b9167901b63bbb93d675")
+BEFORE_REVISION = xp.HISTORICAL_REVISION
+BEFORE_IMAGE = xp.HISTORICAL_IMAGE
 API = "https://cloudfunctions.googleapis.com/v2/"
 
 
@@ -135,8 +133,13 @@ def release(candidate):
                "Missing immutable image identity after update")
     resource = fn["buildConfig"]["build"]
     build = xp.build_record(resource)
-    xp.verify_build_image(build, resource, new_image, new_revision)
     xp.require(xp.source_ref(build) == source, "New Build source differs from Function source")
+    if build.get("results", {}).get("images", []):
+        xp.verify_build_image(build, resource, new_image, new_revision)
+    else:
+        # Cloud Build may push images without populating results.images.
+        # Never apply the historical exception to the NEW serving image.
+        xp.verify_artifact_registry_provenance(build, resource, new_image, new_revision)
     xp.require(snapshot() == after, "Production drifted during verification")
     print(json.dumps({"status": "FUNCTION_RELEASE_VERIFIED", "revision": new_revision,
                       "image": new_image, "build": resource, "source": source}), flush=True)
