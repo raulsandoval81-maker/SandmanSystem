@@ -1,5 +1,10 @@
 name: Management XP protected single-Function production release
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/management-xp-production-release.yml'
+      - 'scripts/production/management_xp_*.py'
+      - 'tests/production/test_management_xp*.py'
   workflow_dispatch:
     inputs:
       confirm_target:
@@ -23,6 +28,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  offline-tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify XP release guard without cloud access
+        run: python3 -m unittest discover -s tests/production -p 'test_management_xp*.py'
+
   release:
     if: github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
