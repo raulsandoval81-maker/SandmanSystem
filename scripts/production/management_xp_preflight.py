@@ -483,7 +483,9 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         "baselineComponentSha256": {
             name: digest(value) for name, value in {**baseline, "revision": rev}.items()
         },
-        "deploymentEnabled": workflow == RELEASE_WORKFLOW,
+        "deploymentEnabled": (workflow == RELEASE_WORKFLOW
+                              and os.environ.get("XP_RELEASE_MODE") == "DEPLOY"),
+        "releaseMode": os.environ.get("XP_RELEASE_MODE") if workflow == RELEASE_WORKFLOW else "READ_ONLY",
         "historicalImageBuildLinkVerified": bool(build.get("results", {}).get("images", [])),
         "historicalBuildSourcePointerVerified": serving_source is not None,
     }, sort_keys=True))
