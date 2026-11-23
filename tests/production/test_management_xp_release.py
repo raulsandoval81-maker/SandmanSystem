@@ -8,6 +8,33 @@ import management_xp_release as release
 
 
 class ManagementXpReleaseTest(unittest.TestCase):
+    def test_verify_only_checks_preflight_without_upload_or_release(self):
+        with patch.object(release.xp, "require_workflow_scope") as scope, \
+                patch.dict(release.os.environ, {"DEPLOYMENT_APPROVAL": release.APPROVAL}), \
+                patch.object(release.xp, "preflight") as preflight, \
+                patch.object(release, "release") as deploy, \
+                patch.object(release, "request") as upload:
+            release.execute("VERIFY_ONLY", Path("application"))
+            scope.assert_called_once_with(release.WORKFLOW)
+            preflight.assert_called_once_with(Path("application"), release.WORKFLOW)
+            deploy.assert_not_called()
+            upload.assert_not_called()
+
+    def test_unknown_mode_stops_before_any_production_calls(self):
+        with patch.object(release.xp, "preflight") as preflight, \
+                patch.object(release, "release") as deploy, \
+                self.assertRaisesRegex(RuntimeError, "Invalid XP release mode"):
+            release.execute("unexpected", Path("application"))
+            preflight.assert_not_called()
+            deploy.assert_not_called()
+
+    def test_deploy_mode_is_separate_from_read_only(self):
+        with patch.object(release, "release") as deploy, \
+                patch.object(release.xp, "preflight") as preflight:
+            release.execute("DEPLOY", Path("application"))
+            deploy.assert_called_once_with(Path("application"))
+            preflight.assert_not_called()
+
     def test_wrong_approval_stops_before_production(self):
         with patch.object(release.xp, "require_workflow_scope"), patch.dict(
             release.os.environ, {"DEPLOYMENT_APPROVAL": "wrong"}
