@@ -256,3 +256,106 @@ class ServingImageProvenanceTest(unittest.TestCase):
                 self.assertIn("UNVERIFIED" if not outputs else "CONFLICTING", log.getvalue())
                 self.assertIn(self.revision, log.getvalue())
                 self.assertIn(self.image_digest, log.getvalue())
+
+
+
+class PinnedHistoricalImageExceptionTest(unittest.TestCase):
+    def setUp(self):
+        self.build = {"status": "SUCCESS", "results": {"images": []}}
+        self.source = preflight.HISTORICAL_BUILD_SOURCE
+
+    def check(self, build=None, source=None, revision=None, image=None, resource=None):
+        return preflight.verify_pinned_historical_exception(
+            build if build is not None else self.build,
+            resource if resource is not None else preflight.HISTORICAL_BUILD,
+            image if image is not None else preflight.HISTORICAL_IMAGE,
+            revision if revision is not None else preflight.HISTORICAL_REVISION,
+            source if source is not None else self.source,
+        )
+
+    def test_explicit_acknowledgement_is_required(self):
+        with patch.dict(preflight.os.environ, {"HISTORICAL_PROVENANCE_ACK": ""}), \
+                self.assertRaisesRegex(RuntimeError, "approval missing"):
+            self.check()
+
+    def test_exact_old_revision_digest_build_and_source_only(self):
+        with patch.dict(preflight.os.environ, {
+            "HISTORICAL_PROVENANCE_ACK": preflight.HISTORICAL_EXCEPTION_ACK,
+        }), redirect_stdout(io.StringIO()) as capture:
+            self.check()
+            self.assertIn("HISTORICAL_IMAGE_PROVENANCE_UNVERIFIED_EXCEPTION", capture.getvalue())
+            for key, value in (
+                ("revision", "some-other-revision"),
+                ("image", self.source["object"]),
+                ("resource", "projects/sandmandashboard/locations/us-central1/builds/not-the-build"),
+                ("source", {**self.source, "generation": "1"}),
+            ):
+                with self.subTest(key=key), self.assertRaises(RuntimeError):
+                    self.check(**{key: value})
+
+    def test_nonempty_conflicting_build_images_cannot_be_waived(self):
+        with patch.dict(preflight.os.environ, {
+            "HISTORICAL_PROVENANCE_ACK": preflight.HISTORICAL_EXCEPTION_ACK,
+        }), self.assertRaisesRegex(RuntimeError, "conflicting image evidence"):
+            self.check(build={"status": "SUCCESS", "results": {"images": [
+                {"name": "other", "digest": "sha256:" + "b" * 64},
+            ]}})
+
+
+class RegistryProvenanceFallbackTest(unittest.TestCase):
+    image = "us-central1-docker.pkg.dev/sandmandashboard/gcf-artifacts/newxp@sha256:" + "a" * 64
+    build = "projects/889326401061/locations/us-central1/builds/abcd-1234"
+    revision = "createmanagementxpadjustment-00020-abc"
+
+    def evidence(self, invocation=None, digest=None):
+        digest = digest or "a" * 64
+        build_id = self.build.rsplit("/", 1)[-1]
+        return {
+            "image_summary": {
+                "fully_qualified_digest": self.image,
+                "digest": "sha256:" + "a" * 64,
+            },
+            "provenance_summary": {"provenance": [{
+                "build": {"inTotoSlsaProvenanceV1": {
+                    "predicateType": "https://slsa.dev/provenance/v1",
+                    "predicate": {"runDetails": {"metadata": {
+                        "invocationId": invocation or
+                        f"https://cloudbuild.googleapis.com/v1/projects/889326401061/locations/us-central1/builds/{build_id}",
+                    }}},
+                    "subject": [{
+                        "name": "https://" + self.image.split("@", 1)[0],
+                        "digest": {"sha256": digest},
+                    }],
+                }},
+                "envelope": {"signatures": [{"sig": "test-fixture"}]},
+            }]},
+        }
+
+    def test_exact_google_managed_build_image_link_accepted(self):
+        with patch.object(preflight, "guarded_gcloud", return_value=json.dumps(self.evidence()).encode()) as read, \
+                redirect_stdout(io.StringIO()) as capture:
+            preflight.verify_artifact_registry_provenance(
+                {"status": "SUCCESS"}, self.build, self.image, self.revision)
+            self.assertIn("GOOGLE_MANAGED_ARTIFACT_PROVENANCE_MATCH", capture.getvalue())
+            self.assertFalse(json.loads(capture.getvalue())["signatureValidatedLocally"])
+            self.assertIn("--show-provenance", read.call_args.args[1])
+
+    def test_wrong_build_digest_or_missing_signature_fails_closed(self):
+        cases = [
+            self.evidence(invocation="https://cloudbuild.googleapis.com/v1/projects/other/locations/us-central1/builds/bad"),
+            self.evidence(digest="b" * 64),
+            self.evidence(),
+        ]
+        cases[2]["provenance_summary"]["provenance"][0]["envelope"]["signatures"] = []
+        for record in cases:
+            with self.subTest(record=record["provenance_summary"]["provenance"][0]), \
+                    patch.object(preflight, "guarded_gcloud", return_value=json.dumps(record).encode()), \
+                    self.assertRaisesRegex(RuntimeError, "does not link"):
+                preflight.verify_artifact_registry_provenance(
+                    {"status": "SUCCESS"}, self.build, self.image, self.revision)
+
+    def test_missing_artifact_registry_image_fails_closed(self):
+        with patch.object(preflight, "guarded_gcloud", side_effect=RuntimeError("UNVERIFIED: not found")), \
+                self.assertRaisesRegex(RuntimeError, "not found"):
+            preflight.verify_artifact_registry_provenance(
+                {"status": "SUCCESS"}, self.build, self.image, self.revision)
