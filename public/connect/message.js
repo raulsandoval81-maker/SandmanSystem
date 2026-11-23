@@ -1,3 +1,4 @@
+import { generalMessagePayload } from "./general-message-payload.mjs";
 import {
   db,
   collection,
@@ -17,10 +18,6 @@ const statusEl =
 
 const languageInput =
   document.getElementById("preferredLanguage");
-
-function clean(value) {
-  return String(value || "").trim();
-}
 
 function currentLanguage() {
   return document.documentElement.lang === "es"
@@ -98,137 +95,17 @@ form?.addEventListener(
     try {
       await ensureSignedIn();
 
-      const payload = {
-        organization: "sandman-system",
-        pipeline: "general-messaging",
-        source: "public-message-page",
-
-        status: "NEW",
-        messageStatus: "NEW",
-
-        contactName: clean(
-          form.contactName?.value
-        ),
-
-        email: clean(
-          form.email?.value
-        ).toLowerCase(),
-
-        phone: clean(
-          form.phone?.value
-        ),
-
-        topic: clean(
-          form.messageTopic?.value
-        ),
-
-        passType: clean(
-          form.passType?.value
-        ),
-
-        message: clean(
-          form.message?.value
-        ),
-
-        contactConsent: Boolean(
-          form.contactConsent?.checked
-        ),
-
-        language:
-          currentLanguage(),
-
-        pagePath:
-          window.location.pathname,
-
-        /*
-         * Public Message Us has no location context.
-         * Every public message enters Admin Review.
-         */
-        routingStage:
-          "ADMIN_REVIEW",
-
-        nextRoutingStage:
-          "MANAGEMENT_TRIAGE",
-
-        routingPolicy:
-          "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
-
-        requiredManagerLevel:
-          "LOCATION_MANAGER",
-
-        assignmentStatus:
-          "UNASSIGNED",
-
-        /*
-         * Admin determines the final academy/location
-         * only when routing is actually needed.
-         */
-        preferredOrganization:
-          "not-sure",
-
-        preferredLocation:
-          "not-sure",
-
-        organizationId:
-          null,
-
-        organizationName:
-          "",
-
-        academyId:
-          null,
-
-        academyName:
-          "",
-
-        locationId:
-          null,
-
-        locationName:
-          "",
-
-        assignedAdminUid:
-          null,
-
-        assignedManagerUid:
-          null,
-
-        assignedCoachUid:
-          null,
-
-        respondedByUid:
-          null,
-
-        respondedByRole:
-          null,
-
-        respondedAt:
-          null,
-
-        closedByUid:
-          null,
-
-        closedAt:
-          null,
-
-        escalated:
-          false,
-
-        escalationReason:
-          "",
-
-        coachNotes:
-          "",
-
-        managementNotes:
-          "",
-
-        createdAt:
-          serverTimestamp(),
-
-        updatedAt:
-          serverTimestamp()
-      };
+      const payload = generalMessagePayload({
+        contactName: form.contactName?.value,
+        email: form.email?.value,
+        phone: form.phone?.value,
+        topic: form.messageTopic?.value,
+        passType: form.passType?.value,
+        message: form.message?.value,
+        contactConsent: form.contactConsent?.checked,
+        language: currentLanguage(),
+        pagePath: window.location.pathname
+      }, serverTimestamp);
 
       const result = await addDoc(
         collection(

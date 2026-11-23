@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Casa de Sandman inquiries · Staging</title>
+</head>
+<body>
+  <main>
+    <h1>Casa de Sandman inquiries</h1>
+    <p>Staging only. Use synthetic information. Sandman System Admin reviews each inquiry.</p>
+    <form id="casa-inquiry">
+      <p><label>Name <input name="contactName" maxlength="120" required></label></p>
+      <p><label>Email <input name="email" type="email" maxlength="254" required></label></p>
+      <p><label>Topic
+        <select name="topic" required>
+          <option value="">Choose a topic</option>
+          <option value="casa-academy">Academy</option>
+          <option value="casa-combat">Combat</option>
+          <option value="casa-fitness">Fitness</option>
+          <option value="casa-partnership">Partnership</option>
+          <option value="casa-expansion">Expansion</option>
+          <option value="casa-general">General contact</option>
+        </select>
+      </label></p>
+      <p><label>Message <textarea name="message" maxlength="4000" required></textarea></label></p>
+      <p><label><input name="consent" type="checkbox" required> I agree that Sandman System Admin may contact me about this inquiry.</label></p>
+      <button type="submit" disabled>Send inquiry</button>
+      <p id="status" role="status"></p>
+    </form>
+  </main>
+  <script type="module" src="./submission.js"></script>
+</body>
+</html>

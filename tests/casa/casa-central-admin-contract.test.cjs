@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, "..", "..");
 const load = (p) => fs.readFileSync(path.join(root, p), "utf8");
 
 test("public system message matches existing strict national intake contract", () => {
-  const source = load("public/connect/message.js");
+  const source = load("public/connect/general-message-payload.mjs");
   const rules = load("firestore.rules");
   assert.match(source, /requiredManagerLevel:\s*"LOCATION_MANAGER"/);
   assert.match(source, /routingPolicy:\s*"ADMIN_TO_ORGANIZATION_LOCATION_MANAGER"/);
