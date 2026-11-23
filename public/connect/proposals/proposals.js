@@ -1150,7 +1150,7 @@ function proposalActionHtml(status, id, proposal = {}) {
   ) {
     return `
       <button class="proposal-open-btn" type="button" data-proposal-action="preview-enrollment-verification" data-proposal-id="${esc(id)}">
-        Review & Confirm — In Person
+        Open In-Person Approval
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="copy-enrollment-verification" data-proposal-id="${esc(id)}">
@@ -1158,7 +1158,7 @@ function proposalActionHtml(status, id, proposal = {}) {
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="email-enrollment-verification" data-proposal-id="${esc(id)}">
-        Review & Confirm — Remote
+        Send Approval Email
       </button>
 
       <button class="proposal-open-btn" type="button" data-proposal-action="correct-proposal" data-proposal-id="${esc(id)}">
@@ -1167,8 +1167,8 @@ function proposalActionHtml(status, id, proposal = {}) {
 
       <div class="proposal-action-note">
         <ul>
-          <li><strong>In-Person:</strong> Opens the Review & Confirm page for use with the family.</li>
-          <li><strong>Remote:</strong> Sends the secure Review & Confirm link by email.</li>
+          <li><strong>In Person:</strong> Opens the secure Review & Confirm page for the guardian to approve with staff present.</li>
+          <li><strong>Email:</strong> Sends the same secure Review & Confirm page to the guardian remotely.</li>
           <li><strong>Alternative Secure Link:</strong> Copies the secure link for a manual handoff.</li>
         </ul>
       </div>
