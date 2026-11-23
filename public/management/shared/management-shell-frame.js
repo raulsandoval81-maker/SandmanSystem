@@ -9,6 +9,7 @@ const NAV_GROUPS = Object.freeze([
     ["competition", "Competition Schedule", "/management/competition/"],
     ["attendance", "Attendance", "/management/attendance/"],
     ["logistics", "Logistics", "/management/logistics/"],
+    ["inventory", "Inventory", "/management/inventory/"],
     ["reports", "Reports", "/management/reports/"],
   ]],
   ["Tools", [
@@ -43,6 +44,7 @@ function areaForPath(pathname = window.location.pathname) {
     ["/management/competition/", "competition"],
     ["/management/attendance/", "attendance"],
     ["/management/logistics/", "logistics"],
+    ["/management/inventory/", "inventory"],
     ["/management/reports/", "reports"],
     ["/management/experience-validation/", "xp-management"],
     ["/management/xp-adjustments/", "xp-management"],

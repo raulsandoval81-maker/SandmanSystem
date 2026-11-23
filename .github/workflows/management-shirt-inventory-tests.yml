@@ -1,0 +1,47 @@
+name: Management Shirt Inventory Tests
+on:
+  pull_request:
+    paths:
+      - 'functions/src/management/shirtInventory*.ts'
+      - 'functions/src/index.ts'
+      - 'functions/tests/managementShirtInventory.test.cjs'
+      - 'public/management/inventory/**'
+      - 'public/management/shared/management-shell-frame.js'
+      - 'public/management/logistics/index.html'
+      - 'public/management/hub/index.html'
+      - '.github/workflows/management-shirt-inventory-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+      - run: npm ci --prefix functions
+      - run: npm --prefix functions run build
+      - run: node --test functions/tests/managementShirtInventory.test.cjs
+      - run: node --check public/management/inventory/inventory.js
+      - name: Check scope and access contract
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs'), assert = require('node:assert/strict');
+          const api=fs.readFileSync('functions/src/management/shirtInventory.ts','utf8');
+          const web=fs.readFileSync('public/management/inventory/inventory.js','utf8');
+          const nav=fs.readFileSync('public/management/shared/management-shell-frame.js','utf8');
+          assert.match(api,/requireActiveStaff/);
+          assert.match(api,/requireStaffLocation/);
+          assert.match(api,/runTransaction/);
+          assert.match(api,/maxInstances:20/);
+          assert.match(api,/operationId/);
+          assert.match(api,/verified\?\.exists/);
+          assert.doesNotMatch(api,/stripe|incrementXp|promoteTier|passAthleteTest/i);
+          assert.match(web,/managementShirtInventory/);
+          assert.match(nav,/management\/inventory/);
+          console.log('Inventory separation, location scope and idempotency contract verified.');
+          NODE

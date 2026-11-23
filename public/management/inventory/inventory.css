@@ -1,0 +1,31 @@
+.inventory-wrap{width:min(100% - 32px,1250px);margin:28px auto 64px;color:var(--management-text)}
+.inventory-heading h1{font-size:clamp(1.9rem,4vw,2.6rem);margin:5px 0}
+.inventory-heading>p:not(.eyebrow):not(.identity){color:var(--management-muted);max-width:730px;line-height:1.55}
+.inventory-status{min-height:1.5em;color:var(--management-muted);margin:18px 0}
+.inventory-status.error{color:var(--management-danger)}
+.inventory-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.inventory-summary article,.inventory-panel{background:var(--management-surface);border:1px solid var(--management-border);border-radius:var(--management-radius-lg);box-shadow:var(--management-shadow)}
+.inventory-summary article{padding:16px}
+.inventory-summary span{display:block;color:var(--management-muted);font-size:.9rem}
+.inventory-summary strong{font-size:clamp(1.7rem,3vw,2.3rem);color:var(--management-gold)}
+.inventory-panel{padding:20px;margin-top:16px}
+.inventory-panel h2{font-size:1.2rem;margin:2px 0 8px}
+.inventory-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.inventory-panel-heading p{color:var(--management-muted)}
+.inventory-hint{color:var(--management-muted);font-size:.9rem;line-height:1.5}
+.inventory-filters{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+.inventory-filters label,.inventory-form label{display:flex;flex-direction:column;gap:6px;font-weight:600;font-size:.91rem}
+.inventory-form label small{font-weight:400;color:var(--management-muted)}
+.inventory-form select,.inventory-form input,.inventory-filters select{background:var(--management-surface);color:var(--management-text);border:1px solid var(--management-border);border-radius:8px;padding:11px;max-width:100%;font:inherit}
+.inventory-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:16px}
+.inventory-form-wide{grid-column:1/-1}
+.inventory-form-footer{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.inventory-table-scroll{max-width:100%;overflow-x:auto}
+.inventory-table{width:100%;border-collapse:collapse;text-align:left;min-width:590px}
+.inventory-table th,.inventory-table td{padding:12px;border-bottom:1px solid var(--management-border);font-size:.92rem}
+.inventory-table th{color:var(--management-muted);font-weight:700}
+.inventory-table td strong{font-variant-numeric:tabular-nums}
+.inventory-low{color:var(--management-danger);font-weight:700}
+button:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:800px){.inventory-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.inventory-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.inventory-wrap{width:min(100% - 20px,1250px)}.inventory-panel{padding:14px}.inventory-form{grid-template-columns:1fr}.inventory-form-footer .button{width:100%}}

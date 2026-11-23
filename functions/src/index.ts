@@ -394,3 +394,5 @@ export {
 } from "./management/coachXpRecoveryRequests";
 
 export { submitCoachPaperXpReport, listCoachPaperXpReports, reviewCoachPaperXpReport } from "./management/coachPaperXpReports";
+
+export { managementShirtInventory } from "./management/shirtInventory";

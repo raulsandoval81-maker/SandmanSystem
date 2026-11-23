@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Shirt Inventory | Sandman Management</title>
+<link rel="stylesheet" href="/assets/css/management-ui.css">
+<link rel="stylesheet" href="/management/hub/management.css">
+<link rel="stylesheet" href="./inventory.css">
+</head>
+<body data-management-area="inventory">
+<main class="inventory-wrap">
+  <header class="inventory-heading">
+    <p class="eyebrow">Operations · Physical Stock</p>
+    <h1>Shirt Inventory</h1>
+    <p>Count shirts by group, color and size. Every receipt and issue is recorded in a location-specific ledger.</p>
+    <p id="inventoryScope" class="identity">Verifying Management access…</p>
+  </header>
+  <p class="inventory-status" id="inventoryStatus" role="status" aria-live="polite">Loading inventory…</p>
+  <section class="inventory-summary" aria-label="Current inventory totals">
+    <article><span>Shirts on hand</span><strong id="totalStock">—</strong></article>
+    <article><span>Youth shirts</span><strong id="youthStock">—</strong></article>
+    <article><span>Adult shirts</span><strong id="adultStock">—</strong></article>
+    <article><span>Low-stock variants</span><strong id="lowStock">—</strong></article>
+  </section>
+  <section class="inventory-panel" id="openingPanel">
+    <div class="inventory-panel-heading">
+      <div><p class="eyebrow">Initial count</p><h2>November 23, 2026 physical inventory</h2>
+        <p>Owner-verified: <strong>147 shirts</strong> (84 Youth, 63 Adult). This import can only be applied once per location.</p></div>
+      <button type="button" class="button" id="importOpening" disabled>Import opening count</button>
+    </div>
+    <p id="openingState" class="inventory-hint">Checking current stock before import…</p>
+  </section>
+  <section class="inventory-panel">
+    <div class="inventory-panel-heading"><div><p class="eyebrow">Stockroom</p><h2>Available shirts</h2></div></div>
+    <div class="inventory-filters">
+      <label>Group<select id="filterGroup"><option value="">All groups</option><option value="youth">Youth</option><option value="adult">Adult</option></select></label>
+      <label>Color<select id="filterColor"><option value="">All colors</option></select></label>
+    </div>
+    <div class="inventory-table-scroll"><table class="inventory-table">
+      <thead><tr><th>Group</th><th>Color / item</th><th>Size</th><th>On hand</th><th>Status</th></tr></thead>
+      <tbody id="stockRows"><tr><td colspan="5">Loading…</td></tr></tbody>
+    </table></div>
+  </section>
+  <section class="inventory-panel">
+    <p class="eyebrow">Audited stock movement</p><h2>Receive, issue or adjust shirts</h2>
+    <p class="inventory-hint">Issuing a shirt never changes an athlete's XP, stripes, rank, enrollment or billing. Athlete IDs must exist at this location.</p>
+    <form id="movementForm" class="inventory-form">
+      <label>Action<select id="movementAction" required>
+        <option value="received">Received / purchased</option><option value="issued">Issued</option>
+        <option value="returned">Returned</option><option value="damaged">Damaged / discarded</option>
+        <option value="correction">Count correction (+ or −)</option>
+      </select></label>
+      <label>Age group<select id="movementGroup" required><option value="youth">Youth</option><option value="adult">Adult</option></select></label>
+      <label>Color<select id="movementColor" required></select></label>
+      <label>Size<select id="movementSize" required></select></label>
+      <label>Quantity<input id="movementQuantity" inputmode="numeric" type="number" min="1" max="500" step="1" value="1" required></label>
+      <label>Athlete ID <small>(required to link to athlete)</small><input id="movementAthlete" type="text" placeholder="Existing athlete ID"></label>
+      <label class="inventory-form-wide">Note / reason<input id="movementNote" type="text" maxlength="240" placeholder="e.g. New shipment, athlete issue, damaged shirt"></label>
+      <div class="inventory-form-wide inventory-form-footer">
+        <p class="inventory-hint" id="movementGuidance">Received stock increases inventory.</p>
+        <button type="submit" id="movementSubmit" class="button">Record movement</button>
+      </div>
+    </form>
+  </section>
+  <section class="inventory-panel">
+    <div class="inventory-panel-heading"><div><p class="eyebrow">Audit trail</p><h2>Recent movements</h2></div></div>
+    <div class="inventory-table-scroll"><table class="inventory-table">
+      <thead><tr><th>When</th><th>Action</th><th>Shirt</th><th>Quantity</th><th>Athlete / note</th></tr></thead>
+      <tbody id="movementRows"><tr><td colspan="5">Loading…</td></tr></tbody>
+    </table></div>
+  </section>
+</main>
+<script type="module" src="/management/shared/management-shell.js"></script>
+<script type="module" src="./inventory.js"></script>
+</body></html>
