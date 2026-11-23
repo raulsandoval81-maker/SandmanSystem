@@ -137,6 +137,38 @@ class CandidateManifestTest(unittest.TestCase):
             preflight.source_ref(record)
 
 
+
+class CloudBuildSourceReferenceTest(unittest.TestCase):
+    def setUp(self):
+        self.source = dict(preflight.HISTORICAL_BUILD_SOURCE)
+
+    def test_source_from_cloud_build_config_when_resolved_provenance_missing(self):
+        record = {"source": {"storageSource": dict(self.source)}}
+        self.assertEqual(preflight.source_ref(record), self.source)
+
+    def test_source_provenance_and_configured_source_must_agree(self):
+        record = {
+            "sourceProvenance": {"resolvedStorageSource": dict(self.source)},
+            "source": {"storageSource": dict(self.source)},
+        }
+        self.assertEqual(preflight.source_ref(record), self.source)
+        record["source"]["storageSource"]["generation"] = "1791403756604187"
+        with self.assertRaisesRegex(RuntimeError, "CONFLICTING"):
+            preflight.source_ref(record)
+
+    def test_missing_or_unpinned_source_fails_closed(self):
+        for record in (
+            {},
+            {"source": {"storageSource": {}}},
+            {"source": {"storageSource": {**self.source, "generation": "0"}}},
+            {"source": {"storageSource": {**self.source, "generation": ""}}},
+            {"source": {"storageSource": {**self.source, "bucket": "other-bucket"}}},
+            {"source": {"storageSource": {**self.source, "object": "other.zip"}}},
+        ):
+            with self.subTest(record=record), self.assertRaises(RuntimeError):
+                preflight.source_ref(record)
+
+
 class SafeCommandFailureTest(unittest.TestCase):
     def test_external_command_failure_does_not_expose_arguments_or_output(self):
         import subprocess
