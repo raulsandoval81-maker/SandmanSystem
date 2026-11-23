@@ -79,23 +79,45 @@ class ManagementXpReleaseTest(unittest.TestCase):
                 release.release(Path("application"))
             request.assert_not_called()
 
-    def test_upload_must_match_the_generation_pinned_storage_source(self):
-        source = {"bucket": "gcf-test", "object": "candidate.zip", "generation": "182522"}
-        self.assertEqual(release.upload_target({
-            "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip?signature=dummy",
-            "storageSource": source,
-        }), source)
+    def test_upload_target_accepts_google_pre_upload_generation_zero_or_omitted(self):
+        base = {"bucket": "gcf-test", "object": "candidate.zip"}
+        for source in (base, {**base, "generation": "0"},
+                       {**base, "generation": "182522"}):
+            with self.subTest(source=source):
+                result = release.upload_target({
+                    "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip?signature=dummy",
+                    "storageSource": source,
+                })
+                self.assertEqual(result, source)
+                self.assertIsNot(result, source)
+                # No fabricated generation: return the exact API-issued source.
+                self.assertEqual("generation" in result, "generation" in source)
+
+    def test_upload_target_rejects_untrusted_url_or_invalid_storage_reference(self):
+        source = {"bucket": "gcf-test", "object": "candidate.zip", "generation": "0"}
         for url in (
             "https://example.org/gcf-test/candidate.zip",
             "https://storage.googleapis.com/gcf-test/another.zip",
+            "http://storage.googleapis.com/gcf-test/candidate.zip",
+            "https://user@storage.googleapis.com/gcf-test/candidate.zip",
+            "https://storage.googleapis.com:444/gcf-test/candidate.zip",
         ):
             with self.subTest(url=url), self.assertRaises(RuntimeError):
                 release.upload_target({"uploadUrl": url, "storageSource": source})
-        with self.assertRaisesRegex(RuntimeError, "immutable source"):
-            release.upload_target({
-                "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip",
-                "storageSource": {**source, "generation": "0"},
-            })
+        for malformed in (
+            None,
+            {},
+            {"bucket": "gcf-test", "object": "candidate.zip", "generation": ""},
+            {"bucket": "gcf-test", "object": "candidate.zip", "generation": "-1"},
+            {"bucket": "gcf-test", "object": "candidate.zip", "generation": 0},
+            {"bucket": "gcf-test", "object": "candidate.zip", "extra": "unexpected"},
+        ):
+            with self.subTest(source=malformed), self.assertRaisesRegex(
+                    RuntimeError, "Invalid pre-upload"):
+                release.upload_target({
+                    "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip",
+                    "storageSource": malformed,
+                })
 
     def test_only_literal_xp_endpoint_can_receive_the_patch(self):
         baseline = {"function": {"buildConfig": {}, "serviceConfig": {}},
@@ -109,7 +131,7 @@ class ManagementXpReleaseTest(unittest.TestCase):
             release, "request"
         ), patch.object(release, "json_request", side_effect=[
             {"uploadUrl": "https://storage.googleapis.com/bucket/candidate.zip",
-             "storageSource": {"bucket": "bucket", "object": "candidate.zip", "generation": "182522"}},
+             "storageSource": {"bucket": "bucket", "object": "candidate.zip", "generation": "0"}},
             RuntimeError("mock stop after observing the request"),
         ]) as api:
             with self.assertRaisesRegex(RuntimeError, "mock stop"):
