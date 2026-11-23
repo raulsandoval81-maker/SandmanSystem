@@ -74,6 +74,30 @@ def configuration(state):
     }
 
 
+def verify_new_build_source(function_build_config, build, resource, source):
+    """Use authenticated Function build/source association when Cloud Build omits source.
+
+    Never waive the separate new build-to-serving-image digest check.
+    """
+    xp.require(function_build_config.get("build") == resource,
+               "New Function build resource identity drift")
+    xp.require(xp.source_ref(function_build_config) == source,
+               "New Function source identity drift")
+    resolved = (build.get("sourceProvenance") or {}).get("resolvedStorageSource")
+    configured = (build.get("source") or {}).get("storageSource")
+    if resolved or configured:
+        xp.require(xp.source_ref(build) == source,
+                   "New Cloud Build source differs from Function source")
+    else:
+        xp.require(build.get("status") == "SUCCESS",
+                   "New Cloud Build source pointer absent and build did not succeed")
+        print(json.dumps({
+            "status": "NEW_BUILD_SOURCE_CONFIRMED_VIA_FUNCTION_CONTROL_PLANE",
+            "build": resource, "source": source,
+            "cloudBuildSourcePointerPresent": False,
+        }, sort_keys=True), flush=True)
+
+
 def release(candidate):
     xp.require_workflow_scope(WORKFLOW)
     xp.require(os.environ.get("DEPLOYMENT_APPROVAL") == APPROVAL, "Missing exact deployment approval")
@@ -133,7 +157,7 @@ def release(candidate):
                "Missing immutable image identity after update")
     resource = fn["buildConfig"]["build"]
     build = xp.build_record(resource)
-    xp.require(xp.source_ref(build) == source, "New Build source differs from Function source")
+    verify_new_build_source(fn["buildConfig"], build, resource, source)
     if build.get("results", {}).get("images", []):
         xp.verify_build_image(build, resource, new_image, new_revision)
     else:
