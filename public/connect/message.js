@@ -151,10 +151,10 @@ form?.addEventListener(
           "MANAGEMENT_TRIAGE",
 
         routingPolicy:
-          "PUBLIC_TO_SYSTEM_ADMIN",
+          "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
 
         requiredManagerLevel:
-          "SYSTEM_ADMIN",
+          "LOCATION_MANAGER",
 
         assignmentStatus:
           "UNASSIGNED",
@@ -164,10 +164,10 @@ form?.addEventListener(
          * only when routing is actually needed.
          */
         preferredOrganization:
-          "sandman-system",
+          "not-sure",
 
         preferredLocation:
-          "",
+          "not-sure",
 
         organizationId:
           null,
