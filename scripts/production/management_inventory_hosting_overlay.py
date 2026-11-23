@@ -41,6 +41,15 @@ while True:
     page=response.get("nextPageToken","")
     if not page:break
 assert len(old)>100 and all(x in old for x in PATHS if x not in NEW),"Unexpected live file inventory"
+# No overwrite of unrelated live UI changes: current Hosting must match the
+# unchanged pre-merge repository source for every existing file we overlay.
+import subprocess
+for path in PATHS:
+    if path in NEW: continue
+    expected_source=subprocess.check_output(["git","show","HEAD^:public"+path])
+    expected_hash=hashlib.sha256(gzip.compress(expected_source,mtime=0)).hexdigest()
+    assert old[path]==expected_hash,("STOP_NO_RETRY: live Hosting drift in "+path+
+        ". The protected release may not replace independently deployed changes.")
 assert not any(x in old for x in NEW),"Inventory pages already exist. STOP_NO_RETRY."
 new=dict(old)
 payloads={}
