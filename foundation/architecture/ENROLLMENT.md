@@ -2,11 +2,13 @@
 
 STATUS
 
-UNDER REVIEW
+GUARDIAN CONFIRMATION AND PAYMENT ROUTING: STANDARD
+
+Broader onboarding architecture remains under review.
 
 Last Updated
 
-August 2026
+November 2026
 
 ---
 
@@ -46,7 +48,7 @@ The family participates.
 
 # Canonical Flow
 
-Proposal Approved
+Proposal Accepted and Approved
 
 ↓
 
@@ -54,11 +56,18 @@ House Standards
 
 ↓
 
-Stripe Checkout
+Guardian Review & Confirm
+(in person on the secure family page OR by secure approval email)
 
 ↓
 
-Payment Confirmed
+Payment route selected from the signed agreement
+- Unpaid online arrangement: secure Stripe checkout and verified payment
+- Already-paid Cash/Check: Management validates the historical payment evidence and reconciles it once; NO Stripe checkout
+
+↓
+
+Verified payment status
 
 ↓
 
@@ -132,17 +141,23 @@ Academy expectations
 
 ---
 
-# Stripe
+# Guardian Approval — Standard
 
-Purpose
+Management offers both routes for the SAME locked agreement and confirmation record:
 
-Collect payment.
+- **In Person:** Staff open a secure Review & Confirm link; the guardian personally reviews and confirms the agreement on the device.
+- **By Email:** Management sends a secure Review & Confirm link; the guardian personally reviews and confirms remotely.
 
-Stripe executes payment.
+Staff do not approve on the guardian's behalf. Link issuance, delivery route, family confirmation, and payment verification remain distinct auditable events. Neither route creates a new charge merely by recording approval.
 
-Proposal remains the agreement.
+# Payment Routing — Standard
 
-Payment should be confirmed before operational onboarding continues.
+The signed locked payment arrangement determines what comes next:
+
+- **Online/unpaid:** Stripe handles the approved checkout. A confirmed Stripe event establishes the payment.
+- **Cash/Check Paid-in-Full already received:** Do not open Stripe or create another payment. Management verifies the historical deposit date and genuine traceable reference before recording reconciliation once.
+
+The signed proposal remains the agreement. Guardian approval does not itself prove payment or complete Intake. Only after verified payment, required family paperwork, and Management approval may the existing athlete be activated.
 
 ---
 
