@@ -232,6 +232,19 @@ def verify_build_image(build, resource, image, revision):
     raise RuntimeError(f"{status}: Function build does not prove provenance of the serving image")
 
 
+def verify_historical_build_source_archives(build, token, rollback):
+    """Verify retained source archive bytes without inventing a Cloud Build source pointer."""
+    require(read_archive(HISTORICAL_BUILD_SOURCE, token) == rollback,
+            "CONFLICTING: independent pinned historical source archive does not match rollback")
+    resolved = (build.get("sourceProvenance") or {}).get("resolvedStorageSource")
+    configured = (build.get("source") or {}).get("storageSource")
+    serving_source = source_ref(build) if (resolved or configured) else None
+    if serving_source is not None:
+        require(read_archive(serving_source, token) == rollback,
+                "CONFLICTING: historical build-reported source archive differs")
+    return serving_source
+
+
 def verify_pinned_historical_exception(build, resource, image, revision, serving_source):
     """Release-only exception for old build/image AND build/source metadata gaps.
 
@@ -451,14 +464,7 @@ def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
         require(build_resource == HISTORICAL_BUILD and revision == HISTORICAL_REVISION
                 and image == HISTORICAL_IMAGE and build.get("status") == "SUCCESS",
                 "Historical build identity drift")
-        require(read_archive(HISTORICAL_BUILD_SOURCE, token) == rollback,
-                "CONFLICTING: independent pinned historical source archive does not match rollback")
-        resolved = (build.get("sourceProvenance") or {}).get("resolvedStorageSource")
-        configured = (build.get("source") or {}).get("storageSource")
-        serving_source = source_ref(build) if (resolved or configured) else None
-        if serving_source is not None:
-            require(read_archive(serving_source, token) == rollback,
-                    "CONFLICTING: historical build-reported source archive differs")
+        serving_source = verify_historical_build_source_archives(build, token, rollback)
         verify_pinned_historical_exception(
             build, build_resource, image, revision, serving_source)
     else:
