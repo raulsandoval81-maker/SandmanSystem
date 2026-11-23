@@ -145,9 +145,22 @@ def release(candidate):
                       "image": new_image, "build": resource, "source": source}), flush=True)
 
 
+def execute(mode, candidate):
+    """Fail closed for every unknown mode; VERIFY_ONLY never uploads or patches."""
+    xp.require(mode in ("VERIFY_ONLY", "DEPLOY"), "Invalid XP release mode")
+    if mode == "VERIFY_ONLY":
+        xp.require_workflow_scope(WORKFLOW)
+        xp.require(os.environ.get("DEPLOYMENT_APPROVAL") == APPROVAL,
+                   "Missing exact deployment approval")
+        xp.preflight(candidate, WORKFLOW)
+        print(json.dumps({"status": "READ_ONLY_BASELINE_VERIFIED", "deploymentAttempted": False}))
+        return
+    release(candidate)
+
+
 if __name__ == "__main__":
     try:
-        release(Path(sys.argv[1]))
+        execute(os.environ.get("XP_RELEASE_MODE", ""), Path(sys.argv[1]))
     except Exception as error:
         print(f"STOP_NO_RETRY: {xp.safe_error_detail(error)}", file=sys.stderr)
         sys.exit(1)
