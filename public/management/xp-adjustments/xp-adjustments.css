@@ -619,3 +619,132 @@
   color:#111317;
   font-weight:900;
 }
+
+
+/* Coach XP report queues: readable light mode without altering dark mode.
+   Presentation only: no XP, review, or athlete-record behavior changes. */
+.coach-xp-report {
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px solid #aaa5;
+  border-radius: 9px;
+}
+.coach-xp-report__summary { cursor: pointer; line-height: 1.5; }
+.coach-xp-report__table-wrap { overflow-x: auto; }
+.coach-xp-report__table { width: 100%; border-collapse: collapse; }
+.coach-xp-report__textarea { display: block; width: 100%; }
+.coach-xp-report__description,
+.coach-xp-report__management-note,
+.coach-xp-report__meta { overflow-wrap: anywhere; white-space: pre-wrap; }
+
+html:not([data-theme="dark"]) .coach-xp-queue > p,
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report p {
+  color: #293647;
+  opacity: 1;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report {
+  border: 2px solid #a9b5c2;
+  background: #ffffff;
+  color: #1c2532;
+  box-shadow: 0 3px 12px rgba(26, 42, 61, .06);
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__summary {
+  color: #192536;
+  font-weight: 650;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__summary strong {
+  color: #111a27;
+  font-weight: 900;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__meta {
+  color: #415067;
+  font-weight: 600;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__status {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid #b3bcc8;
+  border-radius: 999px;
+  background: #edf1f5;
+  color: #243247;
+  font-size: .85em;
+  font-weight: 850;
+  letter-spacing: .025em;
+}
+html:not([data-theme="dark"]) .coach-xp-queue
+.coach-xp-report[data-report-status="REVIEWED"] .coach-xp-report__status {
+  border-color: #94bc9d;
+  background: #e4f3e8;
+  color: #205b35;
+}
+html:not([data-theme="dark"]) .coach-xp-queue
+.coach-xp-report[data-report-status="PENDING_MANAGEMENT"] .coach-xp-report__status {
+  border-color: #d1af65;
+  background: #fff2d5;
+  color: #6c480d;
+}
+html:not([data-theme="dark"]) .coach-xp-queue
+.coach-xp-report[data-report-status="REJECTED"] .coach-xp-report__status {
+  border-color: #d0a0a0;
+  background: #fceaea;
+  color: #862b2b;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table {
+  background: #ffffff;
+  color: #253348;
+  min-width: 440px;
+  font-size: .94rem;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table th,
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table td {
+  padding: 10px 12px;
+  border: 1px solid #c6d0dc;
+  text-align: left;
+  vertical-align: top;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table th {
+  background: #e8edf3;
+  color: #172536;
+  font-weight: 850;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table tbody tr:nth-child(even) {
+  background: #f4f7fa;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__table td {
+  color: #27354a;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__note-label {
+  display: block;
+  margin-top: 12px;
+  color: #202d3d;
+  font-weight: 800;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__textarea {
+  margin: 8px 0 12px;
+  border: 2px solid #95a4b5 !important;
+  background: #ffffff !important;
+  color: #1c2532 !important;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__action,
+html:not([data-theme="dark"]) .coach-xp-queue > button {
+  margin: 4px 8px 4px 0;
+  padding: 10px 14px;
+  border: 2px solid #8797a9;
+  border-radius: 10px;
+  background: #edf2f7;
+  color: #1a293b;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__action--reject {
+  border-color: #bb8888;
+  background: #fff3f1;
+  color: #762b2b;
+}
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__summary:focus-visible,
+html:not([data-theme="dark"]) .coach-xp-queue .coach-xp-report__action:focus-visible,
+html:not([data-theme="dark"]) .coach-xp-queue > button:focus-visible {
+  outline: 3px solid #9a7110;
+  outline-offset: 3px;
+}
