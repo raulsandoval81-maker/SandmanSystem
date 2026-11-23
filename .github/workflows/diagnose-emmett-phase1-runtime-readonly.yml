@@ -60,7 +60,7 @@ jobs:
           CURRENT="$(jq -r '.status.latestReadyRevisionName // empty' "$RUNNER_TEMP/service.json")"
           test -n "$CURRENT"
           test "$CURRENT" != getproposalenrollment-00007-fuj
-          test "$(jq -r '[.status.traffic[] | select(.percent == 100 and .revisionName == "'$CURRENT'")] | length' "$RUNNER_TEMP/service.json")" = 1
+          test "$(jq -r --arg revision "$CURRENT" '[.status.traffic[] | select(.percent == 100 and .revisionName == $revision)] | length' "$RUNNER_TEMP/service.json")" = 1
           test "$(jq -r '.state' "$RUNNER_TEMP/function.json")" = ACTIVE
           gcloud run revisions describe getproposalenrollment-00007-fuj --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/previous.json"
           gcloud run revisions describe "$CURRENT" --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/current.json"
