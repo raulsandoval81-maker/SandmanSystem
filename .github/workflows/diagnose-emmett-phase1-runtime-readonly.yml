@@ -1,0 +1,179 @@
+name: Emmett Phase 1 — read-only runtime drift diagnosis
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandmandashboard
+        required: true
+        type: string
+      confirm_baseline:
+        description: Type getproposalenrollment-00007-fuj
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-production-functions
+  cancel-in-progress: false
+
+jobs:
+  diagnose:
+    if: ${{ github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 15
+    steps:
+      - name: Enforce fixed read-only scope
+        env:
+          PROJECT: ${{ inputs.confirm_project }}
+          BASELINE: ${{ inputs.confirm_baseline }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/diagnose-emmett-phase1-runtime-readonly.yml@refs/heads/main"
+          test "$PROJECT" = sandmandashboard
+          test "$BASELINE" = getproposalenrollment-00007-fuj
+          echo "Inspection only: getProposalEnrollment; no deployment, Firestore access, or mutation."
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      - name: Authenticate established production inspector
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+        run: |
+          set -euo pipefail
+          test -n "$FIREBASE_SERVICE_ACCOUNT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/production-sa.json"
+          chmod 600 "$RUNNER_TEMP/production-sa.json"
+          gcloud auth activate-service-account --key-file="$RUNNER_TEMP/production-sa.json" --quiet >/dev/null
+          gcloud config set project sandmandashboard --quiet >/dev/null
+          test "$(gcloud config get-value project 2>/dev/null)" = sandmandashboard
+          unset FIREBASE_SERVICE_ACCOUNT
+
+      - name: Read current function and old/new Cloud Run revisions
+        run: |
+          set -euo pipefail
+          gcloud functions describe getProposalEnrollment --gen2 --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/function.json"
+          gcloud run services describe getproposalenrollment --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/service.json"
+          CURRENT="$(jq -r '.status.latestReadyRevisionName // empty' "$RUNNER_TEMP/service.json")"
+          test -n "$CURRENT"
+          test "$CURRENT" != getproposalenrollment-00007-fuj
+          test "$(jq -r --arg revision "$CURRENT" '[.status.traffic[] | select(.percent == 100 and .revisionName == $revision)] | length' "$RUNNER_TEMP/service.json")" = 1
+          test "$(jq -r '.state' "$RUNNER_TEMP/function.json")" = ACTIVE
+          gcloud run revisions describe getproposalenrollment-00007-fuj --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/previous.json"
+          gcloud run revisions describe "$CURRENT" --region=us-central1 --project=sandmandashboard --format=json > "$RUNNER_TEMP/current.json"
+          echo "CURRENT_REVISION=$CURRENT" >> "$GITHUB_ENV"
+
+      - name: Compare runtime settings, publishing no secret values
+        run: |
+          set -euo pipefail
+          mkdir -p safe-evidence
+          python3 - <<'PY'
+          import copy
+          import json
+          import os
+          from pathlib import Path
+
+          tmp = Path(os.environ["RUNNER_TEMP"])
+          old = json.loads((tmp / "previous.json").read_text())
+          new = json.loads((tmp / "current.json").read_text())
+          service = json.loads((tmp / "service.json").read_text())
+
+          def at(obj, *keys):
+              for key in keys:
+                  if isinstance(obj, dict):
+                      obj = obj.get(key)
+                  elif isinstance(obj, list) and isinstance(key, int) and key < len(obj):
+                      obj = obj[key]
+                  else:
+                      return None
+              return obj
+
+          def scalar(label, *path):
+              a, b = at(old, *path), at(new, *path)
+              return {"setting": label, "changed": a != b, "before": a, "after": b}
+
+          def opaque(label, *path):
+              a, b = at(old, *path), at(new, *path)
+              return {"setting": label, "changed": a != b, "values": "WITHHELD"}
+
+          def annotation(label, key):
+              a = at(old, "metadata", "annotations") or {}
+              b = at(new, "metadata", "annotations") or {}
+              x, y = a.get(key), b.get(key)
+              return {"setting": label, "changed": x != y, "values": "WITHHELD"}
+
+          def env_summary():
+              before = at(old, "spec", "containers", 0, "env") or []
+              after = at(new, "spec", "containers", 0, "env") or []
+              a = {v.get("name"): v for v in before if isinstance(v, dict)}
+              b = {v.get("name"): v for v in after if isinstance(v, dict)}
+              keys = set(a) | set(b)
+              return {
+                  "setting": "environment_variables",
+                  "changed": before != after,
+                  "before_count": len(before),
+                  "after_count": len(after),
+                  "added_count": len(set(b) - set(a)),
+                  "removed_count": len(set(a) - set(b)),
+                  "modified_count": sum(a[k] != b[k] for k in set(a) & set(b)),
+                  "values_and_names": "WITHHELD",
+              }
+
+          comparisons = [
+              opaque("runtime_service_account", "spec", "serviceAccountName"),
+              scalar("container_concurrency", "spec", "containerConcurrency"),
+              scalar("timeout_seconds", "spec", "timeoutSeconds"),
+              scalar("cpu_limit", "spec", "containers", 0, "resources", "limits", "cpu"),
+              scalar("memory_limit", "spec", "containers", 0, "resources", "limits", "memory"),
+              opaque("image", "spec", "containers", 0, "image"),
+              opaque("startup_probe", "spec", "containers", 0, "startupProbe"),
+              opaque("liveness_probe", "spec", "containers", 0, "livenessProbe"),
+              opaque("ports", "spec", "containers", 0, "ports"),
+              opaque("volume_mounts", "spec", "containers", 0, "volumeMounts"),
+              opaque("volumes", "spec", "volumes"),
+              env_summary(),
+              annotation("min_scale", "autoscaling.knative.dev/minScale"),
+              annotation("max_scale", "autoscaling.knative.dev/maxScale"),
+              annotation("vpc_connector", "run.googleapis.com/vpc-access-connector"),
+              annotation("vpc_egress", "run.googleapis.com/vpc-access-egress"),
+              annotation("startup_cpu_boost", "run.googleapis.com/startup-cpu-boost"),
+              annotation("execution_environment", "run.googleapis.com/execution-environment"),
+          ]
+
+          def sans_image(revision):
+              spec = copy.deepcopy(revision.get("spec") or {})
+              for container in spec.get("containers") or []:
+                  container.pop("image", None)
+              return spec
+
+          report = {
+              "status": "COLLECTED_NOT_CLEARED",
+              "scope": "getProposalEnrollment production revisions only",
+              "original_failed_run": 45194441118,
+              "previous_revision": "getproposalenrollment-00007-fuj",
+              "current_revision": os.environ["CURRENT_REVISION"],
+              "single_current_revision_at_100_percent": True,
+              "revision_spec_changed_excluding_expected_image": sans_image(old) != sans_image(new),
+              "changed_settings": [item for item in comparisons if item["changed"]],
+              "unchanged_settings": [item["setting"] for item in comparisons if not item["changed"]],
+              "limitations": [
+                  "Prior Cloud Functions serviceConfig values were not retained in the failed deployment artifact.",
+                  "Cloud Run revision comparison cannot identify every Cloud Functions serviceConfig-only change.",
+                  "No runtime/secret values or environment-variable names are disclosed.",
+                  "This diagnostic does not authorize Phase 2, deployment retry, or any production change.",
+              ],
+          }
+          dest = Path("safe-evidence/emmett-phase1-runtime-diff-sanitized.json")
+          dest.write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emmett-phase1-runtime-diff-${{ github.run_id }}
+          path: safe-evidence/emmett-phase1-runtime-diff-sanitized.json
+          if-no-files-found: warn
