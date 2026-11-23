@@ -46,7 +46,7 @@ function validateToken(
 }
 
 export const getProposalEnrollment =
-  onCall(async (req) => {
+  onCall({ maxInstances: 20 }, async (req) => {
     const proposalId =
       clean(req.data?.proposalId);
 
