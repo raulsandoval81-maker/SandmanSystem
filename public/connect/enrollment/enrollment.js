@@ -156,7 +156,7 @@ import {
       const consent = document.querySelector("label.enrollment-checkbox span");
       if (consent) consent.textContent = "I confirm the membership term, prepaid amount, coverage dates, annual-fee allocation and separately outstanding balance shown above. No automatic renewal is authorized.";
       const continueButton = document.getElementById("saveAgreementButton");
-      if (continueButton) continueButton.textContent = pricing.paymentArrangement === "prepaid_cash_check" ? "Confirm & Continue to Intake" : "Confirm & Continue to One-Time Payment";
+      if (continueButton) continueButton.textContent = pricing.paymentArrangement === "prepaid_cash_check" ? "Approve & Confirm Enrollment" : "Confirm & Continue to One-Time Payment";
       elements.dueNowAmount.textContent = formatMoney(pricing.dueNow);
       elements.monthlyAmount.textContent = `No recurring charge — ${t.monthsCovered} months prepaid`;
       elements.annualRenewalAmount.textContent = `Annual fee separately outstanding: ${formatMoney(t.annualEnrollmentFee.outstandingCents / 100)}`;
@@ -437,7 +437,7 @@ import {
       elements.earlyIntakeButton.hidden = runtimeEnvironment !== "staging" || !path.cash || path.confirmed;
     }
     if (button && !path.confirmed) {
-      button.textContent = path.cash ? "Confirm & Wait for Management"
+      button.textContent = path.cash ? "Approve & Confirm Enrollment"
         : path.oneTime ? "Confirm & Continue to One-Time Payment"
         : "Confirm & Continue to Secure Payment";
     }
