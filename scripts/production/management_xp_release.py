@@ -43,15 +43,23 @@ def upload_target(upload):
     xp.require(parsed.scheme == "https" and parsed.hostname == "storage.googleapis.com"
                and parsed.port in (None, 443) and not parsed.username and not parsed.password
                and not parsed.fragment, "Unexpected signed upload origin")
-    storage = upload["storageSource"]
-    xp.require(set(storage) == {"bucket", "object", "generation"}
-               and all(isinstance(storage[key], str) and storage[key] for key in storage)
-               and re.fullmatch(r"[1-9][0-9]*", storage["generation"]),
-               "Upload does not identify an immutable source")
+    # Cloud Functions generateUploadUrl is a PRE-upload response. Google
+    # documents generation=0 (or omitted) until Storage creates the object.
+    # Pass the exact API-provided storageSource back in the Function PATCH;
+    # verify its resolved immutable generation and archive bytes afterwards.
+    storage = upload.get("storageSource")
+    xp.require(isinstance(storage, dict)
+               and set(storage).issubset({"bucket", "object", "generation"})
+               and all(isinstance(storage.get(k), str) and storage[k]
+                       for k in ("bucket", "object"))
+               and (("generation" not in storage)
+                    or (isinstance(storage["generation"], str)
+                        and re.fullmatch(r"[0-9]+", storage["generation"]))),
+               "Invalid pre-upload Cloud Functions source reference")
     path = urllib.parse.unquote(parsed.path)
     xp.require(path == f"/{storage['bucket']}/{storage['object']}",
                "Signed upload does not match its storage source")
-    return storage
+    return dict(storage)
 
 
 def configuration(state):
