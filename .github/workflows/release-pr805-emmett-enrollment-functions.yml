@@ -19,7 +19,7 @@ on:
         type: string
         required: true
       confirm_source_sha:
-        description: Exact reviewed PR805 merge commit
+        description: Exact reviewed enrollment source commit with explicit 20-instance caps
         type: string
         required: true
       expected_revision:
@@ -68,8 +68,10 @@ jobs:
             *) exit 1 ;;
           esac
           printf 'SERVICE=%s\n' "${TARGET,,}" >> "$GITHUB_ENV"
-          test "$SOURCE" = "2dd3e8de0a1dd9c66c8d94169f0468107c4a6aa4"
+          test "$SOURCE" = "9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8"
           if [ "$MODE" = deploy ]; then
+            # The first callable is already deployed; never redeploy it through this Phase 2 release.
+            test "$TARGET" = saveProposalEnrollmentAgreement
             test "$APPROVAL" = "APPROVE_PR805_ENROLLMENT_REVIEW_FUNCTION"
             test -n "$REVISION"
             test -n "$DIGEST"
@@ -91,7 +93,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: 2dd3e8de0a1dd9c66c8d94169f0468107c4a6aa4
+          ref: 9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8
           path: application
           persist-credentials: false
 
@@ -102,11 +104,11 @@ jobs:
       - name: Build and check exact application source and historical safeguards
         run: |
           set -euo pipefail
-          test "$(git -C application rev-parse HEAD)" = "2dd3e8de0a1dd9c66c8d94169f0468107c4a6aa4"
+          test "$(git -C application rev-parse HEAD)" = "9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8"
           npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
           npm run build --prefix application/functions
           node --test application/functions/tests/prepaidReconciliationPolicy.test.cjs
-          node -e 'const target=process.env.TARGET; const x=require("./application/functions/lib/proposals/"+target+".js"); if(!x[target]?.__endpoint?.callableTrigger) throw Error("Missing callable")'
+          node -e 'const target=process.env.TARGET; const x=require("./application/functions/lib/proposals/"+target+".js"); if(!x[target]?.__endpoint?.callableTrigger) throw Error("Missing callable"); if(x[target].__endpoint.maxInstances !== 20) throw Error("20-instance limit missing from compiled callable")'
 
       - name: Build isolated deployment package containing exactly one export
         run: |
@@ -127,7 +129,7 @@ jobs:
           fs.writeFileSync('isolated/firebase.json',JSON.stringify({functions:{source:'functions',runtime:'nodejs22'}},null,2)+'\n');
           NODE
           npm ci --omit=dev --prefix isolated/functions --ignore-scripts --no-audit --no-fund
-          node -e 'const {createRequire}=require("node:module"); const {resolve}=require("node:path"); const isolatedRequire=createRequire(resolve("isolated/functions/index.cjs")); const x=isolatedRequire("./"); const {getApps}=isolatedRequire("firebase-admin/app"); if(getApps().length!==1) throw Error("Isolated Function Firebase Admin initialization failed"); if(Object.keys(x).join()!==process.env.TARGET || !x[process.env.TARGET]?.__endpoint?.callableTrigger) throw Error("Unexpected callable export"); const {getFirestore}=isolatedRequire("firebase-admin/firestore"); if(!getFirestore()) throw Error("Firestore missing initialization");'
+          node -e 'const {createRequire}=require("node:module"); const {resolve}=require("node:path"); const isolatedRequire=createRequire(resolve("isolated/functions/index.cjs")); const x=isolatedRequire("./"); const {getApps}=isolatedRequire("firebase-admin/app"); if(getApps().length!==1) throw Error("Isolated Function Firebase Admin initialization failed"); if(Object.keys(x).join()!==process.env.TARGET || !x[process.env.TARGET]?.__endpoint?.callableTrigger) throw Error("Unexpected callable export"); if(x[process.env.TARGET].__endpoint.maxInstances !== 20) throw Error("20-instance limit missing from isolated deployment package"); const {getFirestore}=isolatedRequire("firebase-admin/firestore"); if(!getFirestore()) throw Error("Firestore missing initialization");'
           test ! -e isolated/functions/.env
           test ! -e isolated/functions/.env.production
           test ! -e isolated/functions/.env.sandmandashboard
@@ -181,6 +183,10 @@ jobs:
           sha256sum runtime-private.json iam-private.json rollback-private.json | sed -E 's/  .*/  [redacted-private-evidence]/' > evidence/baseline-hashes.txt
           printf 'SERVING_REVISION=%s\nSERVING_DIGEST=%s\n' "$REVISION" "$DIGEST" | tee evidence/baseline-reference.txt
           if [ "$MODE" = deploy ]; then
+            # Fail BEFORE the deployment if the existing 20-instance cap is absent.
+            # Both Cloud Functions and the serving Cloud Run revision must agree.
+            test "$(jq -r '.serviceConfig.maxInstanceCount // empty' evidence/function-before.json)" = 20
+            test "$(jq -r '.metadata.annotations["autoscaling.knative.dev/maxScale"] // empty' evidence/revision-before.json)" = 20
             test "$REVISION" = "$EXPECTED_REVISION"
             test "$DIGEST" = "$EXPECTED_DIGEST"
           fi
@@ -200,9 +206,12 @@ jobs:
           gcloud run services describe "$SERVICE" --region=us-central1 --project=sandmandashboard --format=json > evidence/service-after.json
           gcloud run services get-iam-policy "$SERVICE" --region=us-central1 --project=sandmandashboard --format=json > evidence/iam-after.json
           test "$(jq -r '.state' evidence/function-after.json)" = ACTIVE
+          test "$(jq -r '.serviceConfig.maxInstanceCount // empty' evidence/function-after.json)" = 20
           AFTER_REVISION=$(jq -r '.status.latestReadyRevisionName' evidence/service-after.json)
           test -n "$AFTER_REVISION" && test "$AFTER_REVISION" != null
           test "$(jq -r '.status.traffic[] | select(.percent == 100) | .revisionName' evidence/service-after.json)" = "$AFTER_REVISION"
+          gcloud run revisions describe "$AFTER_REVISION" --region=us-central1 --project=sandmandashboard --format=json > evidence/revision-after.json
+          test "$(jq -r '.metadata.annotations["autoscaling.knative.dev/maxScale"] // empty' evidence/revision-after.json)" = 20
           jq -S '.' evidence/iam-after.json > iam-after-private.json
           cmp iam-private.json iam-after-private.json
           jq -S '{serviceAccountEmail: .serviceConfig.serviceAccountEmail, environmentVariables: .serviceConfig.environmentVariables, secretEnvironmentVariables: .serviceConfig.secretEnvironmentVariables, secretVolumes: .serviceConfig.secretVolumes, ingressSettings: .serviceConfig.ingressSettings, vpcConnector: .serviceConfig.vpcConnector, availableMemory: .serviceConfig.availableMemory, timeoutSeconds: .serviceConfig.timeoutSeconds, minInstanceCount: .serviceConfig.minInstanceCount, maxInstanceCount: .serviceConfig.maxInstanceCount, maxInstanceRequestConcurrency: .serviceConfig.maxInstanceRequestConcurrency, availableCpu: .serviceConfig.availableCpu, vpcConnectorEgressSettings: .serviceConfig.vpcConnectorEgressSettings, allTrafficOnLatestRevision: .serviceConfig.allTrafficOnLatestRevision}' evidence/function-before.json > function-parity-before-private.json
