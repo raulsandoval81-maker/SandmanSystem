@@ -97,7 +97,7 @@ def read_retained(ref, token):
     return data
 
 
-def verify_candidate(archive, candidate, manifest_path=MANIFEST):
+def verified_candidate(archive, candidate, manifest_path=MANIFEST):
     raw = manifest_path.read_bytes()
     require(sha(raw) == MANIFEST_SHA256, "Merged candidate manifest hash mismatch")
     package, report = recovery.build(archive, {
@@ -105,7 +105,11 @@ def verify_candidate(archive, candidate, manifest_path=MANIFEST):
     })
     require(sha(package) == CANDIDATE_SHA256 and report == json.loads(raw),
             "Reconstructed candidate does not match the approved single-file manifest")
-    return report
+    return package, report
+
+
+def verify_candidate(archive, candidate, manifest_path=MANIFEST):
+    return verified_candidate(archive, candidate, manifest_path)[1]
 
 
 def sanitized_configuration(fn):
@@ -227,11 +231,11 @@ def authenticated_get(url, token):
         raise
 
 
-def require_workflow_scope():
+def require_workflow_scope(workflow="management-xp-readonly-preflight.yml"):
     require(os.environ.get("GITHUB_REPOSITORY") == REPOSITORY
             and os.environ.get("GITHUB_REF") == "refs/heads/main"
             and os.environ.get("GITHUB_WORKFLOW_REF") ==
-            f"{REPOSITORY}/.github/workflows/management-xp-readonly-preflight.yml@refs/heads/main"
+            f"{REPOSITORY}/.github/workflows/{workflow}@refs/heads/main"
             and os.environ.get("CONFIRM_TARGET") == f"{PROJECT}/{REGION}/{TARGET}",
             "Outside approved read-only workflow scope")
 
@@ -259,9 +263,9 @@ def recovery_storage_access():
     require(not denied, "UNVERIFIED: one or more pinned recovery reads returned HTTP 403")
 
 
-def preflight(candidate):
+def preflight(candidate, workflow="management-xp-readonly-preflight.yml"):
     require(git_head(candidate) == SHA, "Wrong application commit")
-    require_workflow_scope()
+    require_workflow_scope(workflow)
     token = access_token()
 
     def get(url):
@@ -313,7 +317,7 @@ def preflight(candidate):
     rollback = read_retained(recovery.BASELINE, token)
     require(read_archive(function_source, token) == rollback,
             "Retained rollback differs from the generation-pinned original")
-    report = verify_candidate(rollback, candidate)
+    package, report = verified_candidate(rollback, candidate)
     print(json.dumps({
         "status": "SINGLE_FILE_CANDIDATE_VERIFIED",
         "candidateSha256": report["candidateSha256"],
@@ -350,6 +354,7 @@ def preflight(candidate):
         },
         "deploymentEnabled": False,
     }, sort_keys=True))
+    return token, snapshot, baseline, revision, image, package
 
 
 def safe_error_detail(error):
