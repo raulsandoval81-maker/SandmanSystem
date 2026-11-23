@@ -9,16 +9,16 @@ async function reload() {
   try {
     const reports = (await list({view:"management"})).data?.reports || [];
     $("paperReportList").innerHTML = reports.length ? reports.map(r=>`
-      <details style="margin:12px 0;padding:14px;border:1px solid #aaa5;border-radius:9px">
-      <summary><strong>${esc(r.reportId)}</strong> · ${esc(r.status)} · ${r.athletes?.length||0} athletes · ${(r.athletes||[]).reduce((s,a)=>s+Number(a.paperXp||0),0)} paper XP</summary>
-      <p>Coach: ${esc(r.coachUid)} · Location: ${esc(r.locationId)} · ${r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</p>
-      <p>${esc(r.note)}</p><div style="overflow:auto"><table style="width:100%"><thead><tr><th>Athlete</th><th>Paper XP</th><th>Evidence</th></tr></thead>
+      <details class="coach-xp-report" data-report-status="${esc(r.status)}">
+      <summary class="coach-xp-report__summary"><strong>${esc(r.reportId)}</strong> · <span class="coach-xp-report__status">${esc(r.status)}</span> · ${r.athletes?.length||0} athletes · ${(r.athletes||[]).reduce((s,a)=>s+Number(a.paperXp||0),0)} paper XP</summary>
+      <p class="coach-xp-report__meta">Coach: ${esc(r.coachUid)} · Location: ${esc(r.locationId)} · ${r.createdAt ? new Date(r.createdAt).toLocaleString() : ""}</p>
+      <p class="coach-xp-report__description">${esc(r.note)}</p><div class="coach-xp-report__table-wrap"><table class="coach-xp-report__table"><thead><tr><th>Athlete</th><th>Paper XP</th><th>Evidence</th></tr></thead>
       <tbody>${(r.athletes||[]).map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.paperXp)}</td><td>${esc(a.evidence)}</td></tr>`).join("")}</tbody></table></div>
       ${r.status==="PENDING_MANAGEMENT" ? `
-      <label>Management review note<textarea data-paper-note="${esc(r.reportId)}" rows="3" style="width:100%" placeholder="Document verification and next steps."></textarea></label>
-      <button type="button" data-paper-review="${esc(r.reportId)}" data-decision="REVIEWED">Record Review — No XP Awarded</button>
-      <button type="button" data-paper-review="${esc(r.reportId)}" data-decision="REJECTED">Reject Report</button>` :
-      `<p>Management note: ${esc(r.managementNote)}. No XP awarded by report.</p>`}
+      <label class="coach-xp-report__note-label">Management review note<textarea class="coach-xp-report__textarea" data-paper-note="${esc(r.reportId)}" rows="3" placeholder="Document verification and next steps."></textarea></label>
+      <button class="coach-xp-report__action" type="button" data-paper-review="${esc(r.reportId)}" data-decision="REVIEWED">Record Review — No XP Awarded</button>
+      <button class="coach-xp-report__action coach-xp-report__action--reject" type="button" data-paper-review="${esc(r.reportId)}" data-decision="REJECTED">Reject Report</button>` :
+      `<p class="coach-xp-report__management-note">Management note: ${esc(r.managementNote)}. No XP awarded by report.</p>`}
       </details>`).join("") : "<p>No Coach paper XP reports.</p>";
     $("paperReportStatus").textContent = reports.length + " paper report(s). Review and correct each athlete separately in XP Management.";
   } catch (e) { $("paperReportStatus").textContent = "Unable to load: " + e.message; }
