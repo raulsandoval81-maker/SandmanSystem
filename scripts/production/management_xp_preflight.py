@@ -65,8 +65,19 @@ def digest(record):
 
 
 def source_ref(record):
-    source = record.get("sourceProvenance", {}).get("resolvedStorageSource", {})
-    require(source, "UNVERIFIED: source provenance has no resolved storage source")
+    """Read an immutable GCS source from either supported Google Cloud API shape.
+
+    Cloud Functions buildConfig and Cloud Build may populate different fields.
+    Never infer a source from the function name or historical build metadata.
+    """
+    resolved = (record.get("sourceProvenance") or {}).get("resolvedStorageSource") or {}
+    configured = (record.get("source") or {}).get("storageSource") or {}
+    require(resolved or configured, "UNVERIFIED: source has no storage reference")
+    if resolved and configured:
+        require(all(str(resolved.get(key, "")) == str(configured.get(key, ""))
+                    for key in ("bucket", "object", "generation")),
+                "CONFLICTING: source storage references differ")
+    source = resolved or configured
     require(source.get("bucket") == BUCKET
             and source.get("object") in {f"{name}/function-source.zip" for name in (TARGET, SHARED)}
             and re.fullmatch(r"[1-9][0-9]*", str(source.get("generation", ""))),
