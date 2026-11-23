@@ -1,0 +1,62 @@
+name: Emmett Phase 2 — offline 20-instance release guard
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'functions/src/proposals/getProposalEnrollment.ts'
+      - 'functions/src/proposals/saveProposalEnrollmentAgreement.ts'
+      - '.github/workflows/release-pr805-emmett-enrollment-functions.yml'
+      - '.github/workflows/emmett-phase2-maxinstances-tests.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile enrollment callables and run prepaid safety tests
+        run: |
+          set -euo pipefail
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+          node --test functions/tests/prepaidReconciliationPolicy.test.cjs
+          node <<'NODE'
+          for (const target of ['getProposalEnrollment','saveProposalEnrollmentAgreement']) {
+            const x = require('./functions/lib/proposals/' + target + '.js')[target];
+            if (!x?.__endpoint?.callableTrigger) throw Error(target + ': missing callable');
+            if (x.__endpoint.maxInstances !== 20) {
+              throw Error(target + ': missing pinned 20-instance cap');
+            }
+          }
+          console.log('Both enrollment callable metadata limits: 20');
+          NODE
+      - name: Verify protected Phase 2 workflow is pinned and fails closed
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          w=Path('.github/workflows/release-pr805-emmett-enrollment-functions.yml').read_text()
+          required=(
+            'ref: 9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8',
+            'test "$TARGET" = saveProposalEnrollmentAgreement',
+            'environment: production',
+            'test "$REVISION" = "$EXPECTED_REVISION"',
+            'test "$DIGEST" = "$EXPECTED_DIGEST"',
+            '.serviceConfig.maxInstanceCount // empty',
+            'autoscaling.knative.dev/maxScale',
+            'cmp iam-private.json iam-after-private.json',
+            'cmp function-parity-before-private.json function-parity-after-private.json',
+            '--only "functions:$TARGET"',
+          )
+          for guard in required:
+            if guard not in w: raise SystemExit('Missing guard: ' + guard)
+          if w.count('9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8') != 3:
+            raise SystemExit('Pinned source SHA changed unexpectedly')
+          print('Protected Phase 2 workflow source and deployment guard checks PASS')
+          PY
