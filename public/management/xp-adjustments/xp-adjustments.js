@@ -657,22 +657,30 @@ function progressionFor(
   member,
   discipline
 ) {
+  if (!member) {
+    return null;
+  }
+
+  const requestedDiscipline =
+    clean(discipline).toLowerCase();
+
+  const isPrimary =
+    requestedDiscipline ===
+    clean(member.primaryDiscipline).toLowerCase();
+
   const disciplineRow =
-    disciplineProgressions(
-      member
-    ).find(
+    disciplineProgressions(member).find(
       (row) =>
-        clean(
-          row.discipline
-        ).toLowerCase() ===
-        clean(
-          discipline
-        ).toLowerCase()
+        clean(row.discipline).toLowerCase() ===
+        requestedDiscipline
     ) || null;
 
-  if (!member) {
-    return disciplineRow;
-  }
+  // Only the primary discipline owns the top-level active-rank XP.
+  // Secondary disciplines must use their own nested progression XP.
+  const primaryXp = Number(member.xp);
+  const nestedXp = Number(disciplineRow?.xp);
+  const nestedCap = Number(disciplineRow?.xpCap);
+  const primaryCap = Number(member.xpCap);
 
   return {
     ...(disciplineRow || {}),
@@ -681,23 +689,28 @@ function progressionFor(
       clean(disciplineRow?.discipline) ||
       clean(member.primaryDiscipline),
     trackBase:
-      clean(member.trackBase) ||
-      clean(member.pathway) ||
-      clean(disciplineRow?.trackBase),
+      clean(disciplineRow?.trackBase) ||
+      (isPrimary
+        ? clean(member.trackBase) || clean(member.pathway)
+        : ""),
     tier:
-      clean(member.tier) ||
-      clean(disciplineRow?.tier),
+      clean(disciplineRow?.tier) ||
+      (isPrimary ? clean(member.tier) : ""),
     rankName:
-      clean(member.rankName) ||
-      clean(disciplineRow?.rankName),
+      clean(disciplineRow?.rankName) ||
+      (isPrimary ? clean(member.rankName) : ""),
     xp:
-      Number.isFinite(Number(member.xp))
-        ? Number(member.xp)
-        : Number(disciplineRow?.xp || 0),
+      isPrimary && Number.isFinite(primaryXp)
+        ? primaryXp
+        : Number.isFinite(nestedXp)
+          ? nestedXp
+          : 0,
     xpCap:
-      Number.isFinite(Number(member.xpCap))
-        ? Number(member.xpCap)
-        : Number(disciplineRow?.xpCap || 0)
+      Number.isFinite(nestedCap) && nestedCap > 0
+        ? nestedCap
+        : isPrimary && Number.isFinite(primaryCap)
+          ? primaryCap
+          : 0
   };
 }
 
