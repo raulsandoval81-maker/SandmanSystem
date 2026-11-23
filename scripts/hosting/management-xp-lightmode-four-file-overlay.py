@@ -5,6 +5,7 @@ import gzip
 import hashlib
 import json
 import subprocess
+import requests
 from pathlib import Path
 from urllib.parse import quote
 
@@ -182,7 +183,7 @@ def main():
         fail("published manifest differs from approved manifest")
     for path, expected in raw_hashes.items():
         url_path = path[:-10] if path.endswith("index.html") else path
-        response = session.get(f"https://{site}.web.app{url_path}?xpcontrast={quote(new_name, safe='')}",
+        response = requests.get(f"https://{site}.web.app{url_path}?xpcontrast={quote(new_name, safe='')}",
                                timeout=60, allow_redirects=False)
         if response.status_code != 200 or digest(response.content) != expected:
             fail("public asset verification failed: " + path)
