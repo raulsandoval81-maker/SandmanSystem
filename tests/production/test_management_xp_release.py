@@ -1,0 +1,72 @@
+from pathlib import Path
+import sys
+import unittest
+from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts/production"))
+import management_xp_release as release
+
+
+class ManagementXpReleaseTest(unittest.TestCase):
+    def test_wrong_approval_stops_before_production(self):
+        with patch.object(release.xp, "require_workflow_scope"), patch.dict(
+            release.os.environ, {"DEPLOYMENT_APPROVAL": "wrong"}
+        ), patch.object(release.xp, "preflight") as preflight:
+            with self.assertRaisesRegex(RuntimeError, "Missing exact deployment approval"):
+                release.release(Path("application"))
+            preflight.assert_not_called()
+
+    def test_unverified_provenance_stops_before_upload_or_patch(self):
+        with patch.object(release.xp, "require_workflow_scope"), patch.dict(
+            release.os.environ, {"DEPLOYMENT_APPROVAL": release.APPROVAL}
+        ), patch.object(release.xp, "preflight", side_effect=RuntimeError("UNVERIFIED")), patch.object(
+            release, "request"
+        ) as request:
+            with self.assertRaisesRegex(RuntimeError, "UNVERIFIED"):
+                release.release(Path("application"))
+            request.assert_not_called()
+
+    def test_upload_must_match_the_generation_pinned_storage_source(self):
+        source = {"bucket": "gcf-test", "object": "candidate.zip", "generation": "182522"}
+        self.assertEqual(release.upload_target({
+            "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip?signature=dummy",
+            "storageSource": source,
+        }), source)
+        for url in (
+            "https://example.org/gcf-test/candidate.zip",
+            "https://storage.googleapis.com/gcf-test/another.zip",
+        ):
+            with self.subTest(url=url), self.assertRaises(RuntimeError):
+                release.upload_target({"uploadUrl": url, "storageSource": source})
+        with self.assertRaisesRegex(RuntimeError, "immutable source"):
+            release.upload_target({
+                "uploadUrl": "https://storage.googleapis.com/gcf-test/candidate.zip",
+                "storageSource": {**source, "generation": "0"},
+            })
+
+    def test_only_literal_xp_endpoint_can_receive_the_patch(self):
+        baseline = {"function": {"buildConfig": {}, "serviceConfig": {}},
+                    "run": {"template": {"containers": []}}, "functionIam": {}, "runIam": {}}
+        package = b"fixture"
+        with patch.object(release.xp, "require_workflow_scope"), patch.dict(
+            release.os.environ, {"DEPLOYMENT_APPROVAL": release.APPROVAL}
+        ), patch.object(release.xp, "preflight", return_value=(
+            "token", lambda: baseline, baseline, release.BEFORE_REVISION, release.BEFORE_IMAGE, package
+        )), patch.object(release.xp, "CANDIDATE_SHA256", release.xp.sha(package)), patch.object(
+            release, "request"
+        ), patch.object(release, "json_request", side_effect=[
+            {"uploadUrl": "https://storage.googleapis.com/bucket/candidate.zip",
+             "storageSource": {"bucket": "bucket", "object": "candidate.zip", "generation": "182522"}},
+            RuntimeError("mock stop after observing the request"),
+        ]) as api:
+            with self.assertRaisesRegex(RuntimeError, "mock stop"):
+                release.release(Path("application"))
+            _, url, method, _, payload = api.call_args.args
+            self.assertEqual(method, "PATCH")
+            self.assertEqual(url, "https://cloudfunctions.googleapis.com/v2/projects/sandmandashboard/"
+                             "locations/us-central1/functions/createManagementXpAdjustment"
+                             "?updateMask=buildConfig.source.storageSource,buildConfig.environmentVariables")
+            self.assertEqual(payload["name"], "projects/sandmandashboard/locations/us-central1/functions/"
+                             "createManagementXpAdjustment")
+            self.assertEqual(set(payload), {"name", "buildConfig"})
+            self.assertEqual(payload["buildConfig"]["environmentVariables"], {"GOOGLE_NODE_RUN_SCRIPTS": ""})

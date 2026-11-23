@@ -1,0 +1,57 @@
+name: Management XP protected single-Function production release
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target:
+        description: Type sandmandashboard/us-central1/createManagementXpAdjustment
+        required: true
+        type: string
+      deployment_approval:
+        description: Type APPROVE_MANAGEMENT_XP_SINGLE_FUNCTION_RELEASE
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sandman-management-xp-production-preflight
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          path: trusted
+      - uses: actions/checkout@v4
+        with:
+          ref: 8734b84762e6765bccf51cadbdf59c52434a7843
+          persist-credentials: false
+          path: application
+      - name: Verify release scope and offline safeguards
+        env:
+          CONFIRM_TARGET: ${{ inputs.confirm_target }}
+          DEPLOYMENT_APPROVAL: ${{ inputs.deployment_approval }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM_TARGET" = sandmandashboard/us-central1/createManagementXpAdjustment
+          test "$DEPLOYMENT_APPROVAL" = APPROVE_MANAGEMENT_XP_SINGLE_FUNCTION_RELEASE
+          python3 -m unittest discover -s trusted/tests/production -p 'test_management_xp*.py'
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: sandmandashboard
+          create_credentials_file: true
+          export_environment_variables: true
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Verify provenance and rollback before the exact Function update
+        env:
+          CONFIRM_TARGET: ${{ inputs.confirm_target }}
+          DEPLOYMENT_APPROVAL: ${{ inputs.deployment_approval }}
+        run: python3 trusted/scripts/production/management_xp_release.py application
