@@ -27,6 +27,9 @@ const statusFilter =
 const topicFilter =
   document.getElementById("topicFilter");
 
+const sourceFilter =
+  document.getElementById("sourceFilter");
+
 const organizationFilter =
   document.getElementById("organizationFilter");
 
@@ -441,6 +444,11 @@ function matchesStatusFilter(message) {
   return status === selected;
 }
 
+function matchesSourceFilter(message) {
+  const selected = sourceFilter.value;
+  return selected === "ALL" || clean(message.source) === selected;
+}
+
 function matchesTopicFilter(message) {
   const selected = topicFilter.value;
 
@@ -504,6 +512,7 @@ function matchesSearch(message) {
 function getVisibleMessages() {
   return allMessages
     .filter(matchesStatusFilter)
+    .filter(matchesSourceFilter)
     .filter(matchesTopicFilter)
     .filter(matchesOrganizationFilter)
     .filter(matchesLocationFilter)
@@ -1091,6 +1100,7 @@ async function loadMessages() {
 
 for (const control of [
   statusFilter,
+  sourceFilter,
   topicFilter,
   organizationFilter,
   locationFilter
