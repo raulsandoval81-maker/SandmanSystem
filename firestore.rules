@@ -1325,7 +1325,12 @@ match /academySettings/{academyId} {
 
         && request.resource.data.organization == "sandman-system"
         && request.resource.data.pipeline == "general-messaging"
-        && request.resource.data.source == "public-message-page"
+        && request.resource.data.source in ["public-message-page", "casa-national-site"]
+        && (request.resource.data.source != "casa-national-site"
+          || request.resource.data.topic in [
+            "casa-academy", "casa-combat", "casa-fitness",
+            "casa-partnership", "casa-expansion", "casa-general"
+          ])
 
         && request.resource.data.status == "NEW"
         && request.resource.data.messageStatus == "NEW"
