@@ -7,6 +7,14 @@ on:
       - 'tests/production/test_management_xp*.py'
   workflow_dispatch:
     inputs:
+      release_mode:
+        description: Read-only verify first; DEPLOY requires fresh production approval
+        required: true
+        default: VERIFY_ONLY
+        type: choice
+        options:
+          - VERIFY_ONLY
+          - DEPLOY
       confirm_target:
         description: Type sandmandashboard/us-central1/createManagementXpAdjustment
         required: true
@@ -16,7 +24,7 @@ on:
         required: true
         type: string
       historical_provenance_ack:
-        description: Type ACKNOWLEDGE_PINNED_OLD_IMAGE_PROVENANCE_GAP (old image build link unverified)
+        description: Type ACKNOWLEDGE_PINNED_OLD_IMAGE_AND_BUILD_SOURCE_PROVENANCE_GAPS
         required: true
         type: string
 
@@ -56,6 +64,7 @@ jobs:
           path: application
       - name: Verify release scope and offline safeguards
         env:
+          XP_RELEASE_MODE: ${{ inputs.release_mode }}
           CONFIRM_TARGET: ${{ inputs.confirm_target }}
           DEPLOYMENT_APPROVAL: ${{ inputs.deployment_approval }}
           HISTORICAL_PROVENANCE_ACK: ${{ inputs.historical_provenance_ack }}
@@ -63,7 +72,8 @@ jobs:
           set -euo pipefail
           test "$CONFIRM_TARGET" = sandmandashboard/us-central1/createManagementXpAdjustment
           test "$DEPLOYMENT_APPROVAL" = APPROVE_MANAGEMENT_XP_SINGLE_FUNCTION_RELEASE
-          test "$HISTORICAL_PROVENANCE_ACK" = ACKNOWLEDGE_PINNED_OLD_IMAGE_PROVENANCE_GAP
+          test "$HISTORICAL_PROVENANCE_ACK" = ACKNOWLEDGE_PINNED_OLD_IMAGE_AND_BUILD_SOURCE_PROVENANCE_GAPS
+          test "$XP_RELEASE_MODE" = VERIFY_ONLY -o "$XP_RELEASE_MODE" = DEPLOY
           python3 -m unittest discover -s trusted/tests/production -p 'test_management_xp*.py'
       - uses: google-github-actions/auth@v2
         with:
@@ -74,6 +84,7 @@ jobs:
       - uses: google-github-actions/setup-gcloud@v2
       - name: Verify provenance and rollback before the exact Function update
         env:
+          XP_RELEASE_MODE: ${{ inputs.release_mode }}
           CONFIRM_TARGET: ${{ inputs.confirm_target }}
           DEPLOYMENT_APPROVAL: ${{ inputs.deployment_approval }}
           HISTORICAL_PROVENANCE_ACK: ${{ inputs.historical_provenance_ack }}

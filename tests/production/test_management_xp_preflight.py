@@ -315,7 +315,7 @@ class PinnedHistoricalImageExceptionTest(unittest.TestCase):
             "HISTORICAL_PROVENANCE_ACK": preflight.HISTORICAL_EXCEPTION_ACK,
         }), redirect_stdout(io.StringIO()) as capture:
             self.check()
-            self.assertIn("HISTORICAL_IMAGE_PROVENANCE_UNVERIFIED_EXCEPTION", capture.getvalue())
+            self.assertIn("HISTORICAL_BUILD_PROVENANCE_UNVERIFIED_EXCEPTION", capture.getvalue())
             for key, value in (
                 ("revision", "some-other-revision"),
                 ("image", self.source["object"]),
@@ -332,6 +332,48 @@ class PinnedHistoricalImageExceptionTest(unittest.TestCase):
             self.check(build={"status": "SUCCESS", "results": {"images": [
                 {"name": "other", "digest": "sha256:" + "b" * 64},
             ]}})
+
+
+class HistoricalBuildArchiveEvidenceTest(unittest.TestCase):
+    def setUp(self):
+        self.bytes = b"retained-fixture"
+
+    def test_missing_build_source_requires_exact_independent_archived_bytes(self):
+        build = {"status": "SUCCESS", "results": {"images": []}}
+        with patch.object(preflight, "read_archive", return_value=self.bytes) as read:
+            self.assertIsNone(preflight.verify_historical_build_source_archives(
+                build, "fictional-token", self.bytes))
+            read.assert_called_once_with(preflight.HISTORICAL_BUILD_SOURCE, "fictional-token")
+
+    def test_mismatched_archived_bytes_stop_even_when_build_pointer_missing(self):
+        with patch.object(preflight, "read_archive", return_value=b"different"):
+            with self.assertRaisesRegex(RuntimeError, "does not match rollback"):
+                preflight.verify_historical_build_source_archives(
+                    {}, "fictional-token", self.bytes)
+
+    def test_build_source_present_must_match_pinned_rollback(self):
+        build = {"source": {"storageSource": dict(preflight.HISTORICAL_BUILD_SOURCE)}}
+        with patch.object(preflight, "read_archive", side_effect=[self.bytes, b"wrong"]):
+            with self.assertRaisesRegex(RuntimeError, "build-reported source archive differs"):
+                preflight.verify_historical_build_source_archives(
+                    build, "fictional-token", self.bytes)
+
+    def test_missing_metadata_disclosed_as_unverified_and_old_ack_rejected(self):
+        build = {"status": "SUCCESS", "results": {"images": []}}
+        args = (build, preflight.HISTORICAL_BUILD, preflight.HISTORICAL_IMAGE,
+                preflight.HISTORICAL_REVISION, None)
+        with patch.dict(preflight.os.environ, {
+            "HISTORICAL_PROVENANCE_ACK": "ACKNOWLEDGE_PINNED_OLD_IMAGE_PROVENANCE_GAP",
+        }), self.assertRaisesRegex(RuntimeError, "approval missing"):
+            preflight.verify_pinned_historical_exception(*args)
+        with patch.dict(preflight.os.environ, {
+            "HISTORICAL_PROVENANCE_ACK": preflight.HISTORICAL_EXCEPTION_ACK,
+        }), redirect_stdout(io.StringIO()) as capture:
+            preflight.verify_pinned_historical_exception(*args)
+            record = json.loads(capture.getvalue())
+            self.assertFalse(record["buildSourcePointerVerified"])
+            self.assertFalse(record["buildImageLinkVerified"])
+            self.assertIsNone(record["buildSourcePointer"])
 
 
 class RegistryProvenanceFallbackTest(unittest.TestCase):
