@@ -70,7 +70,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install google-auth requests
-      - name: Compare or release exactly three enrollment page files without touching Functions
+      - name: Compare or release only five enrollment/approval files without touching Functions
         run: |
           python trusted-tooling/scripts/production/emmett_enrollment_hosting_release.py \
             --source-root application \
