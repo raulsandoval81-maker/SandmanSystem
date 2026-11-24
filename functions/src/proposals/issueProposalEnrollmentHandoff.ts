@@ -58,6 +58,27 @@ export const issueProposalEnrollmentHandoff =
       const existingEnrollmentToken =
         clean(req.data?.existingEnrollmentToken);
 
+      // The optional courtesy note is not part of the signed agreement.
+      // It is included in email text/HTML only after a staff-initiated send.
+      const suppliedNote = req.data?.personalNote;
+      if (suppliedNote != null && typeof suppliedNote !== "string") {
+        throw new HttpsError(
+          "invalid-argument",
+          "The approval email note must be text."
+        );
+      }
+      const personalNote = typeof suppliedNote === "string"
+        ? suppliedNote.trim()
+        : "";
+      if (personalNote.length > 600 ||
+          /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(personalNote) ||
+          (delivery !== "email" && personalNote)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "The optional email note must be at most 600 characters and used for email delivery only."
+        );
+      }
+
       if (!proposalId) {
         throw new HttpsError(
           "invalid-argument",
@@ -282,6 +303,7 @@ export const issueProposalEnrollmentHandoff =
             actorUid,
           reusedPreparedLink:
             canReuseExistingToken,
+          personalNoteIncluded: delivery === "email" && Boolean(personalNote),
 
           createdAt:
             FieldValue.serverTimestamp(),
@@ -325,6 +347,7 @@ export const issueProposalEnrollmentHandoff =
               "",
               "Please review and confirm the locked enrollment and billing details.",
               afterConfirmInstructions,
+              ...(personalNote ? ["", "Note from Sandman Academy:", personalNote] : []),
               "",
               url,
               "",
@@ -348,6 +371,10 @@ export const issueProposalEnrollmentHandoff =
           Review and confirm the locked enrollment and billing details.
           ${escapeHtml(afterConfirmInstructions)}
         </p>
+        ${personalNote ? `<div style="margin:18px 0;padding:12px 16px;background:#f7f4ec;border-radius:8px;">
+          <strong style="font-size:14px">Note from Sandman Academy</strong>
+          <p style="white-space:pre-line;font-size:15px;line-height:1.6">${escapeHtml(personalNote)}</p>
+        </div>` : ""}
         <div style="margin:26px 0;text-align:center;">
           <a href="${escapeHtml(url)}" style="display:inline-block;background:#171717;color:#fff8e8;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">
             Review & Confirm Enrollment

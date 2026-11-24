@@ -1184,6 +1184,104 @@ function proposalActionHtml(status, id, proposal = {}) {
   return `<button class="proposal-open-btn" type="button" data-proposal-action="${esc(action)}" data-proposal-id="${esc(id)}">${esc(actionLabel(status))}</button>`;
 }
 
+
+/**
+ * Preview is read-only: neither an enrollment token nor an email is issued
+ * until the staff member explicitly selects Send Approval Email.
+ * A courtesy note never changes the signed proposal or its payment route.
+ */
+async function previewEnrollmentApprovalEmail(selectedProposalId) {
+  const snapshot = await getDoc(doc(db, "proposals", selectedProposalId));
+  if (!snapshot.exists()) {
+    throw new Error("This proposal is no longer available.");
+  }
+  const proposal = snapshot.data() || {};
+  const prospect = proposal.prospect || {};
+  const recipient = String(prospect.email || "").trim().toLowerCase();
+  if (!recipient) {
+    throw new Error("The proposal has no guardian email address.");
+  }
+  const recipientName = String(
+    prospect.primaryContactName || prospect.familyName || "there"
+  ).trim();
+  const cashCheck = proposal.lockedSnapshot?.pricing?.paymentArrangement ===
+    "prepaid_cash_check";
+  const nextStep = cashCheck
+    ? "After confirmation, Sandman Management verifies your existing cash/check payment. No new online payment is requested."
+    : "After confirmation, continue to secure Stripe payment.";
+  const subject = "Review & Confirm your Sandman Academy enrollment";
+
+  const dialog = document.createElement("dialog");
+  dialog.className = "proposal-approval-email-preview";
+  dialog.setAttribute("aria-labelledby", "approvalEmailPreviewHeading");
+  dialog.style.cssText =
+    "width:min(92vw,660px);max-height:88vh;overflow:auto;padding:24px;border-radius:14px;border:1px solid #b7a680;color:#202020;background:#fff;box-shadow:0 20px 80px #0006;";
+  dialog.innerHTML = [
+    '<h2 id="approvalEmailPreviewHeading" style="margin:0 0 12px">Review approval email before sending</h2>',
+    '<p style="margin:0 0 8px"><strong>To:</strong> <span data-email-to></span></p>',
+    '<p style="margin:0 0 16px"><strong>Subject:</strong> <span data-email-subject></span></p>',
+    '<p style="margin:0 0 8px"><strong>Locked payment route:</strong> <span data-email-route></span></p>',
+    '<p style="margin:0 0 12px;font-size:.9em">The approved enrollment terms are inside the secure link. Only your optional courtesy note can be edited here.</p>',
+    '<label for="approvalEmailPersonalNote" style="display:block;font-weight:700;margin-bottom:6px">Optional note to the family</label>',
+    '<textarea id="approvalEmailPersonalNote" data-email-note maxlength="600" rows="4" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #aaa;border-radius:8px;resize:vertical" placeholder="Add a personal message (optional)"></textarea>',
+    '<p style="font-size:.85em;margin:5px 0 12px"><span data-email-count>0</span>/600 characters. This cannot change billing or signed agreement terms.</p>',
+    '<p style="font-weight:700;margin-bottom:6px">Email preview</p>',
+    '<pre data-email-body style="white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:.9em;background:#f5f5f5;padding:14px;border-radius:8px"></pre>',
+    '<p style="font-size:.85em">A unique secure Review & Confirm link is added only when you send. Cancel sends nothing.</p>',
+    '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap">',
+    '<button type="button" data-email-cancel style="padding:10px 16px">Cancel</button>',
+    '<button type="button" data-email-send style="padding:10px 16px;font-weight:700">Send Approval Email</button>',
+    '</div>'
+  ].join("");
+  dialog.querySelector("[data-email-to]").textContent = recipient;
+  dialog.querySelector("[data-email-subject]").textContent = subject;
+  dialog.querySelector("[data-email-route]").textContent = cashCheck
+    ? "Existing Cash/Check Paid-in-Full — Management reconciliation; no online payment"
+    : "Online payment according to the signed agreement";
+
+  const noteInput = dialog.querySelector("[data-email-note]");
+  const previewBody = dialog.querySelector("[data-email-body]");
+  const counter = dialog.querySelector("[data-email-count]");
+  const renderBody = () => {
+    const note = noteInput.value.trim();
+    counter.textContent = String(noteInput.value.length);
+    previewBody.textContent = [
+      "Hi " + recipientName + ",",
+      "",
+      "Your approved Sandman Academy proposal is ready for Review & Confirm.",
+      "",
+      "Please review and confirm the locked enrollment and billing details.",
+      nextStep,
+      ...(note ? ["", "Note from Sandman Academy:", note] : []),
+      "",
+      "[Secure Review & Confirm Enrollment link inserted when sent]",
+      "",
+      "Coach Sandoval",
+      "Sandman Academy of Combat & Fitness™"
+    ].join("\n");
+  };
+  noteInput.addEventListener("input", renderBody);
+  renderBody();
+  document.body.appendChild(dialog);
+
+  return new Promise((resolve) => {
+    let result = null;
+    dialog.addEventListener("close", () => {
+      dialog.remove();
+      resolve(result);
+    }, { once: true });
+    dialog.querySelector("[data-email-cancel]").addEventListener("click", () =>
+      dialog.close("cancel")
+    );
+    dialog.querySelector("[data-email-send]").addEventListener("click", () => {
+      result = { personalNote: noteInput.value.trim() };
+      dialog.close("send");
+    });
+    dialog.showModal();
+    noteInput.focus();
+  });
+}
+
 async function runProposalAction(button) {
   const proposalId = String(button?.dataset.proposalId || "").trim();
   const action = String(button?.dataset.proposalAction || "").trim();
@@ -1495,6 +1593,19 @@ async function runProposalAction(button) {
           ? "email"
           : "local";
 
+      // Read-only email preview and editable courtesy note. Cancel makes no
+      // callable request, issues no link, and sends no email.
+      let personalNote = "";
+      if (delivery === "email") {
+        const reviewed = await previewEnrollmentApprovalEmail(proposalId);
+        if (!reviewed) {
+          button.disabled = false;
+          button.textContent = originalText;
+          return;
+        }
+        personalNote = reviewed.personalNote;
+      }
+
       const preparedToken =
         preparedEnrollmentTokens.get(
           proposalId
@@ -1512,6 +1623,7 @@ async function runProposalAction(button) {
             delivery === "email"
               ? preparedToken
               : undefined,
+          ...(delivery === "email" ? { personalNote } : {}),
         });
 
       const enrollmentPath =

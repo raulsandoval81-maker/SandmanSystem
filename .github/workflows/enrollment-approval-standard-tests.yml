@@ -9,6 +9,8 @@ on:
       - 'foundation/architecture/ENROLLMENT.md'
       - 'tests/browser/enrollment-approval-standard.test.mjs'
       - '.github/workflows/enrollment-approval-standard-tests.yml'
+      - 'functions/src/proposals/issueProposalEnrollmentHandoff.ts'
+      - 'tests/browser/enrollment-approval-email-preview.test.mjs'
       - '.github/workflows/release-emmett-enrollment-hosting-production.yml'
       - 'scripts/production/emmett_enrollment_hosting_release.py'
 permissions:
@@ -25,7 +27,9 @@ jobs:
         with:
           node-version: '22'
       - name: Verify existing in-person and email approval routes
-        run: node --test tests/browser/enrollment-approval-standard.test.mjs
+        run: |
+          node --check public/connect/proposals/proposals.js
+          node --test tests/browser/enrollment-approval-standard.test.mjs tests/browser/enrollment-approval-email-preview.test.mjs
       - name: Validate protected approval Hosting release scope (offline only)
         run: |
           python3 -m py_compile scripts/production/emmett_enrollment_hosting_release.py
