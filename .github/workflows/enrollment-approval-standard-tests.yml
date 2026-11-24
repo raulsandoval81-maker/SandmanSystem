@@ -9,6 +9,8 @@ on:
       - 'foundation/architecture/ENROLLMENT.md'
       - 'tests/browser/enrollment-approval-standard.test.mjs'
       - '.github/workflows/enrollment-approval-standard-tests.yml'
+      - '.github/workflows/release-emmett-enrollment-hosting-production.yml'
+      - 'scripts/production/emmett_enrollment_hosting_release.py'
 permissions:
   contents: read
 jobs:
@@ -24,3 +26,32 @@ jobs:
           node-version: '22'
       - name: Verify existing in-person and email approval routes
         run: node --test tests/browser/enrollment-approval-standard.test.mjs
+      - name: Validate protected approval Hosting release scope (offline only)
+        run: |
+          python3 -m py_compile scripts/production/emmett_enrollment_hosting_release.py
+          python3 - <<'PY'
+          from pathlib import Path
+          script = Path('scripts/production/emmett_enrollment_hosting_release.py').read_text()
+          workflow = Path('.github/workflows/release-emmett-enrollment-hosting-production.yml').read_text()
+          sha = '119972c07eee8058e129a3492423f58091ae02c7'
+          approved = {
+              'public/connect/enrollment/index.html',
+              'public/connect/enrollment/enrollment.js',
+              'public/connect/enrollment/enrollment.service.js',
+              'public/connect/proposals/index.html',
+              'public/connect/proposals/proposals.js',
+          }
+          import ast
+          t = ast.parse(script)
+          constants = {a.targets[0].id: ast.literal_eval(a.value) for a in t.body if isinstance(a, ast.Assign) and len(a.targets) == 1 and isinstance(a.targets[0], ast.Name) and a.targets[0].id in ('SOURCE_SHA', 'FILES')}
+          assert constants['SOURCE_SHA'] == sha
+          assert set(constants['FILES']) == approved and len(constants['FILES']) == 5
+          assert workflow.count(sha) == 3
+          assert 'environment: production' in workflow
+          assert 'options: [preflight, deploy]' in workflow
+          assert 'expected_current_release' in workflow
+          assert 'expected_current_version' in workflow
+          assert 'if args.expected_release != release_name or args.expected_version != version_name:' in script
+          assert 'if verified != updated:' in script
+          print('Five-file protected Hosting overlay scope and baseline guards PASS')
+          PY

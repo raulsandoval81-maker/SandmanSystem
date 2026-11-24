@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Isolated enrollment page production Hosting overlay; preserves unrelated files."""
+"""Guarded enrollment and proposal approval Hosting overlay; preserves unrelated files."""
 import argparse
 import gzip
 import hashlib
@@ -12,11 +12,13 @@ from google.auth.transport.requests import Request
 
 SITE = "sandman-main"
 PROJECT = "sandmandashboard"
-SOURCE_SHA = "9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8"
+SOURCE_SHA = "119972c07eee8058e129a3492423f58091ae02c7"
 FILES = (
     "public/connect/enrollment/index.html",
     "public/connect/enrollment/enrollment.js",
     "public/connect/enrollment/enrollment.service.js",
+    "public/connect/proposals/index.html",
+    "public/connect/proposals/proposals.js",
 )
 BASE = "https://firebasehosting.googleapis.com/v1beta1/"
 
