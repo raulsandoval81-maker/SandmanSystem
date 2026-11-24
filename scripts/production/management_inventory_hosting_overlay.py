@@ -42,11 +42,12 @@ while True:
     if not page:break
 assert len(old)>100 and all(x in old for x in PATHS if x not in NEW),"Unexpected live file inventory"
 # No overwrite of unrelated live UI changes: current Hosting must match the
-# unchanged pre-merge repository source for every existing file we overlay.
+# pinned pre-inventory source commit for every existing file we overlay.
+# HEAD^ is not reliable after unrelated PR merges to main.
 import subprocess
 for path in PATHS:
     if path in NEW: continue
-    expected_source=subprocess.check_output(["git","show","HEAD^:public"+path])
+    expected_source=subprocess.check_output(["git","show","1b1b5089643ab21e6205e8ae6c26331dcea9573d:public"+path])
     expected_hash=hashlib.sha256(gzip.compress(expected_source,mtime=0)).hexdigest()
     assert old[path]==expected_hash,("STOP_NO_RETRY: live Hosting drift in "+path+
         ". The protected release may not replace independently deployed changes.")
