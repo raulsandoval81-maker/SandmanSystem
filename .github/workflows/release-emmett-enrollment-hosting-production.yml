@@ -53,16 +53,16 @@ jobs:
           test "${GITHUB_WORKFLOW_REF}" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-emmett-enrollment-hosting-production.yml@refs/heads/main"
           test "${GITHUB_REF}" = "refs/heads/main"
           test "${PROJECT}" = "sandmandashboard"
-          test "${SOURCE_SHA}" = "9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8"
+          test "${SOURCE_SHA}" = "119972c07eee8058e129a3492423f58091ae02c7"
           python3 -m py_compile scripts/production/emmett_enrollment_hosting_release.py
       - uses: actions/checkout@v5
         with:
-          ref: 9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8
+          ref: 119972c07eee8058e129a3492423f58091ae02c7
           path: application
           persist-credentials: false
       - name: Verify immutable source
         working-directory: application
-        run: test "$(git rev-parse HEAD)" = "9a18ed5ef0c21bb0e4c4ec08e65362e1ebb2beb8"
+        run: test "$(git rev-parse HEAD)" = "119972c07eee8058e129a3492423f58091ae02c7"
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
