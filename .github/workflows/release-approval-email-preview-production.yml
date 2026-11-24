@@ -1,0 +1,94 @@
+name: Approval email preview — protected production release
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [function-preflight, function-deploy, hosting-preflight, hosting-deploy]
+        required: true
+      expected_function_baseline:
+        description: Fingerprint from successful Function preflight
+        type: string
+      expected_release:
+        description: Live Hosting release from successful Hosting preflight
+        type: string
+      expected_version:
+        description: Live Hosting rollback version from successful Hosting preflight
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ${{ startsWith(inputs.mode, 'hosting-') && 'sandman-production-hosting' || 'sandmandashboard-production' }}
+  cancel-in-progress: false
+jobs:
+  release:
+    if: ${{ github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main' }}
+    environment: production
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      RELEASE_MODE: ${{ inputs.mode }}
+      EXPECTED_FUNCTION_BASELINE: ${{ inputs.expected_function_baseline }}
+      EXPECTED_RELEASE: ${{ inputs.expected_release }}
+      EXPECTED_VERSION: ${{ inputs.expected_version }}
+      PYTHONPATH: trusted/scripts/production:trusted/scripts/staging
+    steps:
+      - name: Verify production protection and dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/release-approval-email-preview-production.yml@refs/heads/main"
+          case "$RELEASE_MODE" in
+            function-preflight|hosting-preflight) ;;
+            function-deploy) [[ "$EXPECTED_FUNCTION_BASELINE" =~ ^[a-f0-9]{64}$ ]] ;;
+            hosting-deploy)
+              [[ "$EXPECTED_RELEASE" =~ ^sites/sandman-main/releases/[0-9]+$ ]]
+              [[ "$EXPECTED_VERSION" =~ ^sites/sandman-main/versions/[a-f0-9]+$ ]] ;;
+            *) exit 1 ;;
+          esac
+          curl --fail --silent --show-error -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/environments/production" |
+            jq -e '.can_admins_bypass == false and any(.protection_rules[]; .type == "required_reviewers")' >/dev/null
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          path: trusted
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: efee171424d2e3dc815a4aca27fa38507f8298e5
+          path: application
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        if: startsWith(inputs.mode, 'function-')
+        with:
+          ref: 716a0256894828bc67e150ac57d06660566ab5c5
+          path: baseline-source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build the pinned source and verify preview contracts
+        run: |
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          node --test application/tests/browser/enrollment-approval-email-preview.test.mjs
+      - name: Compile the reviewed pre-preview entry
+        if: startsWith(inputs.mode, 'function-')
+        run: |
+          ln -s "$GITHUB_WORKSPACE/application/functions/node_modules" baseline-source/functions/node_modules
+          npm run build --prefix baseline-source/functions
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - run: python3 -m pip install google-auth requests
+      - run: python3 trusted/scripts/production/approval_email_preview_release.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: approval-email-preview-${{ github.run_id }}
+          path: release-evidence/
+          if-no-files-found: warn
