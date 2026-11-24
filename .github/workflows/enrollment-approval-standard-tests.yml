@@ -1,0 +1,26 @@
+name: Standard guardian enrollment approval tests
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'public/connect/proposals/index.html'
+      - 'public/connect/proposals/proposals.js'
+      - 'public/connect/enrollment/enrollment.js'
+      - 'foundation/architecture/ENROLLMENT.md'
+      - 'tests/browser/enrollment-approval-standard.test.mjs'
+      - '.github/workflows/enrollment-approval-standard-tests.yml'
+permissions:
+  contents: read
+jobs:
+  approval-standard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify existing in-person and email approval routes
+        run: node --test tests/browser/enrollment-approval-standard.test.mjs
