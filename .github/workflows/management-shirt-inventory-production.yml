@@ -5,6 +5,8 @@ on:
     paths:
       - 'functions/src/management/shirtInventory.ts'
       - 'public/management/inventory/**'
+      - 'scripts/production/management_inventory_hosting_overlay.py'
+      - '.github/workflows/management-shirt-inventory-production.yml'
   workflow_dispatch:
     inputs:
       mode:
@@ -78,7 +80,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install read-only Hosting API dependencies
-        run: python -m pip install 'google-auth>=2.0,<3'
+        run: |
+          python -m pip install 'google-auth>=2.0,<3' 'requests>=2.31,<3'
+          python -c 'import google.auth; from google.auth.transport.requests import Request; print("Hosting auth transport ready")'
+      - name: Fetch pinned pre-inventory baseline for Hosting parity check
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin 1b1b5089643ab21e6205e8ae6c26331dcea9573d
+          git cat-file -e 1b1b5089643ab21e6205e8ae6c26331dcea9573d^{commit}
       - name: Preserve and preview live Hosting files
         env:
           MODE: preflight
