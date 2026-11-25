@@ -17,6 +17,32 @@ let browser;
 const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
 const athleteDiagnostics = {};
 
+function diagnosticPath(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    if (url.origin === origin || url.origin === "https://www.gstatic.com") return url.pathname;
+    if (url.origin === "https://firestore.googleapis.com") {
+      if (url.pathname === "/google.firestore.v1.Firestore/Listen/channel") return "firestore:listen";
+      const marker = "/documents/";
+      const offset = url.pathname.indexOf(marker);
+      return offset >= 0
+        ? `firestore:${url.pathname.slice(offset + marker.length).split("/")[0]}`
+        : "firestore:other";
+    }
+    return url.origin;
+  } catch {
+    return "invalid-url";
+  }
+}
+
+function diagnosticError(message) {
+  const value = String(message || "").toLowerCase();
+  if (/permission-denied|insufficient permissions/.test(value)) return "permission-denied";
+  if (/not-found|404/.test(value)) return "not-found";
+  if (/timeout/.test(value)) return "timeout";
+  return "runtime-error";
+}
+
 
 function requireCheck(value) {
   if (!value) throw new Error("Acceptance assertion failed");
@@ -115,6 +141,26 @@ async function openRole(role, fixture, password, athleteId) {
     await context.route("**/*", (route) =>
       safeRequest(route.request()) ? route.continue() : route.abort("blockedbyclient"));
     const page = await context.newPage();
+    if (role === "athlete") {
+      athleteDiagnostics.browserErrors = [];
+      athleteDiagnostics.failedRequests = [];
+      athleteDiagnostics.firestoreReads = [];
+      athleteDiagnostics.curriculumAssets = [];
+      page.on("pageerror", error => athleteDiagnostics.browserErrors.push(diagnosticError(error?.message)));
+      page.on("requestfailed", failed => athleteDiagnostics.failedRequests.push({
+        method: failed.method(), path: diagnosticPath(failed.url()), reason: diagnosticError(failed.failure()?.errorText),
+      }));
+      page.on("response", response => {
+        const request = response.request();
+        const path = diagnosticPath(response.url());
+        if (path.startsWith("firestore:")) {
+          athleteDiagnostics.firestoreReads.push({ method: request.method(), path, status: response.status() });
+        } else if (new URL(response.url()).origin === origin && (path === "/vault/system-status.json" ||
+          path.startsWith("/vault/strength/") || path.startsWith("/vault/honor/") || path.startsWith("/vault/curriculum/"))) {
+          athleteDiagnostics.curriculumAssets.push({ path, status: response.status() });
+        }
+      });
+    }
     await page.goto(`${origin}/staging-environment.json`, { waitUntil: "domcontentloaded" });
     requireCheck(new URL(page.url()).origin === origin);
     if (role === "athlete") athleteDiagnostics.phase = "authentication";
@@ -156,7 +202,31 @@ async function openRole(role, fixture, password, athleteId) {
     requireCheck(response?.ok());
     if (role === "athlete") athleteDiagnostics.phase = "dashboard visibility";
     await page.locator(fixture.readySelector).first().waitFor({ state: "visible", timeout: 15000 });
-    if (role === "athlete") athleteDiagnostics.phase = "dashboard session";
+    if (role === "athlete") {
+      athleteDiagnostics.dashboardInitialization = await page.locator(fixture.readySelector).first().evaluate(element => ({
+        hidden: element.hidden,
+        cardCount: element.querySelectorAll(".athlete-status-card").length,
+      }));
+      const hub = new URL(page.url());
+      requireCheck(hub.pathname === "/athletes/hub/mini-hub.html" && hub.searchParams.get("id") === athleteId);
+      requireCheck(athleteId === athleteId.toLowerCase());
+      const canonical = await page.evaluate(() => localStorage.getItem("sandman_lastAthleteUid"));
+      requireCheck(canonical === athleteId);
+      const grid = page.locator(fixture.readySelector).first();
+      for (const lane of ["combat", "strength", "honor"]) {
+        const link = grid.locator("a.athlete-status-card--" + lane);
+        requireCheck(await link.isVisible());
+        const href = new URL(await link.getAttribute("href"), origin);
+        requireCheck(href.origin === origin && href.searchParams.get("id") === athleteId);
+      }
+      for (const lane of ["strength", "honor"]) {
+        const assets = athleteDiagnostics.curriculumAssets.filter(asset =>
+          asset.path.startsWith("/vault/" + lane + "/") && asset.status >= 200 && asset.status < 300);
+        requireCheck(assets.some(asset => asset.path.endsWith("/sessions.json")));
+        requireCheck(assets.some(asset => asset.path.endsWith(".meta.json")));
+      }
+      athleteDiagnostics.phase = "dashboard session";
+    }
     const active = await page.evaluate(async () => {
       const { auth } = await import("/assets/js/firebase-init.js");
       await auth.authStateReady();
