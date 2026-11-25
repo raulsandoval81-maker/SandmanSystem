@@ -3,6 +3,10 @@ name: P0 authenticated staging acceptance
 on:
   workflow_dispatch:
     inputs:
+      athlete_diagnostic_only:
+        description: Run only the synthetic Athlete diagnostic
+        type: boolean
+        default: false
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -43,6 +47,7 @@ jobs:
           "$RUNNER_TEMP/p0-acceptance/node_modules/.bin/playwright" install --with-deps chromium
       - name: Run synthetic acceptance without payment or email writes
         env:
+          P0_ATHLETE_DIAGNOSTIC: ${{ inputs.athlete_diagnostic_only }}
           P0_STAGING_FIXTURES: ${{ vars.SANDMAN_P0_STAGING_FIXTURES }}
           P0_STAGING_PASSWORD: ${{ secrets.SANDMAN_STAGING_TEST_PASSWORD }}
           P0_PLAYWRIGHT: ${{ runner.temp }}/p0-acceptance/node_modules/playwright/index.mjs
@@ -56,6 +61,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Verify write-side workflows in isolated emulators
+        if: ${{ !inputs.athlete_diagnostic_only }}
         env:
           STRIPE_SECRET_KEY: ''
           RESEND_API_KEY: ''
