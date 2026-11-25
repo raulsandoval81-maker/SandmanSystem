@@ -54,3 +54,21 @@ jobs:
           name: p0-staging-acceptance-${{ github.run_id }}
           path: p0-acceptance-results.json
           if-no-files-found: ignore
+
+      - name: Verify write-side workflows in isolated emulators
+        env:
+          STRIPE_SECRET_KEY: ''
+          RESEND_API_KEY: ''
+          GOOGLE_APPLICATION_CREDENTIALS: ''
+        run: |
+          set -euo pipefail
+          test -z "$STRIPE_SECRET_KEY$RESEND_API_KEY$GOOGLE_APPLICATION_CREDENTIALS"
+          cp scripts/staging/p0-containment/firestore.rules firestore.rules
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+          npx --yes firebase-tools@15.11.0 emulators:exec \
+            --project demo-sandman-p0-write-acceptance \
+            --config firebase.paid-in-full-test.json \
+            --only firestore,auth,functions,hosting \
+            'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'

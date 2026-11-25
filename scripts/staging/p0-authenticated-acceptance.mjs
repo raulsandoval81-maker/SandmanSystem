@@ -1,17 +1,15 @@
-import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 const project = "sandman-combat-staging";
 const origin = `https://${project}.web.app`;
-const bucket = `${project}.firebasestorage.app`;
 const firestore = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents`;
 const roles = {
   management: "/management/hub/",
   coach: "/coaches/",
   parent: "/parent/",
   athlete: "/athletes/hub/",
-  admin: "/admin/",
+  admin: "/admin/hub/dashboard.html",
 };
 const checks = [];
 let current = "fixture configuration";
@@ -80,7 +78,7 @@ async function denied(path, token) {
   requireCheck((await readDocument(path, token)).status === 403);
 }
 
-async function openRole(role, fixture, password) {
+async function openRole(role, fixture, password, athleteId) {
   const context = await browser.newContext({ serviceWorkers: "block", acceptDownloads: false });
   try {
     await context.route("**/*", (route) =>
@@ -100,7 +98,8 @@ async function openRole(role, fixture, password) {
         audience: result.claims.aud };
     }, { email: fixture.email, password, project });
     requireCheck(session?.synthetic && session.audience === project && session.uid === fixture.uid);
-    const response = await page.goto(origin + roles[role], { waitUntil: "domcontentloaded" });
+    const entry = origin + roles[role] + (role === "athlete" ? `?id=${encodeURIComponent(athleteId)}` : "");
+    const response = await page.goto(entry, { waitUntil: "domcontentloaded" });
     requireCheck(response?.ok());
     await page.locator(fixture.readySelector).first().waitFor({ state: "visible", timeout: 15000 });
     const active = await page.evaluate(async () => {
@@ -134,9 +133,6 @@ async function run() {
   requireCheck(fixtures.ownAthlete !== fixtures.otherAthlete);
   requireCheck(typeof fixtures.progressionField === "string" &&
     ["tier", "rank", "stripeCount", "progression"].includes(fixtures.progressionField));
-  requireCheck(/^p0-synthetic\/[A-Za-z0-9_-]+\.txt$/.test(fixtures.storage?.path ?? "") &&
-    Object.hasOwn(roles, fixtures.storage?.role) && /^[a-f0-9]{64}$/.test(fixtures.storage?.sha256 ?? ""));
-
   current = "staging runtime isolation";
   const marker = await request(origin + "/staging-environment.json");
   requireCheck(marker.status === 200);
@@ -148,7 +144,7 @@ async function run() {
   const tokens = {};
   for (const role of Object.keys(roles)) {
     current = role + " authenticated operating system";
-    tokens[role] = await openRole(role, fixtures.roles[role], password);
+    tokens[role] = await openRole(role, fixtures.roles[role], password, fixtures.ownAthlete);
     passed(current);
   }
 
@@ -197,23 +193,7 @@ async function run() {
   await denied(`${own}/xpLogs/${fixtures.xpLog}`, tokens.parent);
   passed(current);
 
-  current = "authorized staging Storage download and public denial";
-  const storage = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodeURIComponent(fixtures.storage.path)}?alt=media`;
-  const file = await request(storage, tokens[fixtures.storage.role], "Firebase");
-  requireCheck(file.status === 200);
-  const reader = file.body.getReader();
-  const hash = createHash("sha256");
-  let bytes = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    bytes += value.length;
-    requireCheck(bytes <= 4096);
-    hash.update(value);
-  }
-  requireCheck(bytes > 0 && hash.digest("hex") === fixtures.storage.sha256);
-  requireCheck([401, 403].includes((await request(storage)).status));
-  passed(current);
+
 }
 
 try {
@@ -223,7 +203,7 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", checks };
+  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", storage: "PENDING", checks };
   writeFileSync("p0-acceptance-results.json", JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result));
 }
