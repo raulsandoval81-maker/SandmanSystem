@@ -155,7 +155,8 @@ async function openRole(role, fixture, password, athleteId) {
         const path = diagnosticPath(response.url());
         if (path.startsWith("firestore:")) {
           athleteDiagnostics.firestoreReads.push({ method: request.method(), path, status: response.status() });
-        } else if (path.startsWith("/vault/curriculum/")) {
+        } else if (new URL(response.url()).origin === origin && (path === "/vault/system-status.json" ||
+          path.startsWith("/vault/strength/") || path.startsWith("/vault/honor/") || path.startsWith("/vault/curriculum/"))) {
           athleteDiagnostics.curriculumAssets.push({ path, status: response.status() });
         }
       });
@@ -206,6 +207,24 @@ async function openRole(role, fixture, password, athleteId) {
         hidden: element.hidden,
         cardCount: element.querySelectorAll(".athlete-status-card").length,
       }));
+      const hub = new URL(page.url());
+      requireCheck(hub.pathname === "/athletes/hub/mini-hub.html" && hub.searchParams.get("id") === athleteId);
+      requireCheck(athleteId === athleteId.toLowerCase());
+      const canonical = await page.evaluate(() => localStorage.getItem("sandman_lastAthleteUid"));
+      requireCheck(canonical === athleteId);
+      const grid = page.locator(fixture.readySelector).first();
+      for (const lane of ["combat", "strength", "honor"]) {
+        const link = grid.locator("a.athlete-status-card--" + lane);
+        requireCheck(await link.isVisible());
+        const href = new URL(await link.getAttribute("href"), origin);
+        requireCheck(href.origin === origin && href.searchParams.get("id") === athleteId);
+      }
+      for (const lane of ["strength", "honor"]) {
+        const assets = athleteDiagnostics.curriculumAssets.filter(asset =>
+          asset.path.startsWith("/vault/" + lane + "/") && asset.status >= 200 && asset.status < 300);
+        requireCheck(assets.some(asset => asset.path.endsWith("/sessions.json")));
+        requireCheck(assets.some(asset => asset.path.endsWith(".meta.json")));
+      }
       athleteDiagnostics.phase = "dashboard session";
     }
     const active = await page.evaluate(async () => {
