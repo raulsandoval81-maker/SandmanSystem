@@ -7,11 +7,28 @@ import {gzipSync} from 'node:zlib';
 const mode = process.argv[2];
 const project = 'sandman-combat-staging';
 const site = `sites/${project}`;
-const candidateSha = '4608313bd1966a322edba134def6d4e6cf2bcb40';
-const targets = new Map([
-  ['/assets/js/athlete-self-context.js', '1470282f4f0614f035c51d8d9a1e6d299388e9bd403d0050157cd7c66f17d150'],
-  ['/athletes/hub/mini-hub.html', 'd3cca2b9fc858593d7d81ba00a780dc8e64494cce1c5ba375a11bcee79d2756a'],
-]);
+const profiles = {
+  pr834: {
+    candidateSha: '4608313bd1966a322edba134def6d4e6cf2bcb40',
+    approval: 'APPROVE_PR834_STAGING_ATHLETE_DASHBOARD_ONLY',
+    targets: [
+      ['/assets/js/athlete-self-context.js', '1470282f4f0614f035c51d8d9a1e6d299388e9bd403d0050157cd7c66f17d150'],
+      ['/athletes/hub/mini-hub.html', 'd3cca2b9fc858593d7d81ba00a780dc8e64494cce1c5ba375a11bcee79d2756a'],
+    ],
+  },
+  pr837: {
+    candidateSha: 'bbf3e9c054371cb72a2f69a1b64e0bce6baf0565',
+    approval: 'APPROVE_PR837_STAGING_ATHLETE_RESOLVER_ONLY',
+    targets: [
+      ['/assets/js/athlete-self-context.js', '4d2cabb1a1e161ff6268e5c638c4a2173f35e86b88717e599ef74f4a16823801'],
+    ],
+  },
+};
+const profileName = process.env.P0_HOSTING_PROFILE || 'pr834';
+const profile = profiles[profileName];
+assert(profile, 'Unknown P0 Hosting profile');
+const {candidateSha, approval} = profile;
+const targets = new Map(profile.targets);
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 assert(['preflight', 'deploy'].includes(mode));
@@ -20,7 +37,7 @@ assert.equal(process.env.GITHUB_REF, 'refs/heads/main');
 assert.equal(process.env.GITHUB_RUN_ATTEMPT, '1');
 assert.equal(process.env.GITHUB_WORKFLOW_REF,
   'raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main');
-if (mode === 'deploy') assert.equal(process.env.APPROVAL, 'APPROVE_PR834_STAGING_ATHLETE_DASHBOARD_ONLY');
+if (mode === 'deploy') assert.equal(process.env.APPROVAL, approval);
 assert.equal(execFileSync('git', ['-C', 'candidate', 'rev-parse', 'HEAD'], {encoding: 'utf8'}).trim(), candidateSha);
 
 const assets = new Map([...targets].map(([path, rawHash]) => {
@@ -91,7 +108,7 @@ const changedPaths = [...live].filter(([path, hash]) => proposed.get(path) !== h
 assert.deepEqual(changedPaths, [...targets.keys()].sort());
 const evidence = {site, baseline, rollback: baseline, candidateSha,
   rawHashes: Object.fromEntries(targets), changedPaths, fileCount: live.size};
-writeFileSync('pr834-evidence.json', JSON.stringify(evidence, null, 2) + '\n');
+writeFileSync(`${profileName}-evidence.json`, JSON.stringify(evidence, null, 2) + '\n');
 console.log(JSON.stringify(evidence));
 if (mode === 'preflight') process.exit(0);
 
@@ -124,5 +141,5 @@ for (const [path, hash] of targets) {
   assert(response.ok);
   assert.equal(sha256(Buffer.from(await response.arrayBuffer())), hash, 'Published hash mismatch: ' + path);
 }
-writeFileSync('pr834-deployed.json', JSON.stringify({...evidence, after}, null, 2) + '\n');
+writeFileSync(`${profileName}-deployed.json`, JSON.stringify({...evidence, after}, null, 2) + '\n');
 console.log(JSON.stringify({after, rollback: baseline, verifiedLiveHashes: Object.fromEntries(targets)}));
