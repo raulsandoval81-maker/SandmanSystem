@@ -7,6 +7,10 @@ on:
         description: Run only the synthetic Athlete diagnostic
         type: boolean
         default: false
+      ownership_classification_only:
+        description: Read only the synthetic Athlete ownership shape and stop
+        type: boolean
+        default: false
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -48,6 +52,7 @@ jobs:
       - name: Run synthetic acceptance without payment or email writes
         env:
           P0_ATHLETE_DIAGNOSTIC: ${{ inputs.athlete_diagnostic_only }}
+          P0_OWNERSHIP_CLASSIFICATION: ${{ inputs.ownership_classification_only }}
           P0_STAGING_FIXTURES: ${{ vars.SANDMAN_P0_STAGING_FIXTURES }}
           P0_STAGING_PASSWORD: ${{ secrets.SANDMAN_STAGING_TEST_PASSWORD }}
           P0_PLAYWRIGHT: ${{ runner.temp }}/p0-acceptance/node_modules/playwright/index.mjs
@@ -61,7 +66,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Verify write-side workflows in isolated emulators
-        if: ${{ !inputs.athlete_diagnostic_only }}
+        if: ${{ !inputs.athlete_diagnostic_only && !inputs.ownership_classification_only }}
         env:
           STRIPE_SECRET_KEY: ''
           RESEND_API_KEY: ''
