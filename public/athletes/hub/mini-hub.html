@@ -397,11 +397,9 @@ import {
 const $ = (id) => document.getElementById(id);
 const LAST_UID_KEY = "sandman_lastAthleteUid";
 
-function norm(x){ return (x || "").toString().trim().toUpperCase(); }
-
 function getIdFromUrl(){
   const p = new URLSearchParams(location.search);
-  return norm(p.get("id") || p.get("uid"));
+  return (p.get("id") || p.get("uid") || "").trim();
 }
 
 function setLinks(id){
