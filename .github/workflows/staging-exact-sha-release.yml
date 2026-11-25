@@ -172,6 +172,7 @@ on:
           - phase2c-hosting-only-deploy
           - enrollment-wif-readonly-preflight
           - historical-enrollment-preflight
+          - p0-containment-readonly-preflight
           - handoff-preflight
           - handoff-deploy
           - enrollment-runtime-iam-readonly
@@ -280,6 +281,50 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  p0-containment-readonly-preflight:
+    if: ${{ inputs.action == 'p0-containment-readonly-preflight' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Verify trusted workflow and explicit staging target
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 00379c6cd9da199a59bc7635d7609034b135b227
+          path: p0-candidate
+          persist-credentials: false
+      - name: Verify pinned candidate inputs and Hosting allowlist
+        run: python3 scripts/staging/p0-containment-preflight.py --candidate-only
+      - uses: google-github-actions/auth@v3
+        id: p0-staging-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: false
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Read staging capabilities and active baselines
+        env:
+          HOSTING_CREDENTIALS_FILE: ${{ steps.p0-staging-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/p0-containment-preflight.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-containment-preflight-${{ github.run_id }}
+          path: p0-preflight*.json
+          if-no-files-found: error
+
   diagnose-authorization:
     if: ${{ inputs.action == 'diagnose' }}
     runs-on: ubuntu-24.04

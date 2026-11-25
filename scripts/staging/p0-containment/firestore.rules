@@ -1,0 +1,2304 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* --------------------------------------
+       Para-Comms V1
+    ---------------------------------------*/
+    match /paraParentInbox/{threadId} {
+      allow read, create, update: if isActiveCoachOrAdmin();
+      allow delete: if false;
+
+      match /thread/{messageId} {
+        allow read: if isActiveCoachOrAdmin();
+
+        allow create: if isActiveCoachOrAdmin()
+          && request.resource.data.keys().hasOnly([
+            "from",
+            "fromName",
+            "subject",
+            "body",
+            "createdAt",
+            "seenByCoach",
+            "seenByParent"
+          ])
+
+
+          && request.resource.data.from in ["parent", "coach"]
+          && request.resource.data.fromName is string
+          && (
+            !("subject" in request.resource.data)
+            || request.resource.data.subject == null
+            || request.resource.data.subject is string
+          )
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 2000
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.seenByCoach is bool
+          && request.resource.data.seenByParent is bool;
+
+        allow update, delete: if false;
+      }
+    }
+
+    /* --------------------------------------
+       Schedule
+    ---------------------------------------*/
+    match /paraSchedule/{locationId} {
+      // Published location schedules are the single audience-facing source.
+      allow get: if
+        !exists(
+          /databases/$(database)/documents/paraSchedule/$(locationId)
+        )
+        ||
+        (
+          resource.data.status == "published"
+          && resource.data.locationId == locationId
+        );
+
+      allow list: if resource.data.status == "published"
+        && resource.data.locationId == locationId;
+
+      // Only active Admin/Management may publish, and Management remains
+      // restricted to an assigned location.
+      allow create, update: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        )
+        && request.resource.data.keys().hasOnly([
+          "locationId",
+          "locationName",
+          "timezone",
+          "status",
+          "weekly",
+          "events",
+          "banner",
+          "publishedAt"
+        ])
+        && request.resource.data.locationId == locationId
+        && request.resource.data.locationName is string
+        && request.resource.data.timezone is string
+        && request.resource.data.status == "published"
+        && request.resource.data.weekly is list
+        && request.resource.data.events is list
+        && request.resource.data.banner is map
+        && request.resource.data.publishedAt is timestamp;
+
+      allow delete: if false;
+    }
+
+    match /paraScheduleDrafts/{locationId} {
+      allow get, list: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        );
+
+      allow create, update: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        )
+        && request.resource.data.locationId == locationId
+        && request.resource.data.status == "draft"
+        && request.resource.data.weekly is list
+        && request.resource.data.events is list
+        && request.resource.data.banner is map
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Announcements
+    ---------------------------------------*/
+    match /paraAnnouncements/{id} {
+      allow read: if request.auth != null;
+
+      allow create: if isActiveCoachOrAdmin()
+        && request.resource.data.teamId is string
+        && request.resource.data.category is string
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.audienceType is string
+        && request.resource.data.from is string
+        && request.resource.data.fromName is string
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 3000;
+
+      allow update: if isActiveCoachOrAdmin()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          "pinned",
+          "pinnedAt",
+          "unpinnedAt",
+          "archived",
+          "archivedAt",
+          "deleted",
+          "deletedAt",
+          "title",
+          "message",
+          "editedAt"
+        ]);
+
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Athletes
+    ---------------------------------------*/
+    match /athletes/{athleteId} {
+      allow get: if isSignedIn() && (
+        isAdmin()
+        || resource.data.get("authUid", "") == request.auth.uid
+        || (athleteId == request.auth.uid && resource.data.get("authUid", null) == null)
+        || isLinkedParent(athleteId)
+        || canReadStaffAthlete(resource.data)
+      );
+      allow list: if isSignedIn() && (
+        isAdmin()
+        || resource.data.authUid == request.auth.uid
+        || canReadStaffAthlete(resource.data)
+      );
+      allow create, delete: if false;
+
+      allow update: if request.auth != null && (
+        (
+          !(
+            resource.data.onboarding is map
+            && resource.data.onboarding.keys().hasAny(["completedAt"])
+          )
+
+          && request.resource.data.onboarding is map
+
+          && (
+            (
+              resource.data.authUid is string
+              && request.auth.uid == resource.data.authUid
+            )
+            ||
+            (
+              !(resource.data.authUid is string)
+              && athleteId == request.auth.uid
+              && request.resource.data.authUid is string
+              && request.resource.data.authUid == request.auth.uid
+            )
+          )
+
+          && (
+            (
+              resource.data.authUid is string
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "onboarding",
+                "updatedAt"
+              ])
+            )
+            ||
+            (
+              !(resource.data.authUid is string)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                "onboarding",
+                "updatedAt",
+                "authUid"
+              ])
+            )
+          )
+
+          && validLocksProgressionNextStep(
+            (resource.data.onboarding is map && resource.data.onboarding.step is int)
+              ? resource.data.onboarding.step
+              : null,
+            (request.resource.data.onboarding is map && request.resource.data.onboarding.step is int)
+              ? request.resource.data.onboarding.step
+              : null,
+            (resource.data.onboarding is map && resource.data.onboarding.locks is map)
+              ? resource.data.onboarding.locks
+              : {},
+            (request.resource.data.onboarding is map && request.resource.data.onboarding.locks is map)
+              ? request.resource.data.onboarding.locks
+              : {}
+          )
+        )
+        ||
+        (
+          isAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "testing",
+            "promotionLocked",
+            "tier",
+            "xp",
+            "xpCombat",
+            "stripeCount",
+            "updatedAt"
+          ])
+        )
+
+        ||
+(
+  isCoachOrAdmin()
+  && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+    "rosterStatus",
+    "updatedAt",
+
+    "lastAttendanceAt",
+    "lastAttendanceType",
+    "lastAttendanceCoach",
+    "lastAttendanceSessionId",
+
+    "decay"
+  ])
+)
+        ||
+        (
+          isActiveCoachOrAdmin()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "testing",
+            "tierStatus",
+            "updatedAt"
+          ])
+        )
+      );
+
+      match /testingLogs/{logId} {
+        allow get, list: if isActiveCoachOrAdmin();
+        allow create: if isActiveCoachOrAdmin();
+        allow update, delete: if false;
+      }
+
+      match /xpLogs/{logId} {
+        allow get, list: if isCoachOrAdmin();
+
+        allow create: if isAdmin()
+          && request.resource.data.uid is string
+          && request.resource.data.xp is number
+          && request.resource.data.createdAt != null;
+
+        allow update, delete: if false;
+      }
+    }
+
+    /* --------------------------------------
+       Intake
+    ---------------------------------------*/
+    match /intakeTokens/{id} {
+      // Family pages authenticate anonymously before resolving
+      // their bearer invite. Management/Admin may also read.
+      allow get: if request.auth != null &&
+        (!("earlyCashCheckOwnerUid" in resource.data)
+          || resource.data.earlyCashCheckOwnerUid == request.auth.uid
+          || isAdmin()
+          || managementHasLocation(resource.data.locationId));
+
+      allow list: if false;
+
+      // New enrollment invitations are Management-owned.
+      // For new-member enrollment, the invite must come from
+      // an authoritative PAID proposal and inherit its location.
+      allow create: if isAdminOrManagement()
+        && request.resource.data.mode == "new_athlete"
+        && request.resource.data.proposalId is string
+        && request.resource.data.proposalId.size() > 0
+        && request.resource.data.locationId is string
+        && request.resource.data.locationId.size() > 0
+        && exists(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        )
+        && get(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        ).data.status == "PAID"
+        && get(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        ).data.locationId == request.resource.data.locationId
+        && (
+          isAdmin()
+          || managementHasLocation(
+            request.resource.data.locationId
+          )
+        );
+
+      // Token lifecycle is server-authoritative.
+      allow update, delete: if false;
+    }
+
+    match /intakePending/{id} {
+      allow create: if false;
+      allow read: if isAdminOrManagement();
+      allow update, delete: if false;
+    }
+
+    function earlyCashCheckIntakeAllowed(id) {
+      let invite = get(/databases/$(database)/documents/intakeTokens/$(id)).data;
+      return !("earlyCashCheckOwnerUid" in invite) ||
+        (invite.earlyCashCheckOwnerUid == request.auth.uid
+         && invite.exp is number
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.earlyCashCheckIntakeTokenId == id
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.lockedSnapshot.pricing.paymentArrangement == "prepaid_cash_check"
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.clientAcceptance.consentAccepted == true
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.enrollmentConfirmation.termsConfirmed == true
+         && get(/databases/$(database)/documents/proposals/$(invite.proposalId)).data.status in ["READY_FOR_CHECKOUT", "PAID"]);
+    }
+
+    match /intakes/{id} {
+      // A family may create only the intake represented by
+      // a real, unused, unexpired invite token.
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.tokenId == id
+        && request.resource.data.status == "submitted"
+        && request.resource.data.approvedUid == null
+        && exists(
+          /databases/$(database)/documents/intakeTokens/$(id)
+        )
+        && get(
+          /databases/$(database)/documents/intakeTokens/$(id)
+        ).data.used != true
+        && (
+          !(
+            get(
+              /databases/$(database)/documents/intakeTokens/$(id)
+            ).data.exp is number
+          )
+          ||
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.exp > request.time.toMillis()
+        )
+        && earlyCashCheckIntakeAllowed(id)
+        && request.resource.data.intakeAudience ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.intakeAudience
+        && request.resource.data.proposalId ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.proposalId
+        && request.resource.data.locationId ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.locationId;
+
+      // Family submission is immutable after creation.
+      // Approval/activation occurs through trusted Cloud Functions.
+      allow update: if false;
+
+      // Owner can read their submission. Admin sees the network;
+      // Management is restricted by canonical intake locationId.
+      allow get: if request.auth != null
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isAdmin()
+          || managementHasLocation(resource.data.locationId)
+        );
+
+      // Required by Management's pending-intake query.
+      allow list: if isAdmin()
+        || managementHasLocation(resource.data.locationId);
+
+      allow delete: if false;
+    }
+
+
+
+
+
+    /* --------------------------------------
+       System Docs
+    ---------------------------------------*/
+    match /system/{docId} {
+      allow get: if isAdmin()
+        || (isSignedIn() && docId == "laneAssignments")
+        || (isActiveCoach() && docId == "coach-messages-" + request.auth.uid)
+        || (
+          isActiveCoach()
+          && docId.matches("coach-dashboard-summary-[a-z0-9_-]+")
+          && staffHasLocation(resource.data.locationId)
+        );
+      allow list: if isAdmin();
+      allow create, update: if isAdmin()
+        || (
+          isActiveCoach()
+          && docId == "coach-messages-" + request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            "teamMessages", "teamMessagesUpdatedAt", "teamMessagesSource"
+          ])
+          && request.resource.data.teamMessages is int
+          && request.resource.data.teamMessages >= 0
+          && request.resource.data.teamMessagesUpdatedAt == request.time
+          && request.resource.data.teamMessagesSource == "para-comms-coach-hub"
+        )
+        || (
+          isActiveCoach()
+          && request.resource.data.locationId is string
+          && request.resource.data.locationId.matches("[a-z0-9_-]+")
+          && docId == "coach-dashboard-summary-" + request.resource.data.locationId
+          && staffHasLocation(request.resource.data.locationId)
+          && request.resource.data.keys().hasOnly([
+            "locationId", "counts", "dailyBreakdown", "updatedAt", "source"
+          ])
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.source == "daily-operations"
+        );
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Coach-controlled Strength phase
+    ---------------------------------------*/
+    match /strengthPhaseSettings/{settingId} {
+      allow read: if request.auth != null;
+
+      allow create, update: if settingId == "system"
+        && (
+          isActiveCoach()
+          || (
+            isAdmin()
+            && get(
+              /databases/$(database)/documents/staff/$(request.auth.uid)
+            ).data.status == "active"
+          )
+        )
+        && request.resource.data.keys().hasOnly([
+          "scopeType",
+          "scopeId",
+          "activePhase",
+          "updatedAt",
+          "updatedBy"
+        ])
+        && request.resource.data.scopeType == "system"
+        && request.resource.data.scopeId == "sandman"
+        && request.resource.data.activePhase in [
+          "preseason",
+          "inseason",
+          "postseason"
+        ]
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Lane Submissions
+    ---------------------------------------*/
+    match /laneSubmissions/{athleteId} {
+      allow get: if isLaneSubmissionOwner(athleteId)
+        || isActiveCoachOrAdmin();
+
+      allow list: if isActiveCoachOrAdmin();
+
+      allow create: if exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          isLaneSubmissionOwner(athleteId)
+          || isActiveCoachOrAdmin()
+        );
+
+      allow update: if exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          (
+            isLaneSubmissionOwner(athleteId)
+            && preservesCoachOwnedConditioningAssignment()
+          )
+          || isActiveCoachOrAdmin()
+        );
+
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Lane History
+    ---------------------------------------*/
+    match /laneHistory/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
+
+    /* --------------------------------------
+       Parents
+    ---------------------------------------*/
+    match /parents/{parentId} {
+      allow get: if isAdmin() || (isSignedIn() && parentId == request.auth.uid);
+      allow list: if isAdmin();
+      // Family profiles are created and updated through trusted backend functions.
+      allow create, update, delete: if false;
+    }
+
+    /* --------------------------------------
+       Parent Volunteer Submissions
+    ---------------------------------------*/
+    match /parentVolunteerSubmissions/{docId} {
+      allow create: if request.auth != null
+        && request.resource.data.parentName is string
+        && request.resource.data.athleteName is string
+        && request.resource.data.phone is string
+        && request.resource.data.email is string
+        && request.resource.data.preferredLanguage is string
+        && request.resource.data.helpAreas is list
+        && request.resource.data.notes is string
+        && request.resource.data.source is string
+        && request.resource.data.status is string
+        && request.resource.data.team is string
+        && request.resource.data.submittedAt is timestamp
+        && (
+          !("parentUid" in request.resource.data)
+          || request.resource.data.parentUid == null
+          || request.resource.data.parentUid is string
+        );
+
+      allow read: if request.auth != null;
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Volunteer Inbox Threads
+    ---------------------------------------*/
+    match /paraVolunteerInbox/{threadId} {
+      allow read: if isVolunteerParticipant(threadId) || isActiveCoachOrAdmin();
+
+      allow create: if (isActiveCoachOrAdmin()
+          || (request.auth != null && request.resource.data.parentUid == request.auth.uid))
+        && request.resource.data.athlete is string
+        && request.resource.data.status is string
+        && request.resource.data.source is string
+        && request.resource.data.createdAt is timestamp
+        && (
+          (
+            request.resource.data.parentEmail is string
+            && request.resource.data.parentName is string
+            && request.resource.data.subject is string
+            && request.resource.data.linkedVolunteerId is string
+            && request.resource.data.updatedAt is timestamp
+            && request.resource.data.coachHasUnread is bool
+            && request.resource.data.parentHasUnread is bool
+            && request.resource.data.seenByCoach is bool
+            && request.resource.data.seenByParent is bool
+          )
+          || (
+            request.resource.data.name is string
+            && request.resource.data.email is string
+            && request.resource.data.type is string
+            && request.resource.data.helpAreas is list
+          )
+        )
+        && (
+          !("parentUid" in request.resource.data)
+          || request.resource.data.parentUid == null
+          || request.resource.data.parentUid is string
+        );
+
+      allow update: if (isVolunteerParticipant(threadId) || isActiveCoachOrAdmin())
+        && request.resource.data.parentUid == resource.data.parentUid
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          "status",
+          "coachHasUnread",
+          "parentHasUnread",
+          "seenByCoach",
+          "seenByParent",
+          "updatedAt"
+        ]);
+
+      allow delete: if false;
+
+      match /thread/{messageId} {
+        allow read: if isVolunteerParticipant(threadId) || isActiveCoachOrAdmin();
+
+        allow create: if (isVolunteerParticipant(threadId) || isActiveCoachOrAdmin())
+          && request.resource.data.keys().hasOnly([
+            "from",
+            "fromUid",
+            "fromName",
+            "subject",
+            "body",
+            "athleteId",
+            "athleteUid",
+            "athleteName",
+            "discipline",
+            "createdAt",
+            "seenByCoach",
+            "seenByParent"
+          ])
+          && request.resource.data.from is string
+          && request.resource.data.fromName is string
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 2000
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.seenByCoach is bool
+          && request.resource.data.seenByParent is bool
+          && (
+            (isVolunteerParticipant(threadId)
+              && request.resource.data.from in ["parent", "Parent"])
+            || (isActiveCoachOrAdmin()
+              && request.resource.data.from in ["coach", "Coach"])
+          );
+
+        allow update, delete: if false;
+      }
+    }
+
+/* --------------------------------------
+   Para Threads
+---------------------------------------*/
+match /paraThreads/{athleteUid} {
+  allow read: if isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid);
+
+  allow create: if isLinkedParent(athleteUid)
+    && request.resource.data.athleteUid == athleteUid
+    && request.resource.data.parentUid == request.auth.uid;
+
+  allow update: if (
+      isLinkedParent(athleteUid)
+      && request.resource.data.athleteUid == resource.data.athleteUid
+      && request.resource.data.parentUid == resource.data.parentUid
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        "athleteName", "discipline", "academyId", "subject", "status",
+        "deleted", "messageCount", "lastBody", "lastSenderRole",
+        "lastSender", "lastReplyFrom", "lastReplyAt", "updatedAt",
+        "parentHasUnread", "coachHasUnread", "seenByCoach", "seenByParent",
+        "parentOpenedAt", "closedAt"
+      ])
+    ) || (
+      isCoachAssignedToAthlete(athleteUid)
+      && request.resource.data.athleteUid == resource.data.athleteUid
+      && request.resource.data.parentUid == resource.data.parentUid
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        "lastBody", "lastReplyAt", "updatedAt", "parentHasUnread",
+        "coachHasUnread", "seenByCoach", "seenByParent", "coachOpenedAt",
+        "archived", "archivedAt", "deleted", "deletedAt"
+      ])
+    );
+
+match /messages/{messageId} {
+  allow read: if isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid);
+
+  allow create: if (isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid))
+    && request.resource.data.keys().hasOnly([
+      "athleteUid",
+      "conversationId",
+      "subject",
+      "discipline",
+      "body",
+      "from",
+      "fromUid",
+      "fromName",
+      "createdAt",
+      "seenByCoach",
+      "seenByParent",
+      "parentEmail"
+    ])
+    && request.resource.data.athleteUid is string
+    && request.resource.data.athleteUid == athleteUid
+    && request.resource.data.from in ["parent", "coach"]
+    && request.resource.data.fromUid == request.auth.uid
+    && request.resource.data.fromName is string
+    && request.resource.data.body is string
+    && request.resource.data.body.size() > 0
+    && request.resource.data.body.size() <= 2000
+    && request.resource.data.createdAt is timestamp
+    && request.resource.data.seenByCoach is bool
+    && request.resource.data.seenByParent is bool
+    && (
+      !("subject" in request.resource.data)
+      || request.resource.data.subject == null
+      || request.resource.data.subject is string
+    )
+    && (
+      !("discipline" in request.resource.data)
+      || request.resource.data.discipline == null
+      || request.resource.data.discipline is string
+    )
+    && (
+      !("parentEmail" in request.resource.data)
+      || request.resource.data.parentEmail == null
+      || request.resource.data.parentEmail is string
+    )
+    && (
+      (request.resource.data.from == "parent" && isLinkedParent(athleteUid))
+      || (request.resource.data.from == "coach" && isCoachAssignedToAthlete(athleteUid))
+    );
+
+  allow update: if (
+      isLinkedParent(athleteUid)
+      && resource.data.from == "coach"
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly(["seenByParent", "parentSeenAt"])
+      && request.resource.data.seenByParent == true
+      && request.resource.data.parentSeenAt is timestamp
+    ) || (
+      isCoachAssignedToAthlete(athleteUid)
+      && resource.data.from == "parent"
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly(["seenByCoach", "seenByCoachAt"])
+      && request.resource.data.seenByCoach == true
+      && request.resource.data.seenByCoachAt is timestamp
+    );
+
+  allow delete: if false;
+ }
+}  
+    /* --------------------------------------
+       XP Logs
+    ---------------------------------------*/
+    match /xpLogs/{logId} {
+      allow get, list: if isCoachOrAdmin();
+
+      allow create: if isAdmin()
+        && request.resource.data.uid is string
+        && request.resource.data.amount is number
+        && request.resource.data.beforeXp is number
+        && request.resource.data.afterXp is number
+        && request.resource.data.kind is string
+        && request.resource.data.createdAt != null;
+
+      allow update, delete: if false;
+    }
+
+    /* --------------------------------------
+       Staff
+    ---------------------------------------*/
+    match /staff/{userId} {
+      allow get: if request.auth != null
+        && request.auth.uid == userId;
+
+      allow list: if isAdminOrManagement();
+      // Staff authority is mutated only through the transactional
+      // Admin governance callable (Admin SDK), including last-Admin safety.
+      allow create, update, delete: if false;
+    }
+
+    /* --------------------------------------
+       Practice Plans
+    ---------------------------------------*/
+    match /practicePlans/{planId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Leaderboards
+    ---------------------------------------*/
+    match /leaderboards/{track}/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    /* --------------------------------------
+       Live Sessions
+    ---------------------------------------*/
+    match /liveSessions/{sessionId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+   Attendance Sessions
+---------------------------------------*/
+match /attendance_sessions/{sessionId} {
+  allow read: if isCoachOrAdmin();
+  // Canonical attendance is written by authorized Cloud Functions using
+  // the Admin SDK. Direct client writes bypass history-revision authority.
+  // Do not reopen this without a server-verified revision migration.
+  allow create, update, delete: if false;
+}
+/* --------------------------------------
+   Interest Leads
+---------------------------------------*/
+match /interest_leads/{leadId} {
+
+  /*
+   * Public admissions may create a lead only for a
+   * recognized location identity.
+   *
+   * Expand this list as public locations launch.
+   */
+  allow create: if
+    request.resource.data.academyId == "sandman"
+    && request.resource.data.locationId is string
+    && request.resource.data.locationId in [
+      "lompoc",
+      "elk-grove",
+      "santa-ynez-valley"
+    ];
+
+  /*
+   * Admin retains network-wide oversight.
+   * Management operates only assigned locations.
+   */
+  allow get, list: if
+    isAdmin()
+    || managementHasLocation(
+      resource.data.locationId
+    );
+
+  /*
+   * Management may update only records it owns,
+   * and may not move a lead into another location.
+   */
+  allow update: if
+    isAdmin()
+    || (
+      managementHasLocation(
+        resource.data.locationId
+      )
+      && request.resource.data.locationId
+        == resource.data.locationId
+    );
+
+  // Permanent deletion remains Admin-only.
+  allow delete: if isAdmin();
+}
+
+/* --------------------------------------
+   Admissions Requests
+---------------------------------------*/
+match /admissions_requests/{requestId} {
+
+  // Preserve existing intro forms while validating new seasonal requests.
+  // Legacy public create remains permissive and needs a separate migration.
+  allow create: if request.resource.data.requestType in [
+      "REQUESTED_INTRO", "PROMOTIONAL_INTRO", "OPEN_PRACTICE"
+    ] || (request.resource.data.requestType == "SEASONAL_INTEREST"
+    && request.resource.data.keys().hasAll([
+      "organization", "locationId", "requestType", "contactName",
+      "athleteName", "email", "phone", "contactConsent", "status"
+    ])
+    && request.resource.data.organization == "sandman-combat"
+    && request.resource.data.locationId in [
+      "santa-ynez-valley", "lompoc", "elk-grove"
+    ]
+    && request.resource.data.requestType in [
+      "REQUESTED_INTRO", "PROMOTIONAL_INTRO", "OPEN_PRACTICE",
+      "SEASONAL_INTEREST"
+    ]
+    && request.resource.data.status == "new"
+    && request.resource.data.contactConsent == true
+    && request.resource.data.contactName is string
+    && request.resource.data.contactName.size() > 0
+    && request.resource.data.contactName.size() <= 120
+    && request.resource.data.athleteName is string
+    && request.resource.data.athleteName.size() > 0
+    && request.resource.data.athleteName.size() <= 120
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 200
+    && request.resource.data.phone is string
+    && request.resource.data.phone.size() > 0
+    && request.resource.data.phone.size() <= 35
+    && request.resource.data.keys().hasAll([
+      "campaignId", "schedulePreference", "season",
+      "familyPricingInterest", "scholarshipInterest"
+    ])
+    && request.resource.data.locationId == "santa-ynez-valley"
+    && request.resource.data.campaignId == "winter-wrestling-2026-27"
+    && request.resource.data.season == "winter-2026-27"
+    && request.resource.data.schedulePreference in [
+      "mon-wed-sat", "tue-thu-sat", "unsure"
+    ]
+    && request.resource.data.familyPricingInterest is bool
+    && request.resource.data.scholarshipInterest is bool
+  );
+
+  // Admin sees the network; active Management is location-scoped.
+  allow get, list: if isAdmin()
+    || managementHasLocation(resource.data.locationId);
+
+  allow update: if isAdmin()
+    || (
+      managementHasLocation(resource.data.locationId)
+      && request.resource.data.locationId == resource.data.locationId
+    );
+
+  // Permanent deletion remains Admin-only.
+  allow delete: if isAdmin();
+}
+
+/* --------------------------------------
+   Admissions Appointments
+---------------------------------------*/
+match /admissions_appointments/{appointmentId} {
+
+  /*
+   * Admin retains network-wide oversight.
+   * Management sees only appointments belonging
+   * to assigned locations.
+   *
+   * An active Coach may read only an appointment
+   * explicitly assigned to that Coach's staff UID.
+   */
+  allow get, list: if
+    isAdmin()
+    || managementHasLocation(
+      resource.data.locationId
+    )
+    || (
+      isActiveCoach()
+      && resource.data.appointmentCoachUid
+        == request.auth.uid
+    );
+
+  /*
+   * New appointments remain Management/Admin owned.
+   * Coaches cannot create admissions appointments.
+   */
+  allow create: if
+    isAdmin()
+    || managementHasLocation(
+      request.resource.data.locationId
+    );
+
+  /*
+   * Management may update appointments it owns,
+   * but cannot transfer location ownership.
+   *
+   * An assigned active Coach may update only the
+   * authenticated Coach-assessment result.
+   */
+  allow update: if
+    isAdmin()
+    || (
+      managementHasLocation(
+        resource.data.locationId
+      )
+      && request.resource.data.locationId
+        == resource.data.locationId
+      && request.resource.data.diff(resource.data)
+        .affectedKeys().hasAny([
+          "assessmentStatus",
+          "assessedByCoachUid",
+          "assessedByCoachName",
+          "assessedAt",
+          "verifiedExperienceYears",
+          "coachAssessment",
+          "coachRecommendation"
+        ]) == false
+    )
+    || (
+      isActiveCoach()
+
+      && resource.data.appointmentCoachUid
+        == request.auth.uid
+
+      && request.resource.data.appointmentCoachUid
+        == resource.data.appointmentCoachUid
+
+      && request.resource.data.diff(resource.data)
+        .affectedKeys().hasOnly([
+          "assessmentStatus",
+          "assessedByCoachUid",
+          "assessedByCoachName",
+          "assessedAt",
+          "verifiedExperienceYears",
+          "coachAssessment",
+          "coachRecommendation"
+        ])
+
+      && request.resource.data.assessmentStatus
+        == "completed"
+
+      && request.resource.data.assessedByCoachUid
+        == request.auth.uid
+
+      && request.resource.data.assessedByCoachName
+        is string
+
+      && request.resource.data.assessedByCoachName.size()
+        > 0
+
+      && request.resource.data.assessedByCoachName.size()
+        <= 160
+
+      && request.resource.data.assessedAt
+        is timestamp
+
+      && request.resource.data.verifiedExperienceYears
+        in [0, 1, 2, 3]
+
+      && request.resource.data.coachAssessment
+        is string
+
+      && request.resource.data.coachAssessment.size()
+        <= 3000
+
+      && request.resource.data.coachRecommendation
+        is map
+    );
+
+  // Permanent deletion remains Admin-only.
+  allow delete: if isAdmin();
+}
+
+/* --------------------------------------
+   YESC Interest Leads
+---------------------------------------*/
+match /yescInterest/{leadId} {
+
+  // Public YESC form may create a new inquiry.
+  allow create: if
+    request.resource.data.keys().hasOnly([
+      "organization",
+      "pipeline",
+      "source",
+      "status",
+      "contactName",
+      "email",
+      "phone",
+      "preferredContact",
+      "participantName",
+      "participantAge",
+      "programInterest",
+      "message",
+      "language",
+      "pagePath",
+      "createdAt"
+    ])
+
+    && request.resource.data.organization == "YESC"
+    && request.resource.data.pipeline == "yesc"
+    && request.resource.data.source == "marketing-fitness"
+    && request.resource.data.status == "new"
+
+    && request.resource.data.contactName is string
+    && request.resource.data.contactName.size() > 0
+    && request.resource.data.contactName.size() <= 120
+
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 254
+
+    && request.resource.data.phone is string
+    && request.resource.data.phone.size() > 0
+    && request.resource.data.phone.size() <= 40
+
+    && request.resource.data.preferredContact in [
+      "text",
+      "phone",
+      "email"
+    ]
+
+    && request.resource.data.participantName is string
+    && request.resource.data.participantName.size() > 0
+    && request.resource.data.participantName.size() <= 120
+
+    && request.resource.data.participantAge is int
+    && request.resource.data.participantAge >= 5
+    && request.resource.data.participantAge <= 100
+
+    && request.resource.data.programInterest is string
+    && request.resource.data.programInterest.size() > 0
+    && request.resource.data.programInterest.size() <= 120
+
+    && request.resource.data.message is string
+    && request.resource.data.message.size() <= 1200
+
+    && request.resource.data.language in [
+      "en",
+      "es"
+    ]
+
+    && request.resource.data.pagePath is string
+    && request.resource.data.createdAt is timestamp;
+
+  // Only coaches and admins may view submissions.
+  allow get, list: if isCoachOrAdmin();
+
+  // Coaches and admins may update workflow fields.
+  allow update: if isCoachOrAdmin()
+
+    && request.resource.data
+      .diff(resource.data)
+      .changedKeys()
+      .hasOnly([
+        "status",
+        "contactedAt",
+        "convertedAt",
+        "closedAt",
+        "updatedAt"
+      ])
+
+    && request.resource.data.status in [
+      "new",
+      "contacted",
+      "converted",
+      "closed"
+    ]
+
+    && (
+      !("contactedAt" in request.resource.data)
+      || request.resource.data.contactedAt == null
+      || request.resource.data.contactedAt is timestamp
+    )
+
+    && (
+      !("convertedAt" in request.resource.data)
+      || request.resource.data.convertedAt == null
+      || request.resource.data.convertedAt is timestamp
+    )
+
+    && (
+      !("closedAt" in request.resource.data)
+      || request.resource.data.closedAt == null
+      || request.resource.data.closedAt is timestamp
+    )
+
+    && request.resource.data.updatedAt is timestamp;
+
+  // Only admins may permanently delete submissions.
+allow delete: if isCoachOrAdmin();
+}
+/* --------------------------------------
+   Admissions Follow-Up
+---------------------------------------*/
+match /follow_up/{token} {
+
+  // Allow a family to read only a single follow-up
+  // document when they have the secure token.
+  allow get: if token.size() == 64;
+
+  // Never allow listing the collection.
+  allow list: if false;
+
+  // Public clients cannot create, modify, or delete.
+  allow create, update, delete: if false;
+}
+/* --------------------------------------
+   Public Newsletter Subscribers
+---------------------------------------*/
+match /newsletter_subscribers/{subscriberId} {
+
+  /*
+   * Public visitors are anonymously authenticated
+   * before submitting the Stay Connected form.
+   *
+   * They may create a subscription, but may never
+   * read, list, update, or delete subscriber data.
+   */
+  allow create: if request.auth != null
+
+    && request.resource.data.keys().hasOnly([
+      "email",
+      "organization",
+      "source",
+      "status",
+      "interests",
+      "language",
+      "consent",
+      "pagePath",
+      "createdAt",
+      "updatedAt"
+    ])
+
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 254
+
+    && request.resource.data.organization ==
+      "sandman-academy"
+
+    && request.resource.data.source ==
+      "public-homepage"
+
+    && request.resource.data.status ==
+      "ACTIVE"
+
+    && request.resource.data.interests is list
+    && request.resource.data.interests.hasOnly([
+      "combat",
+      "fitness",
+      "community-events",
+      "promotions"
+    ])
+
+    && request.resource.data.language in [
+      "en",
+      "es"
+    ]
+
+    && request.resource.data.consent == true
+
+    && request.resource.data.pagePath is string
+    && request.resource.data.pagePath.size() > 0
+    && request.resource.data.pagePath.size() <= 500
+
+    && request.resource.data.createdAt ==
+      request.time
+
+    && request.resource.data.updatedAt ==
+      request.time;
+
+  allow read, update, delete: if false;
+}
+
+/* --------------------------------------
+   Academy Communication Settings
+---------------------------------------*/
+match /academySettings/{academyId} {
+  allow read: if request.auth != null;
+
+  allow create, update: if isCoachOrAdmin()
+    && request.resource.data.academyName is string
+    && request.resource.data.communicationEmail is string
+    && request.resource.data.replyToEmail is string
+    && request.resource.data.phone is string
+    && request.resource.data.messageLimit is int
+    && request.resource.data.messageLimit > 0
+    && request.resource.data.messageLimit <= 20
+    && request.resource.data.allowNewConversationAfterClose is bool
+    && request.resource.data.autoCloseAtLimit is bool;
+
+  allow delete: if isAdmin();
+}
+
+    /* --------------------------------------
+       Proposals
+    ---------------------------------------*/
+    match /proposals/{proposalId} {
+      // Admin has system-wide oversight.
+      // Management may read only proposals assigned
+      // to one of its authorized locations.
+      allow get, list: if isAdmin()
+        || managementHasLocation(
+          resource.data.locationId
+        );
+
+      // Proposal mutations are performed through
+      // trusted Cloud Functions, not browser clients.
+      allow create, update, delete: if false;
+
+      match /history/{historyId} {
+        allow get, list: if isAdmin()
+          || managementHasLocation(
+            get(
+              /databases/$(database)/documents/proposals/$(proposalId)
+            ).data.locationId
+          );
+
+        allow create, update, delete: if false;
+      }
+    }
+
+    /* --------------------------------------
+       General Messages Funnel
+       Public → Admin → Management → Coach
+
+       Collection:
+       general_messages/{messageId}
+
+       Management and location-specific access will be
+       activated after the management role records and
+       location assignments are finalized.
+    ---------------------------------------*/
+    match /general_messages/{messageId} {
+
+      // Pass closure is owned by storeClosedMessageIntelligence, which verifies
+      // attendance and webhook-confirmed payment before closing atomically.
+      function passClosureIsServerOnly() {
+        return resource.data.get("topic", "") != "request-pass"
+          || (
+            request.resource.data.get("status", "") != "CLOSED"
+            && request.resource.data.get("messageStatus", "") != "CLOSED"
+            && request.resource.data.get("routingStage", "") != "CLOSED"
+          );
+      }
+
+      /*
+       * Every public message enters at the organization
+       * level for Admin review. It is not initially owned
+       * by a coach or location.
+       */
+      allow create: if request.resource.data.keys().hasOnly([
+          "organization",
+          "pipeline",
+          "source",
+
+          "status",
+          "messageStatus",
+          "routingStage",
+          "nextRoutingStage",
+          "routingPolicy",
+          "requiredManagerLevel",
+          "assignmentStatus",
+
+          "contactName",
+          "email",
+          "phone",
+          "topic",
+          "passType",
+          "message",
+          "preferredOrganization",
+          "preferredLocation",
+          "contactConsent",
+          "language",
+          "pagePath",
+
+          "organizationId",
+          "organizationName",
+
+          "academyId",
+          "academyName",
+
+          "locationId",
+          "locationName",
+
+          "assignedAdminUid",
+          "assignedManagerUid",
+          "assignedCoachUid",
+
+          "respondedByUid",
+          "respondedByRole",
+          "respondedAt",
+
+          "closedByUid",
+          "closedAt",
+
+          "escalated",
+          "escalationReason",
+
+          "coachNotes",
+          "managementNotes",
+
+          "createdAt",
+          "updatedAt"
+        ])
+
+        && request.resource.data.organization == "sandman-system"
+        && request.resource.data.pipeline == "general-messaging"
+        && request.resource.data.source == "public-message-page"
+
+        && request.resource.data.status == "NEW"
+        && request.resource.data.messageStatus == "NEW"
+
+        && request.resource.data.requiredManagerLevel ==
+           "LOCATION_MANAGER"
+
+        /*
+         * Two valid public entrances:
+         *
+         * 1. National / unknown
+         *    -> Admin Review
+         *
+         * 2. Known Santa Ynez local academy
+         *    -> Location Management queue
+         */
+        && (
+          (
+            request.resource.data.routingStage ==
+              "ADMIN_REVIEW"
+
+            && request.resource.data.nextRoutingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.routingPolicy ==
+              "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER"
+
+            && request.resource.data.assignmentStatus ==
+              "UNASSIGNED"
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.nextRoutingStage ==
+              "COACH_ASSIGNED"
+
+            && request.resource.data.routingPolicy ==
+              "LOCAL_TO_LOCATION_MANAGER"
+
+            && request.resource.data.assignmentStatus ==
+              "PENDING_MANAGEMENT"
+          )
+        )
+
+        && request.resource.data.contactName is string
+        && request.resource.data.contactName.size() > 0
+        && request.resource.data.contactName.size() <= 120
+
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 3
+        && request.resource.data.email.size() <= 254
+
+        && request.resource.data.phone is string
+        && request.resource.data.phone.size() <= 40
+
+        && request.resource.data.topic is string
+        && request.resource.data.topic.size() > 0
+        && request.resource.data.topic.size() <= 120
+
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 4000
+
+
+        && request.resource.data.preferredOrganization
+           is string
+
+        && request.resource.data.preferredOrganization in [
+          "sandman-academy",
+          "yesc",
+          "other-organization",
+          "not-sure"
+        ]
+
+        && request.resource.data.preferredLocation
+           is string
+
+        && request.resource.data.preferredLocation in [
+          "santa-ynez-valley",
+          "solvang",
+          "lompoc",
+          "elk-grove",
+          "system-team",
+          "not-sure"
+        ]
+
+        && request.resource.data.contactConsent == true
+        && request.resource.data.language in ["en", "es"]
+
+        /*
+         * National entries remain unresolved.
+         * Known local academy entries arrive with
+         * canonical routing values already attached.
+         */
+        && (
+          (
+            request.resource.data.routingStage ==
+              "ADMIN_REVIEW"
+
+            && request.resource.data.organizationId == null
+            && request.resource.data.organizationName == ""
+
+            && request.resource.data.academyId == null
+            && request.resource.data.academyName == ""
+
+            && request.resource.data.locationId == null
+            && request.resource.data.locationName == ""
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.preferredOrganization ==
+              "sandman-academy"
+
+            && request.resource.data.preferredLocation ==
+              "santa-ynez-valley"
+
+            && request.resource.data.organizationId ==
+              "sandman-academy"
+
+            && request.resource.data.organizationName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.academyId ==
+              "sandman-academy"
+
+            && request.resource.data.academyName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.locationId ==
+              "santa-ynez-valley"
+
+            && request.resource.data.locationName ==
+              "Santa Ynez Valley"
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.preferredOrganization ==
+              "sandman-academy"
+
+            && request.resource.data.preferredLocation ==
+              "elk-grove"
+
+            && request.resource.data.organizationId ==
+              "sandman-academy"
+
+            && request.resource.data.organizationName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.academyId ==
+              "sandman-academy"
+
+            && request.resource.data.academyName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.locationId ==
+              "elk-grove"
+
+            && request.resource.data.locationName ==
+              "Elk Grove, California"
+          )
+        )
+
+        && request.resource.data.assignedAdminUid == null
+        && request.resource.data.assignedManagerUid == null
+        && request.resource.data.assignedCoachUid == null
+
+        && request.resource.data.respondedByUid == null
+        && request.resource.data.respondedByRole == null
+        && request.resource.data.respondedAt == null
+
+        && request.resource.data.closedByUid == null
+        && request.resource.data.closedAt == null
+
+        && request.resource.data.escalated == false
+        && request.resource.data.escalationReason == ""
+
+        && request.resource.data.coachNotes == ""
+        && request.resource.data.managementNotes == ""
+
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+
+      /*
+       * Current visibility:
+       * Admin sees all messages.
+       * Coach visibility remains enabled for the working
+       * receiver until assignment scoping is activated.
+       */
+      allow get, list: if isAdmin();
+
+      /*
+       * Admin controls routing, assignment, location,
+       * escalation, response metadata, and closure.
+       */
+      allow update: if isAdmin()
+        && passClosureIsServerOnly()
+
+        && request.resource.data.diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "status",
+            "messageStatus",
+            "routingStage",
+            "nextRoutingStage",
+            "assignmentStatus",
+
+            "organizationId",
+            "organizationName",
+
+            "academyId",
+            "academyName",
+
+            "locationId",
+            "locationName",
+
+            "assignedAdminUid",
+            "assignedManagerUid",
+            "assignedCoachUid",
+
+            "respondedByUid",
+            "respondedByRole",
+            "respondedAt",
+
+            "closedByUid",
+            "closedAt",
+
+            "escalated",
+            "escalationReason",
+
+            "coachNotes",
+            "managementNotes",
+            "updatedAt"
+          ])
+
+        && request.resource.data.status in [
+          "NEW",
+          "TRIAGE",
+          "ASSIGNED",
+          "REVIEWING",
+          "RESPONDED",
+          "CLOSED"
+        ]
+
+        && request.resource.data.messageStatus ==
+           request.resource.data.status
+
+        && request.resource.data.routingStage in [
+          "ADMIN_REVIEW",
+          "MANAGEMENT_TRIAGE",
+          "COACH_ASSIGNED",
+          "COACH_REVIEWING",
+          "RESPONDED",
+          "CLOSED"
+        ]
+
+        && request.resource.data.assignmentStatus in [
+          "UNASSIGNED",
+          "PENDING_MANAGEMENT",
+          "PENDING_COACH",
+          "ASSIGNED",
+          "COMPLETED"
+        ]
+
+        && request.resource.data.coachNotes is string
+        && request.resource.data.coachNotes.size() <= 4000
+
+        && request.resource.data.managementNotes is string
+        && request.resource.data.managementNotes.size() <= 4000
+
+        && request.resource.data.escalated is bool
+        && request.resource.data.escalationReason is string
+        && request.resource.data.escalationReason.size() <= 1000
+
+        && request.resource.data.updatedAt is timestamp
+
+        /*
+         * Mandatory first handoff:
+         *
+         * A message at ADMIN_REVIEW must be routed
+         * to a selected Location Manager.
+         *
+         * Admin cannot send it directly to a coach.
+         */
+        && (
+          resource.data.routingStage != "ADMIN_REVIEW"
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.nextRoutingStage ==
+              "COACH_ASSIGNED"
+
+            && request.resource.data.assignmentStatus in [
+              "PENDING_MANAGEMENT",
+              "ASSIGNED"
+            ]
+
+            /*
+             * Organization and location are both required.
+             * Academy is optional because YESC or another
+             * organization may route directly to a location.
+             */
+            && request.resource.data.organizationId is string
+            && request.resource.data.organizationId.size() > 0
+
+            && request.resource.data.organizationName is string
+            && request.resource.data.organizationName.size() > 0
+
+            && (
+              (
+                request.resource.data.academyId == null
+                && request.resource.data.academyName == ""
+              )
+              ||
+              (
+                request.resource.data.academyId is string
+                && request.resource.data.academyId.size() > 0
+                && request.resource.data.academyName is string
+                && request.resource.data.academyName.size() > 0
+              )
+            )
+
+            && request.resource.data.locationId is string
+            && request.resource.data.locationId.size() > 0
+
+            && request.resource.data.locationName is string
+            && request.resource.data.locationName.size() > 0
+
+            && request.resource.data.assignedAdminUid ==
+              request.auth.uid
+
+            && (
+              request.resource.data.assignedManagerUid == null
+              ||
+              (
+                request.resource.data.assignedManagerUid is string
+                && request.resource.data.assignedManagerUid.size() > 0
+              )
+            )
+
+            && (
+              (
+                request.resource.data.assignedManagerUid == null
+                && request.resource.data.assignmentStatus ==
+                  "PENDING_MANAGEMENT"
+              )
+              ||
+              (
+                request.resource.data.assignedManagerUid is string
+                && request.resource.data.assignedManagerUid.size() > 0
+                && request.resource.data.assignmentStatus ==
+                  "ASSIGNED"
+              )
+            )
+
+            && request.resource.data.assignedCoachUid == null
+          )
+        );
+
+      /*
+       * Management Inbox access and coach assignment.
+       *
+       * System Admin retains full Reception oversight.
+       * Operational Management sees messages assigned
+       * to them or pending within their location scope.
+       */
+      allow get, list: if isManagement()
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
+        && (
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
+          ||
+          (
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
+            && managementHasLocation(
+              resource.data.get(
+                "locationId",
+                ""
+              )
+            )
+          )
+        );
+
+      allow update: if isManagement()
+        && passClosureIsServerOnly()
+
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
+
+        && (
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
+          ||
+          (
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
+            && managementHasLocation(
+              resource.data.get(
+                "locationId",
+                ""
+              )
+            )
+          )
+        )
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "assignedManagerUid",
+            "assignedCoachUid",
+            "routingStage",
+            "nextRoutingStage",
+            "assignmentStatus",
+            "status",
+            "messageStatus",
+            "managementNotes",
+            "updatedAt"
+          ])
+
+        && request.resource.data.assignedManagerUid ==
+          request.auth.uid
+
+        && request.resource.data.assignedCoachUid
+          is string
+
+        && request.resource.data.assignedCoachUid
+          .size() > 0
+
+        && request.resource.data.routingStage ==
+          "COACH_ASSIGNED"
+
+        && request.resource.data.nextRoutingStage ==
+          "COACH_REVIEWING"
+
+        && request.resource.data.assignmentStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.status ==
+          "ASSIGNED"
+
+        && request.resource.data.messageStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.managementNotes
+          is string
+
+        && request.resource.data.managementNotes
+          .size() <= 4000
+
+        && request.resource.data.updatedAt
+          is timestamp;
+
+      /*
+       * Management may request System Admin guidance
+       * while retaining ownership of the response.
+       */
+      allow update: if isManagement()
+        && passClosureIsServerOnly()
+
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
+
+        && (
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
+          ||
+          (
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
+            && managementHasLocation(
+              resource.data.get(
+                "locationId",
+                ""
+              )
+            )
+          )
+        )
+
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "assignedManagerUid",
+            "routingStage",
+            "nextRoutingStage",
+            "assignmentStatus",
+            "status",
+            "messageStatus",
+            "escalated",
+            "escalationReason",
+            "updatedAt"
+          ])
+
+        && request.resource.data.assignedManagerUid ==
+          request.auth.uid
+
+        && request.resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == resource.data.get(
+          "assignedCoachUid",
+          null
+        )
+
+        && request.resource.data.routingStage ==
+          "ADMIN_GUIDANCE_REQUESTED"
+
+        && request.resource.data.nextRoutingStage ==
+          "MANAGEMENT_RESPONSE"
+
+        && request.resource.data.assignmentStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.status ==
+          "REVIEWING"
+
+        && request.resource.data.messageStatus ==
+          "REVIEWING"
+
+        && request.resource.data.escalated == true
+
+        && request.resource.data.escalationReason ==
+          "MANAGEMENT_GUIDANCE_REQUEST"
+
+        && request.resource.data.updatedAt
+          is timestamp;
+
+      /*
+       * Coach receiver visibility.
+       *
+       * A coach may see only messages explicitly
+       * assigned to that coach by Management.
+       */
+      allow get, list: if staffRole() == "coach"
+        && resource.data.assignedCoachUid
+          == request.auth.uid;
+
+      /*
+       * Current coach receiver behavior.
+       *
+       * Coaches cannot assign locations, managers,
+       * coaches, or alter the original public message.
+       */
+      allow update: if staffRole() == "coach"
+        && passClosureIsServerOnly()
+
+        && resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == request.auth.uid
+
+        && request.resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == request.auth.uid
+
+        && request.resource.data.diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "status",
+            "messageStatus",
+            "routingStage",
+            "assignmentStatus",
+            "coachNotes",
+
+            "respondedByUid",
+            "respondedByRole",
+            "respondedAt",
+
+            "closedByUid",
+            "closedAt",
+
+            "escalated",
+            "escalationReason",
+            "updatedAt"
+          ])
+
+        && request.resource.data.status in [
+          "NEW",
+          "REVIEWING",
+          "RESPONDED",
+          "CLOSED"
+        ]
+
+        && request.resource.data.messageStatus ==
+           request.resource.data.status
+
+        && request.resource.data.routingStage in [
+          "ADMIN_REVIEW",
+          "COACH_ASSIGNED",
+          "COACH_REVIEWING",
+          "RESPONDED",
+          "CLOSED"
+        ]
+
+        && request.resource.data.assignmentStatus in [
+          "UNASSIGNED",
+          "ASSIGNED",
+          "COMPLETED"
+        ]
+
+        && request.resource.data.coachNotes is string
+        && request.resource.data.coachNotes.size() <= 4000
+
+        && request.resource.data.escalated is bool
+        && request.resource.data.escalationReason is string
+        && request.resource.data.escalationReason.size() <= 1000
+
+        && request.resource.data.updatedAt is timestamp;
+
+      allow delete: if isAdmin();
+
+      /*
+       * Reserved audit-history path.
+       * Later, trusted Cloud Functions can write immutable
+       * routing and assignment records here.
+       */
+      match /history/{historyId} {
+        allow get, list: if isCoachOrAdmin();
+        allow create, update, delete: if false;
+      }
+    }
+    /* --------------------------------------
+       DEFAULT CLOSED
+    ---------------------------------------*/
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    /* --------------------------------------
+       Helpers
+    ---------------------------------------*/
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function staffRole() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+          ? get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role
+          : null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "system_admin"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
+    }
+
+    function isManagement() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["management", "manager", "location_manager"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
+    }
+
+    function isAdminOrManagement() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active"
+        && (
+          isAdmin()
+          || isManagement()
+        );
+    }
+
+    function isCoachOrAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "coach"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
+    }
+
+    /*
+     * New admissions-assessment authority uses an explicit
+     * active Coach check rather than the broader legacy
+     * isCoachOrAdmin() helper.
+     */
+    function isActiveCoach() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.role == "coach"
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active";
+    }
+
+    function isActiveCoachOrAdmin() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.role in ["coach", "admin"]
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active";
+    }
+
+    function canReadStaffAthlete(athlete) {
+      return (isManagement() && managementHasLocation(athlete.locationId))
+        || (
+          isActiveCoach()
+          && (
+            staffHasLocation(athlete.locationId)
+            || athlete.coachUid == request.auth.uid
+            || request.auth.uid in athlete.coachIds
+          )
+        );
+    }
+
+    function isLinkedParent(athleteUid) {
+      let linkPath = /databases/$(database)/documents/parentAthleteLinks/$(request.auth.uid + "_" + athleteUid);
+      return isSignedIn()
+        && exists(linkPath)
+        && get(linkPath).data.parentUid == request.auth.uid
+        && get(linkPath).data.athleteUid == athleteUid
+        && get(linkPath).data.status == "active";
+    }
+
+    function staffHasLocation(locationId) {
+      let staff = get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+      return locationId is string
+        && (
+          (staff.get("locationIds", []) is list && locationId in staff.get("locationIds", []))
+          || (staff.get("locations", []) is list && locationId in staff.get("locations", []))
+          || staff.get("locationId", "") == locationId
+        );
+    }
+
+    function isCoachAssignedToAthlete(athleteUid) {
+      let athletePath = /databases/$(database)/documents/athletes/$(athleteUid);
+      let athlete = get(athletePath).data;
+      return isActiveCoachOrAdmin()
+        && exists(athletePath)
+        && (
+          isAdmin()
+          || athlete.get("coachUid", "") == request.auth.uid
+          || (athlete.get("coachIds", []) is list && request.auth.uid in athlete.get("coachIds", []))
+          || staffHasLocation(athlete.get("locationId", ""))
+        );
+    }
+
+    function isVolunteerParticipant(threadId) {
+      let threadPath = /databases/$(database)/documents/paraVolunteerInbox/$(threadId);
+      return isSignedIn() && exists(threadPath)
+        && get(threadPath).data.parentUid == request.auth.uid;
+    }
+
+    function isLaneSubmissionOwner(athleteId) {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          request.auth.uid == athleteId
+          || get(
+            /databases/$(database)/documents/athletes/$(athleteId)
+          ).data.authUid == request.auth.uid
+        );
+    }
+
+    function preservesCoachOwnedConditioningAssignment() {
+      return (
+          !("conditioning_assignment" in resource.data)
+          && !("conditioning_assignment" in request.resource.data)
+        )
+        || (
+          "conditioning_assignment" in resource.data
+          && "conditioning_assignment" in request.resource.data
+          && (
+            request.resource.data.conditioning_assignment
+              .diff(resource.data.conditioning_assignment)
+              .changedKeys()
+              .hasOnly([])
+            || (
+              request.resource.data.conditioning_assignment
+                .diff(resource.data.conditioning_assignment)
+                .changedKeys()
+                .hasOnly(["status", "completedAt"])
+              && resource.data.conditioning_assignment.status == "assigned"
+              && request.resource.data.conditioning_assignment.status == "completed"
+              && request.resource.data.conditioning_assignment.completedAt == request.time
+            )
+          )
+        );
+    }
+
+    function isOperationalStaff() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "management", "manager", "location_manager", "coach"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
+    }
+
+    function managementHasLocation(locationId) {
+      let staff = get(
+        /databases/$(database)/documents/staff/$(request.auth.uid)
+      ).data;
+
+      let locationIds =
+        staff.get("locationIds", null);
+
+      let locations =
+        staff.get("locations", null);
+
+      let legacyLocationId =
+        staff.get("locationId", "");
+
+      return isManagement()
+        && staff.get("status", "") == "active"
+        && locationId is string
+        && (
+          (
+            locationIds is list
+            && locationId in locationIds
+          )
+          ||
+          (
+            locationIds is string
+            && locationIds == locationId
+          )
+          ||
+          (
+            locations is list
+            && locationId in locations
+          )
+          ||
+          (
+            locations is string
+            && locations == locationId
+          )
+          ||
+          (
+            legacyLocationId is string
+            && legacyLocationId == locationId
+          )
+        );
+    }
+
+    function lockVal(locks, key) {
+      return (locks is map)
+        && locks.keys().hasAny([key])
+        && locks[key] == true;
+    }
+
+    function lockForStep(locks, s) {
+      return s == 1 ? lockVal(locks, "step1") :
+             s == 2 ? lockVal(locks, "step2") :
+             s == 3 ? lockVal(locks, "step3") :
+             s == 4 ? lockVal(locks, "step4") :
+             s == 5 ? lockVal(locks, "step5") :
+             s == 6 ? lockVal(locks, "step6") :
+             s == 7 ? lockVal(locks, "step7") :
+             s == 8 ? lockVal(locks, "step8") :
+             s == 9 ? lockVal(locks, "step9") :
+             false;
+    }
+
+    function validLocksProgressionNextStep(oldStep, newStep, oldLocks, newLocks) {
+      return (newLocks is map) && (
+        (
+          !(oldStep is int)
+          && newStep == 2
+          && lockVal(newLocks, "step1")
+        )
+        ||
+        (
+          (oldStep is int)
+          && (newStep is int)
+          && (newStep == oldStep + 1)
+          && lockForStep(newLocks, oldStep)
+        )
+      );
+    }
+  }
+}
