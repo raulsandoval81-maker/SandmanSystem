@@ -1,0 +1,131 @@
+{
+  "archiveSha256": "8ee5c8784d3fff13c449c7dc64465c3e4fec7b51b84d1b910d0abc337fd5a766",
+  "source": "00379c6cd9da199a59bc7635d7609034b135b227",
+  "firestoreSha256": "b0e7dd8c633c13eccc64cb66edb357141c20d98c92c03b947607f3737a357da6",
+  "assets": {
+    "/assets/js/coaches-ceremonies.js": {
+      "sha256": "14cec6cbb875b0a8daf98dd56a2f06b26fcf921aecd8111784da52e08beab379",
+      "hostingHash": "40bec844de243cfb0116324704ef1eec31bacc0a582cfc5f9d8a78324cc2cb6c"
+    },
+    "/assets/js/scoped-coach-athletes.js": {
+      "sha256": "c47537edfb9acd3c84c2e81aa0bbc120318b4c6886b9d3b11324f7ef3df2ff16",
+      "hostingHash": "fb1a13fe8e8514651d8acb954f815a148470d7cbc84236c4147d3e1539934a0f"
+    },
+    "/coaches/arena-xp/championship-arena.js": {
+      "sha256": "946139b05b0ff0e415cb49bfaa6a36deb1077640b18308b77ced8d5236c88894",
+      "hostingHash": "bd7df12b38642088f74cc5bac17ef4f0063b43b9867d35a6df38094ea567d62d"
+    },
+    "/coaches/arena-xp/declared-championship.js": {
+      "sha256": "460f59a287a4b05c31501be74e44fe539b1e43406607814651f27fa4acb14ffa",
+      "hostingHash": "84b4f18a0980ccef280d9ff22ccbd25a7dc242bb8c7bedb58a648fad1fb99f78"
+    },
+    "/coaches/arena-xp/duel-arena.js": {
+      "sha256": "0acee033438ba9b347b2eaf64644fa3a4cb77d1a0ddf758b07d925be4830808c",
+      "hostingHash": "87efb81348f690de80eea81bffd2ca4fbc5e01dd5e4bf8df324678495f49313e"
+    },
+    "/coaches/arena-xp/weekend-arena.js": {
+      "sha256": "e5872a8f0c887ca959387e8d6df5823ee64018322f2633396b8dcca9b415add5",
+      "hostingHash": "a89f22370b91b0fc29005d167e9e2d4f4a4a1ade0cad449b4b40ce433ffbf587"
+    },
+    "/coaches/ceremonies/certificates/queue.js": {
+      "sha256": "2094d7b48999f317eca4ba291f63c26dd5da4e148acfb64717decb95f6c96620",
+      "hostingHash": "d57b141ffcb8c4baca39851406fea842f2dedb67b6f35a68bd07843ec6babcf4"
+    },
+    "/coaches/command-center/command-center.js": {
+      "sha256": "2792af219ffcd45cc97f8deed94110dd87b20e20ac620c6fb01a7797f4cace86",
+      "hostingHash": "ae516ddcdc969ee8900c3a508de68913451e0021d3bad847da517345484bb9bf"
+    },
+    "/coaches/daily-xp/daily-grind.js": {
+      "sha256": "78f709df1a6e9cb9c7361d19ebbccd1e7d6ff5706b21a4bcc954b924c1de599e",
+      "hostingHash": "4114c19b7e9ac1e71a22d1e3214860f9255eb1cc4b37491737bf89d7e4836fe0"
+    },
+    "/coaches/lanes/strength/review.js": {
+      "sha256": "006ff120f39a95b52f62a02f8b085cab94cf6d0d7587a3f60e35f9b8aed9d61e",
+      "hostingHash": "a45897d3e7687d19c5af7f4b434ae6bfe1fc3b186d89c4e563e49c529aff7541"
+    },
+    "/coaches/progression/queue.js": {
+      "sha256": "d3408e46e77e5318acaeb8700f1991bc2a95c25b1dddd14d6200cd70509b2eed",
+      "hostingHash": "83efd991ebbcb83e50e626686e86c4b458759c3635595ebfbc4407e615ff8b05"
+    },
+    "/coaches/roster/roster.js": {
+      "sha256": "f7efcae81d94d4f3cae3f690c4656e6af6c58551fc9452a782fab66cec425a00",
+      "hostingHash": "443b6907a93e28168eafee2fba028c89622f6222a96bdbeab88c4f4f416456a5"
+    },
+    "/coaches/safety/safety.js": {
+      "sha256": "bf76e5c2a39ea349b9d6f272e98eed2a74ac36c78f4774a2e84f581a6fdc5819",
+      "hostingHash": "dfcd9f974bc380e353fb26ee3ed60b224e79b5624256e81bdab4e3b8214268e1"
+    },
+    "/coaches/testing/testing-operations.js": {
+      "sha256": "1e24d9ec9df9a375dde932df87ffadc51a72c90a89df9afe88323ebbef188a50",
+      "hostingHash": "88fe05714f3c430237736bc03a06ab3793ae74f38573ce14fad3d5faa2f7e4d7"
+    },
+    "/coaches/today/today.js": {
+      "sha256": "1b77ae32b6c08b2dedfacbaacc66f43f1718b8d522cea60d71d4d57be8ecdfb3",
+      "hostingHash": "4adb2e78f04b9eee1332de99a061ec210755b9ba4b878302514f796f9f3a21e0"
+    },
+    "/communications/coach/hub.js": {
+      "sha256": "eba5f5749c346d32dc6e99d50d7cb79577e702d2ff317fdfd4b0b3239bfe28f4",
+      "hostingHash": "1a80a53480e8a7794e429cf368d29be6edadf9524b91379a93fc7dba75324125"
+    },
+    "/connect/proposals/activity/activity.js": {
+      "sha256": "d8fb2810da39c52fb861553f692c6a0473544415ef11bae234c3227b3fb80242",
+      "hostingHash": "0dd32dc8ab9cc0fabd552db290d40c598f5f21ab74f0ee98b3433b71e3e1f0da"
+    },
+    "/intake-coach/coach.intake.js": {
+      "sha256": "33f7c63acb667bd2b208ca4745b9f199aaeee3853a313408ab0e7fa6f4f597e8",
+      "hostingHash": "70588868e90474e2ae620e98dca08686eca003b9c1c0e4f3358bc252b6380ad0"
+    }
+  },
+  "permissions": {
+    "required": [
+      "firebasehosting.sites.get",
+      "firebasehosting.sites.update",
+      "firebaserules.releases.get",
+      "firebaserules.releases.update",
+      "firebaserules.rulesets.create",
+      "firebaserules.rulesets.get"
+    ],
+    "granted": [
+      "firebasehosting.sites.get",
+      "firebasehosting.sites.update",
+      "firebaserules.releases.get",
+      "firebaserules.releases.update",
+      "firebaserules.rulesets.create",
+      "firebaserules.rulesets.get"
+    ],
+    "missing": []
+  },
+  "firestoreBaseline": {
+    "release": "projects/sandman-combat-staging/releases/cloud.firestore",
+    "ruleset": "projects/sandman-combat-staging/rulesets/ed1b464d-a28b-49c3-95d9-504ebe5cf325",
+    "sha256": "8cf0f6033f2afec0a8cb5929eaea95837e404553337a4f5f7e074fb0c49b780d"
+  },
+  "hostingBaseline": {
+    "release": "sites/sandman-combat-staging/releases/1795093032152000",
+    "version": "sites/sandman-combat-staging/versions/fdcf708f150245f5",
+    "fileCount": 3073,
+    "manifestSha256": "b6d40bd79560c065de45609c2574ba668bbe8bfd4cc11960be525cb339955ddd",
+    "configSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "allowlistedPaths": {
+      "/assets/js/coaches-ceremonies.js": "5106aec5dfcb8e8ce36d8bbdae16d4b43d71156256a88cc1155ef1bb11d3ff76",
+      "/assets/js/scoped-coach-athletes.js": null,
+      "/coaches/arena-xp/championship-arena.js": "6e0b3404487b16fa85e537582fe0db39e5a07e966ca77b2f4b38cc719ae307c1",
+      "/coaches/arena-xp/declared-championship.js": "228809d72109d8c5a74d953821d0f2b2985233afc9129913843642cd45dc7226",
+      "/coaches/arena-xp/duel-arena.js": "82e4e1a4dc6b80f6658cc0b7b2a89ea3521e0dfe845e7276aaee48321b71e943",
+      "/coaches/arena-xp/weekend-arena.js": "85ce6a9238653304c980305be21c8d275ae021cdfdd11a5eb245ab6ff4ee0342",
+      "/coaches/ceremonies/certificates/queue.js": "6b5a2cdc844a915cdf176be29ff7eceda9545c91f5ef03b5eca4b07e58be1c13",
+      "/coaches/command-center/command-center.js": "6962385250632121f632cf4dc7b31e695325dfb44a0311e2119ce1868bcb8892",
+      "/coaches/daily-xp/daily-grind.js": "327f286496263fc56f77b34e3770754256e6683fc3829eea18843916d22b4767",
+      "/coaches/lanes/strength/review.js": "5507cd90d4b0bb654d68071445d528625dc87cafbbba988923dab4bda706ce29",
+      "/coaches/progression/queue.js": "c99084985bfec4e0c85977e7baa38f7901247c5158fb095ba4bf8c05424fa90a",
+      "/coaches/roster/roster.js": "7052c4581dc22e015787ddce6426b091344fc1676c6a268a7ae73b9d3c4bd372",
+      "/coaches/safety/safety.js": "423ceef327b2db0b71d9ec637054305bb60d92fe771e7cc1b22722411c81c8fe",
+      "/coaches/testing/testing-operations.js": "873f43831af6acf06c50d16e2b975a4b22a6cdaefb20c6e167d3523d04d616f1",
+      "/coaches/today/today.js": "61830906e430358f057559133688ed60939f04faa68003c170852beb12c9e5b0",
+      "/communications/coach/hub.js": "e924e0e758faa46c4f5afecbf453391e114c9ac09c6972a72c17050d47b66860",
+      "/connect/proposals/activity/activity.js": "5a507faa0d4158ef224e64e339f952b2d8b893a7a5a56286103be1f93cf7f18b",
+      "/intake-coach/coach.intake.js": "7c73ea1cc344fd76fd9d1908733e882b2562dd2e5445ebc6bfbb64dbbd42c207"
+    }
+  },
+  "status": "PASS"
+}

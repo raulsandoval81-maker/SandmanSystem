@@ -70,7 +70,7 @@ def candidate():
     return {"archiveSha256": PACKAGE, "source": SOURCE, "firestoreSha256": RULES, "assets": assets}
 
 
-def live(result):
+def live(result, *, check_permissions=True):
     token = inventory.hosting_access_token(os.environ)
     opener = urllib.request.build_opener(inventory.NoRedirect())
 
@@ -81,11 +81,12 @@ def live(result):
 
     project = get(f"https://firebase.googleapis.com/v1beta1/projects/{PROJECT}")
     assert project.get("projectId") == PROJECT and str(project.get("projectNumber")) == "991554514268"
-    required = sorted(set(permissions.REQUIREMENTS["hosting"] + permissions.REQUIREMENTS["rules"]))
-    probe = permissions.permission_probe("P0 staging project",
-        f"https://cloudresourcemanager.googleapis.com/v1/projects/{PROJECT}", token, required)
-    result["permissions"] = probe
-    assert not probe["missing"], f"Missing staging permissions: {probe['missing']}"
+    if check_permissions:
+        required = sorted(set(permissions.REQUIREMENTS["hosting"] + permissions.REQUIREMENTS["rules"]))
+        probe = permissions.permission_probe("P0 staging project",
+            f"https://cloudresourcemanager.googleapis.com/v1/projects/{PROJECT}", token, required)
+        result["permissions"] = probe
+        assert not probe["missing"], f"Missing staging permissions: {probe['missing']}"
 
     rules_api = "https://firebaserules.googleapis.com/v1/"
     release_url = rules_api + f"projects/{PROJECT}/releases/cloud.firestore"
@@ -131,6 +132,8 @@ def live(result):
         "configSha256": digest(json.dumps(config["config"], sort_keys=True).encode()),
         "allowlistedPaths": {path: manifest.get(path) for path in result["assets"]},
     }
+
+    return config["config"], manifest
 
 
 if __name__ == "__main__":

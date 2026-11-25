@@ -173,6 +173,7 @@ on:
           - enrollment-wif-readonly-preflight
           - historical-enrollment-preflight
           - p0-containment-readonly-preflight
+          - p0-containment-staging-deploy
           - handoff-preflight
           - handoff-deploy
           - enrollment-runtime-iam-readonly
@@ -323,6 +324,53 @@ jobs:
         with:
           name: p0-containment-preflight-${{ github.run_id }}
           path: p0-preflight*.json
+          if-no-files-found: error
+
+  p0-containment-staging-deploy:
+    if: ${{ inputs.action == 'p0-containment-staging-deploy' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - name: Verify trusted workflow and explicit staging target
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: |
+          set -euo pipefail
+          test "$APPROVAL" = APPROVE_P0_STAGING_RUN_456
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 00379c6cd9da199a59bc7635d7609034b135b227
+          path: p0-candidate
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        id: p0-staging-auth
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: false
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Publish the pinned staging Hosting and Firestore candidates once
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          REQUESTED_ACTION: ${{ inputs.action }}
+          HOSTING_CREDENTIALS_FILE: ${{ steps.p0-staging-auth.outputs.credentials_file_path }}
+        run: python3 scripts/staging/p0-containment-deploy.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-containment-deploy-${{ github.run_id }}
+          path: p0-staging-deploy-evidence.json
           if-no-files-found: error
 
   diagnose-authorization:
