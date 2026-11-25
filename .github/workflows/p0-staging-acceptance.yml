@@ -1,0 +1,56 @@
+name: P0 authenticated staging acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandman-combat-staging
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p0-staging-authenticated-acceptance
+  cancel-in-progress: false
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 12
+    steps:
+      - name: Guard exact workflow, branch and staging project
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/p0-staging-acceptance.yml@refs/heads/main"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser runner
+        run: |
+          npm install --prefix "$RUNNER_TEMP/p0-acceptance" --ignore-scripts --no-audit --no-fund playwright@1.51.1
+          "$RUNNER_TEMP/p0-acceptance/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Run synthetic acceptance without payment or email writes
+        env:
+          P0_STAGING_FIXTURES: ${{ vars.SANDMAN_P0_STAGING_FIXTURES }}
+          P0_STAGING_PASSWORD: ${{ secrets.SANDMAN_STAGING_TEST_PASSWORD }}
+          P0_PLAYWRIGHT: ${{ runner.temp }}/p0-acceptance/node_modules/playwright/index.mjs
+        run: node scripts/staging/p0-authenticated-acceptance.mjs
+      - name: Preserve sanitized results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p0-staging-acceptance-${{ github.run_id }}
+          path: p0-acceptance-results.json
+          if-no-files-found: ignore
