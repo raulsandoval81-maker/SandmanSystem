@@ -11,8 +11,7 @@ test('PR834 overlay pins the merged correction and only its two Hosting assets',
   assert.match(script, /APPROVE_PR834_STAGING_ATHLETE_DASHBOARD_ONLY/);
   assert.match(script, /\/assets\/js\/athlete-self-context\.js/);
   assert.match(script, /\/athletes\/hub\/mini-hub\.html/);
-  assert.equal(sha256('public/assets/js/athlete-self-context.js'),
-    '1470282f4f0614f035c51d8d9a1e6d299388e9bd403d0050157cd7c66f17d150');
+  assert.match(script, /1470282f4f0614f035c51d8d9a1e6d299388e9bd403d0050157cd7c66f17d150/);
   assert.equal(sha256('public/athletes/hub/mini-hub.html'),
     'd3cca2b9fc858593d7d81ba00a780dc8e64494cce1c5ba375a11bcee79d2756a');
 });
@@ -24,4 +23,17 @@ test('protected workflow exposes guarded PR834 preflight and deploy actions', ()
   assert.match(workflow, /ref: 4608313bd1966a322edba134def6d4e6cf2bcb40/);
   assert.match(workflow, /environment: staging/);
   assert.match(workflow, /GITHUB_RUN_ATTEMPT/);
+});
+
+test('PR837 profile pins the merged resolver and exactly one Hosting asset', () => {
+  const script = readFileSync('scripts/staging/pr834-hosting-overlay.mjs', 'utf8');
+  const workflow = readFileSync('.github/workflows/staging-exact-sha-release.yml', 'utf8');
+  assert.match(script, /bbf3e9c054371cb72a2f69a1b64e0bce6baf0565/);
+  assert.match(script, /APPROVE_PR837_STAGING_ATHLETE_RESOLVER_ONLY/);
+  assert.match(script, /4d2cabb1a1e161ff6268e5c638c4a2173f35e86b88717e599ef74f4a16823801/);
+  assert.match(workflow, /pr837-hosting-preflight/);
+  assert.match(workflow, /pr837-hosting-deploy/);
+  assert.match(workflow, /P0_HOSTING_PROFILE: pr837/);
+  assert.equal(sha256('public/assets/js/athlete-self-context.js'),
+    '4d2cabb1a1e161ff6268e5c638c4a2173f35e86b88717e599ef74f4a16823801');
 });
