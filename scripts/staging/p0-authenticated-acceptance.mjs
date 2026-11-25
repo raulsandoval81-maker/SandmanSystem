@@ -45,14 +45,41 @@ function safeRequest(request) {
     return method === "POST" && url.pathname === "/v1/token";
   }
   if (url.origin === "https://firestore.googleapis.com") {
-    if (["GET", "HEAD"].includes(method)) {
-      return url.pathname.startsWith(`/v1/projects/${project}/databases/(default)/`);
+    // The browser SDK uses POST for the Listen forward channel and GET
+    // for its backchannel. Check the exact read-only channel before REST GETs.
+    if (url.pathname === "/google.firestore.v1.Firestore/Listen/channel") {
+      return ["GET", "POST"].includes(method) &&
+        url.searchParams.get("database") === `projects/${project}/databases/(default)`;
     }
-    return ["GET", "POST"].includes(method) &&
-      url.pathname === "/google.firestore.v1.Firestore/Listen/channel" &&
-      url.searchParams.get("database") === `projects/${project}/databases/(default)`;
+    return ["GET", "HEAD"].includes(method) &&
+      url.pathname.startsWith(`/v1/projects/${project}/databases/(default)/`);
   }
   return false;
+}
+
+function verifyReadOnlyNetworkPolicy() {
+  const listen = "https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel";
+  const write = listen.replace("/Listen/", "/Write/");
+  const db = encodeURIComponent(`projects/${project}/databases/(default)`);
+  const productionDb = encodeURIComponent("projects/sandmandashboard/databases/(default)");
+  const stagingRest = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/synthetic/test`;
+  const cases = [
+    ["GET", listen + "?database=" + db, true],
+    ["POST", listen + "?database=" + db, true],
+    ["GET", listen + "?database=" + productionDb, false],
+    ["POST", listen + "?database=" + productionDb, false],
+    ["GET", listen, false],
+    ["POST", write + "?database=" + db, false],
+    ["GET", write + "?database=" + db, false],
+    ["GET", stagingRest, true],
+    ["POST", stagingRest, false],
+    ["PATCH", stagingRest, false],
+    ["DELETE", stagingRest, false],
+    ["GET", stagingRest.replace(project, "sandmandashboard"), false],
+  ];
+  for (const [method, url, expected] of cases) {
+    requireCheck(safeRequest({ method: () => method, url: () => url }) === expected);
+  }
 }
 
 async function request(url, token, scheme = "Bearer") {
@@ -144,6 +171,10 @@ async function openRole(role, fixture, password, athleteId) {
 }
 
 async function run() {
+  current = "read-only network policy regression";
+  verifyReadOnlyNetworkPolicy();
+  passed(current);
+  current = "fixture configuration";
   const fixtures = JSON.parse(process.env.P0_STAGING_FIXTURES || "{}");
   const password = process.env.P0_STAGING_PASSWORD;
   requireCheck(typeof password === "string" && password.length >= 12);
