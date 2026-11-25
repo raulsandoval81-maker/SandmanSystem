@@ -110,7 +110,8 @@ async function openRole(role, fixture, password, athleteId) {
       athleteDiagnostics.ownDocument = "allowed";
       const journey = String((fields.programTrack || fields.journey || fields.track || fields.trackCode)?.stringValue || "")
         .toLowerCase().replace(/[^a-z0-9]/g, "");
-      athleteDiagnostics.recognizedJourney = ["road2champion","r2c","path2legend","p2l","quest2mastery","q2m"].includes(journey);
+      athleteDiagnostics.legacyZ2H = journey === "z2h";
+      athleteDiagnostics.recognizedJourney = ["road2champion","r2c","z2h","path2legend","p2l","quest2mastery","q2m"].includes(journey);
       athleteDiagnostics.phase = "hub entry";
       page.on("console", message => {
         if (message.type() === "warning" && message.text().startsWith("[Athlete Hub Router] athlete lookup failed:")) {
