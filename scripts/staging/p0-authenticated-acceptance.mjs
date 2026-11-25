@@ -14,6 +14,9 @@ const roles = {
 const checks = [];
 let current = "fixture configuration";
 let browser;
+const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
+const athleteDiagnostics = {};
+
 
 function requireCheck(value) {
   if (!value) throw new Error("Acceptance assertion failed");
@@ -66,6 +69,7 @@ async function readDocument(path, token) {
 
 async function allowed(path, token) {
   const response = await readDocument(path, token);
+  if (athleteDiagnostics.phase === "own synthetic document read") athleteDiagnostics.ownReadHttpStatus = response.status;
   requireCheck(response.status === 200);
   const document = await response.json();
   const fields = document.fields ?? {};
@@ -86,6 +90,7 @@ async function openRole(role, fixture, password, athleteId) {
     const page = await context.newPage();
     await page.goto(`${origin}/staging-environment.json`, { waitUntil: "domcontentloaded" });
     requireCheck(new URL(page.url()).origin === origin);
+    if (role === "athlete") athleteDiagnostics.phase = "authentication";
     const session = await page.evaluate(async ({ email, password, project }) => {
       const { auth } = await import("/assets/js/firebase-init.js");
       const { signInWithEmailAndPassword } = await import(
@@ -98,10 +103,32 @@ async function openRole(role, fixture, password, athleteId) {
         audience: result.claims.aud };
     }, { email: fixture.email, password, project });
     requireCheck(session?.synthetic && session.audience === project && session.uid === fixture.uid);
+    if (role === "athlete") {
+      athleteDiagnostics.authentication = "verified";
+      athleteDiagnostics.phase = "own synthetic document read";
+      const fields = await allowed("athletes/" + athleteId, session.token);
+      athleteDiagnostics.ownDocument = "allowed";
+      const journey = String((fields.programTrack || fields.journey || fields.track || fields.trackCode)?.stringValue || "")
+        .toLowerCase().replace(/[^a-z0-9]/g, "");
+      athleteDiagnostics.recognizedJourney = ["road2champion","r2c","path2legend","p2l","quest2mastery","q2m"].includes(journey);
+      athleteDiagnostics.phase = "hub entry";
+      page.on("console", message => {
+        if (message.type() === "warning" && message.text().startsWith("[Athlete Hub Router] athlete lookup failed:")) {
+          athleteDiagnostics.routerLookup = /permission-denied|insufficient permissions/i.test(message.text()) ? "permission denied" : "failed";
+        }
+      });
+      page.on("framenavigated", frame => {
+        if (frame !== page.mainFrame()) return;
+        const path = new URL(frame.url()).pathname;
+        athleteDiagnostics.route = ["/athletes/hub/", "/athletes/hub/mini-hub.html", "/athletes/hub/full-hub.html"].includes(path) ? path : "other";
+      });
+    }
     const entry = origin + roles[role] + (role === "athlete" ? `?id=${encodeURIComponent(athleteId)}` : "");
     const response = await page.goto(entry, { waitUntil: "domcontentloaded" });
     requireCheck(response?.ok());
+    if (role === "athlete") athleteDiagnostics.phase = "dashboard visibility";
     await page.locator(fixture.readySelector).first().waitFor({ state: "visible", timeout: 15000 });
+    if (role === "athlete") athleteDiagnostics.phase = "dashboard session";
     const active = await page.evaluate(async () => {
       const { auth } = await import("/assets/js/firebase-init.js");
       await auth.authStateReady();
@@ -142,12 +169,13 @@ async function run() {
   const { chromium } = await import(pathToFileURL(process.env.P0_PLAYWRIGHT).href);
   browser = await chromium.launch({ headless: true });
   const tokens = {};
-  for (const role of Object.keys(roles)) {
+  for (const role of athleteOnly ? ["athlete"] : Object.keys(roles)) {
     current = role + " authenticated operating system";
     tokens[role] = await openRole(role, fixtures.roles[role], password, fixtures.ownAthlete);
     passed(current);
   }
 
+  if (athleteOnly) return;
   const own = `athletes/${fixtures.ownAthlete}`;
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
@@ -203,7 +231,7 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", storage: "PENDING", checks };
+  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope: athleteOnly ? "athlete diagnostic" : "full acceptance", storage: "PENDING", athleteDiagnostics, checks };
   writeFileSync("p0-acceptance-results.json", JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result));
 }
