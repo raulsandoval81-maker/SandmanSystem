@@ -1,5 +1,10 @@
 const normalizeAthleteId = (value) => String(value || "").trim().toUpperCase();
 const preserveAthleteId = (value) => String(value || "").trim();
+const ownsAthlete = (userUid, athleteId, athlete) => {
+  if (!athlete) return false;
+  const authUid = typeof athlete.authUid === "string" ? athlete.authUid.trim() : "";
+  return authUid ? authUid === userUid : athlete.authUid == null && athleteId === userUid;
+};
 
 export async function resolveAuthenticatedAthlete({
   user,
@@ -27,7 +32,7 @@ export async function resolveAuthenticatedAthlete({
   for (const candidate of candidates) {
     for (const athleteId of candidate.lookups) {
       const athlete = await getAthleteById(athleteId);
-      if (athlete && String(athlete.authUid || "").trim() === user.uid) {
+      if (ownsAthlete(user.uid, athleteId, athlete)) {
         return { athleteId, athlete, rejectedIds };
       }
     }
