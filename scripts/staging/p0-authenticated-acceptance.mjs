@@ -15,6 +15,7 @@ const checks = [];
 let current = "fixture configuration";
 let browser;
 const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
+const ownershipClassificationOnly = process.env.P0_OWNERSHIP_CLASSIFICATION === "true";
 const athleteDiagnostics = {};
 
 function diagnosticPath(rawUrl) {
@@ -181,6 +182,15 @@ async function openRole(role, fixture, password, athleteId) {
       athleteDiagnostics.phase = "own synthetic document read";
       const fields = await allowed("athletes/" + athleteId, session.token);
       athleteDiagnostics.ownDocument = "allowed";
+      const authUid = fields.authUid;
+      athleteDiagnostics.ownership = {
+        authUidState: authUid === undefined ? "missing"
+          : authUid.nullValue !== undefined ? "null"
+          : authUid.stringValue === session.uid ? "matching"
+          : "mismatched",
+        documentIdMatchesUid: athleteId === session.uid,
+      };
+      if (ownershipClassificationOnly) return session.token;
       const journey = String((fields.programTrack || fields.journey || fields.track || fields.trackCode)?.stringValue || "")
         .toLowerCase().replace(/[^a-z0-9]/g, "");
       athleteDiagnostics.legacyZ2H = journey === "z2h";
@@ -271,13 +281,13 @@ async function run() {
   const { chromium } = await import(pathToFileURL(process.env.P0_PLAYWRIGHT).href);
   browser = await chromium.launch({ headless: true });
   const tokens = {};
-  for (const role of athleteOnly ? ["athlete"] : Object.keys(roles)) {
+  for (const role of (athleteOnly || ownershipClassificationOnly) ? ["athlete"] : Object.keys(roles)) {
     current = role + " authenticated operating system";
     tokens[role] = await openRole(role, fixtures.roles[role], password, fixtures.ownAthlete);
     passed(current);
   }
 
-  if (athleteOnly) return;
+  if (athleteOnly || ownershipClassificationOnly) return;
   const own = `athletes/${fixtures.ownAthlete}`;
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
@@ -333,7 +343,9 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope: athleteOnly ? "athlete diagnostic" : "full acceptance", storage: "PENDING", athleteDiagnostics, checks };
+  const scope = ownershipClassificationOnly ? "athlete ownership classification"
+    : athleteOnly ? "athlete diagnostic" : "full acceptance";
+  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope, storage: "PENDING", athleteDiagnostics, checks };
   writeFileSync("p0-acceptance-results.json", JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result));
 }

@@ -72,6 +72,15 @@ test("staging acceptance records sanitized Athlete dependency diagnostics", () =
   assert.doesNotMatch(source, /athleteDiagnostics\.(?:browserErrors|failedRequests).*token/);
 });
 
+test("staging ownership classification distinguishes all authUid states", () => {
+  const source = fs.readFileSync("scripts/staging/p0-authenticated-acceptance.mjs", "utf8");
+  assert.match(source, /authUid === undefined \? "missing"/);
+  assert.match(source, /authUid\.nullValue !== undefined \? "null"/);
+  assert.match(source, /authUid\.stringValue === session\.uid \? "matching"/);
+  assert.match(source, /: "mismatched"/);
+  assert.match(source, /documentIdMatchesUid: athleteId === session\.uid/);
+});
+
 test("Combat dashboard uses stored rank, XP, and cap without Profile or Coins", () => {
   assert.deepEqual(combatDashboardModel({ rankName: "Competitor", xp: 1240, xpCap: 2400 }), {
     rank: "Competitor", xp: 1240, cap: 2400,
