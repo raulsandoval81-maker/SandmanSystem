@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
 
 import { resolveAuthenticatedAthlete } from "../../public/assets/js/athlete-self-context.js";
 import { classifyCoachAthleteScope, scopeCoachRoster } from "../../public/assets/js/coach-roster-scope.js";
@@ -153,4 +154,48 @@ test("Both Athlete hubs use the same authoritative resolver and lightweight mode
     assert.match(source, /athleteStatusGrid/);
     assert.doesNotMatch(source, /Coins/);
   }
+});
+
+test("mini hub initializes the dashboard from the lowercase URL document ID", async () => {
+  const id = "staging-athlete-beginner";
+  const athlete = { authUid: id, journey: "Z2H" };
+  const elements = new Map();
+  const reads = [];
+  const html = fs.readFileSync("public/athletes/hub/mini-hub.html", "utf8");
+  const module = html.match(/<script type="module">([\s\S]*?)<\/script>/)[1];
+  const entry = module.replace(/import\s*\{[^}]*\}\s*from\s*"[^"]+";/g, "");
+  const grid = { hidden: true };
+  elements.set("athleteStatusGrid", grid);
+  await runInNewContext(entry, {
+    URLSearchParams, location: { search: "?id=" + id },
+    document: { getElementById(key) {
+      if (!elements.has(key)) elements.set(key, {});
+      return elements.get(key);
+    } },
+    resolveSignedInAthlete: requestedId => resolveAuthenticatedAthlete({
+      user: { uid: id }, requestedId,
+      getAthleteById: async key => {
+        reads.push(key);
+        assert.equal(key, id);
+        return athlete;
+      },
+      findAthletesByAuthUid: async () => assert.fail("Unexpected fallback query"),
+    }),
+    loadAthleteDashboard: async ({ athleteId }) => {
+      assert.equal(athleteId, id);
+      return { ready: true };
+    },
+    renderAthleteDashboard(target, model, athleteId) {
+      assert.equal(target, grid);
+      assert.equal(model.ready, true);
+      assert.equal(athleteId, id);
+      target.hidden = false;
+    },
+    normalizeDisciplineId: value => value,
+    resolveAthleteDisciplineContext: () => ({ progression: {} }),
+    LADDER_F8: [{}],
+  });
+  assert.deepEqual(reads, [id]);
+  assert.equal(grid.hidden, false);
+  assert.equal(elements.get("arsenalLink").href, "/athletes/arsenal/?id=" + id);
 });
