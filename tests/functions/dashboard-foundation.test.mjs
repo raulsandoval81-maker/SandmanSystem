@@ -34,6 +34,43 @@ test("Athlete resolution fails closed for multiple auth-owned records", async ()
   assert.equal(result.ambiguous, true);
 });
 
+test("Athlete resolution preserves case-sensitive Firestore document ids", async () => {
+  const athleteId = "staging-athlete-beginner";
+  const athlete = { authUid: athleteId, programTrack: "z2h" };
+  const direct = await resolveAuthenticatedAthlete({
+    user: { uid: athleteId },
+    requestedId: athleteId,
+    getAthleteById: async (id) => id === athleteId ? athlete : null,
+    findAthletesByAuthUid: async () => [],
+  });
+  assert.equal(direct.athleteId, athleteId);
+
+  const queried = await resolveAuthenticatedAthlete({
+    user: { uid: athleteId },
+    requestedId: "missing",
+    getAthleteById: async () => null,
+    findAthletesByAuthUid: async () => [{ athleteId, athlete }],
+  });
+  assert.equal(queried.athleteId, athleteId);
+});
+
+test("legacy Z2H routing remains on the mini Athlete hub", () => {
+  const router = fs.readFileSync("public/athletes/hub/index.html", "utf8");
+  const miniHub = fs.readFileSync("public/athletes/hub/mini-hub.html", "utf8");
+  assert.match(router, /journey === "z2h"/);
+  assert.match(miniHub, /journey === "z2h"/);
+});
+
+test("staging acceptance records sanitized Athlete dependency diagnostics", () => {
+  const source = fs.readFileSync("scripts/staging/p0-authenticated-acceptance.mjs", "utf8");
+  assert.match(source, /browserErrors/);
+  assert.match(source, /failedRequests/);
+  assert.match(source, /firestoreReads/);
+  assert.match(source, /curriculumAssets/);
+  assert.match(source, /dashboardInitialization/);
+  assert.doesNotMatch(source, /athleteDiagnostics\.(?:browserErrors|failedRequests).*token/);
+});
+
 test("Combat dashboard uses stored rank, XP, and cap without Profile or Coins", () => {
   assert.deepEqual(combatDashboardModel({ rankName: "Competitor", xp: 1240, xpCap: 2400 }), {
     rank: "Competitor", xp: 1240, cap: 2400,

@@ -1,4 +1,5 @@
 const normalizeAthleteId = (value) => String(value || "").trim().toUpperCase();
+const preserveAthleteId = (value) => String(value || "").trim();
 
 export async function resolveAuthenticatedAthlete({
   user,
@@ -12,23 +13,31 @@ export async function resolveAuthenticatedAthlete({
   }
 
   const rejectedIds = [];
-  const candidates = [...new Set([
-    normalizeAthleteId(requestedId),
-    normalizeAthleteId(rememberedId),
-  ].filter(Boolean))];
+  const candidates = [...new Map([
+    requestedId,
+    rememberedId,
+  ].map((value) => ({
+    reportedId: normalizeAthleteId(value),
+    lookups: [...new Set([
+      preserveAthleteId(value),
+      normalizeAthleteId(value),
+    ].filter(Boolean))],
+  })).filter(({ reportedId }) => reportedId).map((candidate) => [candidate.reportedId, candidate])).values()];
 
-  for (const athleteId of candidates) {
-    const athlete = await getAthleteById(athleteId);
-    if (athlete && String(athlete.authUid || "").trim() === user.uid) {
-      return { athleteId, athlete, rejectedIds };
+  for (const candidate of candidates) {
+    for (const athleteId of candidate.lookups) {
+      const athlete = await getAthleteById(athleteId);
+      if (athlete && String(athlete.authUid || "").trim() === user.uid) {
+        return { athleteId, athlete, rejectedIds };
+      }
     }
-    rejectedIds.push(athleteId);
+    rejectedIds.push(candidate.reportedId);
   }
 
   const matches = await findAthletesByAuthUid(user.uid);
   const valid = (Array.isArray(matches) ? matches : [])
     .map((match) => ({
-      athleteId: normalizeAthleteId(match?.athleteId || match?.id),
+      athleteId: preserveAthleteId(match?.athleteId || match?.id),
       athlete: match?.athlete || match?.data || null,
     }))
     .filter((match) => match.athleteId && String(match.athlete?.authUid || "").trim() === user.uid);
