@@ -18,7 +18,14 @@ export async function commitSyntheticManifestTransaction(db, writes, options = {
     const refs = paths.map(path => db.doc(path));
     const snapshots = await transaction.getAll(...refs);
     assertSyntheticWriteSafety(snapshots, paths);
-    entries.forEach(([path, value], index) => transaction.set(refs[index], value, { merge: true }));
+    entries.forEach(([, value], index) => {
+      if (options.createOnly) {
+        if (snapshots[index].exists) throw new Error("Synthetic fixture appeared after preflight.");
+        transaction.create(refs[index], value);
+      } else {
+        transaction.set(refs[index], value, { merge: true });
+      }
+    });
     return entries.length;
-  });
+  }, options.createOnly ? { maxAttempts: 1 } : undefined);
 }
