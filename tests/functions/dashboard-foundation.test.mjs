@@ -55,6 +55,40 @@ test("Athlete resolution preserves case-sensitive Firestore document ids", async
   assert.equal(queried.athleteId, athleteId);
 });
 
+test("Athlete resolution follows authUid and exact document-id ownership", async () => {
+  const uid = "staging-athlete-beginner";
+  for (const [label, athlete, expected] of [
+    ["missing", {}, uid],
+    ["null", { authUid: null }, uid],
+    ["matching", { authUid: uid }, uid],
+    ["mismatched", { authUid: "different-user" }, ""],
+  ]) {
+    const result = await resolveAuthenticatedAthlete({
+      user: { uid }, requestedId: uid,
+      getAthleteById: async id => id === uid ? athlete : null,
+      findAthletesByAuthUid: async () => [],
+    });
+    assert.equal(result.athleteId, expected, label);
+  }
+});
+
+test("uppercase fallback preserves canonical ids without bypassing ownership", async () => {
+  const canonical = "ATHLETE_001";
+  const accepted = await resolveAuthenticatedAthlete({
+    user: { uid: canonical }, requestedId: "athlete_001",
+    getAthleteById: async id => id === canonical ? { authUid: null } : null,
+    findAthletesByAuthUid: async () => [],
+  });
+  assert.equal(accepted.athleteId, canonical);
+
+  const rejected = await resolveAuthenticatedAthlete({
+    user: { uid: canonical }, requestedId: "athlete_001",
+    getAthleteById: async id => id === canonical ? { authUid: "different-user" } : null,
+    findAthletesByAuthUid: async () => [],
+  });
+  assert.equal(rejected.athleteId, "");
+});
+
 test("legacy Z2H routing remains on the mini Athlete hub", () => {
   const router = fs.readFileSync("public/athletes/hub/index.html", "utf8");
   const miniHub = fs.readFileSync("public/athletes/hub/mini-hub.html", "utf8");
@@ -167,7 +201,7 @@ test("Both Athlete hubs use the same authoritative resolver and lightweight mode
 
 test("mini hub initializes the dashboard from the lowercase URL document ID", async () => {
   const id = "staging-athlete-beginner";
-  const athlete = { authUid: id, journey: "Z2H" };
+  const athlete = { journey: "Z2H" };
   const elements = new Map();
   const reads = [];
   const html = fs.readFileSync("public/athletes/hub/mini-hub.html", "utf8");
@@ -207,4 +241,20 @@ test("mini hub initializes the dashboard from the lowercase URL document ID", as
   assert.deepEqual(reads, [id]);
   assert.equal(grid.hidden, false);
   assert.equal(elements.get("arsenalLink").href, "/athletes/arsenal/?id=" + id);
+});
+
+test("dashboard initialization dependencies and active curriculum assets are complete", () => {
+  const loader = fs.readFileSync("public/assets/js/athlete-dashboard-data.js", "utf8");
+  assert.match(loader, /getDoc\(doc\(db, "laneSubmissions", athleteId\)\)/);
+  assert.match(loader, /getDoc\(doc\(db, "strengthPhaseSettings", "system"\)\)/);
+  assert.match(loader, /collection\(db, "laneHistory"\)/);
+  for (const path of [
+    "public/vault/system-status.json",
+    "public/vault/strength/segment1/segment1.meta.json",
+    "public/vault/strength/segment1/sessions.json",
+    "public/vault/honor/segment1/segment.meta.json",
+    "public/vault/honor/segment1/sessions.json",
+  ]) {
+    assert.doesNotThrow(() => JSON.parse(fs.readFileSync(path, "utf8")), path);
+  }
 });
