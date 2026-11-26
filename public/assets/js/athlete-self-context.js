@@ -18,7 +18,8 @@ export async function resolveAuthenticatedAthlete({
   }
 
   const rejectedIds = [];
-  const candidates = [...new Map([
+  const candidatesById = new Map();
+  for (const candidate of [
     requestedId,
     rememberedId,
   ].map((value) => ({
@@ -27,7 +28,11 @@ export async function resolveAuthenticatedAthlete({
       preserveAthleteId(value),
       normalizeAthleteId(value),
     ].filter(Boolean))],
-  })).filter(({ reportedId }) => reportedId).map((candidate) => [candidate.reportedId, candidate])).values()];
+  })).filter(({ reportedId }) => reportedId)) {
+    // A remembered alias must never replace an explicit URL candidate.
+    if (!candidatesById.has(candidate.reportedId)) candidatesById.set(candidate.reportedId, candidate);
+  }
+  const candidates = [...candidatesById.values()];
 
   for (const candidate of candidates) {
     for (const athleteId of candidate.lookups) {
