@@ -151,6 +151,55 @@ async function dependencyDiagnostics(athleteId, token) {
   };
 }
 
+async function browserDependencyDiagnostics(page, athleteId) {
+  return page.evaluate(async (expectedAthleteId) => {
+    const normalizeError = error => {
+      const value = String(error?.code || error?.message || "").toLowerCase();
+      if (value.includes("permission-denied") || value.includes("insufficient permissions")) return "permission-denied";
+      if (value.includes("not-found")) return "not-found";
+      return "runtime-error";
+    };
+    const probe = async operation => {
+      try {
+        await operation();
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, error: normalizeError(error) };
+      }
+    };
+    const remembered = localStorage.getItem("sandman_lastAthleteUid");
+    const dashboard = await import("/assets/js/athlete-dashboard-data.js");
+    const firebase = await import("/assets/js/firebase-init.js");
+    let resolved;
+    const resolver = await probe(async () => {
+      resolved = await dashboard.resolveSignedInAthlete(expectedAthleteId);
+      if (resolved?.athleteId !== expectedAthleteId) throw new Error("resolver-id-mismatch");
+    });
+    const sdk = {
+      laneSubmissions: await probe(() => firebase.getDoc(
+        firebase.doc(firebase.db, "laneSubmissions", expectedAthleteId))),
+      strengthPhaseSettings: await probe(() => firebase.getDoc(
+        firebase.doc(firebase.db, "strengthPhaseSettings", "system"))),
+      laneHistory: await probe(() => firebase.getDocs(firebase.query(
+        firebase.collection(firebase.db, "laneHistory"),
+        firebase.where("athleteId", "==", expectedAthleteId)))),
+    };
+    const dashboardInitialization = resolver.ok
+      ? await probe(() => dashboard.loadAthleteDashboard({
+          athleteId: resolved.athleteId, athlete: resolved.athlete,
+        }))
+      : { ok: false, error: "resolver-failed" };
+    return {
+      initialRememberedId: remembered == null ? "empty"
+        : remembered === remembered.toUpperCase() ? "uppercase" : "other",
+      resolver,
+      resolvedExactId: resolved?.athleteId === expectedAthleteId,
+      sdk,
+      dashboardInitialization,
+    };
+  }, athleteId);
+}
+
 async function allowed(path, token) {
   const response = await readDocument(path, token);
   if (athleteDiagnostics.phase === "own synthetic document read") athleteDiagnostics.ownReadHttpStatus = response.status;
@@ -222,6 +271,7 @@ async function openRole(role, fixture, password, athleteId) {
       };
       if (dependencyDiagnosticOnly) {
         athleteDiagnostics.dependencies = await dependencyDiagnostics(athleteId, session.token);
+        athleteDiagnostics.browserDependencies = await browserDependencyDiagnostics(page, athleteId);
         return session.token;
       }
       if (ownershipClassificationOnly) return session.token;
