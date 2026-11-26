@@ -132,6 +132,16 @@ test("dependency diagnostic is fixed-scope, read-only, and reports module hashes
   assert.doesNotMatch(browserDiagnostic, /(?:token|password)/);
 });
 
+test("navigation diagnostic traces auth restoration and actual grid rendering", () => {
+  const source = fs.readFileSync("scripts/staging/p0-authenticated-acceptance.mjs", "utf8");
+  assert.match(source, /auth\.authStateReady\(\)/);
+  assert.match(source, /sandman_lastAthleteUid/);
+  assert.match(source, /athleteStatusGrid/);
+  assert.match(source, /cardCount: grid\.querySelectorAll/);
+  assert.match(source, /navigationResult/);
+  assert.doesNotMatch(source.match(/async function navigationCheckpoint[\s\S]*?\n}\n/)[0], /(?:token|password)/);
+});
+
 test("Combat dashboard uses stored rank, XP, and cap without Profile or Coins", () => {
   assert.deepEqual(combatDashboardModel({ rankName: "Competitor", xp: 1240, xpCap: 2400 }), {
     rank: "Competitor", xp: 1240, cap: 2400,

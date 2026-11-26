@@ -18,6 +18,7 @@ let browser;
 const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
 const ownershipClassificationOnly = process.env.P0_OWNERSHIP_CLASSIFICATION === "true";
 const dependencyDiagnosticOnly = process.env.P0_DEPENDENCY_DIAGNOSTIC === "true";
+const navigationDiagnosticOnly = process.env.P0_NAVIGATION_DIAGNOSTIC === "true";
 const athleteDiagnostics = {};
 
 function diagnosticPath(rawUrl) {
@@ -44,6 +45,33 @@ function diagnosticError(message) {
   if (/not-found|404/.test(value)) return "not-found";
   if (/timeout/.test(value)) return "timeout";
   return "runtime-error";
+}
+
+async function navigationCheckpoint(page, expectedAthleteId) {
+  return page.evaluate(async expectedId => {
+    const checkpoint = {
+      path: location.pathname,
+      idMatches: new URLSearchParams(location.search).get("id") === expectedId,
+      readyState: document.readyState,
+      remembered: localStorage.getItem("sandman_lastAthleteUid") === expectedId ? "exact"
+        : localStorage.getItem("sandman_lastAthleteUid") == null ? "empty" : "other",
+      grid: null,
+      auth: "unknown",
+    };
+    const grid = document.getElementById("athleteStatusGrid");
+    if (grid) checkpoint.grid = {
+      hidden: grid.hidden,
+      cardCount: grid.querySelectorAll(".athlete-status-card").length,
+    };
+    try {
+      const { auth } = await import("/assets/js/firebase-init.js");
+      await Promise.race([auth.authStateReady(), new Promise(resolve => setTimeout(resolve, 1500))]);
+      checkpoint.auth = auth.currentUser?.uid === expectedId ? "restored" : auth.currentUser ? "other" : "missing";
+    } catch {
+      checkpoint.auth = "module-error";
+    }
+    return checkpoint;
+  }, expectedAthleteId);
 }
 
 
@@ -226,7 +254,13 @@ async function openRole(role, fixture, password, athleteId) {
       athleteDiagnostics.failedRequests = [];
       athleteDiagnostics.firestoreReads = [];
       athleteDiagnostics.curriculumAssets = [];
+      athleteDiagnostics.consoleErrors = [];
       page.on("pageerror", error => athleteDiagnostics.browserErrors.push(diagnosticError(error?.message)));
+      page.on("console", message => {
+        if (["error", "warning"].includes(message.type())) {
+          athleteDiagnostics.consoleErrors.push(diagnosticError(message.text()));
+        }
+      });
       page.on("requestfailed", failed => athleteDiagnostics.failedRequests.push({
         method: failed.method(), path: diagnosticPath(failed.url()), reason: diagnosticError(failed.failure()?.errorText),
       }));
@@ -294,6 +328,19 @@ async function openRole(role, fixture, password, athleteId) {
     const entry = origin + roles[role] + (role === "athlete" ? `?id=${encodeURIComponent(athleteId)}` : "");
     const response = await page.goto(entry, { waitUntil: "domcontentloaded" });
     requireCheck(response?.ok());
+    if (role === "athlete" && navigationDiagnosticOnly) {
+      athleteDiagnostics.navigation = [];
+      for (let attempt = 0; attempt < 20; attempt += 1) {
+        const checkpoint = await navigationCheckpoint(page, athleteId);
+        athleteDiagnostics.navigation.push(checkpoint);
+        if ((checkpoint.grid && !checkpoint.grid.hidden && checkpoint.grid.cardCount >= 3)
+          || /\/(auth|login)(\/|$)/i.test(checkpoint.path)) break;
+        await page.waitForTimeout(500);
+      }
+      athleteDiagnostics.navigationResult = athleteDiagnostics.navigation.at(-1)?.grid?.hidden === false
+        ? "rendered" : "not-rendered";
+      return session.token;
+    }
     if (role === "athlete") athleteDiagnostics.phase = "dashboard visibility";
     await page.locator(fixture.readySelector).first().waitFor({ state: "visible", timeout: 15000 });
     if (role === "athlete") {
@@ -365,13 +412,13 @@ async function run() {
   const { chromium } = await import(pathToFileURL(process.env.P0_PLAYWRIGHT).href);
   browser = await chromium.launch({ headless: true });
   const tokens = {};
-  for (const role of (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly) ? ["athlete"] : Object.keys(roles)) {
+  for (const role of (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly || navigationDiagnosticOnly) ? ["athlete"] : Object.keys(roles)) {
     current = role + " authenticated operating system";
     tokens[role] = await openRole(role, fixtures.roles[role], password, fixtures.ownAthlete);
     passed(current);
   }
 
-  if (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly) return;
+  if (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly || navigationDiagnosticOnly) return;
   const own = `athletes/${fixtures.ownAthlete}`;
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
@@ -427,7 +474,8 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  const scope = dependencyDiagnosticOnly ? "athlete dependency diagnostic"
+  const scope = navigationDiagnosticOnly ? "athlete navigation diagnostic"
+    : dependencyDiagnosticOnly ? "athlete dependency diagnostic"
     : ownershipClassificationOnly ? "athlete ownership classification"
     : athleteOnly ? "athlete diagnostic" : "full acceptance";
   const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope, storage: "PENDING", athleteDiagnostics, checks };
