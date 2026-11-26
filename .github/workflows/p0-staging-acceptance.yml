@@ -75,6 +75,13 @@ jobs:
           path: p0-acceptance-results.json
           if-no-files-found: ignore
 
+      - name: Set up Java 21 for Firebase emulators
+        if: ${{ !inputs.athlete_diagnostic_only && !inputs.ownership_classification_only && !inputs.dependency_diagnostic_only && !inputs.navigation_diagnostic_only }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       - name: Verify write-side workflows in isolated emulators
         if: ${{ !inputs.athlete_diagnostic_only && !inputs.ownership_classification_only && !inputs.dependency_diagnostic_only && !inputs.navigation_diagnostic_only }}
         env:
