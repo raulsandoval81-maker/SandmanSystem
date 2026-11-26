@@ -1,4 +1,5 @@
 import { writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 
 const project = "sandman-combat-staging";
@@ -16,6 +17,7 @@ let current = "fixture configuration";
 let browser;
 const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
 const ownershipClassificationOnly = process.env.P0_OWNERSHIP_CLASSIFICATION === "true";
+const dependencyDiagnosticOnly = process.env.P0_DEPENDENCY_DIAGNOSTIC === "true";
 const athleteDiagnostics = {};
 
 function diagnosticPath(rawUrl) {
@@ -121,6 +123,34 @@ async function readDocument(path, token) {
   return request(`${firestore}/${path}`, token);
 }
 
+async function dependencyDiagnostics(athleteId, token) {
+  const status = async (path) => (await readDocument(path, token)).status;
+  const laneHistory = await fetch(`${firestore}:runQuery`, {
+    method: "POST", redirect: "error", signal: AbortSignal.timeout(12000),
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ structuredQuery: {
+      from: [{ collectionId: "laneHistory" }],
+      where: { fieldFilter: { field: { fieldPath: "athleteId" }, op: "EQUAL",
+        value: { stringValue: athleteId } } },
+      limit: 5,
+    } }),
+  });
+  const assetHashes = {};
+  for (const path of ["/assets/js/athlete-dashboard-data.js", "/assets/js/athlete-self-context.js"]) {
+    const response = await request(origin + path);
+    const bytes = Buffer.from(await response.arrayBuffer());
+    assetHashes[path] = { status: response.status,
+      sha256: createHash("sha256").update(bytes).digest("hex") };
+  }
+  return {
+    athlete: await status(`athletes/${athleteId}`),
+    laneSubmissions: await status(`laneSubmissions/${athleteId}`),
+    strengthPhaseSettings: await status("strengthPhaseSettings/system"),
+    laneHistory: laneHistory.status,
+    assets: assetHashes,
+  };
+}
+
 async function allowed(path, token) {
   const response = await readDocument(path, token);
   if (athleteDiagnostics.phase === "own synthetic document read") athleteDiagnostics.ownReadHttpStatus = response.status;
@@ -190,6 +220,10 @@ async function openRole(role, fixture, password, athleteId) {
           : "mismatched",
         documentIdMatchesUid: athleteId === session.uid,
       };
+      if (dependencyDiagnosticOnly) {
+        athleteDiagnostics.dependencies = await dependencyDiagnostics(athleteId, session.token);
+        return session.token;
+      }
       if (ownershipClassificationOnly) return session.token;
       const journey = String((fields.programTrack || fields.journey || fields.track || fields.trackCode)?.stringValue || "")
         .toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -281,13 +315,13 @@ async function run() {
   const { chromium } = await import(pathToFileURL(process.env.P0_PLAYWRIGHT).href);
   browser = await chromium.launch({ headless: true });
   const tokens = {};
-  for (const role of (athleteOnly || ownershipClassificationOnly) ? ["athlete"] : Object.keys(roles)) {
+  for (const role of (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly) ? ["athlete"] : Object.keys(roles)) {
     current = role + " authenticated operating system";
     tokens[role] = await openRole(role, fixtures.roles[role], password, fixtures.ownAthlete);
     passed(current);
   }
 
-  if (athleteOnly || ownershipClassificationOnly) return;
+  if (athleteOnly || ownershipClassificationOnly || dependencyDiagnosticOnly) return;
   const own = `athletes/${fixtures.ownAthlete}`;
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
@@ -343,7 +377,8 @@ try {
   process.exitCode = 1;
 } finally {
   await browser?.close().catch(() => {});
-  const scope = ownershipClassificationOnly ? "athlete ownership classification"
+  const scope = dependencyDiagnosticOnly ? "athlete dependency diagnostic"
+    : ownershipClassificationOnly ? "athlete ownership classification"
     : athleteOnly ? "athlete diagnostic" : "full acceptance";
   const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope, storage: "PENDING", athleteDiagnostics, checks };
   writeFileSync("p0-acceptance-results.json", JSON.stringify(result, null, 2) + "\n");

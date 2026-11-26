@@ -115,6 +115,16 @@ test("staging ownership classification distinguishes all authUid states", () => 
   assert.match(source, /documentIdMatchesUid: athleteId === session\.uid/);
 });
 
+test("dependency diagnostic is fixed-scope, read-only, and reports module hashes", () => {
+  const source = fs.readFileSync("scripts/staging/p0-authenticated-acceptance.mjs", "utf8");
+  assert.match(source, /laneSubmissions\/\$\{athleteId\}/);
+  assert.match(source, /strengthPhaseSettings\/system/);
+  assert.match(source, /collectionId: "laneHistory"/);
+  assert.match(source, /athlete-dashboard-data\.js/);
+  assert.match(source, /createHash\("sha256"\)/);
+  assert.doesNotMatch(source, /dependencyDiagnostics[\s\S]*?method: "(?:PATCH|DELETE)"/);
+});
+
 test("Combat dashboard uses stored rank, XP, and cap without Profile or Coins", () => {
   assert.deepEqual(combatDashboardModel({ rankName: "Competitor", xp: 1240, xpCap: 2400 }), {
     rank: "Competitor", xp: 1240, cap: 2400,
