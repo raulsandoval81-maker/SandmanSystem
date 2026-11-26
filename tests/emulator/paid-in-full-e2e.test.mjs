@@ -1,5 +1,6 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import { initializeApp as initializeClientApp, deleteApp as deleteClientApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithCustomToken } from "firebase/auth";
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions";
@@ -7,6 +8,10 @@ import { initializeApp, deleteApp, getApps } from "firebase-admin/app";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { paidInFullUiState } from "../../public/management/billing/paid-in-full-state.js";
+
+const require = createRequire(import.meta.url);
+const { canonicalPaymentArrangement } = require("../../functions/lib/billing/paymentArrangement.js");
+const { hashProposalReviewToken } = require("../../functions/lib/proposals/proposalClientReview.js");
 
 const projectId = process.env.GCLOUD_PROJECT || "";
 if (!projectId.startsWith("demo-") || !process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_HOST) {
@@ -56,6 +61,43 @@ function proposal(overrides = {}) {
 
 async function seedProposal(id, overrides = {}) {
   await db.doc(`proposals/${id}`).set({ ...proposal(overrides), proposalId: id });
+}
+
+// Use the current canonical Cash/Check contract and the real server-owned
+// preparation/confirmation calls, not a browser-created confirmation flag.
+async function seedSignedPrepaid(id, overrides = {}, feeAllocations = [{ athleteIndex: 1, amountCents: 3000 }]) {
+  const initial = proposal(overrides);
+  const athletes = initial.athletes.map(athlete => ({ ...athlete, billingTerm: "annual", enrollmentType: "youth" }));
+  const pricing = canonicalPaymentArrangement({
+    ...initial.pricing,
+    paymentArrangement: "prepaid_cash_check",
+    membershipStartDate: initial.agreement.membershipStartDate,
+    prepaidFeeAllocations: feeAllocations,
+  }, athletes);
+  const snapshot = { athletes, pricing };
+  const enrollmentToken = `synthetic-review-confirm-${id}`;
+  await seedProposal(id, {
+    ...overrides, athletes, pricing, lockedSnapshot: snapshot,
+    clientAcceptance: {
+      accepted: true, signerName: "Synthetic Guardian", consentAccepted: true,
+      signedAt: Timestamp.now(), signedSnapshot: snapshot,
+    },
+    enrollmentHandoff: {
+      tokenHash: hashProposalReviewToken(enrollmentToken),
+      expiresAt: Timestamp.fromMillis(Date.now() + 3600000),
+    },
+  });
+  return enrollmentToken;
+}
+
+async function prepareAndConfirmPrepaid(id, enrollmentToken) {
+  const record = await callable("manager", "recordProposalPrepaidCash");
+  const prepared = await record({ proposalId: id, mode: "prepare" });
+  assert.equal(prepared.data.status, "AWAITING_FAMILY_CONFIRMATION");
+  const confirm = await callable(null, "saveProposalEnrollmentAgreement");
+  const confirmed = await confirm({ proposalId: id, enrollmentToken, confirmation: { termsConfirmed: true } });
+  assert.equal(confirmed.data.enrollment.status, "AWAITING_MANAGEMENT_RECONCILIATION");
+  assert.equal(confirmed.data.enrollment.paymentRoute, "management_prepaid_reconciliation");
 }
 
 async function historyEvents(id) {
@@ -170,7 +212,7 @@ test("partial membership remains recorded without falsely satisfying a period", 
 });
 
 test("multi-athlete historical annual fees require explicit immutable attribution", async () => {
-  await seedProposal("multi-attribution", {
+  const household = {
     pricing: {
       monthlyBase: 160, monthlySponsor: 0, monthlyBalance: 160,
       enrollmentBase: 60, enrollmentPreviouslyPaidAmount: 0,
@@ -184,8 +226,27 @@ test("multi-athlete historical annual fees require explicit immutable attributio
       membershipAmountCents: 16000, enrollmentFeeAmountCents: 2000,
       paymentMethod: "cash", periods: ["2026-10"],
     }],
-  });
+  };
+  const feeAllocations = [{ athleteIndex: 1, amountCents: 1000 }, { athleteIndex: 2, amountCents: 3000 }];
   const record = await callable("manager", "recordProposalPrepaidCash");
+  // A prior membership payment on this agreement must block new prepaid reconciliation.
+  await seedSignedPrepaid("multi-existing-membership", household, feeAllocations);
+  await assert.rejects(record({ proposalId: "multi-existing-membership", mode: "prepare" }), /membership payment is already recorded/i);
+  const blocked = (await db.doc("proposals/multi-existing-membership").get()).data();
+  assert.equal(blocked.priorPayments[0].membershipAmountCents, 16000);
+  assert.equal(blocked.cashPrepayment, undefined);
+  assert.equal(blocked.prepaidReconciliation, undefined);
+  // Preserve the attribution/audit scenario with an enrollment-fee-only receipt.
+  // Existing membership credits cannot be placed on the new prepaid agreement.
+  const enrollmentToken = await seedSignedPrepaid("multi-attribution", {
+    ...household,
+    priorPayments: [{
+      paymentId: "historical-october", amountCents: 2000,
+      membershipAmountCents: 0, enrollmentFeeAmountCents: 2000,
+      paymentMethod: "cash", periods: [],
+    }],
+  }, feeAllocations);
+  await prepareAndConfirmPrepaid("multi-attribution", enrollmentToken);
   const base = {
     proposalId: "multi-attribution", amountCents: 196000,
     membershipAmountCents: 192000, paymentMethod: "cash",
@@ -209,6 +270,8 @@ test("multi-athlete historical annual fees require explicit immutable attributio
   });
   const saved = (await db.doc("proposals/multi-attribution").get()).data();
   assert.equal(saved.priorPayments[0].enrollmentFeeAmountCents, 2000);
+  assert.equal(saved.priorPayments[0].membershipAmountCents, 0);
+  assert.equal(saved.priorPayments[0].amountCents, 2000);
   assert.equal(saved.enrollmentFeeAttributions[0].sourcePaymentReference, "historical-october");
   assert.equal(saved.enrollmentFeeAttributions[0].athleteIndex, 1);
   assert.equal(saved.enrollmentFeeAttributions[0].attributedBy, "manager");
@@ -218,7 +281,7 @@ test("multi-athlete historical annual fees require explicit immutable attributio
 });
 
 test("full 12-month cash payment with fee included produces separately reconciled UI state", async () => {
-  await seedProposal("full-included");
+  await prepareAndConfirmPrepaid("full-included", await seedSignedPrepaid("full-included"));
   const record = await callable("manager", "recordProposalPrepaidCash");
   await record({
     proposalId: "full-included", amountCents: 99000, membershipAmountCents: 96000,
@@ -239,7 +302,7 @@ test("full 12-month cash payment with fee included produces separately reconcile
 });
 
 test("full 12-month check payment can exclude the separate annual fee", async () => {
-  await seedProposal("full-excluded");
+  await prepareAndConfirmPrepaid("full-excluded", await seedSignedPrepaid("full-excluded", {}, [{ athleteIndex: 1, amountCents: 0 }]));
   const record = await callable("manager", "recordProposalPrepaidCash");
   await record({
     proposalId: "full-excluded", amountCents: 96000, membershipAmountCents: 96000,
@@ -256,7 +319,7 @@ test("full 12-month check payment can exclude the separate annual fee", async ()
 });
 
 test("renewal is date-guarded, blocked before approval, and approval is audited exactly once", async () => {
-  await seedProposal("bad-date");
+  await prepareAndConfirmPrepaid("bad-date", await seedSignedPrepaid("bad-date", {}, [{ athleteIndex: 1, amountCents: 0 }]));
   const record = await callable("manager", "recordProposalPrepaidCash");
   await assert.rejects(record({
     proposalId: "bad-date", amountCents: 96000, membershipAmountCents: 96000,
