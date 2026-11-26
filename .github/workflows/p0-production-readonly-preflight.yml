@@ -1,0 +1,195 @@
+name: P0 production read-only preflight
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        required: true
+        description: Type sandmandashboard
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: p0-production-containment
+  cancel-in-progress: false
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 12
+    steps:
+      - name: Guard exact target and first attempt
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM_PROJECT" = sandmandashboard
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = "$GITHUB_REPOSITORY/.github/workflows/p0-production-readonly-preflight.yml@refs/heads/main"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+      - uses: actions/checkout@v4
+        with:
+          ref: f2bf002c46e21c4ba0dcc3a3bd24b92d0ae6c9fa
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 00379c6cd9da199a59bc7635d7609034b135b227
+          path: p0-candidate
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify original package, production rules and all 22 staging assets
+        run: |
+          python3 - <<'PY'
+          import hashlib, importlib, json, os, subprocess, sys, urllib.request
+          from pathlib import Path
+          sys.path.insert(0, str(Path("scripts/staging").resolve()))
+          p = importlib.import_module("p0-containment-preflight")
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          out = Path("p0-production-evidence")
+          out.mkdir()
+          pin = json.loads((p.INPUT / "run-456.json").read_text())
+          actual = p.candidate()
+          assert all(actual[k] == pin[k] for k in actual)
+          assert actual["archiveSha256"] == "8ee5c8784d3fff13c449c7dc64465c3e4fec7b51b84d1b910d0abc337fd5a766"
+          # Exact archived production-specific hunks. Verify the original production bytes.
+          lines = (p.INPUT / "firestore.rules").read_bytes().splitlines(keepends=True)
+          lines[862:906] = [b"  // Public promotional / intro forms may create requests.\n", b"  allow create: if true;\n"]
+          lines[804:808] = [b"  allow create: if request.auth != null;\n", b"  allow update: if request.auth != null;\n", b"  allow delete: if false;\n"]
+          rules = b"".join(lines)
+          assert sha(rules) == "348796c0e70a4254ef7b9a3cf8ac37ce0fb944f4f1bae2d1f4f52dd950c8b74b"
+          (out/"production.firestore.rules").write_bytes(rules)
+          followups = {
+              "/athletes/hub/index.html": "861080c2131608a64306b595de765540ad82ece89fce4a64efea5e69fbee975d",
+              "/athletes/hub/mini-hub.html": "d3cca2b9fc858593d7d81ba00a780dc8e64494cce1c5ba375a11bcee79d2756a",
+              "/assets/js/athlete-nav.js": "3a44e224c92159609bb3c547a19181e64252fcf61496bae3ff3061a0539ecc7f",
+              "/assets/js/athlete-self-context.js": "19122594ee5f88d3af5a0270a9f3309ce2181ac5ce62e4efd7e5d309825f2c34",
+          }
+          expected = {path: obj["sha256"] for path, obj in actual["assets"].items()}
+          assert not set(expected) & set(followups)
+          expected.update(followups)
+          assert len(expected) == 22
+          result = {"status":"STOP_NO_RETRY","stagingAcceptanceRun":45732572092,
+                    "stagingAcceptanceSource":"f2bf002c46e21c4ba0dcc3a3bd24b92d0ae6c9fa",
+                    "stagingAcceptanceArtifact":15077691008,"stagingAuthenticatedChecks":"11/11",
+                    "isolatedWriteTests":"19/19","packageSha256":actual["archiveSha256"],
+                    "productionRulesSha256":sha(rules),"assets":{}}
+          try:
+              for path, digest in sorted(expected.items()):
+                  rel = "public"+path
+                  body = (Path(rel) if path in followups else p.ROOT/rel).read_bytes()
+                  assert sha(body) == digest, f"Candidate mismatch: {path}"
+                  old = subprocess.run(["git","-C",str(p.ROOT),"show","HEAD:"+rel],capture_output=True)
+                  if old.returncode:
+                      assert path == "/assets/js/scoped-coach-athletes.js", f"Missing original source: {path}"
+                  baseline = sha(old.stdout) if old.returncode == 0 else None
+                  req = urllib.request.Request("https://sandman-combat-staging.web.app"+path+"?p0="+os.environ["GITHUB_RUN_ID"],headers={"Cache-Control":"no-cache"})
+                  with urllib.request.urlopen(req,timeout=20) as res:
+                      assert res.status == 200 and sha(res.read()) == digest, f"Staging asset drift: {path}"
+                  target = out/rel
+                  target.parent.mkdir(parents=True,exist_ok=True)
+                  target.write_bytes(body)
+                  result["assets"][path] = {"sha256":digest,"originalSourceSha256":baseline}
+              result["status"] = "CANDIDATE_VERIFIED"
+          finally:
+              (out/"candidate.json").write_text(json.dumps(result,indent=2)+"\n")
+          PY
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Read production Firestore and Hosting baselines, no publication
+        run: |
+          python3 - <<'PY'
+          import hashlib, importlib, json, os, re, subprocess, sys, urllib.parse, urllib.request
+          from pathlib import Path
+          sys.path.insert(0,str(Path("scripts/staging").resolve()))
+          permission = importlib.import_module("pr614-readonly-preflight")
+          project, site = "sandmandashboard","sandman-main"
+          out = Path("p0-production-evidence")
+          candidate = json.loads((out/"candidate.json").read_text())
+          assert candidate["status"] == "CANDIDATE_VERIFIED"
+          token = subprocess.check_output(["gcloud","auth","print-access-token"],text=True).strip()
+          opener = urllib.request.build_opener(permission.inventory.NoRedirect())
+          def get(url):
+              req = urllib.request.Request(url,headers={"Authorization":"Bearer "+token})
+              with opener.open(req,timeout=30) as res: return json.load(res)
+          def sha(b): return hashlib.sha256(b).hexdigest()
+          def object_sha(obj): return sha(json.dumps(obj,sort_keys=True).encode())
+          rules_api = "https://firebaserules.googleapis.com/v1/"
+          hosting_api = "https://firebasehosting.googleapis.com/v1beta1/"
+          release_url = rules_api+f"projects/{project}/releases/cloud.firestore"
+          hosting_url = hosting_api+f"sites/{site}/releases?pageSize=1"
+          evidence = {"status":"STOP_NO_RETRY","project":project,"site":site,"candidate":candidate,"storage":"PENDING","conflicts":[]}
+          def get_rule(url):
+              release = get(url)
+              ruleset = release["rulesetName"]
+              assert re.fullmatch(rf"projects/{project}/rulesets/[A-Za-z0-9-]+",ruleset)
+              files = get(rules_api+ruleset)["source"]["files"]
+              assert len(files)==1
+              return {"release":release["name"],"ruleset":ruleset,"sha256":sha(files[0]["content"].encode())}
+          try:
+              metadata = get("https://firebase.googleapis.com/v1beta1/projects/"+project)
+              assert metadata["projectId"]==project and str(metadata["projectNumber"])=="889326401061"
+              evidence["permissions"] = permission.permission_probe("Production P0",f"https://cloudresourcemanager.googleapis.com/v1/projects/{project}",token,sorted(set(permission.REQUIREMENTS["rules"]+permission.REQUIREMENTS["hosting"])))
+              evidence["firestoreBaseline"] = get_rule(release_url)
+              if evidence["firestoreBaseline"]["sha256"]!="d663ac2354e243e4d6aae7e4d799241c5c20763a60e93a79c2d7cf813fb180af":
+                  evidence["conflicts"].append("Production Firestore baseline drift")
+              releases = get(hosting_url)["releases"]
+              assert len(releases)==1
+              active = releases[0]
+              version = active["version"]["name"]
+              assert re.fullmatch(rf"sites/{site}/versions/[A-Za-z0-9_-]+",version)
+              assert re.fullmatch(rf"sites/{site}/releases/[0-9]+",active["name"])
+              config = get(hosting_api+version)
+              assert config["status"]=="FINALIZED" and isinstance(config["config"],dict)
+              manifest,cursor,seen = {},"",set()
+              while True:
+                  query = urllib.parse.urlencode({"pageSize":1000,**({"pageToken":cursor} if cursor else {})})
+                  page = get(hosting_api+version+"/files?"+query)
+                  for entry in page.get("files",[]):
+                      path,h = entry["path"],entry["hash"]
+                      assert path.startswith("/") and path not in manifest and re.fullmatch(r"[a-f0-9]{64}",h)
+                      assert entry["status"]=="ACTIVE"
+                      manifest[path]=h
+                  cursor=page.get("nextPageToken","")
+                  if not cursor: break
+                  assert cursor not in seen
+                  seen.add(cursor)
+              assert len(manifest)>100
+              evidence["hostingBaseline"]={"release":active["name"],"version":version,"fileCount":len(manifest),"manifestSha256":object_sha(manifest),"configSha256":object_sha(config["config"]),"assets":{}}
+              for path,hashes in candidate["assets"].items():
+                  current=None
+                  if path in manifest:
+                      req=urllib.request.Request("https://sandman-main.web.app"+path+"?p0="+os.environ["GITHUB_RUN_ID"],headers={"Cache-Control":"no-cache"})
+                      with urllib.request.urlopen(req,timeout=20) as res:
+                          assert res.status==200
+                          current=sha(res.read())
+                  state="ALREADY_MATCHES" if current==hashes["sha256"] else "BASELINE_MATCHES" if current==hashes["originalSourceSha256"] else "DRIFT"
+                  evidence["hostingBaseline"]["assets"][path]={"state":state,"sha256":current,"hostingHash":manifest.get(path)}
+                  if state=="DRIFT": evidence["conflicts"].append(path)
+              assert get(hosting_url)["releases"][0]["name"]==active["name"]
+              assert get(release_url)["rulesetName"]==evidence["firestoreBaseline"]["ruleset"]
+              (out/"hosting-manifest.json").write_text(json.dumps(manifest,sort_keys=True)+"\n")
+              (out/"hosting-config.json").write_text(json.dumps(config["config"],sort_keys=True)+"\n")
+              try:
+                  storage=get_rule(rules_api+f"projects/{project}/releases/firebase.storage/{project}.firebasestorage.app")
+                  evidence["storageRevision"]=storage
+                  evidence["storage"]="DENY_ALL_HASH_VERIFIED; AUTHENTICATED DEPENDENCIES PENDING" if storage["sha256"]=="ed10206af6e9b728e394ae422f8ac963f411c37a8ca5e1737e89925b3f9b1f82" else "DRIFT"
+              except Exception as error:
+                  evidence["storage"]="PENDING: "+type(error).__name__
+              assert not evidence["permissions"]["missing"],"Missing production permissions"
+              assert not evidence["conflicts"],"Production baseline drift; review exact conflicting paths"
+              evidence["status"]="PASS"
+          finally:
+              (out/"production-preflight.json").write_text(json.dumps(evidence,indent=2)+"\n")
+              print(json.dumps({k:v for k,v in evidence.items() if k!="candidate"},sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-production-readonly-preflight
+          path: p0-production-evidence/
+          if-no-files-found: error
+          retention-days: 7
