@@ -285,3 +285,52 @@ test("dashboard initialization dependencies and active curriculum assets are com
     assert.doesNotThrow(() => JSON.parse(fs.readFileSync(path, "utf8")), path);
   }
 });
+
+
+test("explicit case-sensitive athlete ID takes priority over stale remembered uppercase alias", async () => {
+  const uid = "staging-athlete-beginner";
+  const reads = [];
+  const result = await resolveAuthenticatedAthlete({
+    user: { uid }, requestedId: uid, rememberedId: uid.toUpperCase(),
+    getAthleteById: async id => {
+      reads.push(id);
+      if (id !== uid) throw new Error("permission-denied");
+      return {};
+    },
+    findAthletesByAuthUid: async () => { throw new Error("unexpected query"); },
+  });
+  assert.equal(result.athleteId, uid);
+  assert.deepEqual(reads, [uid]);
+});
+
+test("Athlete navigation preserves case in browser storage and links before resolver initialization", async () => {
+  const source = fs.readFileSync("public/assets/js/athlete-nav.js", "utf8");
+  const identityAndRoutes = source.slice(source.indexOf("const THEME_KEY"), source.indexOf("function active"));
+  for (const uid of ["staging-athlete-beginner", "f8_MixedCase", "F8_LEGACY"]) {
+    const local = new Map();
+    const session = new Map();
+    const storage = map => ({ getItem: key => map.get(key) ?? null, setItem: (key, value) => map.set(key, value) });
+    const nav = runInNewContext(identityAndRoutes + '\n({ id, link: route("/athletes/hub/"), youth: items === youthItems });', {
+      URLSearchParams, location: { search: "?id=" + encodeURIComponent(uid) },
+      localStorage: storage(local), sessionStorage: storage(session),
+    });
+    assert.equal(nav.id, uid);
+    assert.equal(local.get("sandman_lastAthleteUid"), uid);
+    assert.equal(local.get("currentAthleteId"), uid);
+    assert.equal(session.get("currentAthleteId"), uid);
+    assert.equal(new URL(nav.link, "https://example.invalid").searchParams.get("id"), uid);
+    assert.equal(nav.youth, uid.toUpperCase().startsWith("F8_"));
+    const reads = [];
+    const result = await resolveAuthenticatedAthlete({
+      user: { uid }, requestedId: uid, rememberedId: local.get("sandman_lastAthleteUid"),
+      getAthleteById: async id => {
+        reads.push(id);
+        if (id !== uid) throw new Error("permission-denied");
+        return {};
+      },
+      findAthletesByAuthUid: async () => { throw new Error("unexpected query"); },
+    });
+    assert.equal(result.athleteId, uid);
+    assert.deepEqual(reads, [uid]);
+  }
+});

@@ -6,7 +6,7 @@ const ID_KEYS = ["sandman_lastAthleteUid", "currentAthleteId"];
 const params = new URLSearchParams(location.search);
 
 function athleteId(){
-  return String(params.get("id") || params.get("athleteId") || params.get("uid") || ID_KEYS.map((key)=>localStorage.getItem(key)).find(Boolean) || sessionStorage.getItem("currentAthleteId") || "").trim().toUpperCase();
+  return String(params.get("id") || params.get("athleteId") || params.get("uid") || ID_KEYS.map((key)=>localStorage.getItem(key)).find(Boolean) || sessionStorage.getItem("currentAthleteId") || "").trim();
 }
 
 const id = athleteId();
@@ -40,7 +40,7 @@ const fullItems = [
   ["Leaderboard", "/athletes/leaderboard/"]
 ];
 
-const items = id.startsWith("F8_") ? youthItems : fullItems;
+const items = id.toUpperCase().startsWith("F8_") ? youthItems : fullItems;
 
 function active(path){
   const here=location.pathname;
