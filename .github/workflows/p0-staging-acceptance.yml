@@ -88,6 +88,8 @@ jobs:
           STRIPE_SECRET_KEY: ''
           RESEND_API_KEY: ''
           GOOGLE_APPLICATION_CREDENTIALS: ''
+          FUNCTIONS_EMULATOR_HOST: '127.0.0.1:5501'
+          HOSTING_EMULATOR_HOST: '127.0.0.1:5502'
         run: |
           set -euo pipefail
           test -z "$STRIPE_SECRET_KEY$RESEND_API_KEY$GOOGLE_APPLICATION_CREDENTIALS"
