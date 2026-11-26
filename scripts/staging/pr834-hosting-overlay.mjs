@@ -23,6 +23,14 @@ const profiles = {
       ['/assets/js/athlete-self-context.js', '4d2cabb1a1e161ff6268e5c638c4a2173f35e86b88717e599ef74f4a16823801'],
     ],
   },
+  pr841: {
+    candidateSha: 'db4daa7bbaa1c234b5e019975c3eadec539fe224',
+    approval: 'APPROVE_PR841_STAGING_ATHLETE_IDENTITY_ONLY',
+    targets: [
+      ['/assets/js/athlete-nav.js', '3a44e224c92159609bb3c547a19181e64252fcf61496bae3ff3061a0539ecc7f'],
+      ['/assets/js/athlete-self-context.js', '19122594ee5f88d3af5a0270a9f3309ce2181ac5ce62e4efd7e5d309825f2c34'],
+    ],
+  },
 };
 const profileName = process.env.P0_HOSTING_PROFILE || 'pr834';
 const profile = profiles[profileName];
