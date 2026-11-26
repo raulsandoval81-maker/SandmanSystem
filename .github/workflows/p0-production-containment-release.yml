@@ -1,0 +1,106 @@
+name: P0 guarded production containment release
+on:
+  pull_request:
+    paths:
+      - .github/workflows/p0-production-containment-release.yml
+      - scripts/production/p0-containment-release.py
+  workflow_dispatch:
+    inputs:
+      confirm_project:
+        description: Type sandmandashboard
+        required: true
+        type: string
+      approval:
+        description: Type APPROVE_P0_PRODUCTION_RUN_45736128430
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: p0-production-containment
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate release script without cloud credentials
+        run: |
+          python3 -m py_compile scripts/production/p0-containment-release.py
+          python3 - <<'PY'
+          import runpy
+          p = runpy.run_path("scripts/production/p0-containment-release.py")
+          assert len(p["ASSETS"]) == 22 and len(p["PERMISSIONS"]) == 6
+          assert p["PROJECT"] == "sandmandashboard" and p["SITE"] == "sandman-main"
+          assert p["RUN"] == 45736128430 and p["ARTIFACT"] == 15079377212
+          try:
+              p["guard"]()
+          except RuntimeError:
+              pass
+          else:
+              raise AssertionError("Guard accepted missing approval")
+          PY
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-24.04
+    environment: production
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+      APPROVAL: ${{ inputs.approval }}
+    steps:
+      - name: Guard target, approval and first attempt
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$CONFIRM_PROJECT" = sandmandashboard
+          test "$APPROVAL" = APPROVE_P0_PRODUCTION_RUN_45736128430
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download and verify exact successful preflight archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/45736128430" > preflight-run.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/15079377212" > preflight-artifact.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("preflight-run.json").read_text())
+          a = json.loads(Path("preflight-artifact.json").read_text())
+          assert r["id"] == 45736128430 and r["status"] == "completed" and r["conclusion"] == "success"
+          assert r["head_sha"] == "dd1f8eeea19e1758eb700dfaa08d89eca82b5569" and r["head_branch"] == "main"
+          assert r["path"] == ".github/workflows/p0-production-readonly-preflight.yml"
+          assert a["id"] == 15079377212 and a["workflow_run"]["id"] == r["id"] and not a["expired"]
+          assert a["name"] == "p0-production-readonly-preflight"
+          assert a["digest"] == "sha256:6183bc17e03da83957980db1b5d100ca18d81a54a4f3cb1344426995fe340aa1"
+          PY
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/15079377212/zip" > p0-preflight.zip
+          python3 scripts/production/p0-containment-release.py --verify-package
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SANDMANDASHBOARD }}
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Recheck live baselines, publish exact Hosting overlay and Firestore candidate
+        run: python3 scripts/production/p0-containment-release.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-production-containment-release
+          path: p0-production-release-evidence/
+          if-no-files-found: warn
+          retention-days: 30
