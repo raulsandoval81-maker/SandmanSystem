@@ -1,0 +1,30 @@
+name: Casa intake emulator acceptance
+on:
+  pull_request:
+    paths:
+      - 'firestore.rules'
+      - 'public/connect/casa/**'
+      - 'public/connect/general-message-payload.mjs'
+      - 'public/connect/message.js'
+      - 'public/admin/reception/**'
+      - 'tests/casa/**'
+      - '.github/workflows/casa-intake-acceptance.yml'
+permissions:
+  contents: read
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/casa/casa-central-admin-contract.test.cjs
+      - run: npx --yes firebase-tools@15.11.0 emulators:exec --only firestore --project demo-sandman-casa 'node --test tests/casa/casa-intake.emulator.cjs'
