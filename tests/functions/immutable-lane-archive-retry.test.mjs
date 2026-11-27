@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const helperSource = readFileSync("public/assets/js/immutable-lane-archive.js", "utf8");
-const { archiveMatchesSubmission, assertCompatibleLaneArchive, ensureImmutableLaneArchive } =
+const { archiveMatchesSubmission, assertCompatibleLaneArchive, ensureImmutableLaneArchive, assertAuthoritativeAwardReceipt } =
   await import("data:text/javascript;base64," + Buffer.from(helperSource).toString("base64"));
 
 const original = (lane = "honor", award = 5) => ({
@@ -116,8 +116,11 @@ test("both Coach paths preflight archive before XP and never merge an existing a
     assert.match(source, /ensureImmutableLaneArchive\(\{/);
     assert.doesNotMatch(source, /setDoc\(historyRef, \{/);
     const preflight = source.indexOf("await assertCompatibleLaneArchive({");
-    const award = source.indexOf("await awardXp({", preflight);
+    const award = source.indexOf("const xpResult = await awardXp({", preflight);
+    const receipt = source.indexOf("assertAuthoritativeAwardReceipt(xpResult, amt);", award);
+    const history = source.indexOf("await writeLaneHistory({", receipt);
     assert.ok(preflight > 0 && award > preflight, `${lane} preflights before awarding XP`);
+    assert.ok(receipt > award && history > receipt, `${lane} reconciles authoritative XP before History`);
   }
 });
 
@@ -127,4 +130,20 @@ test("authoritative XP backend uses stable lane submission receipts (source cont
   assert.match(source, /if \(receiptSnap\.exists\)/);
   assert.match(source, /idempotent: true, duplicate: true/);
   assert.match(source, /tx\.create\(receiptRef/);
+});
+
+test("authoritative server receipt agrees with the selected award before History closure", () => {
+  for (const amount of [5, 10]) {
+    assert.equal(assertAuthoritativeAwardReceipt({ ok: true, awardedAmount: amount, idempotent: false }, amount), amount);
+    assert.equal(assertAuthoritativeAwardReceipt({ ok: true, awardedAmount: amount, idempotent: true, delta: 0 }, amount), amount);
+  }
+  for (const receipt of [
+    { ok: true, awardedAmount: 10, idempotent: true, delta: 0 },
+    { ok: true, awardedAmount: 0 },
+    { ok: false, awardedAmount: 5 },
+    { ok: true },
+    null,
+  ]) {
+    assert.throws(() => assertAuthoritativeAwardReceipt(receipt, 5), /XP_AWARD_RECEIPT_MISMATCH_REQUIRES_REVIEW/);
+  }
 });
