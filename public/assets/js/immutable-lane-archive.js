@@ -57,3 +57,19 @@ export async function ensureImmutableLaneArchive({
     throw error;
   }
 }
+
+
+// The server receipt is authoritative across interrupted Coach approvals.
+// On an idempotent retry, the requested button amount might differ from the
+// amount already granted. Never archive or close an incorrect award.
+export function assertAuthoritativeAwardReceipt(receipt, expectedAmount) {
+  const awarded = receipt?.awardedAmount;
+  if (receipt?.ok !== true ||
+      typeof awarded !== "number" ||
+      !Number.isFinite(awarded) ||
+      !Number.isFinite(Number(expectedAmount)) ||
+      awarded !== Number(expectedAmount)) {
+    throw new Error("XP_AWARD_RECEIPT_MISMATCH_REQUIRES_REVIEW");
+  }
+  return awarded;
+}
