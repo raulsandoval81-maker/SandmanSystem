@@ -1,5 +1,5 @@
 import { auth } from "/assets/js/firebase-init.js";
-import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
 import { athleteExperience, canonicalAthleteHref, persistVerifiedAthleteId, clearUnverifiedAthleteId } from "/assets/js/athlete-journey-routes.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
@@ -7,9 +7,6 @@ const THEME_KEY = "sandman-athlete-theme";
 const ID_KEYS = ["sandman_lastAthleteUid", "currentAthleteId"];
 const params = new URLSearchParams(location.search);
 
-function athleteId(){
-  return String(params.get("id") || params.get("athleteId") || params.get("uid") || ID_KEYS.map((key)=>localStorage.getItem(key)).find(Boolean) || sessionStorage.getItem("currentAthleteId") || "").trim();
-}
 
 let id = "";
 
@@ -82,9 +79,8 @@ document.addEventListener("keydown",(event)=>{if(event.key==="Escape"&&drawer.cl
 header.querySelector("[data-athlete-theme]").addEventListener("click",()=>applyTheme(document.documentElement.dataset.athleteTheme==="night"?"day":"night"));
 drawer.querySelector("[data-athlete-signout]").addEventListener("click",async()=>{try{await signOut(auth)}finally{ID_KEYS.forEach((key)=>localStorage.removeItem(key));sessionStorage.removeItem("currentAthleteId");location.replace("/athletes/auth/")}});
 async function hydrateNavigation(){
-  const reportedId = athleteId();
   try {
-    const resolved = await resolveSignedInAthlete(reportedId);
+    const resolved = await resolveSignedInSelfAthlete();
     if(!resolved.athleteId || !resolved.athlete){
       // These shared Profile pages are also used by scoped Coach viewers.
       // No Athlete drawer links without Athlete ownership, but leave the
