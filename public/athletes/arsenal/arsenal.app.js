@@ -1,6 +1,3 @@
-import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
-import { athleteExperience, canonicalAthleteHref, persistVerifiedAthleteId, clearUnverifiedAthleteId } from "/assets/js/athlete-journey-routes.js";
-
 import {
   db,
   ensureSignedIn,
@@ -340,14 +337,15 @@ async function loadUnlocks() {
       window.location.search
     );
 
-  let athleteId = String(
+  const athleteId = String(
     params.get("athleteId") ||
     params.get("id") ||
-    params.get("uid") ||
     localStorage.getItem("currentAthleteId") ||
     sessionStorage.getItem("currentAthleteId") ||
     ""
-  ).trim();
+  )
+    .trim()
+    .toUpperCase();
 
   if (!athleteId) {
     console.error(
@@ -377,17 +375,6 @@ async function loadUnlocks() {
 
   try {
     await ensureSignedIn();
-    const resolved = await resolveSignedInAthlete(athleteId);
-    if (!resolved.athleteId || !resolved.athlete) {
-      clearUnverifiedAthleteId();
-      return;
-    }
-    athleteId = resolved.athleteId;
-    persistVerifiedAthleteId(athleteId);
-    if (athleteExperience(resolved.athlete, athleteId) !== "full") {
-      location.replace(canonicalAthleteHref("/athletes/arsenal/", athleteId));
-      return;
-    }
 
     const athleteRef =
       doc(db, "athletes", athleteId);
