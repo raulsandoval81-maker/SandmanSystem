@@ -86,8 +86,10 @@ async function hydrateNavigation(){
   try {
     const resolved = await resolveSignedInAthlete(reportedId);
     if(!resolved.athleteId || !resolved.athlete){
-      clearUnverifiedAthleteId();
-      location.replace("/athletes/auth/");
+      // These shared Profile pages are also used by scoped Coach viewers.
+      // No Athlete drawer links without Athlete ownership, but leave the
+      // existing Coach-controlled page to enforce its own Firestore scope.
+      drawer.querySelector("[data-athlete-links]").textContent="Athlete menu unavailable in this view";
       return;
     }
     id=resolved.athleteId;
@@ -114,7 +116,7 @@ async function hydrateNavigation(){
       location.replace(canonicalAthleteHref(section,id));
     }
   } catch(error) {
-    clearUnverifiedAthleteId();
+    // Preserve Coach view context on a shared page; never grant Athlete nav.
     menu.disabled=true;
     console.error("[Athlete navigation] verified lookup failed:", error?.code || "runtime-error");
     drawer.querySelector("[data-athlete-links]").textContent="Athlete access unavailable";
