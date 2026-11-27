@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - codex/athlete-profile-read-authorization
+      - codex/sprint1-immutable-lane-archive-retry
     paths:
       - '.github/workflows/athlete-sprint1-test-only.yml'
       - 'public/assets/js/athlete-*.js'
+      - 'public/assets/js/immutable-lane-archive.js'
+      - 'public/coaches/lanes/honor/review.js'
+      - 'public/coaches/lanes/conditioning/review.js'
       - 'public/athletes/**'
       - 'functions/src/modules/athlete/**'
       - 'functions/src/services/athleteProfileReadAuthorization.ts'
@@ -46,7 +50,8 @@ jobs:
             tests/functions/dashboard-foundation.test.mjs \
             tests/functions/mini-arsenal-legacy-route.test.mjs \
             tests/functions/full-arsenal-id-case.test.mjs \
-            tests/functions/mini-profile-id-case.test.mjs
+            tests/functions/mini-profile-id-case.test.mjs \
+            tests/functions/immutable-lane-archive-retry.test.mjs
 
   firestore-emulator:
     name: Athlete ownership rules + callables (synthetic emulator)
