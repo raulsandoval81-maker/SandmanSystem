@@ -216,7 +216,7 @@ function getTrackCode(
     .toUpperCase();
 
   if (
-    athleteId.startsWith("F8_") ||
+    String(athleteId).toUpperCase().startsWith("F8_") ||
     raw.includes("F8") ||
     raw.includes("FOUNDRY8") ||
     raw.includes("ZERO2HERO") ||
@@ -226,7 +226,7 @@ function getTrackCode(
   }
 
   if (
-    athleteId.startsWith("F4_") ||
+    String(athleteId).toUpperCase().startsWith("F4_") ||
     raw.includes("F4") ||
     raw.includes("FOUNDRY4") ||
     raw.includes("PATH2LEGEND") ||
@@ -337,15 +337,15 @@ async function loadUnlocks() {
       window.location.search
     );
 
+  // Firestore document IDs are case-sensitive. The upstream Arsenal router
+  // supplies the canonical, ownership-verified ID; never normalize that key.
   const athleteId = String(
     params.get("athleteId") ||
     params.get("id") ||
     localStorage.getItem("currentAthleteId") ||
     sessionStorage.getItem("currentAthleteId") ||
     ""
-  )
-    .trim()
-    .toUpperCase();
+  ).trim();
 
   if (!athleteId) {
     console.error(
