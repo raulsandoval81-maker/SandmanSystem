@@ -1,3 +1,4 @@
+import { athleteExperience, athleteProfilePage, athleteArsenalPage, canonicalAthleteHref } from "../../public/assets/js/athlete-journey-routes.js";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
@@ -90,10 +91,42 @@ test("uppercase fallback preserves canonical ids without bypassing ownership", a
 });
 
 test("legacy Z2H routing remains on the mini Athlete hub", () => {
-  const router = fs.readFileSync("public/athletes/hub/index.html", "utf8");
   const miniHub = fs.readFileSync("public/athletes/hub/mini-hub.html", "utf8");
-  assert.match(router, /journey === "z2h"/);
+  assert.equal(athleteExperience({ journey: "Z2H" }, "staging-athlete-beginner"), "mini");
+  assert.equal(athleteExperience({ programTrack: "Road2Champion" }, "athlete-1"), "mini");
   assert.match(miniHub, /journey === "z2h"/);
+});
+
+test("verified journey overrides legacy prefixes in all Athlete routes", () => {
+  assert.equal(athleteExperience({ programTrack: "P2L" }, "F8_LEGACY"), "full");
+  assert.equal(athleteExperience({ programTrack: "R2C" }, "F4_LEGACY"), "mini");
+  assert.equal(athleteProfilePage({ journey: "Q2M" }, "adult-1"), "/athletes/profile/adult-profile.html");
+  assert.equal(athleteArsenalPage({ programTrack: "R2C" }, "F4_LEGACY"), "/athletes/arsenal/mini-arsenal.html");
+  assert.equal(athleteExperience({}, "F8_LEGACY"), "mini");
+  assert.equal(athleteExperience({}, "unknown"), "");
+  const href = canonicalAthleteHref("/athletes/profile/", "staging-athlete-beginner");
+  assert.equal(new URL(href, "https://example.test").searchParams.get("id"), "staging-athlete-beginner");
+});
+
+test("denied foreign URL document cannot block auth-owned Athlete fallback", async () => {
+  const self = { authUid: "staging-self", programTrack: "z2h" };
+  const result = await resolveAuthenticatedAthlete({
+    user: { uid: "staging-self" },
+    requestedId: "staging-other",
+    getAthleteById: async () => { const error = new Error("Missing or insufficient permissions"); error.code = "permission-denied"; throw error; },
+    findAthletesByAuthUid: async () => [{ athleteId: "staging-self", athlete: self }],
+  });
+  assert.equal(result.athleteId, "staging-self");
+  assert.deepEqual(result.rejectedIds, ["STAGING-OTHER"]);
+});
+
+test("resolver never hides a non-permission backend failure", async () => {
+  await assert.rejects(() => resolveAuthenticatedAthlete({
+    user: { uid: "staging-self" },
+    requestedId: "staging-other",
+    getAthleteById: async () => { throw new Error("network-unavailable"); },
+    findAthletesByAuthUid: async () => [{ athleteId: "staging-self", athlete: { authUid: "staging-self" } }],
+  }), /network-unavailable/);
 });
 
 test("staging acceptance records sanitized Athlete dependency diagnostics", () => {
@@ -303,34 +336,18 @@ test("explicit case-sensitive athlete ID takes priority over stale remembered up
   assert.deepEqual(reads, [uid]);
 });
 
-test("Athlete navigation preserves case in browser storage and links before resolver initialization", async () => {
+test("Athlete drawer links are built only after verified ownership", () => {
   const source = fs.readFileSync("public/assets/js/athlete-nav.js", "utf8");
-  const identityAndRoutes = source.slice(source.indexOf("const THEME_KEY"), source.indexOf("function active"));
-  for (const uid of ["staging-athlete-beginner", "f8_MixedCase", "F8_LEGACY"]) {
-    const local = new Map();
-    const session = new Map();
-    const storage = map => ({ getItem: key => map.get(key) ?? null, setItem: (key, value) => map.set(key, value) });
-    const nav = runInNewContext(identityAndRoutes + '\n({ id, link: route("/athletes/hub/"), youth: items === youthItems });', {
-      URLSearchParams, location: { search: "?id=" + encodeURIComponent(uid) },
-      localStorage: storage(local), sessionStorage: storage(session),
-    });
-    assert.equal(nav.id, uid);
-    assert.equal(local.get("sandman_lastAthleteUid"), uid);
-    assert.equal(local.get("currentAthleteId"), uid);
-    assert.equal(session.get("currentAthleteId"), uid);
-    assert.equal(new URL(nav.link, "https://example.invalid").searchParams.get("id"), uid);
-    assert.equal(nav.youth, uid.toUpperCase().startsWith("F8_"));
-    const reads = [];
-    const result = await resolveAuthenticatedAthlete({
-      user: { uid }, requestedId: uid, rememberedId: local.get("sandman_lastAthleteUid"),
-      getAthleteById: async id => {
-        reads.push(id);
-        if (id !== uid) throw new Error("permission-denied");
-        return {};
-      },
-      findAthletesByAuthUid: async () => { throw new Error("unexpected query"); },
-    });
-    assert.equal(result.athleteId, uid);
-    assert.deepEqual(reads, [uid]);
+  assert.match(source, /resolveSignedInAthlete\(reportedId\)/);
+  assert.match(source, /persistVerifiedAthleteId\(id\)/);
+  assert.match(source, /athleteExperience\(resolved\.athlete,id\)/);
+  assert.match(source, /menu\.disabled=true/);
+  assert.doesNotMatch(source, /const id = athleteId\(\)/);
+  assert.doesNotMatch(source, /const items = id\.toUpperCase/);
+  for (const path of ["public/athletes/hub/index.html", "public/athletes/profile/index.html",
+    "public/athletes/arsenal/arsenal.linker.js"]) {
+    assert.match(fs.readFileSync(path, "utf8"), /resolveSignedInAthlete/);
+    assert.match(fs.readFileSync(path, "utf8"), /persistVerifiedAthleteId/);
   }
 });
+
