@@ -2,6 +2,8 @@ import {
   db,
   collection,
   getDocs,
+  query,
+  where,
   doc,
   updateDoc,
   setDoc,
@@ -13,6 +15,9 @@ import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { ensureImmutableLaneArchive, assertCompatibleLaneArchive } from "/assets/js/immutable-lane-archive.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
+
+const readHistoryForAthlete = (athleteId) =>
+  getDocs(query(collection(db, "laneHistory"), where("athleteId", "==", athleteId)));
 
 try {
   await requireCoach();
@@ -177,7 +182,7 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
     historyType: "submission"
   };
   return ensureImmutableLaneArchive({
-    historyRef, archive, athleteId, key, lane: "conditioning", getDoc, setDoc,
+    historyRef, archive, athleteId, key, lane: "conditioning", readHistoryForAthlete, setDoc,
   });
 }
 
@@ -575,8 +580,8 @@ async function loadSubmissions() {
             // authoritative XP call, so a conflicting historical record
             // never triggers a new award.
             await assertCompatibleLaneArchive({
-              historyRef: doc(db, "laneHistory", `${athleteId}__${key}`),
-              athleteId, key, lane: "conditioning", expectedAward: amt, getDoc,
+
+              athleteId, key, lane: "conditioning", expectedAward: amt, readHistoryForAthlete,
             });
             await awardXp({
               athleteId,
