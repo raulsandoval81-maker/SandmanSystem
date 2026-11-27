@@ -25,10 +25,12 @@ import {
   doc,
   updateDoc,
   setDoc,
+  getDoc,
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
+import { ensureImmutableLaneArchive } from "/assets/js/immutable-lane-archive.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
@@ -190,7 +192,7 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
 
   const awardedXp = Number(entry?.awardedXp || 0);
 
-  await setDoc(historyRef, {
+  const archive = {
     athleteId,
     athleteName: athleteName || "",
     lane: "honor",
@@ -219,7 +221,10 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
     sourceAthleteId: athleteId,
     sourceKey: key,
     historyType: "submission"
-  }, { merge: true });
+  };
+  return ensureImmutableLaneArchive({
+    historyRef, archive, athleteId, key, lane: "honor", getDoc, setDoc,
+  });
 }
 
 /* -----------------------------
