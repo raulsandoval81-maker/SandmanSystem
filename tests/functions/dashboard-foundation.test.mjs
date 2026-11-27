@@ -401,7 +401,7 @@ test("explicit case-sensitive athlete ID takes priority over stale remembered up
 
 test("Athlete drawer links are built only after verified ownership", () => {
   const source = fs.readFileSync("public/assets/js/athlete-nav.js", "utf8");
-  assert.match(source, /resolveSignedInAthlete\(reportedId\)/);
+  assert.match(source, /resolveSignedInSelfAthlete\(\)/);\n  assert.doesNotMatch(source, /resolveSignedInAthlete\(reportedId\)/);
   assert.match(source, /persistVerifiedAthleteId\(id\)/);
   assert.match(source, /athleteExperience\(resolved\.athlete,id\)/);
   assert.match(source, /menu\.disabled=true/);
