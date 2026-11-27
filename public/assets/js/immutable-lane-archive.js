@@ -14,12 +14,28 @@ export function archiveMatchesSubmission(record, athleteId, key, lane) {
       : record.lane === lane);
 }
 
+// This pre-award check runs before any XP request. An already archived
+// submission with a different award cannot be silently changed by a retry.
+export async function assertCompatibleLaneArchive({
+  historyRef, athleteId, key, lane, expectedAward, getDoc,
+}) {
+  const existing = await getDoc(historyRef);
+  if (!existing.exists()) return false;
+  const data = existing.data();
+  if (!archiveMatchesSubmission(data, athleteId, key, lane) ||
+      Number(data.awardedXp || 0) !== Number(expectedAward || 0)) {
+    throw new Error("HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW");
+  }
+  return true;
+}
+
 export async function ensureImmutableLaneArchive({
   historyRef, archive, athleteId, key, lane, getDoc, setDoc,
 }) {
   const existing = await getDoc(historyRef);
   if (existing.exists()) {
-    if (!archiveMatchesSubmission(existing.data(), athleteId, key, lane)) {
+    if (!archiveMatchesSubmission(existing.data(), athleteId, key, lane) ||
+        Number(existing.data().awardedXp || 0) !== Number(archive.awardedXp || 0)) {
       throw new Error("HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW");
     }
     return { created: false, existing: true };
