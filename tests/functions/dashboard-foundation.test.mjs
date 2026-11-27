@@ -120,6 +120,69 @@ test("denied foreign URL document cannot block auth-owned Athlete fallback", asy
   assert.deepEqual(result.rejectedIds, ["STAGING-OTHER"]);
 });
 
+test("poisoned browser storage recovers legacy Athlete by exact authenticated UID", async () => {
+  const uid = "staging-athlete-beginner";
+  const otherId = "staging-athlete-intermediate";
+  const reads = [];
+  const result = await resolveAuthenticatedAthlete({
+    user: { uid }, rememberedId: otherId,
+    getAthleteById: async id => {
+      reads.push(id);
+      if (id === uid) return { journey: "z2h" }; // no authUid: existing synthetic fixture shape
+      const error = new Error("Missing or insufficient permissions");
+      error.code = "permission-denied";
+      throw error;
+    },
+    findAthletesByAuthUid: async () => assert.fail("Legacy UID document must resolve before authUid query"),
+  });
+  assert.equal(result.athleteId, uid);
+  assert.deepEqual(result.rejectedIds, ["STAGING-ATHLETE-INTERMEDIATE"]);
+  assert.equal(reads.at(-1), uid);
+  assert.ok(!reads.includes(otherId) || reads.indexOf(uid) > reads.indexOf(otherId));
+});
+
+test("exact signed-in UID recovery preserves lower and mixed-case Firestore keys", async () => {
+  for (const uid of ["staging-athlete-beginner", "F4_MixedCase"]) {
+    const reads = [];
+    const result = await resolveAuthenticatedAthlete({
+      user: { uid }, rememberedId: uid.toUpperCase(),
+      getAthleteById: async id => {
+        reads.push(id);
+        return id === uid ? { authUid: null } : null;
+      },
+      findAthletesByAuthUid: async () => assert.fail("Exact UID match should not query by authUid"),
+    });
+    assert.equal(result.athleteId, uid);
+    assert.equal(reads.at(-1), uid);
+  }
+});
+
+test("authenticated UID fallback never accepts a mismatched authUid", async () => {
+  const uid = "staging-athlete-beginner";
+  const result = await resolveAuthenticatedAthlete({
+    user: { uid }, rememberedId: "other-athlete",
+    getAthleteById: async id => id === uid ? { authUid: "someone-else" } : null,
+    findAthletesByAuthUid: async () => [],
+  });
+  assert.equal(result.athleteId, "");
+  assert.equal(result.athlete, null);
+});
+
+test("authenticated UID fallback does not hide backend failure", async () => {
+  const uid = "staging-athlete-beginner";
+  await assert.rejects(
+    () => resolveAuthenticatedAthlete({
+      user: { uid }, rememberedId: "other-athlete",
+      getAthleteById: async id => {
+        if (id === uid) throw new Error("network-unavailable");
+        return null;
+      },
+      findAthletesByAuthUid: async () => assert.fail("Network error must stop resolution"),
+    }),
+    /network-unavailable/
+  );
+});
+
 test("resolver never hides a non-permission backend failure", async () => {
   await assert.rejects(() => resolveAuthenticatedAthlete({
     user: { uid: "staging-self" },
