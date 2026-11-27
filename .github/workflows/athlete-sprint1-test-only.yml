@@ -16,6 +16,7 @@ on:
       - 'functions/src/services/athleteProfileReadAuthorization.ts'
       - 'scripts/staging/p0-containment/firestore.rules'
       - 'tests/functions/**'
+      - 'tests/emulator/athlete-lane-flow.test.mjs'
       - 'tests/firestore/p0-athlete-ownership.rules.test.mjs'
   workflow_dispatch:
 
