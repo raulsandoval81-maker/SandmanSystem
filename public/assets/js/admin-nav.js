@@ -1,6 +1,9 @@
 const ADMIN_HOME = "/admin/hub/dashboard.html";
 const sections = [
-  { label: "Workspace", links: [{ label: "Admin Home", href: ADMIN_HOME }] },
+  { label: "Workspace", links: [
+    { label: "Admin Home", href: ADMIN_HOME },
+    { label: "Command Center", href: "/admin/command-center/" }
+  ] },
   { label: "Governance & Access", links: [
     { label: "Staff & Roles", href: "/admin/people/staff.html" }
   ] },

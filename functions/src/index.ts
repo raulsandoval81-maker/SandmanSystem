@@ -300,6 +300,11 @@ export { listManagementAttendance } from "./practice/listManagementAttendance";
 export { getAthleteSessionHistory } from "./practice/getAthleteSessionHistory";
 export { getAdminOversightSummary } from "./admin/getAdminOversightSummary";
 export { updateStaffGovernance } from "./admin/updateStaffGovernance";
+export {
+  getCommandCenterSnapshot,
+  saveCommandCenterProject,
+  archiveCommandCenterProject,
+} from "./admin/commandCenter";
 
 export {
   issueProposalClientReview,

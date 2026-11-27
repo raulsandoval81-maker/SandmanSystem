@@ -1,5 +1,11 @@
 rules_version = '2';
 
+// Command Center V1 assumed data model:
+// adminCommandCenterProjects/{projectId} contains owner-confidential project
+// delivery metadata. history/{historyId} contains immutable audit events.
+// Both paths are server-only; callable functions validate the strict schema,
+// owner permission, evidence requirements, and status transitions.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -1993,6 +1999,17 @@ match /academySettings/{academyId} {
         allow create, update, delete: if false;
       }
     }
+    /* --------------------------------------
+       Owner Command Center (server-only)
+    ---------------------------------------*/
+    match /adminCommandCenterProjects/{projectId} {
+      allow read, write: if false;
+
+      match /history/{historyId} {
+        allow read, write: if false;
+      }
+    }
+
     /* --------------------------------------
        DEFAULT CLOSED
     ---------------------------------------*/
