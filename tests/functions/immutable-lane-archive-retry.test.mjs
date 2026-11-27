@@ -75,7 +75,7 @@ test("pre-XP archive check rejects conflicting award and accepts matching existi
   assert.equal(await assertCompatibleLaneArchive(baseline), true);
   assert.equal(await assertCompatibleLaneArchive(args()), false);
   await assert.rejects(
-    assertCompatibleLaneArchive(args({ previous: original("honor", 0) })),
+    assertCompatibleLaneArchive({ ...args({ previous: original("honor", 0) }), expectedAward: 5 }),
     /HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW/,
   );
 });
