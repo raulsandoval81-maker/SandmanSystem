@@ -112,6 +112,13 @@ test("Profile feed and Skills callables enforce authenticated scope independentl
       assert.deepEqual(await getAthleteProfileFeed.run(request(uid, athleteId)), {
         athleteId, authorized: true,
       });
+      // Skills Summary has no authorizeOnly shortcut. This must exercise
+      // its actual canonical per-athlete skills read for every allowed role.
+      const summary = await getAthleteSkillsSummary.run(request(uid, athleteId));
+      assert.equal(summary.ok, true, `Skills authorized for ${uid}`);
+      assert.equal(summary.athleteId, athleteId, `Exact-case identity for ${uid}`);
+      assert.equal(summary.discipline, "wrestling");
+      assert.ok(Array.isArray(summary.skills), `Skills array for ${uid}`);
     }
     for (const uid of ["unrelated", "other-athlete", "outsider"]) {
       const denied = error => error.code === "permission-denied";
@@ -187,6 +194,11 @@ test("Lane History creation preserves scoped Coach and Admin archive flows", asy
   await assertSucceeds(historyCreate("coach", "own__coach-archive", { lane: "strength" }));
   await assertSucceeds(historyCreate("southcoach", "other__coach-archive", {
     athleteId: "other", sourceAthleteId: "other", lane: "honor",
+  }));
+  // Conditioning is approved from the Coach review path, even when its
+  // primary XP lane remains Strength or Honor.
+  await assertSucceeds(historyCreate("coach", "own__conditioning-archive", {
+    lane: "strength", assignmentLane: "conditioning", sourceKey: "conditioning_session1",
   }));
   await assertSucceeds(historyCreate("admin", "own__admin-archive", { lane: "conditioning" }));
 });
