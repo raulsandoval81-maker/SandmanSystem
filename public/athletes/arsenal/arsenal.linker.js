@@ -1,45 +1,35 @@
-const params = new URLSearchParams(window.location.search);
+import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
+import {
+  athleteArsenalPage, canonicalAthleteHref, persistVerifiedAthleteId,
+  clearUnverifiedAthleteId,
+} from "/assets/js/athlete-journey-routes.js";
 
-const athleteId = String(
-  params.get("athleteId") ||
-  params.get("id") ||
-  localStorage.getItem("currentAthleteId") ||
-  sessionStorage.getItem("currentAthleteId") ||
-  ""
-)
-  .trim()
-  .toUpperCase();
+const params = new URLSearchParams(location.search);
+const requestedId = String(params.get("id") || params.get("athleteId") || params.get("uid") || "").trim();
 
-if (!athleteId) {
-  document.body.innerHTML =
-    "<p>Missing athlete ID.</p>";
-
-  throw new Error("Missing athlete ID");
+async function routeArsenal() {
+  try {
+    const { athleteId, athlete } = await resolveSignedInAthlete(requestedId);
+    if (!athleteId || !athlete) {
+      clearUnverifiedAthleteId();
+      location.replace("/athletes/auth/");
+      return;
+    }
+    const page = athleteArsenalPage(athlete, athleteId);
+    if (!page) {
+      clearUnverifiedAthleteId();
+      document.body.textContent = "Unable to determine the authorized Arsenal.";
+      return;
+    }
+    persistVerifiedAthleteId(athleteId);
+    const discipline = String(
+      params.get("discipline") || localStorage.getItem(`sandman_active_discipline_${athleteId}`) || ""
+    ).trim();
+    location.replace(canonicalAthleteHref(page, athleteId, discipline));
+  } catch (error) {
+    clearUnverifiedAthleteId();
+    document.body.textContent = "Unable to route Arsenal securely. Return to Athlete Access.";
+    console.error("[Athlete Arsenal Router] verified lookup failed:", error?.code || "runtime-error");
+  }
 }
-
-const discipline =
-  params.get("discipline") ||
-  localStorage.getItem(
-    `sandman_active_discipline_${athleteId}`
-  ) ||
-  "";
-
-const isF8 =
-  athleteId.startsWith("F8_");
-
-const target = isF8
-  ? "/athletes/arsenal/mini-arsenal.html"
-  : "/athletes/arsenal/arsenal.html";
-
-const out =
-  new URLSearchParams();
-
-out.set("id", athleteId);
-
-if (discipline) {
-  out.set("discipline", discipline);
-}
-
-window.location.replace(
-  `${target}?${out.toString()}`
-);
+routeArsenal();

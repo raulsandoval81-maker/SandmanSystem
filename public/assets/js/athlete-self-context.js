@@ -36,7 +36,15 @@ export async function resolveAuthenticatedAthlete({
 
   for (const candidate of candidates) {
     for (const athleteId of candidate.lookups) {
-      const athlete = await getAthleteById(athleteId);
+      let athlete;
+      try {
+        athlete = await getAthleteById(athleteId);
+      } catch (error) {
+        // A poisoned link may name another protected record. Continue looking
+        // for the signed-in athlete, but never hide network or server errors.
+        if (!/permission-denied|insufficient permissions/i.test(String(error?.code || error?.message || ""))) throw error;
+        continue;
+      }
       if (ownsAthlete(user.uid, athleteId, athlete)) {
         return { athleteId, athlete, rejectedIds };
       }
