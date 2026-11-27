@@ -24,6 +24,17 @@ before(async () => {
       setDoc(doc(db, "athletes/own"), {
         authUid: "athlete", locationId: "north", coachIds: ["coach"], synthetic: true,
       }),
+      // Synthetic activated Parent via pending relationship: the real
+      // invitation consumer stamps athlete.parentUid, while the relationship
+      // can retain a noncanonical pending-email document ID.
+      setDoc(doc(db, "athletes/parent-activated"), {
+        authUid: "parent-activated-athlete", parentUid: "late-parent",
+        locationId: "north", coachIds: ["coach"], synthetic: true,
+      }),
+      setDoc(doc(db, "parentAthleteLinks/pending-email-hash-parent-activated"), {
+        parentUid: "late-parent", athleteUid: "parent-activated",
+        status: "active", synthetic: true,
+      }),
       setDoc(doc(db, "athletes/other"), {
         authUid: "other-athlete", locationId: "south", coachIds: [], synthetic: true,
       }),
@@ -261,4 +272,11 @@ test("Scoped Coach approval reuses immutable Honor and Conditioning archives", a
     }), /HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW/);
     await assertFails(updateDoc(historyRef, { coachNote: "not permitted" }));
   }
+});
+
+test("Parent activated via noncanonical pending relationship can read own Athlete", async () => {
+  // Matches issueAccessInvitation -> consumeAccessInvitation, not a
+  // synthetic _UID suffix link. Parent cannot see unrelated athletes.
+  await assertSucceeds(read("late-parent", "parent-activated"));
+  await assertFails(read("late-parent", "other"));
 });
