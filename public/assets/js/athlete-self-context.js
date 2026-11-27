@@ -52,6 +52,22 @@ export async function resolveAuthenticatedAthlete({
     rejectedIds.push(candidate.reportedId);
   }
 
+  // Older Athlete documents can use the authenticated UID as their exact
+  // Firestore document key without storing an authUid field. Recover by that
+  // trusted UID after rejecting untrusted URL/storage IDs, before querying
+  // authUid (which cannot find these legacy documents).
+  //
+  // Firestore IDs are case-sensitive: never uppercase the authenticated UID.
+  try {
+    const athlete = await getAthleteById(user.uid);
+    if (ownsAthlete(user.uid, user.uid, athlete)) {
+      return { athleteId: user.uid, athlete, rejectedIds };
+    }
+  } catch (error) {
+    // A rules denial is not ownership evidence; do not hide other failures.
+    if (!/permission-denied|insufficient permissions/i.test(String(error?.code || error?.message || ""))) throw error;
+  }
+
   const matches = await findAthletesByAuthUid(user.uid);
   const valid = (Array.isArray(matches) ? matches : [])
     .map((match) => ({
