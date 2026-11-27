@@ -103,3 +103,28 @@ test("Mini Arsenal redirects foreign URL only after verifying authenticated owne
   assert.match(mini, /renderEmpty\("Unable to determine athlete journey\."\)/);
   assert.doesNotMatch(mini, /if \(!athleteId\.startsWith\("F8_"\)\)/);
 });
+
+
+test("Home Base, Profile and Arsenal index routers never query untrusted requested athlete IDs", () => {
+  for (const path of [
+    "public/athletes/hub/index.html",
+    "public/athletes/profile/index.html",
+    "public/athletes/arsenal/arsenal.linker.js",
+  ]) {
+    const source = readFileSync(path, "utf8");
+    assert.match(source, /resolveSignedInSelfAthlete\(\)/, path);
+    assert.doesNotMatch(source, /resolveSignedInAthlete\(/, path);
+    assert.doesNotMatch(source, /function requestedId\(|const requestedId\s*=/, path);
+    assert.match(source, /canonicalAthleteHref\(/, path);
+    assert.match(source, /persistVerifiedAthleteId\(athleteId\)/, path);
+  }
+});
+
+test("Route selection preserves Road2Champion and Path2Legend without URL-driven classification", () => {
+  const own = "staging-athlete-beginner";
+  assert.equal(athleteExperience({ journey: "Road2Champion" }, own), "mini");
+  assert.equal(athleteExperience({ journey: "Path2Legend" }, own), "full");
+  assert.equal(athleteExperience({ journey: "Z2H" }, own), "mini");
+  assert.equal(athleteExperience({ journey: "P2L" }, own), "full");
+  assert.equal(athleteExperience({ journey: "" }, own), "");
+});
