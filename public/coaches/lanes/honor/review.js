@@ -31,7 +31,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
-import { ensureImmutableLaneArchive, assertCompatibleLaneArchive } from "/assets/js/immutable-lane-archive.js";
+import { ensureImmutableLaneArchive, assertCompatibleLaneArchive, assertAuthoritativeAwardReceipt } from "/assets/js/immutable-lane-archive.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
@@ -443,7 +443,7 @@ async function loadSubmissions() {
 
               athleteId, key, lane: "honor", expectedAward: amt, readHistoryForAthlete,
             });
-            await awardXp({
+            const xpResult = await awardXp({
               athleteId,
               amount: amt,
               note: coachNote || `Honor submission (+${amt})`,
@@ -453,6 +453,7 @@ async function loadSubmissions() {
                 key,
               },
             });
+            assertAuthoritativeAwardReceipt(xpResult, amt);
 
             await writeLaneHistory({
               athleteId,
