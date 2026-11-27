@@ -1,6 +1,6 @@
 // Archives are immutable. A Coach may safely resume a previously archived
 // submission, but may never overwrite a mismatched closed record.
-export function archiveMatchesSubmission(record, athleteId, key, lane, expectedAward) {
+export function archiveMatchesSubmission(record, athleteId, key, lane, expectedAward, expectedPrimaryLane = "strength") {
   if (!record || typeof record !== "object") return false;
   return record.athleteId === athleteId &&
     record.sourceAthleteId === athleteId &&
@@ -10,7 +10,8 @@ export function archiveMatchesSubmission(record, athleteId, key, lane, expectedA
     record.status === "closed" &&
     Number(record.awardedXp || 0) === Number(expectedAward || 0) &&
     (lane === "conditioning"
-      ? record.assignmentLane === "conditioning"
+      ? record.assignmentLane === "conditioning" &&
+        record.lane === expectedPrimaryLane
       : record.lane === lane);
 }
 
@@ -25,11 +26,11 @@ export async function findLaneArchive(athleteId, key, readHistoryForAthlete) {
 }
 
 export async function assertCompatibleLaneArchive({
-  athleteId, key, lane, expectedAward, readHistoryForAthlete,
+  athleteId, key, lane, expectedAward, expectedPrimaryLane, readHistoryForAthlete,
 }) {
   const record = await findLaneArchive(athleteId, key, readHistoryForAthlete);
   if (!record) return false;
-  if (!archiveMatchesSubmission(record, athleteId, key, lane, expectedAward)) {
+  if (!archiveMatchesSubmission(record, athleteId, key, lane, expectedAward, expectedPrimaryLane)) {
     throw new Error("HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW");
   }
   return true;
@@ -39,7 +40,8 @@ export async function ensureImmutableLaneArchive({
   historyRef, archive, athleteId, key, lane, readHistoryForAthlete, setDoc,
 }) {
   if (await assertCompatibleLaneArchive({
-    athleteId, key, lane, expectedAward: archive.awardedXp, readHistoryForAthlete,
+    athleteId, key, lane, expectedAward: archive.awardedXp,
+    expectedPrimaryLane: archive.lane, readHistoryForAthlete,
   })) return { created: false, existing: true };
 
   try {
@@ -51,7 +53,8 @@ export async function ensureImmutableLaneArchive({
     // after our scoped query. Accept only the exact matching final archive.
     // Any other failure is rethrown without retrying the write.
     const matches = await assertCompatibleLaneArchive({
-      athleteId, key, lane, expectedAward: archive.awardedXp, readHistoryForAthlete,
+      athleteId, key, lane, expectedAward: archive.awardedXp,
+    expectedPrimaryLane: archive.lane, readHistoryForAthlete,
     }).catch(() => false);
     if (matches) return { created: false, existing: true };
     throw error;
