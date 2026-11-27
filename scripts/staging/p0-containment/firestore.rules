@@ -2200,7 +2200,10 @@ match /academySettings/{academyId} {
 
     function staffHasLocation(locationId) {
       let staff = get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+      // An absent location cannot match the default empty staff.locationId.
+      // Without this guard, an unassigned Coach could see a legacy Athlete.
       return locationId is string
+        && locationId.size() > 0
         && (
           (staff.get("locationIds", []) is list && locationId in staff.get("locationIds", []))
           || (staff.get("locations", []) is list && locationId in staff.get("locations", []))
