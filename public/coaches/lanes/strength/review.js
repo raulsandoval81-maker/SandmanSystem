@@ -12,17 +12,13 @@ import {
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
-import { requireCoach } from "/assets/js/coach-guard.js";
+import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
-function localCoachLoginUrl() {
-  const returnUrl = window.location.pathname + window.location.search;
-  return "/coaches/auth/login.html?returnUrl=" + encodeURIComponent(returnUrl);
-}
 
 try {
   await requireCoach();
 } catch (error) {
-  window.location.replace(localCoachLoginUrl());
+  window.location.replace(coachLoginUrl());
   throw error;
 }
 
