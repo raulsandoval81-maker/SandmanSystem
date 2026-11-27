@@ -10,7 +10,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
-import { ensureImmutableLaneArchive } from "/assets/js/immutable-lane-archive.js";
+import { ensureImmutableLaneArchive, assertCompatibleLaneArchive } from "/assets/js/immutable-lane-archive.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
 
@@ -571,6 +571,13 @@ async function loadSubmissions() {
 
             const amt = 5;
 
+            // Check immutable archive identity and awarded XP before the
+            // authoritative XP call, so a conflicting historical record
+            // never triggers a new award.
+            await assertCompatibleLaneArchive({
+              historyRef: doc(db, "laneHistory", `${athleteId}__${key}`),
+              athleteId, key, lane: "conditioning", expectedAward: amt, getDoc,
+            });
             await awardXp({
               athleteId,
               primaryLane: String(currentEntry?.primaryLane || "strength"),
