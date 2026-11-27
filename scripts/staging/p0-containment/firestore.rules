@@ -2175,13 +2175,16 @@ match /academySettings/{academyId} {
     }
 
     function canReadStaffAthlete(athlete) {
-      return (isManagement() && managementHasLocation(athlete.locationId))
+      // Newly activated profiles carry location/Coach fields. Legacy profiles
+      // may omit them; missing fields cannot authorize access or crash rules.
+      let locationId = athlete.get("locationId", "");
+      return (isManagement() && managementHasLocation(locationId))
         || (
           isActiveCoach()
           && (
-            staffHasLocation(athlete.locationId)
-            || athlete.coachUid == request.auth.uid
-            || request.auth.uid in athlete.coachIds
+            staffHasLocation(locationId)
+            || athlete.get("coachUid", "") == request.auth.uid
+            || request.auth.uid in athlete.get("coachIds", [])
           )
         );
     }
