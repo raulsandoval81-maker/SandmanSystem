@@ -148,7 +148,7 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
   const archive = {
     athleteId,
     athleteName: athleteName || "",
-    lane: entry?.primaryLane || "conditioning",
+    lane: String(entry?.primaryLane || "strength").toLowerCase() === "honor" ? "honor" : "strength",
     assignmentLane: "conditioning",
     track: entry?.track || "",
     segmentId: entry?.segmentId || "segment1",
@@ -575,17 +575,20 @@ async function loadSubmissions() {
           if (act === "approve") {
 
             const amt = 5;
+            const primaryLane = String(currentEntry?.primaryLane || "strength").toLowerCase() === "honor"
+              ? "honor" : "strength";
 
             // Check immutable archive identity and awarded XP before the
             // authoritative XP call, so a conflicting historical record
             // never triggers a new award.
             await assertCompatibleLaneArchive({
 
-              athleteId, key, lane: "conditioning", expectedAward: amt, readHistoryForAthlete,
+              athleteId, key, lane: "conditioning", expectedAward: amt,
+              expectedPrimaryLane: primaryLane, readHistoryForAthlete,
             });
             const xpResult = await awardXp({
               athleteId,
-              primaryLane: String(currentEntry?.primaryLane || "strength"),
+              primaryLane,
               amount: amt,
               note: coachNote || `${String(currentEntry?.primaryLane || "strength").toLowerCase() === "honor" ? "Honor" : "Strength"} assignment (+5)`,
               meta: {
