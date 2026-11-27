@@ -1,0 +1,47 @@
+name: Commercial recovery source inventory
+
+# Review-stage workflow. A separately reviewed caller is required to run it.
+# Before adding a caller, create the dedicated environment with required reviewers,
+# prevent self-review, disable bypass, and allow only the main branch.
+on:
+  workflow_call:
+
+permissions: {}
+
+concurrency:
+  group: sandman-commercial-recovery
+  cancel-in-progress: false
+
+jobs:
+  inventory:
+    if: github.repository == 'raulsandoval81-maker/SandmanSystem' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: commercial-recovery-review
+    timeout-minutes: 25
+    env:
+      APPROVED_SOURCE: 623f560f36dd84ef33b6270c3a1d414fbcb488bb
+      GIT_TERMINAL_PROMPT: '0'
+    steps:
+      - name: Verify pinned public source and count tracked entries
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          source_dir="$(mktemp -d "$RUNNER_TEMP/commercial-source.XXXXXXXX")"
+          trap 'rm -rf -- "$source_dir"' EXIT
+          git -C "$source_dir" init --quiet
+          git -C "$source_dir" -c credential.helper= fetch --quiet --no-tags --depth=1 \
+            https://github.com/raulsandoval81-maker/SandmanSystem.git "$APPROVED_SOURCE" \
+            2>"$source_dir/fetch.log" || { printf '%s\n' 'Could not fetch the pinned source.' >&2; exit 1; }
+          test "$(git -C "$source_dir" rev-parse FETCH_HEAD)" = "$APPROVED_SOURCE"
+          git -C "$source_dir" ls-tree -r --name-only -z FETCH_HEAD > "$source_dir/paths"
+          python3 - "$source_dir/paths" <<'PY'
+          import pathlib
+          import sys
+
+          paths = pathlib.Path(sys.argv[1]).read_bytes().split(b"\0")
+          count = len(paths) - 1
+          if paths[-1] or count < 1 or len(set(paths[:-1])) != count:
+              raise SystemExit("Unexpected source inventory.")
+          print(f"Pinned source verified. Tracked paths: {count}.")
+          PY
