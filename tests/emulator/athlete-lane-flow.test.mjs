@@ -172,6 +172,7 @@ beforeEach(async () => {
     await setDoc(doc(context.firestore(), "staff", COACH_UID), {
       role: "coach",
       status: "active",
+      locationIds: ["north"],
     });
   });
 });
@@ -192,6 +193,12 @@ async function seedAthlete(fixture) {
       uid: fixture.id,
       authUid: `ATHLETE_${fixture.id}`,
       fullName: `Synthetic ${fixture.id}`,
+      // Match the trusted approveAndActivate Mint shape, not a
+      // locationless pre-containment fixture that predates role scoping.
+      locationId: "north",
+      coachUid: COACH_UID,
+      coachIds: [COACH_UID],
+      synthetic: true,
       trackBase: fixture.trackBase,
       tier: fixture.tier,
       progressionTier: fixture.progressionTier ?? fixture.tier,
