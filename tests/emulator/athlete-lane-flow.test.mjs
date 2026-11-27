@@ -13,6 +13,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
+  where,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -172,6 +174,7 @@ beforeEach(async () => {
     await setDoc(doc(context.firestore(), "staff", COACH_UID), {
       role: "coach",
       status: "active",
+      locationIds: ["north"],
     });
   });
 });
@@ -192,6 +195,12 @@ async function seedAthlete(fixture) {
       uid: fixture.id,
       authUid: `ATHLETE_${fixture.id}`,
       fullName: `Synthetic ${fixture.id}`,
+      // Match the trusted approveAndActivate Mint shape, not a
+      // locationless pre-containment fixture that predates role scoping.
+      locationId: "north",
+      coachUid: COACH_UID,
+      coachIds: [COACH_UID],
+      synthetic: true,
       trackBase: fixture.trackBase,
       tier: fixture.tier,
       progressionTier: fixture.progressionTier ?? fixture.tier,
@@ -584,4 +593,162 @@ test("F8 mixed assignment awards only its declared Honor primary lane", async ()
     expectedAward: 5,
     assignment,
   });
+});
+
+
+test("Interrupted Honor and Conditioning review replays XP receipt once and archives immutably", async () => {
+  const helperSource = fs.readFileSync("public/assets/js/immutable-lane-archive.js", "utf8");
+  const { assertCompatibleLaneArchive, ensureImmutableLaneArchive } =
+    await import("data:text/javascript;base64," + Buffer.from(helperSource).toString("base64"));
+
+  for (const scenario of [
+    {
+      fixture: { ...fixtures.f8Honor, id: "F8_INTERRUPTED_HONOR" },
+      lane: "honor",
+      key: "HON-001", kind: "HONOR",
+      source: "honor_lane_review", amount: 5,
+    },
+    {
+      fixture: { ...fixtures.f4Conditioning, id: "F4_INTERRUPTED_CONDITIONING" },
+      lane: "conditioning",
+      key: "conditioning_f4_segment1_session1", kind: "STRENGTH",
+      source: "lane-review", amount: 5,
+    },
+  ]) {
+    await seedAthlete(scenario.fixture);
+    const athleteId = scenario.fixture.id;
+    const athleteDb = authenticatedDb(`ATHLETE_${athleteId}`);
+    const coachDb = authenticatedDb(COACH_UID);
+    const submissionRef = doc(athleteDb, "laneSubmissions", athleteId);
+    const entry = {
+      body: "Synthetic submission", status: "pending", lane: scenario.lane,
+      segmentId: "segment1", sessionN: 1,
+      athleteUid: athleteId, athleteName: "Synthetic retry athlete",
+    };
+    await setDoc(submissionRef, { [scenario.key]: entry });
+    const before = (await adminDb.doc(`athletes/${athleteId}`).get()).data();
+    const input = {
+      uid: athleteId, kind: scenario.kind, amount: scenario.amount,
+      note: "Synthetic interrupted review",
+      meta: {
+        key: scenario.key, source: scenario.source,
+        segmentId: "segment1", sessionN: 1,
+        ...(scenario.lane === "conditioning" ? { lane: "conditioning", track: "f4" } : {}),
+      },
+    };
+
+    const readHistoryForAthlete = id =>
+      getDocs(query(collection(coachDb, "laneHistory"), where("athleteId", "==", id)));
+    const archive = {
+      athleteId, athleteName: "Synthetic retry athlete",
+      lane: scenario.lane === "conditioning" ? "strength" : "honor",
+      ...(scenario.lane === "conditioning" ? { assignmentLane: "conditioning" } : {}),
+      segmentId: "segment1", sessionN: 1, status: "closed",
+      body: entry.body, coachNote: "original approved note",
+      awardedXp: scenario.amount, sourceCollection: "laneSubmissions",
+      sourceAthleteId: athleteId, sourceKey: scenario.key,
+      historyType: "submission", closedAt: new Date(),
+    };
+    const historyRef = doc(coachDb, "laneHistory", `${athleteId}__${scenario.key}`);
+    const archiveArgs = {
+      historyRef, archive, athleteId, key: scenario.key,
+      lane: scenario.lane, readHistoryForAthlete, setDoc,
+    };
+
+    assert.equal(await assertCompatibleLaneArchive({
+      athleteId, key: scenario.key, lane: scenario.lane,
+      expectedAward: scenario.amount, readHistoryForAthlete,
+    }), false);
+
+    // Phase 1: the server awards XP; simulate network/UI interruption
+    // before the Coach can write History or close the submission.
+    const first = await awardXpAuthoritatively(COACH_UID, input);
+    assert.equal(first.awardedAmount, scenario.amount);
+    assert.equal((await getDoc(submissionRef)).data()[scenario.key].status, "pending");
+
+    // Phase 2: Coach repeats the exact approval request. The transactional
+    // receipt must return zero delta before the archive is first created.
+    const again = await awardXpAuthoritatively(COACH_UID, input);
+    assert.equal(again.idempotent, true);
+    assert.equal(again.delta, 0);
+    assert.deepEqual(
+      await ensureImmutableLaneArchive(archiveArgs),
+      { created: true, existing: false },
+    );
+    await updateDoc(doc(coachDb, "laneSubmissions", athleteId), {
+      [`${scenario.key}.status`]: "closed",
+      [`${scenario.key}.awardedXp`]: scenario.amount,
+    });
+
+    // A later repeat must reuse the same permanent History record.
+    assert.deepEqual(
+      await ensureImmutableLaneArchive({
+        ...archiveArgs,
+        archive: { ...archive, coachNote: "not allowed to overwrite" },
+      }),
+      { created: false, existing: true },
+    );
+    const stored = (await adminDb.doc(`laneHistory/${athleteId}__${scenario.key}`).get()).data();
+    assert.equal(stored.coachNote, "original approved note");
+    assert.equal(stored.awardedXp, scenario.amount);
+    const after = (await adminDb.doc(`athletes/${athleteId}`).get()).data();
+    const bucket = scenario.kind === "HONOR" ? "xpHonor" : "xpStrength";
+    assert.equal(after[bucket], Number(before[bucket] || 0) + scenario.amount);
+  }
+});
+
+test("Honor retry with different button amount fails closed on authoritative duplicate receipt", async () => {
+  const helperSource = fs.readFileSync("public/assets/js/immutable-lane-archive.js", "utf8");
+  const { assertAuthoritativeAwardReceipt } =
+    await import("data:text/javascript;base64," + Buffer.from(helperSource).toString("base64"));
+  const fixture = { ...fixtures.f4Honor, id: "F4_INTERRUPTED_AMOUNT_MISMATCH" };
+  await seedAthlete(fixture);
+  const ownerDb = authenticatedDb(`ATHLETE_${fixture.id}`);
+  const coachDb = authenticatedDb(COACH_UID);
+  const key = "HON-001";
+  const submissionRef = doc(ownerDb, "laneSubmissions", fixture.id);
+  await setDoc(submissionRef, { [key]: {
+    lane: "honor", body: "Synthetic Honor submission", status: "pending",
+    segmentId: "segment1", sessionN: 1, athleteUid: fixture.id,
+  } });
+  const before = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
+  const base = {
+    uid: fixture.id, kind: "HONOR", note: "Synthetic mismatch retry",
+    meta: { key, source: "honor_lane_review", segmentId: "segment1", sessionN: 1 },
+  };
+
+  // First request succeeds but the Coach's browser loses the response
+  // before History is created or the submission is closed.
+  const original = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 10 });
+  assert.equal(assertAuthoritativeAwardReceipt(original, 10), 10);
+
+  // A second request for +5 must not archive +5 based on the selected button:
+  // the service returns the original +10 receipt without a second award.
+  const duplicate = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 5 });
+  assert.equal(duplicate.idempotent, true);
+  assert.equal(duplicate.delta, 0);
+  await assert.rejects(
+    async () => assertAuthoritativeAwardReceipt(duplicate, 5),
+    /XP_AWARD_RECEIPT_MISMATCH_REQUIRES_REVIEW/,
+  );
+  assert.equal((await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).exists, false);
+  assert.equal((await getDoc(submissionRef)).data()[key].status, "pending");
+
+  // The correct +10 retry can be recovered without awarding XP again.
+  const matching = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 10 });
+  assert.equal(assertAuthoritativeAwardReceipt(matching, 10), 10);
+  assert.equal(matching.delta, 0);
+  const archiveRef = doc(coachDb, "laneHistory", `${fixture.id}__${key}`);
+  await setDoc(archiveRef, {
+    athleteId: fixture.id, lane: "honor", awardedXp: 10, status: "closed",
+    sourceCollection: "laneSubmissions", sourceAthleteId: fixture.id,
+    sourceKey: key, historyType: "submission", closedAt: new Date(),
+  });
+  await updateDoc(doc(coachDb, "laneSubmissions", fixture.id), {
+    [`${key}.status`]: "closed", [`${key}.awardedXp`]: 10,
+  });
+
+  const after = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
+  assert.equal(after.xpHonor, Number(before.xpHonor || 0) + 10);
+  assert.equal((await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).data().awardedXp, 10);
 });

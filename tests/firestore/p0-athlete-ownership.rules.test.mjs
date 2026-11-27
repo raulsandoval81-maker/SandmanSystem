@@ -24,6 +24,21 @@ before(async () => {
       setDoc(doc(db, "athletes/own"), {
         authUid: "athlete", locationId: "north", coachIds: ["coach"], synthetic: true,
       }),
+      // Synthetic activated Parent via pending relationship: the real
+      // invitation consumer stamps athlete.parentUid, while the relationship
+      // can retain a noncanonical pending-email document ID.
+      setDoc(doc(db, "athletes/parent-activated"), {
+        authUid: "parent-activated-athlete", parentUid: "late-parent",
+        locationId: "north", coachIds: ["coach"], synthetic: true,
+      }),
+      setDoc(doc(db, "parentAthleteLinks/pending-email-hash-parent-activated"), {
+        parentUid: "late-parent", athleteUid: "parent-activated",
+        status: "active", synthetic: true,
+      }),
+      setDoc(doc(db, "athletes/legacy-coach-assigned"), {
+        authUid: "legacy-coach-athlete", coachIds: ["coach"],
+        synthetic: true,
+      }),
       setDoc(doc(db, "athletes/other"), {
         authUid: "other-athlete", locationId: "south", coachIds: [], synthetic: true,
       }),
@@ -221,4 +236,67 @@ test("Lane History creation rejects untrusted writers and mismatched archive fie
 test("Lane History cannot be modified after creation by a scoped Coach", async () => {
   const db = env.authenticatedContext("coach").firestore();
   await assertFails(updateDoc(doc(db, "laneHistory", "own__strength"), { coachNote: "changed" }));
+});
+
+test("Scoped Coach approval reuses immutable Honor and Conditioning archives", async () => {
+  const moduleText = readFileSync("public/assets/js/immutable-lane-archive.js", "utf8");
+  const { assertCompatibleLaneArchive, ensureImmutableLaneArchive } =
+    await import("data:text/javascript;base64," + Buffer.from(moduleText).toString("base64"));
+  const db = env.authenticatedContext("coach").firestore();
+  const readHistoryForAthlete = athleteId =>
+    getDocs(query(collection(db, "laneHistory"), where("athleteId", "==", athleteId)));
+
+  for (const lane of ["honor", "conditioning"]) {
+    const key = "immutable_" + lane;
+    const historyRef = doc(db, "laneHistory", "own__" + key);
+    const archive = {
+      athleteId: "own",
+      lane: lane === "conditioning" ? "strength" : "honor",
+      ...(lane === "conditioning" ? { assignmentLane: "conditioning" } : {}),
+      awardedXp: 5, coachNote: "first immutable review",
+      sourceCollection: "laneSubmissions", sourceAthleteId: "own",
+      sourceKey: key, historyType: "submission", status: "closed",
+      closedAt: new Date("2026-11-04T00:00:00Z"),
+    };
+    const args = { historyRef, archive, athleteId: "own", key, lane, readHistoryForAthlete, setDoc };
+    assert.equal(await assertCompatibleLaneArchive({
+      athleteId: "own", key, lane, expectedAward: 5, readHistoryForAthlete,
+    }), false);
+    assert.deepEqual(await ensureImmutableLaneArchive(args), { created: true, existing: false });
+
+    // The repeated approval cannot write a second record or change the note.
+    const repeated = { ...args, archive: { ...archive, coachNote: "retry should be ignored" } };
+    assert.deepEqual(await ensureImmutableLaneArchive(repeated), { created: false, existing: true });
+    const stored = (await getDoc(historyRef)).data();
+    assert.equal(stored.coachNote, "first immutable review");
+    assert.equal(stored.awardedXp, 5);
+
+    await assert.rejects(assertCompatibleLaneArchive({
+      athleteId: "own", key, lane, expectedAward: 10, readHistoryForAthlete,
+    }), /HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW/);
+    await assertFails(updateDoc(historyRef, { coachNote: "not permitted" }));
+  }
+});
+
+test("Parent activated via noncanonical pending relationship can read own Athlete", async () => {
+  // Matches issueAccessInvitation -> consumeAccessInvitation, not a
+  // synthetic _UID suffix link. Parent cannot see unrelated athletes.
+  await assertSucceeds(read("late-parent", "parent-activated"));
+  await assertFails(read("late-parent", "other"));
+});
+
+test("Legacy Athlete lacking location remains readable only to explicitly assigned active Coach", async () => {
+  await assertSucceeds(read("coach", "legacy-coach-assigned"));
+  await assertFails(read("outsider", "legacy-coach-assigned"));
+  await assertFails(read("manager", "legacy-coach-assigned"));
+  await assertFails(read("unrelated", "legacy-coach-assigned"));
+
+  await assertSucceeds(historyCreate("coach", "legacy-coach-assigned__coach-archive", {
+    athleteId: "legacy-coach-assigned",
+    sourceAthleteId: "legacy-coach-assigned", lane: "honor",
+  }));
+  await assertFails(historyCreate("outsider", "legacy-coach-assigned__forgery", {
+    athleteId: "legacy-coach-assigned",
+    sourceAthleteId: "legacy-coach-assigned", lane: "honor",
+  }));
 });

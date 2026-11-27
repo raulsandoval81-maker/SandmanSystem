@@ -155,6 +155,10 @@ service cloud.firestore {
         isAdmin()
         || resource.data.get("authUid", "") == request.auth.uid
         || (athleteId == request.auth.uid && resource.data.get("authUid", null) == null)
+        // The signed server-side Parent invitation consumer stamps parentUid
+        // even when its pending relationship document keeps a noncanonical ID.
+        // Exact bound Parent ownership must match Profile callable authorization.
+        || resource.data.get("parentUid", "") == request.auth.uid
         || isLinkedParent(athleteId)
         || canReadStaffAthlete(resource.data)
       );
@@ -2171,13 +2175,16 @@ match /academySettings/{academyId} {
     }
 
     function canReadStaffAthlete(athlete) {
-      return (isManagement() && managementHasLocation(athlete.locationId))
+      // Newly activated profiles carry location/Coach fields. Legacy profiles
+      // may omit them; missing fields cannot authorize access or crash rules.
+      let locationId = athlete.get("locationId", "");
+      return (isManagement() && managementHasLocation(locationId))
         || (
           isActiveCoach()
           && (
-            staffHasLocation(athlete.locationId)
-            || athlete.coachUid == request.auth.uid
-            || request.auth.uid in athlete.coachIds
+            staffHasLocation(locationId)
+            || athlete.get("coachUid", "") == request.auth.uid
+            || request.auth.uid in athlete.get("coachIds", [])
           )
         );
     }
@@ -2193,7 +2200,10 @@ match /academySettings/{academyId} {
 
     function staffHasLocation(locationId) {
       let staff = get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+      // An absent location cannot match the default empty staff.locationId.
+      // Without this guard, an unassigned Coach could see a legacy Athlete.
       return locationId is string
+        && locationId.size() > 0
         && (
           (staff.get("locationIds", []) is list && locationId in staff.get("locationIds", []))
           || (staff.get("locations", []) is list && locationId in staff.get("locations", []))
@@ -2280,9 +2290,12 @@ match /academySettings/{academyId} {
       let legacyLocationId =
         staff.get("locationId", "");
 
+      // No assigned location is not a location match. The legacy empty
+      // string fallback must never authorize a missing Athlete location.
       return isManagement()
         && staff.get("status", "") == "active"
         && locationId is string
+        && locationId.size() > 0
         && (
           (
             locationIds is list

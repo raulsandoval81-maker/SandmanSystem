@@ -22,6 +22,8 @@ import {
   db,
   collection,
   getDocs,
+  query,
+  where,
   doc,
   updateDoc,
   setDoc,
@@ -29,9 +31,13 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
+import { ensureImmutableLaneArchive, assertCompatibleLaneArchive, assertAuthoritativeAwardReceipt } from "/assets/js/immutable-lane-archive.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
+
+const readHistoryForAthlete = (athleteId) =>
+  getDocs(query(collection(db, "laneHistory"), where("athleteId", "==", athleteId)));
 
 try {
   await requireCoach();
@@ -190,7 +196,7 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
 
   const awardedXp = Number(entry?.awardedXp || 0);
 
-  await setDoc(historyRef, {
+  const archive = {
     athleteId,
     athleteName: athleteName || "",
     lane: "honor",
@@ -219,7 +225,10 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
     sourceAthleteId: athleteId,
     sourceKey: key,
     historyType: "submission"
-  }, { merge: true });
+  };
+  return ensureImmutableLaneArchive({
+    historyRef, archive, athleteId, key, lane: "honor", readHistoryForAthlete, setDoc,
+  });
 }
 
 /* -----------------------------
@@ -427,7 +436,14 @@ async function loadSubmissions() {
             let amt = act === "xp10" ? 10 : 5;
             if (isF8) amt = 5;
 
-            await awardXp({
+            // Reject conflicting closed archives BEFORE sending an XP request.
+            // A matching prior award is safe: the server uses a stable receipt
+            // keyed to this athlete, kind and submission key.
+            await assertCompatibleLaneArchive({
+
+              athleteId, key, lane: "honor", expectedAward: amt, readHistoryForAthlete,
+            });
+            const xpResult = await awardXp({
               athleteId,
               amount: amt,
               note: coachNote || `Honor submission (+${amt})`,
@@ -437,6 +453,7 @@ async function loadSubmissions() {
                 key,
               },
             });
+            assertAuthoritativeAwardReceipt(xpResult, amt);
 
             await writeLaneHistory({
               athleteId,

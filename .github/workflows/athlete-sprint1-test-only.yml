@@ -4,14 +4,19 @@ on:
   push:
     branches:
       - codex/athlete-profile-read-authorization
+      - codex/sprint1-immutable-lane-archive-retry
     paths:
       - '.github/workflows/athlete-sprint1-test-only.yml'
       - 'public/assets/js/athlete-*.js'
+      - 'public/assets/js/immutable-lane-archive.js'
+      - 'public/coaches/lanes/honor/review.js'
+      - 'public/coaches/lanes/conditioning/review.js'
       - 'public/athletes/**'
       - 'functions/src/modules/athlete/**'
       - 'functions/src/services/athleteProfileReadAuthorization.ts'
       - 'scripts/staging/p0-containment/firestore.rules'
       - 'tests/functions/**'
+      - 'tests/emulator/athlete-lane-flow.test.mjs'
       - 'tests/firestore/p0-athlete-ownership.rules.test.mjs'
   workflow_dispatch:
 
@@ -46,7 +51,8 @@ jobs:
             tests/functions/dashboard-foundation.test.mjs \
             tests/functions/mini-arsenal-legacy-route.test.mjs \
             tests/functions/full-arsenal-id-case.test.mjs \
-            tests/functions/mini-profile-id-case.test.mjs
+            tests/functions/mini-profile-id-case.test.mjs \
+            tests/functions/immutable-lane-archive-retry.test.mjs
 
   firestore-emulator:
     name: Athlete ownership rules + callables (synthetic emulator)
@@ -82,3 +88,100 @@ jobs:
             --only firestore \
             --project demo-sandman-p0-athlete-ownership \
             'node --test tests/firestore/p0-athlete-ownership.rules.test.mjs'
+
+
+  enrollment-compatibility:
+    name: Enrollment → Intake → Athlete/Parent + XP integration (synthetic)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+      FUNCTIONS_EMULATOR_HOST: '127.0.0.1:5501'
+      HOSTING_EMULATOR_HOST: '127.0.0.1:5502'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Assert synthetic project and zero sensitive credentials
+        run: |
+          set -euo pipefail
+          test -z "$STRIPE_SECRET_KEY$RESEND_API_KEY$GOOGLE_APPLICATION_CREDENTIALS"
+          test "$GITHUB_REF_NAME" = codex/sprint1-immutable-lane-archive-retry
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+      - name: Install and compile existing code without deploying
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+      - name: Execute existing enrollment, athlete lanes and XP suites against full candidate rules
+        run: |
+          set -euo pipefail
+          test -f scripts/staging/p0-containment/firestore.rules
+          cp scripts/staging/p0-containment/firestore.rules firestore.rules
+          npx --yes firebase-tools@15.11.0 emulators:exec \
+            --project demo-sandman-sprint1-compatibility \
+            --config firebase.paid-in-full-test.json \
+            --only firestore,auth,functions,hosting \
+            'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'
+      - name: Checkout exact unchanged baseline for legacy source-regression comparison
+        uses: actions/checkout@v4
+        with:
+          ref: d9f537e873596e76ba4206d9b47af252cc40a753
+          path: _baseline
+          persist-credentials: false
+      - name: Compare inherited source-test failures to baseline (do not hide failures)
+        run: |
+          set -euo pipefail
+          # Browser/source tests inspect the tracked production-source rules.
+          # Candidate containment was already tested using the demo emulator.
+          git show HEAD:firestore.rules > firestore.rules
+          ln -s "$GITHUB_WORKSPACE/node_modules" _baseline/node_modules
+          ln -s "$GITHUB_WORKSPACE/functions/node_modules" _baseline/functions/node_modules
+          cases=(
+            tests/browser/enrollment-family-pathways.test.mjs
+            tests/browser/enrollment-approval-standard.test.mjs
+            tests/browser/enrollment-approval-email-preview.test.mjs
+            tests/browser/enrollment-activity-pathways.test.mjs
+            tests/browser/enrollment-handoff-audience.test.mjs
+            tests/functions/athlete-access-activation.test.mjs
+            tests/functions/parent-access-invitations.test.mjs
+            tests/functions/p0-athlete-reentry-authorization.test.mjs
+          )
+          (cd _baseline && node --test "${cases[@]}") > "$RUNNER_TEMP/baseline.tap" 2>&1 || true
+          node --test "${cases[@]}" > "$RUNNER_TEMP/candidate.tap" 2>&1 || true
+          node --input-type=module - "$RUNNER_TEMP/baseline.tap" "$RUNNER_TEMP/candidate.tap" <<'NODE'
+          import fs from 'node:fs';
+          const [baselinePath, candidatePath] = process.argv.slice(2);
+          const read = (path) => {
+            const raw = fs.readFileSync(path, 'utf8');
+            const count = Number(raw.match(/^# tests (\d+)$/m)?.[1]);
+            const fails = [...raw.matchAll(/^not ok \d+ - (.+)$/gm)].map(x=>x[1]).sort();
+            if (!Number.isInteger(count) || count < 1) throw new Error('Missing TAP result in ' + path);
+            return {count, fails};
+          };
+          const base=read(baselinePath), candidate=read(candidatePath);
+          console.log('Baseline source tests:', base.count, '| inherited failures:', base.fails.length);
+          console.log('Candidate source tests:', candidate.count, '| inherited failures:', candidate.fails.length);
+          console.log('Inherited failures (not suppressed):', JSON.stringify(base.fails));
+          const added=candidate.fails.filter(x=>!base.fails.includes(x));
+          if (base.count !== candidate.count || added.length) {
+            console.error('NEW SOURCE TEST FAILURES:', JSON.stringify(added));
+            process.exit(1);
+          }
+          console.log('PASS: No new source-test failures compared with exact main baseline.');
+          NODE
