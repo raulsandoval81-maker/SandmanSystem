@@ -4,6 +4,7 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
+import { athleteExperience, canonicalAthleteHref } from "/assets/js/athlete-journey-routes.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -20,12 +21,11 @@ const params =
 const athleteId = String(
   params.get("athleteId") ||
   params.get("id") ||
+  params.get("uid") ||
   localStorage.getItem("currentAthleteId") ||
   sessionStorage.getItem("currentAthleteId") ||
   ""
-)
-  .trim()
-  .toUpperCase();
+).trim();
 
 let athlete = null;
 let activeDiscipline = "wrestling";
@@ -423,16 +423,8 @@ async function loadAthlete() {
     return;
   }
 
-  // Youth Arsenal only.
-  if (!athleteId.startsWith("F8_")) {
-    window.location.replace(
-      `/athletes/arsenal/arsenal.html` +
-      `?id=${encodeURIComponent(athleteId)}`
-    );
-
-    return;
-  }
-
+  // Never infer Mini versus Full from an unverified URL or browser-stored ID.
+  // Read the scoped Athlete record first, then use the shared journey router.
   try {
     await ensureSignedIn();
 
@@ -466,6 +458,16 @@ async function loadAthlete() {
 
     athlete =
       athleteSnap.data() || {};
+
+    const experience = athleteExperience(athlete, athleteId);
+    if (experience === "full") {
+      window.location.replace(canonicalAthleteHref("/athletes/arsenal/arsenal.html", athleteId));
+      return;
+    }
+    if (experience !== "mini") {
+      renderEmpty("Unable to determine athlete journey.");
+      return;
+    }
 
     const requestedDiscipline =
       params.get("discipline") ||
