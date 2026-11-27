@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "policy": "deny-unreviewed",
+  "description": "Explicit owner-reviewed per-occurrence note audience decisions; empty until source-level approval. No live field projection or production access changes.",
+  "decisions": []
+}
