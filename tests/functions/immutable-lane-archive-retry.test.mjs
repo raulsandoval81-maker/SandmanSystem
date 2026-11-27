@@ -147,3 +147,18 @@ test("authoritative server receipt agrees with the selected award before History
     assert.throws(() => assertAuthoritativeAwardReceipt(receipt, 5), /XP_AWARD_RECEIPT_MISMATCH_REQUIRES_REVIEW/);
   }
 });
+
+test("Conditioning archive matching rejects a primary-lane switch despite matching award and key", async () => {
+  const source = readFileSync("public/coaches/lanes/conditioning/review.js", "utf8");
+  assert.match(source, /expectedPrimaryLane: primaryLane/);
+  assert.match(source, /lane: String\(entry\?\.primaryLane \|\| "strength"\)/);
+  assert.equal(archiveMatchesSubmission(original("conditioning"), "F4_MixedCase", "segment1_1", "conditioning", 5, "strength"), true);
+  assert.equal(archiveMatchesSubmission(original("conditioning"), "F4_MixedCase", "segment1_1", "conditioning", 5, "honor"), false);
+  await assert.rejects(
+    assertCompatibleLaneArchive({
+      ...args({ previous: original("conditioning"), lane: "conditioning" }),
+      expectedAward: 5, expectedPrimaryLane: "honor",
+    }),
+    /HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW/,
+  );
+});
