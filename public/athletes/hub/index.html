@@ -25,93 +25,45 @@
   <div class="msg">Routing athlete...</div>
 
   <script type="module">
+    import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
     import {
-      db,
-      doc,
-      getDoc
-    } from "/assets/js/firebase-init.js";
+      athleteExperience, canonicalAthleteHref, persistVerifiedAthleteId,
+      clearUnverifiedAthleteId,
+    } from "/assets/js/athlete-journey-routes.js";
 
-    function getIdFromUrl() {
-      const p = new URLSearchParams(window.location.search);
-
-      return (
-        p.get("id") ||
-        p.get("uid") ||
-        p.get("athleteId") ||
-        ""
-      ).toString().trim();
+    function requestedId() {
+      const params = new URLSearchParams(location.search);
+      return String(params.get("id") || params.get("uid") || params.get("athleteId") || "").trim();
     }
 
-    function normalizeJourney(value) {
-      return (value || "")
-        .toString()
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-    }
-
-    function go(url) {
-      window.location.replace(url);
-    }
-
-    function fail(msg) {
-      document.body.innerHTML = `<div class="msg">${msg}</div>`;
-      throw new Error(msg);
+    function stop(message) {
+      document.querySelector(".msg").textContent = message;
     }
 
     async function route() {
-      const id = getIdFromUrl();
-
-      if (!id) {
-        fail("Missing athlete ID");
-        return;
-      }
-
       try {
-        const snap = await getDoc(doc(db, "athletes", id));
-
-        if (snap.exists()) {
-          const athlete = snap.data() || {};
-
-          const journey = normalizeJourney(
-            athlete.programTrack ||
-            athlete.journey ||
-            athlete.track ||
-            athlete.trackCode
-          );
-
-          if (journey === "road2champion" || journey === "r2c" || journey === "z2h") {
-            go(`/athletes/hub/mini-hub.html?id=${encodeURIComponent(id)}`);
-            return;
-          }
-
-          if (
-            journey === "path2legend" ||
-            journey === "p2l" ||
-            journey === "quest2mastery" ||
-            journey === "q2m"
-          ) {
-            go(`/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`);
-            return;
-          }
+        const { athleteId, athlete } = await resolveSignedInAthlete(requestedId());
+        if (!athleteId || !athlete) {
+          clearUnverifiedAthleteId();
+          location.replace("/athletes/auth/");
+          return;
         }
-      } catch (err) {
-        console.warn("[Athlete Hub Router] athlete lookup failed:", err);
+
+        const experience = athleteExperience(athlete, athleteId);
+        if (!experience) {
+          clearUnverifiedAthleteId();
+          stop("Unable to determine athlete journey");
+          return;
+        }
+        persistVerifiedAthleteId(athleteId);
+        const target = experience === "mini"
+          ? "/athletes/hub/mini-hub.html" : "/athletes/hub/full-hub.html";
+        location.replace(canonicalAthleteHref(target, athleteId));
+      } catch (error) {
+        clearUnverifiedAthleteId();
+        stop("Unable to route athlete securely. Return to Athlete Access.");
+        console.error("[Athlete Hub Router] verified lookup failed:", error?.code || "runtime-error");
       }
-
-      const legacyId = id.toUpperCase();
-
-      if (legacyId.startsWith("F8_")) {
-        go(`/athletes/hub/mini-hub.html?id=${encodeURIComponent(id)}`);
-        return;
-      }
-
-      if (legacyId.startsWith("F4_")) {
-        go(`/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`);
-        return;
-      }
-
-      fail("Unable to determine athlete journey");
     }
 
     route();
