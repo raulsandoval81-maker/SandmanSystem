@@ -35,6 +35,10 @@ before(async () => {
         parentUid: "late-parent", athleteUid: "parent-activated",
         status: "active", synthetic: true,
       }),
+      setDoc(doc(db, "athletes/legacy-coach-assigned"), {
+        authUid: "legacy-coach-athlete", coachIds: ["coach"],
+        synthetic: true,
+      }),
       setDoc(doc(db, "athletes/other"), {
         authUid: "other-athlete", locationId: "south", coachIds: [], synthetic: true,
       }),
@@ -279,4 +283,20 @@ test("Parent activated via noncanonical pending relationship can read own Athlet
   // synthetic _UID suffix link. Parent cannot see unrelated athletes.
   await assertSucceeds(read("late-parent", "parent-activated"));
   await assertFails(read("late-parent", "other"));
+});
+
+test("Legacy Athlete lacking location remains readable only to explicitly assigned active Coach", async () => {
+  await assertSucceeds(read("coach", "legacy-coach-assigned"));
+  await assertFails(read("outsider", "legacy-coach-assigned"));
+  await assertFails(read("manager", "legacy-coach-assigned"));
+  await assertFails(read("unrelated", "legacy-coach-assigned"));
+
+  await assertSucceeds(historyCreate("coach", "legacy-coach-assigned__coach-archive", {
+    athleteId: "legacy-coach-assigned",
+    sourceAthleteId: "legacy-coach-assigned", lane: "honor",
+  }));
+  await assertFails(historyCreate("outsider", "legacy-coach-assigned__forgery", {
+    athleteId: "legacy-coach-assigned",
+    sourceAthleteId: "legacy-coach-assigned", lane: "honor",
+  }));
 });
