@@ -131,7 +131,9 @@ function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
 
 async function load() {
   const params = new URLSearchParams(window.location.search);
-  const id = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
+  // Firestore document keys are case-sensitive. The verified router supplies
+  // the canonical ID; preserve it for the profile read and related links.
+  const id = (params.get("id") || params.get("uid") || "").trim();
 
   if (!id) {
     document.body.innerHTML = "<main class='wrap'><p>Missing athlete ID</p></main>";
@@ -365,7 +367,9 @@ function renderDisciplineSelector() {
   const isRoad2Champion =
     journey === "road2champion" ||
     journey === "r2c" ||
-    id.startsWith("F8_");
+    journey === "z2h" ||
+    journey === "zero2hero" ||
+    id.toUpperCase().startsWith("F8_");
 
   if (!isRoad2Champion) {
     window.location.replace(
