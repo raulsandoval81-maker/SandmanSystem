@@ -71,7 +71,7 @@ test("altered archive identity, source and award are rejected before any write",
 });
 
 test("pre-XP archive check rejects conflicting award and accepts matching existing record", async () => {
-  const baseline = args({ previous: original(), lane: "honor" });
+  const baseline = { ...args({ previous: original(), lane: "honor" }), expectedAward: 5 };
   assert.equal(await assertCompatibleLaneArchive(baseline), true);
   assert.equal(await assertCompatibleLaneArchive(args()), false);
   await assert.rejects(
