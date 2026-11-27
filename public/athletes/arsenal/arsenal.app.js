@@ -1,9 +1,5 @@
-import {
-  db,
-  ensureSignedIn,
-  doc,
-  getDoc
-} from "/assets/js/firebase-init.js";
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
+import { athleteArsenalPage, canonicalAthleteHref } from "/assets/js/athlete-journey-routes.js";
 import {
   resolveF8RemoteAccess,
   resolveF8ShadowActs
@@ -337,23 +333,14 @@ async function loadUnlocks() {
       window.location.search
     );
 
-  // Firestore document IDs are case-sensitive. The upstream Arsenal router
-  // supplies the canonical, ownership-verified ID; never normalize that key.
-  const athleteId = String(
+  // Query parameters are hints for canonical navigation, never identity
+  // or authorization. Resolve the signed-in Athlete before any record use.
+  const requestedId = String(
     params.get("athleteId") ||
     params.get("id") ||
-    localStorage.getItem("currentAthleteId") ||
-    sessionStorage.getItem("currentAthleteId") ||
+    params.get("uid") ||
     ""
   ).trim();
-
-  if (!athleteId) {
-    console.error(
-      "Missing athlete ID in Arsenal URL"
-    );
-
-    return;
-  }
 
   setLocked(
     combatCard,
@@ -374,25 +361,29 @@ async function loadUnlocks() {
   );
 
   try {
-    await ensureSignedIn();
-
-    const athleteRef =
-      doc(db, "athletes", athleteId);
-
-    const athleteSnap =
-      await getDoc(athleteRef);
-
-    if (!athleteSnap.exists()) {
-      console.error(
-        "Athlete not found:",
-        athleteId
-      );
-
+    const resolved = await resolveSignedInSelfAthlete();
+    if (!resolved.athleteId || !resolved.athlete) {
+      setLocked(combatCard, "Combat unavailable", "Unable to verify athlete access.");
       return;
     }
 
-    const athlete =
-      athleteSnap.data() || {};
+    const athleteId = resolved.athleteId;
+    const athlete = resolved.athlete;
+    const page = athleteArsenalPage(athlete, athleteId);
+    if (page !== "/athletes/arsenal/arsenal.html") {
+      if (page === "/athletes/arsenal/mini-arsenal.html") {
+        window.location.replace(canonicalAthleteHref(page, athleteId));
+      } else {
+        setLocked(combatCard, "Combat unavailable", "Unable to determine the authorized Arsenal.");
+      }
+      return;
+    }
+    if (requestedId !== athleteId) {
+      window.location.replace(canonicalAthleteHref(
+        page, athleteId, String(params.get("discipline") || "").trim()
+      ));
+      return;
+    }
 
     const urlDiscipline =
       normalizeDiscipline(
