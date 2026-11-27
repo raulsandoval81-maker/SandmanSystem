@@ -13,7 +13,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/f
 import { loadStrengthPhaseContext } from "./athlete-lane-context.js";
 import { combatDashboardModel, dashboardStatusLabel, laneDashboardModel } from "./lane-dashboard-state.js";
 import { formatLaneReleaseAt } from "./lane-release-schedule.js";
-import { resolveAuthenticatedAthlete } from "./athlete-self-context.js";
+import { resolveAuthenticatedAthlete, resolveAuthenticatedSelfAthlete } from "./athlete-self-context.js";
 
 const LAST_UID_KEY = "sandman_lastAthleteUid";
 
@@ -39,6 +39,30 @@ export async function resolveSignedInAthlete(requestedId = "") {
     user,
     requestedId,
     rememberedId: localStorage.getItem(LAST_UID_KEY),
+    getAthleteById: async (athleteId) => {
+      const snapshot = await getDoc(doc(db, "athletes", athleteId));
+      return snapshot.exists() ? snapshot.data() || {} : null;
+    },
+    findAthletesByAuthUid: async (authUid) => {
+      const snapshot = await getDocs(query(
+        collection(db, "athletes"),
+        where("authUid", "==", authUid),
+        limit(2)
+      ));
+      return snapshot.docs.map((item) => ({ athleteId: item.id, athlete: item.data() || {} }));
+    },
+  });
+  if (result.athleteId) localStorage.setItem(LAST_UID_KEY, result.athleteId);
+  return result;
+}
+
+// Used by athlete-only leaf pages and the shared Athlete drawer. Do not pass
+// requested/remembered IDs to the database while Firestore permissions are
+// being independently hardened: URL and storage are never ownership evidence.
+export async function resolveSignedInSelfAthlete() {
+  const user = await waitForUser();
+  const result = await resolveAuthenticatedSelfAthlete({
+    user,
     getAthleteById: async (athleteId) => {
       const snapshot = await getDoc(doc(db, "athletes", athleteId));
       return snapshot.exists() ? snapshot.data() || {} : null;

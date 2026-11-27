@@ -1,9 +1,5 @@
-import {
-  db,
-  ensureSignedIn,
-  doc,
-  getDoc
-} from "/assets/js/firebase-init.js";
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
+import { athleteExperience, canonicalAthleteHref } from "/assets/js/athlete-journey-routes.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,15 +13,8 @@ const badgeWall = $("badgeWall");
 const params =
   new URLSearchParams(window.location.search);
 
-const athleteId = String(
-  params.get("athleteId") ||
-  params.get("id") ||
-  localStorage.getItem("currentAthleteId") ||
-  sessionStorage.getItem("currentAthleteId") ||
-  ""
-)
-  .trim()
-  .toUpperCase();
+// Only the trusted identity resolver can populate this value.
+let athleteId = "";
 
 let athlete = null;
 let activeDiscipline = "wrestling";
@@ -410,62 +399,37 @@ function wireCards() {
 ========================= */
 
 async function loadAthlete() {
-  if (!athleteId) {
-    if (athleteLabel) {
-      athleteLabel.textContent =
-        "No athlete ID provided.";
-    }
-
-    renderEmpty(
-      "Missing athlete ID."
-    );
-
-    return;
-  }
-
-  // Youth Arsenal only.
-  if (!athleteId.startsWith("F8_")) {
-    window.location.replace(
-      `/athletes/arsenal/arsenal.html` +
-      `?id=${encodeURIComponent(athleteId)}`
-    );
-
-    return;
-  }
-
+  // Resolve the authenticated owner first. Never read or display an Athlete
+  // record using an unverified URL parameter or browser-storage value.
   try {
-    await ensureSignedIn();
+    const resolved = await resolveSignedInSelfAthlete();
+    if (!resolved.athleteId || !resolved.athlete) {
+      renderEmpty("Athlete access unavailable.");
+      return;
+    }
+    athleteId = resolved.athleteId;
+    athlete = resolved.athlete;
 
-    const athleteRef =
-      doc(
-        db,
-        "athletes",
-        athleteId
-      );
-
-    const athleteSnap =
-      await getDoc(athleteRef);
-
-    if (!athleteSnap.exists()) {
-      console.error(
-        "Athlete not found:",
-        athleteId
-      );
-
-      if (athleteLabel) {
-        athleteLabel.textContent =
-          athleteId;
-      }
-
-      renderEmpty(
-        "Athlete not found."
-      );
-
+    const requestedId = String(
+      params.get("id") || params.get("athleteId") || params.get("uid") || ""
+    ).trim();
+    if (requestedId !== athleteId) {
+      window.location.replace(canonicalAthleteHref(
+        "/athletes/arsenal/mini-arsenal.html", athleteId,
+        String(params.get("discipline") || "").trim()
+      ));
       return;
     }
 
-    athlete =
-      athleteSnap.data() || {};
+    const experience = athleteExperience(athlete, athleteId);
+    if (experience === "full") {
+      window.location.replace(canonicalAthleteHref("/athletes/arsenal/arsenal.html", athleteId));
+      return;
+    }
+    if (experience !== "mini") {
+      renderEmpty("Unable to determine athlete journey.");
+      return;
+    }
 
     const requestedDiscipline =
       params.get("discipline") ||
@@ -544,14 +508,7 @@ async function loadAthlete() {
       err
     );
 
-    if (athleteLabel) {
-      athleteLabel.textContent =
-        athleteId;
-    }
-
-    renderEmpty(
-      "Could not load athlete."
-    );
+    renderEmpty("Could not load athlete.");
   }
 }
 

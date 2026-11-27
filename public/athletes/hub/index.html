@@ -25,16 +25,11 @@
   <div class="msg">Routing athlete...</div>
 
   <script type="module">
-    import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
+    import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
     import {
       athleteExperience, canonicalAthleteHref, persistVerifiedAthleteId,
       clearUnverifiedAthleteId,
     } from "/assets/js/athlete-journey-routes.js";
-
-    function requestedId() {
-      const params = new URLSearchParams(location.search);
-      return String(params.get("id") || params.get("uid") || params.get("athleteId") || "").trim();
-    }
 
     function stop(message) {
       document.querySelector(".msg").textContent = message;
@@ -42,7 +37,7 @@
 
     async function route() {
       try {
-        const { athleteId, athlete } = await resolveSignedInAthlete(requestedId());
+        const { athleteId, athlete } = await resolveSignedInSelfAthlete();
         if (!athleteId || !athlete) {
           clearUnverifiedAthleteId();
           location.replace("/athletes/auth/");
