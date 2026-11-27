@@ -32,9 +32,7 @@ if (container && lane) {
       params.get("uid") ||
       params.get("athleteId") ||
       ""
-    )
-      .trim()
-      .toUpperCase();
+    ).trim();
 
   const STATE_LABELS = Object.freeze({
     LEARNED: "Learned",
