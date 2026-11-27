@@ -137,14 +137,50 @@ jobs:
             --config firebase.paid-in-full-test.json \
             --only firestore,auth,functions,hosting \
             'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'
-      - name: Existing enrollment and access UI source regressions
+      - name: Checkout exact unchanged baseline for legacy source-regression comparison
+        uses: actions/checkout@v4
+        with:
+          ref: d9f537e873596e76ba4206d9b47af252cc40a753
+          path: _baseline
+          persist-credentials: false
+      - name: Compare inherited source-test failures to baseline (do not hide failures)
         run: |
-          node --test \
-            tests/browser/enrollment-family-pathways.test.mjs \
-            tests/browser/enrollment-approval-standard.test.mjs \
-            tests/browser/enrollment-approval-email-preview.test.mjs \
-            tests/browser/enrollment-activity-pathways.test.mjs \
-            tests/browser/enrollment-handoff-audience.test.mjs \
-            tests/functions/athlete-access-activation.test.mjs \
-            tests/functions/parent-access-invitations.test.mjs \
+          set -euo pipefail
+          # Browser/source tests inspect the tracked production-source rules.
+          # Candidate containment was already tested using the demo emulator.
+          git show HEAD:firestore.rules > firestore.rules
+          ln -s "$GITHUB_WORKSPACE/node_modules" _baseline/node_modules
+          ln -s "$GITHUB_WORKSPACE/functions/node_modules" _baseline/functions/node_modules
+          cases=(
+            tests/browser/enrollment-family-pathways.test.mjs
+            tests/browser/enrollment-approval-standard.test.mjs
+            tests/browser/enrollment-approval-email-preview.test.mjs
+            tests/browser/enrollment-activity-pathways.test.mjs
+            tests/browser/enrollment-handoff-audience.test.mjs
+            tests/functions/athlete-access-activation.test.mjs
+            tests/functions/parent-access-invitations.test.mjs
             tests/functions/p0-athlete-reentry-authorization.test.mjs
+          )
+          (cd _baseline && node --test "${cases[@]}") > "$RUNNER_TEMP/baseline.tap" 2>&1 || true
+          node --test "${cases[@]}" > "$RUNNER_TEMP/candidate.tap" 2>&1 || true
+          node --input-type=module - "$RUNNER_TEMP/baseline.tap" "$RUNNER_TEMP/candidate.tap" <<'NODE'
+          import fs from 'node:fs';
+          const [baselinePath, candidatePath] = process.argv.slice(2);
+          const read = (path) => {
+            const raw = fs.readFileSync(path, 'utf8');
+            const count = Number(raw.match(/^# tests (\\d+)$/m)?.[1]);
+            const fails = [...raw.matchAll(/^not ok \\d+ - (.+)$/gm)].map(x=>x[1]).sort();
+            if (!Number.isInteger(count) || count < 1) throw new Error('Missing TAP result in ' + path);
+            return {count, fails};
+          };
+          const base=read(baselinePath), candidate=read(candidatePath);
+          console.log('Baseline source tests:', base.count, '| inherited failures:', base.fails.length);
+          console.log('Candidate source tests:', candidate.count, '| inherited failures:', candidate.fails.length);
+          console.log('Inherited failures (not suppressed):', JSON.stringify(base.fails));
+          const added=candidate.fails.filter(x=>!base.fails.includes(x));
+          if (base.count !== candidate.count || added.length) {
+            console.error('NEW SOURCE TEST FAILURES:', JSON.stringify(added));
+            process.exit(1);
+          }
+          console.log('PASS: No new source-test failures compared with exact main baseline.');
+          NODE
