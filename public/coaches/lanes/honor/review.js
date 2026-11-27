@@ -30,7 +30,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { postAuthoritativeXp } from "/assets/js/authoritative-xp-client.js";
-import { ensureImmutableLaneArchive } from "/assets/js/immutable-lane-archive.js";
+import { ensureImmutableLaneArchive, assertCompatibleLaneArchive } from "/assets/js/immutable-lane-archive.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
@@ -432,6 +432,13 @@ async function loadSubmissions() {
             let amt = act === "xp10" ? 10 : 5;
             if (isF8) amt = 5;
 
+            // Reject conflicting closed archives BEFORE sending an XP request.
+            // A matching prior award is safe: the server uses a stable receipt
+            // keyed to this athlete, kind and submission key.
+            await assertCompatibleLaneArchive({
+              historyRef: doc(db, "laneHistory", `${athleteId}__${key}`),
+              athleteId, key, lane: "honor", expectedAward: amt, getDoc,
+            });
             await awardXp({
               athleteId,
               amount: amt,
