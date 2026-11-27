@@ -410,7 +410,8 @@ test("Athlete drawer links are built only after verified ownership", () => {
   assert.doesNotMatch(source, /const items = id\.toUpperCase/);
   for (const path of ["public/athletes/hub/index.html", "public/athletes/profile/index.html",
     "public/athletes/arsenal/arsenal.linker.js"]) {
-    assert.match(fs.readFileSync(path, "utf8"), /resolveSignedInAthlete/);
+    assert.match(fs.readFileSync(path, "utf8"), /resolveSignedInSelfAthlete/);
+    assert.doesNotMatch(fs.readFileSync(path, "utf8"), /resolveSignedInAthlete\(requestedId/);
     assert.match(fs.readFileSync(path, "utf8"), /persistVerifiedAthleteId/);
   }
 });
