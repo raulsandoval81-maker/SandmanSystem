@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 
 const projectId = "demo-sandman-p0-athlete-ownership";
 let env;
@@ -31,6 +31,11 @@ before(async () => {
       }),
       setDoc(doc(db, "staff/coach"), { role: "coach", status: "active", locationIds: ["north"] }),
       setDoc(doc(db, "staff/outsider"), { role: "coach", status: "active", locationIds: ["west"] }),
+      setDoc(doc(db, "staff/manager"), { role: "management", status: "active", locationIds: ["north"] }),
+      setDoc(doc(db, "staff/admin"), { role: "admin", status: "active" }),
+      setDoc(doc(db, "athletes/Legacy-Z2H"), {
+        programTrack: "Z2H", locationId: "north", coachIds: [], synthetic: true,
+      }),
     ]);
   });
 });
@@ -51,4 +56,21 @@ test("signed-out, unrelated and out-of-scope identities are denied", async () =>
 
 test("alternate athlete ID never expands Athlete, Parent or Coach read scope", async () => {
   for (const uid of ["athlete", "parent", "coach"]) await assertFails(read(uid, "other"));
+});
+
+
+test("legacy UID ownership is exact-case", async () => {
+  await assertSucceeds(read("Legacy-Z2H", "Legacy-Z2H"));
+  await assertFails(read("LEGACY-Z2H", "Legacy-Z2H"));
+});
+
+test("Management stays location-scoped and Admin retains authorized reads", async () => {
+  await assertSucceeds(read("manager", "own"));
+  await assertFails(read("manager", "other"));
+  await assertSucceeds(read("admin", "other"));
+});
+
+test("Coach record access cannot write a private field", async () => {
+  const db = env.authenticatedContext("coach").firestore();
+  await assertFails(updateDoc(doc(db, "athletes", "own"), { privateReview: "synthetic" }));
 });
