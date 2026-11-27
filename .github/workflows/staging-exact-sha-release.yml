@@ -181,6 +181,7 @@ on:
           - enrollment-wif-readonly-preflight
           - historical-enrollment-preflight
           - p0-containment-readonly-preflight
+          - athlete-sprint1-readonly-preflight
           - p0-containment-staging-deploy
           - handoff-preflight
           - handoff-deploy
@@ -5084,3 +5085,52 @@ jobs:
           ' after-run.json)
           printf 'Project: %s\nPrevious revision: %s\nServing revision: %s (100%%)\nChanged variable: GOOGLE_CLOUD_PROJECT=%s\nRollback: restore the previous environment map by removing only GOOGLE_CLOUD_PROJECT.\n' \
             "$PROJECT" "$BASELINE" "$revision" "$PROJECT" | tee -a "$GITHUB_STEP_SUMMARY"
+
+
+  athlete-sprint1-readonly-preflight:
+    if: ${{ inputs.action == 'athlete-sprint1-readonly-preflight' }}
+    name: Athlete Sprint 1 — GET-only staging baseline verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - name: Require the existing trusted main-branch staging dispatch
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$SPRINT1_ACTION" = "athlete-sprint1-readonly-preflight"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Authenticate through existing trusted staging WIF path
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Read current staging source equivalence and rollback metadata
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          python3 scripts/staging/athlete-sprint1-readonly-preflight.py
+      - name: Attach sanitized read-only evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint1-staging-readonly-${{ github.run_id }}
+          path: sprint1-staging-readonly-evidence.json
+          if-no-files-found: warn
+          retention-days: 14
