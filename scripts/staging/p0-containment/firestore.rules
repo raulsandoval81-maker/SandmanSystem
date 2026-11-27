@@ -155,6 +155,10 @@ service cloud.firestore {
         isAdmin()
         || resource.data.get("authUid", "") == request.auth.uid
         || (athleteId == request.auth.uid && resource.data.get("authUid", null) == null)
+        // The signed server-side Parent invitation consumer stamps parentUid
+        // even when its pending relationship document keeps a noncanonical ID.
+        // Exact bound Parent ownership must match Profile callable authorization.
+        || resource.data.get("parentUid", "") == request.auth.uid
         || isLinkedParent(athleteId)
         || canReadStaffAthlete(resource.data)
       );
