@@ -36,3 +36,26 @@ and Storage remain outside this workflow's coverage.
 
 The artifact contains check names and outcomes. Keep credential values and
 tokens in the protected job.
+
+## Move 1 ownership acceptance
+
+The full run also uses the pre-existing `staging-outsider-coach` synthetic Auth account
+from the Wrestling staging seed. It signs in with the protected staging password,
+verifies its active Coach staff record, and requires denial for both synthetic athletes.
+The Athlete identity must be denied the unrelated athlete record. Browser assertions
+check drawer navigation, direct URL aliases and remembered IDs on Home Base, Profile
+and Arsenal. The unrelated record's synthetic display strings are used only in memory
+to check the rendered page and are omitted from the result artifact.
+
+For final acceptance, dispatch **P0 authenticated staging acceptance**
+(`.github/workflows/p0-staging-acceptance.yml`) on `main` **after separate approval
+to land the reviewed test changes**. Set `confirm_project=sandman-combat-staging`
+and leave all diagnostic-only switches false. Use a new first-attempt run. The workflow
+is restricted to `main` and the existing protected `staging` environment. Require a
+successful job and all Move 1 assertions in `p0-acceptance-results.json`. An optional
+navigation-only diagnostic can be run separately but does not replace full acceptance.
+
+The isolated rules test is `tests/firestore/p0-athlete-ownership.rules.test.mjs`.
+Run it against a loopback Firestore emulator at port 8081 with project ID
+`demo-sandman-p0-athlete-ownership`. It loads the repository's staging containment
+candidate and writes only disposable synthetic emulator fixtures.

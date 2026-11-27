@@ -243,7 +243,84 @@ async function denied(path, token) {
   requireCheck((await readDocument(path, token)).status === 403);
 }
 
-async function openRole(role, fixture, password, athleteId) {
+async function signInSynthetic(page, fixture, password) {
+  await page.goto(`${origin}/staging-environment.json`, { waitUntil: "domcontentloaded" });
+  requireCheck(new URL(page.url()).origin === origin);
+  const session = await page.evaluate(async ({ email, password, project }) => {
+    const { auth } = await import("/assets/js/firebase-init.js");
+    const { signInWithEmailAndPassword } = await import(
+      "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js"
+    );
+    if (auth.app.options.projectId !== project) return null;
+    const { user } = await signInWithEmailAndPassword(auth, email, password);
+    const result = await user.getIdTokenResult();
+    return { uid: user.uid, token: result.token, synthetic: result.claims.synthetic === true,
+      audience: result.claims.aud };
+  }, { email: fixture.email, password, project });
+  requireCheck(session?.synthetic && session.audience === project && session.uid === fixture.uid);
+  return session;
+}
+
+async function verifyAthleteNavigationOwnership(page, ownId, otherId, otherMarkers) {
+  current = "athlete ownership drawer";
+  await page.evaluate(otherId => {
+    localStorage.setItem("currentAthleteId", otherId);
+    sessionStorage.setItem("currentAthleteId", otherId);
+  }, otherId);
+  await page.locator(".athlete-menu-button").click();
+  const profileLink = page.locator('#athleteDrawer a[href^="/athletes/profile/"]');
+  const profile = new URL(await profileLink.getAttribute("href"), origin);
+  requireCheck(profile.origin === origin && profile.searchParams.get("id") === ownId);
+  await profileLink.click();
+  await page.waitForURL(url => url.origin === origin && url.pathname.startsWith("/athletes/profile/"));
+  passed(current);
+
+  const cases = [
+    ["/athletes/hub/", "id"],
+    ["/athletes/hub/mini-hub.html", "id"],
+    ["/athletes/hub/full-hub.html", "id"],
+    ["/athletes/profile/", "athleteId"],
+    ["/athletes/arsenal/", "uid"],
+    ["/athletes/profile/", null],
+    ["/athletes/arsenal/", null],
+  ];
+  for (const [path, parameter] of cases) {
+    current = "athlete ownership navigation " + path + " " + (parameter || "browser storage");
+    await page.evaluate(({ otherId, poison }) => {
+      if (!poison) return;
+      for (const key of ["sandman_lastAthleteUid", "currentAthleteId"]) {
+        localStorage.setItem(key, otherId);
+        sessionStorage.setItem(key, otherId);
+      }
+    }, { otherId, poison: !parameter });
+    const target = new URL(path, origin);
+    if (parameter) target.searchParams.set(parameter, otherId);
+    requireCheck((await page.goto(target.href, { waitUntil: "load" }))?.ok());
+    // Wait for ownership resolution or an explicit terminal page before evaluating.
+    await page.waitForFunction(({ origin, ownId, otherId }) => {
+      if (location.origin !== origin) return true;
+      if (/\/(auth|login)(\/|$)/i.test(location.pathname)) return true;
+      const query = new URLSearchParams(location.search);
+      const requested = ["id", "athleteId", "uid"].map(key => query.get(key));
+      const text = document.body.innerText;
+      return (requested.includes(ownId) && !requested.includes(otherId) &&
+        !/\/(hub|profile|arsenal)\/$/.test(location.pathname)) ||
+        /athlete not found|account mismatch|unable to determine athlete journey|not authorized|access denied/i.test(text);
+    }, { origin, ownId, otherId }, { timeout: 15000 });
+    const state = await page.evaluate(({ otherId, otherMarkers }) => ({
+      origin: location.origin,
+      pathsLeak: [...document.querySelectorAll("#athleteDrawer a[href]")].some(link =>
+        ["id", "athleteId", "uid"].some(key => new URL(link.href).searchParams.get(key) === otherId)),
+      detailsLeak: otherMarkers.some(marker => document.body.innerText.includes(marker)),
+      rememberedOther: ["sandman_lastAthleteUid", "currentAthleteId"].some(key =>
+        localStorage.getItem(key) === otherId || sessionStorage.getItem(key) === otherId),
+    }), { otherId, otherMarkers });
+    requireCheck(state.origin === origin && !state.pathsLeak && !state.detailsLeak && !state.rememberedOther);
+    passed(current);
+  }
+}
+
+async function openRole(role, fixture, password, athleteId, ownershipCase) {
   const context = await browser.newContext({ serviceWorkers: "block", acceptDownloads: false });
   try {
     await context.route("**/*", (route) =>
@@ -275,21 +352,8 @@ async function openRole(role, fixture, password, athleteId) {
         }
       });
     }
-    await page.goto(`${origin}/staging-environment.json`, { waitUntil: "domcontentloaded" });
-    requireCheck(new URL(page.url()).origin === origin);
     if (role === "athlete") athleteDiagnostics.phase = "authentication";
-    const session = await page.evaluate(async ({ email, password, project }) => {
-      const { auth } = await import("/assets/js/firebase-init.js");
-      const { signInWithEmailAndPassword } = await import(
-        "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js"
-      );
-      if (auth.app.options.projectId !== project) return null;
-      const { user } = await signInWithEmailAndPassword(auth, email, password);
-      const result = await user.getIdTokenResult();
-      return { uid: user.uid, token: result.token, synthetic: result.claims.synthetic === true,
-        audience: result.claims.aud };
-    }, { email: fixture.email, password, project });
-    requireCheck(session?.synthetic && session.audience === project && session.uid === fixture.uid);
+    const session = await signInSynthetic(page, fixture, password);
     if (role === "athlete") {
       athleteDiagnostics.authentication = "verified";
       athleteDiagnostics.phase = "own synthetic document read";
@@ -337,8 +401,13 @@ async function openRole(role, fixture, password, athleteId) {
           || /\/(auth|login)(\/|$)/i.test(checkpoint.path)) break;
         await page.waitForTimeout(500);
       }
-      athleteDiagnostics.navigationResult = athleteDiagnostics.navigation.at(-1)?.grid?.hidden === false
-        ? "rendered" : "not-rendered";
+      const final = athleteDiagnostics.navigation.at(-1);
+      const rendered = final?.grid?.hidden === false && final.grid.cardCount >= 3 &&
+        final.idMatches && final.auth === "restored" &&
+        final.path === "/athletes/hub/mini-hub.html";
+      athleteDiagnostics.navigationResult = rendered ? "rendered" : "not-rendered";
+      current = "athlete navigation rendered authenticated Home Base";
+      requireCheck(rendered);
       return session.token;
     }
     if (role === "athlete") athleteDiagnostics.phase = "dashboard visibility";
@@ -375,6 +444,9 @@ async function openRole(role, fixture, password, athleteId) {
     });
     requireCheck(new URL(page.url()).origin === origin && active.uid === fixture.uid && active.projectId === project);
     requireCheck(!/\/(auth|login)(\/|$)/i.test(new URL(page.url()).pathname));
+    if (ownershipCase) {
+      await verifyAthleteNavigationOwnership(page, athleteId, ownershipCase.otherId, ownershipCase.markers);
+    }
     return session.token;
   } finally {
     await context.close();
@@ -441,9 +513,39 @@ async function run() {
   current = "linked parent and cross-family denial";
   await allowed(own, tokens.parent);
   await denied(other, tokens.parent);
+  passed(current);
+
+  current = "unrelated signed-in Athlete and unsigned account denial";
   await denied(other, tokens.athlete);
   await denied(own);
   passed(current);
+
+  current = "out-of-scope synthetic Coach";
+  const outsider = { uid: "staging-outsider-coach", email: "coach.outsider@example.invalid" };
+  requireCheck(!uids.includes(outsider.uid));
+  const context = await browser.newContext({ serviceWorkers: "block", acceptDownloads: false });
+  try {
+    await context.route("**/*", route =>
+      safeRequest(route.request()) ? route.continue() : route.abort("blockedbyclient"));
+    const session = await signInSynthetic(await context.newPage(), outsider, password);
+    const staff = await allowed(`staff/${outsider.uid}`, session.token);
+    requireCheck(staff.role?.stringValue === "coach" && staff.status?.stringValue === "active");
+    await denied(own, session.token);
+    await denied(other, session.token);
+  } finally {
+    await context.close();
+  }
+  passed(current);
+
+  current = "cross-athlete synthetic marker preparation";
+  const otherFields = await allowed(other, tokens.admin);
+  const markers = [...new Set(["name", "displayName", "fullName"]
+    .map(key => otherFields[key]?.stringValue)
+    .filter(value => typeof value === "string" && value.length >= 6))];
+  requireCheck(markers.length > 0 && markers.every(marker =>
+    !["name", "displayName", "fullName"].some(key => athlete[key]?.stringValue === marker)));
+  await openRole("athlete", fixtures.roles.athlete, password, fixtures.ownAthlete,
+    { otherId: fixtures.otherAthlete, markers });
 
   current = "enrollment and billing fixtures";
   const intake = await allowed(`intakes/${fixtures.intake}`, tokens.management);
