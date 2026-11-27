@@ -168,8 +168,8 @@ jobs:
           const [baselinePath, candidatePath] = process.argv.slice(2);
           const read = (path) => {
             const raw = fs.readFileSync(path, 'utf8');
-            const count = Number(raw.match(/^# tests (\\d+)$/m)?.[1]);
-            const fails = [...raw.matchAll(/^not ok \\d+ - (.+)$/gm)].map(x=>x[1]).sort();
+            const count = Number(raw.match(/^# tests (\d+)$/m)?.[1]);
+            const fails = [...raw.matchAll(/^not ok \d+ - (.+)$/gm)].map(x=>x[1]).sort();
             if (!Number.isInteger(count) || count < 1) throw new Error('Missing TAP result in ' + path);
             return {count, fails};
           };
