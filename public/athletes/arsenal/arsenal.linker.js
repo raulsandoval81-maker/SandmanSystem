@@ -1,15 +1,13 @@
-import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
 import {
   athleteArsenalPage, canonicalAthleteHref, persistVerifiedAthleteId,
   clearUnverifiedAthleteId,
 } from "/assets/js/athlete-journey-routes.js";
 
 const params = new URLSearchParams(location.search);
-const requestedId = String(params.get("id") || params.get("athleteId") || params.get("uid") || "").trim();
-
 async function routeArsenal() {
   try {
-    const { athleteId, athlete } = await resolveSignedInAthlete(requestedId);
+    const { athleteId, athlete } = await resolveSignedInSelfAthlete();
     if (!athleteId || !athlete) {
       clearUnverifiedAthleteId();
       location.replace("/athletes/auth/");
