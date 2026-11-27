@@ -127,6 +127,16 @@ jobs:
           npm ci --ignore-scripts --no-audit --no-fund
           npm ci --prefix functions --ignore-scripts --no-audit --no-fund
           npm run build --prefix functions
+      - name: Execute existing enrollment, athlete lanes and XP suites against full candidate rules
+        run: |
+          set -euo pipefail
+          test -f scripts/staging/p0-containment/firestore.rules
+          cp scripts/staging/p0-containment/firestore.rules firestore.rules
+          npx --yes firebase-tools@15.11.0 emulators:exec \
+            --project demo-sandman-sprint1-compatibility \
+            --config firebase.paid-in-full-test.json \
+            --only firestore,auth,functions,hosting \
+            'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'
       - name: Existing enrollment and access UI source regressions
         run: |
           node --test \
@@ -138,13 +148,3 @@ jobs:
             tests/functions/athlete-access-activation.test.mjs \
             tests/functions/parent-access-invitations.test.mjs \
             tests/functions/p0-athlete-reentry-authorization.test.mjs
-      - name: Execute existing enrollment, athlete lanes and XP suites against full candidate rules
-        run: |
-          set -euo pipefail
-          test -f scripts/staging/p0-containment/firestore.rules
-          cp scripts/staging/p0-containment/firestore.rules firestore.rules
-          npx --yes firebase-tools@15.11.0 emulators:exec \
-            --project demo-sandman-sprint1-compatibility \
-            --config firebase.paid-in-full-test.json \
-            --only firestore,auth,functions,hosting \
-            'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'
