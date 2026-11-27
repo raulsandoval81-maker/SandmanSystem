@@ -1,3 +1,4 @@
+import { readAuthorizedAthleteProfile } from "/assets/js/athlete-profile-read.js";
 // /athletes/profile/adult-profile.js
 // ============================
 // Athlete Profile JS (F4-only owner)
@@ -7,7 +8,7 @@
 // ============================
 
 import {
-  db, auth, doc, getDoc, ensureSignedIn,
+  db,
   collection, query, where, orderBy, limit, getDocs
 } from "/assets/js/firebase-init.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
@@ -110,11 +111,7 @@ export async function getAthleteProfile(athleteUid) {
   const uid = String(athleteUid || "").trim();
   if (!uid) return null;
 
-  const ref = doc(db, "athletes", uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-
-  return { id: snap.id, ...snap.data() };
+  return readAuthorizedAthleteProfile(uid);
 }
 
 function getStoredTierNum(a) {
@@ -718,16 +715,11 @@ if (reviewMode) setAllDrops(true);
 // MAIN
 // ===============================
 (async () => {
-  await ensureSignedIn();
-  const ref = doc(db, "athletes", athleteId);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    document.body.innerHTML = "<main class='wrap'><p>Unknown athlete.</p></main>";
+  const a = await readAuthorizedAthleteProfile(athleteId);
+  if (!a) {
+    document.body.innerHTML = "<main class='wrap'><p>Athlete profile unavailable.</p></main>";
     return;
   }
-
-  const a = snap.data() || {};
 
   const disciplineIds = Array.from(
     new Set(

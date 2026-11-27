@@ -1,10 +1,4 @@
-import {
-  db,
-  doc,
-  getDoc,
-  ensureSignedIn
-} from "/assets/js/firebase-init.js";
-
+import { readAuthorizedAthleteProfile } from "/assets/js/athlete-profile-read.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import {
   LADDER_F8
@@ -140,15 +134,11 @@ async function load() {
     return;
   }
 
-  await ensureSignedIn();
-
-  const snap = await getDoc(doc(db, "athletes", id));
-  if (!snap.exists()) {
-    document.body.innerHTML = "<main class='wrap'><p>Athlete not found</p></main>";
+  const A = await readAuthorizedAthleteProfile(id);
+  if (!A) {
+    document.body.innerHTML = "<main class='wrap'><p>Athlete profile unavailable.</p></main>";
     return;
   }
-
-  const A = snap.data() || {};
 
   // Multi-discipline Combat resolver.
   // Identity stays on A. Combat progression comes from combat.

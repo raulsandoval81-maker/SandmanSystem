@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { after, before, test } from "node:test";
 import { assertFails, assertSucceeds, initializeTestEnvironment } from "@firebase/rules-unit-testing";
@@ -73,4 +74,38 @@ test("Management stays location-scoped and Admin retains authorized reads", asyn
 test("Coach record access cannot write a private field", async () => {
   const db = env.authenticatedContext("coach").firestore();
   await assertFails(updateDoc(doc(db, "athletes", "own"), { privateReview: "synthetic" }));
+});
+
+test("Profile feed and Skills callables enforce authenticated scope independently of client rules", async () => {
+  const { createRequire } = await import("node:module");
+  const require = createRequire(new URL("../../functions/package.json", import.meta.url));
+  const { initializeApp, deleteApp } = require("firebase-admin/app");
+  const app = initializeApp({ projectId });
+  try {
+    const { getAthleteProfileFeed } = require("./lib/modules/athlete/getAthleteProfileFeed");
+    const { getAthleteSkillsSummary } = require("./lib/modules/athlete/getAthleteSkillsSummary");
+    const request = (uid, athleteId, provider = "password") => ({
+      auth: uid ? { uid, token: { firebase: { sign_in_provider: provider } } } : undefined,
+      data: { athleteId, authorizeOnly: true },
+    });
+    for (const [uid, athleteId] of [
+      ["athlete", "own"], ["parent", "own"], ["coach", "own"],
+      ["manager", "own"], ["admin", "other"], ["Legacy-Z2H", "Legacy-Z2H"],
+    ]) {
+      assert.deepEqual(await getAthleteProfileFeed.run(request(uid, athleteId)), {
+        athleteId, authorized: true,
+      });
+    }
+    for (const uid of ["unrelated", "other-athlete", "outsider"]) {
+      const denied = error => error.code === "permission-denied";
+      await assert.rejects(getAthleteProfileFeed.run(request(uid, "own")), denied);
+      await assert.rejects(getAthleteSkillsSummary.run(request(uid, "own")), denied);
+    }
+    await assert.rejects(getAthleteProfileFeed.run(request(null, "own")),
+      error => error.code === "unauthenticated");
+    await assert.rejects(getAthleteSkillsSummary.run(request("athlete", "own", "anonymous")),
+      error => error.code === "unauthenticated");
+  } finally {
+    await deleteApp(app);
+  }
 });

@@ -1,10 +1,7 @@
+import { readAuthorizedAthleteProfile } from "/assets/js/athlete-profile-read.js";
 import {
-  db,
-  doc,
-  getDoc,
   functions,
-  httpsCallable,
-  ensureSignedIn
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 import {
   normalizeDisciplineId as normalizeDiscipline
@@ -27,9 +24,7 @@ if (container && lane) {
     new URLSearchParams(window.location.search);
 
   const athleteId =
-    String(params.get("id") || "")
-      .trim()
-      .toUpperCase();
+    String(params.get("id") || "").trim();
 
   const STATE_LABELS = Object.freeze({
     LEARNED: "Learned",
@@ -115,19 +110,8 @@ if (container && lane) {
     }
 
     try {
-      await ensureSignedIn();
-
-      const athleteSnap =
-        await getDoc(
-          doc(db, "athletes", athleteId)
-        );
-
-      if (!athleteSnap.exists()) {
-        return;
-      }
-
-      const athlete =
-        athleteSnap.data() || {};
+      const athlete = await readAuthorizedAthleteProfile(athleteId);
+      if (!athlete) return;
 
       const activeDiscipline =
         resolveActiveDiscipline(athlete);

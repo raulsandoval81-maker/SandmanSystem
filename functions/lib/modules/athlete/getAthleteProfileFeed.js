@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAthleteProfileFeed = void 0;
 const https_1 = require("firebase-functions/v2/https");
-const firestore_1 = require("firebase-admin/firestore");
+const athleteProfileReadAuthorization_1 = require("../../services/athleteProfileReadAuthorization");
 const ACHIEVEMENT_TYPES = new Set([
     "XP_MILESTONE",
     "TESTING_ELIGIBLE",
@@ -92,32 +92,10 @@ function activityLabel(item) {
         "XP Earned");
 }
 exports.getAthleteProfileFeed = (0, https_1.onCall)(async (req) => {
-    const db = (0, firestore_1.getFirestore)();
-    const athleteId = String(req.data?.athleteId || req.data?.uid || "")
-        .trim()
-        .toUpperCase();
-    if (!athleteId) {
-        throw new https_1.HttpsError("invalid-argument", "Missing athleteId.");
-    }
-    const athleteSnap = await db
-        .collection("athletes")
-        .doc(athleteId)
-        .get();
-    if (!athleteSnap.exists) {
-        throw new https_1.HttpsError("not-found", "Athlete not found.");
-    }
-    const athlete = athleteSnap.data() || {};
-    const possibleIds = Array.from(new Set([
-        athleteId,
-        athlete.uid,
-        athlete.uidCode,
-        athlete.id,
-        athlete.dogTag,
-        athlete.mintVirtueTag,
-        athlete.mintVirtueTagDisplay,
-    ]
-        .filter(Boolean)
-        .map((v) => String(v).trim().toUpperCase())));
+    const { db, athleteId } = await (0, athleteProfileReadAuthorization_1.requireAthleteProfileRead)(req.auth, req.data?.athleteId || req.data?.uid);
+    if (req.data?.authorizeOnly === true)
+        return { authorized: true, athleteId };
+    const possibleIds = [athleteId];
     const parentSnap = await db
         .collection("parentInbox")
         .where("athleteId", "==", athleteId)
