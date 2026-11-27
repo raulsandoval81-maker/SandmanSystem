@@ -87,3 +87,64 @@ jobs:
             --only firestore \
             --project demo-sandman-p0-athlete-ownership \
             'node --test tests/firestore/p0-athlete-ownership.rules.test.mjs'
+
+
+  enrollment-compatibility:
+    name: Enrollment → Intake → Athlete/Parent + XP integration (synthetic)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      STRIPE_SECRET_KEY: ''
+      RESEND_API_KEY: ''
+      GOOGLE_APPLICATION_CREDENTIALS: ''
+      FUNCTIONS_EMULATOR_HOST: '127.0.0.1:5501'
+      HOSTING_EMULATOR_HOST: '127.0.0.1:5502'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Assert synthetic project and zero sensitive credentials
+        run: |
+          set -euo pipefail
+          test -z "$STRIPE_SECRET_KEY$RESEND_API_KEY$GOOGLE_APPLICATION_CREDENTIALS"
+          test "$GITHUB_REF_NAME" = codex/sprint1-immutable-lane-archive-retry
+          test "$GITHUB_REPOSITORY" = raulsandoval81-maker/SandmanSystem
+      - name: Install and compile existing code without deploying
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+      - name: Existing enrollment and access UI source regressions
+        run: |
+          node --test \
+            tests/browser/enrollment-family-pathways.test.mjs \
+            tests/browser/enrollment-approval-standard.test.mjs \
+            tests/browser/enrollment-approval-email-preview.test.mjs \
+            tests/browser/enrollment-activity-pathways.test.mjs \
+            tests/browser/enrollment-handoff-audience.test.mjs \
+            tests/functions/athlete-access-activation.test.mjs \
+            tests/functions/parent-access-invitations.test.mjs \
+            tests/functions/p0-athlete-reentry-authorization.test.mjs
+      - name: Execute existing enrollment, athlete lanes and XP suites against full candidate rules
+        run: |
+          set -euo pipefail
+          test -f scripts/staging/p0-containment/firestore.rules
+          cp scripts/staging/p0-containment/firestore.rules firestore.rules
+          npx --yes firebase-tools@15.11.0 emulators:exec \
+            --project demo-sandman-sprint1-compatibility \
+            --config firebase.paid-in-full-test.json \
+            --only firestore,auth,functions,hosting \
+            'node --test --test-concurrency=1 tests/emulator/paid-in-full-e2e.test.mjs tests/emulator/athlete-lane-flow.test.mjs tests/emulator/xp-http-auth.test.mjs'
