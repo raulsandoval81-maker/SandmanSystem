@@ -149,9 +149,10 @@ def main():
         assert os.environ.get("GITHUB_REF") == "refs/heads/main"
         assert os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
         assert os.environ.get("CONFIRM_PROJECT") == PROJECT
+        assert os.environ.get("SPRINT1_ACTION") == "athlete-sprint1-readonly-preflight"
         assert os.environ.get("GITHUB_WORKFLOW_REF") == (
             "raulsandoval81-maker/SandmanSystem/.github/workflows/"
-            "athlete-sprint1-staging-preflight.yml@refs/heads/main")
+            "staging-exact-sha-release.yml@refs/heads/main")
         evidence["localSourceHashes"] = verify_source()
         token = cmd("gcloud", "auth", "print-access-token")
         evidence["snapshot"] = snapshot(token)
