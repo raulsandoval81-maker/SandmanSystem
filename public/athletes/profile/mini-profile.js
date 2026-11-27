@@ -5,6 +5,9 @@ import {
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
+import { resolveSignedInAthlete } from "/assets/js/athlete-dashboard-data.js";
+import { athleteExperience, canonicalAthleteHref, persistVerifiedAthleteId, clearUnverifiedAthleteId } from "/assets/js/athlete-journey-routes.js";
+
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import {
   LADDER_F8
@@ -131,22 +134,21 @@ function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
 
 async function load() {
   const params = new URLSearchParams(window.location.search);
-  const id = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
-
-  if (!id) {
-    document.body.innerHTML = "<main class='wrap'><p>Missing athlete ID</p></main>";
-    return;
-  }
-
+  const requestedId = (params.get("id") || params.get("uid") || params.get("athleteId") || "").trim();
   await ensureSignedIn();
-
-  const snap = await getDoc(doc(db, "athletes", id));
-  if (!snap.exists()) {
-    document.body.innerHTML = "<main class='wrap'><p>Athlete not found</p></main>";
+  const resolved = await resolveSignedInAthlete(requestedId);
+  if (!resolved.athleteId || !resolved.athlete) {
+    clearUnverifiedAthleteId();
+    document.body.innerHTML = "<main class='wrap'><p>Athlete access unavailable</p></main>";
     return;
   }
-
-  const A = snap.data() || {};
+  const id = resolved.athleteId;
+  const A = resolved.athlete;
+  persistVerifiedAthleteId(id);
+  if (athleteExperience(A, id) !== "mini") {
+    location.replace(canonicalAthleteHref("/athletes/profile/", id));
+    return;
+  }
 
   // Multi-discipline Combat resolver.
   // Identity stays on A. Combat progression comes from combat.
