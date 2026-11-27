@@ -2290,9 +2290,12 @@ match /academySettings/{academyId} {
       let legacyLocationId =
         staff.get("locationId", "");
 
+      // No assigned location is not a location match. The legacy empty
+      // string fallback must never authorize a missing Athlete location.
       return isManagement()
         && staff.get("status", "") == "active"
         && locationId is string
+        && locationId.size() > 0
         && (
           (
             locationIds is list
