@@ -696,3 +696,59 @@ test("Interrupted Honor and Conditioning review replays XP receipt once and arch
     assert.equal(after[bucket], Number(before[bucket] || 0) + scenario.amount);
   }
 });
+
+test("Honor retry with different button amount fails closed on authoritative duplicate receipt", async () => {
+  const helperSource = fs.readFileSync("public/assets/js/immutable-lane-archive.js", "utf8");
+  const { assertAuthoritativeAwardReceipt } =
+    await import("data:text/javascript;base64," + Buffer.from(helperSource).toString("base64"));
+  const fixture = { ...fixtures.f4Honor, id: "F4_INTERRUPTED_AMOUNT_MISMATCH" };
+  await seedAthlete(fixture);
+  const ownerDb = authenticatedDb(`ATHLETE_${fixture.id}`);
+  const coachDb = authenticatedDb(COACH_UID);
+  const key = "HON-001";
+  const submissionRef = doc(ownerDb, "laneSubmissions", fixture.id);
+  await setDoc(submissionRef, { [key]: {
+    lane: "honor", body: "Synthetic Honor submission", status: "pending",
+    segmentId: "segment1", sessionN: 1, athleteUid: fixture.id,
+  } });
+  const before = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
+  const base = {
+    uid: fixture.id, kind: "HONOR", note: "Synthetic mismatch retry",
+    meta: { key, source: "honor_lane_review", segmentId: "segment1", sessionN: 1 },
+  };
+
+  // First request succeeds but the Coach's browser loses the response
+  // before History is created or the submission is closed.
+  const original = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 10 });
+  assert.equal(assertAuthoritativeAwardReceipt(original, 10), 10);
+
+  // A second request for +5 must not archive +5 based on the selected button:
+  // the service returns the original +10 receipt without a second award.
+  const duplicate = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 5 });
+  assert.equal(duplicate.idempotent, true);
+  assert.equal(duplicate.delta, 0);
+  await assert.rejects(
+    async () => assertAuthoritativeAwardReceipt(duplicate, 5),
+    /XP_AWARD_RECEIPT_MISMATCH_REQUIRES_REVIEW/,
+  );
+  assert.equal((await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).exists, false);
+  assert.equal((await getDoc(submissionRef)).data()[key].status, "pending");
+
+  // The correct +10 retry can be recovered without awarding XP again.
+  const matching = await awardXpAuthoritatively(COACH_UID, { ...base, amount: 10 });
+  assert.equal(assertAuthoritativeAwardReceipt(matching, 10), 10);
+  assert.equal(matching.delta, 0);
+  const archiveRef = doc(coachDb, "laneHistory", `${fixture.id}__${key}`);
+  await setDoc(archiveRef, {
+    athleteId: fixture.id, lane: "honor", awardedXp: 10, status: "closed",
+    sourceCollection: "laneSubmissions", sourceAthleteId: fixture.id,
+    sourceKey: key, historyType: "submission", closedAt: new Date(),
+  });
+  await updateDoc(doc(coachDb, "laneSubmissions", fixture.id), {
+    [`${key}.status`]: "closed", [`${key}.awardedXp`]: 10,
+  });
+
+  const after = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
+  assert.equal(after.xpHonor, Number(before.xpHonor || 0) + 10);
+  assert.equal((await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).data().awardedXp, 10);
+});
