@@ -84,3 +84,17 @@ export async function resolveAuthenticatedAthlete({
 }
 
 export { normalizeAthleteId };
+
+// Self-viewer API deliberately accepts no URL or browser-storage identity.
+// Its only direct document probe is the authenticated user's exact UID;
+// other document keys must be returned from an authUid-filtered query.
+export async function resolveAuthenticatedSelfAthlete({
+  user,
+  getAthleteById,
+  findAthletesByAuthUid,
+} = {}) {
+  if (!user?.uid || user.isAnonymous) {
+    return { athleteId: "", athlete: null, rejectedIds: [] };
+  }
+  return resolveAuthenticatedAthlete({ user, getAthleteById, findAthletesByAuthUid });
+}
