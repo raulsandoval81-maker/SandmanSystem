@@ -1,7 +1,6 @@
-// A Coach may encounter a previously archived Honor or Conditioning submission
-// after a navigation failure. The archive is immutable; a matching prior record
-// is success for that specific submission, never permission to overwrite it.
-export function archiveMatchesSubmission(record, athleteId, key, lane) {
+// Archives are immutable. A Coach may safely resume a previously archived
+// submission, but may never overwrite a mismatched closed record.
+export function archiveMatchesSubmission(record, athleteId, key, lane, expectedAward) {
   if (!record || typeof record !== "object") return false;
   return record.athleteId === athleteId &&
     record.sourceAthleteId === athleteId &&
@@ -9,40 +8,52 @@ export function archiveMatchesSubmission(record, athleteId, key, lane) {
     record.sourceCollection === "laneSubmissions" &&
     record.historyType === "submission" &&
     record.status === "closed" &&
+    Number(record.awardedXp || 0) === Number(expectedAward || 0) &&
     (lane === "conditioning"
       ? record.assignmentLane === "conditioning"
       : record.lane === lane);
 }
 
-// This pre-award check runs before any XP request. An already archived
-// submission with a different award cannot be silently changed by a retry.
+// The containment policy authorizes queries filtered by athleteId, but a
+// direct getDoc of a *missing* history ID cannot be ownership-checked from
+// resource.data. Query the authorized athlete scope instead.
+export async function findLaneArchive(athleteId, key, readHistoryForAthlete) {
+  const snapshot = await readHistoryForAthlete(athleteId);
+  const matchId = `${athleteId}__${key}`;
+  const match = snapshot.docs.find((item) => item.id === matchId);
+  return match ? match.data() : null;
+}
+
 export async function assertCompatibleLaneArchive({
-  historyRef, athleteId, key, lane, expectedAward, getDoc,
+  athleteId, key, lane, expectedAward, readHistoryForAthlete,
 }) {
-  const existing = await getDoc(historyRef);
-  if (!existing.exists()) return false;
-  const data = existing.data();
-  if (!archiveMatchesSubmission(data, athleteId, key, lane) ||
-      Number(data.awardedXp || 0) !== Number(expectedAward || 0)) {
+  const record = await findLaneArchive(athleteId, key, readHistoryForAthlete);
+  if (!record) return false;
+  if (!archiveMatchesSubmission(record, athleteId, key, lane, expectedAward)) {
     throw new Error("HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW");
   }
   return true;
 }
 
 export async function ensureImmutableLaneArchive({
-  historyRef, archive, athleteId, key, lane, getDoc, setDoc,
+  historyRef, archive, athleteId, key, lane, readHistoryForAthlete, setDoc,
 }) {
-  const existing = await getDoc(historyRef);
-  if (existing.exists()) {
-    if (!archiveMatchesSubmission(existing.data(), athleteId, key, lane) ||
-        Number(existing.data().awardedXp || 0) !== Number(archive.awardedXp || 0)) {
-      throw new Error("HISTORY_ARCHIVE_CONFLICT_REQUIRES_REVIEW");
-    }
-    return { created: false, existing: true };
-  }
+  if (await assertCompatibleLaneArchive({
+    athleteId, key, lane, expectedAward: archive.awardedXp, readHistoryForAthlete,
+  })) return { created: false, existing: true };
 
-  // Do not use merge:true. Existing documents are never rewritten by the
-  // Coach role under the scoped Firestore containment policy.
-  await setDoc(historyRef, archive);
-  return { created: true, existing: false };
+  try {
+    // The rules allow Coach create but deny update; no merge:true, ever.
+    await setDoc(historyRef, archive);
+    return { created: true, existing: false };
+  } catch (error) {
+    // A concurrent approver may have created the same immutable document
+    // after our scoped query. Accept only the exact matching final archive.
+    // Any other failure is rethrown without retrying the write.
+    const matches = await assertCompatibleLaneArchive({
+      athleteId, key, lane, expectedAward: archive.awardedXp, readHistoryForAthlete,
+    }).catch(() => false);
+    if (matches) return { created: false, existing: true };
+    throw error;
+  }
 }
