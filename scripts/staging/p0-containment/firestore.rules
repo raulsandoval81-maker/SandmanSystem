@@ -515,8 +515,54 @@ service cloud.firestore {
        Lane History
     ---------------------------------------*/
     match /laneHistory/{docId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
+      // History documents are athlete-owned, even when written by a Coach.
+      // URL and document-name aliases never grant access.
+      function canReadLaneHistory(athleteId) {
+        let athletePath = /databases/$(database)/documents/athletes/$(athleteId);
+        return isSignedIn()
+          && athleteId is string
+          && athleteId.size() > 0
+          && exists(athletePath)
+          && (
+            isAdmin()
+            || get(athletePath).data.get("authUid", "") == request.auth.uid
+            || (athleteId == request.auth.uid
+                && get(athletePath).data.get("authUid", null) == null)
+            || get(athletePath).data.get("parentUid", "") == request.auth.uid
+            || isLinkedParent(athleteId)
+            || canReadStaffAthlete(get(athletePath).data)
+          );
+      }
+
+      function canCreateLaneHistory(athleteId) {
+        let athletePath = /databases/$(database)/documents/athletes/$(athleteId);
+        return isSignedIn()
+          && athleteId is string
+          && athleteId.size() > 0
+          && exists(athletePath)
+          && (
+            isAdmin()
+            || (isActiveCoach() && canReadStaffAthlete(get(athletePath).data))
+          );
+      }
+
+      // Queries must include an exact athleteId filter. Rules are not filters:
+      // unbounded queries must fail, including for signed-in Athletes/Parents.
+      allow get, list: if canReadLaneHistory(resource.data.get("athleteId", ""));
+
+      // Existing Strength, Honor and Conditioning Coach review pages create
+      // history before closing a submission. Only scoped staff may write;
+      // preserve the existing submission archive schema and refuse forgery
+      // from arbitrary signed-in accounts.
+      allow create: if canCreateLaneHistory(
+          request.resource.data.get("athleteId", "")
+        )
+        && request.resource.data.get("sourceAthleteId", "") ==
+           request.resource.data.get("athleteId", "")
+        && request.resource.data.get("sourceCollection", "") == "laneSubmissions"
+        && request.resource.data.get("historyType", "") == "submission"
+        && request.resource.data.get("status", "") == "closed";
+
       allow update, delete: if false;
     }
 

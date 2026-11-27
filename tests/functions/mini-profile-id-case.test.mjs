@@ -16,7 +16,7 @@ test("Mini Profile preserves the exact Firestore ID instead of uppercasing it", 
   for (const id of ["staging-athlete-beginner", "F8_MixedCase", "F4_MixedCase"]) {
     assert.equal(runInNewContext(declaration[0] + "\nid;", { params: paramsFor(id) }), id);
   }
-  assert.match(mini, /getDoc\(doc\(db, "athletes", id\)\)/);
+  assert.match(mini, /await readAuthorizedAthleteProfile\(id\)/);
   assert.doesNotMatch(declaration[0], /toUpperCase\(/);
 });
 
@@ -26,7 +26,7 @@ test("Mini Profile skills reader preserves the exact case-sensitive document ID"
   for (const id of ["staging-athlete-beginner", "F8_MixedCase"]) {
     assert.equal(runInNewContext(declaration[0] + "\nathleteId;", { params: paramsFor(id) }), id);
   }
-  assert.match(skills, /doc\(db, "athletes", athleteId\)/);
+  assert.match(skills, /await readAuthorizedAthleteProfile\(athleteId\)/);
   assert.doesNotMatch(declaration[0], /toUpperCase\(/);
 });
 
@@ -42,7 +42,33 @@ test("Mini Profile keeps Z2H on its verified Youth Mini route", () => {
   assert.equal(decide("p2l", "F4_Legacy"), false);
 });
 
-test("Profile and skills leave existing Firestore scope checks in place", () => {
-  assert.match(mini, /await ensureSignedIn\(\)/);
-  assert.match(skills, /await ensureSignedIn\(\)/);
+test("direct Profile and Skills reads require a same-ID server grant before reading Firestore", async () => {
+  for (const file of ["mini-profile.js", "profile.js", "adult-profile.js",
+    "road2champion-skills.js", "path2legend-skills.js"]) {
+    const source = readFileSync("public/athletes/profile/" + file, "utf8");
+    assert.match(source, /await readAuthorizedAthleteProfile\(/);
+    assert.doesNotMatch(source, /ensureSignedIn|getDoc\s*\(/);
+  }
+  const source = readFileSync("public/assets/js/athlete-profile-read.js", "utf8");
+  const code = source.replace(/^import[^\n]+\n/, "").replace("export async function", "async function");
+  for (const [response, expectedReads] of [[{}, 0], [{ authorized:true, athleteId:"foreign" }, 0],
+    [{ authorized:true, athleteId:"F8_MixedCase" }, 1]]) {
+    let reads = 0;
+    await runInNewContext(code + '\nreadAuthorizedAthleteProfile("F8_MixedCase");', {
+      auth: { authStateReady: async () => {}, currentUser: { uid:"own" } },
+      db:{}, functions:{},
+      httpsCallable: () => async data => {
+        assert.equal(data.authorizeOnly, true);
+        assert.equal(data.athleteId, "F8_MixedCase");
+        return { data: response };
+      },
+      doc: (_db,_collection,id) => id,
+      getDoc: async id => {
+        reads++;
+        assert.equal(id, "F8_MixedCase");
+        return { exists: () => true, data: () => ({}), id };
+      },
+    });
+    assert.equal(reads, expectedReads);
+  }
 });

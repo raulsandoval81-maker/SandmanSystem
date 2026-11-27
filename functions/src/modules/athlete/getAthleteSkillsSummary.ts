@@ -3,20 +3,7 @@ import {
   HttpsError,
 } from "firebase-functions/v2/https";
 
-import {
-  getFirestore,
-} from "firebase-admin/firestore";
-
-import {
-  normalizeStaffList,
-  requireActiveStaff,
-  staffHasLocation,
-} from "../../services/staffAuthorization";
-
-const SKILL_PROFILE_STAFF_ROLES = Object.freeze([
-  "admin",
-  "coach",
-]);
+import { requireAthleteProfileRead } from "../../services/athleteProfileReadAuthorization";
 
 const ALLOWED_STATES = new Set([
   "LEARNED",
@@ -84,21 +71,9 @@ function skillDocFamilyId(
 
 export const getAthleteSkillsSummary =
   onCall(async (req) => {
-    const callerUid =
-      clean(req.auth?.uid);
-
-    if (!callerUid) {
-      throw new HttpsError(
-        "unauthenticated",
-        "Sign-in required."
-      );
-    }
-
-    const athleteId =
-      clean(
-        req.data?.athleteId ||
-        req.data?.uid
-      ).toUpperCase();
+    const { db, athleteId } = await requireAthleteProfileRead(
+      req.auth, req.data?.athleteId || req.data?.uid,
+    );
 
     const discipline =
       normalizeDiscipline(
@@ -112,84 +87,6 @@ export const getAthleteSkillsSummary =
         "invalid-argument",
         "Unsupported skills discipline."
       );
-    }
-
-    if (!athleteId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "A valid athlete ID is required."
-      );
-    }
-
-    const db = getFirestore();
-
-    const athleteSnap =
-      await db
-        .doc(`athletes/${athleteId}`)
-        .get();
-
-    if (!athleteSnap.exists) {
-      throw new HttpsError(
-        "not-found",
-        "Athlete not found."
-      );
-    }
-
-    const athlete =
-      athleteSnap.data() || {};
-
-    let hasAccess =
-      clean(athlete.authUid) === callerUid
-      ||
-      clean(athlete.parentUid) === callerUid;
-
-    if (!hasAccess) {
-      const parentLink =
-        await db
-          .collection("parentAthleteLinks")
-          .where("parentUid", "==", callerUid)
-          .where("athleteUid", "==", athleteId)
-          .where("status", "==", "active")
-          .limit(1)
-          .get();
-
-      hasAccess = !parentLink.empty;
-    }
-
-    if (!hasAccess) {
-      const actor =
-        await requireActiveStaff(
-          callerUid,
-          SKILL_PROFILE_STAFF_ROLES,
-          "Athlete skills access denied."
-        );
-
-      if (actor.role !== "admin") {
-        const assignedCoachIds =
-          normalizeStaffList(
-            athlete.coachUid,
-            athlete.coachIds
-          );
-
-        const directlyAssigned =
-          assignedCoachIds.includes(actor.uid);
-
-        const locationId =
-          clean(athlete.locationId);
-
-        if (
-          !directlyAssigned &&
-          !staffHasLocation(
-            actor.staff,
-            locationId
-          )
-        ) {
-          throw new HttpsError(
-            "permission-denied",
-            "Athlete skills access denied."
-          );
-        }
-      }
     }
 
     const snapshot =

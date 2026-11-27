@@ -1,3 +1,4 @@
+import { readAuthorizedAthleteProfile } from "/assets/js/athlete-profile-read.js";
 import {
   db,
   collection,
@@ -200,11 +201,13 @@ function renderRows() {
   historyListEl.innerHTML = rows.map(buildEntry).join("");
 }
 
-if (!athleteId) {
-  athleteNameEl.textContent = "Missing athlete ID";
-  if (athleteSubEl) athleteSubEl.textContent = "Use ?id=F4_0001";
-  historyListEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-} else {
+async function loadHistory() {
+  if (!athleteId || !await readAuthorizedAthleteProfile(athleteId)) {
+    athleteNameEl.textContent = "Athlete history unavailable";
+    historyListEl.innerHTML = '<div class="empty">No authorized athlete history.</div>';
+    return;
+  }
+
   athleteNameEl.textContent = athleteId;
   if (athleteSubEl) athleteSubEl.textContent = `${athleteId} • Strength / Honor history`;
 
@@ -235,6 +238,11 @@ if (!athleteId) {
     }
   );
 }
+
+loadHistory().catch(() => {
+  if (athleteNameEl) athleteNameEl.textContent = "Athlete history unavailable";
+  historyListEl.innerHTML = '<div class="empty">History failed to load.</div>';
+});
 
 laneFilterEl?.addEventListener("change", renderRows);
 statusFilterEl?.addEventListener("change", renderRows);

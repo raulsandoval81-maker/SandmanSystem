@@ -1,11 +1,5 @@
-import {
-  onCall,
-  HttpsError
-} from "firebase-functions/v2/https";
-
-import {
-  getFirestore
-} from "firebase-admin/firestore";
+import { onCall } from "firebase-functions/v2/https";
+import { requireAthleteProfileRead } from "../../services/athleteProfileReadAuthorization";
 
 const ACHIEVEMENT_TYPES = new Set([
   "XP_MILESTONE",
@@ -128,52 +122,12 @@ function activityLabel(item: any): string {
 
 export const getAthleteProfileFeed = onCall(
   async (req) => {
-    const db = getFirestore();
+    const { db, athleteId } = await requireAthleteProfileRead(
+      req.auth, req.data?.athleteId || req.data?.uid,
+    );
+    if (req.data?.authorizeOnly === true) return { authorized: true, athleteId };
 
-    const athleteId =
-      String(req.data?.athleteId || req.data?.uid || "")
-        .trim()
-        .toUpperCase();
-
-    if (!athleteId) {
-      throw new HttpsError(
-        "invalid-argument",
-        "Missing athleteId."
-      );
-    }
-
-    const athleteSnap =
-      await db
-        .collection("athletes")
-        .doc(athleteId)
-        .get();
-
-    if (!athleteSnap.exists) {
-      throw new HttpsError(
-        "not-found",
-        "Athlete not found."
-      );
-    }
-
-    const athlete =
-      athleteSnap.data() || {};
-
-    const possibleIds =
-      Array.from(
-        new Set(
-          [
-            athleteId,
-            athlete.uid,
-            athlete.uidCode,
-            athlete.id,
-            athlete.dogTag,
-            athlete.mintVirtueTag,
-            athlete.mintVirtueTagDisplay,
-          ]
-            .filter(Boolean)
-            .map((v) => String(v).trim().toUpperCase())
-        )
-      );
+    const possibleIds = [athleteId];
 
     const parentSnap =
       await db
