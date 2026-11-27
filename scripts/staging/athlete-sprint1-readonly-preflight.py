@@ -72,9 +72,14 @@ def paged(url, key, token):
 
 
 def verify_source():
-    assert cmd("git", "rev-parse", "HEAD") == EXPECTED_SHA, "Source SHA differs"
+    # The workflow itself is introduced by a later merge. Require that all
+    # releasable source files still equal the independently tested Sprint 1 SHA.
+    assert subprocess.run(["git", "merge-base", "--is-ancestor", EXPECTED_SHA, "HEAD"],
+                          check=False).returncode == 0, "Sprint 1 commit absent from main"
     assert not cmd("git", "status", "--porcelain"), "Working copy differs"
     inputs = (*PUBLIC_FILES, *FUNCTION_FILES, RULES_FILE)
+    assert subprocess.run(["git", "diff", "--quiet", EXPECTED_SHA, "HEAD", "--", *inputs],
+                          check=False).returncode == 0, "Sprint 1 release source drift"
     return {path: sha(Path(path).read_bytes()) for path in inputs}
 
 
