@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Protected Command Center staging release primitives; never grants IAM."""
-import gzip, hashlib, importlib.util, json, os, re, shutil, subprocess, tempfile, time, urllib.parse, urllib.request, zipfile
+import gzip, hashlib, importlib.util, json, os, re, shutil, subprocess, tempfile, time, urllib.error, urllib.parse, urllib.request, zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -104,6 +104,25 @@ def zip_source(source):
         for p in sorted(source.rglob("*")):
             if p.is_file(): z.write(p,p.relative_to(source))
     return target.read_bytes()
+def upload_gen2_source(upload, payload):
+    """Match the successful Athlete Gen 2 signed URL upload; never attach credentials."""
+    url, storage = upload.get("uploadUrl"), upload.get("storageSource")
+    parsed = urllib.parse.urlparse(url) if isinstance(url, str) else None
+    require(parsed is not None and parsed.scheme == "https" and
+            parsed.netloc == "storage.googleapis.com" and
+            isinstance(storage, dict) and storage.get("bucket") and storage.get("object"),
+            "Generated Cloud Functions source URL not trusted")
+    require(0 < len(payload) <= 104857600, "Source archive size outside reviewed limit")
+    req = urllib.request.Request(url, data=payload, method="PUT",
+                                 headers={"Content-Type": "application/zip"})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as response:
+            require(response.status in (200, 201, 204), "Source upload rejected")
+    except urllib.error.HTTPError as error:
+        # Do not log the signed URL or its credentials. No retry.
+        raise RuntimeError(f"Gen 2 signed source upload failed (HTTP {error.code}); STOP_NO_RETRY") from None
+    return storage
+
 def wait_operation(t,name):
     for _ in range(120):
         op=request(t,"https://cloudfunctions.googleapis.com/v2/"+name)
@@ -119,8 +138,10 @@ def create_functions(source):
     for name in FUNCTIONS:
         status["lastOperation"]="create-only-"+name; save(status)
         upload=request(t,"https://cloudfunctions.googleapis.com/v2/"+parent+"/functions:generateUploadUrl","POST",{"environment":"GEN_2"})
-        urllib.request.urlopen(urllib.request.Request(upload["uploadUrl"],data=payload,method="PUT",headers={"Content-Type":"application/zip","x-goog-content-length-range":"0,104857600"}),timeout=120).read()
-        body={"name":parent+"/functions/"+name,"environment":"GEN_2","buildConfig":{"runtime":"nodejs22","entryPoint":name,"source":{"storageSource":upload["storageSource"]},"serviceAccount":"projects/"+PROJECT+"/serviceAccounts/"+BUILDER},"serviceConfig":{"serviceAccountEmail":RUNTIME,"availableMemory":"256M","timeoutSeconds":60,"maxInstanceCount":20,"maxInstanceRequestConcurrency":80,"ingressSettings":"ALLOW_ALL"},"labels":{"sandman-command-center":"v1","sandman-source-sha":SOURCE_SHA}}
+        status["lastOperation"]="upload-source-"+name; save(status)
+        storage=upload_gen2_source(upload,payload)
+        status["lastOperation"]="create-only-"+name; save(status)
+        body={"name":parent+"/functions/"+name,"environment":"GEN_2","buildConfig":{"runtime":"nodejs22","entryPoint":name,"source":{"storageSource":storage},"serviceAccount":"projects/"+PROJECT+"/serviceAccounts/"+BUILDER},"serviceConfig":{"serviceAccountEmail":RUNTIME,"availableMemory":"256M","timeoutSeconds":60,"maxInstanceCount":20,"maxInstanceRequestConcurrency":80,"ingressSettings":"ALLOW_ALL"},"labels":{"sandman-command-center":"v1","sandman-source-sha":SOURCE_SHA}}
         op=request(t,"https://cloudfunctions.googleapis.com/v2/"+parent+"/functions?"+urllib.parse.urlencode({"functionId":name}),"POST",body); wait_operation(t,op["name"])
         status["created"].append(name); save(status)
     after=inventory(t); require(len(after)==57 and all(after.get(k)==v for k,v in before.items()),"Existing Function changed or final count is not 57")
