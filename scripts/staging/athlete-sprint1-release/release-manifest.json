@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "name": "sandman-athlete-sprint1-staging-release-candidate",
+  "status": "PREPARATION_ONLY_NO_DEPLOYMENT",
+  "productionAuthorized": false,
+  "deploymentAuthorized": false,
+  "project": "sandman-combat-staging",
+  "projectNumber": "991554514268",
+  "sourceSha": "0e9d96e3994094fffacbb606ac77f474902bf666",
+  "trustedWorkflow": ".github/workflows/staging-exact-sha-release.yml@refs/heads/main",
+  "preflight": {
+    "runId": 46086011747,
+    "artifactId": 15238868376,
+    "artifactName": "sprint1-staging-readonly-46086011747",
+    "evidenceSha256": "38e598737683748b710ee70b6ce6fb202c16237ba9578f11fe9d1710bd5aa4cc"
+  },
+  "expectedBaseline": {
+    "firestoreRelease": "projects/sandman-combat-staging/releases/cloud.firestore",
+    "firestoreRuleset": "projects/sandman-combat-staging/rulesets/f72388d6-431a-4c4f-a46d-29f8175494c0",
+    "firestoreSourceFilesSha256": "ad6199c2b921e88a1c878cfa5d480bf9c20281c3a0464b828d54d6b254bab2fc",
+    "functionsCount": 53,
+    "hostingConfigSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "hostingFileCount": 3077,
+    "hostingManifestSha256": "c7e74b0f6854c46bdfff87a8f7c3739fa7ed0b99478f73d3661247071ae0fba1",
+    "hostingRelease": "sites/sandman-combat-staging/releases/1795812888137000",
+    "hostingVersion": "sites/sandman-combat-staging/versions/58cf7c5e2339f789"
+  },
+  "functions": [
+    {
+      "generation": "v2",
+      "mode": "create-only",
+      "name": "getAthleteProfileFeed",
+      "region": "us-central1",
+      "sourcePath": "functions/src/modules/athlete/getAthleteProfileFeed.ts"
+    },
+    {
+      "generation": "v2",
+      "mode": "create-only",
+      "name": "getAthleteSkillsSummary",
+      "region": "us-central1",
+      "sourcePath": "functions/src/modules/athlete/getAthleteSkillsSummary.ts"
+    }
+  ],
+  "hostingPaths": [
+    "/assets/js/athlete-dashboard-data.js",
+    "/assets/js/athlete-nav.js",
+    "/assets/js/athlete-profile-read.js",
+    "/assets/js/athlete-self-context.js",
+    "/assets/js/immutable-lane-archive.js",
+    "/athletes/arsenal/arsenal.app.js",
+    "/athletes/arsenal/arsenal.linker.js",
+    "/athletes/arsenal/mini-arsenal.app.js",
+    "/athletes/hub/index.html",
+    "/athletes/profile/adult-profile.js",
+    "/athletes/profile/history/history.js",
+    "/athletes/profile/index.html",
+    "/athletes/profile/mini-profile.js",
+    "/athletes/profile/path2legend-skills.js",
+    "/athletes/profile/profile.js",
+    "/athletes/profile/road2champion-skills.js",
+    "/coaches/lanes/conditioning/review.js",
+    "/coaches/lanes/honor/review.js"
+  ],
+  "baselineHostingHashes": {
+    "/assets/js/athlete-dashboard-data.js": "9dab687ee1869f255fc1fc9518482de6158b72e02bf2e5bc58bdaa397010a2e4",
+    "/assets/js/athlete-nav.js": "37da2f87cddf0e93e42a2d7d5de770dee02ddde1936a548c92068196e7f0ed26",
+    "/assets/js/athlete-profile-read.js": null,
+    "/assets/js/athlete-self-context.js": "5a2ea5163c782049d12eb054a79bf1a52d312ef98cd1d22f58da318b2fc33f68",
+    "/assets/js/immutable-lane-archive.js": null,
+    "/athletes/arsenal/arsenal.app.js": "c5d9cb31d9068612b04abd1635962cb64c0f7e6c16f939ec34a2fe64f6047f7f",
+    "/athletes/arsenal/arsenal.linker.js": "e2a12558e983a10d489b33165ae10dc568aec69466a60428f013f83ddedaf4b0",
+    "/athletes/arsenal/mini-arsenal.app.js": "a169eed9d82693b1e9ff4fe82eda3d146a1b7101d6e1c910a497ff9472aa2caf",
+    "/athletes/hub/index.html": "68a76318bc331f6ece59b2988aba9d0da89bb9d8e0f4c53e48dbcadede894722",
+    "/athletes/profile/adult-profile.js": "4a0998a5b3d76a2f7aa85a8d7f5ecd4abab7fd518a047ec187639795d7c524b9",
+    "/athletes/profile/history/history.js": "b3f5d912d2f36195e814ef14e4f37a6bd2185377138cb2392759fff68a4bf287",
+    "/athletes/profile/index.html": "05059670a469691c7e39836ec6d4508b281255b7431ea783014ee3a8120e72ba",
+    "/athletes/profile/mini-profile.js": "5f200a48d93853f96aa059e8271cfa07d187dd678ac08c7291fb05b0b8190513",
+    "/athletes/profile/path2legend-skills.js": "96d8056461a127ba9e434a3b262233697d90f6cd268a1f978d3e52d1d9a6984d",
+    "/athletes/profile/profile.js": "dc2ec1b727202734a5525c6be8f5dfa09de2ef495b0a9ca82a898ce4868fd001",
+    "/athletes/profile/road2champion-skills.js": "728df7bb89f86fbb115209db6d5689328db393d7f34228a81378ff85b987438e",
+    "/coaches/lanes/conditioning/review.js": "b4f8d146f0889ee6efeacfca3264a1ad6c772de2de802d5e9b0d3615b01dad55",
+    "/coaches/lanes/honor/review.js": "eca75967f4fc1bb3e4304552283d290c657b24ecdb65c155d01f1f1355ab46fb"
+  },
+  "sourceFilesSha256": {
+    "functions/src/modules/athlete/getAthleteProfileFeed.ts": "8d194c9859acd1e94619d7882dd927750d9ebab40a371e8e7c0abf31f979032e",
+    "functions/src/modules/athlete/getAthleteSkillsSummary.ts": "c8930dd26fd47a78c8895926eecbaa61f38855d8952e9703caf80fba7e0e0a44",
+    "functions/src/services/athleteProfileReadAuthorization.ts": "f30244ab35e4d08daba42e8f93a7ee25ea4dfbe46c2f9914bb8979ec57f06bd2",
+    "public/assets/js/athlete-dashboard-data.js": "13c4a20a928b4749e307f811b3e091a7bc99e95045e2499d4661cee49a27d1ac",
+    "public/assets/js/athlete-nav.js": "1cddcd1f44c2ef5baad93cc2d4b5f1e502a2c3e3ddaccf4cc05eee50657b0bcd",
+    "public/assets/js/athlete-profile-read.js": "52886346e6be2003ecf947c4e500d08315c703027347ddac487cec90d99f6360",
+    "public/assets/js/athlete-self-context.js": "db9622c4b18d15a94f19ac628514b50e599740b35a1ecf37ba4e8501e83d6c7a",
+    "public/assets/js/immutable-lane-archive.js": "3d0dab09d084a4ac35d01d81f84e083cd5b20a1f37a49da8153defeaa0e679ff",
+    "public/athletes/arsenal/arsenal.app.js": "378c055d84f6f72286cff17b67eea974e0567fe052237e39d4848d39df511659",
+    "public/athletes/arsenal/arsenal.linker.js": "cc83c5044a01fbd471b6e3078aa7f96165590d6e535b183d2f40c28c7e14bcd9",
+    "public/athletes/arsenal/mini-arsenal.app.js": "caec54efd9a1714d3df251b72da86aefde75565f8358f9c870c60702e6f4c276",
+    "public/athletes/hub/index.html": "b77e7749242888fde3da2dd92799691264141511d100168175c4366e668c8f65",
+    "public/athletes/profile/adult-profile.js": "d9ae879ce99305a274b43b0ecede7efbe0d16cd5831183784cfa42610af88482",
+    "public/athletes/profile/history/history.js": "860a89144cf907760d5ff64a1b85b2ac24af8c288198491f72e188b46a44c224",
+    "public/athletes/profile/index.html": "90babd55a8dfc69915840bb824df87f7d4fc8f817e42e89a6f8bd2c15d0e28ef",
+    "public/athletes/profile/mini-profile.js": "cede7de6591632ca47935d96e6423c60514d7019b311b213b05ef54b9771f2c4",
+    "public/athletes/profile/path2legend-skills.js": "527a36baef95211f6354ed2f4364876d0c6bad7c779ac85d631dccce387edd1c",
+    "public/athletes/profile/profile.js": "c885bb02259678566f6cdc151f9965ca57a04c2a8676effb0b75c7f128244802",
+    "public/athletes/profile/road2champion-skills.js": "26434a61628c4d0a7eabd8200c48e6bad359ec9015afa903759a78ee775048af",
+    "public/coaches/lanes/conditioning/review.js": "2681e85f0e1fb5c8e7ffe82958ead36acf6fe11a36b2d2cea1ec4ed74aea3798",
+    "public/coaches/lanes/honor/review.js": "be74fd6fb56a12edce45775ba8a219e6287c12e521d7b7c235e5a17ddf8391d5",
+    "scripts/staging/p0-containment/firestore.rules": "c21d2db70b3bfcd2dcfe3323b91f0eaf3e6991c690e88cb8e6dedac6771fe644"
+  },
+  "rulesPath": "scripts/staging/p0-containment/firestore.rules",
+  "releaseOrder": [
+    "functions",
+    "firestore-rules",
+    "hosting",
+    "authenticated-staging-acceptance"
+  ],
+  "excludedAreas": [
+    "production",
+    "billing",
+    "stripe",
+    "customer-data",
+    "enrollment-changes",
+    "XP-engine-changes",
+    "rank-or-curriculum-migration",
+    "global-full-directory-hosting-deploy"
+  ],
+  "acceptanceRequired": {
+    "identities": [
+      "Athlete youth",
+      "Athlete teen",
+      "Athlete adult",
+      "linked Parent",
+      "assigned Coach",
+      "scoped Management",
+      "Admin",
+      "unrelated authenticated user"
+    ],
+    "flows": [
+      "direct/Profile/Skills/History/Arsenal ownership",
+      "Road2Champion / Path2Legend routing",
+      "scoped Parent and Coach reads",
+      "cross-athlete denials",
+      "Honor/Conditioning immutable History and idempotent XP receipt",
+      "enrollment and intake compatibility",
+      "staging Hosting file integrity and rollback pointers"
+    ]
+  }
+}
