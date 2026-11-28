@@ -75,8 +75,7 @@ def audit(mode):
     require(os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch", "Manual dispatch required")
     action = os.environ.get("SPRINT1_ACTION")
     workflow_ref = os.environ.get("GITHUB_WORKFLOW_REF")
-    resume_workflow = ("raulsandoval81-maker/SandmanSystem/.github/workflows/"
-                       "athlete-sprint1-guarded-resume.yml@refs/heads/main")
+    resume_workflow = WORKFLOW_REF  # Reuse established WIF-allowlisted caller; no provider changes
     resume = mode == "publish" and action == "athlete-sprint1-staging-resume"
     if resume:
         require(workflow_ref == resume_workflow and
