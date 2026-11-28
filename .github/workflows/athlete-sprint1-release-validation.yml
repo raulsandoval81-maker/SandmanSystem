@@ -1,0 +1,60 @@
+name: Athlete Sprint 1 — offline candidate release checks
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/staging/athlete-sprint1-release/**'
+      - '.github/workflows/athlete-sprint1-release-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate-release-candidate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      - name: Verify TypeScript and compiled isolated exports
+        run: |
+          set -euo pipefail
+          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix functions
+          node --test \
+            tests/functions/mini-arsenal-legacy-route.test.mjs \
+            tests/functions/full-arsenal-id-case.test.mjs \
+            tests/functions/immutable-lane-archive-retry.test.mjs
+      - name: Download certified protected read-only baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/athlete-sprint1-evidence"
+          gh run download 46086011747 \
+            --repo raulsandoval81-maker/SandmanSystem \
+            --name sprint1-staging-readonly-46086011747 \
+            --dir "$RUNNER_TEMP/athlete-sprint1-evidence"
+          test -s "$RUNNER_TEMP/athlete-sprint1-evidence/sprint1-staging-readonly-evidence.json"
+      - name: Run immutable manifest and evidence rejection tests
+        env:
+          SPRINT1_EVIDENCE_JSON: ${{ runner.temp }}/athlete-sprint1-evidence/sprint1-staging-readonly-evidence.json
+        run: |
+          set -euo pipefail
+          cd scripts/staging/athlete-sprint1-release
+          python3 -m unittest -v test_validate_release_candidate.py
+      - name: Verify exact tested source and rollback baseline
+        run: |
+          set -euo pipefail
+          python3 scripts/staging/athlete-sprint1-release/validate_release_candidate.py \
+            --evidence "$RUNNER_TEMP/athlete-sprint1-evidence/sprint1-staging-readonly-evidence.json" \
+            --source-root .
