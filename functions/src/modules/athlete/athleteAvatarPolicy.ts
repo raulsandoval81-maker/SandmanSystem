@@ -28,8 +28,18 @@ export function avatarShirtColor(athlete: Record<string, any>): string {
 export function avatarRequiresGuardian(athlete: Record<string, any>, athleteId: string): boolean {
   const markers = [athlete.trackBase, athlete.journey, athlete.framework, athlete.program, athlete.track]
     .map((value) => String(value || "").trim().toUpperCase());
-  return athleteId.toUpperCase().startsWith("F8_") || markers.some((value) =>
-    ["F8", "YOUTH", "Z2H", "ZERO2HERO", "ROAD2CHAMPION", "FOUNDRY8", "FOUNDRY-8"].includes(value));
+  // Teen/adult journey names alone cannot establish legal adulthood.
+  if (athleteId.toUpperCase().startsWith("F8_") || markers.some((value) =>
+    ["F8", "YOUTH", "Z2H", "ZERO2HERO", "ROAD2CHAMPION", "FOUNDRY8", "FOUNDRY-8"].includes(value))) return true;
+  // Only a server-held, valid ISO birth date can establish an adult exception.
+  // Missing, malformed and underage records fail closed to guardian approval.
+  const dob = athlete.dateOfBirth || athlete.birthDate || athlete.dob;
+  if (typeof dob !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(dob)) return true;
+  const date = new Date(dob + "T00:00:00Z");
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== dob) return true;
+  const now = new Date();
+  const adultDate = new Date(Date.UTC(now.getUTCFullYear() - 18, now.getUTCMonth(), now.getUTCDate()));
+  return date > adultDate;
 }
 
 export function validateAvatarRaster(mime: unknown, bytes: Buffer): "image/jpeg" | "image/png" | "image/webp" {
@@ -43,19 +53,9 @@ export function validateAvatarRaster(mime: unknown, bytes: Buffer): "image/jpeg"
   throw new Error("INVALID_AVATAR_IMAGE_TYPE");
 }
 
-export function illustratedAvatarSvg(mime: string, bytes: Buffer): string {
-  const encoded = bytes.toString("base64");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-label="Sandman illustrated fighter avatar">
-  <defs>
-    <clipPath id="portrait"><path d="M155 90h490v510c0 115-110 175-245 175S155 715 155 600z"/></clipPath>
-    <filter id="ink" color-interpolation-filters="sRGB"><feColorMatrix values="1.15 0 0 0 -.05 0 1.05 0 0 -.02 0 0 .92 0 .02 0 0 0 1 0"/><feComponentTransfer><feFuncR type="discrete" tableValues=".08 .24 .42 .62 .82 1"/><feFuncG type="discrete" tableValues=".06 .20 .38 .58 .78 .96"/><feFuncB type="discrete" tableValues=".05 .16 .30 .48 .68 .9"/></feComponentTransfer></filter>
-    <linearGradient id="sand" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f6d66b"/><stop offset="1" stop-color="#a87216"/></linearGradient>
-  </defs>
-  <rect width="800" height="800" rx="96" fill="#101318"/>
-  <circle cx="400" cy="360" r="305" fill="url(#sand)" opacity=".28"/>
-  <g clip-path="url(#portrait)"><image href="data:${mime};base64,${encoded}" width="800" height="800" preserveAspectRatio="xMidYMid slice" filter="url(#ink)"/></g>
-  <path d="M155 600c40 84 123 126 245 126s205-42 245-126" fill="none" stroke="#f6d66b" stroke-width="18"/>
-  <path d="M178 116h444" stroke="#f6d66b" stroke-width="12" stroke-linecap="round"/>
-  <text x="400" y="766" text-anchor="middle" fill="#f6d66b" font-family="system-ui,sans-serif" font-size="30" font-weight="800" letter-spacing="7">SANDMAN</text>
-</svg>`;
+// Fail closed: the former SVG embedded the entire source photograph as a data URL.
+// A reviewed image-to-vector illustration renderer must replace this before
+// photo drafts can be enabled. Do not persist disguised raster copies.
+export function illustratedAvatarSvg(_mime: string, _bytes: Buffer): string {
+  throw new Error("AVATAR_ILLUSTRATION_RENDERER_UNAVAILABLE");
 }
