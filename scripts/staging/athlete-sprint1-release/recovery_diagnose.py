@@ -154,6 +154,9 @@ def main():
         require(principal in PRINCIPALS, "Unrecognized diagnostic service account")
         baseline_raw = Path(os.environ["SPRINT1_BASELINE_JSON"]).read_bytes()
         receipt_raw = Path(os.environ["SPRINT1_PARTIAL_RECEIPT_JSON"]).read_bytes()
+        require(hashlib.sha256(receipt_raw).hexdigest() ==
+                "84974b32bb0a7e0d18846c7b7b9bebe5707466596d89763e9db50bfb394856ae",
+                "Run #469 partial-release receipt bytes differ")
         m = json.loads((HERE / "release-manifest.json").read_text())
         require(hashlib.sha256(baseline_raw).hexdigest() == m["preflight"]["evidenceSha256"],
                 "Original signed baseline evidence changed")
