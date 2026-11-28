@@ -146,14 +146,22 @@ def preflight(source=None):
     t = token()
     recovery = load_py("recovery_diagnose.py")
     report = recovery.diagnose(baseline, receipt, STAGING_DEPLOYER, t)
-    # Transport updates do NOT need the staging identity to impersonate a build
-    # or runtime service account. That belongs to the separate create-only identity.
+    # Cloud Run gcloud services update requires actAs on the existing runtime
+    # account, even for an invoker-transport-only change. Run #474 proved the
+    # project-level Run permissions alone are insufficient. The practice
+    # deployer is checked separately for Skills create-only access.
     need = {"run.services.update", "run.services.setIamPolicy"}
     have = permission_probe(t, PROJECT_API + f"projects/{PROJECT}:testIamPermissions", need)
     require(need.issubset(have) and
             report["canModifyExistingProfileTransport"] and
             report["effectivePermissions"]["profileService"]["run.services.update"],
             "Staging transport identity lacks Cloud Run update permissions")
+    # Exact SA-scoped check as the actual staging transport identity.
+    # Never request iam.serviceAccountUser on the project or other accounts.
+    runtime_scope = IAM_API + "projects/-/serviceAccounts/" + RUNTIME + ":testIamPermissions"
+    act_as = permission_probe(t, runtime_scope, {"iam.serviceAccounts.actAs"})
+    require("iam.serviceAccounts.actAs" in act_as,
+            "Staging transport identity lacks iam.serviceAccounts.actAs on " + RUNTIME)
     rules = load_py("release_rules_hosting.py")
     current = rules.read_rules(t, baseline["snapshot"]["firestore"]["ruleset"])
     candidate = rules.reviewed_rules_patch(current)

@@ -140,6 +140,45 @@ class GuardedResumeTests(unittest.TestCase):
         self.assertEqual([i["name"] for i in m["functions"]], [resume.PROFILE, resume.SKILLS])
 
 
+
+    def test_run474_transport_requires_runtime_actas_before_any_release(self):
+        """Reproduce #474: Cloud Run perms pass, transport must still FAIL without actAs."""
+        from types import SimpleNamespace
+        baseline = {"snapshot": {"firestore": {"ruleset": "synthetic-rule-id"}}}
+        report = {
+            "canModifyExistingProfileTransport": True,
+            "effectivePermissions": {"profileService": {"run.services.update": True}},
+        }
+        recovery = SimpleNamespace(diagnose=lambda *_: report)
+        candidate = "synthetic-reviewed-rules"
+        rules = SimpleNamespace(
+            read_rules=lambda *_: "original-rules",
+            reviewed_rules_patch=lambda *_: candidate,
+            manifest=lambda: {"sourceFilesSha256": {
+                "scripts/staging/p0-containment/firestore.rules":
+                    resume.sha(candidate.encode())}},
+            approved_hosting_bytes=lambda: [b"synthetic"] * 18,
+        )
+        scope = resume.IAM_API + "projects/-/serviceAccounts/" + resume.RUNTIME + ":testIamPermissions"
+        project_perms = {"run.services.update", "run.services.setIamPolicy"}
+        for act_as in (set(), {"iam.serviceAccounts.actAs"}):
+            with self.subTest(act_as=bool(act_as)), \
+                 patch.dict(os.environ, self.valid_env(), clear=True), \
+                 patch.object(resume, "evidence_inputs", return_value=(baseline, {})), \
+                 patch.object(resume, "token", return_value="synthetic-token"), \
+                 patch.object(resume, "load_py", side_effect=[recovery, rules]) as loader, \
+                 patch.object(resume, "permission_probe", side_effect=[project_perms, act_as]) as probe:
+                if not act_as:
+                    with self.assertRaisesRegex(RuntimeError, "Staging transport identity lacks iam\\.serviceAccounts\\.actAs on"):
+                        resume.preflight()
+                    self.assertEqual(loader.call_count, 1,
+                                     "Rules must not be inspected after a failed IAM gate")
+                else:
+                    self.assertEqual(resume.preflight(), (baseline, report))
+                self.assertEqual(probe.call_count, 2)
+                self.assertEqual(probe.call_args_list[1].args[1], scope)
+                self.assertEqual(probe.call_args_list[1].args[2], {"iam.serviceAccounts.actAs"})
+
     def test_full_practice_matrix_probes_both_accounts_without_live_snapshot(self):
         from types import SimpleNamespace
         with patch.dict(os.environ, self.valid_env(), clear=True), \
