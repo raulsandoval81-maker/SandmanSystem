@@ -1,8 +1,22 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Living Avatar originals and generated previews are server-only. The
+    // authenticated callable layer performs Athlete/guardian authorization and
+    // never returns an original photo.
+    match /athlete-avatars/{athleteId}/{requestId}/{fileName} {
+      allow read, write: if false;
+    }
+
+    // The Arena recorder is an emulator-only lab and has no production-grade
+    // ownership identifier in its current path. Keep it closed rather than
+    // preserving the former global public rule.
+    match /arena-matches/{allPaths=**} {
+      allow read, write: if false;
+    }
+
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

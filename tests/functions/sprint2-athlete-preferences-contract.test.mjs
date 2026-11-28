@@ -55,7 +55,9 @@ test("signout and drawer accessibility protections remain", () => {
   assert.match(css, /html\[data-athlete-motion="reduced"\]/);
 });
 
-test("no backend, XP, billing, or profile upload flow introduced in drawer", () => {
+test("drawer links to the backend-authorized Living Avatar flow without direct writes", () => {
+  assert.match(nav, /data-athlete-avatar-link hidden/);
+  assert.match(nav, /avatarLink\.href="\/athletes\/avatar\/"/);
   assert.doesNotMatch(nav, /(?:addDoc|setDoc|updateDoc|deleteDoc|uploadBytes|httpsCallable)\(/);
   assert.doesNotMatch(nav, /(?:xp_logs|promoteAthlete|approveAndActivate|createPaymentIntent)/);
 });
