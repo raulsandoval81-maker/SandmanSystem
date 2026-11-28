@@ -687,7 +687,9 @@ async function loadCanonicalPractice() {
     practiceId: requestedPracticeId,
     attendance: canonicalAttendance,
     roster: canonicalRoster,
-    workedCards: getCardsFromBlocks(getBlocks())
+    confirm: async assessment => (await httpsCallable(functions, "skillCheckCoachCall")({
+      action: "confirm-group-assessment", ...assessment,
+    })).data
   });
 }
 

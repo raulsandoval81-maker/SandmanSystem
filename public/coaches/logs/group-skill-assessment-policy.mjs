@@ -5,22 +5,23 @@ export const SKILL_STAGES = Object.freeze([
   "NOT_INTRODUCED", "LEARNED", "APPLIED", "MASTERED", "REFINED"
 ]);
 
+const exactId = value => String(value ?? "").trim();
 const norm = value => String(value ?? "").trim().toUpperCase();
 
 export function prepareGroupSkillAssessment({
   athleteIds = [], checkedInIds = [], familyId = "",
   defaultStage = "", exceptions = {}, excludedIds = [],
 } = {}) {
-  const roster = athleteIds.map(norm);
-  const checkedIn = new Set(checkedInIds.map(norm));
-  const excluded = new Set(excludedIds.map(norm));
-  const exceptionMap = new Map(Object.entries(exceptions).map(([id, stage]) => [norm(id), norm(stage)]));
+  const roster = athleteIds.map(exactId);
+  const checkedIn = new Set(checkedInIds.map(exactId));
+  const excluded = new Set(excludedIds.map(exactId));
+  const exceptionMap = new Map(Object.entries(exceptions).map(([id, stage]) => [exactId(id), norm(stage)]));
   const stage = norm(defaultStage);
   const family = String(familyId).trim();
   const blockers = [];
 
   if (!family || family.includes("/") || family.length > 100) blockers.push("A valid canonical skill family is required.");
-  if (!roster.length || roster.length > 30 || new Set(roster).size !== roster.length || roster.some(id => !/^[A-Z0-9_-]+$/.test(id))) {
+  if (!roster.length || roster.length > 30 || new Set(roster).size !== roster.length || roster.some(id => !/^[A-Za-z0-9_-]{1,160}$/.test(id))) {
     blockers.push("A unique group of 1–30 valid athletes is required.");
   }
   if (!SKILL_STAGES.includes(stage)) blockers.push("A valid proposed skill stage is required.");
