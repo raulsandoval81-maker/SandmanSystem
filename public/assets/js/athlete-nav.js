@@ -59,7 +59,8 @@ function t(value){return language()==="es"?(spanish[value]||value):value}
 function applyLanguage(value){
   const chosen=value==="es"?"es":"en";
   document.documentElement.dataset.athleteLanguage=chosen;
-  document.documentElement.lang=chosen;
+  const drawer=document.querySelector("#athleteDrawer");
+  if(drawer) drawer.lang=chosen;
   localStorage.setItem(LANGUAGE_KEY,chosen);
   const chooser=document.querySelector("[data-athlete-language]");
   if(chooser) chooser.value=chosen;
