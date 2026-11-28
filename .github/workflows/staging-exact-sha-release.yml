@@ -186,6 +186,7 @@ on:
           - athlete-sprint1-staging-deploy
           - athlete-sprint1-recovery-readonly
           - athlete-sprint1-staging-resume
+          - command-center-862-readonly-preflight
           - p0-containment-staging-deploy
           - handoff-preflight
           - handoff-deploy
@@ -5692,5 +5693,72 @@ jobs:
         with:
           name: sprint1-guarded-resume-acceptance-${{ github.run_id }}
           path: p0-acceptance-results.json
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  command-center-862-readonly-preflight:
+    name: Command Center #862 — verified source and GET-only staging inventory
+    if: ${{ inputs.action == 'command-center-862-readonly-preflight' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - name: Guard exact existing WIF-trusted workflow; forbid retry or deploy approval
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SELECTED_ACTION: ${{ inputs.action }}
+          POSSIBLE_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$SELECTED_ACTION" = "command-center-862-readonly-preflight"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test -z "$POSSIBLE_APPROVAL"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download signed prior staging baseline (read only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/command-center-baseline"
+          gh run download 46086011747 --repo raulsandoval81-maker/SandmanSystem --name sprint1-staging-readonly-46086011747 --dir "$RUNNER_TEMP/command-center-baseline"
+          test -s "$RUNNER_TEMP/command-center-baseline/sprint1-staging-readonly-evidence.json"
+      - name: Validate fixed Command Center source and no-cloud release safety tests
+        run: |
+          set -euo pipefail
+          python3 -m unittest discover -s scripts/staging -p 'test_command_center_862_readonly.py' -v
+      - name: Authenticate established staging reader (GET APIs only)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Check active Rules and Hosting release and all Function names — NO WRITES
+        env:
+          SPRINT1_BASELINE_JSON: ${{ runner.temp }}/command-center-baseline/sprint1-staging-readonly-evidence.json
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          COMMAND_CENTER_ACTION: ${{ inputs.action }}
+        run: python3 scripts/staging/command-center-862-readonly.py
+      - name: Preserve non-sensitive staging fingerprints and drift report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-center-862-readonly-${{ github.run_id }}
+          path: command-center-862-readonly-evidence.json
           if-no-files-found: warn
           retention-days: 30
