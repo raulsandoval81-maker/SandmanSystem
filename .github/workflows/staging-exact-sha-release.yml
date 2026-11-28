@@ -5738,7 +5738,7 @@ jobs:
       - name: Validate fixed Command Center source and no-cloud release safety tests
         run: |
           set -euo pipefail
-          python3 -m unittest discover -s scripts/staging -p 'test-command-center-862-readonly.py' -v
+          python3 -m unittest discover -s scripts/staging -p 'test_command_center_862_readonly.py' -v
       - name: Authenticate established staging reader (GET APIs only)
         uses: google-github-actions/auth@v3
         with:
