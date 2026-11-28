@@ -130,15 +130,24 @@ def deploy(source):
                     "--project=" + PROJECT, "--format=value(email)")
     need(principal == RUNTIME, "Previously established staging runtime service account missing")
     # testIamPermissions is read-only despite its POST transport; never grant IAM.
+    # Project create rights and runtime serviceAccountUser rights are separate resources.
     token = run("gcloud", "auth", "print-access-token")
-    required = {"cloudfunctions.functions.create", "run.services.update", "iam.serviceAccounts.actAs"}
-    request = urllib.request.Request(
+    def effective_permissions(url, required):
+        request = urllib.request.Request(
+            url, method="POST", data=json.dumps({"permissions": sorted(required)}).encode(),
+            headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=30) as response:
+            return set(json.load(response).get("permissions", []))
+    project_required = {"cloudfunctions.functions.create", "run.services.update"}
+    project_allowed = effective_permissions(
         "https://cloudresourcemanager.googleapis.com/v1/projects/" + PROJECT + ":testIamPermissions",
-        method="POST", data=json.dumps({"permissions": sorted(required)}).encode(),
-        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        effective = set(json.load(response).get("permissions", []))
-    need(required.issubset(effective), "Staging deployer lacks required create/run/actAs permissions")
+        project_required)
+    need(project_required.issubset(project_allowed), "Missing Function create or Cloud Run permissions")
+    act_as = {"iam.serviceAccounts.actAs"}
+    account_allowed = effective_permissions(
+        "https://iam.googleapis.com/v1/projects/-/serviceAccounts/" + RUNTIME + ":testIamPermissions",
+        act_as)
+    need(act_as.issubset(account_allowed), "Missing scoped runtime service-account actAs right")
     status = {"status": "STOP_NO_RETRY", "project": PROJECT,
               "sourceSha": SOURCE_SHA, "runtime": RUNTIME, "created": [],
               "lastOperation": "guard-verified", "rollback": "Review and delete only newly created callables"}
