@@ -31,6 +31,13 @@ const profiles = {
       ['/assets/js/athlete-self-context.js', '19122594ee5f88d3af5a0270a9f3309ce2181ac5ce62e4efd7e5d309825f2c34'],
     ],
   },
+  sprint1storage: {
+    candidateSha: '25fdba71505416c68f8c6d235f6e7389c3b92e91',
+    approval: 'APPROVE_SPRINT1_STORAGE_ONE_FILE_STAGING_ONLY',
+    targets: [
+      ['/assets/js/athlete-journey-routes.js', 'blob:d7cb773025a6b0218be6a6f83046c14a2ee4fcff'],
+    ],
+  },
 };
 const profileName = process.env.P0_HOSTING_PROFILE || 'pr834';
 const profile = profiles[profileName];
@@ -50,9 +57,16 @@ assert.equal(execFileSync('git', ['-C', 'candidate', 'rev-parse', 'HEAD'], {enco
 
 const assets = new Map([...targets].map(([path, rawHash]) => {
   const bytes = readFileSync('candidate/public' + path);
-  assert.equal(sha256(bytes), rawHash, 'Candidate hash mismatch: ' + path);
+  const verifiedHash = sha256(bytes);
+  if (rawHash.startsWith('blob:')) {
+    const blob = execFileSync('git', ['-C', 'candidate', 'hash-object', 'public' + path],
+      {encoding: 'utf8'}).trim();
+    assert.equal(blob, rawHash.slice(5), 'Pinned candidate Git blob mismatch: ' + path);
+  } else {
+    assert.equal(verifiedHash, rawHash, 'Candidate hash mismatch: ' + path);
+  }
   const zipped = gzipSync(bytes, {mtime: 0});
-  return [path, {rawHash, hostingHash: sha256(zipped), zipped}];
+  return [path, {rawHash: verifiedHash, hostingHash: sha256(zipped), zipped}];
 }));
 const token = execFileSync('gcloud', ['auth', 'print-access-token'], {encoding: 'utf8'}).trim();
 assert(token, 'No staging credential');
@@ -115,7 +129,7 @@ for (const [path, asset] of assets) {
 const changedPaths = [...live].filter(([path, hash]) => proposed.get(path) !== hash).map(([path]) => path).sort();
 assert.deepEqual(changedPaths, [...targets.keys()].sort());
 const evidence = {site, baseline, rollback: baseline, candidateSha,
-  rawHashes: Object.fromEntries(targets), changedPaths, fileCount: live.size};
+  rawHashes: Object.fromEntries([...assets].map(([path, asset]) => [path, asset.rawHash])), changedPaths, fileCount: live.size};
 writeFileSync(`${profileName}-evidence.json`, JSON.stringify(evidence, null, 2) + '\n');
 console.log(JSON.stringify(evidence));
 if (mode === 'preflight') process.exit(0);
@@ -143,11 +157,11 @@ const released = await call(site + '/releases?' + new URLSearchParams({versionNa
 const after = await activeRelease();
 assert.deepEqual(after, {release: released.name, version: created.name});
 assert.deepEqual(await manifest(after.version), proposed);
-for (const [path, hash] of targets) {
+for (const [path, asset] of assets) {
   const response = await fetch(`https://${project}.web.app${path}?release=${encodeURIComponent(after.release)}`,
     {redirect: 'error', headers: {'Cache-Control': 'no-cache'}});
   assert(response.ok);
-  assert.equal(sha256(Buffer.from(await response.arrayBuffer())), hash, 'Published hash mismatch: ' + path);
+  assert.equal(sha256(Buffer.from(await response.arrayBuffer())), asset.rawHash, 'Published hash mismatch: ' + path);
 }
 writeFileSync(`${profileName}-deployed.json`, JSON.stringify({...evidence, after}, null, 2) + '\n');
 console.log(JSON.stringify({after, rollback: baseline, verifiedLiveHashes: Object.fromEntries(targets)}));
