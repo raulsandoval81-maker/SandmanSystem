@@ -1,0 +1,30 @@
+name: Sprint 4 Read-Only Curriculum Inventory
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/sprint4/**'
+      - 'tests/functions/sprint4-curriculum-inventory.test.mjs'
+      - 'docs/sprints/SPRINT4_SOURCE_INVENTORY.md'
+      - 'public/vault/honor/**'
+      - 'public/vault/conditioning/f4/**'
+      - 'public/vault/conditioning/f8/**'
+      - '.github/workflows/sprint4-curriculum-inventory.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  curriculum-inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Verify read-only curriculum mapping and existing source integrity
+        run: node --test tests/functions/sprint4-curriculum-inventory.test.mjs
+      - name: Show missing stage report
+        run: node scripts/sprint4/inventory-curriculum.mjs
