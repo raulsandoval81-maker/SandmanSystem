@@ -19,6 +19,10 @@ on:
         description: Trace auth restoration and rendering across Athlete navigation
         type: boolean
         default: false
+      sprint1_acceptance:
+        description: After staging release, verify Sprint 1 Profile and Skills callable permissions for existing synthetic roles
+        type: boolean
+        default: false
       confirm_project:
         description: Type sandman-combat-staging
         required: true
@@ -63,6 +67,7 @@ jobs:
           P0_OWNERSHIP_CLASSIFICATION: ${{ inputs.ownership_classification_only }}
           P0_DEPENDENCY_DIAGNOSTIC: ${{ inputs.dependency_diagnostic_only }}
           P0_NAVIGATION_DIAGNOSTIC: ${{ inputs.navigation_diagnostic_only }}
+          P0_SPRINT1_CHECKS: ${{ inputs.sprint1_acceptance }}
           P0_STAGING_FIXTURES: ${{ vars.SANDMAN_P0_STAGING_FIXTURES }}
           P0_STAGING_PASSWORD: ${{ secrets.SANDMAN_STAGING_TEST_PASSWORD }}
           P0_PLAYWRIGHT: ${{ runner.temp }}/p0-acceptance/node_modules/playwright/index.mjs
