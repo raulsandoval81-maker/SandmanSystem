@@ -7,7 +7,7 @@ const safe = value => String(value ?? "").replace(/[&<>"']/g, char => ({
 const id = value => String(value ?? "").trim();
 const display = athlete => athlete?.name || athlete?.fullName || athlete?.publicName || athlete?.id;
 
-export function mountGroupSkillReview({ root, practice, attendance, roster, workedCards }) {
+export function mountGroupSkillReview({ root, practice, practiceId: canonicalPracticeId, attendance, roster, workedCards }) {
   if (!root) return;
   root.replaceChildren();
   const present = new Set(Array.isArray(attendance?.presentIds) ? attendance.presentIds.map(id) : []);
@@ -92,9 +92,9 @@ export function mountGroupSkillReview({ root, practice, attendance, roster, work
     // save instructions and cannot silently change an athlete's prior record.
     const attendanceFinalized = attendance?.finalized === true
       && String(attendance?.status || "").toLowerCase() === "finalized"
-      && String(attendance?.practiceId || "") === String(practice?.id || practice?.practiceId || "");
+      && String(attendance?.practiceId || "") === String(canonicalPracticeId || "");
     const discipline = String(practice?.discipline || "").toLowerCase();
-    const practiceId = String(practice?.id || practice?.practiceId || "");
+    const practiceId = String(canonicalPracticeId || "");
     const canHandoff = attendanceFinalized
       && /^[A-Za-z0-9_-]{1,160}$/.test(practiceId)
       && ["wrestling", "boxing", "muay-thai"].includes(discipline);
