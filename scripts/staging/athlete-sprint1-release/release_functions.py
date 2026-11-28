@@ -52,10 +52,10 @@ def check_guard(mode):
         "GITHUB_WORKFLOW_REF": WORKFLOW,
         "GITHUB_EVENT_NAME": "workflow_dispatch",
         "CONFIRM_PROJECT": PROJECT,
-        "SPRINT1_ACTION": ("athlete-sprint1-release-preflight" if mode == "preflight"
-                           else "athlete-sprint1-staging-deploy"),
     }.items():
         need(os.environ.get(key) == expected_value, "Protected staging guard mismatch: " + key)
+    allowed_actions = ("athlete-sprint1-release-preflight", "athlete-sprint1-staging-deploy") if mode == "preflight" else ("athlete-sprint1-staging-deploy",)
+    need(os.environ.get("SPRINT1_ACTION") in allowed_actions, "Unexpected release action")
     if mode == "deploy":
         need(os.environ.get("SPRINT1_APPROVAL") ==
              "APPROVE_ATHLETE_SPRINT1_STAGING_FUNCTIONS_RULES_HOSTING",
