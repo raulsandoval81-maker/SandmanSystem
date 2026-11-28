@@ -188,8 +188,7 @@ def deploy(source):
         after = function_inventory()
         expected_name = f"projects/{PROJECT}/locations/{REGION}/functions/{name}"
         need(set(after) == set(previous) | {
-             f"projects/{PROJECT}/locations/{REGION}/functions/{row['name']}"
-             for row in status["created"]} | {expected_name},
+             row["name"] for row in status["created"]} | {expected_name},
              "An unrelated staging Function appeared during release")
         need(all(after[p] == previous[p] for p in previous),
              "Existing staging Function changed during release")
