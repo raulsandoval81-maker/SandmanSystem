@@ -203,6 +203,32 @@ async function assertSprint1Callable(name, role, token, athleteId, target, allow
   check.status = "PASS";
 }
 
+// Firestore REST fixture values; mirror the existing server's coach assignment-or-location rule.
+function fixtureStringList(...fields) {
+  const items = [];
+  for (const field of fields) {
+    if (!field) continue;
+    if (typeof field.stringValue === "string" && field.stringValue.trim()) {
+      items.push(field.stringValue.trim());
+    }
+    for (const item of field.arrayValue?.values ?? []) {
+      if (typeof item.stringValue === "string" && item.stringValue.trim()) {
+        items.push(item.stringValue.trim());
+      }
+    }
+  }
+  return [...new Set(items)];
+}
+
+function fixtureCoachCanReadAthlete(coachUid, coachStaff, athleteFields) {
+  const assigned = fixtureStringList(athleteFields.coachUid, athleteFields.coachIds);
+  const locations = fixtureStringList(
+    coachStaff.locationIds, coachStaff.locations, coachStaff.locationId,
+  );
+  const location = athleteFields.locationId?.stringValue?.trim() ?? "";
+  return assigned.includes(coachUid) || (Boolean(location) && locations.includes(location));
+}
+
 async function readDocument(path, token) {
   return request(`${firestore}/${path}`, token);
 }
@@ -554,6 +580,7 @@ async function run() {
   const own = `athletes/${fixtures.ownAthlete}`;
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
+  let coachStaff;
   for (const [role, allowedRoles] of Object.entries({
     management: ["management", "manager", "location_manager"],
     coach: ["coach"],
@@ -561,13 +588,17 @@ async function run() {
   })) {
     const staff = await allowed(`staff/${fixtures.roles[role].uid}`, tokens[role]);
     requireCheck(allowedRoles.includes(staff.role?.stringValue) && staff.status?.stringValue === "active");
+    if (role === "coach") coachStaff = staff;
   }
+  const otherFields = await allowed(other, tokens.admin);
+  const coachOtherAllowed = fixtureCoachCanReadAthlete(
+    fixtures.roles.coach.uid, coachStaff, otherFields,
+  );
   const athlete = await allowed(own, tokens.athlete);
   requireCheck(fixtures.ownAthlete === fixtures.roles.athlete.uid ||
     athlete.authUid?.stringValue === fixtures.roles.athlete.uid);
   await allowed(own, tokens.coach);
   await allowed(own, tokens.management);
-  await allowed(other, tokens.admin);
   passed(current);
 
   if (sprint1Acceptance) {
@@ -577,9 +608,11 @@ async function run() {
         await assertSprint1Callable(name, role, tokens[role], fixtures.ownAthlete, "in-scope", true);
       }
       await assertSprint1Callable(name, "admin", tokens.admin, fixtures.otherAthlete, "other", true);
-      for (const role of ["athlete", "parent", "coach", "management"]) {
+      for (const role of ["athlete", "parent", "management"]) {
         await assertSprint1Callable(name, role, tokens[role], fixtures.otherAthlete, "other", false);
       }
+      await assertSprint1Callable(name, "coach", tokens.coach, fixtures.otherAthlete,
+        "other", coachOtherAllowed);
       await assertSprint1Callable(name, "unauthenticated", null, fixtures.ownAthlete, "in-scope", false);
     }
     passed(current);
@@ -607,13 +640,20 @@ async function run() {
     requireCheck(staff.role?.stringValue === "coach" && staff.status?.stringValue === "active");
     await denied(own, session.token);
     await denied(other, session.token);
+    if (sprint1Acceptance) {
+      for (const name of ["getAthleteProfileFeed", "getAthleteSkillsSummary"]) {
+        await assertSprint1Callable(name, "out-of-scope-coach", session.token,
+          fixtures.ownAthlete, "in-scope", false);
+        await assertSprint1Callable(name, "out-of-scope-coach", session.token,
+          fixtures.otherAthlete, "other", false);
+      }
+    }
   } finally {
     await context.close();
   }
   passed(current);
 
   current = "cross-athlete synthetic marker preparation";
-  const otherFields = await allowed(other, tokens.admin);
   const markers = [...new Set(["name", "displayName", "fullName"]
     .map(key => otherFields[key]?.stringValue)
     .filter(value => typeof value === "string" && value.length >= 6))];
