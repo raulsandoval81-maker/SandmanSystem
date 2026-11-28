@@ -4,6 +4,7 @@ const LOG_KEY = "sandman_last_practice_log";
 import { functions, httpsCallable } from "/assets/js/firebase-init.js";
 import { coachLoginUrl, isCoachAuthenticationError, requireCoach } from "/assets/js/coach-guard.js?v=2";
 import { programById, programsForLocation } from "/coaches/execution/session-builder/session-entry-policy.js";
+import { mountGroupSkillReview } from "./group-skill-assessment-review.mjs";
 
 let payload = JSON.parse(
   localStorage.getItem(PAYLOAD_KEY) || "null"
@@ -680,6 +681,13 @@ async function loadCanonicalPractice() {
   setValue("standout", reflection.standout);
   setValue("coachNote", reflection.coachNote);
   renderAthleteInputs();
+  mountGroupSkillReview({
+    root: document.getElementById("groupSkillReview"),
+    practice: canonicalPractice,
+    attendance: canonicalAttendance,
+    roster: canonicalRoster,
+    workedCards: getCardsFromBlocks(getBlocks())
+  });
 }
 
 async function saveLog() {
