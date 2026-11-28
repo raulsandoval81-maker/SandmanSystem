@@ -28,6 +28,7 @@ WORKFLOW = ("raulsandoval81-maker/SandmanSystem/.github/workflows/"
             "staging-exact-sha-release.yml@refs/heads/main")
 ACTION = "athlete-sprint1-staging-resume"
 STAGING_DEPLOYER = "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com"
+PRACTICE_DEPLOYER = "sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com"
 RUNTIME = "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"
 BUILDER = "sandman-practice-build@sandman-combat-staging.iam.gserviceaccount.com"
 PROFILE = "getAthleteProfileFeed"
@@ -145,21 +146,14 @@ def preflight(source=None):
     t = token()
     recovery = load_py("recovery_diagnose.py")
     report = recovery.diagnose(baseline, receipt, STAGING_DEPLOYER, t)
-    need_project = {"cloudfunctions.functions.create",
-                    "cloudfunctions.functions.sourceCodeSet",
-                    "run.services.update", "run.services.setIamPolicy"}
-    have_project = permission_probe(
-        t, PROJECT_API + f"projects/{PROJECT}:testIamPermissions", need_project)
-    require(need_project.issubset(have_project) and
+    # Transport updates do NOT need the staging identity to impersonate a build
+    # or runtime service account. That belongs to the separate create-only identity.
+    need = {"run.services.update", "run.services.setIamPolicy"}
+    have = permission_probe(t, PROJECT_API + f"projects/{PROJECT}:testIamPermissions", need)
+    require(need.issubset(have) and
             report["canModifyExistingProfileTransport"] and
             report["effectivePermissions"]["profileService"]["run.services.update"],
-            "Existing staging identity lacks a required Cloud Run or Functions permission")
-    for account in (RUNTIME, BUILDER):
-        need = {"iam.serviceAccounts.actAs"}
-        have = permission_probe(
-            t, IAM_API + "projects/-/serviceAccounts/" + account + ":testIamPermissions",
-            need)
-        require(need.issubset(have), "Staging deployer cannot act as reviewed account")
+            "Staging transport identity lacks Cloud Run update permissions")
     rules = load_py("release_rules_hosting.py")
     current = rules.read_rules(t, baseline["snapshot"]["firestore"]["ruleset"])
     candidate = rules.reviewed_rules_patch(current)
@@ -179,6 +173,55 @@ def preflight(source=None):
             "lib/services/athleteProfileReadAuthorization.js",
             "lib/services/staffAuthorization.js"}, "Unapproved build package contents")
     return baseline, report
+
+
+
+def preflight_practice():
+    """One no-mutation check under practice-deployer, not the staging-deployer.
+
+    The practice principal created the existing Profile in #469 and can use
+    Cloud Functions create-only. The staging principal separately owns transport.
+    Do NOT call recovery.diagnose here: this narrower identity cannot read all
+    of the staging inventory. The stage job has already reconciled it.
+    """
+    guard("preflight")
+    evidence_inputs()  # verify immutable baseline and #469 partial receipt
+    t = token()
+    needed = {"cloudfunctions.functions.create",
+              "cloudfunctions.functions.sourceCodeSet"}
+    allowed = permission_probe(
+        t, PROJECT_API + f"projects/{PROJECT}:testIamPermissions", needed)
+    missing = sorted(needed - allowed)
+    for account in (RUNTIME, BUILDER):
+        permitted = permission_probe(
+            t, IAM_API + "projects/-/serviceAccounts/" + account + ":testIamPermissions",
+            {"iam.serviceAccounts.actAs"})
+        if "iam.serviceAccounts.actAs" not in permitted:
+            missing.append("iam.serviceAccounts.actAs on " + account)
+    # Include all deficiencies in the report; never infer the missing grants.
+    require(not missing,
+            "Practice create-only identity lacks verified permissions: " + ", ".join(missing))
+    return {"status": "PASS_PRACTICE_CREATE_ONLY_PERMISSION_PREFLIGHT",
+            "project": PROJECT, "principal": PRACTICE_DEPLOYER,
+            "verifiedAccounts": [RUNTIME, BUILDER],
+            "runId": os.environ.get("GITHUB_RUN_ID"),
+            "deploymentAuthorized": False, "readOnly": True}
+
+
+def stage_receipt(env_name, expected_status):
+    """Require evidence from the immediately preceding job in the SAME run."""
+    path = os.environ.get(env_name, "")
+    require(bool(path), "Missing protected same-run handoff: " + env_name)
+    record = json.loads(Path(path).read_text())
+    require(record.get("status") == expected_status and
+            record.get("project") == PROJECT and
+            record.get("sourceSha") == SOURCE_SHA and
+            record.get("runId") == os.environ.get("GITHUB_RUN_ID") and
+            record.get("profileRedeployed") is False and
+            record.get("deploymentAuthorized") is True,
+            "Same-run protected staging receipt invalid: " + expected_status)
+    return record
+
 
 
 def validate_transport(t, name, expected):
@@ -240,8 +283,12 @@ def package_zip(source):
 
 def create_skills(t, source, status):
     """ONE create-only mutation. ALREADY_EXISTS is a fatal concurrency conflict."""
-    require(SKILLS_ID not in preserve_inventory(status["baseline"], t, False),
-            "Skills Function unexpectedly exists")
+    # The prior staging identity has already reconciled all 53 baseline
+    # Functions and asserted Skills is absent. This separate practice identity
+    # may lack the broad list permissions used by preserve_inventory. The
+    # Functions v2 POST + functionId is atomic create-only, never an update.
+    require(status.get("profileHandoffVerified") is True,
+            "Same-run verified staging handoff required before create-only Skills")
     upload = request(t, CF_API + PARENT + "/functions:generateUploadUrl", "POST",
                      {"environment": "GEN_2"})
     url, storage = upload.get("uploadUrl"), upload.get("storageSource")
@@ -313,46 +360,85 @@ def verify_unauthenticated_denial(name):
                 "Unexpected anonymous callable response: " + name)
 
 
-def execute(source):
+def execute_profile_transport(source):
+    """Stage-deployer may update Profile transport; NEVER redeploy Profile."""
     guard("execute")
     require(source is not None, "Missing exact callable package")
     baseline, _ = preflight(source)
     t = token()
     status = {"status": "STOP_NO_RETRY", "project": PROJECT,
               "sourceSha": SOURCE_SHA, "failedRun": 46094443807,
-              "resumeMode": "PRESERVE_PROFILE_CREATE_SKILLS_ONLY",
-              "lastOperation": "verified-preflight",
-              "profileRedeployed": False, "skillsCreateOnly": True,
-              "deploymentAuthorized": True, "baseline": baseline}
-    save({k: v for k, v in status.items() if k != "baseline"})
+              "runId": os.environ["GITHUB_RUN_ID"],
+              "lastOperation": "verified-profile-preflight",
+              "profileRedeployed": False, "deploymentAuthorized": True}
+    save(status)
     profile_untouched(t)
     preserve_inventory(baseline, t, False)
     validate_transport(t, PROFILE, False)
     status["lastOperation"] = "enable-existing-profile-application-auth-transport"
-    save({k: v for k, v in status.items() if k != "baseline"})
+    save(status)
     subprocess.run(["gcloud", "run", "services", "update", PROFILE.lower(),
                     f"--project={PROJECT}", f"--region={REGION}",
                     "--no-invoker-iam-check", "--quiet"], check=True)
     validate_transport(t, PROFILE, True)
     profile_untouched(t)
     preserve_inventory(baseline, t, False)
-    status["lastOperation"] = "existing-profile-transport-verified"
-    save({k: v for k, v in status.items() if k != "baseline"})
     verify_unauthenticated_denial(PROFILE)
+    status["lastOperation"] = "existing-profile-transport-and-app-auth-verified"
+    status["status"] = "PASS_PROFILE_TRANSPORT"
+    save(status)
+
+
+def execute_create_skills(source):
+    """Practice-deployer creates only missing Skills, never changes existing."""
+    guard("execute")
+    require(source is not None, "Missing exact callable package")
+    stage_receipt("SPRINT1_PROFILE_RECEIPT_JSON", "PASS_PROFILE_TRANSPORT")
+    preflight_practice()
+    t = token()
+    status = {"status": "STOP_NO_RETRY", "project": PROJECT,
+              "sourceSha": SOURCE_SHA, "runId": os.environ["GITHUB_RUN_ID"],
+              "lastOperation": "verified-create-identity-and-profile-handoff",
+              "profileRedeployed": False, "deploymentAuthorized": True,
+              "skillsCreateOnly": True, "profileHandoffVerified": True}
+    save(status)
+    # A competing Skills creation triggers a 409 and STOP_NO_RETRY: no PATCH,
+    # upsert, retry, or other original Function mutation can occur.
     create_skills(t, source, status)
+    status["lastOperation"] = "skills-create-operation-verified"
+    status["status"] = "PASS_SKILLS_CREATE_ONLY"
+    save(status)
+
+
+def execute_skills_transport():
+    """Stage-deployer verifies Skills provenance, then enables app-auth transport."""
+    guard("execute")
+    stage_receipt("SPRINT1_SKILLS_RECEIPT_JSON", "PASS_SKILLS_CREATE_ONLY")
+    baseline, _ = evidence_inputs()
+    t = token()
+    status = {"status": "STOP_NO_RETRY", "project": PROJECT,
+              "sourceSha": SOURCE_SHA, "runId": os.environ["GITHUB_RUN_ID"],
+              "lastOperation": "skills-transport-readonly-reconciliation",
+              "profileRedeployed": False, "deploymentAuthorized": True}
+    save(status)
+    profile_untouched(t)
     preserve_inventory(baseline, t, True)
+    validate_transport(t, PROFILE, True)
     skills = request(t, CF_API + SKILLS_ID)
-    require(skills.get("environment") == "GEN_2" and
+    require(skills.get("state") == "ACTIVE" and
+            skills.get("environment") == "GEN_2" and
             skills.get("buildConfig", {}).get("entryPoint") == SKILLS and
             skills.get("buildConfig", {}).get("runtime") == "nodejs22" and
+            skills.get("buildConfig", {}).get("serviceAccount") ==
+                f"projects/{PROJECT}/serviceAccounts/{BUILDER}" and
             skills.get("serviceConfig", {}).get("serviceAccountEmail") == RUNTIME and
             not skills.get("serviceConfig", {}).get("secretEnvironmentVariables") and
             skills.get("labels", {}).get("sandman-source-sha") == SOURCE_SHA and
             skills.get("labels", {}).get("sandman-athlete-sprint1") == "v1",
-            "Created Skills Function differs from approved source")
+            "New Skills Function differs from approved exact source or identity")
     validate_transport(t, SKILLS, False)
     status["lastOperation"] = "enable-new-skills-application-auth-transport"
-    save({k: v for k, v in status.items() if k != "baseline"})
+    save(status)
     subprocess.run(["gcloud", "run", "services", "update", SKILLS.lower(),
                     f"--project={PROJECT}", f"--region={REGION}",
                     "--no-invoker-iam-check", "--quiet"], check=True)
@@ -361,17 +447,14 @@ def execute(source):
     verify_unauthenticated_denial(SKILLS)
     profile_untouched(t)
     preserve_inventory(baseline, t, True)
-    status["lastOperation"] = "verified-both-callables-and-application-auth"
+    status["lastOperation"] = "both-callables-verified-app-authenticated"
     status["status"] = "PASS_TWO_CALLABLES_READY_FOR_RULES_HOSTING"
-    save({k: v for k, v in status.items() if k != "baseline"})
-    print(json.dumps({"status": status["status"], "project": PROJECT,
-                      "profilePreserved": True, "skillsCreated": True,
-                      "productionChanged": False}))
+    save(status)
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("mode", choices=("preflight", "execute"))
+    parser.add_argument("mode", choices=("preflight", "preflight-practice", "execute-profile", "execute-skills", "execute-transport"))
     parser.add_argument("--source", type=Path)
     args = parser.parse_args()
     try:
@@ -383,8 +466,16 @@ def main():
                       "readOnly": True}
             save(result)
             print(json.dumps(result))
+        elif args.mode == "preflight-practice":
+            record = preflight_practice()
+            save(record)
+            print(json.dumps(record))
+        elif args.mode == "execute-profile":
+            execute_profile_transport(args.source)
+        elif args.mode == "execute-skills":
+            execute_create_skills(args.source)
         else:
-            execute(args.source)
+            execute_skills_transport()
     except Exception as exc:
         if not EVIDENCE.exists():
             save({"status": "STOP_NO_RETRY", "project": PROJECT,
