@@ -95,6 +95,12 @@ export {
 } from "./modules/athlete/getAthleteProfileFeed";
 
 export {
+  createAthleteAvatarDraft,
+  getAthleteAvatarState,
+  approveAthleteAvatar,
+} from "./modules/athlete/athleteAvatar";
+
+export {
   getAthleteSkillsSummary,
 } from "./modules/athlete/getAthleteSkillsSummary";
 

@@ -50,7 +50,8 @@ const spanish = {
   "Leaderboard":"Clasificación","Athlete Menu":"Menú del atleta","Your journey":"Tu camino",
   "Athlete":"Atleta","Settings":"Configuración","Athlete Preferences":"Preferencias del atleta",
   "Sign Out":"Cerrar sesión","View avatar & profile":"Ver avatar y perfil",
-  "Display preferences apply to this device. Avatar editing is not available here yet.":"Las preferencias de pantalla se guardan en este dispositivo. Aún no se puede editar el avatar aquí.",
+  "Living Avatar":"Avatar viviente",
+  "Display preferences apply to this device. Avatar photos remain private.":"Las preferencias de pantalla se guardan en este dispositivo. Las fotos del avatar permanecen privadas.",
   "Appearance":"Apariencia","Night":"Noche","Day":"Día","Reduced motion":"Movimiento reducido",
   "On":"Sí","Off":"No","Language":"Idioma"
 };
@@ -72,7 +73,8 @@ function applyLanguage(value){
     [".athlete-preferences > summary","Settings"],
     [".athlete-preferences__heading","Athlete Preferences"],
     ["[data-athlete-profile-link]","View avatar & profile"],
-    [".athlete-preferences__note","Display preferences apply to this device. Avatar editing is not available here yet."],
+    ["[data-athlete-avatar-link]","Living Avatar"],
+    [".athlete-preferences__note","Display preferences apply to this device. Avatar photos remain private."],
     ["[data-athlete-signout]","Sign Out"],
     ["[data-athlete-language-label]","Language"],
   ];
@@ -120,7 +122,7 @@ header.innerHTML=`<div class="athlete-shell-header__inner"><button class="athlet
 
 const drawer=document.createElement("aside");
 drawer.id="athleteDrawer";drawer.className="athlete-drawer";drawer.setAttribute("aria-label","Athlete navigation");drawer.setAttribute("aria-hidden","true");
-drawer.innerHTML=`<div class="athlete-drawer__top"><div class="athlete-drawer__identity"><strong>Athlete Menu</strong><span>Your journey</span></div><button class="athlete-drawer-close" type="button" aria-label="Close menu">×</button></div><nav class="athlete-nav"><p class="athlete-nav__label">Athlete</p><div data-athlete-links></div><details class="athlete-preferences"><summary>Settings</summary><div class="athlete-preferences__body"><p class="athlete-preferences__heading">Athlete Preferences</p><button type="button" data-athlete-theme aria-pressed="false">Appearance: Day</button><button type="button" data-athlete-motion aria-pressed="false">Reduced motion: Off</button><label class="athlete-preferences__language"><span data-athlete-language-label>Language</span><select data-athlete-language aria-label="Athlete display language"><option value="en">English</option><option value="es">Español</option></select></label><a data-athlete-profile-link hidden>View avatar &amp; profile</a><p class="athlete-preferences__note">Display preferences apply to this device. Avatar editing is not available here yet.</p></div></details><button class="athlete-nav__signout" type="button" data-athlete-signout>Sign Out</button></nav>`;
+drawer.innerHTML=`<div class="athlete-drawer__top"><div class="athlete-drawer__identity"><strong>Athlete Menu</strong><span>Your journey</span></div><button class="athlete-drawer-close" type="button" aria-label="Close menu">×</button></div><nav class="athlete-nav"><p class="athlete-nav__label">Athlete</p><div data-athlete-links></div><details class="athlete-preferences"><summary>Settings</summary><div class="athlete-preferences__body"><p class="athlete-preferences__heading">Athlete Preferences</p><button type="button" data-athlete-theme aria-pressed="false">Appearance: Day</button><button type="button" data-athlete-motion aria-pressed="false">Reduced motion: Off</button><label class="athlete-preferences__language"><span data-athlete-language-label>Language</span><select data-athlete-language aria-label="Athlete display language"><option value="en">English</option><option value="es">Español</option></select></label><a data-athlete-profile-link hidden>View avatar &amp; profile</a><a data-athlete-avatar-link hidden>Living Avatar</a><p class="athlete-preferences__note">Display preferences apply to this device. Avatar photos remain private.</p></div></details><button class="athlete-nav__signout" type="button" data-athlete-signout>Sign Out</button></nav>`;
 
 const backdrop=document.createElement("button");backdrop.type="button";backdrop.className="athlete-drawer-backdrop";backdrop.setAttribute("aria-label","Close Athlete navigation");backdrop.tabIndex=-1;
 document.body.prepend(backdrop);document.body.prepend(drawer);document.body.prepend(header);
@@ -164,6 +166,9 @@ async function hydrateNavigation(){
     const profileLink=drawer.querySelector("[data-athlete-profile-link]");
     profileLink.href=route("/athletes/profile/");
     profileLink.hidden=false;
+    const avatarLink=drawer.querySelector("[data-athlete-avatar-link]");
+    avatarLink.href="/athletes/avatar/";
+    avatarLink.hidden=false;
     links.querySelectorAll("a").forEach(link=>link.addEventListener("click",closeDrawer));
     menu.disabled=false;
     applyLanguage(language());

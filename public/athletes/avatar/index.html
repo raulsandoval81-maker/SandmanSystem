@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Living Avatar | Sandman Athlete</title>
+<link rel="stylesheet" href="/assets/css/athlete-ui.css"><link rel="stylesheet" href="/athletes/avatar/avatar.css">
+<script type="module" src="/assets/js/athlete-nav.js"></script></head>
+<body><main class="avatar-workspace" id="avatarWorkspace" hidden>
+  <section class="avatar-intro"><p class="eyebrow">Athlete Profile</p><h1>Living Avatar</h1>
+    <p>Create a private illustrated Sandman fighter. Your face and rank shirt stay separate, so promotions update the shirt without replacing your avatar.</p></section>
+  <section class="avatar-card" aria-labelledby="avatarPreviewTitle">
+    <div class="living-avatar" data-avatar-preview hidden><img alt="Private illustrated athlete avatar"><div class="rank-shirt" aria-hidden="true"></div></div>
+    <div><h2 id="avatarPreviewTitle">Private preview</h2><p data-avatar-status>Checking your avatar…</p>
+      <p class="privacy-note">Original photos are private, never publicly shared, and deleted after approval.</p></div>
+  </section>
+  <section class="avatar-card" data-athlete-create hidden><div>
+    <h2>Take or upload a photo</h2><p>Use a clear, front-facing photo. JPEG, PNG, or WebP; maximum 2.5 MB after preparation.</p>
+    <input type="file" accept="image/jpeg,image/png,image/webp" capture="user" data-avatar-file>
+    <button type="button" data-avatar-create disabled>Create private preview</button>
+    <button type="button" data-avatar-approve hidden>Approve this avatar</button>
+    <p data-guardian-link hidden></p>
+  </div></section>
+  <section class="avatar-card" data-guardian-approval hidden><div><h2>Guardian approval</h2>
+    <p>Confirm that this youth athlete may use the private illustrated avatar shown above.</p>
+    <button type="button" data-guardian-approve>Approve youth avatar</button></div></section>
+  <p class="avatar-error" role="alert" data-avatar-error></p>
+</main><script type="module" src="/athletes/avatar/avatar.js"></script></body></html>
