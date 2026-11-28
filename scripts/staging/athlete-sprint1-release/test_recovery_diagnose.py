@@ -35,7 +35,7 @@ class RecoveryReadOnlyTest(unittest.TestCase):
             "functions": {"count": 53, "inventory": original},
         }
         current = copy.deepcopy(base)
-        current["functions"] = {"count": 54, "inventory": [*original, created]}
+        current["functions"] = {"count": 54, "inventory": [*copy.deepcopy(original), created]}
         self.baseline = {"status": "PASS_READ_ONLY", "sourceSha": recovery.SOURCE_SHA,
                          "snapshot": base}
         self.current = current
