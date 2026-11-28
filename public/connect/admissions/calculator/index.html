@@ -785,11 +785,15 @@
           </div>
           <div class="field" data-seasonal-field hidden>
             <label for="seasonalEnrollmentDate">Seasonal enrollment date</label>
-            <input id="seasonalEnrollmentDate" type="date" min="2026-11-15" max="2027-02-14" />
+            <input id="seasonalEnrollmentDate" type="date" min="2026-11-16" max="2027-02-27" />
           </div>
           <div class="field" data-seasonal-field hidden>
             <label><input id="seasonalPayInFull" type="checkbox" /> Pay the complete season in one Checkout</label>
-            <p class="help">Installments are separate one-time payments. No future payment is automatic.</p>
+            <p class="help">Three separate one-time payments, 14 days apart from enrollment. Each payment needs its own checkout; no future payment is automatic.</p>
+          </div>
+          <div class="field" data-seasonal-field hidden>
+            <label><input id="seasonalSiblingVerified" type="checkbox" /> Management verified all additional athletes are siblings in the same household</label>
+            <p class="help">Required for sibling pricing when two or more athletes are included.</p>
           </div>
           <div class="field" data-seasonal-field hidden>
             <label><input id="lateEnrollmentReviewed" type="checkbox" /> Management reviewed late enrollment and proration</label>

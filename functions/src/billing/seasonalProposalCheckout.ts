@@ -3,6 +3,7 @@ import { FieldValue, Firestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 
 import { isSeasonalProposalPricing } from "../proposals/seasonalProposal";
+import { winterWrestlingEarlyCheckoutAllowed, winterWrestlingPacificDate } from "../proposals/winterWrestlingSeasonPolicy";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();
@@ -67,11 +68,30 @@ export async function createSeasonalProposalCheckout(input: {
 }): Promise<Record<string, unknown>> {
   const { stripe, db, proposalId, proposal, actorUid, publicBaseUrl } = input;
   const pricing = lockedSeasonalPricing(proposal);
+  if (proposal.seasonalEarlyPaymentReviewRequired === true ||
+      clean(proposal.status) === "PAYMENT_REVIEW_REQUIRED") {
+    throw new HttpsError("failed-precondition",
+      "A late early-registration payment requires Management reconciliation before further checkout.");
+  }
+  if (!["READY_FOR_CHECKOUT", "CHECKOUT_CREATED", "PARTIALLY_PAID", "PAYMENT_FAILED", "PAID"].includes(clean(proposal.status))) {
+    throw new HttpsError("failed-precondition", "This seasonal proposal is not eligible for checkout.");
+  }
   const proposalRef = db.collection("proposals").doc(proposalId);
   const ledger: SeasonalLedgerEntry[] = Array.isArray(proposal.seasonalPaymentLedger)
     ? proposal.seasonalPaymentLedger
     : initialLedger(pricing);
   const next = ledger.find((entry) => entry.status !== "paid");
+  // A new early-rate first checkout must begin by Nov 30 Pacific.
+  // Dec 1–3 is strictly for retrying a family whose first checkout was started on time.
+  const pacificDate = winterWrestlingPacificDate(Date.now());
+  const firstEarlyInstallment = next?.number === 1 && pricing.earlyRegistration === true;
+  if (firstEarlyInstallment && !winterWrestlingEarlyCheckoutAllowed({
+    today: pacificDate,
+    initialCheckoutDate: clean(proposal.seasonalEarlyFirstCheckoutDate) || null,
+  })) {
+    throw new HttpsError("failed-precondition",
+      "Early registration payment window has ended. Management must reconcile or reissue regular pricing.");
+  }
   if (!next) {
     return { ok: true, proposalId, status: "PAID", alreadyPaid: true };
   }
@@ -83,7 +103,12 @@ export async function createSeasonalProposalCheckout(input: {
     const existing = await stripe.checkout.sessions.retrieve(pendingSessionId);
     const sameInstallment =
       clean(existing.metadata?.source) === "winter_wrestling_seasonal" &&
-      Number(existing.metadata?.installmentNumber) === next.number;
+      clean(existing.metadata?.proposalId) === proposalId &&
+      Number(existing.metadata?.installmentNumber) === next.number &&
+      Number(existing.metadata?.installmentAmountCents) === next.amountCents &&
+      existing.mode === "payment" &&
+      clean(existing.currency).toLowerCase() === "usd" &&
+      existing.amount_total === next.amountCents;
     if (existing.status === "open" && existing.url && sameInstallment) {
       return {
         ok: true,
@@ -176,8 +201,17 @@ export async function createSeasonalProposalCheckout(input: {
     if (currentPending && currentPending !== pendingSessionId && currentPending !== session.id) {
       throw new HttpsError("aborted", "Another seasonal checkout was created first. Refresh before continuing.");
     }
+    if (firstEarlyInstallment && !winterWrestlingEarlyCheckoutAllowed({
+      today: pacificDate,
+      initialCheckoutDate: clean(data.seasonalEarlyFirstCheckoutDate) || null,
+    })) {
+      throw new HttpsError("failed-precondition", "Early-rate checkout eligibility changed. Refresh the proposal.");
+    }
     tx.update(proposalRef, {
       status: "CHECKOUT_CREATED",
+      ...(firstEarlyInstallment && !data.seasonalEarlyFirstCheckoutDate && pacificDate <= "2026-11-30"
+        ? { seasonalEarlyFirstCheckoutDate: pacificDate }
+        : {}),
       seasonalPaymentLedger: updatedLedger,
       pendingCheckoutSessionId: session.id,
       paymentStatus: "pending",

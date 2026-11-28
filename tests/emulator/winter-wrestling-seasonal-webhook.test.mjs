@@ -23,6 +23,9 @@ function session(overrides = {}) {
     object: "checkout.session",
     livemode: false,
     payment_status: "paid",
+    mode: "payment",
+    currency: "usd",
+    amount_total: 20000,
     payment_intent: "pi_test_seasonal_1",
     metadata: {
       proposalId: "P-SEASONAL-TEST",
@@ -100,8 +103,16 @@ test("Checkout is one-time, resumable, and never authorizes future automatic pay
     id: "cs_test_seasonal_checkout",
     status: "open",
     payment_status: "unpaid",
+    mode: "payment",
+    currency: "usd",
+    amount_total: 20000,
     url: "https://checkout.stripe.test/seasonal",
-    metadata: { source: "winter_wrestling_seasonal", installmentNumber: "1" },
+    metadata: {
+      source: "winter_wrestling_seasonal",
+      proposalId,
+      installmentNumber: "1",
+      installmentAmountCents: "20000",
+    },
   };
   const stripe = {
     checkout: { sessions: {
@@ -182,4 +193,46 @@ test("a failed installment receives a new idempotency scope without duplicating 
   });
   assert.equal(result.checkoutSessionId, "cs_retry_new");
   assert.match(requestOptions.idempotencyKey, /cs_failed_old$/);
+});
+
+test("seasonal payment rejects incorrect actual Stripe amount, currency, or mode", async () => {
+  for (const overrides of [
+    { amount_total: 19999 },
+    { currency: "eur" },
+    { mode: "subscription" },
+    { amount_total: null },
+  ]) {
+    await seed();
+    await assert.rejects(
+      () => handleSeasonalProposalPaymentSucceeded(session(overrides)),
+      /amount, currency or mode/,
+    );
+    const snap = await db.doc("proposals/P-SEASONAL-TEST").get();
+    assert.equal(snap.get("status"), "CHECKOUT_CREATED");
+    assert.equal(snap.get("seasonalPaymentLedger")[0].status, "pending");
+  }
+});
+
+test("first early-rate payment in grace period remains eligible, later payment requires review", async () => {
+  const proposalRef = db.doc("proposals/P-SEASONAL-TEST");
+  const onTime = Date.parse("2026-12-01T07:59:59Z") / 1000;
+  const late = Date.parse("2026-12-01T08:00:00Z") / 1000;
+  for (const [eventTime, expectedStatus] of [
+    [onTime, "PARTIALLY_PAID"],
+    [late, "PAYMENT_REVIEW_REQUIRED"],
+  ]) {
+    await seed();
+    await proposalRef.update({
+      lockedSnapshot: { pricing: { earlyRegistration: true } },
+    });
+    await handleSeasonalProposalPaymentSucceeded(session(), eventTime);
+    const snap = await proposalRef.get();
+    assert.equal(snap.get("status"), expectedStatus);
+    assert.equal(snap.get("seasonalPaymentLedger")[0].status, "paid");
+    assert.equal(snap.get("seasonalPaymentLedger")[0].paymentIntentId, "pi_test_seasonal_1");
+    assert.equal(snap.get("seasonalEarlyPaymentReviewRequired") === true, eventTime === late);
+    await handleSeasonalProposalPaymentSucceeded(session(), eventTime);
+    const history = await db.collection("proposals/P-SEASONAL-TEST/history").get();
+    assert.equal(history.size, 1, "duplicate signed Stripe event never records a second payment");
+  }
 });

@@ -950,7 +950,7 @@ const webhookSecret =
             break;
           }
           if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
-            await handleSeasonalProposalPaymentSucceeded(session);
+            await handleSeasonalProposalPaymentSucceeded(session, event.created);
             familyId = null;
             break;
           }
@@ -1002,7 +1002,7 @@ const webhookSecret =
             break;
           }
           if (cleanString(session.metadata?.source) === "winter_wrestling_seasonal") {
-            await handleSeasonalProposalPaymentSucceeded(session);
+            await handleSeasonalProposalPaymentSucceeded(session, event.created);
             familyId = null;
             break;
           }
