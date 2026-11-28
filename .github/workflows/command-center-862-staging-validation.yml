@@ -6,6 +6,8 @@ on:
     paths:
       - 'scripts/staging/command-center-862-readonly.py'
       - 'scripts/staging/test_command_center_862_readonly.py'
+      - 'scripts/staging/command-center-862-release.py'
+      - 'scripts/staging/test_command_center_862_release.py'
       - '.github/workflows/staging-exact-sha-release.yml'
       - '.github/workflows/command-center-862-staging-validation.yml'
   workflow_dispatch:
@@ -32,8 +34,8 @@ jobs:
       - name: Validate exact 15 reviewed Command Center sources, 7 Hosting paths and isolated read-only gate
         run: |
           set -euo pipefail
-          python3 -m compileall -q scripts/staging/command-center-862-readonly.py scripts/staging/test_command_center_862_readonly.py
-          python3 -m unittest discover -s scripts/staging -p 'test_command_center_862_readonly.py' -v
+          python3 -m compileall -q scripts/staging/command-center-862-readonly.py scripts/staging/test_command_center_862_readonly.py scripts/staging/command-center-862-release.py scripts/staging/test_command_center_862_release.py
+          python3 -m unittest discover -s scripts/staging -p 'test_command_center_862_*.py' -v
           ruby -ryaml -e 'YAML.load_file(ARGV.fetch(0))' .github/workflows/staging-exact-sha-release.yml
           ruby -ryaml -e 'YAML.load_file(ARGV.fetch(0))' .github/workflows/command-center-862-staging-validation.yml
       - name: Build merged application without staging or production credentials
