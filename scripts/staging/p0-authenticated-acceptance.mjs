@@ -229,6 +229,14 @@ function fixtureCoachCanReadAthlete(coachUid, coachStaff, athleteFields) {
   return assigned.includes(coachUid) || (Boolean(location) && locations.includes(location));
 }
 
+function fixtureManagementCanReadAthlete(managementStaff, athleteFields) {
+  const locations = fixtureStringList(
+    managementStaff.locationIds, managementStaff.locations, managementStaff.locationId,
+  );
+  const location = athleteFields.locationId?.stringValue?.trim() ?? "";
+  return Boolean(location) && locations.includes(location);
+}
+
 async function readDocument(path, token) {
   return request(`${firestore}/${path}`, token);
 }
@@ -581,6 +589,7 @@ async function run() {
   const other = `athletes/${fixtures.otherAthlete}`;
   current = "synthetic athlete and staff scope";
   let coachStaff;
+  let managementStaff;
   for (const [role, allowedRoles] of Object.entries({
     management: ["management", "manager", "location_manager"],
     coach: ["coach"],
@@ -589,10 +598,14 @@ async function run() {
     const staff = await allowed(`staff/${fixtures.roles[role].uid}`, tokens[role]);
     requireCheck(allowedRoles.includes(staff.role?.stringValue) && staff.status?.stringValue === "active");
     if (role === "coach") coachStaff = staff;
+    if (role === "management") managementStaff = staff;
   }
   const otherFields = await allowed(other, tokens.admin);
   const coachOtherAllowed = fixtureCoachCanReadAthlete(
     fixtures.roles.coach.uid, coachStaff, otherFields,
+  );
+  const managementOtherAllowed = fixtureManagementCanReadAthlete(
+    managementStaff, otherFields,
   );
   const athlete = await allowed(own, tokens.athlete);
   requireCheck(fixtures.ownAthlete === fixtures.roles.athlete.uid ||
@@ -608,11 +621,13 @@ async function run() {
         await assertSprint1Callable(name, role, tokens[role], fixtures.ownAthlete, "in-scope", true);
       }
       await assertSprint1Callable(name, "admin", tokens.admin, fixtures.otherAthlete, "other", true);
-      for (const role of ["athlete", "parent", "management"]) {
+      for (const role of ["athlete", "parent"]) {
         await assertSprint1Callable(name, role, tokens[role], fixtures.otherAthlete, "other", false);
       }
       await assertSprint1Callable(name, "coach", tokens.coach, fixtures.otherAthlete,
         "other", coachOtherAllowed);
+      await assertSprint1Callable(name, "management", tokens.management, fixtures.otherAthlete,
+        "other", managementOtherAllowed);
       await assertSprint1Callable(name, "unauthenticated", null, fixtures.ownAthlete, "in-scope", false);
     }
     passed(current);
