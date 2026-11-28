@@ -31,6 +31,14 @@ const profiles = {
       ['/assets/js/athlete-self-context.js', '19122594ee5f88d3af5a0270a9f3309ce2181ac5ce62e4efd7e5d309825f2c34'],
     ],
   },
+  sprint2settings: {
+    candidateSha: '94e27e3561301d09e9b93be6125f07c0d0139635',
+    approval: 'APPROVE_SPRINT2_SETTINGS_TWO_FILE_STAGING_ONLY',
+    targets: [
+      ['/assets/js/athlete-nav.js', 'blob:5394d15e2cd4dfc9ca28bfa2b9509354a39c50eb'],
+      ['/assets/css/athlete-ui.css', 'blob:c5e0b946496d39d370e622c9aa7bdfa06a327790'],
+    ],
+  },
   sprint1storage: {
     candidateSha: '25fdba71505416c68f8c6d235f6e7389c3b92e91',
     approval: 'APPROVE_SPRINT1_STORAGE_ONE_FILE_STAGING_ONLY',
