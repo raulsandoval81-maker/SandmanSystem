@@ -7,7 +7,7 @@ const safe = value => String(value ?? "").replace(/[&<>"']/g, char => ({
 const id = value => String(value ?? "").trim();
 const display = athlete => athlete?.name || athlete?.fullName || athlete?.publicName || athlete?.id;
 
-export function mountGroupSkillReview({ root, practice, attendance, roster, workedCards }) {
+export function mountGroupSkillReview({ root, practice, practiceId: canonicalPracticeId, attendance, roster, workedCards }) {
   if (!root) return;
   root.replaceChildren();
   const present = new Set(Array.isArray(attendance?.presentIds) ? attendance.presentIds.map(id) : []);
@@ -87,9 +87,29 @@ export function mountGroupSkillReview({ root, practice, attendance, roster, work
       resultEl.textContent = `Draft blocked: ${draft.blockers.join(" ")}`;
       return;
     }
-    const items = draft.observations.map(observation =>
-      `<li>${safe(display(members.get(observation.athleteId)) || observation.athleteId)}: ${safe(observation.proposedStage.replaceAll("_", " "))}${observation.individuallyAdjusted ? " (individual adjustment)" : ""}</li>`).join("");
+    // Handoff is intentionally one athlete at a time: the existing Skill Check
+    // callable authorizes each verified write. Draft stages are never passed as
+    // save instructions and cannot silently change an athlete's prior record.
+    const attendanceFinalized = attendance?.finalized === true
+      && String(attendance?.status || "").toLowerCase() === "finalized"
+      && String(attendance?.practiceId || "") === String(canonicalPracticeId || "");
+    const discipline = String(practice?.discipline || "").toLowerCase();
+    const practiceId = String(canonicalPracticeId || "");
+    const canHandoff = attendanceFinalized
+      && /^[A-Za-z0-9_-]{1,160}$/.test(practiceId)
+      && ["wrestling", "boxing", "muay-thai"].includes(discipline);
+    const items = draft.observations.map(observation => {
+      const label = safe(display(members.get(observation.athleteId)) || observation.athleteId);
+      const proposed = safe(observation.proposedStage.replaceAll("_", " "));
+      const link = canHandoff
+        ? ` <a href="/coaches/skill-check/?id=${encodeURIComponent(observation.athleteId)}&amp;practiceId=${encodeURIComponent(practiceId)}&amp;discipline=${encodeURIComponent(discipline)}">Open individual Skill Check</a>`
+        : "";
+      return `<li>${label}: ${proposed}${observation.individuallyAdjusted ? " (individual adjustment)" : ""}${link}</li>`;
+    }).join("");
     resultEl.innerHTML = `<p><strong>Draft review: ${draft.observations.length} proposed; ${draft.excludedAthleteIds.length} not assessed.</strong></p>
-      <ul>${items}</ul><p class="muted">Not saved. Verification, XP and automatic progression remain unchanged. Continue with individual Skill Check for actual evidence.</p>`;
+      <ul>${items}</ul><p class="muted">${canHandoff
+        ? "Open each athlete's existing Skill Check, select the reviewed stage, and explicitly save. The group draft itself has not been saved."
+        : "Individual verification is locked until canonical attendance is finalized. Reload the practice after finalization. The group draft itself has not been saved."}
+      No XP, promotion or AUTO progression is issued by this review.</p>`;
   });
 }

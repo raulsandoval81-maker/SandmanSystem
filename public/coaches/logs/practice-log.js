@@ -684,6 +684,7 @@ async function loadCanonicalPractice() {
   mountGroupSkillReview({
     root: document.getElementById("groupSkillReview"),
     practice: canonicalPractice,
+    practiceId: requestedPracticeId,
     attendance: canonicalAttendance,
     roster: canonicalRoster,
     workedCards: getCardsFromBlocks(getBlocks())
