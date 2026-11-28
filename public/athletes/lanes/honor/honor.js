@@ -2,13 +2,13 @@
 
 import {
   db,
-  ensureSignedIn,
   doc,
   getDoc,
   setDoc,
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
 
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
 import { getActiveVaultSession } from "/vault/vault.js";
 import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 import {
@@ -19,19 +19,9 @@ import {
   resolveLaneRelease,
 } from "/assets/js/lane-release-schedule.js";
 
-await ensureSignedIn();
-
 const ACTIVE_LANE = "honor";
 
 const container = document.getElementById("honor-session-container");
-const params = new URLSearchParams(location.search);
-const athleteId = (params.get("id") || "").trim().toUpperCase();
-
-const backLink = document.querySelector("a.btn-back");
-if (backLink && athleteId) {
-  backLink.href = `/athletes/hub/index.html?id=${encodeURIComponent(athleteId)}`;
-}
-
 function esc(str = "") {
   return String(str)
     .replaceAll("&", "&amp;")
@@ -43,16 +33,6 @@ function esc(str = "") {
 
 function isFoundry8(id = "") {
   return /^F8[_-]/i.test(id);
-}
-
-function fatalMissingId() {
-  document.body.innerHTML = `
-    <main style="max-width:900px;margin:40px auto;padding:16px;">
-      <h1 style="color:#ffd633;">Missing athlete id</h1>
-      <p>This page needs ?id=F4_0010</p>
-    </main>
-  `;
-  throw new Error("Missing athlete id");
 }
 
 function parseScripture(s) {
@@ -84,17 +64,14 @@ function getSessionList(active) {
 }
 async function loadHonorSession() {
   if (!container) return;
-  if (!athleteId) fatalMissingId();
-
-
   try {
-    const athleteSnap = await getDoc(doc(db, "athletes", athleteId));
-    if (!athleteSnap.exists()) {
-      container.innerHTML = `Athlete not found`;
+    const { athleteId, athlete } = await resolveSignedInSelfAthlete();
+    if (!athleteId || !athlete) {
+      container.textContent = "Verified Athlete sign-in is required.";
       return;
     }
-
-    const athlete = athleteSnap.data() || {};
+    const backLink = document.querySelector("a.btn-back");
+    if (backLink) backLink.href = `/athletes/hub/index.html?id=${encodeURIComponent(athleteId)}`;
     const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
 
     const tierRaw =

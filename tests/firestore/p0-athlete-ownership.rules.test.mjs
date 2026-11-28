@@ -300,3 +300,52 @@ test("Legacy Athlete lacking location remains readable only to explicitly assign
     sourceAthleteId: "legacy-coach-assigned", lane: "honor",
   }));
 });
+
+test("Athlete cannot forge a Coach conditioning or Spartan assignment on first submission write", async () => {
+  const athleteDb = env.authenticatedContext("athlete").firestore();
+  const coachDb = env.authenticatedContext("coach").firestore();
+  const parentDb = env.authenticatedContext("parent").firestore();
+  const otherDb = env.authenticatedContext("other-athlete").firestore();
+  const ownRef = doc(athleteDb, "laneSubmissions", "own");
+
+  // The complete first-write payload is untrusted even when the Athlete owns it.
+  await assertFails(setDoc(ownRef, {
+    conditioning_assignment: { status: "assigned", assignedBy: "athlete", rewardXp: 5 },
+  }));
+  await assertFails(setDoc(ownRef, {
+    spartan_assignment: { status: "assigned", assignedBy: "athlete", rewardXp: 10 },
+  }));
+  await assertFails(setDoc(doc(otherDb, "laneSubmissions", "own"), { strength_session1: {} }));
+  await assertFails(setDoc(doc(parentDb, "laneSubmissions", "own"), { honor_session1: {} }));
+
+  // Normal Athlete-created evidence is allowed without a privileged assignment.
+  await assertSucceeds(setDoc(ownRef, {
+    strength_session1: { status: "pending", note: "synthetic submission" },
+  }));
+  await assertFails(updateDoc(ownRef, {
+    conditioning_assignment: { status: "assigned", assignedBy: "athlete" },
+  }));
+  await assertFails(updateDoc(ownRef, {
+    spartan_assignment: { status: "assigned", assignedBy: "athlete" },
+  }));
+
+  // Authorized staff retain the existing assignment path.
+  await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", "own"), {
+    conditioning_assignment: { status: "assigned", assignedBy: "coach", rewardXp: 5 },
+  }));
+  await assertFails(updateDoc(ownRef, {
+    "conditioning_assignment.assignedBy": "athlete",
+  }));
+  await assertSucceeds(updateDoc(ownRef, {
+    "strength_session1.note": "revised evidence",
+  }));
+  await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", "own"), {
+    spartan_assignment: { status: "assigned", assignedBy: "coach" },
+  }));
+  await assertFails(updateDoc(ownRef, {
+    "spartan_assignment.assignedBy": "athlete",
+  }));
+  await assertSucceeds(updateDoc(ownRef, {
+    "strength_session1.note": "another evidence revision",
+  }));
+});

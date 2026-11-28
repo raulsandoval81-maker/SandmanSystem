@@ -497,7 +497,11 @@ service cloud.firestore {
           /databases/$(database)/documents/athletes/$(athleteId)
         )
         && (
-          isLaneSubmissionOwner(athleteId)
+          (isLaneSubmissionOwner(athleteId)
+            // The first document write cannot impersonate a Coach assignment.
+            // Existing update protection alone does not cover document creation.
+            && !("conditioning_assignment" in request.resource.data)
+            && !("spartan_assignment" in request.resource.data))
           || isActiveCoachOrAdmin()
         );
 
@@ -508,6 +512,15 @@ service cloud.firestore {
           (
             isLaneSubmissionOwner(athleteId)
             && preservesCoachOwnedConditioningAssignment()
+            // A future Spartan assignment is also Coach-owned; never allow
+            // the Athlete to add, delete, or modify it via a generic update.
+            && (
+              (!("spartan_assignment" in resource.data)
+                && !("spartan_assignment" in request.resource.data))
+              || ("spartan_assignment" in resource.data
+                && "spartan_assignment" in request.resource.data
+                && request.resource.data.spartan_assignment == resource.data.spartan_assignment)
+            )
           )
           || isActiveCoachOrAdmin()
         );

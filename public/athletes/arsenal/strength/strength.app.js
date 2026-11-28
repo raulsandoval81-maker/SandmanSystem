@@ -1,18 +1,12 @@
 console.log("Strength lane loaded");
 
-import { db, doc, getDoc } from "/assets/js/firebase-init.js";
+import { resolveSignedInSelfAthlete } from "/assets/js/athlete-dashboard-data.js";
 import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
-
-const params = new URLSearchParams(window.location.search);
-const athleteId = (params.get("id") || "").trim().toUpperCase();
 
 const preseasonBtn = document.getElementById("strength-preseason");
 const inseasonBtn = document.getElementById("strength-inseason");
 const postseasonBtn = document.getElementById("strength-postseason");
 const conditioningBtn = document.getElementById("strength-conditioning");
-
-const isTeen = athleteId.startsWith("F4");
-const isYouth = athleteId.startsWith("F8");
 
 async function fetchJson(url) {
   const res = await fetch(url, { cache: "no-store" });
@@ -48,22 +42,22 @@ async function initStrengthMenu() {
   lockTile(postseasonBtn, "Postseason 🔒");
   lockTile(conditioningBtn, "Conditioning 🔒");
 
-  if (!athleteId) {
-    console.warn("Missing athlete id on Strength menu page.");
+  let identity;
+  try {
+    identity = await resolveSignedInSelfAthlete();
+  } catch (error) {
+    console.error("Strength identity verification failed:", error);
     return;
   }
+  const { athleteId, athlete } = identity;
+  if (!athleteId || !athlete) return;
+
+  const isTeen = athleteId.startsWith("F4");
+  const isYouth = athleteId.startsWith("F8");
+  if (isYouth && !resolveF8RemoteAccess(athlete).strength) return;
 
   try {
-    const [status, athleteSnap] = await Promise.all([
-      fetchJson("/vault/system-status.json"),
-      getDoc(doc(db, "athletes", athleteId)),
-    ]);
-    if (isYouth && (
-      !athleteSnap.exists() ||
-      !resolveF8RemoteAccess(athleteSnap.data() || {}).strength
-    )) {
-      return;
-    }
+    const status = await fetchJson("/vault/system-status.json");
     const strength = status?.strength || {};
 
     const activePhase = String(
