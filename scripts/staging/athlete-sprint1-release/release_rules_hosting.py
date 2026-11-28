@@ -75,9 +75,8 @@ def audit(mode):
     require(os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch", "Manual dispatch required")
     require(os.environ.get("GITHUB_WORKFLOW_REF") == WORKFLOW_REF, "Untrusted workflow")
     require(os.environ.get("CONFIRM_PROJECT") == PROJECT, "Wrong project")
-    require(os.environ.get("SPRINT1_ACTION") ==
-            ("athlete-sprint1-release-preflight" if mode == "preflight" else
-             "athlete-sprint1-staging-deploy"), "Wrong release action")
+    allowed_actions = ("athlete-sprint1-release-preflight", "athlete-sprint1-staging-deploy") if mode == "preflight" else ("athlete-sprint1-staging-deploy",)
+    require(os.environ.get("SPRINT1_ACTION") in allowed_actions, "Wrong release action")
     if mode == "publish":
         require(os.environ.get("SPRINT1_APPROVAL") ==
                 "APPROVE_ATHLETE_SPRINT1_STAGING_FUNCTIONS_RULES_HOSTING",
