@@ -17,27 +17,23 @@ async function actor(label){
   return {user,call:(name,data={})=>httpsCallable(functions,name)(data)};
 }
 
-test("actual handlers enforce self ownership, youth guardian approval, persistence and original deletion audit",async(t)=>{
+test("unsafe raster-backed SVG cannot create a draft or persist avatar metadata",async(t)=>{
   const env=await initializeTestEnvironment({projectId,firestore:{host:"127.0.0.1",port:8281,rules:readFileSync("firestore.rules","utf8")}});
   t.after(async()=>{await env.cleanup();await Promise.all(apps.splice(0).map(deleteApp))});
-  const athlete=await actor("avatar-athlete"), guardian=await actor("avatar-guardian"), attacker=await actor("avatar-attacker");
+  const athlete=await actor("avatar-athlete");
   await env.withSecurityRulesDisabled(async context=>{
-    await setDoc(doc(context.firestore(),"athletes","F8_AVATAR_TEST"),{authUid:athlete.user.uid,parentUid:guardian.user.uid,journey:"ROAD2CHAMPION",rankName:"Shadow",programKind:"wrestling"});
+    await setDoc(doc(context.firestore(),"athletes","F8_AVATAR_TEST"),{authUid:athlete.user.uid,journey:"ROAD2CHAMPION",rankName:"Shadow",programKind:"wrestling"});
   });
   const jpeg=Buffer.concat([Buffer.from([0xff,0xd8,0xff]),Buffer.alloc(80,7)]).toString("base64");
-  const draft=(await athlete.call("createAthleteAvatarDraft",{contentType:"image/jpeg",photoBase64:jpeg})).data;
-  assert.equal(draft.status,"guardian_pending");assert.equal(draft.guardianRequired,true);assert.equal(draft.shirtColor,"white");
-  await assert.rejects(()=>athlete.call("approveAthleteAvatar",{requestId:draft.requestId}),/guardian|permission/i);
-  await assert.rejects(()=>attacker.call("getAthleteAvatarState",{requestId:draft.requestId}),/access|permission/i);
-  const guardianPreview=(await guardian.call("getAthleteAvatarState",{requestId:draft.requestId})).data;
-  assert.equal(guardianPreview.status,"guardian_pending");assert.match(guardianPreview.previewDataUrl,/^data:image\/svg\+xml;base64,/);
-  const approved=(await guardian.call("approveAthleteAvatar",{requestId:draft.requestId})).data;assert.equal(approved.status,"approved");
+  await assert.rejects(
+    ()=>athlete.call("createAthleteAvatarDraft",{contentType:"image/jpeg",photoBase64:jpeg}),
+    /Secure illustrated avatar rendering is not available yet|failed-precondition/i,
+  );
   await env.withSecurityRulesDisabled(async context=>{
-    const request=(await getDoc(doc(context.firestore(),"athleteAvatarRequests",draft.requestId))).data();
+    const { getDocs, collection } = await import("firebase/firestore");
+    const requests=await getDocs(collection(context.firestore(),"athleteAvatarRequests"));
+    assert.equal(requests.size,0);
     const profile=(await getDoc(doc(context.firestore(),"athletes","F8_AVATAR_TEST"))).data();
-    assert.equal(request.status,"approved");assert.ok(request.originalDeletedAt);assert.equal(profile.avatar.requestId,draft.requestId);assert.equal(profile.rankName,"Shadow");
-    await setDoc(doc(context.firestore(),"athletes","F8_AVATAR_TEST"),{rankName:"Prospect"},{merge:true});
+    assert.equal(profile.avatar,undefined);
   });
-  const promoted=(await athlete.call("getAthleteAvatarState",{})).data;
-  assert.equal(promoted.status,"approved");assert.equal(promoted.shirtColor,"yellow");
 });
