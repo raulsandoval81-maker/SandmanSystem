@@ -20,20 +20,36 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 0e9d96e3994094fffacbb606ac77f474902bf666
+          path: application
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: functions/package-lock.json
+          cache-dependency-path: application/functions/package-lock.json
       - name: Verify TypeScript and compiled isolated exports
         run: |
           set -euo pipefail
-          npm ci --prefix functions --ignore-scripts --no-audit --no-fund
-          npm run build --prefix functions
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          cd application
           node --test \
             tests/functions/mini-arsenal-legacy-route.test.mjs \
             tests/functions/full-arsenal-id-case.test.mjs \
             tests/functions/immutable-lane-archive-retry.test.mjs
+      - name: Compile all staging release guards and validate reviewed rules patch
+        run: |
+          set -euo pipefail
+          python3 -m compileall -q scripts/staging/athlete-sprint1-release
+          python3 -m unittest discover -s scripts/staging/athlete-sprint1-release -p 'test_release_security_guards.py' -v
+      - name: Build exact two-callable package from immutable source
+        run: |
+          set -euo pipefail
+          python3 scripts/staging/athlete-sprint1-release/build_callable_package.py \
+            --source application --out "$RUNNER_TEMP/sprint1-two-callables"
       - name: Download certified protected read-only baseline
         env:
           GH_TOKEN: ${{ github.token }}
@@ -57,4 +73,4 @@ jobs:
           set -euo pipefail
           python3 scripts/staging/athlete-sprint1-release/validate_release_candidate.py \
             --evidence "$RUNNER_TEMP/athlete-sprint1-evidence/sprint1-staging-readonly-evidence.json" \
-            --source-root .
+            --source-root application
