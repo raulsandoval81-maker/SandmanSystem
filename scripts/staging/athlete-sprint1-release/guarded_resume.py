@@ -183,8 +183,9 @@ def preflight(source=None):
 
 def validate_transport(t, name, expected):
     svc = request(t, RUN_API + f"{PARENT}/services/{name.lower()}")
+    actual = svc.get("invokerIamDisabled") is True
     require(svc["name"] == f"{PARENT}/services/{name.lower()}" and
-            svc.get("invokerIamDisabled") is expected,
+            actual is expected,
             "Cloud Run transport status mismatch: " + name)
     return True
 
