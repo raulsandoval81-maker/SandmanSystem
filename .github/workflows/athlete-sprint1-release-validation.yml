@@ -2,6 +2,7 @@ name: Athlete Sprint 1 — offline candidate release checks
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'scripts/staging/athlete-sprint1-release/**'
       - '.github/workflows/athlete-sprint1-release-validation.yml'
