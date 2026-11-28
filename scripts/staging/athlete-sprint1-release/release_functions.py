@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import urllib.request
 
 HERE = Path(__file__).resolve().parent
 PROJECT = "sandman-combat-staging"
@@ -128,6 +129,16 @@ def deploy(source):
     principal = run("gcloud", "iam", "service-accounts", "describe", RUNTIME,
                     "--project=" + PROJECT, "--format=value(email)")
     need(principal == RUNTIME, "Previously established staging runtime service account missing")
+    # testIamPermissions is read-only despite its POST transport; never grant IAM.
+    token = run("gcloud", "auth", "print-access-token")
+    required = {"cloudfunctions.functions.create", "run.services.update", "iam.serviceAccounts.actAs"}
+    request = urllib.request.Request(
+        "https://cloudresourcemanager.googleapis.com/v1/projects/" + PROJECT + ":testIamPermissions",
+        method="POST", data=json.dumps({"permissions": sorted(required)}).encode(),
+        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        effective = set(json.load(response).get("permissions", []))
+    need(required.issubset(effective), "Staging deployer lacks required create/run/actAs permissions")
     status = {"status": "STOP_NO_RETRY", "project": PROJECT,
               "sourceSha": SOURCE_SHA, "runtime": RUNTIME, "created": [],
               "lastOperation": "guard-verified", "rollback": "Review and delete only newly created callables"}
