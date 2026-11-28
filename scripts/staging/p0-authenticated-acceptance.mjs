@@ -102,6 +102,11 @@ function safeRequest(request) {
   if (url.origin === "https://securetoken.googleapis.com") {
     return method === "POST" && url.pathname === "/v1/token";
   }
+  if (sprint1Acceptance &&
+      url.origin === `https://us-central1-${project}.cloudfunctions.net`) {
+    return ["POST", "OPTIONS"].includes(method) &&
+      ["/getAthleteProfileFeed", "/getAthleteSkillsSummary"].includes(url.pathname);
+  }
   if (url.origin === "https://firestore.googleapis.com") {
     // The browser SDK uses POST for the Listen forward channel and GET
     // for its backchannel. Check the exact read-only channel before REST GETs.
@@ -134,6 +139,10 @@ function verifyReadOnlyNetworkPolicy() {
     ["PATCH", stagingRest, false],
     ["DELETE", stagingRest, false],
     ["GET", stagingRest.replace(project, "sandmandashboard"), false],
+    ["POST", `https://us-central1-${project}.cloudfunctions.net/getAthleteProfileFeed`, sprint1Acceptance],
+    ["POST", `https://us-central1-${project}.cloudfunctions.net/getAthleteSkillsSummary`, sprint1Acceptance],
+    ["POST", `https://us-central1-${project}.cloudfunctions.net/approveAndActivate`, false],
+    ["POST", "https://us-central1-sandmandashboard.cloudfunctions.net/getAthleteProfileFeed", false],
   ];
   for (const [method, url, expected] of cases) {
     requireCheck(safeRequest({ method: () => method, url: () => url }) === expected);
