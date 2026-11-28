@@ -62,9 +62,20 @@ def package(out):
     package_json["main"]="index.cjs"
     (out/"package.json").write_text(json.dumps(package_json,sort_keys=True)+"\n")
     shutil.copy2(source_root/"functions/package-lock.json",out/"package-lock.json")
-    (out/"index.cjs").write_text("Object.assign(exports, require('./lib/admin/commandCenter.js'));\n")
+    (out/"index.cjs").write_text(
+        "const { getApps, initializeApp } = require('firebase-admin/app');\n"
+        "if (getApps().length === 0) initializeApp();\n"
+        "Object.assign(exports, require('./lib/admin/commandCenter.js'));\n"
+    )
     subprocess.run(["npm","ci","--prefix",str(out),"--ignore-scripts","--no-audit","--no-fund"],check=True)
-    require(sorted(subprocess.check_output(["node","-e","console.log(Object.keys(require(process.argv[1])).sort().join('\\n'))",str(out/"index.cjs")],text=True).splitlines())==sorted(FUNCTIONS),"Package exports expanded")
+    validation=json.loads(subprocess.check_output([
+        "node","-e",
+        "const p=process.argv[1]; const m=require(p+'/index.cjs'); "
+        "const {getApps}=require(require.resolve('firebase-admin/app',{paths:[p]})); "
+        "console.log(JSON.stringify({exports:Object.keys(m).sort(),adminApps:getApps().length}));",
+        str(out)],text=True))
+    require(validation.get("exports")==sorted(FUNCTIONS),"Package exports expanded")
+    require(validation.get("adminApps")==1,"Firebase Admin was not initialized exactly once")
     shutil.rmtree(out/"node_modules")
 def inventory(t):
     ro=load_readonly(); rows=ro.load_snapshot().paged("https://cloudfunctions.googleapis.com/v2/projects/"+PROJECT+"/locations/-/functions","functions",t)
@@ -83,7 +94,7 @@ def preflight_create():
     return current
 def preflight_publish():
     guard("command-center-862-release-preflight"); t=token()
-    needed={"run.services.update","run.services.setIamPolicy","firebaserules.rulesets.create","firebaserules.releases.update","firebasehosting.versions.create","firebasehosting.versions.update","firebasehosting.sites.update"}
+    needed={"run.services.update","run.services.setIamPolicy","firebaserules.rulesets.create","firebaserules.releases.update","firebasehosting.sites.get","firebasehosting.sites.update"}
     have=permission_probe(t,"https://cloudresourcemanager.googleapis.com/v1/projects/"+PROJECT+":testIamPermissions",needed)
     require(needed<=have,"Publisher permissions missing: "+", ".join(sorted(needed-have)))
     return sorted(have)
@@ -101,9 +112,9 @@ def wait_operation(t,name):
         time.sleep(5)
     raise RuntimeError("Function creation timed out")
 def create_functions(source):
-    guard("command-center-862-staging-deploy",True); t=token(); before=inventory(t)
+    guard("command-center-862-staging-deploy",True); approved=approved_evidence(); t=token(); before=inventory(t)
     require(len(before)==54 and not any(name.endswith("/"+f) for name in before for f in FUNCTIONS),"Create-only baseline drift")
-    status={"status":"STOP_NO_RETRY","project":PROJECT,"sourceSha":SOURCE_SHA,"before":before,"created":[],"lastOperation":"verified-54-function-baseline"}; save(status)
+    status={"status":"STOP_NO_RETRY","project":PROJECT,"sourceSha":SOURCE_SHA,"approvedEvidenceSourceSha":approved["sourceMergeSha"],"before":before,"created":[],"lastOperation":"verified-evidence-and-54-function-baseline"}; save(status)
     payload=zip_source(source); parent=f"projects/{PROJECT}/locations/{REGION}"
     for name in FUNCTIONS:
         status["lastOperation"]="create-only-"+name; save(status)
