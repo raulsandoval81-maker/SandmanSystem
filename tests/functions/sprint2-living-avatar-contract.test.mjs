@@ -39,3 +39,14 @@ test("verified Settings navigation exposes Living Avatar without weakening Sprin
   assert.match(nav,/data-athlete-avatar-link hidden/);assert.match(nav,/resolveSignedInSelfAthlete\(\)/);
   assert.match(nav,/avatarLink\.hidden=false/);assert.match(page,/resolveSignedInSelfAthlete\(\)/);
 });
+
+test("unsafe embedded-raster illustration path is blocked before any media write",()=>{
+  assert.doesNotMatch(policy, /<image href=/);
+  assert.match(policy,/AVATAR_ILLUSTRATION_RENDERER_UNAVAILABLE/);
+  assert.ok(backend.indexOf("svg = illustratedAvatarSvg(mime, bytes)") < backend.indexOf("bucket.file(sourcePath).save(bytes"));
+  assert.match(backend,/Secure illustrated avatar rendering is not available yet/);
+});
+test("minor consent fails closed without a verified adult date of birth",()=>{
+  assert.match(policy,/dateOfBirth/);
+  assert.match(policy,/return true;/);
+});
