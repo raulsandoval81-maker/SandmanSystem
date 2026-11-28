@@ -325,6 +325,9 @@ test("Athlete cannot forge a Coach conditioning or Spartan assignment on first s
   await assertFails(updateDoc(ownRef, {
     conditioning_assignment: { status: "assigned", assignedBy: "athlete" },
   }));
+  await assertFails(updateDoc(ownRef, {
+    spartan_assignment: { status: "assigned", assignedBy: "athlete" },
+  }));
 
   // Authorized staff retain the existing assignment path.
   await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", "own"), {
@@ -335,5 +338,14 @@ test("Athlete cannot forge a Coach conditioning or Spartan assignment on first s
   }));
   await assertSucceeds(updateDoc(ownRef, {
     "strength_session1.note": "revised evidence",
+  }));
+  await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", "own"), {
+    spartan_assignment: { status: "assigned", assignedBy: "coach" },
+  }));
+  await assertFails(updateDoc(ownRef, {
+    "spartan_assignment.assignedBy": "athlete",
+  }));
+  await assertSucceeds(updateDoc(ownRef, {
+    "strength_session1.note": "another evidence revision",
   }));
 });
