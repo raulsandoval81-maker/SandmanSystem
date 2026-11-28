@@ -187,6 +187,8 @@ on:
           - athlete-sprint1-recovery-readonly
           - athlete-sprint1-staging-resume
           - command-center-862-readonly-preflight
+          - command-center-862-release-preflight
+          - command-center-862-staging-deploy
           - p0-containment-staging-deploy
           - handoff-preflight
           - handoff-deploy
@@ -5297,6 +5299,111 @@ jobs:
         with:
           name: athlete-sprint1-functions-${{ github.run_id }}
           path: athlete-sprint1-functions-deploy-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  command-center-862-release-preflight:
+    name: Command Center — two-principal permission matrix, no mutation
+    if: ${{ inputs.action == 'command-center-862-release-preflight' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    permissions: {contents: read, actions: read, id-token: write}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - name: Guard trusted first-attempt staging preflight
+        env: {CONFIRM_PROJECT: '${{ inputs.confirm_project }}'}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Verify create-only and scoped actAs permissions
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          COMMAND_CENTER_ACTION: ${{ inputs.action }}
+        run: python3 scripts/staging/command-center-862-release.py preflight-create
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Verify transport, Rules and Hosting permissions without grants
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          COMMAND_CENTER_ACTION: ${{ inputs.action }}
+        run: python3 scripts/staging/command-center-862-release.py preflight-publish
+
+  command-center-862-staging-deploy:
+    name: Command Center — three create-only Functions, additive Rules, seven Hosting assets
+    if: ${{ inputs.action == 'command-center-862-staging-deploy' && inputs.protected_2c_deployment_approval == 'APPROVE_COMMAND_CENTER_STAGING_THREE_FUNCTIONS_RULES_SEVEN_HOSTING' && inputs.confirm_public_invocation == 'APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    permissions: {contents: read, actions: read, id-token: write}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0, persist-credentials: false}
+      - uses: actions/checkout@v4
+        with: {ref: 23b910d9c1a2d7ddf6c829be505725a4d16862b6, path: application, persist-credentials: false}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - run: npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+      - name: Build isolated exact three-callable package
+        env: {COMMAND_CENTER_APPLICATION_ROOT: '${{ github.workspace }}/application'}
+        run: python3 scripts/staging/command-center-862-release.py package --out "$RUNNER_TEMP/command-center-package"
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Create exactly three absent Functions atomically
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          COMMAND_CENTER_ACTION: ${{ inputs.action }}
+          COMMAND_CENTER_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          COMMAND_CENTER_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+        run: python3 scripts/staging/command-center-862-release.py create-functions --source "$RUNNER_TEMP/command-center-package"
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - name: Retrieve accepted immutable preflight evidence
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/command-center-preflight"
+          gh api repos/raulsandoval81-maker/SandmanSystem/actions/artifacts/15246279206/zip > "$RUNNER_TEMP/command-center-preflight/evidence.zip"
+          printf '%s  %s\n' 4b3b8439115834e2122cccf07aa871595808d36b5ec7874fd504727b84cbe8dc "$RUNNER_TEMP/command-center-preflight/evidence.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/command-center-preflight/evidence.zip" -d "$RUNNER_TEMP/command-center-preflight"
+      - name: Enable app-auth transport and publish exact Rules and Hosting overlays
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          COMMAND_CENTER_ACTION: ${{ inputs.action }}
+          COMMAND_CENTER_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          COMMAND_CENTER_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+          COMMAND_CENTER_PREFLIGHT_JSON: ${{ runner.temp }}/command-center-preflight/command-center-862-readonly-evidence.json
+        run: python3 scripts/staging/command-center-862-release.py publish
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: command-center-862-release-${{ github.run_id }}
+          path: command-center-862-release-evidence.json
           if-no-files-found: warn
           retention-days: 30
 
