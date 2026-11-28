@@ -25,7 +25,7 @@ PROJECT = "sandman-combat-staging"
 REGION = "us-central1"
 SOURCE_SHA = "0e9d96e3994094fffacbb606ac77f474902bf666"
 WORKFLOW = ("raulsandoval81-maker/SandmanSystem/.github/workflows/"
-            "athlete-sprint1-guarded-resume.yml@refs/heads/main")
+            "staging-exact-sha-release.yml@refs/heads/main")
 ACTION = "athlete-sprint1-staging-resume"
 STAGING_DEPLOYER = "sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com"
 RUNTIME = "sandman-billing-runtime@sandman-combat-staging.iam.gserviceaccount.com"
