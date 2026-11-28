@@ -164,4 +164,4 @@ for (const [path, asset] of assets) {
   assert.equal(sha256(Buffer.from(await response.arrayBuffer())), asset.rawHash, 'Published hash mismatch: ' + path);
 }
 writeFileSync(`${profileName}-deployed.json`, JSON.stringify({...evidence, after}, null, 2) + '\n');
-console.log(JSON.stringify({after, rollback: baseline, verifiedLiveHashes: Object.fromEntries(targets)}));
+console.log(JSON.stringify({after, rollback: baseline, verifiedLiveHashes: Object.fromEntries([...assets].map(([path, asset]) => [path, asset.rawHash]))}));
