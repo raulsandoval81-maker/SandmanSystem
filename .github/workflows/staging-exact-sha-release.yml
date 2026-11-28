@@ -184,6 +184,7 @@ on:
           - athlete-sprint1-readonly-preflight
           - athlete-sprint1-release-preflight
           - athlete-sprint1-staging-deploy
+          - athlete-sprint1-recovery-readonly
           - p0-containment-staging-deploy
           - handoff-preflight
           - handoff-deploy
@@ -5363,5 +5364,78 @@ jobs:
         with:
           name: athlete-sprint1-rules-hosting-${{ github.run_id }}
           path: athlete-sprint1-release-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+
+
+  athlete-sprint1-recovery-readonly:
+    if: ${{ inputs.action == 'athlete-sprint1-recovery-readonly' && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    name: Athlete Sprint 1 — diagnose partial staging as ${{ matrix.label }} (read only)
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: practice-deployer
+            principal: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          - label: staging-deployer
+            principal: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+    steps:
+      - name: Validate trusted staging dispatch and forbid unsafe retry
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_ACTION: ${{ inputs.action }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/main"
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$GITHUB_EVENT_NAME" = "workflow_dispatch"
+          test "$GITHUB_RUN_ATTEMPT" = "1"
+          test "$CONFIRM_PROJECT" = "sandman-combat-staging"
+          test "$SPRINT1_ACTION" = "athlete-sprint1-recovery-readonly"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download exact signed baseline and partial-deployment receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sprint1-original" "$RUNNER_TEMP/sprint1-partial"
+          gh run download 46086011747 --repo raulsandoval81-maker/SandmanSystem --name sprint1-staging-readonly-46086011747 --dir "$RUNNER_TEMP/sprint1-original"
+          gh run download 46094443807 --repo raulsandoval81-maker/SandmanSystem --name athlete-sprint1-functions-46094443807 --dir "$RUNNER_TEMP/sprint1-partial"
+          test -s "$RUNNER_TEMP/sprint1-original/sprint1-staging-readonly-evidence.json"
+          test -s "$RUNNER_TEMP/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json"
+      - name: Authenticate through existing, restricted staging provider
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: ${{ matrix.principal }}
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Inspect exactly one partially created Athlete Function and IAM rights — NO WRITES
+        env:
+          SPRINT1_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_DIAGNOSTIC_PRINCIPAL: ${{ matrix.principal }}
+          SPRINT1_BASELINE_JSON: ${{ runner.temp }}/sprint1-original/sprint1-staging-readonly-evidence.json
+          SPRINT1_PARTIAL_RECEIPT_JSON: ${{ runner.temp }}/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json
+        run: python3 scripts/staging/athlete-sprint1-release/recovery_diagnose.py
+      - name: Preserve sanitized partial recovery and permission evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: athlete-sprint1-partial-${{ matrix.label }}-${{ github.run_id }}
+          path: sprint1-partial-recovery-diagnostic.json
           if-no-files-found: warn
           retention-days: 30
