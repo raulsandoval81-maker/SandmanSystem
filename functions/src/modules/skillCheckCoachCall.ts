@@ -15,6 +15,8 @@ import { reconcileHistoryPages, previewMixedGroupSkillNeeds, selectSupervisedGro
 import { reconcileVerifiedProgression, reconcileNativeHistoryPages, assessIndependentCoverage, compareNativePracticeInventories, compareNativeEvidenceFingerprints } from "./verifiedProgressionResolver";
 
 import {
+  isAuthorizedStaffRecord,
+  normalizeStaffRecord,
   normalizeStaffList,
   normalizeStaffRole,
   normalizeStaffScope,
@@ -333,6 +335,119 @@ function attendanceIncludesAthlete(attendance: Record<string, unknown>, athleteI
     || present.some((athlete: any) => clean(athlete?.id || athlete?.uid).toUpperCase() === athleteId);
 }
 
+async function confirmGroupSkillAssessment(uid: string, input: Record<string, unknown>) {
+  const practiceId = optionalPracticeId(input.practiceId);
+  const groupId = clean(input.groupId);
+  const familyId = normalizeFamily(input.familyId);
+  const discipline = clean(input.discipline);
+  const raw = input.observations;
+  if (!practiceId || !/^[A-Za-z0-9_-]{1,120}$/.test(groupId)
+    || !familiesForDiscipline(discipline).includes(familyId)
+    || !Array.isArray(raw) || !raw.length || raw.length > 30) {
+    throw new HttpsError("invalid-argument", "A practice, group, approved skill and 1–30 outcomes are required.");
+  }
+  const observations = raw.map(row => {
+    const athleteId = clean(row?.athleteId);
+    const state = clean(row?.state) as typeof ALLOWED_STATES[number];
+    if (!/^[A-Za-z0-9_-]{1,160}$/.test(athleteId) || !ALLOWED_STATES.includes(state)) {
+      throw new HttpsError("invalid-argument", "Invalid individual outcome.");
+    }
+    return { athleteId, state };
+  }).sort((a, b) => a.athleteId.localeCompare(b.athleteId));
+  if (new Set(observations.map(row => row.athleteId)).size !== observations.length) {
+    throw new HttpsError("invalid-argument", "An athlete may only be assessed once per confirmation.");
+  }
+
+  const db = getFirestore();
+  const practiceRef = db.doc(`practiceSessions/${practiceId}`);
+  const verificationId = `${discipline}__${familyId}`;
+  const receiptRef = practiceRef.collection("groupSkillConfirmations").doc(`${groupId}__${verificationId}`);
+  return db.runTransaction(async tx => {
+    const [staffSnap, practiceSnap, attendanceSnap, receipt] = await Promise.all([
+      tx.get(db.doc(`staff/${uid}`)), tx.get(practiceRef),
+      tx.get(db.doc(`attendance_sessions/${practiceId}`)), tx.get(receiptRef),
+    ]);
+    const staffData = staffSnap.data() || {};
+    if (!isAuthorizedStaffRecord(staffData, SKILL_CHECK_STAFF_ROLES)) {
+      throw new HttpsError("permission-denied", "Active Coach access required.");
+    }
+    const staff = normalizeStaffRecord(staffData);
+    const actor = { uid, staff, role: staff.role };
+    if (!practiceSnap.exists) throw new HttpsError("not-found", "Practice not found.");
+    const practice = practiceSnap.data() || {};
+    requirePracticeVerificationAccess(actor, practice);
+    const attendance = attendanceSnap.data() || {};
+    if (normalizeDiscipline(practice.discipline) !== discipline
+      || clean(attendance.practiceId) !== practiceId
+      || attendance.finalized !== true || attendance.status !== "finalized"
+      || normalizeDiscipline(attendance.discipline) !== discipline) {
+      throw new HttpsError("failed-precondition", "Matching finalized attendance is required.");
+    }
+
+    const memory = practice.sessionMemory || {};
+    const matchesSkill = (card: Record<string, unknown>) => card.groupId === groupId
+      && (!card.discipline || card.discipline === discipline)
+      && normalizeFamily(card.familyId || card.skillId) === familyId;
+    const cards = (Array.isArray(memory.workedCards) ? memory.workedCards : []).filter(matchesSkill);
+    const planned: Record<string, unknown>[] = (Array.isArray(memory.plannedCards) ? memory.plannedCards : []).filter(matchesSkill);
+    const members = new Set<string>();
+    for (const card of cards) {
+      const plan = planned.find(row => row.cardId === card.cardId && row.blockId === card.blockId);
+      if (Array.isArray(card.athleteIds) && Array.isArray(plan?.athleteIds)) {
+        for (const id of card.athleteIds) if (typeof id === "string" && plan.athleteIds.includes(id)) members.add(id);
+      }
+    }
+
+    const evidenceRefs = await Promise.all(observations.map(async ({ athleteId }) => {
+      if (!members.has(athleteId) || !Array.isArray(attendance.presentIds)
+        || !attendance.presentIds.includes(athleteId)) {
+        throw new HttpsError("failed-precondition", "Every assessed athlete must be present in the recorded skill group.");
+      }
+      const sessionRef = practiceRef.collection("athletes").doc(athleteId);
+      const evidenceRef = sessionRef.collection("verifiedSkills").doc(verificationId);
+      const [athlete, session, evidence] = await Promise.all([
+        tx.get(db.doc(`athletes/${athleteId}`)), tx.get(sessionRef), tx.get(evidenceRef),
+      ]);
+      if (!athlete.exists) throw new HttpsError("failed-precondition", "Athlete record unavailable.");
+      requireSkillCheckAthleteAccess(actor, athlete.data() || {});
+      const record = session.data() || {};
+      if (record.practiceId !== practiceId || record.athleteId !== athleteId
+        || normalizeDiscipline(record.discipline) !== discipline || record.attendance?.status !== "present"
+        || !Array.isArray(record.workedCards) || !record.workedCards.some(matchesSkill)) {
+        throw new HttpsError("failed-precondition", "Matching athlete-session skill evidence is required.");
+      }
+      return { evidenceRef, exists: evidence.exists };
+    }));
+
+    if (receipt.exists) {
+      const saved = receipt.data() || {};
+      if (saved.coachUid === uid && JSON.stringify(saved.observations?.map(
+        (item: { athleteId: string; state: string }) => ({ athleteId: item.athleteId, state: item.state }),
+      )) === JSON.stringify(observations)) {
+        return { ok: true, count: observations.length, idempotent: true };
+      }
+      throw new HttpsError("already-exists", "This group skill has already been confirmed.");
+    }
+    if (evidenceRefs.some(row => row.exists)) {
+      throw new HttpsError("already-exists", "Existing individual evidence is preserved. Exclude previously assessed athletes.");
+    }
+
+    const verifiedAt = FieldValue.serverTimestamp();
+    for (const [index, { athleteId, state }] of observations.entries()) {
+      tx.create(evidenceRefs[index].evidenceRef, {
+        skillId: familyId, familyId, discipline, state, coachUid: uid, verifiedAt,
+        sourceVersion: 1, groupId, groupConfirmationId: receiptRef.id,
+      });
+      tx.set(db.doc(`athletes/${athleteId}/historyRevisions/${discipline}`), {
+        revision: FieldValue.increment(1), lastMutationKind: "verified-skill-observation",
+        lastPracticeId: practiceId, updatedAt: verifiedAt,
+      }, { merge: true });
+    }
+    tx.create(receiptRef, { coachUid: uid, practiceId, groupId, discipline, familyId, observations, verifiedAt });
+    return { ok: true, count: observations.length, idempotent: false };
+  });
+}
+
 export const skillCheckCoachCall =
   onCall(skillCheckRuntimeOptions, async (req) => {
     if (!req.auth) {
@@ -350,6 +465,7 @@ export const skillCheckCoachCall =
 
     const data = req.data || {};
     const action = clean(data.action).toLowerCase();
+    if (action === "confirm-group-assessment") return confirmGroupSkillAssessment(actor.uid, data);
     const athleteId = clean(
       data.athleteId || data.uid || ((action === "preview-group-lessons" || action === "create-recommended-group-lesson-draft" || action === "preview-auto-lesson-assembly") && Array.isArray(data.athleteIds) ? data.athleteIds[0] : "")
     ).toUpperCase();
