@@ -50,11 +50,15 @@ export function canonicalAthleteHref(path, verifiedId, discipline = "") {
 export function persistVerifiedAthleteId(id) {
   const value = String(id || "").trim();
   if (!value) return;
-  for (const key of ["sandman_lastAthleteUid", "currentAthleteId"]) localStorage.setItem(key, value);
-  sessionStorage.setItem("currentAthleteId", value);
+  for (const key of ["sandman_lastAthleteUid", "currentAthleteId"]) {
+    localStorage.setItem(key, value);
+    sessionStorage.setItem(key, value);
+  }
 }
 
 export function clearUnverifiedAthleteId() {
-  for (const key of ["sandman_lastAthleteUid", "currentAthleteId"]) localStorage.removeItem(key);
-  sessionStorage.removeItem("currentAthleteId");
+  for (const key of ["sandman_lastAthleteUid", "currentAthleteId"]) {
+    localStorage.removeItem(key);
+    sessionStorage.removeItem(key);
+  }
 }
