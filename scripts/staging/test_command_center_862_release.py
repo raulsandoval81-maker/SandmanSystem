@@ -34,4 +34,14 @@ class ReleaseTests(TestCase):
             self.assertIn(path,source)
         self.assertIn('"ci"',source); self.assertIn("Package exports expanded",source)
         self.assertIn('shutil.rmtree(out/"node_modules")',source)
+        self.assertIn("initializeApp",source); self.assertIn('validation.get("adminApps")==1',source)
+    def test_publish_permissions_use_documented_hosting_identifiers(self):
+        source=inspect.getsource(cc.preflight_publish)
+        self.assertIn('"firebasehosting.sites.get"',source)
+        self.assertIn('"firebasehosting.sites.update"',source)
+        self.assertNotIn("firebasehosting.versions",source)
+    def test_immutable_evidence_and_live_baseline_precede_creation(self):
+        source=inspect.getsource(cc.create_functions)
+        self.assertLess(source.index("approved_evidence()"),source.index("inventory(t)"))
+        self.assertLess(source.index("inventory(t)"),source.index("generateUploadUrl"))
 if __name__=="__main__": main()
