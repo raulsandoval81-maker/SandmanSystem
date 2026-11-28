@@ -47,6 +47,7 @@ jobs:
           python3 -m compileall -q scripts/staging/athlete-sprint1-release
           node --check scripts/staging/p0-authenticated-acceptance.mjs
           python3 -m unittest discover -s scripts/staging/athlete-sprint1-release -p 'test_release_security_guards.py' -v
+          python3 -m unittest discover -s scripts/staging/athlete-sprint1-release -p 'test_recovery_diagnose.py' -v
       - name: Build exact two-callable package from immutable source
         run: |
           set -euo pipefail

@@ -138,11 +138,15 @@ def deploy(source):
             headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"})
         with urllib.request.urlopen(request, timeout=30) as response:
             return set(json.load(response).get("permissions", []))
-    project_required = {"cloudfunctions.functions.create", "run.services.update"}
+    # Cloud Run transport requires setIamPolicy; check before creating anything.
+    # This project-scoped check is conservative for services that do not exist yet.
+    project_required = {"cloudfunctions.functions.create", "run.services.update",
+                        "run.services.setIamPolicy"}
     project_allowed = effective_permissions(
         "https://cloudresourcemanager.googleapis.com/v1/projects/" + PROJECT + ":testIamPermissions",
         project_required)
-    need(project_required.issubset(project_allowed), "Missing Function create or Cloud Run permissions")
+    need(project_required.issubset(project_allowed),
+         "Missing Function create or required Cloud Run transport permission")
     act_as = {"iam.serviceAccounts.actAs"}
     account_allowed = effective_permissions(
         "https://iam.googleapis.com/v1/projects/-/serviceAccounts/" + RUNTIME + ":testIamPermissions",
@@ -178,6 +182,12 @@ def deploy(source):
             "--clear-secrets", "--quiet",
         ], check=True)
         svc = name.lower()
+        # Persist a successful Cloud Function creation BEFORE attempting the separate
+        # Cloud Run IAM operation, so a failed transport step is never called zero-change.
+        status["createdUnconfigured"] = {
+            "name": f"projects/{PROJECT}/locations/{REGION}/functions/{name}",
+            "service": svc, "sourceSha": SOURCE_SHA, "transportVerified": False
+        }
         status["lastOperation"] = "enable-application-auth-transport-" + name
         save(status)
         subprocess.run(["gcloud", "run", "services", "update", svc,
@@ -196,6 +206,7 @@ def deploy(source):
             "name": expected_name, "inventory": after[expected_name]
         })
         status["created"].append(record)
+        status.pop("createdUnconfigured", None)
         status["lastOperation"] = "verified-" + name
         save(status)
     status["status"] = "PASS_TWO_NEW_CALLABLES_PENDING_RULES_HOSTING"
