@@ -21,6 +21,7 @@ const ownershipClassificationOnly = process.env.P0_OWNERSHIP_CLASSIFICATION === 
 const dependencyDiagnosticOnly = process.env.P0_DEPENDENCY_DIAGNOSTIC === "true";
 const navigationDiagnosticOnly = process.env.P0_NAVIGATION_DIAGNOSTIC === "true";
 const athleteDiagnostics = {};
+const sprint1CallableChecks = [];
 
 function diagnosticPath(rawUrl) {
   try {
@@ -157,8 +158,11 @@ async function request(url, token, scheme = "Bearer") {
   });
 }
 
-async function assertSprint1Callable(name, token, athleteId, allowedRole) {
+async function assertSprint1Callable(name, role, token, athleteId, target, allowedRole) {
   requireCheck(["getAthleteProfileFeed", "getAthleteSkillsSummary"].includes(name));
+  const check = { callable: name, role, target, expectedHttpStatus: allowedRole ? 200 : token ? 403 : 401,
+    status: "STOP_NO_RETRY", assertion: "fetch" };
+  sprint1CallableChecks.push(check);
   const payload = name === "getAthleteProfileFeed"
     ? { athleteId, authorizeOnly: true }
     : { athleteId, discipline: "wrestling" };
@@ -175,18 +179,28 @@ async function assertSprint1Callable(name, token, athleteId, allowedRole) {
       body: JSON.stringify({ data: payload }),
     },
   );
+  check.httpStatus = response.status;
+  check.assertion = "callable-json";
   const body = await response.json();
+  const code = body?.error?.status;
+  check.callableStatus = ["UNAUTHENTICATED", "PERMISSION_DENIED", "INTERNAL", "INVALID_ARGUMENT",
+    "FAILED_PRECONDITION", "UNAVAILABLE", "NOT_FOUND", "RESOURCE_EXHAUSTED"].includes(code)
+    ? code : code === undefined ? "absent" : "other";
+  check.assertion = "http-status";
+  requireCheck(response.status === check.expectedHttpStatus);
   if (allowedRole) {
-    requireCheck(response.status === 200);
-    const result = body.result;
+    const result = body?.result;
+    check.assertion = "exact-athlete-id";
     requireCheck(result?.athleteId === athleteId);
+    check.assertion = name === "getAthleteProfileFeed" ? "profile-authorized" : "skills-shape";
     if (name === "getAthleteProfileFeed") requireCheck(result.authorized === true);
     else requireCheck(result.ok === true && result.discipline === "wrestling"
       && Array.isArray(result.skills));
   } else {
-    requireCheck(response.status === (token ? 403 : 401));
-    requireCheck(body.error?.status === (token ? "PERMISSION_DENIED" : "UNAUTHENTICATED"));
+    check.assertion = "callable-error-status";
+    requireCheck(code === (token ? "PERMISSION_DENIED" : "UNAUTHENTICATED"));
   }
+  check.status = "PASS";
 }
 
 async function readDocument(path, token) {
@@ -560,13 +574,13 @@ async function run() {
     current = "Sprint 1 protected Profile and Skills callables — synthetic authenticated roles";
     for (const name of ["getAthleteProfileFeed", "getAthleteSkillsSummary"]) {
       for (const role of ["athlete", "parent", "coach", "management", "admin"]) {
-        await assertSprint1Callable(name, tokens[role], fixtures.ownAthlete, true);
+        await assertSprint1Callable(name, role, tokens[role], fixtures.ownAthlete, "in-scope", true);
       }
-      await assertSprint1Callable(name, tokens.admin, fixtures.otherAthlete, true);
+      await assertSprint1Callable(name, "admin", tokens.admin, fixtures.otherAthlete, "other", true);
       for (const role of ["athlete", "parent", "coach", "management"]) {
-        await assertSprint1Callable(name, tokens[role], fixtures.otherAthlete, false);
+        await assertSprint1Callable(name, role, tokens[role], fixtures.otherAthlete, "other", false);
       }
-      await assertSprint1Callable(name, null, fixtures.ownAthlete, false);
+      await assertSprint1Callable(name, "unauthenticated", null, fixtures.ownAthlete, "in-scope", false);
     }
     passed(current);
   }
@@ -641,7 +655,7 @@ try {
     : dependencyDiagnosticOnly ? "athlete dependency diagnostic"
     : ownershipClassificationOnly ? "athlete ownership classification"
     : athleteOnly ? "athlete diagnostic" : "full acceptance";
-  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope, storage: "PENDING", athleteDiagnostics, checks };
+  const result = { project, status: process.exitCode ? "STOP_NO_RETRY" : "PASS", scope, storage: "PENDING", athleteDiagnostics, checks, sprint1CallableChecks };
   writeFileSync("p0-acceptance-results.json", JSON.stringify(result, null, 2) + "\n");
   console.log(JSON.stringify(result));
 }
