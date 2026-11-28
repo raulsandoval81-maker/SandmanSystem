@@ -1,71 +1,26 @@
-import assert from "node:assert/strict";
-import test, { after } from "node:test";
-import { initializeApp, deleteApp } from "firebase/app";
-import { connectAuthEmulator, createUserWithEmailAndPassword, getAuth, signOut } from "firebase/auth";
-import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions";
-import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
-import { doc, setDoc } from "firebase/firestore";
-
-const projectId = "demo-sandman-command-center-e2e";
-const rulesEnv = await initializeTestEnvironment({
-  projectId,
-  firestore: { host: "127.0.0.1", port: 8181 },
-});
-const apps = [];
-
-async function client(label, staff) {
-  const app = initializeApp({ projectId, apiKey: "demo-key", authDomain: "localhost" }, label);
-  apps.push(app);
-  const auth = getAuth(app);
-  connectAuthEmulator(auth, "http://127.0.0.1:9199", { disableWarnings: true });
-  const email = `${label}@example.test`;
-  const credential = await createUserWithEmailAndPassword(auth, email, "Synthetic-Command-1!");
-  await rulesEnv.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), "staff", credential.user.uid), staff);
-  });
-  const functions = getFunctions(app, "us-central1");
-  connectFunctionsEmulator(functions, "127.0.0.1", 5501);
-  return { auth, call: (name) => httpsCallable(functions, name) };
-}
-
-after(async () => {
-  await Promise.all(apps.map(deleteApp));
-  await rulesEnv.cleanup();
-});
-
-test("actual callable handlers deny ordinary Admin and persist owner lifecycle with immutable history", async () => {
-  const ordinary = await client("ordinary-admin", { role: "admin", status: "active" });
-  await assert.rejects(ordinary.call("getCommandCenterSnapshot")({}), /permission-denied|owner access/i);
-  await signOut(ordinary.auth);
-
-  const owner = await client("command-owner", { role: "admin", status: "active", commandCenterOwner: true });
-  const save = owner.call("saveCommandCenterProject");
-  const snapshot = owner.call("getCommandCenterSnapshot");
-  const archive = owner.call("archiveCommandCenterProject");
-  const base = {
-    title: "Synthetic Command Center acceptance", summary: "No customer data",
-    module: "testing_verification", priority: "high",
-    repository: "raulsandoval81-maker/SandmanSystem", branch: "synthetic/acceptance",
-    prUrl: "", environment: "local", testEvidence: [], blockers: [], nextAction: "Continue acceptance",
-  };
-  const created = (await save({ project: { ...base, status: "planned" } })).data;
-  assert.equal(created.ok, true);
-  const projectIdValue = created.projectId;
-  for (const status of ["in_progress", "built"]) await save({ projectId: projectIdValue, project: { ...base, status } });
-  const testEvidence = [{ type: "test", result: "pass", label: "Synthetic handler acceptance", url: "https://example.test/test" }];
-  await save({ projectId: projectIdValue, project: { ...base, status: "tested", testEvidence } });
-  const merged = { ...base, status: "merged", testEvidence, prUrl: "https://github.com/example/project/pull/1" };
-  await save({ projectId: projectIdValue, project: merged });
-  const deployedEvidence = [...testEvidence, { type: "deployment", result: "pass", label: "Synthetic staging", url: "https://example.test/deploy" }];
-  await save({ projectId: projectIdValue, project: { ...merged, status: "deployed", environment: "staging", testEvidence: deployedEvidence } });
-  const verifiedEvidence = [...deployedEvidence, { type: "verification", result: "pass", label: "Synthetic verification", url: "https://example.test/verify" }];
-  await save({ projectId: projectIdValue, project: { ...merged, status: "verified", environment: "staging", testEvidence: verifiedEvidence } });
-  const beforeArchive = (await snapshot({})).data.projects.find((item) => item.id === projectIdValue);
-  assert.equal(beforeArchive.status, "verified");
-  assert.equal(beforeArchive.history.length, 7);
-  await archive({ projectId: projectIdValue });
-  const archived = (await snapshot({})).data.projects.find((item) => item.id === projectIdValue);
-  assert.equal(archived.status, "archived");
-  assert.equal(archived.history.length, 8);
-  assert.equal(archived.history[0].action, "archived");
+import assert from "node:assert/strict"; import test,{after} from "node:test";
+import {initializeApp,deleteApp} from "firebase/app"; import {connectAuthEmulator,createUserWithEmailAndPassword,getAuth,signOut} from "firebase/auth"; import {connectFunctionsEmulator,getFunctions,httpsCallable} from "firebase/functions"; import {initializeTestEnvironment} from "@firebase/rules-unit-testing"; import {doc,setDoc} from "firebase/firestore";
+const projectId="demo-sandman-command-center-e2e"; const rulesEnv=await initializeTestEnvironment({projectId,firestore:{host:"127.0.0.1",port:8181}}); const apps=[];
+async function client(label,staff){const app=initializeApp({projectId,apiKey:"demo-key",authDomain:"localhost"},label);apps.push(app);const auth=getAuth(app);connectAuthEmulator(auth,"http://127.0.0.1:9199",{disableWarnings:true});const credential=await createUserWithEmailAndPassword(auth,`${label}@example.test`,"Synthetic-Command-1!");await rulesEnv.withSecurityRulesDisabled(async(context)=>setDoc(doc(context.firestore(),"staff",credential.user.uid),staff));const functions=getFunctions(app,"us-central1");connectFunctionsEmulator(functions,"127.0.0.1",5501);return{auth,call:(name)=>httpsCallable(functions,name)}}
+after(async()=>{await Promise.all(apps.map(deleteApp));await rulesEnv.cleanup()});
+const evidence=(type)=>({id:`e_${type}`,type,result:"pass",label:type,url:`https://example.test/${type}`});
+const milestones=(items)=>[{id:"m1",title:"Foundation",sprints:[{id:"s1",title:"Sprint",tasks:[{id:"t1",title:"Acceptance",status:"done",owner:"Founder",teamAssignments:["Future engineer"],dependencies:["CR-001"],evidence:items}]}]}];
+test("actual handlers deny ordinary Admin and persist owner lifecycle with immutable history",async()=>{
+ const ordinary=await client("ordinary-admin",{role:"admin",status:"active"});await assert.rejects(ordinary.call("getCommandCenterSnapshot")({}),/permission-denied|owner access/i);await signOut(ordinary.auth);await assert.rejects(ordinary.call("getCommandCenterSnapshot")({}),/unauthenticated|authentication required/i);
+ const owner=await client("command-owner",{role:"admin",status:"active",commandCenterOwner:true});const save=owner.call("saveCommandCenterProject"),snapshot=owner.call("getCommandCenterSnapshot"),archive=owner.call("archiveCommandCenterProject");
+ const base={title:"Synthetic acceptance",productId:"sandman-academy",summary:"No customer data",division:"sandman_academy",module:"testing_verification",workType:"engineering",workState:"active",priority:"high",projectOwner:"Founder",teamAssignments:[],dependencies:["CR-001"],approvals:[],repository:"raulsandoval81-maker/SandmanSystem",branch:"synthetic/acceptance",prUrl:"",environment:"local",blockers:[],nextAction:"Continue",milestones:[]};
+ const legacy={title:"Original synthetic record",status:"tested",module:"testing_verification",priority:"high",repository:base.repository,environment:"local",testEvidence:[{type:"test",result:"pass",label:"Original evidence",url:"https://example.test/legacy"}],updatedAt:new Date()};
+ await rulesEnv.withSecurityRulesDisabled(async context=>{const db=context.firestore();await setDoc(doc(db,"adminCommandCenterProjects","legacy"),legacy);await setDoc(doc(db,"adminCommandCenterProjects","legacy","history","original"),{action:"created",toStatus:"tested",at:new Date()});});
+ const initial=(await snapshot({})).data;assert.equal(initial.reconciliation.items.length,3);assert.equal(initial.reconciliation.automaticRefresh,false);assert.equal(initial.projects.find(item=>item.id==="legacy").history[0].id,"original");
+ await assert.rejects(save({projectId:"legacy",project:{...base,lifecycleStatus:"backlog"}}),/Legacy project requires explicit reconciliation/i);
+ await assert.rejects(archive({projectId:"legacy"}),/Only final-acceptance/i);
+ const preserved=(await snapshot({})).data.projects.find(item=>item.id==="legacy");assert.equal(preserved.status,"tested");assert.deepEqual(preserved.testEvidence,legacy.testEvidence);assert.equal(preserved.history.length,1);assert.equal(preserved.lifecycleStatus,undefined);
+ const created=(await save({project:{...base,lifecycleStatus:"backlog"}})).data;assert.equal(created.ok,true);const id=created.projectId;
+ for(const lifecycleStatus of ["approved","in_development","in_review"]) await save({projectId:id,project:{...base,lifecycleStatus}});
+ await assert.rejects(save({projectId:id,project:{...base,workType:"non_engineering",lifecycleStatus:"final_acceptance",milestones:milestones([evidence("verification")])}}),/Existing project work type cannot be changed/i);
+ const testAndPr=[evidence("test"),evidence("pull_request")];const merged={...base,lifecycleStatus:"merged",prUrl:"https://github.com/example/project/pull/1",milestones:milestones(testAndPr)};await save({projectId:id,project:merged});
+ const staging=[...testAndPr,evidence("staging_deployment"),evidence("verification")];await save({projectId:id,project:{...merged,lifecycleStatus:"staging_verified",environment:"staging",milestones:milestones(staging)}});
+ const production=[...staging,evidence("production_deployment")];const released={...merged,lifecycleStatus:"production_released",environment:"production",milestones:milestones(production)};await save({projectId:id,project:released});await save({projectId:id,project:{...released,lifecycleStatus:"final_acceptance"}});
+ const before=(await snapshot({})).data.projects.find((item)=>item.id===id);assert.equal(before.lifecycleStatus,"final_acceptance");assert.equal(before.history.length,8);assert.equal(before.productId,"sandman-academy");
+ await archive({projectId:id});const archived=(await snapshot({})).data.projects.find((item)=>item.id===id);assert.equal(archived.lifecycleStatus,"archived");assert.equal(archived.history.length,9);assert.equal(archived.history[0].action,"archived");
 });
