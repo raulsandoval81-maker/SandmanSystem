@@ -135,9 +135,9 @@ def deploy(source):
     for name in NAMES:
         # No attempt to update or salvage an existing callable.
         current = function_inventory()
-        need(current == previous | {
-            f"projects/{PROJECT}/locations/{REGION}/functions/{done['name']}": done["inventory"]
-            for done in status.get("internal_created", [])},
+        need(current == {**previous, **{
+            done["name"]: done["inventory"]
+            for done in status.get("internal_created", [])}},
             "Concurrent Functions drift before creation")
         need(f"projects/{PROJECT}/locations/{REGION}/functions/{name}" not in current,
              "Creation target already exists")
@@ -173,6 +173,9 @@ def deploy(source):
              "An unrelated staging Function appeared during release")
         need(all(after[p] == previous[p] for p in previous),
              "Existing staging Function changed during release")
+        status.setdefault("internal_created", []).append({
+            "name": expected_name, "inventory": after[expected_name]
+        })
         status["created"].append(record)
         status["lastOperation"] = "verified-" + name
         save(status)
