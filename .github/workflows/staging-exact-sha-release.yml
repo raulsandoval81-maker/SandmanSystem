@@ -142,6 +142,8 @@ on:
           - pr831-hosting-deploy
           - pr834-hosting-preflight
           - pr834-hosting-deploy
+          - athlete-sprint1-storage-preflight
+          - athlete-sprint1-storage-deploy
           - pr837-hosting-preflight
           - pr837-hosting-deploy
           - pr841-hosting-preflight
@@ -4129,6 +4131,65 @@ jobs:
         with:
           name: pr834-hosting-${{ github.run_id }}
           path: pr834-*.json
+          if-no-files-found: error
+
+  athlete-sprint1-storage-overlay:
+    if: ${{ (inputs.action == 'athlete-sprint1-storage-preflight' || inputs.action == 'athlete-sprint1-storage-deploy') && github.ref == 'refs/heads/main' && github.repository == 'raulsandoval81-maker/SandmanSystem' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    concurrency: sandman-staging-hosting
+    steps:
+      - name: Guard first attempt and staging target
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+      - name: Require distinct one-file staging approval
+        if: inputs.action == 'athlete-sprint1-storage-deploy'
+        env:
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+        run: |
+          set -euo pipefail
+          test "$APPROVAL" = APPROVE_SPRINT1_STORAGE_ONE_FILE_STAGING_ONLY
+          test -n "$EXPECTED_RELEASE"
+          test -n "$EXPECTED_VERSION"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 25fdba71505416c68f8c6d235f6e7389c3b92e91
+          path: candidate
+          persist-credentials: false
+      - uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Validate live manifest and exact one-file Hosting overlay
+        env:
+          P0_HOSTING_PROFILE: sprint1storage
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          EXPECTED_RELEASE: ${{ inputs.protected_2c_expected_hosting_release }}
+          EXPECTED_VERSION: ${{ inputs.protected_2c_expected_hosting_version }}
+          MODE: ${{ inputs.action == 'athlete-sprint1-storage-deploy' && 'deploy' || 'preflight' }}
+        run: node scripts/staging/pr834-hosting-overlay.mjs "$MODE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sprint1-storage-hosting-${{ github.run_id }}
+          path: sprint1storage-*.json
           if-no-files-found: error
 
   pr837-hosting-overlay:
