@@ -62,3 +62,32 @@ test("normalization rejects malformed or missing timers rather than guessing", (
   assert.equal(normalizeSpartanSession({ ...source, sequence: [] }, { track: "f8" }), null);
   assert.equal(normalizeSpartanSession(source, { track: "f4", level: 6 }), null);
 });
+
+test("all approved Level 1–3 sessions retain order, movements, rounds and stored timing", () => {
+  for (const track of ["f8", "f4"]) {
+    for (const level of SPARTAN_AVAILABLE_LEVELS) {
+      const source = resolveSpartanCurriculum({ track, level });
+      const sessions = read(source).sessions;
+      assert.equal(sessions.length, 40);
+      for (const session of sessions) {
+        const result = normalizeSpartanSession(session, source);
+        assert.ok(result, `${track} Level ${level}, session ${session.n}`);
+        const timing = typeof session.interval === "string"
+          ? session.interval.split("/").map(Number)
+          : [session.interval.workSec ?? session.interval.work,
+             session.interval.restSec ?? session.interval.rest];
+        assert.deepEqual(result.interval, { workSec: timing[0], restSec: timing[1] });
+        assert.equal(result.sessionN, session.n);
+        assert.equal(result.rounds, session.rounds);
+        assert.deepEqual(result.sequence, session.sequence);
+      }
+    }
+  }
+});
+
+test("legacy interval strings reject missing or invalid values", () => {
+  const source = { n: 81, rounds: 4, sequence: ["Fast Feet"] };
+  for (const interval of ["40", "40/", "40/20/10", "0/20", "40/-1", "601/20"]) {
+    assert.equal(normalizeSpartanSession({ ...source, interval }, { track: "f8", level: 3 }), null);
+  }
+});

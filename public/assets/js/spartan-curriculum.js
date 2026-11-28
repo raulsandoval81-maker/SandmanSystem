@@ -46,9 +46,12 @@ export function normalizeSpartanSession(session, { track, level = 1 } = {}) {
   const source = resolveSpartanCurriculum({ track, level });
   if (!source?.available || !session || typeof session !== "object") return null;
 
-  const interval = session.interval || {};
-  const workSec = Number(interval.workSec ?? interval.work);
-  const restSec = Number(interval.restSec ?? interval.rest);
+  const interval = session.interval;
+  // Youth Level 3 stores its approved work/rest seconds as "40/20".
+  const legacyPair = typeof interval === "string"
+    ? /^(\d{1,3})\/(\d{1,3})$/.exec(interval) : null;
+  const workSec = Number(legacyPair?.[1] ?? interval?.workSec ?? interval?.work);
+  const restSec = Number(legacyPair?.[2] ?? interval?.restSec ?? interval?.rest);
   const rounds = Number(session.rounds);
   const sequence = Array.isArray(session.sequence) ? [...session.sequence] : [];
   const sessionN = Number(session.n ?? session.sessionN);
