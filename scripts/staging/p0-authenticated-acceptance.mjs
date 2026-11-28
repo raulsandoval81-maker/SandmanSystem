@@ -487,6 +487,10 @@ async function openRole(role, fixture, password, athleteId, ownershipCase) {
 }
 
 async function run() {
+  if (sprint1Acceptance) {
+    requireCheck(!athleteOnly && !ownershipClassificationOnly &&
+      !dependencyDiagnosticOnly && !navigationDiagnosticOnly);
+  }
   current = "read-only network policy regression";
   verifyReadOnlyNetworkPolicy();
   passed(current);
