@@ -73,13 +73,27 @@ def audit(mode):
     require(os.environ.get("GITHUB_REPOSITORY") == "raulsandoval81-maker/SandmanSystem", "Wrong repository")
     require(os.environ.get("GITHUB_REF") == "refs/heads/main", "Wrong branch")
     require(os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch", "Manual dispatch required")
-    require(os.environ.get("GITHUB_WORKFLOW_REF") == WORKFLOW_REF, "Untrusted workflow")
+    action = os.environ.get("SPRINT1_ACTION")
+    workflow_ref = os.environ.get("GITHUB_WORKFLOW_REF")
+    resume_workflow = ("raulsandoval81-maker/SandmanSystem/.github/workflows/"
+                       "athlete-sprint1-guarded-resume.yml@refs/heads/main")
+    resume = mode == "publish" and action == "athlete-sprint1-staging-resume"
+    if resume:
+        require(workflow_ref == resume_workflow and
+                os.environ.get("GITHUB_RUN_ATTEMPT") == "1",
+                "Untrusted resume workflow or retried run")
+    else:
+        require(workflow_ref == WORKFLOW_REF, "Untrusted workflow")
     require(os.environ.get("CONFIRM_PROJECT") == PROJECT, "Wrong project")
-    allowed_actions = ("athlete-sprint1-release-preflight", "athlete-sprint1-staging-deploy") if mode == "preflight" else ("athlete-sprint1-staging-deploy",)
-    require(os.environ.get("SPRINT1_ACTION") in allowed_actions, "Wrong release action")
+    allowed_actions = (
+        ("athlete-sprint1-release-preflight", "athlete-sprint1-staging-deploy")
+        if mode == "preflight" else
+        ("athlete-sprint1-staging-deploy", "athlete-sprint1-staging-resume"))
+    require(action in allowed_actions, "Wrong release action")
     if mode == "publish":
-        require(os.environ.get("SPRINT1_APPROVAL") ==
-                "APPROVE_ATHLETE_SPRINT1_STAGING_FUNCTIONS_RULES_HOSTING",
+        approved = ("APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY" if resume else
+                    "APPROVE_ATHLETE_SPRINT1_STAGING_FUNCTIONS_RULES_HOSTING")
+        require(os.environ.get("SPRINT1_APPROVAL") == approved,
                 "Distinct staging-only release approval missing")
         require(os.environ.get("SPRINT1_TRANSPORT_APPROVAL") ==
                 "APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT",
