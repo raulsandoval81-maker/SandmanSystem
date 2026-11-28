@@ -5518,28 +5518,102 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-  athlete-sprint1-resume-functions:
-    name: Preserve existing Profile and create ONLY missing Skills Function
+  athlete-sprint1-resume-practice-readonly:
+    name: Verify practice deployer's BOTH actAs accounts and create-only permissions — NO MUTATION
     needs: athlete-sprint1-resume-readonly
-    if: ${{ inputs.protected_2c_deployment_approval == 'APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY' && inputs.confirm_public_invocation == 'APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT' }}
+    if: ${{ inputs.action == 'athlete-sprint1-staging-resume' }}
     runs-on: ubuntu-24.04
     environment: staging
-    timeout-minutes: 40
+    timeout-minutes: 20
     permissions:
       contents: read
       actions: read
       id-token: write
     steps:
-      - name: Validate separately authorized, first-attempt, staging-only release
+      - name: Guard staging-only protected diagnostic — no deployment approval required
         env:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
-          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
-          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
         run: |
           set -euo pipefail
           test "$GITHUB_REF" = refs/heads/main
           test "$GITHUB_RUN_ATTEMPT" = 1
           test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 0e9d96e3994094fffacbb606ac77f474902bf666
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore signed original baseline, #469 receipt, and immutable two-callable package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sprint1-baseline" "$RUNNER_TEMP/sprint1-partial"
+          gh run download 46086011747 --repo raulsandoval81-maker/SandmanSystem --name sprint1-staging-readonly-46086011747 --dir "$RUNNER_TEMP/sprint1-baseline"
+          gh run download 46094443807 --repo raulsandoval81-maker/SandmanSystem --name athlete-sprint1-functions-46094443807 --dir "$RUNNER_TEMP/sprint1-partial"
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          python3 scripts/staging/athlete-sprint1-release/validate_release_candidate.py --evidence "$RUNNER_TEMP/sprint1-baseline/sprint1-staging-readonly-evidence.json" --source-root application
+          python3 scripts/staging/athlete-sprint1-release/build_callable_package.py --source application --out "$RUNNER_TEMP/sprint1-callables"
+      - name: Authenticate known scoped identity (WIF only; no IAM grants)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Confirm exact runtime and build actAs; sourceCodeSet and create (IAM test only)
+        env:
+          SPRINT1_BASELINE_JSON: ${{ runner.temp }}/sprint1-baseline/sprint1-staging-readonly-evidence.json
+          SPRINT1_PARTIAL_RECEIPT_JSON: ${{ runner.temp }}/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json
+          SPRINT1_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+        run: python3 scripts/staging/athlete-sprint1-release/guarded_resume.py preflight-practice --source "$RUNNER_TEMP/sprint1-callables"
+      - name: Preserve step evidence including partial success on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint1-practice-permission-readonly-${{ github.run_id }}
+          path: athlete-sprint1-resume-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  athlete-sprint1-resume-functions:
+    name: Existing Profile — staging transport ONLY, never re-create Function
+    needs: [athlete-sprint1-resume-readonly, athlete-sprint1-resume-practice-readonly]
+    if: ${{ inputs.protected_2c_deployment_approval == 'APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY' && inputs.confirm_public_invocation == 'APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT' }}
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - name: Require separately approved first-attempt staging-only mutation
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: ${{ inputs.action }}
+          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$ACTION" = athlete-sprint1-staging-resume
           test "$CONFIRM_PROJECT" = sandman-combat-staging
           test "$SPRINT1_APPROVAL" = APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY
           test "$SPRINT1_TRANSPORT_APPROVAL" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
@@ -5555,7 +5629,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Restore immutable source and protected baseline / partial receipt
+      - name: Restore signed original baseline, #469 receipt, and immutable two-callable package
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -5567,7 +5641,7 @@ jobs:
           npm run build --prefix application/functions
           python3 scripts/staging/athlete-sprint1-release/validate_release_candidate.py --evidence "$RUNNER_TEMP/sprint1-baseline/sprint1-staging-readonly-evidence.json" --source-root application
           python3 scripts/staging/athlete-sprint1-release/build_callable_package.py --source application --out "$RUNNER_TEMP/sprint1-callables"
-      - name: Authenticate protected staging-deployer (no IAM changes)
+      - name: Authenticate known scoped identity (WIF only; no IAM grants)
         uses: google-github-actions/auth@v3
         with:
           project_id: sandman-combat-staging
@@ -5576,7 +5650,7 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
       - uses: google-github-actions/setup-gcloud@v3
-      - name: Execute guarded Profile transport update and create-only Skills, then reject anonymous calls
+      - name: Reconcile approved Profile then configure existing Cloud Run app-auth transport ONLY
         env:
           SPRINT1_BASELINE_JSON: ${{ runner.temp }}/sprint1-baseline/sprint1-staging-readonly-evidence.json
           SPRINT1_PARTIAL_RECEIPT_JSON: ${{ runner.temp }}/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json
@@ -5584,19 +5658,177 @@ jobs:
           CONFIRM_PROJECT: ${{ inputs.confirm_project }}
           SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
           SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
-        run: python3 scripts/staging/athlete-sprint1-release/guarded_resume.py execute --source "$RUNNER_TEMP/sprint1-callables"
-      - name: Preserve partial success evidence even on failure
+        run: python3 scripts/staging/athlete-sprint1-release/guarded_resume.py execute-profile --source "$RUNNER_TEMP/sprint1-callables"
+      - name: Preserve step evidence including partial success on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sprint1-guarded-resume-functions-${{ github.run_id }}
+          name: sprint1-profile-transport-${{ github.run_id }}
+          path: athlete-sprint1-resume-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  athlete-sprint1-resume-skills-create:
+    name: Practice deployer — create missing Skills ONLY (atomic create-only)
+    needs: athlete-sprint1-resume-functions
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - name: Require separately approved first-attempt staging-only mutation
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: ${{ inputs.action }}
+          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$ACTION" = athlete-sprint1-staging-resume
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$SPRINT1_APPROVAL" = APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY
+          test "$SPRINT1_TRANSPORT_APPROVAL" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 0e9d96e3994094fffacbb606ac77f474902bf666
+          path: application
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Restore signed original baseline, #469 receipt, and immutable two-callable package
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sprint1-baseline" "$RUNNER_TEMP/sprint1-partial"
+          gh run download 46086011747 --repo raulsandoval81-maker/SandmanSystem --name sprint1-staging-readonly-46086011747 --dir "$RUNNER_TEMP/sprint1-baseline"
+          gh run download 46094443807 --repo raulsandoval81-maker/SandmanSystem --name athlete-sprint1-functions-46094443807 --dir "$RUNNER_TEMP/sprint1-partial"
+          npm ci --prefix application/functions --ignore-scripts --no-audit --no-fund
+          npm run build --prefix application/functions
+          python3 scripts/staging/athlete-sprint1-release/validate_release_candidate.py --evidence "$RUNNER_TEMP/sprint1-baseline/sprint1-staging-readonly-evidence.json" --source-root application
+          python3 scripts/staging/athlete-sprint1-release/build_callable_package.py --source application --out "$RUNNER_TEMP/sprint1-callables"
+      - name: Authenticate known scoped identity (WIF only; no IAM grants)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-practice-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Download protected Profile transport receipt from this exact run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sprint1-profile-handoff"
+          gh run download "$GITHUB_RUN_ID" --repo raulsandoval81-maker/SandmanSystem --name "sprint1-profile-transport-$GITHUB_RUN_ID" --dir "$RUNNER_TEMP/sprint1-profile-handoff"
+          test -s "$RUNNER_TEMP/sprint1-profile-handoff/athlete-sprint1-resume-evidence.json"
+      - name: Use verified Profile handoff and create Skills Summary exactly once
+        env:
+          SPRINT1_BASELINE_JSON: ${{ runner.temp }}/sprint1-baseline/sprint1-staging-readonly-evidence.json
+          SPRINT1_PARTIAL_RECEIPT_JSON: ${{ runner.temp }}/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json
+          SPRINT1_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+          SPRINT1_PROFILE_RECEIPT_JSON: ${{ runner.temp }}/sprint1-profile-handoff/athlete-sprint1-resume-evidence.json
+        run: python3 scripts/staging/athlete-sprint1-release/guarded_resume.py execute-skills --source "$RUNNER_TEMP/sprint1-callables"
+      - name: Preserve step evidence including partial success on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint1-skills-create-only-${{ github.run_id }}
+          path: athlete-sprint1-resume-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  athlete-sprint1-resume-skills-transport:
+    name: Staging deployer — verify newly created Skills and enable app-auth transport
+    needs: athlete-sprint1-resume-skills-create
+    runs-on: ubuntu-24.04
+    environment: staging
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - name: Require separately approved first-attempt staging-only mutation
+        env:
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          ACTION: ${{ inputs.action }}
+          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "raulsandoval81-maker/SandmanSystem"
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_WORKFLOW_REF" = "raulsandoval81-maker/SandmanSystem/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
+          test "$ACTION" = athlete-sprint1-staging-resume
+          test "$CONFIRM_PROJECT" = sandman-combat-staging
+          test "$SPRINT1_APPROVAL" = APPROVE_SPRINT1_PARTIAL_RESUME_STAGING_ONLY
+          test "$SPRINT1_TRANSPORT_APPROVAL" = APPROVE_STAGING_APPLICATION_AUTH_TRANSPORT
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download original protected baseline, run #469 receipt and same-run Skills creation proof
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sprint1-baseline" "$RUNNER_TEMP/sprint1-partial" "$RUNNER_TEMP/sprint1-skills-handoff"
+          gh run download 46086011747 --repo raulsandoval81-maker/SandmanSystem --name sprint1-staging-readonly-46086011747 --dir "$RUNNER_TEMP/sprint1-baseline"
+          gh run download 46094443807 --repo raulsandoval81-maker/SandmanSystem --name athlete-sprint1-functions-46094443807 --dir "$RUNNER_TEMP/sprint1-partial"
+          gh run download "$GITHUB_RUN_ID" --repo raulsandoval81-maker/SandmanSystem --name "sprint1-skills-create-only-$GITHUB_RUN_ID" --dir "$RUNNER_TEMP/sprint1-skills-handoff"
+          test -s "$RUNNER_TEMP/sprint1-skills-handoff/athlete-sprint1-resume-evidence.json"
+      - name: Authenticate known scoped identity (WIF only; no IAM grants)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: sandman-combat-staging
+          workload_identity_provider: projects/991554514268/locations/global/workloadIdentityPools/sandman-github-staging/providers/sandman-hybrid-staging
+          service_account: sandman-staging-deployer@sandman-combat-staging.iam.gserviceaccount.com
+          create_credentials_file: true
+          export_environment_variables: true
+      - uses: google-github-actions/setup-gcloud@v3
+      - name: Validate new Skills provenance, allow app-auth transport, deny anonymous access
+        env:
+          SPRINT1_BASELINE_JSON: ${{ runner.temp }}/sprint1-baseline/sprint1-staging-readonly-evidence.json
+          SPRINT1_PARTIAL_RECEIPT_JSON: ${{ runner.temp }}/sprint1-partial/athlete-sprint1-functions-deploy-evidence.json
+          SPRINT1_ACTION: ${{ inputs.action }}
+          CONFIRM_PROJECT: ${{ inputs.confirm_project }}
+          SPRINT1_APPROVAL: ${{ inputs.protected_2c_deployment_approval }}
+          SPRINT1_TRANSPORT_APPROVAL: ${{ inputs.confirm_public_invocation }}
+          SPRINT1_SKILLS_RECEIPT_JSON: ${{ runner.temp }}/sprint1-skills-handoff/athlete-sprint1-resume-evidence.json
+        run: python3 scripts/staging/athlete-sprint1-release/guarded_resume.py execute-transport
+      - name: Preserve step evidence including partial success on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sprint1-skills-transport-${{ github.run_id }}
           path: athlete-sprint1-resume-evidence.json
           if-no-files-found: warn
           retention-days: 30
 
   athlete-sprint1-resume-rules-hosting:
     name: Reviewed additive Rules and exact 18-asset staging Hosting overlay
-    needs: athlete-sprint1-resume-functions
+    needs: athlete-sprint1-resume-skills-transport
     runs-on: ubuntu-24.04
     environment: staging
     timeout-minutes: 30
