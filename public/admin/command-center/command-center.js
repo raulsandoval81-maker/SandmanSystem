@@ -96,8 +96,8 @@ function filteredProjects() {
 
 function renderCounters() {
   const values = {
-    countActive: state.projects.filter((item) => !["final_acceptance", "archived"].includes(item.lifecycleStatus)).length,
-    countRecovery: state.projects.filter((item) => ["blocked", "failed", "paused"].includes(item.workState)).length,
+    countActive: state.projects.filter((item) => item.lifecycleStatus && !["final_acceptance", "archived"].includes(item.lifecycleStatus)).length,
+    countRecovery: state.projects.filter((item) => !item.lifecycleStatus || ["blocked", "failed", "paused"].includes(item.workState)).length,
     countDecisions: state.projects.reduce((sum, item) => sum + (item.approvals || []).filter((approval) => approval.status === "pending").length, 0),
     countComplete: state.projects.filter((item) => ["final_acceptance", "archived"].includes(item.lifecycleStatus)).length,
   };
@@ -108,7 +108,7 @@ function renderHistory(project) {
   const list = document.createElement("ol"); list.className = "cc-history";
   for (const entry of project.history || []) {
     const item = document.createElement("li");
-    item.append(text("strong", `${LIFECYCLE_LABELS[entry.fromStatus] || "New"} → ${LIFECYCLE_LABELS[entry.toStatus] || entry.toStatus}`));
+    item.append(text("strong", `${LIFECYCLE_LABELS[entry.fromStatus] || entry.fromStatus || "New"} → ${LIFECYCLE_LABELS[entry.toStatus] || entry.toStatus}`));
     item.append(text("span", `${entry.action} · ${entry.workState || "active"} · ${formatDate(entry.at)} · ${entry.evidenceCount || 0} evidence item(s)`));
     list.append(item);
   }
@@ -141,6 +141,7 @@ function renderHierarchy(project) {
 }
 
 function openEditor(project = null) {
+  if (project && !project.lifecycleStatus) return;
   state.editingId = project?.id || ""; el("editorTitle").textContent = project ? "Edit project" : "Create project";
   const values = {
     title: project?.title, productId: project?.productId, summary: project?.summary, projectOwner: project?.projectOwner,
@@ -152,6 +153,7 @@ function openEditor(project = null) {
   el("division").value = project?.division || "sandman_academy";
   el("module").value = project?.module || "projects_roadmaps";
   el("workType").value = project?.workType || "engineering";
+  el("workType").disabled = Boolean(project);
   el("lifecycleStatus").value = project?.lifecycleStatus === "archived" ? "final_acceptance" : (project?.lifecycleStatus || "backlog");
   el("workState").value = project?.workState || "active"; el("priority").value = project?.priority || "medium";
   el("environment").value = project?.environment || "not_applicable";
@@ -167,8 +169,9 @@ function renderProjects() {
     const card = document.createElement("article"); card.className = "cc-project";
     const head = document.createElement("div"); head.className = "cc-project__head";
     const titleWrap = document.createElement("div");
-    titleWrap.append(text("p", `${DIVISION_LABELS[project.division] || project.division} · ${project.priority}`, "admin-card__label"), text("h3", project.title));
-    head.append(titleWrap, text("span", `${LIFECYCLE_LABELS[project.lifecycleStatus] || project.lifecycleStatus} · ${project.workState}`, `cc-status cc-status--${project.workState}`));
+    const legacy = !project.lifecycleStatus;
+    titleWrap.append(text("p", `${DIVISION_LABELS[project.division] || project.division || "Unclassified"} · ${project.priority}`, "admin-card__label"), text("h3", project.title));
+    head.append(titleWrap, text("span", legacy ? `Legacy · ${project.status || "Unknown"}` : `${LIFECYCLE_LABELS[project.lifecycleStatus] || project.lifecycleStatus} · ${project.workState}`, `cc-status cc-status--${legacy ? "blocked" : project.workState}`));
     card.append(head, text("p", project.summary || "No summary recorded.", "cc-project__summary"));
     const facts = document.createElement("dl"); facts.className = "cc-facts";
     [["Module", MODULE_LABELS[project.module] || project.module], ["Registry product", project.productId || "Portfolio-only record"], ["Owner", project.projectOwner], ["Team", (project.teamAssignments || []).join(", ") || "Unassigned"],
@@ -181,6 +184,17 @@ function renderProjects() {
     const decisions = document.createElement("details"); decisions.append(text("summary", `Approvals & decisions (${project.approvals?.length || 0})`));
     const approvalList = document.createElement("ul"); (project.approvals || []).forEach((approval) => approvalList.append(text("li", `${approval.status.toUpperCase()} · ${approval.decision} · ${approval.owner}`))); decisions.append(approvalList); card.append(decisions);
     const audit = document.createElement("details"); audit.append(text("summary", "Auditable status history"), renderHistory(project)); card.append(audit);
+    if (legacy) {
+      const legacyEvidence = document.createElement("ul");
+      for (const entry of project.testEvidence || []) {
+        const item = text("li", `${entry.result} · ${entry.type} · ${entry.label}`);
+        if (entry.url && /^https:\/\//i.test(entry.url)) { const link = text("a", " View evidence"); link.href = entry.url; link.target = "_blank"; link.rel = "noopener noreferrer"; item.append(link); }
+        legacyEvidence.append(item);
+      }
+      const details = document.createElement("details"); details.append(text("summary", "Original evidence (read-only)"), legacyEvidence); card.append(details);
+      card.append(text("p", "Legacy record preserved. Reconciliation required before editing or archival.", "admin-status"));
+      container.append(card); return;
+    }
     const actions = document.createElement("div"); actions.className = "admin-actions";
     const edit = text("button", "Edit", "admin-button"); edit.type = "button"; edit.addEventListener("click", () => openEditor(project)); actions.append(edit);
     if (project.lifecycleStatus === "final_acceptance") { const archive = text("button", "Archive accepted work", "admin-button"); archive.type = "button"; archive.addEventListener("click", async () => { if (confirm(`Archive ${project.title}?`)) { await archiveProject(project.id); await refresh("Project archived."); } }); actions.append(archive); }
@@ -189,7 +203,9 @@ function renderProjects() {
 }
 
 async function refresh(message = "") {
-  const snapshot = await loadCommandCenter(); state.projects = snapshot.projects || []; renderCounters(); renderProjects();
+  const snapshot = await loadCommandCenter(); state.projects = snapshot.projects || [];
+  state.reconciliation = Array.isArray(snapshot.reconciliation?.items) ? snapshot.reconciliation.items : [];
+  renderCounters(); renderProjects(); renderReconciliation();
   el("commandStatus").textContent = message || "Owner access verified. Persistent registers loaded."; el("commandStatus").className = "admin-status is-verified";
 }
 
@@ -207,16 +223,8 @@ function renderReconciliation() {
   if (!state.reconciliation.length) container.append(text("p", "No reconciliation inventory was published.", "admin-status"));
 }
 
-async function loadReconciliation() {
-  const response = await fetch("/admin/command-center/reconciliation-inventory.v1.json", { cache: "no-store" });
-  if (!response.ok) throw new Error("Reconciliation inventory could not be loaded.");
-  const payload = await response.json();
-  state.reconciliation = Array.isArray(payload.items) ? payload.items : [];
-  renderReconciliation();
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
-  try { await requireCommandCenterOwner(); el("adminShell").hidden = false; await Promise.all([refresh(), loadReconciliation()]); }
+  try { await requireCommandCenterOwner(); el("adminShell").hidden = false; await refresh(); }
   catch (error) { el("accessDenied").hidden = false; el("accessDeniedMessage").textContent = error?.message || "Command Center access denied."; return; }
   el("newProject").addEventListener("click", () => openEditor());
   el("cancelEdit").addEventListener("click", () => { el("projectEditor").hidden = true; state.editingId = ""; });
