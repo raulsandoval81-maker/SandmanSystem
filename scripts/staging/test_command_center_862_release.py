@@ -44,4 +44,45 @@ class ReleaseTests(TestCase):
         source=inspect.getsource(cc.create_functions)
         self.assertLess(source.index("approved_evidence()"),source.index("inventory(t)"))
         self.assertLess(source.index("inventory(t)"),source.index("generateUploadUrl"))
+    def upload_fixture(self):
+        return {"uploadUrl":"https://storage.googleapis.com/example-bucket/source.zip?X-Goog-Signature=synthetic",
+                "storageSource":{"bucket":"example-bucket","object":"source.zip"}}
+    def test_gen2_upload_has_exact_headers_and_no_credentials(self):
+        upload=self.upload_fixture()
+        with patch.object(cc.urllib.request,"urlopen") as open_url:
+            open_url.return_value.__enter__.return_value.status=200
+            self.assertEqual(cc.upload_gen2_source(upload,b"PK-example"),upload["storageSource"])
+            open_url.assert_called_once()
+            req=open_url.call_args.args[0]
+            self.assertEqual(req.get_method(),"PUT")
+            self.assertEqual(req.full_url,upload["uploadUrl"])
+            self.assertEqual(req.data,b"PK-example")
+            self.assertEqual(dict(req.header_items()),{"Content-type":"application/zip"})
+            self.assertEqual(open_url.call_args.kwargs,{"timeout":120})
+    def test_invalid_signed_url_and_storage_source_fail_closed(self):
+        cases=[{"uploadUrl":"http://storage.googleapis.com/b/o","storageSource":{"bucket":"b","object":"o"}},
+               {"uploadUrl":"https://storage.googleapis.com.example.invalid/b/o","storageSource":{"bucket":"b","object":"o"}},
+               {"uploadUrl":"https://user@storage.googleapis.com/b/o","storageSource":{"bucket":"b","object":"o"}},
+               {"uploadUrl":"https://storage.googleapis.com/b/o","storageSource":{"bucket":"b"}},
+               {"storageSource":{"bucket":"b","object":"o"}}]
+        with patch.object(cc.urllib.request,"urlopen") as open_url:
+            for case in cases:
+                with self.subTest(case=case),self.assertRaises(RuntimeError):
+                    cc.upload_gen2_source(case,b"PK-example")
+            with self.assertRaises(RuntimeError):
+                cc.upload_gen2_source(self.upload_fixture(),b"")
+            open_url.assert_not_called()
+    def test_upload_403_is_redacted_and_never_retried(self):
+        upload=self.upload_fixture()
+        error=cc.urllib.error.HTTPError(upload["uploadUrl"],403,"Forbidden",None,None)
+        with patch.object(cc.urllib.request,"urlopen",side_effect=error) as open_url:
+            with self.assertRaisesRegex(RuntimeError,"HTTP 403.*STOP_NO_RETRY") as caught:
+                cc.upload_gen2_source(upload,b"PK-example")
+            self.assertNotIn("synthetic",str(caught.exception))
+            open_url.assert_called_once()
+    def test_create_uses_validated_storage_source_after_upload(self):
+        source=inspect.getsource(cc.create_functions)
+        self.assertLess(source.index("storage=upload_gen2_source"),source.index('"functionId":name'))
+        self.assertIn('"storageSource":storage',source)
+        self.assertNotIn("x-goog-content-length-range",source)
 if __name__=="__main__": main()
