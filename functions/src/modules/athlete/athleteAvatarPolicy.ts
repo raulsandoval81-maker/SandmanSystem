@@ -34,7 +34,7 @@ export function avatarRequiresGuardian(athlete: Record<string, any>, athleteId: 
   // Only a server-held, valid ISO birth date can establish an adult exception.
   // Missing, malformed and underage records fail closed to guardian approval.
   const dob = athlete.dateOfBirth || athlete.birthDate || athlete.dob;
-  if (typeof dob !== "string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(dob)) return true;
+  if (typeof dob !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return true;
   const date = new Date(dob + "T00:00:00Z");
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== dob) return true;
   const now = new Date();
