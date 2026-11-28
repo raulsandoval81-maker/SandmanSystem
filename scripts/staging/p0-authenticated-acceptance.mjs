@@ -15,6 +15,7 @@ const roles = {
 const checks = [];
 let current = "fixture configuration";
 let browser;
+const sprint1Acceptance = process.env.P0_SPRINT1_CHECKS === "true";
 const athleteOnly = process.env.P0_ATHLETE_DIAGNOSTIC === "true";
 const ownershipClassificationOnly = process.env.P0_OWNERSHIP_CLASSIFICATION === "true";
 const dependencyDiagnosticOnly = process.env.P0_DEPENDENCY_DIAGNOSTIC === "true";
@@ -145,6 +146,38 @@ async function request(url, token, scheme = "Bearer") {
     signal: AbortSignal.timeout(12000),
     headers: token ? { Authorization: `${scheme} ${token}` } : {},
   });
+}
+
+async function assertSprint1Callable(name, token, athleteId, allowedRole) {
+  requireCheck(["getAthleteProfileFeed", "getAthleteSkillsSummary"].includes(name));
+  const payload = name === "getAthleteProfileFeed"
+    ? { athleteId, authorizeOnly: true }
+    : { athleteId, discipline: "wrestling" };
+  const response = await fetch(
+    `https://us-central1-${project}.cloudfunctions.net/${name}`, {
+      method: "POST",
+      redirect: "error",
+      signal: AbortSignal.timeout(20000),
+      headers: {
+        "Content-Type": "application/json",
+        Origin: origin,
+        ...(token ? { Authorization: "Bearer " + token } : {}),
+      },
+      body: JSON.stringify({ data: payload }),
+    },
+  );
+  const body = await response.json();
+  if (allowedRole) {
+    requireCheck(response.status === 200);
+    const result = body.result;
+    requireCheck(result?.athleteId === athleteId);
+    if (name === "getAthleteProfileFeed") requireCheck(result.authorized === true);
+    else requireCheck(result.ok === true && result.discipline === "wrestling"
+      && Array.isArray(result.skills));
+  } else {
+    requireCheck(response.status === (token ? 403 : 401));
+    requireCheck(body.error?.status === (token ? "PERMISSION_DENIED" : "UNAUTHENTICATED"));
+  }
 }
 
 async function readDocument(path, token) {
@@ -509,6 +542,21 @@ async function run() {
   await allowed(own, tokens.management);
   await allowed(other, tokens.admin);
   passed(current);
+
+  if (sprint1Acceptance) {
+    current = "Sprint 1 protected Profile and Skills callables — synthetic authenticated roles";
+    for (const name of ["getAthleteProfileFeed", "getAthleteSkillsSummary"]) {
+      for (const role of ["athlete", "parent", "coach", "management", "admin"]) {
+        await assertSprint1Callable(name, tokens[role], fixtures.ownAthlete, true);
+      }
+      await assertSprint1Callable(name, tokens.admin, fixtures.otherAthlete, true);
+      for (const role of ["athlete", "parent", "coach", "management"]) {
+        await assertSprint1Callable(name, tokens[role], fixtures.otherAthlete, false);
+      }
+      await assertSprint1Callable(name, null, fixtures.ownAthlete, false);
+    }
+    passed(current);
+  }
 
   current = "linked parent and cross-family denial";
   await allowed(own, tokens.parent);
