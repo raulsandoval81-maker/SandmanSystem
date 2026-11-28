@@ -18,11 +18,12 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = "sandman-combat-staging"
 REPO = "raulsandoval81-maker/SandmanSystem"
-MERGED_SHA = "c7f6181915a0c4ae351f3db88cf99e70dbc4135a"
+MERGED_SHA = "23b910d9c1a2d7ddf6c829be505725a4d16862b6"
 WORKFLOW_REF = REPO + "/.github/workflows/staging-exact-sha-release.yml@refs/heads/main"
 ACTION = "command-center-862-readonly-preflight"
 OUT = Path("command-center-862-readonly-evidence.json")
 FUNCTIONS = ("getCommandCenterSnapshot", "saveCommandCenterProject", "archiveCommandCenterProject")
+PRIVATE_INVENTORY_PATH = "/admin/command-center/reconciliation-inventory.v1.json"
 HOSTING = (
     "/admin/command-center/command-center.css",
     "/admin/command-center/command-center.js",
@@ -79,7 +80,9 @@ def guard():
 def source():
     require(subprocess.run(["git", "-C", str(ROOT), "merge-base", "--is-ancestor",
                             MERGED_SHA, "HEAD"], check=False).returncode == 0,
-            "Reviewed #862 merge no longer an ancestor")
+            "Reviewed #870 merge no longer an ancestor")
+    require(not (ROOT / ("public" + PRIVATE_INVENTORY_PATH)).exists(),
+            "Confidential inventory must not be a public Hosting asset")
     fingerprints = {}
     for p in CHANGED:
         reviewed = git("show", MERGED_SHA + ":" + p)
@@ -168,6 +171,8 @@ def live_state(t, base, source_hashes):
     current = {item["path"]: item["hash"] for item in all_files}
     require(len(current) == live["hosting"]["fileCount"],
             "Unexpected Hosting manifest count")
+    require(PRIVATE_INVENTORY_PATH not in current,
+            "Confidential inventory unexpectedly exists in live Hosting")
     changed = {p: {"existingHash": current.get(p),
                    "reviewedSha256": source_hashes["public" + p]}
                for p in HOSTING}

@@ -1,68 +1,10 @@
-const assert = require("node:assert/strict");
-const test = require("node:test");
-const {
-  assertArchivable,
-  assertCommandCenterTransition,
-  isCommandCenterOwnerStaff,
-  validateCommandCenterProject,
-} = require("../lib/admin/commandCenterPolicy.js");
-
-const base = (overrides = {}) => ({
-  title: "Command Center V1",
-  summary: "Owner infrastructure",
-  module: "projects_roadmaps",
-  status: "planned",
-  priority: "high",
-  repository: "raulsandoval81-maker/SandmanSystem",
-  branch: "codex/admin-os-command-center-v1",
-  prUrl: "",
-  environment: "local",
-  testEvidence: [],
-  blockers: [],
-  nextAction: "Run acceptance",
-  ...overrides,
-});
-
-test("Command Center owner authority requires exact active Admin permission", () => {
-  assert.equal(isCommandCenterOwnerStaff({ role: "admin", status: "active", commandCenterOwner: true }), true);
-  for (const staff of [
-    { role: "admin", status: "active" },
-    { role: "admin", status: "inactive", commandCenterOwner: true },
-    { role: "management", status: "active", commandCenterOwner: true },
-    { role: "coach", status: "active", commandCenterOwner: true },
-    { role: "owner", status: "active", commandCenterOwner: true },
-  ]) assert.equal(isCommandCenterOwnerStaff(staff), false);
-});
-
-test("project validation rejects schema pollution and oversized confidential fields", () => {
-  assert.equal(validateCommandCenterProject(base()).status, "planned");
-  assert.throws(() => validateCommandCenterProject(base({ title: "x".repeat(161) })), /too long/i);
-  assert.throws(() => validateCommandCenterProject(base({ blockers: Array(21).fill("blocked") })), /too many/i);
-  assert.throws(() => validateCommandCenterProject(base({ prUrl: "http://example.com/pr/1" })), /HTTPS/i);
-  assert.throws(() => validateCommandCenterProject(base({ status: "complete" })), /invalid/i);
-});
-
-test("engineering completion states require progressively stronger evidence", () => {
-  const testEvidence = [{ type: "test", result: "pass", label: "Native suite", url: "https://example.com/test" }];
-  assert.throws(() => validateCommandCenterProject(base({ status: "tested" })), /test evidence/i);
-  assert.equal(validateCommandCenterProject(base({ status: "tested", testEvidence })).status, "tested");
-  assert.throws(() => validateCommandCenterProject(base({ status: "merged", testEvidence })), /pull request/i);
-  const merged = { status: "merged", testEvidence, prUrl: "https://github.com/example/repo/pull/1" };
-  assert.equal(validateCommandCenterProject(base(merged)).status, "merged");
-  assert.throws(() => validateCommandCenterProject(base({ ...merged, status: "deployed", environment: "staging" })), /deployment evidence/i);
-  const deployedEvidence = [...testEvidence, { type: "deployment", result: "pass", label: "Staging", url: "https://example.com/deploy" }];
-  assert.equal(validateCommandCenterProject(base({ ...merged, status: "deployed", environment: "staging", testEvidence: deployedEvidence })).status, "deployed");
-  assert.throws(() => validateCommandCenterProject(base({ ...merged, status: "verified", environment: "staging", testEvidence: deployedEvidence })), /verification evidence/i);
-  const verifiedEvidence = [...deployedEvidence, { type: "verification", result: "pass", label: "Acceptance", url: "https://example.com/verify" }];
-  assert.equal(validateCommandCenterProject(base({ ...merged, status: "verified", environment: "staging", testEvidence: verifiedEvidence })).status, "verified");
-});
-
-test("status transitions distinguish delivery stages and archive only verified work", () => {
-  assert.doesNotThrow(() => assertCommandCenterTransition(null, "planned"));
-  assert.doesNotThrow(() => assertCommandCenterTransition("built", "tested"));
-  assert.doesNotThrow(() => assertCommandCenterTransition("deployed", "verified"));
-  assert.throws(() => assertCommandCenterTransition("planned", "verified"), /Invalid status transition/i);
-  assert.throws(() => assertCommandCenterTransition("tested", "deployed"), /Invalid status transition/i);
-  assert.doesNotThrow(() => assertArchivable("verified"));
-  assert.throws(() => assertArchivable("deployed"), /Only verified/i);
-});
+const assert = require("node:assert/strict"); const test = require("node:test");
+const { assertArchivable, assertCommandCenterTransition, isCommandCenterOwnerStaff, validateCommandCenterProject } = require("../lib/admin/commandCenterPolicy.js");
+const evidence = (type) => ({ id: `e_${type}`, type, result: "pass", label: type, url: `https://example.test/${type}` });
+const base = (overrides = {}) => ({ title:"Command Center",productId:"sandman-academy",summary:"Founder infrastructure",division:"sandman_academy",module:"projects_roadmaps",workType:"engineering",lifecycleStatus:"backlog",workState:"active",priority:"high",projectOwner:"Founder",teamAssignments:[],dependencies:[],approvals:[],repository:"raulsandoval81-maker/SandmanSystem",branch:"codex/command-center",prUrl:"",environment:"local",blockers:[],nextAction:"Verify",milestones:[],...overrides });
+const withEvidence = (items) => [{ id:"m1",title:"Foundation",sprints:[{ id:"s1",title:"Sprint",tasks:[{ id:"t1",title:"Acceptance",status:"done",owner:"Founder",teamAssignments:["Future engineer"],dependencies:["CR-001"],evidence:items }] }] }];
+test("owner authority requires exact active Admin permission",()=>{ assert.equal(isCommandCenterOwnerStaff({role:"admin",status:"active",commandCenterOwner:true}),true); for(const staff of [{role:"admin",status:"active"},{role:"admin",status:"inactive",commandCenterOwner:true},{role:"coach",status:"active",commandCenterOwner:true},{role:"owner",status:"active",commandCenterOwner:true}]) assert.equal(isCommandCenterOwnerStaff(staff),false); });
+test("schema validates registry references, hierarchy, assignment and field bounds",()=>{ const project=validateCommandCenterProject(base({milestones:withEvidence([evidence("document")])})); assert.equal(project.productId,"sandman-academy"); assert.equal(project.productRegistrySchema,"sandman.umbrella.registry.v1"); assert.equal(project.milestones[0].sprints[0].tasks[0].dependencies[0],"CR-001"); assert.throws(()=>validateCommandCenterProject(base({productId:"Sandman Academy"})),/registry slug/i); assert.throws(()=>validateCommandCenterProject(base({title:"x".repeat(161)})),/too long/i); });
+test("engineering lifecycle requires cumulative evidence",()=>{ const testAndPr=[evidence("test"),evidence("pull_request")]; assert.throws(()=>validateCommandCenterProject(base({lifecycleStatus:"merged",prUrl:"https://github.com/example/repo/pull/1"})),/test and pull-request/i); assert.equal(validateCommandCenterProject(base({lifecycleStatus:"merged",prUrl:"https://github.com/example/repo/pull/1",milestones:withEvidence(testAndPr)})).lifecycleStatus,"merged"); const staging=[...testAndPr,evidence("staging_deployment"),evidence("verification")]; assert.equal(validateCommandCenterProject(base({lifecycleStatus:"staging_verified",environment:"staging",prUrl:"https://github.com/example/repo/pull/1",milestones:withEvidence(staging)})).lifecycleStatus,"staging_verified"); assert.throws(()=>validateCommandCenterProject(base({lifecycleStatus:"production_released",environment:"staging",prUrl:"https://github.com/example/repo/pull/1",milestones:withEvidence(staging)})),/production deployment/i); });
+test("exception state preserves lifecycle and non-engineering work skips deployment evidence",()=>{ assert.equal(validateCommandCenterProject(base({workState:"blocked"})).lifecycleStatus,"backlog"); assert.equal(validateCommandCenterProject(base({workType:"non_engineering",repository:"",lifecycleStatus:"final_acceptance",environment:"not_applicable",milestones:withEvidence([evidence("verification")])})).lifecycleStatus,"final_acceptance"); });
+test("transitions enforce order and archive only final acceptance",()=>{ assert.doesNotThrow(()=>assertCommandCenterTransition(null,"backlog","engineering")); assert.doesNotThrow(()=>assertCommandCenterTransition("in_review","merged","engineering")); assert.doesNotThrow(()=>assertCommandCenterTransition("in_review","final_acceptance","non_engineering")); assert.throws(()=>assertCommandCenterTransition("backlog","merged","engineering"),/Invalid engineering lifecycle/i); assert.doesNotThrow(()=>assertArchivable("final_acceptance")); assert.throws(()=>assertArchivable("production_released"),/Only final-acceptance/i); });

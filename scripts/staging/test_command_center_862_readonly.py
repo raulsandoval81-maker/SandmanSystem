@@ -40,7 +40,8 @@ class CommandCenterReadOnlyTests(TestCase):
         self.assertEqual(len(set(cc.CHANGED)), 15)
         self.assertEqual(len(cc.HOSTING), 7)
         self.assertEqual(len(cc.FUNCTIONS), 3)
-        self.assertEqual(cc.MERGED_SHA, "c7f6181915a0c4ae351f3db88cf99e70dbc4135a")
+        self.assertEqual(cc.MERGED_SHA, "23b910d9c1a2d7ddf6c829be505725a4d16862b6")
+        self.assertFalse((ROOT / ("public" + cc.PRIVATE_INVENTORY_PATH)).exists())
         reviewed = cc.source()
         self.assertEqual(len(reviewed), 15)
 

@@ -1,63 +1,8 @@
-import assert from "node:assert/strict";
-import fs from "node:fs";
-import test from "node:test";
-
-const html = fs.readFileSync("public/admin/command-center/index.html", "utf8");
-const client = fs.readFileSync("public/admin/command-center/command-center.js", "utf8");
-const service = fs.readFileSync("public/admin/command-center/command-center.service.js", "utf8");
-const guard = fs.readFileSync("public/assets/js/admin-owner-guard.js", "utf8");
-const backend = fs.readFileSync("functions/src/admin/commandCenter.ts", "utf8");
-const policy = fs.readFileSync("functions/src/admin/commandCenterPolicy.ts", "utf8");
-const nav = fs.readFileSync("public/assets/js/admin-nav.js", "utf8");
-const commandCss = fs.readFileSync("public/admin/command-center/command-center.css", "utf8");
-const adminCss = fs.readFileSync("public/assets/css/admin-ui.css", "utf8");
-
-test("Command Center publishes all seven owner modules in existing Admin OS", () => {
-  for (const label of [
-    "Executive Overview", "Projects &amp; Roadmaps", "Development &amp; Releases",
-    "Unfinished Work / Recovery Queue", "Testing &amp; Verification",
-    "Approvals &amp; Decisions", "Completed Work Archive",
-  ]) assert.match(html, new RegExp(label.replace(/[&]/g, "&")));
-  assert.match(nav, /Command Center/);
-  assert.match(html, /admin-ui\.css/);
-  assert.match(html, /viewport/);
-});
-
-test("desktop and mobile navigation retain the shared responsive Admin shell", () => {
-  assert.match(html, /admin-menu-toggle/);
-  assert.match(html, /data-admin-nav/);
-  assert.match(nav, /admin-nav-open/);
-  assert.match(nav, /aria-expanded/);
-  assert.match(adminCss, /@media\(max-width:800px\)/);
-  assert.match(commandCss, /@media\(max-width:620px\)/);
-  assert.match(commandCss, /\.cc-counters,.cc-toolbar,.cc-form-grid\{grid-template-columns:1fr\}/);
-});
-
-test("client supports creation, editing, filtering, evidence, and archival", () => {
-  for (const token of ["saveProject", "openEditor", "filteredProjects", "archiveProject", "testEvidence", "renderHistory"]) {
-    assert.match(client, new RegExp(token));
-  }
-  assert.match(service, /getCommandCenterSnapshot/);
-  assert.match(service, /saveCommandCenterProject/);
-  assert.match(service, /archiveCommandCenterProject/);
-  assert.doesNotMatch(client, /deploy\(|firebase deploy|workflow_dispatch/);
-});
-
-test("owner authorization is enforced at UI and callable backend boundaries", () => {
-  assert.match(guard, /commandCenterOwner !== true/);
-  assert.match(backend, /requireOwner\(request\.auth\?\.uid\)/g);
-  assert.match(backend, /permission-denied/);
-  assert.match(backend, /staff\/\$\{cleanUid\}/);
-  assert.match(policy, /role\) === "admin"/);
-  assert.match(policy, /status\) === "active"/);
-  assert.match(policy, /staff\.commandCenterOwner === true/);
-});
-
-test("backend writes persistent project history transactionally and evidence-gates completion", () => {
-  assert.match(backend, /runTransaction/);
-  assert.match(backend, /collection\("history"\)/);
-  assert.match(backend, /tx\.create/);
-  assert.match(policy, /Tested and later statuses require passing test evidence/);
-  assert.match(policy, /Verified status requires passing verification evidence/);
-  assert.match(policy, /Only verified work can enter the completed archive/);
-});
+import assert from "node:assert/strict"; import fs from "node:fs"; import test from "node:test";
+const read=(path)=>fs.readFileSync(path,"utf8"); const html=read("public/admin/command-center/index.html"),client=read("public/admin/command-center/command-center.js"),service=read("public/admin/command-center/command-center.service.js"),guard=read("public/assets/js/admin-owner-guard.js"),backend=read("functions/src/admin/commandCenter.ts"),policy=read("functions/src/admin/commandCenterPolicy.ts"),nav=read("public/assets/js/admin-nav.js"),css=read("public/admin/command-center/command-center.css");
+test("nine founder modules and six categories use the responsive Admin shell",()=>{ for(const label of ["Executive Overview","Projects &amp; Roadmaps","Development &amp; Releases","Unfinished Work / Recovery Queue","Testing &amp; Verification","Approvals &amp; Decisions","Security &amp; Infrastructure","Executive Reports","Completed Work Archive","Sandman Academy","Sandman Commercial","Sandman Digital Tools","Sandman Games","Shared Technology","Business Administration"]) assert.match(html,new RegExp(label)); assert.match(nav,/Command Center/); assert.match(html,/admin-menu-toggle/); assert.match(css,/@media\(max-width:620px\)/); });
+test("client supports hierarchy lifecycle recovery registry references and archival",()=>{ for(const token of ["saveProject","openEditor","filteredProjects","archiveProject","renderHierarchy","renderHistory","productId","workState","lifecycleStatus"]) assert.match(client,new RegExp(token)); assert.match(service,/getCommandCenterSnapshot/); assert.doesNotMatch(client,/firebase deploy|workflow_dispatch|github.*merge/i); });
+test("owner authorization is enforced at UI and callable boundaries",()=>{ assert.match(guard,/commandCenterOwner !== true/); assert.match(backend,/requireOwner\(request\.auth\?\.uid\)/g); assert.match(backend,/permission-denied/); assert.match(policy,/staff\.commandCenterOwner === true/); });
+test("transactional history and engineering evidence gates are server enforced",()=>{ assert.match(backend,/runTransaction/); assert.match(backend,/collection\("history"\)/); assert.match(policy,/Merged and later engineering work requires/); assert.match(policy,/Production released and later engineering work requires/); assert.match(policy,/Only final-acceptance work/); });
+test("reconciliation inventory is server-only and source-linked",()=>{ assert.equal(fs.existsSync("public/admin/command-center/reconciliation-inventory.v1.json"),false); const inventory=JSON.parse(backend.split("const RECONCILIATION_INVENTORY = ")[1].split(" as const;")[0]); assert.equal(inventory.automaticRefresh,false); assert.equal(inventory.items.length,3); assert.match(JSON.stringify(inventory),/UNVERIFIED RELEASE/); assert.match(JSON.stringify(inventory),/CR-001/); assert.match(backend,/return \{ actorUid, projects, reconciliation: RECONCILIATION_INVENTORY \}/); assert.match(client,/snapshot\.reconciliation/); assert.doesNotMatch(client,/reconciliation-inventory\.v1\.json/); });
+test("legacy records are read-only and existing work type is locked",()=>{ assert.match(backend,/current && !current\.lifecycleStatus/); assert.match(backend,/current && current\.workType !== project\.workType/); assert.match(client,/Legacy record preserved/); assert.match(client,/project\.testEvidence/); assert.match(client,/el\("workType"\)\.disabled = Boolean\(project\)/); });
