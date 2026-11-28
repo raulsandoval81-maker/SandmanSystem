@@ -71,7 +71,7 @@ class GuardedResumeTests(unittest.TestCase):
                 def __exit__(self, *args):
                     pass
             with patch("urllib.request.urlopen", return_value=Reply()):
-                status = {"baseline": {}, "lastOperation": "before"}
+                status = {"baseline": {}, "lastOperation": "before", "profileHandoffVerified": True}
                 with tempfile.TemporaryDirectory() as d:
                     resume.create_skills("token", Path(d), status)
             create = req.call_args_list[1]
@@ -138,6 +138,78 @@ class GuardedResumeTests(unittest.TestCase):
         self.assertFalse(m["deploymentAuthorized"])
         self.assertEqual(m["sourceSha"], resume.SOURCE_SHA)
         self.assertEqual([i["name"] for i in m["functions"]], [resume.PROFILE, resume.SKILLS])
+
+
+    def test_full_practice_matrix_probes_both_accounts_without_live_snapshot(self):
+        from types import SimpleNamespace
+        with patch.dict(os.environ, self.valid_env(), clear=True), \
+             patch.object(resume, "evidence_inputs", return_value=({}, {})), \
+             patch.object(resume, "token", return_value="token"), \
+             patch.object(resume, "permission_probe", side_effect=[
+                 {"cloudfunctions.functions.create", "cloudfunctions.functions.sourceCodeSet"},
+                 {"iam.serviceAccounts.actAs"}, {"iam.serviceAccounts.actAs"}
+             ]) as probe:
+            result = resume.preflight_practice()
+        self.assertEqual(result["status"], "PASS_PRACTICE_CREATE_ONLY_PERMISSION_PREFLIGHT")
+        self.assertFalse(result["deploymentAuthorized"])
+        self.assertEqual(probe.call_count, 3)
+        self.assertIn(resume.RUNTIME, probe.call_args_list[1].args[1])
+        self.assertIn(resume.BUILDER, probe.call_args_list[2].args[1])
+
+    def test_practice_permissions_fail_complete_without_grants(self):
+        with patch.dict(os.environ, self.valid_env(), clear=True), \
+             patch.object(resume, "evidence_inputs", return_value=({}, {})), \
+             patch.object(resume, "token", return_value="token"), \
+             patch.object(resume, "permission_probe", side_effect=[
+                 {"cloudfunctions.functions.create"}, set(), set()
+             ]) as probe:
+            with self.assertRaisesRegex(RuntimeError, "cloudfunctions.functions.sourceCodeSet.*sandman-billing-runtime.*sandman-practice-build"):
+                resume.preflight_practice()
+        self.assertEqual(probe.call_count, 3)
+
+    def test_create_only_refuses_unverified_handoff(self):
+        with self.assertRaisesRegex(RuntimeError, "Same-run verified staging handoff"):
+            resume.create_skills("token", Path("/not-present"), {"profileHandoffVerified": False})
+
+    def test_cross_job_proof_must_be_same_run_same_project_and_same_sha(self):
+        correct = {
+            "status": "PASS_PROFILE_TRANSPORT",
+            "project": resume.PROJECT,
+            "sourceSha": resume.SOURCE_SHA,
+            "runId": "test-run-471-new",
+            "profileRedeployed": False,
+            "deploymentAuthorized": True,
+        }
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "receipt.json"
+            env = {"GITHUB_RUN_ID": "test-run-471-new",
+                   "SPRINT1_PROFILE_RECEIPT_JSON": str(p)}
+            with patch.dict(os.environ, env, clear=True):
+                p.write_text(json.dumps(correct))
+                self.assertEqual(resume.stage_receipt("SPRINT1_PROFILE_RECEIPT_JSON", "PASS_PROFILE_TRANSPORT"), correct)
+                for field, bad in (
+                    ("status", "STOP_NO_RETRY"), ("project", "sandmandashboard"),
+                    ("sourceSha", "bad"), ("runId", "unrelated-run"),
+                    ("profileRedeployed", True), ("deploymentAuthorized", False)
+                ):
+                    candidate = {**correct, field: bad}
+                    with self.subTest(field=field):
+                        p.write_text(json.dumps(candidate))
+                        with self.assertRaises(RuntimeError):
+                            resume.stage_receipt("SPRINT1_PROFILE_RECEIPT_JSON", "PASS_PROFILE_TRANSPORT")
+
+    def test_transport_role_split_is_source_constrained(self):
+        import inspect
+        stage = inspect.getsource(resume.execute_profile_transport)
+        practice = inspect.getsource(resume.execute_create_skills)
+        finish = inspect.getsource(resume.execute_skills_transport)
+        self.assertNotIn("create_skills(", stage)
+        self.assertNotIn("gcloud", practice)
+        self.assertNotIn("create_skills(", finish)
+        self.assertIn("stage_receipt", practice)
+        self.assertIn("stage_receipt", finish)
+        self.assertIn("preserve_inventory(baseline, t, True)", finish)
+        self.assertIn("verify_unauthenticated_denial", finish)
 
 
 if __name__ == "__main__":
