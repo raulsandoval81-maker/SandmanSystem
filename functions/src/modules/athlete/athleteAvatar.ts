@@ -83,11 +83,15 @@ export const createAthleteAvatarDraft = onCall({ memory: "512MiB", timeoutSecond
   const sourcePath = `${root}/original`;
   const previewPath = `${root}/face.svg`;
   const bucket = getStorage().bucket();
+  // Fail before any Storage or Firestore write if genuine illustration rendering
+  // is not available. Never persist an SVG containing an embedded photo.
+  let svg: string;
+  try { svg = illustratedAvatarSvg(mime, bytes); }
+  catch { throw new HttpsError("failed-precondition", "Secure illustrated avatar rendering is not available yet."); }
   await bucket.file(sourcePath).save(bytes, {
     resumable: false, contentType: mime, validation: "md5",
     metadata: { cacheControl: "private,no-store,max-age=0", metadata: { athleteId, requestId, kind: "private-original" } },
   });
-  const svg = illustratedAvatarSvg(mime, bytes);
   await bucket.file(previewPath).save(Buffer.from(svg), {
     resumable: false, contentType: "image/svg+xml", validation: "md5",
     metadata: { cacheControl: "private,no-store,max-age=0", metadata: { athleteId, requestId, kind: "private-preview", styleVersion: AVATAR_STYLE_VERSION } },
